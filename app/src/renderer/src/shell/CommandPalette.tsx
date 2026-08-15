@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { HotkeyAction } from './hotkeys'
+import { COMMANDS } from './commands'
+import { buildDefaultHotkeys } from './hotkeys'
 import { onPluginContributionsChanged, pluginCommands } from './pluginHost'
 import { rpc } from '../rpc/client'
 
 interface CommandPaletteProps {
-  actions: HotkeyAction[]
   onClose(): void
 }
 
 /**
- * A line in the palette. Novalist's own actions carry a gesture; commands that
- * come from an extension do not, and casting them to a hotkey to get them into
- * the list was how a missing gesture reached the renderer as undefined.
+ * A line in the palette. Novalist's own commands may carry a gesture; ones
+ * that come from an extension do not, and casting them to a hotkey to get them
+ * into the list was how a missing gesture reached the renderer as undefined.
  */
 interface PaletteEntry {
   actionId: string
@@ -48,13 +48,32 @@ function requiresArguments(schema: string): boolean {
   }
 }
 
-export function CommandPalette({ actions, onClose }: CommandPaletteProps): React.JSX.Element {
+export function CommandPalette({ onClose }: CommandPaletteProps): React.JSX.Element {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
   const [index, setIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => inputRef.current?.focus(), [])
+
+  /**
+   * Novalist's own commands, read from the registry rather than from the
+   * hotkey list.
+   *
+   * Built once per opening, because both halves of a line are answered by
+   * asking the app how things stand right now: whether the command can do
+   * anything (a selection to comment on, a scene to snapshot) and which
+   * gesture the writer has bound to it.
+   */
+  const own = useMemo<PaletteEntry[]>(() => {
+    const gestures = new Map(buildDefaultHotkeys().map((a) => [a.actionId, a.gesture]))
+    return COMMANDS.filter((command) => command.available?.() !== false).map((command) => ({
+      actionId: command.id,
+      labelKey: command.labelKey,
+      gesture: gestures.get(command.id) || undefined,
+      run: command.run
+    }))
+  }, [])
 
   // Commands extensions added, alongside Novalist's own. A plugin command that
   // could not be reached from here would be a command nobody could run.
@@ -80,7 +99,7 @@ export function CommandPalette({ actions, onClose }: CommandPaletteProps): React
 
   const all = useMemo<PaletteEntry[]>(
     () => [
-      ...actions,
+      ...own,
       ...plugins.map((command) => ({
         actionId: `${command.extensionId}:${command.id}`,
         labelKey: command.title,
@@ -103,7 +122,7 @@ export function CommandPalette({ actions, onClose }: CommandPaletteProps): React
           }
         }))
     ],
-    [actions, plugins, extensionCommands]
+    [own, plugins, extensionCommands]
   )
 
   const label = (entry: PaletteEntry): string => (entry.literal ? entry.labelKey : t(entry.labelKey))

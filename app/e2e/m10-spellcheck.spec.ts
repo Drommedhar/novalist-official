@@ -3,6 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
+import { enterWriting } from './harness'
 
 /**
  * Offline spell check reaching the prose surface.
@@ -35,6 +36,9 @@ test('the spell-check setting reaches the prose surface', async () => {
     const guid = window.novalistStores.project.getState().chapters[0].guid
     await window.novalistStores.project.getState().createScene(guid, 'Scene One')
   }, workDir)
+
+  // A created project opens on the Dashboard; the binder and editor are Write's.
+  await enterWriting(page)
 
   await page.locator('.binder-scene-row').first().click()
   const editor = page.frameLocator('.editor-frame').locator('#editor')

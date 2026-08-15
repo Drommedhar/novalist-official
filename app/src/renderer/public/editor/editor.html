@@ -755,22 +755,23 @@ body.page-view.typewriter-on #editor { padding-top: 70vh; }
     <div class="gp-dismiss">Dismiss</div>
 </div>
 <div id="context-menu"></div>
+<!-- placement-container: selectionToolbar -->
 <div id="floating-toolbar">
-    <button id="ft-bold" title="Bold (Ctrl+B)"><b>B</b></button>
-    <button id="ft-italic" title="Italic (Ctrl+I)"><i>I</i></button>
-    <button id="ft-underline" title="Underline (Ctrl+U)" style="text-decoration:underline">U</button>
-    <button id="ft-strike" title="Strikethrough" style="text-decoration:line-through">S</button>
-    <button id="ft-highlight" title="Highlight">H</button>
-    <button id="ft-link" title="Link">Link</button>
+    <button id="ft-bold" title="Bold" data-command="text.bold"><b>B</b></button>
+    <button id="ft-italic" title="Italic (Ctrl+I)" data-command="text.italic"><i>I</i></button>
+    <button id="ft-underline" title="Underline (Ctrl+U)" style="text-decoration:underline" data-command="text.underline">U</button>
+    <button id="ft-strike" title="Strikethrough" style="text-decoration:line-through" data-command="text.strikethrough">S</button>
+    <button id="ft-highlight" title="Highlight" data-command="text.highlight">H</button>
+    <button id="ft-link" title="Link" data-command="text.link">Link</button>
     <div class="ft-sep"></div>
-    <button id="ft-align-left" title="Align Left">&#8676;</button>
-    <button id="ft-align-center" title="Center">&#8677;</button>
-    <button id="ft-align-right" title="Align Right">&#8678;</button>
-    <button id="ft-align-justify" title="Justify">&#8801;</button>
-    <div class="ft-sep"></div>
-    <button id="ft-comment" title="Add comment" aria-label="Add comment">Comment</button>
-    <button id="ft-footnote" title="Add footnote" aria-label="Add footnote">Footnote</button>
+    <!-- Alignment used to sit here too. It acts on the paragraph the caret is
+         in, not on what is selected, so a bar that only appears once you have
+         dragged across a word taught that alignment was something you did to
+         selected text. It lives on the editor toolbar, which is always there. -->
+    <button id="ft-comment" title="Add comment" aria-label="Add comment" data-command="text.comment">Comment</button>
+    <button id="ft-footnote" title="Add footnote" aria-label="Add footnote" data-command="text.footnote">Footnote</button>
 </div>
+<!-- placement-container: end -->
 <div id="mention-picker" tabindex="-1"></div>
 <script>
 'use strict';
@@ -2299,7 +2300,11 @@ function peekEntityAtCaret() {
         type: 'entityHover',
         alias: alias,
         x: rect.left + Math.max(1, rect.width / 2),
-        y: rect.bottom
+        y: rect.bottom,
+        // The card is anchored to what it belongs to rather than to a point,
+        // the same as the hover path - so a peek raised from the keyboard or
+        // the menu sits clear of the caret instead of on top of it.
+        rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom }
     });
     return true;
 }
@@ -3423,12 +3428,25 @@ contextMenu.addEventListener('mousedown', (e) => e.preventDefault());
 
 /** Re-selects the range the menu was opened on. False when there was none. */
 function restoreContextMenuSelection() {
-    if (!contextMenuRange) return false;
+    if (!contextMenuRange) {
+        // No captured range means the action was run from the command palette
+        // or a gesture rather than from the menu, and the live selection is the
+        // one the writer means.
+        const live = window.getSelection();
+        return !!(live && live.rangeCount > 0);
+    }
     const sel = window.getSelection();
     if (!sel) return false;
     sel.removeAllRanges();
     sel.addRange(contextMenuRange);
     return true;
+}
+
+/** The passage an action works on: what the menu captured, else what is selected. */
+function contextActionText() {
+    if (contextMenuText) return contextMenuText;
+    const sel = window.getSelection();
+    return sel ? sel.toString() : '';
 }
 let contextMenuLabels = { cut: 'Cut', copy: 'Copy', paste: 'Paste', selectAll: 'Select All' };
 
@@ -3442,10 +3460,6 @@ function setContextMenuLabels(labelsJson) {
             'ft-strike': contextMenuLabels.strikethrough,
             'ft-highlight': contextMenuLabels.highlight,
             'ft-link': contextMenuLabels.link,
-            'ft-align-left': contextMenuLabels.alignLeft,
-            'ft-align-center': contextMenuLabels.alignCenter,
-            'ft-align-right': contextMenuLabels.alignRight,
-            'ft-align-justify': contextMenuLabels.justify,
             'ft-comment': contextMenuLabels.addComment,
             'ft-footnote': contextMenuLabels.addFootnote
         };
@@ -3483,7 +3497,10 @@ function submenu(title, rows, hasSelection) {
         const off = row.needsSelection && !hasSelection ? ' disabled' : '';
         const attr = row.inlineAction
             ? ' data-inline-action="' + escapeAttr(row.inlineAction) + '"'
-            : ' data-action="' + escapeAttr(row.action) + '"';
+            : ' data-action="' + escapeAttr(row.action) + '"'
+                // The registry id this row is the rendering of, so the
+                // placement doctor can see where a command actually lives.
+                + (row.command ? ' data-command="' + escapeAttr(row.command) + '"' : '');
         inner += '<div class="cm-item' + off + '"' + attr + '><span>'
             + escapeHtml(row.label) + '</span></div>';
     }
@@ -3543,25 +3560,37 @@ document.addEventListener('contextmenu', (e) => {
     html += '<div class="cm-item" data-action="paste"><span>' + escapeHtml(contextMenuLabels.paste || 'Paste') + '</span><span class="cm-shortcut">Ctrl+V</span></div>';
     html += '<div class="cm-separator"></div>';
     html += '<div class="cm-item" data-action="selectAll"><span>' + escapeHtml(contextMenuLabels.selectAll || 'Select All') + '</span><span class="cm-shortcut">Ctrl+A</span></div>';
-    html += '<div class="cm-separator"></div>';
-    html += '<div class="cm-item' + disabledAttr + '" data-action="addComment"><span>' + escapeHtml(contextMenuLabels.addComment || 'Add comment') + '</span><span class="cm-shortcut">Ctrl+Shift+M</span></div>';
-    html += '<div class="cm-item" data-action="addFootnote"><span>' + escapeHtml(contextMenuLabels.addFootnote || 'Add footnote') + '</span><span class="cm-shortcut">Ctrl+Shift+F</span></div>';
 
-    // Everything below is grouped. Comment and footnote stay at the top level
-    // because they are the two a writer reaches for while reading; the rest
-    // belong to families and go behind their names.
+    // Comment and footnote used to sit here as well as in the floating toolbar
+    // and on the editor toolbar - three homes for one command. They act on a
+    // selection, so the toolbar that appears over a selection is the one they
+    // kept.
+    //
+    // What the menu gains instead is the command that genuinely belongs to the
+    // thing under the pointer: the entry for the name you just right-clicked.
+    // It was a button on the editor toolbar, where it appeared and disappeared
+    // as the caret moved past names.
+    // placement-container: contextMenu
+    if (findEntityAtCaret()) {
+        html += '<div class="cm-separator"></div>';
+        html += '<div class="cm-item" data-command="caret.peekEntity" data-action="peekEntity"><span>' + escapeHtml(contextMenuLabels.peekEntity || 'Peek at entity under caret') + '</span><span class="cm-shortcut">Ctrl+Shift+E</span></div>';
+    }
+
+    // Everything below is grouped: these belong to families and go behind
+    // their names rather than lengthening the top level.
     html += '<div class="cm-separator"></div>';
     html += submenu(contextMenuLabels.groupScene || 'Scene', [
-        { action: 'splitAtCaret', label: contextMenuLabels.splitScene || 'Split scene here' },
-        { action: 'insertImage', label: contextMenuLabels.insertImage || 'Insert image' },
+        { action: 'splitAtCaret', command: 'caret.splitScene', label: contextMenuLabels.splitScene || 'Split scene here' },
+        { action: 'insertImage', command: 'caret.insertImage', label: contextMenuLabels.insertImage || 'Insert image' },
         // Cutting prose used to mean it was recoverable only by reading a whole
         // snapshot for the paragraph that used to be there.
-        { action: 'cutToDarlings', label: contextMenuLabels.cutToDarlings || 'Cut and keep', needsSelection: true }
+        { action: 'cutToDarlings', command: 'text.cutToDarlings', label: contextMenuLabels.cutToDarlings || 'Cut and keep', needsSelection: true }
     ], hasSelection);
     html += submenu(contextMenuLabels.groupCodex || 'Codex', [
-        { action: 'createEntityFromSelection', label: contextMenuLabels.createEntity || 'Create entity from selection', needsSelection: true },
-        { action: 'appendToEntitySection', label: contextMenuLabels.appendToEntity || 'Add selection to entity', needsSelection: true }
+        { action: 'createEntityFromSelection', command: 'text.createEntity', label: contextMenuLabels.createEntity || 'Create entity from selection', needsSelection: true },
+        { action: 'appendToEntitySection', command: 'text.appendToEntity', label: contextMenuLabels.appendToEntity || 'Add selection to entity', needsSelection: true }
     ], hasSelection);
+    // placement-container: end
 
     console.log('[InlineActions] context menu open. hasSelection=', hasSelection, 'inlineActions.length=', (inlineActions || []).length);
     // Inline actions (extension-contributed). Shown only when selection non-empty.
@@ -3663,6 +3692,23 @@ contextMenu.addEventListener('click', (e) => {
     if (!item || item.classList.contains('disabled')) return;
 
     const action = item.getAttribute('data-action');
+    if (action === 'addToDictionary') {
+        sendMessage({ type: 'addToDictionary', word: item.getAttribute('data-word') });
+    } else {
+        applyContextAction(action);
+    }
+    hideContextMenu();
+});
+
+/**
+ * One of the editor's own actions on the passage in front of the writer.
+ *
+ * Extracted from the context menu's click handler, where every one of these
+ * bodies used to sit inline - which made right-clicking the only way to reach
+ * them. Named, they are also commands: the palette can offer them and a writer
+ * can bind a gesture to any of them.
+ */
+function applyContextAction(action) {
     switch (action) {
         case 'cut':
             document.execCommand('cut');
@@ -3680,17 +3726,10 @@ contextMenu.addEventListener('click', (e) => {
         case 'selectAll':
             document.execCommand('selectAll');
             break;
-        case 'addComment':
-            sendMessage({ type: 'requestAddComment' });
+        case 'peekEntity':
+            restoreContextMenuSelection();
+            peekEntityAtCaret();
             break;
-        case 'addFootnote':
-            sendMessage({ type: 'requestAddFootnote' });
-            break;
-        case 'addToDictionary': {
-            const word = item.getAttribute('data-word');
-            sendMessage({ type: 'addToDictionary', word: word });
-            break;
-        }
         case 'insertImage': {
             // The frame owns no file picker; the host asks and answers with a
             // stored path, which insertImageAtCaret then places. Where it goes
@@ -3716,7 +3755,7 @@ contextMenu.addEventListener('click', (e) => {
             // Cutting first and asking the writer to file it afterwards is how
             // the paragraph gets lost between the two.
             if (!restoreContextMenuSelection()) break;
-            const kept = contextMenuText;
+            const kept = contextActionText();
             if (!kept || kept.trim().length === 0) break;
             sendMessage({ type: 'keepDarling', text: kept });
             document.execCommand('delete');
@@ -3730,7 +3769,7 @@ contextMenu.addEventListener('click', (e) => {
             // now, let the host create the entity, then upgrade it to a mention.
             // Acts on the selection captured when the menu opened.
             if (!restoreContextMenuSelection()) break;
-            const name = contextMenuText.trim();
+            const name = contextActionText().trim();
             if (name.length === 0) break;
             const pendingId = 'pm-' + (++mentionPendingSeq) + '-' + Date.now();
             const html = '<span class="nv-mention-pending" data-pending-id="'
@@ -3744,14 +3783,22 @@ contextMenu.addEventListener('click', (e) => {
         }
         case 'appendToEntitySection': {
             // Copies the passage into a Codex section; the prose is left untouched.
-            const text = contextMenuText.trim();
+            const text = contextActionText().trim();
             if (text.length === 0) break;
             sendMessage({ type: 'appendToEntityRequested', text: text });
             break;
         }
     }
-    hideContextMenu();
-});
+}
+
+/**
+ * Host entry point for the same actions. The palette takes focus on its way
+ * open, so the caret comes back to the editor before anything acts on it.
+ */
+window.runContextAction = function (action) {
+    editor.focus();
+    applyContextAction(action);
+};
 
 function hideContextMenu() {
     contextMenu.classList.remove('visible');
@@ -4311,10 +4358,6 @@ function updateFloatingToolbar() {
     document.getElementById('ft-strike').classList.toggle('active', document.queryCommandState('strikeThrough'));
     document.getElementById('ft-highlight').classList.toggle('active',
         !!highlightAncestor(window.getSelection() && window.getSelection().anchorNode));
-    document.getElementById('ft-align-left').classList.toggle('active', document.queryCommandState('justifyLeft'));
-    document.getElementById('ft-align-center').classList.toggle('active', document.queryCommandState('justifyCenter'));
-    document.getElementById('ft-align-right').classList.toggle('active', document.queryCommandState('justifyRight'));
-    document.getElementById('ft-align-justify').classList.toggle('active', document.queryCommandState('justifyFull'));
 
     floatingToolbar.classList.add('visible');
     const tbWidth = floatingToolbar.offsetWidth || 220;
@@ -4341,10 +4384,6 @@ floatingToolbar.addEventListener('mousedown', (e) => {
     if (id === 'ft-bold') document.execCommand('bold', false, null);
     else if (id === 'ft-italic') document.execCommand('italic', false, null);
     else if (id === 'ft-underline') document.execCommand('underline', false, null);
-    else if (id === 'ft-align-left') document.execCommand('justifyLeft', false, null);
-    else if (id === 'ft-align-center') document.execCommand('justifyCenter', false, null);
-    else if (id === 'ft-align-right') document.execCommand('justifyRight', false, null);
-    else if (id === 'ft-align-justify') document.execCommand('justifyFull', false, null);
     else if (id === 'ft-strike') document.execCommand('strikeThrough', false, null);
     else if (id === 'ft-highlight') toggleHighlight();
     // The host owns dialogs, so it asks for the address and calls back.

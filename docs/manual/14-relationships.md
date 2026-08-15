@@ -6,7 +6,7 @@ The Relationships view draws your characters as nodes and the relationships betw
 
 ## Opening the Relationships view
 
-Open it from the **Plan** group in the activity bar (**Relationships**), from the **Go** menu or command palette, or with `Ctrl+7` (macOS uses Cmd).
+Open it from the **Plan** mode (**Relationships**, first under **Cast and time** in the mode panel), from the **Go** menu or command palette, or with `Ctrl+7` (macOS uses Cmd).
 
 ## What you see
 

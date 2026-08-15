@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
+import { enterWriting } from './harness'
 
 /**
  * Regression: Command-key hotkeys pressed while the caret is in the editor.
@@ -38,6 +39,9 @@ test('editor: Cmd hotkeys reach the shell, Cmd+B stays native bold', async () =>
     const state = await window.novalistRpc.request('project/open', [root])
     window.novalistStores.project.getState().applyState(state as never)
   }, projectCopy)
+
+  // An opened project lands on the Dashboard; the binder and editor are Write's.
+  await enterWriting(page)
 
   await page.locator('.binder-scene-row').first().click()
   const editor = page.frameLocator('.editor-frame').locator('#editor')

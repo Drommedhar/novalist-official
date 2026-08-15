@@ -31,6 +31,7 @@ import { SettingsView } from '../views/settings/SettingsView'
 import { MapsView } from '../views/maps/MapsView'
 import { ExtensionWebView } from '../views/extensions/ExtensionWebView'
 import { ExtensionsView } from '../views/extensions/ExtensionsView'
+import { AboutView } from '../views/about/AboutView'
 import { useExtensionsStore } from '../stores/extensionsStore'
 import { HostBridgeOverlays } from './HostBridgeOverlays'
 
@@ -382,6 +383,14 @@ function MainAreaContent({ view, paneId }: { view: MainView; paneId: string }): 
     return (
       <main className="main-area">
         <MapsView />
+      </main>
+    )
+  }
+
+  if (mainView === 'about') {
+    return (
+      <main className="main-area">
+        <AboutView />
       </main>
     )
   }

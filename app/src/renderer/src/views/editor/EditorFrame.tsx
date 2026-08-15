@@ -143,18 +143,17 @@ function pushEditorConfig(editor: EditorWindow, t: TFunction): void {
       copy: t('editor.contextMenu.copy'),
       paste: t('editor.contextMenu.paste'),
       selectAll: t('editor.contextMenu.selectAll'),
-      addComment: t('editor.contextMenu.addComment'),
-      addFootnote: t('editor.contextMenu.addFootnote'),
+      // Comment, Footnote and the four alignments used to be here too. Comment
+      // and Footnote act on a selection and now live only in the toolbar that
+      // appears over one; alignment acts on the paragraph and lives only on
+      // the editor toolbar.
       bold: t('blockStyle.bold'),
       italic: t('blockStyle.italic'),
       underline: t('blockStyle.underline'),
       strikethrough: t('blockStyle.strikethrough'),
       highlight: t('blockStyle.highlight'),
       link: t('blockStyle.link'),
-      alignLeft: t('blockStyle.left'),
-      alignCenter: t('blockStyle.center'),
-      alignRight: t('blockStyle.right'),
-      justify: t('blockStyle.justify'),
+      peekEntity: t('blockStyle.peekEntity'),
       addToDictionary: t('editor.contextMenu.addToDictionary'),
       createEntity: t('editor.contextMenu.createEntity'),
       appendToEntity: t('editor.contextMenu.appendToEntity'),
@@ -328,6 +327,21 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   const lastReportedHtmlRef = useRef<string | null>(null)
   const [formatting, setFormatting] = useState<FormattingState>(DEFAULT_FORMATTING)
   const [speaking, setSpeaking] = useState(false)
+  const suggestionMode = useShellStore((s) => s.suggestionMode)
+  // Whose suggestion it is. The author's own name is the only one Novalist
+  // knows; an editor working in someone else's copy sets it in Settings.
+  const reviewerName = useSettingsStore((s) => s.view?.effective.reviewerName ?? '')
+  /** Starts the scene reading from the caret, or stops a reading in progress. */
+  const toggleReadAloud = (): void => {
+    const live = editorRef.current
+    if (!live) return
+    if (speaking) {
+      live.stopReadAloud()
+      return
+    }
+    const eff = useSettingsStore.getState().view?.effective
+    live.startReadAloud(true, eff?.readAloudRate ?? 1, eff?.readAloudVoiceUri ?? null)
+  }
   const showFocusPeekTip = useOnboardingStore(
     (state) => state.tipsEnabled && state.tips['focus-peek'] == null
   )
@@ -1060,6 +1074,28 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
     return () => useEditorBridge.getState().register(null, null)
   }, [isActiveEditor, openSceneId, sceneHtml])
 
+  // Suggestion mode belongs to the writing view rather than to the button that
+  // used to hold it in local state, so the editor is told whenever the shell's
+  // flag moves - whoever moved it, a toolbar button or the palette.
+  useEffect(() => {
+    editorRef.current?.setSuggestionMode(suggestionMode, reviewerName)
+  }, [suggestionMode, reviewerName, sceneHtml])
+
+  // Two commands the frame owns rather than the editor: asking for a link
+  // address, and driving the system speech engine. Published so the command
+  // registry can offer them by name - a command only one button knows how to
+  // run is a command the palette cannot reach.
+  useEffect(() => {
+    if (!isActiveEditor) return
+    useEditorBridge.getState().setFrameCommands({
+      requestLink: () => setLinkPrompt(true),
+      toggleReadAloud
+    })
+    return () =>
+      useEditorBridge.getState().setFrameCommands({ requestLink: null, toggleReadAloud: null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActiveEditor, speaking])
+
   // Opening a scene puts the caret in it. Without this the writer clicks a
   // scene in the binder, starts typing, and the keystrokes go to the binder -
   // which is why the editor grew a focusEditor that nothing ever called.
@@ -1079,24 +1115,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   return (
     <div className="editor-pane">
       <SceneTabStrip paneId={pane} />
-      <EditorToolbar
-        formatting={formatting}
-        editor={() => editorRef.current}
-        speaking={speaking}
-        onToggleReadAloud={() => {
-          const live = editorRef.current
-          if (!live) return
-          if (speaking) {
-            live.stopReadAloud()
-            return
-          }
-          const eff = useSettingsStore.getState().view?.effective
-          live.startReadAloud(true, eff?.readAloudRate ?? 1, eff?.readAloudVoiceUri ?? null)
-        }}
-        onRequestLink={() => setLinkPrompt(true)}
-        onAddComment={() => editorRef.current?.addCommentToSelection(crypto.randomUUID())}
-        onAddFootnote={() => editorRef.current?.insertFootnoteAtSelection(crypto.randomUUID())}
-      />
+      <EditorToolbar formatting={formatting} speaking={speaking} />
       {isActiveEditor && formatting.entityAtCaret && showFocusPeekTip && (
         <section
           className="editor-onboarding-tip"

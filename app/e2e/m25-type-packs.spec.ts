@@ -29,7 +29,7 @@ test('a type pack fills the builder, and creates nothing until it is saved', asy
     const state = await window.novalistRpc.request('project/create', [parent, 'Packs', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('codex'))
   await page.locator('.codex-tab-manage').click()

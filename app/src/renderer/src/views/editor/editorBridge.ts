@@ -96,6 +96,17 @@ export interface EditorWindow extends Window {
   toggleNumberList(): void
   /** Opens focus peek for the entity under the collapsed caret, if any. */
   peekEntityAtCaret(): boolean
+  /**
+   * Runs one of the editor's own context-menu actions - splitting the scene,
+   * inserting an image, keeping a cut passage, the two Codex ones - against
+   * whatever is selected now.
+   *
+   * The action bodies used to live inside the menu's click handler, so they
+   * could be reached by right-clicking and by nothing else. Named here, they
+   * can also be run from the command palette or given a gesture, which is what
+   * the placement law's "and it is also in the palette" requires of them.
+   */
+  runContextAction(action: string): void
   focusEditor(): void
   /** Chromium's spelling suggestions for the word the menu was opened on. */
   setSpellingSuggestions(word: string, suggestions: string[]): void

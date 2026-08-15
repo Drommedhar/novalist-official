@@ -10,7 +10,7 @@ The **Plot Grid** is a spreadsheet-like view that shows every plotline as a row 
 
 Open it from:
 
-- The **Plan** group in the activity bar — click **Plot Grid**.
+- The **Plan** mode — click **Plot Grid**, under **Shape** in the mode panel.
 - The command palette (`Ctrl+Shift+P` → "Plot Grid").
 - The hotkey `Ctrl+8` (macOS uses Cmd; see [Hotkeys](26-hotkeys.md)).
 

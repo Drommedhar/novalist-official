@@ -1,0 +1,183 @@
+/* ===== About view =====
+   One column of facts about the build in front of the reader: the two versions,
+   the two links, the changelog, and the attributions the bundled typefaces and
+   runtimes require. The .main-area around it owns the scrolling. */
+
+.about-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-xl);
+  padding: var(--nl-space-xl);
+  max-width: var(--nl-measure-text);
+  color: var(--nl-text);
+}
+
+.about-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+}
+
+.about-title {
+  margin: 0;
+  font-family: var(--nl-font-display-face);
+  font-size: var(--nl-font-title);
+  font-weight: var(--nl-weight-title);
+  line-height: var(--nl-leading-tight);
+}
+
+/* Both versions side by side: the app's and the core process's are read
+   together or not at all, because the question they answer is "what am I
+   running". */
+.about-versions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-xl);
+  margin: 0;
+}
+
+.about-versions dt {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.about-versions dd {
+  margin: 0;
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-body);
+  color: var(--nl-text);
+}
+
+.about-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-lg);
+  margin: 0;
+  font-size: var(--nl-font-ui);
+}
+
+.about-links a {
+  color: var(--nl-accent);
+  cursor: pointer;
+}
+
+.about-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nl-space-sm);
+}
+
+.about-copied {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.about-hint {
+  margin: 0;
+  font-size: var(--nl-font-caption);
+  line-height: var(--nl-leading-body);
+  color: var(--nl-text-dim);
+}
+
+.about-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  padding-top: var(--nl-space-lg);
+  border-top: 1px solid var(--nl-border-subtle);
+}
+
+.about-section-title {
+  margin: 0;
+  font-size: var(--nl-font-title-sm);
+  font-weight: var(--nl-weight-title);
+  line-height: var(--nl-leading-tight);
+}
+
+/* The changelog is long by design - it is the whole release history - so it
+   scrolls in its own frame instead of pushing the licences off the page. */
+.about-changelog {
+  max-height: 26rem;
+  overflow: auto;
+  padding: var(--nl-space-md) var(--nl-space-lg);
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-lg);
+  background: var(--nl-surface-card);
+  font-size: var(--nl-font-ui);
+  line-height: var(--nl-leading-body);
+}
+
+.about-changelog h1 {
+  font-size: var(--nl-font-title-sm);
+}
+
+.about-changelog h2 {
+  font-size: var(--nl-font-body-lg);
+  margin-top: var(--nl-space-lg);
+}
+
+.about-changelog h3 {
+  font-size: var(--nl-font-body);
+  color: var(--nl-text-dim);
+}
+
+.about-changelog ul {
+  padding-left: var(--nl-space-lg);
+}
+
+.about-changelog li {
+  margin-bottom: var(--nl-space-sm);
+}
+
+.about-changelog a {
+  color: var(--nl-accent);
+  cursor: pointer;
+}
+
+.about-changelog hr {
+  border: 0;
+  border-top: 1px solid var(--nl-border-subtle);
+}
+
+.about-licenses {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about-license {
+  display: grid;
+  grid-template-columns: minmax(8rem, max-content) 1fr;
+  gap: var(--nl-space-tightest) var(--nl-space-md);
+  padding-bottom: var(--nl-space-md);
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.about-license:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.about-license-name {
+  font-size: var(--nl-font-ui);
+  font-weight: var(--nl-weight-title);
+}
+
+.about-license-role {
+  font-size: var(--nl-font-ui);
+  color: var(--nl-text-dim);
+}
+
+.about-license-terms {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.about-license-notice {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}

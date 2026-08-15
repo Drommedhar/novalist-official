@@ -59,7 +59,7 @@ test('a pane opens in its own window and shows the real view', async () => {
   })
   // And it is a torn-off pane rather than another copy of the whole app.
   await expect(second.locator('.app-shell.detached')).toBeVisible({ timeout: 15_000 })
-  await expect(second.locator('.activity-bar')).toHaveCount(0)
+  await expect(second.locator('.mode-rail')).toHaveCount(0)
   // It opened on the project the pane came from, not on whichever was most
   // recent, and its header is what lets a window with no activity bar be
   // pointed somewhere else.
@@ -69,7 +69,7 @@ test('a pane opens in its own window and shows the real view', async () => {
   await expect(second.locator('.pane-header')).toBeVisible()
 
   // The window it came from is untouched.
-  await expect(page.locator('.activity-bar')).toBeVisible()
+  await expect(page.locator('.mode-rail')).toBeVisible()
 
   await app.close()
 })

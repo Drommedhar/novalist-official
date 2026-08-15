@@ -1,18 +1,22 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, Columns2, ExternalLink, Rows2, X } from 'lucide-react'
-import { activityGroups, useShellStore, type MainView } from '../stores/shellStore'
+import { useShellStore, type MainView } from '../stores/shellStore'
+import { HOME_VIEW, MODES, MODE_VIEWS } from './modes'
 import { useProjectStore } from '../stores/projectStore'
 
 /**
- * Everything a pane offers, grouped as the activity bar groups it, plus the
- * editor - which has no rail button because a scene is reached through the
- * binder, and which a pane therefore had no way to ask for at all.
+ * Everything a pane can show, grouped by mode.
+ *
+ * Modes govern the primary workspace; panes stay free. Putting the Codex beside
+ * the editor is a genuinely good thing to be able to do, and it would be a poor
+ * trade to lose it for a tidier rail - so this menu offers every view, grouped
+ * the way the modes group them, plus the Dashboard and the routed views that
+ * belong to no mode at all.
  */
 const PANE_GROUPS: { key: string; views: MainView[] }[] = [
-  { key: 'shell.groupWrite', views: ['write', ...activityGroups[0].views] },
-  ...activityGroups.slice(1),
-  { key: 'shell.groupApp', views: ['extensions', 'settings'] }
+  ...MODES.map((mode) => ({ key: `modes.${mode}`, views: MODE_VIEWS[mode] })),
+  { key: 'shell.groupApp', views: [HOME_VIEW, 'extensions', 'settings'] as MainView[] }
 ]
 
 /**

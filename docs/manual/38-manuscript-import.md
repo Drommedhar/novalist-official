@@ -1,6 +1,6 @@
 # Importing a manuscript
 
-If your book already exists somewhere else, you do not have to retype it or paste it in scene by scene. Open the backstage drawer (the burger in the toolbar) and choose **Import a manuscript...**.
+If your book already exists somewhere else, you do not have to retype it or paste it in scene by scene. Choose **File → Import a manuscript...** in the menu bar.
 
 ## Formats
 

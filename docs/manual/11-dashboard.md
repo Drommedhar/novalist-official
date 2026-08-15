@@ -6,7 +6,9 @@ The Dashboard is your project's numbers page. It shows totals, goals, streaks, s
 
 ## Opening the Dashboard
 
-Open it from the **Write** group in the activity bar (**Dashboard**), from the **Go** menu or command palette, or with `Ctrl+2` (macOS uses Cmd).
+The **Dashboard** button sits at the top of the mode rail, above the five modes — it is where a project opens and the way back from any of them. It is also in the **Go** menu and the command palette, and on `Ctrl+2` (macOS uses Cmd).
+
+The Dashboard belongs to no mode on purpose: it is where you are before you have decided what to do today, and the one screen allowed to talk about all five at once.
 
 ## What the Dashboard shows
 
@@ -15,7 +17,7 @@ Open it from the **Write** group in the activity bar (**Dashboard**), from the *
 Novalist keeps two distinct images for a project:
 
 - The **banner** — a wide image shown across the top of the Dashboard. Use **Add banner** / **Change banner** / **Remove banner** in the banner's action row. When no banner is set, the Dashboard falls back to the book cover so projects made before this split keep showing their existing image.
-- The **book cover** — a portrait image shown for the project on the welcome/start screen and in the recent-projects list. Set it in the **Book cover** panel just below the banner with **Add cover** / **Change cover** / **Remove cover**.
+- The **book cover** — a portrait image shown for the project on the welcome screen and in the recent-projects list. Set it in the **Book cover** panel just below the banner with **Add cover** / **Change cover** / **Remove cover**.
 
 Both images are stored with the project. Setting only a cover on a fresh project also gives you a Dashboard banner automatically (via the fallback); set a banner explicitly when you want a different wide image from the portrait cover.
 

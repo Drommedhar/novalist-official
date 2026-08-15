@@ -43,7 +43,7 @@ test('an overwritten codex entry can be put back from the detail pane', async ()
     await rpc.request('entities/update', ['character', mira.id, { eyeColor: 'brown' }])
     return mira.id
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('codex'))
   await page.locator('.codex-row', { hasText: 'Mira' }).click()

@@ -31,7 +31,9 @@ test('the desktop shell responds to usable width and removes irrelevant chrome',
   await expect(h.page.locator('.shell')).toHaveAttribute('data-shell-capacity', 'wide')
   await expect(h.page.locator('.binder')).toBeVisible()
   await expect(h.page.locator('.inspector')).toBeVisible()
-  await expect(h.page.locator('.toolbar-more')).toHaveCount(0)
+  // The overflow is the project bar's own, not a narrow-window fallback: it is
+  // the home of the project commands that never had a button.
+  await expect(h.page.locator('.toolbar-more')).toBeVisible()
 
   await h.page.setViewportSize({ width: 1080, height: 750 })
   await expect(h.page.locator('.shell')).toHaveAttribute('data-shell-capacity', 'medium')
@@ -45,10 +47,16 @@ test('the desktop shell responds to usable width and removes irrelevant chrome',
   await expect(h.page.locator('.inspector')).toHaveCount(0)
   await expect(h.page.locator('.toolbar-more')).toBeVisible()
 
-  // Panels become temporary drawers. Opening one must not take width away from
-  // the manuscript, and the full action name remains available in the menu.
+  // The overflow no longer carries the panel toggles. Shaping the window is
+  // application scope and so the menu bar's; what is down here is the project
+  // work that never had a button of its own.
   await h.page.locator('.toolbar-more > summary').click()
-  await h.page.getByRole('button', { name: 'Toggle binder' }).click()
+  await expect(h.page.getByRole('button', { name: 'Clean up the manuscript' })).toBeVisible()
+  await expect(h.page.getByRole('button', { name: 'Toggle binder' })).toHaveCount(0)
+
+  // Panels become temporary drawers, raised by the gesture the View menu names.
+  // Opening one must not take width away from the manuscript.
+  await h.page.keyboard.press('Control+B')
   await expect(h.page.locator('.binder')).toBeVisible()
   const widths = await h.page.evaluate(() => {
     const shell = document.querySelector('.shell') as HTMLElement
@@ -104,7 +112,7 @@ test('project status is concise until its details are requested', async () => {
   await h.close()
 })
 
-test('the writing toolbar follows the selection and teaches Focus Peek in context', async () => {
+test('one command, one home: the writing bar holds still while a selection is made', async () => {
   test.setTimeout(180_000)
   const h = await launchApp('nl-writing-context-')
   const book = await seedBook(h, { One: ['A'] })
@@ -130,8 +138,17 @@ test('the writing toolbar follows the selection and teaches Focus Peek in contex
   await expect(editor).toContainText('Mira waited', { timeout: 30_000 })
   await h.page.waitForTimeout(1_000)
 
-  // A text selection gets character formatting and annotation actions. The
-  // former abbreviations are intentionally asserted absent from both toolbars.
+  // The writing view's own bar holds what acts on the paragraph the caret is
+  // in, and it does not change as the selection does. It used to swap its
+  // whole contents on selection, so the row of buttons a writer had just
+  // learned moved out from under them the moment they dragged across a word.
+  const toolbar = h.page.locator('.editor-toolbar')
+  const style = h.page.getByRole('combobox', { name: 'Paragraph style' })
+  await expect(style).toBeVisible()
+  const beforeSelection = await toolbar.locator('[data-command]').evaluateAll((els) =>
+    els.map((el) => el.getAttribute('data-command'))
+  )
+
   await editor.evaluate((root) => {
     const text = root.firstChild?.firstChild
     if (!text) throw new Error('scene text was not rendered')
@@ -143,21 +160,29 @@ test('the writing toolbar follows the selection and teaches Focus Peek in contex
     selection?.addRange(range)
     document.dispatchEvent(new Event('selectionchange'))
   })
-  await expect(h.page.locator('.editor-toolbar')).toHaveAttribute(
-    'data-editor-context',
-    'selection'
-  )
-  // Scoped to the toolbar: the inspector's "Footnotes" tab is also a button
-  // whose accessible name starts with the same word.
-  const toolbar = h.page.locator('.editor-toolbar')
-  await expect(toolbar.getByRole('button', { name: 'Comment' })).toBeVisible()
-  await expect(toolbar.getByRole('button', { name: 'Footnote', exact: true })).toBeVisible()
-  await expect(h.page.locator('.editor-toolbar')).not.toContainText('Cmt')
-  await expect(h.page.locator('.editor-toolbar')).not.toContainText('Fn')
-  await expect(h.page.getByRole('combobox', { name: 'Paragraph style' })).toHaveCount(0)
 
-  // A collapsed caret inside a known name switches back to paragraph actions,
-  // offers the relevant Focus Peek command, and raises a one-time coachmark.
+  const floating = h.page.frameLocator('.editor-frame').locator('#floating-toolbar')
+  await expect(floating).toBeVisible({ timeout: 10_000 })
+  // Comment and Footnote act on a selection, so the toolbar over the selection
+  // is their one home. They used to be here, on the editor toolbar, and in the
+  // context menu as well.
+  await expect(floating.locator('#ft-comment')).toBeVisible()
+  await expect(floating.locator('#ft-footnote')).toBeVisible()
+  await expect(toolbar).not.toContainText('Comment')
+  await expect(toolbar).not.toContainText('Footnote')
+  await expect(toolbar).not.toContainText('Cmt')
+  await expect(toolbar).not.toContainText('Fn')
+  // Alignment acts on the paragraph, not on what is selected, so it is not up
+  // there either - it stays where it always is.
+  await expect(floating.locator('#ft-align-left')).toHaveCount(0)
+
+  await expect(style).toBeVisible()
+  const afterSelection = await toolbar.locator('[data-command]').evaluateAll((els) =>
+    els.map((el) => el.getAttribute('data-command'))
+  )
+  expect(afterSelection, 'the writing bar changed under the writer').toEqual(beforeSelection)
+
+  // A collapsed caret inside a known name raises the one-time coachmark.
   await editor.evaluate((root) => {
     const text = root.firstChild?.firstChild
     if (!text) throw new Error('scene text was not rendered')
@@ -169,9 +194,10 @@ test('the writing toolbar follows the selection and teaches Focus Peek in contex
     selection?.addRange(range)
     document.dispatchEvent(new Event('selectionchange'))
   })
-  await expect(h.page.locator('.editor-toolbar')).toHaveAttribute('data-editor-context', 'caret')
-  await expect(h.page.getByRole('combobox', { name: 'Paragraph style' })).toBeVisible()
-  await expect(h.page.getByRole('button', { name: 'Peek at entity under caret' })).toBeVisible()
+  // Peeking acts on the object under the caret, so its home is the context
+  // menu and a gesture - not a button that appears and disappears as the caret
+  // moves past names.
+  await expect(h.page.getByRole('button', { name: 'Peek at entity under caret' })).toHaveCount(0)
 
   const tip = h.page.locator('[data-onboarding-tip="focus-peek"]')
   await expect(tip).toBeVisible()

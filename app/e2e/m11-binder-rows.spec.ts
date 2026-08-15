@@ -3,6 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
+import { enterWriting } from './harness'
 
 /**
  * Scene titles line up in a column, staged or not.
@@ -49,6 +50,9 @@ test('scene titles share one left edge whether or not a scene has a stage', asyn
     return Math.ceil(scenes.length / 2)
   }, workDir)
   expect(staged).toBeGreaterThan(0)
+
+  // A created project opens on the Dashboard; the binder is Write's.
+  await enterWriting(page)
 
   await expect(page.locator('.binder-scene-row')).toHaveCount(4, { timeout: 20_000 })
 

@@ -49,7 +49,7 @@ Every shell command has a keyboard route: the [command palette](25-command-palet
 Novalist does not yet claim screen-reader support, and we would rather say so than imply it.
 
 - Dialogs and overlays carry `role` and `aria-label`.
-- The shell chrome — activity bar, binder, context menus — is only partially labelled.
+- The shell chrome — mode rail, mode panel, binder, context menus — is only partially labelled.
 - The editor is a `contenteditable` surface inside an iframe with no ARIA annotation, so a screen reader will read the text but not the structure around it.
 
 If you use a screen reader with Novalist, please open an issue describing what broke; that is the fastest route to it being fixed.
@@ -88,7 +88,7 @@ A section gathering the settings that matter most for reading comfort, so they a
 - **Font size** and **Line spacing** — larger text and looser leading, which for many readers does more than the typeface does.
 - **Switch to the High Contrast theme** — one click, rather than a paragraph telling you where the theme picker is. Switch back under Appearance whenever you like.
 
-**Settings → Appearance → Interface size** is the separate control for the size of Novalist's own chrome — menus, panels, labels and buttons — from 75% to 150%, on `Ctrl+Plus` / `Ctrl+-` / `Ctrl+0` as well. It is deliberately not the same setting as the editor's font size: enlarging the interface to read its labels no longer forces your manuscript to a size you did not want, and vice versa.
+**Settings → Appearance → Interface size** is the separate control for the size of Novalist's own chrome — menus, panels, labels and buttons — from 75% to 150%, and in **View → Increase / Decrease / Reset interface scale** as well. Those menu items ship without shortcuts; bind them to whatever you like in Settings → Keyboard shortcuts. It is deliberately not the same setting as the editor's font size: enlarging the interface to read its labels no longer forces your manuscript to a size you did not want, and vice versa.
 
 ## Where to go next
 

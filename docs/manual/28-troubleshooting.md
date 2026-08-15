@@ -35,7 +35,7 @@ Yes. Look in `<Project>/<BookFolder>/Snapshots/<sceneId>/`. The folder remains e
 
 Two paths to recover:
 
-1. **Create a new scene** with any name in the right chapter, then **restore** a snapshot from the toolbar **Snapshots** dialog.
+1. **Create a new scene** with any name in the right chapter, then **restore** a snapshot from the **Scene snapshots** dialog on the writing bar.
 2. **Manually copy** the content out of the most recent `<timestamp>.json` (the `content` field) into a fresh scene's HTML file.
 
 If neither works, your project's Git history may have a copy — `git log -- "Books/<bookId>/Chapters/<chapter>/<scene>.html"` will show every commit that touched the file.
@@ -44,7 +44,7 @@ Also check the **Archive** section at the bottom of the binder's Chapters tab �
 
 ## My project won't open
 
-Symptoms: the start screen offers to open, you pick the folder, nothing happens or you see an error.
+Symptoms: you choose **Browse for Project Folder**, pick the folder, and nothing happens or you see an error.
 
 Things to check, in order:
 
@@ -75,7 +75,7 @@ If the app misbehaves at startup because of an extension, close Novalist and del
 ## A hotkey isn't working
 
 - **Focus is in a text field.** While typing, only gestures that include `Ctrl` (or `Cmd` on macOS) fire — `Alt+F` for Focus Mode needs focus outside a text field.
-- **The gesture doesn't exist.** The full list of shipped shortcuts is short; see [Hotkeys](26-hotkeys.md). Anything not listed there is reachable through the [Command Palette](25-command-palette.md) or the activity bar instead.
+- **The gesture doesn't exist.** The list of shortcuts a fresh install ships with is short; see [Hotkeys](26-hotkeys.md). Anything not listed there is still reachable through the [Command Palette](25-command-palette.md), the menu bar or the mode panel — and you can give it a gesture of your own in Settings → Keyboard shortcuts.
 
 ## Grammar check isn't working
 
@@ -87,7 +87,7 @@ If the app misbehaves at startup because of an extension, close Novalist and del
 
 The snapshot folder grows over time. Two strategies:
 
-- **Manual cleanup.** Open a scene, review its snapshots in the toolbar **Snapshots** dialog, and delete older ones. Keep a few recent snapshots per scene.
+- **Manual cleanup.** Open a scene, review its snapshots in the **Scene snapshots** dialog on the writing bar, and delete older ones. Keep a few recent snapshots per scene.
 - **Gitignore them.** Add `Books/*/Snapshots/` to `.gitignore` if you'd rather rely on Git history. You still get the per-scene history while writing; you just don't commit it.
 
 ## Git operations failing
@@ -99,7 +99,7 @@ The snapshot folder grows over time. Two strategies:
 
 ## Importing from Obsidian
 
-The start screen has an **Import from Obsidian Plugin** action. Point it at a vault used with the legacy "Obsidian Novalist Plugin"; detected plugin projects are offered for import, you choose the output folder and names, and a Novalist project is scaffolded from the markdown and metadata files. The original vault is not modified, and the importer writes an `import-log.txt` into the new project so you can review what was converted.
+**File → Import from Obsidian Plugin** is the way in. Point it at a vault used with the legacy "Obsidian Novalist Plugin"; detected plugin projects are offered for import, you choose the output folder and names, and a Novalist project is scaffolded from the markdown and metadata files. The original vault is not modified, and the importer writes an `import-log.txt` into the new project so you can review what was converted.
 
 Limitations of the importer:
 
@@ -132,7 +132,7 @@ Novalist checks for updates on startup (in installed builds) and from **Help →
 
 ## The manual and startup
 
-- Press **F1** or use **Help → Help for Current View** in the app menu bar to open this manual inside the app: a searchable, readable overlay with every page. It opens at the page for whatever you were looking at, and the page list down the side is still there to browse or search the rest.
+- Use **Help → User manual** in the menu bar to open this manual inside the app: a searchable, readable overlay with every page. It opens at the page for whatever you were looking at, and the page list down the side is still there to browse or search the rest. It ships without a keyboard shortcut; give it one in Settings → Keyboard shortcuts if you want one.
 - A brief **splash** appears while the core process starts and the update check runs, then the main window opens.
 
 ## Reporting bugs

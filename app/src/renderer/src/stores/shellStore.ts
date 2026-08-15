@@ -4,10 +4,16 @@ import {
   setSettingsDestination
 } from '../views/settings/settingsNavigation'
 import { isSettingsSectionKey } from '../views/settings/settingsRegistry'
+import { HOME_VIEW, MODE_VIEWS, modeOf, type Mode } from '../shell/modes'
 
-/** Main-area destinations. Surfaced as the slim activity-bar icon rail
- * (mirrors the Avalonia MainWindow activity bar); the editor ("write") is
- * reached by opening a scene in the binder, not via a rail button. */
+/**
+ * Everything the main area can show.
+ *
+ * No longer the top-level navigation: a writer picks a *mode* and the mode's
+ * panel lists the views it holds. `MainView` stays as the identifier panes,
+ * deep links, help targets and the command palette address, which is what let
+ * the navigation change without any of them having to.
+ */
 export type MainView =
   | 'write'
   | 'dashboard'
@@ -31,19 +37,30 @@ export type MainView =
   | 'git'
   | 'extensions'
   | 'settings'
+  | 'about'
 
 /**
- * Ordered activity-bar groups, top block. Group boundaries render as a hairline
- * separator in the rail. Order follows the desktop activity bar: content views
- * first (Dashboard, Manuscript), then planning, then world, then publish.
- * Settings lives in the bottom block (see ActivityBar), not here.
+ * The dialogs the shell owns.
+ *
+ * They were local state inside the toolbar that raised them, which meant a
+ * dialog could only ever be opened by the one button that happened to hold its
+ * flag - so "New chapter" could not be reached from the command palette, the
+ * menu bar, or anything else. Owning them here is what lets the command
+ * registry name them.
  */
-export const activityGroups: { key: string; views: MainView[] }[] = [
-  { key: 'shell.groupWrite', views: ['dashboard', 'manuscript'] },
-  { key: 'shell.groupPlan', views: ['timeline', 'plotGrid', 'calendar', 'relationships', 'dialogue', 'style', 'canvas', 'series'] },
-  { key: 'shell.groupWorld', views: ['codex', 'wiki', 'maps', 'languages', 'research', 'gallery'] },
-  { key: 'shell.groupPublish', views: ['expose', 'export', 'git'] }
-]
+export type ShellDialog =
+  | 'chapter'
+  | 'scene'
+  | 'book'
+  | 'draft'
+  | 'renameProject'
+  | 'snapshots'
+  | 'draftCompare'
+  | 'deleteDraft'
+  | 'paneLayouts'
+  | 'createProject'
+  | 'importPlugin'
+  | 'importManuscript'
 
 export type BinderTab = 'chapters' | 'smartLists' | 'collections' | 'bookmarks'
 
@@ -267,6 +284,8 @@ interface PanelSizes {
   binderWidth?: number
   inspectorWidth?: number
   notesDockHeight?: number
+  /** Not a size, but the same kind of thing: view state, remembered per machine. */
+  modePanelDocked?: boolean
 }
 
 function clamp(px: number, min: number, max: number): number {
@@ -330,6 +349,11 @@ export type MobileLayout = 'phone' | 'tablet'
 
 interface ShellState {
   mainView: MainView
+  /**
+   * The workspace the writer is in. Which views are one click away, and what
+   * the window looks like around them, both follow from it.
+   */
+  mode: Mode
   /** The content area's pane tree. One leaf until the writer splits it. */
   panes: PaneNode
   /** Which pane a view change lands in, and which one is outlined. */
@@ -344,6 +368,20 @@ interface ShellState {
   binderWidth: number
   /** A compact-shell drawer. Kept separate from the wide-layout preference. */
   binderOverlayOpen: boolean
+  /**
+   * Whether the mode panel is docked beside the rail. A remembered preference:
+   * in Write the panel lists two views beside a binder that is already a list,
+   * and a writer who wants the window back should be able to have it without
+   * losing the switcher - the rail still changes mode, and the panel comes back
+   * as an overlay.
+   */
+  modePanelDocked: boolean
+  /**
+   * The mode panel as an overlay: always how it appears in a window too narrow
+   * to dock it, and how it appears at any width once undocked. The same rows in
+   * the same order - a different arrangement of one list, not a second one.
+   */
+  modePanelOpen: boolean
   inspectorVisible: boolean
   inspectorWidth: number
   /** Inspector drawer used when there is not room for a persistent sidebar. */
@@ -377,7 +415,25 @@ interface ShellState {
   layoutsOpen: boolean
   /** The short walk through the views, offered once per installation. */
   tourOpen: boolean
+  /** Which shell-owned dialog is up, or null. One at a time, by construction. */
+  dialog: ShellDialog | null
+  /**
+   * Whether typing proposes changes rather than making them. Shell state
+   * because it is a mode of the writing view rather than of one toolbar, and
+   * because a mode nothing outside its own button can leave is a trap.
+   */
+  suggestionMode: boolean
+  openDialog(dialog: ShellDialog): void
+  closeDialog(): void
+  toggleSuggestionMode(): void
+  setSuggestionMode(on: boolean): void
   setMainView(view: MainView): void
+  /** Switches workspace, landing on the view the writer last had in it. */
+  setMode(mode: Mode): void
+  /** Back to the screen a project opens on. */
+  goHome(): void
+  setModePanelOpen(open: boolean): void
+  toggleModePanelDocked(): void
   setActivePane(id: string): void
   /** Points one pane at a view without moving the writer into it. */
   setPaneView(id: string, view: MainView): void
@@ -520,10 +576,15 @@ function showView(
   mainView: MainView
 ): Pick<
   ShellState,
-  'mainView' | 'extView' | 'panes' | 'binderOverlayOpen' | 'inspectorOverlayOpen'
+  'mainView' | 'mode' | 'extView' | 'panes' | 'binderOverlayOpen' | 'inspectorOverlayOpen'
 > {
   return {
     mainView,
+    // A view carries its mode with it, so a deep link, a hotkey or the palette
+    // lands the writer in the workspace that view belongs to rather than
+    // leaving the rail pointing somewhere they no longer are. Dashboard,
+    // Settings and About belong to no mode and leave the last one standing.
+    mode: modeOf(mainView) ?? state.mode,
     extView: null,
     panes: setPaneViewIn(state.panes, state.activePaneId, mainView),
     binderOverlayOpen: false,
@@ -531,8 +592,17 @@ function showView(
   }
 }
 
+/**
+ * The view a mode opens on.
+ *
+ * Remembered per mode, so going to Plan and back to World returns to the Codex
+ * entry you were reading rather than to the top of the mode.
+ */
+const lastInMode: Partial<Record<Mode, MainView>> = {}
+
 export const useShellStore = create<ShellState>((set, get) => ({
   mainView: 'write',
+  mode: 'write',
   panes: initialPanes,
   activePaneId: initialPanes.id,
   layouts: storedLayouts,
@@ -546,6 +616,8 @@ export const useShellStore = create<ShellState>((set, get) => ({
   binderVisible: true,
   binderWidth: initialPanelSize(storedPanels.binderWidth, 0.15, BINDER_MIN, BINDER_MAX, screenW),
   binderOverlayOpen: false,
+  modePanelDocked: storedPanels.modePanelDocked !== false,
+  modePanelOpen: false,
   inspectorVisible: true,
   inspectorWidth: initialPanelSize(
     storedPanels.inspectorWidth,
@@ -573,7 +645,38 @@ export const useShellStore = create<ShellState>((set, get) => ({
   helpOpen: false,
   layoutsOpen: false,
   tourOpen: false,
-  setMainView: (mainView) => set((s) => showView(s, mainView)),
+  dialog: null,
+  suggestionMode: false,
+  openDialog: (dialog) => set({ dialog }),
+  closeDialog: () => set({ dialog: null }),
+  toggleSuggestionMode: () => set((s) => ({ suggestionMode: !s.suggestionMode })),
+  setSuggestionMode: (suggestionMode) => set({ suggestionMode }),
+  setMainView: (mainView) =>
+    set((s) => {
+      const mode = modeOf(mainView)
+      if (mode) lastInMode[mode] = mainView
+      return showView(s, mainView)
+    }),
+
+  setMode: (mode) =>
+    set((s) => {
+      const views = MODE_VIEWS[mode]
+      const landing = lastInMode[mode] ?? views[0]
+      return { ...showView(s, landing), mode }
+    }),
+
+  goHome: () => set((s) => showView(s, HOME_VIEW)),
+
+  setModePanelOpen: (modePanelOpen) =>
+    set(modePanelOpen ? { modePanelOpen, binderOverlayOpen: false } : { modePanelOpen }),
+
+  toggleModePanelDocked: () =>
+    set((s) => {
+      const modePanelDocked = !s.modePanelDocked
+      savePanelSize({ modePanelDocked })
+      // Undocking while it is on screen should not leave the overlay behind it.
+      return { modePanelDocked, modePanelOpen: false }
+    }),
 
   setActivePane: (activePaneId) =>
     set((s) => {
@@ -702,7 +805,9 @@ export const useShellStore = create<ShellState>((set, get) => ({
   toggleBinder: () =>
     set((s) =>
       s.shellCapacity === 'compact'
-        ? { binderOverlayOpen: !s.binderOverlayOpen, inspectorOverlayOpen: false }
+        ? // One drawer at a time. Two of them stack against the same edge, so
+          // opening the second would put it over the first.
+          { binderOverlayOpen: !s.binderOverlayOpen, inspectorOverlayOpen: false, modePanelOpen: false }
         : { binderVisible: !s.binderVisible }
     ),
   setBinderWidth: (px) => set({ binderWidth: clamp(px, BINDER_MIN, BINDER_MAX) }),
@@ -723,7 +828,9 @@ export const useShellStore = create<ShellState>((set, get) => ({
       return {
         shellWidth,
         shellCapacity,
-        ...(shellCapacity !== 'compact' ? { binderOverlayOpen: false } : {}),
+        // A docked panel that is still flagged open would reopen as an overlay
+        // the moment the window narrowed again.
+        ...(shellCapacity !== 'compact' ? { binderOverlayOpen: false, modePanelOpen: false } : {}),
         ...(shellCapacity === 'wide' ? { inspectorOverlayOpen: false } : {}),
         // Crossing between constrained modes should never leave two drawers
         // stacked over the manuscript.

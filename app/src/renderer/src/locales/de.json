@@ -56,7 +56,10 @@
     "toggleSplitEditor": "Geteilt öffnen",
     "addComment": "Kommentar hinzufügen",
     "addFootnote": "Fußnote hinzufügen",
-    "commandPalette": "Befehlspalette..."
+    "commandPalette": "Befehlspalette...",
+    "file": "Datei",
+    "go": "Gehe zu",
+    "help": "Hilfe"
   },
   "commandPalette": {
     "placeholder": "Befehlsname eingeben...",
@@ -3878,5 +3881,61 @@
     "popOut": "In eigenem Fenster öffnen",
     "showInPane": "In diesem Bereich anzeigen",
     "resize": "Bereiche anpassen"
+  },
+  "command": {
+    "newChapter": "Neues Kapitel",
+    "newScene": "Neue Szene",
+    "renameProject": "Projekt umbenennen",
+    "uiScaleIncrease": "Oberflaeche vergroessern",
+    "uiScaleDecrease": "Oberflaeche verkleinern",
+    "uiScaleReset": "Oberflaechengroesse zuruecksetzen",
+    "manual": "Handbuch",
+    "about": "Über Novalist"
+  },
+  "about": {
+    "title": "Über Novalist",
+    "appVersion": "Novalist",
+    "coreVersion": "Kernprozess",
+    "unknown": "Nicht gemeldet",
+    "website": "Novalist auf GitHub",
+    "reportIssue": "Problem melden",
+    "checkUpdates": "Nach Updates suchen",
+    "copySystemInfo": "Systeminformationen kopieren",
+    "copySystemInfoDesc": "Legt die Versionen, dein Betriebssystem und die Fenstermaße in die Zwischenablage, bereit zum Einfügen in eine Supportanfrage. Enthält keine Projektnamen, keine Dateipfade und nichts von deinem Text.",
+    "copied": "In die Zwischenablage kopiert.",
+    "whatsNew": "Neu in dieser Version",
+    "licenses": "Lizenzen Dritter",
+    "licensesIntro": "Novalist liefert diese Komponenten mit, und ihre Lizenzen verlangen eine Nennung.",
+    "licensesNote": "Der vollständige Lizenztext jeder Komponente wird mit der App ausgeliefert.",
+    "role": {
+      "displayFace": "Display-Schrift",
+      "bodyFace": "Textschrift",
+      "monoFace": "Nichtproportionale Schrift",
+      "desktopRuntime": "Laufzeitumgebung der Desktop-App",
+      "coreRuntime": "Laufzeitumgebung des Kernprozesses"
+    }
+  },
+  "modes": {
+    "write": "Schreiben",
+    "plan": "Planen",
+    "world": "Welt",
+    "publish": "Ausgabe",
+    "series": "Reihe",
+    "filter": "Ansichten filtern",
+    "noMatch": "Keine Ansicht passt dazu.",
+    "viewCount_one": "{{count}} Ansicht",
+    "viewCount_other": "{{count}} Ansichten",
+    "group": {
+      "drafting": "Entwurf",
+      "shape": "Aufbau",
+      "castAndTime": "Figuren und Zeit",
+      "inThisBook": "In diesem Buch",
+      "reference": "Nachschlagen",
+      "prepare": "Vorbereiten",
+      "produce": "Erzeugen",
+      "acrossBooks": "Über Bücher hinweg",
+      "fromExtensions": "Aus Erweiterungen"
+    },
+    "togglePanel": "Modus-Leiste anzeigen"
   }
 }

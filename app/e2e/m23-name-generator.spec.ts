@@ -29,7 +29,7 @@ test('the codex create dialog suggests names, and picking one fills the field', 
     const state = await window.novalistRpc.request('project/create', [parent, 'Names', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('codex'))
   await page.locator('.codex-list .binder-rail-item').click()

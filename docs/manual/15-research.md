@@ -6,7 +6,7 @@ Research is per-project. It is not tied to a specific book, scene, or character,
 
 ## Opening Research
 
-Open it from the **World** group in the activity bar (**Research**), from the command palette, or with `Ctrl+9` (macOS uses Cmd).
+Open it from the **World** mode (**Research**, first under **Reference** in the mode panel), from the **Go** menu or command palette, or with `Ctrl+9` (macOS uses Cmd).
 
 ## Layout
 

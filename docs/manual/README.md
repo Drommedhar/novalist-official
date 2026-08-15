@@ -15,7 +15,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 ### The basics
 
 1. [Getting Started](01-getting-started.md) — install Novalist, create your first project, write your first scene.
-2. [Interface Overview](02-interface-overview.md) — the three-pane window: binder, main area, inspector; toolbar, status bar, start screen, command palette.
+2. [Interface Overview](02-interface-overview.md) — the five modes, the mode rail and mode panel, the menu bar, toolbar, binder, main area, inspector, status bar, and where every kind of command lives.
 3. [Importing a manuscript](38-manuscript-import.md) — bring an existing book in from Word, OpenDocument, EPUB, Markdown, plain text or RTF.
 4. [Projects & Books](03-projects-and-books.md) — what a project is, the multi-book model, project folder layout, recent-projects list.
 
@@ -50,7 +50,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 25. [Dashboard](11-dashboard.md) — daily and project word goals, status breakdown, chapter pacing, echo phrases.
 26. [Research](15-research.md) — notes attached to your project.
 27. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline, plus hand-curated collections and bookmarks.
-28. [Snapshots](17-snapshots.md) — per-scene version history, taken from the inspector.
+28. [Snapshots](17-snapshots.md) — per-scene version history, taken from the writing bar.
 29. [Image Gallery](19-image-gallery.md) — every image in the project at a glance.
 30. [Git integration](18-git.md) — commit, push, pull without leaving the app.
 31. [Backups](35-backups.md) — automatic whole-project archives with in-app restore.
@@ -63,29 +63,34 @@ If you are looking for a specific feature, jump straight to its page from the ta
 
 ### The inspector
 
-35. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context and Footnotes tabs for the open scene. (Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.)
+35. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context, Footnotes and Inbox tabs for the open scene. (Synopsis and notes live in the bottom scene-notes dock; snapshots in a dialog raised from the writing bar.)
 
 ### Customisation
 
 36. [Settings](23-settings.md) — appearance, editor, writing assistance, templates, diagnostics, global vs per-project scope.
-37. [Extensions](24-extensions.md) — .NET extensions in the core process, webview panels in the binder, the AI Assistant, writing your own.
-38. [Command palette](25-command-palette.md) — every shell command in one searchable box.
-39. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut.
+37. [Extensions](24-extensions.md) — .NET extensions in the core process, webview views that join a mode, the AI Assistant, writing your own.
+38. [Command palette](25-command-palette.md) — every command in one searchable box.
+39. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut, and how to bind the rest.
 40. [Localization](27-localization.md) — bundled languages (English, German, Simplified Chinese), contributing translations.
 41. [Custom themes & language packs](34-custom-themes-and-languages.md) — add your own colour schemes and interface languages by dropping a file into a folder.
 42. [Accessibility](39-accessibility.md) — reading-comfort settings, the High Contrast theme, read-aloud, and what is honestly still missing.
 
 ### Help
 
-43. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
+43. [About](44-about.md) — versions, the changelog inside the app, third-party licences, and the system-information block to paste into a bug report.
+44. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
 
 ## Conventions used in this manual
 
-- **Activity bar** is the slim icon rail on the far left that switches the main area between views (Dashboard, Manuscript, Timeline, Plot Grid, Calendar, Relationships, Dialogue, Style report, Planning board, Series, Codex, Wiki, Maps, Research, Gallery, Exposé, Export, Git, Settings, plus extension views).
-- **Binder** is the left pane next to the activity bar: the chapter/scene tree, with Smart Lists, Collections and Bookmarks tabs.
+- **Mode** is one of the five workspaces — Write, Plan, World, Publish, Series — picked from the mode rail. A mode decides which views are one click away and what chrome the window carries.
+- **Mode rail** is the labelled rail on the far left: Dashboard, then the five modes.
+- **Mode panel** is the list beside the rail holding the views of the mode you are in, in labelled groups, with extension views in their own group last.
+- **Menu bar** is File / Edit / Go / View / Window / Help, always visible on Windows and Linux and in the system bar on macOS. It carries every command that acts on the application as a whole.
+- **Binder** is the left pane in Write: the chapter/scene tree, with Smart Lists, Collections and Bookmarks tabs.
 - **Main area** is the center pane showing the active view, with an optional **scene-notes dock** (Synopsis + Notes) beneath the editor.
-- **Inspector** is the right pane: Context and Footnotes tabs for the open scene.
-- **Toolbar** is the slim bar at the top: binder toggle, backstage-drawer burger, book and draft selectors, project name, new chapter / new scene, Search, Snapshots, scene-notes toggle, inspector toggle.
+- **Inspector** is the right pane in Write: Context, Footnotes and Inbox tabs for the open scene.
+- **Toolbar** is the strip under the menu bar and is the open project's command bar: project name, book and draft selectors, new chapter / new scene, Find, and a **More** menu.
+- **Writing bar** is the strip above the editor: paragraph style, lists, alignment, snapshots, suggestion mode and Writing options.
 - **Status bar** is the bottom strip with live word counts, a project metrics strip with an overview popover, goals, git, and the core-connection status.
 - Keyboard shortcuts are written as `Ctrl+Shift+P`. On macOS, read `Ctrl` as `Cmd`.
 
@@ -96,5 +101,5 @@ Everything in your project lives in a single folder. The `.novalist/` subfolder 
 Novalist also protects your work in three ways of its own:
 
 - **Backups** archive the whole project folder to a ZIP outside the project, on open, on close, and on a timer, with a restore button in Settings. On by default. See [Backups](35-backups.md).
-- **Snapshots** cover a single scene: take one from the toolbar Snapshots button at any time, and replace-all operations take one automatically before touching your text — so you can revert one scene without affecting the rest. See [Snapshots](17-snapshots.md).
+- **Snapshots** cover a single scene: take one from the Snapshots button on the writing bar at any time, and replace-all operations take one automatically before touching your text — so you can revert one scene without affecting the rest. See [Snapshots](17-snapshots.md).
 - **Git** gives you full project history when you want to drive it yourself. See [Git integration](18-git.md).

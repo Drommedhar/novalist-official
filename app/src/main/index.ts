@@ -8,17 +8,16 @@ import {
   screen
 } from 'electron'
 import { join } from 'node:path'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { BackendProcess } from './backend-process'
 import {
   attachLiquidGlass,
   detectMaterial,
-  materialWindowOptions,
-  DEFAULT_TITLE_BAR_OVERLAY
+  materialWindowOptions
 } from './glass'
 import { registerDialogHandlers } from './dialogs'
 import { registerSpellCheckHandlers, attachSpellingMenu } from './spellcheck'
-import { installAppMenu } from './menu'
+import { applyMenuTemplate, installAppMenu, type MenuNode } from './menu'
 import { checkAppUpdate, downloadAndInstall } from './appUpdater'
 import { createSplashWindow, setSplashStatus } from './splash'
 import { registerProtocolSchemes, registerProtocolHandlers } from './protocols'
@@ -245,19 +244,26 @@ ipcMain.handle('novalist:download-app-update', (event, info) => {
   return downloadAndInstall(info, win)
 })
 
-// Repaints the system-drawn window controls when the renderer's theme changes.
-// Only meaningful where the title bar is hidden behind an overlay; setting it
-// on a window without one throws, so the material gates the call.
-ipcMain.on('novalist:set-titlebar-colors', (event, color: string, symbolColor: string) => {
-  if (material !== 'opaque') return
-  const win = BrowserWindow.fromWebContents(event.sender)
-  if (!win || win.isDestroyed()) return
+// The menu bar's contents come from the renderer's command registry, because
+// that registry is what decides an application-scoped command exists at all. A
+// template written here beside it would be a second list, and second lists
+// drift.
+ipcMain.on('novalist:set-menu', (_event, nodes: MenuNode[]) => {
   try {
-    win.setTitleBarOverlay({ color, symbolColor, height: DEFAULT_TITLE_BAR_OVERLAY.height })
-  } catch {
-    // Linux builds without overlay support: the toolbar still themes itself.
+    applyMenuTemplate(nodes)
+  } catch (error) {
+    // Electron refuses a template it cannot parse - an accelerator in a form it
+    // does not know is the likely cause. Losing the new menu is bad; taking the
+    // main process down with it, while the writer has a scene open, is worse.
+    console.error('[menu] the renderer described a menu Electron refused:', error)
   }
 })
+
+// The window controls are the system's own again now that Windows and Linux
+// keep their native title bar, so there is nothing here to repaint. Kept as a
+// no-op rather than removed from the preload, so an older renderer talking to a
+// newer main process does not throw on a channel that has gone.
+ipcMain.on('novalist:set-titlebar-colors', () => {})
 
 /**
  * One explicit whole-interface scale. Native menu shortcuts, Settings and
@@ -283,6 +289,33 @@ ipcMain.handle('novalist:display-diagnostics', (event) => {
     workArea: display.workArea
   }
 })
+
+/**
+ * The installed app version.
+ *
+ * The renderer only ever knew the core process's version - the one the status
+ * bar shows - so About had no way to name the application itself.
+ *
+ * Read from the manifest rather than through app.getVersion(), which is only
+ * right in a packaged build: started as `electron out/main/index.js` the app
+ * path is the folder of that script, there is no manifest in it, and Electron
+ * answers with its own version - which is why the app has to name itself above
+ * as well. `../../package.json` is the manifest in both layouts: beside `out/`
+ * in a checkout, and at the root of the asar in a package.
+ */
+function installedVersion(): string {
+  try {
+    const manifest = JSON.parse(
+      readFileSync(join(__dirname, '../../package.json'), 'utf8')
+    ) as { version?: string }
+    if (manifest.version) return manifest.version
+  } catch {
+    /* No readable manifest - fall back to whatever Electron believes. */
+  }
+  return app.getVersion()
+}
+
+ipcMain.handle('novalist:app-version', () => installedVersion())
 
 /**
  * A novalist:// link that arrived before the renderer could take it.

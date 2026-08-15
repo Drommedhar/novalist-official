@@ -6,7 +6,7 @@ Each book in a project has its own exposé.
 
 ## Opening the Exposé
 
-In the activity bar, click **Exposé** in the **Publish** group.
+Pick the **Publish** mode in the rail, then **Exposé** under **Prepare** in the mode panel.
 
 ## Writing
 

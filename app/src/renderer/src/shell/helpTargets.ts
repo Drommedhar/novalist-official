@@ -38,7 +38,8 @@ export const VIEW_HELP_TARGETS: Record<MainView, ManualTarget> = {
   export: { file: '20-export.md' },
   git: { file: '18-git.md' },
   extensions: { file: '24-extensions.md' },
-  settings: { file: '23-settings.md' }
+  settings: { file: '23-settings.md' },
+  about: { file: '02-interface-overview.md', anchor: 'about' }
 }
 
 export const INSPECTOR_HELP_TARGETS: Record<InspectorTab, ManualTarget> = {
@@ -63,7 +64,7 @@ export type WritingHelpFeature =
 
 export const WRITING_HELP_TARGETS: Record<WritingHelpFeature, ManualTarget> = {
   autosave: { file: '05-editor.md', anchor: 'auto-save' },
-  formatting: { file: '05-editor.md', anchor: 'the-formatting-toolbar' },
+  formatting: { file: '05-editor.md', anchor: 'the-writing-bar' },
   paragraphStyles: { file: '05-editor.md', anchor: 'paragraph-styles' },
   focusPeek: { file: '05-editor.md', anchor: 'entity-hover-cards' },
   focusMode: { file: '05-editor.md', anchor: 'focus-mode' },

@@ -4,7 +4,7 @@ The Export view turns your book into a file you can send to a beta reader, an ed
 
 ## Opening Export
 
-In the activity bar, click **Export** in the **Publish** group.
+Pick the **Publish** mode in the rail, then **Export** under **Produce** in the mode panel.
 
 ## The export form
 
@@ -369,7 +369,7 @@ The page count is an estimate for every layout except **Normseiten**, which repo
 - In the **editor**, that is the open scene. With the editor split, it is the pane your caret is in.
 - In **Manuscript mode**, it is the whole book as the view lays it out — the closest thing to a printed draft without exporting first.
 - In the **Exposé**, it is the exposé.
-- In any other view — Timeline, Plot Grid, Calendar, Relationships, Dashboard — it is that view, with the toolbar, activity bar, binder, inspector and status bar dropped and the content given the page.
+- In any other view — Timeline, Plot Grid, Calendar, Relationships, Dashboard — it is that view, with the toolbar, mode rail, mode panel, binder, inspector and status bar dropped and the content given the page.
 
 Printing prose leaves the working apparatus out: no floating toolbar, no grammar underlines, no readability tint, no word counts between scenes. Your printer's own dialog handles paper size, margins and "print to PDF", which is why Novalist does not ask you about any of them.
 

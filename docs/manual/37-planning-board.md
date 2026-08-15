@@ -1,6 +1,6 @@
 # Planning board
 
-The **Planning board** is an infinite surface for ideas that are not yet scenes: loose cards you can drag anywhere, and lines you draw between them with your own labels. Open it from the activity bar (Plan group).
+The **Planning board** is an infinite surface for ideas that are not yet scenes: loose cards you can drag anywhere, and lines you draw between them with your own labels. Open it from the **Plan** mode, under **Shape** in the mode panel.
 
 Everything else in Novalist that shows relationships works it out for you — the [Relationships graph](14-relationships.md) lays characters out automatically, the [Timeline](12-timeline.md) orders real chapters and scenes, [Maps](29-maps.md) place pins on geography. The board is the opposite: nothing on it is derived, and nothing on it is part of your manuscript. That is what makes it usable for a half-formed thought.
 

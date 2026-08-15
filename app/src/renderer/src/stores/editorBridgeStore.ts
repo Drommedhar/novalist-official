@@ -21,8 +21,25 @@ interface EditorBridgeState {
   hasSelection: boolean
   entityAtCaret: boolean
 
+  /**
+   * The two editor commands the frame around the editor owns rather than the
+   * editor itself: asking for a link address, and starting or stopping the
+   * system speech engine. Registered by EditorFrame while it is mounted.
+   *
+   * They are here so the command registry can reach them. A command that only
+   * a button knows how to run is a command the palette cannot offer, which is
+   * how "Link" and "Read aloud" stayed unreachable by name.
+   */
+  requestLink: (() => void) | null
+  toggleReadAloud: (() => void) | null
+
   register(editor: EditorWindow | null, sceneId: string | null): void
   setContext(context: { hasSelection: boolean; entityAtCaret: boolean }): void
+  /** EditorFrame publishes its own commands; null on unmount. */
+  setFrameCommands(commands: {
+    requestLink: (() => void) | null
+    toggleReadAloud: (() => void) | null
+  }): void
 
   /** True when the bridge is live and showing this scene. */
   isShowing(sceneId: string): boolean
@@ -33,10 +50,13 @@ export const useEditorBridge = create<EditorBridgeState>((set, get) => ({
   sceneId: null,
   hasSelection: false,
   entityAtCaret: false,
+  requestLink: null,
+  toggleReadAloud: null,
 
   register: (editor, sceneId) =>
     set({ editor, sceneId, ...(editor ? {} : { hasSelection: false, entityAtCaret: false }) }),
   setContext: (context) => set(context),
+  setFrameCommands: (commands) => set(commands),
 
   isShowing: (sceneId) => {
     const state = get()

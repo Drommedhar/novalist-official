@@ -3,6 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
+import { enterWriting } from './harness'
 
 /**
  * A scene that changed on disk while the editor held it.
@@ -36,6 +37,9 @@ test('a save is refused when the scene changed on disk, and the merge resolves i
     const sceneId = window.novalistStores.project.getState().chapters[0].scenes[0].id
     return { guid, sceneId }
   }, workDir)
+
+  // A created project opens on the Dashboard; the binder is Write's.
+  await enterWriting(page)
 
   // The editor reads the scene, so the store now holds the hash it saw.
   await page.locator('.binder-scene-row').first().click()

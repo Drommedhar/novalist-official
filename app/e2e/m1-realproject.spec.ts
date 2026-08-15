@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { enterWriting } from './harness'
 import { REAL_PROJECT } from './realProject'
 
 /**
@@ -34,6 +35,10 @@ test('real project renders binder and scene content', async () => {
     const state = await window.novalistRpc.request('project/open', [root])
     window.novalistStores.project.getState().applyState(state as never)
   }, projectCopy)
+
+  // Opening a project lands on the Dashboard, which is about the book; the
+  // binder and the editor below belong to Write.
+  await enterWriting(page)
 
   // Real chapters and scenes appear in the binder.
   const chapterRows = page.locator('.binder-chapter-row')
@@ -244,7 +249,13 @@ test('real project renders binder and scene content', async () => {
 
   // Dashboard: real totals appear.
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
-  await expect(page.locator('.dashboard-title')).toBeVisible({ timeout: 15_000 })
+  // The dashboard shows "connecting" until its aggregate lands, and on this
+  // project that is a hundred and nineteen scenes read off disk. Fifteen
+  // seconds was enough when the spec ran alone and not when it ran behind a
+  // hundred and thirty others that had filled the file cache with their own
+  // temporary projects. The budget is on the aggregate arriving; what it says
+  // is still asserted on the default one.
+  await expect(page.locator('.dashboard-title')).toBeVisible({ timeout: 60_000 })
   const wordsMetric = await page.locator('.dashboard-metric-value').first().innerText()
   expect(Number(wordsMetric.replace(/[^0-9]/g, ''))).toBeGreaterThan(1000)
 
@@ -295,7 +306,11 @@ test('real project renders binder and scene content', async () => {
   // SDK v2: the deployed AiAssistant contributes a webview panel; opening it
   // exercises manifest discovery, the novalist-ext protocol, and the
   // postMessage-to-controller bridge end to end.
-  const aiChatItem = page.locator('.activity-bar-item[title="AI Chat"]')
+  // A contributed view joins the mode its manifest names, and one that names
+  // none joins World. Either way it is a row in a mode's panel now rather than
+  // an icon appended to a rail that ran out of room.
+  await page.locator('.mode-rail-item[data-mode="world"]').click()
+  const aiChatItem = page.locator('.mode-panel-row', { hasText: 'AI Chat' })
   if ((await aiChatItem.count()) > 0) {
     await aiChatItem.click()
     const chatFrame = page.frameLocator('iframe[src^="novalist-ext://com.novalist.ai/"]')

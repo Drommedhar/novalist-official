@@ -12,7 +12,7 @@ Scene and chapter dates are part of the project data and are shared with the [Ti
 
 ## Opening the Calendar
 
-Open it from the **Plan** group in the activity bar (**Calendar**), from the **Go** menu or command palette, or with `Ctrl+6` (macOS uses Cmd).
+Open it from the **Plan** mode (**Calendar**, under **Cast and time** in the mode panel), from the **Go** menu or command palette, or with `Ctrl+6` (macOS uses Cmd).
 
 ## View modes
 

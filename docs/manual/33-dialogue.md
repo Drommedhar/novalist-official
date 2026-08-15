@@ -4,7 +4,7 @@ The Dialogue view gathers every line one character speaks across the whole book 
 
 You can also fix things from here. A line can be rewritten in place and the change lands in the scene file, and a line the app attributed to the wrong person can be reassigned.
 
-Open **Dialogue** from the **Plan** group in the activity bar (the icon rail on the far left), after the Relationships graph.
+Open **Dialogue** from the **Plan** mode, under **Cast and time** in the mode panel, after the Relationships graph and the Calendar.
 
 ## The Dialogue view at a glance
 

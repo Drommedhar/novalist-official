@@ -3,6 +3,7 @@ import { mkdtempSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
+import { enterWriting } from './harness'
 
 /**
  * M1 exit criterion, against the real app (built renderer + real backend):
@@ -56,6 +57,10 @@ test('project + binder + editor round-trip', async () => {
     const state = await window.novalistRpc.request('project/create', [dir, 'E2E Novel', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
+
+  // A created project opens on the Dashboard, which is about the book and so
+  // has no binder; the round-trip below is the Write workspace's.
+  await enterWriting(page)
 
   await page.evaluate(() => window.novalistStores.project.getState().createChapter('Chapter One'))
   await expect(page.locator('.binder-chapter-title')).toHaveText('Chapter One')

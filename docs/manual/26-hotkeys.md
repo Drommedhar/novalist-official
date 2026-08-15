@@ -4,65 +4,93 @@ This is the full list of **default** keyboard shortcuts shipped with Novalist. O
 
 Gestures are written in Novalist's key-gesture grammar: `D1` through `D9` are the number keys `1` through `9` on the main keyboard row, so `Ctrl+D1` means `Ctrl+1`.
 
-Every shortcut below is rebindable. Change any of them in **Settings → Hotkeys**: click a shortcut's gesture, press the new combination to capture it (Novalist warns you if it clashes with another action), and reset a single shortcut or all of them back to these defaults at any time. See [Settings](23-settings.md#hotkeys). The bindings below are what a fresh install ships with.
+A shortcut is a **property of a command, not the reason one exists**. Every command Novalist has is listed in **Settings → Keyboard shortcuts**, whether or not it ships with a gesture, and any of them can be given one: click a command's gesture button, press the combination to capture it (Novalist warns you if it clashes with another command), and reset one or all of them back to the defaults at any time. See [Settings](23-settings.md#hotkeys). Most commands ship unbound — the table below is what a fresh install binds.
 
 ## Navigation
 
 The number keys switch the main area between views, in this order:
 
-| Action | Gesture |
+| Command | Gesture |
 | --- | --- |
-| Go to Editor | `Ctrl+D1` |
-| Go to Dashboard | `Ctrl+D2` |
-| Go to Timeline | `Ctrl+D3` |
-| Go to Codex | `Ctrl+D4` |
-| Go to Manuscript | `Ctrl+D5` |
-| Go to Calendar | `Ctrl+D6` |
-| Go to Relationships | `Ctrl+D7` |
-| Go to Plot Grid | `Ctrl+D8` |
-| Go to Research | `Ctrl+D9` |
+| Editor | `Ctrl+D1` |
+| Dashboard | `Ctrl+D2` |
+| Timeline | `Ctrl+D3` |
+| Codex | `Ctrl+D4` |
+| Manuscript | `Ctrl+D5` |
+| Calendar | `Ctrl+D6` |
+| Relationships | `Ctrl+D7` |
+| Plot Grid | `Ctrl+D8` |
+| Research | `Ctrl+D9` |
 
-## Panels and tools
+Every other view — Wiki, Maps, Languages, Gallery, Dialogue, Planning board, Series, Exposé, Style report, Export, Git, Extensions, Settings — is a command with no default gesture. Reach it from its mode in the [mode panel](02-interface-overview.md#the-mode-panel), from the **Go** menu, or from the palette; bind it yourself if you go there often.
 
-| Action | Gesture |
+## Panels and panes
+
+| Command | Gesture |
 | --- | --- |
 | Toggle binder (left pane) | `Ctrl+B` |
-| Split the pane right | `Ctrl+Alt+Right` |
-| Split the pane down | `Ctrl+Alt+Down` |
-| Close the pane | `Ctrl+Alt+W` |
 | Toggle inspector (right pane) | `Ctrl+Shift+B` |
 | Toggle scene notes (bottom dock) | `Ctrl+Shift+N` |
-| Find & Replace | `Ctrl+Shift+F` |
-| Clean up the manuscript | *(unbound — rewrites prose in every scene it touches, so it ships without a gesture)* |
-| Toggle Focus Mode | `Alt+F` |
+| Show the mode panel | *(unbound)* |
+| Focus Mode | `Alt+F` |
+| Split pane right | `Ctrl+Alt+Right` |
+| Split pane down | `Ctrl+Alt+Down` |
+| Close pane | `Ctrl+Alt+W` |
+| Default pane layout | *(unbound)* |
+| Open in its own window | *(unbound)* |
+| Pane layouts | *(unbound)* |
 | Workspace layouts | `Ctrl+Alt+L` |
-| Take the tour | `Ctrl+Alt+T` |
+| Increase interface scale | `Ctrl+Plus` |
+| Decrease interface scale | `Ctrl+-` |
+| Reset interface scale | `Ctrl+0` |
+
+**Interface scale** is the size of Novalist's own chrome, not of your manuscript — see [Settings → Appearance](23-settings.md#appearance).
+
+## Project
+
+| Command | Gesture |
+| --- | --- |
+| Find and Replace | `Ctrl+Shift+F` |
+| Quick capture (jot a note) | `Ctrl+Shift+K` |
+| Clean up the manuscript | *(unbound — it rewrites the prose in every scene it touches, so it ships without a gesture)* |
+| New chapter | *(unbound)* |
+| New scene | *(unbound)* |
+| New Book, New draft, Compare drafts, Delete draft, Rename project | *(unbound)* |
+
+## Editor
+
+| Command | Gesture |
+| --- | --- |
+| Comment | `Ctrl+Shift+M` |
+| Peek at entity under caret | `Ctrl+Shift+E` |
+| Italic | `Ctrl+I` |
+| Underline | `Ctrl+U` |
+| Bold, Strikethrough, Highlight, Link, Footnote | *(unbound)* |
+| Paragraph styles, lists, alignment | *(unbound)* |
+| Scene snapshots, Suggest edits, Read aloud, and the writing options | *(unbound)* |
+
+**Comment** and **Peek at entity under caret** both need something to act on — a selection, and a linked Codex name under the caret — and do nothing without it.
+
+## General
+
+| Command | Gesture |
+| --- | --- |
 | Command Palette | `Ctrl+Shift+P` |
 | Quick Open (search everything) | `Ctrl+P` |
-| Quick capture (jot a note) | `Ctrl+Shift+K` |
 | Print | `Ctrl+Alt+P` |
-
-## Interface size and help
-
-These live in the application menu bar rather than in the rebindable list, so they work even when no window has focus. They are fixed rather than configurable.
-
-| Action | Gesture |
-| --- | --- |
-| Increase interface size | `Ctrl+Plus` |
-| Decrease interface size | `Ctrl+-` |
-| Reset interface size to 100% | `Ctrl+0` |
-| Help for the current view | `F1` |
-
-**Interface size** is the size of Novalist's own chrome, not of your manuscript — see [Settings → Appearance](23-settings.md#appearance). `F1` opens the manual at the page for whatever you are looking at; see [In-app help](02-interface-overview.md#in-app-help).
+| Take the tour | `Ctrl+Alt+T` |
+| User manual | `F1` |
+| About Novalist | *(unbound — Help → About)* |
+| New Project, Browse for Project Folder, Import from Obsidian Plugin, Import a manuscript | *(unbound — the File menu)* |
 
 ## Notes
 
-- **Reopen the main window** is in the Window menu, named after the app. It no longer carries a gesture, because `Ctrl+0` now resets the interface size — the two collided, and only one of them can have the key. On macOS, closing the last window leaves Novalist running; use the menu item, or click the dock icon, to bring the project back.
-
+- **Reopen the main window** is in the Window menu, named after the app, and carries no gesture. On macOS, closing the last window leaves Novalist running; use the menu item, or click the dock icon, to bring the project back.
+- Shortcuts shown beside a menu item are **displayed, not registered by the menu**: the app itself listens for every gesture, including inside the editor, so a shortcut you rebind takes effect everywhere at once.
 - While the cursor is in a text field or the editor, only gestures that include `Ctrl` (or `Cmd`) fire, so plain typing and `Alt` shortcuts never interrupt your writing. `Alt+F` works whenever focus is outside a text field.
-- Standard text-editing shortcuts — copy, cut, paste, select all, undo, redo (`Ctrl+C/X/V/A/Z/Y`, `Ctrl+Shift+Z`) — are handled natively by the writing surface.
-- On Apple keyboards `Cmd+B`, `Cmd+I` and `Cmd+U` stay with the writing surface as bold, italic and underline, so they apply formatting rather than triggering the app actions bound to `Ctrl+B` and friends.
-- Every action listed here is also available by name in the [Command Palette](25-command-palette.md).
+- Standard text-editing shortcuts — copy, cut, paste, select all, undo, redo (`Ctrl+C/X/V/A/Z/Y`, `Ctrl+Shift+Z`) — are handled natively by the writing surface, and are also in the **Edit** menu.
+- On Apple keyboards `Cmd+B`, `Cmd+I` and `Cmd+U` stay with the writing surface as bold, italic and underline, so they apply formatting rather than triggering the app commands bound to `Ctrl+B` and friends.
+- Every command is also available by name in the [Command Palette](25-command-palette.md), which shows the gesture you have bound to it, if any.
 
 ## Dialog conventions
 
@@ -74,5 +102,6 @@ These behaviors are consistent across the in-window dialogs:
 
 ## Where to go next
 
-- [Command Palette](25-command-palette.md) — every action by name regardless of binding.
-- [Interface Overview](02-interface-overview.md) — the panes and views these shortcuts drive.
+- [Command Palette](25-command-palette.md) — every command by name regardless of binding.
+- [Interface Overview](02-interface-overview.md) — the modes, panels and menus these shortcuts drive.
+- [Settings](23-settings.md#hotkeys) — the rebinding editor, which lists every command in the app.

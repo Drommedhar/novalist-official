@@ -56,7 +56,10 @@
     "toggleSplitEditor": "Open in split",
     "addComment": "Add comment",
     "addFootnote": "Add footnote",
-    "commandPalette": "Command Palette..."
+    "commandPalette": "Command Palette...",
+    "file": "File",
+    "go": "Go",
+    "help": "Help"
   },
   "commandPalette": {
     "placeholder": "Type a command name...",
@@ -3870,5 +3873,61 @@
     "popOut": "Open in its own window",
     "showInPane": "Show in this pane",
     "resize": "Resize panes"
+  },
+  "command": {
+    "newChapter": "New chapter",
+    "newScene": "New scene",
+    "renameProject": "Rename project",
+    "uiScaleIncrease": "Increase interface scale",
+    "uiScaleDecrease": "Decrease interface scale",
+    "uiScaleReset": "Reset interface scale",
+    "manual": "User manual",
+    "about": "About Novalist"
+  },
+  "about": {
+    "title": "About Novalist",
+    "appVersion": "Novalist",
+    "coreVersion": "Core process",
+    "unknown": "Not reported",
+    "website": "Novalist on GitHub",
+    "reportIssue": "Report an issue",
+    "checkUpdates": "Check for updates",
+    "copySystemInfo": "Copy system information",
+    "copySystemInfoDesc": "Puts the versions, your operating system and the window measurements on the clipboard, ready to paste into a support request. It contains no project names, no file paths and none of your writing.",
+    "copied": "Copied to the clipboard.",
+    "whatsNew": "What's new",
+    "licenses": "Third-party licences",
+    "licensesIntro": "Novalist ships these components, and their licences ask to be credited.",
+    "licensesNote": "The full licence text for each of them ships with the app.",
+    "role": {
+      "displayFace": "Display typeface",
+      "bodyFace": "Body typeface",
+      "monoFace": "Monospaced typeface",
+      "desktopRuntime": "Desktop app runtime",
+      "coreRuntime": "Core process runtime"
+    }
+  },
+  "modes": {
+    "write": "Write",
+    "plan": "Plan",
+    "world": "World",
+    "publish": "Publish",
+    "series": "Series",
+    "filter": "Filter views",
+    "noMatch": "No view matches that.",
+    "viewCount_one": "{{count}} view",
+    "viewCount_other": "{{count}} views",
+    "group": {
+      "drafting": "Drafting",
+      "shape": "Shape",
+      "castAndTime": "Cast and time",
+      "inThisBook": "In this book",
+      "reference": "Reference",
+      "prepare": "Prepare",
+      "produce": "Produce",
+      "acrossBooks": "Across books",
+      "fromExtensions": "From extensions"
+    },
+    "togglePanel": "Show the mode panel"
   }
 }

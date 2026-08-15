@@ -33,7 +33,7 @@ test('a plot thread carries importance and resolution steps, from the grid', asy
     const state = await window.novalistRpc.request('project/create', [parent, 'Threads', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
   await page.evaluate(() => window.novalistRpc.request('plot/createPlotline', ['The debt']))
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('plotGrid'))

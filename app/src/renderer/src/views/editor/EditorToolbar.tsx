@@ -3,28 +3,20 @@ import {
   AlignJustify,
   AlignLeft,
   AlignRight,
-  Bold,
-  Eye,
   Gauge,
-  Highlighter,
-  Italic,
-  Link,
+  History,
   List,
   ListOrdered,
-  MessageSquare,
-  NotebookText,
   PenLine,
   Settings2,
   Square,
-  Strikethrough,
-  Underline,
   Volume2
 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { runCommand } from '../../shell/commands'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useShellStore } from '../../stores/shellStore'
-import type { EditorWindow } from './editorBridge'
 
 export interface FormattingState {
   bold: boolean
@@ -45,172 +37,151 @@ export interface FormattingState {
 
 interface EditorToolbarProps {
   formatting: FormattingState
-  editor(): EditorWindow | null
-  /** True while the scene is being read back, so the button offers Stop. */
+  /** True while the scene is being read back, so the bar offers Stop. */
   speaking: boolean
-  onToggleReadAloud(): void
-  onRequestLink(): void
-  onAddComment(): void
-  onAddFootnote(): void
 }
 
 /**
- * The named block styles a scene can carry. Body is the absence of a style
- * rather than a style of its own, which is what the editor stores and what keeps
- * an untouched manuscript free of markup it never asked for.
+ * The writing view's own command bar.
+ *
+ * It used to hold the inline marks, the link, Comment and Footnote as well -
+ * every one of them a second copy of a button already in the floating toolbar
+ * that appears over a selection, and Comment and Footnote a third copy of one
+ * already in the context menu. It also swapped its whole contents depending on
+ * whether anything was selected, so the row of buttons a writer had just
+ * learned moved out from under them the moment they dragged across a word.
+ *
+ * Under the placement law it keeps what acts on the paragraph the caret is in
+ * and on the open scene - structure, not inline formatting - and that set does
+ * not change as the selection does. Anything acting on selected text lives in
+ * the floating toolbar over the selection, and nowhere else.
  */
+// placement-container: viewBar
 const PARAGRAPH_STYLES = ['', 'heading', 'subheading', 'blockquote', 'poetry'] as const
 
-/** Formatting strip above the editor; commands run inside editor.html. */
-export function EditorToolbar({
-  formatting,
-  editor,
-  speaking,
-  onToggleReadAloud,
-  onRequestLink,
-  onAddComment,
-  onAddFootnote
-}: EditorToolbarProps): React.JSX.Element {
+export function EditorToolbar({ formatting, speaking }: EditorToolbarProps): React.JSX.Element {
   const { t } = useTranslation()
-  const run = (command: (e: EditorWindow) => void): void => {
-    const live = editor()
-    if (live) command(live)
-  }
+  const [optionsOpen, setOptionsOpen] = useState(false)
+  const suggesting = useShellStore((s) => s.suggestionMode)
+  const effective = useSettingsStore((s) => s.view?.effective)
 
   const buttons: {
-    key: string
-    context: 'selection' | 'caret'
+    command: string
+    labelKey: string
     active: boolean
     icon: React.ComponentType<{ size?: number; strokeWidth?: number }>
-    run(e: EditorWindow): void
   }[] = [
-    { key: 'bold', context: 'selection', active: formatting.bold, icon: Bold, run: (e) => e.toggleBold() },
-    { key: 'italic', context: 'selection', active: formatting.italic, icon: Italic, run: (e) => e.toggleItalic() },
-    { key: 'underline', context: 'selection', active: formatting.underline, icon: Underline, run: (e) => e.toggleUnderline() },
-    { key: 'strikethrough', context: 'selection', active: formatting.strikethrough, icon: Strikethrough, run: (e) => e.toggleStrikethrough() },
-    { key: 'highlight', context: 'selection', active: formatting.highlight, icon: Highlighter, run: (e) => e.toggleHighlight() },
-    { key: 'bulletList', context: 'caret', active: formatting.bulletList, icon: List, run: (e) => e.toggleBulletList() },
     {
-      key: 'numberList',
-      context: 'caret',
-      active: formatting.numberList,
-      icon: ListOrdered,
-      run: (e) => e.toggleNumberList()
+      command: 'paragraph.bulletList',
+      labelKey: 'blockStyle.bulletList',
+      active: formatting.bulletList,
+      icon: List
     },
-    { key: 'left', context: 'caret', active: formatting.alignment === 'left', icon: AlignLeft, run: (e) => e.alignLeft() },
-    { key: 'center', context: 'caret', active: formatting.alignment === 'center', icon: AlignCenter, run: (e) => e.alignCenter() },
-    { key: 'right', context: 'caret', active: formatting.alignment === 'right', icon: AlignRight, run: (e) => e.alignRight() },
-    { key: 'justify', context: 'caret', active: formatting.alignment === 'justify', icon: AlignJustify, run: (e) => e.alignJustify() }
+    {
+      command: 'paragraph.numberList',
+      labelKey: 'blockStyle.numberList',
+      active: formatting.numberList,
+      icon: ListOrdered
+    },
+    {
+      command: 'paragraph.alignLeft',
+      labelKey: 'blockStyle.left',
+      active: formatting.alignment === 'left',
+      icon: AlignLeft
+    },
+    {
+      command: 'paragraph.alignCenter',
+      labelKey: 'blockStyle.center',
+      active: formatting.alignment === 'center',
+      icon: AlignCenter
+    },
+    {
+      command: 'paragraph.alignRight',
+      labelKey: 'blockStyle.right',
+      active: formatting.alignment === 'right',
+      icon: AlignRight
+    },
+    {
+      command: 'paragraph.alignJustify',
+      labelKey: 'blockStyle.justify',
+      active: formatting.alignment === 'justify',
+      icon: AlignJustify
+    }
   ]
 
-  const [suggesting, setSuggesting] = useState(false)
-  const [optionsOpen, setOptionsOpen] = useState(false)
-  // Whose suggestion it is. The author's own name is the only one Novalist
-  // knows; an editor working in someone else's copy sets it in Settings.
-  const author = useSettingsStore((s) => s.view?.effective.reviewerName ?? '')
-
-  const settingsView = useSettingsStore((s) => s.view)
-  const effective = settingsView?.effective
-  const editorScope = settingsView?.overriddenSections?.editor ? 'project' : 'global'
-  const updateEditorSetting = (patch: Record<string, unknown>): void => {
-    void useSettingsStore.getState().update(editorScope, patch)
-  }
+  /** One writing preference, flipped where the writer is already editing. */
+  const option = (option: {
+    setting: string
+    command: string
+    labelKey: string
+    icon?: React.JSX.Element
+  }): React.JSX.Element => (
+    <label key={option.setting} data-command={option.command}>
+      <input
+        type="checkbox"
+        checked={(effective as Record<string, unknown> | undefined)?.[option.setting] === true}
+        onChange={() => runCommand(option.command)}
+      />
+      {option.icon}
+      {t(option.labelKey)}
+    </label>
+  )
 
   return (
-    <div
-      className="editor-toolbar"
-      data-editor-context={formatting.hasSelection ? 'selection' : 'caret'}
-    >
+    <div className="editor-toolbar">
       <div className="editor-toolbar-primary" role="toolbar" aria-label={t('blockStyle.toolbar')}>
-        {!formatting.hasSelection && (
-          <select
-            className="editor-toolbar-style"
-            value={formatting.paragraphStyle}
-            title={t('blockStyle.label')}
-            aria-label={t('blockStyle.label')}
-            onChange={(event) => run((live) => live.setParagraphStyle(event.target.value))}
-          >
-            {PARAGRAPH_STYLES.map((style) => (
-              <option key={style || 'body'} value={style}>
-                {t(`blockStyle.${style || 'body'}`)}
-              </option>
-            ))}
-          </select>
-        )}
-        {buttons
-          .filter(({ context }) =>
-            formatting.hasSelection ? context === 'selection' : context === 'caret'
-          )
-          .map(({ key, active, icon: Icon, run: command }) => (
-            <button
-              type="button"
-              key={key}
-              className={`editor-toolbar-button${active ? ' active' : ''}`}
-              title={t(`blockStyle.${key}`)}
-              aria-label={t(`blockStyle.${key}`)}
-              aria-pressed={active}
-              onClick={() => run(command)}
-            >
-              <Icon size={15} strokeWidth={1.75} />
-            </button>
+        <select
+          className="editor-toolbar-style"
+          data-command="paragraph.style.body paragraph.style.heading paragraph.style.subheading paragraph.style.blockquote paragraph.style.poetry"
+          value={formatting.paragraphStyle}
+          title={t('blockStyle.label')}
+          aria-label={t('blockStyle.label')}
+          onChange={(event) =>
+            runCommand(`paragraph.style.${event.target.value || 'body'}`)
+          }
+        >
+          {PARAGRAPH_STYLES.map((style) => (
+            <option key={style || 'body'} value={style}>
+              {t(`blockStyle.${style || 'body'}`)}
+            </option>
           ))}
-
-        {formatting.hasSelection && (
-          <>
-            <button
-              type="button"
-              className={`editor-toolbar-button${formatting.linkActive ? ' active' : ''}`}
-              title={t('blockStyle.link')}
-              aria-label={t('blockStyle.link')}
-              aria-pressed={formatting.linkActive}
-              onClick={onRequestLink}
-            >
-              <Link size={15} strokeWidth={1.75} />
-            </button>
-            <button
-              type="button"
-              className="editor-toolbar-button editor-toolbar-labelled"
-              title={t('editor.contextMenu.addComment')}
-              onClick={onAddComment}
-            >
-              <MessageSquare size={15} strokeWidth={1.75} />
-              <span>{t('blockStyle.comment')}</span>
-            </button>
-            <button
-              type="button"
-              className="editor-toolbar-button editor-toolbar-labelled"
-              title={t('editor.contextMenu.addFootnote')}
-              onClick={onAddFootnote}
-            >
-              <NotebookText size={15} strokeWidth={1.75} />
-              <span>{t('blockStyle.footnote')}</span>
-            </button>
-          </>
-        )}
-
-        {!formatting.hasSelection && formatting.entityAtCaret && (
+        </select>
+        {buttons.map(({ command, labelKey, active, icon: Icon }) => (
           <button
             type="button"
-            className="editor-toolbar-button editor-toolbar-labelled"
-            title={t('blockStyle.peekEntity')}
-            onClick={() => run((live) => live.peekEntityAtCaret())}
+            key={command}
+            data-command={command}
+            className={`editor-toolbar-button${active ? ' active' : ''}`}
+            title={t(labelKey)}
+            aria-label={t(labelKey)}
+            aria-pressed={active}
+            onClick={() => runCommand(command)}
           >
-            <Eye size={15} strokeWidth={1.75} />
-            <span>{t('blockStyle.peekEntity')}</span>
+            <Icon size={15} strokeWidth={1.75} />
           </button>
-        )}
+        ))}
 
         <span className="toolbar-spacer" />
+        {/* The scene's own history. It was a button on the main toolbar, which
+            is the project's bar - a snapshot is of the scene in front of you. */}
         <button
           type="button"
+          data-command="write.snapshots"
+          className="editor-toolbar-button"
+          title={t('shell.snapshots')}
+          aria-label={t('shell.snapshots')}
+          onClick={() => runCommand('write.snapshots')}
+        >
+          <History size={15} strokeWidth={1.75} />
+        </button>
+        <button
+          type="button"
+          data-command="write.suggestionMode"
           className={`editor-toolbar-button${suggesting ? ' active' : ''}`}
           title={t('suggestions.mode')}
+          aria-label={t('suggestions.mode')}
           aria-pressed={suggesting}
-          onClick={() => {
-            const next = !suggesting
-            setSuggesting(next)
-            run((live) => live.setSuggestionMode(next, author))
-          }}
+          onClick={() => runCommand('write.suggestionMode')}
         >
           <PenLine size={15} strokeWidth={1.75} />
         </button>
@@ -232,11 +203,8 @@ export function EditorToolbar({
           <button
             type="button"
             onClick={() => {
-              if (speaking) onToggleReadAloud()
-              if (suggesting) {
-                setSuggesting(false)
-                run((live) => live.setSuggestionMode(false, author))
-              }
+              if (speaking) runCommand('write.readAloud')
+              if (suggesting) runCommand('write.suggestionMode')
             }}
           >
             <Square size={14} strokeWidth={1.75} />
@@ -251,47 +219,32 @@ export function EditorToolbar({
           role="dialog"
           aria-label={t('blockStyle.writingOptions')}
         >
-          <label>
-            <input
-              type="checkbox"
-              checked={effective?.readabilityHighlighting ?? false}
-              onChange={(event) =>
-                updateEditorSetting({ readabilityHighlighting: event.target.checked })
-              }
-            />
-            <Gauge size={15} strokeWidth={1.75} />
-            {t('blockStyle.readability')}
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={effective?.composeDimming ?? false}
-              onChange={(event) => updateEditorSetting({ composeDimming: event.target.checked })}
-            />
-            {t('blockStyle.composeDimming')}
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={effective?.typewriterScrollEnabled ?? false}
-              onChange={(event) =>
-                updateEditorSetting({ typewriterScrollEnabled: event.target.checked })
-              }
-            />
-            {t('blockStyle.typewriterScrolling')}
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={effective?.pageViewEnabled ?? false}
-              onChange={(event) => updateEditorSetting({ pageViewEnabled: event.target.checked })}
-            />
-            {t('blockStyle.pageView')}
-          </label>
-          <button type="button" onClick={() => useShellStore.getState().toggleFocusMode()}>
-            {t(useShellStore.getState().focusMode ? 'blockStyle.leaveFocus' : 'blockStyle.enterFocus')}
-          </button>
-          <button type="button" onClick={onToggleReadAloud}>
+          {option({
+            setting: 'readabilityHighlighting',
+            command: 'write.readability',
+            labelKey: 'blockStyle.readability',
+            icon: <Gauge size={15} strokeWidth={1.75} />
+          })}
+          {option({
+            setting: 'composeDimming',
+            command: 'write.composeDimming',
+            labelKey: 'blockStyle.composeDimming'
+          })}
+          {option({
+            setting: 'typewriterScrollEnabled',
+            command: 'write.typewriterScrolling',
+            labelKey: 'blockStyle.typewriterScrolling'
+          })}
+          {option({
+            setting: 'pageViewEnabled',
+            command: 'write.pageView',
+            labelKey: 'blockStyle.pageView'
+          })}
+          <button
+            type="button"
+            data-command="write.readAloud"
+            onClick={() => runCommand('write.readAloud')}
+          >
             {speaking ? (
               <Square size={15} strokeWidth={1.75} />
             ) : (
@@ -304,6 +257,7 @@ export function EditorToolbar({
           </button>
         </div>
       )}
+      {/* placement-container: end */}
     </div>
   )
 }

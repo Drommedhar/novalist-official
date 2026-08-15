@@ -2,7 +2,7 @@
 
 The Codex is Novalist's worldbuilding database. Every named thing in your story can live here: people, places, objects, organizations, magic systems, mythology — whatever you need.
 
-Open it via the **Codex** icon in the World group of the activity bar (or **Go → Codex** in the menu bar). This page covers the four built-in entity types, custom entity types, creating entries (including the guided wizard and the character interview), the detail pane, and the World Bible.
+Open it from the **World** mode — **Codex** is the first entry under **In this book** in the mode panel — or from **Go → Codex** in the menu bar, or with `Ctrl+4`. This page covers the four built-in entity types, custom entity types, creating entries (including the guided wizard and the character interview), the detail pane, and the World Bible.
 
 For the visual relationship graph see [Relationships](14-relationships.md). For templates that pre-fill new entries see [Templates](07-templates.md).
 

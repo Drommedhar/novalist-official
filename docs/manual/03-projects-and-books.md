@@ -33,7 +33,7 @@ The **World Bible** is a shared entity pool across books. Characters, locations,
 
 ## Opening a project
 
-From the [start screen](01-getting-started.md#the-start-screen):
+From the welcome content Novalist shows [before a project is open](01-getting-started.md#before-a-project-is-open), or from the **File** menu at any time:
 
 - Click a project in **Recent Projects** — each recent project shows its portrait **book cover** (set on the [Dashboard](11-dashboard.md#banner-and-book-cover)), or a placeholder when none is set, or
 - Click **Browse for Project Folder...** and point the folder picker at the project folder (any folder containing a `.novalist/` subdirectory).
@@ -220,7 +220,7 @@ Novalist also supports per-scene snapshots — a manual version history per scen
 
 ## Importing from other tools
 
-The start screen has an **Import from Obsidian Plugin...** entry. This converts a project produced by the legacy Obsidian-based Novalist workflow into a native Novalist project. See [Troubleshooting](28-troubleshooting.md#importing-from-obsidian) for details.
+**File → Import from Obsidian Plugin...** converts a project produced by the legacy Obsidian-based Novalist workflow into a native Novalist project. See [Troubleshooting](28-troubleshooting.md#importing-from-obsidian) for details.
 
 ## Where to go next
 

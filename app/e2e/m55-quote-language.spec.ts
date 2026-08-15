@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { enterWriting } from './harness'
 
 /**
  * Picking a writing language has to reach the prose, not just the preview.
@@ -37,6 +38,9 @@ test('picking a writing language changes the quotes that land in the prose', asy
     state = await rpc.request('project/createScene', [guid, 'Opening'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
+
+  // A created project opens on the Dashboard; the binder and editor are Write's.
+  await enterWriting(page)
 
   await page.locator('.binder-scene-row').first().click()
   const editor = page.frameLocator('.editor-frame').locator('#editor')

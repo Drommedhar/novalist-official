@@ -18,37 +18,22 @@ export function detectMaterial(platform: NodeJS.Platform, osVersion: string): Ma
 }
 
 /**
- * Ink Night and Parchment, from the identity. Used for the Windows/Linux window
- * controls before the renderer has booted and can report the live theme; the
- * renderer replaces them through setTitleBarOverlay once tokens resolve.
- */
-export const DEFAULT_TITLE_BAR_OVERLAY = {
-  color: '#0f1219',
-  symbolColor: '#ece5d2',
-  // The renderer's .toolbar is 38px tall including its 1px bottom border
-  // (border-box). The overlay is an opaque native surface painted over the web
-  // content, so matching 38 here covered that border and the hairline under the
-  // toolbar visibly stopped short of the window controls. Stop 1px above it and
-  // the border runs the full width. Keep in step with .toolbar in shell.css.
-  height: 37
-} as const
-
-/**
  * Window options that let the native material show through behind the renderer.
  *
- * Windows and Linux have no API for recolouring the native title bar or menu
- * bar, so instead of leaving a grey strip above a dark app they are dropped:
- * the renderer's own toolbar becomes the title bar (it already carries the drag
- * region), and the system-drawn window controls are painted to match through
- * titleBarOverlay. The menu stays reachable on Alt.
+ * Windows and Linux used to hide the native title bar and let the renderer's
+ * own toolbar be the window chrome, with the system window controls overlaid at
+ * its right edge and the menu bar reachable only by pressing Alt. It looked
+ * better and it cost the app its index: the menu bar is the one surface that
+ * can list everything without being in the way, and the one every writer
+ * already knows how to read. A hidden index is not an index.
+ *
+ * So the native title bar and menu bar are back, and the toolbar is an ordinary
+ * strip below them. On macOS the system menu bar was always there, so nothing
+ * changes.
  */
 export function materialWindowOptions(material: Material): BrowserWindowConstructorOptions {
   if (material === 'opaque') {
-    return {
-      titleBarStyle: 'hidden',
-      titleBarOverlay: { ...DEFAULT_TITLE_BAR_OVERLAY },
-      autoHideMenuBar: true
-    }
+    return { autoHideMenuBar: false }
   }
   if (material === 'glass') {
     // NSGlassEffectView is attached post-load; vibrancy must stay off or it

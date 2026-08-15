@@ -85,6 +85,19 @@ export function registerUserLocales(locales: UserLocale[]): void {
   }
 }
 
+/**
+ * Tells the document what language it is in.
+ *
+ * Not decoration: `hyphens: auto` does nothing without it, and the mode rail
+ * needs to break "Veroeffentlichen" somewhere sensible to fit a word that long
+ * under an icon. Screen readers and spell-checking read it too.
+ */
+function announceLanguage(language: string): void {
+  if (typeof document !== 'undefined') document.documentElement.lang = language
+}
+
+i18next.on('languageChanged', announceLanguage)
+
 void i18next.use(initReactI18next).init({
   resources,
   lng: navigator.language.startsWith('de') ? 'de' : navigator.language.startsWith('zh') ? 'zh-CN' : 'en',

@@ -182,9 +182,17 @@ contextBridge.exposeInMainWorld('novalist', {
   setTitleBarColors(color: string, symbolColor: string): void {
     ipcRenderer.send('novalist:set-titlebar-colors', color, symbolColor)
   },
+  /** Replaces the application menu with the one the command registry describes. */
+  setMenu(nodes: unknown[]): void {
+    ipcRenderer.send('novalist:set-menu', nodes)
+  },
   /** Applies the persisted whole-interface scale to this renderer window. */
   setUiScale(factor: number): Promise<number> {
     return ipcRenderer.invoke('novalist:set-ui-scale', factor)
+  },
+  /** The installed application version, for About and support reports. */
+  appVersion(): Promise<string> {
+    return ipcRenderer.invoke('novalist:app-version')
   },
   /** Content-free display facts used by diagnostics and display troubleshooting. */
   displayDiagnostics(): Promise<{

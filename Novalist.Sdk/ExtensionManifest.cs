@@ -116,6 +116,21 @@ public sealed class WebViewContribution
     [JsonPropertyName("placement")]
     public string Placement { get; set; } = "main";
 
+    /// <summary>
+    /// The workspace this view joins: <c>"write"</c>, <c>"plan"</c>,
+    /// <c>"world"</c>, <c>"publish"</c> or <c>"series"</c>. Empty means the one
+    /// a content view implies, which is World.
+    /// </summary>
+    /// <remarks>
+    /// Contributed views used to be appended to a flat rail of nineteen icons,
+    /// where they were guaranteed to be the first thing pushed into its
+    /// overflow menu - so the views a writer had gone out of their way to add
+    /// were the hardest ones to find. Naming a mode puts a contributed view in
+    /// a list the writer is already reading.
+    /// </remarks>
+    [JsonPropertyName("mode")]
+    public string Mode { get; set; } = string.Empty;
+
     /// <summary>Entry HTML file, relative to the extension folder (e.g. <c>web/chat.html</c>).</summary>
     [JsonPropertyName("entry")]
     public string Entry { get; set; } = string.Empty;

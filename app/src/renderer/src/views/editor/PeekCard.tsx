@@ -72,10 +72,15 @@ interface PeekFinding {
   excerpt: string
 }
 
-/** Marker per finding kind, mirroring the desktop card. Text glyphs, not emoji. */
+/**
+ * Marker per finding kind, mirroring the desktop card.
+ *
+ * Punctuation, not pictographs: the warning sign that used to stand for an
+ * inconsistency is an emoji, whatever the old comment here claimed.
+ */
 const FINDING_MARKER: Record<string, string> = {
   reference: '→',
-  inconsistency: '⚠',
+  inconsistency: '!',
   suggestion: '•'
 }
 

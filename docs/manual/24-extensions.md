@@ -12,7 +12,7 @@ Since SDK v2, extensions can also contribute **webview views**: HTML panels decl
 
 ## The Extensions view
 
-Novalist has a dedicated **Extensions** management view. Open it from the **Extensions** button in the bottom block of the activity bar (the slim icon rail on the far left, next to Settings), or from the **Go** menu in the app menu bar.
+Novalist has a dedicated **Extensions** management view. Open it from **Go → Extensions** in the menu bar, or by name from the [command palette](25-command-palette.md). It belongs to no mode — extensions are a fact about your installation rather than about a book — so it is reachable with or without a project open.
 
 The view has two tabs:
 
@@ -27,12 +27,20 @@ The **Installed** tab lists every installed extension with its name, version, au
 - **Open Extensions Folder** — reveal the user extensions folder in your file manager.
 - **Reload** — re-read the contributed views after a change.
 
-## Extension panels in the activity bar and inspector
+## Where an extension's views appear
 
 When an installed and enabled extension contributes views, where each view appears depends on its declared **placement** in the manifest:
 
-- **`main`** — the view gets its own button in the **activity bar**, below the built-in views (just like Codex or Timeline). Each button uses the icon and title from the manifest; clicking it opens the panel in the main area.
+- **`main`** — the view is a full content view, and it joins one of the five [modes](02-interface-overview.md#the-mode-rail). It is listed in that mode's panel like Codex or Timeline, using the icon and title from the manifest.
 - **`inspector`** — the view appears in the right-hand **inspector** (context sidebar), alongside the built-in Context and Footnotes tabs.
+
+### Which mode a view joins
+
+A `main` view names its mode in the manifest with a **`mode`** field: `write`, `plan`, `world`, `publish` or `series`. A view that names none — or names something that is not one of the five — joins **World**, which is where a reference view usually belongs.
+
+Contributed views are always listed **together, in their own group, at the end of that mode's panel**, under **From extensions**. So installing something never reorders a view you already knew where to find, and a view you went out of your way to add is never the first thing pushed out of sight. That was the old behaviour: contributed views were appended to a flat rail of icons and were the first to fall into its overflow menu.
+
+If a mode ends up holding more than ten views, its panel grows a filter box. Nothing is hidden by it — every view is still in the list.
 
 The flagship example is the **AI Assistant** extension, which contributes three panels:
 
@@ -72,7 +80,7 @@ Extensions implement hook interfaces from the Novalist SDK. The main contributio
 
 | Contribution | Adds |
 | --- | --- |
-| Webview views (`contributes.views` + `IWebViewContributor`) | Rendered from the extension's own HTML. Placement `main` gives the view its own activity-bar icon (like Codex or Timeline); placement `inspector` shows it in the inspector alongside Context and Footnotes. |
+| Webview views (`contributes.views` + `IWebViewContributor`) | Rendered from the extension's own HTML. Placement `main` puts the view in the mode named by the manifest's `mode` field (like Codex or Timeline); placement `inspector` shows it in the inspector alongside Context and Footnotes. |
 | `IExportFormatContributor` | New export formats in the Export view. A contributed format is told the language you write in, your title and author, and where your cover is, so it produces the same file the built-in formats would. A format that says it can hold a cover gets the **Include the book cover** toggle. |
 | `IEntityTypeContributor` | New entity types in the Codex (registered into the open project's custom types). |
 | `IPropertyTypeContributor` | New property types for templates. |

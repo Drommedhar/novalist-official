@@ -43,7 +43,7 @@ Click a result to close the dialog and open that scene in the editor. A Codex re
 
 ## Replacing
 
-Click **Replace All** to replace every match in the selected scope. With **Synopses, notes and comments** on, a replace also rewrites synopses and notes. Comments are left alone — a comment is a conversation, and rewriting someone's words in it is not a search-and-replace decision. Before any scene is modified, an **automatic snapshot** of that scene is taken, so a bad Replace All can always be undone by restoring the snapshot from the toolbar Snapshots dialog. After the run, the dialog reports how many occurrences were replaced, and the open scene reloads with the new content.
+Click **Replace All** to replace every match in the selected scope. With **Synopses, notes and comments** on, a replace also rewrites synopses and notes. Comments are left alone — a comment is a conversation, and rewriting someone's words in it is not a search-and-replace decision. Before any scene is modified, an **automatic snapshot** of that scene is taken, so a bad Replace All can always be undone by restoring the snapshot from the **Scene snapshots** dialog on the writing bar. After the run, the dialog reports how many occurrences were replaced, and the open scene reloads with the new content.
 
 ## Regex notes
 

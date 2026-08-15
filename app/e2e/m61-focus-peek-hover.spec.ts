@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { dismissTour, launchApp, resizeWindow, seedBook } from './harness'
+import { dismissTour, enterWriting, launchApp, resizeWindow, seedBook } from './harness'
 
 /**
  * A hovered name holds its Focus Peek still.
@@ -82,6 +82,9 @@ test('a hovered name keeps its Focus Peek open instead of flickering', async () 
   const book = await seedBook(h, { 'Chapter One': ['Opening'] })
   const page = h.page
   await dismissTour(page)
+  // Closing the tour hands back the workspace it borrowed, which is the one the
+  // project opened on - the Dashboard, and no binder. Back to Write.
+  await enterWriting(page)
 
   // The name has to be a Codex entry before the scene opens: the editor is
   // handed the names to look for when it loads the scene.

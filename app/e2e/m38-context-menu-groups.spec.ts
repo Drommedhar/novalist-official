@@ -3,6 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
+import { enterWriting } from './harness'
 
 /**
  * A context-menu group whose every row needs a selection is not offered when
@@ -38,6 +39,9 @@ test('a group with no usable row is not offered, and returns with a selection', 
     state = await rpc.request('project/createScene', [guid, 'A scene'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
+
+  // A created project opens on the Dashboard; the binder is Write's.
+  await enterWriting(page)
 
   await expect(page.locator('.binder-scene-row')).toHaveCount(1, { timeout: 20_000 })
   await page.locator('.binder-scene-row').first().click()

@@ -3,6 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
+import { enterWriting } from './harness'
 
 /**
  * Multi-select in the binder and the bulk operations it drives.
@@ -39,6 +40,9 @@ test('ctrl-click builds a selection and the bulk bar acts on it', async () => {
     for (const title of ['Scene A', 'Scene B', 'Scene C'])
       await window.novalistStores.project.getState().createScene(guid, title)
   })
+
+  // A created project opens on the Dashboard; the binder is Write's.
+  await enterWriting(page)
 
   const rows = page.locator('.binder-scene-row')
   await expect.poll(() => rows.count()).toBe(3)

@@ -8,7 +8,7 @@ It has three display modes: **Manuscript**, **Corkboard**, and **Outliner**.
 
 ## Opening the Manuscript view
 
-Open it from the **Write** group in the activity bar (**Manuscript**), from the **Go** menu or command palette, or with `Ctrl+5` (macOS uses Cmd).
+Open it from the **Write** mode (**Manuscript**, under **Drafting** in the mode panel), from the **Go** menu or command palette, or with `Ctrl+5` (macOS uses Cmd).
 
 ## The toolbar
 

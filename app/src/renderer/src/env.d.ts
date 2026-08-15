@@ -6,6 +6,12 @@ declare module 'virtual:novalist-manual' {
   export default pages
 }
 
+/** The repo's CHANGELOG.md, bundled raw so About can render "What's new". */
+declare module 'virtual:novalist-changelog' {
+  const changelog: string
+  export default changelog
+}
+
 /** Manual images inlined as data URIs, keyed by filename ("editor.png"). */
 declare module 'virtual:novalist-manual-images' {
   const images: Record<string, string>
@@ -113,8 +119,14 @@ interface Window {
     /** Repaints the system window controls to match the theme. Desktop only;
      *  a no-op on macOS and on the mobile build. */
     setTitleBarColors?(color: string, symbolColor: string): void
+    /** Replaces the application menu with the one the command registry
+     *  describes. Desktop only; the mobile build has no menu bar. */
+    setMenu?(nodes: import('./shell/menuLayout').MenuNode[]): void
     /** Whole-interface scale, independent from the manuscript font size. */
     setUiScale?(factor: number): Promise<number>
+    /** The installed application version. Desktop only; the mobile shell has
+     *  no main process to ask. */
+    appVersion?(): Promise<string>
     /** Content-free display facts for Settings -> Diagnostics. */
     displayDiagnostics?(): Promise<{
       zoomFactor: number

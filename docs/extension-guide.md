@@ -239,6 +239,7 @@ Anything with a user interface is HTML rendered in a sandboxed frame. Declare it
       "title": "My Panel",
       "iconPath": "M3 3h18v18H3z",
       "placement": "main",
+      "mode": "world",
       "entry": "web/panel.html"
     }
   ]
@@ -246,6 +247,7 @@ Anything with a user interface is HTML rendered in a sandboxed frame. Declare it
 ```
 
 - `placement` is `"main"` for a full content view (like Dashboard or Timeline) or `"inspector"` for a right-hand panel.
+- `mode` names the workspace a `main` view joins: `"write"`, `"plan"`, `"world"`, `"publish"` or `"series"`. It is listed in that mode's panel, in a group of its own called **From extensions**, after the built-in views — so installing your extension never reorders one of Novalist's. Omit it (or name something that is not one of the five) and the view joins **World**, which is where a reference view usually belongs. The field is ignored for `"inspector"` views, which have only one place to go.
 - `entry` is an HTML file inside your extension folder. Ship its CSS and JS beside it; there is no network access.
 - `iconPath` is Lucide-style SVG path data. Novalist's interface uses no emoji anywhere; do not put one in a title either.
 - `title` may be a localization key, resolved through your extension's locales.

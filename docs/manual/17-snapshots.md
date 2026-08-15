@@ -1,6 +1,8 @@
 # Snapshots
 
-A **snapshot** is a saved copy of a single scene at a point in time. Snapshots are created manually from the toolbar Snapshots button — and automatically by destructive operations such as Replace All and snapshot restores — so you can revert a scene to any previous state without affecting the rest of the project.
+A **snapshot** is a saved copy of a single scene at a point in time. Snapshots are created manually from the **Scene snapshots** button on the writing bar above the editor — and automatically by destructive operations such as Replace All and snapshot restores — so you can revert a scene to any previous state without affecting the rest of the project.
+
+A snapshot is of the scene in front of you, which is why the button sits on the [writing bar](05-editor.md#the-writing-bar) rather than on the main toolbar, where it used to be: the main toolbar is the open project's, and a snapshot is not a project-wide thing.
 
 Snapshots are independent per scene. Reverting one scene does not touch any other scene.
 
@@ -15,7 +17,7 @@ You can (and should) use both.
 
 ## How snapshots work
 
-Snapshots are not taken on every save. They are taken **manually** from the toolbar Snapshots button and **automatically** by operations that would otherwise lose content:
+Snapshots are not taken on every save. They are taken **manually** from the writing bar's Scene snapshots button and **automatically** by operations that would otherwise lose content:
 
 - **Replace All** in Find & Replace — every scene that is about to be modified gets an auto-snapshot first.
 - **Restoring a snapshot** — the scene's current state is auto-snapshotted before the restore, so a restore is always reversible.
@@ -29,7 +31,7 @@ Each snapshot stores the full scene content, the word count, and a timestamp. Sn
 ## Taking a manual snapshot
 
 1. Open the scene in the editor.
-2. Click the **Snapshots** button in the toolbar to open the snapshots dialog for the open scene.
+2. Click **Scene snapshots** (the clock icon) at the right of the writing bar to open the snapshots dialog for the open scene. It is also **Scene snapshots** in the [command palette](25-command-palette.md), and can be given a shortcut in Settings → Keyboard shortcuts.
 3. Click **Take snapshot**.
 4. Optionally enter a **label** (e.g. "Before rewrite") — labels make snapshots much easier to find later. Auto-snapshots get a generated label.
 
@@ -78,7 +80,7 @@ Snapshots taken before this shipped hold only the prose. Restoring one of those 
 
 ## Where to go next
 
-- [Editor](05-editor.md) — open a scene, then take and restore its snapshots from the toolbar Snapshots dialog.
+- [Editor](05-editor.md#the-writing-bar) — the writing bar the Scene snapshots button sits on.
 - [Find & Replace](21-find-replace.md) — Replace All auto-snapshots every scene it changes.
 - [Backups](35-backups.md) — automatic whole-project archives, for when the problem is bigger than one scene.
 - [Git integration](18-git.md) — project-level version control complementing snapshots.

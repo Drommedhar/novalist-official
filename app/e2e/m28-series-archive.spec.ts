@@ -59,7 +59,7 @@ test('the world archive carries every book of the project, not just the open one
     window.novalistStores.project.getState().applyState(back as never)
     return { projectPath: created.projectPath, bookTwoId: two.id }
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
 
   const out = join(workDir, 'series.json')
   const ok = await page.evaluate(

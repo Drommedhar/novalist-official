@@ -4,7 +4,7 @@ The Gallery is a unified view of every image in your project. Reference photos, 
 
 ## Opening the Gallery
 
-In the activity bar, click **Gallery** in the **World** group.
+Pick the **World** mode in the rail, then **Gallery** under **Reference** in the mode panel.
 
 ## What it shows
 

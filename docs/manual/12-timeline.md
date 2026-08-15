@@ -8,7 +8,7 @@ Use it to see the pacing of in-world time, to spot timeline holes, and to plan b
 
 ## Opening the Timeline
 
-Open it from the **Plan** group in the activity bar (**Timeline**), from the **Go** menu or command palette, or with `Ctrl+3` (macOS uses Cmd).
+Open it from the **Plan** mode (**Timeline**, first under **Shape** in the mode panel), from the **Go** menu or command palette, or with `Ctrl+3` (macOS uses Cmd).
 
 ## What appears on the timeline
 

@@ -163,6 +163,14 @@ jobs:
       - name: RPC doctor (renderer/backend method surface)
         run: python3 tools/rpc-doctor.py --strict
 
+      # A command that grew a second home is invisible to every other check:
+      # both copies work, both typecheck, and the interface quietly teaches
+      # that there is no rule about where anything lives. Comment reached
+      # three surfaces that way, and the four alignments two - one of which
+      # only appeared once you had selected something.
+      - name: Placement doctor (one command, one home)
+        run: python3 tools/placement-doctor.py
+
       # The same seam, one layer in: the renderer talks to the editor iframe
       # through a declared interface that nothing verified. A method could be
       # declared, implemented in editor.html, and called by no button - which

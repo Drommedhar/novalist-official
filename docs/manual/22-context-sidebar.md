@@ -6,7 +6,7 @@ The **Inspector** is the right-hand context sidebar of the Novalist window. For 
 - **Footnotes** — the footnotes and comments anchored in the open scene.
 - **Inbox** — every open note in the book, with replies and to-dos.
 
-The scene's **synopsis** and freeform **notes** live in the [scene-notes dock](02-interface-overview.md) beneath the editor (`Ctrl+Shift+N`), and the scene's **snapshot history** is opened from the toolbar Snapshots button. (This pane was called the context sidebar in earlier versions.)
+The scene's **synopsis** and freeform **notes** live in the [scene-notes dock](02-interface-overview.md) beneath the editor (`Ctrl+Shift+N`), and the scene's **snapshot history** is opened from the **Scene snapshots** button on the writing bar above the editor. (This pane was called the context sidebar in earlier versions.)
 
 ## Toggling the Inspector
 
@@ -134,11 +134,11 @@ You create footnotes and comments inside the editor (see [Editor](05-editor.md))
 
 ## Synopsis and notes (bottom dock)
 
-The scene's **synopsis** (a short summary) and freeform **notes** are no longer in the Inspector — they live in the **scene-notes dock** beneath the editor, toggled from the toolbar or `Ctrl+Shift+N`. Both save when you click away. The synopsis also appears on Manuscript corkboard cards and in the outliner table; notes are never exported.
+The scene's **synopsis** (a short summary) and freeform **notes** are no longer in the Inspector — they live in the **scene-notes dock** beneath the editor, toggled from **View → Toggle scene notes** or `Ctrl+Shift+N`. Both save when you click away. The synopsis also appears on Manuscript corkboard cards and in the outliner table; notes are never exported.
 
 ## Scene snapshots (toolbar dialog)
 
-Per-scene snapshots are taken and managed from the toolbar **Snapshots** button, which opens a dialog with **Take snapshot**, **Restore**, **Delete**, and **Compare**. See [Snapshots](17-snapshots.md) for the full picture, including the auto-snapshots taken before Replace All and before restores.
+Per-scene snapshots are taken and managed from the **Scene snapshots** button on the writing bar, which opens a dialog with **Take snapshot**, **Restore**, **Delete**, and **Compare**. See [Snapshots](17-snapshots.md) for the full picture, including the auto-snapshots taken before Replace All and before restores.
 
 ## Where to go next
 

@@ -88,58 +88,6 @@
   font-size: var(--nl-font-caption);
 }
 
-/* Backstage drawer: a left-anchored panel (not a centred modal) with project
- * actions, recents, and Settings / Extensions. Mirrors the desktop start menu. */
-.start-drawer-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  background: var(--nl-surface-overlay);
-}
-
-.start-drawer {
-  display: flex;
-  flex-direction: column;
-  width: 300px;
-  max-width: 86vw;
-  height: 100%;
-  background: var(--nl-surface-sidebar);
-  border-right: 1px solid var(--nl-border);
-  box-shadow: var(--nl-elevation-md);
-}
-
-.start-drawer-scroll {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--nl-space-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--nl-space-md);
-}
-
-/* Clear the macOS traffic-light window controls above the first entry. */
-.start-drawer-mac .start-drawer-scroll {
-  padding-top: 36px;
-}
-
-.start-drawer-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nl-space-tighter);
-}
-
-.start-drawer-sep {
-  height: 1px;
-  background: var(--nl-border);
-}
-
-.start-drawer-version {
-  padding: var(--nl-space-sm) var(--nl-space-md);
-  border-top: 1px solid var(--nl-border);
-  color: var(--nl-text-subtle);
-  font-size: var(--nl-font-caption);
-}
-
 .start-menu-actions {
   display: flex;
   flex-direction: column;

@@ -61,7 +61,7 @@ test('centring the graph on somebody names how everyone else is related to them'
 
     return { gran, mira, cousin }
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('relationships'))
   await expect

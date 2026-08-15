@@ -2,7 +2,7 @@
 
 Novalist has an interactive map view for hand-built world maps, city plans, building layouts, and any other spatial reference you need at writing time. Maps live next to the rest of your project on disk and can hold multiple layered images, pinned references to entities, and zoom-dependent detail.
 
-Open **Maps** from the **World** group in the activity bar (the icon rail on the far left). The view is per-book: each book carries its own list of maps.
+Open **Maps** from the **World** mode, under **In this book** in the mode panel. The view is per-book: each book carries its own list of maps.
 
 ## The map view at a glance
 

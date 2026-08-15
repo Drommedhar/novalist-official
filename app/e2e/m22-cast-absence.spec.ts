@@ -48,9 +48,30 @@ test('the dashboard names the character who disappears and the chapters they mis
     }
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
+
+  // The card asks for the report once, when it mounts, and a report with
+  // nothing in it is drawn as no card at all - so a screen put up before the
+  // analysis can answer stays empty however long the assertion waits. Ask the
+  // report directly first, then put the screen up.
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() =>
+          window.novalistRpc
+            .request<unknown[]>('analytics/castAbsence')
+            .then((rows) => rows.length)
+        ),
+      { timeout: 30_000 }
+    )
+    .toBe(1)
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
+  // The dashboard shows "connecting" until its aggregate lands, and that read
+  // can be slow behind a suite that has filled the file cache with its own
+  // temporary projects. Waiting for the screen itself keeps the long budget on
+  // the aggregate arriving rather than on what it turns out to say.
+  await expect(page.locator('.dashboard-title')).toBeVisible({ timeout: 60_000 })
 
   const row = page.locator('.cast-absence-row')
   await expect(row).toHaveCount(1, { timeout: 20_000 })

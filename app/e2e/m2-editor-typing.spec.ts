@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { enterWriting } from './harness'
 import { REAL_PROJECT } from './realProject'
 
 /**
@@ -33,6 +34,9 @@ test('editor: typing keeps the caret and undo works', async () => {
     const state = await window.novalistRpc.request('project/open', [root])
     window.novalistStores.project.getState().applyState(state as never)
   }, projectCopy)
+
+  // An opened project lands on the Dashboard; the binder and editor are Write's.
+  await enterWriting(page)
 
   await page.locator('.binder-scene-row').first().click()
   const editor = page.frameLocator('.editor-frame').locator('#editor')

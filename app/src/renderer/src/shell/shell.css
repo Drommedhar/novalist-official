@@ -28,20 +28,11 @@
   padding-left: 78px; /* traffic-light inset under hiddenInset title bar */
 }
 
-/* Windows and Linux hide the native title bar, so this strip is the title bar
-   and has to leave room for the system-drawn minimise / maximise / close
-   buttons overlaid at its right edge. */
-.toolbar-overlay {
-  padding-right: 148px;
-}
-
 /* Everything in the strip that can be operated has to opt out of the drag
-   region, or the window swallows the click and moves instead. It listed
-   buttons only, so the Layouts dropdown - a select, and the one control here
-   that is not a button - could not be opened at all: clicking it dragged the
-   window, which looks exactly like a control that does nothing. Written as
-   every interactive element rather than as one more class, so the next control
-   added to the toolbar does not have to remember. */
+   region, or the window swallows the click and moves instead. macOS still
+   hides its title bar behind the strip, so the drag region is still real
+   there. Written as every interactive element rather than as one more class,
+   so the next control added to the toolbar does not have to remember. */
 .toolbar button,
 .toolbar select,
 .toolbar input,
@@ -264,16 +255,241 @@
   color: var(--nl-text);
 }
 
-/* ===== Activity bar (slim icon rail, left of the binder) ===== */
-.activity-bar {
+/* ===== Mode rail (the five workspaces, left of everything) =====
+   It replaced a rail of nineteen unlabelled icons that hid whatever did not
+   fit behind a "...". Six entries fit in any window, so each one can carry its
+   name and nothing is ever hidden - which is what the complaint was about. */
+.mode-rail {
+  /* Above the mode panel and its scrim. The panel is modal where it is an
+     overlay, but the rail is how you leave it - a scrim over the way out made
+     switching modes in a narrow window take two clicks, the first of which
+     looked like it had done nothing. */
+  position: relative;
+  z-index: 32;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  width: var(--nl-activity-rail-width);
-  flex: 0 0 var(--nl-activity-rail-width);
+  align-items: stretch;
+  width: var(--nl-mode-rail-width);
+  flex: 0 0 var(--nl-mode-rail-width);
   background: var(--nl-surface-sidebar);
   border-right: 1px solid var(--nl-border);
-  padding: var(--nl-space-tighter) 0;
+  padding: var(--nl-space-tighter) var(--nl-space-tightest);
+  gap: var(--nl-space-tightest);
+}
+
+.mode-rail-sep {
+  height: 1px;
+  background: var(--nl-border);
+  margin: var(--nl-space-tightest) var(--nl-space-tighter);
+}
+
+.mode-rail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tighter) var(--nl-space-tightest);
+  border: 1px solid transparent;
+  border-radius: var(--nl-radius-md);
+  background: transparent;
+  color: var(--nl-text-dim);
+  cursor: pointer;
+}
+
+/* Every bundled language's mode names fit on one line at this width, which is
+   what the rail is sized for - a label that wraps or, worse, is cut off at both
+   ends is a label that has stopped doing its job. A language somebody adds
+   themselves may still need two lines, so the entry can grow rather than clip,
+   and breaks are hyphenated where the platform can (needs the document's lang -
+   see i18n/index.ts). */
+.mode-rail-item span {
+  font-size: var(--nl-font-caption);
+  line-height: 1.15;
+  text-align: center;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.mode-rail-item:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.mode-rail-item.active {
+  background: var(--nl-surface-selected);
+  color: var(--nl-text);
+}
+
+/* Picked, but not where you are: the writer chose Plan and then opened
+   Settings, which belongs to no mode. Saying so is more honest than either
+   dropping the highlight or claiming they are still in Plan. */
+.mode-rail-item.selected {
+  color: var(--nl-text);
+}
+
+.mode-rail-item.selected::after,
+.mode-rail-item.active::after {
+  content: '';
+  display: block;
+  width: 60%;
+  height: 2px;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-accent);
+}
+
+.mode-rail-item.selected::after {
+  background: var(--nl-border-firm);
+}
+
+/* ===== Mode panel (the views inside the mode) ===== */
+.mode-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: var(--nl-mode-panel-width);
+  flex: 0 0 var(--nl-mode-panel-width);
+  background: var(--nl-surface-sidebar);
+  border-right: 1px solid var(--nl-border);
+}
+
+/* The head and the filter stay put while the list scrolls: at twenty views the
+   thing you most need on screen is which mode you are reading. */
+.mode-panel-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-sm) var(--nl-space-md) var(--nl-space-tighter);
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.mode-panel-head h2 {
+  margin: 0;
+  /* Shrinkable, so a long mode name takes the room it needs from the count
+     rather than pushing it off the panel - which is what "4 Ansichten" did,
+     wrapping onto a second line and losing its right-hand half. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--nl-font-body);
+  font-weight: 600;
+  color: var(--nl-text);
+}
+
+.mode-panel-count {
+  margin-left: auto;
+  flex: none;
+  white-space: nowrap;
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--nl-text-subtle);
+}
+
+.mode-panel-filter {
+  padding: var(--nl-space-tighter) var(--nl-space-sm) 0;
+}
+
+.mode-panel-filter input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: var(--nl-font-ui);
+  color: var(--nl-text);
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+}
+
+.mode-panel-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--nl-space-tightest) var(--nl-space-tighter) var(--nl-space-md);
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.mode-panel-group {
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-caption);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nl-text-subtle);
+  padding: var(--nl-space-sm) var(--nl-space-tighter) var(--nl-space-tightest);
+}
+
+.mode-panel-list > li:first-child .mode-panel-group {
+  padding-top: var(--nl-space-tightest);
+}
+
+.mode-panel-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--nl-radius-sm);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-ui);
+  cursor: pointer;
+}
+
+.mode-panel-row:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.mode-panel-row[aria-current='true'] {
+  background: var(--nl-surface-selected);
+  color: var(--nl-text);
+  font-weight: 600;
+}
+
+.mode-panel-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Right-aligned, in the face the app uses for computed values everywhere else,
+   so a column of them reads as a column. */
+.mode-panel-tally {
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--nl-text-subtle);
+}
+
+.mode-panel-empty {
+  padding: var(--nl-space-md) var(--nl-space-sm);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-ui);
+}
+
+/* Undocked - by the writer, or because the window is too narrow to dock it -
+   the panel becomes an overlay holding the same rows in the same order, rather
+   than a second, shorter list. */
+.mode-panel.overlay {
+  position: absolute;
+  left: var(--nl-mode-rail-width);
+  top: 0;
+  bottom: 0;
+  z-index: 31;
+  box-shadow: var(--nl-elevation-high);
+}
+
+.mode-panel-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: var(--nl-scrim);
 }
 
 /* At constrained widths side panels become drawers. The wide-layout
@@ -289,7 +505,7 @@
 }
 
 .shell-capacity-compact .binder {
-  left: var(--nl-activity-rail-width);
+  left: var(--nl-mode-rail-width);
 }
 
 .shell-capacity-medium .inspector,
@@ -302,91 +518,6 @@
 .shell-capacity-medium .inspector .panel-resizer,
 .shell-capacity-compact .inspector .panel-resizer {
   display: none;
-}
-
-.activity-bar-top,
-.activity-bar-bottom {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* The views take the room that is left; Extensions and Settings keep theirs.
-   min-height:0 lets this box shrink below its content so the rail can measure
-   what actually fits and move the rest into the "..." menu, rather than
-   growing and pushing the pinned buttons off the bottom of the window. */
-.activity-bar-top {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-.activity-bar-bottom {
-  flex: 0 0 auto;
-}
-
-.activity-bar-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-.activity-bar-sep {
-  width: 24px;
-  height: 1px;
-  margin: var(--nl-space-tighter) 0;
-  background: var(--nl-border);
-}
-
-.activity-bar-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  margin: var(--nl-space-hairline) 0;
-  border-radius: var(--nl-radius-md);
-  color: var(--nl-text-subtle);
-}
-
-.activity-bar-item:hover {
-  background: var(--nl-surface-hover);
-  color: var(--nl-text);
-}
-
-.activity-bar-item.active {
-  color: var(--nl-text);
-  background: var(--nl-surface-selected);
-  box-shadow: inset 2px 0 0 0 var(--nl-accent);
-}
-
-/* VSCode-style label flyout to the right of the hovered icon. */
-.activity-bar-item[data-tip] {
-  position: relative;
-}
-
-.activity-bar-item[data-tip]::after {
-  content: attr(data-tip);
-  position: absolute;
-  left: calc(100% + 8px);
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 80;
-  padding: var(--nl-space-tightest) var(--nl-space-sm);
-  border-radius: var(--nl-radius-sm);
-  background: var(--nl-surface-card);
-  border: 1px solid var(--nl-border);
-  color: var(--nl-text);
-  font-size: var(--nl-font-ui);
-  white-space: nowrap;
-  box-shadow: var(--nl-elevation-low);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.08s ease 0.25s;
-}
-
-.activity-bar-item[data-tip]:hover::after {
-  opacity: 1;
 }
 
 /* ===== Main column (content over the bottom notes dock) ===== */
@@ -3965,7 +4096,8 @@
    left to the printer's own handling of a dark theme. */
 @media print {
   .toolbar,
-  .activity-bar,
+  .mode-rail,
+  .mode-panel,
   .binder,
   .inspector,
   .status-bar {

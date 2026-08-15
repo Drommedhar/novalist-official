@@ -10,7 +10,7 @@ Shortcuts below are written with `Ctrl`; on macOS use `Cmd`.
 
 Click any scene in the **binder**. The main area switches to the Editor view and loads the scene; the open scene is highlighted in the binder, it is added to the pane's tab strip, and its statistics appear in the [status bar](#status-bar-statistics).
 
-The Editor has no view-rail icon of its own — you always reach it by opening a scene from the binder.
+The Editor is the first entry in the **Write** mode's panel, and `Ctrl+1` goes there — but with no scene chosen there is nothing to write in, so opening one from the binder is the usual way in.
 
 ## Scene tabs
 
@@ -32,47 +32,46 @@ Tab actions:
 
 Novalist saves automatically **two seconds** after the last keystroke. Pending changes are also flushed when you switch to another scene and when the app closes — there is no manual save step.
 
-## The formatting toolbar
+## The writing bar
 
-The strip above the page shows **what applies to where you are**, rather than every command at once with most of them greyed out.
+The strip above the page is the **writing bar**. It holds what acts on the paragraph the caret is in and on the open scene — structure rather than inline formatting — and, importantly, **it does not change as you select text**. A row of buttons that moved out from under you the moment you dragged across a word was a row nobody could learn.
 
-**With the caret in the text and nothing selected**, the toolbar is about the paragraph:
+From the left:
 
-- **Paragraph style** (drop-down, far left) — what the paragraph under the caret *is*: Body, Heading, Subheading, Block quote or Verse. See [Paragraph styles](#paragraph-styles) below.
+- **Paragraph style** (drop-down) — what the paragraph under the caret *is*: Body, Heading, Subheading, Block quote or Verse. See [Paragraph styles](#paragraph-styles) below.
 - **Bulleted list** and **Numbered list** — turn the paragraph into a list item, or turn a list back into paragraphs.
-- **Align left / center / right / justify** — set paragraph alignment.
-- **Peek at entity under caret** — appears only when the caret is actually on a linked Codex name, and opens its [hover card](#entity-hover-cards) from the toolbar. Hovering with the pointer still works; this is the way to reach the same card without one, which on a touch screen or by keyboard was previously not possible at all.
+- **Align left / center / right / justify** — set paragraph alignment. Alignment is a property of the paragraph, not of the words you highlighted, so it lives here rather than on the toolbar that appears over a selection.
 
-**With text selected**, it becomes about that text: **Bold**, **Italic**, **Underline**, **Strikethrough**, **Highlight**, **Link**, and the two labelled buttons **Comment** and **Footnote**.
+At the right-hand end:
 
-At the right-hand end, whatever the context:
-
+- **Scene snapshots** (clock icon) — the open scene's own history. See [Snapshots](17-snapshots.md).
 - **Suggestion mode** (pen icon) — see [Suggesting edits](#suggesting-edits-instead-of-making-them) below.
-- **Writing options** (sliders icon) — a menu holding the settings that used to sit on the bar permanently:
+- **Writing options** (sliders icon) — a menu holding:
   - **Mark hard-to-read sentences** — tints the sentences that fight the reader. See [Readability marking](#readability-marking) below.
+  - **Dim other paragraphs**, **Typewriter scrolling** and **Page view**.
   - **Read aloud** — reads the scene back to you from the caret's paragraph. See [Read aloud](#read-aloud) below.
-  - **Page view**, **Dim other paragraphs**, **Typewriter scrolling**, and focus mode.
   - **More writing settings**, which opens the matching section of Settings and offers a link back to the scene when you are done.
 
-When **read aloud** or **suggestion mode** is running, a bar under the toolbar says so and carries a single button to leave that mode, so there is never a mode you are in without being told and without an obvious way out.
+When **read aloud** or **suggestion mode** is running, a bar under the writing bar says so and carries a single button to leave that mode, so there is never a mode you are in without being told and without an obvious way out.
 
-In a narrow editor pane the primary commands stay put and the rest move into a **More** menu, rather than being cut off at the edge.
+The current paragraph style, list state and alignment are highlighted on the bar.
 
-The active formatting of the text under the caret is highlighted in the toolbar.
+### The selection toolbar
 
-### Selection toolbar
+Selecting text pops up a small toolbar over it. This is the **only** place the inline marks live — they act on a selection, so nothing else carries a copy of them:
 
-Selecting text pops up a small toolbar over it with the inline formatting that only makes sense on a selection:
-
-- **Bold**, **Italic**, **Underline**.
+- **Bold**, **Italic** (`Ctrl+I`), **Underline** (`Ctrl+U`). Bold ships without a gesture: `Ctrl+B` has toggled the binder since long before this toolbar existed. Give it one in [Settings](23-settings.md#hotkeys) if you want it.
 - **Strikethrough** — for a line you have cut but are not ready to delete. It **is** carried into exports: DOCX, EPUB, Markdown and LaTeX all render it struck, because a struck line was meant to be seen struck.
 - **Highlight** — marks a passage to come back to. Pressing it again on a highlighted passage removes the mark. A highlight is a note to yourself, so it is **not** exported: the words come through, the colour does not.
 - **Link** — asks for an address and links the selection. Leave the address empty to remove a link.
-- **Comment** and **Footnote** — see below.
+- **Comment** (`Ctrl+Shift+M`) — attaches a comment to the selected text. Commented passages are marked in the text; click the marker to read or edit the comment.
+- **Footnote** — inserts a footnote. Footnotes are numbered sequentially within the scene and renumber automatically when one is deleted.
+
+Comment and Footnote used to be here **and** on the writing bar **and** in the right-click menu. They are selection commands, so the toolbar that appears over a selection is the one they kept.
 
 ## Paragraph styles
 
-Beyond inline formatting, a paragraph can carry a **named style**. Pick one from the drop-down at the left of the toolbar; it applies to every paragraph the selection touches, and shows what the paragraph under the caret currently is.
+Beyond inline formatting, a paragraph can carry a **named style**. Pick one from the drop-down at the left of the writing bar; it applies to every paragraph the selection touches, and shows what the paragraph under the caret currently is.
 
 | Style | What it is for | In the editor |
 | --- | --- | --- |
@@ -102,22 +101,28 @@ The [Exposé](32-expose.md) view has its own Title / Section / Body buttons, bec
 
 ## The editor context menu
 
-Right-click inside the text for:
+Right-click inside the text. The menu is about **the thing under the pointer**, which is what a right-click menu is for:
 
+- **Spelling and grammar suggestions** — on an underlined word or passage: the corrections, and **Add to Dictionary** for a name the spell check keeps flagging.
 - **Cut / Copy / Paste / Select All** — pasting strips foreign formatting and keeps only basic bold/italic/underline and alignment.
-- **Add comment** — on a selection: attaches a comment to the selected text. Commented passages are marked in the text; click the marker to read or edit the comment.
-- **Add footnote** — inserts a footnote at the caret. Footnotes are numbered sequentially within the scene and renumber automatically when one is deleted.
-- **Add to Dictionary** — on a word flagged by the spell check: whitelists it.
-- **Create entity from selection** — on a selection: makes a new [Codex](06-codex.md) entry named after the selected text (you pick the kind) and turns the selection into a mention of it. The same flow as the `@` picker's Create row, described below.
-- **Add selection to entity** — on a selection: copies the passage into one of an existing entity's sections. Pick the entity from a searchable list, name the section (it defaults to **Notes** and is created if it does not exist yet), and confirm. Your prose is left exactly as it was — the passage is copied, not moved.
+- **Peek at entity under caret** (`Ctrl+Shift+E`) — appears only when the caret is on a linked Codex name, and opens its [hover card](#entity-hover-cards). Hovering with the pointer still works; this is the way to reach the same card without one, which on a touch screen or by keyboard was previously not possible at all. It used to be a button on the writing bar that appeared and disappeared as the caret moved past names.
 
-The last two exist so that worldbuilding you invent mid-sentence can reach the Codex without breaking your writing flow. A description of a city you just wrote can become that location's "Appearance" section in two clicks.
+Then two named submenus, so a family of commands sits behind its name rather than lengthening the list:
+
+- **Scene** — **Split scene here**, **Insert image**, and **Cut and keep** (with a selection).
+- **Codex** — **Create entity from selection**, which makes a new [Codex](06-codex.md) entry named after the selected text (you pick the kind) and turns the selection into a mention of it; and **Add selection to entity**, which copies the passage into one of an existing entity's sections. Pick the entity from a searchable list, name the section (it defaults to **Notes** and is created if it does not exist yet), and confirm. Your prose is left exactly as it was — the passage is copied, not moved.
+
+The Codex pair exists so that worldbuilding you invent mid-sentence can reach the Codex without breaking your writing flow. A description of a city you just wrote can become that location's "Appearance" section in two clicks.
+
+Extensions add their own entries below these — see [Extensions](24-extensions.md#editor-contributions).
+
+**Add comment** and **Add footnote** are no longer in this menu. They act on selected text, so they live on the [selection toolbar](#the-selection-toolbar).
 
 ## Cutting a paragraph without losing it
 
 Deleted prose used to be recoverable only by opening a [snapshot](17-snapshots.md) of the whole scene and reading it for the paragraph that used to be there. But a paragraph you cut because it does not belong in *this* chapter is not a mistake to undo — it is writing looking for a different home, and there was nowhere to put it.
 
-Select the prose, right-click, and choose **Cut and keep**. It leaves the scene and lands in **Cut and kept**, at the bottom of the Inspector's Inbox tab, alongside the scene it came from and the date.
+Select the prose, right-click, and choose **Scene → Cut and keep**. It leaves the scene and lands in **Cut and kept**, at the bottom of the Inspector's Inbox tab, alongside the scene it came from and the date.
 
 Both halves happen in one action on purpose: cutting first and asking you to file it afterwards is exactly how the paragraph gets lost between the two.
 
@@ -127,7 +132,7 @@ The bin holds the most recent 500 cuts and lives with the project, so it travels
 
 ## Splitting a scene
 
-The context menu's **Split scene here** divides the scene at the caret: everything below it becomes a new scene directly after this one, carrying the date, stage, plotlines and POV that still describe it. See [Chapters and scenes](04-chapters-and-scenes.md#splitting-a-scene-in-two).
+**Scene → Split scene here** in the right-click menu divides the scene at the caret: everything below it becomes a new scene directly after this one, carrying the date, stage, plotlines and POV that still describe it. See [Chapters and scenes](04-chapters-and-scenes.md#splitting-a-scene-in-two).
 
 ## Two scenes at once
 
@@ -240,7 +245,7 @@ When **Dialogue Punctuation Correction** is enabled in Settings → Writing assi
 In [Settings](23-settings.md) → Editor:
 
 - **Typewriter Scrolling** keeps the active line at a fixed vertical position (top, middle, or bottom) so you never write at the bottom edge of the window.
-- **Page View** renders the editor as a book-style page (also toggleable under **Writing options** in the formatting toolbar).
+- **Page View** renders the editor as a book-style page (also toggleable under **Writing options** on the writing bar).
 - **Book Page Width** constrains the text column to a printed page width, with selectable page formats, and **Book Font** / **Book Font Size** set the typeface for that mode.
 - **Book Paragraph Spacing** adds book-like vertical spacing.
 - **Font Family** and **Font Size** control the regular editing view. New projects start on Newsreader at 17px — the app's own text face, bundled so it is always available — but the field takes any family installed on your machine.
@@ -266,7 +271,7 @@ The centre of the status bar shows whole-project totals (words, chapters, scenes
 
 ## Images in the prose
 
-Right-click in the editor and choose **Insert image**. Pick a file and Novalist asks what it shows, then places it on a line of its own after the paragraph your caret is in.
+Right-click in the editor and choose **Scene → Insert image**. Pick a file and Novalist asks what it shows, then places it on a line of its own after the paragraph your caret is in.
 
 - The file is **copied into the book's `Images` folder**, so the project stays self-contained and moving it to another machine takes the pictures along. An image you have already used is not copied twice.
 - The scene stores the path relative to the book, never an address on your disk — which is what makes the project portable.
@@ -278,7 +283,7 @@ Delete an image the way you delete anything else: put the caret after it and pre
 
 ## Readability marking
 
-**Mark hard-to-read sentences**, under **Writing options** in the toolbar, tints each sentence Novalist judges hard to read: a light wash for **difficult**, a stronger one for **very difficult**. Everything easier is left alone on purpose — tinting every sentence produces a heat map you stop seeing, and what you actually want is the handful of sentences that fight the reader.
+**Mark hard-to-read sentences**, under **Writing options** on the writing bar, tints each sentence Novalist judges hard to read: a light wash for **difficult**, a stronger one for **very difficult**. Everything easier is left alone on purpose — tinting every sentence produces a heat map you stop seeing, and what you actually want is the handful of sentences that fight the reader.
 
 - Each sentence is graded on its own, with the same readability method the [style report](36-style-report.md) uses for the scene, chosen from your writing language.
 - Sentences under four words are never marked. A two-word line is a beat or a piece of dialogue, not a readability signal.
@@ -289,7 +294,7 @@ The toggle is remembered, and can be pinned per project like the rest of the edi
 
 ## Read aloud
 
-**Read aloud**, under **Writing options** in the toolbar, reads the open scene aloud, starting from the paragraph your caret is in. The sentence being spoken is highlighted and the editor scrolls to keep it in view, so you can follow the reading with your eyes — which is what makes it useful for catching a sentence that does not land, not only for listening.
+**Read aloud**, under **Writing options** on the writing bar, reads the open scene aloud, starting from the paragraph your caret is in. The sentence being spoken is highlighted and the editor scrolls to keep it in view, so you can follow the reading with your eyes — which is what makes it useful for catching a sentence that does not land, not only for listening.
 
 Stop it by pressing the button again (it becomes a stop square while reading), by pressing `Escape`, or simply by starting to type: typing over a passage being read back is you taking over.
 
@@ -299,13 +304,13 @@ The highlight is painted without touching the document, so listening to a chapte
 
 ## Focus mode
 
-`Alt+F` gives the whole window to the page: both side panes, the toolbar and the status bar all go, leaving the scene tabs and your prose. Press `Alt+F` again to bring everything back. The command palette (`Ctrl+Shift+P`) keeps working, so every command stays reachable while focused — nothing is lost, only hidden.
+`Alt+F` gives the whole window to the page: the mode rail, the mode panel, both side panes, the toolbar and the status bar all go, leaving the scene tabs, the writing bar and your prose. Press `Alt+F` again to bring everything back. The command palette (`Ctrl+Shift+P`) keeps working, so every command stays reachable while focused — nothing is lost, only hidden.
 
 **Dim other paragraphs while writing** (Settings → Editor) fades every paragraph but the one your caret is in. It works everywhere, but it is what turns focus mode into a composition mode rather than a wider editor. The dimming follows the caret as you move, and fades rather than cutting, because a hard change between paragraphs is more distracting than the dimming solves.
 
 ## Suggesting edits instead of making them
 
-The **pen** button in the editor toolbar turns on **suggestion mode**. With it on, typing does not change the prose — it proposes a change:
+The **pen** button on the writing bar turns on **suggestion mode**. With it on, typing does not change the prose — it proposes a change:
 
 - Words you type go in as an **addition**, underlined and in the accent colour.
 - Words you delete are **marked as a cut**, struck through but still readable, rather than removed.

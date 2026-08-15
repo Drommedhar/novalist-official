@@ -94,6 +94,7 @@ public sealed class ExtensionsRpc
                 v.Title,
                 v.IconPath,
                 v.Placement,
+                v.Mode,
                 $"{e.Manifest.Id}/{v.Entry}",
                 e.FolderPath)))
             .ToArray();
@@ -259,6 +260,8 @@ public sealed record WebViewInfoDto(
     string Title,
     string IconPath,
     string Placement,
+    /// <summary>The workspace the view joins; empty for the default.</summary>
+    string Mode,
     string Entry,
     string FolderPath);
 

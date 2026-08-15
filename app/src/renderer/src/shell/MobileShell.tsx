@@ -43,7 +43,7 @@ const PLANNING_LABEL_KEYS = [
  * in step with the SidebarItems table in RendererHostPage.cs: the web pushes
  * localized titles positionally, and taps come back as these keys.
  *
- * This is the desktop activity bar (shellStore.activityGroups) plus Write and
+ * This is the desktop's Plan mode (shell/modes.ts) plus Write and
  * Settings, minus Git - no `git` binary in the iOS sandbox.
  */
 const TABLET_DESTINATIONS: MainView[] = [

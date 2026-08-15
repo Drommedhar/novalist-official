@@ -47,7 +47,8 @@ test('exposé counts, warns past the limit, and saves to disk', async () => {
   }, workDir)
 
   // The activity bar must offer the view — a view without a rail button is invisible.
-  await page.locator('.activity-bar-item[data-view="expose"]').click()
+  await page.locator('.mode-rail-item[data-mode="publish"]').click()
+  await page.locator('.mode-panel-row[data-view="expose"]').click()
   await expect
     .poll(async () => page.evaluate(() => window.novalistStores.shell.getState().mainView))
     .toBe('expose')
@@ -113,7 +114,8 @@ test('exposé editing preserves heading paragraph styles', async () => {
     ])
   }, workDir)
 
-  await page.locator('.activity-bar-item[data-view="expose"]').click()
+  await page.locator('.mode-rail-item[data-mode="publish"]').click()
+  await page.locator('.mode-panel-row[data-view="expose"]').click()
   const editor = page.frameLocator('.expose-editor .editor-frame').locator('#editor')
   await expect(editor).toBeVisible({ timeout: 30_000 })
   await expect(editor).toContainText('Erste Zeile.')
@@ -164,7 +166,8 @@ test('exposé paragraph-style buttons write and clear heading styles', async () 
     await window.novalistRpc.request('expose/save', ['<p>Handlung</p><p>Erste Zeile.</p>'])
   }, workDir)
 
-  await page.locator('.activity-bar-item[data-view="expose"]').click()
+  await page.locator('.mode-rail-item[data-mode="publish"]').click()
+  await page.locator('.mode-panel-row[data-view="expose"]').click()
   const editor = page.frameLocator('.expose-editor .editor-frame').locator('#editor')
   await expect(editor).toBeVisible({ timeout: 30_000 })
   await expect(editor).toContainText('Handlung')

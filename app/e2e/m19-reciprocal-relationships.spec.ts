@@ -31,7 +31,7 @@ test('a relationship saved on a location writes the inverse on the character', a
     const state = await window.novalistRpc.request('project/create', [parent, 'Ties', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
 
   const locationId = await page.evaluate(async () => {
     const rpc = window.novalistRpc

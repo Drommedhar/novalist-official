@@ -4,7 +4,9 @@ Settings is where you configure Novalist's appearance, the editor, writing goals
 
 ## Opening Settings
 
-In the activity bar (the icon rail on the far left), click **Settings** in the bottom block next to Extensions, or use the command palette (`Ctrl+Shift+P`, `Cmd` on macOS) and pick "Settings". Settings opens in the main area like any other view.
+**Go → Settings** in the menu bar, or the command palette (`Ctrl+Shift+P`, `Cmd` on macOS). Settings opens in the main area like any other view.
+
+Settings is not on the mode rail. It is application-scoped — a preference is about your installation rather than about a book — so its home is the menu bar, and controls elsewhere in the app can still deep-link into the section they belong to.
 
 ## Finding a setting
 
@@ -20,7 +22,7 @@ Settings shows **one section at a time**. The rail down the left side groups eve
 - **Search** — type a word (for example `grammar`, `deadline`, `accent`, `github`) and the results name the **individual controls** that match, not just the sections holding them. Picking a result opens its section and takes you to the control itself. If nothing matches, Settings says so rather than showing you an empty page.
 - **Category rail** — pick a section to open it. Only that section is on screen, so a long page of unrelated controls is no longer between you and the one you came for.
 
-Settings opens **without a project**, so your global preferences are reachable from the start screen. Controls that need a project are visibly disabled rather than missing, so you can see what a project would give you.
+Settings opens **without a project**, so your global preferences are reachable the moment Novalist starts. Controls that need a project are visibly disabled rather than missing, so you can see what a project would give you.
 
 When you reach Settings from a control elsewhere — the editor's **More writing settings**, for example — the header carries a **Back to...** link that returns you to the view you came from.
 
@@ -58,7 +60,7 @@ Everything under **Project** is per-project and only applies while a project is 
   - **Discord**
   - **High Contrast** — pure black behind pure white text, with borders you can actually see. Built for low vision and for working in a bright room; every text-on-background pair in it clears WCAG AAA, which the other palettes do not attempt.
   - **Catppuccin Mocha**
-- **Interface size** — how large Novalist's own interface is drawn, from 75% to 150%, with **Reset to 100%** beside it. This is the whole interface: the toolbar, the binder, the inspector, dialogs and Settings itself. It is **not** the size of your manuscript — that is the editor's own font size, and the two no longer move together, so you can have small chrome around large prose or the reverse. `Ctrl+Plus`, `Ctrl+-` and `Ctrl+0` change the same setting, so the keyboard and Settings never disagree about it, and the size you pick is remembered.
+- **Interface size** — how large Novalist's own interface is drawn, from 75% to 150%, with **Reset to 100%** beside it. This is the whole interface: the toolbar, the binder, the inspector, dialogs and Settings itself. It is **not** the size of your manuscript — that is the editor's own font size, and the two no longer move together, so you can have small chrome around large prose or the reverse. **View → Increase / Decrease / Reset interface scale** change the same setting, so the menu and Settings never disagree about it, and the size you pick is remembered. Those three ship without keyboard shortcuts; give them ones you like in **Keyboard shortcuts**.
 
   Your operating system's own display scaling is still respected on top of this. Interface size is the adjustment you make when the OS setting is right for everything else and Novalist alone is too small or too large.
 - **Accent Color** — pick a custom highlight color used throughout the interface. A **Reset** button next to the color picker clears the custom accent and returns to the theme's default. A custom accent also flattens the gold foil on primary buttons to a single fill in your colour.
@@ -208,7 +210,7 @@ See [Templates](07-templates.md) for how templates are used when creating entiti
 
 ## Hotkeys
 
-A full rebinding editor for every keyboard shortcut. Shortcuts are grouped by category (Navigation, Panels, Editor, General).
+A rebinding editor listing **every command Novalist has**, not only the ones that ship with a gesture — so anything in the app can be given a shortcut, and most commands start unbound. Commands are grouped by category (Navigation, Panels, Editor, Project, Scenes & Chapters, General).
 
 - **Search** — filter the list by action name, category, or current gesture.
 - **Rebind** — click a shortcut's gesture button; it starts capturing, and the next key combination you press becomes the new binding. Press `Escape` to cancel the capture.
@@ -227,6 +229,8 @@ The default bindings are listed in [Hotkeys](26-hotkeys.md).
 ## Diagnostics
 
 - **Read display information** — reports what Novalist can see about your screen: your operating system's scale factor, the current interface size, the window size, the content size, and the monitor's usable area. This is what to send if the interface is the wrong size or is clipped, and it is the fastest way to tell an OS scaling problem from a Novalist one. Like the log, it contains **dimensions only** — never a project name, a file path, or any of your writing.
+
+  **Copy system information** on the [About](44-about.md#copy-system-information) page reports the same display facts, with the version numbers and your locale alongside them, as one block ready to paste into a bug report.
 - **Diagnostic logging** — toggle, off by default. When on, Novalist writes a technical log to a file you can send for support (e.g. to report a bug we cannot reproduce).
   - **What it records:** app events, lifecycle and startup phases, settings state, and errors / stack traces.
   - **What it never records:** your story text, characters, locations, items, lore, scene or chapter titles, notes, or file names. The log is content-safe by design, and you can open and read the file before sending it.
@@ -253,5 +257,6 @@ A read-only list of the extensions installed for Novalist. Each row shows the ex
 ## Where to go next
 
 - [Templates](07-templates.md) — how entity templates are applied.
+- [About](44-about.md) — versions, the changelog in the app, licences, and the support block to send with a bug.
 - [Hotkeys](26-hotkeys.md) — every default shortcut and how to rebind them.
 - [Localization](27-localization.md) — the bundled interface languages.

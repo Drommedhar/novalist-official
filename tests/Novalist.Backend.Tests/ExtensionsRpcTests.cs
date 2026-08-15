@@ -87,6 +87,10 @@ public sealed class ExtensionsRpcTests : IDisposable
                         Key = "stub.view",
                         Title = "Stub View",
                         Placement = "main",
+                        // The workspace the view joins. Carried through to the
+                        // interface so a contributed view lands in a mode's own
+                        // list rather than at the end of a flat rail.
+                        Mode = "world",
                         Entry = "web/index.html"
                     }
                 ]
@@ -105,6 +109,7 @@ public sealed class ExtensionsRpcTests : IDisposable
         var views = rpc.Views();
         Assert.Single(views);
         Assert.Equal("com.test.stub/web/index.html", views[0].Entry);
+        Assert.Equal("world", views[0].Mode);
 
         string? pushedJson = null;
         ExtensionsRpc.WebviewPosted = (id, key, json) => pushedJson = $"{id}|{key}|{json}";

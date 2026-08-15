@@ -53,7 +53,7 @@ test('the plot lanes draw each thread as a track and mark where two meet', async
     await rpc.request('plot/toggle', [guid, sceneIds[1], romance])
     await rpc.request('plot/toggle', [guid, sceneIds[2], romance])
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('plotGrid'))
   await expect(page.locator('.plotgrid-table')).toBeVisible({ timeout: 20_000 })

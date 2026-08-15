@@ -98,7 +98,15 @@
      policies and screenshot assertions on the same dimensions. */
   --nl-toolbar-height: 38px;
   --nl-status-height: 24px;
-  --nl-activity-rail-width: 44px;
+  /* The mode rail carries a word under each icon, because a rail you have to
+     hover to read is a rail you cannot find anything in. Six entries, so it
+     never needs to hide any of them. Sized for two lines of the longest label
+     any bundled language has - German's "Veroeffentlichen" - rather than for
+     English, which is how it came out clipped at both ends. */
+  --nl-mode-rail-width: 84px;
+  /* Wide enough for the longest mode name beside its view count, narrow enough
+     that four modes without a binder still leave the content area the window. */
+  --nl-mode-panel-width: 232px;
   --nl-peek-width: 460px;
   --nl-peek-max-height: 580px;
   --nl-toolbar-menu-width: 320px;

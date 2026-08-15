@@ -37,12 +37,15 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ### Interface
 
-- **Activity-bar layout** — a slim icon rail on the far left switches views, the binder (chapter/scene tree and smart lists) sits beside it, the active view fills the center with an optional scene-notes dock beneath the editor, and a context sidebar is on the right.
-- **Scene context & analysis inspector** — the right sidebar's **Context** tab shows the entities present in the current scene, a cross-chapter mention matrix, and an auto-computed scene analysis (POV, emotion, intensity, conflict, tags) with manual overrides; the **Footnotes** tab lists footnotes and comments. Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.
-- **Command palette** (`Ctrl+Shift+P`) and number-key view switching for keyboard-driven navigation.
-- **Chrome that follows the work** — panels, toolbar commands and status information appear where they mean something and stay out of the views they do not belong to, and the layout reflows to the width the window actually has rather than the size of the monitor.
+- **Five workspaces** — Write, Plan, World, Publish and Series, each with the views it holds listed beside it, plus a Dashboard to come back to. Picking a workspace decides what the window looks like: the binder, the inspector and the scene-notes dock belong to Write, where there are chapters and scenes to act on.
+- **One command, one place** — where a command lives follows from what it acts on. Selected text, the thing under the pointer, the paragraph, the project, the application: each has one home, everywhere in the app, and the build refuses a change that gives a command two.
+- **A menu bar that is an index of the application** — File, Edit, Go, View, Window and Help, generated from Novalist's own list of commands so it cannot drift out of step with the palette, and always visible on Windows and Linux.
+- **Scene context & analysis inspector** — the right sidebar's **Context** tab shows the entities present in the current scene, a cross-chapter mention matrix, and an auto-computed scene analysis (POV, emotion, intensity, conflict, tags) with manual overrides; the **Footnotes** tab lists footnotes and comments. Synopsis and notes live in the bottom scene-notes dock.
+- **Command palette** (`Ctrl+Shift+P`) that lists every command in the app, offers only the ones that can run right now, and shows the gesture bound to each — and any of them can be given one.
+- **A layout that follows the window** — measured from the window itself rather than the monitor, so a narrow window on a wide screen reflows properly and moving between displays of different scaling reflows again without a restart.
 - **Interface size** — scale Novalist's own interface from 75% to 150% (`Ctrl+Plus` / `Ctrl+-` / `Ctrl+0`), independently of the font your manuscript is set in, on top of the operating system's own display scaling.
 - **Help where you are** — `F1` opens the bundled manual at the page for the view or setting in front of you, and first-run guidance names one thing to try at each stop instead of describing rooms you have no reason to be in yet.
+- **About, in the app** — the version you are running and the version of the bundled core beside it, the release history rendered in place so "should I update" can be answered without leaving, third-party credits, and one button that copies a content-free system-information block for a support request.
 - On macOS 26+ the window uses native **Liquid Glass**, with vibrancy on older macOS; Windows and Linux render opaque themed surfaces from the same design tokens.
 
 ### Writing

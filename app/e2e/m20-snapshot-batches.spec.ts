@@ -41,7 +41,7 @@ test('a find/replace run groups its snapshots, and clearing it spares the rest',
     }
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
 
   // One snapshot the writer took, then a replace across both scenes.
   const kept = await page.evaluate(async () => {

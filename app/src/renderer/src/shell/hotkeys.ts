@@ -1,30 +1,18 @@
-import { useShellStore, type MainView } from '../stores/shellStore'
+import { COMMANDS } from './commands'
 
 /**
- * Prints what the writer is looking at.
+ * Gestures: matching them, rebinding them, and dispatching what they run.
  *
- * A prose iframe prints itself: the editor and Manuscript mode each hold their
- * text in a document of their own, and printing the shell around them would
- * clip everything below the visible area. Every other view prints through the
- * shell's own print stylesheet, which drops the chrome and leaves the main
- * area - so a timeline, a plot grid or a calendar prints as it reads.
+ * This file used to *be* the list of things Novalist could do - an action
+ * existed because somebody had given it a keyboard shortcut - and the command
+ * palette, built from the same list, could therefore only ever offer the two
+ * dozen commands that had one. The list lives in `commands.ts` now, and a
+ * gesture is one optional property of a command. What is left here is the
+ * keyboard: the grammar, the matching, the writer's own overrides, and the
+ * listener that turns a keypress into a command.
  */
-export function printCurrentView(): void {
-  // With the editor split in two, the pane the writer is in is the one they
-  // mean; activeElement is the iframe itself while a frame has focus.
-  const active = document.activeElement
-  const frame =
-    active instanceof HTMLIFrameElement && active.classList.contains('editor-frame')
-      ? active
-      : document.querySelector<HTMLIFrameElement>('.editor-frame')
-  const inner = frame?.contentWindow
-  if (inner) {
-    inner.focus()
-    inner.print()
-    return
-  }
-  window.print()
-}
+
+export { printCurrentView } from './printView'
 
 export interface HotkeyAction {
   actionId: string
@@ -60,6 +48,18 @@ export function applyCustomGestures(map: Record<string, string>): void {
 }
 
 /**
+ * The keys whose name in a gesture is not the character the keyboard reports.
+ *
+ * Zoom is the awkward one: "Ctrl+Plus" is pressed as Ctrl and the `=`/`+` key,
+ * with or without Shift depending on the layout, so a gesture written the way a
+ * menu writes it has to match all of them.
+ */
+const KEY_ALIASES: Record<string, string[]> = {
+  plus: ['+', '='],
+  minus: ['-', '_']
+}
+
+/**
  * Canonical, comparable form of a gesture ("ctrl+shift+1") used for conflict
  * detection in the settings UI. Mirrors {@link matchGesture}'s normalization so
  * "Ctrl+D1" and "Ctrl+1" collapse to the same key.
@@ -67,9 +67,16 @@ export function applyCustomGestures(map: Record<string, string>): void {
 export function canonicalGesture(gesture: string): string {
   const parts = gesture.split('+')
   const key = parts[parts.length - 1].toLowerCase()
-  const normalized = key.startsWith('d') && key.length === 2 ? key.slice(1) : key
+  const digit = key.startsWith('d') && key.length === 2 ? key.slice(1) : key
+  // "Ctrl+Plus" and a gesture the writer recorded by pressing Ctrl and the same
+  // key are one binding, so they have to collapse to one name here or the
+  // conflict warning in Settings never fires.
+  const alias = Object.entries(KEY_ALIASES).find(([, keys]) => keys.includes(digit))
+  const normalized = alias ? alias[0] : digit
   const ctrl = parts.includes('Ctrl') ? 'ctrl+' : ''
-  const shift = parts.includes('Shift') ? 'shift+' : ''
+  // Shift is dropped for an aliased key, because matchGesture ignores it there:
+  // whether `+` needed Shift is the layout's business, not the binding's.
+  const shift = !alias && parts.includes('Shift') ? 'shift+' : ''
   const alt = parts.includes('Alt') ? 'alt+' : ''
   return `${ctrl}${shift}${alt}${normalized}`
 }
@@ -99,10 +106,14 @@ export function eventToGesture(event: {
 }
 
 /**
- * Hotkey registry using the Avalonia KeyGesture string grammar
- * ("Ctrl+Shift+P") so descriptors stay compatible; Cmd maps to Ctrl on macOS.
+ * Whether this keypress is the gesture. Uses the Avalonia KeyGesture string
+ * grammar ("Ctrl+Shift+P") so descriptors stay compatible; Cmd maps to Ctrl on
+ * macOS.
  */
 export function matchGesture(event: KeyboardEvent, gesture: string): boolean {
+  // Most commands carry no gesture at all now that a hotkey is a property of a
+  // command rather than the reason it exists. An unbound one must never match.
+  if (gesture.length === 0) return false
   const parts = gesture.split('+')
   const key = parts[parts.length - 1].toLowerCase()
   const needCtrl = parts.includes('Ctrl')
@@ -111,157 +122,39 @@ export function matchGesture(event: KeyboardEvent, gesture: string): boolean {
   const ctrl = event.ctrlKey || event.metaKey
   const eventKey = event.key.length === 1 ? event.key.toLowerCase() : event.key.toLowerCase()
   const normalized = key.startsWith('d') && key.length === 2 ? key.slice(1) : key
+  const aliases = KEY_ALIASES[normalized]
+  // Shift is part of typing `+` on most layouts, so a gesture that names a
+  // shifted character cannot also demand that Shift was not held.
+  const shiftMatches = aliases ? true : event.shiftKey === needShift
   return (
     ctrl === needCtrl &&
-    event.shiftKey === needShift &&
+    shiftMatches &&
     event.altKey === needAlt &&
-    eventKey === normalized
+    (aliases ? aliases.includes(eventKey) : eventKey === normalized)
   )
 }
-
-const NAV_VIEWS: { gesture: string; view: MainView }[] = [
-  { gesture: 'Ctrl+D1', view: 'write' },
-  { gesture: 'Ctrl+D2', view: 'dashboard' },
-  { gesture: 'Ctrl+D3', view: 'timeline' },
-  { gesture: 'Ctrl+D4', view: 'codex' },
-  { gesture: 'Ctrl+D5', view: 'manuscript' },
-  { gesture: 'Ctrl+D6', view: 'calendar' },
-  { gesture: 'Ctrl+D7', view: 'relationships' },
-  { gesture: 'Ctrl+D8', view: 'plotGrid' },
-  { gesture: 'Ctrl+D9', view: 'research' }
-]
 
 /** Descriptor before the active gesture is resolved from persisted overrides. */
 type HotkeyDef = Omit<HotkeyAction, 'gesture'>
 
+/**
+ * Every command as a bindable descriptor, with the writer's own gestures folded
+ * over the factory defaults.
+ *
+ * The list used to be the other way round: an action existed *because* it had a
+ * hotkey, which is why the command palette - built from this same list - could
+ * only ever offer the two dozen commands somebody had thought to bind. A
+ * gesture is a property of a command now, and most commands have none until
+ * the writer gives them one in Settings.
+ */
 export function buildDefaultHotkeys(): HotkeyAction[] {
-  const shell = (): ReturnType<typeof useShellStore.getState> => useShellStore.getState()
-  const defs: HotkeyDef[] = NAV_VIEWS.map(({ gesture, view }) => ({
-    actionId: `app.nav.${view}`,
-    defaultGesture: gesture,
-    categoryKey: 'hotkeys.category.navigation',
-    labelKey: `shell.view.${view}`,
-    run: () => shell().setMainView(view)
+  const defs: HotkeyDef[] = COMMANDS.map((command) => ({
+    actionId: command.id,
+    defaultGesture: command.defaultGesture ?? '',
+    categoryKey: command.categoryKey,
+    labelKey: command.labelKey,
+    run: command.run
   }))
-  defs.push(
-    {
-      // Splitting is the point of panes, so it gets a gesture rather than
-      // living only in a menu.
-      actionId: 'app.panes.splitRight',
-      defaultGesture: 'Ctrl+Alt+ArrowRight',
-      categoryKey: 'hotkeys.category.panels',
-      labelKey: 'panes.splitRight',
-      run: () => shell().splitActivePane('row')
-    },
-    {
-      actionId: 'app.panes.splitDown',
-      defaultGesture: 'Ctrl+Alt+ArrowDown',
-      categoryKey: 'hotkeys.category.panels',
-      labelKey: 'panes.splitDown',
-      run: () => shell().splitActivePane('column')
-    },
-    {
-      actionId: 'app.panes.close',
-      defaultGesture: 'Ctrl+Alt+W',
-      categoryKey: 'hotkeys.category.panels',
-      labelKey: 'panes.close',
-      run: () => shell().closeActivePane()
-    },
-    {
-      actionId: 'app.panels.binder',
-      defaultGesture: 'Ctrl+B',
-      categoryKey: 'hotkeys.category.panels',
-      labelKey: 'shell.toggleBinder',
-      run: () => shell().toggleBinder()
-    },
-    {
-      actionId: 'app.panels.inspector',
-      defaultGesture: 'Ctrl+Shift+B',
-      categoryKey: 'hotkeys.category.panels',
-      labelKey: 'shell.toggleInspector',
-      run: () => shell().toggleInspector()
-    },
-    {
-      actionId: 'app.panels.sceneNotes',
-      defaultGesture: 'Ctrl+Shift+N',
-      categoryKey: 'hotkeys.category.panels',
-      labelKey: 'shell.toggleSceneNotes',
-      run: () => shell().toggleNotesDock()
-    },
-    {
-      actionId: 'app.edit.findReplace',
-      defaultGesture: 'Ctrl+Shift+F',
-      categoryKey: 'hotkeys.category.editor',
-      labelKey: 'findReplace.title',
-      run: () => shell().setFindReplaceOpen(true)
-    },
-    {
-      // No default gesture: this rewrites the prose in every scene it touches,
-      // and a pass that big should be reached on purpose rather than by a
-      // mistyped chord.
-      actionId: 'app.edit.cleanup',
-      defaultGesture: '',
-      categoryKey: 'hotkeys.category.editor',
-      labelKey: 'cleanup.title',
-      run: () => shell().setCleanupOpen(true)
-    },
-    {
-      actionId: 'app.view.focus',
-      defaultGesture: 'Alt+F',
-      categoryKey: 'hotkeys.category.panels',
-      labelKey: 'menu.focusMode',
-      run: () => shell().toggleFocusMode()
-    },
-    {
-      // A shape you can name and come back to. Novalist kept one geometry and
-      // always opened in it, so planning, drafting and revising meant dragging
-      // the same three panels back and forth several times a day.
-      actionId: 'app.view.layouts',
-      defaultGesture: 'Ctrl+Alt+L',
-      categoryKey: 'hotkeys.category.panels',
-      labelKey: 'layouts.title',
-      run: () => shell().setLayoutsOpen(true)
-    },
-    {
-      // Eighteen views behind four activity-bar groups, and a writer at a blank
-      // Dashboard has no way to know the Plot Grid is there at all.
-      actionId: 'app.view.tour',
-      defaultGesture: 'Ctrl+Alt+T',
-      categoryKey: 'hotkeys.category.general',
-      labelKey: 'tour.title',
-      run: () => shell().setTourOpen(true)
-    },
-    {
-      actionId: 'app.commandPalette',
-      defaultGesture: 'Ctrl+Shift+P',
-      categoryKey: 'hotkeys.category.general',
-      labelKey: 'commandPalette.placeholder',
-      run: () => shell().setCommandPaletteOpen(true)
-    },
-    {
-      actionId: 'app.quickOpen',
-      defaultGesture: 'Ctrl+P',
-      categoryKey: 'hotkeys.category.general',
-      labelKey: 'quickOpen.placeholder',
-      run: () => shell().setQuickOpenOpen(true)
-    },
-    {
-      actionId: 'app.print',
-      // Ctrl+P is Quick Open here and has been since before there was
-      // anything to print, so moving it would cost more than it is worth.
-      defaultGesture: 'Ctrl+Alt+P',
-      categoryKey: 'hotkeys.category.general',
-      labelKey: 'print.title',
-      run: () => printCurrentView()
-    },
-    {
-      actionId: 'app.quickCapture',
-      defaultGesture: 'Ctrl+Shift+K',
-      categoryKey: 'hotkeys.category.general',
-      labelKey: 'capture.quickTitle',
-      run: () => shell().setQuickCaptureOpen(true)
-    }
-  )
   return defs.map((def) => ({
     ...def,
     gesture: customGestures[def.actionId] ?? def.defaultGesture

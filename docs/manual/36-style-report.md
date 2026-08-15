@@ -1,6 +1,6 @@
 # Style report
 
-The **Style report** view runs a set of craft checks over your prose and tells you what your habits are. Open it from the activity bar (Plan group) or the command palette.
+The **Style report** view runs a set of craft checks over your prose and tells you what your habits are. Open it from the **Publish** mode, under **Prepare** in the mode panel, or from the command palette. It lives in Publish rather than Plan because it is a revision pass over a finished draft rather than a planning tool.
 
 Everything here is computed offline from your own text and the word lists for your writing language. The same manuscript produces the same numbers every time, nothing is sent anywhere, and no AI is involved. You do not need an extension installed.
 

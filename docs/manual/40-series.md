@@ -2,7 +2,7 @@
 
 The Series view is the project above the book. Everything else in Novalist reads the book you have open; this one reads all of them.
 
-Open it from **Series** in the **Plan** group of the activity bar.
+**Series** is its own mode, at the bottom of the mode rail. It sits above the single book, so folding it into Plan meant a mode that was otherwise about one book carrying one view that was not.
 
 ## Books
 

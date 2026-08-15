@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { enterWriting } from './harness'
 
 /**
  * The writer's own replacement rules, as they type.
@@ -36,6 +37,9 @@ test('a writer can add their own replacement rules, plain and pattern', async ()
     state = await rpc.request('project/createScene', [guid, 'Opening'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
+
+  // A created project opens on the Dashboard; the binder and editor are Write's.
+  await enterWriting(page)
 
   await page.locator('.binder-scene-row').first().click()
   const editor = page.frameLocator('.editor-frame').locator('#editor')
@@ -196,7 +200,7 @@ test('the preview beside a rule agrees with what the editor actually types', asy
 
   // Now type the same samples into the real editor, each in its own paragraph
   // so the alternating rule counts from a clean line as the preview does.
-  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
+  await enterWriting(page)
   await page.locator('.binder-scene-row').first().click()
   const editor = page.frameLocator('.editor-frame').locator('#editor')
   await expect(editor).toBeVisible({ timeout: 30_000 })

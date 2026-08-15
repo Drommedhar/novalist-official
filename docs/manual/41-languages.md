@@ -4,7 +4,7 @@ Invented languages and their dictionaries.
 
 Building one used to mean hand-rolling a custom entity type, which gets you a list of entries and none of what a lexicon is actually for: looking a word up mid-sentence, and finding out whether you already coined it.
 
-Open it from **Languages** in the **World** group of the activity bar.
+Open it from **Languages**, under **Reference** in the **World** mode's panel.
 
 ## A language
 

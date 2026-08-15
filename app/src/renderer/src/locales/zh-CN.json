@@ -56,7 +56,10 @@
     "toggleSplitEditor": "在拆分窗格中打开",
     "addComment": "添加批注",
     "addFootnote": "添加脚注",
-    "commandPalette": "命令面板..."
+    "commandPalette": "命令面板...",
+    "file": "文件",
+    "go": "转到",
+    "help": "帮助"
   },
   "commandPalette": {
     "placeholder": "输入命令名称...",
@@ -3912,5 +3915,61 @@
     "popOut": "在独立窗口中打开",
     "showInPane": "在此窗格中显示",
     "resize": "调整窗格大小"
+  },
+  "command": {
+    "newChapter": "新建章节",
+    "newScene": "新建场景",
+    "renameProject": "重命名项目",
+    "uiScaleIncrease": "放大界面",
+    "uiScaleDecrease": "缩小界面",
+    "uiScaleReset": "重置界面缩放",
+    "manual": "用户手册",
+    "about": "关于 Novalist"
+  },
+  "about": {
+    "title": "关于 Novalist",
+    "appVersion": "Novalist",
+    "coreVersion": "核心进程",
+    "unknown": "未报告",
+    "website": "GitHub 上的 Novalist",
+    "reportIssue": "报告问题",
+    "checkUpdates": "检查更新",
+    "copySystemInfo": "复制系统信息",
+    "copySystemInfoDesc": "将版本号、操作系统和窗口尺寸复制到剪贴板，便于粘贴到支持请求中。其中不含项目名称、文件路径，也不含你写的任何文字。",
+    "copied": "已复制到剪贴板。",
+    "whatsNew": "新增内容",
+    "licenses": "第三方许可",
+    "licensesIntro": "Novalist 随附以下组件，其许可要求作出署名。",
+    "licensesNote": "每个组件的完整许可文本均随应用一起提供。",
+    "role": {
+      "displayFace": "标题字体",
+      "bodyFace": "正文字体",
+      "monoFace": "等宽字体",
+      "desktopRuntime": "桌面应用运行时",
+      "coreRuntime": "核心进程运行时"
+    }
+  },
+  "modes": {
+    "write": "写作",
+    "plan": "规划",
+    "world": "世界",
+    "publish": "发布",
+    "series": "系列",
+    "filter": "筛选视图",
+    "noMatch": "没有匹配的视图。",
+    "viewCount_one": "{{count}} 个视图",
+    "viewCount_other": "{{count}} 个视图",
+    "group": {
+      "drafting": "起草",
+      "shape": "结构",
+      "castAndTime": "人物与时间",
+      "inThisBook": "本书内",
+      "reference": "参考",
+      "prepare": "准备",
+      "produce": "输出",
+      "acrossBooks": "跨书籍",
+      "fromExtensions": "来自扩展"
+    },
+    "togglePanel": "显示模式面板"
   }
 }

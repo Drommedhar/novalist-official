@@ -129,10 +129,46 @@ export async function dismissTour(page: Page): Promise<void> {
     await tour.waitFor({ state: 'visible', timeout: 2_000 })
     await tour.getByRole('button', { name: 'Close tour' }).click()
     await tour.waitFor({ state: 'hidden', timeout: 5_000 })
+    // The tour walks the workspace and gives back the one it borrowed, and it
+    // does that a task after it unmounts. Settling it here is what stops the
+    // hand-back landing in the middle of whatever the spec set up next - which
+    // is how a spec that had asked for Write found itself on the Dashboard.
+    await page.evaluate(() => new Promise<void>((resolve) => setTimeout(resolve, 0)))
   } catch {
     // A migrated profile, or one whose tour is deliberately off, has nothing
     // to close - which is not a failure of the spec that called this.
   }
+}
+
+/**
+ * Into the writing workspace.
+ *
+ * Opening a project lands on the Dashboard, which is about the book rather than
+ * about the scene in front of you, so it carries no binder, no inspector and no
+ * notes dock - those belong to the Write mode alone. A spec that stood its
+ * project up itself, rather than through `seedBook`, says so here before it
+ * reaches for any of them.
+ */
+export async function enterWriting(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () =>
+      new Promise<boolean>((resolve) => {
+        const shell = window.novalistStores.shell.getState()
+        if (shell.mainView !== 'write') shell.setMainView('write')
+        // The shell sends a freshly opened project to the Dashboard from an
+        // effect, and an effect can land a frame after the evaluate that asked
+        // for Write - which put the spec back on a screen with no binder. Two
+        // frames later is the first point at which "it stuck" is an honest
+        // answer, and asking again is cheaper than guessing how long to wait.
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() =>
+            resolve(window.novalistStores.shell.getState().mainView === 'write')
+          )
+        )
+      }),
+    undefined,
+    { timeout: 15_000 }
+  )
 }
 
 export type Book = {
@@ -166,6 +202,9 @@ export async function seedBook(
     (s: unknown) => window.novalistStores.project.getState().applyState(s as never),
     book
   )
+  // A helper that creates chapters and scenes through the binder's own calls has
+  // plainly put the spec in Write.
+  await enterWriting(h.page)
   return book
 }
 

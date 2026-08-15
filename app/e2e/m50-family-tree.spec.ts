@@ -70,7 +70,7 @@ test('the family tree shows the branches, not only the line through the root', a
 
     return { mira, gran, aunt, cousin, tom, kid }
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('relationships'))
   await expect
@@ -151,7 +151,7 @@ test('the generation controls still bound how far the tree reaches', async () =>
 
     return { mira }
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('relationships'))
   await expect
@@ -209,7 +209,7 @@ test('tree view offers its own two depth controls and not the graph reach', asyn
       .id
     return { mira }
   }, workDir)
-  await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('relationships'))
   await expect

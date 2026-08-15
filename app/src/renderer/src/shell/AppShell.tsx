@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityBar } from './ActivityBar'
+import { ModePanel } from './ModePanel'
+import { ModeRail } from './ModeRail'
 import { Binder } from './Binder'
 import { CommandPalette } from './CommandPalette'
 import { WorkspaceLayoutsDialog } from './WorkspaceLayoutsDialog'
@@ -9,19 +10,22 @@ import { QuickCapture } from './QuickCapture'
 import { FindReplaceDialog } from './FindReplaceDialog'
 import { CleanupDialog } from './CleanupDialog'
 import { HelpOverlay } from './HelpOverlay'
+import { runCommand } from './commands'
 import { buildDefaultHotkeys, installHotkeys } from './hotkeys'
+import { buildMenuTemplate, OPEN_RECENT } from './menuLayout'
 import { Inspector } from './Inspector'
 import { Toolbar } from './Toolbar'
 import { StatusBar } from './StatusBar'
 import { MainArea } from './MainArea'
 import { MobileShell } from './MobileShell'
 import { SceneNotesDock } from './SceneNotesDock'
+import { ShellDialogs } from './ShellDialogs'
 import { StartScreen } from './StartScreen'
 import { UpdateDialog } from './UpdateDialog'
 import { useBackupScheduler } from './useBackupScheduler'
 import { useSpellCheck } from './useSpellCheck'
 import { SceneConflictDialog } from './SceneConflictDialog'
-import { anyPaneShows, useShellStore, type MainView } from '../stores/shellStore'
+import { anyPaneShows, useShellStore } from '../stores/shellStore'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { useExtensionsStore, type StoreUpdate } from '../stores/extensionsStore'
@@ -29,46 +33,12 @@ import { useSettingsStore } from '../stores/settingsStore'
 import { useUiScaleStore } from '../stores/uiScaleStore'
 import { loadUserAssets, watchUserAssets } from '../stores/userAssets'
 import type { PingResult } from '../rpc/contract'
-import { chromeFor } from './viewChromePolicy'
+import { chromeForView, modeOf } from './modes'
 import { helpTargetForContext, type ManualTarget } from './helpTargets'
 import { useSettingsNavigation } from '../views/settings/settingsNavigation'
 import { useEditorBridge } from '../stores/editorBridgeStore'
 import './shell.css'
 
-/** Maps a native-menu command ("nav:codex", "toggle:focus") onto the shell store. */
-function handleMenuCommand(command: string): void {
-  const shell = useShellStore.getState()
-  if (command.startsWith('nav:')) {
-    shell.setMainView(command.slice(4) as MainView)
-    return
-  }
-  switch (command) {
-    case 'toggle:binder':
-      shell.toggleBinder()
-      break
-    case 'toggle:inspector':
-      shell.toggleInspector()
-      break
-    case 'toggle:sceneNotes':
-      shell.toggleNotesDock()
-      break
-    case 'toggle:focus':
-      shell.toggleFocusMode()
-      break
-    case 'help:manual':
-      shell.setHelpOpen(true)
-      break
-    case 'uiScale:reset':
-      useUiScaleStore.getState().reset()
-      break
-    case 'uiScale:increase':
-      useUiScaleStore.getState().increase()
-      break
-    case 'uiScale:decrease':
-      useUiScaleStore.getState().decrease()
-      break
-  }
-}
 
 async function hydrate(): Promise<void> {
   const ping = await rpc.request<PingResult>('system/ping')
@@ -94,6 +64,8 @@ export function AppShell(): React.JSX.Element {
   useSpellCheck()
   const binderVisible = useShellStore((s) => s.binderVisible)
   const binderOverlayOpen = useShellStore((s) => s.binderOverlayOpen)
+  const modePanelOpen = useShellStore((s) => s.modePanelOpen)
+  const modePanelDocked = useShellStore((s) => s.modePanelDocked)
   const backendVersion = useShellStore((s) => s.backendVersion)
   const focusMode = useShellStore((s) => s.focusMode)
   const inspectorVisible = useShellStore((s) => s.inspectorVisible)
@@ -111,7 +83,6 @@ export function AppShell(): React.JSX.Element {
   const isLoaded = useProjectStore((s) => s.isLoaded)
   const recentProjects = useProjectStore((s) => s.recentProjects)
   const openProject = useProjectStore((s) => s.openProject)
-  const pickAndOpenProject = useProjectStore((s) => s.pickAndOpenProject)
   const findReplaceOpen = useShellStore((s) => s.findReplaceOpen)
   const cleanupOpen = useShellStore((s) => s.cleanupOpen)
   const commandPaletteOpen = useShellStore((s) => s.commandPaletteOpen)
@@ -125,7 +96,7 @@ export function AppShell(): React.JSX.Element {
   const editorEntityAtCaret = useEditorBridge((s) => s.entityAtCaret)
   const hotkeys = useMemo(() => buildDefaultHotkeys(), [])
   const shellRef = useRef<HTMLDivElement>(null)
-  const chrome = chromeFor(mainView)
+  const chrome = chromeForView(mainView)
   const contextualHelp: ManualTarget =
     isLoaded || mainView === 'settings'
       ? helpTargetForContext({
@@ -134,11 +105,32 @@ export function AppShell(): React.JSX.Element {
         ...(mainView === 'settings' && settingsSection ? { settingsSection } : {})
       })
       : { file: '01-getting-started.md' }
-  const projectOrSettings = isLoaded || mainView === 'settings'
+  // The app is the app from launch. There is no separate front door any more:
+  // with no project open the content area holds the welcome material, and
+  // whatever needs a project is disabled rather than absent. That is what lets
+  // Settings, the manual and About be reachable before anything is opened,
+  // instead of Settings having had to learn to open without a project as a
+  // special case.
   const showBinder =
     isLoaded &&
     chrome.binder &&
     (shellCapacity === 'compact' ? binderOverlayOpen : binderVisible)
+  // The panel lists the views of a mode, so it is shown while the writer is in
+  // one. The Dashboard is the screen before you have chosen what to do today
+  // and is allowed to talk about all five modes at once; Settings and About
+  // belong to no mode at all. Both get the window.
+  //
+  // Otherwise: docked wherever there is room and the writer wants it, an
+  // overlay where there is not, and the same list in the same order either way.
+  // Settings, Extensions and About are about the application rather than about
+  // a book, which is what lets them open before a project has been - the reason
+  // Settings no longer needs its own without-a-project special case.
+  const appScopedView =
+    mainView === 'settings' || mainView === 'extensions' || mainView === 'about'
+  const inAMode = modeOf(mainView) !== null
+  const canDock = shellCapacity !== 'compact' && modePanelDocked
+  const showModePanel = inAMode && (canDock || modePanelOpen)
+  const modePanelOverlay = showModePanel && !canDock
   const showInspector =
     isLoaded &&
     chrome.inspector &&
@@ -276,6 +268,18 @@ export function AppShell(): React.JSX.Element {
 
   useEffect(() => installHotkeys(hotkeys), [hotkeys])
 
+  // The menu bar is generated from the command registry, so it has to be
+  // rebuilt whenever any of its three inputs move: the language its labels are
+  // in, whether a project is open (which decides what is greyed out), and the
+  // gestures the writer has rebound. Rebuilding is cheap and a stale menu bar
+  // is the kind of wrong that looks like a bug in the command rather than in
+  // the menu.
+  const language = useSettingsStore((s) => s.view?.effective.language)
+  const hotkeyBindings = useSettingsStore((s) => s.view?.global.hotkeyBindings)
+  useEffect(() => {
+    window.novalist.setMenu?.(buildMenuTemplate())
+  }, [isLoaded, language, hotkeyBindings, mainView, recentProjects])
+
   // Mobile: the native Liquid Glass tab bar shows only inside a project.
   useEffect(() => {
     if (window.novalist.isMobile) window.novalist.setNavVisible?.(isLoaded)
@@ -287,8 +291,12 @@ export function AppShell(): React.JSX.Element {
       if (data?.novalist === 'update-progress' && typeof data.percent === 'number')
         setUpdateProgress(data.percent)
       if (data?.novalist === 'menu-command' && data.command) {
+        // Every menu item but the updater is a registry command, so the menu
+        // bar cannot offer anything the palette does not also have.
         if (data.command === 'help:checkUpdates') void runUpdateCheck(true)
-        else handleMenuCommand(data.command)
+        else if (data.command.startsWith(OPEN_RECENT)) {
+          void useProjectStore.getState().openProject(data.command.slice(OPEN_RECENT.length))
+        } else runCommand(data.command)
       }
     }
     window.addEventListener('message', onMessage)
@@ -320,26 +328,34 @@ export function AppShell(): React.JSX.Element {
           write. Everything is a keystroke away again. */}
       {!isMobile && !focusMode && <Toolbar />}
       <div className="shell-body">
-        {projectOrSettings ? (
-          isMobile && isLoaded ? (
-            <MobileShell />
-          ) : (
-            <>
-              {!focusMode && <ActivityBar />}
-              {showBinder && !focusMode && <Binder />}
-              <div className="shell-main">
-                <MainArea />
-                {editorOpen && !extView && notesDockVisible && !focusMode && <SceneNotesDock />}
-              </div>
-              {showInspector && !focusMode && !extView && <Inspector />}
-            </>
-          )
+        {isMobile && isLoaded ? (
+          <MobileShell />
         ) : (
-          <StartScreen
-            recentProjects={recentProjects}
-            onOpenPath={(path) => void openProject(path)}
-            onPickProject={() => void pickAndOpenProject()}
-          />
+          <>
+            {!focusMode && <ModeRail />}
+            {/* The mode's own views. Docked beside the rail with room for it,
+                an overlay when there is not - the same rows either way. */}
+            {!focusMode && isLoaded && showModePanel && <ModePanel overlay={modePanelOverlay} />}
+            {!focusMode && isLoaded && modePanelOverlay && (
+              <div
+                className="mode-panel-scrim"
+                onPointerDown={() => useShellStore.getState().setModePanelOpen(false)}
+              />
+            )}
+            {showBinder && !focusMode && <Binder />}
+            <div className="shell-main">
+              {isLoaded || appScopedView ? (
+                <MainArea />
+              ) : (
+                <StartScreen
+                  recentProjects={recentProjects}
+                  onOpenPath={(path) => void openProject(path)}
+                />
+              )}
+              {editorOpen && !extView && notesDockVisible && !focusMode && <SceneNotesDock />}
+            </div>
+            {showInspector && !focusMode && !extView && <Inspector />}
+          </>
         )}
       </div>
       {updateOpen && (
@@ -358,9 +374,10 @@ export function AppShell(): React.JSX.Element {
           }}
         />
       )}
-      {!isMobile && !focusMode && mainView !== 'settings' && (!isLoaded || chrome.status) && (
-        <StatusBar />
-      )}
+      {/* With no project open the status bar is still the only thing that says
+          the bundled core process is alive, which is exactly when a writer most
+          needs to know. Once one is open, the mode decides. */}
+      {!isMobile && !focusMode && (!isLoaded || chrome.status) && <StatusBar />}
       {findReplaceOpen && (
         <FindReplaceDialog onClose={() => useShellStore.getState().setFindReplaceOpen(false)} />
       )}
@@ -368,10 +385,7 @@ export function AppShell(): React.JSX.Element {
         <CleanupDialog onClose={() => useShellStore.getState().setCleanupOpen(false)} />
       )}
       {commandPaletteOpen && (
-        <CommandPalette
-          actions={hotkeys}
-          onClose={() => useShellStore.getState().setCommandPaletteOpen(false)}
-        />
+        <CommandPalette onClose={() => useShellStore.getState().setCommandPaletteOpen(false)} />
       )}
       {quickOpenOpen && (
         <QuickOpen onClose={() => useShellStore.getState().setQuickOpenOpen(false)} />
@@ -395,6 +409,9 @@ export function AppShell(): React.JSX.Element {
           onClose={() => useShellStore.getState().setTourOpen(false)}
         />
       )}
+      {/* Every dialog a command can name, in one place, so the palette and the
+          menu bar raise the same ones the toolbar does. */}
+      <ShellDialogs />
       {/* Raised by the store when a save was refused because the scene changed
           on disk. Renders nothing until there is something to resolve. */}
       <SceneConflictDialog />
