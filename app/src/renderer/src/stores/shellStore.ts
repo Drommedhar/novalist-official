@@ -250,15 +250,16 @@ function even(count: number): number[] {
 const PANEL_STORAGE_KEY = 'nl.shell.panels'
 
 /* The floors are what a panel has to be to do its job, not the narrowest it can
- * be drawn. At 180 the binder gave a scene title about 120px - eight characters
- * of a 17px serif - so every chapter and every scene in the tree read as an
- * ellipsis, and the three scene-filter chips came out as "In the ...",
- * "Every..." and "Out o...". The inspector's field labels ran out of room the
- * same way. A panel whose contents cannot be read is not a narrow panel, it is
- * a broken one. */
-export const BINDER_MIN = 260
+ * be drawn. At 180 the binder left about 120px for a scene title - the app runs
+ * on a 17px serif, so that is a dozen characters - and every chapter and every
+ * scene in the tree read as an ellipsis, with the three scene-filter chips
+ * coming out as "In the ...", "Every..." and "Out o...". 290 is what an
+ * ordinary twenty-five-character scene title measures once the indent, the
+ * status dot and the word count have taken their share; the inspector wraps its
+ * text rather than clipping it, so it needs less. */
+export const BINDER_MIN = 290
 export const BINDER_MAX = 640
-export const INSPECTOR_MIN = 300
+export const INSPECTOR_MIN = 280
 export const INSPECTOR_MAX = 720
 export const NOTES_DOCK_MIN = 80
 export const NOTES_DOCK_MAX = 640

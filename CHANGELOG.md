@@ -28,6 +28,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 - **Recent projects in the File menu**, where a reader of any other application would look for it.
 
+- **Close project.** **File**, **Close project** puts the welcome screen back without restarting Novalist. There was no way to let go of a project short of quitting - which mattered less when the welcome screen was a separate window, and mattered a lot once it became what the main window holds until you open something.
+
 - **About.** A new **About** screen, from **Help**. It names the version of Novalist you are running and the version of the core process beside it, links to the project and to reporting an issue, and shows **What's new** - the full release history, in the app, so deciding whether to update no longer means going to find a web page. **Check for updates** is there too, the same check the Help menu runs, somewhere you can reach without opening a menu. (Not on the Mac App Store build, where the store delivers updates.)
 
 - **Third-party credits, and a way to report a problem.** About lists the typefaces and runtimes Novalist ships - Fraunces, Newsreader and Courier Prime under the SIL Open Font License 1.1, and Electron and the .NET runtime under the MIT License - with the copyright notice for each; their full licence texts ship with the app. **Copy system information** puts a support-ready block on the clipboard: both versions, your operating system, the interface and display scaling, and the window measurements. Like the diagnostic log it contains no project names, no file paths, and none of your writing, so you can paste it into a support request without reading it first.
@@ -62,6 +64,14 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 - **The app is the app from the moment it opens.** There was a separate welcome screen shown *instead* of Novalist, which is why Settings had to learn to open without a project as a special case and why the manual could not be read until you had opened something. The welcome material - new project, open, import, recent projects and the scratchpad - is now simply what fills the content area until a project is open, in the same window with the same menu bar. Anything that needs a project is visibly disabled rather than missing.
 
+- **The manuscript is drawn as pages by default.** A novel is a thing with pages, and Novalist opened looking like a text field. **Settings**, **Editor**, **Page view** turns it off.
+
+- **Extension settings are in Settings.** How an extension is configured is a setting, so its options, forms and setup wizards now live in **Settings**, **Extensions** - where they were reachable only from the Extensions view before, while that Settings section showed a read-only list of what was installed and nothing you could change. The Extensions view keeps what it is for: finding, installing, enabling and removing them.
+
+- **The binder and the inspector open wide enough to read.** They opened at a fraction of the window that left about 120 pixels for a scene title, so nearly every name was cut short with an ellipsis. Both are wider by default and can no longer be dragged narrower than their contents can be read. The binder's **In the book** / **Everything** / **Out of the book** buttons are readable again too, rather than cut to three letters each.
+
+- **Two settings badges said nearly the same thing.** A section that only ever lives in the project said "Current project"; a global default you had chosen to override said "This project". They mean different things, so they now say **Project only** and **Overridden here**.
+
 - **The main toolbar is about the project, and nothing else.** It carried three panel toggles that were already items in the View menu, the pane split and close buttons, a layouts dropdown, and the scene's snapshot history. Panels and panes shape the window, so they are in **View**; a snapshot is of the scene in front of you, so it is on the writing bar. What is left all acts on the open book: which book, which draft, what is in them, and finding something in them. Its **More** menu is now always there rather than appearing only in a narrow window, and it is where **Clean up the manuscript** and **Rename project** finally have a home - both were previously reachable by name and by nothing else.
 
 - **The layout follows the window, not the monitor.** How much room the shell has is now measured from the window itself, so a narrow window on a wide screen reflows properly and moving between monitors of different scaling reflows again without a restart. As room runs out the inspector becomes a drawer and secondary commands collect under **More**; narrower still, the binder becomes an overlay so the editor keeps a usable width. A width you drag a panel to is treated as a preference rather than a demand: it is capped while the window is narrow and comes back when there is room for it.
@@ -79,6 +89,18 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The layouts dropdown in the toolbar.** Named pane arrangements are in **View**, **Pane layouts**, along with the split, close and reset commands they belong with.
 
 ### Fixed
+
+- **Focus Peek no longer blinks and jumps.** Holding the pointer still on a name rebuilt the card every time anything around it redrew, so it flickered where it should have sat still. In the inspector it was worse: an unmeasured card is an empty one, and an empty card placed beside a row lands on top of it - so it appeared over the entry it belonged to and then flung itself across the screen. It is drawn once, in one place, in the prose and in the inspector alike. Hovering an explicit mention now anchors to the whole name rather than to the pixel under the pointer, as every other kind of entity reference already did.
+
+- **The picture picker for a Codex entry showed strips instead of pictures.** In a window short enough for the dialog to reach its height limit, every thumbnail was cropped to a band across the top of the image, at a different width each - a row of foreheads and blank bars. It is an even grid of framed thumbnails now, each showing the whole picture, and it scrolls rather than squashing.
+
+- **The mode rail no longer shifts when you change view.** The current entry was six pixels taller than the rest, so every button below it moved as you moved around the app.
+
+- **The menu bar is in your language.** Window, the Edit menu, quitting and the macOS application menu were in English whatever the interface was set to, because they came from the platform rather than from Novalist. Three German labels had also been written without their umlauts.
+
+- **Menu items that could not do anything looked as though they could.** With no project open, thirteen of them - the panel and pane commands, printing, importing a manuscript - were live and did nothing when pressed. They are greyed out until there is a project for them to act on. Opening About or Settings from the welcome screen also left every button on the rail disabled, with no way back; **Welcome** on the rail returns you.
+
+- **A slow Dashboard said the wrong thing, for ever.** While its figures were being worked out it claimed to still be connecting to the core process, which by then it is not - and if the read failed there was no message, no way to try again, and it simply stayed there. It now says what it is doing and offers to try again.
 
 - **`Ctrl+I` and `Ctrl+U` italicise and underline again.** The editor was intercepting both, suppressing what the browser would have done, and then handing them to nothing - so on Windows and Linux they did nothing at all while the buttons beside them said otherwise. Bold's tooltip stopped claiming `Ctrl+B`, which has toggled the binder since long before that toolbar existed; give Bold a gesture of your own in Settings if you want one.
 
