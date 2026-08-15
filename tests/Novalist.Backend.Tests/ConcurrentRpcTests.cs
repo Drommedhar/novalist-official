@@ -76,6 +76,45 @@ public sealed class ConcurrentRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task AskingWhatIsInstalledWhileLoading_AnswersWithAllOfIt()
+    {
+        // Enough extension folders that discovery takes long enough to overlap.
+        var extensions = Path.Combine(_root, "settings", "Extensions");
+        Directory.CreateDirectory(extensions);
+        for (var i = 0; i < 20; i++)
+        {
+            var folder = Path.Combine(extensions, "spec.ext" + i);
+            Directory.CreateDirectory(folder);
+            File.WriteAllText(Path.Combine(folder, "manifest.json"),
+                "{\"id\":\"spec.ext" + i + "\",\"name\":\"Spec " + i
+                + "\",\"version\":\"1.0.0\",\"description\":\"d\",\"author\":\"a\"}");
+        }
+
+        var rpc = new ExtensionsRpc(_workspace);
+        var expected = (await rpc.LoadAsync()).Length;
+        Assert.True(expected > 0, "the fixture should install something to find");
+
+        // Every screen that shows extensions asks on mount, and Settings shows
+        // them alongside the contributed settings pages - so two or three of
+        // these overlap routinely. The guard used to be a flag set after the
+        // awaits it guarded, so both callers ran discovery and whichever
+        // answered second answered from a list the first was still filling.
+        // The interface cached that as "no extensions installed".
+        for (var round = 0; round < 6; round++)
+        {
+            var fresh = new ExtensionsRpc(_workspace);
+            var answers = await Task.WhenAll(
+                Task.Run(async () => (await fresh.LoadAsync()).Length),
+                Task.Run(async () => (await fresh.LoadAsync()).Length),
+                Task.Run(async () => (await fresh.ListAsync()).Length));
+
+            Assert.All(answers, count =>
+                Assert.True(count == expected,
+                    "a caller saw " + count + " of " + expected + " extensions"));
+        }
+    }
+
+    [Fact]
     public async Task ASaveDuringADashboardRead_DoesNotTearTheWordHistory()
     {
         var chapter = await _workspace.Projects.CreateChapterAsync("Chapter");

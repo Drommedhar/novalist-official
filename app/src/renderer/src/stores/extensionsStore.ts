@@ -152,6 +152,14 @@ interface ExtensionsState {
 // reload can drop the previous set before registering the fresh one.
 let inlineDisposers: Array<() => void> = []
 
+/**
+ * The load request in flight, shared by everything that asks while it runs.
+ *
+ * Module-level rather than in the store, because it is not state anybody
+ * renders - it exists only so two screens mounting at once make one request.
+ */
+let inFlightLoad: Promise<ExtensionInfo[]> | null = null
+
 export const useExtensionsStore = create<ExtensionsState>((set, get) => ({
   extensions: [],
   views: [],
@@ -160,7 +168,18 @@ export const useExtensionsStore = create<ExtensionsState>((set, get) => ({
 
   load: async () => {
     if (get().loaded) return
-    const extensions = await rpc.request<ExtensionInfo[]>('extensions/load')
+    // One request, however many screens ask for it. The guard above is checked
+    // before an await, so two mounts in the same tick both passed it - and the
+    // one that answered second wrote its own, shorter answer over the first.
+    inFlightLoad ??= rpc
+      .request<ExtensionInfo[]>('extensions/load')
+      .finally(() => {
+        inFlightLoad = null
+      })
+    const extensions = await inFlightLoad
+    // `loaded` is set from the answer, not from the attempt: a failed or empty
+    // load that latched the flag left the app certain there were no extensions
+    // installed until it was restarted.
     set({ extensions, loaded: true })
     await get().refreshViews()
     await get().refreshContributions()

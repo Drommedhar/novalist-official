@@ -9,34 +9,70 @@ public sealed class ExtensionsRpc
 {
     private readonly Workspace _workspace;
     private bool _loaded;
+    private readonly SemaphoreSlim _loadGate = new(1, 1);
 
     public ExtensionsRpc(Workspace workspace)
     {
         _workspace = workspace;
     }
 
+    /// <summary>
+    /// Loads every installed extension once, and answers with the list.
+    /// </summary>
+    /// <remarks>
+    /// Gated, because the flag that used to guard this was set *after* the
+    /// awaits it guards. Two callers therefore both found it false, both ran
+    /// discovery, and whichever finished second answered from a list the first
+    /// was still filling - so the interface cached "no extensions installed"
+    /// while every one of them was sitting on disk, enabled, and visible in the
+    /// store.
+    ///
+    /// The second caller now waits for the first and gets the whole list rather
+    /// than a snapshot of it half-built.
+    /// </remarks>
     [JsonRpcMethod("extensions/load")]
     public async Task<ExtensionInfoDto[]> LoadAsync()
     {
-        if (!_loaded)
+        await _loadGate.WaitAsync();
+        try
         {
-            await _workspace.Settings.LoadAsync();
-            // Point the extension-facing language at the effective setting before
-            // any extension initializes (so GetLocalization resolves correctly).
-            _workspace.SyncExtensionLanguage();
-            await _workspace.ExtensionsHost.LoadAllAsync();
-            _loaded = true;
-            // If a project is already open, merge any freshly loaded extension
-            // entity types into its custom-type registry now (project-open ran
-            // before extensions were loaded).
-            await _workspace.RegisterExtensionEntityTypesAsync();
+            if (!_loaded)
+            {
+                await _workspace.Settings.LoadAsync();
+                // Point the extension-facing language at the effective setting before
+                // any extension initializes (so GetLocalization resolves correctly).
+                _workspace.SyncExtensionLanguage();
+                await _workspace.ExtensionsHost.LoadAllAsync();
+                // If a project is already open, merge any freshly loaded extension
+                // entity types into its custom-type registry now (project-open ran
+                // before extensions were loaded).
+                await _workspace.RegisterExtensionEntityTypesAsync();
+                // Last, so nothing can see the flag set while the work is still
+                // running - which is the whole of the bug this replaced.
+                _loaded = true;
+            }
+            return List();
         }
-        return List();
+        finally
+        {
+            _loadGate.Release();
+        }
     }
 
+    /// <summary>
+    /// The installed extensions, loading them first if that has not happened.
+    /// </summary>
+    /// <remarks>
+    /// Asking what is installed before the load has finished used to answer
+    /// with however much discovery had got through - most often nothing at all,
+    /// which reads as "no extensions installed" rather than as "not yet".
+    /// </remarks>
     [JsonRpcMethod("extensions/list")]
+    public Task<ExtensionInfoDto[]> ListAsync() => LoadAsync();
+
+    /// <summary>The installed extensions as they stand, without loading them.</summary>
     public ExtensionInfoDto[] List() =>
-        _workspace.ExtensionsHost.Extensions
+        _workspace.ExtensionsHost.Extensions.ToArray()
             .Select(e => new ExtensionInfoDto(
                 e.Manifest.Id,
                 e.Manifest.Name,
