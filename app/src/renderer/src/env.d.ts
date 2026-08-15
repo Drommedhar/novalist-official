@@ -26,6 +26,7 @@ interface Window {
     wiki: typeof import('./stores/wikiStore').useWikiStore
     settings: typeof import('./stores/settingsStore').useSettingsStore
     extensions: typeof import('./stores/extensionsStore').useExtensionsStore
+    onboarding: typeof import('./stores/onboardingStore').useOnboardingStore
   }
   novalistRpc: import('./rpc/client').RpcClient
   novalistExtensionTheme: {

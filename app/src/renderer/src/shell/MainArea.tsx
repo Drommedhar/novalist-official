@@ -8,6 +8,7 @@ import {
 } from '../stores/shellStore'
 import { editorPane, useProjectStore } from '../stores/projectStore'
 import { PaneHeader } from './PaneHeader'
+import { ViewIntro } from './ViewIntro'
 import { EditorFrame } from '../views/editor/EditorFrame'
 import { CodexView } from '../views/codex/CodexView'
 import { WikiView } from '../views/wiki/WikiView'
@@ -120,6 +121,10 @@ function PaneTree({
       onPointerDownCapture={() => setActivePane(node.id)}
     >
       {(headers === 'always' || !only) && <PaneHeader paneId={node.id} view={node.view} />}
+      {/* What this view is for, the first time it is opened. Above the content
+          rather than over it: a screen you are being told about is a screen you
+          should be able to see. */}
+      <ViewIntro view={node.view} />
       <MainAreaContent view={node.view} paneId={node.id} />
     </div>
   )

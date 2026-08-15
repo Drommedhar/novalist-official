@@ -3378,7 +3378,10 @@
     "researchTask": "Capture one fact or question you will want beside the draft.",
     "exportTitle": "Export",
     "exportBody": "EPUB, DOCX, PDF and more, laid out properly - including the submission formats agents ask for by name. This is where the book leaves.",
-    "exportTask": "Choose the format you expect to use; you do not need to export yet."
+    "exportTask": "Choose the format you expect to use; you do not need to export yet.",
+    "workspacesTitle": "Five workspaces",
+    "workspacesBody": "The rail on the left is how you move around: Write, Plan, World, Publish and Series, with the Dashboard above them. Picking one changes what the window holds and lists its views beside it - so \"where is the Plot Grid\" is \"Plan\" rather than one icon among nineteen. Every view is also in the command palette, on Ctrl+Shift+P.",
+    "workspacesTask": "Click through the five workspaces and see what each one holds."
   },
   "attachments": {
     "title": "Files and links",
@@ -3960,5 +3963,100 @@
       "fromExtensions": "From extensions"
     },
     "togglePanel": "Show the mode panel"
+  },
+  "intro": {
+    "gotIt": "Got it",
+    "write": {
+      "title": "The editor",
+      "body": "Where the prose goes. It saves as you type, so there is nothing to press. Select a few words for the formatting toolbar; right-click for what applies to the word under the pointer."
+    },
+    "manuscript": {
+      "title": "Manuscript",
+      "body": "Every scene in the book as one list, with the details you triage by - stage, word count, POV, tags. Use it to see the shape of the draft rather than to write in."
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "body": "Where the book stands: totals, goals, what you wrote lately, and how the scenes are spread across their stages. It is the screen a project opens on, and the button at the top of the rail brings you back."
+    },
+    "timeline": {
+      "title": "Timeline",
+      "body": "Your story’s events in the order they happen, which is not always the order they are told in. Give a scene a story date and it appears here."
+    },
+    "plotGrid": {
+      "title": "Plot Grid",
+      "body": "Threads down one side, scenes along the other. Tick where a thread is carried and the gaps show you where one has gone quiet."
+    },
+    "calendar": {
+      "title": "Calendar",
+      "body": "The same story dates as the Timeline, laid out as months. Useful when the question is \"what day of the week was that\" rather than \"what happened next\"."
+    },
+    "relationships": {
+      "title": "Relationships",
+      "body": "Who knows whom, drawn as a graph. Relationships are written on the Codex entries themselves; this is where you see them all at once."
+    },
+    "dialogue": {
+      "title": "Dialogue",
+      "body": "Every line of speech in the book, by who says it. Good for hearing whether two characters sound like the same person."
+    },
+    "canvas": {
+      "title": "Planning board",
+      "body": "A free surface for thinking: cards, notes and arrows, arranged how you like. Nothing here has to become part of the book."
+    },
+    "style": {
+      "title": "Style report",
+      "body": "A revision pass over a finished draft: repeated words, filter words, sentence length, adverbs. Read it as questions, not as corrections."
+    },
+    "codex": {
+      "title": "Codex",
+      "body": "The people, places, things and lore of your world. A name in here is picked up in your prose, so hovering it in a scene shows you the entry."
+    },
+    "wiki": {
+      "title": "Wiki",
+      "body": "Longer, linked articles about your world - the things that need paragraphs rather than fields. The Codex is the index; this is the prose."
+    },
+    "maps": {
+      "title": "Maps",
+      "body": "Drop an image, pin places on it, and link each pin to its Codex entry. A Codex place with a pin can be jumped to from anywhere."
+    },
+    "languages": {
+      "title": "Languages",
+      "body": "Words you have invented, with their meanings. Coined words are recognised in your prose so the spell checker stops arguing with them."
+    },
+    "research": {
+      "title": "Research",
+      "body": "Notes, links and files kept beside the book. The inbox is where quick captures land, so you can jot something now and file it later."
+    },
+    "gallery": {
+      "title": "Gallery",
+      "body": "Every picture in the project, in one place - covers, map images, portraits for Codex entries, references. Drop new ones in here."
+    },
+    "series": {
+      "title": "Series",
+      "body": "The view from above a single book: what carries across the whole series, and what each book contributes. The only place that is not about one book."
+    },
+    "expose": {
+      "title": "Exposé",
+      "body": "The pitch you send out: a synopsis written to a length, with the count in front of you as you write. Export it as standard manuscript pages."
+    },
+    "export": {
+      "title": "Export",
+      "body": "The book as a file somebody else can read - DOCX, EPUB, PDF, Markdown, LaTeX. Choose what goes in on the left and how it looks on the right."
+    },
+    "git": {
+      "title": "Version control",
+      "body": "Your project as a Git repository: a full history you can go back through, and a way to keep it on a server. Snapshots cover one scene; this covers everything."
+    },
+    "extensions": {
+      "title": "Extensions",
+      "body": "Find, install, enable and remove extensions. What an installed extension can be configured to do lives in Settings, under Extensions."
+    },
+    "settings": {
+      "title": "Settings",
+      "body": "One section at a time, grouped under General, Writing, Project and System. Search names the individual control rather than the section holding it, and each section says whether it applies to every project or only this one."
+    },
+    "about": {
+      "title": "About",
+      "body": "Which version you are running, what is new in it, who made the parts Novalist ships, and one button that copies a support-ready block of system information."
+    }
   }
 }

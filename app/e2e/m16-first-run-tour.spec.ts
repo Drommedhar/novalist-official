@@ -46,6 +46,13 @@ test('the tour offers itself once and walks through real views', async () => {
   // Offered on a first run, unasked.
   await expect(page.locator('.tour-card')).toBeVisible({ timeout: 20_000 })
 
+  // It opens by saying where everything is. The walk used to start on the
+  // Dashboard and leave the writer to work out how it had got there, which
+  // stopped being survivable once the rail held five workspaces rather than
+  // every view by name.
+  await expect(page.locator('.tour-card')).toContainText('Five workspaces')
+  await page.getByRole('button', { name: 'Next' }).click()
+
   // Each stop actually goes there rather than describing it.
   await expect
     .poll(() => page.evaluate(() => window.novalistStores.shell.getState().mainView), {

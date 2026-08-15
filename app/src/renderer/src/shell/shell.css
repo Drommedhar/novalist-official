@@ -528,6 +528,55 @@
   display: none;
 }
 
+/* ===== First-open view introduction =====
+   A strip above the view rather than a card over it: a screen you are being
+   told about is a screen you should be able to see while you read. */
+.view-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--nl-space-md);
+  margin: var(--nl-space-sm) var(--nl-space-md) 0;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-left: 2px solid var(--nl-accent);
+  border-radius: var(--nl-radius-md);
+}
+
+.view-intro-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  min-width: 0;
+}
+
+.view-intro-copy strong {
+  font-size: var(--nl-font-ui);
+  color: var(--nl-text);
+}
+
+.view-intro-copy span {
+  font-size: var(--nl-font-ui);
+  color: var(--nl-text-dim);
+  line-height: 1.45;
+}
+
+.view-intro-close {
+  flex: none;
+  margin-left: auto;
+  padding: var(--nl-space-tightest);
+  border: 1px solid transparent;
+  border-radius: var(--nl-radius-sm);
+  background: transparent;
+  color: var(--nl-text-subtle);
+  cursor: pointer;
+}
+
+.view-intro-close:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
 /* ===== Main column (content over the bottom notes dock) ===== */
 .shell-main {
   display: flex;

@@ -4,6 +4,16 @@ This page walks you from a freshly installed Novalist to writing your first scen
 
 If you already have Novalist open and just want to find your way around, skip to [Interface Overview](02-interface-overview.md).
 
+## Guidance while you learn
+
+Novalist explains itself in three places, and all three answer to one switch.
+
+- **The walkthrough** is offered once, the first time you open a project. It starts with the five workspaces and the rail they sit on, then visits the Dashboard, the Manuscript, the editor, Focus Peek, the Codex, the Timeline, Research and Export, naming one thing to try at each stop. **Take the tour** in the Help menu replays it whenever you like.
+- **A view introduces itself** the first time you open it: a short line above the screen saying what it is for. Close it with the x and it does not come back. Every view has one, including the ones the walkthrough does not visit.
+- **Contextual tips** appear the first time a feature actually becomes usable - when your caret first lands on a linked name, for instance. Each can be tried, put off, or turned off for good.
+
+**Settings**, **Accessibility**, **Show contextual guidance while I learn** turns all of it off. Only which screens and tips you have seen is remembered; nothing from your writing is recorded to decide when to show one.
+
 ## Installing Novalist
 
 Novalist is a desktop application. The user interface is an Electron shell; all project logic runs in a bundled core process ("Novalist Core") that the app starts automatically — you never manage it yourself.

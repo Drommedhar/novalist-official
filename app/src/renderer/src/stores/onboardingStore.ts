@@ -24,6 +24,18 @@ export interface OnboardingProgress {
   tour: TourStatus
   tipsEnabled: boolean
   tips: Partial<Record<OnboardingTipId, OnboardingTipStatus>>
+  /**
+   * Which views have introduced themselves.
+   *
+   * The walkthrough visits seven views and the app has twenty-two, so most of
+   * them a writer arrives at cold - and a screen you have arrived at cold is
+   * one you have to work out from its controls. Each says what it is for the
+   * first time you open it, once, and then never again.
+   *
+   * Keyed by view name only. Like the rest of this record it is installation
+   * state and must never carry anything taken from a book.
+   */
+  viewIntros: Record<string, OnboardingTipStatus>
 }
 
 export interface StorageLike {
@@ -37,6 +49,10 @@ interface OnboardingState extends OnboardingProgress {
   skipTour(): void
   completeTip(id: OnboardingTipId): void
   dismissTip(id: OnboardingTipId): void
+  /** Marks a view as having introduced itself, however the card was closed. */
+  closeViewIntro(view: string): void
+  /** Whether this view still owes the writer an introduction. */
+  shouldIntroduceView(view: string): boolean
   setTipsEnabled(enabled: boolean): void
   shouldShowTip(id: OnboardingTipId): boolean
   reset(): void
@@ -46,7 +62,8 @@ const DEFAULT_PROGRESS: OnboardingProgress = {
   version: ONBOARDING_SCHEMA_VERSION,
   tour: 'unseen',
   tipsEnabled: true,
-  tips: {}
+  tips: {},
+  viewIntros: {}
 }
 
 const TIP_IDS: ReadonlySet<string> = new Set<OnboardingTipId>([
@@ -101,16 +118,29 @@ export function migrateOnboardingProgress(
     }
   }
 
+  // A record written before view introductions existed simply has none, which
+  // is the same as a fresh install as far as they are concerned: somebody who
+  // has been using Novalist for months has still never been told what the
+  // Planning board is for.
+  const viewIntros: OnboardingProgress['viewIntros'] = {}
+  if (isRecord(raw.viewIntros)) {
+    for (const view of Object.keys(raw.viewIntros)) {
+      const status = tipStatus(raw.viewIntros[view])
+      if (status) viewIntros[view] = status
+    }
+  }
+
   return {
     version: ONBOARDING_SCHEMA_VERSION,
     tour: legacyTourSeen && tourStatus(raw.tour) === 'unseen' ? 'completed' : tourStatus(raw.tour),
     tipsEnabled: typeof raw.tipsEnabled === 'boolean' ? raw.tipsEnabled : true,
-    tips
+    tips,
+    viewIntros
   }
 }
 
 export function readOnboardingProgress(storage: StorageLike | null = browserStorage()): OnboardingProgress {
-  if (!storage) return { ...DEFAULT_PROGRESS, tips: {} }
+  if (!storage) return { ...DEFAULT_PROGRESS, tips: {}, viewIntros: {} }
   let legacyTourSeen = false
   try {
     legacyTourSeen = storage.getItem(LEGACY_TOUR_SEEN_KEY) === '1'
@@ -142,7 +172,8 @@ function progressOf(state: OnboardingState): OnboardingProgress {
     version: ONBOARDING_SCHEMA_VERSION,
     tour: state.tour,
     tipsEnabled: state.tipsEnabled,
-    tips: state.tips
+    tips: state.tips,
+    viewIntros: state.viewIntros
   }
 }
 
@@ -190,9 +221,19 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       persist(next)
       return next
     }),
+  closeViewIntro: (view) =>
+    set((state) => {
+      const next = {
+        ...progressOf(state),
+        viewIntros: { ...state.viewIntros, [view]: 'completed' as const }
+      }
+      persist(next)
+      return next
+    }),
   shouldShowTip: (id) => get().tipsEnabled && get().tips[id] == null,
+  shouldIntroduceView: (view) => get().tipsEnabled && get().viewIntros[view] == null,
   reset: () => {
-    const next = { ...DEFAULT_PROGRESS, tips: {} }
+    const next = { ...DEFAULT_PROGRESS, tips: {}, viewIntros: {} }
     persist(next)
     set(next)
   }

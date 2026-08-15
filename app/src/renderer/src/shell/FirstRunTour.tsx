@@ -22,6 +22,7 @@ import {
  * are not tabs at all, so it named places a phone cannot go.
  */
 export type TourStepId =
+  | 'workspaces'
   | 'dashboard'
   | 'manuscript'
   | 'editor'
@@ -49,6 +50,18 @@ export interface TourStep {
 }
 
 const TOUR_STEPS: TourStep[] = [
+  {
+    // Where everything else is. The walk used to open on the Dashboard and
+    // leave the writer to work out how it had got there, which was survivable
+    // when the rail held every view by name and is not now that it holds five
+    // workspaces each holding several.
+    id: 'workspaces',
+    view: 'dashboard',
+    tab: 'dashboard',
+    titleKey: 'tour.workspacesTitle',
+    bodyKey: 'tour.workspacesBody',
+    taskKey: 'tour.workspacesTask'
+  },
   {
     id: 'dashboard',
     view: 'dashboard',

@@ -3386,7 +3386,10 @@
     "researchTask": "Notieren Sie eine Tatsache oder Frage, die Sie neben dem Entwurf brauchen werden.",
     "exportTitle": "Export",
     "exportBody": "EPUB, DOCX, PDF und mehr, ordentlich gesetzt - samt Normseiten, nach denen Agenturen namentlich fragen. Hier verlässt das Buch das Haus.",
-    "exportTask": "Wählen Sie das erwartete Format; Sie müssen noch nichts exportieren."
+    "exportTask": "Wählen Sie das erwartete Format; Sie müssen noch nichts exportieren.",
+    "workspacesTitle": "Fünf Arbeitsbereiche",
+    "workspacesBody": "Die Leiste links ist der Weg durch die App: Schreiben, Planen, Welt, Ausgabe und Reihe, darüber die Übersicht. Ein Bereich bestimmt, was das Fenster zeigt, und listet seine Ansichten daneben – „wo ist das Plot-Raster“ heißt also „Planen“ statt eines Symbols unter neunzehn. Jede Ansicht steht auch in der Befehlspalette, auf Strg+Umschalt+P.",
+    "workspacesTask": "Klick dich durch die fünf Bereiche und sieh, was jeder enthält."
   },
   "attachments": {
     "title": "Dateien und Links",
@@ -3968,5 +3971,100 @@
       "fromExtensions": "Aus Erweiterungen"
     },
     "togglePanel": "Modus-Leiste anzeigen"
+  },
+  "intro": {
+    "gotIt": "Verstanden",
+    "write": {
+      "title": "Der Editor",
+      "body": "Hier entsteht der Text. Er wird beim Tippen gespeichert, du musst nichts drücken. Markiere ein paar Wörter für die Formatierungsleiste; ein Rechtsklick zeigt, was für das Wort unter dem Zeiger gilt."
+    },
+    "manuscript": {
+      "title": "Manuskript",
+      "body": "Alle Szenen des Buchs als eine Liste, mit den Angaben, nach denen du sortierst – Stand, Wortzahl, Perspektive, Schlagwörter. Zum Überblick über den Entwurf, nicht zum Schreiben."
+    },
+    "dashboard": {
+      "title": "Übersicht",
+      "body": "Wo das Buch steht: Summen, Ziele, was du zuletzt geschrieben hast und wie sich die Szenen auf ihre Stände verteilen. Damit öffnet ein Projekt, und die Schaltfläche oben in der Leiste bringt dich zurück."
+    },
+    "timeline": {
+      "title": "Zeitleiste",
+      "body": "Die Ereignisse deiner Geschichte in der Reihenfolge, in der sie geschehen – nicht immer die, in der sie erzählt werden. Gib einer Szene ein Datum in der Geschichte, und sie erscheint hier."
+    },
+    "plotGrid": {
+      "title": "Plot-Raster",
+      "body": "Handlungsstränge an der einen Seite, Szenen an der anderen. Markiere, wo ein Strang getragen wird, und die Lücken zeigen dir, wo einer verstummt ist."
+    },
+    "calendar": {
+      "title": "Kalender",
+      "body": "Dieselben Daten wie die Zeitleiste, aber als Monate. Nützlich, wenn die Frage „welcher Wochentag war das“ lautet und nicht „was kam danach“."
+    },
+    "relationships": {
+      "title": "Beziehungen",
+      "body": "Wer wen kennt, als Graph. Beziehungen werden in den Codex-Einträgen selbst gepflegt; hier siehst du sie alle auf einmal."
+    },
+    "dialogue": {
+      "title": "Dialog",
+      "body": "Jede gesprochene Zeile im Buch, nach Sprecher. Gut, um zu hören, ob zwei Figuren wie dieselbe Person klingen."
+    },
+    "canvas": {
+      "title": "Planungsboard",
+      "body": "Eine freie Fläche zum Denken: Karten, Notizen und Pfeile, angeordnet wie du willst. Nichts davon muss ins Buch."
+    },
+    "style": {
+      "title": "Stilbericht",
+      "body": "Ein Überarbeitungsdurchgang über einen fertigen Entwurf: Wortwiederholungen, Füllwörter, Satzlängen, Adverbien. Lies ihn als Fragen, nicht als Korrekturen."
+    },
+    "codex": {
+      "title": "Codex",
+      "body": "Die Figuren, Orte, Dinge und das Wissen deiner Welt. Ein Name von hier wird in deinem Text erkannt – fährst du in einer Szene darüber, siehst du den Eintrag."
+    },
+    "wiki": {
+      "title": "Wiki",
+      "body": "Längere, verknüpfte Artikel über deine Welt – alles, was Absätze braucht statt Felder. Der Codex ist das Verzeichnis, dies ist der Fließtext."
+    },
+    "maps": {
+      "title": "Karten",
+      "body": "Lege ein Bild ab, setze Nadeln darauf und verknüpfe jede mit ihrem Codex-Eintrag. Zu einem Ort mit Nadel kannst du von überall springen."
+    },
+    "languages": {
+      "title": "Sprachen",
+      "body": "Von dir erfundene Wörter mit ihren Bedeutungen. Erfundene Wörter werden in deinem Text erkannt, damit die Rechtschreibprüfung Ruhe gibt."
+    },
+    "research": {
+      "title": "Recherche",
+      "body": "Notizen, Links und Dateien neben dem Buch. Im Eingang landen die schnellen Notizen, damit du jetzt notieren und später einsortieren kannst."
+    },
+    "gallery": {
+      "title": "Galerie",
+      "body": "Alle Bilder des Projekts an einem Ort – Cover, Kartenbilder, Porträts für Codex-Einträge, Referenzen. Neue legst du hier ab."
+    },
+    "series": {
+      "title": "Reihe",
+      "body": "Der Blick oberhalb eines einzelnen Buchs: was sich durch die ganze Reihe zieht und was jedes Buch beiträgt. Der einzige Ort, der nicht um ein Buch geht."
+    },
+    "expose": {
+      "title": "Exposé",
+      "body": "Der Text, den du verschickst: eine Inhaltsangabe auf eine Länge geschrieben, mit der Zählung vor Augen. Als Normseiten exportierbar."
+    },
+    "export": {
+      "title": "Export",
+      "body": "Das Buch als Datei, die andere lesen können – DOCX, EPUB, PDF, Markdown, LaTeX. Links wählst du, was hineinkommt, rechts, wie es aussieht."
+    },
+    "git": {
+      "title": "Versionsverwaltung",
+      "body": "Dein Projekt als Git-Repository: eine vollständige Historie, durch die du zurückgehen kannst, und ein Weg, sie auf einem Server zu halten. Stände betreffen eine Szene, dies alles."
+    },
+    "extensions": {
+      "title": "Erweiterungen",
+      "body": "Erweiterungen finden, installieren, aktivieren und entfernen. Was sich an einer installierten Erweiterung einstellen lässt, steht in den Einstellungen unter Erweiterungen."
+    },
+    "settings": {
+      "title": "Einstellungen",
+      "body": "Ein Bereich nach dem anderen, gruppiert unter Allgemein, Schreiben, Projekt und System. Die Suche nennt das einzelne Bedienelement statt des Bereichs, und jeder Bereich sagt, ob er für alle Projekte oder nur für dieses gilt."
+    },
+    "about": {
+      "title": "Über Novalist",
+      "body": "Welche Version du benutzt, was darin neu ist, wer die mitgelieferten Bestandteile gemacht hat, und eine Schaltfläche, die Systeminformationen für eine Supportanfrage kopiert."
+    }
   }
 }

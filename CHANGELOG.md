@@ -28,6 +28,10 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 - **Recent projects in the File menu**, where a reader of any other application would look for it.
 
+- **Every view says what it is for, the first time you open it.** A short line above the screen, once, and then never again: what the Plot Grid is, why the Wiki is not the Codex, what the Style report is asking of you. The walkthrough visits seven views and Novalist has twenty-two, so most of them you used to meet cold and had to work out from their own controls. Close it with the x; it does not come back. It answers to the same switch as the other contextual guidance - **Settings**, **Accessibility**, **Show contextual guidance while I learn** - and, like that guidance, it records only which screens you have seen, never anything from your book.
+
+- **The walkthrough opens by saying where everything is.** Its first stop is now the five workspaces and the rail they sit on, which is the one thing a returning writer will not recognise. It used to open on the Dashboard and leave you to work out how it had got there.
+
 - **Close project.** **File**, **Close project** puts the welcome screen back without restarting Novalist. There was no way to let go of a project short of quitting - which mattered less when the welcome screen was a separate window, and mattered a lot once it became what the main window holds until you open something.
 
 - **About.** A new **About** screen, from **Help**. It names the version of Novalist you are running and the version of the core process beside it, links to the project and to reporting an issue, and shows **What's new** - the full release history, in the app, so deciding whether to update no longer means going to find a web page. **Check for updates** is there too, the same check the Help menu runs, somewhere you can reach without opening a menu. (Not on the Mac App Store build, where the store delivers updates.)
