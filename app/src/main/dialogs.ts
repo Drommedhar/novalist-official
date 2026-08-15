@@ -35,7 +35,22 @@ export function registerDialogHandlers(): void {
     return true
   })
 
+  /**
+   * The clipboard is not the app's to spend under test.
+   *
+   * An e2e spec drove About's "Copy system information" and read the clipboard
+   * back to check it, so every run of the suite silently threw away whatever
+   * the person at the keyboard had copied - once, a page of notes taken while
+   * the suite ran. Almost everything a test can damage is inside a temporary
+   * directory; the system clipboard is not, and no amount of care in the specs
+   * makes it so. So the refusal lives here, where a spec cannot forget it, and
+   * what would have been copied is kept for the test to read instead.
+   */
   ipcMain.on('novalist:copy-text', (_event, text: string) => {
+    if (process.env.NOVALIST_NO_CLIPBOARD === '1') {
+      ;(globalThis as unknown as { __copied?: string }).__copied = text
+      return
+    }
     clipboard.writeText(text)
   })
 

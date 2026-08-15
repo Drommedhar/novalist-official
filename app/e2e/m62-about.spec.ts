@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { dismissTour, launchApp, seedBook } from './harness'
+import { copiedText, dismissTour, launchApp, seedBook } from './harness'
 
 /** What the shipped manifest says this build is. */
 const MANIFEST_VERSION = (
@@ -55,13 +55,14 @@ test('about names both versions, credits what it bundles, and copies a content-f
   // What's new is the repo's changelog, bundled rather than linked.
   await expect(page.getByTestId('about-changelog').locator('h2').first()).toBeVisible()
 
+  // The harness stubs the system clipboard for every launch, so this reads what
+  // the app tried to copy without anything leaving it. This test used to click
+  // the button and read the real clipboard back, which threw away whatever the
+  // person at the keyboard had copied - once, a page of notes.
   await page.getByTestId('about-copy-system-info').click()
+  await expect.poll(() => copiedText(h), { timeout: 15_000 }).toContain('Core process')
 
-  const clipboard = async (): Promise<string> =>
-    h.app.evaluate(({ clipboard: c }) => c.readText())
-  await expect.poll(clipboard, { timeout: 15_000 }).toContain('Core process')
-
-  const report = await clipboard()
+  const report = await copiedText(h)
   expect(report).toContain(`Novalist ${MANIFEST_VERSION}`)
   expect(report).toMatch(/^Platform \S+/m)
   expect(report).toMatch(/^Window \d+ x \d+$/m)

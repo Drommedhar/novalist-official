@@ -175,6 +175,17 @@ export type Book = {
   chapters: { guid: string; title: string; scenes: { id: string; title: string }[] }[]
 }
 
+/**
+ * What the app tried to put on the clipboard, or '' if nothing has.
+ *
+ * Under test the app never reaches the real clipboard - `playwright.config.ts`
+ * sets NOVALIST_NO_CLIPBOARD for the whole run and main/dialogs.ts keeps the
+ * text here instead. This is the only way to assert on a copy, which is the
+ * point: the alternative cost somebody their notes.
+ */
+export const copiedText = (h: Harness): Promise<string> =>
+  h.app.evaluate(() => (globalThis as unknown as { __copied?: string }).__copied ?? '')
+
 /** The project as the binder holds it. */
 export const state = (h: Harness): Promise<Book> => h.rpc<Book>('project/getState')
 
