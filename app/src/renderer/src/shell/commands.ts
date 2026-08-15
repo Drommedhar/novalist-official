@@ -587,6 +587,9 @@ export const COMMANDS: CommandDef[] = [
     run: () => shell().setQuickOpenOpen(true)
   },
   {
+    // Everything from here down shapes the workspace, and with no project open
+    // there is no workspace on screen to shape - so these were menu items that
+    // looked live and did nothing when pressed.
     id: 'app.print',
     labelKey: 'print.title',
     categoryKey: 'hotkeys.category.general',
@@ -594,6 +597,7 @@ export const COMMANDS: CommandDef[] = [
     // Ctrl+P is Quick Open here and has been since before there was anything
     // to print, so moving it would cost more than it is worth.
     defaultGesture: 'Ctrl+Alt+P',
+    available: projectOpen,
     run: printCurrentView
   },
   {
@@ -602,6 +606,7 @@ export const COMMANDS: CommandDef[] = [
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
     defaultGesture: 'Ctrl+B',
+    available: projectOpen,
     run: () => shell().toggleBinder()
   },
   {
@@ -610,6 +615,7 @@ export const COMMANDS: CommandDef[] = [
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
     defaultGesture: 'Ctrl+Shift+B',
+    available: projectOpen,
     run: () => shell().toggleInspector()
   },
   {
@@ -617,6 +623,7 @@ export const COMMANDS: CommandDef[] = [
     labelKey: 'modes.togglePanel',
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
+    available: projectOpen,
     run: () => shell().toggleModePanelDocked()
   },
   {
@@ -625,6 +632,7 @@ export const COMMANDS: CommandDef[] = [
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
     defaultGesture: 'Ctrl+Shift+N',
+    available: projectOpen,
     run: () => shell().toggleNotesDock()
   },
   {
@@ -633,6 +641,7 @@ export const COMMANDS: CommandDef[] = [
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
     defaultGesture: 'Alt+F',
+    available: projectOpen,
     run: () => shell().toggleFocusMode()
   },
   {
@@ -641,6 +650,7 @@ export const COMMANDS: CommandDef[] = [
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
     defaultGesture: 'Ctrl+Alt+ArrowRight',
+    available: projectOpen,
     run: () => shell().splitActivePane('row')
   },
   {
@@ -649,6 +659,7 @@ export const COMMANDS: CommandDef[] = [
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
     defaultGesture: 'Ctrl+Alt+ArrowDown',
+    available: projectOpen,
     run: () => shell().splitActivePane('column')
   },
   {
@@ -657,6 +668,7 @@ export const COMMANDS: CommandDef[] = [
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
     defaultGesture: 'Ctrl+Alt+W',
+    available: projectOpen,
     run: () => shell().closeActivePane()
   },
   {
@@ -664,6 +676,7 @@ export const COMMANDS: CommandDef[] = [
     labelKey: 'panes.defaultLayout',
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
+    available: projectOpen,
     run: () => shell().resetPanes()
   },
   {
@@ -679,6 +692,7 @@ export const COMMANDS: CommandDef[] = [
     labelKey: 'panes.layouts',
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
+    available: projectOpen,
     run: () => shell().openDialog('paneLayouts')
   },
   {
@@ -687,6 +701,7 @@ export const COMMANDS: CommandDef[] = [
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
     defaultGesture: 'Ctrl+Alt+L',
+    available: projectOpen,
     run: () => shell().setLayoutsOpen(true)
   },
   {
@@ -751,6 +766,14 @@ export const COMMANDS: CommandDef[] = [
     run: () => void project().pickAndOpenProject()
   },
   {
+    id: 'app.closeProject',
+    labelKey: 'command.closeProject',
+    categoryKey: 'hotkeys.category.general',
+    scope: 'application',
+    available: projectOpen,
+    run: () => void project().closeProject()
+  },
+  {
     id: 'app.importProject',
     labelKey: 'welcome.importPlugin',
     categoryKey: 'hotkeys.category.general',
@@ -762,6 +785,7 @@ export const COMMANDS: CommandDef[] = [
     labelKey: 'manuscriptImport.action',
     categoryKey: 'hotkeys.category.general',
     scope: 'application',
+    available: projectOpen,
     run: () => shell().openDialog('importManuscript')
   },
   {

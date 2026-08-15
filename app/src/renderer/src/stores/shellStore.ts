@@ -249,9 +249,16 @@ function even(count: number): number[] {
  * backend - this is view state, not configuration. */
 const PANEL_STORAGE_KEY = 'nl.shell.panels'
 
-export const BINDER_MIN = 180
+/* The floors are what a panel has to be to do its job, not the narrowest it can
+ * be drawn. At 180 the binder gave a scene title about 120px - eight characters
+ * of a 17px serif - so every chapter and every scene in the tree read as an
+ * ellipsis, and the three scene-filter chips came out as "In the ...",
+ * "Every..." and "Out o...". The inspector's field labels ran out of room the
+ * same way. A panel whose contents cannot be read is not a narrow panel, it is
+ * a broken one. */
+export const BINDER_MIN = 260
 export const BINDER_MAX = 640
-export const INSPECTOR_MIN = 220
+export const INSPECTOR_MIN = 300
 export const INSPECTOR_MAX = 720
 export const NOTES_DOCK_MIN = 80
 export const NOTES_DOCK_MAX = 640
@@ -614,14 +621,14 @@ export const useShellStore = create<ShellState>((set, get) => ({
   extView: null,
   binderTab: 'chapters',
   binderVisible: true,
-  binderWidth: initialPanelSize(storedPanels.binderWidth, 0.15, BINDER_MIN, BINDER_MAX, screenW),
+  binderWidth: initialPanelSize(storedPanels.binderWidth, 0.17, BINDER_MIN, BINDER_MAX, screenW),
   binderOverlayOpen: false,
   modePanelDocked: storedPanels.modePanelDocked !== false,
   modePanelOpen: false,
   inspectorVisible: true,
   inspectorWidth: initialPanelSize(
     storedPanels.inspectorWidth,
-    0.18,
+    0.2,
     INSPECTOR_MIN,
     INSPECTOR_MAX,
     screenW

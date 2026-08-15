@@ -59,7 +59,30 @@
     "commandPalette": "Befehlspalette...",
     "file": "Datei",
     "go": "Gehe zu",
-    "help": "Hilfe"
+    "help": "Hilfe",
+    "window": "Fenster",
+    "mainWindow": "Fenster",
+    "minimize": "Minimieren",
+    "zoom": "Zoomen",
+    "closeWindow": "Fenster schließen",
+    "front": "Alle nach vorne bringen",
+    "windowList": "Fenster",
+    "quit": "Beenden",
+    "about": "Über",
+    "hide": "Ausblenden",
+    "hideOthers": "Andere ausblenden",
+    "unhide": "Alle einblenden",
+    "checkUpdates": "Nach Updates suchen…",
+    "github": "Novalist auf GitHub",
+    "undo": "Rückgängig",
+    "redo": "Wiederherstellen",
+    "cut": "Ausschneiden",
+    "copy": "Kopieren",
+    "paste": "Einfügen",
+    "selectAll": "Alles auswählen",
+    "reload": "Neu laden",
+    "devTools": "Entwicklerwerkzeuge",
+    "fullscreen": "Vollbild"
   },
   "commandPalette": {
     "placeholder": "Befehlsname eingeben...",
@@ -353,9 +376,9 @@
     "navigationLabel": "Einstellungskategorien",
     "backTo": "Zurück zu {{context}}",
     "scopeGlobalBadge": "Alle Projekte",
-    "scopeProjectBadge": "Aktuelles Projekt",
+    "scopeProjectBadge": "Nur im Projekt",
     "scopeOverrideGlobalBadge": "Globale Vorgabe",
-    "scopeOverrideProjectBadge": "Dieses Projekt",
+    "scopeOverrideProjectBadge": "Hier überschrieben",
     "scopeMixedBadge": "Mehrere Bereiche",
     "editor": "Editor",
     "fontFamily": "Schriftart",
@@ -586,7 +609,9 @@
       "project": "Projekt",
       "system": "System",
       "other": "Sonstiges"
-    }
+    },
+    "extensionsInstalled": "{{count}} installiert, {{enabled}} aktiv.",
+    "extensionsManage": "Erweiterungen installieren und verwalten"
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",
@@ -1729,7 +1754,8 @@
     "settingsWorking": "Wird ausgeführt…",
     "themesTitle": "Erweiterungs-Designs",
     "themesMovedHint": "Farbschemata deiner Erweiterungen ({{names}}) stehen unter Einstellungen, Darstellung, Farbschema zusammen mit den mitgelieferten zur Auswahl.",
-    "updateTo": "Auf {0} aktualisieren"
+    "updateTo": "Auf {0} aktualisieren",
+    "openSettings": "Einstellungen der Erweiterungen"
   },
   "codexHub": {
     "title": "Codex Hub",
@@ -2301,7 +2327,11 @@
     "groupApp": "Anwendung",
     "menu": "Menü",
     "view.series": "Reihe",
-    "paneAwaitingScene": "Wähle eine Szene im Ordner, um sie hier zu schreiben."
+    "paneAwaitingScene": "Wähle eine Szene im Ordner, um sie hier zu schreiben.",
+    "viewLoading": "Wird berechnet…",
+    "viewLoadFailed": "Das konnte gerade nicht berechnet werden.",
+    "retry": "Erneut versuchen",
+    "welcome": "Start"
   },
   "hostBridge": {
     "toastRegion": "Benachrichtigungen",
@@ -3886,11 +3916,12 @@
     "newChapter": "Neues Kapitel",
     "newScene": "Neue Szene",
     "renameProject": "Projekt umbenennen",
-    "uiScaleIncrease": "Oberflaeche vergroessern",
-    "uiScaleDecrease": "Oberflaeche verkleinern",
-    "uiScaleReset": "Oberflaechengroesse zuruecksetzen",
+    "uiScaleIncrease": "Oberfläche vergrößern",
+    "uiScaleDecrease": "Oberfläche verkleinern",
+    "uiScaleReset": "Oberflächengröße zurücksetzen",
     "manual": "Handbuch",
-    "about": "Über Novalist"
+    "about": "Über Novalist",
+    "closeProject": "Projekt schließen"
   },
   "about": {
     "title": "Über Novalist",

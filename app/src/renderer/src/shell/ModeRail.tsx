@@ -53,20 +53,29 @@ export function ModeRail(): React.JSX.Element {
   const atHome = !extView && mainView === HOME_VIEW
   const activeMode = !atHome && modeOf(mainView) !== null ? modeOf(mainView) : null
 
+  // Settings, Extensions and About open before a project does, and with no
+  // project every button on this rail was disabled - so opening About from the
+  // welcome screen was a room with the door locked behind you. Home is the way
+  // out, and with nothing open it goes back to the welcome screen rather than
+  // to a Dashboard there is no book for.
+  const appScopedView =
+    mainView === 'settings' || mainView === 'extensions' || mainView === 'about'
+  const homeLabel = isLoaded ? t('shell.view.dashboard') : t('shell.welcome')
+
   return (
     <nav className="mode-rail" aria-label={t('shell.activityBar')}>
       <button
         type="button"
         className={`mode-rail-item${atHome ? ' active' : ''}`}
         aria-current={atHome ? 'page' : undefined}
-        disabled={!isLoaded}
+        disabled={!isLoaded && !appScopedView}
         onClick={() => goHome()}
       >
         <LayoutDashboard size={19} strokeWidth={1.75} />
         {/* Titled as well as labelled: the rail is sized for the longest name
             any bundled language has, but a language somebody added themselves
             can be longer still, and then the tooltip is the way to read it. */}
-        <span title={t('shell.view.dashboard')}>{t('shell.view.dashboard')}</span>
+        <span title={homeLabel}>{homeLabel}</span>
       </button>
       <div className="mode-rail-sep" />
       {MODES.map((entry) => {

@@ -328,18 +328,26 @@
   color: var(--nl-text);
 }
 
-.mode-rail-item.selected::after,
-.mode-rail-item.active::after {
+/* The underline belongs to every entry's box and is only painted where it
+   applies. Giving it to the current entry alone made that one entry six pixels
+   taller than its neighbours, so Plan sat six pixels lower in Write than it did
+   in World and the rail appeared to re-space itself every time the view
+   changed. Reserving the room in all six keeps the geometry fixed. */
+.mode-rail-item::after {
   content: '';
   display: block;
   width: 60%;
-  height: 2px;
+  height: var(--nl-space-hairline);
   border-radius: var(--nl-radius-pill);
-  background: var(--nl-accent);
+  background: transparent;
 }
 
 .mode-rail-item.selected::after {
   background: var(--nl-border-firm);
+}
+
+.mode-rail-item.active::after {
+  background: var(--nl-accent);
 }
 
 /* ===== Mode panel (the views inside the mode) ===== */
@@ -1116,20 +1124,23 @@
 
 .binder-scene-filter {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--nl-space-tightest);
   padding: var(--nl-space-tighter) var(--nl-space-sm);
   border-bottom: 1px solid var(--nl-border);
 }
 
+/* Each chip takes the room its own name needs and the row wraps when three of
+   them will not sit side by side. Splitting the row into equal thirds and
+   ellipsing what did not fit turned the three choices into "In the ...",
+   "Every..." and "Out o...", which is three ways of saying nothing. */
 .binder-filter-chip {
-  flex: 1;
+  flex: 0 1 auto;
   padding: var(--nl-space-tightest) var(--nl-space-tighter);
   border-radius: var(--nl-radius-sm);
   font-size: var(--nl-font-ui);
   color: var(--nl-text-subtle);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .binder-filter-chip:hover {
@@ -1306,7 +1317,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--nl-space-lg);
-  width: min(520px, 85vw);
+  width: min(var(--nl-dialog-width), 85vw);
   padding: var(--nl-space-xxl);
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
@@ -1321,7 +1332,7 @@
 
 /* Capture dialogs that need room for a picker list. */
 .dialog-card-wide {
-  width: min(760px, 90vw);
+  width: min(var(--nl-dialog-width-wide), 90vw);
 }
 
 .capture-excerpt {
@@ -3127,7 +3138,7 @@
 
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--nl-thumb-md), 1fr));
   gap: var(--nl-space-lg);
   padding: var(--nl-space-xl);
   overflow-y: auto;
@@ -3447,11 +3458,56 @@
 .entity-image button:hover { color: var(--nl-danger); }
 .entity-image-add { display: inline-flex; flex-direction: column; align-items: center; gap: var(--nl-space-tighter); width: 72px; height: 72px; justify-content: center; border: 1px dashed var(--nl-border); border-radius: var(--nl-radius-md); color: var(--nl-text-subtle); font-size: var(--nl-font-caption); }
 .entity-image-add:hover { color: var(--nl-text); border-color: var(--nl-accent); }
-.entity-gallery-card { width: min(640px, 90vw); max-height: 80vh; overflow-y: auto; }
-.entity-gallery-grid { padding: 0; }
-.entity-gallery-pick { padding: 0; border-radius: var(--nl-radius-md); overflow: hidden; }
-.entity-gallery-pick img { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; }
-.entity-gallery-pick:hover { outline: 2px solid var(--nl-accent); }
+/* The picture picker.
+   Every tile was a bare image scaled to fit an invisible square, so a wide
+   picture painted as a thin strip, a tall one as a sliver, and a pale one as a
+   blank bar - a run of ragged shapes at random widths rather than a grid. The
+   cell is the thing that has to be uniform: a framed, recessed tile of one
+   size, with the whole picture shown inside it. */
+.entity-gallery-card {
+  width: min(var(--nl-dialog-width-wide), 90vw);
+  max-height: 80vh;
+  /* The card scrolled as a whole, which took the title with it. The grid is
+     the part with more in it than fits, so the grid is the part that scrolls. */
+  overflow: hidden;
+}
+
+/* The row is a fixed height rather than one derived from the pictures in it.
+   A tile whose height came from an aspect-ratio on the image inside it got
+   squashed whenever the dialog was shorter than its contents - the row shrank,
+   the image did not, and overflow:hidden cropped every portrait to a strip of
+   forehead. A definite row is the same height in a tall window and a short one,
+   and the grid scrolls when there are more rows than fit. */
+.entity-gallery-grid {
+  padding: 0;
+  grid-template-columns: repeat(auto-fill, minmax(var(--nl-thumb-lg), 1fr));
+  grid-auto-rows: var(--nl-thumb-lg);
+  align-content: start;
+  gap: var(--nl-space-md);
+  min-height: 0;
+}
+
+.entity-gallery-pick {
+  display: block;
+  height: 100%;
+  padding: var(--nl-space-tightest);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-input);
+  overflow: hidden;
+}
+
+.entity-gallery-pick img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.entity-gallery-pick:hover {
+  border-color: var(--nl-accent);
+  outline: 1px solid var(--nl-accent);
+}
 
 .dashboard-card-title-btn {
   font: inherit;

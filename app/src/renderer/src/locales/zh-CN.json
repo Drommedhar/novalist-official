@@ -59,7 +59,30 @@
     "commandPalette": "命令面板...",
     "file": "文件",
     "go": "转到",
-    "help": "帮助"
+    "help": "帮助",
+    "window": "窗口",
+    "mainWindow": "窗口",
+    "minimize": "最小化",
+    "zoom": "缩放",
+    "closeWindow": "关闭窗口",
+    "front": "全部置前",
+    "windowList": "窗口",
+    "quit": "退出",
+    "about": "关于",
+    "hide": "隐藏",
+    "hideOthers": "隐藏其他",
+    "unhide": "全部显示",
+    "checkUpdates": "检查更新…",
+    "github": "在 GitHub 上查看 Novalist",
+    "undo": "撤销",
+    "redo": "重做",
+    "cut": "剪切",
+    "copy": "复制",
+    "paste": "粘贴",
+    "selectAll": "全选",
+    "reload": "重新加载",
+    "devTools": "开发者工具",
+    "fullscreen": "全屏"
   },
   "commandPalette": {
     "placeholder": "输入命令名称...",
@@ -510,9 +533,9 @@
     "navigationLabel": "设置类别",
     "backTo": "返回{{context}}",
     "scopeGlobalBadge": "所有项目",
-    "scopeProjectBadge": "当前项目",
+    "scopeProjectBadge": "仅本项目",
     "scopeOverrideGlobalBadge": "全局默认值",
-    "scopeOverrideProjectBadge": "此项目",
+    "scopeOverrideProjectBadge": "已在此覆盖",
     "scopeMixedBadge": "多个范围",
     "editor": "编辑器",
     "fontFamily": "字体系列",
@@ -743,7 +766,9 @@
       "project": "项目",
       "system": "系统",
       "other": "其他"
-    }
+    },
+    "extensionsInstalled": "已安装 {{count}} 个，已启用 {{enabled}} 个。",
+    "extensionsManage": "安装和管理扩展"
   },
   "hotkeys": {
     "searchPlaceholder": "筛选快捷键...",
@@ -2166,7 +2191,8 @@
     "settingsWorking": "处理中…",
     "themesTitle": "扩展主题",
     "themesMovedHint": "来自扩展的主题（{{names}}）与内置主题一起列在“设置 - 外观 - 主题”中。",
-    "updateTo": "更新到 {0}"
+    "updateTo": "更新到 {0}",
+    "openSettings": "扩展设置"
   },
   "codexHub": {
     "title": "设定集大厅",
@@ -2328,7 +2354,11 @@
     "activityBarMore": "更多视图",
     "more": "更多",
     "view.series": "系列",
-    "paneAwaitingScene": "在资料夹中选择一个场景，在这里书写。"
+    "paneAwaitingScene": "在资料夹中选择一个场景，在这里书写。",
+    "viewLoading": "正在计算…",
+    "viewLoadFailed": "目前无法计算。",
+    "retry": "重试",
+    "welcome": "欢迎"
   },
   "help": {
     "title": "Novalist 手册",
@@ -3924,7 +3954,8 @@
     "uiScaleDecrease": "缩小界面",
     "uiScaleReset": "重置界面缩放",
     "manual": "用户手册",
-    "about": "关于 Novalist"
+    "about": "关于 Novalist",
+    "closeProject": "关闭项目"
   },
   "about": {
     "title": "关于 Novalist",

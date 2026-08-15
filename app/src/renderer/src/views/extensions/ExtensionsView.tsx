@@ -5,7 +5,6 @@ import { rpc } from '../../rpc/client'
 import { useExtensionsStore } from '../../stores/extensionsStore'
 import { useShellStore } from '../../stores/shellStore'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
-import { ExtensionSettings } from './ExtensionSettings'
 import { ExtensionStore } from './ExtensionStore'
 import './extensions.css'
 
@@ -228,7 +227,15 @@ export function ExtensionsView(): React.JSX.Element {
         </div>
       )}
 
-      <ExtensionSettings />
+      {/* What an extension can be configured to do is a setting, and settings
+          live in Settings. This view is for installing, enabling and removing
+          them - see Settings, Extensions for the rest. */}
+      <button
+        className="btn-secondary"
+        onClick={() => useShellStore.getState().openSettings('extensions')}
+      >
+        {t('extensions.openSettings')}
+      </button>
         </>
       )}
 

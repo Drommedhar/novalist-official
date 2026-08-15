@@ -121,7 +121,10 @@ interface Window {
     setTitleBarColors?(color: string, symbolColor: string): void
     /** Replaces the application menu with the one the command registry
      *  describes. Desktop only; the mobile build has no menu bar. */
-    setMenu?(nodes: import('./shell/menuLayout').MenuNode[]): void
+    setMenu?(
+      nodes: import('./shell/menuLayout').MenuNode[],
+      labels: import('./shell/menuLayout').MenuLabels
+    ): void
     /** Whole-interface scale, independent from the manuscript font size. */
     setUiScale?(factor: number): Promise<number>
     /** The installed application version. Desktop only; the mobile shell has

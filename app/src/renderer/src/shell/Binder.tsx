@@ -808,7 +808,7 @@ export function Binder(): React.JSX.Element {
                     onClick={() => void openScene(chapter.guid, scene.id)}
                   >
                     <Pin size={11} strokeWidth={2} className="binder-pin-icon" />
-                    <span className="binder-scene-title">{scene.title}</span>
+                    <span className="binder-scene-title" title={scene.title}>{scene.title}</span>
                     {/* Which chapter it came from - a pinned list with no
                         context is a list of titles floating free of the book. */}
                     <span className="binder-pin-chapter">{chapter.title}</span>
@@ -853,7 +853,7 @@ export function Binder(): React.JSX.Element {
                 title={t('explorer.cycleStatusTooltip')}
                 onClick={() => cycleStatus(chapter.guid, chapter.status)}
               />
-              <span className="binder-chapter-title">{chapter.title}</span>
+              <span className="binder-chapter-title" title={chapter.title}>{chapter.title}</span>
               {isMobile && (
                 <>
                   <button
@@ -930,7 +930,7 @@ export function Binder(): React.JSX.Element {
                       />
                     )
                   })()}
-                  <span className="binder-scene-title">{scene.title}</span>
+                  <span className="binder-scene-title" title={scene.title}>{scene.title}</span>
                   {/* A plotline has carried a colour since the Plot Grid
                       shipped and it never left that view, so the binder could
                       not show that this scene and that one are one thread. */}
@@ -1004,7 +1004,7 @@ export function Binder(): React.JSX.Element {
               <div className="binder-trash-chapters">
                 {trashed.map((chapter) => (
                   <div key={chapter.guid} className="binder-scene-row">
-                    <span className="binder-scene-title">
+                    <span className="binder-scene-title" title={chapter.title}>
                       {chapter.title}
                       <span className="binder-trash-meta">
                         {' '}
@@ -1066,7 +1066,7 @@ export function Binder(): React.JSX.Element {
             )}
             {archived?.map((scene) => (
               <div key={scene.id} className="binder-scene-row">
-                <span className="binder-scene-title">{scene.title}</span>
+                <span className="binder-scene-title" title={scene.title}>{scene.title}</span>
                 {scene.originChapterTitle && (
                   <span className="binder-pin-chapter">{scene.originChapterTitle}</span>
                 )}

@@ -3204,11 +3204,17 @@ editor.addEventListener('mousemove', (e) => {
         if (id && id !== lastHoveredMentionId) {
             lastHoveredMentionId = id;
             lastHoveredAlias = null;
+            // The span, not the pointer. An explicit mention was the one entity
+            // reference still anchored to a point: the card cleared the pixel
+            // under the cursor and covered the rest of the name, which is the
+            // condition the whole hide/show flicker loop grows out of.
+            const box = mention.getBoundingClientRect();
             sendMessage({
                 type: 'entityMentionHover',
                 entityId: id,
                 x: e.clientX,
-                y: e.clientY
+                y: e.clientY,
+                rect: { left: box.left, top: box.top, right: box.right, bottom: box.bottom }
             });
         }
         return;
@@ -4304,7 +4310,13 @@ editor.addEventListener('mousedown', (e) => {
         e.preventDefault();
         const id = mention.getAttribute('data-entity-id') || '';
         const rect = mention.getBoundingClientRect();
-        if (id) sendMessage({ type: 'entityMentionHover', entityId: id, x: rect.left, y: rect.bottom });
+        if (id) sendMessage({
+            type: 'entityMentionHover',
+            entityId: id,
+            x: rect.left,
+            y: rect.bottom,
+            rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom }
+        });
         return;
     }
     // Most entity references in prose are plain text (auto-detected), not explicit

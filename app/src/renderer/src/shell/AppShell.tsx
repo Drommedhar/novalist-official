@@ -12,7 +12,7 @@ import { CleanupDialog } from './CleanupDialog'
 import { HelpOverlay } from './HelpOverlay'
 import { runCommand } from './commands'
 import { buildDefaultHotkeys, installHotkeys } from './hotkeys'
-import { buildMenuTemplate, OPEN_RECENT } from './menuLayout'
+import { buildMenuLabels, buildMenuTemplate, OPEN_RECENT } from './menuLayout'
 import { Inspector } from './Inspector'
 import { Toolbar } from './Toolbar'
 import { StatusBar } from './StatusBar'
@@ -277,7 +277,7 @@ export function AppShell(): React.JSX.Element {
   const language = useSettingsStore((s) => s.view?.effective.language)
   const hotkeyBindings = useSettingsStore((s) => s.view?.global.hotkeyBindings)
   useEffect(() => {
-    window.novalist.setMenu?.(buildMenuTemplate())
+    window.novalist.setMenu?.(buildMenuTemplate(), buildMenuLabels())
   }, [isLoaded, language, hotkeyBindings, mainView, recentProjects])
 
   // Mobile: the native Liquid Glass tab bar shows only inside a project.

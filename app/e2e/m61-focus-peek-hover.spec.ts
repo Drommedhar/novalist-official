@@ -1,5 +1,13 @@
-import { test, expect } from '@playwright/test'
-import { dismissTour, enterWriting, launchApp, resizeWindow, seedBook } from './harness'
+import { test, expect, type Page } from '@playwright/test'
+import {
+  dismissTour,
+  enterWriting,
+  launchApp,
+  resizeWindow,
+  seedBook,
+  type Book,
+  type Harness
+} from './harness'
 
 /**
  * A hovered name holds its Focus Peek still.
@@ -15,6 +23,16 @@ import { dismissTour, enterWriting, launchApp, resizeWindow, seedBook } from './
  * point it is anchored to. The stationary-pointer sampling is kept as the
  * symptom-level check, and the second half forces the branch where the card
  * cannot fit below the pointer and has to go somewhere else.
+ *
+ * There is a second way to flicker that has nothing to do with where the card
+ * is put, and `recordPeek` is what catches it: the card can blank itself. Its
+ * contents arrive from a request, so a card that throws its contents away and
+ * asks again blinks empty in between - and an empty card measures zero, which
+ * for a sidebar row (placed to the *left* of what it belongs to, by its own
+ * width) puts the next placement 460px away from the right one. The two feed
+ * each other. Sampling every painted frame is the only way to see it, because
+ * the whole storm is over in a tenth of a second and leaves the card sitting
+ * exactly where it belongs.
  */
 
 const NAME = 'Mira Vance'
@@ -26,8 +44,18 @@ interface Box {
   height: number
 }
 
+/** One painted state of the peek anchor. `width` is zero while the card holds
+ *  nothing, which is what a blank frame looks like from the outside. */
+interface PeekState {
+  visible: boolean
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
 /** Viewport rectangle of the first occurrence of `word` in the prose. */
-async function wordBox(page: import('@playwright/test').Page, word: string): Promise<Box> {
+async function wordBox(page: Page, word: string): Promise<Box> {
   const frame = await page.locator('.editor-frame').boundingBox()
   if (!frame) throw new Error('the editor frame has no box')
   const inFrame = await page
@@ -59,7 +87,7 @@ const centre = (box: Box): { x: number; y: number } => ({
 })
 
 /** The card's box, or null while nothing is shown. */
-async function cardBox(page: import('@playwright/test').Page): Promise<Box | null> {
+async function cardBox(page: Page): Promise<Box | null> {
   const anchor = page.locator('.peek-card-anchor')
   if ((await anchor.count()) === 0) return null
   if (!(await anchor.isVisible())) return null
@@ -76,11 +104,73 @@ function overlaps(a: Box, b: Box): boolean {
   )
 }
 
-test('a hovered name keeps its Focus Peek open instead of flickering', async () => {
-  test.setTimeout(180_000)
-  const h = await launchApp('nl-peek-hover-')
-  const book = await seedBook(h, { 'Chapter One': ['Opening'] })
+/**
+ * Every painted state of the peek, recorded in the page.
+ *
+ * Read back over the bridge, a poll samples a handful of times a second and
+ * sees a card that is open, in the right place, and perfectly still. A frame
+ * callback sees the twelve times it blinked in the hundred milliseconds after
+ * it opened.
+ */
+async function recordPeek(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const w = window as unknown as { __peek?: PeekState[]; __peekFrame?: number }
+    w.__peek = []
+    let last = ''
+    const tick = (): void => {
+      const el = document.querySelector('.peek-card-anchor')
+      let state: PeekState = { visible: false, left: 0, top: 0, width: 0, height: 0 }
+      if (el) {
+        const r = el.getBoundingClientRect()
+        state = {
+          visible: getComputedStyle(el).visibility !== 'hidden',
+          left: Math.round(r.left),
+          top: Math.round(r.top),
+          width: Math.round(r.width),
+          height: Math.round(r.height)
+        }
+      }
+      const key = JSON.stringify(state)
+      if (key !== last) {
+        last = key
+        w.__peek!.push(state)
+      }
+      w.__peekFrame = requestAnimationFrame(tick)
+    }
+    tick()
+  })
+}
+
+async function readPeek(page: Page): Promise<PeekState[]> {
+  return await page.evaluate(() => {
+    const w = window as unknown as { __peek?: PeekState[]; __peekFrame?: number }
+    if (w.__peekFrame) cancelAnimationFrame(w.__peekFrame)
+    return w.__peek ?? []
+  })
+}
+
+/** How a recording reads: where the card was drawn, and how often it went away
+ *  again after it had been drawn once. */
+function summarise(states: PeekState[]): { blanks: number; places: string[] } {
+  let drawn = false
+  let blanks = 0
+  const places = new Set<string>()
+  for (const state of states) {
+    if (state.visible && state.width > 0) {
+      drawn = true
+      places.add(`${state.left},${state.top}`)
+    } else if (drawn) {
+      blanks++
+    }
+  }
+  return { blanks, places: [...places] }
+}
+
+/** A project with one character worth drawing a card for, and a scene naming
+ *  them. Both halves of this file need it. */
+async function seedNamedScene(h: Harness): Promise<Book> {
   const page = h.page
+  const book = await seedBook(h, { 'Chapter One': ['Opening', 'Second'] })
   await dismissTour(page)
   // Closing the tour hands back the workspace it borrowed, which is the one the
   // project opened on - the Dashboard, and no binder. Back to Write.
@@ -119,10 +209,18 @@ test('a hovered name keeps its Focus Peek open instead of flickering', async () 
   await expect
     .poll(async () => (await editor.innerText()).includes(NAME), { timeout: 15_000 })
     .toBe(true)
-  expect(book.chapters[0].scenes.length).toBe(1)
+  return book
+}
+
+test('a hovered name keeps its Focus Peek open instead of flickering', async () => {
+  test.setTimeout(180_000)
+  const h = await launchApp('nl-peek-hover-')
+  await seedNamedScene(h)
+  const page = h.page
 
   // ── Hover the name, then drift the way a resting hand does ──
   const word = await wordBox(page, NAME)
+  await recordPeek(page)
   await page.mouse.move(centre(word).x, centre(word).y)
   await expect(page.locator('.peek-card-anchor')).toBeVisible({ timeout: 20_000 })
 
@@ -132,6 +230,14 @@ test('a hovered name keeps its Focus Peek open instead of flickering', async () 
     overlaps(box!, word),
     'the card must sit clear of the whole name, not merely of the pointer'
   ).toBe(false)
+
+  // Every frame of the first two seconds, with the pointer where the reader put
+  // it. A card that throws its contents away and fetches them again blinks
+  // empty, which is flicker whether or not it comes back in the same place.
+  await page.waitForTimeout(2_000)
+  const held = summarise(await readPeek(page))
+  expect(held.blanks, 'the card blanked itself while the pointer held still').toBe(0)
+  expect(held.places, 'the card moved while the pointer held still').toHaveLength(1)
 
   // The symptom, and the thing that made it so hard to sit still through: the
   // card must neither blink nor move while the pointer wanders inside the name
@@ -186,6 +292,75 @@ test('a hovered name keeps its Focus Peek open instead of flickering', async () 
       { timeout: 20_000 }
     )
     .toBe('clear')
+
+  await h.close()
+})
+
+/**
+ * The same card, raised from an entity row in the inspector.
+ *
+ * A row asks for the card *beside* it, which resolves to the row's left edge
+ * minus the card's own width - so unlike the prose case, where the card is put
+ * below the word and its width does not enter into it, here a mismeasured card
+ * lands in a completely different place. A card measured while it was still
+ * empty was placed 460px to the right of where it belongs: over the row, which
+ * is the one thing the placement exists to prevent.
+ */
+test('a hovered entity row in the inspector holds its Focus Peek still', async () => {
+  test.setTimeout(180_000)
+  const h = await launchApp('nl-peek-inspector-')
+  const book = await seedNamedScene(h)
+  const page = h.page
+  const chapter = book.chapters[0]
+
+  // The panel lists who is in the scene, which the backend answers from the
+  // saved file - so wait for the typing to have reached it rather than guessing
+  // at the autosave delay.
+  await expect
+    .poll(
+      async () => {
+        const ctx = await h.rpc<{ characters: unknown[] }>('context/analyze', [
+          chapter.guid,
+          chapter.scenes[0].id
+        ])
+        return ctx.characters.length
+      },
+      { timeout: 30_000 }
+    )
+    .toBeGreaterThan(0)
+  // The panel asks that question when the scene opens, and this scene opened
+  // before the name was in it. Leave and return.
+  await page.locator('.binder-scene-row').nth(1).click()
+  await page.locator('.binder-scene-row').first().click()
+
+  const row = page.locator('.ctx-card').first()
+  await expect(row).toBeVisible({ timeout: 30_000 })
+  const rowBox = await row.boundingBox()
+  expect(rowBox, 'the entity row should be on screen').not.toBeNull()
+
+  await recordPeek(page)
+  await page.mouse.move(rowBox!.x + rowBox!.width / 2, rowBox!.y + rowBox!.height / 2)
+  await expect(page.locator('.peek-card-anchor')).toBeVisible({ timeout: 20_000 })
+  await page.waitForTimeout(2_000)
+
+  const states = await readPeek(page)
+  const held = summarise(states)
+  expect(held.places, 'the card was drawn somewhere').not.toHaveLength(0)
+  expect(held.blanks, 'the card blanked itself while the pointer held still').toBe(0)
+  expect(held.places, 'the card moved while the pointer held still').toHaveLength(1)
+
+  // Not one painted frame of it may sit on the row it belongs to: the row is
+  // host DOM like the card, so a card over it takes the row's own hover.
+  const covering = states.filter(
+    (s) =>
+      s.visible &&
+      s.width > 0 &&
+      overlaps(
+        { x: s.left, y: s.top, width: s.width, height: s.height },
+        { x: rowBox!.x, y: rowBox!.y, width: rowBox!.width, height: rowBox!.height }
+      )
+  )
+  expect(covering, 'the card covered the row it is anchored to').toHaveLength(0)
 
   await h.close()
 })

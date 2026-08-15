@@ -35,6 +35,27 @@ public partial class ProjectService : IProjectService
     public bool IsProjectLoaded => CurrentProject != null && ActiveBook != null && ProjectRoot != null;
 
     /// <summary>
+    /// Lets go of the loaded project, leaving the service as it was before one
+    /// was opened.
+    /// </summary>
+    /// <remarks>
+    /// There was no way back to no-project short of restarting: a project could
+    /// be opened and swapped for another, never closed. That was survivable
+    /// while the welcome screen was a separate window, and stopped being so once
+    /// it became what the main window holds until a project is open - there was
+    /// somewhere to go back to and no way to get there.
+    /// Nothing is written here. Everything this drops is already on disk.
+    /// </remarks>
+    public void CloseProject()
+    {
+        CurrentProject = null;
+        ProjectSettings = new ProjectSettings();
+        ActiveBook = null;
+        ScenesManifest = null;
+        ProjectRoot = null;
+    }
+
+    /// <summary>
     /// Optional sink for v2 to v3 filesystem-migration progress, set by the UI before
     /// <see cref="LoadProjectAsync"/> so it can show a progress overlay. Null = no reporting.
     /// </summary>

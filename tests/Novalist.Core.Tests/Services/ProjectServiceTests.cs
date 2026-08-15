@@ -32,6 +32,66 @@ public class ProjectServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task CloseProject_LeavesTheServiceAsItWasBeforeOneWasOpened()
+    {
+        // There was no way back to no-project short of restarting: a project
+        // could be opened and swapped for another, never closed.
+        await Create();
+        await _sut.CreateChapterAsync("Chapter A");
+        _sut.ProjectSettings.Overrides.Language = "de";
+        Assert.True(_sut.IsProjectLoaded);
+
+        _sut.CloseProject();
+
+        Assert.False(_sut.IsProjectLoaded);
+        Assert.Null(_sut.CurrentProject);
+        Assert.Null(_sut.ActiveBook);
+        Assert.Null(_sut.ScenesManifest);
+        Assert.Null(_sut.ProjectRoot);
+        // The derived roots hang off those, so they have to be gone too - a
+        // stale path here would have the next write land in the closed project.
+        Assert.Null(_sut.ActiveBookRoot);
+        Assert.Null(_sut.ActiveDraftRoot);
+        Assert.Null(_sut.WorldBibleRoot);
+        // The project's own overrides do not follow it out of the door, or the
+        // next project would open under the last one's preferences.
+        Assert.Null(_sut.ProjectSettings.Overrides.Language);
+    }
+
+    [Fact]
+    public async Task CloseProject_LeavesEverythingItWroteOnDisk()
+    {
+        // Closing is not discarding. Nothing here is unsaved by the time it
+        // runs, and the same folder has to load again unchanged.
+        var meta = await Create();
+        await _sut.CreateChapterAsync("Chapter A");
+        var root = _sut.ProjectRoot!;
+
+        _sut.CloseProject();
+        Assert.True(File.Exists(Path.Combine(root, ".novalist", "project.json")));
+
+        var reopened = new ProjectService(new FileService());
+        var reloaded = await reopened.LoadProjectAsync(root);
+        Assert.Equal(meta.Name, reloaded.Name);
+        Assert.Single(reopened.ActiveBook!.Chapters);
+    }
+
+    [Fact]
+    public async Task CloseProject_CanBeCalledWithNothingOpen()
+    {
+        // The menu item is disabled without a project, but a command registry
+        // is not a guarantee - and a close that throws would take the app with
+        // it rather than doing nothing.
+        _sut.CloseProject();
+        Assert.False(_sut.IsProjectLoaded);
+
+        await Create();
+        _sut.CloseProject();
+        _sut.CloseProject();
+        Assert.False(_sut.IsProjectLoaded);
+    }
+
+    [Fact]
     public async Task LoadProject_RoundTrips()
     {
         var meta = await Create();

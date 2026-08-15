@@ -161,10 +161,25 @@ export function PeekCard({
     isOverridden: boolean
   } | null>(null)
 
-  // A fresh hover (new prop target) resets in-place navigation.
+  // A fresh hover resets in-place navigation, so a card opened on one entity
+  // does not come back showing whichever relationship was last followed out of
+  // it.
+  //
+  // Keyed on which entity it is, never on the object saying so. Both callers
+  // build that object inline, so it is a new one on every render of the pane
+  // the card hangs off - and treating that as a new entity threw the loaded
+  // card away and asked for it again. The card blinked empty in between, and an
+  // empty card measures nothing, which put the next placement a card's width
+  // from the right one. That is the flicker.
+  const targetType = target.entityType
+  const targetId = target.entityId
   useEffect(() => {
-    setNav(target)
-  }, [target])
+    setNav((current) =>
+      current.entityType === targetType && current.entityId === targetId
+        ? current
+        : { entityType: targetType, entityId: targetId }
+    )
+  }, [targetType, targetId])
 
   useEffect(() => {
     let alive = true
@@ -656,6 +671,16 @@ export function useEntityPeek(opts: {
       const styles = getComputedStyle(document.documentElement)
       const gap = Number.parseFloat(styles.getPropertyValue('--nl-space-md')) || 12
       const rect = anchor.getBoundingClientRect()
+      // Nothing is placed until there is something to place. The card's
+      // contents come from a request, so between the hover and the answer the
+      // anchor is an empty box - and an empty box is not a small card, it is an
+      // unmeasured one. Placing it is worse than leaving it hidden: a sidebar
+      // peek goes to the left of its row *by its own width*, so a zero-width
+      // measurement puts the card squarely on the row it belongs to, and the
+      // real measurement then throws it a card's width sideways. The observer
+      // below fires the moment the card has a size, which is the first moment
+      // the answer is worth anything.
+      if (rect.width === 0 || rect.height === 0) return
       // The rule lives in peekPlacement.ts, where it can be checked over every
       // geometry rather than only the ones a hover test happens to produce.
       const { left, top } = placePeekCard({

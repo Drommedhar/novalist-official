@@ -112,6 +112,45 @@ test('project status is concise until its details are requested', async () => {
   await h.close()
 })
 
+/**
+ * Selects `length` characters of the prose, starting `from` characters in.
+ *
+ * Not by reaching into `firstChild.firstChild`: a name the Codex knows is
+ * wrapped in a mention span as soon as the scene loads, so the paragraph's
+ * first text node can be four characters long and an offset past it throws.
+ */
+async function selectInProse(
+  editor: import('@playwright/test').Locator,
+  from: number,
+  length: number
+): Promise<void> {
+  await editor.evaluate(
+    (root, span: { from: number; length: number }) => {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+      let seen = 0
+      let node = walker.nextNode()
+      while (node) {
+        const text = node.textContent ?? ''
+        if (seen + text.length > span.from) {
+          const start = span.from - seen
+          const range = document.createRange()
+          range.setStart(node, start)
+          range.setEnd(node, Math.min(text.length, start + span.length))
+          const selection = window.getSelection()
+          selection?.removeAllRanges()
+          selection?.addRange(range)
+          document.dispatchEvent(new Event('selectionchange'))
+          return
+        }
+        seen += text.length
+        node = walker.nextNode()
+      }
+      throw new Error('the prose is shorter than the selection asked for')
+    },
+    { from, length }
+  )
+}
+
 test('one command, one home: the writing bar holds still while a selection is made', async () => {
   test.setTimeout(180_000)
   const h = await launchApp('nl-writing-context-')
@@ -149,17 +188,7 @@ test('one command, one home: the writing bar holds still while a selection is ma
     els.map((el) => el.getAttribute('data-command'))
   )
 
-  await editor.evaluate((root) => {
-    const text = root.firstChild?.firstChild
-    if (!text) throw new Error('scene text was not rendered')
-    const range = document.createRange()
-    range.setStart(text, 5)
-    range.setEnd(text, 11)
-    const selection = window.getSelection()
-    selection?.removeAllRanges()
-    selection?.addRange(range)
-    document.dispatchEvent(new Event('selectionchange'))
-  })
+  await selectInProse(editor, 5, 6)
 
   const floating = h.page.frameLocator('.editor-frame').locator('#floating-toolbar')
   await expect(floating).toBeVisible({ timeout: 10_000 })
@@ -183,17 +212,7 @@ test('one command, one home: the writing bar holds still while a selection is ma
   expect(afterSelection, 'the writing bar changed under the writer').toEqual(beforeSelection)
 
   // A collapsed caret inside a known name raises the one-time coachmark.
-  await editor.evaluate((root) => {
-    const text = root.firstChild?.firstChild
-    if (!text) throw new Error('scene text was not rendered')
-    const range = document.createRange()
-    range.setStart(text, 2)
-    range.collapse(true)
-    const selection = window.getSelection()
-    selection?.removeAllRanges()
-    selection?.addRange(range)
-    document.dispatchEvent(new Event('selectionchange'))
-  })
+  await selectInProse(editor, 2, 0)
   // Peeking acts on the object under the caret, so its home is the context
   // menu and a gesture - not a button that appears and disappears as the caret
   // moves past names.

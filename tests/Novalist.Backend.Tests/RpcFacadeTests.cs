@@ -86,6 +86,21 @@ public sealed class RpcFacadeTests : IAsyncDisposable
 
         var recents = await InvokeAsync<RecentProjectDto[]>("project/recent");
         Assert.Contains(recents, r => r.Name == "WireNovel");
+
+        // Closing answers with the state the app starts in, which is what puts
+        // the welcome screen back. There was no way to reach it short of a
+        // restart until the welcome screen became part of the main window.
+        var closed = await InvokeAsync<ProjectStateDto>("project/close");
+        Assert.False(closed.IsLoaded);
+        Assert.Null(closed.ProjectPath);
+        Assert.Empty(closed.Chapters);
+        Assert.False((await InvokeAsync<ProjectStateDto>("project/getState")).IsLoaded);
+
+        // And the project is still there to be opened again: closing lets go,
+        // it does not discard.
+        var again = await InvokeAsync<ProjectStateDto>("project/open", created.ProjectPath!);
+        Assert.True(again.IsLoaded);
+        Assert.Equal(5, again.Chapters.Single(c => c.Guid == chapter.Guid).Scenes.Single().WordCount);
     }
 
     [Fact]

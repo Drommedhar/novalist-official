@@ -18,6 +18,9 @@ public sealed class ProjectRpc
     [JsonRpcMethod("project/getState")]
     public ProjectStateDto GetState() => _workspace.BuildState();
 
+    [JsonRpcMethod("project/close")]
+    public ProjectStateDto Close() => _workspace.CloseProject();
+
     [JsonRpcMethod("project/recent")]
     public Task<RecentProjectDto[]> GetRecentAsync() => _workspace.GetRecentProjectsAsync();
 

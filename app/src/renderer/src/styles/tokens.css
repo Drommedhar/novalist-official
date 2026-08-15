@@ -110,6 +110,17 @@
   --nl-peek-width: 460px;
   --nl-peek-max-height: 580px;
   --nl-toolbar-menu-width: 320px;
+  /* Dialog widths. Two steps: the ordinary card, and the wide one for a dialog
+     whose body is a list or a grid to pick from. Written by hand in three
+     places before, which is how the picture picker ended up narrower than the
+     capture dialog it sits beside. */
+  --nl-dialog-width: 520px;
+  --nl-dialog-width-wide: 760px;
+  /* Picture thumbnails. The grid cell in the Gallery view, and the larger cell
+     the picker dialog uses - that is where a portrait is actually chosen, and
+     at the grid size two faces are not tellable apart. */
+  --nl-thumb-md: 160px;
+  --nl-thumb-lg: 200px;
 
   /* Web approximation of the iOS Liquid Glass material, for panels that live
      inside the WebView and therefore cannot be a real UIVisualEffectView (the

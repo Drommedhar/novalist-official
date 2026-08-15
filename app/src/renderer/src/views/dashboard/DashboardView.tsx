@@ -104,10 +104,32 @@ export function DashboardView(): React.JSX.Element {
   const [editingGoal, setEditingGoal] = useState<'daily' | 'project' | null>(null)
   const [cover, setCover] = useState<string | null>(null)
   const [banner, setBanner] = useState<string | null>(null)
+  const [failed, setFailed] = useState(false)
+  /** Bumped by Try again, which is the whole of the retry. */
+  const [attempt, setAttempt] = useState(0)
 
+  /**
+   * The dashboard's own figures.
+   *
+   * Two things went wrong here and read as one. The request had no failure
+   * path, so anything that stopped it resolving left this screen on its
+   * placeholder for ever, with nothing said and nothing to press. And the
+   * placeholder claimed the app was still connecting to the core process,
+   * which by this point it certainly is not - so a slow or failed read looked
+   * like a broken backend.
+   */
   useEffect(() => {
-    void rpc.request<DashboardDto>('dashboard/get', [range]).then(setData)
-  }, [range])
+    let current = true
+    setFailed(false)
+    setData(null)
+    void rpc
+      .request<DashboardDto>('dashboard/get', [range])
+      .then((next) => current && setData(next))
+      .catch(() => current && setFailed(true))
+    return () => {
+      current = false
+    }
+  }, [range, attempt])
 
   useEffect(() => {
     void rpc.request<string | null>('dashboard/getCover').then(setCover)
@@ -151,7 +173,18 @@ export function DashboardView(): React.JSX.Element {
     setBanner(await rpc.request<string | null>('dashboard/getBanner'))
   }
 
-  if (!data) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
+  if (failed) {
+    return (
+      <div className="main-placeholder">
+        <p>{t('shell.viewLoadFailed')}</p>
+        <button className="btn-secondary" onClick={() => setAttempt((n) => n + 1)}>
+          {t('shell.retry')}
+        </button>
+      </div>
+    )
+  }
+
+  if (!data) return <div className="main-placeholder">{t('shell.viewLoading')}</div>
 
   const maxBar = Math.max(1, ...data.wordHistory.map((b) => b.words))
   const statusTotal = Math.max(1, data.statusBreakdown.reduce((s, b) => s + b.count, 0))

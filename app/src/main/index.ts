@@ -17,7 +17,7 @@ import {
 } from './glass'
 import { registerDialogHandlers } from './dialogs'
 import { registerSpellCheckHandlers, attachSpellingMenu } from './spellcheck'
-import { applyMenuTemplate, installAppMenu, type MenuNode } from './menu'
+import { applyMenuTemplate, installAppMenu, type MenuLabels, type MenuNode } from './menu'
 import { checkAppUpdate, downloadAndInstall } from './appUpdater'
 import { createSplashWindow, setSplashStatus } from './splash'
 import { registerProtocolSchemes, registerProtocolHandlers } from './protocols'
@@ -248,9 +248,9 @@ ipcMain.handle('novalist:download-app-update', (event, info) => {
 // that registry is what decides an application-scoped command exists at all. A
 // template written here beside it would be a second list, and second lists
 // drift.
-ipcMain.on('novalist:set-menu', (_event, nodes: MenuNode[]) => {
+ipcMain.on('novalist:set-menu', (_event, nodes: MenuNode[], labels: MenuLabels) => {
   try {
-    applyMenuTemplate(nodes)
+    applyMenuTemplate(nodes, labels)
   } catch (error) {
     // Electron refuses a template it cannot parse - an accelerator in a form it
     // does not know is the likely cause. Losing the new menu is bad; taking the

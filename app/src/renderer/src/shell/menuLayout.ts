@@ -23,8 +23,13 @@ import { useProjectStore } from '../stores/projectStore'
 /** A node the main process can turn into an Electron menu item. */
 export type MenuNode =
   | { kind: 'separator' }
-  /** An Electron role - undo, copy, quit, fullscreen - which main owns. */
-  | { kind: 'role'; role: string }
+  /**
+   * An Electron role - undo, copy, quit, fullscreen - whose behaviour main
+   * owns. The label comes from here anyway: Electron's own role labels are
+   * English regardless of the interface language, which is why the Edit menu
+   * read "Undo" and "Paste" to a writer working in German.
+   */
+  | { kind: 'role'; role: string; label: string }
   | {
       kind: 'command'
       id: string
@@ -69,6 +74,7 @@ export function toAccelerator(gesture: string): string | undefined {
 const FILE = [
   'app.newProject',
   'app.openProject',
+  'app.closeProject',
   'app.importProject',
   'app.importManuscript',
   '-',
@@ -122,6 +128,52 @@ export function menuBarCommands(): CommandDef[] {
 
 /** The prefix a Recent-projects item sends back, followed by its path. */
 export const OPEN_RECENT = 'openRecent:'
+
+/**
+ * Labels for the menus the main process builds itself.
+ *
+ * Window, the way out of the app, the updater and the About item are the
+ * platform's business rather than Novalist's, so main keeps their behaviour -
+ * but nothing about a menu bar should be in a different language from the rest
+ * of the interface, and "Window" sitting in German next to "Datei" and
+ * "Bearbeiten" is exactly the sort of thing that reads as unfinished.
+ */
+export interface MenuLabels {
+  window: string
+  mainWindow: string
+  minimize: string
+  zoom: string
+  closeWindow: string
+  front: string
+  windowList: string
+  quit: string
+  about: string
+  hide: string
+  hideOthers: string
+  unhide: string
+  checkUpdates: string
+  github: string
+}
+
+export function buildMenuLabels(): MenuLabels {
+  const t = (key: string): string => i18next.t(key)
+  return {
+    window: t('menu.window'),
+    mainWindow: t('menu.mainWindow'),
+    minimize: t('menu.minimize'),
+    zoom: t('menu.zoom'),
+    closeWindow: t('menu.closeWindow'),
+    front: t('menu.front'),
+    windowList: t('menu.windowList'),
+    quit: t('menu.quit'),
+    about: t('menu.about'),
+    hide: t('menu.hide'),
+    hideOthers: t('menu.hideOthers'),
+    unhide: t('menu.unhide'),
+    checkUpdates: t('menu.checkUpdates'),
+    github: t('menu.github')
+  }
+}
 
 /**
  * Builds the template for the current language, project state and gestures.
@@ -184,13 +236,13 @@ export function buildMenuTemplate(): MenuNode[] {
       kind: 'submenu',
       label: t('menu.edit'),
       items: [
-        { kind: 'role', role: 'undo' },
-        { kind: 'role', role: 'redo' },
+        { kind: 'role', role: 'undo', label: t('menu.undo') },
+        { kind: 'role', role: 'redo', label: t('menu.redo') },
         { kind: 'separator' },
-        { kind: 'role', role: 'cut' },
-        { kind: 'role', role: 'copy' },
-        { kind: 'role', role: 'paste' },
-        { kind: 'role', role: 'selectAll' }
+        { kind: 'role', role: 'cut', label: t('menu.cut') },
+        { kind: 'role', role: 'copy', label: t('menu.copy') },
+        { kind: 'role', role: 'paste', label: t('menu.paste') },
+        { kind: 'role', role: 'selectAll', label: t('menu.selectAll') }
       ]
     },
     { kind: 'submenu', label: t('menu.go'), items: go },
@@ -200,9 +252,9 @@ export function buildMenuTemplate(): MenuNode[] {
       items: [
         ...items(VIEW),
         { kind: 'separator' },
-        { kind: 'role', role: 'reload' },
-        { kind: 'role', role: 'toggleDevTools' },
-        { kind: 'role', role: 'togglefullscreen' }
+        { kind: 'role', role: 'reload', label: t('menu.reload') },
+        { kind: 'role', role: 'toggleDevTools', label: t('menu.devTools') },
+        { kind: 'role', role: 'togglefullscreen', label: t('menu.fullscreen') }
       ]
     },
     { kind: 'submenu', label: t('menu.help'), items: items(HELP) }

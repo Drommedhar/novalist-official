@@ -213,6 +213,21 @@ public sealed partial class Workspace : IDisposable
     internal void SyncExtensionLanguage()
         => Extensions.Loc.Instance.CurrentLanguage = Settings.Effective.Language;
 
+    /// <summary>
+    /// Closes the open project and answers with the empty state, which is the
+    /// same state the app starts in.
+    /// </summary>
+    /// <remarks>
+    /// The per-project settings overrides go with it, or the next project would
+    /// open under the last one's preferences.
+    /// </remarks>
+    public ProjectStateDto CloseProject()
+    {
+        Projects.CloseProject();
+        Settings.SetActiveOverrides(null);
+        return BuildState();
+    }
+
     public ProjectStateDto BuildState()
     {
         var project = Projects.CurrentProject;

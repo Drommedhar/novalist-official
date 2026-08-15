@@ -467,10 +467,15 @@
   font-style: italic;
 }
 
-.links-note,
-.links-kind {
+.links-note {
   flex: 0 1 auto;
   min-width: 0;
+}
+
+/* The kind picker holds three fixed words and keeps them all. Letting it shrink
+   with the row left it reading "Sc" beside a picker that had all the room. */
+.links-kind {
+  flex: 0 0 auto;
 }
 
 /* A select is as wide as its widest option, and the options here are scene

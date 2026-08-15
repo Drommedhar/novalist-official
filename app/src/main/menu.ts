@@ -17,15 +17,60 @@ function sendCommand(command: string): void {
  */
 export type MenuNode =
   | { kind: 'separator' }
-  | { kind: 'role'; role: string }
+  | { kind: 'role'; role: string; label: string }
   | { kind: 'command'; id: string; label: string; accelerator?: string; enabled: boolean }
   | { kind: 'submenu'; label: string; items: MenuNode[] }
+
+/**
+ * Labels for the menus this side builds. Mirrors `MenuLabels` in menuLayout.ts.
+ *
+ * The behaviour of Window, quitting, the updater and About is the platform's
+ * rather than Novalist's, so it stays here - but the words are the interface's,
+ * and an English "Window" beside a German "Datei" is the sort of thing that
+ * reads as an unfinished app.
+ */
+export interface MenuLabels {
+  window: string
+  mainWindow: string
+  minimize: string
+  zoom: string
+  closeWindow: string
+  front: string
+  windowList: string
+  quit: string
+  about: string
+  hide: string
+  hideOthers: string
+  unhide: string
+  checkUpdates: string
+  github: string
+}
+
+/** What the menu says before the renderer has told us the writer's language. */
+const BOOTSTRAP: MenuLabels = {
+  window: 'Window',
+  mainWindow: 'Main Window',
+  minimize: 'Minimise',
+  zoom: 'Zoom',
+  closeWindow: 'Close Window',
+  front: 'Bring All to Front',
+  windowList: 'Window',
+  quit: 'Quit',
+  about: 'About',
+  hide: 'Hide',
+  hideOthers: 'Hide Others',
+  unhide: 'Show All',
+  checkUpdates: 'Check for Updates…',
+  github: 'Novalist on GitHub'
+}
 
 let showMainWindowFn: () => void = () => {}
 
 function toItem(node: MenuNode): MenuItemConstructorOptions {
   if (node.kind === 'separator') return { type: 'separator' }
-  if (node.kind === 'role') return { role: node.role as MenuItemConstructorOptions['role'] }
+  if (node.kind === 'role') {
+    return { role: node.role as MenuItemConstructorOptions['role'], label: node.label }
+  }
   if (node.kind === 'submenu') return { label: node.label, submenu: node.items.map(toItem) }
   return {
     label: node.label,
@@ -41,19 +86,19 @@ function toItem(node: MenuNode): MenuItemConstructorOptions {
 }
 
 /** The macOS application menu. Nothing in it is Novalist's own command. */
-function appMenu(name: string): MenuItemConstructorOptions[] {
+function appMenu(name: string, labels: MenuLabels): MenuItemConstructorOptions[] {
   return process.platform === 'darwin'
     ? [
         {
           label: name,
           submenu: [
-            { role: 'about', label: `About ${name}` },
+            { role: 'about', label: `${labels.about} ${name}` },
             { type: 'separator' },
-            { role: 'hide', label: `Hide ${name}` },
-            { role: 'hideOthers' },
-            { role: 'unhide' },
+            { role: 'hide', label: `${labels.hide} ${name}` },
+            { role: 'hideOthers', label: labels.hideOthers },
+            { role: 'unhide', label: labels.unhide },
             { type: 'separator' },
-            { role: 'quit', label: `Quit ${name}` }
+            { role: 'quit', label: `${labels.quit} ${name}` }
           ]
         }
       ]
@@ -61,52 +106,52 @@ function appMenu(name: string): MenuItemConstructorOptions[] {
 }
 
 /** The Window menu, which is the platform's rather than the app's. */
-function windowMenu(name: string): MenuItemConstructorOptions {
+function windowMenu(name: string, labels: MenuLabels): MenuItemConstructorOptions {
   const isMac = process.platform === 'darwin'
   return {
-    label: 'Window',
+    label: labels.window,
     submenu: [
       // The way back to the project after its window has been closed. The
       // window list below only names windows that exist, and closing the last
       // one does not quit on macOS, so without this the app can be running
       // with nothing to show and no menu item that brings it back.
-      { label: `${name} Window`, click: () => showMainWindowFn() },
+      { label: `${name} ${labels.mainWindow}`, click: () => showMainWindowFn() },
       { type: 'separator' },
-      { role: 'minimize' },
-      { role: 'zoom' },
+      { role: 'minimize', label: labels.minimize },
+      { role: 'zoom', label: labels.zoom },
       ...(isMac
         ? ([
             { type: 'separator' },
-            { role: 'front' },
+            { role: 'front', label: labels.front },
             { type: 'separator' },
-            { role: 'window' }
+            { role: 'window', label: labels.windowList }
           ] as MenuItemConstructorOptions[])
-        : ([{ role: 'close' }] as MenuItemConstructorOptions[]))
+        : ([{ role: 'close', label: labels.closeWindow }] as MenuItemConstructorOptions[]))
     ]
   }
 }
 
 /** Quit or Close, appended to whatever File the renderer described. */
-function fileTail(name: string): MenuItemConstructorOptions[] {
+function fileTail(name: string, labels: MenuLabels): MenuItemConstructorOptions[] {
   return process.platform === 'darwin'
-    ? [{ type: 'separator' }, { role: 'close' }]
-    : [{ type: 'separator' }, { role: 'quit', label: `Exit ${name}` }]
+    ? [{ type: 'separator' }, { role: 'close', label: labels.closeWindow }]
+    : [{ type: 'separator' }, { role: 'quit', label: `${labels.quit} ${name}` }]
 }
 
 /** Update and support items, appended to Help. */
-function helpTail(): MenuItemConstructorOptions[] {
+function helpTail(labels: MenuLabels): MenuItemConstructorOptions[] {
   return [
     { type: 'separator' },
     ...(isMas
       ? []
       : [
           {
-            label: 'Check for Updates…',
+            label: labels.checkUpdates,
             click: () => sendCommand('help:checkUpdates')
           } as MenuItemConstructorOptions
         ]),
     {
-      label: 'Novalist on GitHub',
+      label: labels.github,
       click: () => void shell.openExternal('https://github.com/Drommedhar/novalist-official')
     }
   ]
@@ -120,21 +165,26 @@ function helpTail(): MenuItemConstructorOptions[] {
  * hand-written template beside a registry is a second list that drifts. What
  * the main process keeps is the part that is the platform's rather than
  * Novalist's - the macOS application menu, the Window menu, quit and close, and
- * the roles that only Electron can implement.
+ * the roles that only Electron can implement - and even those take their words
+ * from the interface's own language.
  */
-export function applyMenuTemplate(nodes: MenuNode[]): void {
+export function applyMenuTemplate(nodes: MenuNode[], labels: MenuLabels = BOOTSTRAP): void {
   const name = app.name
   const described = nodes.map(toItem)
   // The renderer describes File, Edit, Go, View and Help in that order; Window
   // and the platform's own items are this side's.
   const help = described.pop()
   const file = described[0]
-  if (file && Array.isArray(file.submenu)) file.submenu.push(...fileTail(name))
+  if (file && Array.isArray(file.submenu)) file.submenu.push(...fileTail(name, labels))
 
-  const template: MenuItemConstructorOptions[] = [...appMenu(name), ...described, windowMenu(name)]
+  const template: MenuItemConstructorOptions[] = [
+    ...appMenu(name, labels),
+    ...described,
+    windowMenu(name, labels)
+  ]
   if (help && Array.isArray(help.submenu)) {
     help.role = 'help'
-    help.submenu.push(...helpTail())
+    help.submenu.push(...helpTail(labels))
     template.push(help)
   }
 
@@ -146,16 +196,17 @@ export function applyMenuTemplate(nodes: MenuNode[]): void {
  *
  * A window that opens with no menu at all and grows one a second later reads as
  * a glitch, and on macOS the application menu has to exist from the first
- * frame. So the platform's own items are installed immediately and the
- * renderer's are folded in as soon as it can describe them.
+ * frame. So the platform's own items are installed immediately, in English,
+ * and the renderer's are folded in - in the writer's language - as soon as it
+ * can describe them.
  */
 export function installAppMenu(showMainWindow: () => void = () => {}): void {
   showMainWindowFn = showMainWindow
   const name = app.name
   Menu.setApplicationMenu(
     Menu.buildFromTemplate([
-      ...appMenu(name),
-      { label: 'File', submenu: fileTail(name).slice(1) },
+      ...appMenu(name, BOOTSTRAP),
+      { label: 'File', submenu: fileTail(name, BOOTSTRAP).slice(1) },
       {
         label: 'Edit',
         submenu: [
@@ -168,8 +219,8 @@ export function installAppMenu(showMainWindow: () => void = () => {}): void {
           { role: 'selectAll' }
         ]
       },
-      windowMenu(name),
-      { role: 'help', submenu: helpTail().slice(1) }
+      windowMenu(name, BOOTSTRAP),
+      { role: 'help', submenu: helpTail(BOOTSTRAP).slice(1) }
     ])
   )
 }

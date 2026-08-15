@@ -151,6 +151,8 @@ interface ProjectState {
   loadRecents(): Promise<void>
   openProject(path: string): Promise<void>
   pickAndOpenProject(): Promise<void>
+  /** Lets go of the open project, back to the screen the app starts on. */
+  closeProject(): Promise<void>
   openScene(chapterGuid: string, sceneId: string): Promise<void>
   /** Opens a scene in one named pane, turning that pane into an editor. */
   openSceneIn(paneId: string, chapterGuid: string, sceneId: string): Promise<void>
@@ -296,6 +298,15 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       target = repicked
     }
     const state = await rpc.request<ProjectStateDto>('project/open', [target])
+    get().applyState(state)
+  },
+
+  closeProject: async () => {
+    // There was no way back to no project short of restarting. That was
+    // survivable while the welcome screen was somewhere else; now that it is
+    // what this window holds until a project is open, there was somewhere to go
+    // back to and no way to get there.
+    const state = await rpc.request<ProjectStateDto>('project/close')
     get().applyState(state)
   },
 

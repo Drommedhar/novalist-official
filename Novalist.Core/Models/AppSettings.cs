@@ -183,8 +183,16 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("typewriterScrollAnchor")]
     public string TypewriterScrollAnchor { get; set; } = "middle";
 
+    /// <summary>
+    /// Draws the manuscript as pages rather than as one continuous column.
+    /// </summary>
+    /// <remarks>
+    /// On by default: a novel is a thing with pages, and the writers this is
+    /// for are used to seeing one. It was off, so the default look of the app
+    /// was a text field rather than a book.
+    /// </remarks>
     [JsonPropertyName("pageViewEnabled")]
-    public bool PageViewEnabled { get; set; }
+    public bool PageViewEnabled { get; set; } = true;
 
     /// <summary>
     /// Custom LanguageTool API URL. When null or empty, the free public API is used.

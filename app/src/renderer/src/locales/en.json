@@ -59,7 +59,30 @@
     "commandPalette": "Command Palette...",
     "file": "File",
     "go": "Go",
-    "help": "Help"
+    "help": "Help",
+    "window": "Window",
+    "mainWindow": "Window",
+    "minimize": "Minimise",
+    "zoom": "Zoom",
+    "closeWindow": "Close Window",
+    "front": "Bring All to Front",
+    "windowList": "Window",
+    "quit": "Exit",
+    "about": "About",
+    "hide": "Hide",
+    "hideOthers": "Hide Others",
+    "unhide": "Show All",
+    "checkUpdates": "Check for Updates…",
+    "github": "Novalist on GitHub",
+    "undo": "Undo",
+    "redo": "Redo",
+    "cut": "Cut",
+    "copy": "Copy",
+    "paste": "Paste",
+    "selectAll": "Select All",
+    "reload": "Reload",
+    "devTools": "Developer Tools",
+    "fullscreen": "Full Screen"
   },
   "commandPalette": {
     "placeholder": "Type a command name...",
@@ -475,9 +498,9 @@
     "navigationLabel": "Settings categories",
     "backTo": "Back to {{context}}",
     "scopeGlobalBadge": "All projects",
-    "scopeProjectBadge": "Current project",
+    "scopeProjectBadge": "Project only",
     "scopeOverrideGlobalBadge": "Global default",
-    "scopeOverrideProjectBadge": "This project",
+    "scopeOverrideProjectBadge": "Overridden here",
     "scopeMixedBadge": "Several scopes",
     "editor": "Editor",
     "fontFamily": "Font Family",
@@ -708,7 +731,9 @@
       "project": "Project",
       "system": "System",
       "other": "Other"
-    }
+    },
+    "extensionsInstalled": "{{count}} installed, {{enabled}} switched on.",
+    "extensionsManage": "Install and manage extensions"
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",
@@ -2131,7 +2156,8 @@
     "settingsWorking": "Working…",
     "themesTitle": "Extension themes",
     "themesMovedHint": "Themes from your extensions ({{names}}) are listed in Settings, Appearance, Theme along with the built-in ones.",
-    "updateTo": "Update to {0}"
+    "updateTo": "Update to {0}",
+    "openSettings": "Extension settings"
   },
   "codexHub": {
     "title": "Codex Hub",
@@ -2293,7 +2319,11 @@
     "groupApp": "Application",
     "menu": "Menu",
     "view.series": "Series",
-    "paneAwaitingScene": "Choose a scene in the binder to write it here."
+    "paneAwaitingScene": "Choose a scene in the binder to write it here.",
+    "viewLoading": "Working it out…",
+    "viewLoadFailed": "This could not be worked out just now.",
+    "retry": "Try again",
+    "welcome": "Welcome"
   },
   "hostBridge": {
     "toastRegion": "Notifications",
@@ -3882,7 +3912,8 @@
     "uiScaleDecrease": "Decrease interface scale",
     "uiScaleReset": "Reset interface scale",
     "manual": "User manual",
-    "about": "About Novalist"
+    "about": "About Novalist",
+    "closeProject": "Close project"
   },
   "about": {
     "title": "About Novalist",
