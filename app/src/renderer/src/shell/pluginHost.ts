@@ -181,10 +181,32 @@ function apiFor(extensionId: string, extensionName: string): PluginApi {
  * and its failures are caught and named, so a broken plugin is a message about
  * that extension rather than a blank window.
  */
+/**
+ * The plugin runs, one at a time.
+ *
+ * Loading and reloading both used to start straight away, and a reload begins
+ * by throwing away what the previous plugins contributed. Run two at once - the
+ * shell asks at startup, the extensions store asks when it has loaded, the
+ * Extensions view asks again when the writer opens it - and one clears the
+ * status items and commands another has just registered. The plugin had run,
+ * correctly, and left nothing behind.
+ *
+ * It went unnoticed while the backend answered several requests at once and the
+ * overlap resolved differently each time. Answering them in order made it
+ * consistent, which is the useful kind of broken.
+ */
+let queue: Promise<void> = Promise.resolve()
+
+function afterTheOthers(task: () => Promise<void>): Promise<void> {
+  // Both arms, so one failed run does not wedge every later one behind it.
+  queue = queue.then(task, task)
+  return queue
+}
+
 export async function loadRendererPlugins(): Promise<void> {
   if (loaded) return
   loaded = true
-  await runPlugins()
+  await afterTheOthers(runPlugins)
 }
 
 /**
@@ -196,10 +218,14 @@ export async function loadRendererPlugins(): Promise<void> {
  */
 export async function reloadRendererPlugins(): Promise<void> {
   loaded = true
-  commands.length = 0
-  statusItems.length = 0
-  changed()
-  await runPlugins()
+  await afterTheOthers(async () => {
+    // Cleared inside the queue rather than before joining it: clearing outside
+    // is what let a reload wipe a run that was still activating.
+    commands.length = 0
+    statusItems.length = 0
+    changed()
+    await runPlugins()
+  })
 }
 
 async function runPlugins(): Promise<void> {

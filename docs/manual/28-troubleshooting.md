@@ -11,6 +11,8 @@ The window you see is an Electron shell; all project logic — loading, saving, 
 
 If the core process ever crashes, the app restarts it automatically and reconnects. If the status bar stays on "Connecting to core..." for more than a few seconds, restart Novalist; if that doesn't help, see the diagnostic log below.
 
+The core works on your project **one request at a time**. That is deliberate: it keeps two screens from reading the same half-written answer. It also means a screen opened while something else is still loading can take a moment to fill in. Nothing is lost; it is a queue, not a failure. Version control, backups and exporting run alongside rather than in that queue — they work on files rather than on the project the app is holding — so a slow archive, or a git command waiting on a server, cannot hold the rest of the app up. Checking whether the app is alive, closing it, and the dialogs an extension puts up all skip the queue too.
+
 ## Where do my files live?
 
 Two locations matter:

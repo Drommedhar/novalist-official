@@ -43,7 +43,10 @@ public sealed class BackendHost : IDisposable
         var formatter = new SystemTextJsonFormatter();
         formatter.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         var handler = new HeaderDelimitedMessageHandler(sending, receiving, formatter);
-        var rpc = new JsonRpc(handler);
+        // One request at a time. Every facade below shares one Workspace and
+        // none of the services behind it locks anything - see
+        // SerialDispatchJsonRpc for what that cost and what this costs instead.
+        var rpc = new SerialDispatchJsonRpc(handler);
         var targetOptions = new JsonRpcTargetOptions { DisposeOnDisconnect = false };
         rpc.AddLocalRpcTarget(new SystemRpc(RequestShutdown), targetOptions);
         rpc.AddLocalRpcTarget(new ProjectRpc(_workspace), targetOptions);

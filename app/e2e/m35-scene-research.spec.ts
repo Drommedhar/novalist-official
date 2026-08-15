@@ -78,8 +78,22 @@ test('the inspector shows the research this scene is about', async () => {
     ])
   }, character.id)
 
-  // Re-open so the inspector asks again.
+  // Away and back, so the inspector genuinely asks again.
+  //
+  // Re-opening the scene that is already open does not: the panel fetches when
+  // the scene it is about changes, and it had already fetched - before these
+  // notes existed. That was invisible while the backend answered several
+  // requests at once and the fetch happened to land after the saves; once it
+  // answered them in order, the fetch reliably landed first and the panel sat
+  // on its empty answer.
   await page.evaluate(async ({ chapterGuid, sceneId }) => {
+    const project = window.novalistStores.project.getState()
+    const elsewhere = project.chapters
+      .flatMap((chapter) => chapter.scenes.map((scene) => ({ chapter, scene })))
+      .find((candidate) => candidate.scene.id !== sceneId)
+    if (elsewhere) {
+      await project.openScene(elsewhere.chapter.guid, elsewhere.scene.id)
+    }
     await window.novalistStores.project.getState().openScene(chapterGuid, sceneId)
   }, opened)
 

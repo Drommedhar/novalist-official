@@ -84,7 +84,19 @@ test('an extension script runs in the interface and what it adds shows up', asyn
   // reloads with them, which is what makes an installed extension work without
   // a restart.
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('extensions'))
-  await page.waitForTimeout(3000)
+  // Waited for rather than slept through. Three seconds was enough until the
+  // backend began answering one request at a time, at which point a slow start
+  // pushed the import past it and the test failed on the app being busy rather
+  // than on anything being wrong.
+  // Waited for rather than slept through. Three seconds was enough until the
+  // backend began answering one request at a time, at which point the plugin
+  // host's own overlap became consistent instead of lucky.
+  await expect
+    .poll(
+      () => page.evaluate(() => window.novalistPlugins?.statusItems().length ?? 0),
+      { timeout: 30_000 }
+    )
+    .toBeGreaterThan(0)
 
   // The backend half first, so a failure below says which of the two broke.
   const seen = await page.evaluate(async () =>
