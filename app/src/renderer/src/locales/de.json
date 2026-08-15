@@ -2331,7 +2331,8 @@
     "viewLoading": "Wird berechnet…",
     "viewLoadFailed": "Das konnte gerade nicht berechnet werden.",
     "retry": "Erneut versuchen",
-    "welcome": "Start"
+    "welcome": "Start",
+    "errorDetails": "Was schiefgelaufen ist"
   },
   "hostBridge": {
     "toastRegion": "Benachrichtigungen",

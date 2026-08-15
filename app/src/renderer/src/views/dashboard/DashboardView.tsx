@@ -104,7 +104,8 @@ export function DashboardView(): React.JSX.Element {
   const [editingGoal, setEditingGoal] = useState<'daily' | 'project' | null>(null)
   const [cover, setCover] = useState<string | null>(null)
   const [banner, setBanner] = useState<string | null>(null)
-  const [failed, setFailed] = useState(false)
+  /** Why it failed, for the details nobody should have to open DevTools for. */
+  const [failure, setFailure] = useState<string | null>(null)
   /** Bumped by Try again, which is the whole of the retry. */
   const [attempt, setAttempt] = useState(0)
 
@@ -120,12 +121,20 @@ export function DashboardView(): React.JSX.Element {
    */
   useEffect(() => {
     let current = true
-    setFailed(false)
+    setFailure(null)
     setData(null)
     void rpc
       .request<DashboardDto>('dashboard/get', [range])
       .then((next) => current && setData(next))
-      .catch(() => current && setFailed(true))
+      .catch((error: unknown) => {
+        // Said out loud rather than swallowed. "It could not be worked out" is
+        // no use to the person it happens to and no use to whoever has to fix
+        // it either; what the backend actually said is the only thing that is.
+        console.error('[dashboard] dashboard/get failed', error)
+        if (current) {
+          setFailure(String((error as { message?: string })?.message ?? error))
+        }
+      })
     return () => {
       current = false
     }
@@ -173,13 +182,17 @@ export function DashboardView(): React.JSX.Element {
     setBanner(await rpc.request<string | null>('dashboard/getBanner'))
   }
 
-  if (failed) {
+  if (failure !== null) {
     return (
       <div className="main-placeholder">
         <p>{t('shell.viewLoadFailed')}</p>
         <button className="btn-secondary" onClick={() => setAttempt((n) => n + 1)}>
           {t('shell.retry')}
         </button>
+        <details className="view-error-details">
+          <summary>{t('shell.errorDetails')}</summary>
+          <code>{failure}</code>
+        </details>
       </div>
     )
   }

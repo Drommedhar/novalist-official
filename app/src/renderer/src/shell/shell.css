@@ -528,6 +528,32 @@
   display: none;
 }
 
+/* The technical half of a failure. Folded away, because it is for whoever has
+   to fix it rather than for the person it happened to - but present, because
+   an error that says only "something went wrong" wastes both of them. */
+.view-error-details {
+  margin-top: var(--nl-space-md);
+  max-width: 60ch;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.view-error-details summary {
+  cursor: pointer;
+}
+
+.view-error-details code {
+  display: block;
+  margin-top: var(--nl-space-tighter);
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  font-family: var(--nl-font-mono);
+  text-align: left;
+  word-break: break-word;
+}
+
 /* ===== First-open view introduction =====
    A strip above the view rather than a card over it: a screen you are being
    told about is a screen you should be able to see while you read. */

@@ -2323,7 +2323,8 @@
     "viewLoading": "Working it out…",
     "viewLoadFailed": "This could not be worked out just now.",
     "retry": "Try again",
-    "welcome": "Welcome"
+    "welcome": "Welcome",
+    "errorDetails": "What went wrong"
   },
   "hostBridge": {
     "toastRegion": "Notifications",

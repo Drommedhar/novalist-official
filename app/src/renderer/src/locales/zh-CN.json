@@ -2358,7 +2358,8 @@
     "viewLoading": "正在计算…",
     "viewLoadFailed": "目前无法计算。",
     "retry": "重试",
-    "welcome": "欢迎"
+    "welcome": "欢迎",
+    "errorDetails": "出了什么问题"
   },
   "help": {
     "title": "Novalist 手册",
