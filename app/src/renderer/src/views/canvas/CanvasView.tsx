@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link2, Plus, Trash2, FileUp } from 'lucide-react'
+import { Link2, Plus, Trash2, FileUp, Pencil } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { InputDialog } from '../../shell/InputDialog'
 import { useProjectStore, type ProjectStateDto } from '../../stores/projectStore'
 import './canvas.css'
 
@@ -60,6 +61,8 @@ export function CanvasView(): React.JSX.Element {
   const [canvas, setCanvas] = useState<Canvas | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [connectFrom, setConnectFrom] = useState<string | null>(null)
+  /** Which name the writer is being asked for, if any. */
+  const [naming, setNaming] = useState<'create' | 'rename' | null>(null)
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null)
   const saveTimer = useRef<number | null>(null)
 
@@ -96,10 +99,28 @@ export function CanvasView(): React.JSX.Element {
     []
   )
 
-  const createBoard = async (): Promise<void> => {
-    const created = await rpc.request<Canvas>('canvas/create', [t('canvas.newBoardName')])
+  const createBoard = async (name: string): Promise<void> => {
+    const created = await rpc.request<Canvas>('canvas/create', [name])
     setCanvas(created)
     await loadBoards()
+  }
+
+  /**
+   * Renames the open board.
+   *
+   * Written through straight away rather than queued: the name is what the
+   * board is picked by in the list beside it, and a name that only appears two
+   * seconds later reads as the rename having failed. Any queued card edits are
+   * carried along in the same write, so nothing is lost by jumping the debounce.
+   */
+  const renameBoard = async (name: string): Promise<void> => {
+    if (!canvas) return
+    const renamed = { ...canvas, name }
+    if (saveTimer.current) window.clearTimeout(saveTimer.current)
+    saveTimer.current = null
+    setCanvas(renamed)
+    await rpc.request('canvas/save', [renamed])
+    setBoards(await rpc.request<CanvasSummary[]>('canvas/list'))
   }
 
   const switchBoard = async (id: string): Promise<void> => {
@@ -234,8 +255,11 @@ export function CanvasView(): React.JSX.Element {
             </option>
           ))}
         </select>
-        <button className="dialog-button" onClick={() => void createBoard()}>
+        <button className="dialog-button" onClick={() => setNaming('create')}>
           <Plus size={14} /> {t('canvas.newBoard')}
+        </button>
+        <button className="dialog-button" disabled={!canvas} onClick={() => setNaming('rename')}>
+          <Pencil size={14} /> {t('canvas.renameBoard')}
         </button>
         <button className="dialog-button" disabled={!canvas} onClick={() => void deleteBoard()}>
           <Trash2 size={14} /> {t('canvas.deleteBoard')}
@@ -322,6 +346,19 @@ export function CanvasView(): React.JSX.Element {
             <Trash2 size={14} /> {t('canvas.deleteCard')}
           </button>
         </div>
+      )}
+
+      {naming && (
+        <InputDialog
+          title={t(naming === 'create' ? 'canvas.nameBoard' : 'canvas.renameBoard')}
+          placeholder={t('canvas.boardNamePlaceholder')}
+          initialValue={naming === 'create' ? t('canvas.newBoardName') : (canvas?.name ?? '')}
+          onSubmit={(value) => {
+            setNaming(null)
+            void (naming === 'create' ? createBoard(value) : renameBoard(value))
+          }}
+          onCancel={() => setNaming(null)}
+        />
       )}
     </div>
   )

@@ -13,9 +13,10 @@ import { enterWriting } from './harness'
  * died inside the editor. On macOS the native menu's accelerators masked it; an
  * iPad with a hardware keyboard has no menu, so nothing fired at all.
  *
- * The paired assertion matters just as much: Cmd+B must NOT reach the shell,
- * because Ctrl+B is bound to "toggle binder". Forwarding it would take bold away
- * from every macOS and iPad writer.
+ * The paired assertion matters just as much: Cmd+B must NOT reach the shell. It
+ * is the system bold gesture on Apple keyboards and contenteditable applies it
+ * natively, which is the route a Mac writer expects; forwarding it would take
+ * that away in exchange for the same mark by a longer road.
  */
 const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 

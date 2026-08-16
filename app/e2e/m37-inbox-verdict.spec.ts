@@ -60,17 +60,23 @@ test('a note can be weighed or declined, and says which', async () => {
 
   await page.evaluate(() => window.novalistStores.shell.getState().setInspectorTab('inbox'))
   const items = page.locator('.inbox-item')
-  await expect(items).toHaveCount(2, { timeout: 30_000 })
+  // This runs against a copy of a real book, and a real book collects real
+  // notes. Counting them absolutely made the spec fail the day its author left
+  // a comment of their own, so the two notes put in above are counted against
+  // whatever was already there and acted on by name rather than by position.
+  await expect.poll(() => items.count(), { timeout: 30_000 }).toBeGreaterThanOrEqual(2)
+  const mine = page.locator('.inbox-item', { hasText: 'The middle of this chapter drags badly.' })
+  await expect(mine).toHaveCount(1, { timeout: 15_000 })
 
   // Weighing: a state to sit in, so the note stays where it can be seen.
-  await items.first().locator('.inbox-verdict-btn').nth(1).click()
-  await expect(items).toHaveCount(2, { timeout: 15_000 })
-  await expect(items.first().locator('.inbox-verdict')).toBeVisible()
+  await mine.locator('.inbox-verdict-btn').nth(1).click()
+  await expect(mine).toHaveCount(1, { timeout: 15_000 })
+  await expect(mine.locator('.inbox-verdict')).toBeVisible()
 
   // Declining: finished with, so it leaves the open list exactly as resolving
   // does - but the reason is kept, which is the whole point.
-  await items.first().locator('.inbox-verdict-btn').nth(2).click()
-  await expect(items).toHaveCount(1, { timeout: 15_000 })
+  await mine.locator('.inbox-verdict-btn').nth(2).click()
+  await expect(mine).toHaveCount(0, { timeout: 15_000 })
 
   const stored = (await page.evaluate(async () =>
     window.novalistRpc.request('inbox/list', [true])

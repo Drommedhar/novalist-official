@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
+import { useEditorBridge } from '../stores/editorBridgeStore'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 
 interface Suggestion {
@@ -29,6 +30,7 @@ export function SuggestionsPanel({
   const { t } = useTranslation()
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [busy, setBusy] = useState(false)
+  const suggestionsRevision = useEditorBridge((s) => s.suggestionsRevision)
 
   const load = useCallback((): void => {
     void rpc
@@ -37,7 +39,19 @@ export function SuggestionsPanel({
       .catch(() => setSuggestions([]))
   }, [chapterGuid, sceneId])
 
-  useEffect(load, [load])
+  useEffect(load, [load, suggestionsRevision])
+
+  /**
+   * Takes the writer to the mark this row is about.
+   *
+   * The marks are drawn in the prose already, but a scene is long and the row
+   * says nothing about where in it the edit is - which is how "I can see them
+   * in the list and never in the text" happens.
+   */
+  const showInText = (id: string): void => {
+    const bridge = useEditorBridge.getState()
+    if (bridge.isShowing(sceneId)) bridge.editor?.scrollToSuggestionById(id)
+  }
 
   /**
    * Answering an edit rewrites the scene on disk, so the editor has to be told
@@ -51,6 +65,9 @@ export function SuggestionsPanel({
       await useProjectStore.getState().flushPendingSave()
       useProjectStore.getState().applyState(await rpc.request<ProjectStateDto>('project/getState'))
       await useProjectStore.getState().openScene(chapterGuid, sceneId)
+      // The book-wide list of scenes with edits waiting counts what is left in
+      // this one, so answering the last of them has to take the scene off it.
+      useEditorBridge.getState().suggestionsChanged()
     } finally {
       setBusy(false)
     }
@@ -66,13 +83,19 @@ export function SuggestionsPanel({
 
       {suggestions.map((suggestion) => (
         <div key={suggestion.id} className={`suggestion-row ${suggestion.kind}`}>
-          <div className="suggestion-body">
+          {/* An edit cannot be answered without reading the sentence it is in,
+              so the row is also the way to it. */}
+          <button
+            className="suggestion-body"
+            title={t('suggestions.showInText')}
+            onClick={() => showInText(suggestion.id)}
+          >
             <span className="suggestion-text">{suggestion.text}</span>
             <span className="suggestion-meta">
               {t(`suggestions.${suggestion.kind}`)}
               {suggestion.author ? ` · ${suggestion.author}` : ''}
             </span>
-          </div>
+          </button>
           <button
             className="ctx-reset"
             disabled={busy}

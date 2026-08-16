@@ -64,6 +64,8 @@ export interface EditorWindow extends Window {
    * instead of making one.
    */
   setSuggestionMode(on: boolean, author: string): void
+  /** Scrolls to a suggested edit and flashes it; '' means the first one. */
+  scrollToSuggestionById(id: string): void
   setInlineActions(actionsJson: string): void
   setExtensionContextMenuItems(itemsJson: string): void
   applyInlineActionResult(resultJson: string): void
@@ -81,6 +83,15 @@ export interface EditorWindow extends Window {
   insertFootnoteAtSelection(id: string): void
   removeFootnoteById(id: string): void
   scrollToFootnoteById(id: string): void
+  /**
+   * The footnote markers in the scene, in reading order.
+   *
+   * The number on a note is where its marker stands, so the prose is the only
+   * thing that knows it. The stored list is restated against this whenever a
+   * scene is opened, which is also what repairs a scene whose numbers were
+   * written before the markers were the authority.
+   */
+  footnoteOrder(): string[]
   toggleBold(): void
   toggleItalic(): void
   toggleUnderline(): void

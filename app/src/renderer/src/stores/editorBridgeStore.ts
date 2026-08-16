@@ -33,7 +33,24 @@ interface EditorBridgeState {
   requestLink: (() => void) | null
   toggleReadAloud: (() => void) | null
 
+  /**
+   * Bumped whenever the open scene's footnotes or comments change, wherever the
+   * change came from.
+   *
+   * The editor and the Footnotes panel both hold a copy of the same list and
+   * neither told the other, so inserting a footnote in the prose left the panel
+   * showing the list as it was before - the writer had to leave the scene and
+   * come back to see the note they had just made.
+   */
+  annotationsRevision: number
+  /** The same, for the suggested edits held in the scene's own prose. */
+  suggestionsRevision: number
+
   register(editor: EditorWindow | null, sceneId: string | null): void
+  /** Says the scene's annotations moved; every list of them reloads. */
+  annotationsChanged(): void
+  /** Says the scene's suggested edits moved; every list of them reloads. */
+  suggestionsChanged(): void
   setContext(context: { hasSelection: boolean; entityAtCaret: boolean }): void
   /** EditorFrame publishes its own commands; null on unmount. */
   setFrameCommands(commands: {
@@ -52,11 +69,15 @@ export const useEditorBridge = create<EditorBridgeState>((set, get) => ({
   entityAtCaret: false,
   requestLink: null,
   toggleReadAloud: null,
+  annotationsRevision: 0,
+  suggestionsRevision: 0,
 
   register: (editor, sceneId) =>
     set({ editor, sceneId, ...(editor ? {} : { hasSelection: false, entityAtCaret: false }) }),
   setContext: (context) => set(context),
   setFrameCommands: (commands) => set(commands),
+  annotationsChanged: () => set((s) => ({ annotationsRevision: s.annotationsRevision + 1 })),
+  suggestionsChanged: () => set((s) => ({ suggestionsRevision: s.suggestionsRevision + 1 })),
 
   isShowing: (sceneId) => {
     const state = get()

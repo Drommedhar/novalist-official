@@ -6,7 +6,9 @@ Everything else in Novalist that shows relationships works it out for you — th
 
 ## Boards
 
-A project can hold as many boards as you like — one per act, one per subplot, one for the thing you have not worked out yet. Pick one from the drop-down at the top, or press **New board**. **Delete board** removes the board in view along with its cards and connectors, after asking; scenes you already promoted from it are unaffected, because they are real scenes in the binder by then.
+A project can hold as many boards as you like — one per act, one per subplot, one for the thing you have not worked out yet. Pick one from the drop-down at the top, or press **New board**, which asks what to call it. **Rename board** changes the name of the board in view; the new name appears in the drop-down at once. **Delete board** removes the board in view along with its cards and connectors, after asking; scenes you already promoted from it are unaffected, because they are real scenes in the binder by then.
+
+A name is worth giving. Boards were previously all called "Board", which made the drop-down useless the moment there were two of them.
 
 Boards are stored one JSON file each in a `Canvases/` folder beside `Maps/` in the active draft, so they travel with the project, sync with it, and are covered by [backups](35-backups.md) and Git like everything else.
 

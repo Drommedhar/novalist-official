@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, CornerDownRight, ListTodo, RotateCcw } from 'lucide-react'
 import { rpc } from '../rpc/client'
+import { useEditorBridge } from '../stores/editorBridgeStore'
 import { useProjectStore } from '../stores/projectStore'
+import { useShellStore } from '../stores/shellStore'
 
 /** A scene with suggested edits waiting on somebody. */
 interface SuggestionScene {
@@ -68,12 +70,17 @@ export function InboxPanel(): React.JSX.Element {
 
   useEffect(() => load(showResolved), [showResolved])
 
+  // Reloaded whenever an edit is taken or turned down, wherever that happened:
+  // the count on each row is what is still waiting, and a row still saying "2
+  // waiting" for a scene with none left is worse than no row at all.
+  const suggestionsRevision = useEditorBridge((s) => s.suggestionsRevision)
+
   useEffect(() => {
     void rpc
       .request<SuggestionScene[]>('suggestions/inbox')
       .then(setSuggestionScenes)
       .catch(() => setSuggestionScenes([]))
-  }, [])
+  }, [suggestionsRevision])
 
   const shown = todosOnly ? items.filter((i) => i.isTodo) : items
 
@@ -86,9 +93,15 @@ export function InboxPanel(): React.JSX.Element {
             <button
               key={scene.sceneId}
               className="inbox-suggestion-row"
-              onClick={() =>
+              onClick={() => {
+                // Opening the scene was all this did, so following a row that
+                // said "2 waiting" landed the writer in a scene with no sign of
+                // either of them - and if that scene was already open, nothing
+                // happened at all. The edits for the open scene are listed
+                // directly above this, and the prose is taken to the first one.
+                useShellStore.getState().revealSuggestion(scene.sceneId, '')
                 void useProjectStore.getState().openScene(scene.chapterGuid, scene.sceneId)
-              }
+              }}
             >
               <span className="inbox-suggestion-scene">{scene.sceneTitle}</span>
               <span className="suggestion-meta">

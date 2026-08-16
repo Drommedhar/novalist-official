@@ -18,6 +18,7 @@ import { useShellStore } from '../../stores/shellStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useWikiStore } from '../../stores/wikiStore'
 import { dispatchForwardedHotkey } from '../../shell/hotkeys'
+import { learnWord } from '../../shell/useSpellCheck'
 import { EntityTypeDialog } from '../../shell/EntityTypeDialog'
 import { AppendToEntityDialog } from '../../shell/AppendToEntityDialog'
 import { InputDialog } from '../../shell/InputDialog'
@@ -328,6 +329,11 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   const [formatting, setFormatting] = useState<FormattingState>(DEFAULT_FORMATTING)
   const [speaking, setSpeaking] = useState(false)
   const suggestionMode = useShellStore((s) => s.suggestionMode)
+  // A suggested edit somebody asked to be shown, waiting for its scene.
+  const pendingSuggestion = useShellStore((s) => s.pendingSuggestion)
+  // Bumped by whoever writes the scene's footnotes or comments, this pane
+  // included.
+  const annotationsRevision = useEditorBridge((s) => s.annotationsRevision)
   // Whose suggestion it is. The author's own name is the only one Novalist
   // knows; an editor working in someone else's copy sets it in Settings.
   const reviewerName = useSettingsStore((s) => s.view?.effective.reviewerName ?? '')
@@ -362,6 +368,9 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
     comments: [],
     footnotes: []
   })
+  // The last announcement this pane made itself, so it does not answer its own
+  // news by re-reading what it has just written.
+  const ownAnnotationsRef = useRef(0)
   const entityIndexRef = useRef<
     Map<string, { id: string; name: string; detail: string; imagePath: string | null; type: string }>
   >(new Map())
@@ -610,15 +619,52 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
     if (editor) pushAnnotations(editor)
   }
 
-  const persistAnnotations = (): void => {
+  /**
+   * Writes the scene's annotations and tells every list of them to reload.
+   *
+   * The announcement comes after the write, not with it: a panel that reloads
+   * while the write is still in flight reads back the list as it was and looks
+   * exactly like the bug it is there to fix.
+   */
+  const persistAnnotations = (): Promise<void> => {
     const { chapterGuid, sceneId } = paneIds()
-    if (!chapterGuid || !sceneId) return
-    void rpc.request('scenes/setAnnotations', [
-      chapterGuid,
-      sceneId,
-      annotationsRef.current.comments,
-      annotationsRef.current.footnotes
-    ])
+    if (!chapterGuid || !sceneId) return Promise.resolve()
+    return rpc
+      .request('scenes/setAnnotations', [
+        chapterGuid,
+        sceneId,
+        annotationsRef.current.comments,
+        annotationsRef.current.footnotes
+      ])
+      .then(() => {
+        useEditorBridge.getState().annotationsChanged()
+        ownAnnotationsRef.current = useEditorBridge.getState().annotationsRevision
+      })
+      .catch(() => undefined)
+  }
+
+  /**
+   * Restates the stored footnotes against the markers standing in the prose.
+   *
+   * A footnote's number is where its marker sits, so inserting one ahead of an
+   * existing note changes that note's number too. Only the new note's number
+   * was ever recorded, which is how a scene ended up with two footnotes both
+   * called 1 while the prose read 1 and 2. A note whose marker is gone is
+   * dropped: it can no longer be reached or shown, so keeping it only makes the
+   * list disagree with the page.
+   */
+  const applyFootnoteOrder = (ids: string[]): void => {
+    const stored = annotationsRef.current.footnotes
+    const known = new Map(stored.map((f) => [f.id, f]))
+    const ordered = ids.map((id, index) => ({
+      ...(known.get(id) ?? { id, text: '' }),
+      number: index + 1
+    }))
+    const same =
+      ordered.length === stored.length &&
+      ordered.every((f, i) => stored[i].id === f.id && stored[i].number === f.number)
+    annotationsRef.current.footnotes = ordered
+    if (!same) void persistAnnotations()
   }
 
   // Push content on scene switch and on genuine external changes (snapshot
@@ -632,9 +678,37 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
     editor.setContent(sceneHtml)
     loadingRef.current = false
     lastReportedHtmlRef.current = sceneHtml
-    void loadAnnotations(editor)
+    void loadAnnotations(editor).then(() => {
+      // The prose is on screen now, so it can say what the numbers are. A scene
+      // whose numbers were written by the old rule is repaired here, the first
+      // time it is opened.
+      const ids = editor.footnoteOrder()
+      if (ids.length > 0) applyFootnoteOrder(ids)
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openSceneId, sceneHtml])
+
+  // Somebody else wrote the scene's annotations - the Footnotes panel editing a
+  // note or deleting one - so the copy this pane holds is out of date and the
+  // next thing it saves would put the old text back.
+  useEffect(() => {
+    if (annotationsRevision === ownAnnotationsRef.current) return
+    ownAnnotationsRef.current = annotationsRevision
+    void loadAnnotations(editorRef.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [annotationsRevision])
+
+  // Following "2 waiting in this scene" has to end at one of them. The scene is
+  // opened first and its prose arrives a moment later, so this waits for the
+  // content rather than firing on the click.
+  useEffect(() => {
+    if (!pendingSuggestion || !isActiveEditor) return
+    if (pendingSuggestion.sceneId !== openSceneId) return
+    const editor = editorRef.current
+    if (!editor) return
+    useShellStore.getState().clearPendingSuggestion()
+    editor.scrollToSuggestionById(pendingSuggestion.changeId)
+  }, [pendingSuggestion, isActiveEditor, openSceneId, sceneHtml])
 
   // Detection is scene-scoped: an entry silenced in one scene must come back in
   // the next, so the name list is rebuilt whenever the open scene changes.
@@ -700,7 +774,10 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
             loadingRef.current = false
             lastReportedHtmlRef.current = initialHtml
           }
-          void loadAnnotations(live)
+          void loadAnnotations(live).then(() => {
+            const ids = live.footnoteOrder()
+            if (ids.length > 0) applyFootnoteOrder(ids)
+          })
           void pushEntityNames(live)
           const settings = useSettingsStore.getState()
           if (settings.view) {
@@ -782,7 +859,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
             text: '',
             resolved: false
           })
-          persistAnnotations()
+          void persistAnnotations()
           if (editorRef.current) pushAnnotations(editorRef.current)
           break
         }
@@ -792,7 +869,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           )
           if (comment) {
             comment.text = String(message.text ?? '')
-            persistAnnotations()
+            void persistAnnotations()
           }
           break
         }
@@ -800,7 +877,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           annotationsRef.current.comments = annotationsRef.current.comments.filter(
             (c) => c.id !== String(message.commentId)
           )
-          persistAnnotations()
+          void persistAnnotations()
           break
         }
         case 'commentClicked': {
@@ -812,12 +889,29 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           break
         }
         case 'footnoteInserted': {
-          annotationsRef.current.footnotes.push({
-            id: String(message.footnoteId),
-            number: Number(message.number ?? annotationsRef.current.footnotes.length + 1),
-            text: ''
-          })
-          persistAnnotations()
+          const footnoteId = String(message.footnoteId)
+          if (!annotationsRef.current.footnotes.some((f) => f.id === footnoteId)) {
+            annotationsRef.current.footnotes.push({ id: footnoteId, number: 0, text: '' })
+          }
+          // The whole order, because a note put in ahead of another renumbers
+          // it. The message carries it; the count is only a fallback for an
+          // editor build that predates that.
+          applyFootnoteOrder(
+            Array.isArray(message.ids)
+              ? (message.ids as unknown[]).map(String)
+              : annotationsRef.current.footnotes.map((f) => f.id)
+          )
+          // The note is worth writing at the moment it is made, so the box that
+          // holds it takes the caret rather than waiting to be found.
+          useShellStore.getState().requestFootnoteText(footnoteId)
+          break
+        }
+        case 'footnotesRenumbered': {
+          const ids = Array.isArray(message.ids) ? (message.ids as unknown[]).map(String) : []
+          // A marker was taken out of the prose, and the panel that asked for
+          // that has already written its own list. Reading it back first is what
+          // stops this pane's older copy from being written over the top of it.
+          void loadAnnotations(editorRef.current).then(() => applyFootnoteOrder(ids))
           break
         }
         case 'splitSceneRequested': {
@@ -948,7 +1042,16 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           break
         }
         case 'addToDictionary': {
-          void rpc.request<boolean>('grammar/addToDictionary', [String(message.word ?? '')])
+          // This used to reach LanguageTool's dictionary alone, which needs a
+          // paid account and left the writer's own list empty and the red
+          // underline exactly where it was.
+          void learnWord(String(message.word ?? '')).then(() => {
+            // Chromium re-checks a live element when its spellcheck attribute
+            // changes, so re-pushing the setting is what lifts the underline
+            // off the word now instead of at the next keystroke.
+            const enabled = useSettingsStore.getState().view?.effective.spellCheckEnabled ?? true
+            editorRef.current?.setSpellCheck(enabled)
+          })
           break
         }
         case 'readabilityRequest': {

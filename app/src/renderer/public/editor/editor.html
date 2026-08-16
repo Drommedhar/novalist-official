@@ -82,6 +82,14 @@ body { display: flex; justify-content: center; }
     opacity: 0.65;
 }
 
+/* Arriving at an edit from a list: the mark is already drawn, but a writer sent
+   to the middle of a scene needs telling which of them they were sent to. */
+#editor .nv-change-flash {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
 /* Suggestion mode is a different way of typing, so it looks different to be
    in - a writer who does not notice will wonder why nothing they type sticks. */
 #editor.nv-suggesting {
@@ -832,6 +840,8 @@ let programmaticScrollUntil = 0;
 
 let readabilityEnabled = false;
 let readabilityTimer = null;
+/** The sentences the host last graded, so a DOM rebuild can be repainted. */
+let lastReadabilityGrading = null;
 const READABILITY_BANDS = ['VeryEasy', 'Easy', 'Moderate', 'Difficult', 'VeryDifficult'];
 const readabilityHighlights = {};
 if (typeof Highlight === 'function' && typeof CSS !== 'undefined' && CSS.highlights) {
@@ -844,6 +854,7 @@ if (typeof Highlight === 'function' && typeof CSS !== 'undefined' && CSS.highlig
 function setReadabilityEnabled(enabled) {
     readabilityEnabled = !!enabled;
     if (!readabilityEnabled) {
+        lastReadabilityGrading = null;
         clearReadability();
         return;
     }
@@ -854,6 +865,26 @@ function clearReadability() {
     READABILITY_BANDS.forEach(function (band) {
         if (readabilityHighlights[band]) readabilityHighlights[band].clear();
     });
+}
+
+/**
+ * Repaints the last grading against the prose as it stands now.
+ *
+ * The marks are live Ranges, and the DOM under them is rebuilt constantly:
+ * page view moves every paragraph into a fresh .nv-page wrapper, and the
+ * grammar pass wraps flagged words in spans and normalises what is left.
+ * Moving a node out of its parent collapses every Range inside it, so the
+ * highlight stayed registered while covering nothing - which is why turning
+ * the marking on showed it for an instant and then wiped it.
+ *
+ * The grading itself survives all of that: none of those rebuilds change a
+ * character of the text, so the offsets still point where they did. Repainting
+ * from the grading we already have keeps the marks on screen without another
+ * round-trip, and without the gap one would leave.
+ */
+function reapplyReadability() {
+    if (!readabilityEnabled || !lastReadabilityGrading) return;
+    paintReadability(lastReadabilityGrading);
 }
 
 /**
@@ -876,6 +907,7 @@ function requestReadability(delay) {
  */
 function setReadability(json) {
     clearReadability();
+    lastReadabilityGrading = null;
     if (!readabilityEnabled) return;
     let payload;
     try { payload = JSON.parse(json); } catch (_) { return; }
@@ -898,8 +930,17 @@ function setReadability(json) {
         sheet.textContent = rules;
     }
 
+    // Kept so a later rebuild of the prose DOM can be repainted from it rather
+    // than leaving the writer with marks that cover nothing.
+    lastReadabilityGrading = payload.sentences;
+    paintReadability(payload.sentences);
+}
+
+/** Turns graded sentences into ranges over the prose as it stands now. */
+function paintReadability(sentences) {
+    clearReadability();
     const map = buildGrammarPlainTextMap();
-    payload.sentences.forEach(function (sentence) {
+    sentences.forEach(function (sentence) {
         const highlight = readabilityHighlights[sentence.level];
         if (!highlight) return;
         const range = rangeForPlainTextSpan(map.textNodes, sentence.offset, sentence.length);
@@ -1203,7 +1244,8 @@ function setContent(html) {
     // Trigger grammar check for the new content
     requestGrammarCheck();
     // A different scene needs its own grading; the old marks belong to prose
-    // that is no longer on screen.
+    // that is no longer on screen, so they must not be repainted either.
+    lastReadabilityGrading = null;
     clearReadability();
     requestReadability(0);
 
@@ -1742,6 +1784,9 @@ function repaginatePageView() {
         if (pageViewMutationObserver && pageViewEnabled) {
             pageViewMutationObserver.observe(editor, { childList: true, characterData: true, subtree: true });
         }
+        // Every paragraph just moved into a new page wrapper, which collapses
+        // the readability ranges that were inside them.
+        reapplyReadability();
     }
 }
 
@@ -3319,9 +3364,9 @@ function isTextEditingShortcut(e) {
     if (navKeys.includes(k)) return true;
     // Ctrl+(no shift): select-all, copy, paste, cut, undo, redo. On Apple
     // keyboards Cmd+B/I/U are the system bold/italic/underline gestures and
-    // contenteditable applies them natively, so they stay reserved too -
-    // forwarding them would hand Cmd+B to the binder toggle (Ctrl+B) and take
-    // bold away from every macOS and iPad writer.
+    // contenteditable applies them natively, so they stay reserved: the result
+    // is the same mark the host would have applied, by the route a Mac writer
+    // expects. Ctrl+B/I/U elsewhere are forwarded and the host applies them.
     if (!e.shiftKey && !e.altKey) {
         return 'acvxzy'.includes(k) || (e.metaKey && !e.ctrlKey && 'biu'.includes(k));
     }
@@ -4000,6 +4045,8 @@ function applyGrammarHighlights() {
     // highlight — so this path needs the restore too.
     if (!grammarIssues || grammarIssues.length === 0) {
         restoreCaret();
+        // Normalising merged the text nodes the readability ranges sat in.
+        reapplyReadability();
         return;
     }
 
@@ -4052,6 +4099,9 @@ function applyGrammarHighlights() {
     }
 
     restoreCaret();
+    // Wrapping the flagged words split the text nodes the readability ranges
+    // were built over, so those ranges now cover nothing.
+    reapplyReadability();
 }
 
 function showGrammarPopup(issueIndex, x, y) {
@@ -4493,12 +4543,24 @@ window.removeCommentById = removeCommentSpan;
 window.scrollToCommentById = scrollToComment;
 
 // ── Footnotes ──────────────────────────────────────────────────
+//
+// A footnote's number is not a property of the note: it is where its marker
+// stands in the prose. Every message that changes the markers therefore carries
+// the whole ordered list, because a note inserted ahead of an existing one
+// changes that one's number too. Reporting only the new note's number is what
+// put two footnotes on "1".
 function renumberFootnotes() {
     var sups = editor.querySelectorAll('sup.nv-fn[data-fn-id]');
     var i = 1;
     sups.forEach(function (sup) { sup.textContent = i; i++; });
     return Array.from(sups).map(function (s) { return s.getAttribute('data-fn-id'); });
 }
+
+/** The footnote markers in the scene, in the order they are read. */
+window.footnoteOrder = function () {
+    return Array.from(editor.querySelectorAll('sup.nv-fn[data-fn-id]'))
+        .map(function (s) { return s.getAttribute('data-fn-id'); });
+};
 
 window.insertFootnoteAtSelection = function (footnoteId) {
     var sel = window.getSelection();
@@ -4517,7 +4579,7 @@ window.insertFootnoteAtSelection = function (footnoteId) {
     var ids = renumberFootnotes();
     var num = ids.indexOf(footnoteId) + 1;
     try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
-    sendMessage({ type: 'footnoteInserted', footnoteId: footnoteId, number: num });
+    sendMessage({ type: 'footnoteInserted', footnoteId: footnoteId, number: num, ids: ids });
     return num;
 };
 
@@ -4585,8 +4647,11 @@ window.scrollToFootnoteById = function (footnoteId) {
 window.removeFootnoteById = function (footnoteId) {
     var nodes = editor.querySelectorAll('sup.nv-fn[data-fn-id="' + footnoteId + '"]');
     nodes.forEach(function (n) { n.parentNode && n.parentNode.removeChild(n); });
-    renumberFootnotes();
+    var ids = renumberFootnotes();
     try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    // Taking one out moves every marker after it up a number, so the list is
+    // reported again rather than only the removal.
+    sendMessage({ type: 'footnotesRenumbered', ids: ids });
 };
 
 editor.addEventListener('click', function (e) {
@@ -4655,6 +4720,24 @@ window.setSuggestionMode = function (on, author) {
     suggestionMode = !!on;
     suggestionAuthor = author || '';
     editor.classList.toggle('nv-suggesting', suggestionMode);
+};
+
+/**
+ * Takes the writer to a suggested edit and says which one.
+ *
+ * An empty id means the first one in the scene, which is what "there are two
+ * waiting in this scene" resolves to when it is followed. The marks are already
+ * drawn in the prose, but a scene is long: being told a scene has edits and
+ * being shown one of them are different things.
+ */
+window.scrollToSuggestionById = function (changeId) {
+    var node = changeId
+        ? editor.querySelector('[data-nl-change="' + changeId + '"]')
+        : editor.querySelector('ins[data-nl-change], del[data-nl-change]');
+    if (!node) return;
+    node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    node.classList.add('nv-change-flash');
+    setTimeout(function () { node.classList.remove('nv-change-flash'); }, 1400);
 };
 
 function newChangeId() {

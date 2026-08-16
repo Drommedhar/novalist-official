@@ -158,13 +158,16 @@ export function Inspector(): React.JSX.Element {
           </>
         )}
         {inspectorTab === 'footnotes' && (
-          <>
-            <SuggestionsPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
-            <AnnotationsPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
-          </>
+          <AnnotationsPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
         )}
         {inspectorTab === 'inbox' && (
           <>
+            {/* Somebody else's proposed edits to this scene. They were under
+                Footnotes, which is where a writer's own asides live and the
+                last place anybody looks for a change another person asked
+                for. This is the tab for things waiting on an answer, and the
+                book-wide list of scenes with edits is already in it. */}
+            <SuggestionsPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
             <InboxPanel />
             {/* Unfinished business, all in one tab: open notes, prose set
                 aside, and the things that belong to no scene at all. */}

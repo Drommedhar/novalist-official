@@ -4,14 +4,14 @@ The **Inspector** is the right-hand context sidebar of the Novalist window. For 
 
 - **Context** — scene context and analysis (entities, mention matrix, editable POV/emotion/intensity/conflict/tags).
 - **Footnotes** — the footnotes and comments anchored in the open scene.
-- **Inbox** — every open note in the book, with replies and to-dos.
+- **Inbox** — the suggested edits waiting in the open scene, every open note in the book, and your to-dos.
 
 The scene's **synopsis** and freeform **notes** live in the [scene-notes dock](02-interface-overview.md) beneath the editor (`Ctrl+Shift+N`), and the scene's **snapshot history** is opened from the **Scene snapshots** button on the writing bar above the editor. (This pane was called the context sidebar in earlier versions.)
 
 ## Toggling the Inspector
 
 - The Inspector toggle at the far right of the toolbar, or
-- `Ctrl+Shift+B` (`Cmd+Shift+B` on macOS).
+- `Ctrl+Alt+I` (`Cmd+Alt+I` on macOS).
 
 **Focus mode** (`Alt+F`) hides the Inspector together with the binder, leaving only the editor.
 
@@ -86,7 +86,18 @@ Research items could already reference each other, both ways. A scene could refe
 
 ## Inbox tab
 
-The **Inbox** tab lists every open note in the whole book, not just the open scene — because a note you cannot find again is a note you did not leave.
+The **Inbox** tab is where everything waiting for a decision collects: the suggested edits in the scene you have open, then every open note in the whole book — because a note you cannot find again is a note you did not leave.
+
+### Suggested edits in this scene
+
+At the top of the tab are the edits somebody proposed in the open scene, made in [suggestion mode](05-editor.md#suggesting-edits-instead-of-making-them). Each row shows what the edit does, and:
+
+- **Clicking the row's text takes you to that edit in the prose** and marks it for a moment, so you can read it in context rather than guess where it is.
+- **Take it** applies the edit; **Turn it down** discards it. **Take all** and **Turn all down** act on every edit in the scene.
+
+Below them, **Scenes with suggested edits** lists the other scenes in the book that have edits waiting. Clicking one opens that scene and takes you straight to its first edit. Answering the last edit in a scene removes it from the list.
+
+### Open notes
 
 Each entry shows which chapter and scene it is in (click to open that scene), the text it was anchored to, the note itself, and who left it. From the row you can:
 
@@ -130,7 +141,11 @@ The **Footnotes** tab lists the footnotes and inline comments in the open scene:
 - **Footnotes** — each with its number and its text, editable inline; remove one with its close button.
 - **Comments** — each shows the anchored text it attaches to, an editable comment body, a close button to delete it, and a **resolved** toggle to mark it done (resolved comments are dimmed).
 
-You create footnotes and comments inside the editor (see [Editor](05-editor.md)); this tab is where you read, edit, resolve, and clear them.
+You create footnotes and comments inside the editor (see [Editor](05-editor.md)); this tab is where you read, edit, resolve, and clear them. Inserting a footnote opens this tab and puts the caret in the new note's box, so you can write it straight away, and the list updates as you work rather than when you next open the scene.
+
+**Footnote numbers always read the same here as on the page.** A footnote put in ahead of an existing one renumbers everything after it, in the prose and in this list together.
+
+A scene with no footnotes says so rather than showing an empty panel.
 
 ## Synopsis and notes (bottom dock)
 

@@ -28,8 +28,8 @@ Every other view — Wiki, Maps, Languages, Gallery, Dialogue, Planning board, S
 
 | Command | Gesture |
 | --- | --- |
-| Toggle binder (left pane) | `Ctrl+B` |
-| Toggle inspector (right pane) | `Ctrl+Shift+B` |
+| Toggle binder (left pane) | `Ctrl+Alt+B` |
+| Toggle inspector (right pane) | `Ctrl+Alt+I` |
 | Toggle scene notes (bottom dock) | `Ctrl+Shift+N` |
 | Show the mode panel | *(unbound)* |
 | Focus Mode | `Alt+F` |
@@ -63,9 +63,10 @@ Every other view — Wiki, Maps, Languages, Gallery, Dialogue, Planning board, S
 | --- | --- |
 | Comment | `Ctrl+Shift+M` |
 | Peek at entity under caret | `Ctrl+Shift+E` |
+| Bold | `Ctrl+B` |
 | Italic | `Ctrl+I` |
 | Underline | `Ctrl+U` |
-| Bold, Strikethrough, Highlight, Link, Footnote | *(unbound)* |
+| Strikethrough, Highlight, Link, Footnote | *(unbound)* |
 | Paragraph styles, lists, alignment | *(unbound)* |
 | Scene snapshots, Suggest edits, Read aloud, and the writing options | *(unbound)* |
 
@@ -89,7 +90,7 @@ Every other view — Wiki, Maps, Languages, Gallery, Dialogue, Planning board, S
 - Shortcuts shown beside a menu item are **displayed, not registered by the menu**: the app itself listens for every gesture, including inside the editor, so a shortcut you rebind takes effect everywhere at once.
 - While the cursor is in a text field or the editor, only gestures that include `Ctrl` (or `Cmd`) fire, so plain typing and `Alt` shortcuts never interrupt your writing. `Alt+F` works whenever focus is outside a text field.
 - Standard text-editing shortcuts — copy, cut, paste, select all, undo, redo (`Ctrl+C/X/V/A/Z/Y`, `Ctrl+Shift+Z`) — are handled natively by the writing surface, and are also in the **Edit** menu.
-- On Apple keyboards `Cmd+B`, `Cmd+I` and `Cmd+U` stay with the writing surface as bold, italic and underline, so they apply formatting rather than triggering the app commands bound to `Ctrl+B` and friends.
+- On Apple keyboards `Cmd+B`, `Cmd+I` and `Cmd+U` stay with the writing surface as bold, italic and underline, and `Ctrl+B`, `Ctrl+I` and `Ctrl+U` do the same everywhere else, so the gesture means the same thing on every platform.
 - Every command is also available by name in the [Command Palette](25-command-palette.md), which shows the gesture you have bound to it, if any.
 
 ## Dialog conventions

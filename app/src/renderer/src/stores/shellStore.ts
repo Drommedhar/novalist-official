@@ -397,6 +397,21 @@ interface ShellState {
   shellWidth: number
   shellCapacity: ShellCapacity
   inspectorTab: InspectorTab
+  /**
+   * One-shot: the footnote whose text box should take the caret, consumed by
+   * the Footnotes panel.
+   *
+   * Inserting a footnote put an empty note in a list on the other side of the
+   * window and left the caret in the prose, so the writer had to go and find
+   * the row before they could write the note - which is the moment they know
+   * what it says.
+   */
+  pendingFootnoteText: string | null
+  /**
+   * One-shot: a suggested edit to scroll to once its scene is on screen, or ''
+   * for the first one in that scene. Consumed by the editor pane showing it.
+   */
+  pendingSuggestion: { sceneId: string; changeId: string } | null
   /** Bottom scene-notes dock (Synopsis + Notes), Scene view only. Off by default. */
   notesDockVisible: boolean
   /** One-shot prefill for the Settings search box, used to deep-link a section. */
@@ -480,6 +495,18 @@ interface ShellState {
   toggleInspector(): void
   setInspectorWidth(px: number): void
   setInspectorTab(tab: InspectorTab): void
+  /**
+   * Shows the Footnotes list and asks it to put the caret in one note's box.
+   * The inspector is opened if it was away, because a panel the writer cannot
+   * see is not somewhere a caret can usefully go.
+   */
+  requestFootnoteText(footnoteId: string): void
+  /** The Footnotes panel clears it once the box has the caret. */
+  clearPendingFootnoteText(): void
+  /** Asks the editor showing this scene to scroll to a suggested edit. */
+  revealSuggestion(sceneId: string, changeId: string): void
+  /** The editor pane clears it once it has taken the writer there. */
+  clearPendingSuggestion(): void
   toggleNotesDock(): void
   setBackendVersion(version: string | null): void
   /** Actual rendered shell width, after DPI/UI scale. */
@@ -638,6 +665,8 @@ export const useShellStore = create<ShellState>((set, get) => ({
   shellWidth: screenW,
   shellCapacity: shellCapacityForWidth(screenW),
   inspectorTab: 'context',
+  pendingFootnoteText: null,
+  pendingSuggestion: null,
   notesDockVisible: false,
   settingsSearch: '',
   pendingMapNav: null,
@@ -827,6 +856,19 @@ export const useShellStore = create<ShellState>((set, get) => ({
     ),
   setInspectorWidth: (px) => set({ inspectorWidth: clamp(px, INSPECTOR_MIN, INSPECTOR_MAX) }),
   setInspectorTab: (inspectorTab) => set({ inspectorTab }),
+  requestFootnoteText: (footnoteId) =>
+    set((s) => ({
+      // Wide enough for a sidebar means showing it; anything narrower has the
+      // same drawer the inspector button opens, and one drawer at a time.
+      ...(s.shellCapacity === 'wide'
+        ? { inspectorVisible: true }
+        : { inspectorOverlayOpen: true, binderOverlayOpen: false }),
+      inspectorTab: 'footnotes' as InspectorTab,
+      pendingFootnoteText: footnoteId
+    })),
+  clearPendingFootnoteText: () => set({ pendingFootnoteText: null }),
+  revealSuggestion: (sceneId, changeId) => set({ pendingSuggestion: { sceneId, changeId } }),
+  clearPendingSuggestion: () => set({ pendingSuggestion: null }),
   toggleNotesDock: () => set((s) => ({ notesDockVisible: !s.notesDockVisible })),
   setBackendVersion: (backendVersion) => set({ backendVersion }),
   setShellMetrics: (rawWidth) =>

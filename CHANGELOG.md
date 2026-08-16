@@ -56,6 +56,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 - **Auto-replacement can be switched off.** Settings, Writing assistance, **Replace quotes and dashes as I type**. Untick it and nothing is substituted while you write: a straight quote stays straight, `--` stays two hyphens, `...` stays three dots. There was no way to stop this before — the Quote Style picker offered eleven language presets and no twelfth option for "none", and that same picker also names the language your book is written in, so there was nothing safe to set it to. It stays where it is, because export, grammar check, spell check and the statistics all read it. The two matching rules in **Clean up the manuscript** are greyed out while the switch is off, so a cleanup pass cannot put the substitutions back over a whole book either. Your preset is remembered, so switching replacement back on picks up where you left it. Like the rest of Writing assistance, it can differ per project.
 
+- **Planning boards can be named.** **New board** now asks what to call it, and **Rename board** changes the name of the one in view. Every board was called "Board", which made the drop-down useless the moment there were two of them.
+
 ### Changed
 
 - **Settings is arranged around what you came to change.** Twenty-one sections used to be mounted onto one page that you scrolled, which on a narrow window became a fourth column beside three panels it had nothing to do with. They are now grouped under **General**, **Writing**, **Project** and **System**, and Settings shows **one section at a time**. Search names the individual **controls** that match rather than the sections holding them, and picking a result opens its section and takes you to the control itself; a search that matches nothing says so instead of leaving you an empty page. Every section states its reach on a badge — **All projects**, **Current project**, **Global default**, **This project** — in place of the paragraph that used to re-explain it each time. Settings now opens **without a project**, so your global preferences are reachable from the start screen, with the project-only controls visibly disabled rather than missing. Arriving from a control elsewhere leaves a **Back to...** link to the view you came from.
@@ -84,6 +86,10 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 - **`Ctrl+0` now resets the interface size.** It used to reopen the main window, which is still in the Window menu under the app's name but no longer carries a gesture — the two shortcuts collided and only one of them can have the key. **Help** then **Novalist Manual** is now **Help for Current View**.
 
+- **Suggested edits are in the Inbox.** They used to be listed under **Footnotes**, which is for your own asides. The Inbox tab now opens with the edits waiting in the scene you have open, and the other scenes with edits waiting below them — everything in one place because it is all the same question: what do you want to do about this.
+
+- **`Ctrl+B` bolds the selection**, as it does in every other writing program. It toggled the binder, which left Windows and Linux writers with no keyboard gesture for bold at all. The binder moves to `Ctrl+Alt+B` and the inspector to `Ctrl+Alt+I`. On a Mac, `Cmd+B` was always bold and still is. Any of the three can be rebound in Settings, Keyboard shortcuts.
+
 ### Removed
 
 - **The activity bar and its overflow menu.** Nineteen destinations in a rail of unlabelled icons, with whatever did not fit hidden behind a "...", is what the five workspaces replace.
@@ -93,6 +99,16 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The layouts dropdown in the toolbar.** Named pane arrangements are in **View**, **Pane layouts**, along with the split, close and reset commands they belong with.
 
 ### Fixed
+
+- **A word you add to the dictionary is actually learned.** Choosing **Add to dictionary** on a red-underlined name did nothing at all unless you happened to have a paid LanguageTool account: it was being sent to that service instead of to your own word list. Nothing was stored, the list in Settings stayed empty, and the red underline stayed put. The word now lands in your dictionary, and the underline goes as you watch.
+
+- **Marking hard-to-read sentences no longer flashes and disappears.** The marks were painted and then wiped out a fraction of a second later, whenever the page was laid out again or the grammar check ran. They are now repainted each time, so they stay while you write.
+
+- **Two footnotes could both be numbered 1.** Putting a footnote in ahead of an existing one renumbered the page but not the list, so the prose read 1, 2 and the Footnotes tab read 1, 1. Numbering now follows the prose in both places, and a scene that already went wrong is repaired the next time you open it. Export was never affected.
+
+- **The Footnotes tab kept up.** A new footnote did not appear until you left the scene and came back, and the caret was left in the prose rather than in the note you had just made. The list updates the moment the marker goes in, the tab opens itself, and the caret lands in the new note's box. A scene with no footnotes now says so instead of showing a blank panel.
+
+- **Following a scene from "Scenes with suggested edits" takes you to the edit.** It used to open the scene and leave you to find them — and if you were already in that scene, it did nothing whatsoever. It now scrolls to the first edit and marks it, and clicking any edit in the list jumps to it in the prose. Answering the last edit in a scene also stops that scene being listed as waiting.
 
 - **The welcome screen no longer pretends you are in a workspace.** With no project open the rail marked **Write** as where you were, because that is where Novalist starts rather than anywhere you had been, and left **Welcome** unmarked. Worse, the five workspaces lit up under the pointer as though you could press them, which you could not - there is nothing to write in yet. Welcome is now the marked place, and the workspaces sit quietly until there is a project to use them on.
 

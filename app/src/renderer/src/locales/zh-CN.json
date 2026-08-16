@@ -2601,6 +2601,9 @@
   "canvas": {
     "newBoard": "新建板",
     "newBoardName": "板",
+    "renameBoard": "重命名看板",
+    "nameBoard": "为这个看板命名",
+    "boardNamePlaceholder": "看板名称",
     "addCard": "添加卡片",
     "connect": "连接...",
     "connectHint": "点击要连接到的卡片。",
@@ -3251,7 +3254,8 @@
     "reject": "拒绝",
     "acceptAll": "全部接受",
     "rejectAll": "全部拒绝",
-    "mode": "提出建议而非直接修改"
+    "mode": "提出建议而非直接修改",
+    "showInText": "在正文中显示"
   },
   "scene": {
     "makeInactive": "移出正文",

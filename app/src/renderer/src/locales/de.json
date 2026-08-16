@@ -2567,6 +2567,9 @@
   "canvas": {
     "newBoard": "Neues Board",
     "newBoardName": "Board",
+    "renameBoard": "Board umbenennen",
+    "nameBoard": "Diesem Board einen Namen geben",
+    "boardNamePlaceholder": "Board-Name",
     "addCard": "Karte hinzufügen",
     "connect": "Verbinden...",
     "connectHint": "Klicke die Karte an, mit der verbunden werden soll.",
@@ -3217,7 +3220,8 @@
     "reject": "Ablehnen",
     "acceptAll": "Alle übernehmen",
     "rejectAll": "Alle ablehnen",
-    "mode": "Änderungen vorschlagen statt ändern"
+    "mode": "Änderungen vorschlagen statt ändern",
+    "showInText": "Im Text zeigen"
   },
   "scene": {
     "makeInactive": "Aus dem Buch nehmen",

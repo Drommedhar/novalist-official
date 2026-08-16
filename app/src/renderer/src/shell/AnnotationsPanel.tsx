@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useEditorBridge } from '../stores/editorBridgeStore'
+import { useShellStore } from '../stores/shellStore'
 
 interface CommentRow {
   id: string
@@ -29,6 +30,12 @@ export function AnnotationsPanel({
   const { t } = useTranslation()
   const [comments, setComments] = useState<CommentRow[]>([])
   const [footnotes, setFootnotes] = useState<FootnoteRow[]>([])
+  // Any write to the scene's annotations, from here or from the prose. This
+  // list showed whatever it had read when the scene opened, so a footnote made
+  // in the editor did not appear until the writer left the scene and came back.
+  const annotationsRevision = useEditorBridge((s) => s.annotationsRevision)
+  const pendingFootnoteText = useShellStore((s) => s.pendingFootnoteText)
+  const textBoxes = useRef(new Map<string, HTMLInputElement>())
 
   const load = (): void => {
     void rpc
@@ -49,11 +56,29 @@ export function AnnotationsPanel({
   useEffect(() => {
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chapterGuid, sceneId])
+  }, [chapterGuid, sceneId, annotationsRevision])
 
-  const persist = (nextComments: CommentRow[], nextFootnotes: FootnoteRow[]): void => {
-    void rpc.request('scenes/setAnnotations', [chapterGuid, sceneId, nextComments, nextFootnotes])
-  }
+  /**
+   * The caret goes into the note that was just made, so it can be written now
+   * rather than found later. The row has to exist first, which is why this
+   * waits on the reloaded list rather than running where the request is made.
+   */
+  useEffect(() => {
+    if (!pendingFootnoteText) return
+    const box = textBoxes.current.get(pendingFootnoteText)
+    if (!box) return
+    useShellStore.getState().clearPendingFootnoteText()
+    box.focus()
+  }, [pendingFootnoteText, footnotes])
+
+  const persist = (
+    nextComments: CommentRow[],
+    nextFootnotes: FootnoteRow[]
+  ): Promise<void> =>
+    rpc
+      .request('scenes/setAnnotations', [chapterGuid, sceneId, nextComments, nextFootnotes])
+      .then(() => useEditorBridge.getState().annotationsChanged())
+      .catch(() => undefined)
 
   /**
    * The editor, but only while it is showing the scene this panel is about.
@@ -75,19 +100,24 @@ export function AnnotationsPanel({
     const gone = footnotes[index]
     const next = footnotes.filter((_, i) => i !== index)
     setFootnotes(next)
-    persist(comments, next)
-    proseEditor()?.removeFootnoteById(gone.id)
+    // The prose is told after the shortened list is saved: taking a marker out
+    // renumbers the rest, and the editor answers that by reading the list back.
+    // The other order has it read the list this row was still in.
+    void persist(comments, next).then(() => proseEditor()?.removeFootnoteById(gone.id))
   }
 
   const removeComment = (index: number): void => {
     const gone = comments[index]
     const next = comments.filter((_, i) => i !== index)
     setComments(next)
-    persist(next, footnotes)
-    proseEditor()?.removeCommentById(gone.id)
+    void persist(next, footnotes).then(() => proseEditor()?.removeCommentById(gone.id))
   }
 
-  if (comments.length === 0 && footnotes.length === 0) return null
+  // A blank panel says nothing about whether it is working. The tab is where
+  // footnotes live whether or not the scene has any, so it says so.
+  if (comments.length === 0 && footnotes.length === 0) {
+    return <div className="inspector-placeholder">{t('footnotes.empty')}</div>
+  }
 
   return (
     <>
@@ -109,6 +139,11 @@ export function AnnotationsPanel({
               </button>
               <input
                 className="outliner-input"
+                ref={(el) => {
+                  if (el) textBoxes.current.set(fn.id, el)
+                  else textBoxes.current.delete(fn.id)
+                }}
+                placeholder={t('footnotes.addPrompt')}
                 defaultValue={fn.text}
                 onBlur={(e) => {
                   if (e.target.value === fn.text) return
@@ -116,7 +151,7 @@ export function AnnotationsPanel({
                     i === index ? { ...f, text: e.target.value } : f
                   )
                   setFootnotes(next)
-                  persist(comments, next)
+                  void persist(comments, next)
                 }}
               />
               <button
@@ -154,7 +189,7 @@ export function AnnotationsPanel({
                       i === index ? { ...c, text: e.target.value } : c
                     )
                     setComments(next)
-                    persist(next, footnotes)
+                    void persist(next, footnotes)
                   }}
                 />
                 <button
@@ -174,7 +209,7 @@ export function AnnotationsPanel({
                       i === index ? { ...c, resolved: e.target.checked } : c
                     )
                     setComments(next)
-                    persist(next, footnotes)
+                    void persist(next, footnotes)
                   }}
                 />
                 {t('comments.resolved')}

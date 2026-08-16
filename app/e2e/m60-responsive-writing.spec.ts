@@ -55,8 +55,9 @@ test('the desktop shell responds to usable width and removes irrelevant chrome',
   await expect(h.page.getByRole('button', { name: 'Toggle binder' })).toHaveCount(0)
 
   // Panels become temporary drawers, raised by the gesture the View menu names.
-  // Opening one must not take width away from the manuscript.
-  await h.page.keyboard.press('Control+B')
+  // Opening one must not take width away from the manuscript. (Ctrl+Alt+B: the
+  // binder gave Ctrl+B back to bold, which is what it means everywhere else.)
+  await h.page.keyboard.press('Control+Alt+B')
   await expect(h.page.locator('.binder')).toBeVisible()
   const widths = await h.page.evaluate(() => {
     const shell = document.querySelector('.shell') as HTMLElement

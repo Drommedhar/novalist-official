@@ -60,7 +60,7 @@ The current paragraph style, list state and alignment are highlighted on the bar
 
 Selecting text pops up a small toolbar over it. This is the **only** place the inline marks live — they act on a selection, so nothing else carries a copy of them:
 
-- **Bold**, **Italic** (`Ctrl+I`), **Underline** (`Ctrl+U`). Bold ships without a gesture: `Ctrl+B` has toggled the binder since long before this toolbar existed. Give it one in [Settings](23-settings.md#hotkeys) if you want it.
+- **Bold** (`Ctrl+B`), **Italic** (`Ctrl+I`), **Underline** (`Ctrl+U`).
 - **Strikethrough** — for a line you have cut but are not ready to delete. It **is** carried into exports: DOCX, EPUB, Markdown and LaTeX all render it struck, because a struck line was meant to be seen struck.
 - **Highlight** — marks a passage to come back to. Pressing it again on a highlighted passage removes the mark. A highlight is a note to yourself, so it is **not** exported: the words come through, the colour does not.
 - **Link** — asks for an address and links the selection. Leave the address empty to remove a link.
@@ -323,11 +323,11 @@ Suggestion mode is not remembered between sessions. It is how you are working ri
 
 ### Answering suggestions
 
-Open the **Notes** tab in the inspector. Every suggestion in the scene is listed with what it proposes, who proposed it, and two buttons: take it, or turn it down. **Take all** and **Turn all down** answer the whole scene at once.
+Open the **Inbox** tab in the inspector. Every suggestion in the scene is listed with what it proposes, who proposed it, and two buttons: take it, or turn it down. **Take all** and **Turn all down** answer the whole scene at once. Clicking an edit's text takes you to it in the prose and marks it for a moment, so you can read the sentence around it before deciding.
 
 Taking an addition keeps the words and drops the marks. Turning one down removes them. A cut is the mirror: taking it removes the words, turning it down puts them back as ordinary prose.
 
-The [Inbox](22-context-sidebar.md) lists every scene in the book with suggestions waiting, so an edit left in a scene you have not opened for a month is still findable.
+Below them, the same tab lists every other scene in the book with suggestions waiting, so an edit left in a scene you have not opened for a month is still findable. Clicking one opens that scene and takes you to its first edit. See [Inspector](22-context-sidebar.md#suggested-edits-in-this-scene).
 
 ### Who suggested what
 

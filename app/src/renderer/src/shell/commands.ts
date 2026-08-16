@@ -239,6 +239,10 @@ export const COMMANDS: CommandDef[] = [
     labelKey: 'blockStyle.bold',
     categoryKey: 'hotkeys.category.editor',
     scope: 'selection',
+    // The gesture every writing program has had for thirty years. It was on
+    // the binder instead, so on Windows and Linux there was no way to bold a
+    // word from the keyboard at all - the binder has moved rather than bold.
+    defaultGesture: 'Ctrl+B',
     available: editorOpen,
     run: inEditor((editor) => editor.toggleBold())
   },
@@ -605,7 +609,9 @@ export const COMMANDS: CommandDef[] = [
     labelKey: 'shell.toggleBinder',
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
-    defaultGesture: 'Ctrl+B',
+    // Ctrl+B belongs to bold. The two panels keep the same shape of gesture as
+    // each other so they stay one thing to remember rather than two.
+    defaultGesture: 'Ctrl+Alt+B',
     available: projectOpen,
     run: () => shell().toggleBinder()
   },
@@ -614,7 +620,7 @@ export const COMMANDS: CommandDef[] = [
     labelKey: 'shell.toggleInspector',
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
-    defaultGesture: 'Ctrl+Shift+B',
+    defaultGesture: 'Ctrl+Alt+I',
     available: projectOpen,
     run: () => shell().toggleInspector()
   },

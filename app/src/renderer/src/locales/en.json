@@ -2559,6 +2559,9 @@
   "canvas": {
     "newBoard": "New board",
     "newBoardName": "Board",
+    "renameBoard": "Rename board",
+    "nameBoard": "Name this board",
+    "boardNamePlaceholder": "Board name",
     "addCard": "Add card",
     "connect": "Connect...",
     "connectHint": "Click the card to connect to.",
@@ -3209,7 +3212,8 @@
     "reject": "Turn it down",
     "acceptAll": "Take all",
     "rejectAll": "Turn all down",
-    "mode": "Suggest edits instead of making them"
+    "mode": "Suggest edits instead of making them",
+    "showInText": "Show it in the text"
   },
   "scene": {
     "makeInactive": "Take out of the book",

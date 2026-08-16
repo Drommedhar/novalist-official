@@ -370,12 +370,26 @@
   border-left-color: var(--nl-danger);
 }
 
+/* The row is the way to the mark in the prose, so it is a button - but it has
+   to read as the row it was, not as a control. */
 .suggestion-body {
   display: flex;
   flex-direction: column;
   gap: var(--nl-space-tightest);
   min-width: 0;
   flex: 1;
+  align-items: flex-start;
+  text-align: left;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.suggestion-body:hover .suggestion-text {
+  color: var(--nl-accent);
 }
 
 .suggestion-text {
