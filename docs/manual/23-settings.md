@@ -35,9 +35,9 @@ Every section states its reach with a badge, so you never have to remember which
 | Badge | Meaning |
 | --- | --- |
 | **All projects** | The section is global. What you change here applies everywhere. |
-| **Current project** | The section belongs to the open project and does not exist without one. |
+| **Project only** | The section belongs to the open project and does not exist without one. |
 | **Global default** | The section can be pinned to a project and currently is not, so you are editing your defaults. |
-| **This project** | The section is pinned to the open project; your global defaults are untouched. |
+| **Overridden here** | The section is pinned to the open project; your global defaults are untouched. |
 
 - **Off (default)** — that section uses your global settings, shared by every project. The controls stay editable, and what you change is your global defaults; a line under the checkbox says so, so it is never ambiguous which one you are editing.
 - **On** — the section's values are saved with the project, in its `.novalist` folder, and override the global values whenever this project is open. Because they live inside the project folder, the overrides travel with the project through Git and across devices.
