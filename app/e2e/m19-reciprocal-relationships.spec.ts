@@ -3,6 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
+import { dismissTour } from './harness'
 
 /**
  * A tie authored on a place is authored on the other end too.
@@ -23,7 +24,15 @@ test('a relationship saved on a location writes the inverse on the character', a
   env.NOVALIST_NO_SPLASH = '1'
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  // A profile of its own, like every launch the harness makes. Sharing the
+  // machine's default Chromium profile meant this spec ran against whatever the
+  // last one left behind - including whether the first-run tour had been seen,
+  // which is why it passed on a developer's machine and failed on a fresh
+  // runner every time.
+  const app = await electron.launch({
+    args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`],
+    env
+  })
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
@@ -32,6 +41,10 @@ test('a relationship saved on a location writes the inverse on the character', a
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
   await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
+  // The tour draws its card over the content and takes the pointer events for
+  // everything it covers, which now includes the Codex button this spec clicks.
+  // A spec about relationships is not a spec about onboarding.
+  await dismissTour(page)
 
   const locationId = await page.evaluate(async () => {
     const rpc = window.novalistRpc

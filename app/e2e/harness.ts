@@ -69,8 +69,17 @@ export async function launchApp(
     )
   }
 
+  // Through the retry rather than a bare evaluate. For about a second after the
+  // page loads, an evaluate that does real work can die with "Execution context
+  // was destroyed" - see appReady.ts for everything that was ruled out. Only the
+  // first call of a spec was guarded that way, so whichever call happened to
+  // land next in that window failed instead: three specs died in `seedBook`,
+  // creating a scene or reading the state back, rather than on anything they
+  // were testing. The retry fires on that one error alone, so a genuine failure
+  // inside the call still fails on the first attempt.
   const rpc = <T,>(method: string, params: unknown[] = []): Promise<T> =>
-    page.evaluate(
+    evaluateWhenReady(
+      page,
       (a: { m: string; p: unknown[] }) => window.novalistRpc.request(a.m, a.p),
       { m: method, p: params }
     ) as Promise<T>
@@ -209,9 +218,10 @@ export async function seedBook(
   }
 
   const book = await state(h)
-  await h.page.evaluate(
+  await evaluateWhenReady(
+    h.page,
     (s: unknown) => window.novalistStores.project.getState().applyState(s as never),
-    book
+    book as unknown
   )
   // A helper that creates chapters and scenes through the binder's own calls has
   // plainly put the spec in Write.

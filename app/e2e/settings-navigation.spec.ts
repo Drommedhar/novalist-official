@@ -86,7 +86,37 @@ test('Settings shows one categorized section and finds translated controls', asy
   await h.close()
 })
 
-test('Settings accepts exact control routes and folds long operating-system help', async () => {
+/**
+ * The read-aloud help is about Narrator's "natural voices", which no
+ * application can reach - a trap that exists on Windows and nowhere else, so
+ * Settings renders the disclosure only there. Asserting it on every platform
+ * meant this failed every Linux CI run from the day it was written, while
+ * passing on the machine it was written on.
+ */
+test('Settings folds the long Windows read-aloud help', async () => {
+  test.skip(process.platform !== 'win32', 'the read-aloud voice help is Windows-only')
+  test.setTimeout(180_000)
+  const h = await launchApp('nl-settings-help-')
+  await seedBook(h, { One: ['A'] })
+
+  await h.page.evaluate(() =>
+    window.novalistStores.shell.getState().openSettings('settings/editor/font-size')
+  )
+
+  // It used to occupy the page at all times and even showed Markdown markers as
+  // literal text. It is now optional help.
+  const disclosure = h.page.locator('.settings-help-disclosure')
+  await expect(disclosure.locator('summary')).toBeVisible()
+  await expect(disclosure.locator('.settings-help-copy')).not.toBeVisible()
+  await disclosure.locator('summary').click()
+  await expect(disclosure.locator('.settings-help-copy')).toBeVisible()
+  await expect(disclosure.locator('strong')).not.toHaveCount(0)
+  await expect(disclosure.locator('.settings-help-copy')).not.toContainText('**')
+
+  await h.close()
+})
+
+test('Settings accepts exact control routes', async () => {
   test.setTimeout(180_000)
   const h = await launchApp('nl-settings-route-')
   await seedBook(h, { One: ['A'] })
@@ -101,16 +131,6 @@ test('Settings accepts exact control routes and folds long operating-system help
     'editor'
   )
   await expect(h.page.locator('#set-fontsize')).toBeFocused()
-
-  // The Windows installation explanation used to occupy the page at all times
-  // and even showed Markdown markers as literal text. It is now optional help.
-  const disclosure = h.page.locator('.settings-help-disclosure')
-  await expect(disclosure.locator('summary')).toBeVisible()
-  await expect(disclosure.locator('.settings-help-copy')).not.toBeVisible()
-  await disclosure.locator('summary').click()
-  await expect(disclosure.locator('.settings-help-copy')).toBeVisible()
-  await expect(disclosure.locator('strong')).not.toHaveCount(0)
-  await expect(disclosure.locator('.settings-help-copy')).not.toContainText('**')
 
   await h.page.evaluate(() =>
     window.novalistStores.shell
