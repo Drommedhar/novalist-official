@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.1.1] - 2026-08-16
+
 ### Added
 
 - **You decide where a Scrivener binder goes.** Scrivener marks only three things - its draft folder, its trash and its template sheets - and everything else in the binder is your own arrangement that no set of rules reads reliably. A project whose draft folder is empty because you were about to start a fresh draft, with nine finished drafts filed under a folder called "Old", arrived as a project with no manuscript and a great deal of research, and there was no way to say otherwise. Choosing a Scrivener project now shows **Where each folder goes**: one row per binder folder, already filled in with what Novalist made of it, and a menu on each row to send it to the manuscript, to a **draft of its own**, to a **book of its own**, to the Codex as characters or places, to research, or nowhere at all. Nine old drafts become nine drafts of your book, named after their folders, with their chapters and scenes intact.
@@ -1334,7 +1340,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.1...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.1.1...HEAD
+[3.1.1]: https://github.com/Drommedhar/novalist-official/compare/v3.1...v3.1.1
 [3.1]: https://github.com/Drommedhar/novalist-official/compare/v3.0.3...v3.1
 [3.0.3]: https://github.com/Drommedhar/novalist-official/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/Drommedhar/novalist-official/compare/v3.0.1...v3.0.2
