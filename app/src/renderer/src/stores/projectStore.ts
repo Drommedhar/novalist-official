@@ -450,10 +450,16 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   syncEditorPanes: () => {
     const shell = useShellStore.getState()
-    const live = writePaneIds()
+    // A pane that has gone away and a pane that is showing something else are
+    // two different things, and treating them as one is how a trip to the
+    // Timeline closed the scene the writer was in. Only the first forgets an
+    // editor; the second is a writer looking at their outline for a moment.
+    const leaves = paneLeaves(shell.panes)
+    const present = leaves.map((leaf) => leaf.id)
+    const showingEditor = leaves.filter((leaf) => leaf.view === 'write').map((leaf) => leaf.id)
     const s = get()
     let editors = s.editors
-    const stale = Object.keys(editors).filter((id) => !live.includes(id))
+    const stale = Object.keys(editors).filter((id) => !present.includes(id))
     if (stale.length > 0) {
       editors = { ...editors }
       for (const id of stale) {
@@ -463,13 +469,22 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         delete editors[id]
       }
     }
+    // A pane that has turned into something else has no editor on screen to
+    // finish the pending save, so it is written out now rather than left to a
+    // timer nobody can see. The scene stays open behind it either way.
+    for (const id of Object.keys(editors)) {
+      if (!showingEditor.includes(id)) void get().flushPane(id)
+    }
+
     // The shell follows the pane the writer is in when that pane is an editor,
-    // and otherwise stays on the editor they were last in.
-    const active = live.includes(shell.activePaneId)
+    // and otherwise stays on the editor they were last in - which, while every
+    // pane is showing something else, is what the inspector and the status bar
+    // go on describing.
+    const active = showingEditor.includes(shell.activePaneId)
       ? shell.activePaneId
-      : s.activeEditorPaneId && live.includes(s.activeEditorPaneId)
+      : s.activeEditorPaneId && present.includes(s.activeEditorPaneId)
         ? s.activeEditorPaneId
-        : (live[0] ?? null)
+        : (showingEditor[0] ?? null)
     if (editors === s.editors && active === s.activeEditorPaneId) return
     set({ editors, activeEditorPaneId: active, ...mirror(editors, active) })
   },

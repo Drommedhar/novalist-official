@@ -145,14 +145,28 @@ test('splitting the editor gives each pane its own scene', async () => {
     paneIds[1]
   )
   await expect(page.locator('.editor-pane')).toHaveCount(1)
-  // The pane that stopped being an editor let go of its scene.
+  // The pane that stopped being an editor keeps its scene. It used to let go
+  // of it, which made looking at the Codex in that pane a way of closing the
+  // book: point it back at the editor and the writer was returned to "choose a
+  // scene in the binder" rather than to what they were writing.
   expect(
     await page.evaluate(
       () =>
         Object.values(window.novalistStores.project.getState().editors).filter((e) => e.sceneId)
           .length
     )
-  ).toBe(1)
+  ).toBe(2)
+
+  // And pointing it back at the editor puts them where they were.
+  await page.evaluate(
+    (id) => window.novalistStores.shell.getState().setPaneView(id, 'write'),
+    paneIds[1]
+  )
+  await expect(page.locator('.editor-pane')).toHaveCount(2)
+  const reopened = await page.evaluate(() =>
+    Object.values(window.novalistStores.project.getState().editors).map((e) => e.sceneId)
+  )
+  expect(new Set(reopened.filter(Boolean)).size).toBe(2)
 
   await app.close()
 })
