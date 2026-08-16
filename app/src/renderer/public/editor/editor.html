@@ -3359,9 +3359,14 @@ function isTextEditingShortcut(e) {
     // native shortcuts (Cmd+C/V/X/Z/A) that Ctrl does elsewhere.
     if (!e.ctrlKey && !e.metaKey) return false;
     var k = e.key.toLowerCase();
-    // Navigation keys that should be handled natively by contenteditable
+    // Navigation keys that should be handled natively by contenteditable:
+    // Ctrl+Arrow walks by word, Ctrl+Shift+Arrow selects by word, Ctrl+Home and
+    // Ctrl+End go to the ends. Alt is the exception - contenteditable does
+    // nothing with Ctrl+Alt+Arrow, and reserving it anyway meant the pane
+    // splitting gestures died the moment the caret was in the prose, which is
+    // the only place a writer ever presses them from.
     var navKeys = ['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'home', 'end'];
-    if (navKeys.includes(k)) return true;
+    if (navKeys.includes(k)) return !e.altKey;
     // Ctrl+(no shift): select-all, copy, paste, cut, undo, redo. On Apple
     // keyboards Cmd+B/I/U are the system bold/italic/underline gestures and
     // contenteditable applies them natively, so they stay reserved: the result

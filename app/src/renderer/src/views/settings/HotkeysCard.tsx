@@ -104,7 +104,15 @@ export function HotkeysCard(): React.JSX.Element {
               const current = gestureOf(d.actionId, d.defaultGesture)
               const recording = recordingId === d.actionId
               return (
-                <div key={d.actionId} className="settings-hotkey-row">
+                // The raw gesture as well as the pretty one: what is shown is
+                // formatted for the platform, and the check that every gesture
+                // still reaches its command needs the string the matcher reads.
+                <div
+                  key={d.actionId}
+                  className="settings-hotkey-row"
+                  data-action-id={d.actionId}
+                  data-gesture={current}
+                >
                   <span className="settings-hotkey-name">{t(d.labelKey)}</span>
                   {conflict?.actionId === d.actionId && (
                     <span className="settings-hotkey-conflict">
