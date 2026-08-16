@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.1] - 2026-08-16
+
 ### Added
 
 - **A menu bar again, and one worth reading.** On Windows and Linux the menu bar was hidden so the toolbar could act as the window's title bar; it was reachable only by pressing `Alt`, which meant the one surface that can list the whole application without being in the way was the one nobody could see. The native title bar and menu bar are back, and the toolbar is an ordinary strip below them. **File**, **Edit**, **Go**, **View**, **Window** and **Help** now hold every command that acts on the application: where to go, which panels are showing, how the content area is split, the interface size, the manual, and About. The menu is built from Novalist's own list of commands rather than written out beside it, so it cannot drift out of step with the command palette. Your keyboard shortcuts are shown next to the items they belong to, including ones you have rebound yourself. On macOS nothing changes - the system menu bar was always there.
@@ -1314,7 +1320,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.0.3...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.1...HEAD
+[3.1]: https://github.com/Drommedhar/novalist-official/compare/v3.0.3...v3.1
 [3.0.3]: https://github.com/Drommedhar/novalist-official/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/Drommedhar/novalist-official/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/Drommedhar/novalist-official/compare/v3.0...v3.0.1
