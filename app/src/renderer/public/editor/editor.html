@@ -3315,6 +3315,15 @@ editor.addEventListener('mouseleave', () => {
 
 editor.addEventListener('mousedown', () => {
     sendMessage({ type: 'pointerPressed' });
+    // The host hides the card on a click, so what we remember about the pointer
+    // is now wrong: these two exist only to keep from re-announcing a hover the
+    // host already knows about, and it no longer does. Left set, the next move
+    // inside the same name was read as "still the same name, nothing to say" -
+    // so clicking a name was a way of turning its card off until the pointer
+    // left the word entirely and came back.
+    if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
+    lastHoveredMentionId = null;
+    lastHoveredAlias = null;
 });
 
 editor.addEventListener('keydown', (e) => {
