@@ -104,6 +104,14 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 - **Clicking a name no longer switches its Focus Peek off.** Put a name in with `@`, or click into one already in the prose to fix a typo, then move the mouse to see who they were - and nothing appeared. The card only came back if you moved the pointer off the word entirely and returned, which is not something anyone does on purpose. It affected `@` mentions and plain names alike.
 
+- **The 3D map answers the mouse again.** Clicking into the world and dragging did nothing: the camera turns by taking the pointer, and the frame the map runs in was not permitted to take it. Nothing reported the refusal, so the view simply never moved.
+
+- **Leaving the 3D view and going back no longer hangs it.** The second visit was built out of graphics resources the first one had already released, which is why it stopped at "Loading tree assets" and stayed there. Each visit now loads its own. A tree load that is going too slowly gives up and shows you the landscape without them rather than holding the whole view.
+
+- **The 2D drawing tools get out of the way in 3D.** The tool rail and the ruler were painted over the landscape, greyed out, with the measure buttons landing across the sky controls. They are gone while you are in 3D, and the bar along the bottom now tells you how to fly - click to look around, W A S D to move, Q and E for up and down, Esc to give the pointer back - instead of telling you to click an element and use the ribbon.
+
+- **A map could fail to appear at all.** Loading one hands the map engine several things in a row, and one of them threw on any load with nothing selected - taking the rest with it, including the two steps that size the map and fit it to the window. Whether you saw your map came down to timing.
+
 - **Splitting a pane from the keyboard works while you are writing.** `Ctrl+Alt+Right` and `Ctrl+Alt+Down` did nothing at all when the caret was in the prose — which is the only place anyone presses them from. The editor reserves the arrow keys so `Ctrl+Arrow` can walk by word, and the splitting gestures were being swallowed along with them. Walking by word is untouched.
 
 - **A word you add to the dictionary is actually learned.** Choosing **Add to dictionary** on a red-underlined name did nothing at all unless you happened to have a paid LanguageTool account: it was being sent to that service instead of to your own word list. Nothing was stored, the list in Settings stayed empty, and the red underline stayed put. The word now lands in your dictionary, and the underline goes as you watch.

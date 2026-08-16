@@ -25,6 +25,8 @@ test('maps view loads the active map into the engine', async () => {
 
   const app = await electron.launch({ args: ['out/main/index.js'], env })
   const page = await app.firstWindow()
+  const thrown: string[] = []
+  page.on('pageerror', (e) => thrown.push(e.message))
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
   await evaluateWhenReady(page, async (root) => {
     const state = await window.novalistRpc.request('project/open', [root])
@@ -57,6 +59,19 @@ test('maps view loads the active map into the engine', async () => {
       { timeout: 20_000 }
     )
     .toBeGreaterThan(0)
+
+  // The load hands the engine several things in a row: the map, then the other
+  // maps a pin could jump to, then the active layer, then a resize and a fit to
+  // view. `setOtherMaps` read `selected.kind` with nothing selected - which is
+  // every ordinary load - so it threw, and being called in the middle of that
+  // sequence it took the rest with it. The two calls that make the map
+  // *visible* are the last two, so whether the writer saw their map came down
+  // to whether the stage happened to have been sized already.
+  //
+  // A selected layer row is chosen after the call that used to throw, so it is
+  // proof the sequence ran to the end.
+  await expect(page.locator('.map-layer-row.active')).toHaveCount(1, { timeout: 20_000 })
+  expect(thrown, `loading the map threw: ${thrown.join(' | ')}`).toEqual([])
 
   await app.close()
 })
@@ -121,3 +136,4 @@ test('a pin can be drawn as a shape rather than a dot', async () => {
 
   await app.close()
 })
+

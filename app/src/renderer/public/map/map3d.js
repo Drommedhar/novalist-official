@@ -205,6 +205,10 @@ import {
     let treeBarkNormalTex = null;
     let treeAssetsLoaded = false;
     let treeAssetsPromise = null;
+    // Long enough that a cold cache on a slow disk still gets its trees - the
+    // whole set decodes in a fifth of a second warm - and short enough that a
+    // load which is never going to finish does not hold the view for ever.
+    const TREE_ASSET_TIMEOUT_MS = 20000;
     let treeRefScale = 1;        // GLB tree is authored at some scale; we normalise.
     let treeStep = 1;
     let treePool = [];
@@ -505,6 +509,18 @@ import {
         sun = null;
         sunDirUniform = null;
         rendererReady = false;
+        // The tree geometry and its textures are shared into the scene, so
+        // disposeTree() above has just freed them - but the "already loaded"
+        // flag said otherwise, so the next enter() skipped the load and built
+        // its forest out of released GPU resources. Which is why leaving 3D
+        // and coming back was the way to get a view that never finished.
+        treeAssetsLoaded = false;
+        treeAssetsPromise = null;
+        treeBarkGeo = null;
+        treeCanopyGeo = null;
+        treeCanopyTex = null;
+        treeBarkDiffuseTex = null;
+        treeBarkNormalTex = null;
         for (const k of Object.keys(keys)) delete keys[k];
     }
 
@@ -3900,7 +3916,19 @@ import {
                 log('[Map3D.enter] start');
                 try { sendMessage({ type: 'map3dStep', step: 'before-build' }); } catch (e) {}
                 log('[Map3D.enter] loading tree assets...');
-                const treesOk = await loadTreeAssets();
+                // Trees are optional - the scene builds without them - so a
+                // load that stalls must cost the writer its trees rather than
+                // the whole view. Left unbounded it was a spinner that said
+                // "Loading tree assets" and never said anything else again.
+                const treesOk = await Promise.race([
+                    loadTreeAssets(),
+                    new Promise(function (resolve) {
+                        setTimeout(function () {
+                            log('[tree] assets took too long; continuing without them');
+                            resolve(false);
+                        }, TREE_ASSET_TIMEOUT_MS);
+                    })
+                ]);
                 log('[Map3D.enter] tree assets loaded: ' + treesOk);
                 try { sendMessage({ type: 'map3dStep', step: 'after-tree-assets' }); } catch (e) {}
                 log('[Map3D.enter] buildScene()...');
@@ -3912,6 +3940,15 @@ import {
                 lastT = performance.now();
                 rafId = requestAnimationFrame(tick);
                 log('[Map3D.enter] tick scheduled');
+                // The bottom bar builds itself from state and nothing else
+                // tells it the state just changed, so it went on offering the
+                // 2D editor's advice to somebody standing in a field. Guarded
+                // on its own: a label failing to redraw must never be able to
+                // reach the catch below and turn a working scene into a
+                // failed entry.
+                try {
+                    if (typeof renderBottomBar === 'function') renderBottomBar();
+                } catch (e) {}
                 try { sendMessage({ type: 'map3dEntered' }); } catch (e) {}
             } catch (err) {
                 const msg = err && err.message ? err.message : String(err);
@@ -3931,6 +3968,9 @@ import {
             // after the canvas was hidden caused a stale-frame + stall on
             // reopen.
             tearDown();
+            try {
+                if (typeof renderBottomBar === 'function') renderBottomBar();
+            } catch (e) {}
             try { sendMessage({ type: 'map3dExited' }); } catch (e) {}
         },
         // Full rebuild — called by the host / map.html on mapChanged while 3D

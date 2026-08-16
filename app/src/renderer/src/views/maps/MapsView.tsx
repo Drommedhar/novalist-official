@@ -194,9 +194,17 @@ export function MapsView(): React.JSX.Element {
     }
     setMapModel(data)
     // The map file knows nothing about its siblings, so the host tells it what
-    // else a pin could open.
-    if (typeof win.setOtherMaps === 'function') {
-      win.setOtherMaps(maps.filter((m) => m.id !== activeId).map((m) => ({ id: m.id, name: m.name })))
+    // else a pin could open. Told separately from whether the map is on screen:
+    // this threw on any load with nothing selected, and everything below it -
+    // the active layer, the resize, the fit to view - went with it.
+    try {
+      if (typeof win.setOtherMaps === 'function') {
+        win.setOtherMaps(
+          maps.filter((m) => m.id !== activeId).map((m) => ({ id: m.id, name: m.name }))
+        )
+      }
+    } catch {
+      /* a map that cannot list its siblings is still a map */
     }
     if (data) {
       const leaf = firstLeafId(data)
@@ -206,7 +214,8 @@ export function MapsView(): React.JSX.Element {
       }
     }
     // The engine may have initialised its stage before the view had a size;
-    // nudge a resize, then fit once the base images have decoded.
+    // nudge a resize, then fit once the base images have decoded. This is the
+    // half that makes the map visible, and it now runs whatever happened above.
     try {
       win.dispatchEvent(new Event('resize'))
     } catch {
@@ -972,48 +981,64 @@ export function MapsView(): React.JSX.Element {
         <p className="codex-empty">{t('map.emptyState')}</p>
       ) : (
         <div className="map-body">
-          <ToolRail
-            activeTool={activeTool}
-            disabled={!hasMap || !editMode || is3D}
-            buildingScale={buildingScale}
-            customProfiles={(mapModel?.customProfiles ?? []) as MapProfileT[]}
-            onSelectTool={selectTool}
-            onAddImage={onAddImage}
-            onSplinePreset={onSplinePreset}
-            onTerrain={onTerrain}
-            onBuilding={onBuilding}
-            onBuildingScale={onBuildingScale}
-          />
+          {/* The drawing tools and the ruler are drawn over the map, and in 3D
+              the map is a world you fly through - so a rail of greyed-out 2D
+              tools sat on top of it and the measure bar landed across the sky
+              controls. Disabled is right for a toolbar the writer is reading;
+              something painted over the thing it cannot act on is better
+              gone. */}
+          {!is3D && (
+            <ToolRail
+              activeTool={activeTool}
+              disabled={!hasMap || !editMode}
+              buildingScale={buildingScale}
+              customProfiles={(mapModel?.customProfiles ?? []) as MapProfileT[]}
+              onSelectTool={selectTool}
+              onAddImage={onAddImage}
+              onSplinePreset={onSplinePreset}
+              onTerrain={onTerrain}
+              onBuilding={onBuilding}
+              onBuildingScale={onBuildingScale}
+            />
+          )}
           <div className="map-stage">
             {/* Measuring is a question about the world, not an edit to it, so
-                the ruler and the scale are reachable while reading too. */}
-            <div className="map-measure-bar">
-              <button
-                className={`dialog-button${activeTool === 'ruler' ? ' primary' : ''}`}
-                disabled={!hasMap || is3D}
-                onClick={() => {
-                  const next = activeTool === 'ruler' ? 'select' : 'ruler'
-                  setMeasured(null)
-                  selectTool(next)
-                }}
-              >
-                {t('maps.ruler')}
-              </button>
-              <button
-                className="dialog-button"
-                disabled={!hasMap || is3D}
-                onClick={() => setScaleOpen(true)}
-              >
-                {t('maps.scale')}
-              </button>
-              {measured && <span className="map-measured">{measured}</span>}
-            </div>
+                the ruler and the scale are reachable while reading too - but
+                not in 3D, where they measure nothing and cover the sky
+                controls. */}
+            {!is3D && (
+              <div className="map-measure-bar">
+                <button
+                  className={`dialog-button${activeTool === 'ruler' ? ' primary' : ''}`}
+                  disabled={!hasMap}
+                  onClick={() => {
+                    const next = activeTool === 'ruler' ? 'select' : 'ruler'
+                    setMeasured(null)
+                    selectTool(next)
+                  }}
+                >
+                  {t('maps.ruler')}
+                </button>
+                <button
+                  className="dialog-button"
+                  disabled={!hasMap}
+                  onClick={() => setScaleOpen(true)}
+                >
+                  {t('maps.scale')}
+                </button>
+                {measured && <span className="map-measured">{measured}</span>}
+              </div>
+            )}
             <iframe
               ref={iframeRef}
               className="editor-frame"
               src="./map/map.html"
               title="map"
-              sandbox="allow-scripts allow-same-origin"
+              /* allow-pointer-lock, or looking around in 3D is impossible: the
+                 camera reads the pointer through a lock, and a sandbox without
+                 this token refuses the request outright - so clicking into the
+                 world and dragging did nothing, with no error a writer sees. */
+              sandbox="allow-scripts allow-same-origin allow-pointer-lock"
             />
             {loading3D && (
               <div className="map-loading-overlay">

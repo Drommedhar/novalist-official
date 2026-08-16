@@ -2578,6 +2578,12 @@ var renderBottomBar = function () {
     bb.center.replaceChildren();
     bb.right.replaceChildren();
     bb.el.style.borderTopColor = MODE_ACCENT.idle;
+    // 3D first: none of the states below exist up there, and the bar was left
+    // telling the writer to click an element and use the ribbon while they were
+    // standing in a field. It is also the only place the flight controls are
+    // written down - clicking takes the pointer, and a cursor that vanishes
+    // with nothing to explain it reads as the app breaking.
+    if (window.Map3D && window.Map3D.isActive()) return render3DBar();
     // Priority: explicit modal sub-states first, then selections, then drafts, then idle.
     if (clipEdit)        return renderClipBar();
     if (floorPlanEdit)   return renderFloorPlanBar();
@@ -2592,6 +2598,11 @@ var renderBottomBar = function () {
     if (selected)        return renderSelectedBar();
     return renderIdleBar();
 };
+function render3DBar() {
+    bb.left.textContent = mapStrings.bb3dLabel || '3D view';
+    bb.center.appendChild(bbHint(mapStrings.bb3dHint || 'Click the world to look around.'));
+    bb.center.appendChild(bbKbd(mapStrings.kbd3dMove || 'W A S D move - Q E up/down - Esc release the pointer'));
+}
 function renderIdleBar() {
     bb.left.textContent = mapStrings.bbIdle || 'Map editor';
     bb.center.appendChild(bbHint(mapStrings.bbIdleHint || 'Click an element to edit. Use the ribbon to add new ones.'));
@@ -6206,7 +6217,12 @@ let otherMaps = [];
 
 window.setOtherMaps = (list) => {
     otherMaps = Array.isArray(list) ? list.filter(m => m && m.id && m.id !== mapData.id) : [];
-    if (selected.kind === 'pin') renderSelectedBar();
+    // `selected` is null whenever nothing is picked, which is every ordinary
+    // load - so this threw on the way in, and because the host calls it in the
+    // middle of loading a map it took the rest of that load with it: the
+    // resize nudge and the fit-to-view never ran, and whether a map appeared
+    // came down to whether the stage happened to be sized already.
+    if (selected && selected.kind === 'pin') renderSelectedBar();
 };
 
 window.setPinTargetMap = (pinId, targetMapId) => {

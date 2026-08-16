@@ -341,7 +341,7 @@ When you switch to 3D the map first shows a **loading overlay** (progress bar + 
 
 **Camera** — click the view to capture the mouse, then fly freely: `W` / `A` / `S` / `D` to move, `Q` / `E` down / up, mouse to look, `Shift` to move faster, `Esc` to release the mouse. There is no collision — fly straight through walls to inspect interiors.
 
-The 3D view is **read-only** in this version: it is for looking, not editing. Toggle back to 2D to make changes, then flip to 3D again to see them.
+The 3D view is **read-only** in this version: it is for looking, not editing. Toggle back to 2D to make changes, then flip to 3D again to see them. Because nothing up there can be drawn on, the drawing tool rail and the ruler are put away while you are in 3D, and the bar along the bottom shows the flight controls instead of the editing hints.
 
 ## Where the files live
 
