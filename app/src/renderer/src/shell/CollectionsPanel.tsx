@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, Check, ChevronRight, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
-import { useProjectStore } from '../stores/projectStore'
+import { useBookScope, useProjectStore } from '../stores/projectStore'
 import { useSelectionStore } from '../stores/selectionStore'
 
 interface CollectionSceneDto {
@@ -32,7 +32,7 @@ interface CollectionDto {
  */
 export function CollectionsPanel(): React.JSX.Element {
   const { t } = useTranslation()
-  const projectPath = useProjectStore((s) => s.projectPath)
+  const bookScope = useBookScope()
   const selectedIds = useSelectionStore((s) => s.sceneIds)
   const [collections, setCollections] = useState<CollectionDto[]>([])
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
@@ -45,7 +45,8 @@ export function CollectionsPanel(): React.JSX.Element {
       .request<CollectionDto[]>('collections/list')
       .then(setCollections)
       .catch(() => setCollections([]))
-  }, [projectPath])
+    // Collections belong to the active book, so switching books has to refetch.
+  }, [bookScope])
 
   const create = (): void => {
     if (name.trim().length === 0) return

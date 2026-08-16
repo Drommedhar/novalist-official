@@ -172,6 +172,73 @@ public sealed class WorkspaceTests : IDisposable
     }
 
     [Fact]
+    public async Task Recents_DropAProjectWhoseFolderTheWriterDeleted()
+    {
+        var workspace = await CreateOpenProjectAsync();
+        var root = workspace.Projects.ProjectRoot!;
+        Assert.Contains(await workspace.GetRecentProjectsAsync(), r => r.Path == root);
+
+        // Deleted outside Novalist, which is how projects actually go away.
+        workspace.CloseProject();
+        Directory.Delete(root, recursive: true);
+
+        Assert.Empty(await workspace.GetRecentProjectsAsync());
+    }
+
+    [Fact]
+    public async Task Recents_ForgetADeletedProjectRatherThanRecheckingItForever()
+    {
+        var workspace = await CreateOpenProjectAsync();
+        var root = workspace.Projects.ProjectRoot!;
+        workspace.CloseProject();
+        Directory.Delete(root, recursive: true);
+
+        await workspace.GetRecentProjectsAsync();
+
+        // Gone from the stored settings too, so a fresh launch never offers it -
+        // and so a folder later recreated at the same path does not come back as
+        // a project the writer never reopened.
+        await workspace.Settings.LoadAsync();
+        Assert.DoesNotContain(workspace.Settings.Settings.RecentProjects, r => r.Path == root);
+
+        var reopened = new Workspace(Path.Combine(_root, "settings"));
+        Assert.Empty(await reopened.GetRecentProjectsAsync());
+    }
+
+    [Fact]
+    public async Task Recents_KeepTheOnesThatAreStillThere()
+    {
+        var workspace = CreateWorkspace();
+        await workspace.Projects.CreateProjectAsync(_root, "Kept", "Book One");
+        await workspace.OpenProjectAsync(workspace.Projects.ProjectRoot!);
+        var kept = workspace.Projects.ProjectRoot!;
+
+        await workspace.Projects.CreateProjectAsync(_root, "Deleted", "Book One");
+        await workspace.OpenProjectAsync(workspace.Projects.ProjectRoot!);
+        var deleted = workspace.Projects.ProjectRoot!;
+
+        workspace.CloseProject();
+        Directory.Delete(deleted, recursive: true);
+
+        var recents = await workspace.GetRecentProjectsAsync();
+
+        Assert.Equal([kept], recents.Select(r => r.Path).ToArray());
+    }
+
+    [Fact]
+    public async Task Recents_DropAFolderThatIsNoLongerAProject()
+    {
+        var workspace = await CreateOpenProjectAsync();
+        var root = workspace.Projects.ProjectRoot!;
+        workspace.CloseProject();
+
+        // The folder survives; the thing that made it a project does not.
+        Directory.Delete(Path.Combine(root, ".novalist"), recursive: true);
+
+        Assert.Empty(await workspace.GetRecentProjectsAsync());
+    }
+
+    [Fact]
     public async Task Recents_NoCover_YieldsNullDataUri()
     {
         var workspace = await CreateOpenProjectAsync();

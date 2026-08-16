@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { useCodexStore, type EntityType } from '../../stores/codexStore'
 import { useShellStore } from '../../stores/shellStore'
+import { useBookScope } from '../../stores/projectStore'
 import { rpc } from '../../rpc/client'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { EntityListsEditor } from './EntityListsEditor'
@@ -140,6 +141,7 @@ export function CodexView(): React.JSX.Element {
   const record = useCodexStore((s) => s.selectedRecord)
   const setType = useCodexStore((s) => s.setType)
   const refresh = useCodexStore((s) => s.refresh)
+  const bookScope = useBookScope()
   const select = useCodexStore((s) => s.select)
   const updateField = useCodexStore((s) => s.updateField)
   const create = useCodexStore((s) => s.create)
@@ -169,7 +171,10 @@ export function CodexView(): React.JSX.Element {
       .request<CustomTypeDefinition[]>('entities/customTypes')
       .then(setCustomTypes)
       .catch(() => setCustomTypes([]))
-  }, [refresh])
+    // Entries belong to the active book. Keyed on `refresh` alone this ran once
+    // per mount, so the Codex kept the previous book's entries until the view
+    // was navigated away from and back.
+  }, [refresh, bookScope])
 
   const selected = entities.find((e) => e.id === selectedId)
 

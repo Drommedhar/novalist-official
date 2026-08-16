@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { rpc } from '../rpc/client'
 import { paneLeaves, useShellStore } from './shellStore'
 import { useSettingsStore } from './settingsStore'
+import { useCodexStore } from './codexStore'
 
 export interface SceneDto {
   id: string
@@ -222,6 +223,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   applyState: (state) => {
     const prevPath = get().projectPath
+    const prevBookId = get().activeBookId
     set({
       isLoaded: state.isLoaded,
       projectName: state.projectName,
@@ -237,6 +239,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     // with a non-default language stays on the global language until Settings is
     // opened (which reloads settings as a side effect).
     if (state.projectPath !== prevPath) void useSettingsStore.getState().load()
+    // The Codex is the active book's, and its entry count is shown outside the
+    // Codex view, so it cannot wait for that view to be mounted again. Anything
+    // selected belonged to the book being left, so the selection goes with it.
+    if (state.activeBookId !== prevBookId) {
+      useCodexStore.setState({ selectedId: null, selectedRecord: null })
+      if (state.isLoaded) void useCodexStore.getState().refresh()
+    }
   },
 
   switchBook: async (bookId) => {
@@ -573,6 +582,25 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     )
   }
 }))
+
+/**
+ * A key that changes whenever the data a book-scoped panel shows could have
+ * changed underneath it - a different project, or a different book inside the
+ * same project.
+ *
+ * Panels that fetch their own rows do it in an effect, and keying that effect
+ * on `projectPath` alone is wrong: switching books leaves the path identical,
+ * so the effect never re-runs and the panel keeps painting the previous book's
+ * collections, smart lists, labels, stages, plotlines or Codex entries until
+ * something happens to unmount it. Every one of those RPCs resolves against
+ * `Projects.ActiveBook` on the backend, so the fetch has to follow the book.
+ *
+ * Use this instead of `projectPath` in the dependency array of any effect whose
+ * request is answered from the active book.
+ */
+export function useBookScope(): string {
+  return useProjectStore((s) => `${s.projectPath ?? ''}|${s.activeBookId ?? ''}`)
+}
 
 /** Full editor reset used when the active book/draft changes. */
 function clearedEditorState(): Partial<ProjectState> {

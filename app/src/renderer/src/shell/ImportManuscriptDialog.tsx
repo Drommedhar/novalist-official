@@ -17,6 +17,26 @@ interface ImportChapter {
   scenes: ImportScene[]
 }
 
+/** One binder row the writer can redirect, and where it is currently headed. */
+interface ImportMappingRow {
+  key: string
+  title: string
+  /** 0 for a top-level binder entry, 1 for a direct child of one. */
+  depth: number
+  destination: Destination
+  documents: number
+  hasChildren: boolean
+}
+
+/** One book or draft this import would fill. */
+interface ImportTarget {
+  kind: 'manuscript' | 'draft' | 'book'
+  title: string
+  chapterCount: number
+  sceneCount: number
+  wordCount: number
+}
+
 interface ImportPlan {
   format: string
   chapterCount: number
@@ -30,6 +50,10 @@ interface ImportPlan {
   characterCount: number
   locationCount: number
   researchCount: number
+  /** The binder rows the writer can redirect. Empty for the single-file
+   *  formats, which have no binder to arrange. */
+  mapping: ImportMappingRow[]
+  targets: ImportTarget[]
 }
 
 interface ImportResult {
@@ -39,7 +63,30 @@ interface ImportResult {
   characters: number
   locations: number
   research: number
+  drafts: number
+  books: number
 }
+
+type Destination =
+  | 'manuscript'
+  | 'draft'
+  | 'book'
+  | 'characters'
+  | 'places'
+  | 'research'
+  | 'skip'
+
+/** Offered in the order a writer works down a binder: the book first, then the
+ *  things beside it, then what is not coming. */
+const DESTINATIONS: Destination[] = [
+  'manuscript',
+  'draft',
+  'book',
+  'characters',
+  'places',
+  'research',
+  'skip'
+]
 
 /**
  * Brings an existing manuscript into the open project.
@@ -58,21 +105,76 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
   // The OS picker cannot be filtered here, so the reader tells us what it can
   // actually open and we say so up front instead of failing after the choice.
   const [formats, setFormats] = useState<string[]>([])
+  // The binder as the rules read it, kept from the first look at the project so
+  // the rows and their detected destinations stay put while choices are made.
+  const [rows, setRows] = useState<ImportMappingRow[]>([])
+  // Only what the writer changed. A project the rules already read correctly
+  // sends nothing, and imports exactly as it did before there was a mapping.
+  const [overrides, setOverrides] = useState<Record<string, Destination>>({})
 
   useEffect(() => {
     void rpc.request<string[]>('manuscriptImport/formats').then(setFormats)
   }, [])
 
+  const asArgument = (chosen: Record<string, Destination>): { key: string; destination: string }[] =>
+    Object.entries(chosen).map(([key, destination]) => ({ key, destination }))
+
   const preview = async (chosen: string): Promise<void> => {
     setBusy(true)
     setResult(null)
+    setOverrides({})
     try {
       setPath(chosen)
-      setPlan(await rpc.request<ImportPlan>('manuscriptImport/preview', [chosen]))
+      const next = await rpc.request<ImportPlan>('manuscriptImport/preview', [chosen])
+      setPlan(next)
+      setRows(next.mapping)
     } finally {
       setBusy(false)
     }
   }
+
+  /** The rows nested under a top-level one: everything after it, up to the next
+   *  top-level row. The list is flat and in binder order, so this is the run
+   *  immediately following it. */
+  const childrenOf = (key: string): ImportMappingRow[] => {
+    const start = rows.findIndex((r) => r.key === key)
+    if (start < 0 || rows[start].depth > 0) return []
+    const rest = rows.slice(start + 1)
+    const end = rest.findIndex((r) => r.depth === 0)
+    return end < 0 ? rest : rest.slice(0, end)
+  }
+
+  /**
+   * Sends a row where the writer asked, and everything inside it with it.
+   *
+   * Setting a folder used to leave its own contents on whatever had been
+   * detected, so pointing nine drafts at nine drafts of their own meant nine
+   * separate menus. A folder now sets what is inside it, and each of those rows
+   * can still be changed afterwards - which is what makes one folder of nine
+   * drafts one action rather than nine.
+   *
+   * Nothing is ever removed from the choices once made, even when it matches
+   * what was detected. A row put back to its detected value is still a row the
+   * writer decided about, and dropping it would leave it inheriting from the
+   * folder above - which after a cascade is the very thing they just changed.
+   */
+  const reroute = async (key: string, destination: Destination): Promise<void> => {
+    const next = { ...overrides, [key]: destination }
+    for (const child of childrenOf(key)) next[child.key] = destination
+    setOverrides(next)
+
+    setBusy(true)
+    try {
+      setPlan(
+        await rpc.request<ImportPlan>('manuscriptImport/preview', [path, asArgument(next)])
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const destinationOf = (row: ImportMappingRow): Destination =>
+    overrides[row.key] ?? row.destination
 
   /** A Scrivener project is a folder, not a file, so it needs the folder
    *  picker - the file picker cannot select one. */
@@ -83,16 +185,7 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
 
   const pick = async (): Promise<void> => {
     const chosen = await window.novalist.pickFile(t('manuscriptImport.choose'), 'all')
-    if (!chosen) return
-
-    setBusy(true)
-    setResult(null)
-    try {
-      setPath(chosen)
-      setPlan(await rpc.request<ImportPlan>('manuscriptImport/preview', [chosen]))
-    } finally {
-      setBusy(false)
-    }
+    if (chosen) await preview(chosen)
   }
 
   /** A Scrivener project can be worth importing for its Codex sketches and
@@ -104,11 +197,15 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
     if (!plan || !hasSomething(plan)) return
     setBusy(true)
     try {
-      setResult(await rpc.request<ImportResult>('manuscriptImport/run', [path]))
+      setResult(
+        await rpc.request<ImportResult>('manuscriptImport/run', [path, asArgument(overrides)])
+      )
       useProjectStore
         .getState()
         .applyState(await rpc.request<ProjectStateDto>('project/getState'))
       setPlan(null)
+      setRows([])
+      setOverrides({})
     } finally {
       setBusy(false)
     }
@@ -118,7 +215,10 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
 
   return (
     <div className="dialog-overlay" onClick={props.onClose}>
-      <div className="dialog-card import-manuscript-dialog" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="dialog-card dialog-card-wide import-manuscript-dialog"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="dialog-header">
           <h3>{t('manuscriptImport.title')}</h3>
           <button className="dialog-close" onClick={props.onClose} aria-label={t('dialog.close')}>
@@ -142,6 +242,50 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
           </button>
           {fileName && <span className="settings-hint">{fileName}</span>}
         </div>
+
+        {/* The binder, and where each part of it is headed. Shown above the
+            plan because it is what the plan is made of: a draft folder left
+            empty for the next draft used to send an entire project to research
+            with no way to say otherwise. */}
+        {rows.length > 0 && (
+          <>
+            <h4 className="import-mapping-heading">{t('manuscriptImport.mappingTitle')}</h4>
+            <p className="settings-hint">{t('manuscriptImport.mappingHint')}</p>
+            <ul className="import-mapping">
+              {rows.map((row) => (
+                <li
+                  key={row.key}
+                  className={row.depth > 0 ? 'import-mapping-row nested' : 'import-mapping-row'}
+                >
+                  {/* Titled as well as shown: a binder name can outrun the row,
+                      and these differ only in their tails. */}
+                  <span
+                    className="import-mapping-title"
+                    title={row.title || t('manuscriptImport.untitledRow')}
+                  >
+                    {row.title || t('manuscriptImport.untitledRow')}
+                  </span>
+                  <span className="import-mapping-count">
+                    {t('manuscriptImport.mappingDocuments', { count: row.documents })}
+                  </span>
+                  <select
+                    className="toolbar-select"
+                    aria-label={row.title || t('manuscriptImport.untitledRow')}
+                    disabled={busy}
+                    value={destinationOf(row)}
+                    onChange={(e) => void reroute(row.key, e.target.value as Destination)}
+                  >
+                    {DESTINATIONS.map((d) => (
+                      <option key={d} value={d}>
+                        {t(`manuscriptImport.destination.${d}`)}
+                      </option>
+                    ))}
+                  </select>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
 
         {/* Named before the import runs, not discovered afterwards. */}
         {plan && plan.losses.length > 0 && (
@@ -185,6 +329,32 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
               </p>
             )}
 
+            {/* What each book and draft would end up holding, so nine drafts
+                are nine lines rather than a single total to divide by nine.
+                Shown for a single new draft too - "a draft called this" is the
+                thing worth confirming before it is created. */}
+            {(plan.targets.length > 1 ||
+              plan.targets.some((target) => target.kind !== 'manuscript')) && (
+              <ul className="import-preview">
+                {plan.targets.map((target, i) => (
+                  <li key={`${target.kind}-${target.title}-${i}`}>
+                    <div className="import-preview-chapter">
+                      {target.kind === 'manuscript'
+                        ? t('manuscriptImport.targetManuscript')
+                        : t(`manuscriptImport.target.${target.kind}`, { name: target.title })}
+                    </div>
+                    <div className="import-preview-scenes">
+                      {t('manuscriptImport.targetSummary', {
+                        chapters: target.chapterCount,
+                        scenes: target.sceneCount,
+                        words: target.wordCount.toLocaleString()
+                      })}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+
             <ul className="import-preview">
               {plan.chapters.map((c, i) => (
                 <li key={`${c.title}-${i}`}>
@@ -225,6 +395,14 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
                   characters: result.characters,
                   locations: result.locations,
                   research: result.research
+                })}
+              </p>
+            )}
+            {(result.drafts > 0 || result.books > 0) && (
+              <p className="settings-hint">
+                {t('manuscriptImport.doneTargets', {
+                  drafts: result.drafts,
+                  books: result.books
                 })}
               </p>
             )}

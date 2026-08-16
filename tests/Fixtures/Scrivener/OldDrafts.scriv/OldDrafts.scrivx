@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ScrivenerProject Version="3.0">
+  <Binder>
+    <BinderItem UUID="NOVELFORMAT" Type="Text">
+      <Title>Novel Format</Title>
+      <MetaData><IconFileName>Information</IconFileName></MetaData>
+    </BinderItem>
+    <BinderItem UUID="PREWRITING" Type="Folder">
+      <Title>Pre-Writing</Title>
+      <Children>
+      <BinderItem UUID="PRE1" Type="Text">
+        <Title>Premise</Title>
+      </BinderItem>
+      </Children>
+    </BinderItem>
+    <BinderItem UUID="DRAFT" Type="DraftFolder">
+      <Title>Manuscript</Title>
+    </BinderItem>
+    <BinderItem UUID="WORLDBUILDING" Type="Folder">
+      <Title>Worldbuilding</Title>
+      <Children>
+      <BinderItem UUID="WB1" Type="Text">
+        <Title>The Swarm</Title>
+      </BinderItem>
+      </Children>
+    </BinderItem>
+    <BinderItem UUID="CHARACTERS" Type="Folder">
+      <Title>Characters</Title>
+      <MetaData><IconFileName>Characters (Photo)</IconFileName></MetaData>
+      <Children>
+      <BinderItem UUID="CH-PRAX" Type="Text">
+        <Title>Prax</Title>
+        <MetaData><IconFileName>Characters (Character Sheet)</IconFileName></MetaData>
+      </BinderItem>
+      <BinderItem UUID="CH-SELENE" Type="Text">
+        <Title>Selene</Title>
+        <MetaData><IconFileName>Characters (Character Sheet)</IconFileName></MetaData>
+      </BinderItem>
+      <BinderItem UUID="CH-MERRY" Type="Text">
+        <Title>Merry</Title>
+        <MetaData><IconFileName>Characters (Character Sheet)</IconFileName></MetaData>
+      </BinderItem>
+      </Children>
+    </BinderItem>
+    <BinderItem UUID="OLD" Type="Folder">
+      <Title>Old</Title>
+      <Children>
+      <BinderItem UUID="OLDNOTES" Type="Folder">
+        <Title>Old Notes</Title>
+        <Children>
+        <BinderItem UUID="OLDNOTE1" Type="Text">
+          <Title>What I kept from draft 3</Title>
+        </BinderItem>
+        </Children>
+      </BinderItem>
+      <BinderItem UUID="D9" Type="Folder">
+        <Title>Old Draft 9- Started 6/13/2026</Title>
+        <Children>
+          <BinderItem UUID="D9-L1" Type="Text">
+            <Title>Opening</Title>
+          </BinderItem>
+          <BinderItem UUID="D9-L2" Type="Text">
+            <Title>The signal arrives</Title>
+          </BinderItem>
+          <BinderItem UUID="D9-L3" Type="Text">
+            <Title>They argue about it</Title>
+          </BinderItem>
+        </Children>
+      </BinderItem>
+      <BinderItem UUID="D8" Type="Folder">
+        <Title>Old Draft 8- Started 3/26/2026?</Title>
+        <Children>
+          <BinderItem UUID="D8-C1" Type="Folder">
+            <Title>Chapter 1: Signal</Title>
+            <Children>
+            <BinderItem UUID="D8-C1-S1" Type="Text">
+              <Title>Solarian High Council Meeting</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+          <BinderItem UUID="D8-C2" Type="Folder">
+            <Title>Chapter 2: Hunt</Title>
+            <Children>
+            <BinderItem UUID="D8-C2-S1" Type="Text">
+              <Title>Prax decides to hunt Montague</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+        </Children>
+      </BinderItem>
+      <BinderItem UUID="D7" Type="Folder">
+        <Title>Old Draft 7- Started 3/26/2026?</Title>
+        <Children>
+          <BinderItem UUID="D7-L1" Type="Text">
+            <Title>Opening</Title>
+          </BinderItem>
+          <BinderItem UUID="D7-L2" Type="Text">
+            <Title>The signal arrives</Title>
+          </BinderItem>
+          <BinderItem UUID="D7-L3" Type="Text">
+            <Title>They argue about it</Title>
+          </BinderItem>
+        </Children>
+      </BinderItem>
+      <BinderItem UUID="D6" Type="Folder">
+        <Title>Old Draft 6- Started 10/30/2025?</Title>
+        <Children>
+          <BinderItem UUID="D6-C1" Type="Folder">
+            <Title>In The Beginning...</Title>
+            <Children>
+            <BinderItem UUID="D6-C1-S1" Type="Text">
+              <Title>Ziusudra sends distress signal</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+          <BinderItem UUID="D6-C2" Type="Folder">
+            <Title>Chapter 1: Signal</Title>
+            <Children>
+            <BinderItem UUID="D6-C2-S1" Type="Text">
+              <Title>Solarian High Council Meeting</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+          <BinderItem UUID="D6-C3" Type="Folder">
+            <Title>Chapter 2: Hunt</Title>
+            <Children>
+            <BinderItem UUID="D6-C3-S1" Type="Text">
+              <Title>Prax decides to hunt Montague</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+          <BinderItem UUID="D6-C4" Type="Folder">
+            <Title>Chapter 3: Recruit</Title>
+            <Children>
+            <BinderItem UUID="D6-C4-S1" Type="Text">
+              <Title>Merry Meets the Team</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+          <BinderItem UUID="D6-C5" Type="Folder">
+            <Title>Chapter 4: Ambush</Title>
+            <Children>
+            <BinderItem UUID="D6-C5-S1" Type="Text">
+              <Title>Team travels</Title>
+            </BinderItem>
+            <BinderItem UUID="D6-C5-S2" Type="Text">
+              <Title>Prax and Selene camp system</Title>
+            </BinderItem>
+            <BinderItem UUID="D6-C5-S3" Type="Text">
+              <Title>Team reaches system</Title>
+            </BinderItem>
+            <BinderItem UUID="D6-C5-S4" Type="Text">
+              <Title>Prax prepares to attack</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+          <BinderItem UUID="D6-C6" Type="Folder">
+            <Title>Chapter 5: Contact</Title>
+            <Children>
+            <BinderItem UUID="D6-C6-S1" Type="Text">
+              <Title>First attacks; swarm activates</Title>
+            </BinderItem>
+            <BinderItem UUID="D6-C6-S2" Type="Text">
+              <Title>Ships disabled</Title>
+            </BinderItem>
+            <BinderItem UUID="D6-C6-S3" Type="Text">
+              <Title>Selene takes escape pod</Title>
+            </BinderItem>
+            <BinderItem UUID="D6-C6-S4" Type="Text">
+              <Title>Merry takes an escape pod</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+        </Children>
+      </BinderItem>
+      <BinderItem UUID="D5" Type="Folder">
+        <Title>Old Draft 5- Started 10/30/2025?</Title>
+        <Children>
+          <BinderItem UUID="D5-C1" Type="Folder">
+            <Title>Chapter 1: Signal</Title>
+            <Children>
+            <BinderItem UUID="D5-C1-S1" Type="Text">
+              <Title>Solarian High Council Meeting</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+          <BinderItem UUID="D5-C2" Type="Folder">
+            <Title>Chapter 2: Hunt</Title>
+            <Children>
+            <BinderItem UUID="D5-C2-S1" Type="Text">
+              <Title>Prax decides to hunt Montague</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+        </Children>
+      </BinderItem>
+      <BinderItem UUID="D4" Type="Folder">
+        <Title>Old Draft 4- Started 01/01/2025</Title>
+        <Children>
+          <BinderItem UUID="D4-C1" Type="Folder">
+            <Title>Chapter 1: Signal</Title>
+            <Children>
+            <BinderItem UUID="D4-C1-S1" Type="Text">
+              <Title>Solarian High Council Meeting</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+          <BinderItem UUID="D4-C2" Type="Folder">
+            <Title>Chapter 2: Hunt</Title>
+            <Children>
+            <BinderItem UUID="D4-C2-S1" Type="Text">
+              <Title>Prax decides to hunt Montague</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+        </Children>
+      </BinderItem>
+      <BinderItem UUID="D3" Type="Folder">
+        <Title>Old Draft 3- Started 10/11/2024</Title>
+        <Children>
+          <BinderItem UUID="D3-L1" Type="Text">
+            <Title>Opening</Title>
+          </BinderItem>
+          <BinderItem UUID="D3-L2" Type="Text">
+            <Title>The signal arrives</Title>
+          </BinderItem>
+          <BinderItem UUID="D3-L3" Type="Text">
+            <Title>They argue about it</Title>
+          </BinderItem>
+        </Children>
+      </BinderItem>
+      <BinderItem UUID="D2" Type="Folder">
+        <Title>Old Draft 2- Started 8/12/2021</Title>
+        <Children>
+          <BinderItem UUID="D2-C1" Type="Folder">
+            <Title>Chapter 1: Signal</Title>
+            <Children>
+            <BinderItem UUID="D2-C1-S1" Type="Text">
+              <Title>Solarian High Council Meeting</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+          <BinderItem UUID="D2-C2" Type="Folder">
+            <Title>Chapter 2: Hunt</Title>
+            <Children>
+            <BinderItem UUID="D2-C2-S1" Type="Text">
+              <Title>Prax decides to hunt Montague</Title>
+            </BinderItem>
+            </Children>
+          </BinderItem>
+        </Children>
+      </BinderItem>
+      <BinderItem UUID="D1" Type="Folder">
+        <Title>Old Draft 1- Started 04/2021</Title>
+        <Children>
+          <BinderItem UUID="D1-L1" Type="Text">
+            <Title>Opening</Title>
+          </BinderItem>
+          <BinderItem UUID="D1-L2" Type="Text">
+            <Title>The signal arrives</Title>
+          </BinderItem>
+          <BinderItem UUID="D1-L3" Type="Text">
+            <Title>They argue about it</Title>
+          </BinderItem>
+        </Children>
+      </BinderItem>
+      <BinderItem UUID="DELETED" Type="Folder">
+        <Title>Deleted Scenes</Title>
+        <Children>
+        <BinderItem UUID="DEL1" Type="Text">
+          <Title>The market that went nowhere</Title>
+        </BinderItem>
+        </Children>
+      </BinderItem>
+      </Children>
+    </BinderItem>
+    <BinderItem UUID="FRONTMATTER" Type="Folder">
+      <Title>Front Matter</Title>
+      <MetaData><IconFileName>Front Matter</IconFileName></MetaData>
+      <Children>
+      <BinderItem UUID="FM1" Type="Text">
+        <Title>Title Page</Title>
+      </BinderItem>
+      </Children>
+    </BinderItem>
+    <BinderItem UUID="NOTES" Type="Folder">
+      <Title>Notes</Title>
+      <Children>
+      <BinderItem UUID="NOTE1" Type="Text">
+        <Title>Timeline questions</Title>
+      </BinderItem>
+      </Children>
+    </BinderItem>
+    <BinderItem UUID="IDEAS" Type="Folder">
+      <Title>Ideas</Title>
+      <Children>
+      <BinderItem UUID="IDEA1" Type="Text">
+        <Title>Second swarm</Title>
+      </BinderItem>
+      </Children>
+    </BinderItem>
+    <BinderItem UUID="RESEARCH" Type="ResearchFolder">
+      <Title>Research</Title>
+      <Children>
+      <BinderItem UUID="RES1" Type="Text">
+        <Title>Orbital mechanics</Title>
+      </BinderItem>
+      </Children>
+    </BinderItem>
+    <BinderItem UUID="TEMPLATES" Type="Folder">
+      <Title>Template Sheets</Title>
+      <Children>
+      <BinderItem UUID="TPL1" Type="Text">
+        <Title>Character Sketch</Title>
+      </BinderItem>
+      </Children>
+    </BinderItem>
+    <BinderItem UUID="TRASH" Type="TrashFolder">
+      <Title>Trash</Title>
+      <Children>
+      <BinderItem UUID="TRASH1" Type="Text">
+        <Title>Abandoned opening</Title>
+      </BinderItem>
+      </Children>
+    </BinderItem>
+  </Binder>
+  <ProjectSettings>
+    <TemplateFolderUUID>TEMPLATES</TemplateFolderUUID>
+  </ProjectSettings>
+</ScrivenerProject>

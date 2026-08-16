@@ -36,9 +36,25 @@ public static class ScrivenerProjectBuilder
     /// </summary>
     public static string CopyRealFormattingFixture(
         string parent, string name = "RealFormatting.scriv")
+        => CopyFixture("RealFormatting.scriv", parent, name);
+
+    /// <summary>
+    /// The binder from the bug report: a draft folder left empty because the
+    /// next draft has not been started, nine finished drafts filed under a
+    /// folder called "Old", and the notes, ideas and front matter around them.
+    ///
+    /// This is the shape that made the whole project import as research, and it
+    /// is not a malformed project - it is an ordinary way to work that no set of
+    /// rules can read, which is why the mapping exists.
+    /// </summary>
+    public static string CopyOldDraftsFixture(string parent, string name = "OldDrafts.scriv")
+        => CopyFixture("OldDrafts.scriv", parent, name);
+
+    /// <summary>A checked-in fixture copied next to a test's project, so an
+    /// import that copies research files never writes near the original.</summary>
+    private static string CopyFixture(string fixture, string parent, string name)
     {
-        var source = Path.Combine(
-            AppContext.BaseDirectory, "Fixtures", "Scrivener", "RealFormatting.scriv");
+        var source = Path.Combine(AppContext.BaseDirectory, "Fixtures", "Scrivener", fixture);
         if (!Directory.Exists(source))
             throw new DirectoryNotFoundException($"Scrivener fixture was not copied: {source}");
 

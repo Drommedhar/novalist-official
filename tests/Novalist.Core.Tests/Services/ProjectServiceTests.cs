@@ -2,6 +2,7 @@ using System.Text.Json;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
 using Novalist.Core.Tests.TestHelpers;
+using NSubstitute;
 using Xunit;
 
 namespace Novalist.Core.Tests.Services;
@@ -1220,6 +1221,90 @@ public class ProjectServiceTests : IDisposable
         book.Drafts.Clear();
         book.ActiveDraftId = string.Empty;
         Assert.Empty(await _sut.LoadChaptersForAsync(book));
+    }
+
+    [Fact]
+    public async Task AFolderIsAProjectOnlyWhileItStillHoldsOne()
+    {
+        await Create();
+        var root = _sut.ProjectRoot!;
+
+        Assert.True(await _sut.ProjectExistsAtAsync(root));
+
+        // The writer deleted the folder. Nothing is there to open.
+        Directory.Delete(root, recursive: true);
+        Assert.False(await _sut.ProjectExistsAtAsync(root));
+    }
+
+    [Fact]
+    public async Task AFolderThatIsNotAProjectIsNotOneEitherWay()
+    {
+        // A folder that exists but never held a project, an empty path, and a
+        // path no filesystem would accept - none of them are somewhere to go
+        // back to, and none of them may throw on the way to saying so.
+        Assert.False(await _sut.ProjectExistsAtAsync(_dir.Path));
+        Assert.False(await _sut.ProjectExistsAtAsync(""));
+        Assert.False(await _sut.ProjectExistsAtAsync("   "));
+        Assert.False(await _sut.ProjectExistsAtAsync("\0not-a-path"));
+    }
+
+    [Theory]
+    [InlineData(typeof(IOException))]
+    [InlineData(typeof(UnauthorizedAccessException))]
+    [InlineData(typeof(ArgumentException))]
+    [InlineData(typeof(NotSupportedException))]
+    public async Task APathThatCannotEvenBeCheckedIsNotAProject(Type thrown)
+    {
+        // A disconnected share, a path the process may not stat, something no
+        // filesystem accepts. The recents list has to survive all of them: one
+        // entry that throws must not take the whole list down with it.
+        var files = Substitute.For<IFileService>();
+        files.CombinePath(Arg.Any<string[]>()).Returns(c => string.Join('/', c.Arg<string[]>()));
+        files.ExistsAsync(Arg.Any<string>())
+            .Returns<Task<bool>>(_ => throw (Exception)Activator.CreateInstance(thrown)!);
+
+        Assert.False(await new ProjectService(files).ProjectExistsAtAsync(@"\\nas\gone"));
+    }
+
+    [Fact]
+    public async Task AProjectFolderEmptiedOfItsMetadataIsNoLongerAProject()
+    {
+        await Create();
+        var root = _sut.ProjectRoot!;
+
+        // The folder is still there; what made it a project is not.
+        File.Delete(Path.Combine(root, ".novalist", "project.json"));
+
+        Assert.False(await _sut.ProjectExistsAtAsync(root));
+    }
+
+    [Fact]
+    public async Task ATitleEndingInDotsGetsAFolderThatActuallyExists()
+    {
+        // Windows drops trailing dots as it creates a folder, so "In The
+        // Beginning..." became a folder without them while the project kept
+        // addressing it with them - and the next write failed with the folder
+        // reported missing. Common enough in a chapter title to matter.
+        await Create();
+
+        var chapter = await _sut.CreateChapterAsync("In The Beginning...");
+        await _sut.CreateSceneAsync(chapter.Guid, "Ziusudra sends distress signal");
+
+        Assert.EndsWith("In The Beginning", chapter.FolderName, StringComparison.Ordinal);
+        Assert.True(Directory.Exists(
+            Path.Combine(_sut.ActiveDraftRoot!, _sut.ActiveBook!.ChapterFolder, chapter.FolderName)));
+    }
+
+    [Fact]
+    public async Task ABookOrDraftTitledOnlyWithDotsStillGetsAFolder()
+    {
+        await Create();
+
+        var draft = await _sut.CreateDraftAsync("...");
+
+        Assert.NotEmpty(draft.FolderName);
+        Assert.True(Directory.Exists(
+            Path.Combine(_sut.ActiveBookRoot!, "Drafts", draft.FolderName)));
     }
 }
 

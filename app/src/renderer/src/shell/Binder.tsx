@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronRight, MoreHorizontal, Pin, Plus } from 'lucide-react'
-import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
+import { useBookScope, useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { ContextMenu, type ContextMenuItem } from './ContextMenu'
 import { MobileBookDraftBar } from './MobileBookDraftBar'
@@ -98,6 +98,7 @@ export function Binder(): React.JSX.Element {
   )
   const setBinderWidth = useShellStore((s) => s.setBinderWidth)
   const projectPath = useProjectStore((s) => s.projectPath)
+  const bookScope = useBookScope()
   const [changedIds, setChangedIds] = useState<Set<string>>(new Set())
   const selectedIds = useSelectionStore((s) => s.sceneIds)
   const stages = useStageStore((s) => s.stages)
@@ -112,7 +113,9 @@ export function Binder(): React.JSX.Element {
   const targets = useTargetStore((s) => s.targets)
   const [labelList, setLabelList] = useState<{ key: string; label: string; color: string }[]>([])
 
-  // Loaded per project, not per row: the binder paints a dot for every scene.
+  // Loaded per book, not per row: the binder paints a dot for every scene.
+  // Stages, targets, labels and plotlines all belong to the active book, so
+  // this has to follow a book switch and not just a project change.
   useEffect(() => {
     if (projectPath) {
       void useStageStore.getState().load()
@@ -126,7 +129,7 @@ export function Binder(): React.JSX.Element {
         .then(setPlotlines)
         .catch(() => setPlotlines([]))
     }
-  }, [projectPath])
+  }, [bookScope])
 
 
   // Poll which scenes have uncommitted Git changes so their rows can be marked

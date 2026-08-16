@@ -162,6 +162,34 @@ public partial class ProjectService : IProjectService
         }
     }
 
+    /// <summary>
+    /// Whether a folder still holds a Novalist project.
+    ///
+    /// The same file <see cref="LoadProjectAsync"/> would open, so a path that
+    /// answers true here is one that can actually be opened. Used to keep the
+    /// recent-projects list honest: a folder the writer has since deleted, or
+    /// one whose project was moved out from under it, is not somewhere to offer
+    /// to go back to.
+    ///
+    /// Anything unreadable answers false rather than throwing. A recents list
+    /// that cannot be built is worse than one entry short.
+    /// </summary>
+    public async Task<bool> ProjectExistsAtAsync(string projectDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(projectDirectory)) return false;
+
+        try
+        {
+            var metadataPath = _fileService.CombinePath(projectDirectory, ".novalist", "project.json");
+            return await _fileService.ExistsAsync(metadataPath);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+            or ArgumentException or NotSupportedException)
+        {
+            return false;
+        }
+    }
+
     public async Task<ProjectMetadata> LoadProjectAsync(string projectDirectory)
     {
         var metadataPath = _fileService.CombinePath(projectDirectory, ".novalist", "project.json");
@@ -1803,10 +1831,19 @@ public partial class ProjectService : IProjectService
         }
     }
 
+    /// <summary>
+    /// A folder name for something the writer titled.
+    ///
+    /// Windows drops trailing dots and spaces from a name as it creates it, so a
+    /// chapter called "In The Beginning..." produced a folder called "In The
+    /// Beginning" while the project went on addressing it with the dots - and
+    /// the very next write failed with the folder reported missing. Trimming
+    /// them here means the name on disk is the name we recorded.
+    /// </summary>
     private static string SanitizeFileName(string name)
     {
         var invalid = Path.GetInvalidFileNameChars();
         var sanitized = new string(name.Where(c => !invalid.Contains(c)).ToArray());
-        return sanitized.Trim();
+        return sanitized.Trim().TrimEnd('.', ' ');
     }
 }

@@ -3880,8 +3880,11 @@
 }
 
 /* Manuscript import preview: what would be created, before anything is. */
+/* Takes the wide dialog width from `dialog-card-wide` on the element itself:
+   the mapping rows carry three things at once, and a binder title is often only
+   distinguishable by its tail - nine rows reading "Old Draft 9- Starte..." tell
+   you nothing. */
 .import-manuscript-dialog {
-  max-width: 620px;
   max-height: 80vh;
   overflow-y: auto;
 }
@@ -3891,6 +3894,9 @@
   margin: var(--nl-space-sm) 0;
   padding: 0;
   display: flex;
+  /* The dialog card is a flex column, so a scrolling child shrinks to nothing
+     unless it is told not to - which squashed both lists to two visible rows. */
+  flex: none;
   flex-direction: column;
   gap: var(--nl-space-tightest);
   max-height: 300px;
@@ -3912,6 +3918,59 @@
 .import-preview-scenes {
   font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
+}
+
+/* Where each binder folder goes. One row per thing the writer can redirect,
+   with the level below the top level indented under it. */
+.import-mapping-heading {
+  font-size: var(--nl-font-body);
+  color: var(--nl-text);
+  margin: var(--nl-space-md) 0 var(--nl-space-tightest);
+}
+
+.import-mapping {
+  list-style: none;
+  margin: var(--nl-space-sm) 0;
+  padding: 0;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  /* A binder is long - nine drafts is thirty rows - and this is the part of the
+     dialog being worked in, so it gets the room rather than the summary below. */
+  max-height: 45vh;
+  overflow-y: auto;
+}
+
+.import-mapping-row {
+  align-items: center;
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  display: grid;
+  gap: var(--nl-space-sm);
+  grid-template-columns: 1fr auto auto;
+  padding: var(--nl-space-sm);
+}
+
+/* Indented rather than nested in the markup: the list stays one flat column,
+   which is what keeps the dropdowns in a single readable line. */
+.import-mapping-row.nested {
+  margin-left: var(--nl-space-lg);
+}
+
+.import-mapping-title {
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-mapping-count {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  white-space: nowrap;
 }
 
 /* The stage dot sits before the scene title, small enough to read as a marker

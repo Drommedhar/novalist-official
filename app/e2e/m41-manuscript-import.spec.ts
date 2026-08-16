@@ -293,3 +293,110 @@ test('a real-derived Scrivener document keeps punctuation, formatting, lists and
 
   await app.close()
 })
+
+const OLD_DRAFTS_FIXTURE = join(
+  process.cwd(),
+  '..',
+  'tests',
+  'Fixtures',
+  'Scrivener',
+  'OldDrafts.scriv'
+)
+
+/**
+ * The bug the mapping exists for, driven through the dialog rather than the RPC.
+ *
+ * A writer about to start a fresh draft has an empty draft folder and nine
+ * finished drafts filed under "Old". Nothing in the binder says those are
+ * drafts, so the whole project arrived as research with no way to say otherwise.
+ * The backend being able to do better is not the fix - the writer being able to
+ * ask for it is, so this clicks the real dropdown in the real dialog.
+ */
+test('a binder whose drafts are only drafts by convention can be told so', async () => {
+  test.setTimeout(180_000)
+  const workDir = mkdtempSync(join(tmpdir(), 'nl-imp-map-'))
+  const root = join(workDir, 'OldDrafts.scriv')
+  cpSync(OLD_DRAFTS_FIXTURE, root, { recursive: true })
+
+  const { app, page } = await launch(workDir)
+  await newProject(page, workDir)
+
+  // The folder picker is the OS's, so it is answered for it in the main process
+  // - the renderer's bridge is frozen and cannot be stubbed from the page, and
+  // stubbing it there would skip the IPC this actually goes through. Everything
+  // after this point is the dialog doing its own work.
+  await app.evaluate(async ({ dialog }, picked: string) => {
+    dialog.showOpenDialog = () =>
+      Promise.resolve({ canceled: false, filePaths: [picked] }) as never
+  }, root)
+
+  await page.evaluate(() => window.novalistStores.shell.getState().openDialog('importManuscript'))
+  await page.locator('.import-manuscript-dialog').waitFor()
+  await page.getByRole('button', { name: /Scrivener project/ }).click()
+
+  const rows = page.locator('.import-mapping-row')
+  await expect(rows.first()).toBeVisible({ timeout: 30_000 })
+
+  // What the rules made of it, which is the bug stated on screen.
+  const old = page.getByRole('combobox', { name: 'Old', exact: true })
+  await expect(old).toHaveValue('research')
+  const draftSix = page.getByRole('combobox', { name: 'Old Draft 6- Started 10/30/2025?' })
+  await expect(draftSix).toHaveValue('research')
+
+  // Setting the folder sets everything in it, so a folder of nine drafts is
+  // one action rather than nine.
+  await old.selectOption('draft')
+  await expect(draftSix).toHaveValue('draft')
+  await expect(
+    page.getByRole('combobox', { name: 'Old Draft 1- Started 04/2021' })
+  ).toHaveValue('draft')
+
+  // And a row inside it can still be put somewhere else afterwards.
+  const oldNotes = page.getByRole('combobox', { name: 'Old Notes' })
+  await expect(oldNotes).toHaveValue('draft')
+  await oldNotes.selectOption('research')
+  await expect(draftSix).toHaveValue('draft')
+
+  // The plan below the rows follows the choices, before anything is written:
+  // every draft is named, including the four that never got chapter folders.
+  await expect(
+    page.getByText('New draft: Old Draft 6- Started 10/30/2025?')
+  ).toBeVisible({ timeout: 15_000 })
+  await expect(
+    page.getByText('New draft: Old Draft 9- Started 6/13/2026')
+  ).toBeVisible()
+
+  await page.getByRole('button', { name: 'Import', exact: true }).click()
+  await expect(page.getByText(/Created 10 drafts/)).toBeVisible({ timeout: 120_000 })
+
+  const drafts = (await page.evaluate(() =>
+    window.novalistRpc.request('project/drafts')
+  )) as { id: string; name: string; isActive: boolean }[]
+
+  const imported = drafts.find((d) => d.name === 'Old Draft 6- Started 10/30/2025?')
+  expect(imported).toBeTruthy()
+  // The writer stayed on the draft they were about to start.
+  expect(imported!.isActive).toBe(false)
+  // All nine drafts, plus "Deleted Scenes" which came along with the folder and
+  // was not put back - the cascade is a starting point, not a decision.
+  expect(drafts.filter((d) => d.name.startsWith('Old Draft ')).length).toBe(9)
+
+  const chapters = (await page.evaluate(async (draftId: string) => {
+    await window.novalistRpc.request('project/switchDraft', [draftId])
+    const state = (await window.novalistRpc.request('project/getState')) as {
+      chapters: { title: string; scenes: unknown[] }[]
+    }
+    return state.chapters.map((c) => c.title)
+  }, imported!.id)) as string[]
+
+  expect(chapters).toEqual([
+    'In The Beginning...',
+    'Chapter 1: Signal',
+    'Chapter 2: Hunt',
+    'Chapter 3: Recruit',
+    'Chapter 4: Ambush',
+    'Chapter 5: Contact'
+  ])
+
+  await app.close()
+})

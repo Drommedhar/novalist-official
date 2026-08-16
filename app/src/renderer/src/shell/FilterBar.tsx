@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronRight, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
-import { useProjectStore } from '../stores/projectStore'
+import { useBookScope, useProjectStore } from '../stores/projectStore'
 import { useStageStore } from '../stores/stageStore'
 import { useIsPhone } from './useIsPhone'
 import {
@@ -30,6 +30,7 @@ export function FilterBar(): React.JSX.Element {
   const filter = useFilterStore((s) => s.filter)
   const presets = useFilterStore((s) => s.presets)
   const projectPath = useProjectStore((s) => s.projectPath)
+  const bookScope = useBookScope()
   const stages = useStageStore((s) => s.stages)
   const isPhone = useIsPhone()
   /** Phone only: whether the bar is unfolded. */
@@ -62,7 +63,9 @@ export function FilterBar(): React.JSX.Element {
       .request<Named[]>('binder/plotlines')
       .then(setPlotlines)
       .catch(() => setPlotlines([]))
-  }, [projectPath])
+    // Characters, places, stages and plotlines are all the active book's, so
+    // this follows the book rather than only the project.
+  }, [bookScope])
 
   const set = (patch: Partial<ProjectFilter>): void => useFilterStore.getState().set(patch)
 

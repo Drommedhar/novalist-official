@@ -2651,7 +2651,28 @@
     "extrasSummary": "Also found: {{characters}} characters, {{locations}} places and {{research}} research items.",
     "doneExtras": "Added {{characters}} characters, {{locations}} places and {{research}} research items.",
     "chooseScrivener": "Choose a Scrivener project...",
-    "losses": "Not brought across: {{items}}. Novalist has no equivalent for these, so they stay in Scrivener."
+    "losses": "Not brought across: {{items}}. Novalist has no equivalent for these, so they stay in Scrivener.",
+    "mappingTitle": "Where each folder goes",
+    "mappingHint": "Novalist has read the binder and filled this in. Scrivener marks only the draft, the trash and its template sheets, so everything else is a guess at how you work. Change any row that is wrong before importing.",
+    "mappingDocuments": "{{count}} document",
+    "untitledRow": "Untitled",
+    "destination": {
+      "manuscript": "Manuscript",
+      "draft": "New draft",
+      "book": "New book",
+      "characters": "Codex: characters",
+      "places": "Codex: places",
+      "research": "Research",
+      "skip": "Do not import"
+    },
+    "targetManuscript": "This book",
+    "target": {
+      "draft": "New draft: {{name}}",
+      "book": "New book: {{name}}"
+    },
+    "targetSummary": "{{chapters}} chapters, {{scenes}} scenes, {{words}} words",
+    "doneTargets": "Created {{drafts}} drafts and {{books}} books.",
+    "mappingDocuments_other": "{{count}} documents"
   },
   "match": {
     "title": "How this name is detected in prose",

@@ -141,7 +141,7 @@ The panel toggles, the pane split and close buttons, the layouts dropdown and th
 
 There is no separate start screen. With nothing open, the window is the same window — same menu bar, same rail, same toolbar — and the main area holds the welcome content: **New Project**, **Browse for Project Folder**, **Import from Obsidian Plugin**, links to Settings and the manual, your recent projects with their covers, and the scratchpad. Anything that needs a project is visibly disabled rather than missing.
 
-Recent projects are also in **File → Recent Projects**, which is where a reader of any other application would look for them.
+Recent projects are also in **File → Recent Projects**, which is where a reader of any other application would look for them. Both lists show only projects that are still on disk: one you have deleted or moved is dropped rather than offered.
 
 ## The binder
 

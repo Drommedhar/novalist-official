@@ -326,12 +326,35 @@ public sealed partial class Workspace : IDisposable
             .ToArray();
     }
 
+    /// <summary>
+    /// The projects worth offering to reopen.
+    ///
+    /// An entry whose folder is no longer a project is dropped from the list and
+    /// from the stored settings as it is found, rather than being offered and
+    /// failing when it is clicked. The list is a set of ways back into work, and
+    /// a row that cannot be opened is not one of those - it is a dead end the
+    /// writer has to learn to skip past.
+    /// </summary>
     public async Task<RecentProjectDto[]> GetRecentProjectsAsync()
     {
         await Settings.LoadAsync();
         var results = new List<RecentProjectDto>();
-        foreach (var r in Settings.Settings.RecentProjects)
+        var dropped = false;
+
+        // Over a copy: the loop removes from the list it is walking.
+        foreach (var r in Settings.Settings.RecentProjects.ToList())
+        {
+            if (!await Projects.ProjectExistsAtAsync(r.Path))
+            {
+                Settings.RemoveRecentProject(r.Path);
+                dropped = true;
+                continue;
+            }
+
             results.Add(new RecentProjectDto(r.Name, r.Path, await LoadCoverDataUriAsync(r.CoverImagePath)));
+        }
+
+        if (dropped) await Settings.SaveAsync();
         return results.ToArray();
     }
 

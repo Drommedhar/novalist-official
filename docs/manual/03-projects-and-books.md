@@ -173,6 +173,8 @@ Each book has its own drafts, shown in the **draft selector** in the toolbar (ne
 
 Entities, images, plotlines, and templates are per-book, not per-draft — all drafts of a book share them.
 
+Drafts can also arrive from elsewhere: importing a Scrivener project lets you send each binder folder to a draft of its own, so years of old drafts kept in one folder become drafts here rather than a pile of research. See [Importing a manuscript](38-manuscript-import.md).
+
 ### Comparing two drafts
 
 Cloning a draft before a rewrite is easy. Seeing what the rewrite actually changed is the other half, and that is what the **compare-drafts** button next to the draft selector is for. It needs at least two drafts.

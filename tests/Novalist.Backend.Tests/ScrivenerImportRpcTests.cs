@@ -30,7 +30,14 @@ public sealed class ScrivenerImportRpcTests : IDisposable
         _workspace.Projects.CreateProjectAsync(_root, "ScrivNovel", "Book").GetAwaiter().GetResult();
         _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!).GetAwaiter().GetResult();
         _rpc = new ManuscriptImportRpc(_workspace);
+        // Where the writer was when they started the import, which is where an
+        // import that creates drafts and books has to leave them.
+        _originalBookId = _workspace.Projects.ActiveBook!.Id;
+        _originalDraftId = _workspace.Projects.ActiveBook!.ActiveDraftId;
     }
+
+    private readonly string _originalBookId;
+    private readonly string? _originalDraftId;
 
     public void Dispose()
     {
@@ -581,5 +588,275 @@ public sealed class ScrivenerImportRpcTests : IDisposable
         await host.WriteSceneContentAsync(chapterGuid, "no-such-scene", "<p>x</p>");
 
         Assert.Empty(_workspace.Projects.GetScenesForChapter(chapterGuid));
+    }
+
+    // ── Sending binder rows where the writer wants them ──
+
+    private string OldDrafts() => ScrivenerProjectBuilder.CopyOldDraftsFixture(_root);
+
+    private static ImportMappingDto[] Map(params (string Key, string Destination)[] rows)
+        => [.. rows.Select(r => new ImportMappingDto(r.Key, r.Destination))];
+
+    [Fact]
+    public void ThePreviewNamesEveryRowTheWriterCanRedirectAndWhereItIsHeaded()
+    {
+        var plan = _rpc.Preview(OldDrafts());
+
+        var old = Assert.Single(plan.Mapping, r => r.Key == "OLD");
+        Assert.Equal("Old", old.Title);
+        Assert.Equal(0, old.Depth);
+        Assert.Equal("research", old.Destination);
+        Assert.True(old.HasChildren);
+
+        Assert.Equal("manuscript", Assert.Single(plan.Mapping, r => r.Key == "DRAFT").Destination);
+        Assert.Equal("characters", Assert.Single(plan.Mapping, r => r.Key == "CHARACTERS").Destination);
+        Assert.Equal("skip", Assert.Single(plan.Mapping, r => r.Key == "TRASH").Destination);
+        Assert.Equal(1, Assert.Single(plan.Mapping, r => r.Key == "D6").Depth);
+    }
+
+    [Fact]
+    public void ThePreviewFollowsTheWritersChoicesRatherThanTheRules()
+    {
+        var project = OldDrafts();
+
+        Assert.Equal(0, _rpc.Preview(project).SceneCount);
+
+        var plan = _rpc.Preview(project, Map(("D6", "draft"), ("D5", "draft")));
+
+        Assert.Equal(14, plan.SceneCount);
+        Assert.Equal("draft", Assert.Single(plan.Mapping, r => r.Key == "D6").Destination);
+
+        var targets = plan.Targets;
+        Assert.Equal(2, targets.Length);
+        Assert.All(targets, t => Assert.Equal("draft", t.Kind));
+        Assert.Equal("Old Draft 6- Started 10/30/2025?", targets[0].Title);
+        Assert.Equal(6, targets[0].ChapterCount);
+        Assert.Equal(12, targets[0].SceneCount);
+        Assert.True(targets[0].WordCount > 0);
+
+        // Still a preview: nothing was created.
+        Assert.Empty(_workspace.Projects.GetChaptersOrdered());
+        Assert.Single(Book.Drafts);
+    }
+
+    [Fact]
+    public void ADestinationTheBackendDoesNotKnowIsIgnoredRatherThanFatal()
+    {
+        var project = OldDrafts();
+
+        var plan = _rpc.Preview(project, Map(("D6", "somewhere-else"), ("", "draft")));
+
+        Assert.Equal(_rpc.Preview(project).SceneCount, plan.SceneCount);
+        Assert.Equal("research", Assert.Single(plan.Mapping, r => r.Key == "D6").Destination);
+    }
+
+    [Fact]
+    public void EveryDestinationTheDialogOffersIsUnderstoodAndReportedBack()
+    {
+        var plan = _rpc.Preview(OldDrafts(), Map(
+            ("D6", "book"),
+            ("D5", "manuscript"),
+            ("D4", "draft"),
+            ("WORLDBUILDING", "places"),
+            ("IDEAS", "characters"),
+            ("CHARACTERS", "research"),
+            ("NOTES", "skip")));
+
+        string Chosen(string key) => Assert.Single(plan.Mapping, r => r.Key == key).Destination;
+
+        Assert.Equal("book", Chosen("D6"));
+        Assert.Equal("manuscript", Chosen("D5"));
+        Assert.Equal("draft", Chosen("D4"));
+        Assert.Equal("places", Chosen("WORLDBUILDING"));
+        Assert.Equal("characters", Chosen("IDEAS"));
+        Assert.Equal("research", Chosen("CHARACTERS"));
+        Assert.Equal("skip", Chosen("NOTES"));
+
+        Assert.Equal(1, plan.LocationCount);
+        Assert.Equal(1, plan.CharacterCount);
+        Assert.Contains("Notes", plan.Losses);
+
+        // The three manuscript destinations are three separate targets, named
+        // by kind so the dialog can say what each one is.
+        Assert.Equal(
+            new[] { "book", "manuscript", "draft" },
+            plan.Targets.Select(t => t.Kind).ToArray());
+    }
+
+    [Fact]
+    public void TheSingleFileFormatsHaveNoBinderToArrange()
+    {
+        var file = Path.Combine(_root, "book.md");
+        File.WriteAllText(file, "# One\n\nSome prose.\n");
+
+        var plan = _rpc.Preview(file);
+
+        Assert.Empty(plan.Mapping);
+        Assert.Empty(plan.Targets);
+    }
+
+    [Fact]
+    public async Task NineOldDraftsBecomeNineDraftsOfTheBookAndTheWriterStaysWhereTheyWere()
+    {
+        var project = OldDrafts();
+        var mapping = Map(
+            ("D9", "draft"), ("D8", "draft"), ("D7", "draft"), ("D6", "draft"), ("D5", "draft"),
+            ("D4", "draft"), ("D3", "draft"), ("D2", "draft"), ("D1", "draft"));
+
+        var result = await _rpc.RunAsync(project, mapping);
+
+        Assert.Equal(9, result.Drafts);
+        Assert.Equal(0, result.Books);
+        Assert.Equal(10, Book.Drafts.Count);
+        Assert.Contains(Book.Drafts, d => d.Name == "Old Draft 6- Started 10/30/2025?");
+
+        // The draft that was active before the import is still the active one,
+        // and it is still empty - the writer was about to start it.
+        Assert.Equal(_originalDraftId, Book.ActiveDraftId);
+        Assert.Empty(_workspace.Projects.GetChaptersOrdered());
+    }
+
+    [Fact]
+    public async Task AnImportedDraftHoldsItsOwnChaptersAndScenesAndNobodyElsesDoc()
+    {
+        await _rpc.RunAsync(OldDrafts(), Map(("D6", "draft"), ("D5", "draft")));
+
+        var six = Assert.Single(Book.Drafts, d => d.Name == "Old Draft 6- Started 10/30/2025?");
+        await _workspace.Projects.SwitchDraftAsync(six.Id);
+
+        var chapters = _workspace.Projects.GetChaptersOrdered();
+        Assert.Equal(6, chapters.Count);
+        Assert.Equal("In The Beginning...", chapters[0].Title);
+        Assert.Equal("Chapter 5: Contact", chapters[5].Title);
+        Assert.Equal(4, ScenesOf(chapters[5]).Count);
+        Assert.Equal(
+            "Ziusudra sends distress signal", ScenesOf(chapters[0]).Single().Title);
+
+        var five = Assert.Single(Book.Drafts, d => d.Name == "Old Draft 5- Started 10/30/2025?");
+        await _workspace.Projects.SwitchDraftAsync(five.Id);
+        Assert.Equal(2, _workspace.Projects.GetChaptersOrdered().Count);
+    }
+
+    [Fact]
+    public async Task ADraftOfLooseDocumentsArrivesWithItsDocumentsRatherThanEmpty()
+    {
+        // Four of the nine drafts never got chapter folders. Every one of their
+        // documents went missing: they shared a single "Imported" chapter with
+        // whichever loose draft was read first, so three drafts were created
+        // with nothing in them at all.
+        var loose = new[] { "D9", "D7", "D3", "D1" };
+        await _rpc.RunAsync(OldDrafts(), Map([.. loose.Select(k => (k, "draft"))]));
+
+        var names = new[]
+        {
+            "Old Draft 9- Started 6/13/2026",
+            "Old Draft 7- Started 3/26/2026?",
+            "Old Draft 3- Started 10/11/2024",
+            "Old Draft 1- Started 04/2021"
+        };
+
+        foreach (var name in names)
+        {
+            var draft = Assert.Single(Book.Drafts, d => d.Name == name);
+            await _workspace.Projects.SwitchDraftAsync(draft.Id);
+
+            var chapter = Assert.Single(_workspace.Projects.GetChaptersOrdered());
+            Assert.Equal(ScrivenerReader.DefaultChapterTitle, chapter.Title);
+            Assert.Equal(
+                new[] { "Opening", "The signal arrives", "They argue about it" },
+                ScenesOf(chapter).Select(s => s.Title).ToArray());
+        }
+    }
+
+    [Fact]
+    public async Task LooseAndFoldereDraftsImportedTogetherDoNotBorrowEachOthersScenes()
+    {
+        await _rpc.RunAsync(OldDrafts(), Map(
+            ("D9", "draft"), ("D8", "draft"), ("D7", "draft"), ("D6", "draft")));
+
+        async Task<int> ScenesIn(string name)
+        {
+            var draft = Assert.Single(Book.Drafts, d => d.Name == name);
+            await _workspace.Projects.SwitchDraftAsync(draft.Id);
+            return _workspace.Projects.GetChaptersOrdered().Sum(c => ScenesOf(c).Count);
+        }
+
+        Assert.Equal(3, await ScenesIn("Old Draft 9- Started 6/13/2026"));
+        Assert.Equal(2, await ScenesIn("Old Draft 8- Started 3/26/2026?"));
+        Assert.Equal(3, await ScenesIn("Old Draft 7- Started 3/26/2026?"));
+        Assert.Equal(12, await ScenesIn("Old Draft 6- Started 10/30/2025?"));
+    }
+
+    [Fact]
+    public async Task AFolderSentToABookOfItsOwnBecomesOneAndLeavesTheOpenBookAlone()
+    {
+        var result = await _rpc.RunAsync(OldDrafts(), Map(("D2", "book")));
+
+        Assert.Equal(1, result.Books);
+        Assert.Equal(0, result.Drafts);
+
+        var books = _workspace.Projects.CurrentProject!.Books;
+        Assert.Equal(2, books.Count);
+        Assert.Equal(_originalBookId, Book.Id);
+        Assert.Empty(_workspace.Projects.GetChaptersOrdered());
+
+        var created = Assert.Single(books, b => b.Name == "Old Draft 2- Started 8/12/2021");
+        await _workspace.Projects.SwitchBookAsync(created.Id);
+        Assert.Equal(2, _workspace.Projects.GetChaptersOrdered().Count);
+    }
+
+    [Fact]
+    public async Task TheCodexAndResearchLandInTheBookTheWriterHadOpen()
+    {
+        var result = await _rpc.RunAsync(OldDrafts(), Map(("D6", "draft"), ("D1", "book")));
+
+        Assert.Equal(_originalBookId, Book.Id);
+        Assert.Equal(3, result.Characters);
+
+        var entities = new EntityService(_workspace.Projects);
+        Assert.Contains(await entities.LoadCharactersAsync(), c => c.Name == "Prax");
+
+        // Everything that was left as research is still research, and it did not
+        // follow the new book.
+        Assert.True(result.Research > 0);
+        var research = new ResearchService(_workspace.Projects, _workspace.FileService);
+        Assert.Contains(research.GetAll(), r => r.Title == "Orbital mechanics");
+    }
+
+    [Fact]
+    public async Task AnImportWithNoMappingStillDoesExactlyWhatItUsedTo()
+    {
+        var result = await _rpc.RunAsync(OldDrafts());
+
+        Assert.Equal(0, result.Drafts);
+        Assert.Equal(0, result.Books);
+        Assert.Equal(0, result.Chapters);
+        Assert.Single(Book.Drafts);
+        // Which is the bug: the whole binder arrives as research notes.
+        Assert.True(result.Research > 10);
+    }
+
+    [Fact]
+    public async Task AnUntitledFolderSentToADraftIsStillGivenAName()
+    {
+        var project = Path.Combine(_root, "Untitled.scriv");
+        Directory.CreateDirectory(project);
+        Directory.CreateDirectory(Path.Combine(project, "Files", "Data", "U1"));
+        File.WriteAllText(
+            Path.Combine(project, "Files", "Data", "U1", "content.rtf"),
+            ScrivenerProjectBuilder.Rtf("Prose."));
+        File.WriteAllText(Path.Combine(project, "Untitled.scrivx"),
+            """
+            <?xml version="1.0"?><ScrivenerProject><Binder>
+              <BinderItem UUID="D" Type="DraftFolder"><Title>Manuscript</Title></BinderItem>
+              <BinderItem UUID="BLANK" Type="Folder"><Title></Title><Children>
+                <BinderItem UUID="U1" Type="Text"><Title>Prose</Title></BinderItem>
+              </Children></BinderItem>
+            </Binder></ScrivenerProject>
+            """);
+
+        await _rpc.RunAsync(project, Map(("BLANK", "draft")));
+
+        Assert.Contains(Book.Drafts, d => d.Name == "Draft");
     }
 }

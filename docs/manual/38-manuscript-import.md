@@ -41,15 +41,45 @@ A Scrivener project is a folder rather than a file, so it has its own button: **
 
 Novalist takes the binder at its word rather than guessing from headings — the binder already says where the chapters are. It reads what each part of the binder *is* from Scrivener's own markers rather than from folder titles, so a project in German, or one where you renamed the draft folder, imports the same as any other.
 
+### Where each folder goes
+
+Scrivener marks only three things: the draft folder, the trash, and its template sheets. Everything else in the binder is your own arrangement, and no set of rules reads that reliably. A project whose draft folder is empty because you were about to start a fresh draft, with nine finished drafts filed under a folder called "Old", is an ordinary way to work — and read by rules alone it is a project with no manuscript and a great deal of research.
+
+So the rules produce a starting point and you correct it. Choosing a Scrivener project shows **Where each folder goes**: one row per binder folder, already filled in with what Novalist made of it, and a menu on each row to say otherwise.
+
+| Destination | What the folder becomes |
+| --- | --- |
+| **Manuscript** | Chapters and scenes of the book you are importing into. |
+| **New draft** | A [draft](03-projects-and-books.md) of that book, named after the folder. Its own folders become that draft's chapters. |
+| **New book** | A new book in the project, named after the folder. |
+| **Codex: characters** | [Codex](06-codex.md) entries, as characters. |
+| **Codex: places** | Codex entries, as places. |
+| **Research** | [Research](15-research.md) items, with the folder title as a tag. |
+| **Do not import** | Left in Scrivener, and named in "Not brought across" before you commit. |
+
+The rows are the **top level of the binder and the level below it**. That is enough to separate nine drafts filed inside one folder — "Old" is one row and each draft inside it is a row of its own — and stopping there keeps the part, chapter and scene shape *inside* a draft the binder's business rather than a wall of menus.
+
+**Setting a folder sets everything inside it.** Point "Old" at **New draft** and each of the nine drafts inside it becomes a draft of its own, in one action rather than nine. Every row inside can still be changed afterwards, so putting the "Old Notes" folder back to **Research** leaves the nine drafts alone. The folder is a starting point for what is inside it, not a decision about it.
+
+Changing a row re-reads the project and updates the plan underneath, so the counts, the chapter list and the drafts and books that would be created always describe the choices currently on screen. Nothing is written until you press **Import**.
+
+**What you say wins.** A folder of character sketches sent to Research arrives as research notes, icons and all — otherwise the choice would be a suggestion. Left alone, those same sketches still become Codex entries.
+
+A folder sent to **Manuscript** keeps its own name as the act above its chapters, so merging an old draft into a book that already has chapters does not scatter them among the ones already there.
+
+If the rules already read your project correctly, change nothing and press **Import**: it behaves exactly as it always has.
+
 ### The draft
 
-Only the **Draft** folder becomes manuscript, whatever it is called in your project.
+Left alone, only the **Draft** folder becomes manuscript, whatever it is called in your project.
 
 - A folder holding other folders is a **part**, and becomes an act.
 - A folder holding documents is a **chapter**.
 - The documents inside it become **scenes**, in binder order.
 - Anything nested deeper than a chapter is flattened into it, so nesting is lost rather than text.
 - A document sitting directly in the draft with no folder around it lands in a chapter called "Imported".
+
+A draft that never got chapter folders — just a run of documents, which is how a draft often looks before it has been organised — comes across as one chapter called "Imported" holding those documents as its scenes. This applies to each draft or book separately, so several such drafts imported together each keep their own.
 
 Two chapters with the same name stay two chapters. Scrivener's own novel template names every part "Part" and every chapter "Chapter", and they are kept apart by identity rather than by title.
 
@@ -80,7 +110,7 @@ Scrivener's blank **template sheets** are deliberately not imported. They would 
 
 ### Research
 
-Everything else in the binder that carried content becomes a **research item**: notes keep their prose, and PDFs, pictures, recordings, video and other imported files are **copied into your project** so it stays portable and the Scrivener project can be deleted afterwards. The folder each item sat in comes across as a tag.
+Everything else in the binder that carried content becomes a **research item** unless you sent it somewhere else: notes keep their prose, and PDFs, pictures, recordings, video and other imported files are **copied into your project** so it stays portable and the Scrivener project can be deleted afterwards. The folder each item sat in comes across as a tag.
 
 A research note keeps its formatting as Markdown, so headings, emphasis and lists in a set of notes survive as headings, emphasis and lists rather than flattening into one block of text.
 
@@ -113,11 +143,15 @@ Chapters and scenes with nothing to name them get numbered.
 
 Choosing a file **reads it without writing anything**. You get the format Novalist recognised, how many chapters, scenes and words it found, and the chapter list with per-chapter counts. For a Scrivener project it also names the acts the chapters will land in, and counts the characters, places and research items that will be created.
 
+When an import would create drafts or books, each is listed by name with what it would hold, so nine drafts are nine lines rather than one total to divide by nine.
+
 Nothing touches your project until you press **Import**. If the split is wrong — the wrong heading level, a manuscript with no structure at all — close the dialog and nothing has happened.
 
 ## What import does to your project
 
 Chapters are **added to the end of the book**. Nothing already in the project is changed or replaced.
+
+Drafts and books an import creates are added beside what you already have, and the import leaves you on the book and draft you started from — importing nine old drafts does not move you off the one you were about to write.
 
 That means running an import twice gives you the book twice rather than destroying anything. If that happens, delete the duplicate chapters — recoverable, which replacing would not have been.
 

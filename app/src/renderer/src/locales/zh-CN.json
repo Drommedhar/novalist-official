@@ -2693,7 +2693,28 @@
     "extrasSummary": "还找到：{{characters}} 个角色、{{locations}} 个地点和 {{research}} 条资料。",
     "doneExtras": "已添加 {{characters}} 个角色、{{locations}} 个地点和 {{research}} 条资料。",
     "chooseScrivener": "选择 Scrivener 项目...",
-    "losses": "不会导入：{{items}}。Novalist 没有对应的位置，它们会留在 Scrivener 中。"
+    "losses": "不会导入：{{items}}。Novalist 没有对应的位置，它们会留在 Scrivener 中。",
+    "mappingTitle": "每个文件夹的去向",
+    "mappingHint": "Novalist 已读取项目结构并预先填写。Scrivener 只标记稿件、回收站和模板页，其余都只是对您写作方式的推测。导入前请修正任何有误的行。",
+    "mappingDocuments": "{{count}} 个文档",
+    "untitledRow": "未命名",
+    "destination": {
+      "manuscript": "稿件",
+      "draft": "新草稿",
+      "book": "新书",
+      "characters": "设定集：人物",
+      "places": "设定集：地点",
+      "research": "资料",
+      "skip": "不导入"
+    },
+    "targetManuscript": "本书",
+    "target": {
+      "draft": "新草稿：{{name}}",
+      "book": "新书：{{name}}"
+    },
+    "targetSummary": "{{chapters}} 章，{{scenes}} 个场景，{{words}} 字",
+    "doneTargets": "已创建 {{drafts}} 个草稿和 {{books}} 本书。",
+    "mappingDocuments_other": "{{count}} 个文档"
   },
   "match": {
     "title": "该名称在正文中的识别方式",

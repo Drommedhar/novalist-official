@@ -30,28 +30,111 @@ public sealed class ManuscriptImportRpc
     /// anything, so it is safe to run on the wrong file.
     /// </summary>
     [JsonRpcMethod("manuscriptImport/preview")]
-    public ImportPlanDto Preview(string path)
+    public ImportPlanDto Preview(string path, ImportMappingDto[]? mapping = null)
     {
         // A Scrivener project is a folder rather than a file, and its binder
         // already says where the chapters are - so it never goes through the
         // heading-guessing splitter.
         if (ScrivenerReader.LooksLikeScrivener(path))
-            return ScrivenerPlan(ScrivenerReader.Read(path));
+        {
+            var chosen = MappingFrom(mapping);
+            return ScrivenerPlan(
+                ScrivenerReader.Read(path, chosen),
+                // The rows are what the rules found, so the dialog can offer the
+                // writer's choice over the top of them without a second read of
+                // the binder deciding something different.
+                ScrivenerReader.Outline(path),
+                chosen);
+        }
 
         return ToDto(ManuscriptSplitter.Split(ManuscriptReader.Read(path)));
     }
+
+    /// <summary>The writer's choices, by binder key. Null when they have made
+    /// none, which is what leaves the rules in charge.</summary>
+    private static Dictionary<string, ScrivenerDestination>? MappingFrom(ImportMappingDto[]? mapping)
+    {
+        if (mapping == null || mapping.Length == 0) return null;
+
+        var chosen = new Dictionary<string, ScrivenerDestination>(StringComparer.Ordinal);
+        foreach (var row in mapping)
+        {
+            if (string.IsNullOrWhiteSpace(row.Key)) continue;
+            if (DestinationFrom(row.Destination) is { } destination) chosen[row.Key] = destination;
+        }
+
+        return chosen.Count > 0 ? chosen : null;
+    }
+
+    /// <summary>A destination name from the dialog. Unknown names are ignored
+    /// rather than throwing, so a stale renderer degrades to the rules.</summary>
+    private static ScrivenerDestination? DestinationFrom(string name)
+        => name?.Trim().ToLowerInvariant() switch
+        {
+            "manuscript" => ScrivenerDestination.Manuscript,
+            "draft" => ScrivenerDestination.Draft,
+            "book" => ScrivenerDestination.Book,
+            "characters" => ScrivenerDestination.Characters,
+            "places" => ScrivenerDestination.Places,
+            "research" => ScrivenerDestination.Research,
+            "skip" => ScrivenerDestination.Skip,
+            _ => null
+        };
+
+    private static string NameOf(ScrivenerDestination destination)
+        => destination switch
+        {
+            ScrivenerDestination.Manuscript => "manuscript",
+            ScrivenerDestination.Draft => "draft",
+            ScrivenerDestination.Book => "book",
+            ScrivenerDestination.Characters => "characters",
+            ScrivenerDestination.Places => "places",
+            ScrivenerDestination.Skip => "skip",
+            _ => "research"
+        };
 
     /// <summary>
     /// The Scrivener binder as parts, chapters and scenes, plus the Codex
     /// entries and research it will create and what it will leave behind.
     /// </summary>
-    private static ImportPlanDto ScrivenerPlan(ScrivenerProject project)
+    private static ImportPlanDto ScrivenerPlan(
+        ScrivenerProject project,
+        IReadOnlyList<ScrivenerBinderRow> outline,
+        IReadOnlyDictionary<string, ScrivenerDestination>? chosen)
     {
         var chapters = GroupChapters(project)
             .Select(g => new ImportChapterDto(
                 g.Title,
                 g.PartTitle,
                 [.. g.Scenes.Select(sc => new ImportSceneDto(sc.Title, WordsIn(sc.Text)))]))
+            .ToArray();
+
+        var targets = GroupTargets(project)
+            .Select(t => new ImportTargetDto(
+                t.Kind switch
+                {
+                    ScrivenerTargetKind.Draft => "draft",
+                    ScrivenerTargetKind.Book => "book",
+                    _ => "manuscript"
+                },
+                t.Title,
+                t.Chapters.Count,
+                t.Chapters.Sum(c => c.Scenes.Count),
+                t.Chapters.Sum(c => c.Scenes.Sum(sc => WordsIn(sc.Text)))))
+            .ToArray();
+
+        // The rows carry where the import is actually going to send them, so the
+        // dialog never has to reconcile two ideas of the same row.
+        var rows = outline
+            .Select(r => new ImportMappingRowDto(
+                r.Key,
+                r.Title,
+                r.Depth,
+                NameOf(chosen != null && chosen.TryGetValue(r.Key, out var pick)
+                    ? pick
+                    : r.Destination),
+                r.Documents,
+                r.HasChildren))
             .ToArray();
 
         return new ImportPlanDto(
@@ -64,7 +147,9 @@ public sealed class ManuscriptImportRpc
             chapters.Select(c => c.PartTitle).Where(p => p.Length > 0).Distinct(StringComparer.Ordinal).Count(),
             project.Entities.Count(e => e.Kind == ScrivenerEntityKind.Character),
             project.Entities.Count(e => e.Kind == ScrivenerEntityKind.Location),
-            project.Research.Count);
+            project.Research.Count,
+            rows,
+            targets);
     }
 
     /// <summary>
@@ -76,30 +161,62 @@ public sealed class ManuscriptImportRpc
     /// title turned a four-chapter book into one chapter of four scenes.
     /// </summary>
     private static List<ScrivenerChapterGroup> GroupChapters(ScrivenerProject project)
+        => [.. GroupTargets(project).SelectMany(t => t.Chapters)];
+
+    /// <summary>
+    /// The draft's documents grouped by the book or draft they were sent to, and
+    /// by their chapter folder inside it.
+    ///
+    /// One pass rather than two so binder order survives both groupings: the
+    /// targets come out in the order their folders appear in the binder, and so
+    /// do the chapters within each.
+    /// </summary>
+    private static List<ScrivenerTargetGroup> GroupTargets(ScrivenerProject project)
     {
         var order = new List<string>();
-        var byKey = new Dictionary<string, ScrivenerChapterGroup>(StringComparer.Ordinal);
+        var targets = new Dictionary<string, ScrivenerTargetGroup>(StringComparer.Ordinal);
+        var chapters = new Dictionary<string, ScrivenerChapterGroup>(StringComparer.Ordinal);
 
         foreach (var scene in project.Scenes)
         {
-            if (!byKey.TryGetValue(scene.ChapterKey, out var group))
+            var targetKey = $"{scene.TargetKind}|{scene.TargetKey}";
+            if (!targets.TryGetValue(targetKey, out var target))
             {
-                group = new ScrivenerChapterGroup(
-                    scene.ChapterKey, scene.ChapterTitle, scene.PartKey, scene.PartTitle);
-                byKey[scene.ChapterKey] = group;
-                order.Add(scene.ChapterKey);
+                target = new ScrivenerTargetGroup(scene.TargetKind, scene.TargetKey, scene.TargetTitle);
+                targets[targetKey] = target;
+                order.Add(targetKey);
             }
 
-            group.Scenes.Add(scene);
+            // Scoped by target as well as by chapter. Chapter keys are binder
+            // identities and so belong to one target - except the chapter loose
+            // documents land in, which is not a binder item at all. Keyed on the
+            // chapter alone, every draft that held loose documents shared one
+            // chapter with the first draft that had any, and was created empty.
+            var chapterKey = $"{targetKey}|{scene.ChapterKey}";
+            if (!chapters.TryGetValue(chapterKey, out var chapter))
+            {
+                chapter = new ScrivenerChapterGroup(
+                    scene.ChapterKey, scene.ChapterTitle, scene.PartKey, scene.PartTitle);
+                chapters[chapterKey] = chapter;
+                target.Chapters.Add(chapter);
+            }
+
+            chapter.Scenes.Add(scene);
         }
 
-        return [.. order.Select(k => byKey[k])];
+        return [.. order.Select(k => targets[k])];
     }
 
     private sealed record ScrivenerChapterGroup(
         string Key, string Title, string PartKey, string PartTitle)
     {
         public List<ScrivenerScene> Scenes { get; } = [];
+    }
+
+    private sealed record ScrivenerTargetGroup(
+        ScrivenerTargetKind Kind, string Key, string Title)
+    {
+        public List<ScrivenerChapterGroup> Chapters { get; } = [];
     }
 
     private static int WordsIn(string text) => Workspace.CountWords(text);
@@ -110,13 +227,13 @@ public sealed class ManuscriptImportRpc
     /// book, so running it twice duplicates rather than destroys.
     /// </summary>
     [JsonRpcMethod("manuscriptImport/run")]
-    public async Task<ImportResultDto> RunAsync(string path)
+    public async Task<ImportResultDto> RunAsync(string path, ImportMappingDto[]? mapping = null)
     {
         if (_workspace.Projects.ActiveBook == null)
             throw new InvalidOperationException("No project open.");
 
         if (ScrivenerReader.LooksLikeScrivener(path))
-            return await RunScrivenerAsync(ScrivenerReader.Read(path));
+            return await RunScrivenerAsync(ScrivenerReader.Read(path, MappingFrom(mapping)));
 
         var plan = ManuscriptSplitter.Split(ManuscriptReader.Read(path));
         if (plan.IsEmpty)
@@ -156,13 +273,86 @@ public sealed class ManuscriptImportRpc
     {
         if (project.IsEmpty) return new ImportResultDto(0, 0, 0, 0, 0, 0);
 
-        var book = _workspace.Projects.ActiveBook!;
+        var projects = _workspace.Projects;
+        // Where to come back to. A folder sent to a draft or a book of its own is
+        // filled by going there and returning, because chapters are only ever
+        // created in whatever is active - so leaving the writer somewhere they
+        // did not ask to be is the one thing this must not do.
+        var homeBookId = projects.ActiveBook!.Id;
+        var homeDraftId = projects.ActiveBook!.ActiveDraftId;
+
         var chapters = 0;
         var scenes = 0;
         var words = 0;
-        var fieldKeys = DeclareCustomFields(book, project);
+        var draftsCreated = 0;
+        var booksCreated = 0;
 
-        foreach (var group in GroupChapters(project))
+        foreach (var target in GroupTargets(project))
+        {
+            switch (target.Kind)
+            {
+                case ScrivenerTargetKind.Draft:
+                    var draft = await projects.CreateDraftAsync(NameFor(target.Title, "Draft"));
+                    await projects.SwitchDraftAsync(draft.Id);
+                    draftsCreated++;
+                    break;
+
+                case ScrivenerTargetKind.Book:
+                    var created = await projects.CreateBookAsync(NameFor(target.Title, "Book"));
+                    await projects.SwitchBookAsync(created.Id);
+                    booksCreated++;
+                    break;
+            }
+
+            var filled = await FillAsync(target, project);
+            chapters += filled.Chapters;
+            scenes += filled.Scenes;
+            words += filled.Words;
+
+            // Back where the writer was, before the next target moves again.
+            if (target.Kind == ScrivenerTargetKind.Draft)
+            {
+                await projects.SaveScenesAsync();
+                await projects.SwitchDraftAsync(homeDraftId);
+            }
+            else if (target.Kind == ScrivenerTargetKind.Book)
+            {
+                await projects.SaveScenesAsync();
+                await projects.SwitchBookAsync(homeBookId);
+            }
+        }
+
+        // The Codex is the active book's and research is the project's, so both
+        // land where the writer was rather than in whatever was created.
+        var (characters, locations) = await ImportEntitiesAsync(project);
+        var research = await ImportResearchAsync(project);
+
+        await projects.SaveScenesAsync();
+        await projects.SaveProjectAsync();
+        return new ImportResultDto(
+            chapters, scenes, words, characters, locations, research, draftsCreated, booksCreated);
+    }
+
+    /// <summary>
+    /// Creates one target's chapters and scenes in whatever book and draft is
+    /// active, with the per-document metadata Novalist has a home for: the
+    /// synopsis card, the document notes, the status as a scene stage, the label
+    /// as a scene label, and "include in compile" as whether the scene exports.
+    ///
+    /// Stages, labels and custom fields are the book's, so they are resolved
+    /// against the active book each time - a new book gets its own rather than
+    /// silently sharing the one being imported from.
+    /// </summary>
+    private async Task<(int Chapters, int Scenes, int Words)> FillAsync(
+        ScrivenerTargetGroup target, ScrivenerProject project)
+    {
+        var book = _workspace.Projects.ActiveBook!;
+        var fieldKeys = DeclareCustomFields(book, project);
+        var chapters = 0;
+        var scenes = 0;
+        var words = 0;
+
+        foreach (var group in target.Chapters)
         {
             var chapter = await _workspace.Projects.CreateChapterAsync(group.Title);
             // Scrivener's part folders are Novalist's acts: the binder groups
@@ -201,13 +391,13 @@ public sealed class ManuscriptImportRpc
             }
         }
 
-        var (characters, locations) = await ImportEntitiesAsync(project);
-        var research = await ImportResearchAsync(project);
-
-        await _workspace.Projects.SaveScenesAsync();
-        await _workspace.Projects.SaveProjectAsync();
-        return new ImportResultDto(chapters, scenes, words, characters, locations, research);
+        return (chapters, scenes, words);
     }
+
+    /// <summary>A name for a created draft or book. A binder folder can be
+    /// untitled, and "Draft" beats a row with no name on it at all.</summary>
+    private static string NameFor(string title, string fallback)
+        => title.Trim().Length > 0 ? title.Trim() : fallback;
 
     /// <summary>
     /// Character and setting sketches as Codex entries. The sketch prose lands
@@ -403,7 +593,7 @@ public sealed class ManuscriptImportRpc
                     string.Empty,
                     c.Scenes.Select(s => new ImportSceneDto(s.Title, s.WordCount)).ToArray()))
                 .ToArray(),
-            [], 0, 0, 0, 0);
+            [], 0, 0, 0, 0, [], []);
 }
 
 public sealed record ImportSceneDto(string Title, int WordCount);
@@ -419,7 +609,37 @@ public sealed record ImportChapterDto(string Title, string PartTitle, ImportScen
 /// </summary>
 public sealed record ImportPlanDto(
     string Format, int ChapterCount, int SceneCount, int WordCount, ImportChapterDto[] Chapters,
-    string[] Losses, int PartCount, int CharacterCount, int LocationCount, int ResearchCount);
+    string[] Losses, int PartCount, int CharacterCount, int LocationCount, int ResearchCount,
+    /// <summary>The binder rows the writer can redirect. Empty for the
+    /// single-file formats, which have no binder to arrange.</summary>
+    ImportMappingRowDto[] Mapping,
+    /// <summary>The book and the drafts and books this import would create,
+    /// in binder order, with what each would hold.</summary>
+    ImportTargetDto[] Targets);
+
+/// <summary>
+/// One row of the Scrivener binder the writer can send somewhere of their own
+/// choosing. <c>Destination</c> is one of "manuscript", "draft", "book",
+/// "characters", "places", "research" or "skip".
+/// </summary>
+public sealed record ImportMappingRowDto(
+    string Key, string Title, int Depth, string Destination, int Documents, bool HasChildren);
+
+/// <summary>The writer's choice for one binder row, sent back with the preview
+/// or the import.</summary>
+public sealed record ImportMappingDto(string Key, string Destination);
+
+/// <summary>
+/// One book or draft an import would fill. <c>Kind</c> is "manuscript" for the
+/// book being imported into, "draft" for a draft it would create on that book,
+/// and "book" for a new book in the project.
+/// </summary>
+public sealed record ImportTargetDto(
+    string Kind, string Title, int ChapterCount, int SceneCount, int WordCount);
 
 public sealed record ImportResultDto(
-    int Chapters, int Scenes, int Words, int Characters, int Locations, int Research);
+    int Chapters, int Scenes, int Words, int Characters, int Locations, int Research,
+    /// <summary>Drafts created on the active book by this import.</summary>
+    int Drafts = 0,
+    /// <summary>Books created in the project by this import.</summary>
+    int Books = 0);

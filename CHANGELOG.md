@@ -16,7 +16,21 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **You decide where a Scrivener binder goes.** Scrivener marks only three things - its draft folder, its trash and its template sheets - and everything else in the binder is your own arrangement that no set of rules reads reliably. A project whose draft folder is empty because you were about to start a fresh draft, with nine finished drafts filed under a folder called "Old", arrived as a project with no manuscript and a great deal of research, and there was no way to say otherwise. Choosing a Scrivener project now shows **Where each folder goes**: one row per binder folder, already filled in with what Novalist made of it, and a menu on each row to send it to the manuscript, to a **draft of its own**, to a **book of its own**, to the Codex as characters or places, to research, or nowhere at all. Nine old drafts become nine drafts of your book, named after their folders, with their chapters and scenes intact.
+
+  The rows cover the top level of the binder and the level below it, which is what lets nine drafts filed inside one folder be nine separate answers. **Setting a folder sets everything inside it**, so pointing "Old" at a new draft turns each of the nine drafts inside it into a draft of its own in one action rather than nine - and any row inside can still be changed afterwards, so putting the notes folder beside them back to research leaves the drafts alone.
+
+  Changing a row re-reads the project and updates the plan underneath, so the counts, the chapter list, and the drafts and books that would be created always describe what is currently on screen - and still nothing is written until you press Import. What you say wins over what was detected: a folder of character sketches sent to research arrives as research. A folder sent to the manuscript keeps its own name as the act above its chapters, so merging an old draft into a book that already has chapters does not scatter them among the ones already there. A draft that never got chapter folders - just a run of documents, which is how a draft looks before it has been organised - comes across as one chapter called "Imported" holding those documents, and several such drafts imported together each keep their own rather than sharing one. An import that creates drafts or books leaves you on the book and draft you started from. If the rules already read your project correctly, change nothing and press Import.
+
+### Fixed
+
+- **Switching books updates the whole window, not just the binder.** Changing book from the selector repainted the chapter tree but left the panels beside it showing the book you had just left - Collections, Smart Lists, the Codex and its entry count, and the labels, stages and plotlines the binder paints scenes with. They only caught up if you happened to switch tabs and come back, which is not a fix so much as a thing you had to know. They now follow the book directly.
+
+- **Recent projects only lists projects that are still there.** A project deleted or moved outside Novalist - which is how projects actually go away - stayed on the welcome screen and in **File**, **Recent projects** indefinitely, and clicking it failed. Entries whose folder no longer holds a project are now dropped from both lists, and forgotten rather than rechecked on every launch. A folder you emptied of its `.novalist` folder counts as gone too.
+
+- **A chapter whose title ends in a full stop no longer breaks.** Importing or creating a chapter called something like "In The Beginning..." failed outright: Windows quietly drops trailing dots as it creates a folder, so the project went on looking for a folder that was never there. The name on disk now matches the name recorded for it.
 
 ---
 

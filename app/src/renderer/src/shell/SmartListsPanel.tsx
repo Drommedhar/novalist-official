@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronRight, Plus, RefreshCw } from 'lucide-react'
 import { rpc } from '../rpc/client'
-import { useProjectStore } from '../stores/projectStore'
+import { useBookScope, useProjectStore } from '../stores/projectStore'
 import { ContextMenu } from './ContextMenu'
 import { ConfirmDialog } from './ConfirmDialog'
 import { SmartListEditor, type SmartListDraft } from './SmartListEditor'
@@ -40,10 +40,17 @@ export function SmartListsPanel(): React.JSX.Element {
   const [matches, setMatches] = useState<Record<string, SmartListMatch[]>>({})
   const [menu, setMenu] = useState<{ x: number; y: number; list: SmartListDto } | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
+  const bookScope = useBookScope()
 
   useEffect(() => {
-    void rpc.request<SmartListDto[]>('smartLists/list').then(setLists)
-  }, [])
+    // Saved lists belong to the active book. Loading them once on mount left
+    // the panel showing the previous book's lists after a book switch.
+    void rpc
+      .request<SmartListDto[]>('smartLists/list')
+      .then(setLists)
+      .catch(() => setLists([]))
+    setMatches({})
+  }, [bookScope])
 
   const evaluate = async (id: string): Promise<void> => {
     const result = await rpc.request<SmartListMatch[]>('smartLists/evaluate', [id])

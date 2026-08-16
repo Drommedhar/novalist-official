@@ -852,4 +852,332 @@ public class ScrivenerReaderTests : IDisposable
         Assert.Equal(
             "<p>Before the break.</p><p>***</p><p>After the break.</p>", scene.Html);
     }
+
+    // ── The binder outline, and sending rows where the writer wants ──
+
+    private string OldDrafts() => ScrivenerProjectBuilder.CopyOldDraftsFixture(_dir.Path);
+
+    private static ScrivenerBinderRow Row(
+        IReadOnlyList<ScrivenerBinderRow> rows, string key)
+        => Assert.Single(rows, r => r.Key == key);
+
+    [Fact]
+    public void TheOutlineOffersTheTopLevelAndTheLevelBelowItAndNothingDeeper()
+    {
+        var rows = ScrivenerReader.Outline(OldDrafts());
+
+        Assert.Equal("Novel Format", rows[0].Title);
+        Assert.Equal(0, rows[0].Depth);
+        Assert.All(rows, r => Assert.InRange(r.Depth, 0, 1));
+
+        // "Old" is one row and its nine drafts, its notes and its deleted
+        // scenes are eleven more - the whole point of going one level down.
+        Assert.Equal(0, Row(rows, "OLD").Depth);
+        Assert.Equal(1, Row(rows, "D6").Depth);
+        // A chapter inside a draft is the binder's business, not the writer's.
+        Assert.DoesNotContain(rows, r => r.Key == "D6-C1");
+    }
+
+    [Fact]
+    public void TheOutlineStartsFromWhatTheRulesWouldHaveDone()
+    {
+        var rows = ScrivenerReader.Outline(OldDrafts());
+
+        Assert.Equal(ScrivenerDestination.Manuscript, Row(rows, "DRAFT").Destination);
+        Assert.Equal(ScrivenerDestination.Characters, Row(rows, "CHARACTERS").Destination);
+        Assert.Equal(ScrivenerDestination.Skip, Row(rows, "TRASH").Destination);
+        Assert.Equal(ScrivenerDestination.Skip, Row(rows, "TEMPLATES").Destination);
+        Assert.Equal(ScrivenerDestination.Research, Row(rows, "RESEARCH").Destination);
+
+        // This is the bug, stated as a fact: nine drafts start out as research
+        // because nothing in the binder says they are anything else.
+        Assert.Equal(ScrivenerDestination.Research, Row(rows, "OLD").Destination);
+        Assert.Equal(ScrivenerDestination.Research, Row(rows, "D6").Destination);
+    }
+
+    [Fact]
+    public void AChildInheritsItsParentsDestinationUnlessItsOwnIconSaysOtherwise()
+    {
+        var rows = ScrivenerReader.Outline(OldDrafts());
+
+        Assert.Equal(ScrivenerDestination.Characters, Row(rows, "CH-PRAX").Destination);
+        Assert.Equal(ScrivenerDestination.Research, Row(rows, "RES1").Destination);
+    }
+
+    [Fact]
+    public void TheOutlineCountsWhatEachRowIsWorth()
+    {
+        var rows = ScrivenerReader.Outline(OldDrafts());
+
+        Assert.Equal(12, Row(rows, "D6").Documents);
+        Assert.True(Row(rows, "D6").HasChildren);
+        Assert.False(Row(rows, "NOVELFORMAT").HasChildren);
+        Assert.Equal(1, Row(rows, "NOVELFORMAT").Documents);
+
+        // The draft folder nobody has started yet is worth nothing, which is
+        // the whole reason this screen exists.
+        Assert.Equal(0, Row(rows, "DRAFT").Documents);
+        Assert.False(Row(rows, "DRAFT").HasChildren);
+    }
+
+    [Fact]
+    public void TheOutlineIsEmptyForSomethingThatIsNotAProject()
+    {
+        Assert.Empty(ScrivenerReader.Outline(Path.Combine(_dir.Path, "nope.scriv")));
+        Assert.Empty(ScrivenerReader.Outline(NewProject()));
+
+        // A binder file with no binder in it.
+        var bare = NewProject("Bare.scriv");
+        File.WriteAllText(
+            Path.Combine(bare, "Book.scrivx"), "<?xml version=\"1.0\"?><ScrivenerProject/>");
+        Assert.Empty(ScrivenerReader.Outline(bare));
+    }
+
+    [Fact]
+    public void AnUnreadableProjectOffersNoRowsRatherThanFailingTheDialog()
+    {
+        var root = NewProject("Broken.scriv");
+        File.WriteAllText(Path.Combine(root, "Book.scrivx"), "<ScrivenerProject><Binder>");
+
+        Assert.Empty(ScrivenerReader.Outline(root));
+    }
+
+    [Fact]
+    public void ADocumentInsideTheDraftIsOfferedAsManuscriptRatherThanAsResearch()
+    {
+        // The empty-draft fixture cannot show this, and it is the ordinary case:
+        // a row below the draft folder inherits the draft, not the top level.
+        var rows = ScrivenerReader.Outline(ScrivenerProjectBuilder.BuildV3(_dir.Path));
+
+        var part = Assert.Single(rows, r => r.Key == "PART1");
+        Assert.Equal(1, part.Depth);
+        Assert.Equal(ScrivenerDestination.Manuscript, part.Destination);
+
+        // Even a loose document with no folder around it.
+        Assert.Equal(
+            ScrivenerDestination.Manuscript, Assert.Single(rows, r => r.Key == "S5").Destination);
+    }
+
+    [Fact]
+    public void ADraftFolderLeftEmptyImportsTheWholeBinderAsResearchUntilItIsMapped()
+    {
+        // The bug as the writer met it: nothing is manuscript, and nine drafts
+        // and every chapter in them arrive as research notes.
+        var project = ScrivenerReader.Read(OldDrafts());
+
+        Assert.Empty(project.Scenes);
+        Assert.Contains(project.Research, r => r.Title == "Solarian High Council Meeting");
+    }
+
+    [Fact]
+    public void AFolderMappedToADraftBecomesADraftOfItsOwnWithItsChaptersIntact()
+    {
+        var project = ScrivenerReader.Read(OldDrafts(), new Dictionary<string, ScrivenerDestination>
+        {
+            ["D6"] = ScrivenerDestination.Draft
+        });
+
+        var scenes = project.Scenes;
+        Assert.Equal(12, scenes.Count);
+        Assert.All(scenes, s => Assert.Equal(ScrivenerTargetKind.Draft, s.TargetKind));
+        Assert.All(scenes, s => Assert.Equal("Old Draft 6- Started 10/30/2025?", s.TargetTitle));
+
+        // The folder names the draft, so its children are the chapters rather
+        // than the whole thing collapsing into one.
+        Assert.Equal(6, scenes.Select(s => s.ChapterKey).Distinct().Count());
+        Assert.Equal("In The Beginning...", scenes[0].ChapterTitle);
+        Assert.Equal("Ziusudra sends distress signal", scenes[0].Title);
+        Assert.Equal(4, scenes.Count(s => s.ChapterTitle == "Chapter 5: Contact"));
+    }
+
+    [Fact]
+    public void EveryOldDraftCanGoToADraftOfItsOwnAtOnce()
+    {
+        var mapping = new[] { "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9" }
+            .ToDictionary(k => k, _ => ScrivenerDestination.Draft);
+
+        var project = ScrivenerReader.Read(OldDrafts(), mapping);
+
+        Assert.Equal(9, project.Scenes.Select(s => s.TargetKey).Distinct().Count());
+        // Binder order, which is the order the writer sees them in.
+        Assert.Equal("Old Draft 9- Started 6/13/2026", project.Scenes[0].TargetTitle);
+
+        // The rows beside them were not named, so they keep the destination the
+        // rules gave them rather than being dragged along.
+        Assert.Contains(project.Research, r => r.Title == "What I kept from draft 3");
+        Assert.Contains(project.Research, r => r.Title == "The market that went nowhere");
+    }
+
+    [Fact]
+    public void SettingAFolderAndThenOneRowInsideItLeavesTheRestWhereTheFolderPutThem()
+    {
+        // The shape the dialog sends once a folder has been set and one row put
+        // back: the folder and every row inside it named, one of them
+        // disagreeing. The disagreeing row must win without dragging the rest
+        // back to where they were detected.
+        var mapping = new Dictionary<string, ScrivenerDestination>
+        {
+            ["OLD"] = ScrivenerDestination.Draft,
+            ["OLDNOTES"] = ScrivenerDestination.Research,
+            ["DELETED"] = ScrivenerDestination.Draft
+        };
+        foreach (var key in new[] { "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9" })
+            mapping[key] = ScrivenerDestination.Draft;
+
+        var project = ScrivenerReader.Read(OldDrafts(), mapping);
+
+        // Nine drafts and the deleted-scenes folder, and not the notes.
+        Assert.Equal(10, project.Scenes.Select(s => s.TargetKey).Distinct().Count());
+        Assert.DoesNotContain(project.Scenes, s => s.TargetKey == "OLDNOTES");
+        Assert.Contains(project.Research, r => r.Title == "What I kept from draft 3");
+        Assert.DoesNotContain(project.Research, r => r.Title == "The market that went nowhere");
+    }
+
+    [Fact]
+    public void AnUnnamedSiblingKeepsTheFolderTagItWouldHaveHadAnyway()
+    {
+        var tagged = ScrivenerReader.Read(OldDrafts(), new Dictionary<string, ScrivenerDestination>
+        {
+            ["D6"] = ScrivenerDestination.Draft
+        });
+
+        // "Old Notes" was not named, so routing its siblings individually must
+        // not cost it the tag it gets when the parent is walked whole.
+        var note = Assert.Single(tagged.Research, r => r.Title == "What I kept from draft 3");
+        Assert.Equal("Old Notes", note.FolderTag);
+    }
+
+    [Fact]
+    public void AFolderMappedToABookIsMarkedAsOneRatherThanAsADraft()
+    {
+        var project = ScrivenerReader.Read(OldDrafts(), new Dictionary<string, ScrivenerDestination>
+        {
+            ["D1"] = ScrivenerDestination.Book
+        });
+
+        Assert.All(project.Scenes, s => Assert.Equal(ScrivenerTargetKind.Book, s.TargetKind));
+        Assert.All(project.Scenes, s => Assert.Equal("Old Draft 1- Started 04/2021", s.TargetTitle));
+    }
+
+    [Fact]
+    public void AFolderMappedToTheManuscriptKeepsItsOwnGroupingAsAnAct()
+    {
+        var project = ScrivenerReader.Read(OldDrafts(), new Dictionary<string, ScrivenerDestination>
+        {
+            ["D6"] = ScrivenerDestination.Manuscript
+        });
+
+        // Merged into a book that already has chapters, so the draft's own name
+        // survives as the act rather than its chapters landing loose among them.
+        Assert.All(project.Scenes, s => Assert.Equal(ScrivenerTargetKind.Manuscript, s.TargetKind));
+        Assert.All(project.Scenes,
+            s => Assert.Equal("Old Draft 6- Started 10/30/2025?", s.PartTitle));
+        Assert.Equal(6, project.Scenes.Select(s => s.ChapterKey).Distinct().Count());
+    }
+
+    [Fact]
+    public void AFolderCanBeSentToTheCodexOrLeftBehindEntirely()
+    {
+        var project = ScrivenerReader.Read(OldDrafts(), new Dictionary<string, ScrivenerDestination>
+        {
+            ["WORLDBUILDING"] = ScrivenerDestination.Places,
+            ["NOTES"] = ScrivenerDestination.Skip,
+            ["IDEAS"] = ScrivenerDestination.Characters
+        });
+
+        Assert.Contains(project.Entities,
+            e => e.Name == "The Swarm" && e.Kind == ScrivenerEntityKind.Location);
+        Assert.Contains(project.Entities,
+            e => e.Name == "Second swarm" && e.Kind == ScrivenerEntityKind.Character);
+        Assert.Contains("Notes", project.Losses);
+        Assert.DoesNotContain(project.Research, r => r.Title == "Timeline questions");
+    }
+
+    [Fact]
+    public void SomethingScrivenerMarkedItselfCanStillBeOverriddenByHand()
+    {
+        var project = ScrivenerReader.Read(OldDrafts(), new Dictionary<string, ScrivenerDestination>
+        {
+            ["TRASH"] = ScrivenerDestination.Research,
+            ["CHARACTERS"] = ScrivenerDestination.Skip
+        });
+
+        Assert.Contains(project.Research, r => r.Title == "Abandoned opening");
+        Assert.DoesNotContain("Trash", project.Losses);
+        Assert.Empty(project.Entities);
+        Assert.Contains("Characters", project.Losses);
+    }
+
+    [Fact]
+    public void ADraftThatNeverGotChapterFoldersStillBringsItsDocuments()
+    {
+        // Four of the nine drafts are a flat run of documents - how a draft
+        // looks before it has been organised. Every one of those documents went
+        // missing: they all landed in the one shared "Imported" chapter, which
+        // belonged to whichever draft reached it first, so three of the four
+        // drafts were created empty.
+        var loose = new[] { "D9", "D7", "D3", "D1" };
+        var project = ScrivenerReader.Read(
+            OldDrafts(), loose.ToDictionary(k => k, _ => ScrivenerDestination.Draft));
+
+        foreach (var key in loose)
+        {
+            var scenes = project.Scenes.Where(s => s.TargetKey == key).ToList();
+            Assert.Equal(3, scenes.Count);
+            Assert.Equal(
+                new[] { "Opening", "The signal arrives", "They argue about it" },
+                scenes.Select(s => s.Title).ToArray());
+            // One chapter, and it is this draft's own rather than one shared
+            // with every other draft that had loose documents.
+            Assert.Single(scenes.Select(s => s.ChapterKey).Distinct());
+        }
+
+        Assert.Equal(4, project.Scenes.Select(s => s.ChapterKey).Distinct().Count());
+    }
+
+    [Fact]
+    public void SayingResearchOverAFolderOfSketchesMeansResearch()
+    {
+        // The icons say these are characters, and left alone that is what they
+        // become. Saying otherwise has to actually win, or the choice is a
+        // suggestion the importer is free to ignore.
+        var project = ScrivenerReader.Read(OldDrafts(), new Dictionary<string, ScrivenerDestination>
+        {
+            ["CHARACTERS"] = ScrivenerDestination.Research
+        });
+
+        Assert.Empty(project.Entities);
+        Assert.Contains(project.Research, r => r.Title == "Prax" && r.FolderTag == "Characters");
+
+        // Untouched, they are still characters.
+        Assert.Equal(3, ScrivenerReader.Read(OldDrafts()).Entities.Count);
+    }
+
+    [Fact]
+    public void AMappingThatNamesNothingInTheBinderChangesNothing()
+    {
+        var mapped = ScrivenerReader.Read(OldDrafts(), new Dictionary<string, ScrivenerDestination>
+        {
+            ["not-a-binder-key"] = ScrivenerDestination.Manuscript
+        });
+
+        Assert.Empty(mapped.Scenes);
+        Assert.Equal(ScrivenerReader.Read(OldDrafts()).Research.Count, mapped.Research.Count);
+    }
+
+    [Fact]
+    public void MappingADraftDocumentDoesNotTurnProseIntoACodexEntry()
+    {
+        // A document inside something bound for the manuscript is a scene
+        // whatever icon it carries, or a character sheet kept in the draft
+        // would quietly stop being prose.
+        var project = ScrivenerReader.Read(OldDrafts(), new Dictionary<string, ScrivenerDestination>
+        {
+            ["CHARACTERS"] = ScrivenerDestination.Draft
+        });
+
+        Assert.Empty(project.Entities);
+        Assert.Equal(3, project.Scenes.Count);
+        Assert.All(project.Scenes, s => Assert.Equal(ScrivenerTargetKind.Draft, s.TargetKind));
+    }
 }

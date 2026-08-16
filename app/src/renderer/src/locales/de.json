@@ -2659,7 +2659,28 @@
     "extrasSummary": "Außerdem gefunden: {{characters}} Figuren, {{locations}} Orte und {{research}} Rechercheeinträge.",
     "doneExtras": "{{characters}} Figuren, {{locations}} Orte und {{research}} Rechercheeinträge hinzugefügt.",
     "chooseScrivener": "Scrivener-Projekt wählen...",
-    "losses": "Wird nicht übernommen: {{items}}. Novalist hat dafür keine Entsprechung, es bleibt in Scrivener."
+    "losses": "Wird nicht übernommen: {{items}}. Novalist hat dafür keine Entsprechung, es bleibt in Scrivener.",
+    "mappingTitle": "Wohin jeder Ordner geht",
+    "mappingHint": "Novalist hat den Binder gelesen und dies ausgefüllt. Scrivener kennzeichnet nur das Manuskript, den Papierkorb und seine Vorlagenblätter – alles andere ist eine Vermutung darüber, wie Sie arbeiten. Korrigieren Sie vor dem Import jede Zeile, die nicht stimmt.",
+    "mappingDocuments": "{{count}} Dokument",
+    "untitledRow": "Ohne Titel",
+    "destination": {
+      "manuscript": "Manuskript",
+      "draft": "Neue Fassung",
+      "book": "Neues Buch",
+      "characters": "Kodex: Figuren",
+      "places": "Kodex: Orte",
+      "research": "Recherche",
+      "skip": "Nicht importieren"
+    },
+    "targetManuscript": "Dieses Buch",
+    "target": {
+      "draft": "Neue Fassung: {{name}}",
+      "book": "Neues Buch: {{name}}"
+    },
+    "targetSummary": "{{chapters}} Kapitel, {{scenes}} Szenen, {{words}} Wörter",
+    "doneTargets": "{{drafts}} Fassungen und {{books}} Bücher erstellt.",
+    "mappingDocuments_other": "{{count}} Dokumente"
   },
   "match": {
     "title": "Wie dieser Name im Text erkannt wird",

@@ -26,7 +26,77 @@ public sealed record ScrivenerScene(
     string Label,
     string Status,
     bool IncludeInCompile,
-    IReadOnlyDictionary<string, string> CustomFields);
+    IReadOnlyDictionary<string, string> CustomFields,
+    ScrivenerTargetKind TargetKind = ScrivenerTargetKind.Manuscript,
+    string TargetKey = "",
+    string TargetTitle = "");
+
+/// <summary>Where a document's chapter is bound: the book being imported into,
+/// a draft of it, or a book of its own.</summary>
+public enum ScrivenerTargetKind
+{
+    /// <summary>The active book's current draft - what an import has always done.</summary>
+    Manuscript,
+
+    /// <summary>A new draft of the active book, named after its binder folder.</summary>
+    Draft,
+
+    /// <summary>A new book in the project, named after its binder folder.</summary>
+    Book
+}
+
+/// <summary>
+/// Where one binder folder's contents are sent.
+///
+/// Scrivener only marks the draft, the trash and its template sheets; everything
+/// else is the writer's own arrangement, and no set of rules reads that reliably.
+/// A binder whose draft folder is empty because the next draft has not been
+/// started, with nine finished ones filed under a folder called "Old", is a
+/// perfectly ordinary way to work and imported as nine folders of research.
+/// So the rules produce a starting point and the writer corrects it.
+/// </summary>
+public enum ScrivenerDestination
+{
+    /// <summary>Chapters and scenes of the book being imported into.</summary>
+    Manuscript,
+
+    /// <summary>A draft of that book, named after the folder.</summary>
+    Draft,
+
+    /// <summary>A new book, named after the folder.</summary>
+    Book,
+
+    /// <summary>Codex entries, as characters.</summary>
+    Characters,
+
+    /// <summary>Codex entries, as places.</summary>
+    Places,
+
+    /// <summary>Research items, with the folder title as a tag.</summary>
+    Research,
+
+    /// <summary>Left in Scrivener, and named as such before the import runs.</summary>
+    Skip
+}
+
+/// <summary>
+/// One row of the binder the writer can redirect, with where the rules would
+/// send it.
+///
+/// Only the top level and the level below it are offered. That is enough to
+/// separate nine drafts filed inside one folder, and stopping there keeps the
+/// part / chapter / scene shape below a draft the binder's own business rather
+/// than a wall of dropdowns.
+/// </summary>
+public sealed record ScrivenerBinderRow(
+    string Key,
+    string Title,
+    /// <summary>0 for a top-level binder entry, 1 for a direct child of one.</summary>
+    int Depth,
+    ScrivenerDestination Destination,
+    /// <summary>Documents anywhere beneath this row - what it is worth.</summary>
+    int Documents,
+    bool HasChildren);
 
 /// <summary>
 /// One field the writer added to every document in Scrivener 3, which is the
@@ -158,37 +228,35 @@ public static class ScrivenerReader
     /// anything unreadable: an import that cannot start should say so in the
     /// dialog, not crash the app.
     /// </summary>
-    public static ScrivenerProject Read(string path)
+    public static ScrivenerProject Read(string path) => Read(path, null);
+
+    /// <summary>
+    /// Reads a project, sending the binder rows named in <paramref name="mapping"/>
+    /// where the writer asked rather than where the rules would have put them.
+    ///
+    /// A row the mapping does not name keeps the destination it would have had,
+    /// so a partial mapping is meaningful and an absent one imports exactly as
+    /// before. Keys are the binder identities <see cref="Outline"/> reported.
+    /// </summary>
+    public static ScrivenerProject Read(
+        string path, IReadOnlyDictionary<string, ScrivenerDestination>? mapping)
     {
         try
         {
-            var root = ResolveRoot(path);
-            if (root == null) return new ScrivenerProject();
+            var opened = Open(path);
+            if (opened == null) return new ScrivenerProject();
 
-            var scrivx = Directory.EnumerateFiles(root, "*.scrivx").FirstOrDefault();
-            if (scrivx == null) return new ScrivenerProject();
-
-            var document = XDocument.Load(scrivx);
-            var binder = document.Descendants("Binder").FirstOrDefault();
-            if (binder == null) return new ScrivenerProject();
-
-            // Scrivener 3 keeps documents under Files/Data; Scrivener 2 under
-            // Files/Docs. Which folder exists is what tells them apart.
-            var version = Directory.Exists(Path.Combine(root, "Files", "Data")) ? "3" : "2";
-            var ctx = new Context(root, version, document);
-
+            var (_, binder, ctx) = opened.Value;
             var top = binder.Elements("BinderItem").ToList();
             // A binder with no draft folder is not a Scrivener-authored project -
             // a hand-made one, or a fragment. Reading the whole binder as the
             // manuscript is right there, and wrong the moment a draft exists.
             var draft = top.FirstOrDefault(i => TypeOf(i) == DraftFolder);
-            if (draft == null)
+
+            foreach (var item in top)
             {
-                foreach (var item in top) WalkDraft(item, ctx, Node.Empty, Node.Empty);
-            }
-            else
-            {
-                foreach (var item in top) WalkTop(item, draft, ctx);
+                Route(item, draft, ctx, mapping,
+                    DestinationOf(item, draft, ctx, mapping, inherited: null), depth: 0);
             }
 
             return new ScrivenerProject
@@ -197,7 +265,7 @@ public static class ScrivenerReader
                 Entities = ctx.Entities,
                 Research = ctx.Research,
                 CustomFields = ctx.CustomFields,
-                Version = version,
+                Version = ctx.Version,
                 Losses = [.. ctx.Losses.Distinct(StringComparer.Ordinal)]
             };
         }
@@ -206,6 +274,92 @@ public static class ScrivenerReader
         {
             return new ScrivenerProject();
         }
+    }
+
+    /// <summary>
+    /// The binder rows the writer can redirect, each carrying where the rules
+    /// would send it. Reads the binder only - no document is opened, so this is
+    /// cheap enough to run the moment a folder is chosen.
+    ///
+    /// Empty for anything that is not a readable Scrivener project, which the
+    /// dialog shows as a project it could not read rather than as an error.
+    /// </summary>
+    public static IReadOnlyList<ScrivenerBinderRow> Outline(string path)
+    {
+        try
+        {
+            var opened = Open(path);
+            if (opened == null) return [];
+
+            var (_, binder, ctx) = opened.Value;
+            var top = binder.Elements("BinderItem").ToList();
+            var draft = top.FirstOrDefault(i => TypeOf(i) == DraftFolder);
+            var rows = new List<ScrivenerBinderRow>();
+
+            foreach (var item in top)
+            {
+                var destination = DestinationOf(item, draft, ctx, mapping: null, inherited: null);
+                var children = ChildrenOf(item);
+                rows.Add(new ScrivenerBinderRow(
+                    KeyOf(item, ctx), TitleOf(item), 0, destination,
+                    DocumentsIn(item), children.Count > 0));
+
+                foreach (var child in children)
+                {
+                    rows.Add(new ScrivenerBinderRow(
+                        KeyOf(child, ctx),
+                        TitleOf(child),
+                        1,
+                        DestinationOf(child, draft, ctx, mapping: null, inherited: destination),
+                        DocumentsIn(child),
+                        ChildrenOf(child).Count > 0));
+                }
+            }
+
+            return rows;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+            or System.Xml.XmlException)
+        {
+            return [];
+        }
+    }
+
+    /// <summary>Opens the project's binder, or null when there is nothing to read.</summary>
+    private static (XDocument Document, XElement Binder, Context Context)? Open(string path)
+    {
+        var root = ResolveRoot(path);
+        if (root == null) return null;
+
+        var scrivx = Directory.EnumerateFiles(root, "*.scrivx").FirstOrDefault();
+        if (scrivx == null) return null;
+
+        var document = XDocument.Load(scrivx);
+        var binder = document.Descendants("Binder").FirstOrDefault();
+        if (binder == null) return null;
+
+        // Scrivener 3 keeps documents under Files/Data; Scrivener 2 under
+        // Files/Docs. Which folder exists is what tells them apart.
+        var version = Directory.Exists(Path.Combine(root, "Files", "Data")) ? "3" : "2";
+        return (document, binder, new Context(root, version, document));
+    }
+
+    private static List<XElement> ChildrenOf(XElement item)
+        => item.Element("Children")?.Elements("BinderItem").ToList() ?? [];
+
+    /// <summary>
+    /// How many documents sit anywhere beneath a row, itself included when it is
+    /// one rather than a container.
+    ///
+    /// An empty folder is worth nothing, and saying "1 document" of the draft
+    /// folder somebody has not started yet is exactly the wrong answer to give
+    /// on the screen that exists because that folder is empty.
+    /// </summary>
+    private static int DocumentsIn(XElement item)
+    {
+        var children = ChildrenOf(item);
+        if (children.Count > 0) return children.Sum(DocumentsIn);
+        return TypeOf(item) is Folder or DraftFolder or ResearchFolder or TrashFolder ? 0 : 1;
     }
 
     /// <summary>The project folder, whether the caller pointed at it or at the
@@ -220,51 +374,147 @@ public static class ScrivenerReader
     // ── The binder's top level ───────────────────────────────────────────
 
     /// <summary>
-    /// One top-level binder entry, routed by what Scrivener says it is.
+    /// Where one binder entry's contents go: what the writer said, and failing
+    /// that what Scrivener's own markers say.
     ///
-    /// Only the draft becomes chapters and scenes. Everything else that carried
-    /// content becomes a Codex entry or a research item, because dropping a
-    /// character sheet somebody filled in is not an acceptable import.
+    /// Only the draft, the trash and the template sheets are marked, so
+    /// everything else falls back to what it is nested in - a child of a
+    /// research folder is research, a child of a characters folder is a
+    /// character - and to research at the top level, which is where anything
+    /// outside the draft used to go unconditionally.
     /// </summary>
-    private static void WalkTop(XElement item, XElement draft, Context ctx)
+    private static ScrivenerDestination DestinationOf(
+        XElement item, XElement? draft, Context ctx,
+        IReadOnlyDictionary<string, ScrivenerDestination>? mapping,
+        ScrivenerDestination? inherited)
     {
-        var title = TitleOf(item);
+        if (mapping != null && mapping.TryGetValue(KeyOf(item, ctx), out var chosen)) return chosen;
 
-        if (ReferenceEquals(item, draft))
-        {
-            var children = item.Element("Children");
-            if (children != null)
-            {
-                foreach (var child in children.Elements("BinderItem"))
-                    WalkDraft(child, ctx, Node.Empty, Node.Empty);
-            }
+        if (draft != null && ReferenceEquals(item, draft)) return ScrivenerDestination.Manuscript;
 
-            return;
-        }
-
-        if (TypeOf(item) == TrashFolder)
-        {
-            ctx.Losses.Add(title);
-            return;
-        }
+        if (TypeOf(item) == TrashFolder) return ScrivenerDestination.Skip;
 
         // The template sheets are Scrivener's blank forms, not the writer's
         // filled-in ones. Importing them produces a character called "Character
         // Sketch" whose every field is a prompt.
         if (UuidOf(item) is { Length: > 0 } uuid && uuid == ctx.TemplateFolderUuid)
+            return ScrivenerDestination.Skip;
+
+        // Inside a draft, a document is a scene whatever icon it carries -
+        // chasing the icon there would turn prose into a Codex entry.
+        if (inherited is ScrivenerDestination.Manuscript or ScrivenerDestination.Draft
+            or ScrivenerDestination.Book)
         {
-            ctx.Losses.Add(title);
-            return;
+            return inherited.Value;
         }
 
         var kind = EntityKindOf(item);
-        if (kind != null)
+        if (kind == ScrivenerEntityKind.Character) return ScrivenerDestination.Characters;
+        if (kind == ScrivenerEntityKind.Location) return ScrivenerDestination.Places;
+
+        // A binder with no draft folder is not a Scrivener-authored project -
+        // a hand-made one, or a fragment. Reading the whole binder as the
+        // manuscript is right there, and wrong the moment a draft exists.
+        return inherited ?? (draft == null
+            ? ScrivenerDestination.Manuscript
+            : ScrivenerDestination.Research);
+    }
+
+    /// <summary>
+    /// Sends one binder entry where it was routed, letting the level below it
+    /// override where the writer named those rows individually.
+    ///
+    /// A folder holding nine drafts is one row and its drafts are nine, and the
+    /// whole point is that they can differ - so a parent whose children were
+    /// named individually contributes nothing itself and defers to them.
+    /// </summary>
+    private static void Route(
+        XElement item, XElement? draft, Context ctx,
+        IReadOnlyDictionary<string, ScrivenerDestination>? mapping,
+        ScrivenerDestination destination, int depth, string folderTag = "")
+    {
+        var childItems = ChildrenOf(item);
+
+        // Only the assignable rows - the top level and the one below it - can be
+        // redirected. Below that the binder's own shape decides, which is what
+        // parts, chapters and scenes have always been worked out from.
+        if (depth == 0 && mapping != null
+            && childItems.Any(c => mapping.ContainsKey(KeyOf(c, ctx))))
         {
-            WalkEntities(item, kind.Value, ctx);
+            foreach (var child in childItems)
+            {
+                // The nearest folder is still what tags a research item, so a
+                // row that was left as research is tagged exactly as it would
+                // have been had its parent been walked whole.
+                Route(child, draft, ctx, mapping,
+                    DestinationOf(child, draft, ctx, mapping, destination), depth + 1,
+                    TitleOf(item));
+            }
+
             return;
         }
 
-        WalkResearch(item, ctx, folderTag: string.Empty);
+        switch (destination)
+        {
+            case ScrivenerDestination.Skip:
+                ctx.Losses.Add(TitleOf(item));
+                return;
+
+            case ScrivenerDestination.Characters:
+                WalkEntities(item, ScrivenerEntityKind.Character, ctx);
+                return;
+
+            case ScrivenerDestination.Places:
+                WalkEntities(item, ScrivenerEntityKind.Location, ctx);
+                return;
+
+            case ScrivenerDestination.Manuscript:
+                // Scrivener's own draft folder is a container - its children are
+                // the book. Any other folder sent to the manuscript keeps itself,
+                // so merging a second draft into an existing book arrives as the
+                // part or chapter it looks like rather than losing its grouping.
+                if (draft != null && ReferenceEquals(item, draft))
+                {
+                    foreach (var child in childItems) WalkDraft(child, ctx, Node.Empty, Node.Empty);
+                }
+                else
+                {
+                    WalkDraft(item, ctx, Node.Empty, Node.Empty);
+                }
+
+                return;
+
+            case ScrivenerDestination.Draft:
+            case ScrivenerDestination.Book:
+                // The folder names the draft or the book; what is inside it is
+                // that draft's manuscript, so the folder is a container exactly
+                // as Scrivener's own draft folder is.
+                ctx.Target = new ScrivenerTarget(
+                    destination == ScrivenerDestination.Draft
+                        ? ScrivenerTargetKind.Draft
+                        : ScrivenerTargetKind.Book,
+                    KeyOf(item, ctx),
+                    TitleOf(item));
+                foreach (var child in childItems) WalkDraft(child, ctx, Node.Empty, Node.Empty);
+                ctx.Target = ScrivenerTarget.Manuscript;
+                return;
+
+            default:
+                // A sketch filed under something the rules called research is
+                // still a character; one under a folder the writer themselves
+                // called research is not, because they just said so.
+                WalkResearch(item, ctx, folderTag,
+                    respectEntityIcons: mapping?.ContainsKey(KeyOf(item, ctx)) != true);
+                return;
+        }
+    }
+
+    /// <summary>The book, draft or new book a document's chapter belongs to.</summary>
+    private readonly record struct ScrivenerTarget(
+        ScrivenerTargetKind Kind, string Key, string Title)
+    {
+        public static ScrivenerTarget Manuscript
+            => new(ScrivenerTargetKind.Manuscript, string.Empty, string.Empty);
     }
 
     // ── The draft ────────────────────────────────────────────────────────
@@ -310,7 +560,7 @@ public static class ScrivenerReader
             return;
         }
 
-        AddScene(item, ctx, part, chapter.IsEmpty ? Node.DefaultChapter : chapter, title,
+        AddScene(item, ctx, part, chapter.IsEmpty ? ctx.LooseChapter : chapter, title,
             ReadRtf(item, ctx, "content.rtf", ".rtf"));
     }
 
@@ -320,8 +570,12 @@ public static class ScrivenerReader
     {
         public static Node Empty => new(string.Empty, string.Empty);
 
-        /// <summary>The chapter for a draft document the binder gave no folder.</summary>
-        public static Node DefaultChapter => new(" loose", DefaultChapterTitle);
+        /// <summary>Key prefix for the chapter a draft document lands in when the
+        /// binder gave it no folder. Completed per book or draft by
+        /// <see cref="Context.LooseChapter"/> - a shared key put every loose
+        /// document from every draft into one chapter owned by whichever draft
+        /// reached it first, and left the rest of them empty.</summary>
+        public const string LooseChapterKey = " loose";
 
         public bool IsEmpty => Key.Length == 0;
     }
@@ -364,7 +618,10 @@ public static class ScrivenerReader
             ctx.LabelName(MetaOf(item, "LabelID")),
             ctx.StatusName(MetaOf(item, "StatusID")),
             !string.Equals(MetaOf(item, "IncludeInCompile"), "No", StringComparison.OrdinalIgnoreCase),
-            CustomFieldsOf(item, ctx)));
+            CustomFieldsOf(item, ctx),
+            ctx.Target.Kind,
+            ctx.Target.Key,
+            ctx.Target.Title));
     }
 
     /// <summary>
@@ -422,7 +679,14 @@ public static class ScrivenerReader
     /// Research, notes and front matter. Folder titles come across as tags, so
     /// the shape of somebody's research survives even though its folders do not.
     /// </summary>
-    private static void WalkResearch(XElement item, Context ctx, string folderTag)
+    /// <param name="respectEntityIcons">
+    /// Whether a sketch filed in here should still become a Codex entry. True
+    /// when nothing but the rules put this folder here, false when the writer
+    /// named it research themselves - saying research and getting characters
+    /// anyway would make the choice meaningless.
+    /// </param>
+    private static void WalkResearch(
+        XElement item, Context ctx, string folderTag, bool respectEntityIcons = true)
     {
         var title = TitleOf(item);
         var children = item.Element("Children");
@@ -435,9 +699,9 @@ public static class ScrivenerReader
             var tag = title;
             foreach (var child in childItems)
             {
-                var kind = EntityKindOf(child);
+                var kind = respectEntityIcons ? EntityKindOf(child) : null;
                 if (kind != null) WalkEntities(child, kind.Value, ctx);
-                else WalkResearch(child, ctx, tag);
+                else WalkResearch(child, ctx, tag, respectEntityIcons);
             }
         }
 
@@ -906,6 +1170,22 @@ public static class ScrivenerReader
         public string Root { get; }
         public string Version { get; }
         public string TemplateFolderUuid { get; }
+
+        /// <summary>Which book or draft the walk is currently filling. Set while
+        /// a folder mapped to a draft or a book of its own is being read.</summary>
+        public ScrivenerTarget Target { get; set; } = ScrivenerTarget.Manuscript;
+
+        /// <summary>
+        /// The chapter a document with no folder around it lands in, one per book
+        /// or draft.
+        ///
+        /// A draft that never got chapter folders is just a run of documents, and
+        /// four of the nine in the project this was reported from looked like
+        /// that. With one shared key they all landed in a single chapter that
+        /// belonged to whichever draft was read first, so that draft held
+        /// everybody's documents and the other three were created empty.
+        /// </summary>
+        public Node LooseChapter => new(Node.LooseChapterKey + Target.Key, DefaultChapterTitle);
 
         public List<ScrivenerScene> Scenes { get; } = [];
         public List<ScrivenerEntity> Entities { get; } = [];
