@@ -44,8 +44,13 @@ export function CreateProjectDialog({ onClose }: { onClose: () => void }): React
       window.novalist.setProjectRoot(state.projectPath)
       useProjectStore.getState().applyState(state)
       // The premise ladder is asked once the project exists, because it has to
-      // have somewhere to be saved.
+      // have somewhere to be saved - and it takes the dialog over, so this one
+      // stays up underneath it rather than closing and taking it with it.
+      // Otherwise the work is done and there is nothing left to fill in: the
+      // form used to sit there over the project it had just made, still
+      // showing a spinning Create button, as though it had not worked.
       if (snowflake) setSetupOpen(true)
+      else onClose()
     } catch (e) {
       setCreating(false)
       setError(String(e))

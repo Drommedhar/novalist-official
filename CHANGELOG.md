@@ -102,6 +102,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- **Creating a project puts the form away.** **Create** wrote the project and opened it, then left its own dialog sitting on top with the button still spinning — so the only signal you got was that nothing had happened, over a project that had in fact been made.
+
 - **Splitting a pane from the keyboard works while you are writing.** `Ctrl+Alt+Right` and `Ctrl+Alt+Down` did nothing at all when the caret was in the prose — which is the only place anyone presses them from. The editor reserves the arrow keys so `Ctrl+Arrow` can walk by word, and the splitting gestures were being swallowed along with them. Walking by word is untouched.
 
 - **A word you add to the dictionary is actually learned.** Choosing **Add to dictionary** on a red-underlined name did nothing at all unless you happened to have a paid LanguageTool account: it was being sent to that service instead of to your own word list. Nothing was stored, the list in Settings stayed empty, and the red underline stayed put. The word now lands in your dictionary, and the underline goes as you watch.
