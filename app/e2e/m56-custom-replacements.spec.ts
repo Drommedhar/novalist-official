@@ -188,6 +188,16 @@ test('the preview beside a rule agrees with what the editor actually types', asy
   await expect(
     page.locator('.settings-section-surface[data-settings-section="writingAssistance"]')
   ).toBeVisible({ timeout: 20_000 })
+  // The row has to fit the column it sits in. It did not: the fields were laid
+  // out on 1fr tracks, which refuse to shrink past the width of the input
+  // inside them, so Closing and the delete button hung off the right edge and
+  // the whole of Settings scrolled sideways.
+  const surface = page.locator('.settings-section-surface[data-settings-section="writingAssistance"]')
+  const limit = (await surface.boundingBox())!.x + (await surface.boundingBox())!.width
+  const firstRow = page.locator('.replacement-rule').first()
+  const delBox = (await firstRow.locator('button').last().boundingBox())!
+  expect(delBox.x + delBox.width).toBeLessThanOrEqual(limit)
+
   const rows = page.locator('.replacement-rule')
   const predicted: string[] = []
   for (let i = 0; i < samples.length; i++) {

@@ -706,12 +706,23 @@
   gap: var(--nl-space-tightest);
 }
 
+/* Every track is allowed to shrink. A bare 1fr refuses to go below the
+   min-content width of the input inside it, and an input carries a default
+   size of twenty characters - so the row stayed wider than the column it sits
+   in and the Closing field and the delete button hung off the right edge. */
 .replacement-rules-head,
 .replacement-rule {
   display: grid;
-  grid-template-columns: 7rem 1fr 1fr 6rem auto;
+  grid-template-columns:
+    minmax(0, 6rem) minmax(0, 1fr) minmax(0, 1fr)
+    minmax(0, 5rem) auto;
   gap: var(--nl-space-tighter);
   align-items: center;
+}
+
+.replacement-rule .dialog-input,
+.replacement-rule .dialog-select {
+  min-width: 0;
 }
 
 .replacement-rules-head {
@@ -758,7 +769,7 @@
 .rule-tryit {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 7rem 1fr;
+  grid-template-columns: minmax(0, 6rem) minmax(0, 1fr);
   gap: var(--nl-space-tighter);
   align-items: center;
   padding: var(--nl-space-tightest) 0 var(--nl-space-tighter);

@@ -94,6 +94,10 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- **The welcome screen no longer pretends you are in a workspace.** With no project open the rail marked **Write** as where you were, because that is where Novalist starts rather than anywhere you had been, and left **Welcome** unmarked. Worse, the five workspaces lit up under the pointer as though you could press them, which you could not - there is nothing to write in yet. Welcome is now the marked place, and the workspaces sit quietly until there is a project to use them on.
+
+- **The replacement rules table fits the page.** The **Closing** field and the delete button at the end of each rule hung off the right-hand edge, and the whole of Settings scrolled sideways to reach them. Every column now gives way as the window narrows, so the row ends where the section does.
+
 - **Focus Peek no longer blinks and jumps.** Holding the pointer still on a name rebuilt the card every time anything around it redrew, so it flickered where it should have sat still. In the inspector it was worse: an unmeasured card is an empty one, and an empty card placed beside a row lands on top of it - so it appeared over the entry it belonged to and then flung itself across the screen. It is drawn once, in one place, in the prose and in the inspector alike. Hovering an explicit mention now anchors to the whole name rather than to the pixel under the pointer, as every other kind of entity reference already did.
 
 - **The picture picker for a Codex entry showed strips instead of pictures.** In a window short enough for the dialog to reach its height limit, every thumbnail was cropped to a band across the top of the image, at a different width each - a row of foreheads and blank bars. It is an even grid of framed thumbnails now, each showing the whole picture, and it scrolls rather than squashing.

@@ -47,12 +47,6 @@ export function ModeRail(): React.JSX.Element {
     if (capacity === 'compact' || !docked) setModePanelOpen(true)
   }
 
-  // Home wins whenever it is what is on screen; otherwise the rail follows the
-  // mode, including while a view that belongs to none - Settings, About - is
-  // showing, so the writer can see where they will land on the way back.
-  const atHome = !extView && mainView === HOME_VIEW
-  const activeMode = !atHome && modeOf(mainView) !== null ? modeOf(mainView) : null
-
   // Settings, Extensions and About open before a project does, and with no
   // project every button on this rail was disabled - so opening About from the
   // welcome screen was a room with the door locked behind you. Home is the way
@@ -60,6 +54,20 @@ export function ModeRail(): React.JSX.Element {
   // to a Dashboard there is no book for.
   const appScopedView =
     mainView === 'settings' || mainView === 'extensions' || mainView === 'about'
+
+  // Home wins whenever it is what is on screen; otherwise the rail follows the
+  // mode, including while a view that belongs to none - Settings, About - is
+  // showing, so the writer can see where they will land on the way back.
+  //
+  // With no project open the welcome screen *is* home, whatever `mainView`
+  // happens to say. It says "write", because that is what the store starts on
+  // and nothing has navigated yet - so the rail marked Write as the workspace
+  // you were in while you were plainly looking at the welcome screen, and
+  // marked home as somewhere you were not.
+  const atHome = !extView && (isLoaded ? mainView === HOME_VIEW : !appScopedView)
+  const activeMode =
+    isLoaded && !atHome && modeOf(mainView) !== null ? modeOf(mainView) : null
+
   const homeLabel = isLoaded ? t('shell.view.dashboard') : t('shell.welcome')
 
   return (
@@ -84,7 +92,11 @@ export function ModeRail(): React.JSX.Element {
         // mode and then opening Settings leaves it selected but not current,
         // which is the honest reading of where you are.
         const current = activeMode === entry
-        const selected = !atHome && mode === entry
+        // Nothing is picked until there is a project to pick it in. The store
+        // starts on Write, which is a default rather than a decision, and
+        // showing it as chosen on the welcome screen was a claim about where
+        // the writer was that they had not made.
+        const selected = isLoaded && !atHome && mode === entry
         return (
           <button
             key={entry}

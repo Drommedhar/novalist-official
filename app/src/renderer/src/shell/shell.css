@@ -311,9 +311,16 @@
   hyphens: auto;
 }
 
-.mode-rail-item:hover {
+.mode-rail-item:hover:not(:disabled) {
   background: var(--nl-surface-hover);
   color: var(--nl-text);
+}
+
+/* CSS :hover still matches a disabled button, so without this the modes lit up
+   under the pointer on the welcome screen and read as things you could press. */
+.mode-rail-item:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .mode-rail-item.active {
