@@ -47,6 +47,23 @@ public sealed class TimelineEventInfo
 public interface IExtensionStoryService
 {
     /// <summary>
+    /// What the active book is about: the premise, the pitch and the
+    /// publishing metadata. Null when no book is open.
+    ///
+    /// The one thing an extension building a prompt could not say was what the
+    /// book *is*. It could read every scene, every Codex entry and every plot
+    /// thread, and still had to open with "a novel" - so a model was asked to
+    /// judge a cosy mystery by the standards of whatever it assumed. The genre,
+    /// the audience, the blurb and the one-page synopsis are all things the
+    /// writer has already written down; they were simply not reachable.
+    ///
+    /// Read-only on purpose. The premise is the writer's statement of intent,
+    /// and a pass that could quietly rewrite what the book is meant to be would
+    /// change the standard everything else is measured against.
+    /// </summary>
+    BookDetailInfo? GetBookDetail();
+
+    /// <summary>
     /// A scene's metadata. Null when the scene does not exist.
     /// </summary>
     SceneDetailInfo? GetSceneDetail(string chapterGuid, string sceneId);
@@ -162,6 +179,116 @@ public sealed class SmartListInfo
     public string Match { get; init; } = string.Empty;
 
     public IReadOnlyList<SmartListRuleInfo> Rules { get; init; } = [];
+}
+
+/// <summary>
+/// The book in one line, then one paragraph, then the answers a submission
+/// form asks for.
+/// </summary>
+public sealed class BookPremiseInfo
+{
+    /// <summary>One sentence: somebody wants something, and something stops them.</summary>
+    public string Logline { get; init; } = string.Empty;
+
+    /// <summary>The premise opened out: world, stakes, inciting incident, rough climax.</summary>
+    public string Paragraph { get; init; } = string.Empty;
+
+    /// <summary>
+    /// A summary per act, keyed by the act name the chapters carry - so the
+    /// ladder stays attached to the book's own structure rather than assuming
+    /// three acts.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Acts { get; init; }
+        = new Dictionary<string, string>();
+
+    /// <summary>Genre as a shop would file it.</summary>
+    public string Genre { get; init; } = string.Empty;
+
+    /// <summary>Who it is for: age band, readership, the shelf it sits on.</summary>
+    public string Audience { get; init; } = string.Empty;
+
+    /// <summary>The two or three comparable titles an agent asks for.</summary>
+    public string Comparables { get; init; } = string.Empty;
+
+    /// <summary>Where and when it is set.</summary>
+    public string Setting { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Back-cover copy: what a reader is told to make them open it. Not the
+    /// synopsis - a blurb withholds the ending on purpose, and a prompt that
+    /// confuses the two asks for the wrong thing.
+    /// </summary>
+    public string Blurb { get; init; } = string.Empty;
+
+    /// <summary>The one-page synopsis, ending included.</summary>
+    public string Synopsis { get; init; } = string.Empty;
+}
+
+/// <summary>
+/// What a shop, a library and a distributor are told about the book.
+/// </summary>
+public sealed class BookPublishingInfo
+{
+    /// <summary>ISBN as the writer typed it, hyphens and all.</summary>
+    public string Isbn { get; init; } = string.Empty;
+
+    public string Publisher { get; init; } = string.Empty;
+
+    /// <summary>The description written for the metadata block.</summary>
+    public string Description { get; init; } = string.Empty;
+
+    /// <summary>Subject headings: genre words, or BISAC codes where the writer has them.</summary>
+    public IReadOnlyList<string> Subjects { get; init; } = [];
+
+    /// <summary>The copyright line.</summary>
+    public string Rights { get; init; } = string.Empty;
+
+    /// <summary>Publication date as the writer entered it, ideally yyyy-mm-dd.</summary>
+    public string PublicationDate { get; init; } = string.Empty;
+
+    /// <summary>The series this book belongs to, or empty.</summary>
+    public string SeriesName { get; init; } = string.Empty;
+
+    /// <summary>Position in the series - "2", or "2.5" for a novella between
+    /// two books, which is why it is not a number.</summary>
+    public string SeriesPosition { get; init; } = string.Empty;
+}
+
+/// <summary>What the active book is, beyond the chapters in it.</summary>
+public sealed class BookDetailInfo
+{
+    public string Id { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Who wrote this book when that is not who wrote the project - an
+    /// anthology whose volumes have different authors. Empty means the
+    /// project's own author.
+    /// </summary>
+    public string Author { get; init; } = string.Empty;
+
+    /// <summary>
+    /// "first", "second", "third limited", "third omniscient", or empty where
+    /// the writer has not said. Declared rather than derived: it is the
+    /// writer's intention, and reading it off the majority of scenes would make
+    /// the outlier normal.
+    /// </summary>
+    public string NarrativePerson { get; init; } = string.Empty;
+
+    /// <summary>"past", "present", or empty. Same reasoning as
+    /// <see cref="NarrativePerson"/>.</summary>
+    public string Tense { get; init; } = string.Empty;
+
+    /// <summary>The story structure the book is written against, or empty.</summary>
+    public string StructureTemplateId { get; init; } = string.Empty;
+
+    /// <summary>Never null: a book with nothing filled in has empty fields
+    /// rather than a missing object, so a caller reads it without a null check
+    /// on every line.</summary>
+    public BookPremiseInfo Premise { get; init; } = new();
+
+    /// <summary>Never null, for the same reason as <see cref="Premise"/>.</summary>
+    public BookPublishingInfo Publishing { get; init; } = new();
 }
 
 /// <summary>A pin on a map.</summary>

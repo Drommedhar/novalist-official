@@ -608,6 +608,50 @@ public sealed partial class HostServices
 
     // ── Story structure (IExtensionStoryService) ───────────────────
 
+    BookDetailInfo? IExtensionStoryService.GetBookDetail()
+    {
+        var book = _projectService.ActiveBook;
+        if (book == null) return null;
+
+        var premise = book.Premise ?? new Core.Models.StoryPremise();
+        var publishing = book.Publishing ?? new Core.Models.PublishingMetadata();
+        return new BookDetailInfo
+        {
+            Id = book.Id,
+            Name = book.Name,
+            Author = book.Author,
+            NarrativePerson = book.NarrativePerson,
+            Tense = book.Tense,
+            StructureTemplateId = book.StructureTemplateId,
+            Premise = new BookPremiseInfo
+            {
+                Logline = premise.Logline,
+                Paragraph = premise.Paragraph,
+                // Copied rather than handed over: the caller holding the book's
+                // own dictionary could write into the open project through a
+                // read-only call.
+                Acts = new Dictionary<string, string>(premise.Acts ?? []),
+                Genre = premise.Genre,
+                Audience = premise.Audience,
+                Comparables = premise.Comparables,
+                Setting = premise.Setting,
+                Blurb = premise.Blurb,
+                Synopsis = premise.Synopsis
+            },
+            Publishing = new BookPublishingInfo
+            {
+                Isbn = publishing.Isbn,
+                Publisher = publishing.Publisher,
+                Description = publishing.Description,
+                Subjects = [.. publishing.Subjects ?? []],
+                Rights = publishing.Rights,
+                PublicationDate = publishing.PublicationDate,
+                SeriesName = publishing.SeriesName,
+                SeriesPosition = publishing.SeriesPosition
+            }
+        };
+    }
+
     SceneDetailInfo? IExtensionStoryService.GetSceneDetail(string chapterGuid, string sceneId)
     {
         var chapter = _projectService.GetChaptersOrdered().FirstOrDefault(c => c.Guid == chapterGuid);

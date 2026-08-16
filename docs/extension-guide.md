@@ -144,6 +144,12 @@ Creating a book does **not** switch to it; an extension adding a volume should n
 
 **`StoryService`** — what a scene *is* rather than what it says: point of view, intensity, emotion, conflict, stage, tags, plot threads, story dates, narrative mode, act, and the writer's own typed fields. Plus acts, plot threads (readable and creatable) and hand-entered timeline events. A pacing curve or a continuity rule needs this and could not be written without it.
 
+**`StoryService.GetBookDetail()`, what the book is** — the one thing an extension building a prompt could not say. It could read every scene, every Codex entry and every plot thread, and still had to open with "a novel", so a model was asked to judge a cosy mystery by whatever standard it assumed. This returns the active book's **premise** (logline, paragraph, a summary per act keyed by the act names the chapters carry), its **pitch** (genre, audience, comparable titles, setting, blurb, one-page synopsis), its **publishing metadata** (ISBN, publisher, description, subjects, rights, publication date, series name and position), and the book's declared **narrative person**, **tense** and **structure template**. Null when no book is open.
+
+The blurb and the synopsis are deliberately separate fields and mean opposite things — a blurb withholds the ending on purpose — so a prompt that reaches for the wrong one asks for the wrong thing. `Premise` and `Publishing` are never null: a book that has said nothing about itself comes back with empty strings rather than a missing object.
+
+It is **read-only**. The premise is the writer's statement of intent, and it is the standard everything else is measured against; a pass that could quietly rewrite what the book is meant to be would be moving the goalposts it is scoring against. The writer edits it in the app.
+
 **`EntityService.SaveEntityAsync`** — writes name, description and sections onto an existing entry of any kind. Sections you do not mention are left alone, so filling in one part of an entry does not wipe the rest.
 
 **Pickers** — `PickFolderAsync`, `PickFileAsync`. Opens the real native dialog. Without these the only way to ask for a path was a text field the writer typed into by hand, and found out was wrong once the work had run.
@@ -336,7 +342,9 @@ export function activate(novalist) {
 }
 ```
 
-**The API, version 1.** `request` (any backend method), `registerCommand`, `setStatusItem` / `removeStatusItem`, `notify`, `getView` / `setView`, `currentScene`, `onSceneChanged`, `log`. A manifest declaring an `apiVersion` the host does not implement is refused and the writer is told which extension and why — rather than loaded and left to fail somewhere less obvious.
+**The API, version 1.** `request` (any backend method), `registerCommand`, `setStatusItem` / `removeStatusItem`, `notify`, `getView` / `setView`, `currentScene`, `onSceneChanged`, `log`.
+
+A renderer plugin reaching for what the book is about wants `request('premise/get')` and `request('publishing/get')` — the same two the Premise card and the export metadata read, and between them the renderer-side equivalent of `StoryService.GetBookDetail()`. A manifest declaring an `apiVersion` the host does not implement is refused and the writer is told which extension and why — rather than loaded and left to fail somewhere less obvious.
 
 **Understand what this is.** A webview is sandboxed: it renders in a frame, talks over a message channel, and cannot touch anything the writer is looking at. A renderer plugin can. It sees every keystroke in the editor, and one that misbehaves produces bugs indistinguishable from Novalist's own. That is the deal, and the manual says it in those words to the writer as well.
 

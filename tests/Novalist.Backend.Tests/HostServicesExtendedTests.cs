@@ -662,6 +662,112 @@ public class HostServicesExtendedTests
         Assert.Empty(host.StoryService.GetActs());
         Assert.Empty(host.StoryService.GetPlotlines());
         Assert.Empty(host.StoryService.GetTimelineEvents());
+        Assert.Null(host.StoryService.GetBookDetail());
+    }
+
+    // ── What the book is ──
+
+    [Fact]
+    public void TheBookDetailCarriesThePremiseThePitchAndThePublishingMetadata()
+    {
+        var (host, proj, dir) = Build();
+        using var _d = dir;
+        var book = proj.ActiveBook!;
+        book.Author = "R. Iversen";
+        book.NarrativePerson = "third limited";
+        book.Tense = "past";
+        book.StructureTemplateId = "save-the-cat";
+        book.Premise = new StoryPremise
+        {
+            Logline = "A harbourmaster reads the tide and finds a body in it.",
+            Paragraph = "Hillsford keeps its secrets under water until the jetty comes out.",
+            Acts = { ["Act I"] = "The water gives something back." },
+            Genre = "Literary crime",
+            Audience = "Adult",
+            Comparables = "Broadchurch, The Dry",
+            Setting = "A Norfolk fishing town, 1987",
+            Blurb = "Some tides bring things in that were meant to stay out.",
+            Synopsis = "Mira finds the body, and by the end she knows who put it there."
+        };
+        book.Publishing = new PublishingMetadata
+        {
+            Isbn = "978-3-16-148410-0",
+            Publisher = "Hillsford Press",
+            Description = "The first of the tide books.",
+            Subjects = ["Crime", "Literary"],
+            Rights = "Copyright 1987 R. Iversen",
+            PublicationDate = "1987-09-01",
+            SeriesName = "The Tide Books",
+            SeriesPosition = "1"
+        };
+
+        var detail = host.StoryService.GetBookDetail()!;
+
+        Assert.Equal(book.Id, detail.Id);
+        Assert.Equal("Book", detail.Name);
+        Assert.Equal("R. Iversen", detail.Author);
+        Assert.Equal("third limited", detail.NarrativePerson);
+        Assert.Equal("past", detail.Tense);
+        Assert.Equal("save-the-cat", detail.StructureTemplateId);
+
+        Assert.Equal("A harbourmaster reads the tide and finds a body in it.", detail.Premise.Logline);
+        Assert.Equal("Hillsford keeps its secrets under water until the jetty comes out.",
+            detail.Premise.Paragraph);
+        Assert.Equal("The water gives something back.", detail.Premise.Acts["Act I"]);
+        Assert.Equal("Literary crime", detail.Premise.Genre);
+        Assert.Equal("Adult", detail.Premise.Audience);
+        Assert.Equal("Broadchurch, The Dry", detail.Premise.Comparables);
+        Assert.Equal("A Norfolk fishing town, 1987", detail.Premise.Setting);
+        Assert.Equal("Some tides bring things in that were meant to stay out.", detail.Premise.Blurb);
+        Assert.Equal("Mira finds the body, and by the end she knows who put it there.",
+            detail.Premise.Synopsis);
+
+        Assert.Equal("978-3-16-148410-0", detail.Publishing.Isbn);
+        Assert.Equal("Hillsford Press", detail.Publishing.Publisher);
+        Assert.Equal("The first of the tide books.", detail.Publishing.Description);
+        Assert.Equal(["Crime", "Literary"], detail.Publishing.Subjects);
+        Assert.Equal("Copyright 1987 R. Iversen", detail.Publishing.Rights);
+        Assert.Equal("1987-09-01", detail.Publishing.PublicationDate);
+        Assert.Equal("The Tide Books", detail.Publishing.SeriesName);
+        Assert.Equal("1", detail.Publishing.SeriesPosition);
+    }
+
+    [Fact]
+    public void ReadingTheBookDetailCannotWriteThroughItIntoTheOpenProject()
+    {
+        // The call is read-only, and handing back the book's own collections
+        // would make it read-write for anyone who noticed.
+        var (host, proj, dir) = Build();
+        using var _d = dir;
+        proj.ActiveBook!.Premise.Acts["Act I"] = "As written.";
+        proj.ActiveBook!.Publishing.Subjects.Add("Crime");
+
+        var detail = host.StoryService.GetBookDetail()!;
+        ((Dictionary<string, string>)detail.Premise.Acts)["Act I"] = "Meddled with.";
+
+        Assert.Equal("As written.", proj.ActiveBook!.Premise.Acts["Act I"]);
+        // The subjects come back as a fixed array rather than the book's own
+        // list, so there is nothing there to write through in the first place.
+        Assert.NotSame(proj.ActiveBook!.Publishing.Subjects, detail.Publishing.Subjects);
+        Assert.Equal(["Crime"], detail.Publishing.Subjects);
+    }
+
+    [Fact]
+    public void ABookThatHasSaidNothingAboutItselfReadsAsEmptyRatherThanNull()
+    {
+        // Both objects default on BookData, but a project written by an older
+        // version has neither key - so the caller would get a null it was told
+        // it would never see.
+        var (host, proj, dir) = Build();
+        using var _d = dir;
+        proj.ActiveBook!.Premise = null!;
+        proj.ActiveBook!.Publishing = null!;
+
+        var detail = host.StoryService.GetBookDetail()!;
+
+        Assert.Equal(string.Empty, detail.Premise.Synopsis);
+        Assert.Empty(detail.Premise.Acts);
+        Assert.Empty(detail.Publishing.Subjects);
     }
 
     [Fact]
