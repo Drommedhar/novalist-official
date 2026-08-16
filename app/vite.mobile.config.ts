@@ -11,8 +11,10 @@ import react from '@vitejs/plugin-react'
 
 const MANUAL_VIRTUAL_ID = 'virtual:novalist-manual'
 const MANUAL_IMAGES_VIRTUAL_ID = 'virtual:novalist-manual-images'
+const CHANGELOG_VIRTUAL_ID = 'virtual:novalist-changelog'
 const MANUAL_DIR = resolve(__dirname, '../docs/manual')
 const MANUAL_IMAGES_DIR = resolve(MANUAL_DIR, 'images')
+const CHANGELOG_FILE = resolve(__dirname, '../CHANGELOG.md')
 
 const IMAGE_MIME: Record<string, string> = {
   '.png': 'image/png',
@@ -24,15 +26,19 @@ const IMAGE_MIME: Record<string, string> = {
 }
 
 // Duplicated from electron.vite.config.ts so the desktop build stays untouched.
-// Bundles docs/manual/*.md and its images/ (as data URIs) into virtual modules.
+// Bundles docs/manual/*.md and its images/ (as data URIs) into virtual modules,
+// plus the repo CHANGELOG.md that About reads. Every virtual module the shared
+// renderer imports must exist here too, or the mobile bundle fails to resolve.
 function manualPlugin(): Plugin {
   const resolvedManual = '\0' + MANUAL_VIRTUAL_ID
   const resolvedImages = '\0' + MANUAL_IMAGES_VIRTUAL_ID
+  const resolvedChangelog = '\0' + CHANGELOG_VIRTUAL_ID
   return {
     name: 'novalist-manual',
     resolveId(id) {
       if (id === MANUAL_VIRTUAL_ID) return resolvedManual
       if (id === MANUAL_IMAGES_VIRTUAL_ID) return resolvedImages
+      if (id === CHANGELOG_VIRTUAL_ID) return resolvedChangelog
     },
     load(id) {
       if (id === resolvedManual) {
@@ -56,6 +62,10 @@ function manualPlugin(): Plugin {
           return `${JSON.stringify(file)}: ${JSON.stringify(uri)}`
         })
         return `export default {\n${entries.join(',\n')}\n}`
+      }
+      if (id === resolvedChangelog) {
+        const text = existsSync(CHANGELOG_FILE) ? readFileSync(CHANGELOG_FILE, 'utf8') : ''
+        return `export default ${JSON.stringify(text)}`
       }
     }
   }
