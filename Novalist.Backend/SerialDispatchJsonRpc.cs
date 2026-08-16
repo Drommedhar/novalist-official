@@ -80,7 +80,16 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
     [
         "git/",
         "backup/",
-        "export/"
+        "export/",
+        // The grammar check posts the whole scene to a language server and
+        // waits up to thirty seconds for an answer. It reads a setting and
+        // touches nothing else in the project, so there is nothing here for
+        // the gate to protect - and holding the gate for that long meant
+        // opening a scene in a book imported from Scrivener, where a scene can
+        // be five thousand words, queued every other request behind one HTTP
+        // round trip. The screen a writer was waiting for was waiting on the
+        // sentence they had just stopped typing.
+        "grammar/"
     ];
 
     private readonly SemaphoreSlim _gate = new(1, 1);

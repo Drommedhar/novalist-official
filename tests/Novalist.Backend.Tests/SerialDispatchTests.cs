@@ -153,7 +153,11 @@ public sealed class SerialDispatchTests : IDisposable
                      "git/status",
                      "git/changedScenes",
                      "backup/create",
-                     "export/run"
+                     "export/run",
+                     // Posts the scene to a language server and waits up to
+                     // thirty seconds. Queued, one grammar check held every
+                     // other screen in the app behind it.
+                     "grammar/check"
                  })
         {
             Assert.True(SerialDispatchJsonRpc.IsReentrant(method), method + " must skip the queue");
