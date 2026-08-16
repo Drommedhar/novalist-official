@@ -104,6 +104,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 - **Clicking a name no longer switches its Focus Peek off.** Put a name in with `@`, or click into one already in the prose to fix a typo, then move the mouse to see who they were - and nothing appeared. The card only came back if you moved the pointer off the word entirely and returned, which is not something anyone does on purpose. It affected `@` mentions and plain names alike.
 
+- **A character is recognised by their surname.** Novalist matched an entry's full name and a character's bare first name, but never the surname on its own — so "Mira" lit up in your prose and "Frost" did not, which is most of the mentions in a book written by anyone who does not have their characters on first-name terms with the narrator. It works everywhere the name already did: the hover card, the highlighting, and the plural rule. Two characters who share a surname make it ambiguous, so it is left alone rather than pointed at one of them arbitrarily — their given names carry on working.
+
 - **The 3D map answers the mouse again.** Clicking into the world and dragging did nothing: the camera turns by taking the pointer, and the frame the map runs in was not permitted to take it. Nothing reported the refusal, so the view simply never moved.
 
 - **Leaving the 3D view and going back no longer hangs it.** The second visit was built out of graphics resources the first one had already released, which is why it stopped at "Loading tree assets" and stayed there. Each visit now loads its own. A tree load that is going too slowly gives up and shows you the landscape without them rather than holding the whole view.

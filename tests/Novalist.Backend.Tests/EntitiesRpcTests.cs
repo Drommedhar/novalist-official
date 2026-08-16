@@ -70,6 +70,11 @@ public sealed class EntitiesRpcTests : IDisposable
         // is null when it already equals the composed display name.
         Assert.Equal("Mira", mira.FirstName);
         Assert.Null(list.Single(e => e.Name == "Solo").FirstName);
+        // And the bare surname, for the same reason: a character is called by
+        // it as often as by their given name, and only the given name was ever
+        // recognised in prose.
+        Assert.Equal("Frost", mira.Surname);
+        Assert.Null(list.Single(e => e.Name == "Solo").Surname);
         // ImagePath is resolved to a project-root-relative path (book folder
         // prepended) so the renderer's project-rooted protocol can load it.
         Assert.EndsWith("/Images/mira.png", mira.ImagePath);
@@ -1543,10 +1548,27 @@ public sealed class EntitiesRpcTests : IDisposable
         var match = (await _rpc.ListAsync("character")).Single().Match;
 
         Assert.NotNull(match);
-        // The composed display name and the bare first name are both hover
-        // targets, so both need their plural.
+        // The composed display name, the bare first name and the bare surname
+        // are all hover targets, so all three need their plural.
         Assert.Contains("Liam Calders", match!.Plurals);
         Assert.Contains("Liams", match.Plurals);
+        Assert.Contains("Calders", match.Plurals);
+    }
+
+    [Fact]
+    public async Task List_ASurnameThatIsTheWholeNameIsNotOfferedTwice()
+    {
+        // A character with a surname and no given name composes to the surname
+        // alone. Offering it again as a second target would make the entry
+        // ambiguous against itself, and ambiguous matches are dropped - so the
+        // name would stop being recognised at all.
+        await Entities.SaveCharacterAsync(new CharacterData { Name = "Calder" });
+
+        var only = (await _rpc.ListAsync("character")).Single();
+
+        Assert.Equal("Calder", only.Name);
+        Assert.Null(only.Surname);
+        Assert.Null(only.FirstName);
     }
 
     [Fact]

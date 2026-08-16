@@ -199,10 +199,10 @@ Two things deliberately do **not** change:
 
 ## How a name is detected in prose
 
-By default Novalist recognises an entry's name, a character's bare first name, and every alias, ignoring capitalisation. That is right most of the time and wrong in a few specific ways, so each entry carries its own detection rules under **How this name is detected in prose** in the detail pane. Every setting is off by default, so an existing project reads exactly as it always did until you change something.
+By default Novalist recognises an entry's name, a character's bare first name, their bare **surname**, and every alias, ignoring capitalisation. A surname is how everyone who does not know a character well refers to them, so leaving it out meant a good half of the mentions in a book went unrecognised. When **two characters share a surname** it is ambiguous, so it is left alone rather than pointed at whichever of them happened to load first — their given names still work as they always did. That is right most of the time and wrong in a few specific ways, so each entry carries its own detection rules under **How this name is detected in prose** in the detail pane. Every setting is off by default, so an existing project reads exactly as it always did until you change something.
 
 - **Match only this exact capitalisation** — for a name that is also an ordinary word. Turn it on for a character called Will and "she will go" stops raising his card, while "Will opened the door" still does.
-- **Also match the plural** — recognises "Ravens" for an entry called "Raven", including its aliases and a character's first name. Usually what you want for a faction or a species, and usually wrong for a person.
+- **Also match the plural** — recognises "Ravens" for an entry called "Raven", including its aliases and a character's first name and surname. Usually what you want for a faction or a species, and usually wrong for a person.
 - **Never match inside these phrases** — a list of phrases that suppress a detection. With "rose garden" listed, a character called Rose is no longer detected in "they walked in the rose garden", but is still detected everywhere else. Matching ignores capitalisation, and a phrase only suppresses the detection when it appears in the surrounding text.
 - **Scenes where this is never detected** — a per-scene silence list. Add the open scene from the entry's hover card in the editor, using the crossed-out eye button. The Codex panel shows how many scenes are on the list and clears it in one click.
 

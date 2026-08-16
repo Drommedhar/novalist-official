@@ -133,7 +133,7 @@ public sealed class EntitiesRpc
         return type switch
         {
             "character" => (await _entities.LoadCharactersAsync())
-                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), c.Aliases, group: c.Group, gender: c.Gender, firstName: c.Name, match: c.Match, locked: c.Locked))
+                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), c.Aliases, group: c.Group, gender: c.Gender, firstName: c.Name, surname: c.Surname, match: c.Match, locked: c.Locked))
                 .ToArray(),
             "location" => (await _entities.LoadLocationsAsync())
                 .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, parent: l.Parent, match: l.Match, isWorld: l.IsWorld, locked: l.Locked))
@@ -1614,7 +1614,9 @@ public sealed class EntitiesRpc
         {
             case "character":
                 var c = characters.First(e => e.Id == id);
-                return [Compose(c.Name, c.Surname), c.Name, .. c.Aliases];
+                // The surname belongs here for the same reason the given name
+                // does: it is one of the ways the prose refers to them.
+                return [Compose(c.Name, c.Surname), c.Name, c.Surname, .. c.Aliases];
             case "location":
                 var l = locations.First(e => e.Id == id);
                 return [l.Name, .. l.Aliases];
@@ -2087,6 +2089,7 @@ public sealed class EntitiesRpc
         string id, string name, string detail, bool isWorldBible, EntityImage? image,
         IReadOnlyList<string> aliases,
         string? group = null, string? gender = null, string? parent = null, string? firstName = null,
+        string? surname = null,
         EntityMatchSettings? match = null, bool isWorld = false, bool locked = false) =>
         new(id, name, detail, isWorldBible,
             image == null ? null : _entities.ResolveProjectRelativeImage(image.Path),
@@ -2095,7 +2098,11 @@ public sealed class EntitiesRpc
             // The bare first name is an extra hover/mention target ("Liam" for
             // "Liam Calder"); null when it equals the composed display name.
             NullIfEmpty(firstName) is { } fn && !string.Equals(fn, name, StringComparison.Ordinal) ? fn : null,
-            MatchDto(match, name, aliases, firstName),
+            // Same rule as the first name: a surname that is the whole display
+            // name adds nothing, and matching it twice would only make the
+            // entry ambiguous against itself.
+            NullIfEmpty(surname) is { } sn && !string.Equals(sn, name, StringComparison.Ordinal) ? sn : null,
+            MatchDto(match, name, aliases, firstName, surname),
             isWorld,
             locked);
 
@@ -2104,14 +2111,15 @@ public sealed class EntitiesRpc
     /// rules. Null when nothing is customised, which keeps the common payload
     /// exactly the size it was.</summary>
     private static EntityMatchDto? MatchDto(
-        EntityMatchSettings? match, string name, IReadOnlyList<string> aliases, string? firstName)
+        EntityMatchSettings? match, string name, IReadOnlyList<string> aliases, string? firstName,
+        string? surname = null)
     {
         if (match == null) return null;
         if (!match.CaseSensitive && !match.MatchPlurals
             && match.Exclusions.Count == 0 && match.IgnoredSceneIds.Count == 0) return null;
 
         var plurals = new List<string>();
-        foreach (var text in new[] { name, firstName }.Concat(aliases))
+        foreach (var text in new[] { name, firstName, surname }.Concat(aliases))
         {
             if (string.IsNullOrWhiteSpace(text)) continue;
             plurals.AddRange(match.PluralFormsOf(text));
@@ -2218,6 +2226,10 @@ public sealed record EntitySummaryDto(
     string? Gender = null,
     string? Parent = null,
     string? FirstName = null,
+    /// <summary>The bare surname, as a second hover / mention target ("Calder"
+    /// for "Liam Calder"). Null when the entry has none, or when it is already
+    /// the whole display name.</summary>
+    string? Surname = null,
     EntityMatchDto? Match = null,
     /// <summary>True for a place that is a world: drawn at the top of the tree,
     /// and never given a parent of its own.</summary>

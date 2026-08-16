@@ -498,6 +498,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           imagePath: string | null
           aliases: string[]
           firstName: string | null
+          surname: string | null
           match: Match | null
         }[]
       >('entities/list', [type])
@@ -510,6 +511,12 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
         index.set(entity.id, hit)
         addText(entity.name, hit, entity.name, false, match)
         if (entity.firstName) addText(entity.firstName, hit, entity.name, true, match)
+        // A character is called by their surname as often as by their given
+        // name - by anyone who does not know them well, which in most books is
+        // most people - and only the given name was ever recognised. Two
+        // characters who share a surname make it ambiguous and it is dropped,
+        // by the same rule that already governs every other matched text.
+        if (entity.surname) addText(entity.surname, hit, entity.name, true, match)
         for (const alias of entity.aliases ?? []) addText(alias, hit, entity.name, true, match)
         // Plural forms come precomputed from the backend so the renderer never
         // has to know a language's plural rules.
