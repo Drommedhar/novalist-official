@@ -25,6 +25,7 @@ import { UpdateDialog } from './UpdateDialog'
 import { useBackupScheduler } from './useBackupScheduler'
 import { useSpellCheck } from './useSpellCheck'
 import { SceneConflictDialog } from './SceneConflictDialog'
+import { UnsavedLeaveDialog } from './UnsavedLeaveDialog'
 import { anyPaneShows, useShellStore } from '../stores/shellStore'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
@@ -415,6 +416,9 @@ export function AppShell(): React.JSX.Element {
       {/* Raised by the store when a save was refused because the scene changed
           on disk. Renders nothing until there is something to resolve. */}
       <SceneConflictDialog />
+      {/* Raised by the store when a navigation would leave unsaved edits
+          behind, wherever the writer set off from. */}
+      <UnsavedLeaveDialog />
     </div>
   )
 }

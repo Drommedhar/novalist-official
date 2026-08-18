@@ -190,7 +190,11 @@
     "laneEmpty": "noch in keiner Szene",
     "sceneCount_one": "{{count}} Szene",
     "sceneCount_other": "{{count}} Szenen",
-    "sceneCount": "{{count}} Szenen"
+    "sceneCount": "{{count}} Szenen",
+    "backToGrid": "Zurueck zum Raster",
+    "unsaved": "Nicht gespeicherte Aenderungen",
+    "tabDetails": "Der Strang",
+    "tabHistory": "Fruehere Versionen"
   },
   "smartList": {
     "section": "Smart-Listen",
@@ -4095,5 +4099,12 @@
       "title": "Über Novalist",
       "body": "Welche Version du benutzt, was darin neu ist, wer die mitgelieferten Bestandteile gemacht hat, und eine Schaltfläche, die Systeminformationen für eine Supportanfrage kopiert."
     }
+  },
+  "unsavedLeave": {
+    "title": "Aenderungen behalten?",
+    "message": "\"{{name}}\" hat Aenderungen, die nicht gespeichert wurden. Wer jetzt geht, verwirft sie.",
+    "stay": "Hier bleiben",
+    "discard": "Aenderungen verwerfen",
+    "saveAndLeave": "Speichern und gehen"
   }
 }

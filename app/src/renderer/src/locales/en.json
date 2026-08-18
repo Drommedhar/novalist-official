@@ -190,7 +190,11 @@
     "laneEmpty": "in no scene yet",
     "sceneCount_one": "{{count}} scene",
     "sceneCount_other": "{{count}} scenes",
-    "sceneCount": "{{count}} scenes"
+    "sceneCount": "{{count}} scenes",
+    "backToGrid": "Back to the grid",
+    "unsaved": "Unsaved changes",
+    "tabDetails": "The thread",
+    "tabHistory": "Earlier versions"
   },
   "comments": {
     "noSelection": "Select some text in the scene first.",
@@ -4087,5 +4091,12 @@
       "title": "About",
       "body": "Which version you are running, what is new in it, who made the parts Novalist ships, and one button that copies a support-ready block of system information."
     }
+  },
+  "unsavedLeave": {
+    "title": "Keep your changes?",
+    "message": "\"{{name}}\" has changes that have not been saved. Leaving now throws them away.",
+    "stay": "Stay here",
+    "discard": "Discard changes",
+    "saveAndLeave": "Save and leave"
   }
 }

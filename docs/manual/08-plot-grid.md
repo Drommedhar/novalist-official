@@ -96,6 +96,15 @@ Plotline rows keep their right-click menu for renaming and deleting; a Codex row
 
 ## A thread as more than a row of ticks
 
+Right-click a plotline's row header and choose **Thread detail**. The grid steps aside for a screen of its own, headed by **Back to the grid**, the thread's name, and **Cancel** and **Save**. It is a screen rather than a dialog for the plainest of reasons: the fields get the whole main area instead of a card the size of your monitor, the page scrolls when the form outgrows the window, and nothing is one stray click on a backdrop away from being thrown out.
+
+Two tabs sit under the header:
+
+- **The thread** — importance, colour, description, cast and steps. The step list keeps its own room and its own scrollbar, so a thread with thirty steps still leaves the description above it reachable.
+- **Earlier versions** — the restore points, out of the way until the rare day you want one.
+
+**Save** writes the thread and keeps you on the screen; **Back to the grid** and **Cancel** both return. If you have unsaved edits when you leave, Novalist asks first and offers to **Save and leave** — and it asks however you left, including switching view from the activity bar or clicking a scene in the binder. See [Leaving a screen with unsaved edits](02-interface-overview.md#leaving-a-screen-with-unsaved-edits).
+
 A plotline carries more than a name and a colour:
 
 - **Importance** — **main**, **subplot** or **minor**. A grid of equal rows says a romance running through every chapter and a running joke are the same kind of thing. They are not, and the difference is what tells you whether a thread is under-served or simply small. Everything starts a subplot; promoting one nobody promoted is the worse mistake.
@@ -118,6 +127,8 @@ Scenes in the binder now show a small dot per thread, in the book's plotline ord
 
 ## Earlier versions of a thread
 
-Open a thread's detail dialog and **Earlier versions** lists what it said before each of its last few saves, with a **Restore** beside each. Typing over a thread's description, or replacing its steps, used to have no answer inside the app.
+Open a thread's detail screen and its **Earlier versions** tab lists what it said before each of its last few saves, with a **Restore** beside each. Typing over a thread's description, or replacing its steps, used to have no answer inside the app.
+
+Restoring puts the restored version straight into the fields and returns you to **The thread** tab, so you can read what came back before saving anything else.
 
 Restoring keeps the current state as a version of its own, so an unwanted restore is undone the same way. The last 25 are kept per thread, beside the scene snapshots.

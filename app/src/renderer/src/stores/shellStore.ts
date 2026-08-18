@@ -355,6 +355,33 @@ export const NOTES_DOCK_DEFAULT = initialPanelSize(
  */
 export type MobileLayout = 'phone' | 'tablet'
 
+/**
+ * A screen's claim that leaving it right now would cost the writer work.
+ *
+ * The plot thread screen lost a full edit to a click on a dialog backdrop, and
+ * an activity-bar button is the same click with a different target: the screen
+ * unmounts and the state it held goes with it. A guard is the screen saying so
+ * once, to the one place every navigation passes through.
+ */
+export interface UnsavedGuard {
+  /** Identifies the registration, so unmounting the old screen cannot cancel
+   *  the guard of the screen that replaced it. */
+  id: string
+  /** What is unsaved, in the writer's words - a thread's name, a scene title. */
+  label: string
+  /** Read at the moment of leaving rather than at registration, because a
+   *  screen goes clean and dirty again while it sits there. */
+  isDirty(): boolean
+  /** Write the edits, so the prompt can offer to keep them. */
+  save(): Promise<void>
+}
+
+/** A navigation held back until the writer says what to do with their edits. */
+export interface PendingLeave {
+  label: string
+  proceed(): void
+}
+
 interface ShellState {
   mainView: MainView
   /**
@@ -455,6 +482,26 @@ interface ShellState {
   setMode(mode: Mode): void
   /** Back to the screen a project opens on. */
   goHome(): void
+  /** What the screens in front of the writer would lose if they left now, by
+   *  id. A map rather than one slot, because a dialog with unsaved input can
+   *  sit inside a screen that has some of its own. */
+  unsavedGuards: Record<string, UnsavedGuard>
+  /** The move the writer asked for, waiting on an answer about their edits. */
+  pendingLeave: PendingLeave | null
+  registerUnsavedGuard(guard: UnsavedGuard): void
+  /** Called by id, so a screen that has already been replaced cannot unregister
+   *  the one that replaced it. */
+  clearUnsavedGuard(id: string): void
+  /**
+   * Do this, unless the screen being left holds edits nobody saved.
+   *
+   * Every navigation runs through here, so a screen registers once and is
+   * covered by the activity bar, the palette, a hotkey, a plugin and the
+   * binder alike - rather than each door having to remember to ask.
+   */
+  guardLeave(proceed: () => void): void
+  /** The writer's answer to that prompt. */
+  resolveLeave(action: 'cancel' | 'discard' | 'save'): Promise<void>
   setModePanelOpen(open: boolean): void
   toggleModePanelDocked(): void
   setActivePane(id: string): void
@@ -684,25 +731,68 @@ export const useShellStore = create<ShellState>((set, get) => ({
   tourOpen: false,
   dialog: null,
   suggestionMode: false,
+  unsavedGuards: {},
+  pendingLeave: null,
   openDialog: (dialog) => set({ dialog }),
   closeDialog: () => set({ dialog: null }),
   toggleSuggestionMode: () => set((s) => ({ suggestionMode: !s.suggestionMode })),
   setSuggestionMode: (suggestionMode) => set({ suggestionMode }),
-  setMainView: (mainView) =>
+  registerUnsavedGuard: (guard) =>
+    set((s) => ({ unsavedGuards: { ...s.unsavedGuards, [guard.id]: guard } })),
+
+  clearUnsavedGuard: (id) =>
     set((s) => {
-      const mode = modeOf(mainView)
-      if (mode) lastInMode[mode] = mainView
-      return showView(s, mainView)
+      if (!(id in s.unsavedGuards)) return {}
+      const rest = { ...s.unsavedGuards }
+      delete rest[id]
+      return { unsavedGuards: rest }
     }),
+
+  guardLeave: (proceed) => {
+    const dirty = Object.values(get().unsavedGuards).filter((g) => g.isDirty())
+    if (dirty.length === 0) {
+      proceed()
+      return
+    }
+    set({ pendingLeave: { label: dirty[0].label, proceed } })
+  },
+
+  resolveLeave: async (action) => {
+    const pending = get().pendingLeave
+    if (!pending) return
+    if (action === 'cancel') {
+      set({ pendingLeave: null })
+      return
+    }
+    const dirty = Object.values(get().unsavedGuards).filter((g) => g.isDirty())
+    // Everything the move would have cost, not only the screen the prompt
+    // happened to name.
+    if (action === 'save') for (const guard of dirty) await guard.save()
+    // The guards go before the move does, so the navigation being released is
+    // not stopped a second time by what it is leaving.
+    set({ pendingLeave: null, unsavedGuards: {} })
+    pending.proceed()
+  },
+
+  setMainView: (mainView) =>
+    get().guardLeave(() =>
+      set((s) => {
+        const mode = modeOf(mainView)
+        if (mode) lastInMode[mode] = mainView
+        return showView(s, mainView)
+      })
+    ),
 
   setMode: (mode) =>
-    set((s) => {
-      const views = MODE_VIEWS[mode]
-      const landing = lastInMode[mode] ?? views[0]
-      return { ...showView(s, landing), mode }
-    }),
+    get().guardLeave(() =>
+      set((s) => {
+        const views = MODE_VIEWS[mode]
+        const landing = lastInMode[mode] ?? views[0]
+        return { ...showView(s, landing), mode }
+      })
+    ),
 
-  goHome: () => set((s) => showView(s, HOME_VIEW)),
+  goHome: () => get().guardLeave(() => set((s) => showView(s, HOME_VIEW))),
 
   setModePanelOpen: (modePanelOpen) =>
     set(modePanelOpen ? { modePanelOpen, binderOverlayOpen: false } : { modePanelOpen }),
@@ -808,20 +898,23 @@ export const useShellStore = create<ShellState>((set, get) => ({
   setMobileLayout: (mobileLayout) => set({ mobileLayout }),
   setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
   navigateToMapPin: (mapId, pinId) =>
-    set((s) => ({ ...showView(s, 'maps'), pendingMapNav: { mapId, pinId } })),
+    get().guardLeave(() =>
+      set((s) => ({ ...showView(s, 'maps'), pendingMapNav: { mapId, pinId } }))
+    ),
   clearPendingMapNav: () => set({ pendingMapNav: null }),
-  openSettings: (search = '') => {
-    const current = get()
-    const parsed = parseSettingsDestination(search)
-    const directSection = isSettingsSectionKey(search) ? { section: search } : null
-    setSettingsDestination({
-      ...(parsed ?? directSection ?? (search ? { query: search } : { section: 'appearance' })),
-      ...(current.mainView !== 'settings'
-        ? { origin: { view: current.mainView, labelKey: `shell.view.${current.mainView}` } }
-        : {})
-    })
-    set((s) => ({ ...showView(s, 'settings'), settingsSearch: '' }))
-  },
+  openSettings: (search = '') =>
+    get().guardLeave(() => {
+      const current = get()
+      const parsed = parseSettingsDestination(search)
+      const directSection = isSettingsSectionKey(search) ? { section: search } : null
+      setSettingsDestination({
+        ...(parsed ?? directSection ?? (search ? { query: search } : { section: 'appearance' })),
+        ...(current.mainView !== 'settings'
+          ? { origin: { view: current.mainView, labelKey: `shell.view.${current.mainView}` } }
+          : {})
+      })
+      set((s) => ({ ...showView(s, 'settings'), settingsSearch: '' }))
+    }),
   setExtView: (extView) => set({ extView }),
   setBinderTab: (binderTab) => set({ binderTab }),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
@@ -831,10 +924,14 @@ export const useShellStore = create<ShellState>((set, get) => ({
   setQuickOpenOpen: (quickOpenOpen) => set({ quickOpenOpen }),
   setQuickCaptureOpen: (quickCaptureOpen) => set({ quickCaptureOpen }),
   navigateToResearch: (itemId) =>
-    set((s) => ({ ...showView(s, 'research'), pendingResearchId: itemId })),
+    get().guardLeave(() =>
+      set((s) => ({ ...showView(s, 'research'), pendingResearchId: itemId }))
+    ),
   clearPendingResearch: () => set({ pendingResearchId: null }),
   navigateToLanguage: (word) =>
-    set((s) => ({ ...showView(s, 'languages'), pendingLanguageQuery: word })),
+    get().guardLeave(() =>
+      set((s) => ({ ...showView(s, 'languages'), pendingLanguageQuery: word }))
+    ),
   clearPendingLanguage: () => set({ pendingLanguageQuery: null }),
   setHelpOpen: (helpOpen) => set({ helpOpen }),
   setLayoutsOpen: (layoutsOpen) => set({ layoutsOpen }),

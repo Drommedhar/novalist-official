@@ -269,6 +269,18 @@ The page list down the left side holds the whole manual, and the search box abov
 
 All dialogs (chapter creation, find & replace, confirmations, pane layouts, snapshots, the template editor, and so on) appear as in-window overlays with a dimmed background — there are no native modal windows. Dismiss most of them by clicking outside, pressing `Escape`, or using **Cancel**.
 
+## Leaving a screen with unsaved edits
+
+Some screens hold what you type until you press **Save** — the plot [thread detail](08-plot-grid.md#a-thread-as-more-than-a-row-of-ticks) is one. Leaving one of those with edits in hand asks first, whichever way you set off: the activity bar, the mode panel, the command palette, a hotkey, a map pin, a research link, or clicking a scene in the binder.
+
+The prompt offers three answers:
+
+- **Save and leave** — writes the edits, then goes where you were headed.
+- **Discard changes** — throws them away and goes.
+- **Stay here** — cancels the move and returns you to what you were editing.
+
+The prompt has no click-outside dismissal, because a stray click is what it exists to stop. Screens that write as you type — the Codex fields, which save when you leave a field — never raise it.
+
 ## Where to go next
 
 - [Projects & Books](03-projects-and-books.md) — how your data is organized on disk.

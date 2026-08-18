@@ -330,6 +330,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   openSceneIn: async (paneId, chapterGuid, sceneId) => {
     const shell = useShellStore.getState()
+    // A scene opening is a screen closing. The binder, a search hit and a link
+    // all come through here, so a screen holding unsaved edits gets its say
+    // before the editor takes the pane.
+    if (Object.values(shell.unsavedGuards).some((g) => g.isDirty())) {
+      shell.guardLeave(() => void get().openSceneIn(paneId, chapterGuid, sceneId))
+      return
+    }
     // The pane holds the editor from here on, and it is the one the writer is
     // now in: opening a scene somewhere the caret is not is how the old split
     // pane lost people.

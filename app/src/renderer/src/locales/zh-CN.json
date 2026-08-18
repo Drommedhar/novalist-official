@@ -183,7 +183,11 @@
     "laneEmpty": "尚未出现在任何场景",
     "sceneCount_other": "{{count}} 个场景",
     "sceneCount": "{{count}} 个场景",
-    "sceneCount_one": "{{count}} 个场景"
+    "sceneCount_one": "{{count}} 个场景",
+    "backToGrid": "返回情节网格",
+    "unsaved": "有未保存的更改",
+    "tabDetails": "线索内容",
+    "tabHistory": "历史版本"
   },
   "comments": {
     "noSelection": "请先在场景中选择一些文本。",
@@ -4129,5 +4133,12 @@
       "title": "关于",
       "body": "你正在使用的版本、其中的新内容、Novalist 所包含组件的作者，以及一个可以复制系统信息供技术支持使用的按钮。"
     }
+  },
+  "unsavedLeave": {
+    "title": "保留更改吗？",
+    "message": "\"{{name}}\" 有尚未保存的更改。现在离开会丢弃这些更改。",
+    "stay": "留在此处",
+    "discard": "放弃更改",
+    "saveAndLeave": "保存并离开"
   }
 }

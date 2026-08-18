@@ -16,7 +16,11 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- **Novalist asks before you walk away from unsaved edits.** Switching view from the activity bar, the mode panel, the command palette or a hotkey, following a map pin or a research link, and clicking a scene in the binder all used to close whatever you were editing without a word. Any screen holding edits you have not saved now stops the move and asks, with **Save and leave** offered beside **Discard changes** and **Stay here** — because the usual reason to click away mid-edit is that you were finished, not that you wanted to lose it. The prompt cannot be dismissed by clicking outside it.
+
+- **A plot thread is edited on a screen, not in a dialog.** Right-clicking a plotline and choosing **Thread detail** used to open a card sized to your monitor, and everything about it fought the work: the fields could not scroll, so a thread held only as many steps as the screen was tall; every save added a restore point to the same stack, so the list of steps shrank the more you edited; and one stray click on the backdrop threw away everything you had typed. The thread now gets the whole main area, with **Back to the grid** to return. The form scrolls, the step list keeps its own room and its own scrollbar however long it gets, and the restore points have moved to an **Earlier versions** tab you can ignore until the day you want one. **Save** keeps you on the thread, and leaving with unsaved edits asks first instead of discarding them silently. Restoring an earlier version now fills the fields in front of you rather than closing the screen.
 
 ---
 

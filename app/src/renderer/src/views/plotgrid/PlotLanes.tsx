@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import type { Plotline } from './PlotlineDetailDialog'
+import type { Plotline } from './PlotlineDetailScreen'
 
 interface Column {
   chapterGuid: string

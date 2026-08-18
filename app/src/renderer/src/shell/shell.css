@@ -2681,12 +2681,112 @@
   background: var(--nl-surface-selected);
 }
 
-/* The dialog stacks label-over-control, so the two rows that read better side
+/* ===== Thread detail =====
+   A screen the grid steps aside for, not a card sized to the viewport: the
+   header and tabs hold still while the form scrolls, and the step list scrolls
+   inside the form so a thread with thirty steps still leaves the description
+   reachable. */
+.plotline-detail {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.plotline-detail-header {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-md) var(--nl-space-lg);
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.plotline-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  border: none;
+  background: none;
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text-dim);
+  font: inherit;
+  font-size: var(--nl-font-ui);
+  cursor: pointer;
+}
+
+.plotline-detail-back:hover {
+  color: var(--nl-text);
+  background: var(--nl-surface-hover);
+}
+
+/* The name takes the slack so the buttons sit at the far edge. */
+.plotline-detail-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--nl-font-body-lg);
+  font-weight: var(--nl-weight-title);
+}
+
+.plotline-detail-dirty {
+  color: var(--nl-accent);
+  font-size: var(--nl-font-caption);
+  font-weight: var(--nl-weight-label);
+}
+
+.plotline-detail-tabs {
+  display: flex;
+  gap: var(--nl-space-sm);
+  padding: 0 var(--nl-space-lg);
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.plotline-detail-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--nl-text-dim);
+  font: inherit;
+  font-size: var(--nl-font-body);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  cursor: pointer;
+}
+
+.plotline-detail-tab:hover {
+  color: var(--nl-text);
+}
+
+.plotline-detail-tab.active {
+  color: var(--nl-accent);
+  border-bottom-color: var(--nl-accent);
+}
+
+.plotline-detail-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--nl-space-lg);
+}
+
+/* Wide monitors get whitespace rather than fields stretched across a metre. */
+.plotline-detail-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  max-width: var(--nl-dialog-width-wide);
+}
+
+/* The form stacks label-over-control, so the two rows that read better side
    by side say so. */
 .plotline-detail-row {
   display: flex;
   align-items: center;
   gap: var(--nl-space-sm);
+  /* A picker and a swatch do not get wider by being given a wider screen. */
+  max-width: 360px;
 }
 
 .plotline-detail-row .inspector-input {
@@ -2694,15 +2794,25 @@
   min-width: 0;
 }
 
-.plotline-colour {
+.plotline-detail-row .plotline-colour {
   flex: 0 0 auto;
   width: 44px;
   padding: var(--nl-space-tightest);
 }
 
 .plotline-description {
-  min-height: 4em;
+  min-height: 8em;
   resize: vertical;
+}
+
+/* Restore points used to grow down the same column as the steps and squeeze
+   them out. The steps keep their own room and their own scrollbar instead. */
+.plotline-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  max-height: 40vh;
+  overflow-y: auto;
 }
 
 .plotline-step {

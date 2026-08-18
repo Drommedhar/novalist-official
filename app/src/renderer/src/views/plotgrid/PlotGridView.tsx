@@ -8,7 +8,7 @@ import { InputDialog } from '../../shell/InputDialog'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { CustomFieldsPanel } from '../../shell/CustomFieldsPanel'
 import { PromisesPanel } from './PromisesPanel'
-import { PlotlineDetailDialog, type Plotline } from './PlotlineDetailDialog'
+import { PlotlineDetailScreen, type Plotline } from './PlotlineDetailScreen'
 import { PlotLanes } from './PlotLanes'
 import { MobileGroup, MobileNav, MobileRow, useMobileNav } from '../../shell/MobileNav'
 import { useIsPhone } from '../../shell/useIsPhone'
@@ -105,7 +105,6 @@ interface PlotGridDto {
 type Pending =
   | { kind: 'create' }
   | { kind: 'fields'; id: string; name: string }
-  | { kind: 'detail'; plotline: Plotline }
   | { kind: 'rename'; id: string; current: string }
   | { kind: 'delete'; id: string; name: string }
   | {
@@ -125,6 +124,9 @@ export function PlotGridView(): React.JSX.Element {
   const [grid, setGrid] = useState<PlotGridDto | null>(null)
   const [menu, setMenu] = useState<{ x: number; y: number; id: string; name: string } | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
+  // Which thread the grid has stepped aside for. Held as an id rather than the
+  // object so a save or a restore is read back from the refreshed grid.
+  const [editingId, setEditingId] = useState<string | null>(null)
   // Which rows the grid is crossing the scenes with. Plotlines by default:
   // that is what a plot grid means before it means anything else.
   const [rowSource, setRowSource] = useState('plotline')
@@ -198,6 +200,21 @@ export function PlotGridView(): React.JSX.Element {
           />
         )}
       </MobileNav>
+    )
+  }
+
+  // A thread is edited on a screen of its own rather than in a card sized to
+  // the viewport: the fields get the room the grid was using, and nothing is
+  // one stray click away from being thrown out.
+  const editing = editingId === null ? null : grid.plotlines.find((p) => p.id === editingId)
+  if (editing) {
+    return (
+      <PlotlineDetailScreen
+        key={editing.id}
+        plotline={editing}
+        onBack={() => setEditingId(null)}
+        onSaved={(next) => setGrid(next as PlotGridDto)}
+      />
     )
   }
 
@@ -326,10 +343,7 @@ export function PlotGridView(): React.JSX.Element {
           items={[
             {
               label: t('plotGrid.detail'),
-              onClick: () => {
-                const plotline = grid.plotlines.find((p) => p.id === menu.id)
-                if (plotline) setPending({ kind: 'detail', plotline })
-              }
+              onClick: () => setEditingId(menu.id)
             },
             {
               label: t('explorer.contextRename'),
@@ -346,13 +360,6 @@ export function PlotGridView(): React.JSX.Element {
             }
           ]}
           onClose={() => setMenu(null)}
-        />
-      )}
-      {pending?.kind === 'detail' && (
-        <PlotlineDetailDialog
-          plotline={pending.plotline}
-          onClose={() => setPending(null)}
-          onSaved={(next) => setGrid(next as PlotGridDto)}
         />
       )}
       {pending?.kind === 'note' && (
