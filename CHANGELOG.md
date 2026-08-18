@@ -16,7 +16,9 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- The number boxes in Settings — font size, line height, letter and paragraph spacing, read-aloud speed, custom text-block width and book font size — now take the number you type. They used to correct the value after every keystroke, so the first digit of a two-digit number was pushed to the nearest allowed one and the rest of what you typed landed on top of that: font size went 17, 8, 36 and never 22. What you type is read once now, when you leave the box or press Enter, and only then held to the range.
 
 ---
 

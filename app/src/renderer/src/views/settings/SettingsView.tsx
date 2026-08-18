@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
-import { ArrowLeft, ExternalLink, FolderOpen, Search, X } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ExternalLink, FolderOpen, Search, X } from 'lucide-react'
 import { availableLanguages } from '../../i18n'
 import { rpc } from '../../rpc/client'
 import { useSettingsStore, type SettingsSection } from '../../stores/settingsStore'
@@ -12,6 +12,7 @@ import {
 } from '../../stores/uiScaleStore'
 import { useOnboardingStore } from '../../stores/onboardingStore'
 import { useShellStore } from '../../stores/shellStore'
+import { useProjectStore } from '../../stores/projectStore'
 import { MobileGroup, MobileNav, MobileRow, useMobileNav } from '../../shell/MobileNav'
 import { useIsPhone } from '../../shell/useIsPhone'
 import { TargetsPanel } from '../dashboard/TargetsCard'
@@ -196,6 +197,78 @@ function SettingInput({
   )
 }
 
+/**
+ * Number field that lets the writer finish typing before it judges the number.
+ *
+ * These settings clamp, and clamping on every keystroke makes most values
+ * impossible to reach: with a minimum of 8, the "2" of "22" is read as 2,
+ * pushed up to 8, and written back into the box before the second digit
+ * arrives - so font size went 17, 8, 36 and never 22. A decimal fares worse,
+ * because the box is empty for as long as it takes to type the separator.
+ *
+ * On desktop the stepper arrows hid it. An iPhone has no steppers and the
+ * keyboard is the only way in, which is where "the font size cannot be
+ * changed" came from.
+ *
+ * The box is left uncontrolled while it has focus - React writing a normalized
+ * value back mid-word is exactly what ate the keystrokes - and the value is
+ * read, clamped and committed once, when focus leaves. An empty or unreadable
+ * box means "leave it alone", not "zero".
+ */
+function SettingNumber({
+  id,
+  value,
+  min,
+  max,
+  step,
+  onCommit
+}: {
+  id: string
+  value: number
+  min: number
+  max: number
+  step?: number
+  onCommit(next: number): void
+}): React.JSX.Element {
+  const ref = useRef<HTMLInputElement>(null)
+  const focused = useRef(false)
+
+  useEffect(() => {
+    if (!focused.current && ref.current) ref.current.value = String(value)
+  }, [value])
+
+  const commit = (): void => {
+    focused.current = false
+    const raw = ref.current?.value ?? ''
+    const parsed = Number(raw)
+    const next =
+      raw.trim() === '' || Number.isNaN(parsed) ? value : Math.min(max, Math.max(min, parsed))
+    if (ref.current) ref.current.value = String(next)
+    if (next !== value) onCommit(next)
+  }
+
+  return (
+    <input
+      ref={ref}
+      id={id}
+      className="dialog-input"
+      type="number"
+      min={min}
+      max={max}
+      step={step}
+      defaultValue={String(value)}
+      onFocus={() => (focused.current = true)}
+      onBlur={commit}
+      // A phone's number pad has no return key; the keyboard's Done button
+      // blurs and commits. On a desktop keyboard Enter should not have to be a
+      // click somewhere else.
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur()
+      }}
+    />
+  )
+}
+
 interface SectionBodyDef {
   key: SettingsSectionKey
   body: React.ReactNode
@@ -221,12 +294,7 @@ function SettingsPhoneRow({ section }: { section: ResolvedSection }): React.JSX.
   return (
     <MobileRow
       label={title}
-      onClick={() =>
-        nav.push({
-          title,
-          content: <div className="settings-phone-section">{section.body}</div>
-        })
-      }
+      onClick={() => nav.push({ id: section.key, title })}
     />
   )
 }
@@ -319,6 +387,7 @@ export function SettingsView(): React.JSX.Element {
   // file-manager log-folder reveal (no-op in the iOS sandbox).
   const isMobile = window.novalist.isMobile === true
   const isPhone = useIsPhone()
+  const projectLoaded = useProjectStore((s) => s.isLoaded)
   const settingsSearch = useShellStore((s) => s.settingsSearch)
   const setMainView = useShellStore((s) => s.setMainView)
   const uiScale = useUiScaleStore((s) => s.percent)
@@ -593,89 +662,59 @@ export function SettingsView(): React.JSX.Element {
           <label className="inspector-label" htmlFor="set-fontsize">
             {t('settings.fontSize')}
           </label>
-          <input
+          <SettingNumber
             id="set-fontsize"
-            className="dialog-input"
-            type="number"
             min={8}
             max={36}
             value={eff.editorFontSize}
-            onChange={(e) =>
-              void update(scopeFor('editor'), {
-                editorFontSize: Math.min(36, Math.max(8, Number(e.target.value)))
-              })
-            }
+            onCommit={(v) => void update(scopeFor('editor'), { editorFontSize: v })}
           />
           <label className="inspector-label" htmlFor="set-lineheight">
             {t('settings.lineHeight')}
           </label>
-          <input
+          <SettingNumber
             id="set-lineheight"
-            className="dialog-input"
-            type="number"
             min={1}
             max={2.5}
             step={0.05}
             value={eff.editorLineHeight}
-            onChange={(e) =>
-              void update(scopeFor('editor'), {
-                editorLineHeight: Math.min(2.5, Math.max(1, Number(e.target.value)))
-              })
-            }
+            onCommit={(v) => void update(scopeFor('editor'), { editorLineHeight: v })}
           />
           <div className="settings-hint">{t('settings.lineHeightDesc')}</div>
           <label className="inspector-label" htmlFor="set-letterspacing">
             {t('settings.letterSpacing')}
           </label>
-          <input
+          <SettingNumber
             id="set-letterspacing"
-            className="dialog-input"
-            type="number"
             min={-1}
             max={4}
             step={0.1}
             value={eff.editorLetterSpacing}
-            onChange={(e) =>
-              void update(scopeFor('editor'), {
-                editorLetterSpacing: Math.min(4, Math.max(-1, Number(e.target.value)))
-              })
-            }
+            onCommit={(v) => void update(scopeFor('editor'), { editorLetterSpacing: v })}
           />
           <div className="settings-hint">{t('settings.letterSpacingDesc')}</div>
           <label className="inspector-label" htmlFor="set-paraspacing">
             {t('settings.paragraphSpacing')}
           </label>
-          <input
+          <SettingNumber
             id="set-paraspacing"
-            className="dialog-input"
-            type="number"
             min={0}
             max={3}
             step={0.05}
             value={eff.editorParagraphSpacing}
-            onChange={(e) =>
-              void update(scopeFor('editor'), {
-                editorParagraphSpacing: Math.min(3, Math.max(0, Number(e.target.value)))
-              })
-            }
+            onCommit={(v) => void update(scopeFor('editor'), { editorParagraphSpacing: v })}
           />
           <div className="settings-hint">{t('settings.paragraphSpacingDesc')}</div>
           <label className="inspector-label" htmlFor="set-readaloud-rate">
             {t('settings.readAloudRate')}
           </label>
-          <input
+          <SettingNumber
             id="set-readaloud-rate"
-            className="dialog-input"
-            type="number"
             min={0.5}
             max={2}
             step={0.1}
             value={eff.readAloudRate}
-            onChange={(e) =>
-              void update(scopeFor('editor'), {
-                readAloudRate: Math.min(2, Math.max(0.5, Number(e.target.value)))
-              })
-            }
+            onCommit={(v) => void update(scopeFor('editor'), { readAloudRate: v })}
           />
           <label className="inspector-label" htmlFor="set-readaloud-voice">
             {t('settings.readAloudVoice')}
@@ -842,19 +881,13 @@ export function SettingsView(): React.JSX.Element {
                   <label className="inspector-label" htmlFor="set-customwidth">
                     {t('settings.bookWidthCustom')}
                   </label>
-                  <input
+                  <SettingNumber
                     id="set-customwidth"
-                    className="dialog-input"
-                    type="number"
                     min={1}
                     max={12}
                     step={0.05}
                     value={eff.bookTextBlockWidth ?? 4.75}
-                    onChange={(e) =>
-                      void update(scopeFor('editor'), {
-                        bookTextBlockWidth: Number(e.target.value)
-                      })
-                    }
+                    onCommit={(v) => void update(scopeFor('editor'), { bookTextBlockWidth: v })}
                   />
                 </>
               )}
@@ -870,18 +903,12 @@ export function SettingsView(): React.JSX.Element {
               <label className="inspector-label" htmlFor="set-bookfontsize">
                 {t('settings.bookWidthFontSize')}
               </label>
-              <input
+              <SettingNumber
                 id="set-bookfontsize"
-                className="dialog-input"
-                type="number"
                 min={6}
                 max={24}
                 value={eff.bookFontSize}
-                onChange={(e) =>
-                  void update(scopeFor('editor'), {
-                    bookFontSize: Math.min(24, Math.max(6, Number(e.target.value)))
-                  })
-                }
+                onCommit={(v) => void update(scopeFor('editor'), { bookFontSize: v })}
               />
               <div className="settings-preview">
                 {t('settings.bookWidthCharsPerLine', {
@@ -934,34 +961,24 @@ export function SettingsView(): React.JSX.Element {
           <label className="inspector-label" htmlFor="set-a11y-size">
             {t('settings.fontSize')}
           </label>
-          <input
+          <SettingNumber
             id="set-a11y-size"
-            className="dialog-input"
-            type="number"
             min={8}
             max={36}
             value={eff.editorFontSize}
-            onChange={(e) =>
-              void update(scopeFor('editor'), { editorFontSize: Number(e.target.value) })
-            }
+            onCommit={(v) => void update(scopeFor('editor'), { editorFontSize: v })}
           />
 
           <label className="inspector-label" htmlFor="set-a11y-spacing">
             {t('settings.lineHeight')}
           </label>
-          <input
+          <SettingNumber
             id="set-a11y-spacing"
-            className="dialog-input"
-            type="number"
             min={1}
-            max={3}
+            max={2.5}
             step={0.1}
             value={eff.editorLineHeight}
-            onChange={(e) =>
-              void update(scopeFor('editor'), {
-                editorLineHeight: Math.min(2.5, Math.max(1, Number(e.target.value)))
-              })
-            }
+            onCommit={(v) => void update(scopeFor('editor'), { editorLineHeight: v })}
           />
           <div className="settings-hint">{t('settings.lineHeightDesc')}</div>
 
@@ -1515,8 +1532,32 @@ export function SettingsView(): React.JSX.Element {
     })).filter((group) => group.sections.length > 0)
 
     return (
-      <MobileNav title={t('settings.title')}>
+      <MobileNav
+        title={t('settings.title')}
+        // Resolved out of this render's sections, so an open section shows the
+        // value the setting has now. The search filter is deliberately not
+        // consulted: typing in the index must not blank the page on top of it.
+        renderPage={(key) => {
+          const section = visibleSections.find((candidate) => candidate.key === key)
+          return section ? <div className="settings-phone-section">{section.body}</div> : null
+        }}
+      >
         <div className="settings-phone">
+          {/* Settings is the one screen a writer can open before a project, and
+              on a phone there is nothing around it then - no rail, and the
+              native tab bar stays hidden until a project is open. Without this
+              the welcome screen was a one-way door. Inside a project the tab
+              bar is the way out, so the button is not there. */}
+          {!projectLoaded && (
+            <button
+              type="button"
+              className="mobile-nav-back settings-phone-back"
+              onClick={() => setMainView('dashboard')}
+            >
+              <ChevronLeft size={20} strokeWidth={2} />
+              <span className="mobile-nav-back-label">Novalist</span>
+            </button>
+          )}
           <h1 className="mobile-nav-title settings-phone-title">{t('settings.title')}</h1>
           <input
             className="dialog-input settings-phone-search"

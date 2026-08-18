@@ -670,8 +670,12 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         // In regular width the bar is hidden and the sidebar owns the inset;
         // PushChromeMetrics already pinned the height to 0.
         if (_tabBar == null || _isRegularWidth == true) return;
-        var h = Math.Round(_tabBar.Frame.Height);
-        if (h <= 0 || Math.Abs(h - _lastPushedTabH) < 0.5) return;   // unchanged layout
+        // A hidden bar keeps its frame, so measuring it on the welcome screen
+        // reserved a strip of empty page for chrome that is not on screen. What
+        // the web insets for is what it can see.
+        var h = _navVisible ? Math.Round(_tabBar.Frame.Height) : 0;
+        if (Math.Abs(h - _lastPushedTabH) < 0.5) return;             // unchanged layout
+        if (h <= 0 && _navVisible) return;                           // not laid out yet
         _lastPushedTabH = h;
         var px = h.ToString(System.Globalization.CultureInfo.InvariantCulture);
         _ = EvalOnMainAsync(

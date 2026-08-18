@@ -1000,3 +1000,40 @@
 [data-mobile-layout='tablet'] .mobile-sheet-grab {
   display: none;
 }
+
+/* ── The welcome screen on a phone ──
+   The same start card as the desktop, in the mobile frame (MobileWelcome). Its
+   buttons are sized by their labels, which on a 393px screen makes a ladder of
+   three different widths and wraps the longest one around its icon. On a phone
+   an action is a full-width row, left-aligned so the labels line up. Bounded by
+   width, not by the mobile build - an iPad has the room for the desktop card. */
+@media (max-width: 700px) {
+  .shell.mobile .start-screen {
+    align-items: flex-start;
+  }
+
+  .shell.mobile .start-card {
+    width: 100%;
+    padding: var(--nl-space-xl) var(--nl-space-lg) var(--nl-space-xxl);
+    gap: var(--nl-space-md);
+  }
+
+  .shell.mobile .start-card .start-open {
+    width: 100%;
+    justify-content: flex-start;
+    min-height: var(--nl-control-h);
+  }
+
+  /* Settings and the manual stay a pair on one row: they are about the app
+     rather than about opening a book, and reading as two half-width buttons is
+     what says so. */
+  .shell.mobile .start-system-actions {
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  .shell.mobile .start-system-actions .start-open {
+    flex: 1;
+    justify-content: center;
+  }
+}

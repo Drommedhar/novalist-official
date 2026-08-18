@@ -21,9 +21,21 @@ import './mobile-nav.css'
  */
 
 export interface MobileNavPage {
+  /**
+   * Which page this is. The stack holds an id, never rendered content.
+   *
+   * Content pushed as an element is frozen at the moment it was pushed: React
+   * keeps handing that element the props it was created with, so every
+   * controlled input inside a pushed page was stuck on the value its view had
+   * when the row was tapped. Settings' font size could not be changed at all -
+   * each keystroke was written to the backend and then overwritten in the DOM
+   * by the stale value - and a Plot Grid thread's checkboxes never moved. An id
+   * is resolved through renderPage on every render instead, so a pushed page
+   * sees exactly the state the root would.
+   */
+  id: string
   /** Shown in the back bar of whatever this page pushes, and as the title. */
   title: string
-  content: React.ReactNode
 }
 
 interface MobileNavApi {
@@ -42,10 +54,20 @@ export function useMobileNav(): MobileNavApi {
 
 export function MobileNav({
   title,
+  renderPage,
   children
 }: {
   /** The root page's title, shown in the back bar of the first pushed page. */
   title: string
+  /**
+   * The content of a pushed page, by the id it was pushed under. Called during
+   * render, from the view that owns this stack, so the page is built from the
+   * state the view holds now rather than the state it held when the row was
+   * tapped. Returning null for an id whose subject has gone (a deleted
+   * plotline, a section a project close took away) leaves the page empty rather
+   * than showing a stale copy of it.
+   */
+  renderPage: (id: string) => React.ReactNode
   children: React.ReactNode
 }): React.JSX.Element {
   const [stack, setStack] = useState<MobileNavPage[]>([])
@@ -121,7 +143,7 @@ export function MobileNav({
               </button>
               <h1 className="mobile-nav-title">{top.title}</h1>
             </header>
-            <div className="mobile-nav-page">{top.content}</div>
+            <div className="mobile-nav-page">{renderPage(top.id)}</div>
           </>
         ) : (
           children

@@ -648,6 +648,14 @@
     padding: var(--nl-space-md) 0 var(--nl-space-xl);
   }
 
+  /* Above the large title, the way iOS puts a back button above one. Only
+     shown with no project open, where nothing else leads out of Settings. */
+  .shell.mobile .settings-phone-back {
+    margin: 0 0 var(--nl-space-sm);
+    padding: 0 var(--nl-space-lg);
+    min-height: var(--nl-control-h);
+  }
+
   .shell.mobile .settings-phone-title {
     margin: 0 0 var(--nl-space-md);
     padding: 0 var(--nl-space-lg);

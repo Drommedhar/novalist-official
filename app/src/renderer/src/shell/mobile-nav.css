@@ -121,6 +121,11 @@
   font-size: var(--nl-font-body);
   text-align: left;
   cursor: pointer;
+  /* A row is a control, not a paragraph. Pressing one on iOS raised the text
+     selection loupe over its label, which put a magnifier on screen instead of
+     doing what the press was for. */
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 /* Separators run between rows only, and stop short of the left edge the way

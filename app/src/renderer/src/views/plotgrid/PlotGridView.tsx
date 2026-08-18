@@ -26,50 +26,65 @@ import { useIsPhone } from '../../shell/useIsPhone'
  * one lists every scene with its membership as a checkbox. Same data, same
  * toggle, one axis at a time.
  */
-function PhonePlotGrid({
+/**
+ * One thread's scenes, as the pushed page shows them.
+ *
+ * Built from the grid the view holds at the moment it renders, never from the
+ * grid that was on screen when the thread was tapped - a toggle replaces the
+ * whole grid, and a page built once kept every checkbox at the state it had
+ * before the tap.
+ */
+function PhoneThreadPage({
   grid,
-  rowSource,
+  plotlineId,
   toggle
 }: {
   grid: PlotGridDto
-  rowSource: string
+  plotlineId: string
   toggle: (chapterGuid: string, sceneId: string, plotlineId: string) => Promise<void>
+}): React.JSX.Element {
+  // Grouped by chapter, because a scene list without its chapters is a list
+  // of titles with no place in the book.
+  const chapters: { guid: string; title: string; scenes: PlotGridDto['columns'] }[] = []
+  for (const column of grid.columns) {
+    const last = chapters[chapters.length - 1]
+    if (last && last.guid === column.chapterGuid) last.scenes.push(column)
+    else chapters.push({ guid: column.chapterGuid, title: column.chapterTitle, scenes: [column] })
+  }
+  return (
+    <div className="plotgrid-phone-page">
+      {chapters.map((chapter) => (
+        <MobileGroup key={chapter.guid} header={chapter.title}>
+          {chapter.scenes.map((scene) => (
+            // A label rather than a row with a box in it: the whole row is the
+            // target then, which is what iOS does and what a thumb needs - a
+            // 24px box on its own is a miss waiting to happen, and pressing at
+            // one raises the selection loupe instead of ticking anything.
+            <label key={scene.sceneId} className="mobile-row plotgrid-phone-scene">
+              <span className="mobile-row-label">{scene.sceneTitle}</span>
+              <input
+                type="checkbox"
+                className="plotgrid-phone-check"
+                checked={scene.plotlineIds.includes(plotlineId)}
+                onChange={() => void toggle(scene.chapterGuid, scene.sceneId, plotlineId)}
+              />
+            </label>
+          ))}
+        </MobileGroup>
+      ))}
+    </div>
+  )
+}
+
+function PhonePlotGrid({
+  grid,
+  rowSource
+}: {
+  grid: PlotGridDto
+  rowSource: string
 }): React.JSX.Element {
   const { t } = useTranslation()
   const nav = useMobileNav()
-
-  const openThread = (line: Plotline): void => {
-    // Grouped by chapter, because a scene list without its chapters is a list
-    // of titles with no place in the book.
-    const chapters: { guid: string; title: string; scenes: PlotGridDto['columns'] }[] = []
-    for (const column of grid.columns) {
-      const last = chapters[chapters.length - 1]
-      if (last && last.guid === column.chapterGuid) last.scenes.push(column)
-      else chapters.push({ guid: column.chapterGuid, title: column.chapterTitle, scenes: [column] })
-    }
-    nav.push({
-      title: line.name,
-      content: (
-        <div className="plotgrid-phone-page">
-          {chapters.map((chapter) => (
-            <MobileGroup key={chapter.guid} header={chapter.title}>
-              {chapter.scenes.map((scene) => (
-                <MobileRow key={scene.sceneId} label={scene.sceneTitle}>
-                  <input
-                    type="checkbox"
-                    className="plotgrid-phone-check"
-                    aria-label={scene.sceneTitle}
-                    checked={scene.plotlineIds.includes(line.id)}
-                    onChange={() => void toggle(scene.chapterGuid, scene.sceneId, line.id)}
-                  />
-                </MobileRow>
-              ))}
-            </MobileGroup>
-          ))}
-        </div>
-      )
-    })
-  }
 
   return (
     <div className="plotgrid-phone">
@@ -81,7 +96,7 @@ function PhonePlotGrid({
               key={line.id}
               label={line.name}
               value={t('plotGrid.sceneCount', { count })}
-              onClick={() => openThread(line)}
+              onClick={() => nav.push({ id: line.id, title: line.name })}
             />
           )
         })}
@@ -162,7 +177,14 @@ export function PlotGridView(): React.JSX.Element {
   // at a time. The lanes view is a second matrix and goes the same way.
   if (isPhone) {
     return (
-      <MobileNav title={t('shell.view.plotGrid')}>
+      <MobileNav
+        title={t('shell.view.plotGrid')}
+        renderPage={(plotlineId) =>
+          grid.plotlines.some((line) => line.id === plotlineId) ? (
+            <PhoneThreadPage grid={grid} plotlineId={plotlineId} toggle={toggle} />
+          ) : null
+        }
+      >
         <div className="plotgrid">
           <div className="plotgrid-toolbar">
             <select
@@ -187,7 +209,7 @@ export function PlotGridView(): React.JSX.Element {
               </button>
             )}
           </div>
-          <PhonePlotGrid grid={grid} rowSource={rowSource} toggle={toggle} />
+          <PhonePlotGrid grid={grid} rowSource={rowSource} />
         </div>
         {pending?.kind === 'create' && (
           <InputDialog

@@ -18,6 +18,7 @@ import { Toolbar } from './Toolbar'
 import { StatusBar } from './StatusBar'
 import { MainArea } from './MainArea'
 import { MobileShell } from './MobileShell'
+import { MobileWelcome } from './MobileWelcome'
 import { SceneNotesDock } from './SceneNotesDock'
 import { ShellDialogs } from './ShellDialogs'
 import { StartScreen } from './StartScreen'
@@ -329,8 +330,18 @@ export function AppShell(): React.JSX.Element {
           write. Everything is a keystroke away again. */}
       {!isMobile && !focusMode && <Toolbar />}
       <div className="shell-body">
-        {isMobile && isLoaded ? (
-          <MobileShell />
+        {isMobile ? (
+          isLoaded ? (
+            <MobileShell />
+          ) : (
+            /* No project yet. The desktop shell's welcome content, in the
+               mobile frame - the rail and the panes it sits beside are not
+               phone controls. */
+            <MobileWelcome
+              recentProjects={recentProjects}
+              onOpenPath={(path) => void openProject(path)}
+            />
+          )
         ) : (
           <>
             {!focusMode && <ModeRail />}
