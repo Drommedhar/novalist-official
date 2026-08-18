@@ -2347,7 +2347,8 @@
       "style": "文风报告",
       "canvas": "规划板",
       "languages": "语言",
-      "extensions": "扩展"
+      "extensions": "扩展",
+      "drafts": "稿件版本"
     },
     "words": "字",
     "wordsTitle": "字",
@@ -4132,6 +4133,10 @@
     "about": {
       "title": "关于",
       "body": "你正在使用的版本、其中的新内容、Novalist 所包含组件的作者，以及一个可以复制系统信息供技术支持使用的按钮。"
+    },
+    "drafts": {
+      "title": "稿件版本",
+      "body": "本书的所有版本并列在此。重命名、排成你的顺序、写明各自用途，并把章节或场景从一个版本送到另一个。"
     }
   },
   "unsavedLeave": {
@@ -4140,5 +4145,40 @@
     "stay": "留在此处",
     "discard": "放弃更改",
     "saveAndLeave": "保存并离开"
+  },
+  "drafts": {
+    "title": "稿件版本",
+    "new": "新建版本",
+    "name": "版本名称",
+    "notes": "此版本的用途",
+    "notesPlaceholder": "例如 \"投稿用\"、\"试读前定稿\"",
+    "reorder": "拖动以重新排序",
+    "counts": "{{chapters}} 章，{{scenes}} 场景",
+    "current": "当前所在",
+    "switchTo": "打开",
+    "duplicate": "复制",
+    "duplicateOf": "{{name}} 的副本",
+    "delete": "删除版本",
+    "deleteTitle": "删除此版本？",
+    "deleteMessage": "\"{{name}}\" 及其中所有内容。其他版本保留各自的副本。",
+    "sendTitle": "把内容送到另一个版本",
+    "sendHint": "勾选整章即整章送出，或只勾选单个场景。目标版本中已有的场景，其正文会被覆盖，因此两个版本各保留一份而不是两份。",
+    "sendFrom": "来源",
+    "sendTo": "目标",
+    "sourceEmpty": "此版本还没有章节。",
+    "selected": "已选 {{count}} 个场景",
+    "selected_other": "已选 {{count}} 个场景",
+    "willReplace": "其中 {{count}} 个目标版本已有，将被覆盖",
+    "copyTo": "复制",
+    "moveTo": "移动",
+    "copyTitle": "覆盖已有内容？",
+    "replaceMessage": "所选场景中有 {{count}} 个在目标版本中已存在。复制会覆盖那里的正文。",
+    "moveTitle": "从此版本移出？",
+    "moveMessage": "{{count}} 个场景将离开此版本。若某章因此空了，该章也一并移走。",
+    "paneSource": "从 {{name}} 送出",
+    "paneTarget": "{{name}} 之后",
+    "targetEmpty": "尚未选择内容，且此版本为空。",
+    "markNew": "新增",
+    "markRewritten": "将被覆盖"
   }
 }

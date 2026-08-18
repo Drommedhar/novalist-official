@@ -652,6 +652,60 @@ public partial class ProjectService : IProjectService
         await SaveProjectAsync();
     }
 
+    public async Task SetDraftNotesAsync(string draftId, string? notes)
+    {
+        if (ActiveBook == null) return;
+        var draft = ActiveBook.Drafts.FirstOrDefault(d => d.Id == draftId);
+        if (draft == null) return;
+        var trimmed = notes?.Trim();
+        draft.Notes = string.IsNullOrEmpty(trimmed) ? null : trimmed;
+        await SaveProjectAsync();
+    }
+
+    /// <summary>
+    /// The list itself is the order - project.json stores the drafts as an
+    /// array, so there is no second place for the order to disagree with.
+    /// </summary>
+    public async Task ReorderDraftsAsync(IReadOnlyList<string> orderedDraftIds)
+    {
+        if (ActiveBook == null) return;
+
+        var byId = ActiveBook.Drafts.ToDictionary(d => d.Id, StringComparer.OrdinalIgnoreCase);
+        var reordered = new List<BookDraftMetadata>();
+        foreach (var id in orderedDraftIds)
+        {
+            if (byId.TryGetValue(id, out var draft) && !reordered.Contains(draft))
+                reordered.Add(draft);
+        }
+
+        // Anything the caller did not name keeps its place at the end rather
+        // than disappearing: a list built from a stale view of the drafts must
+        // not be able to delete one.
+        foreach (var draft in ActiveBook.Drafts)
+            if (!reordered.Contains(draft))
+                reordered.Add(draft);
+
+        ActiveBook.Drafts = reordered;
+        await SaveProjectAsync();
+    }
+
+    public Task FlushActiveDraftAsync() => SaveActiveDraftAndScenesAsync();
+
+    public async Task ReloadActiveDraftAsync()
+    {
+        if (ActiveBook == null) return;
+        ActiveBook.Chapters = new List<ChapterData>();
+        ActiveBook.Acts = new List<ActData>();
+        await LoadActiveDraftDataAsync();
+        await LoadScenesManifestAsync();
+    }
+
+    private async Task SaveActiveDraftAndScenesAsync()
+    {
+        await SaveActiveDraftDataAsync();
+        await SaveScenesAsync();
+    }
+
     public async Task DeleteDraftAsync(string draftId)
     {
         if (ActiveBook == null || ProjectRoot == null) return;

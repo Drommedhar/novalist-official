@@ -114,6 +114,10 @@
      whose body is a list or a grid to pick from. Written by hand in three
      places before, which is how the picture picker ended up narrower than the
      capture dialog it sits beside. */
+  /* How wide a view's own content runs before it stops following the window.
+     A dialog's 760px in a maximised window is a column of controls with half a
+     screen of nothing beside it. */
+  --nl-view-width: 1200px;
   --nl-dialog-width: 520px;
   --nl-dialog-width-wide: 760px;
   /* Picture thumbnails. The grid cell in the Gallery view, and the larger cell

@@ -15,6 +15,7 @@ import { WikiView } from '../views/wiki/WikiView'
 import { DashboardView } from '../views/dashboard/DashboardView'
 import { ManuscriptView } from '../views/manuscript/ManuscriptView'
 import { PlotGridView } from '../views/plotgrid/PlotGridView'
+import { DraftsView } from '../views/drafts/DraftsView'
 import { TimelineView } from '../views/timeline/TimelineView'
 import { CalendarView } from '../views/calendar/CalendarView'
 import { RelationshipsView } from '../views/relationships/RelationshipsView'
@@ -260,6 +261,14 @@ function MainAreaContent({ view, paneId }: { view: MainView; paneId: string }): 
     return (
       <main className="main-area">
         <ManuscriptView />
+      </main>
+    )
+  }
+
+  if (mainView === 'drafts') {
+    return (
+      <main className="main-area">
+        <DraftsView />
       </main>
     )
   }

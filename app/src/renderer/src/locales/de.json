@@ -168,19 +168,19 @@
     "codexHint": "Ein Häkchen hält hier fest, dass der Eintrag in dieser Szene vorkommt – dieselbe Besetzung, die Wiki, gespeicherte Listen und Zeitleiste lesen.",
     "detail": "Strang-Details...",
     "importance": "Gewicht",
-    "importanceMain": "Haupt - das Rueckgrat",
+    "importanceMain": "Haupt - das Rückgrat",
     "importanceSubplot": "Nebenstrang",
     "importanceMinor": "Klein",
     "colour": "Farbe",
     "description": "Worum es in diesem Strang geht",
     "descriptionPlaceholder": "Die Form davon, in eigenen Worten",
     "cast": "Wessen Strang das ist",
-    "castPlaceholder": "Figur, Ort oder Gegenstand hinzufuegen...",
+    "castPlaceholder": "Figur, Ort oder Gegenstand hinzufügen...",
     "steps": "Was passieren muss",
     "stepPlaceholder": "Eine Sache, die passieren muss",
-    "addStep": "Schritt hinzufuegen",
+    "addStep": "Schritt hinzufügen",
     "removeStep": "Schritt entfernen",
-    "resolved": "Aufgeloest",
+    "resolved": "Aufgelöst",
     "unresolvedCount": "{{count}} Schritt noch offen",
     "unresolvedCount_other": "{{count}} Schritte noch offen",
     "nothingPlanned": "Noch nichts geplant. Ein Strang ohne Schritte ist kein fertiger Strang.",
@@ -191,10 +191,10 @@
     "sceneCount_one": "{{count}} Szene",
     "sceneCount_other": "{{count}} Szenen",
     "sceneCount": "{{count}} Szenen",
-    "backToGrid": "Zurueck zum Raster",
-    "unsaved": "Nicht gespeicherte Aenderungen",
+    "backToGrid": "Zurück zum Raster",
+    "unsaved": "Nicht gespeicherte Änderungen",
     "tabDetails": "Der Strang",
-    "tabHistory": "Fruehere Versionen"
+    "tabHistory": "Frühere Versionen"
   },
   "smartList": {
     "section": "Smart-Listen",
@@ -348,7 +348,7 @@
     "readabilityColumn": "Lesbarkeit",
     "noChapters": "Keine Kapitel",
     "pagesColumn": "Seiten",
-    "pagesEstimate": "Etwa {{pages}} gedruckte Seiten, bei {{wordsPerPage}} Woertern je Seite. Eine Schaetzung - der Wert steht in den Einstellungen."
+    "pagesEstimate": "Etwa {{pages}} gedruckte Seiten, bei {{wordsPerPage}} Wörtern je Seite. Eine Schätzung - der Wert steht in den Einstellungen."
   },
   "welcome": {
     "createTitle": "Neues Projekt erstellen",
@@ -605,8 +605,8 @@
     "readAloudNoVoices": "Ihr System stellt Novalist keine Sprachstimmen bereit. Siehe den Hinweis unten, welche Art Sie installieren müssen.",
     "readAloudNoMatchingVoice": "Keine der verfügbaren Stimmen spricht {{language}}; das Vorlesen nutzt daher die Stimme, die Ihr System auswählt.",
     "readAloudVoiceKinds": "Windows kennt zwei Arten von Stimmen, und nur eine davon können Anwendungen nutzen. Stimmen aus **Barrierefreiheit → Sprachausgabe → Natürliche Stimmen hinzufügen** sind der Sprachausgabe vorbehalten: Sie erscheinen in deren eigener Liste und in keinem Programm, auch nicht in diesem. Nutzbar sind Stimmen aus **Zeit und Sprache → Sprache und Region → Sprache hinzufügen**, samt der optionalen Funktion **Sprache**. Danach Novalist neu starten.",
-    "wordsPerPage": "Woerter je gedruckter Seite",
-    "wordsPerPageDesc": "Fuer die Seitenschaetzung in der Projektuebersicht. Taschenbuch etwa 250, Massenmarkt eher 300, Grossdruck etwa 150. Leeres Feld setzt auf 250 zurueck.",
+    "wordsPerPage": "Wörter je gedruckter Seite",
+    "wordsPerPageDesc": "Für die Seitenschätzung in der Projektübersicht. Taschenbuch etwa 250, Massenmarkt eher 300, Grossdruck etwa 150. Leeres Feld setzt auf 250 zurück.",
     "group": {
       "general": "Allgemein",
       "writing": "Schreiben",
@@ -1359,10 +1359,10 @@
     "pruneKeepFive": "Die neuesten fünf je Szene behalten",
     "pruneOld": "Älter als 90 Tage löschen",
     "pruned": "{{count}} Schnappschüsse gelöscht.",
-    "batchesDesc": "Alle ersetzen legt von jeder geaenderten Szene eine Momentaufnahme an. Jeder Durchlauf steht hier einzeln, damit das Aufraeumen eines Durchlaufs die selbst angelegten Aufnahmen nicht antastet.",
+    "batchesDesc": "Alle ersetzen legt von jeder geänderten Szene eine Momentaufnahme an. Jeder Durchlauf steht hier einzeln, damit das Aufräumen eines Durchlaufs die selbst angelegten Aufnahmen nicht antastet.",
     "batchCount": "{{count}} Momentaufnahme",
     "batchCount_other": "{{count}} Momentaufnahmen",
-    "deleteBatch": "Momentaufnahmen dieses Durchlaufs loeschen"
+    "deleteBatch": "Momentaufnahmen dieses Durchlaufs löschen"
   },
   "dashboard": {
     "subtitle": "Projekt-Dashboard",
@@ -1616,7 +1616,7 @@
     "formatOpml": "Gliederung (OPML)",
     "formatWorldJson": "Alles (JSON-Archiv)",
     "formatWorldHtml": "Alles (lesbare Seite)",
-    "alsoInclude": "Diese Buecher ebenfalls aufnehmen",
+    "alsoInclude": "Diese Bücher ebenfalls aufnehmen",
     "forReaders": "Für Leser - alles auslassen, was nicht für Leser markiert ist"
   },
   "expose": {
@@ -2325,7 +2325,8 @@
       "style": "Stilbericht",
       "canvas": "Planungsboard",
       "languages": "Sprachen",
-      "extensions": "Erweiterungen"
+      "extensions": "Erweiterungen",
+      "drafts": "Fassungen"
     },
     "words": "Wörter",
     "wordsTitle": "Wörter",
@@ -2556,19 +2557,19 @@
     "title": "Änderungen der Lektorin importieren",
     "openAction": "Änderungen importieren...",
     "openHint": "Kommentare und nachverfolgte Änderungen aus einer zurückgeschickten Word-Datei lesen.",
-    "description": "Novalist liest Kommentare und nachverfolgte Änderungen aus einer .docx. Kommentare lassen sich an die geoeffnete Szene hängen. Nachverfolgte Änderungen werden nur aufgelistet und nicht automatisch übernommen — eine automatische Änderung an deinem Text aus einer Datei, deren Layout nicht von Novalist stammt, wäre schlimmer als eine Liste.",
+    "description": "Novalist liest Kommentare und nachverfolgte Änderungen aus einer .docx. Kommentare lassen sich an die geöffnete Szene hängen. Nachverfolgte Änderungen werden nur aufgelistet und nicht automatisch übernommen — eine automatische Änderung an deinem Text aus einer Datei, deren Layout nicht von Novalist stammt, wäre schlimmer als eine Liste.",
     "choose": "Word-Datei wählen...",
     "nothingFound": "Keine Kommentare oder Änderungen in dieser Datei.",
     "comments": "Kommentare ({{count}})",
     "revisions": "Nachverfolgte Änderungen ({{count}})",
     "revisionsHint": "Nur zur Ansicht. Nimm die Änderungen selbst in der Szene vor.",
-    "applyComments": "Kommentare zur geoeffneten Szene hinzufügen",
-    "applied": "{{count}} hinzugefuegt.",
-    "needsOpenScene": "Öffne eine Szene, um Kommentare anzuhaengen.",
+    "applyComments": "Kommentare zur geöffneten Szene hinzufügen",
+    "applied": "{{count}} hinzugefügt.",
+    "needsOpenScene": "Öffne eine Szene, um Kommentare anzuhängen.",
     "unknownAuthor": "Unbekannt",
     "kind": {
-      "insert": "Eingefuegt",
-      "delete": "Geloescht"
+      "insert": "Eingefügt",
+      "delete": "Gelöscht"
     }
   },
   "canvas": {
@@ -2619,7 +2620,7 @@
       "Afterword": "Nachwort",
       "Acknowledgments": "Danksagung",
       "AboutTheAuthor": "Über die Autorin",
-      "AlsoBy": "Weitere Buecher",
+      "AlsoBy": "Weitere Bücher",
       "Custom": "Eigene Seite"
     }
   },
@@ -3530,7 +3531,7 @@
   },
   "castAbsence": {
     "title": "Wer verschwindet",
-    "intro": "Die Besetzung danach geordnet, wie lange sie verschwindet. Eine Luecke ist jemand, der zurueckkam; die andere Zeile ist jemand, der es noch nicht tat.",
+    "intro": "Die Besetzung danach geordnet, wie lange sie verschwindet. Eine Lücke ist jemand, der zurückkam; die andere Zeile ist jemand, der es noch nicht tat.",
     "gap": "{{count}} Kapitel lang weg, {{from}} bis {{to}}",
     "gap_other": "{{count}} Kapitel lang weg, {{from}} bis {{to}}",
     "since": "zuletzt vor {{count}} Kapitel gesehen, in {{chapter}}",
@@ -3541,12 +3542,12 @@
   "names": {
     "title": "Ein Name gesucht?",
     "set": "Klang",
-    "obscurity": "Gewoehnlich bis ungewoehnlich",
+    "obscurity": "Gewöhnlich bis ungewöhnlich",
     "generate": "Namen vorschlagen",
     "again": "Nochmal",
     "set_soft": "Weich und fliessend",
     "set_hard": "Hart und knapp",
-    "set_coastal": "Offen und kuestennah",
+    "set_coastal": "Offen und küstennah",
     "set_old": "Alt und kehlig"
   },
   "kinship": {
@@ -3574,9 +3575,9 @@
     "startFrom": "Aus einer Vorlage starten"
   },
   "entityHistory": {
-    "title": "Fruehere Fassungen",
-    "intro": "Was dieser Eintrag vor den letzten Speicherungen enthielt. Beim Wiederherstellen wird der aktuelle Stand selbst zu einer Fassung und laesst sich zurueckholen.",
-    "none": "Noch keine frueheren Fassungen. Bei jeder Aenderung wird eine angelegt.",
+    "title": "Frühere Fassungen",
+    "intro": "Was dieser Eintrag vor den letzten Speicherungen enthielt. Beim Wiederherstellen wird der aktuelle Stand selbst zu einer Fassung und lässt sich zurückholen.",
+    "none": "Noch keine früheren Fassungen. Bei jeder Änderung wird eine angelegt.",
     "restore": "Wiederherstellen"
   },
   "readerPolicy": {
@@ -4098,13 +4099,52 @@
     "about": {
       "title": "Über Novalist",
       "body": "Welche Version du benutzt, was darin neu ist, wer die mitgelieferten Bestandteile gemacht hat, und eine Schaltfläche, die Systeminformationen für eine Supportanfrage kopiert."
+    },
+    "drafts": {
+      "title": "Fassungen",
+      "body": "Alle Fassungen dieses Buchs nebeneinander. Benenne sie, bring sie in deine Reihenfolge, halte fest wofür jede da ist, und schick Kapitel oder Szenen von einer in die andere."
     }
   },
   "unsavedLeave": {
-    "title": "Aenderungen behalten?",
-    "message": "\"{{name}}\" hat Aenderungen, die nicht gespeichert wurden. Wer jetzt geht, verwirft sie.",
+    "title": "Änderungen behalten?",
+    "message": "\"{{name}}\" hat Änderungen, die nicht gespeichert wurden. Wer jetzt geht, verwirft sie.",
     "stay": "Hier bleiben",
-    "discard": "Aenderungen verwerfen",
+    "discard": "Änderungen verwerfen",
     "saveAndLeave": "Speichern und gehen"
+  },
+  "drafts": {
+    "title": "Fassungen",
+    "new": "Neue Fassung",
+    "name": "Name der Fassung",
+    "notes": "Wofür diese Fassung da ist",
+    "notesPlaceholder": "z. B. \"Agentur\", \"Fassung vor den Testlesern\"",
+    "reorder": "Zum Umsortieren ziehen",
+    "counts": "{{chapters}} Kapitel, {{scenes}} Szenen",
+    "current": "Du bist hier",
+    "switchTo": "Öffnen",
+    "duplicate": "Duplizieren",
+    "duplicateOf": "Kopie von {{name}}",
+    "delete": "Fassung löschen",
+    "deleteTitle": "Diese Fassung löschen?",
+    "deleteMessage": "\"{{name}}\" und alles, was darin geschrieben wurde. Andere Fassungen behalten ihre eigenen Kopien.",
+    "sendTitle": "Inhalt in eine andere Fassung schicken",
+    "sendHint": "Hake ein Kapitel an, um es ganz zu schicken, oder einzelne Szenen für nur diese. Eine Szene, die es in der Zielfassung schon gibt, wird dort überschrieben - so behalten beide Fassungen eine Kopie davon und nicht zwei.",
+    "sendFrom": "Von",
+    "sendTo": "Nach",
+    "sourceEmpty": "Diese Fassung hat noch keine Kapitel.",
+    "selected": "{{count}} Szene ausgewählt",
+    "selected_other": "{{count}} Szenen ausgewählt",
+    "willReplace": "{{count}} davon gibt es im Ziel bereits und werden überschrieben",
+    "copyTo": "Kopieren",
+    "moveTo": "Verschieben",
+    "copyTitle": "Vorhandenes überschreiben?",
+    "replaceMessage": "{{count}} der ausgewählten Szenen gibt es in der Zielfassung bereits. Kopieren überschreibt ihren Text dort.",
+    "moveTitle": "Aus dieser Fassung herausnehmen?",
+    "moveMessage": "{{count}} Szenen verlassen diese Fassung. Ein Kapitel, in dem danach nichts mehr steht, geht mit.",
+    "paneSource": "Wird geschickt aus {{name}}",
+    "paneTarget": "{{name}} danach",
+    "targetEmpty": "Noch nichts ausgewählt, und diese Fassung ist leer.",
+    "markNew": "neu",
+    "markRewritten": "überschrieben"
   }
 }

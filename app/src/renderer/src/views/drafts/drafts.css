@@ -1,0 +1,228 @@
+/* ===== Drafts =====
+   A draft is a version of the whole book, so the list is rows with room to say
+   what each one is for rather than a picker with names in it. */
+.drafts {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.drafts-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-md) var(--nl-space-lg);
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.drafts-title {
+  flex: 1 1 auto;
+  font-size: var(--nl-font-body-lg);
+  font-weight: var(--nl-weight-title);
+}
+
+.drafts-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--nl-space-lg);
+}
+
+.drafts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  max-width: var(--nl-view-width);
+}
+
+.drafts-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-sm);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+  background: var(--nl-surface-card);
+}
+
+/* The draft you are in, marked on the row rather than only in the toolbar. */
+.drafts-row.active {
+  border-color: var(--nl-accent);
+}
+
+/* Where the dragged row would land. */
+.drafts-row.drop {
+  border-top-color: var(--nl-accent);
+  box-shadow: inset 0 2px 0 0 var(--nl-accent);
+}
+
+.drafts-grip {
+  color: var(--nl-text-dim);
+  cursor: grab;
+  display: flex;
+}
+
+.drafts-fields {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.drafts-name {
+  font-weight: var(--nl-weight-title);
+}
+
+.drafts-notes {
+  font-size: var(--nl-font-ui);
+}
+
+.drafts-counts {
+  flex: 0 0 auto;
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  white-space: nowrap;
+}
+
+.drafts-current {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  padding: 0 var(--nl-space-tighter);
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-surface-selected);
+  color: var(--nl-accent);
+  font-size: var(--nl-font-caption);
+  font-weight: var(--nl-weight-label);
+  white-space: nowrap;
+}
+
+/* ── Sending content between two drafts ── */
+.drafts-transfer {
+  margin-top: var(--nl-space-xxl);
+  max-width: var(--nl-view-width);
+}
+
+/* What is being sent, and what the other draft looks like once it lands. A
+   column of ticks on its own never said what would change over there. */
+.drafts-panes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nl-space-lg);
+}
+
+.drafts-pane {
+  min-width: 0;
+}
+
+.drafts-pane-head {
+  padding-bottom: var(--nl-space-tightest);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  font-weight: var(--nl-weight-label);
+}
+
+.drafts-preview-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-hairline) 0;
+  color: var(--nl-text-subtle);
+}
+
+/* Rows this transfer touches, against the ones it leaves alone. */
+.drafts-preview-row.arriving {
+  color: var(--nl-text);
+}
+
+.drafts-mark {
+  padding: 0 var(--nl-space-tighter);
+  border-radius: var(--nl-radius-pill);
+  font-size: var(--nl-font-caption);
+  font-weight: var(--nl-weight-label);
+  white-space: nowrap;
+}
+
+.drafts-mark.new {
+  background: var(--nl-surface-selected);
+  color: var(--nl-accent);
+}
+
+/* Rewriting prose that is already there is the one outcome worth a warning
+   colour, because it is the one that costs something. */
+.drafts-mark.rewritten {
+  border: 1px solid var(--nl-danger);
+  color: var(--nl-danger);
+}
+
+.drafts-transfer .inspector-meta {
+  max-width: var(--nl-measure-text);
+}
+
+.drafts-sides {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--nl-space-md);
+  margin: var(--nl-space-md) 0;
+}
+
+.drafts-side {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+.drafts-arrow {
+  margin-bottom: var(--nl-space-sm);
+  color: var(--nl-text-dim);
+}
+
+/* The picker holds a whole book, so it scrolls among itself and leaves the
+   buttons under it where they were. */
+.drafts-tree {
+  max-height: 45vh;
+  min-height: 8rem;
+  overflow-y: auto;
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+  padding: var(--nl-space-sm);
+}
+
+.drafts-chapter {
+  padding: var(--nl-space-tightest) 0;
+}
+
+.drafts-pick {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-hairline) 0;
+  cursor: pointer;
+}
+
+.drafts-chapter-title {
+  font-weight: var(--nl-weight-title);
+}
+
+.drafts-scene {
+  padding-left: var(--nl-space-xl);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-ui);
+}
+
+.drafts-send-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  margin-top: var(--nl-space-md);
+}
+
+.drafts-send-actions .inspector-meta {
+  flex: 1 1 auto;
+  margin: 0;
+}

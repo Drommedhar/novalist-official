@@ -2317,7 +2317,8 @@
       "style": "Style report",
       "canvas": "Planning board",
       "languages": "Languages",
-      "extensions": "Extensions"
+      "extensions": "Extensions",
+      "drafts": "Drafts"
     },
     "words": "words",
     "wordsTitle": "Words",
@@ -4090,6 +4091,10 @@
     "about": {
       "title": "About",
       "body": "Which version you are running, what is new in it, who made the parts Novalist ships, and one button that copies a support-ready block of system information."
+    },
+    "drafts": {
+      "title": "Drafts",
+      "body": "Every draft of this book, side by side. Rename them, put them in your own order, say what each one is for, and send chapters or scenes from one to another."
     }
   },
   "unsavedLeave": {
@@ -4098,5 +4103,40 @@
     "stay": "Stay here",
     "discard": "Discard changes",
     "saveAndLeave": "Save and leave"
+  },
+  "drafts": {
+    "title": "Drafts",
+    "new": "New draft",
+    "name": "Draft name",
+    "notes": "What this draft is for",
+    "notesPlaceholder": "e.g. \"agent submission\", \"pre-beta cut\"",
+    "reorder": "Drag to reorder",
+    "counts": "{{chapters}} chapters, {{scenes}} scenes",
+    "current": "You are here",
+    "switchTo": "Open",
+    "duplicate": "Duplicate",
+    "duplicateOf": "Copy of {{name}}",
+    "delete": "Delete draft",
+    "deleteTitle": "Delete this draft?",
+    "deleteMessage": "\"{{name}}\" and everything written in it. Other drafts keep their own copies.",
+    "sendTitle": "Send content to another draft",
+    "sendHint": "Tick a chapter to send it whole, or single scenes to send only those. A scene already in the target draft has its prose rewritten, so both drafts keep one copy of it rather than two.",
+    "sendFrom": "From",
+    "sendTo": "To",
+    "sourceEmpty": "This draft has no chapters yet.",
+    "selected": "{{count}} scene selected",
+    "selected_other": "{{count}} scenes selected",
+    "willReplace": "{{count}} already in the target and will be rewritten",
+    "copyTo": "Copy",
+    "moveTo": "Move",
+    "copyTitle": "Rewrite what is already there?",
+    "replaceMessage": "{{count}} of the selected scenes already exist in the target draft. Copying rewrites their prose there.",
+    "moveTitle": "Move out of this draft?",
+    "moveMessage": "{{count}} scenes leave this draft for the other one. A chapter left with nothing in it goes too.",
+    "paneSource": "Sending from {{name}}",
+    "paneTarget": "{{name}} after this",
+    "targetEmpty": "Nothing selected yet, and this draft is empty.",
+    "markNew": "new",
+    "markRewritten": "rewritten"
   }
 }

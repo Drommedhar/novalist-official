@@ -39,6 +39,25 @@ This covers all pictographs in the Unicode emoji blocks:
 *   When touching a file that already contains emojis (in UI, locales, or labels): strip them as part of the change.
 *   Do not put emojis in Debug.WriteLine or console.log prefixes either (e.g. avoid `[💡 InlineActions]` — use `[InlineActions]`).
 
+## Translated text is written in that language's own letters
+
+Every locale string ships in the alphabet its language actually uses. German takes `ä ö ü ß`, never the digraphs `ae oe ue ss`: it is **Öffnen**, **wofür**, **ausgewählt**, **Schlüssel**, **hinzufügen** — writing "Oeffnen" is a spelling mistake to the person the string is for, not a stylistic variant. The same holds for every other locale and every other diacritic.
+
+Two ways this has broken, both of which shipped:
+
+*   **Transliteration** — umlauts typed as digraphs while writing new strings.
+*   **Mojibake** — UTF-8 read back as Latin-1 (`Ã¤`, `Ã¼`) or a character replaced by `?`/`�`, because a tool in the middle was not told the encoding. Always write locale JSON as UTF-8 and read the file back to confirm the characters survived; never "work around" an encoding problem by spelling the word differently.
+
+**Why:** it has happened more than once, and the mechanism is imitation. The German file is 1600-plus correctly-spelled umlaut characters and was, at one point, two dozen transliterated words. Sampling five strings, hitting one of the two dozen, and concluding "this project spells German without umlauts" is how a handful of bad strings recruits every string written after it. A locale file's convention is not something you infer from the first few lines you happen to read — the correct spelling of a language is not a per-project choice.
+
+**How to apply:**
+
+*   Write the real characters. If a character is awkward to type through whatever tool you are using, that is a problem with the tool — fix the tool, not the word.
+*   Never conclude a convention from a sample. If the question "does this file use umlauts" ever comes up, count: `grep -c` for the real characters against the suspect spellings, across the whole file.
+*   When you touch a locale file that still has transliterated words, fix them as part of the change — that is what stops the imitation.
+*   `python tools/locale-doctor.py` reports **spelling faults** and fails on them, for this repo and for every extension locale it scans. It knows the German stems that no correctly-spelled word contains (`ueber`, `fuer`, `oeffn`, `waehl`, `aender`, …) and the byte patterns of mangled encodings. Add a stem to `TRANSLITERATED_STEMS` when you meet one it does not know; do not weaken the list to make a string pass.
+*   This covers extension repos too (`novalist-aiassistant`, `novalist-extension`, …) — their locales are the same product to the reader.
+
 ## New dedicated views need an activity bar entry
 
 Every new "dedicated" view (top-level content the user navigates to — same class as Dashboard, Timeline, Codex, Manuscript, Calendar, Relationships graph, Plot Grid, Research, etc.) MUST also get an entry in the activity bar (`app/src/renderer/src/stores/shellStore.ts` → `activityGroups`, rendered by `ActivityBar.tsx`) so the user can actually find it. Hotkeys and command-palette entries alone are insufficient — the user has stated explicitly that views without activity-bar buttons are invisible to them.

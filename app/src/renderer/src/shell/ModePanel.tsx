@@ -9,6 +9,7 @@ import {
   Grid3x3,
   Images,
   Languages,
+  Layers,
   Library,
   Map,
   MessageSquareQuote,
@@ -61,6 +62,7 @@ type IconComponent = React.ComponentType<{ size?: number; strokeWidth?: number }
 const VIEW_ICONS: Partial<Record<MainView, IconComponent>> = {
   write: PenLine,
   manuscript: BookOpen,
+  drafts: Layers,
   timeline: ChartNoAxesGantt,
   plotGrid: Grid3x3,
   canvas: SquareDashedMousePointer,
@@ -112,10 +114,12 @@ export function ModePanel({ overlay }: { overlay: boolean }): React.JSX.Element 
   const sceneCount = useProjectStore((s) =>
     s.chapters.reduce((total, chapter) => total + chapter.scenes.length, 0)
   )
+  const draftCount = useProjectStore((s) => s.drafts.length)
   const [query, setQuery] = useState('')
 
   const tallies: Partial<Record<MainView, number>> = {
     manuscript: sceneCount,
+    drafts: draftCount,
     codex: codexCount
   }
 

@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+### Added
+
+- **Drafts, as things you can manage.** A draft could be made, switched to, compared and deleted, and nothing else - so a book with four of them had four rows called "Draft 1" through "Draft 4" in the order they happened to be created, and content could only cross between two of them one scene at a time. The new **Drafts** view, under Write, lists every draft of the book with what it holds: **rename** one whenever what it is for becomes clearer, **drag** them into the order you think in, write a line saying what each is for ("agent submission", "pre-beta cut"), **duplicate** one, and open or delete one from its own row.
+
+  It also **sends content between drafts**. Pick a draft to read from and one to send to - including a draft you are not currently in - tick whole chapters or single scenes, and **Copy** or **Move** them across. Beside the ticks, the target draft is shown as the transfer would leave it, with every changing row marked **new** or **rewritten**, so what this does to the other draft is visible before anything is written. A scene the target already has is rewritten rather than duplicated, so both drafts keep one copy of it and still compare as the same scene; moving always asks first.
+
 ### Changed
 
 - **Novalist asks before you walk away from unsaved edits.** Switching view from the activity bar, the mode panel, the command palette or a hotkey, following a map pin or a research link, and clicking a scene in the binder all used to close whatever you were editing without a word. Any screen holding edits you have not saved now stops the move and asks, with **Save and leave** offered beside **Discard changes** and **Stay here** — because the usual reason to click away mid-edit is that you were finished, not that you wanted to lose it. The prompt cannot be dismissed by clicking outside it.
@@ -35,6 +41,10 @@ the GitHub release notes and stamps it with the tag's version and date.
   Changing a row re-reads the project and updates the plan underneath, so the counts, the chapter list, and the drafts and books that would be created always describe what is currently on screen - and still nothing is written until you press Import. What you say wins over what was detected: a folder of character sketches sent to research arrives as research. A folder sent to the manuscript keeps its own name as the act above its chapters, so merging an old draft into a book that already has chapters does not scatter them among the ones already there. A draft that never got chapter folders - just a run of documents, which is how a draft looks before it has been organised - comes across as one chapter called "Imported" holding those documents, and several such drafts imported together each keep their own rather than sharing one. An import that creates drafts or books leaves you on the book and draft you started from. If the rules already read your project correctly, change nothing and press Import.
 
 ### Fixed
+
+- **The Drafts view keeps up with which draft is open.** Opening a draft from its own row switched to it correctly, but the "You are here" mark stayed on the draft that had been open when the list was drawn. The mark now follows the switch, wherever it was made - that row, the toolbar picker, or the command palette.
+
+- **German text with the umlauts back in it.** A run of German strings had been written with "ae", "oe" and "ue" in place of the letters - "Oeffnen", "Wofuer", "ausgewaehlt", "hinzufuegen", "Buecher", "Woerter" - which is not how the language is spelled. Sixty-nine of them, across the interface and the AI assistant's settings, now read properly, and the build refuses any new ones.
 
 - **Switching books updates the whole window, not just the binder.** Changing book from the selector repainted the chapter tree but left the panels beside it showing the book you had just left - Collections, Smart Lists, the Codex and its entry count, and the labels, stages and plotlines the binder paints scenes with. They only caught up if you happened to switch tabs and come back, which is not a fix so much as a thing you had to know. They now follow the book directly.
 

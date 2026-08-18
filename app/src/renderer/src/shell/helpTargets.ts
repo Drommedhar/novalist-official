@@ -20,6 +20,7 @@ export const VIEW_HELP_TARGETS: Record<MainView, ManualTarget> = {
   write: { file: '05-editor.md' },
   dashboard: { file: '11-dashboard.md' },
   manuscript: { file: '10-manuscript.md' },
+  drafts: { file: '45-drafts.md' },
   timeline: { file: '12-timeline.md' },
   plotGrid: { file: '08-plot-grid.md' },
   calendar: { file: '13-calendar.md' },

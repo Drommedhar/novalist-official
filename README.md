@@ -63,6 +63,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 ### Project structure
 
 - Multi-book projects with a shared **World Bible** for entities used across books.
+- **Drafts you can manage** — every version of a book in one view: rename them, drag them into your own order, record what each one is for, duplicate one, and send whole chapters or single scenes from one draft to another, copying or moving.
 - Chapters with status tracking (Outline → First Draft → Revised → Edited → Final), optional acts, optional in-world date ranges, label colors, and favorites.
 - Scenes with synopsis, notes, label color, plotline membership, in-world date range, POV / emotion / intensity / conflict / tags (auto-detected with manual overrides).
 - **Smart Lists** — saved scene queries by status, POV, tag, or plotline.

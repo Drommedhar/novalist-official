@@ -53,6 +53,29 @@ public interface IProjectService
     Task RenameDraftAsync(string draftId, string newName);
     Task DeleteDraftAsync(string draftId);
 
+    /// <summary>What this draft is for, in the writer's words. Null clears it.</summary>
+    Task SetDraftNotesAsync(string draftId, string? notes);
+
+    /// <summary>
+    /// The order the drafts are listed in. Ids missing from the list keep their
+    /// relative order at the end, so a stale list from the interface cannot
+    /// drop a draft.
+    /// </summary>
+    Task ReorderDraftsAsync(IReadOnlyList<string> orderedDraftIds);
+
+    /// <summary>
+    /// Writes the active draft's chapters, acts and scene manifest to disk, so
+    /// something reading the draft folder sees what the writer sees.
+    /// </summary>
+    Task FlushActiveDraftAsync();
+
+    /// <summary>
+    /// Re-reads the active draft from its folder, discarding the in-memory
+    /// copy. The other half of <see cref="FlushActiveDraftAsync"/>, for code
+    /// that edits draft folders underneath the open book.
+    /// </summary>
+    Task ReloadActiveDraftAsync();
+
     // World Bible
     Task InitializeWorldBibleAsync();
 

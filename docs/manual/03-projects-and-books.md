@@ -171,6 +171,8 @@ Each book has its own drafts, shown in the **draft selector** in the toolbar (ne
 - Pick **+ New draft (clone from current)** to create a new draft as a full copy of the current one — useful before a structural rewrite: the old draft stays intact and you keep working in the clone.
 - Use the **delete-draft** button next to the draft selector to remove the active draft (you are asked to confirm). A book always keeps at least one draft.
 
+Renaming a draft, reordering the list, recording what each draft is for, duplicating one, and sending chapters or scenes from one draft to another all live in the [Drafts](45-drafts.md) view, under **Write** in the mode rail.
+
 Entities, images, plotlines, and templates are per-book, not per-draft — all drafts of a book share them.
 
 Drafts can also arrive from elsewhere: importing a Scrivener project lets you send each binder folder to a draft of its own, so years of old drafts kept in one folder become drafts here rather than a pile of research. See [Importing a manuscript](38-manuscript-import.md).

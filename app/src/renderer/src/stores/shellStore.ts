@@ -18,6 +18,7 @@ export type MainView =
   | 'write'
   | 'dashboard'
   | 'manuscript'
+  | 'drafts'
   | 'timeline'
   | 'plotGrid'
   | 'calendar'
