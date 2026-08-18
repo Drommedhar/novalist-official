@@ -15,8 +15,15 @@ namespace Novalist.Backend;
 /// </summary>
 public sealed partial class Workspace : IDisposable
 {
+    /// <summary>Where Novalist keeps its own files, as the host was started
+    /// with. Null means the application-data folder, which the services resolve
+    /// for themselves - it is kept so the ones that need a sibling folder, such
+    /// as the narration clip cache, land beside everything else.</summary>
+    public string? SettingsDirectory { get; }
+
     public Workspace(string? settingsDirectory = null)
     {
+        SettingsDirectory = settingsDirectory;
         FileService = new FileService();
         Projects = new ProjectService(FileService);
         Settings = new SettingsService(settingsDirectory);

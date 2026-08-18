@@ -3649,7 +3649,11 @@ document.addEventListener('contextmenu', (e) => {
         { action: 'insertImage', command: 'caret.insertImage', label: contextMenuLabels.insertImage || 'Insert image' },
         // Cutting prose used to mean it was recoverable only by reading a whole
         // snapshot for the paragraph that used to be there.
-        { action: 'cutToDarlings', command: 'text.cutToDarlings', label: contextMenuLabels.cutToDarlings || 'Cut and keep', needsSelection: true }
+        { action: 'cutToDarlings', command: 'text.cutToDarlings', label: contextMenuLabels.cutToDarlings || 'Cut and keep', needsSelection: true },
+        // The question in the middle of writing a line is whether it sounds
+        // right in the mouth of the person saying it, and going to another view
+        // to find out answers it too late to be any use.
+        { action: 'auditionLine', command: 'text.auditionLine', label: contextMenuLabels.auditionLine || 'Hear this line', needsSelection: true }
     ], hasSelection);
     html += submenu(contextMenuLabels.groupCodex || 'Codex', [
         { action: 'createEntityFromSelection', command: 'text.createEntity', label: contextMenuLabels.createEntity || 'Create entity from selection', needsSelection: true },
@@ -3827,6 +3831,15 @@ function applyContextAction(action) {
             // execCommand fires input on its own, but the deletion is worth
             // being explicit about: the prose has left the scene.
             editor.dispatchEvent(new Event('input'));
+            break;
+        }
+        case 'auditionLine': {
+            // The host looks the line up in the scene rather than speaking the
+            // selection as raw text, so it arrives in the voice of whoever says
+            // it and directed the way the reading would have it.
+            const line = contextActionText();
+            if (!line || line.trim().length === 0) break;
+            sendMessage({ type: 'auditionLine', text: line });
             break;
         }
         case 'createEntityFromSelection': {

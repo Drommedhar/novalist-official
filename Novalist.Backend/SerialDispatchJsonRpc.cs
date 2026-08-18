@@ -58,6 +58,25 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         "ui/progress/cancel",
         "system/ping",
         "system/shutdown",
+        // Stopping a reading is the same shape as cancelling a progress dialog:
+        // a control call for something already in flight. Reading a scene aloud
+        // is a run of voices/speak calls, each of which does not return until
+        // its passage has been spoken - so queued, the request to stop could not
+        // arrive until the thing it was meant to interrupt had finished. Pressing
+        // Stop cleared the highlight and the writer went on listening to the
+        // whole scene. It touches no project state; it tells the speech engine to
+        // be quiet.
+        "voices/stop",
+        // Same shape again: a render holds the gate for as long as the engine
+        // takes to speak its window, and the request to stop it must not be
+        // queued behind the thing it is stopping.
+        "narration/renderStop",
+        // Asking how the audiobook render is going, and stopping it. The render
+        // itself runs off the queue, but a poll that answers only between other
+        // requests makes the progress bar stutter through the one thing it
+        // exists to report - and Stop must never wait on the work it stops.
+        "audiobook/status",
+        "audiobook/stop",
     };
 
     /// <summary>
@@ -81,6 +100,13 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         "git/",
         "backup/",
         "export/",
+        // Preparing a speech engine builds a Python environment and downloads
+        // several gigabytes of model. Queued, it held the gate for the whole of
+        // that: every scene save, every view, every keystroke that needed the
+        // backend waited behind a download. It touches nothing in the project -
+        // it works in the extension's own folder - so there is nothing here for
+        // the gate to protect.
+        "voiceEngines/prepare",
         // The grammar check posts the whole scene to a language server and
         // waits up to thirty seconds for an answer. It reads a setting and
         // touches nothing else in the project, so there is nothing here for
@@ -89,7 +115,10 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         // be five thousand words, queued every other request behind one HTTP
         // round trip. The screen a writer was waiting for was waiting on the
         // sentence they had just stopped typing.
-        "grammar/"
+        "grammar/",
+        // Estimating a render compiles the whole book, the same way an export
+        // does - and "export/" is on this list for exactly that reason.
+        "audiobook/estimate"
     ];
 
     private readonly SemaphoreSlim _gate = new(1, 1);

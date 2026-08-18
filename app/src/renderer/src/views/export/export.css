@@ -295,3 +295,90 @@
   font-size: var(--nl-font-caption);
   color: var(--nl-text-dim);
 }
+
+/* ─── Audiobook ──────────────────────────────────────────────────────
+   An edition that takes hours, so the panel leads with what it will cost
+   and stays useful while it runs. */
+
+.audiobook {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  margin-top: var(--nl-space-md);
+}
+
+.audiobook-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  margin: 0;
+  font-size: var(--nl-font-title);
+}
+
+/* The figures, as a plain definition list rather than a table: four rows that
+   are read, not compared. */
+.audiobook-estimate {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--nl-space-md);
+  margin: 0;
+  padding: var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+}
+
+.audiobook-estimate dt {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+.audiobook-estimate dd {
+  margin: var(--nl-space-tightest) 0 0;
+  font-size: var(--nl-font-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.audiobook-scratch {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  font-size: var(--nl-font-ui);
+}
+
+.audiobook-warning {
+  margin: 0;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-left: 2px solid var(--nl-warning);
+  background: var(--nl-surface-card);
+  border-radius: var(--nl-radius-sm);
+  font-size: var(--nl-font-ui);
+}
+
+.audiobook-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+}
+
+.audiobook-bar {
+  height: var(--nl-space-tighter);
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-surface-hover);
+  overflow: hidden;
+}
+
+.audiobook-bar span {
+  display: block;
+  height: 100%;
+  background: var(--nl-accent);
+  transition: width 0.3s ease;
+}
+
+/* In the status bar, so a render is visible from wherever the writer is. */
+.status-audiobook {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  font-variant-numeric: tabular-nums;
+}

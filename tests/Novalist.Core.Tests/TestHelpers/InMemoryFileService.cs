@@ -22,6 +22,24 @@ public sealed class InMemoryFileService : IFileService
         return Task.CompletedTask;
     }
 
+    /// <summary>Binary files live in their own map, so a test that writes audio
+    /// and reads it back gets the bytes rather than a lossy round trip through a
+    /// string.</summary>
+    public Dictionary<string, byte[]> Binaries { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    public Task<byte[]> ReadBytesAsync(string path)
+        => Binaries.TryGetValue(path, out var v)
+            ? Task.FromResult(v)
+            : throw new FileNotFoundException(path);
+
+    public Task WriteBytesAsync(string path, byte[] bytes)
+    {
+        Binaries[path] = bytes;
+        Files[path] = string.Empty;
+        Mtimes[path] = DateTime.UtcNow;
+        return Task.CompletedTask;
+    }
+
     public Task<bool> ExistsAsync(string path) => Task.FromResult(Files.ContainsKey(path));
     public Task<bool> DirectoryExistsAsync(string path)
         => Task.FromResult(Dirs.Any(d => Same(d, path)));

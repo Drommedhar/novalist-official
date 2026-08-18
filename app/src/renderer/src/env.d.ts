@@ -27,6 +27,7 @@ interface Window {
     settings: typeof import('./stores/settingsStore').useSettingsStore
     extensions: typeof import('./stores/extensionsStore').useExtensionsStore
     onboarding: typeof import('./stores/onboardingStore').useOnboardingStore
+    narration: typeof import('./stores/narrationStore').useNarrationStore
   }
   novalistRpc: import('./rpc/client').RpcClient
   novalistExtensionTheme: {

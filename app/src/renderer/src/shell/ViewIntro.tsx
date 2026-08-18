@@ -30,6 +30,7 @@ export const VIEW_INTROS: Record<MainView, { titleKey: string; bodyKey: string }
   write: { titleKey: 'intro.write.title', bodyKey: 'intro.write.body' },
   manuscript: { titleKey: 'intro.manuscript.title', bodyKey: 'intro.manuscript.body' },
   drafts: { titleKey: 'intro.drafts.title', bodyKey: 'intro.drafts.body' },
+  narration: { titleKey: 'intro.narration.title', bodyKey: 'intro.narration.body' },
   dashboard: { titleKey: 'intro.dashboard.title', bodyKey: 'intro.dashboard.body' },
   timeline: { titleKey: 'intro.timeline.title', bodyKey: 'intro.timeline.body' },
   plotGrid: { titleKey: 'intro.plotGrid.title', bodyKey: 'intro.plotGrid.body' },

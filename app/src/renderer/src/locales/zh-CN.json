@@ -1149,7 +1149,8 @@
     "chaotic": "混乱",
     "sorrowful": "悲伤",
     "triumphant": "胜利",
-    "somber": "阴沉"
+    "somber": "阴沉",
+    "custom": "手动设定"
   },
   "sceneTag": {
     "dialogue": "对话",
@@ -1620,7 +1621,8 @@
       "cutToDarlings": "剪下并保留",
       "groupScene": "场景",
       "groupCodex": "档案",
-      "noSuggestions": "无建议"
+      "noSuggestions": "无建议",
+      "auditionLine": "试听这一行"
     },
     "linkPrompt": "链接地址（留空则移除链接）",
     "contextMenu.insertImage": "插入图片"
@@ -2058,7 +2060,8 @@
     "formatWorldJson": "全部（JSON 归档）",
     "formatWorldHtml": "全部（可浏览页面）",
     "alsoInclude": "同时收录这些书",
-    "forReaders": "面向读者 — 省略所有标记为不给读者看的内容"
+    "forReaders": "面向读者 — 省略所有标记为不给读者看的内容",
+    "formatAudiobook": "有声书"
   },
   "expose": {
     "chars": "{{value}} 字符",
@@ -2311,6 +2314,73 @@
       "none": "未知"
     }
   },
+  "narration": {
+    "cast": "配音表",
+    "narrator": "旁白",
+    "castCount": "已配音 {{cast}} / {{total}}",
+    "voiceFor": "{{name}} 的声音",
+    "uncast": "尚未配音",
+    "unassigned": "有 {{count}} 行无法确定说话人，由旁白朗读。",
+    "noVoices": "未安装任何语音。请在操作系统的语音设置中添加。",
+    "loading": "正在判断谁在说话…",
+    "unknownSpeaker": "未指明",
+    "directionFor": "这一行的朗读方式",
+    "clearDirection": "撤销",
+    "noVoice": "无声音",
+    "play": "播放",
+    "stop": "停止",
+    "speed": "语速",
+    "nothingCast": "先给旁白选一个声音即可开始。",
+    "emptyBook": "这本书里还没有可朗读的内容。",
+    "playFromHere": "从此处播放",
+    "goToOpenScene": "跳到我正在写的场景",
+    "readBy": "朗读者",
+    "script": "脚本",
+    "designedVoices": "已设计的声音",
+    "systemVoices": "本机可用的声音",
+    "voiceElsewhere": "在其他设备上设计",
+    "designVoice": "设计声音",
+    "redesignVoice": "重新设计",
+    "forgetVoice": "删除此声音",
+    "designFor": "为 {{name}} 设计声音",
+    "designing": "正在设计…",
+    "designAnyway": "仍然设计",
+    "briefLabel": "他们的嗓音",
+    "briefIsTheInstrument": "描述嗓音本身，而不是情绪：年龄、体格、口音、语速，以及平静时的音域。每句话的情绪是逐句决定的，写在这里的情绪会固定在整本书的声音里，因此会在发送前被移除。",
+    "withheldFromAi": "你设定了此条目永不发送给模型，而本机上的模型同样是模型。",
+    "prepare": "准备",
+    "designForNarrator": "为旁白设计声音",
+    "engineReady": "就绪",
+    "engineNotReady": "尚未就绪",
+    "prepareWithSize": "准备（{{size}} GB）",
+    "source": {
+      "writer": "你设置的",
+      "verb": "来自提示语",
+      "verbWith": "来自“{{verb}}”",
+      "scene": "来自场景",
+      "none": "平实朗读"
+    },
+    "byHand": "手动调整",
+    "directLine": "为这一行下指示",
+    "directLines": "为 {{count}} 行下指示",
+    "applyTo": "应用于",
+    "linesOfScene": "共 {{count}} 行（本场景）",
+    "applyDirection": "应用",
+    "directionOver": "这超过了引擎一次能接受的量，将按比例缩减。",
+    "likeThat": "像那一行一样",
+    "likeThatNone": "无",
+    "registerFor": "{{name}} 的基调",
+    "registerBlurb": "加到这个声音说的每一行上。适合那种总是比文字所写更简短或更温暖的人。",
+    "clearRegister": "清除基调",
+    "dimension.happy": "喜悦",
+    "dimension.angry": "愤怒",
+    "dimension.sad": "悲伤",
+    "dimension.afraid": "恐惧",
+    "dimension.disgusted": "厌恶",
+    "dimension.melancholic": "忧郁",
+    "dimension.surprised": "惊讶",
+    "dimension.calm": "平静"
+  },
   "shell": {
     "toggleBinder": "切换项目栏",
     "toggleSidebar": "切换边栏",
@@ -2349,7 +2419,8 @@
       "canvas": "规划板",
       "languages": "语言",
       "extensions": "扩展",
-      "drafts": "稿件版本"
+      "drafts": "稿件版本",
+      "narration": "朗读"
     },
     "words": "字",
     "wordsTitle": "字",
@@ -4037,7 +4108,8 @@
       "prepare": "准备",
       "produce": "输出",
       "acrossBooks": "跨书籍",
-      "fromExtensions": "来自扩展"
+      "fromExtensions": "来自扩展",
+      "hearIt": "听一听"
     },
     "togglePanel": "显示模式面板"
   },
@@ -4138,6 +4210,10 @@
     "drafts": {
       "title": "稿件版本",
       "body": "本书的所有版本并列在此。重命名、排成你的顺序、写明各自用途，并把章节或场景从一个版本送到另一个。"
+    },
+    "narration": {
+      "title": "朗读",
+      "body": "整本书朗读出来的样子：每句话由谁说、该怎样说、用哪种声音。点击任意一句即可修改，朗读会随之调整。"
     }
   },
   "unsavedLeave": {
@@ -4181,5 +4257,34 @@
     "targetEmpty": "尚未选择内容，且此版本为空。",
     "markNew": "新增",
     "markRewritten": "将被覆盖"
+  },
+  "audiobook": {
+    "title": "有声书",
+    "blurb": "用你分配的声音朗读所选章节，每章一个文件，并打包成可以发送给他人的有声书。",
+    "delivery": "输出格式",
+    "deliveryM4b": "带章节标记的单个文件（M4B）",
+    "deliveryMp3": "每章一个 MP3",
+    "deliveryWav": "每章一个 WAV，未编码",
+    "pickFolder": "章节文件保存到哪里？",
+    "chapters": "章节",
+    "chaptersLeft": "还有 {{left}} 章（共 {{total}} 章）待生成",
+    "words": "字数",
+    "length": "成品时长",
+    "wallClock": "生成耗时",
+    "wallClockUnknown": "首次生成前无法得知",
+    "wallClockAbout": "约 {{time}}",
+    "fromScratch": "重新生成所有章节，包括已完成的",
+    "render": "生成有声书",
+    "stop": "停止",
+    "renderingChapter": "第 {{index}} 章，共 {{total}} 章 — {{title}}",
+    "packaging": "正在打包",
+    "rendered": "已生成 {{time}}",
+    "done": "有声书已完成。",
+    "stopped": "已停止。已完成的章节都已保留。",
+    "noEncoder": "未安装 ffmpeg，因此章节以 WAV 文件加章节列表的形式输出。",
+    "encoderFailed": "编码器失败，因此章节以 WAV 文件的形式输出。",
+    "missing": "有 {{count}} 行无法朗读。",
+    "noEngine": "没有就绪的语音引擎。请先安装，并在朗读视图中完成准备。",
+    "failed": "生成因错误而中止。"
   }
 }

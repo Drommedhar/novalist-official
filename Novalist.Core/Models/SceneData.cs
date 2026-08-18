@@ -177,6 +177,18 @@ public class SceneData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string>? DialogueSpeakers { get; set; }
 
+    /// <summary>How the writer wants particular lines read aloud, keyed the same
+    /// way <see cref="DialogueSpeakers"/> is - a narration run's key alongside a
+    /// spoken line's. The value is an emotion key from the writing language's
+    /// lexicon, or an empty string where the writer asked for a line to be read
+    /// plainly, which is a decision and not the absence of one.
+    ///
+    /// A direction is never written into the prose. The manuscript is what the
+    /// reader reads; how it is performed is metadata about it.</summary>
+    [JsonPropertyName("dialogueDirections")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? DialogueDirections { get; set; }
+
     [JsonPropertyName("analysisOverrides")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SceneAnalysisOverrides? AnalysisOverrides { get; set; }

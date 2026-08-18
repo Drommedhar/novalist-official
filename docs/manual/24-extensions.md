@@ -236,6 +236,21 @@ The full submission flow is in the extension guide.
 - **Crashes on startup.** Close Novalist and delete or rename `<extensions>/<extensionId>/`. The next startup skips the missing extension.
 - **AI extension consuming credits.** Check the extension's settings for an enable toggle, or remove the extension.
 
+## Voice engines
+
+An extension can supply the speech that reads your book aloud, and the voices it is read in. The [Narration](46-narration.md) view assembles the reading entirely offline — who speaks each line, how it should be said, and in whose voice — and then hands it to whichever engine you have installed.
+
+Two things an engine is asked for, and keeping them apart is the whole design:
+
+- **Designing a voice** from a description of the character, once, producing audio Novalist stores and reuses.
+- **Speaking a run of the book**, with the emotion supplied per line as a parameter beside the words.
+
+A voice engine is told what it can be asked for by its own capability flags, and Novalist tells it exactly as much as it says it can take: an engine that takes emotion as numbers gets the numbers, one that takes a sentence gets the emotion named along with the speech verb your prose used, one that reads affect off the script itself is sent no direction at all, and one that cannot be directed reads flat. An engine that cannot design a voice is offered no design button rather than one that fails when pressed.
+
+The direction always travels beside the words, never inside them. Concatenating it into the text is one bad prompt away from the word "angry" being read out in the middle of a sentence.
+
+**A voice engine may not reach the network.** The seam carries no endpoint, no key and no base URL, because Novalist's read-aloud promises that listening to your book sends nothing anywhere — and an engine that broke that promise would be breaking it on the app's behalf.
+
 ## Where to go next
 
 - [Extension Guide](https://github.com/Drommedhar/novalist-official/blob/main/docs/extension-guide.md) — full SDK and packaging guide for developers.

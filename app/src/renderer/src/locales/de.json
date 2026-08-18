@@ -992,7 +992,8 @@
     "chaotic": "Chaotisch",
     "sorrowful": "Trauernd",
     "triumphant": "Triumphierend",
-    "somber": "Düster"
+    "somber": "Düster",
+    "custom": "Von Hand gesetzt"
   },
   "sceneTag": {
     "dialogue": "Dialog",
@@ -1050,7 +1051,8 @@
       "cutToDarlings": "Ausschneiden und aufheben",
       "groupScene": "Szene",
       "groupCodex": "Kodex",
-      "noSuggestions": "Keine Vorschläge"
+      "noSuggestions": "Keine Vorschläge",
+      "auditionLine": "Diese Zeile anhören"
     },
     "linkPrompt": "Link-Adresse (leer lassen, um den Link zu entfernen)",
     "contextMenu.insertImage": "Bild einfügen"
@@ -1618,7 +1620,8 @@
     "formatWorldJson": "Alles (JSON-Archiv)",
     "formatWorldHtml": "Alles (lesbare Seite)",
     "alsoInclude": "Diese Bücher ebenfalls aufnehmen",
-    "forReaders": "Für Leser - alles auslassen, was nicht für Leser markiert ist"
+    "forReaders": "Für Leser - alles auslassen, was nicht für Leser markiert ist",
+    "formatAudiobook": "Hörbuch"
   },
   "expose": {
     "chars": "{{value}} Zeichen",
@@ -2284,6 +2287,73 @@
       "none": "Unbekannt"
     }
   },
+  "narration": {
+    "cast": "Besetzung",
+    "narrator": "Erzähler",
+    "castCount": "{{cast}} von {{total}} haben eine Stimme",
+    "voiceFor": "Stimme für {{name}}",
+    "uncast": "Noch keine Stimme",
+    "unassigned": "{{count}} Zeilen ohne erkennbaren Sprecher. Der Erzähler liest sie.",
+    "noVoices": "Es sind keine Stimmen installiert. Füge sie in den Sprachausgabe-Einstellungen deines Betriebssystems hinzu.",
+    "loading": "Es wird ermittelt, wer was sagt…",
+    "unknownSpeaker": "Niemand genannt",
+    "directionFor": "Wie diese Zeile gelesen wird",
+    "clearDirection": "Zurücknehmen",
+    "noVoice": "Keine Stimme",
+    "play": "Abspielen",
+    "stop": "Anhalten",
+    "speed": "Tempo",
+    "nothingCast": "Gib dem Erzähler eine Stimme, um zu beginnen.",
+    "emptyBook": "In diesem Buch gibt es noch nichts vorzulesen.",
+    "playFromHere": "Ab hier abspielen",
+    "goToOpenScene": "Zur Szene, die ich schreibe",
+    "readBy": "Gelesen von",
+    "script": "Skript",
+    "designedVoices": "Entworfene Stimmen",
+    "systemVoices": "Stimmen auf diesem Gerät",
+    "voiceElsewhere": "Auf einem anderen Gerät entworfen",
+    "designVoice": "Stimme entwerfen",
+    "redesignVoice": "Neu entwerfen",
+    "forgetVoice": "Diese Stimme löschen",
+    "designFor": "Eine Stimme für {{name}}",
+    "designing": "Wird entworfen…",
+    "designAnyway": "Trotzdem entwerfen",
+    "briefLabel": "Wie sie klingen",
+    "briefIsTheInstrument": "Beschreibe das Instrument, nicht die Stimmung: Alter, Statur, Akzent, Tempo, die Tonlage im ruhigen Zustand. Wie eine Zeile empfunden wird, entscheidet sich Zeile für Zeile — eine Emotion hier bliebe im ganzen Buch in der Stimme hängen und wird deshalb vor dem Senden entfernt.",
+    "withheldFromAi": "Du hast festgelegt, dass dieser Eintrag nie an ein Modell geht — und ein Modell auf dem eigenen Rechner ist auch ein Modell.",
+    "prepare": "Vorbereiten",
+    "designForNarrator": "Eine Stimme für den Erzähler",
+    "engineReady": "Bereit",
+    "engineNotReady": "Noch nicht bereit",
+    "prepareWithSize": "Vorbereiten ({{size}} GB)",
+    "source": {
+      "writer": "Von dir gesetzt",
+      "verb": "Aus der Redebegleitung",
+      "verbWith": "Aus „{{verb}}“",
+      "scene": "Aus der Szene",
+      "none": "Schlicht gelesen"
+    },
+    "byHand": "Von Hand",
+    "directLine": "Diese Zeile anweisen",
+    "directLines": "{{count}} Zeilen anweisen",
+    "applyTo": "Anwenden auf",
+    "linesOfScene": "von {{count}} in dieser Szene",
+    "applyDirection": "Übernehmen",
+    "directionOver": "Das ist mehr, als eine Sprachausgabe auf einmal annimmt. Es wird passend herunterskaliert.",
+    "likeThat": "So wie diese Zeile",
+    "likeThatNone": "Nichts",
+    "registerFor": "Grundhaltung für {{name}}",
+    "registerBlurb": "Wird jeder Zeile dieser Stimme hinzugefügt. Für jemanden, der immer knapper oder wärmer klingt, als die Prosa jedes Mal sagt.",
+    "clearRegister": "Grundhaltung löschen",
+    "dimension.happy": "Fröhlich",
+    "dimension.angry": "Wütend",
+    "dimension.sad": "Traurig",
+    "dimension.afraid": "Ängstlich",
+    "dimension.disgusted": "Angewidert",
+    "dimension.melancholic": "Melancholisch",
+    "dimension.surprised": "Überrascht",
+    "dimension.calm": "Ruhig"
+  },
   "shell": {
     "toggleBinder": "Binder umschalten",
     "toggleSidebar": "Seitenleiste umschalten",
@@ -2327,7 +2397,8 @@
       "canvas": "Planungsboard",
       "languages": "Sprachen",
       "extensions": "Erweiterungen",
-      "drafts": "Fassungen"
+      "drafts": "Fassungen",
+      "narration": "Lesung"
     },
     "words": "Wörter",
     "wordsTitle": "Wörter",
@@ -4003,7 +4074,8 @@
       "prepare": "Vorbereiten",
       "produce": "Erzeugen",
       "acrossBooks": "Über Bücher hinweg",
-      "fromExtensions": "Aus Erweiterungen"
+      "fromExtensions": "Aus Erweiterungen",
+      "hearIt": "Anhören"
     },
     "togglePanel": "Modus-Leiste anzeigen"
   },
@@ -4104,6 +4176,10 @@
     "drafts": {
       "title": "Fassungen",
       "body": "Alle Fassungen dieses Buchs nebeneinander. Benenne sie, bring sie in deine Reihenfolge, halte fest wofür jede da ist, und schick Kapitel oder Szenen von einer in die andere."
+    },
+    "narration": {
+      "title": "Lesung",
+      "body": "Das ganze Buch, so wie es vorgelesen wird: wer welche Zeile spricht, wie sie klingen soll und mit welcher Stimme. Klicke eine Zeile an, um sie zu korrigieren - die Lesung folgt."
     }
   },
   "unsavedLeave": {
@@ -4147,5 +4223,34 @@
     "targetEmpty": "Noch nichts ausgewählt, und diese Fassung ist leer.",
     "markNew": "neu",
     "markRewritten": "überschrieben"
+  },
+  "audiobook": {
+    "title": "Hörbuch",
+    "blurb": "Liest die ausgewählten Kapitel in den Stimmen vor, die Sie besetzt haben, eine Datei je Kapitel, und packt daraus ein Buch, das Sie verschicken können.",
+    "delivery": "Ausgabe als",
+    "deliveryM4b": "Eine Datei mit Kapitelmarken (M4B)",
+    "deliveryMp3": "Eine MP3 je Kapitel",
+    "deliveryWav": "Eine WAV je Kapitel, unkodiert",
+    "pickFolder": "Wohin sollen die Kapitel?",
+    "chapters": "Kapitel",
+    "chaptersLeft": "{{left}} von {{total}} noch zu erzeugen",
+    "words": "Wörter",
+    "length": "Fertige Länge",
+    "wallClock": "Dauer der Erzeugung",
+    "wallClockUnknown": "Unbekannt bis zum ersten Durchlauf",
+    "wallClockAbout": "Etwa {{time}}",
+    "fromScratch": "Alle Kapitel neu erzeugen, auch die bereits fertigen",
+    "render": "Hörbuch erzeugen",
+    "stop": "Anhalten",
+    "renderingChapter": "Kapitel {{index}} von {{total}} — {{title}}",
+    "packaging": "Wird verpackt",
+    "rendered": "{{time}} erzeugt",
+    "done": "Das Hörbuch ist fertig.",
+    "stopped": "Angehalten. Jedes fertige Kapitel wurde behalten.",
+    "noEncoder": "ffmpeg ist nicht installiert, daher wurden die Kapitel als WAV-Dateien mit einer Kapitelliste abgelegt.",
+    "encoderFailed": "Der Kodierer ist fehlgeschlagen, daher wurden die Kapitel als WAV-Dateien abgelegt.",
+    "missing": "{{count}} Zeilen konnten nicht gesprochen werden.",
+    "noEngine": "Keine Sprachausgabe ist bereit. Installieren Sie eine und bereiten Sie sie in der Ansicht Vertonung vor.",
+    "failed": "Die Erzeugung wurde durch einen Fehler beendet."
   }
 }

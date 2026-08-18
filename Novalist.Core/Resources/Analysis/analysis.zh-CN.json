@@ -97,6 +97,33 @@
     "问道",
     "咕哝"
   ],
+  "speechVerbEmotions": {
+    "低声说": "peaceful",
+    "低语": "peaceful",
+    "反驳": "angry",
+    "叫道": "chaotic",
+    "叹息": "sorrowful",
+    "叹道": "sorrowful",
+    "吼道": "angry",
+    "呼喊": "chaotic",
+    "命令": "tense",
+    "咆哮": "angry",
+    "咕哝": "somber",
+    "哀求": "desperate",
+    "喊": "chaotic",
+    "喍咕": "somber",
+    "嗃叫": "chaotic",
+    "嗃咕": "somber",
+    "大叫": "chaotic",
+    "安慰": "peaceful",
+    "宣布": "triumphant",
+    "强调": "tense",
+    "笑着说": "joyful",
+    "笑道": "joyful",
+    "警告": "tense",
+    "轻声说": "peaceful",
+    "轻声道": "peaceful"
+  },
   "pronounsMale": [
     "他"
   ],

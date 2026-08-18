@@ -2,6 +2,7 @@ using System.Text;
 using Novalist.Sdk;
 using Novalist.Sdk.Hooks;
 using Novalist.Sdk.Models;
+using Novalist.Sdk.Models.Narration;
 using Novalist.Sdk.Services;
 
 namespace Novalist.Sdk.Example;
@@ -24,6 +25,7 @@ public sealed class WritingToolkitExtension :
     IEntityTypeContributor,
     IGrammarCheckContributor,
     IArticleGeneratorContributor,
+    IVoiceEngineContributor,
     IEntityExtractionContributor,
     IHotkeyContributor,
     IWizardContributor,
@@ -475,6 +477,36 @@ public sealed class WritingToolkitExtension :
             Summary = $"{request.EntityName} is a notable {request.TypeKey} in this story."
         });
     }
+
+    // ── IVoiceEngineContributor ─────────────────────────────────────
+
+    // Delegated whole, because a voice engine is a large enough thing to be its
+    // own class - and because an extension author reading this should see the
+    // seam, not a hundred lines of tone generation mixed into everything else.
+    private readonly ExampleVoiceEngine _voice = new();
+
+    public string EngineId => _voice.EngineId;
+    public string EngineName => _voice.EngineName;
+    public VoiceEngineFeatures Features => _voice.Features;
+
+    public Task<VoiceEngineStatus> GetStatusAsync(CancellationToken cancellationToken = default)
+        => _voice.GetStatusAsync(cancellationToken);
+
+    public Task PrepareAsync(
+        IProgress<VoiceEnginePrepare>? progress = null,
+        CancellationToken cancellationToken = default)
+        => _voice.PrepareAsync(progress, cancellationToken);
+
+    public Task<VoiceDesignResult> DesignVoiceAsync(
+        VoiceBrief brief, CancellationToken cancellationToken = default)
+        => _voice.DesignVoiceAsync(brief, cancellationToken);
+
+    public IAsyncEnumerable<NarrationClip> RenderAsync(
+        NarrationRequest request, CancellationToken cancellationToken = default)
+        => _voice.RenderAsync(request, cancellationToken);
+
+    public Task ForgetVoiceAsync(string voiceId, CancellationToken cancellationToken = default)
+        => _voice.ForgetVoiceAsync(voiceId, cancellationToken);
 
     // ── IEntityExtractionContributor ────────────────
 

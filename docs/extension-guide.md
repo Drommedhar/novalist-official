@@ -191,6 +191,7 @@ Implement any of these alongside `IExtension`; the host finds them by type.
 | `IEntityTypeContributor` | A custom Codex entity type |
 | `IPropertyTypeContributor` | A custom property type for entity templates |
 | `IEntityExtractionContributor` | Proposes Codex entries found in prose |
+| `IVoiceEngineContributor` | Supply the voices a book is read aloud in, and the speech that reads it |
 | `IArticleGeneratorContributor` | Generates Wiki article prose, and one Codex section at a time |
 | `IGrammarCheckContributor` | A grammar/style checker |
 | `IThemeContributor` | Colour themes for the Settings theme picker |
@@ -210,6 +211,19 @@ Each interface's XML documentation on the SDK type is the contract; read it befo
 - **Do not emit the heading.** The section already has one.
 
 The host does not write your answer anywhere; it puts the text in the writer's editor for them to keep or discard.
+
+### Performing a line the way the writer wanted
+
+`VoiceDirection` carries a fourth input alongside the key, the vector and the instruction: **`ReferenceAudio`**, a clip to perform this line in the manner of. Declare `VoiceEngineFeatures.EmotionReference` to receive it; without the flag the host never sends one, and the line arrives directed by whichever of the other three you do take.
+
+It is the input of last resort and the most precise one there is. Some deliveries have no name in any vocabulary, and a writer who has already heard the one they wanted points at it rather than describing it. It carries **emotion only** — the voice is still the one you designed, and an engine that clones identity from it has misread the field.
+
+The audio arrives as bytes rather than as a path, because your engine may be in another process and a file name only means something on the machine that wrote it. `ReferenceFormat` says what the bytes are.
+
+Two smaller notes on direction, both already true and both easy to get wrong:
+
+- **The vector reaching you already includes the speaker's standing register** — a per-character offset the writer set on the cast rail. There is nothing extra to apply.
+- **A direction never enters the text.** It travels beside the words. An engine that wants in-band tags adds them in its own adapter, where it knows its own syntax.
 
 ### Reading a scene
 

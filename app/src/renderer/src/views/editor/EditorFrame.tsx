@@ -161,6 +161,7 @@ function pushEditorConfig(editor: EditorWindow, t: TFunction): void {
       splitScene: t('editor.contextMenu.splitScene'),
       insertImage: t('editor.contextMenu.insertImage'),
       cutToDarlings: t('editor.contextMenu.cutToDarlings'),
+      auditionLine: t('editor.contextMenu.auditionLine'),
       groupScene: t('editor.contextMenu.groupScene'),
       groupCodex: t('editor.contextMenu.groupCodex'),
       noSuggestions: t('editor.contextMenu.noSuggestions')
@@ -1095,6 +1096,26 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
             .catch(() => frame?.onSentenceSpoken(false))
           break
         }
+        case 'auditionLine': {
+            // One line, cast and directed, played where it was written. The
+            // clip goes to the same cache the reading uses and is fetched over
+            // the same protocol, so nothing about the audio path is new.
+            const { chapterGuid, sceneId } = paneIds()
+            if (!chapterGuid || !sceneId) break
+            void rpc
+              .request<{ clip: string | null }>('narration/auditionLine', [
+                chapterGuid,
+                sceneId,
+                String(message.text ?? '')
+              ])
+              .then((result) => {
+                if (result.clip === null) return
+                const audio = new Audio(`novalist-audio://clip/${result.clip}`)
+                void audio.play().catch(() => {})
+              })
+              .catch(() => {})
+            break
+          }
         case 'stopSystemSpeech': {
           void rpc.request('voices/stop').catch(() => {})
           break

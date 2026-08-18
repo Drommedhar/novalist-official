@@ -5,6 +5,23 @@ import { join, normalize } from 'node:path'
 let projectRoot: string | null = null
 const extensionRoots = new Map<string, string>()
 
+/**
+ * Where the backend writes rendered speech.
+ *
+ * The same folder the backend was pointed at, so a run with a settings
+ * directory of its own - a test, a second install - serves its own clips rather
+ * than the ones beside the real app.
+ */
+function narrationCacheRoot(): string {
+  return join(process.env.NOVALIST_SETTINGS_DIR ?? app.getPath('userData'), 'narration-cache')
+}
+
+/** A clip name the cache could have written: hex, a dot, an extension. Anything
+ *  else is somebody else's idea of a path, and is refused rather than joined. */
+function isClipName(name: string): boolean {
+  return /^[0-9a-f]+\.[a-z0-9]+$/i.test(name)
+}
+
 /** Where the theme shim is served from, under every extension's own host. */
 const THEME_SHIM_PATH = '/__novalist/theme.js'
 
@@ -60,6 +77,12 @@ export function registerProtocolSchemes(): void {
     {
       scheme: 'novalist-ext',
       privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true }
+    },
+    // Rendered speech. Streaming matters here and nowhere else: a clip is
+    // fetched by an <audio> element, which wants ranges rather than one blob.
+    {
+      scheme: 'novalist-audio',
+      privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true }
     }
   ])
 }
@@ -106,6 +129,24 @@ export function registerProtocolHandlers(): void {
     return net.fetch(pathToFileURL(resolved).toString())
   })
 
+  /**
+   * novalist-audio://clip/<name> serves one rendered clip.
+   *
+   * Audio does not belong in a JSON message: base64 inflates every clip by a
+   * third and puts the whole reading through a parser. The backend writes the
+   * bytes and hands over a name; this is where the name is turned back into
+   * sound.
+   */
+  protocol.handle('novalist-audio', (request) => {
+    const name = decodeURIComponent(new URL(request.url).pathname).replace(/^\/+/, '')
+    if (!isClipName(name)) return new Response('forbidden', { status: 403 })
+    const resolved = normalize(join(narrationCacheRoot(), name))
+    if (!resolved.startsWith(normalize(narrationCacheRoot()))) {
+      return new Response('forbidden', { status: 403 })
+    }
+    return net.fetch(pathToFileURL(resolved).toString())
+  })
+
   protocol.handle('novalist-project', (request) => {
     if (!projectRoot) return new Response('no project open', { status: 404 })
     const url = new URL(request.url)
@@ -122,5 +163,4 @@ export function currentProjectRoot(): string | null {
   return projectRoot
 }
 
-// app reference kept for future packaged-path use; avoids unused-import churn.
-void app
+export { isClipName, narrationCacheRoot }

@@ -67,6 +67,21 @@ public class FileService : IFileService
         });
     }
 
+    public Task<byte[]> ReadBytesAsync(string path)
+        => WithFileAsync(path, () => File.ReadAllBytesAsync(path));
+
+    public Task WriteBytesAsync(string path, byte[] bytes)
+    {
+        var dir = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
+        return WithFileAsync(path, async () =>
+        {
+            await File.WriteAllBytesAsync(path, bytes);
+            return true;
+        });
+    }
+
     public Task<bool> ExistsAsync(string path)
     {
         return Task.FromResult(File.Exists(path));

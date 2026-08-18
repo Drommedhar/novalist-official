@@ -63,6 +63,22 @@ public sealed class SceneAnalysisLexicon
     /// quote is the speaker rather than someone merely being talked about.</summary>
     public IReadOnlyList<string> SpeechVerbs { get; private init; } = [];
 
+    /// <summary>
+    /// The emotion a speech verb carries, for the verbs that carry one.
+    ///
+    /// The prose usually says how a line was said - "she snapped", "er
+    /// flüsterte" - and that is a better direction for a reading than anything
+    /// guessed from the scene around it. Values are <see cref="EmotionKeys"/>
+    /// entries, so a verb and a scene resolve to the same vocabulary.
+    ///
+    /// Deliberately partial. Most speech verbs are neutral ("said", "asked"),
+    /// and an ambiguous one is left out rather than guessed: English "cried" is
+    /// as often a shout as a sob, so it maps to nothing and the line falls back
+    /// to the scene's own emotion.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> SpeechVerbEmotions { get; private init; }
+        = new Dictionary<string, string>();
+
     /// <summary>Whether the language separates words with spaces. Chinese does
     /// not, so name and verb matching there is a plain substring test.</summary>
     public bool WordBoundaries { get; private init; } = true;
@@ -363,6 +379,13 @@ public sealed class SceneAnalysisLexicon
             Emotions = emotions,
             EmotionKeys = emotions.Select(e => e.Key).ToArray(),
             SpeechVerbs = Clean(file.SpeechVerbs),
+            // Only verbs the language actually ships, pointing at emotions it
+            // actually declares. A map entry for a verb that is not a speech
+            // verb could never be reached, and one naming an emotion outside
+            // the file's own keys would resolve to a direction nothing can
+            // localize - both are dropped rather than carried.
+            SpeechVerbEmotions = BuildVerbEmotions(
+                file.SpeechVerbEmotions, Clean(file.SpeechVerbs), emotions),
             WordBoundaries = file.WordBoundaries,
             MalePronouns = BuildPronounRegex(Clean(file.PronounsMale), file.WordBoundaries),
             FemalePronouns = BuildPronounRegex(Clean(file.PronounsFemale), file.WordBoundaries),
@@ -384,6 +407,32 @@ public sealed class SceneAnalysisLexicon
             PresentTenseMarkers = Clean(file.PresentTenseMarkers),
             Cliches = Clean(file.Cliches)
         };
+    }
+
+    /// <summary>
+    /// Keeps the verb-to-emotion entries that can actually fire: the verb has
+    /// to be one the language ships, and the emotion has to be one the file
+    /// declares. Both sides are normalized the way <see cref="Clean"/>
+    /// normalizes a word list, so a map written with capitals still matches.
+    /// </summary>
+    private static IReadOnlyDictionary<string, string> BuildVerbEmotions(
+        IReadOnlyDictionary<string, string>? map,
+        IReadOnlyList<string> speechVerbs,
+        IReadOnlyList<EmotionLexiconEntry> emotions)
+    {
+        if (map == null || map.Count == 0)
+            return new Dictionary<string, string>();
+
+        var verbs = speechVerbs.ToHashSet(StringComparer.Ordinal);
+        var keys = emotions.Select(e => e.Key).ToHashSet(StringComparer.Ordinal);
+
+        return map
+            .Select(kv => (
+                Verb: (kv.Key ?? string.Empty).Trim().ToLowerInvariant(),
+                Emotion: (kv.Value ?? string.Empty).Trim()))
+            .Where(e => verbs.Contains(e.Verb) && keys.Contains(e.Emotion))
+            .DistinctBy(e => e.Verb, StringComparer.Ordinal)
+            .ToDictionary(e => e.Verb, e => e.Emotion, StringComparer.OrdinalIgnoreCase);
     }
 
     private static string[] Clean(IReadOnlyList<string>? words)
@@ -427,6 +476,9 @@ public sealed class SceneAnalysisLexicon
 
         [JsonPropertyName("speechVerbs")]
         public IReadOnlyList<string> SpeechVerbs { get; init; } = [];
+
+        [JsonPropertyName("speechVerbEmotions")]
+        public Dictionary<string, string>? SpeechVerbEmotions { get; init; }
 
         [JsonPropertyName("pronounsMale")]
         public IReadOnlyList<string> PronounsMale { get; init; } = [];

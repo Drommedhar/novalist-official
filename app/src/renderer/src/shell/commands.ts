@@ -173,13 +173,17 @@ const NAV_GESTURES: Partial<Record<MainView, string>> = {
   calendar: 'Ctrl+D6',
   relationships: 'Ctrl+D7',
   plotGrid: 'Ctrl+D8',
-  research: 'Ctrl+D9'
+  research: 'Ctrl+D9',
+  // Not a digit: the run of nine is the writer's own ordering of the views they
+  // move between all day, and inserting a tenth would renumber the lot.
+  narration: 'Ctrl+Alt+R'
 }
 
 const NAV_VIEWS: MainView[] = [
   'write',
   'dashboard',
   'manuscript',
+  'narration',
   'timeline',
   'plotGrid',
   'calendar',
@@ -323,6 +327,19 @@ export const COMMANDS: CommandDef[] = [
     homeNote: 'Destructive, and read as part of the Scene group it sits in.',
     available: hasSelection,
     run: inEditor((editor) => editor.runContextAction('cutToDarlings'))
+  },
+  {
+    id: 'text.auditionLine',
+    labelKey: 'editor.contextMenu.auditionLine',
+    categoryKey: 'hotkeys.category.editor',
+    scope: 'selection',
+    home: 'contextMenu',
+    // Read as one gesture with the line it acts on. The question it answers -
+    // does this sound right in her mouth - is asked while looking at the line,
+    // and a command that had to be found in a palette would be asked too late.
+    homeNote: 'Acts on the line under the caret, and is read as part of the Scene group.',
+    available: hasSelection,
+    run: inEditor((editor) => editor.runContextAction('auditionLine'))
   },
   {
     id: 'text.createEntity',

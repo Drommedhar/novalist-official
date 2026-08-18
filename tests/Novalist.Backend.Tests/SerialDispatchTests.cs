@@ -146,6 +146,12 @@ public sealed class SerialDispatchTests : IDisposable
                      "ui/progress/cancel",
                      "system/ping",
                      "system/shutdown",
+                     // A reading is a run of voices/speak calls that each last as
+                     // long as the passage they speak. Queued behind one of them,
+                     // Stop could not be heard until the passage had finished -
+                     // which is to say Stop did not stop anything.
+                     "voices/stop",
+                     "narration/renderStop",
                      // These run outside the workspace - another program, or
                      // whole directories of files. Queueing behind them buys
                      // nothing, and a git call that hangs would otherwise take
@@ -157,7 +163,10 @@ public sealed class SerialDispatchTests : IDisposable
                      // Posts the scene to a language server and waits up to
                      // thirty seconds. Queued, one grammar check held every
                      // other screen in the app behind it.
-                     "grammar/check"
+                     "grammar/check",
+                     // Builds a Python environment and downloads gigabytes of
+                     // model. Queued, it froze the application for the duration.
+                     "voiceEngines/prepare"
                  })
         {
             Assert.True(SerialDispatchJsonRpc.IsReentrant(method), method + " must skip the queue");

@@ -322,6 +322,16 @@ public class ChapterExportContent
     public string? Subtitle { get; set; }
 
     /// <summary>
+    /// Which chapter of the project this is.
+    ///
+    /// Carried through the compile so a writer that has to go back to the
+    /// project - the audiobook render, which needs each scene's cast and
+    /// directions - can, rather than matching on a title two chapters might
+    /// share. Empty on the volume dividers of a box set, which are not chapters.
+    /// </summary>
+    public string Guid { get; set; } = string.Empty;
+
+    /// <summary>
     /// The heading this chapter prints, with the layout's format applied and
     /// its placeholders resolved.
     ///
@@ -343,6 +353,11 @@ public class SceneExportContent
     public string Title { get; set; } = string.Empty;
     public int Order { get; set; }
     public string HtmlContent { get; set; } = string.Empty;
+
+    /// <summary>Which scene of the project this is, for the same reason
+    /// <see cref="ChapterExportContent.Guid"/> is carried. Empty on matter
+    /// pages, which are not scenes.</summary>
+    public string Id { get; set; } = string.Empty;
 
     /// <summary>
     /// Unresolved inline comments on this scene, carried through so DOCX can
@@ -648,6 +663,7 @@ public partial class ExportService
                     Title = ExportTokens.Resolve(scene.Title, sceneTokens),
                     Order = scene.Order,
                     HtmlContent = html,
+                    Id = scene.Id,
                     // Ids are lowercased because the inline parser lowercases
                     // the tag it finds them in.
                     Footnotes = (scene.Footnotes ?? [])
@@ -678,6 +694,7 @@ public partial class ExportService
             {
                 Title = title,
                 Order = chapter.Order,
+                Guid = chapter.Guid,
                 Subtitle = ExportTokens.Resolve(chapter.Subtitle ?? string.Empty, chapterTokens),
                 // Built here so every writer prints the same heading and a
                 // placeholder in a heading format resolves in all of them.
