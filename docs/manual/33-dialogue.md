@@ -88,6 +88,7 @@ Nothing is duplicated. The lines are read from your scene files each time you op
 
 ## Where to go next
 
+- [Narration](46-narration.md) — the same attribution and the same overrides, heard rather than read: the whole book as prose, every line tinted with the voice that reads it, correctable where it stands.
 - [Editor](05-editor.md) — dialogue punctuation correction, entity mentions, and the hover cards this view's attribution relies on.
 - [Codex (Characters, Locations, Items, Lore)](06-codex.md) — character names, aliases, and the Gender field, which are what your prose is matched against.
 - [Chapters & Scenes](04-chapters-and-scenes.md) — scene and chapter story dates, which decide how lines are grouped.

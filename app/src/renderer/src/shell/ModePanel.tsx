@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  AudioLines,
   BookOpen,
   CalendarDays,
   ChartNoAxesGantt,
@@ -63,6 +64,7 @@ const VIEW_ICONS: Partial<Record<MainView, IconComponent>> = {
   write: PenLine,
   manuscript: BookOpen,
   drafts: Layers,
+  narration: AudioLines,
   timeline: ChartNoAxesGantt,
   plotGrid: Grid3x3,
   canvas: SquareDashedMousePointer,

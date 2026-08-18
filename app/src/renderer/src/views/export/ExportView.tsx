@@ -7,6 +7,7 @@ import { BookMatterPanel } from './BookMatterPanel'
 import { PublishingPanel } from './PublishingPanel'
 import { ReplacementsPanel } from './ReplacementsPanel'
 import { ExportLayoutPanel } from './ExportLayoutPanel'
+import { AudiobookPanel } from './AudiobookPanel'
 import { useProjectStore } from '../../stores/projectStore'
 import { useStageStore } from '../../stores/stageStore'
 import './export.css'
@@ -36,6 +37,10 @@ const FORMATS: { format: string; extension: string; labelKey: string; content: C
   { format: 'Markdown', extension: '.md', labelKey: 'export.formatMarkdown', content: 'manuscript' },
   { format: 'FinalDraft', extension: '.fdx', labelKey: 'export.formatFinalDraft', content: 'manuscript' },
   { format: 'LaTeX', extension: '.tex', labelKey: 'export.formatLatex', content: 'manuscript' },
+  // An edition of the book like any other, compiled from the same selection -
+  // it simply takes hours and comes out as sound, so it runs its own panel
+  // rather than the one-shot Export button.
+  { format: 'Audiobook', extension: '.m4b', labelKey: 'export.formatAudiobook', content: 'manuscript' },
   { format: 'Codex', extension: '.md', labelKey: 'export.formatMarkdown', content: 'codex' },
   { format: 'CodexPdf', extension: '.pdf', labelKey: 'export.formatPdf', content: 'codex' },
   { format: 'Csv', extension: '.csv', labelKey: 'export.formatCsv', content: 'data' },
@@ -334,6 +339,10 @@ export function ExportView(): React.JSX.Element {
       setBusy(false)
     }
   }
+
+  // The audiobook is rendered rather than written out, so it runs its own
+  // panel: it has an estimate to show first, hours to report on, and a Stop.
+  const isAudiobook = format === 'Audiobook'
 
   const exportDisabled =
     busy ||
@@ -782,11 +791,21 @@ export function ExportView(): React.JSX.Element {
           </>
         )}
 
-        <button className="start-open export-run" disabled={exportDisabled} onClick={() => void run()}>
-          <FileDown size={15} strokeWidth={2} />
-          {busy ? t('export.exporting') : t('export.exportAction')}
-        </button>
-        {result && <p className="inspector-meta export-result">{result}</p>}
+        {isAudiobook ? (
+          <AudiobookPanel selectedChapterGuids={[...selected]} title={title} />
+        ) : (
+          <>
+            <button
+              className="start-open export-run"
+              disabled={exportDisabled}
+              onClick={() => void run()}
+            >
+              <FileDown size={15} strokeWidth={2} />
+              {busy ? t('export.exporting') : t('export.exportAction')}
+            </button>
+            {result && <p className="inspector-meta export-result">{result}</p>}
+          </>
+        )}
 
         {/* The pages around the story. Typed, so each is set its own way. */}
         {!isData && (

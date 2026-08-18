@@ -18,9 +18,59 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **Hear your book read by a cast, not by one voice.** The new **Narration** view, under Write, shows your book as it will be read aloud - your own prose, chapter by chapter, with every spoken line marked in its speaker's colour and the narrator keeping everything between the quotes. Then it reads it to you, with the line being spoken highlighted as it goes. Reach it with `Ctrl+Alt+R` or from the Go menu.
+
+  **Give each character a voice.** Pick from the voices already installed on your machine: one for the narrator, which belongs to the book, and one for anybody who speaks. A character you have not cast yet is read by the narrator rather than skipped, so a half-finished cast still gives you a whole reading. The cast is stored with the book and travels with the project folder.
+
+  **The dialogue tag stays with the narrator.** In *"Get out," she said, not turning round*, the quoted half is the character and the rest is the narrator - which is the difference between a performed reading and a machine reading a script.
+
+  **Every line comes with a direction, worked out from your own words.** A line tagged *she snapped* is read angry, and the view says it is angry **because you wrote snapped**; a line with no tag of its own falls back to the scene's emotion and intensity; a line with nothing to go on is read plainly rather than guessed at. Sixteen emotions, in the language you write in, the same ones scene analysis uses.
+
+  **Correct it where you find it.** Click any line and its controls open under the page: who reads it, how it is read, and - where the prose does not name the speaker - the likely speakers with a percentage each to choose from. A line nobody could be traced to is hatched in the margin so it can be found by scrolling. Reassigning a speaker here is the same correction the **Dialogue** view stores, so fixing it while listening fixes it there too.
+
+  Nothing is sent anywhere and no AI is involved: the whole pass runs offline over your scene files, with the voices your operating system already has.
+
+- **A voice designed for each character, from what you already wrote about them.** Where the previous entry casts your book from the voices your machine happens to ship, an installed speech extension can now make one that belongs to the character. Their row in the cast list offers **Design a voice**, and Novalist shows you the **brief** first — assembled from the Codex entry's age, build, accent and any section about how they speak, plus a few lines they actually say — for you to read and edit before anything is sent.
+
+  **The brief describes the instrument, never the mood.** How a line is felt is chosen line by line, so an emotion written into the description would be stuck in the voice for the whole book — and is removed before it reaches the engine, including anything you type in yourself. One identity, performed differently in every scene.
+
+  **A Codex entry you set never to reach a model is honoured**, because a model on your own machine is still a model: designing is refused, said plainly, and offered as **Design anyway** for you to allow deliberately.
+
+  A designed voice is kept with the book as audio, so it travels with the project folder, and it can be auditioned across three emotions — one neutral sample says nothing about whether the casting holds — re-designed, or deleted, which also un-casts whoever was reading in it.
+
+  Novalist still loads no model itself: speech engines arrive as extensions, and the interface they plug into carries no way to reach the network.
+
 - **Drafts, as things you can manage.** A draft could be made, switched to, compared and deleted, and nothing else - so a book with four of them had four rows called "Draft 1" through "Draft 4" in the order they happened to be created, and content could only cross between two of them one scene at a time. The new **Drafts** view, under Write, lists every draft of the book with what it holds: **rename** one whenever what it is for becomes clearer, **drag** them into the order you think in, write a line saying what each is for ("agent submission", "pre-beta cut"), **duplicate** one, and open or delete one from its own row.
 
   It also **sends content between drafts**. Pick a draft to read from and one to send to - including a draft you are not currently in - tick whole chapters or single scenes, and **Copy** or **Move** them across. Beside the ticks, the target draft is shown as the transfer would leave it, with every changing row marked **new** or **rewritten**, so what this does to the other draft is visible before anything is written. A scene the target already has is rewritten rather than duplicated, so both drafts keep one copy of it and still compare as the same scene; moving always asks first.
+
+- **The book, performed.** With a speech engine installed, **Play** now reads your book in the voices you designed, each line delivered as the direction says — rather than through the voices your machine happens to ship. Novalist tells the engine exactly as much as it says it can take: the emotion as numbers, or as a sentence naming it along with the speech verb you wrote, or nothing at all where the engine would rather read the line itself. The direction always travels beside the words and never inside them.
+
+  The reading is prepared a stretch at a time and played as each stretch arrives, so pressing Play does not wait for the chapter and pressing Stop does not throw away a chapter's worth of work. The audio is kept beside the application rather than in your project, and is deleted when you stop.
+
+  **The narrator can be designed too**, from the book rather than from a Codex entry: the narrative person and tense you declared, and your logline. A narrator is not a character and has no entry to read — what decides how a book should be narrated is what kind of book it is and who is telling it.
+
+- **An audiobook you can send someone.** **Audiobook** is now a format in the Export view: the whole book read in the voices you cast, delivered as one file with chapter marks and your cover, as one MP3 per chapter, or as unencoded audio. It is compiled from exactly the same selection as every other format — the chapters you ticked, the front and back matter, your compile-time replacements — so the audiobook and the ebook say the same words.
+
+  **It says what it will cost before it starts**: how many chapters, how many words, how long the finished reading will be, and how long *your* machine will take. That last figure comes from what your machine did on its last renders rather than from an average of somebody else's, and until you have finished one it says so instead of inventing a number.
+
+  **The packaged formats need ffmpeg on your machine.** Novalist does not ship it and does not fetch it. Without it the chapters are still delivered, as unencoded audio with a chapter list beside it, and the panel says why - hours of rendering are never thrown away because a tool is missing.
+
+  **It is resumable and it is stoppable.** A chapter already rendered from the same words, the same cast and the same directions is not rendered again, so editing chapter nine re-renders chapter nine and nothing else. Stopping takes effect within a few lines and keeps every chapter that finished; starting again picks up where it left off. Progress shows in the status bar wherever you are, because a render takes hours and you are meant to go on writing through it. Lines the engine could not speak are counted and reported rather than left as silences you would only find by listening.
+
+- **Hear one line where you are writing it.** Select a line in the editor and **Scene → Hear this line** speaks it on the spot, in the voice of whoever says it and directed the way the reading would have it. The question in the middle of writing a line is whether it sounds right in her mouth, and going to another view to find out answers it too late to be any use.
+
+- **Directing a line by hand, for the delivery no word covers.** Behind the sixteen emotions there are now eight sliders — happy, angry, sad, afraid, disgusted, melancholic, surprised, calm — that set a line's delivery exactly. They open on what will actually be performed rather than on zero, and what you set is what is used: not rescaled by the scene's intensity, not quietened because the line is narration.
+
+  **A run of lines can be directed at once** — this line and as many after it as you say, up to the end of the scene. A whole argument, a whole eulogy: one performance, set once, rather than thirty chances to set one line differently by accident.
+
+  **A character can carry a standing register**, set from the cast rail: an adjustment added to every line they speak, for somebody who is always more clipped, or warmer, or wearier than the prose bothers to say each time. It can take emotion away as well as add it, and it never overrides a line — a furious line from a habitually flat character is still furious. The narrator has one too.
+
+  **And where nothing is precise enough, point at a line instead.** Any line rendered in this sitting can be picked as a reference, and the engine performs the new one in the manner of that clip — the voice stays the one you designed, only the delivery is borrowed. Engines that cannot take a reference fall back to the numbers, so setting one never leaves a line worse off.
+
+### Fixed
+
+- **Stop now stops the reading.** Pressing Stop while a scene was being read aloud cleared the highlight and changed the button back, and the voice carried on to the end of the passage regardless. The backend answers one request at a time, and the request to stop was queued behind the very passage it was meant to interrupt — so it could not be heard until that passage had finished. Stopping is now handled straight away, as cancelling a progress dialog already was.
 
 ### Changed
 

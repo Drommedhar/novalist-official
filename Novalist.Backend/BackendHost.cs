@@ -67,6 +67,9 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new WikiRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ContextRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new DialogueRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new NarrationRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new VoiceEngineRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new AudiobookRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new DashboardRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ManuscriptRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new PlotRpc(_workspace), targetOptions);

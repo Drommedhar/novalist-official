@@ -38,6 +38,7 @@ public sealed class ExtensionManager
     public List<IAiHook> AiHooks { get; } = [];
     public List<IGrammarCheckContributor> GrammarCheckContributors { get; } = [];
     public List<IArticleGeneratorContributor> ArticleGenerators { get; } = [];
+    public List<IVoiceEngineContributor> VoiceEngines { get; } = [];
     public List<IEntityExtractionContributor> EntityExtractors { get; } = [];
     public List<ThemeOverride> ThemeOverrides { get; } = [];
     public List<HotkeyDescriptor> HotkeyBindings { get; } = [];
@@ -175,6 +176,12 @@ public sealed class ExtensionManager
         {
             ArticleGenerators.Add(articleGenerator);
             undo.Add(() => ArticleGenerators.Remove(articleGenerator));
+        }
+
+        if (instance is IVoiceEngineContributor voiceEngine)
+        {
+            VoiceEngines.Add(voiceEngine);
+            undo.Add(() => VoiceEngines.Remove(voiceEngine));
         }
 
         if (instance is IEntityExtractionContributor entityExtractor)

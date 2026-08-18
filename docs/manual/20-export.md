@@ -442,6 +442,12 @@ Ids never leave the project: cast, threads and every reference come out as names
 
 The CSV files carry a byte order mark so Excel reads accented names correctly instead of turning them into mojibake. The JSON deliberately does not, because a mark in front of it is not valid JSON to a strict parser.
 
+## Audiobook
+
+**Audiobook** renders the manuscript to speech in the voices you cast, and packages it as an M4B with chapter marks, as one MP3 per chapter, or as unencoded WAV. It honours the same chapter selection, matter pages and replacements as every other format here.
+
+It is the one format that takes hours rather than seconds, so it runs its own panel: an estimate before it starts, progress in the status bar while it runs, and a render that can be stopped and picked up again without losing the chapters that finished. It needs a speech engine installed and voices designed — both are set up in [Narration](46-narration.md), which is also where a line's delivery is directed.
+
 ## Where to go next
 
 - [Command line](41-command-line.md) — the same exports without opening the app, for a build on a schedule.

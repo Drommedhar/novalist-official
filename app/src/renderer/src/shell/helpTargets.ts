@@ -26,6 +26,7 @@ export const VIEW_HELP_TARGETS: Record<MainView, ManualTarget> = {
   calendar: { file: '13-calendar.md' },
   relationships: { file: '14-relationships.md' },
   dialogue: { file: '33-dialogue.md' },
+  narration: { file: '46-narration.md' },
   style: { file: '36-style-report.md' },
   canvas: { file: '37-planning-board.md' },
   codex: { file: '06-codex.md' },

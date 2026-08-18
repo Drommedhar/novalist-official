@@ -87,7 +87,7 @@ const FILE = [
    doctor says so; one listed here that no longer exists is reported too. */
 const GO_GROUPS = [
   ['nav.dashboard'],
-  ['nav.write', 'nav.manuscript'],
+  ['nav.write', 'nav.manuscript', 'nav.narration'],
   ['nav.timeline', 'nav.plotGrid', 'nav.canvas', 'nav.relationships', 'nav.calendar', 'nav.dialogue'],
   ['nav.codex', 'nav.wiki', 'nav.maps', 'nav.research', 'nav.gallery', 'nav.languages'],
   ['nav.expose', 'nav.export', 'nav.git', 'nav.style'],

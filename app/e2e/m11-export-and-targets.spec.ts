@@ -45,7 +45,10 @@ test('export separates what from how, and targets are reachable from Settings', 
     'PDF',
     'Markdown',
     'Final Draft (.fdx)',
-    'LaTeX'
+    'LaTeX',
+    // An edition of the book like any other, compiled from the same selection -
+    // it simply takes hours and comes out as sound.
+    'Audiobook'
   ])
 
   await page.selectOption('#export-content', 'codex')

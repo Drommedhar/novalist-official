@@ -27,6 +27,31 @@ public class FileServiceTests
     }
 
     [Fact]
+    public async Task WriteThenReadBytes_RoundTripsExactly()
+    {
+        // Audio is the reason this exists: base64 in a text file would double
+        // its size on disk and defeat Git's own handling of binaries.
+        using var dir = new TempDir();
+        var path = dir.Combine("a.wav");
+        byte[] bytes = [0x52, 0x49, 0x46, 0x46, 0x00, 0xFF, 0x0D, 0x0A];
+
+        await _sut.WriteBytesAsync(path, bytes);
+
+        Assert.Equal(bytes, await _sut.ReadBytesAsync(path));
+    }
+
+    [Fact]
+    public async Task WriteBytesAsync_CreatesMissingDirectory()
+    {
+        using var dir = new TempDir();
+        var path = dir.Combine("nested", "deep", "a.wav");
+
+        await _sut.WriteBytesAsync(path, [0x01]);
+
+        Assert.True(File.Exists(path));
+    }
+
+    [Fact]
     public async Task GetFileSizeAsync_ReturnsByteLength()
     {
         using var dir = new TempDir();

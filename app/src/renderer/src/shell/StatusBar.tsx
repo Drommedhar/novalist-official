@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BarChart3, GitBranch, Timer } from 'lucide-react'
+import { BarChart3, GitBranch, Headphones, Timer } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { ExtensionStatusItems } from './ExtensionStatusItems'
 import { useShellStore } from '../stores/shellStore'
@@ -8,6 +8,7 @@ import { useProjectStore } from '../stores/projectStore'
 import { elapsedSeconds, formatDuration, sprintWords, useSprintStore } from '../stores/sprintStore'
 import { SprintPanel } from './SprintPanel'
 import { useSettingsStore } from '../stores/settingsStore'
+import { useAudiobookStore } from '../stores/audiobookStore'
 import { onPluginContributionsChanged, pluginStatusItems } from './pluginHost'
 import './statusbar.css'
 
@@ -385,6 +386,7 @@ export function StatusBar(): React.JSX.Element {
           </span>
         )}
         <ExtensionStatusItems />
+        <AudiobookProgress />
       </span>
 
 
@@ -605,5 +607,43 @@ export function StatusBar(): React.JSX.Element {
       ))}
       {sprintOpen && <SprintPanel onClose={() => setSprintOpen(false)} />}
     </footer>
+  )
+}
+
+/**
+ * The audiobook render, while one is running.
+ *
+ * In the status bar rather than only in the Export view because the render
+ * takes hours and the writer is expected to go on writing through it. A job
+ * that can only be seen on the screen it was started from is a job nobody can
+ * tell is still going.
+ */
+function AudiobookProgress(): React.JSX.Element | null {
+  const { t } = useTranslation()
+  const status = useAudiobookStore((s) => s.status)
+  const refresh = useAudiobookStore((s) => s.refresh)
+
+  useEffect(() => {
+    // A render begun before this window opened is still worth showing.
+    void refresh()
+  }, [refresh])
+
+  if (status === null || (status.phase !== 'rendering' && status.phase !== 'packaging')) return null
+
+  const percent =
+    status.segmentsTotal > 0 ? Math.round((status.segmentsDone / status.segmentsTotal) * 100) : 0
+
+  return (
+    <span
+      className="status-audiobook"
+      title={t('audiobook.renderingChapter', {
+        index: status.chapterIndex,
+        total: status.chapterCount,
+        title: status.chapterTitle
+      })}
+    >
+      <Headphones size={13} aria-hidden="true" />
+      {status.phase === 'packaging' ? t('audiobook.packaging') : `${percent}%`}
+    </span>
   )
 }

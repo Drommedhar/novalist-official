@@ -7,6 +7,15 @@ public interface IFileService
 {
     Task<string> ReadTextAsync(string path);
     Task WriteTextAsync(string path, string content);
+
+    /// <summary>Reads a file whose contents are not text. Audio is the first
+    /// such thing Novalist writes into a project, and encoding it as base64 in a
+    /// text file would double its size on disk and defeat Git's own handling of
+    /// binaries.</summary>
+    Task<byte[]> ReadBytesAsync(string path);
+
+    /// <summary>Writes a file whose contents are not text.</summary>
+    Task WriteBytesAsync(string path, byte[] bytes);
     Task<bool> ExistsAsync(string path);
     Task<bool> DirectoryExistsAsync(string path);
     Task CreateDirectoryAsync(string path);

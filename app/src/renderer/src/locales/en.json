@@ -1113,7 +1113,8 @@
     "chaotic": "Chaotic",
     "sorrowful": "Sorrowful",
     "triumphant": "Triumphant",
-    "somber": "Somber"
+    "somber": "Somber",
+    "custom": "Set by hand"
   },
   "sceneTag": {
     "dialogue": "Dialogue",
@@ -1584,7 +1585,8 @@
       "cutToDarlings": "Cut and keep",
       "groupScene": "Scene",
       "groupCodex": "Codex",
-      "noSuggestions": "No suggestions"
+      "noSuggestions": "No suggestions",
+      "auditionLine": "Hear this line"
     },
     "linkPrompt": "Link address (leave empty to remove the link)",
     "contextMenu.insertImage": "Insert image"
@@ -2022,7 +2024,8 @@
     "formatWorldJson": "Everything (JSON archive)",
     "formatWorldHtml": "Everything (browsable page)",
     "alsoInclude": "Also include these books",
-    "forReaders": "For readers - leave out anything marked not for readers"
+    "forReaders": "For readers - leave out anything marked not for readers",
+    "formatAudiobook": "Audiobook"
   },
   "expose": {
     "chars": "{{value}} characters",
@@ -2275,6 +2278,73 @@
       "none": "Unknown"
     }
   },
+  "narration": {
+    "cast": "Cast",
+    "narrator": "Narrator",
+    "castCount": "{{cast}} of {{total}} given a voice",
+    "voiceFor": "Voice for {{name}}",
+    "uncast": "No voice yet",
+    "unassigned": "{{count}} lines nobody could be traced to. The narrator reads them.",
+    "noVoices": "No voices are installed. Add them in your operating system's speech settings.",
+    "loading": "Working out who says what…",
+    "unknownSpeaker": "Nobody named",
+    "directionFor": "How this line is read",
+    "clearDirection": "Undo",
+    "noVoice": "No voice",
+    "play": "Play",
+    "stop": "Stop",
+    "speed": "Speed",
+    "nothingCast": "Give the narrator a voice to start.",
+    "emptyBook": "There is nothing to read in this book yet.",
+    "playFromHere": "Play from here",
+    "goToOpenScene": "Go to the scene I am writing",
+    "readBy": "Read by",
+    "script": "Script",
+    "designedVoices": "Designed voices",
+    "systemVoices": "Voices on this machine",
+    "voiceElsewhere": "Designed on another machine",
+    "designVoice": "Design a voice",
+    "redesignVoice": "Design again",
+    "forgetVoice": "Delete this voice",
+    "designFor": "A voice for {{name}}",
+    "designing": "Designing…",
+    "designAnyway": "Design anyway",
+    "briefLabel": "How they sound",
+    "briefIsTheInstrument": "Describe the instrument, not the mood: age, build, accent, pace, the register they speak in when nothing is wrong. How a line is felt is chosen line by line, so an emotion written here would be stuck in the voice for the whole book — and is removed before anything is sent.",
+    "withheldFromAi": "You set this entry never to reach a model, and a model on your own machine is still a model.",
+    "prepare": "Prepare",
+    "designForNarrator": "A voice for the narrator",
+    "engineReady": "Ready",
+    "engineNotReady": "Not ready yet",
+    "prepareWithSize": "Prepare ({{size}} GB)",
+    "source": {
+      "writer": "Set by you",
+      "verb": "From the tag",
+      "verbWith": "From “{{verb}}”",
+      "scene": "From the scene",
+      "none": "Read plainly"
+    },
+    "byHand": "By hand",
+    "directLine": "Direct this line",
+    "directLines": "Direct {{count}} lines",
+    "applyTo": "Apply to",
+    "linesOfScene": "of {{count}} in this scene",
+    "applyDirection": "Apply",
+    "directionOver": "That is more than an engine will take at once. It will be scaled down to fit.",
+    "likeThat": "Like that line",
+    "likeThatNone": "Nothing",
+    "registerFor": "Standing register for {{name}}",
+    "registerBlurb": "Added to every line this voice speaks. For somebody who is always more clipped, or warmer, than the prose says each time.",
+    "clearRegister": "Clear register",
+    "dimension.happy": "Happy",
+    "dimension.angry": "Angry",
+    "dimension.sad": "Sad",
+    "dimension.afraid": "Afraid",
+    "dimension.disgusted": "Disgusted",
+    "dimension.melancholic": "Melancholic",
+    "dimension.surprised": "Surprised",
+    "dimension.calm": "Calm"
+  },
   "shell": {
     "toggleBinder": "Toggle binder",
     "toggleSidebar": "Toggle sidebar",
@@ -2318,7 +2388,8 @@
       "canvas": "Planning board",
       "languages": "Languages",
       "extensions": "Extensions",
-      "drafts": "Drafts"
+      "drafts": "Drafts",
+      "narration": "Narration"
     },
     "words": "words",
     "wordsTitle": "Words",
@@ -3994,7 +4065,8 @@
       "prepare": "Prepare",
       "produce": "Produce",
       "acrossBooks": "Across books",
-      "fromExtensions": "From extensions"
+      "fromExtensions": "From extensions",
+      "hearIt": "Hear it"
     },
     "togglePanel": "Show the mode panel"
   },
@@ -4095,6 +4167,10 @@
     "drafts": {
       "title": "Drafts",
       "body": "Every draft of this book, side by side. Rename them, put them in your own order, say what each one is for, and send chapters or scenes from one to another."
+    },
+    "narration": {
+      "title": "Narration",
+      "body": "The whole book as it will be read aloud: who speaks each line, how it should be said, and in whose voice. Click any line to correct it, and the reading follows."
     }
   },
   "unsavedLeave": {
@@ -4138,5 +4214,34 @@
     "targetEmpty": "Nothing selected yet, and this draft is empty.",
     "markNew": "new",
     "markRewritten": "rewritten"
+  },
+  "audiobook": {
+    "title": "Audiobook",
+    "blurb": "Reads the selected chapters aloud in the voices you cast, one file per chapter, and packages them as a book you can send someone.",
+    "delivery": "Deliver as",
+    "deliveryM4b": "One file with chapter marks (M4B)",
+    "deliveryMp3": "One MP3 per chapter",
+    "deliveryWav": "One WAV per chapter, unencoded",
+    "pickFolder": "Where should the chapters go?",
+    "chapters": "Chapters",
+    "chaptersLeft": "{{left}} of {{total}} still to render",
+    "words": "Words",
+    "length": "Finished length",
+    "wallClock": "Time to render",
+    "wallClockUnknown": "Unknown until the first render",
+    "wallClockAbout": "About {{time}}",
+    "fromScratch": "Render every chapter again, even the ones already done",
+    "render": "Render audiobook",
+    "stop": "Stop",
+    "renderingChapter": "Chapter {{index}} of {{total}} — {{title}}",
+    "packaging": "Packaging",
+    "rendered": "{{time}} rendered",
+    "done": "The audiobook is finished.",
+    "stopped": "Stopped. Every chapter that finished has been kept.",
+    "noEncoder": "ffmpeg is not installed, so the chapters were delivered as WAV files with a chapter list.",
+    "encoderFailed": "The encoder failed, so the chapters were delivered as WAV files.",
+    "missing": "{{count}} lines could not be spoken.",
+    "noEngine": "No speech engine is ready. Install one and prepare it in the Narration view.",
+    "failed": "The render stopped on an error."
   }
 }

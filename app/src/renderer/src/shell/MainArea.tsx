@@ -20,6 +20,7 @@ import { TimelineView } from '../views/timeline/TimelineView'
 import { CalendarView } from '../views/calendar/CalendarView'
 import { RelationshipsView } from '../views/relationships/RelationshipsView'
 import { DialogueView } from '../views/dialogue/DialogueView'
+import { NarrationView } from '../views/narration/NarrationView'
 import { StyleView } from '../views/style/StyleView'
 import { CanvasView } from '../views/canvas/CanvasView'
 import { GalleryView } from '../views/library/GalleryView'
@@ -309,6 +310,14 @@ function MainAreaContent({ view, paneId }: { view: MainView; paneId: string }): 
     return (
       <main className="main-area">
         <DialogueView />
+      </main>
+    )
+  }
+
+  if (mainView === 'narration') {
+    return (
+      <main className="main-area">
+        <NarrationView />
       </main>
     )
   }

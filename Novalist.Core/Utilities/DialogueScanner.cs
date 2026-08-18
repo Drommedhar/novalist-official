@@ -189,6 +189,32 @@ public static class DialogueScanner
 
     /// <summary>Plain-text form of scene HTML with a per-character map back into
     /// the markup. Block tags become newlines so paragraph boundaries survive.</summary>
+    /// <summary>
+    /// The scene's plain text beside the markup each character came from.
+    /// <see cref="Start"/> and <see cref="End"/> are per text character: the
+    /// index in the HTML where it begins, and the index just past where it ends
+    /// — the two differ for an entity, where five characters of markup produce
+    /// one of text.
+    ///
+    /// Exposed because the quoted passages are not the only ranges worth
+    /// addressing any more. Reading a scene aloud needs the prose *between* the
+    /// quotes mapped back into the markup as well, and re-deriving the mapping
+    /// somewhere else would give the app two ideas of where a sentence is.
+    /// </summary>
+    public sealed record DialogueProjection(
+        string Text, IReadOnlyList<int> Start, IReadOnlyList<int> End);
+
+    /// <summary>The projection behind <see cref="ScanScene"/>, for callers that
+    /// need to address a range of the scene's text in its HTML.</summary>
+    public static DialogueProjection ProjectScene(string? html)
+    {
+        if (string.IsNullOrEmpty(html))
+            return new DialogueProjection(string.Empty, [], []);
+
+        var projection = Project(html);
+        return new DialogueProjection(projection.Text, projection.Start, projection.End);
+    }
+
     private sealed record Projection(string Text, int[] Start, int[] End);
 
     private static Projection Project(string html)

@@ -22,6 +22,12 @@ The number keys switch the main area between views, in this order:
 | Plot Grid | `Ctrl+D8` |
 | Research | `Ctrl+D9` |
 
+One view outside that run has a gesture of its own, because the nine digits are already spoken for and inserting a tenth would renumber all of them:
+
+| Command | Gesture |
+| --- | --- |
+| Narration | `Ctrl+Alt+R` |
+
 Every other view — Wiki, Maps, Languages, Gallery, Dialogue, Planning board, Series, Exposé, Style report, Export, Git, Extensions, Settings — is a command with no default gesture. Reach it from its mode in the [mode panel](02-interface-overview.md#the-mode-panel), from the **Go** menu, or from the palette; bind it yourself if you go there often.
 
 ## Panels and panes

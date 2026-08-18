@@ -33,7 +33,7 @@ export type Mode = 'write' | 'plan' | 'world' | 'publish' | 'series'
  *   otherwise about one book carrying one view that was not.
  */
 export const MODE_VIEWS: Record<Mode, MainView[]> = {
-  write: ['write', 'manuscript', 'drafts'],
+  write: ['write', 'manuscript', 'drafts', 'narration'],
   plan: ['timeline', 'plotGrid', 'calendar', 'canvas', 'relationships', 'dialogue'],
   world: ['codex', 'wiki', 'maps', 'research', 'gallery', 'languages'],
   publish: ['expose', 'export', 'git', 'style'],
@@ -59,7 +59,10 @@ export interface ViewGroup {
 }
 
 export const MODE_GROUPS: Record<Mode, ViewGroup[]> = {
-  write: [{ labelKey: 'modes.group.drafting', views: ['write', 'manuscript', 'drafts'] }],
+  write: [
+    { labelKey: 'modes.group.drafting', views: ['write', 'manuscript', 'drafts'] },
+    { labelKey: 'modes.group.hearIt', views: ['narration'] }
+  ],
   plan: [
     { labelKey: 'modes.group.shape', views: ['timeline', 'plotGrid', 'canvas'] },
     { labelKey: 'modes.group.castAndTime', views: ['relationships', 'calendar', 'dialogue'] }

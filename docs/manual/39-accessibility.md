@@ -34,6 +34,8 @@ Read-aloud uses the voices already on your machine and sends nothing anywhere. I
 
 The highlight is painted without touching the document, so listening to a chapter never marks it as edited.
 
+For a reading with more than one voice in it, the [Narration](46-narration.md) view shows the whole book as prose with a voice cast per character, keeps the dialogue tags with the narrator, and takes a direction for each line from what you already wrote. It uses the same voices and keeps the same promise: nothing is sent anywhere.
+
 Dictation is not implemented. Use your operating system's own dictation into the editor in the meantime.
 
 ## Motion

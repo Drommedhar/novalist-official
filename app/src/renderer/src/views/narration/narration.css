@@ -1,0 +1,630 @@
+/*
+ * Narration view: the book as it will be read aloud.
+ *
+ * Two panes — the cast on the left, the prose on the right in a frame of its
+ * own, with the transport pinned under it and the panel for the picked line
+ * floating above. All sizes, colours, radii and spacing come from design
+ * tokens (tokens.css); the frame is a separate document and is handed the
+ * resolved values instead.
+ */
+
+.narration-view {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--nl-surface-window);
+  color: var(--nl-text);
+}
+
+/* ===== Cast (left) ===== */
+
+.narration-cast {
+  flex: 0 0 260px;
+  min-width: 0;
+  overflow-y: auto;
+  padding: var(--nl-space-md);
+  border-right: 1px solid var(--nl-border);
+  background: var(--nl-surface-sidebar);
+}
+
+.narration-cast-title {
+  font-size: var(--nl-font-title-sm);
+  font-weight: var(--nl-weight-title);
+  padding: var(--nl-space-tighter) var(--nl-space-sm) var(--nl-space-sm);
+}
+
+.narration-cast-head {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  padding: 0 var(--nl-space-sm) var(--nl-space-md);
+}
+
+.narration-cast-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.narration-cast-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+  border-radius: var(--nl-radius-md);
+}
+
+.narration-cast-row:hover {
+  background: var(--nl-surface-hover);
+}
+
+/* The colour this character's lines wear in the prose. The rail is the legend
+   for the page beside it, which is what makes a tinted manuscript readable at
+   a glance rather than decorative. */
+.narration-cast-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--nl-radius-pill);
+  flex: 0 0 auto;
+}
+
+.narration-cast-swatch-narrator {
+  background: var(--nl-text-subtle);
+}
+
+/* The narrator is not a character. Separating them says so, and keeps them at
+   the top where the fallback everything else resolves to belongs. */
+.narration-cast-row.narrator {
+  border-bottom: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md) var(--nl-radius-md) var(--nl-radius-none)
+    var(--nl-radius-none);
+  padding-bottom: var(--nl-space-sm);
+  margin-bottom: var(--nl-space-tighter);
+}
+
+.narration-cast-name {
+  font-size: var(--nl-font-ui);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.narration-cast-count {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.narration-cast-row .narration-voice {
+  grid-column: 1 / -1;
+}
+
+.narration-cast-note {
+  margin: var(--nl-space-md) var(--nl-space-sm) 0;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  line-height: var(--nl-leading-tight);
+}
+
+.narration-cast-note.warn {
+  color: var(--nl-text-dim);
+}
+
+/* ===== Stage (right): the prose, the panel, the transport ===== */
+
+.narration-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.narration-frame {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  background: var(--nl-surface-editor);
+}
+
+/* Said over the frame rather than instead of it: the frame has to be in the
+   tree from the first render or there is nothing to hear its ready message. */
+.narration-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--nl-space-xxl);
+  font-size: var(--nl-font-ui);
+  color: var(--nl-text-subtle);
+  text-align: center;
+}
+
+/* ===== The picked line ===== */
+
+/* Over the prose rather than beside it: the writer is reading, finds one line
+   wrong, and fixes that one. A permanent column of controls would take the
+   width the prose is measured for and put a form back on the page. */
+.narration-panel {
+  position: absolute;
+  left: var(--nl-space-lg);
+  right: var(--nl-space-lg);
+  bottom: calc(var(--nl-control-h) + var(--nl-space-xl));
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-md) var(--nl-space-lg);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+  box-shadow: var(--nl-elevation-high);
+}
+
+.narration-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-sm);
+}
+
+.narration-panel-where {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.narration-panel-close {
+  font-size: var(--nl-font-ui);
+  font-family: inherit;
+  color: var(--nl-text-subtle);
+  background: none;
+  border: 0;
+  border-radius: var(--nl-radius-sm);
+  padding: 0 var(--nl-space-tighter);
+  cursor: pointer;
+}
+
+.narration-panel-close:hover {
+  color: var(--nl-text);
+  background: var(--nl-surface-hover);
+}
+
+.narration-panel-text {
+  margin: 0;
+  font-size: var(--nl-font-body);
+  line-height: var(--nl-leading-body);
+  max-width: var(--nl-measure-text);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.narration-panel-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--nl-space-md);
+}
+
+.narration-panel-field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.narration-panel-static {
+  font-size: var(--nl-font-ui);
+  color: var(--nl-text);
+}
+
+.narration-chip {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-pill);
+  padding: 0 var(--nl-space-sm);
+  white-space: nowrap;
+}
+
+/* A guess and a fact should not look alike. Only the two that mean "check this"
+   are lifted out; everything else stays quiet. */
+.narration-chip.confidence.manual,
+.narration-chip.confidence.high {
+  color: var(--nl-text-dim);
+}
+
+.narration-chip.confidence.low,
+.narration-chip.confidence.none {
+  color: var(--nl-accent);
+  border-color: var(--nl-accent);
+}
+
+.narration-chip.source.writer {
+  color: var(--nl-accent);
+  border-color: var(--nl-accent);
+}
+
+.narration-chip.source.none {
+  color: var(--nl-text-subtle);
+}
+
+.narration-chip.warn {
+  color: var(--nl-text-dim);
+  border-style: dashed;
+}
+
+.narration-panel-field select,
+.narration-voice {
+  font-size: var(--nl-font-caption);
+  font-family: inherit;
+  color: var(--nl-text);
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.narration-clear {
+  font-size: var(--nl-font-caption);
+  font-family: inherit;
+  color: var(--nl-text-subtle);
+  background: none;
+  border: 0;
+  border-radius: var(--nl-radius-sm);
+  padding: 0 var(--nl-space-tighter);
+  cursor: pointer;
+}
+
+.narration-clear:hover {
+  color: var(--nl-text);
+  background: var(--nl-surface-hover);
+}
+
+.narration-candidates {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tightest);
+}
+
+.narration-candidates-label {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.narration-candidate {
+  font-size: var(--nl-font-caption);
+  font-family: inherit;
+  color: var(--nl-text-dim);
+  background: none;
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-pill);
+  padding: 0 var(--nl-space-sm);
+  cursor: pointer;
+}
+
+.narration-candidate:hover {
+  color: var(--nl-text);
+  border-color: var(--nl-accent);
+}
+
+/* ===== Designing a voice ===== */
+
+/* One row per installed engine, so a second one is visible rather than hidden
+   behind whichever loaded first. */
+.narration-engine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--nl-space-tighter);
+  margin: var(--nl-space-md) var(--nl-space-sm) 0;
+  padding-top: var(--nl-space-sm);
+  border-top: 1px solid var(--nl-border);
+}
+
+.narration-engine-name {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text);
+}
+
+.narration-engine-state {
+  flex: 1 1 100%;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  line-height: var(--nl-leading-tight);
+}
+
+.narration-design-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+}
+
+.narration-design,
+.narration-forget,
+.narration-prepare {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  font-size: var(--nl-font-caption);
+  font-family: inherit;
+  color: var(--nl-text-dim);
+  background: none;
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: 0 var(--nl-space-tighter);
+  cursor: pointer;
+}
+
+.narration-design:hover:not(:disabled),
+.narration-forget:hover:not(:disabled),
+.narration-prepare:hover:not(:disabled) {
+  color: var(--nl-text);
+  border-color: var(--nl-accent);
+}
+
+.narration-design:disabled,
+.narration-forget:disabled,
+.narration-prepare:disabled {
+  color: var(--nl-text-subtle);
+  cursor: default;
+}
+
+.narration-prepare {
+  margin-left: var(--nl-space-tighter);
+}
+
+/* The brief sits over the prose, like the line panel, because it is the same
+   kind of thing: one decision, taken where you are, then dismissed. */
+.narration-design-dialog {
+  position: absolute;
+  left: var(--nl-space-lg);
+  right: var(--nl-space-lg);
+  bottom: calc(var(--nl-control-h) + var(--nl-space-xl));
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-md) var(--nl-space-lg);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+  box-shadow: var(--nl-elevation-high);
+  max-height: 70%;
+  overflow-y: auto;
+}
+
+.narration-design-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.narration-design-field textarea {
+  font-family: inherit;
+  font-size: var(--nl-font-ui);
+  line-height: var(--nl-leading-body);
+  color: var(--nl-text);
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-tighter);
+  resize: vertical;
+}
+
+.narration-design-note {
+  margin: 0;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  line-height: var(--nl-leading-tight);
+  max-width: var(--nl-measure-text);
+}
+
+.narration-design-error {
+  margin: 0;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-accent);
+}
+
+/* Buttons in the brief size to their own label. In a column they stretch to
+   the dialog's full width, which reads as a banner rather than as a control. */
+.narration-design-dialog > button,
+.narration-design-dialog .narration-play {
+  align-self: flex-start;
+}
+
+.narration-design-samples {
+  margin: 0;
+  padding-left: var(--nl-space-lg);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+/* Three of them, deliberately: one neutral sample says nothing about whether a
+   voice holds when the character is actually feeling something. */
+.narration-audition {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tighter);
+}
+
+.narration-audition audio {
+  height: var(--nl-control-h);
+  max-width: 100%;
+}
+
+/* ===== Transport ===== */
+
+.narration-transport {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-sm) var(--nl-space-xl);
+  border-top: 1px solid var(--nl-border);
+  background: var(--nl-surface-toolbar);
+}
+
+.narration-transport button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  font-size: var(--nl-font-ui);
+  font-family: inherit;
+  color: var(--nl-text);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-tightest) var(--nl-space-md);
+  min-height: var(--nl-control-h);
+  cursor: pointer;
+}
+
+.narration-transport button:hover:not(:disabled) {
+  background: var(--nl-surface-hover);
+}
+
+.narration-transport button:disabled {
+  color: var(--nl-text-subtle);
+  cursor: default;
+}
+
+.narration-transport .narration-play {
+  color: var(--nl-accent-ink);
+  background: var(--nl-foil);
+  border-color: transparent;
+}
+
+.narration-transport .narration-play:disabled {
+  color: var(--nl-text-subtle);
+  background: var(--nl-surface-card);
+}
+
+.narration-rate {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.narration-rate input {
+  width: 120px;
+}
+
+.narration-rate-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--nl-text-dim);
+}
+
+.narration-transport-note {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+/* ─── Directing by hand ──────────────────────────────────────────────
+   Behind the sixteen names: the eight dimensions an engine actually takes,
+   for a delivery none of the names is. */
+
+.narration-direction-editor,
+.narration-register-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+}
+
+.narration-direction-head {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.narration-sliders {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--nl-space-tighter) var(--nl-space-md);
+}
+
+/* Name, slider, number - so the value can be read without dragging it. */
+.narration-slider {
+  display: grid;
+  grid-template-columns: 6rem 1fr 2.5rem;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  font-size: var(--nl-font-ui);
+}
+
+.narration-slider-name {
+  color: var(--nl-text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.narration-slider-value {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--nl-text-dim);
+}
+
+.narration-direction-actions {
+  display: flex;
+  gap: var(--nl-space-tighter);
+}
+
+.narration-register-blurb {
+  margin: 0;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+/* On the cast rail, beside the voice: a standing note about the part. */
+.narration-register {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--nl-space-tightest);
+  border: 1px solid transparent;
+  border-radius: var(--nl-radius-sm);
+  background: none;
+  color: var(--nl-text-dim);
+}
+
+.narration-register.set {
+  border-color: var(--nl-accent);
+  color: var(--nl-accent);
+}
+
+.narration-register-editor {
+  grid-column: 1 / -1;
+  margin-top: var(--nl-space-tighter);
+}
