@@ -3,6 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
+import { dismissTour } from './harness'
 
 /**
  * The drafts of a book, as things rather than as entries in a dropdown.
@@ -23,7 +24,15 @@ test('drafts can be renamed, reordered, and fed chapters from each other', async
   env.NOVALIST_NO_SPLASH = '1'
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  // A fresh Chromium profile, like the harness gives every other spec. Without
+  // it the run inherits this machine's localStorage - where the first-run tour
+  // is long since marked seen - so the tour never appears locally and appears
+  // on a clean CI runner, where its card takes the pointer events for the
+  // button this spec has to press.
+  const app = await electron.launch({
+    args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`],
+    env
+  })
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
@@ -36,6 +45,9 @@ test('drafts can be renamed, reordered, and fed chapters from each other', async
     workDir
   )
   await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
+  // A fresh profile is offered the tour, and its card takes the pointer events
+  // for everything it covers - including the button this spec has to press.
+  await dismissTour(page)
 
   // A chapter with a scene in the first draft, and an empty second draft to
   // send it to.
