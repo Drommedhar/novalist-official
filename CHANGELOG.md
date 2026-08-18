@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.1.2] - 2026-08-18
+
 ### Added
 
 - **Drafts, as things you can manage.** A draft could be made, switched to, compared and deleted, and nothing else - so a book with four of them had four rows called "Draft 1" through "Draft 4" in the order they happened to be created, and content could only cross between two of them one scene at a time. The new **Drafts** view, under Write, lists every draft of the book with what it holds: **rename** one whenever what it is for becomes clearer, **drag** them into the order you think in, write a line saying what each is for ("agent submission", "pre-beta cut"), **duplicate** one, and open or delete one from its own row.
@@ -1354,7 +1360,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.1.1...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.1.2...HEAD
+[3.1.2]: https://github.com/Drommedhar/novalist-official/compare/v3.1.1...v3.1.2
 [3.1.1]: https://github.com/Drommedhar/novalist-official/compare/v3.1...v3.1.1
 [3.1]: https://github.com/Drommedhar/novalist-official/compare/v3.0.3...v3.1
 [3.0.3]: https://github.com/Drommedhar/novalist-official/compare/v3.0.2...v3.0.3
