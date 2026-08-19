@@ -311,7 +311,10 @@ public sealed class VoiceEngineRpcTests : IDisposable
 
         var result = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
 
-        Assert.Equal(nameof(InvalidOperationException), result.Error);
+        // The engine's own reason, not the wrapper's type name. "An
+        // InvalidOperationException occurred" is not a reason and left the
+        // writer with nothing to act on and nothing to tell us.
+        Assert.Equal("no", result.Error);
         Assert.Empty(await _rpc.VoicesAsync());
     }
 
@@ -744,7 +747,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
 
         var result = await KeptNarratorAsync(StubEngine.Id, "Level.");
 
-        Assert.Equal(nameof(InvalidOperationException), result.Error);
+        Assert.Equal("no", result.Error);
     }
 
     /// <summary>
