@@ -28,7 +28,7 @@ public class NarrationRenderTests
         string? evidence = "snapped",
         NarrationSegmentKind kind = NarrationSegmentKind.Dialogue)
         => new(
-            0, kind, key, text, speakerId, DialogueConfidence.High, [],
+            0, kind, key, key, text, speakerId, DialogueConfidence.High, [],
             new VoiceDirection(
                 emotion,
                 EmotionDirector.Vector(emotion, null),
@@ -194,9 +194,26 @@ public class NarrationRenderTests
             ],
             Cast());
 
-        // The uncast character falls back to the narrator, so two voices cover
-        // the run.
-        Assert.Equal(["narrator-voice", "mira-voice"], needed);
+        // Every voice the cast names, each once. Not only the ones this window
+        // mentions: once a character can sound different in chapter twenty,
+        // which voices a window needs depends on where the window is, and a
+        // caller that worked it out from the speakers alone would read the
+        // wrong ones and leave those lines unspoken.
+        Assert.Equal(["mira-voice", "narrator-voice"], needed);
+    }
+
+    [Fact]
+    public void VoicesNeeded_IncludesAVoiceOnlyAnOverrideNames()
+    {
+        var sheet = Cast();
+        sheet.Overrides.Add(new VoiceOverride
+        {
+            CharacterId = "mira",
+            Chapter = "ch-20",
+            VoiceId = "mira-at-sixty"
+        });
+
+        Assert.Contains("mira-at-sixty", NarrationRender.VoicesNeeded([], sheet));
     }
 
     [Fact]
@@ -219,6 +236,29 @@ public class NarrationRenderTests
         Assert.Contains("Narration: third limited", brief);
         Assert.Contains("Tense: past", brief);
         Assert.Contains("A harbourmaster hides a wreck.", brief);
+    }
+
+    [Fact]
+    public void NarratorBrief_KeepsItsOwnLabelsWhileFilteringTheWritersWords()
+    {
+        // "Tense" is one of the sixteen emotion keys, so filtering the finished
+        // sentence deleted the label and left the value dangling after a colon:
+        // "Narration: third limited. : past." The test that should have caught
+        // it asserted only that "past" was somewhere in the string.
+        var lexicon = SceneAnalysisLexicon.For("en");
+        var book = new BookData
+        {
+            NarrativePerson = "third limited",
+            Tense = "past",
+            Premise = new StoryPremise { Logline = "A furious harbourmaster loses her boat." }
+        };
+
+        var brief = NarrationRender.NarratorBrief(book, lexicon);
+
+        Assert.Contains("Tense: past", brief);
+        Assert.DoesNotContain(". : ", brief);
+        // And the writer's own half is still filtered.
+        Assert.DoesNotContain("furious", brief, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

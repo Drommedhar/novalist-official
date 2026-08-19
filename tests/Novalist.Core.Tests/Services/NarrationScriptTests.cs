@@ -1,5 +1,6 @@
 using Novalist.Core.Models;
 using Novalist.Core.Services;
+using Novalist.Core.Utilities;
 using Xunit;
 
 namespace Novalist.Core.Tests.Services;
@@ -32,7 +33,136 @@ public class NarrationScriptTests
             speakers,
             directions,
             sceneEmotion,
-            sceneIntensity);
+            sceneIntensity,
+            UtteranceLanguage.From(lexicon));
+    }
+
+    // ─── one utterance is one sentence, on both kinds of segment ───
+
+    [Theory]
+    // A title, and the commonest of the lot.
+    [InlineData("<p>Dr. Reyes crossed the room to where Mr. Vance stood.</p>", 1)]
+    // A time. This was three utterances: "The bell rang at 10 a." / "m." /
+    // "sharp." - which is not one breath, it is a stutter.
+    [InlineData("<p>The bell rang at 10 a.m. sharp.</p>", 1)]
+    // Initials.
+    [InlineData("<p>J. R. R. Tolkien wrote it.</p>", 1)]
+    // A decimal and a thousands separator.
+    [InlineData("<p>It cost $1,200.50 in 1997.</p>", 1)]
+    // An abbreviation the list does not carry, caught by the lower-case word
+    // after it - which is why a language with no analysis pack still gets most
+    // of this.
+    [InlineData("<p>She counted twelve, thirteen, fourteen etc. and gave up.</p>", 1)]
+    // And a stop that really is one, so the fix does not simply stop cutting.
+    [InlineData("<p>She waited. He did not come.</p>", 2)]
+    [InlineData("<p>Dr. Reyes waited. He did not come.</p>", 2)]
+    public void Build_AFullStopIsOnlyAnEndingWhenItActuallyEndsSomething(
+        string html, int expected)
+        => Assert.Equal(expected, Build(html).Count);
+
+    [Fact]
+    public void Build_GermanOrdinalsAreNotSentenceEndings()
+    {
+        // German writes "3. Mai" where English writes "3rd May", so a point
+        // after a number followed by a capital is ambiguous in a way no
+        // surrounding evidence resolves.
+        Assert.Single(Build("<p>Am 3. Mai kam der Brief.</p>", language: "de"));
+
+        // But a year is not an ordinal, and the sentence after it is a sentence.
+        Assert.Equal(
+            2, Build("<p>Es geschah im Jahr 1997. Danach kam nichts.</p>", language: "de").Count);
+    }
+
+    [Fact]
+    public void Build_AQuoteWithNothingInsideItIsStillTheWritersLine()
+    {
+        // The splitter can address no utterance in it, and the line is carried
+        // through as it always was rather than disappearing out of the reading.
+        // Nothing inside the marks but more marks. The scanner keeps it, because
+        // the writer typed it; the splitter can address no utterance in it. It
+        // is carried through as it always was rather than dropping out of the
+        // reading.
+        var segments = Build("<p>He said, \"‘’\" and nothing more.</p>");
+
+        Assert.Contains(segments, s => s.Kind == NarrationSegmentKind.Dialogue);
+    }
+
+    [Fact]
+    public void Build_ASpeechIsCutIntoSentencesLikeAnythingElse()
+    {
+        // The half the earlier fix missed. The gap between quotes became one
+        // utterance per sentence while the quote itself stayed whole however
+        // long it ran - and a speech past what the model will say in one go
+        // came back cut off mid-word, with the clip written and its duration
+        // reported as though nothing had happened.
+        var segments = Build(
+            "<p>\"I waited. You did not come. I will not wait again.\"</p>");
+
+        Assert.Equal(3, segments.Count);
+        Assert.All(segments, s => Assert.Equal(NarrationSegmentKind.Dialogue, s.Kind));
+        Assert.Equal("I waited.", segments[0].Text);
+        Assert.Equal("You did not come.", segments[1].Text);
+        Assert.Equal("I will not wait again.", segments[2].Text);
+    }
+
+    [Fact]
+    public void Build_TheQuoteMarksAreNotSpokenAndAreStillHighlighted()
+    {
+        var segments = Build("<p>\"I waited. I will not wait again.\"</p>");
+
+        // Nothing a voice would say out loud.
+        Assert.All(segments, s => Assert.DoesNotContain('"', s.Text));
+
+        // But the tint the writer sees is unchanged: the first utterance is
+        // marked from the opening mark and the last one to the closing one.
+        var (text, spans) = DialogueScanner.ScanScene("<p>\"I waited. I will not wait again.\"</p>");
+        Assert.Equal(spans[0].TextStart, segments[0].TextStart);
+        Assert.Equal(spans[0].TextEnd, segments[^1].TextEnd);
+        Assert.Equal('"', text[segments[0].TextStart]);
+    }
+
+    [Fact]
+    public void Build_EveryUtteranceOfOneSpeechSharesItsLineAndItsDirection()
+    {
+        var segments = Build(
+            "<p>\"I waited. You did not come,\" Mira snapped.</p>");
+
+        var spoken = segments.Where(s => s.Kind == NarrationSegmentKind.Dialogue).ToArray();
+        Assert.Equal(2, spoken.Length);
+
+        // One line, so one speaker and one direction: a writer directs what
+        // they wrote, not the breaths a model takes through it. The Dialogue
+        // view's key is what a correction is addressed to, so it has to be the
+        // same on both.
+        Assert.Equal(spoken[0].LineKey, spoken[1].LineKey);
+        Assert.Equal(spoken[0].SpeakerId, spoken[1].SpeakerId);
+        Assert.Equal(spoken[0].Direction.Key, spoken[1].Direction.Key);
+
+        // And the keys are distinct, because each is separately spoken, cached
+        // and highlighted.
+        Assert.NotEqual(spoken[0].Key, spoken[1].Key);
+    }
+
+    [Fact]
+    public void Build_ALineThatDoesNotSplitKeepsExactlyTheKeyItAlreadyHad()
+    {
+        // Almost every quoted line is one sentence, and a writer's stored
+        // directions and speaker corrections are addressed by this key. Changing
+        // it would silently orphan every one of them.
+        var segments = Build("<p>\"You are late,\" Mira snapped.</p>");
+
+        var line = segments.First(s => s.Kind == NarrationSegmentKind.Dialogue);
+        Assert.Equal(line.LineKey, line.Key);
+        Assert.DoesNotContain('~', line.Key);
+    }
+
+    [Fact]
+    public void Build_ANarrationSegmentIsItsOwnLine()
+    {
+        var segments = Build("<p>The tide turned.</p>");
+
+        var prose = Assert.Single(segments);
+        Assert.Equal(prose.Key, prose.LineKey);
     }
 
     [Fact]

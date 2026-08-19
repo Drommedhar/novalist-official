@@ -19,7 +19,12 @@ public sealed class VoicesRpc
     public VoicesRpc(Workspace workspace, ISystemVoices? voices = null)
     {
         _workspace = workspace;
-        _voices = voices ?? new SystemVoices();
+        // SAPI where there is SAPI, the platform's own command elsewhere, and
+        // the browser's voices where there is neither. Only the first of those
+        // existed, so a reading on a Mac was silent - and worse than silent,
+        // because the loop takes a refused passage as its cue to move on and
+        // swept the highlight through the whole book in a second.
+        _voices = voices ?? (ISystemVoices?)CommandVoices.ForThisMachine() ?? new SystemVoices();
     }
 
     /// <summary>

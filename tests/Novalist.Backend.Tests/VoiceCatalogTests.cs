@@ -145,4 +145,123 @@ public class VoiceCatalogTests
     [Fact]
     public void AnEmptyEngineOrdersToNothing()
         => Assert.Empty(VoiceCatalog.ForPicker([], "de"));
+
+    // ── The engines on the other platforms ──
+
+    // macOS `say -v '?'`, verbatim. The interesting rows are the ones with a
+    // space in the name - there was no reading of these that took the first word
+    // as the name and did not list four voices all called Eddy.
+    private const string SayOutput =
+        "Alex                en_US    # Most people recognize me by my voice.\n"
+        + "Bad News            en_US    # The light you see at the end of the tunnel...\n"
+        + "Eddy (English (UK)) en_GB    # Hello! My name is Eddy.\n"
+        + "Anna                de_DE    # Hallo, ich heiße Anna.\n";
+
+    [Fact]
+    public void TheMacVoiceList_KeepsWholeNamesAndTheirLanguages()
+    {
+        var voices = VoiceCatalog.ParseSayVoices(SayOutput);
+
+        Assert.Equal(
+            ["Alex", "Bad News", "Eddy (English (UK))", "Anna"], voices.Select(v => v.Name));
+        Assert.Equal(["en-US", "en-US", "en-GB", "de-DE"], voices.Select(v => v.Language));
+        // `say -v` takes the name, and there is nothing else on offer to
+        // identify a voice by.
+        Assert.Equal(voices.Select(v => v.Name), voices.Select(v => v.Id));
+    }
+
+    [Fact]
+    public void TheMacVoiceList_IgnoresWhatIsNotAVoice()
+    {
+        // A blank line, a heading, and a sample sentence that itself contains a
+        // hash - the sentences are prose in the voice's own language.
+        var voices = VoiceCatalog.ParseSayVoices(
+            "\n# a comment\nAlex  en_US  # I said # once.\nnot a voice line\n"
+            + "Voices:\nAnna  en_US_x  # a tag nobody writes\n");
+
+        // "line" is four letters, which is a shape a language tag never
+        // has - reading it as one listed the heading as a voice called
+        // "line". Nor is a three-part tag one: nothing writes "en_US_x".
+        Assert.Equal("Alex", Assert.Single(voices).Name);
+    }
+
+    [Fact]
+    public void TheMacVoiceList_OfNothingIsNothing()
+        => Assert.Empty(VoiceCatalog.ParseSayVoices(string.Empty));
+
+    // espeak-ng `--voices`, verbatim. The names have spaces and brackets in
+    // them, so the columns are read from the header rather than by counting
+    // fields - counting puts half of "English (Great Britain)" in the next
+    // column and calls the voice "English".
+    private const string EspeakOutput =
+        "Pty Language       Age/Gender VoiceName          File                 Other Languages\n"
+        + " 5  af              --/M      Afrikaans          gmw/af\n"
+        + " 5  de              --/M      German             gmw/de\n"
+        + " 5  en-gb           --/M      English (Great Britain) gmw/en\n"
+        + " 5  en-gb           --/M      English (Scotland) gmw/en-GB-scotland\n";
+
+    [Fact]
+    public void TheEspeakVoiceList_KeepsWholeNamesAndTheLanguageThatSelectsThem()
+    {
+        var voices = VoiceCatalog.ParseEspeakVoices(EspeakOutput);
+
+        Assert.Equal(["Afrikaans", "German", "English (Great Britain)"], voices.Select(v => v.Name));
+        // The id is the language code, because that is what -v takes and the
+        // only column guaranteed to select the voice it names.
+        Assert.Equal(["af", "de", "en-gb"], voices.Select(v => v.Id));
+        Assert.Equal(voices.Select(v => v.Id), voices.Select(v => v.Language));
+    }
+
+    [Fact]
+    public void TheEspeakVoiceList_ListsALanguageOnceRatherThanOncePerVariant()
+    {
+        // espeak knows dozens of variants of English. The picker wants voices,
+        // and thirty entries all reading "-v en-gb" are one voice.
+        Assert.Equal(3, VoiceCatalog.ParseEspeakVoices(EspeakOutput).Count);
+    }
+
+    [Fact]
+    public void TheEspeakVoiceList_WithNoHeaderIsNothingRatherThanRubbish()
+    {
+        Assert.Empty(VoiceCatalog.ParseEspeakVoices("command not found\n"));
+        Assert.Empty(VoiceCatalog.ParseEspeakVoices(string.Empty));
+        // A header naming the columns in an order this cannot read is still not
+        // an excuse to invent voices from it.
+        Assert.Empty(VoiceCatalog.ParseEspeakVoices("VoiceName Language\n en  English\n"));
+    }
+
+    [Fact]
+    public void TheEspeakVoiceList_SurvivesARowShorterThanItsColumns()
+    {
+        var voices = VoiceCatalog.ParseEspeakVoices(
+            "Pty Language       Age/Gender VoiceName          File\n"
+            + " 5  af              --/M      Afrikaans\n"
+            + " 5\n"
+            // A row with a name and no language, and one with a language
+            // and no name. Neither selects anything, so neither is a voice.
+            + " 5                  --/M      Nameless\n"
+            + " 5  cy              --/M\n");
+
+        Assert.Equal("Afrikaans", Assert.Single(voices).Name);
+    }
+
+    [Fact]
+    public void ASpeakingRate_IsWordsPerMinuteAndStaysInsideWhatTheEngineTakes()
+    {
+        Assert.Equal(175, VoiceCatalog.ToWordsPerMinute(1.0, isSay: true));
+        Assert.Equal(350, VoiceCatalog.ToWordsPerMinute(2.0, isSay: true));
+        // espeak refuses anything above 450 and reads at its default instead, so
+        // a writer who pushed Speed to 2x got a reading slower than at 1.5x -
+        // which reads as the control being broken.
+        Assert.Equal(450, VoiceCatalog.ToWordsPerMinute(4.0, isSay: false));
+        Assert.Equal(700, VoiceCatalog.ToWordsPerMinute(4.0, isSay: true));
+        Assert.Equal(80, VoiceCatalog.ToWordsPerMinute(0.01, isSay: false));
+    }
+
+    [Fact]
+    public void ASpeakingRateThatIsNotOne_IsNormalRatherThanSilence()
+    {
+        foreach (var rubbish in new[] { double.NaN, 0.0, -1.0 })
+            Assert.Equal(175, VoiceCatalog.ToWordsPerMinute(rubbish, isSay: true));
+    }
 }

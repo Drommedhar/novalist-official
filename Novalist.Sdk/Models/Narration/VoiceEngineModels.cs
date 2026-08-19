@@ -121,6 +121,16 @@ public sealed class VoiceDesignResult
     /// <summary>What the engine understood it was asked for, where it says. Shown
     /// beside the voice so a re-design is an edit rather than a guess.</summary>
     public string ResolvedDescription { get; init; } = string.Empty;
+
+    /// <summary>
+    /// The seed this voice was actually drawn with, where the engine used one.
+    ///
+    /// Reported so the writer can ask for it again. A voice they liked and did
+    /// not keep is otherwise gone: design is not reproducible, and without the
+    /// number nobody - not the writer, not the host, not the engine on its next
+    /// call - can get back to the same draw.
+    /// </summary>
+    public int? Seed { get; init; }
 }
 
 /// <summary>

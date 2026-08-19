@@ -22,8 +22,25 @@ public class VoiceBriefBuilderTests
         return lexicon!;
     }
 
+    /// <summary>
+    /// The vocabulary that must never reach a design prompt: every emotion word
+    /// the language knows, less the ones that describe how somebody
+    /// <em>sounds</em>.
+    ///
+    /// The subtraction is not a loophole, it is the fix. "quiet", "soft",
+    /// "steady", "heavy" and "low" are all in the emotion lists and all of them
+    /// are how a voice is described, so removing them took the writer's most
+    /// precise description of the instrument and left the punctuation behind.
+    /// </summary>
     private static IReadOnlyList<string> EmotionWords(SceneAnalysisLexicon lexicon)
-        => [.. lexicon.EmotionKeys, .. lexicon.Emotions.SelectMany(e => e.Words)];
+    {
+        var timbre = lexicon.TimbreWords.ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+        return
+        [
+            .. lexicon.EmotionKeys.Where(w => !timbre.Contains(w)),
+            .. lexicon.Emotions.SelectMany(e => e.Words).Where(w => !timbre.Contains(w))
+        ];
+    }
 
     private static CharacterData Mira() => new()
     {
@@ -111,14 +128,230 @@ public class VoiceBriefBuilderTests
     }
 
     [Fact]
-    public void Build_IgnoresASectionWithNoTitle()
+    public void Build_ALineCarryingAMoodIsNotWhatAVoiceIsDesignedFrom()
     {
+        // The clip a voice is designed as is what every later line is cloned
+        // from, so a character designed speaking their worst scene has that
+        // scene's delivery in their timbre for the whole book. These went
+        // through unfiltered while the writer's own word "quiet" was being
+        // scrubbed out of the description beside them.
+        var lexicon = Language("en");
+        var charged = EmotionWords(lexicon).First(w => w.Length > 3);
+
+        var draft = VoiceBriefBuilder.Build(
+            Mira(),
+            [$"She was {charged}, and said so.", "Get out!", "The tide turned at four."],
+            lexicon);
+
+        var plain = Assert.Single(draft.SampleLines);
+        Assert.Equal("The tide turned at four.", plain);
+    }
+
+    [Fact]
+    public void Build_ACharacterWithNothingSaidPlainlyHasNoSampleLines()
+    {
+        // Not a failure: the engine falls back to a neutral sentence in the
+        // book's own language, which is a better voice than one designed from a
+        // scream.
+        var lexicon = Language("en");
+        var charged = EmotionWords(lexicon).First(w => w.Length > 3);
+
+        var draft = VoiceBriefBuilder.Build(
+            Mira(), ["Get out!", $"Everything was {charged}."], lexicon);
+
+        Assert.Empty(draft.SampleLines);
+    }
+
+    [Fact]
+    public void Build_AWellDocumentedCharacterStillArrivesAsABrief()
+    {
+        // Reading every section is what makes a written character describable at
+        // all. A bound on the total is what stops a thoroughly documented one
+        // arriving as four pages with the instrument buried in the middle.
         var character = Mira();
-        character.Sections.Add(new EntitySection { Title = "  ", Content = "Something." });
+        character.Sections.Add(new EntitySection
+        {
+            Title = "Voice",
+            Content = "A northern burr she has never lost."
+        });
+        for (var i = 0; i < 12; i++)
+        {
+            character.Sections.Add(new EntitySection
+            {
+                Title = $"Section {i}",
+                Content = string.Join(" ", Enumerable.Repeat("She carries herself well.", 12))
+            });
+        }
 
         var draft = VoiceBriefBuilder.Build(character, [], Language("en"));
 
-        Assert.DoesNotContain("Something.", draft.Description);
+        // What the writer said about the voice is in, and the brief is still a
+        // brief.
+        Assert.Contains("northern burr", draft.Description);
+        Assert.InRange(draft.Description.Length, 1, 1400);
+    }
+
+    [Fact]
+    public void Build_ASectionCutForRoomIsCutAtAWordAndNotThroughOne()
+    {
+        var character = Mira();
+        character.Sections.Add(new EntitySection
+        {
+            Title = "Voice",
+            Content = string.Join(" ", Enumerable.Repeat("burr", 400))
+        });
+        character.Sections.Add(new EntitySection
+        {
+            Title = "Bearing",
+            Content = "Stands very straight."
+        });
+
+        var draft = VoiceBriefBuilder.Build(character, [], Language("en"));
+
+        // The long one filled the room, so the next one was cut to nothing
+        // rather than to half a word.
+        Assert.DoesNotContain("Stands very str", draft.Description);
+        Assert.DoesNotContain("bur ", draft.Description);
+    }
+
+    [Fact]
+    public void Build_ALineThatIsNothingButPunctuationIsNotAMood()
+    {
+        // Reached through the sample filter: a token that trims away to nothing
+        // is not a word, and is certainly not a forbidden one.
+        var draft = VoiceBriefBuilder.Build(Mira(), ["'' -- ''"], Language("en"));
+
+        Assert.Single(draft.SampleLines);
+    }
+
+    [Fact]
+    public void Build_ASectionOfOneUnbrokenRunIsDroppedRatherThanCutThrough()
+    {
+        var character = Mira();
+        character.Sections.Add(new EntitySection
+        {
+            Title = "Voice",
+            Content = string.Join(" ", Enumerable.Repeat("burr", 300))
+        });
+        character.Sections.Add(new EntitySection
+        {
+            Title = "Bearing",
+            Content = new string('x', 400)
+        });
+
+        var draft = VoiceBriefBuilder.Build(character, [], Language("en"));
+
+        Assert.DoesNotContain("xxx", draft.Description);
+    }
+
+    [Fact]
+    public void Build_AChineseLineCarryingAMoodIsAlsoDropped()
+    {
+        // A language with no spaces has to be searched by substring here too,
+        // exactly as the description is.
+        var chinese = Language("zh-CN");
+        var charged = EmotionWords(chinese).First(w => w.Length > 1);
+
+        var draft = VoiceBriefBuilder.Build(
+            Mira(), [$"她的声音{charged}。", "她转过身。"], chinese);
+
+        var plain = Assert.Single(draft.SampleLines);
+        Assert.Equal("她转过身。", plain);
+    }
+
+    [Fact]
+    public void Build_WithNoLexiconEveryLineIsAsPlainAsAnyOther()
+    {
+        // Nothing to filter by, so nothing is filtered - rather than everything
+        // being thrown away.
+        var draft = VoiceBriefBuilder.Build(Mira(), ["She turned."], lexicon: null);
+
+        Assert.Single(draft.SampleLines);
+    }
+
+    [Fact]
+    public void Build_TakesUntitledProseWithoutInventingALabelForIt()
+    {
+        // A character entry has no description field, so everything a writer
+        // writes about somebody is a section - and a section they never got
+        // round to naming is still their description of the person.
+        var character = Mira();
+        character.Sections.Add(new EntitySection { Title = "  ", Content = "Speaks slowly." });
+
+        var draft = VoiceBriefBuilder.Build(character, [], Language("en"));
+
+        Assert.Contains("Speaks slowly.", draft.Description);
+        // But no empty label in front of it.
+        Assert.DoesNotContain(": Speaks slowly.", draft.Description);
+    }
+
+    [Fact]
+    public void Build_ReadsEverySectionRatherThanOnlyTheOnesTitledVoice()
+    {
+        // The fault this ends: a fully written character whose headings never
+        // used the word "voice" came back as five structured fields and nothing
+        // else. Description, Appearance, Personality, Backstory, Beschreibung
+        // and the Chinese equivalent all fell out of the brief.
+        var character = Mira();
+        character.Sections.Add(new EntitySection
+        {
+            Title = "Appearance",
+            Content = "Tall, and older than she looks."
+        });
+        character.Sections.Add(new EntitySection
+        {
+            Title = "Voice",
+            Content = "A northern burr she has never lost."
+        });
+
+        var draft = VoiceBriefBuilder.Build(character, [], Language("en"));
+
+        Assert.Contains("older than she looks", draft.Description);
+        // And what the writer said about the voice comes first, because it is
+        // them telling us directly rather than us inferring.
+        Assert.True(
+            draft.Description.IndexOf("northern burr", StringComparison.Ordinal)
+                < draft.Description.IndexOf("older than she looks", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Build_TheWordsAVoiceIsDescribedWithSurviveTheFilter()
+    {
+        // This is what a writer types, and what came back was
+        // "Voice: A , voice; low and , at the edges, with a  northern burr."
+        var character = Mira();
+        character.Sections.Add(new EntitySection
+        {
+            Title = "Voice",
+            Content = "A quiet, gentle voice; low and steady, soft at the edges, "
+                + "with a heavy northern burr."
+        });
+
+        var draft = VoiceBriefBuilder.Build(character, [], Language("en"));
+
+        foreach (var word in new[] { "quiet", "gentle", "low", "steady", "soft", "heavy" })
+            Assert.Contains(word, draft.Description, StringComparison.Ordinal);
+        Assert.Contains("northern burr", draft.Description);
+    }
+
+    [Fact]
+    public void Build_AMoodStillDoesNotReachTheBrief()
+    {
+        var character = Mira();
+        character.Sections.Add(new EntitySection
+        {
+            Title = "Voice",
+            Content = "A furious, grief-stricken woman with a northern burr."
+        });
+
+        var draft = VoiceBriefBuilder.Build(character, [], Language("en"));
+
+        Assert.DoesNotContain("furious", draft.Description, StringComparison.OrdinalIgnoreCase);
+        // The compound this class's own documentation names as the thing that
+        // must never get through, and which whole-token matching let straight
+        // past: "grief" was forbidden and "grief-stricken" was a different word.
+        Assert.DoesNotContain("grief", draft.Description, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("northern burr", draft.Description);
     }
 
     [Fact]
@@ -213,9 +446,7 @@ public class VoiceBriefBuilderTests
         // inside a run with no space to find it by, so the filter has to work by
         // substring there or it does nothing at all.
         var chinese = Language("zh-CN");
-        var emotion = chinese.EmotionKeys
-            .SelectMany(key => chinese.Emotions.Single(e => e.Key == key).Words)
-            .First(word => word.Length > 0);
+        var emotion = EmotionWords(chinese).First(word => word.Length > 0);
 
         var stripped = VoiceBriefBuilder.Strip($"她的声音{emotion}。", chinese);
 

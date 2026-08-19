@@ -271,7 +271,7 @@ public class HandDirectionTests
         var segments = new[]
         {
             new NarrationSegment(
-                0, NarrationSegmentKind.Dialogue, "k", "Get out.", "mira",
+                0, NarrationSegmentKind.Dialogue, "k", "k", "Get out.", "mira",
                 DialogueConfidence.Manual, [],
                 new VoiceDirection(
                     "angry", new Dictionary<string, double> { ["angry"] = 0.6 },
@@ -299,7 +299,7 @@ public class HandDirectionTests
 
     private static NarrationSegment Segment(string key, string? clip)
         => new(
-            0, NarrationSegmentKind.Narration, key, "Some prose.", null,
+            0, NarrationSegmentKind.Narration, key, key, "Some prose.", null,
             DialogueConfidence.None, [],
             new VoiceDirection(
                 "neutral", new Dictionary<string, double> { ["calm"] = 0.6 },

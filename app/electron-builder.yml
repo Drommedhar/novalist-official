@@ -12,6 +12,19 @@ extraResources:
     to: backend
   - from: resources/icon.png
     to: icon.png
+  # Extensions shipped with the app. The backend copies each one into the
+  # writer's extensions folder on first run, and leaves alone any it finds
+  # already there at the same version or newer - so a gallery update wins and
+  # nothing here overwrites what somebody chose.
+  #
+  # Missing from a plain checkout on purpose: the extensions are built from
+  # their own repositories, and `filter` on a `from` that does not exist is what
+  # keeps a local `npm run package` working without them rather than failing on
+  # a path.
+  - from: resources/extensions
+    to: extensions
+    filter:
+      - '**/*'
 asarUnpack:
   - '**/*.node'
 # Artifact names are kept compatible with the previous (Avalonia) release assets

@@ -118,7 +118,8 @@ public sealed class AppearanceRpc
         // real gap worth naming rather than leaving them to discover.
         var writingLanguages = new[]
         {
-            "en", "de", "zh-CN", "fr", "es", "it", "pt", "ru", "pl", "cs", "sk", "nl", "ja", "ko"
+            "en", "de", "zh-CN", "fr", "es", "it", "pt", "ru", "pl", "cs", "sk", "nl",
+            "ja", "ko"
         };
 
         var codes = bundledInterface

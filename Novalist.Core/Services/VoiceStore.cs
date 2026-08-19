@@ -17,6 +17,10 @@ namespace Novalist.Core.Services;
 /// <param name="AudioFormat">Container of the stored reference audio.</param>
 /// <param name="SampleRate">Sample rate of the stored reference audio.</param>
 /// <param name="DesignedAt">When it was made, ISO-8601.</param>
+/// <param name="Seed">The number this voice was drawn with, where the engine
+/// used one. Kept so a writer can ask for the same voice again - design is not
+/// reproducible, and without the number a voice is only recoverable as the audio
+/// already stored beside it.</param>
 public sealed record DesignedVoice(
     string VoiceId,
     string DisplayName,
@@ -24,7 +28,8 @@ public sealed record DesignedVoice(
     string EngineId,
     string AudioFormat,
     int SampleRate,
-    string DesignedAt);
+    string DesignedAt,
+    int? Seed = null);
 
 /// <summary>
 /// The voices this book has been given, and the audio that is each one.

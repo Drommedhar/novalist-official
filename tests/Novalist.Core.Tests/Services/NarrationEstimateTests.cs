@@ -34,7 +34,7 @@ public class NarrationEstimateTests : IDisposable
 
     private static NarrationSegment Segment(string text)
         => new(
-            0, NarrationSegmentKind.Narration, "k", text, null,
+            0, NarrationSegmentKind.Narration, "k", "k", text, null,
             DialogueConfidence.None, [],
             new VoiceDirection("neutral", new Dictionary<string, double>(), DirectionSource.None),
             0, text.Length);

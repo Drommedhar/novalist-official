@@ -107,6 +107,18 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         // it works in the extension's own folder - so there is nothing here for
         // the gate to protect.
         "voiceEngines/prepare",
+        // Designing a voice is the same wait wearing a different name. The
+        // first one loads a model the reading has not needed yet - gigabytes,
+        // fetched then - and every one after it is tens of seconds inside a
+        // model that cannot be interrupted. Only "prepare" was listed here, so
+        // the wait nobody had been warned about was the one that held
+        // everything: no scene saved and no view opened for the whole download.
+        // It writes only into the voice store, which nothing else touches while
+        // a design is in flight.
+        "voiceEngines/design",
+        "voiceEngines/audition",
+        "narration/designNarrator",
+        "narration/auditionLine",
         // The grammar check posts the whole scene to a language server and
         // waits up to thirty seconds for an answer. It reads a setting and
         // touches nothing else in the project, so there is nothing here for

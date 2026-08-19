@@ -20,6 +20,7 @@ export function DirectionEditor({
   vector,
   referenceClip,
   emotionKey,
+  voiceId,
   onClose
 }: {
   /** The line, or the run of lines, this applies to. */
@@ -27,6 +28,8 @@ export function DirectionEditor({
   vector: Record<string, number>
   referenceClip: string | null
   emotionKey: string
+  /** Whose voice reads this line. What can be pointed at is bounded by it. */
+  voiceId: string | null
   onClose: () => void
 }): React.JSX.Element {
   const { t } = useTranslation()
@@ -53,18 +56,24 @@ export function DirectionEditor({
   const over = total > 1.5
 
   /**
-   * Lines already rendered this session, as things to point at.
+   * Lines already rendered this session, in this voice, as things to point at.
    *
    * "Like that" only means anything about a delivery the writer has actually
    * heard, so the list is what has been performed rather than every line in the
    * book.
+   *
+   * And only this character's own lines. An engine that can take a clip as a
+   * direction takes its whole delivery from it — the timbre with the prosody —
+   * so pointing one character at another's line would not read it their way, it
+   * would read it in their voice. The narrower list is also the honest one:
+   * "say it like he said it" is not a thing a director can ask for.
    */
   const heard = useMemo(
     () =>
       reading
         .map((step) => ({ step, clip: clips[step.segment.key] }))
-        .filter((row) => row.clip !== undefined),
-    [reading, clips]
+        .filter((row) => row.clip !== undefined && row.step.segment.voiceId === voiceId),
+    [reading, clips, voiceId]
   )
 
   const apply = async (): Promise<void> => {

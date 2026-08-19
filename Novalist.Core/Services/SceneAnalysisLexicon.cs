@@ -183,6 +183,41 @@ public sealed class SceneAnalysisLexicon
     public IReadOnlyList<string> Cliches { get; private init; } = [];
 
     /// <summary>
+    /// Words that take a full stop without ending a sentence: titles, initials,
+    /// and the short forms a language writes with a point in them.
+    ///
+    /// Read aloud rather than read. A reading is cut into utterances at a
+    /// sentence ending, and a splitter that treats every point as one turns
+    /// "The bell rang at 10 a.m. sharp." into three separate things for a model
+    /// to say - which is not one breath, it is a stutter. Lower-cased and
+    /// carrying no point of their own, so "Dr" matches "Dr." and "dr.".
+    /// </summary>
+    public IReadOnlyList<string> Abbreviations { get; private init; } = [];
+
+    /// <summary>
+    /// Words that describe how somebody <em>sounds</em> rather than how they
+    /// feel, even where an emotion list also contains them.
+    ///
+    /// The emotion vocabulary is removed from a voice brief, because an emotion
+    /// written into a design prompt is baked into the timbre. But the two lists
+    /// overlap heavily - <em>quiet</em>, <em>soft</em>, <em>steady</em>,
+    /// <em>heavy</em>, <em>low</em> are all emotion words and all of them are
+    /// how a voice is described - so a blanket removal took the writer's most
+    /// precise description of the instrument and left punctuation. These win.
+    /// </summary>
+    public IReadOnlyList<string> TimbreWords { get; private init; } = [];
+
+    /// <summary>
+    /// Whether this language writes ordinals with a full stop after the digits
+    /// - German's <c>3. Mai</c>, where English writes <c>3rd May</c>.
+    ///
+    /// Where it does, a point straight after a number is not a sentence ending
+    /// even when a capital follows it, which is the one case the surrounding
+    /// evidence cannot tell apart on its own.
+    /// </summary>
+    public bool OrdinalPoint { get; private init; }
+
+    /// <summary>
     /// Common verb forms that mark past-tense narration, and present-tense ones
     /// below.
     ///
@@ -405,7 +440,14 @@ public sealed class SceneAnalysisLexicon
             WeakVerbs = Clean(file.WeakVerbs),
             PastTenseMarkers = Clean(file.PastTenseMarkers),
             PresentTenseMarkers = Clean(file.PresentTenseMarkers),
-            Cliches = Clean(file.Cliches)
+            Cliches = Clean(file.Cliches),
+            TimbreWords = Clean(file.TimbreWords),
+            Abbreviations = Clean(file.Abbreviations)
+                .Select(a => a.TrimEnd('.'))
+                .Where(a => a.Length > 0)
+                .Distinct(StringComparer.Ordinal)
+                .ToArray(),
+            OrdinalPoint = file.OrdinalPoint
         };
     }
 
@@ -530,5 +572,14 @@ public sealed class SceneAnalysisLexicon
 
         [JsonPropertyName("cliches")]
         public IReadOnlyList<string> Cliches { get; init; } = [];
+
+        [JsonPropertyName("timbreWords")]
+        public IReadOnlyList<string> TimbreWords { get; init; } = [];
+
+        [JsonPropertyName("abbreviations")]
+        public IReadOnlyList<string> Abbreviations { get; init; } = [];
+
+        [JsonPropertyName("ordinalPoint")]
+        public bool OrdinalPoint { get; init; }
     }
 }

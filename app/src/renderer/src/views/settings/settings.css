@@ -856,3 +856,30 @@
     grid-column: 1;
   }
 }
+
+/* One installed speech engine: its name, what it is doing, and the button that
+   gets it ready. A row rather than a card, because a writer with two engines
+   should be able to compare them at a glance. */
+.settings-narration-engine {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  flex-wrap: wrap;
+  padding: var(--nl-space-sm) 0;
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.settings-narration-name {
+  font-size: var(--nl-font-body);
+  color: var(--nl-text);
+}
+
+/* Takes the slack, so the button sits at the end of the row whatever the
+   engine has to say about itself. An engine reports its device and its model
+   here, and a failure reports a sentence. */
+.settings-narration-state {
+  flex: 1 1 12rem;
+  min-width: 0;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}

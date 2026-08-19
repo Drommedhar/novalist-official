@@ -187,4 +187,130 @@ public class NarrationClipCacheTests : IDisposable
 
         Assert.Equal([present], found.Keys);
     }
+
+    // ── Keeping what has already been made ──
+
+    [Fact]
+    public async Task Has_IsFalseUntilTheClipIsThereAndTrueAfterwards()
+    {
+        var cache = Cache();
+
+        Assert.False(cache.Has("abc123.wav"));
+        await cache.WriteAsAsync("abc123.wav", [1, 2, 3]);
+
+        Assert.True(cache.Has("abc123.wav"));
+    }
+
+    [Fact]
+    public async Task WriteAs_KeepsTheNameItWasGiven()
+    {
+        // Named for its recipe rather than for its own bytes, which is what
+        // makes "have we spoken this line before" a look at the filesystem
+        // instead of a minute inside a model.
+        var cache = Cache();
+
+        Assert.Equal("deadbeef01.wav", await cache.WriteAsAsync("deadbeef01.wav", [1, 2, 3]));
+        Assert.Equal([1, 2, 3], await cache.ReadAsync("deadbeef01.wav"));
+    }
+
+    [Fact]
+    public async Task WriteAs_ANameThatWouldReachOutsideTheCacheIsRefused()
+    {
+        // The name comes from a recipe and so is always ours - but a cache that
+        // writes wherever it is told is one bug away from writing anywhere.
+        var cache = Cache();
+
+        var written = await cache.WriteAsAsync("../escaped.wav", [1, 2, 3]);
+
+        Assert.DoesNotContain("..", written);
+        Assert.NotNull(await cache.ReadAsync(written));
+    }
+
+    [Fact]
+    public async Task Has_OfSomethingThatIsNotAName_IsFalseRatherThanALook()
+    {
+        await Cache().WriteAsAsync("cafe01.wav", [1, 2, 3]);
+
+        Assert.False(Cache().Has("../cafe01.wav"));
+        Assert.False(Cache().Has(string.Empty));
+    }
+
+    [Fact]
+    public async Task Trim_DropsTheLeastRecentlyWantedAndKeepsTheRest()
+    {
+        // A book is hours of audio and clips outlive a reading now, so
+        // something has to decide when enough is enough. What goes is the
+        // chapter the writer has stopped working on.
+        var cache = Cache();
+        await cache.WriteAsAsync("0d0d0d.wav", new byte[400]);
+        File.SetLastWriteTimeUtc(
+            Path.Combine(_dir.Path, NarrationClipCache.FolderName, "0d0d0d.wav"),
+            DateTime.UtcNow.AddHours(-2));
+        await cache.WriteAsAsync("0e0e0e.wav", new byte[400]);
+
+        cache.Trim(500);
+
+        Assert.False(cache.Has("0d0d0d.wav"));
+        Assert.True(cache.Has("0e0e0e.wav"));
+    }
+
+    [Fact]
+    public async Task Trim_UnderTheCeilingChangesNothing()
+    {
+        var cache = Cache();
+        await cache.WriteAsAsync("cafe01.wav", new byte[100]);
+
+        cache.Trim(1000);
+
+        Assert.True(cache.Has("cafe01.wav"));
+    }
+
+    [Fact]
+    public void Trim_OfACacheThatWasNeverWrittenToIsNotAFault()
+        => Cache().Trim(1000);
+
+    [Fact]
+    public async Task AClipBeingPlayedRightNow_IsNeitherTrimmedNorAFault()
+    {
+        // The cache is served to an audio element while the reading plays, so a
+        // clip genuinely is open when a trim comes round. Losing the trim - or
+        // the reading - over one locked file would be worse than keeping it a
+        // moment longer.
+        var cache = Cache();
+        await cache.WriteAsAsync("0d0d0d.wav", new byte[400]);
+        await cache.WriteAsAsync("0e0e0e.wav", new byte[400]);
+        var path = Path.Combine(_dir.Path, NarrationClipCache.FolderName, "0d0d0d.wav");
+
+        using (var held = new FileStream(
+                   path, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            // Held exclusively: the same shape as a clip the interface has open
+            // and is streaming from. Neither keeping it warm nor trimming may
+            // fail over it.
+            Assert.True(cache.Has("0d0d0d.wav"));
+            cache.Trim(100);
+            Assert.True(cache.Has("0d0d0d.wav"));
+        }
+
+        Assert.True(File.Exists(path));
+    }
+
+    [Fact]
+    public async Task Trim_KeepsWhatTheReadingIsAboutToPlayHoweverOldItIs()
+    {
+        // A writer listening to one chapter all afternoon is playing clips made
+        // hours ago. Evicting those would make the cache useless to exactly the
+        // person it is for.
+        var cache = Cache();
+        await cache.WriteAsAsync("0d0d0d.wav", new byte[400]);
+        File.SetLastWriteTimeUtc(
+            Path.Combine(_dir.Path, NarrationClipCache.FolderName, "0d0d0d.wav"),
+            DateTime.UtcNow.AddHours(-2));
+        await cache.WriteAsAsync("0e0e0e.wav", new byte[400]);
+
+        cache.Trim(500, ["0d0d0d.wav"]);
+
+        Assert.True(cache.Has("0d0d0d.wav"));
+        Assert.False(cache.Has("0e0e0e.wav"));
+    }
 }

@@ -120,6 +120,36 @@ body { display: flex; justify-content: center; }
     background-color: color-mix(in srgb, var(--accent) 34%, transparent);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 34%, transparent);
 }
+/* Made, and waiting to be played. Faint on purpose: this is the state most of
+   the page is in once a reading has been going for a minute, and a page where
+   most of the prose is highlighted says nothing at all.
+   On the right edge, because the left one is the speaker's colour - a mark
+   there would paint over who is talking to say something about a cache. */
+[data-nl-seg].nl-ready {
+    box-shadow: inset -2px 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
+}
+[data-nl-seg][data-nl-kind="dialogue"].nl-ready {
+    box-shadow: inset 2px 0 0 0 var(--tint, var(--accent)),
+        inset -2px 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
+}
+/* Being made now - the one line the model is on, not the batch it was asked
+   for. Marking the whole batch hatched a dozen sentences of somebody's prose as
+   "being made" when eleven of them had not been started, which is a wall of
+   stripes that says nothing. The reading is built ahead of where it is being
+   played, and seeing where tells a model thinking from a feature that has
+   stopped. */
+[data-nl-seg].nl-rendering {
+    background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+    background-image: repeating-linear-gradient(
+        135deg, transparent 0 6px,
+        color-mix(in srgb, var(--accent) 22%, transparent) 6px 12px);
+    background-size: 34px 34px;
+    animation: nl-working 900ms linear infinite;
+}
+@keyframes nl-working { to { background-position: 34px 0; } }
+@media (prefers-reduced-motion: reduce) {
+    [data-nl-seg].nl-rendering { animation: none; }
+}
 .nl-empty { color: var(--subtle); font-size: 15px; padding: 40px 0; text-align: center; }
 </style>
 </head>
@@ -129,6 +159,7 @@ body { display: flex; justify-content: center; }
 const wrap = document.getElementById('wrap');
 let speakingEls = [];
 let selectedEls = [];
+let progressEls = [];
 
 function sendMessage(payload) {
     parent.postMessage({ novalistNarration: JSON.stringify(payload) }, '*');
@@ -241,6 +272,37 @@ function setSpeaking(sceneId, key) {
     speakingEls = Array.prototype.slice.call(markersFor(sceneId, key));
     for (const el of speakingEls) el.classList.add('nl-speaking');
     if (speakingEls.length > 0) keepOnScreen(speakingEls[0]);
+}
+
+/**
+ * Marks what has been made and what is being made.
+ *
+ * Both arrive as key lists rather than as a diff, because the reading is
+ * rebuilt from scratch whenever the book changes and a diff against a page that
+ * has been redrawn is a diff against nothing.
+ */
+function setProgress(readyJson, renderingJson) {
+    for (const el of progressEls) el.classList.remove('nl-ready', 'nl-rendering');
+    progressEls = [];
+
+    var paint = function (keys, name) {
+        for (var i = 0; i < keys.length; i++) {
+            // Across the whole book rather than within a scene: a segment key
+            // already carries where it came from, and progress is reported for
+            // a window of the reading that runs across scene breaks.
+            var found = wrap.querySelectorAll(
+                '[data-nl-seg="' + escapeValue(keys[i]) + '"]');
+            for (var j = 0; j < found.length; j++) {
+                found[j].classList.add(name);
+                progressEls.push(found[j]);
+            }
+        }
+    };
+
+    // Ready first, so a line that is both - made, and inside the window being
+    // worked on - reads as the more urgent of the two.
+    paint(JSON.parse(readyJson || '[]'), 'nl-ready');
+    paint(JSON.parse(renderingJson || '[]'), 'nl-rendering');
 }
 
 /** Marks the segment the writer is working on. */

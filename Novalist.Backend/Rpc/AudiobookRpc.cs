@@ -63,7 +63,7 @@ public sealed class AudiobookRpc : IDisposable
             : NarrationRenderJob.RenderedIn(folder).Keys.ToArray();
 
         var estimate = NarrationEstimator.Estimate(chapters, already, _speed.Factor());
-        var engine = Ready();
+        var engine = await ReadyAsync();
 
         Log.Info(
             $"audiobook/estimate chapters={estimate.Chapters} left={estimate.ChaptersToRender} " +
@@ -106,14 +106,18 @@ public sealed class AudiobookRpc : IDisposable
                 return Status();
         }
 
-        var engine = Ready();
+        // The project first. Which engine to use is decided by what the book is
+        // cast in, so with no book open there is no engine either - and
+        // answering "no engine" to somebody who simply has no project open
+        // sends them looking for a speech extension they already have.
         var folder = RenderRoot();
+        var engine = folder == null ? null : await ReadyAsync();
         if (engine == null || folder == null)
         {
             _state = _state with
             {
                 Phase = "failed",
-                Error = engine == null ? "no-engine" : "no-project"
+                Error = folder == null ? "no-project" : "no-engine"
             };
             Log.Warn($"audiobook/start refused reason={_state.Error}.");
             return Status();
@@ -331,14 +335,25 @@ public sealed class AudiobookRpc : IDisposable
             characters, lexicon?.WordBoundaries ?? true);
         var dialogueLanguage = DialogueAttributor.BuildLanguage(lexicon);
         var directionLanguage = EmotionDirector.BuildLanguage(lexicon);
+        // What tells a sentence ending from a full stop that is merely a full
+        // stop. Without it every point is an ending, and "10 a.m. sharp." is
+        // three things for a model to say rather than one.
+        var utteranceLanguage = UtteranceLanguage.From(lexicon);
         var manifest = projects.ScenesManifest;
+        // Which act each chapter is in. The compiled chapter is an export
+        // record and does not carry it, and an act is a stretch a writer can
+        // set a voice over.
+        var act = (projects.ActiveBook?.Chapters ?? [])
+            .Where(c => !string.IsNullOrEmpty(c.Guid))
+            .ToDictionary(c => c.Guid, c => c.Act, StringComparer.Ordinal);
 
         // The pages around the story, spoken like everything else. A recorded
         // book reads its dedication; leaving them out would make the audiobook
         // the one edition that quietly drops what the writer wrote to open it.
         var chapters = new List<NarrationRenderChapter>(compiled.Count + options.Matter.Count);
         chapters.AddRange(Matter(
-            options, "Front", candidates, dialogueLanguage, directionLanguage));
+            options, "Front", candidates, dialogueLanguage, directionLanguage,
+            utteranceLanguage));
 
         foreach (var chapter in compiled)
         {
@@ -361,7 +376,17 @@ public sealed class AudiobookRpc : IDisposable
                         source?.DialogueSpeakers,
                         source?.DialogueDirections,
                         source?.AnalysisOverrides?.Emotion,
-                        source?.AnalysisOverrides?.Intensity)));
+                        source?.AnalysisOverrides?.Intensity,
+                        utteranceLanguage),
+                    // Where in the book, so a voice the writer set over an act
+                    // or a chapter is the voice that gets recorded. Without it
+                    // the export is the one place a wrong voice is baked into a
+                    // file somebody then publishes.
+                    new NarrationPlacement(
+                        act.GetValueOrDefault(chapter.Guid),
+                        chapter.Guid,
+                        chapter.Title,
+                        source?.Title)));
             }
 
             chapters.Add(new NarrationRenderChapter(
@@ -371,7 +396,8 @@ public sealed class AudiobookRpc : IDisposable
         }
 
         chapters.AddRange(Matter(
-            options, "Back", candidates, dialogueLanguage, directionLanguage));
+            options, "Back", candidates, dialogueLanguage, directionLanguage,
+            utteranceLanguage));
         return chapters;
     }
 
@@ -388,7 +414,8 @@ public sealed class AudiobookRpc : IDisposable
         string placement,
         IReadOnlyList<DialogueSpeakerCandidate> candidates,
         DialogueLanguage dialogueLanguage,
-        DirectionLanguage directionLanguage)
+        DirectionLanguage directionLanguage,
+        UtteranceLanguage utteranceLanguage)
     {
         foreach (var page in options.Matter
             .Where(m => string.Equals(m.Placement, placement, StringComparison.Ordinal))
@@ -396,7 +423,7 @@ public sealed class AudiobookRpc : IDisposable
         {
             var segments = NarrationScript.Build(
                 page.HtmlContent, candidates, dialogueLanguage, directionLanguage,
-                null, null, null, null);
+                null, null, null, null, utteranceLanguage);
             if (segments.Count == 0)
                 continue;
 
@@ -431,22 +458,97 @@ public sealed class AudiobookRpc : IDisposable
             : Path.Combine(root, ".novalist", "narration", RenderFolder);
     }
 
-    /// <summary>The active engine, if one is installed and ready to speak.</summary>
-    private IVoiceEngineContributor? Ready()
+    /// <summary>
+    /// The active engine, if one is installed and ready to speak - starting one
+    /// that is installed but not loaded.
+    ///
+    /// An export is minutes of rendering the writer asked for by name. Refusing
+    /// it because the model had not been loaded yet, when loading it is half a
+    /// minute and needs no download, would be an error message in place of the
+    /// thing they asked for.
+    ///
+    /// An engine with a download still outstanding is left alone. That is a
+    /// decision about gigabytes and somebody's connection, and it belongs to the
+    /// writer rather than to an export button.
+    /// </summary>
+    private async Task<IVoiceEngineContributor?> ReadyAsync()
     {
-        foreach (var engine in _workspace.ExtensionsHost.VoiceEngines)
+        // The engine that made the voices this book is cast in, rather than
+        // whichever one answered first. With two engines installed the export
+        // went to whoever had finished loading - so a book cast in a real
+        // speech engine could be recorded, whole, by the example tone
+        // generator, which loads instantly and always won.
+        var wanted = await CastEngineAsync();
+        if (wanted == null)
+            return null;
+
+        var engine = _workspace.ExtensionsHost.VoiceEngines.FirstOrDefault(
+            e => string.Equals(e.EngineId, wanted, StringComparison.Ordinal));
+        if (engine == null)
         {
-            try
-            {
-                if (engine.GetStatusAsync().GetAwaiter().GetResult().IsReady)
-                    return engine;
-            }
-            catch (Exception ex)
-            {
-                Log.Warn($"audiobook engine status type={ex.GetType().Name}.");
-            }
+            Log.Warn("audiobook engine not installed.");
+            return null;
         }
-        return null;
+
+        try
+        {
+            var status = await engine.GetStatusAsync();
+            if (status.IsReady)
+                return engine;
+            // Installed and merely not loaded. An export is minutes of
+            // rendering the writer asked for by name, and refusing it over half
+            // a minute of loading would be an error message in place of the
+            // thing they wanted. Gigabytes still to fetch are a different
+            // decision and stay theirs.
+            if (status.IsPreparing || status.DownloadBytes is > 0)
+                return null;
+
+            Log.Info("audiobook engine start.");
+            await engine.PrepareAsync();
+            return (await engine.GetStatusAsync()).IsReady ? engine : null;
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"audiobook engine start failed type={ex.GetType().Name}.");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// The engine that made the voices this book is cast in, or null where it is
+    /// cast in none.
+    ///
+    /// The narrator's engine leads, because the narrator speaks most of a novel
+    /// and is the voice a book cast half-way through still has. Failing that,
+    /// whichever engine made the most of the voices in use. A book cast across
+    /// two engines cannot be exported in one pass either way - the job renders
+    /// through one engine - so this picks the one that gets most of the book
+    /// right and the rest is reported per line rather than spoken wrongly.
+    /// </summary>
+    private async Task<string?> CastEngineAsync()
+    {
+        var sheet = await _cast.ReadAsync();
+        var voices = await _voices.ListAsync();
+        var owner = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var voice in voices)
+        {
+            if (!string.IsNullOrEmpty(voice.EngineId))
+                owner[voice.VoiceId] = voice.EngineId;
+        }
+
+        if (sheet.NarratorVoiceId is { Length: > 0 } narrator
+            && owner.TryGetValue(narrator, out var theirs))
+        {
+            return theirs;
+        }
+
+        return VoiceCast.AllVoices(sheet)
+            .Select(v => owner.GetValueOrDefault(v))
+            .Where(e => !string.IsNullOrEmpty(e))
+            .GroupBy(e => e!, StringComparer.Ordinal)
+            .OrderByDescending(g => g.Count())
+            .ThenBy(g => g.Key, StringComparer.Ordinal)
+            .FirstOrDefault()?.Key;
     }
 
     private string WritingLanguage()

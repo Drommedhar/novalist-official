@@ -38,7 +38,14 @@ export class BackendProcess {
       // avoid re-extracting into a non-temp dir every launch).
       ...(process.platform === 'darwin'
         ? { DOTNET_BUNDLE_EXTRACT_BASE_DIR: join(app.getPath('userData'), 'backend-cache') }
-        : {})
+        : {}),
+      // Extensions shipped inside the application. The backend copies them into
+      // the writer's extensions folder on first run, because that folder is the
+      // one it can write to - an installed extension keeps its settings, its
+      // Python environment and its downloaded models beside itself, and the
+      // application directory is read-only on macOS and unwritable for a
+      // standard user on Windows.
+      ...bundledExtensions()
     }
     const child = spawn(exe, [], { stdio: ['pipe', 'pipe', 'pipe'], env })
     this.child = child
@@ -83,6 +90,19 @@ export class BackendProcess {
     this.child?.kill()
     this.child = null
   }
+}
+
+/**
+ * Where the extensions we ship live, when this build ships any.
+ *
+ * Absent in development, where extensions are deployed to the settings folder
+ * by their own build - pointing this at a folder that does not exist would be
+ * one more thing to explain in the log every launch.
+ */
+function bundledExtensions(): Record<string, string> {
+  if (!app.isPackaged) return {}
+  const bundled = join(process.resourcesPath, 'extensions')
+  return existsSync(bundled) ? { NOVALIST_BUNDLED_EXTENSIONS: bundled } : {}
 }
 
 function resolveBackendPath(): string {

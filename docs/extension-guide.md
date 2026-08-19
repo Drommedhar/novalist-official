@@ -216,7 +216,9 @@ The host does not write your answer anywhere; it puts the text in the writer's e
 
 `VoiceDirection` carries a fourth input alongside the key, the vector and the instruction: **`ReferenceAudio`**, a clip to perform this line in the manner of. Declare `VoiceEngineFeatures.EmotionReference` to receive it; without the flag the host never sends one, and the line arrives directed by whichever of the other three you do take.
 
-It is the input of last resort and the most precise one there is. Some deliveries have no name in any vocabulary, and a writer who has already heard the one they wanted points at it rather than describing it. It carries **emotion only** — the voice is still the one you designed, and an engine that clones identity from it has misread the field.
+It is the input of last resort and the most precise one there is. Some deliveries have no name in any vocabulary, and a writer who has already heard the one they wanted points at it rather than describing it.
+
+**It is always a clip in the same voice as the line it directs.** The host offers the writer that character's own rendered lines and nothing else, so a cloning engine may use it as its reference outright: the identity it copies is the identity that line already had, and only the delivery moves. That is the guarantee to build on. What it does not license is treating the clip as a *new* identity for the character — the designed voice is still the one the rest of the book is read in.
 
 The audio arrives as bytes rather than as a path, because your engine may be in another process and a file name only means something on the machine that wrote it. `ReferenceFormat` says what the bytes are.
 

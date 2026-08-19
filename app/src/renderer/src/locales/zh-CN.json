@@ -772,7 +772,18 @@
       "other": "其他"
     },
     "extensionsInstalled": "已安装 {{count}} 个，已启用 {{enabled}} 个。",
-    "extensionsManage": "安装和管理扩展"
+    "extensionsManage": "安装和管理扩展",
+    "narration": "旁白",
+    "narrationEngines": "语音引擎",
+    "narrationDesc": "语音引擎为你的角色设计专属声音，并用它们朗读全书。一切都在本机运行；准备时会一次性下载模型。",
+    "narrationNoEngines": "尚未安装语音引擎。可从“扩展”中获取；在此之前，朗读使用操作系统自带的语音。",
+    "narrationReady": "就绪",
+    "narrationNotReady": "未就绪",
+    "narrationPreparing": "正在准备…",
+    "narrationPrepare": "准备",
+    "narrationPrepareWithSize": "准备（需下载 {{size}} GB）",
+    "narrationWhereDesc": "选角、每个角色的声音以及每行的表演指示，都在“旁白”视图中。",
+    "narrationOpen": "打开旁白"
   },
   "hotkeys": {
     "searchPlaceholder": "筛选快捷键...",
@@ -2382,7 +2393,26 @@
     "preparingReading": "正在准备朗读",
     "listenBeforeKeeping": "先听一听再决定。同样的描述每次生成的声音都不同，如果不合适就再试一次。",
     "keepVoice": "采用这个声音",
-    "designAgain": "再试一次"
+    "designAgain": "再试一次",
+    "audition": "试听情绪跨度",
+    "auditioning": "试听中…",
+    "auditionNote": "同一句话在三种情绪下的读法，便于判断角色真正有情绪时这个声音是否立得住。一段中性样本说明不了什么。",
+    "scopeFor": "为{{name}}设定局部章节的声音",
+    "scopeBlurb": "为书中某一段设定声音——一幕、一章或单个场景。它在适用范围内优先于常规声音，其余部分保持不变。",
+    "scopeWhere": "书中位置",
+    "scopeVoice": "在那里用此声音",
+    "scopeDesign": "为此处设计一个",
+    "scopeNowhere": "本书尚无章节，因此没有可以设定声音的范围。",
+    "scopeElsewhere": "本书中已不存在的位置",
+    "designWith": "由以下引擎设计",
+    "readAgain": "重新朗读",
+    "readAgainHint": "丢弃已生成的音频并重新朗读。同一行每次朗读都不尽相同，这是获得另一版本的方式。",
+    "readingStopped": "朗读已中断：{{reason}}",
+    "seed": "随机种子",
+    "seedRandom": "每次都随机",
+    "seedNote": "留空时每次尝试都会得到不同的声音，这就是重试的方式。填入数字可以找回某个特定的声音。",
+    "seedWas": "使用种子 {{seed}} 生成。",
+    "seedKeepIt": "使用此种子"
   },
   "shell": {
     "toggleBinder": "切换项目栏",

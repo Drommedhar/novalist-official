@@ -72,6 +72,178 @@ public class ExtensionLoaderTests
         Assert.Equal("extB", found[0].Manifest.Id); // falls back to folder name
     }
 
+    // ── Extensions shipped inside the application ──
+
+    /// <summary>A bundled extension folder, with a version and one payload file
+    /// so a copy can be told from a no-op.</summary>
+    private static string Bundled(string root, string folder, string id, string version, string payload)
+    {
+        var at = Path.Combine(root, folder);
+        Directory.CreateDirectory(Path.Combine(at, "locales"));
+        File.WriteAllText(
+            Path.Combine(at, "extension.json"),
+            $$"""{ "id": "{{id}}", "name": "{{id}}", "version": "{{version}}" }""");
+        File.WriteAllText(Path.Combine(at, "locales", "en.json"), payload);
+        return at;
+    }
+
+    [Fact]
+    public void Discover_CopiesAnExtensionShippedInsideTheApplication()
+    {
+        // Seeded rather than discovered where it lies: an installed extension is
+        // a folder that gets written to - its settings, its Python environment,
+        // its downloaded models - and the application directory is read-only on
+        // macOS and unwritable for a standard user on Windows.
+        using var dir = new TempDir();
+        using var shipped = new TempDir();
+        Bundled(shipped.Path, "Speech", "com.novalist.speech", "1.0.0", "ours");
+
+        var found = new ExtensionLoader(dir.Path, shipped.Path).DiscoverExtensions();
+
+        Assert.Equal("com.novalist.speech", Assert.Single(found).Manifest.Id);
+        Assert.Equal(
+            "ours", File.ReadAllText(Path.Combine(dir.Path, "Speech", "locales", "en.json")));
+    }
+
+    [Fact]
+    public void Discover_DoesNotDowngradeAnExtensionTheWriterHasAlreadyUpdated()
+    {
+        // Somebody who updated from the gallery keeps their update. Overwriting
+        // it on every launch would undo the update each time the app started,
+        // with nothing anywhere saying why.
+        using var dir = new TempDir();
+        using var shipped = new TempDir();
+        Bundled(shipped.Path, "Speech", "com.novalist.speech", "1.0.0", "ours");
+        Bundled(dir.Path, "Speech", "com.novalist.speech", "1.2.0", "theirs");
+
+        new ExtensionLoader(dir.Path, shipped.Path).DiscoverExtensions();
+
+        Assert.Equal(
+            "theirs", File.ReadAllText(Path.Combine(dir.Path, "Speech", "locales", "en.json")));
+    }
+
+    [Fact]
+    public void Discover_ReplacesAnOlderInstallWithTheOneThisBuildShips()
+    {
+        using var dir = new TempDir();
+        using var shipped = new TempDir();
+        Bundled(shipped.Path, "Speech", "com.novalist.speech", "1.10.0", "ours");
+        // 1.9.0, which is older than 1.10.0 as a version and newer as a string.
+        // Compared as text this downgraded somebody's extension every launch.
+        Bundled(dir.Path, "Speech", "com.novalist.speech", "1.9.0", "theirs");
+
+        new ExtensionLoader(dir.Path, shipped.Path).DiscoverExtensions();
+
+        Assert.Equal(
+            "ours", File.ReadAllText(Path.Combine(dir.Path, "Speech", "locales", "en.json")));
+    }
+
+    [Fact]
+    public void Discover_LeavesWhatAnExtensionHasDownloadedBesideItself()
+    {
+        // The environment and the model weights are gigabytes and live in the
+        // extension's own folder. An upgrade that removed them would re-download
+        // eight gigabytes to ship a bug fix.
+        using var dir = new TempDir();
+        using var shipped = new TempDir();
+        Bundled(shipped.Path, "Speech", "com.novalist.speech", "2.0.0", "ours");
+        Bundled(dir.Path, "Speech", "com.novalist.speech", "1.0.0", "theirs");
+        var kept = Path.Combine(dir.Path, "Speech", "venv");
+        Directory.CreateDirectory(kept);
+        File.WriteAllText(Path.Combine(kept, "installed.txt"), "a recipe");
+
+        new ExtensionLoader(dir.Path, shipped.Path).DiscoverExtensions();
+
+        Assert.True(File.Exists(Path.Combine(kept, "installed.txt")));
+    }
+
+    [Fact]
+    public void Discover_WithNothingShippedIsTheSameAsBefore()
+    {
+        using var dir = new TempDir();
+
+        Assert.Empty(new ExtensionLoader(dir.Path, "").DiscoverExtensions());
+        Assert.Empty(
+            new ExtensionLoader(dir.Path, Path.Combine(dir.Path, "nope")).DiscoverExtensions());
+    }
+
+    [Fact]
+    public void Discover_SkipsAShippedFolderThatIsNotAnExtension()
+    {
+        // The folder carries a README explaining what belongs in it, and a
+        // release that shipped nothing would otherwise install the README as an
+        // extension called "resources".
+        using var dir = new TempDir();
+        using var shipped = new TempDir();
+        Directory.CreateDirectory(Path.Combine(shipped.Path, "notes"));
+        File.WriteAllText(Path.Combine(shipped.Path, "notes", "README.md"), "read me");
+
+        Assert.Empty(new ExtensionLoader(dir.Path, shipped.Path).DiscoverExtensions());
+        Assert.False(Directory.Exists(Path.Combine(dir.Path, "notes")));
+    }
+
+    [Fact]
+    public void Discover_AVersionNeitherSideCanReadLeavesTheInstallAlone()
+    {
+        // A strange manifest is not a reason to overwrite something that works.
+        using var dir = new TempDir();
+        using var shipped = new TempDir();
+        Bundled(shipped.Path, "Speech", "com.novalist.speech", "not a version", "ours");
+        Bundled(dir.Path, "Speech", "com.novalist.speech", "1.0.0", "theirs");
+
+        new ExtensionLoader(dir.Path, shipped.Path).DiscoverExtensions();
+
+        Assert.Equal(
+            "theirs", File.ReadAllText(Path.Combine(dir.Path, "Speech", "locales", "en.json")));
+    }
+
+    [Fact]
+    public void Discover_AShippedExtensionThatCannotBeCopiedIsDoneWithoutRatherThanFatal()
+    {
+        // A file where the folder should be is the cheapest way to reproduce
+        // what a locked file from a previous run does. Whatever the cause, an
+        // application that will not start because one bundled extension could
+        // not be written is worse than one missing that extension.
+        using var dir = new TempDir();
+        using var shipped = new TempDir();
+        Bundled(shipped.Path, "Speech", "com.novalist.speech", "1.0.0", "ours");
+        File.WriteAllText(Path.Combine(dir.Path, "Speech"), "in the way");
+
+        Assert.Empty(new ExtensionLoader(dir.Path, shipped.Path).DiscoverExtensions());
+    }
+
+    [Fact]
+    public void Discover_AShippedVersionThatIsNotReadableJsonLeavesTheInstallAlone()
+    {
+        using var dir = new TempDir();
+        using var shipped = new TempDir();
+        var at = Path.Combine(shipped.Path, "Speech");
+        Directory.CreateDirectory(at);
+        File.WriteAllText(Path.Combine(at, "extension.json"), "{ not json");
+        Bundled(dir.Path, "Speech", "com.novalist.speech", "1.0.0", "theirs");
+
+        new ExtensionLoader(dir.Path, shipped.Path).DiscoverExtensions();
+
+        Assert.Equal(
+            "theirs", File.ReadAllText(Path.Combine(dir.Path, "Speech", "locales", "en.json")));
+    }
+
+    [Fact]
+    public void Discover_AShippedExtensionWithAnUnreadableManifestIsSkipped()
+    {
+        using var dir = new TempDir();
+        using var shipped = new TempDir();
+        var at = Path.Combine(shipped.Path, "Broken");
+        Directory.CreateDirectory(at);
+        File.WriteAllText(Path.Combine(at, "extension.json"), "{ not json");
+
+        // Copied - it has a manifest, so it is meant to be one - and then
+        // reported with its parse error, exactly as a hand-installed one is.
+        var found = new ExtensionLoader(dir.Path, shipped.Path).DiscoverExtensions();
+
+        Assert.NotNull(Assert.Single(found).LoadError);
+    }
+
     private static ExtensionInfo Info(ExtensionManifest m, string folder = "") => new() { Manifest = m, FolderPath = folder };
 
     [Fact]

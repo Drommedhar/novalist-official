@@ -93,6 +93,7 @@ public class NarrationProseTests
             0,
             NarrationSegmentKind.Narration,
             "whole",
+            "whole",
             text,
             SpeakerId: null,
             DialogueConfidence.None,
@@ -201,7 +202,7 @@ public class NarrationProseTests
     public void Annotate_EscapesAKeyThatCouldEndItsOwnAttribute()
     {
         var segment = new NarrationSegment(
-            0, NarrationSegmentKind.Narration, "a\"<&b", "Salt.", null,
+            0, NarrationSegmentKind.Narration, "a\"<&b", "a\"<&b", "Salt.", null,
             DialogueConfidence.None, [], new VoiceDirection("neutral", new Dictionary<string, double>(),
                 DirectionSource.None), 0, 5);
 
@@ -217,7 +218,7 @@ public class NarrationProseTests
         // a marker round - and the scene comes back exactly as it went in.
         const string html = "<p>Salt.</p>";
         var empty = new NarrationSegment(
-            0, NarrationSegmentKind.Narration, "k", "", null,
+            0, NarrationSegmentKind.Narration, "k", "k", "", null,
             DialogueConfidence.None, [], Plain(), 2, 2);
 
         Assert.Equal(html, NarrationProse.Annotate(html, [empty]));
@@ -231,7 +232,7 @@ public class NarrationProseTests
         // that should take the prose with it.
         const string html = "<p>Salt.</p>";
         var beyond = new NarrationSegment(
-            0, NarrationSegmentKind.Narration, "k", "", null,
+            0, NarrationSegmentKind.Narration, "k", "k", "", null,
             DialogueConfidence.None, [], Plain(), 900, 950);
 
         Assert.Equal(html, NarrationProse.Annotate(html, [beyond]));

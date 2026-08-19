@@ -57,11 +57,21 @@ public sealed record DialogueScan(string Text, IReadOnlyList<DialogueSpan> Spans
 /// </summary>
 public static class DialogueScanner
 {
-    /// <summary>Matched quote pairs across the languages Novalist ships. Shared
-    /// with the Inspector's dialogue-ratio so both agree on what counts as
-    /// dialogue.</summary>
+    /// <summary>
+    /// Matched quote pairs across the languages Novalist ships. Shared with
+    /// the Inspector's dialogue-ratio so both agree on what counts as
+    /// dialogue.
+    ///
+    /// The corner brackets are here because the rest of the pipeline already
+    /// assumed them - the narration splitter trims them off a quoted range and
+    /// treats the closing ones as sentence-final - while this, the only thing
+    /// that decides what a quote <em>is</em>, did not. A book written in them
+    /// therefore had no dialogue at all as far as the app was concerned: no
+    /// speakers to cast, no lines to direct, and a reading in which the
+    /// narrator said everybody's words.
+    /// </summary>
     public static readonly Regex QuoteRegex = new(
-        "(?:\"[^\"]*\"|“[^”]*”|„[^“]*“|«[^»]*»|»[^«]*«|‹[^›]*›|‚[^‘]*‘)",
+        "(?:\"[^\"]*\"|“[^”]*”|„[^“]*“|«[^»]*»|»[^«]*«|‹[^›]*›|‚[^‘]*‘|「[^」]*」|『[^』]*』)",
         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline);
 
     /// <summary>How much prose either side of a quote is kept as attribution

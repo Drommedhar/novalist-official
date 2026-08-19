@@ -103,6 +103,7 @@ export const SETTINGS_HELP_TARGETS: Record<SettingsSectionKey, ManualTarget> = {
   manuscriptProperties: { file: '23-settings.md', anchor: 'your-own-fields' },
   updatesIntegrations: { file: '23-settings.md', anchor: 'updates--integrations' },
   languagePacks: { file: '34-custom-themes-and-languages.md' },
+  narration: { file: '46-narration.md', anchor: 'installing-a-speech-engine' },
   diagnostics: { file: '23-settings.md', anchor: 'diagnostics' },
   extensions: { file: '24-extensions.md', anchor: 'the-extensions-view' }
 }

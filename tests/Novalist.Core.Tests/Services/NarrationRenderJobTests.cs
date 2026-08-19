@@ -43,6 +43,7 @@ public class NarrationRenderJobTests : IDisposable
             index,
             speaker == null ? NarrationSegmentKind.Narration : NarrationSegmentKind.Dialogue,
             key,
+            key,
             text,
             speaker,
             DialogueConfidence.Manual,
@@ -114,9 +115,11 @@ public class NarrationRenderJobTests : IDisposable
         IReadOnlyList<NarrationRenderChapter> chapters,
         NarrationRenderSettings? settings = null,
         IProgress<NarrationRenderProgress>? progress = null,
-        CancellationToken token = default)
+        CancellationToken token = default,
+        VoiceCastSheet? sheet = null,
+        Dictionary<string, byte[]>? voices = null)
         => job.RunAsync(
-            chapters, Sheet(), Voices(), VoiceEngineFeatures.EmotionVector, "en",
+            chapters, sheet ?? Sheet(), voices ?? Voices(), VoiceEngineFeatures.EmotionVector, "en",
             settings, progress, token);
 
     // ─── what it produces ───────────────────────────────────────────
@@ -144,10 +147,181 @@ public class NarrationRenderJobTests : IDisposable
 
         var outcome = await RunAsync(
             job, [Chapter("a", "One", ["Hello.", "Goodbye."])],
-            new NarrationRenderSettings { SegmentGapMs = 200 });
+            // A line each, which is what the live reading asks for. Consecutive
+            // lines of one voice are read in one breath for a recording, and
+            // then there is no gap between them to measure.
+            new NarrationRenderSettings { SegmentGapMs = 200, JoinCharacters = 0 });
 
         // Two hundred-millisecond lines and one gap between them, not two.
         Assert.Equal(400, outcome.Chapters[0].DurationMs, 1);
+    }
+
+    // ── Read in one breath ──
+
+    [Fact]
+    public async Task ConsecutiveLinesOfOneVoice_AreReadInOneBreath()
+    {
+        // A cloning model starts each call afresh from the reference clip with
+        // no memory of the sentence before it, so pitch, pace and energy reset
+        // at every full stop - and a paragraph stitched from four of those
+        // sounds like four readings rather than one narrator.
+        NarrationRequest? asked = null;
+        NarrationRenderJob.RenderDelegate watching = (request, token) =>
+        {
+            asked ??= request;
+            return Speaks(100)(request, token);
+        };
+
+        await RunAsync(Job(watching), [Chapter("a", "One", ["One.", "Two.", "Three."])]);
+
+        var only = Assert.Single(asked!.Segments);
+        Assert.Equal("One. Two. Three.", only.Text);
+    }
+
+    [Fact]
+    public async Task LinesReadInOneBreath_HaveNoBreathPutBetweenThem()
+    {
+        // The gap exists to separate two recordings. Inside one it would be an
+        // invented pause in the middle of a sentence somebody wrote as prose.
+        var outcome = await RunAsync(
+            Job(Speaks(100)), [Chapter("a", "One", ["One.", "Two.", "Three."])],
+            new NarrationRenderSettings { SegmentGapMs = 200 });
+
+        Assert.Equal(100, outcome.Chapters[0].DurationMs, 1);
+    }
+
+    [Fact]
+    public async Task TwoSpeakers_AreNotReadInOneBreath()
+    {
+        // Two people are two people, however consecutive their lines are.
+        NarrationRequest? asked = null;
+        NarrationRenderJob.RenderDelegate watching = (request, token) =>
+        {
+            asked ??= request;
+            return Speaks(100)(request, token);
+        };
+        var scene = new NarrationRenderScene("s", [
+            Segment(0, "a:0", "mira", "One."),
+            Segment(1, "a:1", "aldric", "Two.")
+        ]);
+
+        await RunAsync(
+            Job(watching), [new NarrationRenderChapter("a", "One", [scene])],
+            sheet: new VoiceCastSheet
+            {
+                NarratorVoiceId = "narrator",
+                Voices = new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    ["mira"] = "mira-voice",
+                    ["aldric"] = "aldric-voice"
+                }
+            },
+            voices: new Dictionary<string, byte[]>(StringComparer.Ordinal)
+            {
+                ["mira-voice"] = [1], ["aldric-voice"] = [2], ["narrator"] = [3]
+            });
+
+        Assert.Equal(2, asked!.Segments.Count);
+    }
+
+    [Fact]
+    public async Task LinesDirectedDifferently_AreNotReadInOneBreath()
+    {
+        // One call performs one delivery. Two sentences directed differently
+        // cannot share it, and merging them would silently throw one away.
+        NarrationRequest? asked = null;
+        NarrationRenderJob.RenderDelegate watching = (request, token) =>
+        {
+            asked ??= request;
+            return Speaks(100)(request, token);
+        };
+        var angry = Segment(1, "a:1", "mira", "Two.") with
+        {
+            Direction = new VoiceDirection(
+                "angry", new Dictionary<string, double> { ["angry"] = 0.9 }, DirectionSource.Writer)
+        };
+        var scene = new NarrationRenderScene("s", [Segment(0, "a:0", "mira", "One."), angry]);
+
+        await RunAsync(Job(watching), [new NarrationRenderChapter("a", "One", [scene])]);
+
+        Assert.Equal(2, asked!.Segments.Count);
+    }
+
+    [Fact]
+    public async Task ARunLongerThanAModelWillSay_IsBrokenBeforeItIsSent()
+    {
+        // The failure that made splitting necessary in the first place: a line
+        // past what a model says in one breath comes back cut off mid-word, with
+        // nothing anywhere saying so.
+        NarrationRequest? asked = null;
+        NarrationRenderJob.RenderDelegate watching = (request, token) =>
+        {
+            asked ??= request;
+            return Speaks(100)(request, token);
+        };
+        var long1 = new string('a', 30) + ".";
+
+        await RunAsync(
+            Job(watching), [Chapter("a", "One", [long1, long1, long1, long1])],
+            new NarrationRenderSettings { JoinCharacters = 70 });
+
+        Assert.Equal(2, asked!.Segments.Count);
+        Assert.All(asked.Segments, segment => Assert.True(segment.Text.Length <= 70));
+    }
+
+    [Fact]
+    public async Task ProgressCountsLines_EvenWhenSeveralWereReadInOneBreath()
+    {
+        // The bar counts lines. A joined run that moved it by one would leave it
+        // short of the end by however many sentences were read together.
+        var reports = new List<NarrationRenderProgress>();
+
+        await RunAsync(
+            Job(Speaks()), [Chapter("a", "One", ["One.", "Two.", "Three."])],
+            progress: new Inline(reports.Add));
+
+        Assert.Equal(3, reports[^1].SegmentsDone);
+        Assert.Equal(3, reports[^1].SegmentsTotal);
+    }
+
+    [Fact]
+    public async Task ARunTheEngineRefused_CountsEveryLineItStoodFor()
+    {
+        // Three sentences went out as one call. Counting the failure as one
+        // missing line would under-report it by two, and the total the writer
+        // is shown is the whole chapter.
+        NarrationRenderJob.RenderDelegate refuses = (request, _) => Refused(request);
+
+        var outcome = await RunAsync(Job(refuses), [Chapter("a", "One", ["One.", "Two.", "Three."])]);
+
+        Assert.Equal(3, outcome.Chapters[0].Missing);
+    }
+
+    private static async IAsyncEnumerable<NarrationClip> Refused(NarrationRequest request)
+    {
+        await Task.Yield();
+        foreach (var segment in request.Segments)
+            yield return new NarrationClip { Key = segment.Key, Error = "no" };
+    }
+
+    [Fact]
+    public async Task AChapterAlreadyReadSentenceBySentence_IsReadAgainWhenItShouldBeOneBreath()
+    {
+        // The audio genuinely differs, so a render kept from the other setting
+        // would be the wrong recording reported as up to date.
+        var chapters = new[] { Chapter("a", "One", ["One.", "Two."]) };
+        await RunAsync(
+            Job(Speaks()), chapters, new NarrationRenderSettings { JoinCharacters = 0 });
+        var calls = 0;
+        NarrationRenderJob.RenderDelegate counting = (request, token) =>
+        {
+            calls++;
+            return Speaks()(request, token);
+        };
+
+        await RunAsync(Job(counting), chapters);
+
+        Assert.True(calls > 0);
     }
 
     [Fact]
@@ -177,7 +351,7 @@ public class NarrationRenderJobTests : IDisposable
             Voices(),
             VoiceEngineFeatures.EmotionVector | VoiceEngineFeatures.ContinuousContext,
             "en",
-            new NarrationRenderSettings { SegmentGapMs = 0 });
+            new NarrationRenderSettings { SegmentGapMs = 0, JoinCharacters = 0 });
 
         Assert.Equal(200, outcome.Chapters[0].DurationMs, 1);
     }
@@ -399,7 +573,9 @@ public class NarrationRenderJobTests : IDisposable
         var alternating = 0;
         NarrationRenderJob.RenderDelegate mixed = (request, _) => Mixed(request, () => alternating++);
 
-        var outcome = await RunAsync(Job(mixed), [Chapter("a", "One", ["Hello.", "Goodbye."])]);
+        var outcome = await RunAsync(
+            Job(mixed), [Chapter("a", "One", ["Hello.", "Goodbye."])],
+            new NarrationRenderSettings { JoinCharacters = 0 });
 
         Assert.Equal(1, outcome.Chapters[0].Missing);
     }
@@ -425,7 +601,9 @@ public class NarrationRenderJobTests : IDisposable
         // The failure this catches is only ever heard, not thrown.
         NarrationRenderJob.RenderDelegate half = (request, _) => Half(request);
 
-        var outcome = await RunAsync(Job(half), [Chapter("a", "One", ["One.", "Two.", "Three."])]);
+        var outcome = await RunAsync(
+            Job(half), [Chapter("a", "One", ["One.", "Two.", "Three."])],
+            new NarrationRenderSettings { JoinCharacters = 0 });
 
         Assert.Equal(2, outcome.Chapters[0].Missing);
     }
@@ -573,10 +751,11 @@ public class NarrationRenderJobTests : IDisposable
     public async Task AReusedChapter_StillMovesTheBarPastIt()
     {
         var chapters = new[] { Chapter("a", "One", ["One.", "Two."]) };
-        await RunAsync(Job(Speaks()), chapters);
+        var apart = new NarrationRenderSettings { JoinCharacters = 0 };
+        await RunAsync(Job(Speaks()), chapters, apart);
         var reports = new List<NarrationRenderProgress>();
 
-        await RunAsync(Job(Speaks()), chapters, progress: new Inline(reports.Add));
+        await RunAsync(Job(Speaks()), chapters, apart, progress: new Inline(reports.Add));
 
         Assert.Equal(2, reports[^1].SegmentsDone);
         // The chapter's own length, gap included - the same figure the file has.

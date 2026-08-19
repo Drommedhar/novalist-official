@@ -232,6 +232,12 @@ public sealed partial class Workspace : IDisposable
     {
         Projects.CloseProject();
         Settings.SetActiveOverrides(null);
+        // The rendered reading goes with the project. Clips are kept between
+        // readings now - that is what makes listening to a scene twice cost
+        // once - so this is where they stop, rather than surviving into
+        // whatever the writer opens next. Speech of somebody's manuscript
+        // should not outlive the project being open.
+        new NarrationClipCache(SettingsDirectory).Clear();
         return BuildState();
     }
 

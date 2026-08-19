@@ -226,6 +226,18 @@ The default bindings are listed in [Hotkeys](26-hotkeys.md).
 - **Check for extension updates** — when on, Novalist checks installed extensions for newer versions.
 - **GitHub token** — a personal access token (masked) used for GitHub operations such as extension updates and authenticated Git remotes.
 
+## Narration
+
+The speech engines installed on this machine, and where you get one ready.
+
+- **Each engine** shows what it is doing — ready, with the device and model it is using; not ready, with the reason; or getting ready.
+- **Prepare** downloads and installs what an engine needs. The size is on the button, because it is gigabytes and the decision is yours. It is a once-per-machine step.
+- **Open Narration** goes to the [Narration](46-narration.md) view, where casting, per-character voices and per-line direction live.
+
+With no engine installed the section says so: an engine comes from [Extensions](24-extensions.md), and until you have one, reading aloud uses the voices your operating system already has.
+
+An engine that is already installed starts itself when Novalist opens, so this is a page you visit once rather than every morning.
+
 ## Diagnostics
 
 - **Read display information** — reports what Novalist can see about your screen: your operating system's scale factor, the current interface size, the window size, the content size, and the monitor's usable area. This is what to send if the interface is the wrong size or is clipped, and it is the fastest way to tell an OS scaling problem from a Novalist one. Like the log, it contains **dimensions only** — never a project name, a file path, or any of your writing.

@@ -21,6 +21,7 @@ export const SETTINGS_SECTION_KEYS = [
   'manuscriptProperties',
   'updatesIntegrations',
   'languagePacks',
+  'narration',
   'diagnostics',
   'extensions'
 ] as const
@@ -399,6 +400,29 @@ export const SETTINGS_REGISTRY: readonly SettingsSectionMetadata[] = [
       ]),
       control('open-log-folder', 'settings.openLogFolder'),
       control('clear-logs', 'settings.clearLogs')
+    ]
+  },
+  {
+    key: 'narration',
+    category: 'system',
+    titleKey: 'settings.narration',
+    scope: 'global',
+    // The engines are downloads onto this machine, and an installed model is
+    // not a thing a project carries.
+    desktopOnly: true,
+    keywords: [
+      'narration',
+      'speech',
+      'voice',
+      'engine',
+      'tts',
+      'audiobook',
+      'read aloud',
+      'prepare',
+      'download'
+    ],
+    controls: [
+      control('engines', 'settings.narrationEngines', undefined, ['settings.narrationDesc'])
     ]
   },
   {

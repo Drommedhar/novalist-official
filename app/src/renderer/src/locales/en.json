@@ -737,7 +737,18 @@
       "other": "Other"
     },
     "extensionsInstalled": "{{count}} installed, {{enabled}} switched on.",
-    "extensionsManage": "Install and manage extensions"
+    "extensionsManage": "Install and manage extensions",
+    "narration": "Narration",
+    "narrationEngines": "Speech engines",
+    "narrationDesc": "A speech engine gives your characters designed voices and reads the book in them. Everything runs on this machine; getting one ready downloads its model once.",
+    "narrationNoEngines": "No speech engine is installed. One comes from Extensions — until then, reading aloud uses the voices your operating system already has.",
+    "narrationReady": "Ready",
+    "narrationNotReady": "Not ready",
+    "narrationPreparing": "Getting ready…",
+    "narrationPrepare": "Prepare",
+    "narrationPrepareWithSize": "Prepare ({{size}} GB download)",
+    "narrationWhereDesc": "Casting, per-character voices and per-line direction live in the Narration view.",
+    "narrationOpen": "Open Narration"
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",
@@ -2347,7 +2358,26 @@
     "preparingReading": "Preparing the reading",
     "listenBeforeKeeping": "Listen before you keep it. The same description gives a different voice every time, so try again if this is not the one.",
     "keepVoice": "Keep this voice",
-    "designAgain": "Try again"
+    "designAgain": "Try again",
+    "audition": "Hear the range",
+    "auditioning": "Listening…",
+    "auditionNote": "The same line at three points on the emotional range, so you can hear whether the casting holds when the character is actually feeling something. One neutral sample tells you nothing.",
+    "scopeFor": "Voices for part of the book, for {{name}}",
+    "scopeBlurb": "A voice for one stretch of the book — an act, a chapter, or a single scene. It wins over the standing voice everywhere it applies, and everywhere else is unchanged.",
+    "scopeWhere": "Where in the book",
+    "scopeVoice": "Read there in",
+    "scopeDesign": "Design one for here",
+    "scopeNowhere": "This book has no chapters yet, so there is nowhere to set a voice over.",
+    "scopeElsewhere": "Somewhere this book no longer has",
+    "designWith": "Designed by",
+    "readAgain": "Read again",
+    "readAgainHint": "Throw away what has been made and read it again. The same line comes back differently each time it is spoken, so this is how to get a second answer.",
+    "readingStopped": "The reading stopped: {{reason}}",
+    "seed": "Seed",
+    "seedRandom": "Random each time",
+    "seedNote": "Leave this blank and every attempt gives a different voice, which is how you try again. Put a number in to ask for one particular voice back.",
+    "seedWas": "Drawn with seed {{seed}}. ",
+    "seedKeepIt": "Use this seed"
   },
   "shell": {
     "toggleBinder": "Toggle binder",

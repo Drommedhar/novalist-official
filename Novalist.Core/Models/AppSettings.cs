@@ -515,6 +515,32 @@ public static class AutoReplacementDefaults
             new() { Start = "'", End = "'", StartReplace = "\u201E", EndReplace = "\u201C" },
             .. CommonReplacements
         ],
+        ["nl"] = [
+            new() { Start = "'", End = "'", StartReplace = "\u201C", EndReplace = "\u201D" },
+            .. CommonReplacements
+        ],
+        // Simplified Chinese sets horizontal dialogue in the same curly marks
+        // English does. It is here because this list is the only way to say what
+        // language a book is written in, and everything downstream reads that:
+        // which analysis pack runs, what an export declares, and which language
+        // the book is read aloud in. With no entry, a Chinese novel was
+        // tokenised as English and read in an English accent.
+        ["zh-CN"] = [
+            new() { Start = "'", End = "'", StartReplace = "\u201C", EndReplace = "\u201D" },
+            .. CommonReplacements
+        ],
+        // Corner brackets, which DialogueScanner.QuoteRegex now recognises. It
+        // did not before, so a book written in them had no dialogue at all as
+        // far as the app was concerned - and typing marks nothing can read back
+        // would have been worse than not offering the language.
+        ["ja"] = [
+            new() { Start = "'", End = "'", StartReplace = "\u300C", EndReplace = "\u300D" },
+            .. CommonReplacements
+        ],
+        ["ko"] = [
+            new() { Start = "'", End = "'", StartReplace = "\u201C", EndReplace = "\u201D" },
+            .. CommonReplacements
+        ],
     };
 
     public static List<string> AvailableLanguages => [.. LanguagePresets.Keys];

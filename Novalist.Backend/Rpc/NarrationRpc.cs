@@ -88,6 +88,10 @@ public sealed class NarrationRpc
             characters, lexicon?.WordBoundaries ?? true);
         var dialogueLanguage = DialogueAttributor.BuildLanguage(lexicon);
         var directionLanguage = EmotionDirector.BuildLanguage(lexicon);
+        // What tells a sentence ending from a full stop that is merely a full
+        // stop. Without it every point is an ending, and "10 a.m. sharp." is
+        // three things for a model to say rather than one.
+        var utteranceLanguage = UtteranceLanguage.From(lexicon);
         var sheet = await _cast.ReadAsync();
         var names = characters.ToDictionary(
             c => c.Id, c => EntityResolveIndex.Compose(c.Name, c.Surname), StringComparer.Ordinal);
@@ -108,10 +112,18 @@ public sealed class NarrationRpc
             foreach (var scene in scenes)
             {
                 var html = await projects.ReadSceneContentAsync(chapter, scene);
+                // Which voice reads a line now depends on where in the book the
+                // line is. Resolved without it, the view showed - and the
+                // system-voice reading used - the character's standing voice
+                // everywhere, so a voice set over an act was silently ignored by
+                // everything except the designed-engine render.
+                var where = new NarrationPlacement(
+                    chapter.Act, chapter.Guid, chapter.Title, scene.Title);
                 var segments = NarrationScript.Build(
                     html, candidates, dialogueLanguage, directionLanguage,
                     scene.DialogueSpeakers, scene.DialogueDirections,
-                    scene.AnalysisOverrides?.Emotion, scene.AnalysisOverrides?.Intensity);
+                    scene.AnalysisOverrides?.Emotion, scene.AnalysisOverrides?.Intensity,
+                    utteranceLanguage);
 
                 spoken += segments.Count(s => s.Kind == NarrationSegmentKind.Dialogue);
                 sceneDtos.Add(new NarrationProseSceneDto(
@@ -121,7 +133,7 @@ public sealed class NarrationRpc
                     scene.AnalysisOverrides?.Emotion,
                     scene.AnalysisOverrides?.Intensity,
                     NarrationProse.Annotate(html, segments),
-                    [.. segments.Select(s => ToDto(s, names, sheet))]));
+                    [.. segments.Select(s => ToDto(s, names, sheet, where))]));
             }
 
             chapters.Add(new NarrationChapterDto(
@@ -152,6 +164,58 @@ public sealed class NarrationRpc
         Log.Info($"narration/setVoice narrator={string.IsNullOrWhiteSpace(characterId)} " +
                  $"assigned={!string.IsNullOrWhiteSpace(voiceId)}.");
         return true;
+    }
+
+    /// <summary>
+    /// The voices that only apply over part of the book.
+    ///
+    /// Separate from the cast because they are a different statement: the cast
+    /// says who somebody is, and these say who they are <em>here</em>.
+    /// </summary>
+    [JsonRpcMethod("narration/voiceScopes")]
+    public async Task<VoiceScopeDto[]> VoiceScopesAsync()
+    {
+        var sheet = await _cast.ReadAsync();
+        Log.Info($"narration/voiceScopes count={sheet.Overrides.Count}.");
+        return
+        [
+            .. sheet.Overrides.Select(o => new VoiceScopeDto(
+                o.CharacterId ?? string.Empty, o.Act, o.Chapter, o.Scene, o.VoiceId))
+        ];
+    }
+
+    /// <summary>
+    /// Casts somebody for one stretch of the book: an act, a chapter, or a
+    /// single scene.
+    ///
+    /// A character is not one voice for four hundred pages. They age, they are
+    /// injured, they are disguised, they are remembered as a child in a chapter
+    /// set thirty years earlier - and the only way to say so used to be editing
+    /// the cast file by hand.
+    /// </summary>
+    /// <param name="characterId">Blank for the narrator.</param>
+    /// <param name="voiceId">Blank clears the scope, which sends those lines
+    /// back to the character's standing voice rather than silencing them.</param>
+    [JsonRpcMethod("narration/setVoiceScope")]
+    public async Task<bool> SetVoiceScopeAsync(
+        string? characterId, string? act, string? chapter, string? scene, string? voiceId)
+    {
+        if (_workspace.Projects.ProjectRoot == null)
+            return false;
+
+        var set = await _cast.SetScopeAsync(
+            string.IsNullOrWhiteSpace(characterId) ? null : characterId,
+            new VoiceScope(act, chapter, scene),
+            voiceId);
+
+        // Which act, which chapter and which scene are the writer's own words -
+        // a chapter title is prose. Only the shape of the statement is logged.
+        Log.Info(
+            $"narration/setVoiceScope narrator={string.IsNullOrWhiteSpace(characterId)} " +
+            $"act={!string.IsNullOrWhiteSpace(act)} chapter={!string.IsNullOrWhiteSpace(chapter)} " +
+            $"scene={!string.IsNullOrWhiteSpace(scene)} " +
+            $"assigned={!string.IsNullOrWhiteSpace(voiceId)} ok={set}.");
+        return set;
     }
 
     /// <summary>
@@ -294,14 +358,20 @@ public sealed class NarrationRpc
     /// already applied to its voice and every id already resolved to a name.
     /// Shared by the single scene and the whole book so the two can never drift
     /// into describing the same segment differently.</summary>
+    /// <param name="where">Where in the book this line sits, so a voice the
+    /// writer set over part of it resolves here as it will at playback. Null
+    /// only where the caller genuinely has no position - and every caller that
+    /// reads the book has one.</param>
     private static NarrationSegmentDto ToDto(
         NarrationSegment segment,
         IReadOnlyDictionary<string, string> names,
-        VoiceCastSheet sheet)
+        VoiceCastSheet sheet,
+        NarrationPlacement? where = null)
         => new(
             segment.Index,
             segment.Kind.ToString(),
             segment.Key,
+            segment.LineKey,
             segment.Text,
             segment.SpeakerId,
             segment.SpeakerId != null ? names.GetValueOrDefault(segment.SpeakerId) : null,
@@ -311,7 +381,7 @@ public sealed class NarrationRpc
             segment.Direction.Key,
             segment.Direction.Source.ToString(),
             segment.Direction.Evidence,
-            VoiceCast.Resolve(sheet, segment.SpeakerId),
+            VoiceCast.Resolve(sheet, segment.SpeakerId, where),
             // With the speaker's standing register already added, because that
             // is what will be performed - sliders showing the line's own numbers
             // while the character is read at others is a lie the writer could
@@ -364,6 +434,13 @@ public sealed record NarrationCastDto(
 /// evidence, carried through from the Dialogue view's own attribution.</summary>
 public sealed record NarrationCandidateDto(string CharacterId, string Name, int Percent);
 
+/// <summary>A voice that only applies over part of the book.</summary>
+/// <param name="CharacterId">Empty for the narrator.</param>
+/// <param name="Chapter">The chapter's guid where the app wrote it, or its title
+/// where a writer did.</param>
+public sealed record VoiceScopeDto(
+    string CharacterId, string? Act, string? Chapter, string? Scene, string VoiceId);
+
 /// <summary>
 /// One stretch of the scene as it will be read.
 /// </summary>
@@ -384,6 +461,11 @@ public sealed record NarrationSegmentDto(
     int Index,
     string Kind,
     string Key,
+    /// <summary>The dialogue line this utterance belongs to. A speech of three
+    /// sentences is three segments sharing one of these, and a speaker or a
+    /// direction the writer sets belongs to the line rather than to the breath -
+    /// so this, not <c>Key</c>, is what a correction is addressed to.</summary>
+    string LineKey,
     string Text,
     string? SpeakerId,
     string? SpeakerName,
