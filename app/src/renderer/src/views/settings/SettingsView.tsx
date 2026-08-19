@@ -21,6 +21,7 @@ import { assetDirectories } from '../../stores/userAssets'
 import { TemplatesCard } from './TemplatesCard'
 import { HotkeysCard } from './HotkeysCard'
 import { ExtensionsCard } from './ExtensionsCard'
+import { NarrationCard } from './NarrationCard'
 import { BackupsCard } from './BackupsCard'
 import { SpellCheckCard } from './SpellCheckCard'
 import { WatchWordsCard } from './WatchWordsCard'
@@ -51,7 +52,60 @@ import {
 } from './settingsNavigation'
 import './settings.css'
 
-const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
+/**
+ * The writing languages a project can be set to.
+ *
+ * It is labelled Quote style because that is the change a writer sees first,
+ * but it is the project's writing language and almost everything reads it:
+ * which analysis pack the dialogue and emotion passes use, what an export
+ * declares, and - since narration - which language a book is read aloud in.
+ *
+ * Chinese belongs here for that last reason. The narration manual uses Chinese
+ * examples throughout, the analysis pack ships, and the speech model speaks it -
+ * and none of it could be reached, because this was the only way to say what
+ * language a book is written in and it had no Chinese entry.
+ *
+ * Japanese sets dialogue in corner brackets, which DialogueScanner recognises
+ * as of this change. It did not before, so a book written in them had no
+ * dialogue at all as far as the app was concerned: nobody to cast, nothing to
+ * direct, and a reading in which the narrator said everybody's words.
+ *
+ * Every entry here has a matching pair in AppSettings.LanguagePresets, which is
+ * what actually types the marks, and every pair it types is one the scanner can
+ * find again. Offering a language whose marks nothing downstream reads would be
+ * worse than not offering it.
+ */
+const QUOTE_LANGUAGES = [
+  'en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk', 'nl',
+  'zh-CN', 'ja', 'ko'
+]
+
+/**
+ * The list the backend actually seeds quote pairs from, which is the one that
+ * decides what a writer can choose.
+ *
+ * The constant above is what to draw before it answers, and nothing more. Two
+ * copies of this list is what caused the bug: the backend knew about Chinese
+ * and this did not, so a book could not be declared as written in it - and
+ * everything that reads the writing language, up to and including which
+ * language the book is read aloud in, was told it was English.
+ */
+function useWritingLanguages(): string[] {
+  const [languages, setLanguages] = useState<string[]>(QUOTE_LANGUAGES)
+  useEffect(() => {
+    let live = true
+    void rpc
+      .request<string[]>('settings/writingLanguages')
+      .then((list) => {
+        if (live && list.length > 0) setLanguages(list)
+      })
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [])
+  return languages
+}
 
 /** Common typographic fonts offered as a datalist; the field stays free-text so
  * any installed family can be typed. The first three ship with the app and so
@@ -147,7 +201,11 @@ const QUOTE_PREVIEW: Record<string, [string, string]> = {
   ru: ['«', '»'],
   pl: ['„', '“'],
   cs: ['„', '“'],
-  sk: ['„', '“']
+  sk: ['„', '“'],
+  'zh-CN': ['“', '”'],
+  nl: ['“', '”'],
+  ja: ['「', '」'],
+  ko: ['“', '”']
 }
 
 function autoReplacementPreview(language: string): string {
@@ -511,6 +569,7 @@ export function SettingsView(): React.JSX.Element {
   if (!view) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 
   const eff = view.effective
+  const writingLanguages = useWritingLanguages()
   // The language the prose is in, which is what read-aloud speaks and therefore
   // what the voice has to match.
   const writingLanguage = eff.autoReplacementLanguage || 'en'
@@ -1159,7 +1218,7 @@ export function SettingsView(): React.JSX.Element {
               void update(scopeFor('writing'), { autoReplacementLanguage: e.target.value })
             }
           >
-            {QUOTE_LANGUAGES.map((lang) => (
+            {writingLanguages.map((lang) => (
               <option key={lang} value={lang}>
                 {lang}
               </option>
@@ -1511,6 +1570,10 @@ export function SettingsView(): React.JSX.Element {
           </div>
         </>
       )
+    },
+    {
+      key: 'narration',
+      body: <NarrationCard />
     },
     {
       key: 'extensions',

@@ -19,6 +19,20 @@ public sealed class SettingsRpc
         _workspace = workspace;
     }
 
+    /// <summary>
+    /// The writing languages a project can be set to, in the order they are
+    /// offered.
+    ///
+    /// Served rather than duplicated in the renderer, because it was duplicated
+    /// and the two copies drifted: the backend's idea of the list carried
+    /// Chinese and Japanese and the picker's did not, so a book could not be
+    /// declared as written in either - and everything that reads the writing
+    /// language, up to and including which language the book is read aloud in,
+    /// was therefore told it was English.
+    /// </summary>
+    [JsonRpcMethod("settings/writingLanguages")]
+    public string[] WritingLanguages() => [.. AutoReplacementDefaults.AvailableLanguages];
+
     [JsonRpcMethod("settings/get")]
     public async Task<JsonElement> GetAsync()
     {

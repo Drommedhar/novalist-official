@@ -611,5 +611,98 @@ public sealed class NarrationRpcTests : IDisposable
     public void Dimensions_AreTheOnesAnEngineActuallyTakes()
         => Assert.Equal(EmotionDirector.Dimensions, _rpc.Dimensions());
 
+    // ── Voices for one stretch of the book ──
 
+    [Fact]
+    public async Task SetVoiceScope_CastsSomebodyForOneActWithoutTouchingTheRestOfTheBook()
+    {
+        var (_, mira) = await CastAsync();
+        await _rpc.SetVoiceAsync(mira, "standing");
+
+        await _rpc.SetVoiceScopeAsync(mira, "Two", null, null, "older");
+
+        var scope = Assert.Single(await _rpc.VoiceScopesAsync());
+        Assert.Equal("older", scope.VoiceId);
+        Assert.Equal("Two", scope.Act);
+        // The standing voice is what everywhere else still resolves to.
+        var sheet = await new VoiceCast(_workspace.Projects, _workspace.FileService).ReadAsync();
+        Assert.Equal("standing", VoiceCast.Resolve(sheet, mira));
+        Assert.Equal("older", VoiceCast.Resolve(sheet, mira, new NarrationPlacement("Two", null, null, null)));
+    }
+
+    [Fact]
+    public async Task Book_ResolvesAScopedVoiceWhereItApplies()
+    {
+        // The reading the writer looks at, and the one the system voices speak,
+        // both come from here. Resolved without a position it showed the
+        // character's standing voice everywhere, so a voice set over a chapter
+        // was ignored by everything except the designed-engine render - which is
+        // the one path a writer with no engine installed never reaches.
+        var (_, mira) = await CastAsync();
+        await SceneAsync("One", "S", "<p>\"You are late,\" Mira snapped.</p>");
+        await _rpc.SetVoiceAsync(mira, "her-usual-voice");
+
+        var chapter = Assert.Single((await _rpc.BookAsync()).Chapters);
+        await _rpc.SetVoiceScopeAsync(mira, null, chapter.Guid, null, "her-older-voice");
+
+        var spoken = Assert.Single(
+            Assert.Single(Assert.Single((await _rpc.BookAsync()).Chapters).Scenes).Segments
+                .Where(s => s.Kind == "Dialogue"));
+        Assert.Equal("her-older-voice", spoken.VoiceId);
+    }
+
+    [Fact]
+    public async Task SetVoiceScope_SaidTwiceChangesTheVoiceRatherThanLeavingTwo()
+    {
+        var (_, mira) = await CastAsync();
+
+        await _rpc.SetVoiceScopeAsync(mira, "Two", null, null, "older");
+        await _rpc.SetVoiceScopeAsync(mira, "Two", null, null, "younger");
+
+        // Two overrides over the same stretch resolve by whichever was written
+        // first, which is a coin toss the writer never sees.
+        Assert.Equal("younger", Assert.Single(await _rpc.VoiceScopesAsync()).VoiceId);
+    }
+
+    [Fact]
+    public async Task SetVoiceScope_WithNoVoiceSendsThoseLinesBackToTheStandingOne()
+    {
+        var (_, mira) = await CastAsync();
+        await _rpc.SetVoiceScopeAsync(mira, "Two", null, null, "older");
+
+        await _rpc.SetVoiceScopeAsync(mira, "Two", null, null, null);
+
+        Assert.Empty(await _rpc.VoiceScopesAsync());
+    }
+
+    [Fact]
+    public async Task SetVoiceScope_NamingNowhereIsRefusedRatherThanAppliedToTheWholeBook()
+    {
+        var (_, mira) = await CastAsync();
+
+        Assert.False(await _rpc.SetVoiceScopeAsync(mira, null, null, null, "older"));
+        Assert.Empty(await _rpc.VoiceScopesAsync());
+    }
+
+    [Fact]
+    public async Task SetVoiceScope_WithNoProjectOpenChangesNothing()
+    {
+        _workspace.CloseProject();
+
+        // Nowhere to write it. Reporting it as set would leave the writer
+        // believing in a cast that does not exist.
+        Assert.False(await _rpc.SetVoiceScopeAsync("mira", "Two", null, null, "older"));
+    }
+
+    [Fact]
+    public async Task SetVoiceScope_WorksForTheNarratorToo()
+    {
+        // A book with a framing narrator genuinely changes teller between its
+        // parts, which is the same statement as a character sounding different.
+        await _rpc.SetVoiceScopeAsync(null, null, "Chapter Nine", null, "the-boy");
+
+        var scope = Assert.Single(await _rpc.VoiceScopesAsync());
+        Assert.Equal(string.Empty, scope.CharacterId);
+        Assert.Equal("Chapter Nine", scope.Chapter);
+    }
 }

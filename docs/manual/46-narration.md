@@ -32,7 +32,9 @@ Nothing here is editable. This is where the book is listened to; the [Editor](05
 
 ## Casting the voices
 
-The voice pickers offer the voices your operating system has installed — the same list read-aloud uses. If the list is empty, install voices through your operating system's speech settings; Windows and macOS both ship a voice manager.
+The voice pickers offer the voices your operating system has installed — the same list read-aloud uses. On Windows that is the SAPI voice store, which is where anything you install to get more voices registers; on macOS it is the voices `say` knows; on Linux it is espeak-ng, where that is present. If the list is empty, install voices through your operating system's speech settings; Windows and macOS both ship a voice manager.
+
+Which language your book is written in is set in **Settings**, under Quote style — it decides the quotation marks you type, and also which language the book is read aloud in. Chinese, Japanese, Korean and Dutch are all offered; Japanese sets dialogue in corner brackets, which Novalist reads as quotation marks like any other pair.
 
 - The **narrator** belongs to the book, not to a person. There is one, and it reads all the prose. A narrator that changed with the point of view would be a different book every chapter.
 - A **character** you cast is read in their own voice everywhere they speak, in every chapter.
@@ -50,15 +52,39 @@ The voices on your machine are whatever the operating system happens to ship, an
 
 Novalist itself loads no model and reaches no network. What it does is assemble the description and hold onto the result; the engine is the extension's, and the manual page for whichever engine you install says what it needs.
 
-When an engine is installed, the cast list gains a **Prepare** button (getting an engine ready is a once-per-machine step, and it says what it will cost before it starts), and then every character's row gains **Design a voice**.
+### Installing a speech engine
+
+An engine arrives from **Extensions**, like anything else you install. Some editions of Novalist already carry one in the box; it is copied into your extensions folder the first time the app runs, and an engine you later update from the gallery is left alone rather than replaced.
+
+**Settings → Narration** lists the speech engines on this machine, what each is doing, and a **Prepare** button for any that is not ready — with the download size on the button, so you know what you are agreeing to before you agree to it. Getting an engine ready is a once-per-machine step: it builds its own environment and fetches its model, several gigabytes, with progress and a Cancel throughout. Nothing is installed into any Python you already have, and an engine that needs an interpreter your machine has not got fetches its own rather than asking you to.
+
+The same **Prepare** button is on the cast rail in the Narration view. Settings is where you will find it when you do not already have a working engine to look at.
+
+**After the first time, you do not press anything.** An engine that has everything it needs starts itself when Novalist opens — loading a model takes half a minute and happens in the background, and the cast rail says so while it does. Only an engine with a download still outstanding waits to be asked, because that is a decision about your connection rather than a startup.
+
+When an engine is ready, every character's row gains **Design a voice**.
+
+**With more than one engine installed, the brief asks which one should make it.** The choice is audible and permanent: a voice is stored as the audio that engine produced, and only that engine can ever speak in it. Each designed voice is listed with the engine it came from, so you can tell at a glance which made what — and a reading only ever goes to the engine that made the voice it is cast in, per line.
 
 ### The brief
 
-Designing opens the **brief** — the description the voice is made from — and you can read and edit it before anything is sent. It is assembled from your Codex entry: age, gender, build, height, distinguishing features, any custom property that names the voice, and any section titled something like *Voice*, *Speech* or *Accent*. Under it are a few lines the character actually speaks, because how somebody talks describes their voice better than any adjective.
+Designing opens the **brief** — the description the voice is made from — and you can read and edit it before anything is sent. It is assembled from your Codex entry: age, gender, build, height, distinguishing features, any custom property that names the voice, and **what you wrote about them**. Anything under a heading like *Voice*, *Speech* or *Accent* comes first, because that is you telling us directly; everything else you have written follows, up to a point — a brief is an instruction, not a biography.
+
+What does not come is the story. Sections about backstory, history, goals, conflicts, secrets or relationships are left out, because an arc is not an instrument: pour a character's history into a design prompt and what comes back is a voice shaped by their worst scene.
+
+Under the brief are a few lines the character actually speaks, because how somebody talks describes their voice better than any adjective. Only the ones said plainly — a line carrying a mood, or a shout, is not what a voice should be built on, since the clip that gets designed is what every later line is copied from.
 
 **The brief describes the instrument, never the mood.** Age, accent, pace, the register they speak in when nothing is wrong — the things that do not change. How a line is *felt* is decided per line, every time, against that one fixed identity, which is what lets a character be furious in chapter three and grieving in chapter twenty and still be recognisably the same person.
 
 That is why emotion words are stripped out of the brief on the way through, including anything you type into it yourself. An emotion written into a design prompt is baked into the timbre, where no amount of per-line direction can get it back out — and you would have a character who sounds the same at the funeral and the wedding.
+
+### Asking again, and asking for one back
+
+Design is not reproducible: the same description gives a different voice every time it is asked for. That is why a voice is played and kept rather than stored outright, and it is what **Design a voice** on a character who already has one is for.
+
+The brief carries a **Seed**. Left blank, every attempt is its own draw — press Design again and you get a different voice. Put a number in and you get that one particular voice back.
+
+Each offered voice says what it was drawn with, with a button to pin that number. A voice you heard, liked and did not keep is otherwise gone, because nothing else remembers the draw.
 
 ### Consent
 
@@ -70,19 +96,60 @@ The narrator has no Codex entry, because a narrator is not a character. Their ro
 
 Nothing is taken from the premise paragraph, which is where the drama lives — the same rule as everywhere else here: the brief is the instrument.
 
+### Hearing the range
+
+Once a character has a voice, the design panel offers **Hear the range**: the same line read at three points on the emotional scale, on a line the character actually speaks where they have one.
+
+One neutral sample tells you nothing. The question worth asking of a casting is whether it still sounds like that person when they are furious, and that is not a question a calm sentence can answer.
+
 ### Listen before you keep it
 
 Designing gives you a voice to hear, not a voice you are stuck with. The dialog plays what it made and offers **Keep this voice** or **Try again**.
 
 That is not politeness — voice design is not deterministic, and the same description asked for twice gives two different voices. Sometimes one of them is not what you asked for at all. Nothing is stored or cast until you press Keep, so a miss costs you one more press rather than becoming your character's voice until you notice.
 
-Write the brief in the language you write in; it is understood. If you keep getting a voice that is not the one you meant, say more about it — age, build, pace, register — and try again.
+Write the brief in the language you write in; it is understood. **The voice is designed speaking your book's language**, which is what stops a German novel being read by somebody with an English accent — the short clip a voice is designed as is what every later line is copied from, accent and all. If you keep getting a voice that is not the one you meant, say more about it — age, build, pace, register — and try again.
 
 ### What is stored
 
 A designed voice is stored as **audio**, in `.novalist/narration/voices/`, alongside the brief it came from. The audio is the voice: voice design is not deterministic, so re-deriving it from the description would hand you a slightly different actor every session. The brief is kept only so that designing again starts from what you asked for last time.
 
 Designing again means a **new** actor rather than a refinement of the old one — same reason. **Delete this voice** forgets it and un-casts anybody reading in it, rather than leaving the cast pointing at something that no longer exists.
+
+### A character who does not sound the same all the way through
+
+A character is not one voice for four hundred pages. They age, they are injured, they are disguised, they are remembered as a child in a chapter set thirty years earlier — and a book that changes narrator partway has the same problem.
+
+The cast sheet takes voices that only apply over part of the book. They are resolved **most specific first**, exactly the way the Codex resolves what an entry is like at a point in the story: a scene beats a chapter, a chapter beats an act, and anything you have not scoped is the character's standing voice.
+
+Written into `.novalist/narration/cast.json`, under `overrides`:
+
+```json
+{
+  "narratorVoiceId": "narrator-voice",
+  "voices": { "mira": "mira-voice" },
+  "overrides": [
+    { "characterId": "mira", "act": "Three", "voiceId": "mira-older" },
+    { "characterId": "mira", "chapter": "The harbour wall", "voiceId": "mira-at-sixty" },
+    { "characterId": "mira", "chapter": "The harbour wall", "scene": "Low tide",
+      "voiceId": "mira-whispering" }
+  ]
+}
+```
+
+- `chapter` matches either the chapter's title or its internal id, so an entry you typed by hand works the same as one the app wrote.
+- Leaving `characterId` blank scopes the **narrator** — for a framing device, or a book that hands the telling to somebody else for a stretch.
+- An entry naming no voice is not an override and is ignored, so a half-written line does not silence anybody.
+
+The voices themselves are designed the ordinary way; this only decides which of them reads where.
+
+**From the cast rail.** The pin button beside a name opens the stretches this book actually has — every act, every chapter, every scene, in reading order — and a voice to read them in. Pick a stretch, pick a voice, and that is the override written. The button is marked when a character carries one, so which of your cast changes voice across the book is readable without opening anything.
+
+**Design one for here** designs a voice for exactly that stretch. It gets an id of its own, so asking for an older Mira in Act Three leaves how she sounded in Act One exactly where it was — you can have both, and switch between them by changing the stretch rather than by designing again.
+
+Un-casting a stretch sends those lines back to the character's standing voice. It never silences them.
+
+Forgetting a voice clears every stretch it was cast over, for the same reason: an override pointing at a voice that no longer exists would beat the character's real one, and those chapters would fall back to the narrator while the rest of the book stayed right.
 
 ## How the reading is worked out
 
@@ -140,7 +207,11 @@ Sixteen names cover most lines. For the ones they do not, **By hand** opens the 
 
 **Apply to** directs a run of lines in one go: this line and the ones after it, as far into the scene as you say. A whole argument, a whole eulogy. Thirty lines set one at a time is thirty chances to set one of them differently by accident, and the reason to direct a run by hand is that it is one performance. A run stops at the scene break; directing across one is not what anybody means by "this argument".
 
-**Like that line** is the input of last resort and the most precise one there is. Some deliveries have no name in any vocabulary, and once you have heard the one you wanted you can point at it instead of describing it: pick any line rendered in this sitting and the engine performs the new one in the manner of that clip. The voice stays the designed one — only the delivery is borrowed. It reaches engines that accept an emotion reference; the others fall back to the numbers, so setting one never leaves a line worse off.
+**Like that line** is the input of last resort and the most precise one there is. Some deliveries have no name in any vocabulary, and once you have heard the one you wanted you can point at it instead of describing it: pick a line rendered in this sitting and the engine performs the new one in the manner of that clip.
+
+The list holds **this character's own lines** and nothing else. An engine that takes a clip as a direction takes its whole delivery from it, timbre and all, so pointing one character at another's line would not read it their way — it would read it in their voice. It is also not a thing a director can ask for.
+
+It reaches engines that accept an emotion reference; the others fall back to the numbers, so setting one never leaves a line worse off.
 
 ### A standing register
 
@@ -152,7 +223,15 @@ Registers live in the cast sheet, so they belong to the book rather than to any 
 
 ## Reading it
 
-With an engine installed and voices designed, **Play** performs the book in those voices, with each line directed as the panel says. With no engine, it reads with the voices your operating system has — the same transport, the same highlight, the same corrections; only the voices differ.
+With an engine installed and voices designed, **Play** performs the book in those voices, with each line directed as the panel says.
+
+**You can watch it being made.** Speech is built ahead of where it is being played, so the page marks both: a line already made carries a bar down its edge, and the one line an engine is working on right now is hatched and moving. A pause is then a model thinking rather than something that has stopped.
+
+**Nothing is made twice.** Each line is kept under a key made of everything that decides how it sounds — the words, the voice's own audio, the direction, the speed, the engine. Stop, fix a word, press Play, and only the line you changed is spoken again; the rest starts instantly. Redesigning a voice counts as a change, so a character never goes on speaking in the voice you replaced.
+
+**Read again** throws all of it away and reads from nothing. The same line comes back differently each time an engine speaks it, so this is how to get a second answer when you did not like the first.
+
+The kept audio lives beside the application, never in your project, goes when you close the project, and never grows past a couple of gigabytes — what survives is the part you are working on. With no engine, it reads with the voices your operating system has — the same transport, the same highlight, the same corrections; only the voices differ.
 
 A performed reading is rendered a stretch at a time and played as each stretch arrives, so pressing Play does not wait for the chapter and pressing Stop does not throw away a chapter's worth of work. The audio goes to a cache beside the application, never into your project, and is deleted when you stop: a repository should not grow by tens of megabytes because somebody pressed Play, and a rendering of your manuscript should not outlive the sitting it was made in.
 
@@ -170,7 +249,7 @@ The highlight is painted over the view and never touches the document, so listen
 
 Nothing is duplicated. The prose and the reading are built from your scene files every time you open the view, so they always reflect what is actually written. Two things are stored:
 
-- The **cast**, including each character's standing register — `.novalist/narration/cast.json`, one file per book.
+- The **cast**, including each character's standing register — `.novalist/narration/cast.json`, one file per project, shared by every book in it.
 - The **speakers and directions you set by hand** — alongside the rest of the scene's metadata in `.novalist/scenes.json`, the same file the Dialogue view's corrections live in.
 - Any **designed voices** — `.novalist/narration/voices/`, as audio plus the brief each came from.
 
@@ -193,6 +272,14 @@ Rendering a novel takes hours, and you are expected to go on writing through it.
 - **It is resumable.** A chapter already rendered from the same words, the same cast and the same directions is not rendered again. Edit chapter nine and only chapter nine is re-rendered — the difference between a five-minute correction and an overnight one. **Render every chapter again** overrides that when you want the whole thing fresh.
 - **It is stoppable.** Stop ends it within a few lines, and every chapter that finished stays finished. Start again later and it picks up where it left off.
 - **Lines it could not speak are counted, not hidden.** A character with no voice, or a voice designed on another machine, is reported at the end rather than leaving a silence you would only find by listening.
+
+### How it is read
+
+The reading in the app goes a sentence at a time, because that is where the highlight follows the voice and correcting a line costs a line. A recording is listened to end to end and has nothing to gain from that, so consecutive sentences one voice says are recorded **in one breath**, with no pause invented between them.
+
+It matters because a cloning model starts each call afresh from the character's reference clip, with no memory of the sentence before it. Pitch, pace and energy reset at every full stop, and a paragraph stitched from four of those sounds like four readings rather than one narrator.
+
+Sentences are only read together where every reason to keep them apart is absent: the same speaker, the same direction, never across the quote marks, and never more than about six hundred characters. That last figure is measured rather than assumed: read against the same sentences spoken separately, six hundred characters comes back whole, seven hundred loses a little, and eight hundred is prose going missing. A line cut off mid-word is silent — nothing reports it, and you find it by listening. It is slower than reading them separately — there is no per-call overhead to reclaim. It buys continuity.
 
 ### What comes out
 

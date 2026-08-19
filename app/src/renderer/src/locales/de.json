@@ -616,7 +616,18 @@
       "other": "Sonstiges"
     },
     "extensionsInstalled": "{{count}} installiert, {{enabled}} aktiv.",
-    "extensionsManage": "Erweiterungen installieren und verwalten"
+    "extensionsManage": "Erweiterungen installieren und verwalten",
+    "narration": "Vertonung",
+    "narrationEngines": "Sprachmodule",
+    "narrationDesc": "Ein Sprachmodul gibt Ihren Figuren entworfene Stimmen und liest das Buch darin vor. Alles läuft auf diesem Rechner; die Vorbereitung lädt das Modell einmalig herunter.",
+    "narrationNoEngines": "Es ist kein Sprachmodul installiert. Eines erhalten Sie über Erweiterungen — bis dahin nutzt das Vorlesen die Stimmen, die Ihr Betriebssystem bereits mitbringt.",
+    "narrationReady": "Bereit",
+    "narrationNotReady": "Nicht bereit",
+    "narrationPreparing": "Wird vorbereitet…",
+    "narrationPrepare": "Vorbereiten",
+    "narrationPrepareWithSize": "Vorbereiten ({{size}} GB Download)",
+    "narrationWhereDesc": "Besetzung, Stimmen je Figur und Regieanweisungen je Zeile finden Sie in der Ansicht Vertonung.",
+    "narrationOpen": "Vertonung öffnen"
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",
@@ -2356,7 +2367,26 @@
     "preparingReading": "Lesung wird vorbereitet",
     "listenBeforeKeeping": "Hören Sie hinein, bevor Sie sie übernehmen. Dieselbe Beschreibung ergibt jedes Mal eine andere Stimme - versuchen Sie es noch einmal, wenn es nicht die richtige ist.",
     "keepVoice": "Diese Stimme übernehmen",
-    "designAgain": "Noch einmal versuchen"
+    "designAgain": "Noch einmal versuchen",
+    "audition": "Bandbreite anhören",
+    "auditioning": "Hörprobe läuft…",
+    "auditionNote": "Dieselbe Zeile an drei Punkten der Gefühlsskala, damit Sie hören, ob die Besetzung trägt, wenn die Figur wirklich etwas empfindet. Eine einzige neutrale Probe sagt darüber nichts.",
+    "scopeFor": "Stimmen für einen Teil des Buches, für {{name}}",
+    "scopeBlurb": "Eine Stimme für einen Abschnitt des Buches — einen Akt, ein Kapitel oder eine einzelne Szene. Sie gilt dort vor der ständigen Stimme; überall sonst ändert sich nichts.",
+    "scopeWhere": "Wo im Buch",
+    "scopeVoice": "Dort gelesen von",
+    "scopeDesign": "Eine dafür entwerfen",
+    "scopeNowhere": "Dieses Buch hat noch keine Kapitel, also gibt es keinen Abschnitt, für den sich eine Stimme setzen ließe.",
+    "scopeElsewhere": "Ein Ort, den dieses Buch nicht mehr hat",
+    "designWith": "Entworfen von",
+    "readAgain": "Erneut lesen",
+    "readAgainHint": "Das bereits Erzeugte verwerfen und neu lesen. Dieselbe Zeile klingt bei jedem Sprechen etwas anders — so bekommen Sie eine zweite Fassung.",
+    "readingStopped": "Die Lesung wurde abgebrochen: {{reason}}",
+    "seed": "Startwert",
+    "seedRandom": "Jedes Mal zufällig",
+    "seedNote": "Bleibt das Feld leer, ergibt jeder Versuch eine andere Stimme — so probieren Sie es erneut. Tragen Sie eine Zahl ein, um eine bestimmte Stimme zurückzuholen.",
+    "seedWas": "Mit Startwert {{seed}} erzeugt. ",
+    "seedKeepIt": "Diesen Startwert verwenden"
   },
   "shell": {
     "toggleBinder": "Binder umschalten",

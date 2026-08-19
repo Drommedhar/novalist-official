@@ -137,6 +137,11 @@ public sealed class BackendHost : IDisposable
         _workspace.UiBridge.Notifier = (method, payload) => rpc.NotifyAsync(method, payload);
         ExtensionsRpc.WebviewPosted = (extensionId, viewKey, json) =>
             _ = rpc.NotifyAsync("extensions/webviewPosted", extensionId, viewKey, json);
+        // Which line the speech engine is on, pushed as it happens. A render
+        // window is one request and one answer, so the page would otherwise
+        // learn nothing until the whole window was done.
+        Rpc.VoiceEngineRpc.Making = making =>
+            _ = rpc.NotifyAsync("narration/making", making);
         // Themes, Locales and Analysis were read once at startup and a restart
         // was needed after any change - which is the wrong loop for something a
         // writer iterates on. The renderer reloads the folders it is told about.

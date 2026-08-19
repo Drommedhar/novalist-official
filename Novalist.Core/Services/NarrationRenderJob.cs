@@ -8,7 +8,13 @@ using Novalist.Sdk.Models.Narration;
 namespace Novalist.Core.Services;
 
 /// <summary>One scene of a rendered chapter, already cast and directed.</summary>
-public sealed record NarrationRenderScene(string SceneId, IReadOnlyList<NarrationSegment> Segments);
+/// <param name="Where">Where in the book this scene sits, so a voice the writer
+/// set for part of it is resolved rather than the character's standing one.
+/// Null where the caller has no position to give - front matter has none.</param>
+public sealed record NarrationRenderScene(
+    string SceneId,
+    IReadOnlyList<NarrationSegment> Segments,
+    NarrationPlacement? Where = null);
 
 /// <summary>One chapter of the book, in reading order.</summary>
 public sealed record NarrationRenderChapter(
@@ -79,6 +85,26 @@ public sealed class NarrationRenderSettings
     /// left alone - they have already made the joins continuous.
     /// </summary>
     public int JoinFadeMs { get; init; } = 15;
+
+    /// <summary>
+    /// The longest run of one voice's consecutive sentences to read in a single
+    /// breath, in characters. Zero reads every sentence on its own.
+    ///
+    /// A cloning model starts each call afresh from the reference clip with no
+    /// memory of the sentence before it, so pitch, pace and energy reset at
+    /// every full stop and a stitched paragraph sounds like four readings rather
+    /// than one narrator. A recording is listened to end to end and has nothing
+    /// to gain from the fine split the live reading needs.
+    ///
+    /// Six hundred, measured rather than guessed. Read against the same
+    /// sentences spoken separately, a run of six hundred characters comes back
+    /// with 98% of the audio; seven hundred with 88%; eight hundred with 83%,
+    /// which is prose going missing rather than speech tightening. The model's
+    /// documented capacity is minutes of audio, but through a reference clip it
+    /// stops delivering well before that, and a line cut off mid-word is silent
+    /// - nothing reports it, and it is found by listening.
+    /// </summary>
+    public int JoinCharacters { get; init; } = 600;
 }
 
 /// <summary>
@@ -301,15 +327,29 @@ public sealed class NarrationRenderJob
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var window = scene.Segments.Skip(at).Take(settings.Window).ToArray();
+                // Consecutive sentences one voice says in one breath, read in
+                // one breath. A recording is listened to end to end, and a model
+                // that starts each call afresh resets its pitch and pace at
+                // every full stop otherwise.
+                var joined = NarrationRender.Joined(window, settings.JoinCharacters);
+                var covers = joined.ToDictionary(
+                    j => j.Segment.Key, j => j.Covers, StringComparer.Ordinal);
+
                 var request = NarrationRender.Build(
-                    window, sheet, voices, features, language, settings.Rate, clips);
+                    [.. joined.Select(j => j.Segment)], sheet, voices, features, language,
+                    settings.Rate, clips, _ => scene.Where);
 
                 // Segments the cast could not place - no voice, or a voice this
-                // machine does not have - never reach the engine. Counted here
-                // so the total the writer sees is the whole chapter.
-                missing += window.Length - request.Segments.Count;
-                for (var i = request.Segments.Count; i < window.Length; i++)
-                    spoke(0);
+                // machine does not have - never reach the engine. Counted in
+                // lines rather than in calls, so the total the writer sees is
+                // the whole chapter however the lines were grouped.
+                var asked = request.Segments.Select(r => r.Key).ToHashSet(StringComparer.Ordinal);
+                foreach (var join in joined.Where(j => !asked.Contains(j.Segment.Key)))
+                {
+                    missing += join.Covers;
+                    for (var i = 0; i < join.Covers; i++)
+                        spoke(0);
+                }
                 if (request.Segments.Count == 0)
                     continue;
 
@@ -318,11 +358,13 @@ public sealed class NarrationRenderJob
                     .WithCancellation(cancellationToken))
                 {
                     heard++;
+                    var stands = covers.GetValueOrDefault(clip.Key, 1);
                     var read = clip.Error == null ? WaveAudio.Read(clip.Audio) : null;
                     if (read == null || read.Samples.Length == 0)
                     {
-                        missing++;
-                        spoke(0);
+                        missing += stands;
+                        for (var i = 0; i < stands; i++)
+                            spoke(0);
                         continue;
                     }
 
@@ -332,8 +374,9 @@ public sealed class NarrationRenderJob
                     // halfway through is worse than one with a gap in it.
                     if (read.Format != format)
                     {
-                        missing++;
-                        spoke(0);
+                        missing += stands;
+                        for (var i = 0; i < stands; i++)
+                            spoke(0);
                         continue;
                     }
 
@@ -344,16 +387,23 @@ public sealed class NarrationRenderJob
                             ? read.Samples
                             : WaveAudio.Fade(read.Samples, read.Format, settings.JoinFadeMs));
                     gapMs = settings.SegmentGapMs;
-                    spoke(read.DurationMs);
+                    // Once per line the call covered, not once per call. The
+                    // bar counts lines, and a joined run that moved it by one
+                    // would leave it short of the end by however many sentences
+                    // were read in one breath.
+                    for (var i = 0; i < stands; i++)
+                        spoke(read.DurationMs / stands);
                 }
 
-                // Fewer clips came back than lines went out. Counted rather than
+                // Fewer clips came back than calls went out. Counted rather than
                 // assumed: an engine that quietly drops a line is a failure only
                 // ever noticed while listening.
                 for (var i = heard; i < request.Segments.Count; i++)
                 {
-                    missing++;
-                    spoke(0);
+                    var stands = covers.GetValueOrDefault(request.Segments[i].Key, 1);
+                    missing += stands;
+                    for (var n = 0; n < stands; n++)
+                        spoke(0);
                 }
             }
         }
@@ -387,21 +437,37 @@ public sealed class NarrationRenderJob
             .Append(settings.Rate.ToString("F3", CultureInfo.InvariantCulture)).Append(Unit)
             .Append(settings.SegmentGapMs).Append(Unit)
             .Append(settings.SceneGapMs).Append(Unit)
+            // The fade is audible at every join of the chapter, so changing
+            // it changes the audio.
+            .Append(settings.JoinFadeMs).Append(Unit)
+            .Append(settings.JoinCharacters).Append(Unit)
             .Append((int)features).Append('\n');
 
-        foreach (var segment in chapter.Segments)
+        // By scene rather than over the flattened chapter, because which voice
+        // a line resolves to now depends on where the line is.
+        foreach (var scene in chapter.Scenes)
         {
-            builder.Append(segment.Key).Append(Unit)
-                .Append(VoiceCast.Resolve(sheet, segment.SpeakerId) ?? "-").Append(Unit)
-                .Append(segment.Direction.Key).Append(Unit)
-                .Append(segment.Direction.ReferenceClip ?? "-").Append(Unit);
-            foreach (var (dimension, value) in segment.Direction.Vector
-                .OrderBy(p => p.Key, StringComparer.Ordinal))
+            foreach (var segment in scene.Segments)
             {
-                builder.Append(dimension).Append('=')
-                    .Append(value.ToString("F3", CultureInfo.InvariantCulture)).Append(',');
+                builder.Append(segment.Key).Append(Unit)
+                    .Append(VoiceCast.Resolve(sheet, segment.SpeakerId, scene.Where) ?? "-")
+                    .Append(Unit)
+                    .Append(segment.Direction.Key).Append(Unit)
+                    .Append(segment.Direction.ReferenceClip ?? "-").Append(Unit);
+                // The line's own direction with the speaker's standing register
+                // already added, which is what will actually be performed.
+                // Hashing the line's own numbers instead meant a writer who made
+                // a character warmer or more clipped and re-rendered was told
+                // every chapter was unchanged, and heard the old delivery back.
+                foreach (var (dimension, value) in EmotionDirector
+                    .WithRegister(segment.Direction.Vector, sheet.RegisterFor(segment.SpeakerId))
+                    .OrderBy(p => p.Key, StringComparer.Ordinal))
+                {
+                    builder.Append(dimension).Append('=')
+                        .Append(value.ToString("F3", CultureInfo.InvariantCulture)).Append(',');
+                }
+                builder.Append(Unit).Append(segment.Text).Append('\n');
             }
-            builder.Append(Unit).Append(segment.Text).Append('\n');
         }
 
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString())))[..32];

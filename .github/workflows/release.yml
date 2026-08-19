@@ -142,6 +142,43 @@ jobs:
           } >> "$GITHUB_ENV"
           echo "Developer ID signing + notarization enabled."
 
+      # The extensions this build ships inside the installer. The backend copies
+      # each one into the writer's extensions folder on first run and leaves
+      # alone anything already there at the same version or newer, so a writer
+      # who updates from the gallery keeps their update.
+      #
+      # Taken from the extension's own published release rather than built here:
+      # it lives in another repository with its own tests and its own tag, and
+      # the release the gallery serves is the one that should be in the box.
+      # Missing is not fatal - a build with no Speech release yet ships without
+      # it and the extension is still installable from the gallery.
+      - name: Stage bundled extensions
+        working-directory: app
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          stage() {
+            local repo="$1" slug="$2" asset="$3" into="$4"
+            local tag
+            tag=$(gh release list --repo "$repo" --limit 100 --json tagName --jq "[.[] | select(.tagName | startswith(\"${slug}-v\"))] | .[0].tagName" 2>/dev/null) || tag=""
+            if [ -z "$tag" ] || [ "$tag" = "null" ]; then
+              echo "::warning::no ${slug} release in ${repo}; packaging without it"
+              return 0
+            fi
+            mkdir -p "resources/extensions/${into}"
+            if ! gh release download "$tag" --repo "$repo" --pattern "$asset" --output /tmp/"$asset" --clobber; then
+              echo "::warning::${tag} has no ${asset}; packaging without it"
+              rmdir "resources/extensions/${into}" 2>/dev/null || true
+              return 0
+            fi
+            unzip -o /tmp/"$asset" -d "resources/extensions/${into}"
+            echo "bundled ${slug} from ${tag}"
+          }
+          stage Drommedhar/novalist-extensions speech com.novalist.speech.zip Speech
+          ls -R resources/extensions || true
+
       - name: Package (electron-builder)
         working-directory: app
         shell: bash

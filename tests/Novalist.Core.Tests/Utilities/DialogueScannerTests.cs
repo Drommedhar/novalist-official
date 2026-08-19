@@ -1,3 +1,4 @@
+using Novalist.Core.Models;
 using Novalist.Core.Utilities;
 using Xunit;
 
@@ -325,5 +326,32 @@ public class DialogueScannerTests
         Assert.Equal(DialogueScanner.BuildLineKey("yes", 0), DialogueScanner.BuildLineKey("yes", 0));
         Assert.NotEqual(DialogueScanner.BuildLineKey("yes", 0), DialogueScanner.BuildLineKey("yes", 1));
         Assert.NotEqual(DialogueScanner.BuildLineKey("yes", 0), DialogueScanner.BuildLineKey("no", 0));
+    }
+
+    /// <summary>
+    /// Every quote style a writer can choose is one the scanner can read back.
+    ///
+    /// The two lists had drifted apart, and the drift was invisible: a language
+    /// whose marks the scanner did not know produced a manuscript with no
+    /// dialogue in it at all - nobody to cast, nothing to attribute, no lines to
+    /// direct, and a reading in which the narrator said everybody's words. There
+    /// was no error anywhere, because as far as every pass was concerned the
+    /// book was simply all narration.
+    /// </summary>
+    [Fact]
+    public void EveryQuoteStyleAWriterCanChooseIsOneTheScannerCanFind()
+    {
+        foreach (var language in AutoReplacementDefaults.AvailableLanguages)
+        {
+            var pair = AutoReplacementDefaults.GetPreset(language)
+                .FirstOrDefault(p => p.Start == "'" && p.End == "'");
+            Assert.NotNull(pair);
+
+            var line = pair!.StartReplace + "Get out." + pair.EndReplace;
+            var (_, spans) = DialogueScanner.ScanScene("<p>" + line + " she said.</p>");
+
+            var span = Assert.Single(spans);
+            Assert.Equal("Get out.", span.Text);
+        }
     }
 }

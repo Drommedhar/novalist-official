@@ -577,7 +577,58 @@ public sealed class VoiceEngineRpcTests : IDisposable
     }
 
     [Fact]
-    public async Task RenderStop_EmptiesTheCache()
+    public async Task RenderStop_KeepsWhatWasMadeSoPlayingAgainDoesNotCostTwice()
+    {
+        // Stopping to fix a word and pressing Play again is the commonest thing
+        // there is to do in this view. Emptying the cache here meant the scene
+        // was spoken from nothing every time - minutes of a model reproducing
+        // audio that was on the disk beside it.
+        var mira = await MiraAsync();
+        await SceneAsync("<p>\"A,\" said Mira.</p>");
+        await _rpc.PrepareAsync(StubEngine.Id);
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
+        await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
+        await _rpc.RenderAsync(0, 8);
+        var made = _cache.Size();
+        Assert.True(made > 0);
+
+        Assert.True(_rpc.RenderStop());
+
+        Assert.Equal(made, _cache.Size());
+    }
+
+    [Fact]
+    public async Task Render_SaysWhichLineIsBeingMadeAsItHappens()
+    {
+        // A window is one request and one answer, so without this the page
+        // learns nothing for the whole of it - and marking the batch that was
+        // asked for hatches a dozen sentences as "being made" when eleven have
+        // not been started.
+        var said = new List<string?>();
+        VoiceEngineRpc.Making = m => said.Add(m.Key);
+        try
+        {
+            var mira = await MiraAsync();
+            await SceneAsync("<p>\"A,\" said Mira. She waited.</p>");
+            await _rpc.PrepareAsync(StubEngine.Id);
+            var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
+            await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
+
+            await _rpc.RenderAsync(0, 8);
+
+            // One line named at a time, and nothing left named at the end.
+            Assert.All(said, key => Assert.True(key == null || key.Length > 0));
+            Assert.True(said.Count > 1);
+            Assert.Null(said[^1]);
+        }
+        finally
+        {
+            VoiceEngineRpc.Making = null;
+        }
+    }
+
+    [Fact]
+    public async Task Render_SaysNothingIsBeingMadeWhenItAllCameOffTheDisk()
     {
         var mira = await MiraAsync();
         await SceneAsync("<p>\"A,\" said Mira.</p>");
@@ -585,11 +636,84 @@ public sealed class VoiceEngineRpcTests : IDisposable
         var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
         await _rpc.RenderAsync(0, 8);
-        Assert.True(_cache.Size() > 0);
 
-        Assert.True(_rpc.RenderStop());
+        var said = new List<string?>();
+        VoiceEngineRpc.Making = m => said.Add(m.Key);
+        try
+        {
+            await _rpc.RenderAsync(0, 8);
+        }
+        finally
+        {
+            VoiceEngineRpc.Making = null;
+        }
 
-        Assert.Equal(0, _cache.Size());
+        // Nothing was made, so nothing should have been reported as being made -
+        // a line that flashes as "working" and is already on disk is a lie about
+        // where the time is going.
+        Assert.Empty(said);
+    }
+
+    [Fact]
+    public async Task Render_ASecondTimeReusesWhatWasAlreadyMade()
+    {
+        var mira = await MiraAsync();
+        await SceneAsync("<p>\"A,\" said Mira.</p>");
+        await _rpc.PrepareAsync(StubEngine.Id);
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
+        await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
+
+        var first = await _rpc.RenderAsync(0, 8);
+        _engine.Spoken.Clear();
+        var again = await _rpc.RenderAsync(0, 8);
+
+        // The same clips, and the engine was not asked for any of them.
+        Assert.Equal(
+            first.Clips.Select(c => c.Clip), again.Clips.Select(c => c.Clip));
+        Assert.Empty(_engine.Spoken);
+    }
+
+    [Fact]
+    public async Task Render_AfterTheWriterAsksForItAgain_MakesItAgain()
+    {
+        // Delivery is not reproducible: the same line asked for twice comes back
+        // differently. Reuse is what makes a second listen instant, and this is
+        // what stops it also making the reading fixed.
+        var mira = await MiraAsync();
+        await SceneAsync("<p>\"A,\" said Mira.</p>");
+        await _rpc.PrepareAsync(StubEngine.Id);
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
+        await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
+        await _rpc.RenderAsync(0, 8);
+        _engine.Spoken.Clear();
+
+        Assert.True(_rpc.RenderAgain());
+        await _rpc.RenderAsync(0, 8);
+
+        Assert.NotEmpty(_engine.Spoken);
+    }
+
+    [Fact]
+    public async Task Render_AfterTheVoiceIsRedesigned_DoesNotServeTheOldOne()
+    {
+        // A redesigned voice keeps the id it had - that is what makes it the
+        // same character - so a cache keyed on the id alone would have gone on
+        // serving every line in the voice the writer had just replaced.
+        var mira = await MiraAsync();
+        await SceneAsync("<p>\"A,\" said Mira.</p>");
+        await _rpc.PrepareAsync(StubEngine.Id);
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
+        await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
+        await _rpc.RenderAsync(0, 8);
+        _engine.Spoken.Clear();
+
+        // The same voice id, different audio.
+        var store = new VoiceStore(_workspace.Projects, _workspace.FileService);
+        var voice = await store.GetAsync(designed.VoiceId!);
+        await store.SaveAsync(voice!, [9, 9, 9, 9]);
+        await _rpc.RenderAsync(0, 8);
+
+        Assert.NotEmpty(_engine.Spoken);
     }
 
     [Fact]
@@ -815,9 +939,47 @@ public sealed class VoiceEngineRpcTests : IDisposable
     }
 
     [Fact]
-    public async Task AuditionLine_WithNoEngineReadySaysSo()
+    public async Task AuditionLine_WithNoVoiceCastSaysSo()
+    {
+        // Nothing cast at all, so there is no voice to speak it in and no engine
+        // to ask - which engine speaks a line is decided by the voice it is cast
+        // in, and an uncast line names none.
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await _workspace.Projects.WriteSceneContentAsync(
+            chapter, scene, "<p>She turned away.</p>");
+
+        Assert.Equal(
+            "no-voice", (await _rpc.AuditionLineAsync(chapter.Guid, scene.Id, "turned")).Error);
+    }
+
+    [Fact]
+    public async Task AuditionLine_StartsTheEngineThatMadeTheVoiceRatherThanRefusing()
+    {
+        // Cast, installed, and never loaded in this process. Hearing one line
+        // while you write it is the moment least able to afford "press Prepare
+        // first" - and the engine is one model load from being able to answer.
+        var (chapterGuid, sceneId) = await LineSceneAsync("<p>She turned away.</p>");
+
+        var clip = await _rpc.AuditionLineAsync(chapterGuid, sceneId, "turned");
+
+        Assert.Null(clip.Error);
+        Assert.Equal(1, _engine.Prepared);
+    }
+
+    [Fact]
+    public async Task AuditionLine_WithAVoiceWhoseEngineIsNotInstalledSaysSo()
     {
         var (chapterGuid, sceneId) = await LineSceneAsync("<p>She turned away.</p>");
+        // Cast in a voice made by an engine this machine no longer has. Speaking
+        // it in whatever engine happens to be loaded is the bug this replaces.
+        await new VoiceStore(_workspace.Projects, _workspace.FileService).SaveAsync(
+            new DesignedVoice(
+                "elsewhere", "Elsewhere", string.Empty, "com.example.gone", "wav", 24000,
+                DateTime.UtcNow.ToString("O")),
+            [1, 2, 3]);
+        await new VoiceCast(_workspace.Projects, _workspace.FileService)
+            .SetVoiceAsync(null, "elsewhere");
 
         Assert.Equal(
             "no-engine", (await _rpc.AuditionLineAsync(chapterGuid, sceneId, "turned")).Error);
@@ -902,9 +1064,411 @@ public sealed class VoiceEngineRpcTests : IDisposable
         Assert.Equal(nameof(InvalidOperationException), clip.Error);
     }
 
+    // ── Starting itself ──
+
+    [Fact]
+    public async Task AnInstalledEngine_StartsItselfRatherThanWaitingToBeAskedAgain()
+    {
+        // An engine's model lives in a process that dies with the app, so
+        // "prepared" never survived a restart - and the button that fixed that
+        // sits on a rail a writer has no reason to visit twice. The result was
+        // an app that had a speech engine and read the book in the operating
+        // system's voice every morning until somebody found the button again.
+        Assert.False((await _rpc.ListAsync())[0].IsReady);
+
+        // Whatever the first list reported, the start it kicked off is what the
+        // reading waits for.
+        var engine = await _rpc.RenderAsync(0, 1);
+
+        Assert.Equal(1, _engine.Prepared);
+        Assert.True((await _rpc.ListAsync())[0].IsReady);
+        Assert.Equal(StubEngine.Id, engine.EngineId);
+    }
+
+    [Fact]
+    public async Task AnEngineStartingItself_SaysSoInTheVeryAnswerThatStartedIt()
+    {
+        // The statuses are read a moment before the start is kicked off, so the
+        // answer would otherwise report the state the call had just changed:
+        // "not ready", with nothing moving and no reason for the cast rail ever
+        // to ask again. It sat there saying so for the whole of a model load.
+        _engine.Hold = new TaskCompletionSource();
+        _engine.HoldPrepare = new TaskCompletionSource();
+
+        var listed = Assert.Single(await _rpc.ListAsync());
+
+        Assert.True(listed.IsPreparing);
+        Assert.False(listed.IsReady);
+
+        _engine.HoldPrepare.SetResult();
+    }
+
+    [Fact]
+    public async Task AnEngineWithGigabytesLeftToFetch_IsNotStartedOnTheWritersBehalf()
+    {
+        _engine.DownloadBytes = 8L * 1024 * 1024 * 1024;
+
+        await _rpc.ListAsync();
+        await _rpc.ListAsync();
+
+        // A download is a decision about somebody's connection, and looking at
+        // a screen is not consent to spend it.
+        Assert.Equal(0, _engine.Prepared);
+    }
+
+    [Fact]
+    public async Task AnEngineThatCannotStart_IsNotRetriedOnEveryRefresh()
+    {
+        _engine.ThrowOnPrepare = true;
+
+        await _rpc.ListAsync();
+        await _rpc.ListAsync();
+        await _rpc.ListAsync();
+
+        // A model that fails to load fails the same way every time. Retrying it
+        // per refresh spends a process start to learn what the last one said.
+        Assert.Equal(1, _engine.Prepared);
+    }
+
+    [Fact]
+    public async Task PreparingByHand_DoesNotAlsoStartTheEngineASecondTime()
+    {
+        await _rpc.PrepareAsync(StubEngine.Id);
+        await _rpc.ListAsync();
+
+        Assert.Equal(1, _engine.Prepared);
+    }
+
+    // ── The draw ──
+
+    [Fact]
+    public async Task Design_WithNoSeedAsksTheEngineForAFreshDraw()
+    {
+        // "I did not like that one, try again" is what the whole offer-and-keep
+        // dialog is built around. The seed used to be derived from the words, so
+        // pressing Design again on an unchanged brief returned the identical
+        // voice and said nothing about it.
+        var mira = await MiraAsync();
+        await _rpc.PrepareAsync(StubEngine.Id);
+
+        await _rpc.DesignAsync(StubEngine.Id, mira.Id, "a wiry voice");
+
+        Assert.Null(_engine.LastBrief!.Seed);
+    }
+
+    [Fact]
+    public async Task Design_WithASeedAsksForThatOneParticularVoice()
+    {
+        var mira = await MiraAsync();
+        await _rpc.PrepareAsync(StubEngine.Id);
+
+        await _rpc.DesignAsync(StubEngine.Id, mira.Id, "a wiry voice", seed: 4242);
+
+        Assert.Equal(4242, _engine.LastBrief!.Seed);
+    }
+
+    [Fact]
+    public async Task Design_ANegativeSeedIsTheInterfaceSayingSurpriseMe()
+    {
+        var mira = await MiraAsync();
+        await _rpc.PrepareAsync(StubEngine.Id);
+
+        await _rpc.DesignAsync(StubEngine.Id, mira.Id, "a wiry voice", seed: -1);
+
+        Assert.Null(_engine.LastBrief!.Seed);
+    }
+
+    [Fact]
+    public async Task Design_ReportsWhatItWasDrawnWith_AndKeepsIt()
+    {
+        // A voice heard once and not kept is otherwise gone: nothing anywhere
+        // else remembers the draw.
+        var mira = await MiraAsync();
+        await _rpc.PrepareAsync(StubEngine.Id);
+        _engine.SeedUsed = 99;
+
+        var offered = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "a wiry voice");
+        Assert.Equal(99, offered.Seed);
+
+        await _rpc.KeepVoiceAsync();
+
+        Assert.Equal(99, Assert.Single(await _rpc.VoicesAsync()).Seed);
+    }
+
+    // ── Which engine speaks ──
+
+    [Fact]
+    public async Task Render_GoesToTheEngineThatMadeTheVoice_NotTheOneThatLoadedFirst()
+    {
+        // The bug this ends, reported from a real machine: a writer with a real
+        // speech engine and the example tone generator installed heard their
+        // whole book as a sine wave. The reading went to whichever engine had
+        // finished loading, and the example loads instantly while a real one
+        // takes half a minute - so the example always won, and nothing anywhere
+        // said so, because the reading was doing exactly what it had been told.
+        var other = new StubEngine(OtherEngineId);
+        _workspace.ExtensionsHost.VoiceEngines.Insert(0, other);
+        await _rpc.PrepareAsync(StubEngine.Id);
+        await _rpc.PrepareAsync(OtherEngineId);
+
+        // Cast in a voice the second engine made.
+        var (chapterGuid, sceneId) = await LineSceneAsync("<p>She turned away.</p>");
+        _ = (chapterGuid, sceneId);
+        await new VoiceStore(_workspace.Projects, _workspace.FileService).SaveAsync(
+            new DesignedVoice(
+                "hers", "Hers", string.Empty, OtherEngineId, "wav", 16000,
+                DateTime.UtcNow.ToString("O")),
+            [1, 2, 3]);
+        await new VoiceCast(_workspace.Projects, _workspace.FileService)
+            .SetVoiceAsync(null, "hers");
+
+        await _rpc.RenderAsync(0, 4);
+
+        Assert.NotNull(other.LastRequest);
+        Assert.Null(_engine.LastRequest);
+    }
+
+    [Fact]
+    public async Task Render_TellsTheInterfaceWhichEngineSpoke()
+    {
+        var (_, _) = await LineSceneAsync("<p>She turned away.</p>");
+        await _rpc.PrepareAsync(StubEngine.Id);
+
+        var window = await _rpc.RenderAsync(0, 4);
+
+        Assert.Equal(StubEngine.Id, window.EngineId);
+        Assert.NotEmpty(window.Clips);
+    }
+
+    [Fact]
+    public async Task Render_WithTheVoicesEngineUninstalled_FallsBackRatherThanUsingAnother()
+    {
+        // A project assembled on another machine, or an extension since removed.
+        // Speaking those lines in whatever engine is loaded would be a reading
+        // in the wrong voice that nothing reported.
+        await _rpc.PrepareAsync(StubEngine.Id);
+        var (_, _) = await LineSceneAsync("<p>She turned away.</p>");
+        await new VoiceStore(_workspace.Projects, _workspace.FileService).SaveAsync(
+            new DesignedVoice(
+                "elsewhere", "Elsewhere", string.Empty, "com.example.gone", "wav", 16000,
+                DateTime.UtcNow.ToString("O")),
+            [1, 2, 3]);
+        await new VoiceCast(_workspace.Projects, _workspace.FileService)
+            .SetVoiceAsync(null, "elsewhere");
+
+        var window = await _rpc.RenderAsync(0, 4);
+
+        Assert.Empty(window.Clips);
+    }
+
+    [Fact]
+    public async Task Render_ABookCastAcrossTwoEnginesComesBackInReadingOrder()
+    {
+        // Each engine speaks its own voices, and the interface plays the clips
+        // in the order they arrive - so two engines rendering in turn have to be
+        // merged back into the order of the book, or it is read in two passes.
+        var other = new StubEngine(OtherEngineId);
+        _workspace.ExtensionsHost.VoiceEngines.Add(other);
+        await _rpc.PrepareAsync(StubEngine.Id);
+        await _rpc.PrepareAsync(OtherEngineId);
+
+        var mira = await MiraAsync();
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await _workspace.Projects.WriteSceneContentAsync(
+            chapter, scene, "<p>She waited. \"You are late,\" said Mira. The wind took it.</p>");
+
+        var store = new VoiceStore(_workspace.Projects, _workspace.FileService);
+        await store.SaveAsync(
+            new DesignedVoice(
+                "narrator", "Narrator", string.Empty, StubEngine.Id, "wav", 16000,
+                DateTime.UtcNow.ToString("O")),
+            [1, 2, 3]);
+        await store.SaveAsync(
+            new DesignedVoice(
+                "hers", "Hers", string.Empty, OtherEngineId, "wav", 16000,
+                DateTime.UtcNow.ToString("O")),
+            [4, 5, 6]);
+        var cast = new VoiceCast(_workspace.Projects, _workspace.FileService);
+        await cast.SetVoiceAsync(null, "narrator");
+        await cast.SetVoiceAsync(mira.Id, "hers");
+
+        var window = await _rpc.RenderAsync(0, 8);
+
+        // Narration, her line, narration. Rendered engine by engine and left in
+        // that order, her line would arrive last and the reading would play the
+        // paragraph out of order - which sounds like the attribution is wrong.
+        // The tag is its own piece of narration, so the paragraph is four: the
+        // waiting, her line, "said Mira", and the wind.
+        Assert.Equal(4, window.Clips.Length);
+        var hers = Assert.Single(other.LastRequest!.Segments).Key;
+        Assert.Equal(1, Array.FindIndex(window.Clips, c => c.Key == hers));
+    }
+
+    [Fact]
+    public async Task Render_WithTheVoicesEngineStillToDownload_DoesNotFetchItToPlayALine()
+    {
+        var (_, _) = await LineSceneAsync("<p>She turned away.</p>");
+        _engine.DownloadBytes = 8L * 1024 * 1024 * 1024;
+
+        var window = await _rpc.RenderAsync(0, 4);
+
+        Assert.Empty(window.Clips);
+        Assert.Equal(0, _engine.Prepared);
+    }
+
+    [Fact]
+    public async Task Render_WithAnEngineThatAlreadyFailedToStart_DoesNotKeepRetryingIt()
+    {
+        var (_, _) = await LineSceneAsync("<p>She turned away.</p>");
+        _engine.ThrowOnPrepare = true;
+
+        await _rpc.RenderAsync(0, 4);
+        await _rpc.RenderAsync(0, 4);
+
+        // A model that will not load will not load. Retrying it per window would
+        // spend a process start on every paragraph of the reading.
+        Assert.Equal(1, _engine.Prepared);
+    }
+
+    [Fact]
+    public async Task Render_WithAnEngineThatCannotSayHowItIs_ReadsWithoutIt()
+    {
+        var (_, _) = await LineSceneAsync("<p>She turned away.</p>");
+        _engine.ThrowOnStatus = true;
+
+        Assert.Empty((await _rpc.RenderAsync(0, 4)).Clips);
+    }
+
+    [Fact]
+    public async Task Render_AnEngineWithNothingToSayInThisWindowIsNotAsked()
+    {
+        // Mira has a voice from another engine and does not speak in this
+        // window. Asking that engine for a window it has no lines in would
+        // start a second model for nothing.
+        var other = new StubEngine(OtherEngineId);
+        _workspace.ExtensionsHost.VoiceEngines.Add(other);
+        await _rpc.PrepareAsync(StubEngine.Id);
+        await _rpc.PrepareAsync(OtherEngineId);
+
+        var mira = await MiraAsync();
+        var (_, _) = await LineSceneAsync("<p>She turned away.</p>");
+        await new VoiceStore(_workspace.Projects, _workspace.FileService).SaveAsync(
+            new DesignedVoice(
+                "hers", "Hers", string.Empty, OtherEngineId, "wav", 16000,
+                DateTime.UtcNow.ToString("O")),
+            [4, 5, 6]);
+        await new VoiceCast(_workspace.Projects, _workspace.FileService)
+            .SetVoiceAsync(mira.Id, "hers");
+
+        await _rpc.RenderAsync(0, 4);
+
+        Assert.NotNull(_engine.LastRequest);
+        Assert.Null(other.LastRequest);
+    }
+
+    [Fact]
+    public async Task AuditionLine_CastInAVoiceThisMachineHasNoAudioFor_SaysSo()
+    {
+        // The cast file is in the project and travels through Git; the audio is
+        // large and may not have come with it. Those lines have a voice on paper
+        // and none this machine can speak.
+        var (chapterGuid, sceneId) = await LineSceneAsync("<p>She turned away.</p>");
+        await _rpc.PrepareAsync(StubEngine.Id);
+        var wav = Path.Combine(
+            _workspace.Projects.ProjectRoot!, ".novalist", "narration", "voices", "narrator.wav");
+        File.Delete(wav);
+
+        Assert.Equal(
+            "no-voice", (await _rpc.AuditionLineAsync(chapterGuid, sceneId, "turned")).Error);
+    }
+
+    // ── Voices for one stretch of the book ──
+
+    [Fact]
+    public async Task AVoiceDesignedForOneAct_DoesNotOverwriteHowTheySoundElsewhere()
+    {
+        var mira = await MiraAsync();
+        await _rpc.PrepareAsync(StubEngine.Id);
+
+        var standing = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "a wiry voice");
+        await _rpc.KeepVoiceAsync();
+        var older = await _rpc.DesignAsync(
+            StubEngine.Id, mira.Id, "a wiry voice", false, act: "Two");
+        await _rpc.KeepVoiceAsync();
+
+        // The bug this replaces: the second design reused the first's id, so
+        // asking for an older Mira in Act Two silently destroyed how she sounded
+        // in Act One and there was no way back to it.
+        Assert.NotEqual(standing.VoiceId, older.VoiceId);
+        Assert.Equal(2, (await _rpc.VoicesAsync()).Length);
+    }
+
+    [Fact]
+    public async Task AVoiceDesignedForOneAct_IsCastOverThatActAndNotOverTheBook()
+    {
+        var mira = await MiraAsync();
+        await _rpc.PrepareAsync(StubEngine.Id);
+        await _rpc.DesignAsync(StubEngine.Id, mira.Id, "a wiry voice");
+        await _rpc.KeepVoiceAsync();
+
+        var older = await _rpc.DesignAsync(
+            StubEngine.Id, mira.Id, "a wiry voice", false, act: "Two");
+        await _rpc.KeepVoiceAsync();
+
+        var cast = new VoiceCast(_workspace.Projects, _workspace.FileService);
+        var sheet = await cast.ReadAsync();
+        Assert.Equal(older.VoiceId, Assert.Single(sheet.Overrides).VoiceId);
+        // And the standing voice is untouched, which is the whole point.
+        Assert.NotEqual(older.VoiceId, sheet.Voices[mira.Id]);
+    }
+
+    [Fact]
+    public async Task TheSameStretchDesignedTwice_ReplacesItRatherThanStacking()
+    {
+        var mira = await MiraAsync();
+        await _rpc.PrepareAsync(StubEngine.Id);
+
+        await _rpc.DesignAsync(StubEngine.Id, mira.Id, "a wiry voice", false, act: "Two");
+        await _rpc.KeepVoiceAsync();
+        await _rpc.DesignAsync(StubEngine.Id, mira.Id, "a wiry voice", false, act: "Two");
+        await _rpc.KeepVoiceAsync();
+
+        var cast = new VoiceCast(_workspace.Projects, _workspace.FileService);
+        Assert.Single((await cast.ReadAsync()).Overrides);
+    }
+
+    [Fact]
+    public async Task ForgettingAVoice_AlsoDropsTheStretchesItWasCastOver()
+    {
+        var mira = await MiraAsync();
+        await _rpc.PrepareAsync(StubEngine.Id);
+        var older = await _rpc.DesignAsync(
+            StubEngine.Id, mira.Id, "a wiry voice", false, act: "Two");
+        await _rpc.KeepVoiceAsync();
+
+        await _rpc.ForgetAsync(older.VoiceId!);
+
+        // A scope pointing at a voice that no longer exists is worse than a
+        // stale standing cast: it wins over the character's real voice, so those
+        // chapters fall silently back to the narrator while the rest is right.
+        var cast = new VoiceCast(_workspace.Projects, _workspace.FileService);
+        Assert.Empty((await cast.ReadAsync()).Overrides);
+    }
+
+    /// <summary>A second engine id, so a test can have two installed and say
+    /// which of them spoke.</summary>
+    private const string OtherEngineId = "com.example.stub.other";
+
     private sealed class StubEngine : IExtension, IVoiceEngineContributor
     {
         public const string Id = "com.example.stub";
+
+        /// <summary>Which engine this one is, so a test can install two and say
+        /// which of them spoke.</summary>
+        private readonly string _id;
+
+        public StubEngine(string id = Id) => _id = id;
 
         public bool CanDesign { get; set; } = true;
         public bool ThrowOnStatus { get; set; }
@@ -916,6 +1480,17 @@ public sealed class VoiceEngineRpcTests : IDisposable
         /// writer can act on belongs.</summary>
         public string? StatusError { get; set; }
         public bool RefuseRender { get; set; }
+
+        /// <summary>Gigabytes still to fetch. What tells an engine that is one
+        /// model load from ready from one that is a download away, which is the
+        /// difference between starting it unasked and never doing so.</summary>
+        public long? DownloadBytes { get; set; }
+
+        /// <summary>How many times it has been asked to get ready.</summary>
+        public int Prepared { get; private set; }
+
+        /// <summary>What this engine reports it drew with.</summary>
+        public int? SeedUsed { get; set; }
 
         /// <summary>An engine that returns nothing at all - a sidecar that died
         /// between being asked and answering.</summary>
@@ -937,11 +1512,15 @@ public sealed class VoiceEngineRpcTests : IDisposable
 
         public VoiceBrief? LastBrief { get; private set; }
         public NarrationRequest? LastRequest { get; private set; }
+
+        /// <summary>Every line this engine was actually asked to speak, so a
+        /// test can say what was made again and what came off the disk.</summary>
+        public List<string> Spoken { get; } = [];
         public string? Forgotten { get; private set; }
 
         private bool _ready;
 
-        string IExtension.Id => Id;
+        string IExtension.Id => _id;
         public string DisplayName => "Stub";
         public string Description => "A voice engine that speaks nothing.";
         public string Version => "1.0";
@@ -949,7 +1528,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         public void Initialize(IHostServices host) { }
         public void Shutdown() { }
 
-        public string EngineId => Id;
+        public string EngineId => _id;
         public string EngineName => "Stub";
 
         public VoiceEngineFeatures Features =>
@@ -959,17 +1538,29 @@ public sealed class VoiceEngineRpcTests : IDisposable
         public Task<VoiceEngineStatus> GetStatusAsync(CancellationToken cancellationToken = default)
             => ThrowOnStatus
                 ? throw new InvalidOperationException("no")
-                : Task.FromResult(new VoiceEngineStatus { IsReady = _ready, Error = StatusError });
+                : Task.FromResult(new VoiceEngineStatus
+                {
+                    IsReady = _ready,
+                    Error = StatusError,
+                    DownloadBytes = DownloadBytes
+                });
 
         public Task PrepareAsync(
             IProgress<VoiceEnginePrepare>? progress = null,
             CancellationToken cancellationToken = default)
         {
+            Prepared++;
             if (ThrowOnPrepare)
                 throw new InvalidOperationException("no");
+            if (HoldPrepare is { } wait)
+                return wait.Task.ContinueWith(_ => _ready = true, TaskScheduler.Default);
             _ready = true;
             return Task.CompletedTask;
         }
+
+        /// <summary>Held so a test can look at an engine while it is genuinely
+        /// still loading rather than after it has finished.</summary>
+        public TaskCompletionSource? HoldPrepare { get; set; }
 
         public Task<VoiceDesignResult> DesignVoiceAsync(
             VoiceBrief brief, CancellationToken cancellationToken = default)
@@ -982,7 +1573,8 @@ public sealed class VoiceEngineRpcTests : IDisposable
                 VoiceId = brief.VoiceId,
                 ReferenceAudio = [1, 2, 3, 4],
                 SampleRate = 16000,
-                ResolvedDescription = brief.Description
+                ResolvedDescription = brief.Description,
+                Seed = SeedUsed
             });
         }
 
@@ -991,6 +1583,8 @@ public sealed class VoiceEngineRpcTests : IDisposable
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             LastRequest = request;
+            foreach (var segment in request.Segments)
+                Spoken.Add(segment.Key);
             Started?.TrySetResult();
             if (RenderNothing)
                 yield break;

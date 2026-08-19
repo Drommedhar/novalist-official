@@ -51,7 +51,122 @@ public sealed class VoiceEngineRpc
     [JsonRpcMethod("voiceEngines/list")]
     public async Task<VoiceEngineDto[]> ListAsync()
     {
-        var engines = new List<VoiceEngineDto>();
+        var engines = await StatusesAsync();
+        // Stamped after the fact, because the statuses were read a moment before
+        // these were started and would otherwise report the state this call
+        // just changed - which left the cast rail saying "not ready" with
+        // nothing on it moving, and no reason for anything to ask again.
+        var started = StartWhatIsAlreadyInstalled(engines);
+        return
+        [
+            .. engines.Select(e => started.Contains(e.Status.EngineId)
+                ? e.Status with { IsPreparing = true }
+                : e.Status)
+        ];
+    }
+
+    /// <summary>
+    /// Starts any engine that has everything it needs and is only waiting to be
+    /// asked.
+    ///
+    /// An engine's model is loaded into a process that dies with the app, so
+    /// "prepared" never survived a restart - and the button that fixed that sits
+    /// on a rail the writer has no reason to look at once the download is done.
+    /// The result was an application that had a speech engine installed,
+    /// reported it as not ready every morning, and read the book in the
+    /// operating system's voice until somebody found the button again.
+    ///
+    /// Only what is already downloaded. An engine with gigabytes still to fetch
+    /// is a decision the writer makes, on a metered connection they may be
+    /// paying for, and starting that unasked would be indefensible - which is
+    /// exactly what <see cref="VoiceEngineStatus.DownloadBytes"/> distinguishes.
+    ///
+    /// Once per engine per session. A model that fails to load fails the same
+    /// way every time, and retrying it on every refresh would spend a process
+    /// start per poll to learn the same thing.
+    /// </summary>
+    /// <returns>The engines this call started, so their statuses can say so.</returns>
+    private HashSet<string> StartWhatIsAlreadyInstalled(IReadOnlyList<EngineStatus> engines)
+    {
+        var wanted = new List<IVoiceEngineContributor>();
+        lock (_gate)
+        {
+            foreach (var (engine, status) in engines)
+            {
+                if (status.IsReady || status.IsPreparing || status.DownloadBytes is > 0)
+                    continue;
+                if (!_started.Add(status.EngineId))
+                    continue;
+                wanted.Add(engine);
+            }
+        }
+
+        foreach (var engine in wanted)
+        {
+            Log.Info($"voiceEngines auto-start id={engine.EngineId}.");
+            // Not awaited. Loading a model is tens of seconds and this is a
+            // status call - a list that blocked on it would freeze the cast rail
+            // for the whole load, which is the thing being fixed rather than a
+            // cheaper version of it. Started outside the lock, because an
+            // engine's own first moments are not this object's to hold.
+            var starting = StartAsync(engine);
+            lock (_gate)
+            {
+                _starting[engine.EngineId] = starting;
+            }
+        }
+        return [.. wanted.Select(e => e.EngineId)];
+    }
+
+    /// <summary>Whether this engine has a start of ours still running.</summary>
+    private bool Starting(string engineId)
+    {
+        lock (_gate)
+        {
+            return _starting.TryGetValue(engineId, out var task) && !task.IsCompleted;
+        }
+    }
+
+    private static async Task StartAsync(IVoiceEngineContributor engine)
+    {
+        try
+        {
+            await engine.PrepareAsync();
+        }
+        catch (Exception ex)
+        {
+            // Nobody asked for this, so nobody is waiting on a reason. The
+            // engine's own status carries it for the next list.
+            Log.Warn($"voiceEngines auto-start failed type={ex.GetType().Name}.");
+        }
+    }
+
+    /// <summary>Engines already started without being asked.</summary>
+    private readonly HashSet<string> _started = new(StringComparer.Ordinal);
+
+    /// <summary>Starts in flight, by engine id, so a reading that arrives during
+    /// one waits for it rather than falling back to the operating system's
+    /// voice - and so a status can say that one is under way.</summary>
+    private readonly Dictionary<string, Task> _starting = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Guards the two above.
+    ///
+    /// Preparing an engine, designing a voice and hearing a line are all exempt
+    /// from the backend's one-at-a-time gate - they are model loads, and queuing
+    /// the application behind one is what that exemption exists to prevent. So
+    /// two of these calls genuinely do run at once, and both of them touch this.
+    /// </summary>
+    private readonly object _gate = new();
+
+    /// <summary>An engine and what it says about itself, kept together so a
+    /// caller acting on a status does not have to look the engine up again by
+    /// its id.</summary>
+    private sealed record EngineStatus(IVoiceEngineContributor Engine, VoiceEngineDto Status);
+
+    private async Task<List<EngineStatus>> StatusesAsync()
+    {
+        var engines = new List<EngineStatus>();
         foreach (var engine in _workspace.ExtensionsHost.VoiceEngines)
         {
             // An engine that throws while being asked how it is is reported as
@@ -66,19 +181,26 @@ public sealed class VoiceEngineRpc
                 status = new VoiceEngineStatus { Error = ex.GetType().Name };
             }
 
-            engines.Add(new VoiceEngineDto(
+            engines.Add(new EngineStatus(engine, new VoiceEngineDto(
                 engine.EngineId,
                 engine.EngineName,
                 (int)engine.Features,
                 status.IsReady,
-                status.IsPreparing,
+                // Or one we started ourselves. An engine loading a model because
+                // the app opened is preparing in every sense the interface cares
+                // about, and an engine that does not say so about itself would
+                // otherwise leave the cast rail reporting "not ready" until the
+                // writer happened to reopen the view.
+                status.IsPreparing || Starting(engine.EngineId),
                 status.Error,
                 status.Detail,
-                status.DownloadBytes));
+                status.DownloadBytes)));
         }
 
-        Log.Info($"voiceEngines/list count={engines.Count} ready={engines.Count(e => e.IsReady)}.");
-        return [.. engines];
+        Log.Info(
+            $"voiceEngines/list count={engines.Count} " +
+            $"ready={engines.Count(e => e.Status.IsReady)}.");
+        return engines;
     }
 
     /// <summary>
@@ -117,7 +239,16 @@ public sealed class VoiceEngineRpc
         // Python". But an engine that throws and then says nothing about itself
         // must not leave the writer with no reason at all, so the type stands in
         // where there is nothing better.
-        var status = (await ListAsync()).FirstOrDefault(e => e.EngineId == engineId);
+        // Statuses rather than the list: this engine has just been prepared by
+        // hand, and an auto-start fired off the back of reading its result would
+        // be a second load of the model it either just loaded or just failed to.
+        lock (_gate)
+        {
+            _started.Add(engineId);
+        }
+        var status = (await StatusesAsync())
+            .Select(e => e.Status)
+            .FirstOrDefault(e => e.EngineId == engineId);
         if (status == null || failure == null || !string.IsNullOrWhiteSpace(status.Error))
             return status;
         return status with { Error = failure };
@@ -172,7 +303,14 @@ public sealed class VoiceEngineRpc
     /// </summary>
     [JsonRpcMethod("voiceEngines/design")]
     public async Task<VoiceDesignDto> DesignAsync(
-        string engineId, string characterId, string description, bool consent = false)
+        string engineId,
+        string characterId,
+        string description,
+        bool consent = false,
+        string? act = null,
+        string? chapter = null,
+        string? scene = null,
+        int? seed = null)
     {
         // No project, nowhere to keep the audio - and no point asking an engine
         // to spend a minute designing something that cannot be stored.
@@ -193,7 +331,12 @@ public sealed class VoiceEngineRpc
 
         var lexicon = SceneAnalysisLexicon.For(WritingLanguage());
         var wanted = VoiceBriefBuilder.Strip(description, lexicon);
-        var voiceId = $"{characterId}-{engine.EngineId}";
+        // A voice designed for one stretch of the book gets an id of its own, so
+        // asking for an older Mira in Act Three does not overwrite how she
+        // sounded in Act One. Designing a standing voice is the same call with
+        // nowhere named, and mints the id it always did.
+        var where = new VoiceScope(act, chapter, scene);
+        var voiceId = VoiceCast.ScopedVoiceId(characterId, engine.EngineId, where);
 
         VoiceDesignResult designed;
         try
@@ -204,7 +347,11 @@ public sealed class VoiceEngineRpc
                 DisplayName = brief.Name,
                 Description = wanted.Length > 0 ? wanted : brief.Description,
                 SampleLines = brief.SampleLines,
-                Language = WritingLanguage()
+                Language = WritingLanguage(),
+                // Null asks the engine for a fresh draw, which is what "I did
+                // not like that one, try again" has to mean. A number asks for
+                // one particular voice back.
+                Seed = seed is >= 0 ? seed : null
             });
         }
         catch (Exception ex)
@@ -225,9 +372,10 @@ public sealed class VoiceEngineRpc
             engine.EngineId,
             designed.AudioFormat,
             designed.SampleRate,
-            DateTime.UtcNow.ToString("O"));
+            DateTime.UtcNow.ToString("O"),
+            designed.Seed);
 
-        return await OfferAsync(stored, designed, characterId);
+        return await OfferAsync(stored, designed, characterId, where);
     }
 
     /// <summary>
@@ -242,15 +390,19 @@ public sealed class VoiceEngineRpc
     /// right.
     /// </summary>
     private async Task<VoiceDesignDto> OfferAsync(
-        DesignedVoice stored, VoiceDesignResult designed, string? characterId)
+        DesignedVoice stored,
+        VoiceDesignResult designed,
+        string? characterId,
+        VoiceScope? where = null)
     {
         var clip = await _clips.WriteAsync(designed.ReferenceAudio, designed.AudioFormat);
-        _candidate = new VoiceCandidate(stored, designed.ReferenceAudio, characterId);
+        _candidate = new VoiceCandidate(stored, designed.ReferenceAudio, characterId, where);
 
         Log.Info(
             $"voiceEngines/design offered bytes={designed.ReferenceAudio.Length} " +
-            $"rate={designed.SampleRate} narrator={characterId == null}.");
-        return new VoiceDesignDto(stored.VoiceId, stored.Description, null, clip);
+            $"rate={designed.SampleRate} narrator={characterId == null} " +
+            $"scoped={where?.IsSomewhere == true} seeded={stored.Seed != null}.");
+        return new VoiceDesignDto(stored.VoiceId, stored.Description, null, clip, stored.Seed);
     }
 
     /// <summary>
@@ -265,11 +417,23 @@ public sealed class VoiceEngineRpc
 
         await _voices.SaveAsync(candidate.Stored, candidate.Audio);
         // Designing a voice for somebody and not casting them in it would leave
-        // the writer one more step to discover.
-        await _cast.SetVoiceAsync(candidate.CharacterId, candidate.Stored.VoiceId);
+        // the writer one more step to discover - and a voice designed for one
+        // stretch of the book must be cast over that stretch rather than become
+        // how the character sounds everywhere, which is the opposite of what
+        // was asked for.
+        var scoped = candidate.Where is { IsSomewhere: true };
+        if (scoped)
+        {
+            await _cast.SetScopeAsync(
+                candidate.CharacterId, candidate.Where!, candidate.Stored.VoiceId);
+        }
+        else
+        {
+            await _cast.SetVoiceAsync(candidate.CharacterId, candidate.Stored.VoiceId);
+        }
         _candidate = null;
 
-        Log.Info("voiceEngines/keepVoice ok.");
+        Log.Info($"voiceEngines/keepVoice ok scoped={scoped}.");
         return true;
     }
 
@@ -290,7 +454,7 @@ public sealed class VoiceEngineRpc
     /// <summary>A voice designed and not yet kept.</summary>
     /// <param name="CharacterId">Who it was designed for; null for the narrator.</param>
     private sealed record VoiceCandidate(
-        DesignedVoice Stored, byte[] Audio, string? CharacterId);
+        DesignedVoice Stored, byte[] Audio, string? CharacterId, VoiceScope? Where = null);
 
     private VoiceCandidate? _candidate;
 
@@ -309,7 +473,7 @@ public sealed class VoiceEngineRpc
     [JsonRpcMethod("voiceEngines/voices")]
     public async Task<DesignedVoiceDto[]> VoicesAsync()
         => [.. (await _voices.ListAsync()).Select(v => new DesignedVoiceDto(
-            v.VoiceId, v.DisplayName, v.Description, v.EngineId, v.DesignedAt))];
+            v.VoiceId, v.DisplayName, v.Description, v.EngineId, v.DesignedAt, v.Seed))];
 
     /// <summary>
     /// Forgets a designed voice, and un-casts anybody reading in it.
@@ -333,6 +497,21 @@ public sealed class VoiceEngineRpc
         }
         if (string.Equals(sheet.NarratorVoiceId, voiceId, StringComparison.Ordinal))
             await _cast.SetVoiceAsync(null, null);
+
+        // And the stretches it was cast over. A scope left pointing at a voice
+        // that no longer exists is worse than a stale standing cast: it wins
+        // over the character's real voice, so those chapters fall silently back
+        // to the narrator while the rest of the book is right.
+        var stale = (await _cast.ReadAsync()).Overrides
+            .Where(o => string.Equals(o.VoiceId, voiceId, StringComparison.Ordinal))
+            .ToArray();
+        foreach (var scope in stale)
+        {
+            await _cast.SetScopeAsync(
+                string.IsNullOrEmpty(scope.CharacterId) ? null : scope.CharacterId,
+                new VoiceScope(scope.Act, scope.Chapter, scope.Scene),
+                null);
+        }
 
         var engine = Find(voice.EngineId);
         if (engine != null)
@@ -369,30 +548,38 @@ public sealed class VoiceEngineRpc
     /// <param name="from">Index into the book's segments, as narration/book
     /// returns them.</param>
     /// <param name="count">How many segments to render at most.</param>
+    /// <param name="rebuild">Makes every line again even where one identical to
+    /// it is already on disk. For the writer who does not like what an engine
+    /// gave them: design is not reproducible, and asking twice is the only way
+    /// to get a second answer.</param>
     [JsonRpcMethod("narration/render")]
-    public async Task<NarrationRenderDto> RenderAsync(int from, int count, double rate = 1.0)
+    public async Task<NarrationRenderDto> RenderAsync(
+        int from, int count, double rate = 1.0, bool rebuild = false)
     {
-        var engine = Ready();
-        if (engine == null)
-            return new NarrationRenderDto(null, [], 0);
-
         var segments = await SegmentsAsync();
-        var window = segments
+        var placed = segments
             .Skip(Math.Max(0, from))
             .Take(Math.Clamp(count, 1, MaxRenderWindow))
             .ToArray();
-        if (window.Length == 0)
-            return new NarrationRenderDto(engine.EngineId, [], segments.Count);
+        if (placed.Length == 0)
+            return new NarrationRenderDto(await AnyEngineAsync(), [], segments.Count);
 
+        var window = placed.Select(p => p.Segment).ToArray();
         var sheet = await _cast.ReadAsync();
         var audio = await _voices.ReadAudioForAsync(NarrationRender.VoicesNeeded(window, sheet));
         // The clips any of these lines were told to sound like. Almost always
         // none, so almost always a call that reads nothing.
         var references = await _clips.ReadManyAsync(NarrationRender.ClipsNeeded(window));
-        var request = NarrationRender.Build(
-            window, sheet, audio, engine.Features, WritingLanguage(), rate, references);
-        if (request.Segments.Count == 0)
-            return new NarrationRenderDto(engine.EngineId, [], segments.Count);
+
+        // The voices in play, grouped by the engine that made each of them. A
+        // book is almost always cast entirely in one engine's voices, so this is
+        // almost always one group - but which engine it is has to be decided by
+        // the voice rather than by whichever engine finished loading first.
+        var owners = await OwnersAsync();
+        var byEngine = audio
+            .GroupBy(pair => owners.GetValueOrDefault(pair.Key, string.Empty), StringComparer.Ordinal)
+            .Where(group => group.Key.Length > 0)
+            .ToArray();
 
         // A second Play cancels the first rather than racing it.
         _rendering?.Cancel();
@@ -400,22 +587,100 @@ public sealed class VoiceEngineRpc
         _rendering = cancellation;
 
         var clips = new List<NarrationClipDto>();
+        string? spoke = null;
         try
         {
-            await foreach (var clip in engine.RenderAsync(request, cancellation.Token))
+            foreach (var group in byEngine)
             {
+                if (await ReadyAsync(group.Key) is not { } engine)
+                    continue;
+
+                // Only this engine's voices. A line cast in another engine's
+                // voice is left for that engine's turn rather than handed to
+                // this one, which would speak somebody else's character in its
+                // own idea of their voice.
+                var mine = group.ToDictionary(
+                    pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+                var request = NarrationRender.Build(
+                    window, sheet, mine, engine.Features, WritingLanguage(), rate, references,
+                    at => placed[at].Where);
+                if (request.Segments.Count == 0)
+                    continue;
+
+                spoke ??= engine.EngineId;
+
+                // What has already been made. A line is keyed by everything
+                // that decides how it sounds - the words, the voice's own audio,
+                // the direction, the pace, the engine - so a line nobody has
+                // touched since it was last spoken is already on disk, and
+                // asking for it again is a look at the filesystem instead of
+                // seconds inside a model.
+                var recipes = new Dictionary<string, string>(StringComparer.Ordinal);
+                var fresh = new List<Sdk.Models.Narration.NarrationSegment>(request.Segments.Count);
+                foreach (var segment in request.Segments)
+                {
+                    var name = NarrationRecipe.For(
+                        segment, engine.EngineId, request.Language, request.Rate,
+                        mine.GetValueOrDefault(segment.VoiceId)) + ".wav";
+                    recipes[segment.Key] = name;
+
+                    if (rebuild || !_clips.Has(name))
+                    {
+                        fresh.Add(segment);
+                        continue;
+                    }
+                    clips.Add(new NarrationClipDto(segment.Key, name, 0, null));
+                }
+
+                if (fresh.Count == 0)
+                    continue;
+
+                // Which line is being made, one at a time, as it happens.
+                //
+                // The page used to hatch the whole batch that had been asked
+                // for - twelve sentences of somebody's prose marked as "being
+                // made" when eleven of them had not been started. What a writer
+                // wants to see is the line the model is on.
+                //
+                // Engines yield in order, but nothing in the contract says they
+                // must, so this tracks what is outstanding rather than counting.
+                var outstanding = new List<string>(fresh.Select(f => f.Key));
+                SayMaking(outstanding);
+
+                // Only the lines that still have to be made. An engine handed
+                // a window it has already spoken would spend a minute
+                // reproducing what is on disk beside it.
+                var asking = new Sdk.Models.Narration.NarrationRequest
+                {
+                    Segments = fresh,
+                    Voices = request.Voices,
+                    Language = request.Language,
+                    Rate = request.Rate
+                };
+                await foreach (var clip in engine.RenderAsync(asking, cancellation.Token))
+                {
+                    if (cancellation.IsCancellationRequested)
+                        break;
+                    if (clip.Error != null)
+                    {
+                        clips.Add(new NarrationClipDto(clip.Key, null, 0, clip.Error));
+                        continue;
+                    }
+                    clips.Add(new NarrationClipDto(
+                        clip.Key,
+                        await _clips.WriteAsAsync(
+                            recipes.GetValueOrDefault(clip.Key)
+                            ?? NarrationClipCache.NameFor(clip.Audio, clip.AudioFormat),
+                            clip.Audio),
+                        clip.DurationMs,
+                        null));
+
+                    outstanding.Remove(clip.Key);
+                    SayMaking(outstanding);
+                }
+                SayMaking([]);
                 if (cancellation.IsCancellationRequested)
                     break;
-                if (clip.Error != null)
-                {
-                    clips.Add(new NarrationClipDto(clip.Key, null, 0, clip.Error));
-                    continue;
-                }
-                clips.Add(new NarrationClipDto(
-                    clip.Key,
-                    await _clips.WriteAsync(clip.Audio, clip.AudioFormat),
-                    clip.DurationMs,
-                    null));
             }
         }
         catch (OperationCanceledException)
@@ -435,10 +700,28 @@ public sealed class VoiceEngineRpc
             cancellation.Dispose();
         }
 
+        // Back into reading order. Two engines produce two runs of clips, and the
+        // interface plays them in the order they arrive - so unsorted, a book
+        // cast across two engines would be read in two passes.
+        var order = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (var at = 0; at < window.Length; at++)
+            order.TryAdd(window[at].Key, at);
+
+        // Clips outlive a reading now, so the folder has to be bounded. What
+        // this window is about to play is named as worth keeping however old it
+        // is: a writer listening to one chapter all afternoon is playing clips
+        // made hours ago, and evicting those would make the cache useless to
+        // exactly the person it is for.
+        _clips.Trim(MaxCacheBytes, [.. clips.Select(c => c.Clip).Where(c => c != null)!]);
+
         Log.Info(
             $"narration/render from={from} asked={window.Length} clips={clips.Count} " +
-            $"failed={clips.Count(c => c.Error != null)} cacheBytes={_clips.Size()}.");
-        return new NarrationRenderDto(engine.EngineId, [.. clips], segments.Count);
+            $"engines={byEngine.Length} failed={clips.Count(c => c.Error != null)} " +
+            $"cacheBytes={_clips.Size()}.");
+        return new NarrationRenderDto(
+            spoke ?? await AnyEngineAsync(),
+            [.. clips.OrderBy(c => order.GetValueOrDefault(c.Key, int.MaxValue))],
+            segments.Count);
     }
 
     /// <summary>
@@ -460,10 +743,9 @@ public sealed class VoiceEngineRpc
     public async Task<NarrationClipDto> AuditionLineAsync(
         string chapterGuid, string sceneId, string text)
     {
-        var engine = Ready();
         var wanted = Normalise(text);
-        if (engine == null || wanted.Length == 0)
-            return new NarrationClipDto(string.Empty, null, 0, engine == null ? "no-engine" : "empty");
+        if (wanted.Length == 0)
+            return new NarrationClipDto(string.Empty, null, 0, "empty");
 
         var segments = await SegmentsForAsync(chapterGuid, sceneId);
         // The segment the selection sits inside, rather than one equal to it: a
@@ -475,6 +757,15 @@ public sealed class VoiceEngineRpc
             return new NarrationClipDto(string.Empty, null, 0, "not-in-scene");
 
         var sheet = await _cast.ReadAsync();
+        // The engine that made this speaker's voice, not whichever one answered
+        // first. A line auditioned in another engine's idea of the character is
+        // answering a different question from the one the writer asked.
+        var voiceId = VoiceCast.Resolve(sheet, segment.SpeakerId);
+        if (voiceId == null)
+            return new NarrationClipDto(segment.Key, null, 0, "no-voice");
+        if (await ReadyAsync((await OwnersAsync()).GetValueOrDefault(voiceId)) is not { } engine)
+            return new NarrationClipDto(segment.Key, null, 0, "no-engine");
+
         var audio = await _voices.ReadAudioForAsync(
             NarrationRender.VoicesNeeded([segment], sheet));
         var references = await _clips.ReadManyAsync(NarrationRender.ClipsNeeded([segment]));
@@ -536,7 +827,8 @@ public sealed class VoiceEngineRpc
             scene.DialogueSpeakers,
             scene.DialogueDirections,
             scene.AnalysisOverrides?.Emotion,
-            scene.AnalysisOverrides?.Intensity);
+            scene.AnalysisOverrides?.Intensity,
+            UtteranceLanguage.From(lexicon));
     }
 
     /// <summary>Prose as it can be compared: the editor hands back a selection
@@ -557,8 +849,30 @@ public sealed class VoiceEngineRpc
     public bool RenderStop()
     {
         _rendering?.Cancel();
-        _clips.Clear();
+        // The clips stay. Emptying the cache here was why listening to a
+        // paragraph twice cost twice, and why correcting one line in a scene
+        // paid for the whole scene again - the writer stops, fixes a word, and
+        // presses Play, which is the single commonest thing to do in this view.
+        // They go when the project closes, or when the writer asks for the
+        // reading to be made again.
         Log.Info("narration/renderStop.");
+        return true;
+    }
+
+    /// <summary>
+    /// Throws away the rendered reading, so the next Play makes it again.
+    ///
+    /// Design is not reproducible and neither is delivery: the same line asked
+    /// for twice comes back differently. A writer who does not like what they
+    /// heard has no other way to get a second answer, and without this the
+    /// reuse that makes the reading fast would also make it fixed.
+    /// </summary>
+    [JsonRpcMethod("narration/renderAgain")]
+    public bool RenderAgain()
+    {
+        _rendering?.Cancel();
+        _clips.Clear();
+        Log.Info("narration/renderAgain.");
         return true;
     }
 
@@ -572,7 +886,8 @@ public sealed class VoiceEngineRpc
     /// which the writer already wrote down.
     /// </summary>
     [JsonRpcMethod("narration/designNarrator")]
-    public async Task<VoiceDesignDto> DesignNarratorAsync(string engineId, string description)
+    public async Task<VoiceDesignDto> DesignNarratorAsync(
+        string engineId, string description, int? seed = null)
     {
         var book = _workspace.Projects.ActiveBook;
         if (book == null)
@@ -588,7 +903,7 @@ public sealed class VoiceEngineRpc
         var typed = VoiceBriefBuilder.Strip(description, lexicon);
         var wanted = typed.Length > 0
             ? typed
-            : VoiceBriefBuilder.Strip(NarrationRender.NarratorBrief(book), lexicon);
+            : NarrationRender.NarratorBrief(book, lexicon);
         var voiceId = $"narrator-{engine.EngineId}";
 
         VoiceDesignResult designed;
@@ -599,7 +914,8 @@ public sealed class VoiceEngineRpc
                 VoiceId = voiceId,
                 DisplayName = book.Name,
                 Description = wanted,
-                Language = WritingLanguage()
+                Language = WritingLanguage(),
+                Seed = seed is >= 0 ? seed : null
             });
         }
         catch (Exception ex)
@@ -615,7 +931,8 @@ public sealed class VoiceEngineRpc
 
         var stored = new DesignedVoice(
             designed.VoiceId, book.Name, wanted, engine.EngineId,
-            designed.AudioFormat, designed.SampleRate, DateTime.UtcNow.ToString("O"));
+            designed.AudioFormat, designed.SampleRate, DateTime.UtcNow.ToString("O"),
+            designed.Seed);
 
         return await OfferAsync(stored, designed, characterId: null);
     }
@@ -624,9 +941,8 @@ public sealed class VoiceEngineRpc
     /// before anything is designed.</summary>
     [JsonRpcMethod("narration/narratorBrief")]
     public string NarratorBrief()
-        => VoiceBriefBuilder.Strip(
-            NarrationRender.NarratorBrief(_workspace.Projects.ActiveBook),
-            SceneAnalysisLexicon.For(WritingLanguage()));
+        => NarrationRender.NarratorBrief(
+            _workspace.Projects.ActiveBook, SceneAnalysisLexicon.For(WritingLanguage()));
 
     /// <summary>
     /// Speaks one line in a designed voice at several points on the emotional
@@ -738,15 +1054,30 @@ public sealed class VoiceEngineRpc
     /// that stopping is quick and that no other screen waits long behind it.</summary>
     private const int MaxRenderWindow = 24;
 
-    /// <summary>The active engine, if one is installed and ready to speak.</summary>
-    private IVoiceEngineContributor? Ready()
+    /// <summary>
+    /// How much rendered speech is kept.
+    ///
+    /// A whole novel is hours of audio and far more than this, so what survives
+    /// is the part being worked on - which is what a writer listening to the
+    /// same chapter all afternoon actually needs. Two gigabytes is a few hours
+    /// of 48 kHz speech and a rounding error next to the model that made it.
+    /// </summary>
+    private const long MaxCacheBytes = 2L * 1024 * 1024 * 1024;
+
+    /// <summary>
+    /// Any engine at all that is ready, for the one thing that is not about a
+    /// particular voice: telling the interface whether to fall back to the
+    /// operating system's voices. Null means it should.
+    /// </summary>
+    private async Task<string?> AnyEngineAsync()
     {
+        await SettledAsync();
         foreach (var engine in _workspace.ExtensionsHost.VoiceEngines)
         {
             try
             {
-                if (engine.GetStatusAsync().GetAwaiter().GetResult().IsReady)
-                    return engine;
+                if ((await engine.GetStatusAsync()).IsReady)
+                    return engine.EngineId;
             }
             catch (Exception ex)
             {
@@ -756,10 +1087,115 @@ public sealed class VoiceEngineRpc
         return null;
     }
 
+    /// <summary>
+    /// Says which line an engine is working on now, and which have been made.
+    ///
+    /// A render window is asked for in one call and answered in one call, so
+    /// without this the page learns nothing for the whole of it - which for a
+    /// dozen long sentences is a minute of a wall of hatching, and no way to
+    /// tell it apart from a reading that has stopped.
+    /// </summary>
+    public static Action<NarrationMakingDto>? Making { get; set; }
+
+    private static void SayMaking(IReadOnlyList<string> outstanding)
+        => Making?.Invoke(new NarrationMakingDto(outstanding.Count > 0 ? outstanding[0] : null));
+
+    /// <summary>
+    /// Which engine designed each of these voices.
+    ///
+    /// A voice records the engine that made it, and that is the only engine that
+    /// can speak in it: a reference clip is one model's idea of a speaker, and
+    /// handing it to another model gets that model's idea of the same thing.
+    /// </summary>
+    private async Task<Dictionary<string, string>> OwnersAsync()
+    {
+        var owners = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var voice in await _voices.ListAsync())
+        {
+            if (!string.IsNullOrEmpty(voice.EngineId))
+                owners[voice.VoiceId] = voice.EngineId;
+        }
+        return owners;
+    }
+
+    /// <summary>
+    /// The engine that made a voice, ready to speak, or null where it is not
+    /// installed or cannot be got ready.
+    ///
+    /// By the voice rather than by whichever engine answered first. That was the
+    /// bug: with two engines installed the reading went to whichever had
+    /// finished loading, so a writer with a real speech engine and the example
+    /// tone generator heard their whole book as a sine wave - and nothing said
+    /// why, because the reading was working exactly as it had been told to.
+    /// </summary>
+    private async Task<IVoiceEngineContributor?> ReadyAsync(string? engineId)
+    {
+        await SettledAsync();
+        if (Find(engineId) is not { } engine)
+            return null;
+
+        try
+        {
+            var status = await engine.GetStatusAsync();
+            if (status.IsReady)
+                return engine;
+            // Installed and merely not loaded. Starting it is the same decision
+            // the cast rail makes when it is opened; gigabytes still to fetch
+            // are not, and are left for the writer to agree to.
+            if (status.IsPreparing || status.DownloadBytes is > 0)
+                return null;
+
+            lock (_gate)
+            {
+                if (!_started.Add(engine.EngineId))
+                    return null;
+            }
+            await StartAsync(engine);
+            return (await engine.GetStatusAsync()).IsReady ? engine : null;
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"voiceEngines status type={ex.GetType().Name}.");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Waits for any start already under way.
+    ///
+    /// The cast rail starts an installed engine the moment it is looked at, and
+    /// a writer who presses Play a second later would otherwise be read to in
+    /// the operating system's voice by a book that was about to have its own -
+    /// which sounds like the designed voices were never applied.
+    /// </summary>
+    private async Task SettledAsync()
+    {
+        // Copied under the lock: a second call adding to it during the wait
+        // would otherwise be enumerating a list somebody else is writing.
+        KeyValuePair<string, Task>[] waiting;
+        lock (_gate)
+        {
+            waiting = [.. _starting];
+        }
+        if (waiting.Length > 0)
+        {
+            await Task.WhenAll(waiting.Select(w => w.Value));
+            lock (_gate)
+            {
+                foreach (var (id, task) in waiting)
+                {
+                    if (_starting.TryGetValue(id, out var current) && current == task)
+                        _starting.Remove(id);
+                }
+            }
+        }
+
+    }
+
     /// <summary>The book's segments in reading order - the same run, in the same
     /// order, that narration/book returns, so an index means the same thing on
     /// both sides.</summary>
-    private async Task<IReadOnlyList<Core.Services.NarrationSegment>> SegmentsAsync()
+    private async Task<IReadOnlyList<PlacedSegment>> SegmentsAsync()
     {
         var book = _workspace.Projects.ActiveBook;
         if (book == null)
@@ -771,9 +1207,13 @@ public sealed class VoiceEngineRpc
             characters, lexicon?.WordBoundaries ?? true);
         var dialogueLanguage = DialogueAttributor.BuildLanguage(lexicon);
         var directionLanguage = EmotionDirector.BuildLanguage(lexicon);
+        // What tells a sentence ending from a full stop that is merely a full
+        // stop. Without it every point is an ending, and "10 a.m. sharp." is
+        // three things for a model to say rather than one.
+        var utteranceLanguage = UtteranceLanguage.From(lexicon);
         var manifest = _workspace.Projects.ScenesManifest;
 
-        var all = new List<Core.Services.NarrationSegment>();
+        var all = new List<PlacedSegment>();
         foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
         {
             var scenes = (manifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [])
@@ -782,10 +1222,19 @@ public sealed class VoiceEngineRpc
             foreach (var scene in scenes)
             {
                 var html = await _workspace.Projects.ReadSceneContentAsync(chapter, scene);
-                all.AddRange(NarrationScript.Build(
+                // Kept beside each segment rather than thrown away with the
+                // loop, because which voice a line is read in now depends on
+                // where in the book the line is.
+                var where = new NarrationPlacement(
+                    chapter.Act, chapter.Guid, chapter.Title, scene.Title);
+                foreach (var segment in NarrationScript.Build(
                     html, candidates, dialogueLanguage, directionLanguage,
                     scene.DialogueSpeakers, scene.DialogueDirections,
-                    scene.AnalysisOverrides?.Emotion, scene.AnalysisOverrides?.Intensity));
+                    scene.AnalysisOverrides?.Emotion, scene.AnalysisOverrides?.Intensity,
+                    utteranceLanguage))
+                {
+                    all.Add(new PlacedSegment(segment, where));
+                }
             }
         }
         return all;
@@ -834,20 +1283,28 @@ public sealed record VoiceBriefDto(
 /// <summary>The outcome of designing a voice.</summary>
 /// <param name="Clip">Where the offered voice can be heard, in the clip cache.
 /// Null when the design failed, and on nothing else.</param>
+/// <param name="Seed">What this voice was drawn with. Shown beside the offer so
+/// a writer who likes it can ask for the same one again - and so one they liked
+/// and discarded is not gone for good.</param>
 public sealed record VoiceDesignDto(
-    string? VoiceId, string Description, string? Error, string? Clip = null)
+    string? VoiceId, string Description, string? Error, string? Clip = null, int? Seed = null)
 {
     public static VoiceDesignDto Failed(string error) => new(null, string.Empty, error);
 }
 
 /// <summary>A voice this book has been given.</summary>
 public sealed record DesignedVoiceDto(
-    string VoiceId, string DisplayName, string Description, string EngineId, string DesignedAt);
+    string VoiceId, string DisplayName, string Description, string EngineId, string DesignedAt,
+    int? Seed = null);
 
 /// <summary>One audition clip, base64 so it crosses JSON-RPC.</summary>
 /// <param name="Key">The emotion it was read with.</param>
 public sealed record AuditionClipDto(
     string Key, string Audio, string AudioFormat, int SampleRate, double DurationMs, string? Error);
+
+/// <summary>The line an engine is making right now, or null when it is between
+/// lines. Sent as it happens rather than with the window it belongs to.</summary>
+public sealed record NarrationMakingDto(string? Key);
 
 /// <summary>One rendered segment.</summary>
 /// <param name="Clip">The name to fetch the audio by, or null when this segment

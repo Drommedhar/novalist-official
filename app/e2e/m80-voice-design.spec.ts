@@ -101,20 +101,34 @@ test('a character is given a designed voice from their Codex entry', async () =>
       }[]
   )
   expect(engines.map((e) => e.engineId)).toContain('com.example.toolkit.voice')
-  // Not ready until it is prepared: the writer is owed honest numbers before
-  // the wait, not a spinner after they press Play.
+  // Not ready at the moment it is first asked. Its model has never been loaded
+  // in this process, and being honest about that before the wait is the point
+  // of the field - a spinner after Play is pressed is not an answer.
   expect(engines[0].isReady).toBe(false)
+
+  // But the asking is what starts it. This engine has nothing left to fetch, so
+  // nobody has to press anything: the model lives in a process that ends with
+  // the app, and a writer who prepared it yesterday should not be told it is
+  // not ready again this morning. Only an engine with a download outstanding
+  // waits to be asked, because that is a decision about their connection.
+  await expect
+    .poll(
+      async () =>
+        (
+          await page.evaluate(
+            async () =>
+              (await window.novalistRpc.request('voiceEngines/list')) as { isReady: boolean }[]
+          )
+        )[0].isReady,
+      { timeout: 20_000 }
+    )
+    .toBe(true)
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('narration'))
 
-  // The rail offers to prepare it, and nothing about designing appears first.
-  const prepare = page.locator('.narration-prepare')
-  await expect(prepare).toBeVisible({ timeout: 20_000 })
-  await expect(page.locator('.narration-design')).toHaveCount(0)
-  await prepare.click()
-
-  // Now the rows offer a voice. The narrator has one too, and theirs comes from
-  // the book rather than a Codex entry - this is the character's.
+  // So the rail has nothing left to prepare, and goes straight to the voices.
+  // The narrator has one too, and theirs comes from the book rather than a
+  // Codex entry - this is the character's.
   const design = page.locator('.narration-cast-row:not(.narrator) .narration-design').first()
   await expect(design).toBeVisible({ timeout: 20_000 })
   await design.click()
@@ -258,20 +272,29 @@ test('a character is given a designed voice from their Codex entry', async () =>
   })
   expect(traversal.ok).toBe(false)
 
-  // Stopping empties the cache: audio of somebody's manuscript should not
-  // outlive the sitting it was made in.
+  const served = async (name: string): Promise<boolean> =>
+    await page.evaluate(async (clip) => {
+      try {
+        const response = await fetch(`novalist-audio://clip/${clip}`)
+        return response.ok
+      } catch {
+        // The file is gone, so the fetch does not resolve at all. That is the
+        // point being made.
+        return false
+      }
+    }, name)
+
+  // Stopping keeps what was made. Stopping to fix a word and pressing Play
+  // again is the commonest thing there is to do in this view, and it used to
+  // cost the whole scene a second time.
   await page.evaluate(() => window.novalistRpc.request('narration/renderStop'))
-  const afterStop = await page.evaluate(async (name) => {
-    try {
-      const response = await fetch(`novalist-audio://clip/${name}`)
-      return response.ok
-    } catch {
-      // The file is gone, so the fetch does not resolve at all. That is the
-      // point being made.
-      return false
-    }
-  }, render.clips[0].clip)
-  expect(afterStop).toBe(false)
+  expect(await served(render.clips[0].clip!)).toBe(true)
+
+  // Closing the project is where it goes. Speech of somebody's manuscript
+  // should not outlive the project being open, and should certainly not still
+  // be there behind whatever they open next.
+  await page.evaluate(() => window.novalistRpc.request('project/close'))
+  expect(await served(render.clips[0].clip!)).toBe(false)
 
   await app.close()
 })

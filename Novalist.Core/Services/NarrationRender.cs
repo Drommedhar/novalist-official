@@ -51,6 +51,11 @@ public static class NarrationRender
     /// <param name="rate">Reading pace, 1 being the engine's own.</param>
     /// <param name="clips">Emotion-reference clips by name, for the lines that
     /// point at one. Empty on almost every render.</param>
+    /// <param name="placeAt">Where in the book each segment is, by its index in
+    /// <paramref name="segments"/>, so a voice the writer set for part of the
+    /// book wins over the character's standing one. Null - and a null answer -
+    /// mean the standing voice, which is what every reading was before a
+    /// character could sound like themselves at two different ages.</param>
     public static NarrationRequest Build(
         IReadOnlyList<NarrationSegment> segments,
         VoiceCastSheet sheet,
@@ -58,12 +63,14 @@ public static class NarrationRender
         VoiceEngineFeatures features,
         string language,
         double rate = 1.0,
-        IReadOnlyDictionary<string, byte[]>? clips = null)
+        IReadOnlyDictionary<string, byte[]>? clips = null,
+        Func<int, NarrationPlacement?>? placeAt = null)
     {
         var sendable = new List<SdkSegment>(segments.Count);
-        foreach (var segment in segments)
+        for (var index = 0; index < segments.Count; index++)
         {
-            var voiceId = VoiceCast.Resolve(sheet, segment.SpeakerId);
+            var segment = segments[index];
+            var voiceId = VoiceCast.Resolve(sheet, segment.SpeakerId, placeAt?.Invoke(index));
             // A segment with no voice, or one whose voice this machine does not
             // have, is left out rather than sent as something the engine will
             // refuse. The caller knows which keys it asked for and which came
@@ -96,15 +103,19 @@ public static class NarrationRender
         };
     }
 
-    /// <summary>Which voices a run needs, so the caller can read exactly those
-    /// and no more off disk.</summary>
+    /// <summary>
+    /// Which voices a run needs.
+    ///
+    /// Every voice the cast names, rather than only the ones this window
+    /// mentions. Once a character can sound different in chapter twenty, which
+    /// voices a window needs depends on where the window is - and a caller that
+    /// worked it out from the speakers alone would read the wrong ones and then
+    /// leave those lines unspoken. A cast is a handful of short clips; reading
+    /// all of them costs nothing and cannot be wrong.
+    /// </summary>
     public static IReadOnlyList<string> VoicesNeeded(
         IReadOnlyList<NarrationSegment> segments, VoiceCastSheet sheet)
-        => [.. segments
-            .Select(s => VoiceCast.Resolve(sheet, s.SpeakerId))
-            .Where(v => v != null)
-            .Select(v => v!)
-            .Distinct(StringComparer.Ordinal)];
+        => VoiceCast.AllVoices(sheet);
 
     /// <summary>
     /// One segment's direction, in whichever form the engine understands.
@@ -153,6 +164,121 @@ public static class NarrationRender
         };
     }
 
+    /// <summary>
+    /// One call to the engine, and how many lines of the reading it covers.
+    /// </summary>
+    /// <param name="Covers">Always at least one. The caller counts progress and
+    /// unspoken lines in lines rather than in calls, so a joined run has to say
+    /// how many it stands for.</param>
+    public sealed record NarrationJoin(NarrationSegment Segment, int Covers);
+
+    /// <summary>
+    /// Joins consecutive sentences that one voice says in one breath.
+    ///
+    /// A sentence at a time is right for the reading: the highlight follows the
+    /// voice, correcting a line costs a line, and hearing one line while you
+    /// write it is a line. It is wrong for a recording. A cloning model starts
+    /// each call afresh from the reference clip with no memory of the sentence
+    /// before it, so pitch, pace and energy reset at every full stop - and a
+    /// paragraph stitched from four of those sounds like four readings rather
+    /// than one narrator. Read in one pass it has the cadence a paragraph
+    /// actually has.
+    ///
+    /// It is slower, measured, not faster - there is no per-call overhead worth
+    /// reclaiming. This buys continuity and nothing else.
+    ///
+    /// Joined only where every reason to keep them apart is absent:
+    ///
+    /// <list type="bullet">
+    /// <item>the same speaker - two characters sharing one voice are still two
+    /// people, so this is the speaker rather than the voice;</item>
+    /// <item>the same direction, because one call performs one delivery and two
+    /// sentences directed differently cannot share it;</item>
+    /// <item>narration with narration and dialogue with dialogue, never across
+    /// the quote marks;</item>
+    /// <item>and within <paramref name="maxCharacters"/>, because a line longer
+    /// than a model will say in one breath comes back cut off mid-word - which
+    /// is what splitting was for in the first place.</item>
+    /// </list>
+    /// </summary>
+    /// <param name="maxCharacters">Nothing joined at or below zero, which is the
+    /// reading's setting.</param>
+    public static IReadOnlyList<NarrationJoin> Joined(
+        IReadOnlyList<NarrationSegment> segments, int maxCharacters)
+    {
+        var joined = new List<NarrationJoin>(segments.Count);
+        var run = new List<NarrationSegment>();
+
+        void Close()
+        {
+            if (run.Count == 0)
+                return;
+            joined.Add(new NarrationJoin(
+                run.Count == 1
+                    ? run[0]
+                    // The first line's key, direction and speaker stand for the
+                    // run: it is the line the recording reaches first, and every
+                    // other line in the run agreed with it or would not be here.
+                    : run[0] with { Text = string.Join(' ', run.Select(s => s.Text)) },
+                run.Count));
+            run.Clear();
+        }
+
+        foreach (var segment in segments)
+        {
+            if (run.Count > 0 && !Continues(run, segment, maxCharacters))
+                Close();
+            run.Add(segment);
+        }
+        Close();
+        return joined;
+    }
+
+    /// <summary>Whether this line is still the same breath as the run before
+    /// it.</summary>
+    private static bool Continues(
+        List<NarrationSegment> run, NarrationSegment next, int maxCharacters)
+    {
+        if (maxCharacters <= 0)
+            return false;
+
+        var first = run[0];
+        if (first.Kind != next.Kind)
+            return false;
+        // The speaker, not the voice they resolve to. Two segments with one
+        // speaker resolve to one voice by construction - the sheet and the place
+        // in the book are the same for every line of a run - so comparing the
+        // voices would be asking the same question twice.
+        if (!string.Equals(first.SpeakerId ?? string.Empty, next.SpeakerId ?? string.Empty,
+                StringComparison.Ordinal))
+            return false;
+        if (!SameDirection(first.Direction, next.Direction))
+            return false;
+
+        // The joining space counts: it is a character the model is given.
+        var length = run.Sum(s => s.Text.Length) + run.Count + next.Text.Length;
+        return length <= maxCharacters;
+    }
+
+    /// <summary>Whether two lines are directed the same. One call performs one
+    /// delivery, so anything less than identical has to stay its own call.</summary>
+    private static bool SameDirection(VoiceDirection a, VoiceDirection b)
+    {
+        if (!string.Equals(a.Key, b.Key, StringComparison.Ordinal))
+            return false;
+        if (!string.Equals(a.ReferenceClip ?? string.Empty, b.ReferenceClip ?? string.Empty,
+                StringComparison.Ordinal))
+            return false;
+        if (a.Vector.Count != b.Vector.Count)
+            return false;
+        foreach (var (name, weight) in a.Vector)
+        {
+            if (!b.Vector.TryGetValue(name, out var theirs) || Math.Abs(theirs - weight) > 0.0001)
+                return false;
+        }
+        return true;
+    }
+
     /// <summary>Which reference clips a run points at, so the caller reads
     /// exactly those off disk and no more.</summary>
     public static IReadOnlyList<string> ClipsNeeded(IReadOnlyList<NarrationSegment> segments)
@@ -199,19 +325,37 @@ public static class NarrationRender
     /// belongs to the per-line direction, so nothing here is taken from the
     /// premise paragraph, which is where the drama lives.
     /// </summary>
-    public static string NarratorBrief(BookData? book)
+    /// <param name="lexicon">The writing language, so the writer's own words are
+    /// filtered before the labels are put in front of them.
+    ///
+    /// The labels have to go on last. "Tense" is one of the sixteen emotion
+    /// keys, so filtering the finished sentence deleted the word and left the
+    /// value dangling after a colon - the brief read "Narration: third limited.
+    /// : past." and the test that should have caught it asserted only that
+    /// "past" was somewhere in the string.</param>
+    public static string NarratorBrief(BookData? book, SceneAnalysisLexicon? lexicon = null)
     {
         if (book == null)
             return string.Empty;
 
         var parts = new List<string>();
-        if (!string.IsNullOrWhiteSpace(book.NarrativePerson))
-            parts.Add($"Narration: {book.NarrativePerson.Trim()}");
-        if (!string.IsNullOrWhiteSpace(book.Tense))
-            parts.Add($"Tense: {book.Tense.Trim()}");
-        if (!string.IsNullOrWhiteSpace(book.Premise?.Logline))
-            parts.Add($"The book: {book.Premise!.Logline.Trim()}");
+        Say(parts, "Narration", book.NarrativePerson, lexicon);
+        Say(parts, "Tense", book.Tense, lexicon);
+        Say(parts, "The book", book.Premise?.Logline, lexicon);
 
         return string.Join(". ", parts);
+    }
+
+    /// <summary>One labelled statement, with the writer's half filtered and the
+    /// label left alone. A value that was nothing but mood is dropped rather
+    /// than emitted as a bare label.</summary>
+    private static void Say(
+        List<string> parts, string label, string? value, SceneAnalysisLexicon? lexicon)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+        var said = VoiceBriefBuilder.Strip(value, lexicon).Trim();
+        if (said.Length > 0)
+            parts.Add($"{label}: {said}");
     }
 }

@@ -461,6 +461,16 @@
   gap: var(--nl-space-tightest);
 }
 
+/* Offered only once there is a voice to ask about. The note sits under the
+   button rather than beside it, because it explains why there are three clips
+   and that is worth a line rather than a tooltip. */
+.narration-audition-ask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  align-items: flex-start;
+}
+
 /* Three of them, deliberately: one neutral sample says nothing about whether a
    voice holds when the character is actually feeling something. */
 .narration-audition {
@@ -624,8 +634,19 @@
   color: var(--nl-accent);
 }
 
-.narration-register-editor {
+/* The two small marks on a cast row - the standing register and the voices set
+   over part of the book - and whichever of their panels is open, which takes
+   the whole width under them. */
+.narration-cast-marks {
   grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+}
+
+.narration-register-editor {
+  flex-basis: 100%;
   margin-top: var(--nl-space-tighter);
 }
 
@@ -644,4 +665,84 @@
   display: flex;
   gap: var(--nl-space-tighter);
   align-items: center;
+}
+
+/* Voices for one stretch of the book. Beside the standing voice on the cast
+   rail, because it is the same statement narrowed. */
+.narration-scope {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-dim);
+  cursor: pointer;
+  padding: var(--nl-space-tightest);
+}
+
+.narration-scope:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+/* Set apart from unset at a glance: which characters change voice across the
+   book is a fact about the book, and reading it should not need a click. */
+.narration-scope.set {
+  color: var(--nl-accent);
+  border-color: var(--nl-border);
+}
+
+.narration-scope-editor {
+  flex-basis: 100%;
+  /* The rail is narrow and fixed. Without these a select refuses to shrink
+     below the width of its longest chapter title and takes the whole panel out
+     past the edge of the rail, where the words are simply cut off. */
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-sm);
+  margin-top: var(--nl-space-tightest);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+}
+
+.narration-scope-blurb {
+  margin: 0;
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  overflow-wrap: break-word;
+}
+
+.narration-scope-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* A line each, because the rail cannot hold two dropdowns side by side and a
+   chapter title is as long as the writer made it. */
+.narration-scope-row > * {
+  flex: 1 1 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Takes the slack so the pickers line up down the panel however long a chapter
+   is called. */
+.narration-scope-where {
+  flex: 1 1 8rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text);
 }

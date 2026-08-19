@@ -503,4 +503,25 @@ public sealed class SettingsRpcTests : IDisposable
             SettingsRpc.LogsDirectoryOverride = null;
         }
     }
+
+    [Fact]
+    public void WritingLanguages_AreTheOnesTheAppCanActuallySeedQuotesFor()
+    {
+        // Served rather than duplicated in the renderer, because it was
+        // duplicated and the copies drifted: the picker had no Chinese entry, so
+        // a book could not be declared as written in Chinese - and everything
+        // that reads the writing language, up to which language the book is read
+        // aloud in, was told it was English.
+        var languages = _rpc.WritingLanguages();
+
+        Assert.Contains("en", languages);
+        Assert.Contains("zh-CN", languages);
+        Assert.Contains("ja", languages);
+        // And every one of them is a language the app has quote marks for, which
+        // is what makes it choosable at all.
+        Assert.All(languages, language =>
+            Assert.Contains(
+                AutoReplacementDefaults.GetPreset(language),
+                pair => pair.Start == "'" && pair.StartReplace.Length > 0));
+    }
 }

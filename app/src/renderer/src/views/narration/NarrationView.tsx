@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Crosshair, Play, Sliders, Sparkles, Square, Trash2 } from 'lucide-react'
+import { Crosshair, MapPin, Play, Sliders, Sparkles, Square, Trash2 } from 'lucide-react'
 import {
   FEATURE_DESIGN,
   NARRATOR,
   useNarrationStore,
   type DesignedVoice,
+  type NarrationBook,
   type NarrationSegment,
   type ReadingStep,
   type SegmentRef,
-  type SystemVoice
+  type SystemVoice,
+  type VoiceScope
 } from '../../stores/narrationStore'
 import { DirectionEditor } from './DirectionEditor'
 import { useProjectStore } from '../../stores/projectStore'
@@ -39,6 +41,7 @@ const SOURCE_KEYS: Record<NarrationSegment['directionSource'], string> = {
 interface NarrationWindow extends Window {
   setBook(json: string): void
   setSpeaking(sceneId: string | null, key: string | null): void
+  setProgress(ready: string, rendering: string): void
   setSelected(sceneId: string | null, key: string | null, reveal: boolean): void
   revealScene(sceneId: string): void
   setTheme(
@@ -94,6 +97,12 @@ export function NarrationView(): React.JSX.Element {
   const engines = useNarrationStore((s) => s.engines)
   const designed = useNarrationStore((s) => s.designed)
   const brief = useNarrationStore((s) => s.brief)
+  const loadRegisters = useNarrationStore((s) => s.loadRegisters)
+  const loadScopes = useNarrationStore((s) => s.loadScopes)
+  const ready = useNarrationStore((s) => s.ready)
+  const rendering = useNarrationStore((s) => s.rendering)
+  const readAgain = useNarrationStore((s) => s.readAgain)
+  const readingError = useNarrationStore((s) => s.readingError)
 
   const frameRef = useRef<HTMLIFrameElement>(null)
   const readyRef = useRef(false)
@@ -102,7 +111,24 @@ export function NarrationView(): React.JSX.Element {
     void loadCast()
     void loadBook()
     void loadEngines()
-  }, [loadCast, loadBook, loadEngines])
+    // Both were only ever loaded as a side effect of setting one, so a book
+    // that already had standing registers or scoped voices opened showing
+    // neither - the marks that say "this character has one" were blank until
+    // the writer set another.
+    void loadRegisters()
+    void loadScopes()
+  }, [loadCast, loadBook, loadEngines, loadRegisters, loadScopes])
+
+  // An engine that is getting itself ready will be ready shortly, and nothing
+  // will say so unless somebody asks again. Without this the rail read "not
+  // ready" with no design buttons for the whole of a model load, and the only
+  // way to see it finish was to leave the view and come back.
+  const starting = engines.some((engine) => engine.isPreparing)
+  useEffect(() => {
+    if (!starting) return
+    const timer = setInterval(() => void loadEngines(), 2000)
+    return () => clearInterval(timer)
+  }, [starting, loadEngines])
 
   // Stopping on the way out matters more than it looks: the platform engine
   // keeps speaking after the view is gone, and there would be no control left
@@ -193,10 +219,23 @@ export function NarrationView(): React.JSX.Element {
         readyRef.current = true
         pushBook()
       } else if (message.type === 'segmentClicked') {
+        // The frame marks up utterances and knows them by their own key. The
+        // line an utterance belongs to is the store's business, because that is
+        // what a speaker or a direction gets written against - a speech cut
+        // into three sentences is still one line to correct.
+        const chapterGuid = String(message.chapterGuid)
+        const sceneId = String(message.sceneId)
+        const key = String(message.key)
+        const step = useNarrationStore
+          .getState()
+          .reading.find(
+            (s) => s.chapterGuid === chapterGuid && s.sceneId === sceneId && s.segment.key === key
+          )
         useNarrationStore.getState().select({
-          chapterGuid: String(message.chapterGuid),
-          sceneId: String(message.sceneId),
-          key: String(message.key)
+          chapterGuid,
+          sceneId,
+          key,
+          lineKey: step?.segment.lineKey ?? key
         })
       }
     }
@@ -217,6 +256,15 @@ export function NarrationView(): React.JSX.Element {
     if (!frame || !readyRef.current) return
     frame.setSpeaking(speaking?.sceneId ?? null, speaking?.key ?? null)
   }, [speaking])
+
+  // What has been made and what is being made, on the page. A reading is built
+  // ahead of where it is being played, and a writer who cannot see that has no
+  // way to tell a model thinking from a feature that has stopped.
+  useEffect(() => {
+    const frame = frameRef.current?.contentWindow as NarrationWindow | null
+    if (!frame || !readyRef.current) return
+    frame.setProgress(JSON.stringify(Object.keys(ready)), JSON.stringify(rendering))
+  }, [ready, rendering, book])
 
   useEffect(() => {
     const frame = frameRef.current?.contentWindow as NarrationWindow | null
@@ -272,7 +320,10 @@ export function NarrationView(): React.JSX.Element {
               onChange={(id) => void setVoice(null, id)}
             />
             {designer !== null && <NarratorDesignActions voiceId={narratorVoiceId} />}
-            <RegisterButton characterId={NARRATOR} name={t('narration.narrator')} />
+            <span className="narration-cast-marks">
+              <RegisterButton characterId={NARRATOR} name={t('narration.narrator')} />
+              <VoiceScopeButton characterId={NARRATOR} name={t('narration.narrator')} />
+            </span>
           </li>
           {members.map((member) => (
             <li key={member.characterId} className="narration-cast-row">
@@ -294,7 +345,13 @@ export function NarrationView(): React.JSX.Element {
               {designer !== null && (
                 <DesignActions characterId={member.characterId} voiceId={member.voiceId} />
               )}
-              <RegisterButton characterId={member.characterId} name={member.name} />
+              {/* Together in one cell. Left as separate children of the row's
+                  grid they landed in its first and last columns, with the
+                  stretchy middle one holding them a rail's width apart. */}
+              <span className="narration-cast-marks">
+                <RegisterButton characterId={member.characterId} name={member.name} />
+                <VoiceScopeButton characterId={member.characterId} name={member.name} />
+              </span>
             </li>
           ))}
         </ul>
@@ -354,7 +411,7 @@ export function NarrationView(): React.JSX.Element {
 
         {selectedStep && <SegmentPanel step={selectedStep} />}
 
-        {brief !== null && designer !== null && <DesignDialog engineId={designer.engineId} />}
+        {brief !== null && designer !== null && <DesignDialog />}
 
         <footer className="narration-transport">
           {/* One button, and it says what it does. The platform engine speaks a
@@ -380,6 +437,19 @@ export function NarrationView(): React.JSX.Element {
                   ? t('narration.playFromHere')
                   : t('narration.play')
                 : t('narration.stop')}
+          </button>
+
+          {/* Delivery is not reproducible: the same line asked for twice comes
+              back differently. Reuse is what makes a second listen instant, and
+              this is what stops it also making the reading fixed. */}
+          <button
+            type="button"
+            className="narration-again"
+            disabled={!canPlay || speaking !== null || preparing}
+            title={t('narration.readAgainHint')}
+            onClick={() => void readAgain()}
+          >
+            {t('narration.readAgain')}
           </button>
 
           <button
@@ -408,6 +478,14 @@ export function NarrationView(): React.JSX.Element {
             <span className="narration-rate-value">{rate.toFixed(1)}&times;</span>
           </label>
 
+          {/* A reading that ends without a word about it looks exactly like one
+              still thinking, which is the state a writer has no way to tell it
+              apart from. */}
+          {readingError !== null && (
+            <span className="narration-transport-note warn">
+              {t('narration.readingStopped', { reason: readingError })}
+            </span>
+          )}
           {!canPlay && reading.length > 0 && (
             <span className="narration-transport-note">{t('narration.nothingCast')}</span>
           )}
@@ -450,7 +528,8 @@ function SegmentPanel({ step }: { step: ReadingStep }): React.JSX.Element {
   const ref: SegmentRef = {
     chapterGuid: step.chapterGuid,
     sceneId: step.sceneId,
-    key: segment.key
+    key: segment.key,
+    lineKey: segment.lineKey
   }
 
   const candidates = useMemo(
@@ -470,7 +549,12 @@ function SegmentPanel({ step }: { step: ReadingStep }): React.JSX.Element {
     return reading
       .slice(at, at + run)
       .filter((s) => s.chapterGuid === step.chapterGuid && s.sceneId === step.sceneId)
-      .map((s) => ({ chapterGuid: s.chapterGuid, sceneId: s.sceneId, key: s.segment.key }))
+      .map((s) => ({
+        chapterGuid: s.chapterGuid,
+        sceneId: s.sceneId,
+        key: s.segment.key,
+        lineKey: s.segment.lineKey
+      }))
     // The ref is stable for a given segment, and rebuilding the list on every
     // render of the prose frame would reset the editor mid-edit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -598,6 +682,7 @@ function SegmentPanel({ step }: { step: ReadingStep }): React.JSX.Element {
             vector={segment.directionVector}
             referenceClip={segment.directionClip}
             emotionKey={segment.directionKey}
+            voiceId={segment.voiceId}
             onClose={() => setEditing(false)}
           />
         )}
@@ -640,6 +725,11 @@ function VoicePicker({
   onChange: (voiceId: string | null) => void
 }): React.JSX.Element {
   const { t } = useTranslation()
+  const engines = useNarrationStore((s) => s.engines)
+  const engineNames = useMemo(
+    () => new Map(engines.map((engine) => [engine.engineId, engine.engineName])),
+    [engines]
+  )
   // A voice this book names but this machine does not have still has to be
   // pickable, or opening somebody else's project would silently un-cast the
   // whole book the first time a picker rendered.
@@ -662,7 +752,14 @@ function VoicePicker({
         <optgroup label={t('narration.designedVoices')}>
           {designed.map((voice) => (
             <option key={voice.voiceId} value={voice.voiceId}>
-              {voice.displayName}
+              {/* Named with its engine where there is more than one. A voice
+                  belongs to the engine that made it and can only ever be spoken
+                  by that engine, so which one made it is the difference between
+                  a performance and a tone - and until now nothing on screen
+                  said which you had. */}
+              {engineNames.size > 1
+                ? `${voice.displayName} (${engineNames.get(voice.engineId) ?? voice.engineId})`
+                : voice.displayName}
             </option>
           ))}
         </optgroup>
@@ -770,7 +867,7 @@ function DesignActions({
  * The brief describes the instrument; how a line is felt is decided per line,
  * every time, against that one fixed identity.
  */
-function DesignDialog({ engineId }: { engineId: string }): React.JSX.Element {
+function DesignDialog(): React.JSX.Element {
   const { t } = useTranslation()
   const brief = useNarrationStore((s) => s.brief)
   const busy = useNarrationStore((s) => s.busy)
@@ -782,16 +879,54 @@ function DesignDialog({ engineId }: { engineId: string }): React.JSX.Element {
   const designNarrator = useNarrationStore((s) => s.designNarrator)
   const candidate = useNarrationStore((s) => s.candidate)
   const keepVoice = useNarrationStore((s) => s.keepVoice)
+  const designed = useNarrationStore((s) => s.designed)
+  const members = useNarrationStore((s) => s.members)
+  const narratorVoiceId = useNarrationStore((s) => s.narratorVoiceId)
+  const auditionVoice = useNarrationStore((s) => s.auditionVoice)
+  const engines = useNarrationStore((s) => s.engines)
 
   const [text, setText] = useState(brief?.description ?? '')
   useEffect(() => setText(brief?.description ?? ''), [brief?.description])
 
+  // Blank means a fresh draw, which is what "I did not like that one, try
+  // again" has to mean. The seed used to be derived from the words, so pressing
+  // Design again on an unchanged brief returned the identical voice and said
+  // nothing about it.
+  const [seed, setSeed] = useState('')
+  const candidateSeed = useNarrationStore((s) => s.candidateSeed)
+
+  // Every engine that can design, not the first one that happened to be ready.
+  // That was the bug: a writer with a real speech engine and the example tone
+  // generator installed got whichever had finished loading, and the example
+  // loads instantly - so the voice they designed was a sine wave, and the
+  // reading then correctly played it back as one.
+  const designers = engines.filter((e) => e.isReady && (e.features & FEATURE_DESIGN) !== 0)
+  const [engineId, setEngineId] = useState(designers[0]?.engineId ?? '')
+  const chosen = designers.some((e) => e.engineId === engineId)
+    ? engineId
+    : (designers[0]?.engineId ?? '')
+
   if (brief === null) return <></>
   const withheld = brief.refusal === 'WithheldFromAi'
   const isNarrator = brief.characterId === NARRATOR
+  // The voice this character already has, if it is one that was designed rather
+  // than one the operating system shipped. Auditioning is the question "does
+  // this casting hold when they are actually feeling something", which cannot
+  // be asked before there is a casting - and cannot be answered by a system
+  // voice, which has no emotional range to hear.
+  const castTo = isNarrator
+    ? narratorVoiceId
+    : (members.find((m) => m.characterId === brief.characterId)?.voiceId ?? null)
+  const kept = designed.find((d) => d.voiceId === castTo) ?? null
+  // Their own words where there are any. A voice auditioned on a line the
+  // character actually speaks tells you something; one auditioned on a stock
+  // sentence tells you about the sentence.
+  const auditionText = brief.sampleLines[0] ?? brief.name
   const submit = (): void => {
-    if (isNarrator) void designNarrator(engineId, text)
-    else void design(engineId, brief.characterId, text, true)
+    const asked = seed.trim().length > 0 ? Number.parseInt(seed.trim(), 10) : null
+    const pinned = asked !== null && Number.isFinite(asked) && asked >= 0 ? asked : null
+    if (isNarrator) void designNarrator(chosen, text, pinned)
+    else void design(chosen, brief.characterId, text, true, pinned)
   }
 
   return (
@@ -825,11 +960,43 @@ function DesignDialog({ engineId }: { engineId: string }): React.JSX.Element {
         </>
       ) : (
         <>
+          {/* Which engine makes it. Shown whenever there is a choice, because
+              the choice is audible and permanent: the voice is stored as the
+              audio that engine produced, and only that engine can speak in it
+              afterwards. Left to whichever engine loaded first, a writer with
+              a real speech engine and the example tone generator installed got
+              the tone generator - it loads instantly - and heard their whole
+              book as a sine wave. */}
+          {designers.length > 1 && (
+            <label className="narration-design-field">
+              <span>{t('narration.designWith')}</span>
+              <select value={chosen} onChange={(e) => setEngineId(e.target.value)}>
+                {designers.map((engine) => (
+                  <option key={engine.engineId} value={engine.engineId}>
+                    {engine.engineName}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
           <label className="narration-design-field">
             <span>{t('narration.briefLabel')}</span>
             <textarea value={text} rows={4} onChange={(e) => setText(e.target.value)} />
           </label>
           <p className="narration-design-note">{t('narration.briefIsTheInstrument')}</p>
+
+          <label className="narration-design-field">
+            <span>{t('narration.seed')}</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={seed}
+              placeholder={t('narration.seedRandom')}
+              onChange={(e) => setSeed(e.target.value)}
+            />
+          </label>
+          <p className="narration-design-note">{t('narration.seedNote')}</p>
 
           {brief.sampleLines.length > 0 && (
             <ul className="narration-design-samples">
@@ -840,6 +1007,36 @@ function DesignDialog({ engineId }: { engineId: string }): React.JSX.Element {
           )}
 
           {error !== null && <p className="narration-design-error">{error}</p>}
+
+          {/* What it was actually drawn with. A voice heard once and not kept is
+              otherwise gone - design is not reproducible, and nothing else
+              remembers the draw. */}
+          {candidate !== null && candidateSeed !== null && (
+            <p className="narration-design-note">
+              {t('narration.seedWas', { seed: candidateSeed })}
+              <button
+                type="button"
+                className="narration-clear"
+                onClick={() => setSeed(String(candidateSeed))}
+              >
+                {t('narration.seedKeepIt')}
+              </button>
+            </p>
+          )}
+
+          {kept !== null && (
+            <div className="narration-audition-ask">
+              <button
+                type="button"
+                className="narration-clear"
+                disabled={busy}
+                onClick={() => void auditionVoice(kept.voiceId, auditionText)}
+              >
+                {busy ? t('narration.auditioning') : t('narration.audition')}
+              </button>
+              <p className="narration-design-note">{t('narration.auditionNote')}</p>
+            </div>
+          )}
 
           {audition.length > 0 && (
             <div className="narration-audition">
@@ -896,6 +1093,213 @@ function DesignDialog({ engineId }: { engineId: string }): React.JSX.Element {
   )
 }
 
+
+/**
+ * Voices for one stretch of the book.
+ *
+ * A character is not one voice for four hundred pages. They age, they are
+ * injured, they are disguised, they are possessed, they are remembered as a
+ * child in a chapter set thirty years earlier — and until this existed the only
+ * way to say so was to edit the cast file by hand, or to design a second voice,
+ * which silently destroyed the first because both were stored under one id.
+ *
+ * On the cast rail beside the standing voice, because it is the same statement
+ * narrowed: who reads this person, here.
+ */
+function VoiceScopeButton({
+  characterId,
+  name
+}: {
+  characterId: string
+  name: string
+}): React.JSX.Element {
+  const { t } = useTranslation()
+  const scopes = useNarrationStore((s) => s.scopes)
+  const book = useNarrationStore((s) => s.book)
+  const voices = useNarrationStore((s) => s.voices)
+  const designed = useNarrationStore((s) => s.designed)
+  const engines = useNarrationStore((s) => s.engines)
+  const busy = useNarrationStore((s) => s.busy)
+  const setVoiceScope = useNarrationStore((s) => s.setVoiceScope)
+  const openBrief = useNarrationStore((s) => s.openBrief)
+  const [open, setOpen] = useState(false)
+  const [where, setWhere] = useState('')
+
+  const designer = engines.find((e) => e.isReady && (e.features & FEATURE_DESIGN) !== 0) ?? null
+  const mine = scopes.filter((scope) => scope.characterId === characterId)
+  const places = useMemo(() => placesIn(book), [book])
+  const picked = places.find((place) => place.id === where) ?? null
+  const who = characterId === NARRATOR ? null : characterId
+
+  return (
+    <>
+      <button
+        type="button"
+        className={`narration-scope${mine.length > 0 ? ' set' : ''}`}
+        title={t('narration.scopeFor', { name })}
+        aria-label={t('narration.scopeFor', { name })}
+        onClick={() => setOpen((was) => !was)}
+      >
+        <MapPin size={13} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="narration-scope-editor">
+          <p className="narration-scope-blurb">{t('narration.scopeBlurb')}</p>
+
+          {mine.map((scope) => (
+            <div key={scopeKey(scope)} className="narration-scope-row">
+              <span className="narration-scope-where">{labelFor(scope, places, t)}</span>
+              {/* Uncasting the stretch clears it, which sends those lines back
+                  to the standing voice rather than silencing them. */}
+              <VoicePicker
+                voices={voices}
+                designed={designed}
+                value={scope.voiceId}
+                label={t('narration.scopeFor', { name })}
+                onChange={(id) =>
+                  void setVoiceScope(
+                    who,
+                    { act: scope.act, chapter: scope.chapter, scene: scope.scene },
+                    id
+                  )
+                }
+              />
+            </div>
+          ))}
+
+          {places.length === 0 ? (
+            <p className="narration-chip warn">{t('narration.scopeNowhere')}</p>
+          ) : (
+            <div className="narration-scope-row">
+              <select
+                className="narration-voice"
+                aria-label={t('narration.scopeWhere')}
+                value={where}
+                onChange={(e) => setWhere(e.target.value)}
+              >
+                <option value="">{t('narration.scopeWhere')}</option>
+                {places.map((place) => (
+                  <option key={place.id} value={place.id}>
+                    {place.label}
+                  </option>
+                ))}
+              </select>
+              <VoicePicker
+                voices={voices}
+                designed={designed}
+                value={null}
+                label={t('narration.scopeVoice')}
+                onChange={(id) => {
+                  if (picked !== null) void setVoiceScope(who, picked.at, id)
+                }}
+              />
+              {/* A voice designed for exactly this stretch. This is the half
+                  that used to be impossible: designing a second voice for
+                  somebody reused the first one's id and overwrote it, so asking
+                  for an older Mira in Act Three destroyed how she sounded in
+                  Act One. */}
+              {designer !== null && who !== null && (
+                <button
+                  type="button"
+                  className="narration-design"
+                  disabled={busy || picked === null}
+                  onClick={() => {
+                    if (picked === null) return
+                    setOpen(false)
+                    void openBrief(who, false, picked.at)
+                  }}
+                >
+                  <Sparkles size={12} strokeWidth={1.75} aria-hidden="true" />
+                  {t('narration.scopeDesign')}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  )
+}
+
+/** One addressable stretch of the book. */
+interface Place {
+  id: string
+  label: string
+  at: { act: string | null; chapter: string | null; scene: string | null }
+}
+
+/**
+ * Every stretch a voice can be set over, in reading order: each act, each
+ * chapter, each scene.
+ *
+ * One flat list rather than three linked dropdowns. The writer is picking a
+ * place they can already see in the book, and three dependent selects is a form
+ * to fill in for what is one choice.
+ */
+function placesIn(book: NarrationBook | null): Place[] {
+  if (book === null) return []
+  const places: Place[] = []
+  const acts = new Set<string>()
+
+  for (const chapter of book.chapters) {
+    if (chapter.act.trim().length > 0 && !acts.has(chapter.act)) {
+      acts.add(chapter.act)
+      places.push({
+        id: `act:${chapter.act}`,
+        label: chapter.act,
+        at: { act: chapter.act, chapter: null, scene: null }
+      })
+    }
+    // Addressed by guid, so renaming a chapter does not silently drop the voice
+    // the writer set over it.
+    places.push({
+      id: `chapter:${chapter.guid}`,
+      label: chapter.title,
+      at: { act: null, chapter: chapter.guid, scene: null }
+    })
+    for (const scene of chapter.scenes) {
+      places.push({
+        id: `scene:${chapter.guid}:${scene.sceneTitle}`,
+        label: `${chapter.title} — ${scene.sceneTitle}`,
+        at: { act: null, chapter: chapter.guid, scene: scene.sceneTitle }
+      })
+    }
+  }
+  return places
+}
+
+/** A stretch by its identity rather than by its position, so a row removed
+ *  takes its own contents with it. */
+function scopeKey(scope: VoiceScope): string {
+  return `${scope.act ?? ''}|${scope.chapter ?? ''}|${scope.scene ?? ''}`
+}
+
+/**
+ * A stretch in the writer's own words.
+ *
+ * Matched back to the book where it can be, because a scope stores a chapter's
+ * guid and a guid means nothing to a person. One written by hand, or pointing
+ * at a chapter that has since been deleted, still has to say something — so it
+ * falls back to what it actually holds rather than showing an empty row.
+ */
+function labelFor(
+  scope: VoiceScope,
+  places: Place[],
+  t: (key: string, options?: Record<string, unknown>) => string
+): string {
+  const found = places.find(
+    (place) =>
+      (place.at.act ?? '') === (scope.act ?? '') &&
+      (place.at.chapter ?? '') === (scope.chapter ?? '') &&
+      (place.at.scene ?? '') === (scope.scene ?? '')
+  )
+  if (found) return found.label
+
+  const said = [scope.act, scope.chapter, scope.scene].filter(
+    (part) => part !== null && part.trim().length > 0
+  )
+  return said.length > 0 ? said.join(' — ') : t('narration.scopeElsewhere')
+}
 
 /**
  * A character's standing register - what is added to every line they speak.

@@ -54,9 +54,82 @@ public sealed class NarrationClipCache
     }
 
     /// <summary>
-    /// Empties the cache. Called when a reading stops and when the project
-    /// closes: audio of somebody's manuscript should not outlive the sitting it
-    /// was made in.
+    /// True where this clip has already been made.
+    ///
+    /// The whole point of naming a clip after its recipe: asking whether a line
+    /// has been spoken before is a look at the filesystem rather than a minute
+    /// inside a model.
+    /// </summary>
+    public bool Has(string name)
+        => IsCleanName(name) && File.Exists(Path.Combine(_root, name));
+
+    /// <summary>
+    /// Writes one clip under a name the caller chose - its recipe - rather than
+    /// under its own contents.
+    /// </summary>
+    public async Task<string> WriteAsAsync(string name, byte[] audio)
+    {
+        if (!IsCleanName(name))
+            return await WriteAsync(audio, "wav");
+
+        Directory.CreateDirectory(_root);
+        var path = Path.Combine(_root, name);
+        if (!File.Exists(path))
+            await File.WriteAllBytesAsync(path, audio);
+        return name;
+    }
+
+    /// <summary>
+    /// Drops the least recently wanted clips until the cache is under
+    /// <paramref name="maxBytes"/>.
+    ///
+    /// Clips are kept between readings now, which is what makes listening to a
+    /// scene twice cost once - and a book is hours of audio, so something has to
+    /// decide when enough is enough. Oldest first, which for a writer working
+    /// through a chapter is the chapter they have stopped working on.
+    /// </summary>
+    /// <param name="keep">Clips the reading in progress is about to play. They
+    /// survive however old they are: a writer listening to one chapter all
+    /// afternoon is playing clips made hours ago, and evicting those would make
+    /// the cache useless to exactly the person it is for.</param>
+    public void Trim(long maxBytes, IReadOnlyCollection<string>? keep = null)
+    {
+        var directory = new DirectoryInfo(_root);
+        if (!directory.Exists)
+            return;
+
+        var wanted = keep is { Count: > 0 }
+            ? new HashSet<string>(keep, StringComparer.OrdinalIgnoreCase)
+            : null;
+        var files = directory.EnumerateFiles().ToList();
+        var total = files.Sum(f => f.Length);
+        if (total <= maxBytes)
+            return;
+
+        foreach (var file in files.OrderBy(f => f.LastWriteTimeUtc))
+        {
+            if (total <= maxBytes)
+                return;
+            if (wanted?.Contains(file.Name) == true)
+                continue;
+            try
+            {
+                var length = file.Length;
+                file.Delete();
+                total -= length;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // Being played. It will go with the next trim rather than taking
+                // this one with it.
+            }
+        }
+    }
+
+    /// <summary>
+    /// Empties the cache. Called when the project closes, and when the writer
+    /// asks for the reading to be made again: audio of somebody's manuscript
+    /// should not outlive the project being open.
     /// </summary>
     public void Clear()
     {

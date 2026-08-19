@@ -98,6 +98,9 @@ public sealed class AudiobookRpcTests : IDisposable
     public async Task Estimate_CountsTheBookAndNamesTheEngine()
     {
         await ChapterAsync("One", "<p>One two three four five.</p>");
+        // Cast, because which engine would do the work is decided by the voices
+        // the book is cast in rather than by whichever engine is loaded.
+        await CastNarratorAsync();
         _engine.Ready = true;
 
         var estimate = await _rpc.EstimateAsync();
@@ -202,14 +205,36 @@ public sealed class AudiobookRpcTests : IDisposable
     }
 
     [Fact]
-    public async Task Start_WithNoEngineReady_SaysSoRatherThanRenderingSilence()
+    public async Task Start_WithAnEngineStillToDownload_SaysSoRatherThanFetchingGigabytes()
     {
         await ChapterAsync("One", "<p>Hello there.</p>");
+        await CastNarratorAsync();
+        // Installed, not ready, and eight gigabytes short of being ready. An
+        // export button is not permission to spend somebody's connection.
+        _engine.DownloadBytes = 8L * 1024 * 1024 * 1024;
 
         var status = await _rpc.StartAsync("M4b", Path.Combine(Output, "book.m4b"));
 
         Assert.Equal("failed", status.Phase);
         Assert.Equal("no-engine", status.Error);
+        Assert.Equal(0, _engine.Prepared);
+    }
+
+    [Fact]
+    public async Task Start_WithAnEngineInstalledButNotLoaded_LoadsItRatherThanRefusing()
+    {
+        await ChapterAsync("One", "<p>Hello there.</p>");
+        await CastNarratorAsync();
+        // Everything downloaded; the model simply is not in memory, because
+        // nothing has needed it since the app started. Refusing an export the
+        // writer asked for by name over half a minute of loading would be an
+        // error message in place of the thing they wanted.
+        _engine.Ready = false;
+
+        var status = await _rpc.StartAsync("M4b", Path.Combine(Output, "book.m4b"));
+
+        Assert.Equal(1, _engine.Prepared);
+        Assert.NotEqual("no-engine", status.Error);
     }
 
     [Fact]
@@ -382,10 +407,18 @@ public sealed class AudiobookRpcTests : IDisposable
     [Fact]
     public async Task Start_ALineWithNoVoiceIsReportedRatherThanSilentlyDropped()
     {
-        await ChapterAsync("One", "<p>Hello there.</p>");
+        var chapter = await ChapterAsync("One", "<p>\"Hello there,\" said Mira.</p>");
+        await CastNarratorAsync();
+        // Mira is cast in a voice this machine does not have - a cast assembled
+        // on somebody else's computer. Her line cannot be spoken; the
+        // narrator's half of the paragraph can.
+        var mira = new CharacterData { Name = "Mira" };
+        await new EntityService(_workspace.Projects).SaveCharacterAsync(mira);
+        await new VoiceCast(_workspace.Projects, _workspace.FileService)
+            .SetVoiceAsync(mira.Id, "a-voice-from-another-machine");
         _engine.Ready = true;
+        _ = chapter;
 
-        // No narrator cast, so nothing can be spoken.
         await _rpc.StartAsync("WavPerChapter", Output);
         var status = await SettledAsync();
 
@@ -482,14 +515,118 @@ public sealed class AudiobookRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Start_WithAnEngineWhoseModelWillNotLoad_SaysSoRatherThanHanging()
+    {
+        await ChapterAsync("One", "<p>Hello there.</p>");
+        await CastNarratorAsync();
+        _engine.ThrowOnPrepare = true;
+
+        var status = await _rpc.StartAsync("M4b", Path.Combine(Output, "book.m4b"));
+
+        Assert.Equal("failed", status.Phase);
+        Assert.Equal("no-engine", status.Error);
+    }
+
+    [Fact]
+    public async Task Start_WithAnEngineThatStartsAndStillIsNotReady_DoesNotRenderSilence()
+    {
+        await ChapterAsync("One", "<p>Hello there.</p>");
+        await CastNarratorAsync();
+        // Prepare returns, and the engine is no readier for it. Treating "the
+        // call came back" as "it works" would send a chapter to a model that is
+        // not loaded and write a silent audiobook.
+        _engine.RefuseToBecomeReady = true;
+
+        var status = await _rpc.StartAsync("M4b", Path.Combine(Output, "book.m4b"));
+
+        Assert.Equal("no-engine", status.Error);
+    }
+
+    [Fact]
+    public async Task Start_RecordsAVoiceTheWriterSetOverOneChapter()
+    {
+        // The export is the one place a wrong voice is baked into a file and
+        // published. It compiled the book without a position, so every scoped
+        // voice was silently ignored and the audiobook disagreed with what the
+        // writer had been listening to.
+        var chapter = await ChapterAsync("One", "<p>Hello there.</p>");
+        await CastNarratorAsync();
+        await new VoiceStore(_workspace.Projects, _workspace.FileService).SaveAsync(
+            new DesignedVoice(
+                "the-boy", "The boy", string.Empty, SilentEngine.Id, "wav", 24000,
+                DateTime.UtcNow.ToString("O")),
+            [4, 5, 6]);
+        await new VoiceCast(_workspace.Projects, _workspace.FileService)
+            .SetScopeAsync(null, new VoiceScope(null, chapter.Guid, null), "the-boy");
+        _engine.Ready = true;
+
+        await _rpc.StartAsync("M4b", Path.Combine(Output, "book.m4b"));
+        await SettledAsync();
+
+        Assert.Contains("the-boy", _engine.VoicesUsed);
+    }
+
+    [Fact]
     public async Task AnEngineThatIsAskedItsStatusAndThrows_IsNotTheOneChosen()
     {
         await ChapterAsync("One", "<p>Hello there.</p>");
         _workspace.ExtensionsHost.VoiceEngines.Insert(0, new BrokenEngine());
+        // Cast in the broken engine's voice, so it is genuinely the one that
+        // would have to speak.
+        await new VoiceStore(_workspace.Projects, _workspace.FileService).SaveAsync(
+            new DesignedVoice(
+                "broken", "Broken", string.Empty, "com.example.broken", "wav", 24000,
+                DateTime.UtcNow.ToString("O")),
+            [1, 2, 3]);
+        await new VoiceCast(_workspace.Projects, _workspace.FileService)
+            .SetVoiceAsync(null, "broken");
 
         var estimate = await _rpc.EstimateAsync();
 
         Assert.Null(estimate.EngineId);
+    }
+
+    [Fact]
+    public async Task Start_CastInAnEngineThisMachineDoesNotHave_SaysSoRatherThanUsingAnother()
+    {
+        // A project assembled somewhere else, or an extension since removed.
+        // Recording the book in whatever engine happens to be installed would
+        // be an audiobook in the wrong voice that nothing reported.
+        await ChapterAsync("One", "<p>Hello there.</p>");
+        await new VoiceStore(_workspace.Projects, _workspace.FileService).SaveAsync(
+            new DesignedVoice(
+                "elsewhere", "Elsewhere", string.Empty, "com.example.gone", "wav", 24000,
+                DateTime.UtcNow.ToString("O")),
+            [1, 2, 3]);
+        await new VoiceCast(_workspace.Projects, _workspace.FileService)
+            .SetVoiceAsync(null, "elsewhere");
+        _engine.Ready = true;
+
+        var status = await _rpc.StartAsync("M4b", Path.Combine(Output, "book.m4b"));
+
+        Assert.Equal("no-engine", status.Error);
+    }
+
+    [Fact]
+    public async Task Start_WithNoNarratorCast_TakesTheEngineMostOfTheCastBelongsTo()
+    {
+        // A book part-way through being cast: characters have voices and the
+        // narrator does not yet. The export still has to pick an engine, and
+        // the one that made most of the voices is the one that gets most of the
+        // book right.
+        await ChapterAsync("One", "<p>\"Hello there,\" said Mira.</p>");
+        var mira = new CharacterData { Name = "Mira" };
+        await new EntityService(_workspace.Projects).SaveCharacterAsync(mira);
+        await new VoiceStore(_workspace.Projects, _workspace.FileService).SaveAsync(
+            new DesignedVoice(
+                "hers", "Hers", string.Empty, SilentEngine.Id, "wav", 24000,
+                DateTime.UtcNow.ToString("O")),
+            [1, 2, 3]);
+        await new VoiceCast(_workspace.Projects, _workspace.FileService)
+            .SetVoiceAsync(mira.Id, "hers");
+        _engine.Ready = true;
+
+        Assert.Equal(SilentEngine.Id, (await _rpc.EstimateAsync()).EngineId);
     }
 
     // ─── the stubs ──────────────────────────────────────────────────
@@ -501,6 +638,12 @@ public sealed class AudiobookRpcTests : IDisposable
 
         public bool Ready { get; set; }
         public bool Throw { get; set; }
+
+        /// <summary>Gigabytes still to fetch, which is what makes an engine one
+        /// nobody may start on the writer's behalf.</summary>
+        public long? DownloadBytes { get; set; }
+
+        public int Prepared { get; private set; }
 
         /// <summary>Held so a test can catch a render while it is genuinely in
         /// flight rather than after it has finished.</summary>
@@ -527,13 +670,32 @@ public sealed class AudiobookRpcTests : IDisposable
         public VoiceEngineFeatures Features => VoiceEngineFeatures.EmotionVector;
 
         public Task<VoiceEngineStatus> GetStatusAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(new VoiceEngineStatus { IsReady = Ready });
+            => Task.FromResult(new VoiceEngineStatus
+            {
+                IsReady = Ready,
+                DownloadBytes = DownloadBytes
+            });
+
+        /// <summary>An engine whose model will not load - a driver that has
+        /// gone, weights somebody deleted.</summary>
+        public bool ThrowOnPrepare { get; set; }
+
+        /// <summary>An engine that returns from being prepared and is still not
+        /// ready, which is what a cancelled download looks like.</summary>
+        public bool RefuseToBecomeReady { get; set; }
+
+        /// <summary>Which voice each line was actually sent in - the thing an
+        /// export bakes into a file somebody then publishes.</summary>
+        public List<string> VoicesUsed { get; } = [];
 
         public Task PrepareAsync(
             IProgress<VoiceEnginePrepare>? progress = null,
             CancellationToken cancellationToken = default)
         {
-            Ready = true;
+            Prepared++;
+            if (ThrowOnPrepare)
+                throw new InvalidOperationException("no");
+            Ready = !RefuseToBecomeReady;
             return Task.CompletedTask;
         }
 
@@ -565,6 +727,7 @@ public sealed class AudiobookRpcTests : IDisposable
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 Spoken.Add(segment.Text);
+                VoicesUsed.Add(segment.VoiceId);
                 yield return new NarrationClip
                 {
                     Key = segment.Key,
