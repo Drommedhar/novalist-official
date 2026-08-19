@@ -80,6 +80,113 @@ public static class NarrationScript
     private static readonly Regex Whitespace = new(@"\s+", RegexOptions.Compiled);
 
     /// <summary>
+    /// What ends a sentence, in every writing system the app ships an analysis
+    /// pack for. The full-width stops matter: a Chinese scene has no full stop
+    /// in it at all and would come back as one unbroken utterance.
+    /// </summary>
+    private static readonly char[] Terminators =
+        ['.', '!', '?', '\u2026', '\u3002', '\uFF01', '\uFF1F'];
+
+    /// <summary>
+    /// Characters that belong to the sentence they follow - a closing quote or
+    /// bracket after the stop. Breaking before them would leave a stray mark
+    /// opening the next utterance.
+    /// </summary>
+    private static readonly char[] Trailing =
+        ['"', '\'', '\u201d', '\u2019', '\u00bb', '\u203a', ')', ']', '\u300d', '\u300f'];
+
+    /// <summary>
+    /// The longest an utterance may run without a sentence ending in it.
+    ///
+    /// Speech models are built to say a sentence, not a page, and degrade or
+    /// truncate well before this. Prose that runs on - a paragraph of stream of
+    /// consciousness with no full stop - is broken at a word boundary rather
+    /// than sent whole.
+    /// </summary>
+    private const int LongestUtterance = 300;
+
+    /// <summary>
+    /// Cuts a stretch of narration into things a voice would say in one breath.
+    ///
+    /// Sentence endings and paragraph breaks, which the scene's plain text
+    /// carries as newlines. Ranges are in the text's own coordinates, because
+    /// the prose is marked up where it stands and an offset that has drifted
+    /// puts the highlight on the wrong words.
+    /// </summary>
+    internal static IEnumerable<(int Start, int End)> Utterances(string text, int start, int end)
+    {
+        var from = start;
+        var at = start;
+
+        while (at < end)
+        {
+            var character = text[at];
+            at++;
+
+            if (character == '\n')
+            {
+                // A paragraph break is always a break, and is never spoken.
+                if (Trim(text, from, at - 1) is { } paragraph)
+                    yield return paragraph;
+                from = at;
+                continue;
+            }
+
+            if (Array.IndexOf(Terminators, character) >= 0)
+            {
+                // Take the closing marks and the run of stops with it: "..." and
+                // "?!" are one ending, not three.
+                while (at < end
+                       && (Array.IndexOf(Terminators, text[at]) >= 0
+                           || Array.IndexOf(Trailing, text[at]) >= 0))
+                {
+                    at++;
+                }
+                if (Trim(text, from, at) is { } sentence)
+                    yield return sentence;
+                from = at;
+                continue;
+            }
+
+            // Nothing has ended this in far too long. Break at the last word
+            // boundary rather than mid-word.
+            if (at - from >= LongestUtterance)
+            {
+                var breakAt = text.LastIndexOf(' ', at - 1, at - from);
+                if (breakAt <= from)
+                    breakAt = at;
+                if (Trim(text, from, breakAt) is { } piece)
+                    yield return piece;
+                from = breakAt;
+                at = breakAt;
+                // Step past the space, so it does not open the next utterance.
+                while (at < end && text[at] == ' ')
+                    at++;
+                from = at;
+            }
+        }
+
+        if (Trim(text, from, end) is { } last)
+            yield return last;
+    }
+
+    /// <summary>
+    /// A range with the whitespace taken off both ends, or null when there is
+    /// nothing but whitespace in it.
+    ///
+    /// The range is what the prose is marked up by, so a leading space would be
+    /// highlighted as though it were part of the sentence being spoken.
+    /// </summary>
+    private static (int Start, int End)? Trim(string text, int start, int end)
+    {
+        while (start < end && char.IsWhiteSpace(text[start]))
+            start++;
+        while (end > start && char.IsWhiteSpace(text[end - 1]))
+            end--;
+        return end > start ? (start, end) : null;
+    }
+
+    /// <summary>
     /// Builds one scene's script.
     /// </summary>
     /// <param name="html">The scene's content.</param>
@@ -113,15 +220,26 @@ public static class NarrationScript
         var ordinals = new Dictionary<string, int>(StringComparer.Ordinal);
         var cursor = 0;
 
+        // One utterance per sentence, rather than one per gap between quotes.
+        //
+        // The gap between two quoted lines is not a unit of speech - in a scene
+        // with little dialogue it is the entire scene. That was handed to the
+        // engine as a single utterance: thirty seconds of audio from one call,
+        // minutes of waiting before the first sound, and a model asked for far
+        // more than it is built to say in one breath. It is also the wrong unit
+        // to follow along: highlighting a whole scene tells the writer nothing
+        // about where the voice is.
         void AddNarration(int start, int end)
         {
-            if (end <= start)
-                return;
+            foreach (var (from, to) in Utterances(text, start, end))
+                AddUtterance(from, to);
+        }
 
+        // Every range Utterances yields is non-empty and already trimmed, so
+        // there is nothing to re-check here.
+        void AddUtterance(int start, int end)
+        {
             var raw = Clean(text[start..end]);
-            if (raw.Length == 0)
-                return;
-
             var key = NarrationKey(raw, ordinals);
             segments.Add(new NarrationSegment(
                 segments.Count,
