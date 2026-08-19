@@ -2351,7 +2351,8 @@
     "dimension.disgusted": "Angewidert",
     "dimension.melancholic": "Melancholisch",
     "dimension.surprised": "Überrascht",
-    "dimension.calm": "Ruhig"
+    "dimension.calm": "Ruhig",
+    "preparingReading": "Lesung wird vorbereitet"
   },
   "shell": {
     "toggleBinder": "Binder umschalten",

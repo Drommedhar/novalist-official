@@ -2378,7 +2378,8 @@
     "dimension.disgusted": "厌恶",
     "dimension.melancholic": "忧郁",
     "dimension.surprised": "惊讶",
-    "dimension.calm": "平静"
+    "dimension.calm": "平静",
+    "preparingReading": "正在准备朗读"
   },
   "shell": {
     "toggleBinder": "切换项目栏",

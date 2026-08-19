@@ -2343,7 +2343,8 @@
     "dimension.disgusted": "Disgusted",
     "dimension.melancholic": "Melancholic",
     "dimension.surprised": "Surprised",
-    "dimension.calm": "Calm"
+    "dimension.calm": "Calm",
+    "preparingReading": "Preparing the reading"
   },
   "shell": {
     "toggleBinder": "Toggle binder",
