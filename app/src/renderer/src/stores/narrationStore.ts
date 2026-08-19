@@ -217,6 +217,10 @@ interface NarrationState {
   loading: boolean
   /** The segment being spoken, or null when nothing is. */
   speaking: SegmentRef | null
+  /** True between pressing Play and the first sound. Rendering speech takes
+   *  seconds, and a transport that says nothing for that long reads as a
+   *  button that did not work. */
+  preparing: boolean
   /** The segment the writer has picked, whose controls the panel shows. */
   selected: SegmentRef | null
   rate: number
@@ -284,6 +288,17 @@ let current: HTMLAudioElement | null = null
  *  and that pressing Play does not wait for the whole chapter. */
 const RENDER_WINDOW = 12
 
+/**
+ * How many lines the first request asks for.
+ *
+ * A window is rendered before any of it is played, so asking for twelve up
+ * front means the writer presses Play and waits for all twelve - ten or twenty
+ * seconds of nothing, on the engine that most needs a reading to feel live.
+ * The first request is small so a voice starts almost at once; the ones after
+ * it are full size and are rendered while that first stretch is still playing.
+ */
+const FIRST_WINDOW = 2
+
 /** Plays one rendered clip, resolving when it finishes, is stopped, or fails.
  *  Never rejects: a clip that will not play ends the reading through the same
  *  path as one that finished. */
@@ -342,6 +357,7 @@ export const useNarrationStore = create<NarrationState>((set, get) => ({
   reading: [],
   loading: false,
   speaking: null,
+  preparing: false,
   selected: null,
   rate: 1,
 
@@ -592,10 +608,13 @@ export const useNarrationStore = create<NarrationState>((set, get) => ({
     const token = ++run
     const performed = get().engines.some((e) => e.isReady)
 
-    if (performed) await performedReading(get, set, token, Math.max(0, from))
-    else await spokenReading(get, set, token, Math.max(0, from))
-
-    if (token === run) set({ speaking: null })
+    set({ preparing: true })
+    try {
+      if (performed) await performedReading(get, set, token, Math.max(0, from))
+      else await spokenReading(get, set, token, Math.max(0, from))
+    } finally {
+      if (token === run) set({ speaking: null, preparing: false })
+    }
   },
 
   // Nothing follows a press of Stop, so it need not be waited for.
@@ -608,6 +627,7 @@ export const useNarrationStore = create<NarrationState>((set, get) => ({
     set({ speaking: null })
     current?.pause()
     current = null
+    set({ preparing: false })
     // The render is a separate thing to interrupt: an engine part way through a
     // window would otherwise finish it into a cache nobody is listening to.
     await Promise.allSettled([
@@ -636,6 +656,7 @@ export const useNarrationStore = create<NarrationState>((set, get) => ({
       book: null,
       reading: [],
       speaking: null,
+      preparing: false,
       selected: null
     })
   }
@@ -658,12 +679,15 @@ async function performedReading(
 ): Promise<void> {
   const reading = get().reading
   let index = from
+  // Small first, so a voice starts almost at once rather than after the whole
+  // window has been rendered.
+  let asked = FIRST_WINDOW
 
   while (index < reading.length) {
     if (token !== run) return
     const window = await rpc.request<NarrationRender>('narration/render', [
       index,
-      RENDER_WINDOW,
+      asked,
       get().rate
     ])
     if (token !== run) return
@@ -683,11 +707,12 @@ async function performedReading(
       if (clip.clip === null) return
       // Remembered before it is played, so a delivery the writer liked can be
       // pointed at afterwards.
-      set({ heard: { ...get().heard, [clip.key]: clip.clip } })
+      set({ heard: { ...get().heard, [clip.key]: clip.clip }, preparing: false })
       await playClip(clip.clip)
     }
 
-    index += RENDER_WINDOW
+    index += asked
+    asked = RENDER_WINDOW
   }
 }
 

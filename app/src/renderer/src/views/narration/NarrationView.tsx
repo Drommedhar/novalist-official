@@ -87,6 +87,7 @@ export function NarrationView(): React.JSX.Element {
   const setRate = useNarrationStore((s) => s.setRate)
   const play = useNarrationStore((s) => s.play)
   const stop = useNarrationStore((s) => s.stop)
+  const preparing = useNarrationStore((s) => s.preparing)
   const busy = useNarrationStore((s) => s.busy)
   const prepareEngine = useNarrationStore((s) => s.prepareEngine)
   const loadEngines = useNarrationStore((s) => s.loadEngines)
@@ -363,18 +364,22 @@ export function NarrationView(): React.JSX.Element {
             type="button"
             className="narration-play"
             disabled={!canPlay}
-            onClick={() => (speaking === null ? playFrom() : stop())}
+            onClick={() => (speaking === null && !preparing ? playFrom() : stop())}
           >
-            {speaking === null ? (
+            {speaking === null && !preparing ? (
               <Play size={13} strokeWidth={1.75} aria-hidden="true" />
             ) : (
               <Square size={13} strokeWidth={1.75} aria-hidden="true" />
             )}
-            {speaking === null
-              ? selected
-                ? t('narration.playFromHere')
-                : t('narration.play')
-              : t('narration.stop')}
+            {/* Making speech takes seconds, and a transport that says nothing
+                for that long reads as a button that did not work. */}
+            {preparing && speaking === null
+              ? t('narration.preparingReading')
+              : speaking === null
+                ? selected
+                  ? t('narration.playFromHere')
+                  : t('narration.play')
+                : t('narration.stop')}
           </button>
 
           <button
