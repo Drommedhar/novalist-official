@@ -209,8 +209,13 @@ public sealed class VoiceEngineRpc
         }
         catch (Exception ex)
         {
+            // The type goes to the log, because an exception's message can name
+            // a path and the diagnostic log is a thing writers send us. The
+            // message goes to the screen in front of the person whose machine
+            // it is, because "InvalidOperationException" is not a reason and
+            // left them with nothing to act on and nothing to tell us.
             Log.Warn($"voiceEngines/design failed type={ex.GetType().Name}.");
-            return VoiceDesignDto.Failed(ex.GetType().Name);
+            return VoiceDesignDto.Failed(Reason(ex));
         }
 
         var stored = new DesignedVoice(
@@ -288,6 +293,17 @@ public sealed class VoiceEngineRpc
         DesignedVoice Stored, byte[] Audio, string? CharacterId);
 
     private VoiceCandidate? _candidate;
+
+    /// <summary>
+    /// What to put in front of the writer when a design fails.
+    ///
+    /// The engine's own words where it gave any - the Speech extension reports
+    /// codes such as "sidecar-exited-while-designing" - and the exception type
+    /// only when it did not, which is the case for a fault that never reached
+    /// the engine at all.
+    /// </summary>
+    private static string Reason(Exception ex)
+        => string.IsNullOrWhiteSpace(ex.Message) ? ex.GetType().Name : ex.Message;
 
     /// <summary>Every voice this book has been given.</summary>
     [JsonRpcMethod("voiceEngines/voices")]
@@ -588,8 +604,13 @@ public sealed class VoiceEngineRpc
         }
         catch (Exception ex)
         {
+            // The type goes to the log, because an exception's message can name
+            // a path and the diagnostic log is a thing writers send us. The
+            // message goes to the screen in front of the person whose machine
+            // it is, because "InvalidOperationException" is not a reason and
+            // left them with nothing to act on and nothing to tell us.
             Log.Warn($"narration/designNarrator failed type={ex.GetType().Name}.");
-            return VoiceDesignDto.Failed(ex.GetType().Name);
+            return VoiceDesignDto.Failed(Reason(ex));
         }
 
         var stored = new DesignedVoice(
