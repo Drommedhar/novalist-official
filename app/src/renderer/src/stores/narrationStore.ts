@@ -255,6 +255,8 @@ interface NarrationState {
   setRate(rate: number): void
   play(from?: number): Promise<void>
   stop(): void
+  /** Stops, and does not come back until the backend has actually stopped. */
+  stopAsync(): Promise<void>
   reset(): void
 }
 
@@ -581,7 +583,12 @@ export const useNarrationStore = create<NarrationState>((set, get) => ({
     const reading = get().reading
     if (reading.length === 0) return
 
-    get().stop()
+    // Awaited. Stopping empties the clip cache on the backend, and
+    // narration/renderStop deliberately skips the request queue so that Stop is
+    // immediate - which means a Play that fires it and moves on has its own
+    // first clips deleted out from under it a moment later. The log said so
+    // exactly: "clips=1 ... cacheBytes=0", and no sound.
+    await get().stopAsync()
     const token = ++run
     const performed = get().engines.some((e) => e.isReady)
 
@@ -591,16 +598,22 @@ export const useNarrationStore = create<NarrationState>((set, get) => ({
     if (token === run) set({ speaking: null })
   },
 
+  // Nothing follows a press of Stop, so it need not be waited for.
   stop: () => {
+    void get().stopAsync()
+  },
+
+  stopAsync: async () => {
     run++
     set({ speaking: null })
     current?.pause()
     current = null
-    void rpc.request('voices/stop').catch(() => {})
-    // And the render, which is a separate thing to interrupt: an engine part
-    // way through a window would otherwise finish it into a cache nobody is
-    // listening to.
-    void rpc.request('narration/renderStop').catch(() => {})
+    // The render is a separate thing to interrupt: an engine part way through a
+    // window would otherwise finish it into a cache nobody is listening to.
+    await Promise.allSettled([
+      rpc.request('voices/stop'),
+      rpc.request('narration/renderStop')
+    ])
   },
 
   reset: () => {
