@@ -2379,7 +2379,10 @@
     "dimension.melancholic": "忧郁",
     "dimension.surprised": "惊讶",
     "dimension.calm": "平静",
-    "preparingReading": "正在准备朗读"
+    "preparingReading": "正在准备朗读",
+    "listenBeforeKeeping": "先听一听再决定。同样的描述每次生成的声音都不同，如果不合适就再试一次。",
+    "keepVoice": "采用这个声音",
+    "designAgain": "再试一次"
   },
   "shell": {
     "toggleBinder": "切换项目栏",
