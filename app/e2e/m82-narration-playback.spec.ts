@@ -99,6 +99,10 @@ test('pressing Play renders a clip, keeps it, and speaks it', async () => {
   const dialog = page.locator('.narration-design-dialog')
   await expect(dialog).toBeVisible({ timeout: 15_000 })
   await dialog.locator('.narration-play').click()
+  // Designed voices are offered before they are kept, so the narrator is only
+  // cast once Keep is pressed.
+  await expect(dialog.locator('.narration-candidate audio')).toBeVisible({ timeout: 60_000 })
+  await dialog.getByRole('button', { name: /keep this voice|übernehmen|采用/i }).click()
   await expect(dialog).toHaveCount(0, { timeout: 60_000 })
 
   // Press Play the way a writer does.

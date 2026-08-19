@@ -204,6 +204,32 @@ public sealed class VoiceEngineRpcTests : IDisposable
         Assert.Contains("Age: 34", brief.Description);
     }
 
+    /// <summary>
+    /// Designs a voice and keeps it, which is what designing used to do on its
+    /// own.
+    ///
+    /// It is two steps now because design is not reliable per attempt: the same
+    /// description asked for twice gives two voices, and one of them may not be
+    /// the voice that was asked for. Nothing is stored until the writer has
+    /// heard it. A design that failed has nothing to keep.
+    /// </summary>
+    private async Task<VoiceDesignDto> KeptAsync(
+        string engineId, string characterId, string description, bool consent = false)
+    {
+        var offered = await _rpc.DesignAsync(engineId, characterId, description, consent);
+        if (offered.Error == null)
+            Assert.True(await _rpc.KeepVoiceAsync());
+        return offered;
+    }
+
+    private async Task<VoiceDesignDto> KeptNarratorAsync(string engineId, string description)
+    {
+        var offered = await _rpc.DesignNarratorAsync(engineId, description);
+        if (offered.Error == null)
+            Assert.True(await _rpc.KeepVoiceAsync());
+        return offered;
+    }
+
     // ── voiceEngines/design ──
 
     [Fact]
@@ -211,7 +237,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     {
         var mira = await MiraAsync();
 
-        var result = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Age: 34. Low and level.");
+        var result = await KeptAsync(StubEngine.Id, mira.Id, "Age: 34. Low and level.");
 
         Assert.Null(result.Error);
         Assert.NotNull(result.VoiceId);
@@ -236,7 +262,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         // writer edited the brief to say goes through the same filter.
         var mira = await MiraAsync();
 
-        await _rpc.DesignAsync(StubEngine.Id, mira.Id, "A wiry, angry, joyful woman.");
+        await KeptAsync(StubEngine.Id, mira.Id, "A wiry, angry, joyful woman.");
 
         Assert.DoesNotContain("angry", _engine.LastBrief!.Description);
         Assert.DoesNotContain("joyful", _engine.LastBrief.Description);
@@ -249,7 +275,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         _engine.CanDesign = false;
         var mira = await MiraAsync();
 
-        var result = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var result = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
 
         Assert.Equal("EngineCannotDesign", result.Error);
         Assert.Empty(await _rpc.VoicesAsync());
@@ -260,8 +286,8 @@ public sealed class VoiceEngineRpcTests : IDisposable
     {
         var mira = await MiraAsync();
 
-        Assert.Equal("NoEngine", (await _rpc.DesignAsync("nobody", mira.Id, "x")).Error);
-        Assert.Equal("NoCharacter", (await _rpc.DesignAsync(StubEngine.Id, "nobody", "x")).Error);
+        Assert.Equal("NoEngine", (await KeptAsync("nobody", mira.Id, "x")).Error);
+        Assert.Equal("NoCharacter", (await KeptAsync(StubEngine.Id, "nobody", "x")).Error);
     }
 
     [Fact]
@@ -269,11 +295,11 @@ public sealed class VoiceEngineRpcTests : IDisposable
     {
         var mira = await MiraAsync(AiInclusion.Never);
 
-        var refused = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var refused = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         Assert.Equal(nameof(VoiceBriefRefusal.WithheldFromAi), refused.Error);
 
         // And designs once they say so deliberately.
-        var allowed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.", consent: true);
+        var allowed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.", consent: true);
         Assert.Null(allowed.Error);
     }
 
@@ -283,7 +309,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         _engine.ThrowOnDesign = true;
         var mira = await MiraAsync();
 
-        var result = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var result = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
 
         Assert.Equal(nameof(InvalidOperationException), result.Error);
         Assert.Empty(await _rpc.VoicesAsync());
@@ -308,7 +334,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     {
         var mira = await MiraAsync();
 
-        await _rpc.DesignAsync(StubEngine.Id, mira.Id, "   ");
+        await KeptAsync(StubEngine.Id, mira.Id, "   ");
 
         Assert.Contains("Age: 34", _engine.LastBrief!.Description);
     }
@@ -319,7 +345,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     public async Task Forget_DropsTheVoiceAndUnCastsWhoeverReadInIt()
     {
         var mira = await MiraAsync();
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
 
         Assert.True(await _rpc.ForgetAsync(designed.VoiceId!));
@@ -340,7 +366,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     public async Task Forget_AnEngineThatRefusesDoesNotKeepTheProjectHoldingIt()
     {
         var mira = await MiraAsync();
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         _engine.ThrowOnForget = true;
 
         Assert.True(await _rpc.ForgetAsync(designed.VoiceId!));
@@ -355,7 +381,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     {
         // One neutral sample says nothing about whether the casting works.
         var mira = await MiraAsync();
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
 
         var clips = await _rpc.AuditionAsync(designed.VoiceId!, "You are late.");
 
@@ -376,7 +402,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     public async Task Audition_TakesTheEmotionsTheCallerAsksFor()
     {
         var mira = await MiraAsync();
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
 
         var clips = await _rpc.AuditionAsync(designed.VoiceId!, "A line.", ["joyful"]);
 
@@ -391,7 +417,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     public async Task Audition_AnEngineThatThrowsMidWayKeepsWhatItAlreadyGave()
     {
         var mira = await MiraAsync();
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         _engine.ThrowOnRenderAfter = 1;
 
         var clips = await _rpc.AuditionAsync(designed.VoiceId!, "A line.");
@@ -404,7 +430,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     {
         _workspace.Settings.Settings.AutoReplacementLanguage = "fr";
         var mira = await MiraAsync();
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
 
         var clips = await _rpc.AuditionAsync(designed.VoiceId!, "A line.");
 
@@ -435,7 +461,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         var mira = await MiraAsync();
         await SceneAsync("<p>She waited. \"You are late,\" said Mira.</p>");
         await _rpc.PrepareAsync(StubEngine.Id);
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
 
         var render = await _rpc.RenderAsync(0, 8);
@@ -457,7 +483,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         await SceneAsync(
             "<p>\"A,\" said Mira.</p><p>\"B,\" said Mira.</p><p>\"C,\" said Mira.</p>");
         await _rpc.PrepareAsync(StubEngine.Id);
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
 
         var first = await _rpc.RenderAsync(0, 2);
@@ -474,7 +500,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         var mira = await MiraAsync();
         await SceneAsync("<p>\"A,\" said Mira.</p>");
         await _rpc.PrepareAsync(StubEngine.Id);
-        await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
 
         var render = await _rpc.RenderAsync(500, 8);
 
@@ -500,7 +526,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         var mira = await MiraAsync();
         await SceneAsync("<p>\"You are late,\" Mira snapped.</p>");
         await _rpc.PrepareAsync(StubEngine.Id);
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
 
         await _rpc.RenderAsync(0, 8);
@@ -521,7 +547,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         var mira = await MiraAsync();
         await SceneAsync("<p>\"A,\" said Mira.</p>");
         await _rpc.PrepareAsync(StubEngine.Id);
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
         _engine.RefuseRender = true;
 
@@ -538,7 +564,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         var mira = await MiraAsync();
         await SceneAsync("<p>\"A,\" said Mira.</p>");
         await _rpc.PrepareAsync(StubEngine.Id);
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
         _engine.ThrowOnRenderAfter = 0;
 
@@ -553,7 +579,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         var mira = await MiraAsync();
         await SceneAsync("<p>\"A,\" said Mira.</p>");
         await _rpc.PrepareAsync(StubEngine.Id);
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
         await _rpc.RenderAsync(0, 8);
         Assert.True(_cache.Size() > 0);
@@ -569,7 +595,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         var mira = await MiraAsync();
         await SceneAsync("<p>\"A,\" said Mira.</p><p>\"B,\" said Mira.</p>");
         await _rpc.PrepareAsync(StubEngine.Id);
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
         _engine.Hold = new TaskCompletionSource();
         _engine.Started = new TaskCompletionSource();
@@ -592,7 +618,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         var mira = await MiraAsync();
         await SceneAsync("<p>\"A,\" said Mira.</p><p>\"B,\" said Mira.</p>");
         await _rpc.PrepareAsync(StubEngine.Id);
-        var designed = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
         await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
         _engine.IgnoreCancellation = true;
         _engine.Hold = new TaskCompletionSource();
@@ -657,7 +683,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     {
         await _rpc.PrepareAsync(StubEngine.Id);
 
-        var result = await _rpc.DesignNarratorAsync(StubEngine.Id, "Level and unhurried.");
+        var result = await KeptNarratorAsync(StubEngine.Id, "Level and unhurried.");
 
         Assert.Null(result.Error);
         var cast = await new VoiceCast(_workspace.Projects, _workspace.FileService).ReadAsync();
@@ -670,7 +696,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     {
         await _rpc.PrepareAsync(StubEngine.Id);
 
-        await _rpc.DesignNarratorAsync(StubEngine.Id, "Level and angry and joyful.");
+        await KeptNarratorAsync(StubEngine.Id, "Level and angry and joyful.");
 
         Assert.DoesNotContain("angry", _engine.LastBrief!.Description);
         Assert.Contains("Level", _engine.LastBrief.Description);
@@ -684,7 +710,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         await _workspace.Projects.SaveProjectAsync();
         await _rpc.PrepareAsync(StubEngine.Id);
 
-        await _rpc.DesignNarratorAsync(StubEngine.Id, "   ");
+        await KeptNarratorAsync(StubEngine.Id, "   ");
 
         Assert.Contains("first person", _engine.LastBrief!.Description);
     }
@@ -698,7 +724,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         Assert.Equal(
             "NoProject",
             (await new VoiceEngineRpc(closed).DesignNarratorAsync(StubEngine.Id, "x")).Error);
-        Assert.Equal("NoEngine", (await _rpc.DesignNarratorAsync("nobody", "x")).Error);
+        Assert.Equal("NoEngine", (await KeptNarratorAsync("nobody", "x")).Error);
     }
 
     [Fact]
@@ -708,7 +734,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
 
         Assert.Equal(
             "EngineCannotDesign",
-            (await _rpc.DesignNarratorAsync(StubEngine.Id, "x")).Error);
+            (await KeptNarratorAsync(StubEngine.Id, "x")).Error);
     }
 
     [Fact]
@@ -716,7 +742,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     {
         _engine.ThrowOnDesign = true;
 
-        var result = await _rpc.DesignNarratorAsync(StubEngine.Id, "Level.");
+        var result = await KeptNarratorAsync(StubEngine.Id, "Level.");
 
         Assert.Equal(nameof(InvalidOperationException), result.Error);
     }
@@ -998,5 +1024,86 @@ public sealed class VoiceEngineRpcTests : IDisposable
             Forgotten = voiceId;
             return Task.CompletedTask;
         }
+    }
+
+    // ── offered, then kept or thrown away ──
+
+    [Fact]
+    public async Task Design_OffersTheVoiceAndStoresNothingUntilItIsKept()
+    {
+        // Design is not reliable per attempt, and storing the first result made
+        // a miss into the character's voice until somebody noticed.
+        var mira = await MiraAsync();
+
+        var offered = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+
+        Assert.Null(offered.Error);
+        // There is something to listen to before deciding.
+        Assert.NotNull(offered.Clip);
+        // And nothing has been kept or cast.
+        Assert.Empty(await _rpc.VoicesAsync());
+        Assert.Null(await CastOf(mira.Id));
+    }
+
+    [Fact]
+    public async Task KeepVoice_StoresTheOfferedVoiceAndCastsThemInIt()
+    {
+        var mira = await MiraAsync();
+        var offered = await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+
+        Assert.True(await _rpc.KeepVoiceAsync());
+
+        var stored = Assert.Single(await _rpc.VoicesAsync());
+        Assert.Equal(offered.VoiceId, stored.VoiceId);
+        Assert.Equal(offered.VoiceId, await CastOf(mira.Id));
+    }
+
+    [Fact]
+    public async Task KeepVoice_TwiceKeepsOneVoice()
+    {
+        var mira = await MiraAsync();
+        await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+        await _rpc.KeepVoiceAsync();
+
+        // The second press has nothing left to keep.
+        Assert.False(await _rpc.KeepVoiceAsync());
+        Assert.Single(await _rpc.VoicesAsync());
+    }
+
+    [Fact]
+    public async Task KeepVoice_WithNothingOfferedKeepsNothing()
+        => Assert.False(await _rpc.KeepVoiceAsync());
+
+    [Fact]
+    public async Task DiscardVoice_ThrowsTheOfferAway()
+    {
+        var mira = await MiraAsync();
+        await _rpc.DesignAsync(StubEngine.Id, mira.Id, "Low and level.");
+
+        Assert.True(_rpc.DiscardVoice());
+
+        // And there is nothing left for a later Keep to commit.
+        Assert.False(await _rpc.KeepVoiceAsync());
+        Assert.Empty(await _rpc.VoicesAsync());
+    }
+
+    [Fact]
+    public void DiscardVoice_WithNothingOfferedIsNotAFault()
+        => Assert.False(_rpc.DiscardVoice());
+
+    [Fact]
+    public async Task DesignNarrator_OffersBeforeItCasts()
+    {
+        var offered = await _rpc.DesignNarratorAsync(StubEngine.Id, "Low and level.");
+
+        Assert.Null(offered.Error);
+        Assert.NotNull(offered.Clip);
+        var before = await new VoiceCast(_workspace.Projects, _workspace.FileService).ReadAsync();
+        Assert.Null(before.NarratorVoiceId);
+
+        Assert.True(await _rpc.KeepVoiceAsync());
+
+        var after = await new VoiceCast(_workspace.Projects, _workspace.FileService).ReadAsync();
+        Assert.Equal(offered.VoiceId, after.NarratorVoiceId);
     }
 }

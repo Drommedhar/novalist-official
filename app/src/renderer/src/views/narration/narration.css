@@ -628,3 +628,20 @@
   grid-column: 1 / -1;
   margin-top: var(--nl-space-tighter);
 }
+
+/* The designed voice, offered before it is kept. */
+.narration-candidate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+}
+
+.narration-candidate audio {
+  width: 100%;
+}
+
+.narration-design-actions {
+  display: flex;
+  gap: var(--nl-space-tighter);
+  align-items: center;
+}

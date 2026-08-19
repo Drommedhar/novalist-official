@@ -207,6 +207,15 @@ interface NarrationState {
   designed: DesignedVoice[]
   /** The brief being reviewed, or null when the design dialog is closed. */
   brief: VoiceBrief | null
+  /**
+   * A voice that has been designed and not yet kept, as a clip to listen to.
+   *
+   * Design is not reliable per attempt: the same description asked for twice
+   * gives two voices, and one of them may not be what was asked for at all.
+   * Keeping the first result outright made a miss into the character's voice
+   * until somebody noticed.
+   */
+  candidate: string | null
   /** True while an engine is designing or preparing - both are slow enough to
    *  need saying so. */
   busy: boolean
@@ -234,6 +243,10 @@ interface NarrationState {
   closeBrief(): void
   design(engineId: string, characterId: string, description: string, consent?: boolean): Promise<void>
   designNarrator(engineId: string, description: string): Promise<void>
+  /** Keeps the voice that was offered, storing it and casting whoever it is for. */
+  keepVoice(): Promise<void>
+  /** Throws the offered voice away. Nothing was stored, so this only forgets. */
+  discardVoice(): Promise<void>
   forgetVoice(voiceId: string): Promise<void>
   auditionVoice(voiceId: string, text: string): Promise<void>
   setVoice(characterId: string | null, voiceId: string | null): Promise<void>
@@ -294,8 +307,6 @@ const RENDER_WINDOW = 12
  * A window is rendered before any of it is played, so asking for twelve up
  * front means the writer presses Play and waits for all twelve - ten or twenty
  * seconds of nothing, on the engine that most needs a reading to feel live.
- * The first request is small so a voice starts almost at once; the ones after
- * it are full size and are rendered while that first stretch is still playing.
  */
 const FIRST_WINDOW = 2
 
@@ -350,6 +361,7 @@ export const useNarrationStore = create<NarrationState>((set, get) => ({
   engines: [],
   designed: [],
   brief: null,
+  candidate: null,
   busy: false,
   designError: null,
   audition: [],
@@ -521,42 +533,59 @@ export const useNarrationStore = create<NarrationState>((set, get) => ({
     })
   },
 
-  closeBrief: () => set({ brief: null, designError: null, audition: [] }),
+  // Closing the dialog throws away whatever was offered and not kept, on the
+  // backend as well as here - a voice nobody chose should not sit waiting to be
+  // committed by the next Keep.
+  closeBrief: () => {
+    if (get().candidate !== null) void get().discardVoice()
+    set({ brief: null, designError: null, audition: [], candidate: null })
+  },
 
   design: async (engineId, characterId, description, consent = false) => {
-    set({ busy: true, designError: null })
+    set({ busy: true, designError: null, candidate: null })
     try {
-      const result = await rpc.request<{ voiceId: string | null; error: string | null }>(
-        'voiceEngines/design',
-        [engineId, characterId, description, consent]
-      )
+      const result = await rpc.request<{
+        voiceId: string | null
+        error: string | null
+        clip: string | null
+      }>('voiceEngines/design', [engineId, characterId, description, consent])
       if (result.error !== null) {
         set({ designError: result.error })
         return
       }
-      set({ brief: null })
-      // Designing casts them in it, so the cast and the book both change.
-      await Promise.all([get().loadEngines(), get().loadCast()])
-      await get().loadBook()
+      // Offered rather than kept: the dialog plays it and asks.
+      set({ candidate: result.clip })
     } finally {
       set({ busy: false })
     }
   },
 
+  keepVoice: async () => {
+    await rpc.request<boolean>('voiceEngines/keepVoice')
+    set({ brief: null, candidate: null })
+    // Keeping casts them in it, so the cast and the book both change.
+    await Promise.all([get().loadEngines(), get().loadCast()])
+    await get().loadBook()
+  },
+
+  discardVoice: async () => {
+    set({ candidate: null })
+    await rpc.request<boolean>('voiceEngines/discardVoice').catch(() => {})
+  },
+
   designNarrator: async (engineId, description) => {
-    set({ busy: true, designError: null })
+    set({ busy: true, designError: null, candidate: null })
     try {
-      const result = await rpc.request<{ voiceId: string | null; error: string | null }>(
-        'narration/designNarrator',
-        [engineId, description]
-      )
+      const result = await rpc.request<{
+        voiceId: string | null
+        error: string | null
+        clip: string | null
+      }>('narration/designNarrator', [engineId, description])
       if (result.error !== null) {
         set({ designError: result.error })
         return
       }
-      set({ brief: null })
-      await Promise.all([get().loadEngines(), get().loadCast()])
-      await get().loadBook()
+      set({ candidate: result.clip })
     } finally {
       set({ busy: false })
     }
@@ -680,19 +709,32 @@ async function performedReading(
   const reading = get().reading
   let index = from
   // Small first, so a voice starts almost at once rather than after the whole
-  // window has been rendered.
+  // window has been rendered, then growing: the second window has only the
+  // first two lines' worth of playback to hide behind, and a full-size one
+  // could not be rendered in that time.
   let asked = FIRST_WINDOW
 
-  while (index < reading.length) {
+  const ask = (at: number, count: number): Promise<NarrationRender> | null =>
+    at < reading.length
+      ? rpc.request<NarrationRender>('narration/render', [at, count, get().rate])
+      : null
+
+  let pending = ask(index, asked)
+
+  while (pending !== null) {
     if (token !== run) return
-    const window = await rpc.request<NarrationRender>('narration/render', [
-      index,
-      asked,
-      get().rate
-    ])
+    const window = await pending
     if (token !== run) return
     // No engine after all - it went away between the check and the call.
     if (window.engineId === null) return await spokenReading(get, set, token, index)
+
+    // The next stretch is asked for before this one is played, so it is being
+    // spoken by the engine while the writer is listening to what came before.
+    // Waiting until the window ran out is what made the reading stop dead
+    // between windows.
+    const next = index + asked
+    asked = Math.min(asked * 2, RENDER_WINDOW)
+    pending = ask(next, asked)
 
     for (const clip of window.clips) {
       if (token !== run) return
@@ -711,8 +753,7 @@ async function performedReading(
       await playClip(clip.clip)
     }
 
-    index += asked
-    asked = RENDER_WINDOW
+    index = next
   }
 }
 

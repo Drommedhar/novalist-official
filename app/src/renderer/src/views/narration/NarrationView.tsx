@@ -780,6 +780,8 @@ function DesignDialog({ engineId }: { engineId: string }): React.JSX.Element {
   const openBrief = useNarrationStore((s) => s.openBrief)
   const design = useNarrationStore((s) => s.design)
   const designNarrator = useNarrationStore((s) => s.designNarrator)
+  const candidate = useNarrationStore((s) => s.candidate)
+  const keepVoice = useNarrationStore((s) => s.keepVoice)
 
   const [text, setText] = useState(brief?.description ?? '')
   useEffect(() => setText(brief?.description ?? ''), [brief?.description])
@@ -852,14 +854,42 @@ function DesignDialog({ engineId }: { engineId: string }): React.JSX.Element {
             </div>
           )}
 
-          <button
-            type="button"
-            className="narration-play"
-            disabled={busy}
-            onClick={submit}
-          >
-            {busy ? t('narration.designing') : t('narration.designVoice')}
-          </button>
+          {/* Heard before it is anybody's. Designing the same description
+              twice gives two different voices and one of them may not be the
+              voice that was asked for, so the first result is offered rather
+              than imposed. */}
+          {candidate !== null && (
+            <div className="narration-candidate">
+              <p className="narration-design-note">{t('narration.listenBeforeKeeping')}</p>
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              <audio controls autoPlay src={`novalist-audio://clip/${candidate}`} />
+            </div>
+          )}
+
+          <div className="narration-design-actions">
+            {candidate !== null && (
+              <button
+                type="button"
+                className="narration-play"
+                disabled={busy}
+                onClick={() => void keepVoice()}
+              >
+                {t('narration.keepVoice')}
+              </button>
+            )}
+            <button
+              type="button"
+              className={candidate === null ? 'narration-play' : 'narration-clear'}
+              disabled={busy}
+              onClick={submit}
+            >
+              {busy
+                ? t('narration.designing')
+                : candidate === null
+                  ? t('narration.designVoice')
+                  : t('narration.designAgain')}
+            </button>
+          </div>
         </>
       )}
     </div>

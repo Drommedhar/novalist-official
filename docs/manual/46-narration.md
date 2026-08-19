@@ -70,6 +70,14 @@ The narrator has no Codex entry, because a narrator is not a character. Their ro
 
 Nothing is taken from the premise paragraph, which is where the drama lives — the same rule as everywhere else here: the brief is the instrument.
 
+### Listen before you keep it
+
+Designing gives you a voice to hear, not a voice you are stuck with. The dialog plays what it made and offers **Keep this voice** or **Try again**.
+
+That is not politeness — voice design is not deterministic, and the same description asked for twice gives two different voices. Sometimes one of them is not what you asked for at all. Nothing is stored or cast until you press Keep, so a miss costs you one more press rather than becoming your character's voice until you notice.
+
+Write the brief in the language you write in; it is understood. If you keep getting a voice that is not the one you meant, say more about it — age, build, pace, register — and try again.
+
 ### What is stored
 
 A designed voice is stored as **audio**, in `.novalist/narration/voices/`, alongside the brief it came from. The audio is the voice: voice design is not deterministic, so re-deriving it from the description would hand you a slightly different actor every session. The brief is kept only so that designing again starts from what you asked for last time.

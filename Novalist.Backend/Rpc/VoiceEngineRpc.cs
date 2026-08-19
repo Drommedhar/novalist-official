@@ -222,20 +222,72 @@ public sealed class VoiceEngineRpc
             designed.SampleRate,
             DateTime.UtcNow.ToString("O"));
 
-        // The store only refuses when there is no project, which the guard at the
-        // top of this method has already answered - so its result is not checked
-        // a second time here.
-        await _voices.SaveAsync(stored, designed.ReferenceAudio);
+        return await OfferAsync(stored, designed, characterId);
+    }
 
-        // Designing a voice for somebody and not casting them in it would leave
-        // the writer one more step to discover.
-        await _cast.SetVoiceAsync(characterId, designed.VoiceId);
+    /// <summary>
+    /// Holds a designed voice for the writer to hear before it becomes
+    /// anybody's.
+    ///
+    /// Voice design is not reliable per attempt - the same description asked
+    /// for twice gives two voices, and one of them may not be the voice that
+    /// was asked for at all. Storing the first result and casting it made a
+    /// miss into the character's voice until somebody noticed. So it is offered
+    /// instead: rendered to the clip cache, played, and kept only if it is
+    /// right.
+    /// </summary>
+    private async Task<VoiceDesignDto> OfferAsync(
+        DesignedVoice stored, VoiceDesignResult designed, string? characterId)
+    {
+        var clip = await _clips.WriteAsync(designed.ReferenceAudio, designed.AudioFormat);
+        _candidate = new VoiceCandidate(stored, designed.ReferenceAudio, characterId);
 
         Log.Info(
-            $"voiceEngines/design ok bytes={designed.ReferenceAudio.Length} " +
-            $"rate={designed.SampleRate}.");
-        return new VoiceDesignDto(designed.VoiceId, stored.Description, null);
+            $"voiceEngines/design offered bytes={designed.ReferenceAudio.Length} " +
+            $"rate={designed.SampleRate} narrator={characterId == null}.");
+        return new VoiceDesignDto(stored.VoiceId, stored.Description, null, clip);
     }
+
+    /// <summary>
+    /// Keeps the voice that was offered: stores the audio and casts whoever it
+    /// was designed for.
+    /// </summary>
+    [JsonRpcMethod("voiceEngines/keepVoice")]
+    public async Task<bool> KeepVoiceAsync()
+    {
+        if (_candidate is not { } candidate)
+            return false;
+
+        await _voices.SaveAsync(candidate.Stored, candidate.Audio);
+        // Designing a voice for somebody and not casting them in it would leave
+        // the writer one more step to discover.
+        await _cast.SetVoiceAsync(candidate.CharacterId, candidate.Stored.VoiceId);
+        _candidate = null;
+
+        Log.Info("voiceEngines/keepVoice ok.");
+        return true;
+    }
+
+    /// <summary>
+    /// Throws the offered voice away. Nothing was stored, so this only forgets
+    /// - but it is a call rather than a timeout, because the writer closing the
+    /// dialog is a decision.
+    /// </summary>
+    [JsonRpcMethod("voiceEngines/discardVoice")]
+    public bool DiscardVoice()
+    {
+        var had = _candidate != null;
+        _candidate = null;
+        Log.Info($"voiceEngines/discardVoice had={had}.");
+        return had;
+    }
+
+    /// <summary>A voice designed and not yet kept.</summary>
+    /// <param name="CharacterId">Who it was designed for; null for the narrator.</param>
+    private sealed record VoiceCandidate(
+        DesignedVoice Stored, byte[] Audio, string? CharacterId);
+
+    private VoiceCandidate? _candidate;
 
     /// <summary>Every voice this book has been given.</summary>
     [JsonRpcMethod("voiceEngines/voices")]
@@ -543,11 +595,8 @@ public sealed class VoiceEngineRpc
         var stored = new DesignedVoice(
             designed.VoiceId, book.Name, wanted, engine.EngineId,
             designed.AudioFormat, designed.SampleRate, DateTime.UtcNow.ToString("O"));
-        await _voices.SaveAsync(stored, designed.ReferenceAudio);
-        await _cast.SetVoiceAsync(null, designed.VoiceId);
 
-        Log.Info($"narration/designNarrator ok bytes={designed.ReferenceAudio.Length}.");
-        return new VoiceDesignDto(designed.VoiceId, wanted, null);
+        return await OfferAsync(stored, designed, characterId: null);
     }
 
     /// <summary>What the narrator's brief would say, for the dialog to show
@@ -762,7 +811,10 @@ public sealed record VoiceBriefDto(
     string Refusal);
 
 /// <summary>The outcome of designing a voice.</summary>
-public sealed record VoiceDesignDto(string? VoiceId, string Description, string? Error)
+/// <param name="Clip">Where the offered voice can be heard, in the clip cache.
+/// Null when the design failed, and on nothing else.</param>
+public sealed record VoiceDesignDto(
+    string? VoiceId, string Description, string? Error, string? Clip = null)
 {
     public static VoiceDesignDto Failed(string error) => new(null, string.Empty, error);
 }

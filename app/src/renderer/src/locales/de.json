@@ -2353,7 +2353,10 @@
     "dimension.melancholic": "Melancholisch",
     "dimension.surprised": "Überrascht",
     "dimension.calm": "Ruhig",
-    "preparingReading": "Lesung wird vorbereitet"
+    "preparingReading": "Lesung wird vorbereitet",
+    "listenBeforeKeeping": "Hören Sie hinein, bevor Sie sie übernehmen. Dieselbe Beschreibung ergibt jedes Mal eine andere Stimme - versuchen Sie es noch einmal, wenn es nicht die richtige ist.",
+    "keepVoice": "Diese Stimme übernehmen",
+    "designAgain": "Noch einmal versuchen"
   },
   "shell": {
     "toggleBinder": "Binder umschalten",

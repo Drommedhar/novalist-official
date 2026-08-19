@@ -2345,7 +2345,10 @@
     "dimension.melancholic": "Melancholic",
     "dimension.surprised": "Surprised",
     "dimension.calm": "Calm",
-    "preparingReading": "Preparing the reading"
+    "preparingReading": "Preparing the reading",
+    "listenBeforeKeeping": "Listen before you keep it. The same description gives a different voice every time, so try again if this is not the one.",
+    "keepVoice": "Keep this voice",
+    "designAgain": "Try again"
   },
   "shell": {
     "toggleBinder": "Toggle binder",

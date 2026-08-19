@@ -137,6 +137,21 @@ test('a character is given a designed voice from their Codex entry', async () =>
   await brief.fill('Age: 34. Wiry and angry and joyful.')
   await dialog.locator('.narration-play').click()
 
+  // Offered, not imposed. Design is not reliable per attempt - the same
+  // description twice gives two voices, and one may not be the one asked for -
+  // so it is played first and kept only if it is right.
+  const candidate = dialog.locator('.narration-candidate audio')
+  await expect(candidate).toBeVisible({ timeout: 60_000 })
+  await expect(candidate).toHaveAttribute('src', /^novalist-audio:\/\/clip\//)
+
+  // Nothing is stored until Keep.
+  expect(
+    await page.evaluate(
+      async () => ((await window.novalistRpc.request('voiceEngines/voices')) as unknown[]).length
+    )
+  ).toBe(0)
+
+  await dialog.getByRole('button', { name: /keep this voice|übernehmen|采用/i }).click()
   await expect(dialog).toHaveCount(0, { timeout: 30_000 })
 
   const designed = await page.evaluate(
@@ -196,6 +211,13 @@ test('a character is given a designed voice from their Codex entry', async () =>
       ])) as { voiceId: string | null; error: string | null }
   )
   expect(narrator.error).toBeNull()
+  // Kept, like any other designed voice: offering is the first half and casting
+  // only happens on the second.
+  expect(
+    await page.evaluate(
+      async () => (await window.novalistRpc.request('voiceEngines/keepVoice')) as boolean
+    )
+  ).toBe(true)
 
   // Now the whole reading goes through the engine rather than the machine's own
   // voices: every segment comes back as a clip in the cache.
