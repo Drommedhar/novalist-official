@@ -61,12 +61,16 @@ public class NarrationScriptTests
             [
                 NarrationSegmentKind.Narration,
                 NarrationSegmentKind.Dialogue,
+                NarrationSegmentKind.Narration,
                 NarrationSegmentKind.Narration
             ],
             segments.Select(s => s.Kind));
         Assert.Equal("She had been on the wall since the tide turned.", segments[0].Text);
         Assert.Equal("mira", segments[1].SpeakerId);
-        Assert.Equal("Mira snapped. The cold had got into her jaw.", segments[2].Text);
+        // The tag and the sentence after it are two utterances now, and the tag
+        // still belongs to the narrator.
+        Assert.Equal("Mira snapped.", segments[2].Text);
+        Assert.Equal("The cold had got into her jaw.", segments[3].Text);
     }
 
     [Fact]
@@ -79,14 +83,100 @@ public class NarrationScriptTests
     }
 
     [Fact]
-    public void Build_AParagraphOfNothingButProseIsOneNarrationSegment()
+    public void Build_ProseIsCutIntoThingsAVoiceWouldSayInOneBreath()
     {
         var segments = Build("<p>The harbour was empty.</p><p>The tide turned.</p>");
 
-        var only = Assert.Single(segments);
-        Assert.Equal(NarrationSegmentKind.Narration, only.Kind);
-        // A paragraph break inside a narration run is a pause, not a new voice.
-        Assert.Equal("The harbour was empty. The tide turned.", only.Text);
+        // A sentence each, not a scene each. The gap between two quotes is not
+        // a unit of speech: handed over whole it was thirty seconds of audio
+        // from one call, and the wrong thing to highlight while following along.
+        Assert.Equal(2, segments.Count);
+        Assert.All(segments, s => Assert.Equal(NarrationSegmentKind.Narration, s.Kind));
+        Assert.Equal("The harbour was empty.", segments[0].Text);
+        Assert.Equal("The tide turned.", segments[1].Text);
+    }
+
+    [Fact]
+    public void Build_ASentenceIsNotBrokenAtEveryFullStopItContains()
+    {
+        var segments = Build("<p>She waited... and then she left.</p>");
+
+        // An ellipsis is one ending, not three.
+        Assert.Equal(2, segments.Count);
+        Assert.Equal("She waited...", segments[0].Text);
+        Assert.Equal("and then she left.", segments[1].Text);
+    }
+
+    [Fact]
+    public void Build_AChineseSceneIsCutToo()
+    {
+        // A Chinese scene has no full stop in it at all, and came back as one
+        // unbroken utterance.
+        var segments = Build(
+            "<p>\u5979\u8f6c\u8fc7\u8eab\u3002\u96e8\u4e0b\u5f97\u66f4\u5927\u4e86\u3002</p>",
+            language: "zh-CN");
+
+        Assert.Equal(2, segments.Count);
+    }
+
+    [Theory]
+    // Nothing punctuated at all, and no paragraph break to end it either. Every
+    // scene the projection produces ends in a newline, so this is reached only
+    // by a caller handing over a bare run - but losing the last words of it
+    // would be losing the writer's prose.
+    [InlineData("no stop at all", 1)]
+    [InlineData("One. Two", 2)]
+    public void Utterances_ProseThatSimplyStopsIsStillYielded(string text, int expected)
+    {
+        var cuts = NarrationScript.Utterances(text, 0, text.Length).ToArray();
+
+        Assert.Equal(expected, cuts.Length);
+        Assert.Equal(text.Length, cuts[^1].End);
+    }
+
+    [Fact]
+    public void Build_OneEnormousWordIsBrokenRatherThanSentWhole()
+    {
+        // No space to break at. Better a word cut in half than an utterance no
+        // model will say.
+        var wall = new string('x', 700);
+        var segments = Build($"<p>{wall}</p>");
+
+        Assert.True(segments.Count > 1);
+        Assert.All(segments, s => Assert.True(s.Text.Length <= 320));
+    }
+
+    [Fact]
+    public void Build_ProseThatStopsWithoutAFullStopIsStillSpoken()
+    {
+        // The last thing in a scene need not be punctuated, and losing it would
+        // be losing the writer's words.
+        var segments = Build("<p>The tide turned.</p><p>And then</p>");
+
+        Assert.Equal(2, segments.Count);
+        Assert.Equal("And then", segments[1].Text);
+    }
+
+    [Fact]
+    public void Build_TrailingSpacesBeforeAParagraphBreakAreNotSpoken()
+    {
+        var segments = Build("<p>The tide turned   </p><p>It turned again.</p>");
+
+        Assert.Equal("The tide turned", segments[0].Text);
+    }
+
+    [Fact]
+    public void Build_ProseThatNeverEndsIsStillBrokenSomewhere()
+    {
+        // Stream of consciousness with no full stop in it. A speech model is
+        // built to say a sentence, not a page.
+        var runOn = string.Join(' ', Enumerable.Repeat("and on it went", 60));
+        var segments = Build($"<p>{runOn}</p>");
+
+        Assert.True(segments.Count > 1);
+        Assert.All(segments, s => Assert.True(s.Text.Length <= 320, s.Text.Length.ToString()));
+        // Broken between words, never through one.
+        Assert.All(segments, s => Assert.DoesNotContain("  ", s.Text));
     }
 
     [Fact]

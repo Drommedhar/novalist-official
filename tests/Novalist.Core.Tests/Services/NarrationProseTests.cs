@@ -51,7 +51,7 @@ public class NarrationProseTests
         var annotated = Annotate("<p>\"Get out,\" she said, not turning round.</p>");
 
         Assert.Equal(
-            ["\"Get out,\"", " she said, not turning round."],
+            ["\"Get out,\"", "she said, not turning round."],
             Markers(annotated));
         Assert.Contains("data-nl-kind=\"dialogue\"", annotated);
         Assert.Contains("data-nl-kind=\"narration\"", annotated);
@@ -82,15 +82,39 @@ public class NarrationProseTests
     [Fact]
     public void Annotate_ASegmentCrossingAParagraphGetsAMarkerEachSide()
     {
-        // One narration run, two paragraphs, one key.
+        // Handed a segment rather than one the script cut, because the script
+        // no longer produces one that crosses a paragraph - it reads a sentence
+        // at a time. The capability is still the invariant this file exists
+        // for: a marker never wraps a tag, so a segment spanning one is marked
+        // on both sides of it under a single key.
         const string html = "<p>The tide turned.</p><p>It turned again.</p>";
-        var segments = Segments(html);
-        var annotated = NarrationProse.Annotate(html, segments);
+        var (text, _) = DialogueScanner.ScanScene(html);
+        var whole = new NarrationSegment(
+            0,
+            NarrationSegmentKind.Narration,
+            "whole",
+            text,
+            SpeakerId: null,
+            DialogueConfidence.None,
+            [],
+            new VoiceDirection("neutral", new Dictionary<string, double>(), DirectionSource.None),
+            0,
+            text.Length);
 
-        var key = Assert.Single(segments).Key;
-        var markers = Markers(annotated);
-        Assert.Equal(["The tide turned.", "It turned again."], markers);
-        Assert.Equal(2, Occurrences(annotated, $"data-nl-seg=\"{key}\""));
+        var annotated = NarrationProse.Annotate(html, [whole]);
+
+        Assert.Equal(["The tide turned.", "It turned again."], Markers(annotated));
+        Assert.Equal(2, Occurrences(annotated, "data-nl-seg=\"whole\""));
+    }
+
+    [Fact]
+    public void Annotate_EachSentenceOfAParagraphIsItsOwnMarker()
+    {
+        // What the script actually produces now, and what the follow-along
+        // highlight moves through.
+        var annotated = Annotate("<p>The tide turned. It turned again.</p>");
+
+        Assert.Equal(["The tide turned.", "It turned again."], Markers(annotated));
     }
 
     [Fact]
