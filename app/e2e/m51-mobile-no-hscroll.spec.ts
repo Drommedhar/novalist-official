@@ -175,7 +175,28 @@ test('no mobile view overflows a phone width', async () => {
             `${(el.className?.toString() || el.tagName).slice(0, 55)} scrolls sideways by ${over}px`
           )
         }
-        return { over: worst, widest: widest.slice(0, 6) }
+
+        // Scrollers are only half of it. A view can also sit PAST the right edge
+        // without any scroller reporting it: the phone's chapter list was pinned
+        // by a desktop drawer rule to `position: absolute` inside .shell, which
+        // put it outside .mobile-content's scroll area entirely - it hung a whole
+        // mode-rail's width off the screen with every measurement above reading
+        // clean. Ask the page instead: nothing painted may cross the viewport's
+        // right edge or start left of it.
+        const escaped: string[] = []
+        for (const el of Array.from(document.body.querySelectorAll<HTMLElement>('*'))) {
+          if (deliberate(el)) continue
+          const r = el.getBoundingClientRect()
+          if (r.width === 0 || r.height === 0) continue
+          const past = Math.max(r.right - window.innerWidth, -r.left)
+          if (past <= 1) continue
+          worst = Math.max(worst, Math.round(past))
+          escaped.push(
+            `${(el.className?.toString() || el.tagName).slice(0, 55)} sits ${Math.round(past)}px outside the viewport`
+          )
+          if (escaped.length >= 4) break
+        }
+        return { over: worst, widest: widest.concat(escaped).slice(0, 6) }
       })
       // Fitting is not enough on a big screen: the phone reshapes that make a
       // 320px view fit must not follow the iPad around. Collapsing the Dashboard

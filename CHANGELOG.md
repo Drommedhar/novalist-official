@@ -16,7 +16,9 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- The Plot Grid's button for a new plotline read "+ + Add plotline" - it drew a plus of its own next to a label that already had one. One plus now.
 
 ---
 

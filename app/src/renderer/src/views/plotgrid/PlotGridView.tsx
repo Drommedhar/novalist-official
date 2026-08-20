@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useProjectStore } from '../../stores/projectStore'
 import { ContextMenu } from '../../shell/ContextMenu'
@@ -204,7 +203,6 @@ export function PlotGridView(): React.JSX.Element {
                 className="toolbar-button toolbar-action"
                 onClick={() => setPending({ kind: 'create' })}
               >
-                <Plus size={14} strokeWidth={2} />
                 {t('plotGrid.addPlotline')}
               </button>
             )}
@@ -266,7 +264,6 @@ export function PlotGridView(): React.JSX.Element {
             className="toolbar-button toolbar-action"
             onClick={() => setPending({ kind: 'create' })}
           >
-            <Plus size={14} strokeWidth={2} />
             {t('plotGrid.addPlotline')}
           </button>
         )}

@@ -82,8 +82,22 @@
 }
 
 /* The binder is a fixed-width sidebar on desktop (inline style width); full-width
-   on mobile - !important to beat the inline width. */
+   on mobile - !important to beat the inline width.
+
+   The position reset is load-bearing. A phone window is narrow enough that the
+   shell always carries shell-capacity-compact, and that class turns the desktop
+   binder into a drawer: absolutely positioned, pinned top-to-bottom of the whole
+   shell and offset by the mode-rail width. On mobile that rail does not exist,
+   so the Write tab's chapter list arrived inset by the rail's width, hanging the
+   same distance off the right edge (scene titles and row actions cut in half),
+   ignoring the scroller it lives in and running up behind the status bar. Put it
+   back in flow - the phone has one pane, so there is nothing for it to drawer
+   over. */
 .shell.mobile .binder {
+  position: static;
+  inset: auto;
+  z-index: auto;
+  box-shadow: none;
   width: 100% !important;
   min-width: 0 !important;
   max-width: none !important;
