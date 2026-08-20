@@ -60,7 +60,13 @@ public class NarrationRenderTests
             Audio(),
             VoiceEngineFeatures.EmotionVector,
             "en",
-            1.5);
+            1.5,
+            voiceReferenceTexts: new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["narrator-voice"] = "The harbour was quiet.",
+                ["mira-voice"] = "The tide turned at four.",
+                ["voice-not-on-this-machine"] = "This must not be sent."
+            });
 
         Assert.Equal(["n:1", "d:1"], request.Segments.Select(s => s.Key));
         Assert.Equal(["narrator-voice", "mira-voice"], request.Segments.Select(s => s.VoiceId));
@@ -68,6 +74,10 @@ public class NarrationRenderTests
         Assert.Equal("en", request.Language);
         Assert.Equal(1.5, request.Rate);
         Assert.Equal(Audio(), request.Voices);
+        Assert.Equal(2, request.VoiceReferenceTexts.Count);
+        Assert.Equal("The harbour was quiet.", request.VoiceReferenceTexts["narrator-voice"]);
+        Assert.Equal("The tide turned at four.", request.VoiceReferenceTexts["mira-voice"]);
+        Assert.DoesNotContain("voice-not-on-this-machine", request.VoiceReferenceTexts);
     }
 
     [Fact]

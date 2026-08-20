@@ -214,6 +214,26 @@ public class VoiceBriefBuilderTests
     }
 
     [Fact]
+    public void Build_StopsReadingSectionsOnceTheProseRoomIsFull()
+    {
+        var character = Mira();
+        character.Sections.Add(new EntitySection
+        {
+            Title = "Voice",
+            Content = new string('x', 500)
+        });
+        character.Sections.Add(new EntitySection
+        {
+            Title = "Speech",
+            Content = "This section is beyond the prose limit."
+        });
+
+        var draft = VoiceBriefBuilder.Build(character, [], Language("en"));
+
+        Assert.DoesNotContain("beyond the prose limit", draft.Description);
+    }
+
+    [Fact]
     public void Build_ALineThatIsNothingButPunctuationIsNotAMood()
     {
         // Reached through the sample filter: a token that trims away to nothing

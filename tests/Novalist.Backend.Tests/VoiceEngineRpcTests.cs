@@ -413,6 +413,21 @@ public sealed class VoiceEngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Audition_AnEngineThatInfersEmotionGetsOneNeutralPrompt()
+    {
+        _engine.InferEmotion = true;
+        var mira = await MiraAsync();
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
+
+        var clips = await _rpc.AuditionAsync(
+            designed.VoiceId!, "A line.", ["joyful", "sorrowful"]);
+
+        var clip = Assert.Single(clips);
+        Assert.Equal("neutral", clip.Key);
+        Assert.Equal(["neutral"], _engine.LastRequest!.Segments.Select(segment => segment.Key));
+    }
+
+    [Fact]
     public async Task Audition_AVoiceThatWasNeverDesignedHasNothingToPlay()
         => Assert.Empty(await _rpc.AuditionAsync("never-designed", "A line."));
 
@@ -1477,6 +1492,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         public StubEngine(string id = Id) => _id = id;
 
         public bool CanDesign { get; set; } = true;
+        public bool InferEmotion { get; set; }
         public bool ThrowOnStatus { get; set; }
         public bool ThrowOnPrepare { get; set; }
         public bool ThrowOnDesign { get; set; }
@@ -1539,7 +1555,9 @@ public sealed class VoiceEngineRpcTests : IDisposable
 
         public VoiceEngineFeatures Features =>
             (CanDesign ? VoiceEngineFeatures.DesignFromDescription : VoiceEngineFeatures.None)
-            | VoiceEngineFeatures.EmotionVector;
+            | (InferEmotion
+                ? VoiceEngineFeatures.EmotionInferred
+                : VoiceEngineFeatures.EmotionVector);
 
         public Task<VoiceEngineStatus> GetStatusAsync(CancellationToken cancellationToken = default)
             => ThrowOnStatus

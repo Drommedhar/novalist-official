@@ -139,8 +139,6 @@ public static class VoiceBriefBuilder
             var said = Clean(section.Content);
             if (said.Length > room)
                 said = Trimmed(said, room);
-            if (said.Length == 0)
-                continue;
             room -= said.Length;
             Add(parts, Fact(section.Title, said));
         }
