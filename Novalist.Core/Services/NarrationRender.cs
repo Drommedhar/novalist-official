@@ -64,7 +64,8 @@ public static class NarrationRender
         string language,
         double rate = 1.0,
         IReadOnlyDictionary<string, byte[]>? clips = null,
-        Func<int, NarrationPlacement?>? placeAt = null)
+        Func<int, NarrationPlacement?>? placeAt = null,
+        IReadOnlyDictionary<string, string>? voiceReferenceTexts = null)
     {
         var sendable = new List<SdkSegment>(segments.Count);
         for (var index = 0; index < segments.Count; index++)
@@ -98,6 +99,11 @@ public static class NarrationRender
         {
             Segments = sendable,
             Voices = voices,
+            VoiceReferenceTexts = voiceReferenceTexts == null
+                ? new Dictionary<string, string>()
+                : voiceReferenceTexts
+                    .Where(pair => voices.ContainsKey(pair.Key))
+                    .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal),
             Language = language,
             Rate = rate
         };
@@ -192,8 +198,9 @@ public static class NarrationRender
     /// <list type="bullet">
     /// <item>the same speaker - two characters sharing one voice are still two
     /// people, so this is the speaker rather than the voice;</item>
-    /// <item>the same direction, because one call performs one delivery and two
-    /// sentences directed differently cannot share it;</item>
+    /// <item>the same direction for engines that accept explicit direction;
+    /// inferred engines instead need the neighbouring sentences together so
+    /// they have enough prose to discover the delivery themselves;</item>
     /// <item>narration with narration and dialogue with dialogue, never across
     /// the quote marks;</item>
     /// <item>and within <paramref name="maxCharacters"/>, because a line longer
@@ -203,8 +210,13 @@ public static class NarrationRender
     /// </summary>
     /// <param name="maxCharacters">Nothing joined at or below zero, which is the
     /// reading's setting.</param>
+    /// <param name="inferDirection">Whether the engine derives performance
+    /// from the prose. When true, detected direction does not split a run because
+    /// it is not sent to the engine.</param>
     public static IReadOnlyList<NarrationJoin> Joined(
-        IReadOnlyList<NarrationSegment> segments, int maxCharacters)
+        IReadOnlyList<NarrationSegment> segments,
+        int maxCharacters,
+        bool inferDirection = false)
     {
         var joined = new List<NarrationJoin>(segments.Count);
         var run = new List<NarrationSegment>();
@@ -226,7 +238,7 @@ public static class NarrationRender
 
         foreach (var segment in segments)
         {
-            if (run.Count > 0 && !Continues(run, segment, maxCharacters))
+            if (run.Count > 0 && !Continues(run, segment, maxCharacters, inferDirection))
                 Close();
             run.Add(segment);
         }
@@ -237,7 +249,10 @@ public static class NarrationRender
     /// <summary>Whether this line is still the same breath as the run before
     /// it.</summary>
     private static bool Continues(
-        List<NarrationSegment> run, NarrationSegment next, int maxCharacters)
+        List<NarrationSegment> run,
+        NarrationSegment next,
+        int maxCharacters,
+        bool inferDirection)
     {
         if (maxCharacters <= 0)
             return false;
@@ -252,7 +267,7 @@ public static class NarrationRender
         if (!string.Equals(first.SpeakerId ?? string.Empty, next.SpeakerId ?? string.Empty,
                 StringComparison.Ordinal))
             return false;
-        if (!SameDirection(first.Direction, next.Direction))
+        if (!inferDirection && !SameDirection(first.Direction, next.Direction))
             return false;
 
         // The joining space counts: it is a character the model is given.
@@ -338,24 +353,12 @@ public static class NarrationRender
         if (book == null)
             return string.Empty;
 
-        var parts = new List<string>();
-        Say(parts, "Narration", book.NarrativePerson, lexicon);
-        Say(parts, "Tense", book.Tense, lexicon);
-        Say(parts, "The book", book.Premise?.Logline, lexicon);
-
-        return string.Join(". ", parts);
-    }
-
-    /// <summary>One labelled statement, with the writer's half filtered and the
-    /// label left alone. A value that was nothing but mood is dropped rather
-    /// than emitted as a bare label.</summary>
-    private static void Say(
-        List<string> parts, string label, string? value, SceneAnalysisLexicon? lexicon)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return;
-        var said = VoiceBriefBuilder.Strip(value, lexicon).Trim();
-        if (said.Length > 0)
-            parts.Add($"{label}: {said}");
+        // Point of view, tense and plot describe the manuscript, not the
+        // instrument reading it. A voice designer needs acoustic attributes.
+        // This is deliberately a neutral editable baseline; the prose supplies
+        // the changing performance later.
+        return "Adult audiobook narrator. Balanced mid-range pitch. Clear natural timbre. "
+            + "Precise articulation. Restrained, unhurried cadence. Neutral baseline. "
+            + "Close, dry studio sound.";
     }
 }

@@ -111,6 +111,15 @@ public sealed class VoiceDesignResult
     /// host and handed back on every later render.</summary>
     public byte[] ReferenceAudio { get; init; } = [];
 
+    /// <summary>
+    /// The exact words spoken in <see cref="ReferenceAudio"/>.
+    ///
+    /// Transcript-conditioned cloning uses the audio and its text together.
+    /// This must be the text the engine actually synthesized, not merely one of
+    /// the candidate sample lines the host offered it.
+    /// </summary>
+    public string ReferenceText { get; init; } = string.Empty;
+
     /// <summary>Container of <see cref="ReferenceAudio"/> ("wav", "mp3", "opus"),
     /// so the host can name the file it writes without sniffing bytes.</summary>
     public string AudioFormat { get; init; } = "wav";
@@ -211,6 +220,14 @@ public sealed class NarrationRequest
     /// calls and a cast assembled on another machine still works.</summary>
     public IReadOnlyDictionary<string, byte[]> Voices { get; init; }
         = new Dictionary<string, byte[]>();
+
+    /// <summary>
+    /// Exact transcripts for the reference clips in <see cref="Voices"/>,
+    /// keyed by the same voice id. Engines that use transcript-conditioned
+    /// cloning require these to preserve the approved speaker faithfully.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> VoiceReferenceTexts { get; init; }
+        = new Dictionary<string, string>();
 
     /// <summary>The book's language as a BCP-47 tag.</summary>
     public string Language { get; init; } = "en";

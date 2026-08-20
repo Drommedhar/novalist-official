@@ -31,11 +31,10 @@ public sealed record VoiceBriefDraft(
 /// Turns a Codex entry into a description of how somebody <em>sounds</em>.
 ///
 /// The hard rule, and the reason this is a class rather than a string
-/// concatenation at the call site: <b>the brief describes the instrument, never
-/// the performance.</b> Age, gender, build, accent, distinguishing features, the
-/// register they speak in when nothing is wrong - all of that is fixed and
-/// belongs here. Everything the character <em>feels</em> belongs to the
-/// direction, which is chosen fresh for every line.
+/// concatenation at the call site: <b>the brief describes audible properties,
+/// never biography or performance.</b> Approximate age, gender, accent, pitch,
+/// timbre, articulation and resting cadence belong here. Build, height,
+/// appearance, plot and mood do not reliably describe sound.
 ///
 /// This is easy to get wrong because voice-design models happily accept
 /// emotional words. Write "grief-stricken" or "perpetually furious" into a design
@@ -62,13 +61,11 @@ public static class VoiceBriefBuilder
     /// How much of the writer's own prose the brief carries, across all
     /// sections.
     ///
-    /// A brief is an instruction to a model, not a biography. Reading every
-    /// section rather than only the voice-titled ones is what makes a written
-    /// character describable at all; a bound on the total is what stops a
-    /// well-documented one arriving as four pages of backstory with the
-    /// instrument buried in it.
+    /// A brief is an instruction to a model, not a biography. Even explicitly
+    /// voice-related notes can be long, so a bound keeps the acoustic traits
+    /// prominent instead of turning the instruction into a monologue.
     /// </summary>
-    private const int MaxProseLength = 900;
+    private const int MaxProseLength = 500;
 
     /// <summary>Section titles that describe how somebody speaks. The writer's
     /// own words about the voice are the best material there is, and they are
@@ -78,26 +75,6 @@ public static class VoiceBriefBuilder
         "voice", "speech", "accent", "dialect", "manner", "mannerism", "how they speak",
         "stimme", "sprache", "akzent", "dialekt", "sprechweise",
         "声音", "口音", "说话"
-    ];
-
-    /// <summary>
-    /// Section titles that hold the story rather than the person.
-    ///
-    /// The brief reads every section a writer wrote, because a character entry
-    /// has no description field and requiring a heading to say "voice" threw
-    /// away Description, Appearance and Personality along with everything else.
-    /// But an arc is still not an instrument: pour a character's history into a
-    /// design prompt and what comes back is a voice shaped by their worst
-    /// scene. So the default flipped - everything is in unless it is one of
-    /// these.
-    /// </summary>
-    private static readonly string[] StorySectionHints =
-    [
-        "backstory", "back story", "history", "arc", "plot", "goal", "motivation",
-        "conflict", "secret", "relationship", "note", "timeline", "event", "wound",
-        "hintergrund", "geschichte", "vorgeschichte", "ziel", "konflikt", "geheimnis",
-        "beziehung", "notiz", "verlauf", "ereignis",
-        "背景", "经历", "目标", "冲突", "秘密", "关系", "笔记", "时间线", "事件"
     ];
 
     private static readonly Regex Whitespace = new(@"\s+", RegexOptions.Compiled);
@@ -127,12 +104,12 @@ public static class VoiceBriefBuilder
 
         var parts = new List<string>();
 
-        // The fixed facts first, in the order somebody would say them out loud.
+        // Only structured facts with a defensible acoustic meaning. A model can
+        // infer a vocal age range from age and a broad register from gender;
+        // build, height, a scar or a broken nose are visual facts and caused it
+        // to invent stereotypes rather than follow a voice description.
         Add(parts, Fact("Age", character.Age));
         Add(parts, Fact("Gender", character.Gender));
-        Add(parts, Fact("Build", character.Build));
-        Add(parts, Fact("Height", character.Height));
-        Add(parts, Fact("Distinguishing features", character.DistinguishingFeatures));
 
         // Custom properties the writer added that name the voice. Anything else
         // they invented is theirs and is not guessed at.
@@ -142,29 +119,17 @@ public static class VoiceBriefBuilder
                 Add(parts, Fact(key, value));
         }
 
-        // Then their own words, with anything about how this person speaks
-        // first.
-        //
-        // Every section, not only the ones whose heading happens to contain the
-        // word "voice". A character entry has no description field of its own,
-        // so all the prose a writer writes about somebody lives in sections -
-        // and requiring the title to match one of fifteen substrings meant
-        // Description, Appearance, Personality, Backstory, Beschreibung and
-        // 外貌 all fell out. A fully written character came back as five
-        // structured fields and nothing else, which is not a description of a
-        // voice by anybody's reckoning.
-        //
-        // A voice-titled section still wins, because it is the writer telling
-        // us directly; the rest is context, and is cut off once the brief has
-        // said enough.
+        // Then only sections the writer explicitly made about speech. General
+        // appearance and personality prose may be useful character context,
+        // but it is not a voice-design instruction and was burying the actual
+        // acoustic cues under almost a thousand characters of biography.
         var written = character.Sections
             // A section the writer withheld from AI stays withheld here. The
             // consent they gave was for the entry, not for the part of it they
             // separately marked private.
             .Where(section => !section.AiHidden
                 && !string.IsNullOrWhiteSpace(section.Content)
-                && !LooksLikeStory(section.Title))
-            .OrderByDescending(section => LooksLikeVoice(section.Title));
+                && LooksLikeVoice(section.Title));
 
         var room = MaxProseLength;
         foreach (var section in written)
@@ -381,16 +346,6 @@ public static class VoiceBriefBuilder
         }
         if (word.Length > 0)
             yield return word.ToString();
-    }
-
-    /// <summary>Whether a heading names a piece of the story rather than a piece
-    /// of the person.</summary>
-    private static bool LooksLikeStory(string? title)
-    {
-        if (string.IsNullOrWhiteSpace(title))
-            return false;
-        var lowered = title.ToLowerInvariant();
-        return StorySectionHints.Any(hint => lowered.Contains(hint, StringComparison.Ordinal));
     }
 
     private static bool LooksLikeVoice(string? title)

@@ -62,9 +62,9 @@ public class VoiceBriefBuilderTests
         Assert.Equal(VoiceBriefRefusal.None, draft.Refusal);
         Assert.Contains("Age: 34", draft.Description);
         Assert.Contains("Gender: female", draft.Description);
-        Assert.Contains("Build: wiry", draft.Description);
-        Assert.Contains("Height: tall", draft.Description);
-        Assert.Contains("broken nose", draft.Description);
+        Assert.DoesNotContain("Build", draft.Description);
+        Assert.DoesNotContain("Height", draft.Description);
+        Assert.DoesNotContain("broken nose", draft.Description);
     }
 
     [Fact]
@@ -165,9 +165,8 @@ public class VoiceBriefBuilderTests
     [Fact]
     public void Build_AWellDocumentedCharacterStillArrivesAsABrief()
     {
-        // Reading every section is what makes a written character describable at
-        // all. A bound on the total is what stops a thoroughly documented one
-        // arriving as four pages with the instrument buried in the middle.
+        // A bound keeps even an explicitly voice-focused section concise enough
+        // that its acoustic cues are not buried.
         var character = Mira();
         character.Sections.Add(new EntitySection
         {
@@ -188,7 +187,7 @@ public class VoiceBriefBuilderTests
         // What the writer said about the voice is in, and the brief is still a
         // brief.
         Assert.Contains("northern burr", draft.Description);
-        Assert.InRange(draft.Description.Length, 1, 1400);
+        Assert.InRange(draft.Description.Length, 1, 700);
     }
 
     [Fact]
@@ -270,7 +269,7 @@ public class VoiceBriefBuilderTests
     }
 
     [Fact]
-    public void Build_TakesUntitledProseWithoutInventingALabelForIt()
+    public void Build_DoesNotGuessThatUntitledProseDescribesSound()
     {
         // A character entry has no description field, so everything a writer
         // writes about somebody is a section - and a section they never got
@@ -280,13 +279,11 @@ public class VoiceBriefBuilderTests
 
         var draft = VoiceBriefBuilder.Build(character, [], Language("en"));
 
-        Assert.Contains("Speaks slowly.", draft.Description);
-        // But no empty label in front of it.
-        Assert.DoesNotContain(": Speaks slowly.", draft.Description);
+        Assert.DoesNotContain("Speaks slowly.", draft.Description);
     }
 
     [Fact]
-    public void Build_ReadsEverySectionRatherThanOnlyTheOnesTitledVoice()
+    public void Build_UsesVoiceSectionsAndLeavesAppearanceOut()
     {
         // The fault this ends: a fully written character whose headings never
         // used the word "voice" came back as five structured fields and nothing
@@ -306,12 +303,8 @@ public class VoiceBriefBuilderTests
 
         var draft = VoiceBriefBuilder.Build(character, [], Language("en"));
 
-        Assert.Contains("older than she looks", draft.Description);
-        // And what the writer said about the voice comes first, because it is
-        // them telling us directly rather than us inferring.
-        Assert.True(
-            draft.Description.IndexOf("northern burr", StringComparison.Ordinal)
-                < draft.Description.IndexOf("older than she looks", StringComparison.Ordinal));
+        Assert.DoesNotContain("older than she looks", draft.Description);
+        Assert.Contains("northern burr", draft.Description);
     }
 
     [Fact]

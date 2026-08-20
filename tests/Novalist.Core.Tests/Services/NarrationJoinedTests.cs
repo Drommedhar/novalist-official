@@ -47,8 +47,8 @@ public class NarrationJoinedTests
             text.Length);
 
     private static IReadOnlyList<NarrationRender.NarrationJoin> Joined(
-        IReadOnlyList<NarrationSegment> lines, int max = 400)
-        => NarrationRender.Joined(lines, max);
+        IReadOnlyList<NarrationSegment> lines, int max = 400, bool inferred = false)
+        => NarrationRender.Joined(lines, max, inferred);
 
     [Fact]
     public void OneVoiceSayingThreeSentences_SaysThemInOneBreath()
@@ -98,6 +98,16 @@ public class NarrationJoinedTests
     {
         // One call performs one delivery, so merging would throw one away.
         Assert.Equal(2, Joined([Line(0, "One."), Line(1, "Two.", emotion: "angry")]).Count);
+    }
+
+    [Fact]
+    public void AnInferredPerformance_CanReadDifferentDetectedMoodsAsOnePassage()
+    {
+        var joined = Joined(
+            [Line(0, "One."), Line(1, "Two.", emotion: "angry")],
+            inferred: true);
+
+        Assert.Equal("One. Two.", Assert.Single(joined).Segment.Text);
     }
 
     [Fact]

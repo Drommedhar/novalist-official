@@ -40,12 +40,16 @@ public static class NarrationRecipe
     /// <param name="rate">The reading pace.</param>
     /// <param name="voice">The reference audio for this line's voice, or null
     /// where the engine speaks without one.</param>
+    /// <param name="referenceText">The exact transcript paired with the
+    /// reference audio. It changes transcript-conditioned cloning even when the
+    /// WAV itself does not.</param>
     public static string For(
         SdkSegment segment,
         string engineId,
         string language,
         double rate,
-        byte[]? voice)
+        byte[]? voice,
+        string? referenceText = null)
     {
         var said = new StringBuilder();
         // A separator no field can contain, so two different sets of fields can
@@ -57,6 +61,7 @@ public static class NarrationRecipe
         Add(rate.ToString("R", System.Globalization.CultureInfo.InvariantCulture));
         Add(segment.VoiceId);
         Add(Digest(voice));
+        Add(referenceText);
         Add(segment.Text);
         Add(segment.IsDialogue ? "d" : "n");
         Add(segment.Direction.Key);

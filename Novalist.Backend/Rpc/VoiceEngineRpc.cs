@@ -373,7 +373,8 @@ public sealed class VoiceEngineRpc
             designed.AudioFormat,
             designed.SampleRate,
             DateTime.UtcNow.ToString("O"),
-            designed.Seed);
+            designed.Seed,
+            designed.ReferenceText);
 
         return await OfferAsync(stored, designed, characterId, where);
     }
@@ -567,6 +568,7 @@ public sealed class VoiceEngineRpc
         var window = placed.Select(p => p.Segment).ToArray();
         var sheet = await _cast.ReadAsync();
         var audio = await _voices.ReadAudioForAsync(NarrationRender.VoicesNeeded(window, sheet));
+        var referenceTexts = await _voices.ReadReferenceTextsForAsync(audio.Keys);
         // The clips any of these lines were told to sound like. Almost always
         // none, so almost always a call that reads nothing.
         var references = await _clips.ReadManyAsync(NarrationRender.ClipsNeeded(window));
@@ -603,7 +605,7 @@ public sealed class VoiceEngineRpc
                     pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
                 var request = NarrationRender.Build(
                     window, sheet, mine, engine.Features, WritingLanguage(), rate, references,
-                    at => placed[at].Where);
+                    at => placed[at].Where, referenceTexts);
                 if (request.Segments.Count == 0)
                     continue;
 
@@ -621,7 +623,8 @@ public sealed class VoiceEngineRpc
                 {
                     var name = NarrationRecipe.For(
                         segment, engine.EngineId, request.Language, request.Rate,
-                        mine.GetValueOrDefault(segment.VoiceId)) + ".wav";
+                        mine.GetValueOrDefault(segment.VoiceId),
+                        request.VoiceReferenceTexts.GetValueOrDefault(segment.VoiceId)) + ".wav";
                     recipes[segment.Key] = name;
 
                     if (rebuild || !_clips.Has(name))
@@ -654,6 +657,7 @@ public sealed class VoiceEngineRpc
                 {
                     Segments = fresh,
                     Voices = request.Voices,
+                    VoiceReferenceTexts = request.VoiceReferenceTexts,
                     Language = request.Language,
                     Rate = request.Rate
                 };
@@ -768,9 +772,11 @@ public sealed class VoiceEngineRpc
 
         var audio = await _voices.ReadAudioForAsync(
             NarrationRender.VoicesNeeded([segment], sheet));
+        var referenceTexts = await _voices.ReadReferenceTextsForAsync(audio.Keys);
         var references = await _clips.ReadManyAsync(NarrationRender.ClipsNeeded([segment]));
         var request = NarrationRender.Build(
-            [segment], sheet, audio, engine.Features, WritingLanguage(), 1.0, references);
+            [segment], sheet, audio, engine.Features, WritingLanguage(), 1.0, references,
+            voiceReferenceTexts: referenceTexts);
         if (request.Segments.Count == 0)
             return new NarrationClipDto(segment.Key, null, 0, "no-voice");
 
@@ -932,7 +938,7 @@ public sealed class VoiceEngineRpc
         var stored = new DesignedVoice(
             designed.VoiceId, book.Name, wanted, engine.EngineId,
             designed.AudioFormat, designed.SampleRate, DateTime.UtcNow.ToString("O"),
-            designed.Seed);
+            designed.Seed, designed.ReferenceText);
 
         return await OfferAsync(stored, designed, characterId: null);
     }
@@ -964,10 +970,14 @@ public sealed class VoiceEngineRpc
             return [];
 
         var keys = emotions is { Length: > 0 } ? emotions : DefaultAuditionEmotions();
+        if (engine.Features.HasFlag(VoiceEngineFeatures.EmotionInferred))
+            keys = [EmotionDirector.NeutralKey];
+        var referenceTexts = await _voices.ReadReferenceTextsForAsync([voiceId]);
         var request = new NarrationRequest
         {
             Language = WritingLanguage(),
             Voices = new Dictionary<string, byte[]>(StringComparer.Ordinal) { [voiceId] = audio },
+            VoiceReferenceTexts = referenceTexts,
             Segments =
             [
                 .. keys.Select(key => new Sdk.Models.Narration.NarrationSegment
