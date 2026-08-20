@@ -404,14 +404,20 @@ function scopeLabelKey(
  * machine offering every other application three hundred voices offered
  * Novalist three, and no setting could change it.
  */
-function useSystemVoices(): { id: string; name: string; language: string }[] {
+function useSystemVoices(enabled: boolean): { id: string; name: string; language: string }[] {
   const [voices, setVoices] = useState<{ id: string; name: string; language: string }[]>([])
   useEffect(() => {
+    // Settings can be opened while startup is still loading its model. Voice
+    // discovery may shell out and the backend dispatches requests serially, so
+    // asking for voices first can leave settings/get queued behind it long
+    // enough for the screen to look broken. The picker is not renderable until
+    // the settings model exists anyway.
+    if (!enabled) return
     void rpc
       .request<{ id: string; name: string; language: string }[]>('voices/list')
       .then(setVoices)
       .catch(() => setVoices([]))
-  }, [])
+  }, [enabled])
   return voices
 }
 
@@ -465,7 +471,7 @@ export function SettingsView(): React.JSX.Element {
   const [displayInfoBusy, setDisplayInfoBusy] = useState(false)
   const sectionSurfaceRef = useRef<HTMLDivElement>(null)
   const voices = useSpeechVoices()
-  const systemVoices = useSystemVoices()
+  const systemVoices = useSystemVoices(view !== null)
 
   /**
    * Close the project from inside Settings (mobile only - see the registry's
