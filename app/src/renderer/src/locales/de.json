@@ -430,6 +430,7 @@
     "dailyWordGoalDesc": "Anzahl neuer Wörter pro Tag.",
     "projectWordGoal": "Projekt-Wortziel",
     "projectWordGoalDesc": "Gesamte Wortzahl für das gesamte Projekt.",
+    "closeProjectDesc": "Schließt dieses Projekt und kehrt zur Startseite zurück, wo ein anderes geöffnet werden kann.",
     "projectDeadline": "Projektfrist",
     "projectDeadlineDesc": "Optionale Frist im Format JJJJ-MM-TT.",
     "projectAuthor": "Autor",

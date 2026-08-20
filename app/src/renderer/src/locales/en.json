@@ -552,6 +552,7 @@
     "dailyWordGoalDesc": "Target number of new words to write per day.",
     "projectWordGoal": "Project Word Goal",
     "projectWordGoalDesc": "Target total word count for the full project.",
+    "closeProjectDesc": "Closes this project and returns to the welcome screen, where another one can be opened.",
     "projectDeadline": "Project Deadline",
     "projectDeadlineDesc": "Optional deadline in YYYY-MM-DD format.",
     "projectAuthor": "Author",

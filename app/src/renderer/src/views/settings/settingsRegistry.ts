@@ -3,6 +3,7 @@ export const SETTINGS_CATEGORIES = ['general', 'writing', 'project', 'system'] a
 export type SettingsCategory = (typeof SETTINGS_CATEGORIES)[number]
 
 export const SETTINGS_SECTION_KEYS = [
+  'project',
   'appearance',
   'accessibility',
   'hotkeys',
@@ -45,6 +46,13 @@ export interface SettingsSectionMetadata {
   scope: SettingsScopeKind
   requiresProject?: boolean
   desktopOnly?: boolean
+  /**
+   * The opposite of desktopOnly: shown only in the iOS build. Used for what the
+   * desktop reaches through chrome a phone does not have - a menu bar, a
+   * command palette, a window title - and which therefore has to live in
+   * Settings there.
+   */
+  mobileOnly?: boolean
   standalone?: boolean
   keywords?: readonly string[]
   controls?: readonly SettingsControlMetadata[]
@@ -67,6 +75,26 @@ const control = (
  * has one source of truth here.
  */
 export const SETTINGS_REGISTRY: readonly SettingsSectionMetadata[] = [
+  {
+    /**
+     * The open project itself, and the way back out of it.
+     *
+     * Desktop closes a project from the menu bar or the command palette, and
+     * iOS has neither - the phone navigates by a five-item tab bar and the iPad
+     * by a sidebar of destinations, so an open project was a one-way door: the
+     * welcome screen, with every other project on it, could not be reached
+     * again without restarting the app. Settings is the one destination both
+     * layouts carry, so the door is here.
+     */
+    key: 'project',
+    category: 'project',
+    titleKey: 'settings.group.project',
+    scope: 'project',
+    requiresProject: true,
+    mobileOnly: true,
+    keywords: ['project', 'close', 'switch', 'leave', 'exit', 'welcome', 'recent'],
+    controls: [control('close-project', 'command.closeProject')]
+  },
   {
     key: 'appearance',
     category: 'general',
@@ -425,7 +453,8 @@ export function settingsSectionsForContext(context: {
   return SETTINGS_REGISTRY.filter(
     (section) =>
       (!section.requiresProject || context.hasProject) &&
-      (!section.desktopOnly || !context.isMobile)
+      (!section.desktopOnly || !context.isMobile) &&
+      (!section.mobileOnly || context.isMobile)
   )
 }
 

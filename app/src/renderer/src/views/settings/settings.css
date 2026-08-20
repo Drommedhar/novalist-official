@@ -348,6 +348,14 @@
   color: var(--nl-text-subtle);
 }
 
+/* The name of the project the close button would close, so the action names
+   its subject rather than trusting the writer to remember what is open. */
+.settings-open-project {
+  font-size: var(--nl-font-body-lg);
+  font-weight: var(--nl-weight-title);
+  margin: var(--nl-space-none) var(--nl-space-none) var(--nl-space-tighter);
+}
+
 .settings-link {
   display: inline-flex;
   align-items: center;

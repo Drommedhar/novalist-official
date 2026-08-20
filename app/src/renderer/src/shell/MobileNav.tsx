@@ -181,12 +181,19 @@ export function MobileRow({
   label,
   value,
   onClick,
+  variant,
   children
 }: {
   label: string
   /** The current setting, right-aligned, the way iOS states a value. */
   value?: string
   onClick?: () => void
+  /**
+   * 'action' is a row that does something here rather than opening a page:
+   * centred, tinted, and without the chevron, which on iOS is the difference
+   * between "there is more of this behind the row" and "pressing this acts".
+   */
+  variant?: 'action'
   /** A control that lives in the row itself (a switch, a stepper). */
   children?: React.ReactNode
 }): React.JSX.Element {
@@ -195,14 +202,17 @@ export function MobileRow({
       <span className="mobile-row-label">{label}</span>
       {value !== undefined && <span className="mobile-row-value">{value}</span>}
       {children}
-      {onClick && <ChevronRight size={18} strokeWidth={2} className="mobile-row-chevron" />}
+      {onClick && variant !== 'action' && (
+        <ChevronRight size={18} strokeWidth={2} className="mobile-row-chevron" />
+      )}
     </>
   )
+  const className = variant === 'action' ? 'mobile-row mobile-row-action' : 'mobile-row'
   return onClick ? (
-    <button type="button" className="mobile-row" onClick={onClick}>
+    <button type="button" className={className} onClick={onClick}>
       {content}
     </button>
   ) : (
-    <div className="mobile-row">{content}</div>
+    <div className={className}>{content}</div>
   )
 }

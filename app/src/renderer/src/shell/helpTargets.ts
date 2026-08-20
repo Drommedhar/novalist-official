@@ -84,6 +84,7 @@ export const WRITING_HELP_TARGETS: Record<WritingHelpFeature, ManualTarget> = {
  * in the Settings page and seed search with the stable section name.
  */
 export const SETTINGS_HELP_TARGETS: Record<SettingsSectionKey, ManualTarget> = {
+  project: { file: '03-projects-and-books.md', anchor: 'opening-a-project' },
   appearance: { file: '23-settings.md', anchor: 'appearance' },
   accessibility: { file: '39-accessibility.md', anchor: 'settings--accessibility' },
   hotkeys: { file: '26-hotkeys.md' },

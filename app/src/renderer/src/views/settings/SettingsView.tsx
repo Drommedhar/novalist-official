@@ -388,6 +388,8 @@ export function SettingsView(): React.JSX.Element {
   const isMobile = window.novalist.isMobile === true
   const isPhone = useIsPhone()
   const projectLoaded = useProjectStore((s) => s.isLoaded)
+  const projectName = useProjectStore((s) => s.projectName)
+  const closeProject = useProjectStore((s) => s.closeProject)
   const settingsSearch = useShellStore((s) => s.settingsSearch)
   const setMainView = useShellStore((s) => s.setMainView)
   const uiScale = useUiScaleStore((s) => s.percent)
@@ -406,6 +408,23 @@ export function SettingsView(): React.JSX.Element {
   const sectionSurfaceRef = useRef<HTMLDivElement>(null)
   const voices = useSpeechVoices()
   const systemVoices = useSystemVoices()
+
+  /**
+   * Close the project from inside Settings (mobile only - see the registry's
+   * 'project' section).
+   *
+   * The screen has to be left as well as the project: with nothing open the
+   * mobile frame shows the welcome content unless mainView is one of the
+   * app-scoped views, and mainView is 'settings' precisely because that is
+   * where this button is. Without the reset the writer presses "Close project"
+   * and stays looking at Settings. The tab goes back to the first one too, so
+   * the next project opens on its dashboard rather than back in here.
+   */
+  const closeProjectFromSettings = async (): Promise<void> => {
+    await closeProject()
+    useShellStore.getState().setMobileTab('dashboard')
+    setMainView('dashboard')
+  }
 
   const refreshDisplayInfo = async (): Promise<void> => {
     if (!window.novalist.displayDiagnostics) return
@@ -544,6 +563,20 @@ export function SettingsView(): React.JSX.Element {
   )
 
   const sectionBodies: SectionBodyDef[] = [
+    {
+      /* Mobile only (see the registry): the way out of a project, which on
+         desktop is a menu item and a palette command instead. */
+      key: 'project',
+      body: (
+        <>
+          {projectName && <p className="settings-open-project">{projectName}</p>}
+          <p className="settings-hint">{t('settings.closeProjectDesc')}</p>
+          <button className="dialog-button" onClick={() => void closeProjectFromSettings()}>
+            {t('command.closeProject')}
+          </button>
+        </>
+      )
+    },
     {
       key: 'appearance',
       body: (
@@ -1528,7 +1561,13 @@ export function SettingsView(): React.JSX.Element {
       : visibleSections
     const grouped = SETTINGS_CATEGORIES.map((category) => ({
       id: category,
-      sections: shown.filter((section) => section.category === category)
+      // The open project is a group of its own at the top of the index rather
+      // than a page to drill into - closing is one press, not a row that opens
+      // a screen holding one button. Under a search it stays an ordinary
+      // result, so "close" still finds it.
+      sections: shown.filter(
+        (section) => section.category === category && section.key !== 'project'
+      )
     })).filter((group) => group.sections.length > 0)
 
     return (
@@ -1565,6 +1604,19 @@ export function SettingsView(): React.JSX.Element {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {/* The project, and the way back out of it. iOS states what is open
+              and offers the one action on it; there is no other way to leave a
+              project on a phone - no menu bar, and the tab bar only moves
+              between screens inside it. */}
+          {!query && projectLoaded && (
+            <MobileGroup header={projectName ?? undefined} footer={t('settings.closeProjectDesc')}>
+              <MobileRow
+                label={t('command.closeProject')}
+                variant="action"
+                onClick={() => void closeProjectFromSettings()}
+              />
+            </MobileGroup>
+          )}
           {query ? (
             <MobileGroup>
               {shown.map((s) => (

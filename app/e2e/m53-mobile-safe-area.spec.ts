@@ -40,7 +40,7 @@ test('mobile: content cannot scroll into the safe area', async () => {
     __novalistTab: (k: string) => void
   }).__novalistTab('settings'))
   await page.waitForTimeout(1400)
-  await page.locator('.mobile-row').first().dispatchEvent('click')
+  await page.locator('.mobile-row:not(.mobile-row-action)').first().dispatchEvent('click')
   await page.waitForTimeout(1000)
   await expect(page.locator('.mobile-nav-bar')).toBeVisible()
 

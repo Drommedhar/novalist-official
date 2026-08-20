@@ -162,3 +162,16 @@
 .mobile-row:active {
   background: var(--nl-surface-hover);
 }
+
+/* An action row does its thing where it stands, so it looks like a button in a
+   list rather than a way further in: the label carries the accent and takes the
+   whole row, and there is no chevron to promise a page behind it. */
+.mobile-row-action {
+  justify-content: center;
+  color: var(--nl-accent);
+}
+
+.mobile-row-action .mobile-row-label {
+  flex: 0 1 auto;
+  text-align: center;
+}

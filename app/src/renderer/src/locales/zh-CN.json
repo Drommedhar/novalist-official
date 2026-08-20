@@ -587,6 +587,7 @@
     "dailyWordGoalDesc": "每天计划撰写的新字数目标。",
     "projectWordGoal": "项目字数目标",
     "projectWordGoalDesc": "整个项目的总字数目标。",
+    "closeProjectDesc": "关闭当前项目并返回欢迎屏幕，可在那里打开其他项目。",
     "projectDeadline": "项目截止日期",
     "projectDeadlineDesc": "可选的截止日期（格式：YYYY-MM-DD）。",
     "projectAuthor": "作者",

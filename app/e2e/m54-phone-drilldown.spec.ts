@@ -28,7 +28,9 @@ test('phone: Settings opens one section at a time', async () => {
   await page.waitForTimeout(1400)
 
   // The index: grouped rows, one per section, and no section body on screen.
-  const rows = page.locator('.mobile-row')
+  // Not the action row above them - closing the project acts where it stands
+  // rather than opening anything, which is why it carries no chevron.
+  const rows = page.locator('.mobile-row:not(.mobile-row-action)')
   expect(await rows.count(), 'every section is a row').toBeGreaterThan(8)
   expect(await page.locator('.mobile-group-header').count(), 'rows are grouped').toBeGreaterThan(1)
   expect(await page.locator('.settings-phone-section').count(), 'no section is open yet').toBe(0)
