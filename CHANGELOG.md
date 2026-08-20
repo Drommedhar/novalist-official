@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.2] - 2026-08-20
+
 ### Fixed
 
 - The Dashboard's "who drops out of the book" report no longer comes up empty when the project was still opening as the screen appeared. It asked once, and a report with nothing in it is drawn as no card at all, so an answer given a moment too early looked exactly like a book where nobody disappears - for the rest of the session. It now asks again whenever the book gains or loses a chapter or a scene.
@@ -1478,7 +1484,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.1.2...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.2...HEAD
+[3.2]: https://github.com/Drommedhar/novalist-official/compare/v3.1.2...v3.2
 [3.1.2]: https://github.com/Drommedhar/novalist-official/compare/v3.1.1...v3.1.2
 [3.1.1]: https://github.com/Drommedhar/novalist-official/compare/v3.1...v3.1.1
 [3.1]: https://github.com/Drommedhar/novalist-official/compare/v3.0.3...v3.1
