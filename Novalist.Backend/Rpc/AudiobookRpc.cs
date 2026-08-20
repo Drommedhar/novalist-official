@@ -131,6 +131,7 @@ public sealed class AudiobookRpc : IDisposable
         var audio = await _voices.ReadAudioForAsync(
             [.. chapters.SelectMany(c => NarrationRender.VoicesNeeded(c.Segments, sheet))
                 .Distinct(StringComparer.Ordinal)]);
+        var referenceTexts = await _voices.ReadReferenceTextsForAsync(audio.Keys);
         // Clips lines were told to sound like, read once for the whole book
         // rather than per window - a nine-hour render must not go back to disk
         // for the same reference forty thousand times.
@@ -157,7 +158,7 @@ public sealed class AudiobookRpc : IDisposable
 
         _ = Task.Run(
             () => RunAsync(
-                job, chapters, sheet, audio, references, engine, wanted, outputPath, rate,
+                job, chapters, sheet, audio, referenceTexts, references, engine, wanted, outputPath, rate,
                 cancellation),
             CancellationToken.None);
 
@@ -212,6 +213,7 @@ public sealed class AudiobookRpc : IDisposable
         IReadOnlyList<NarrationRenderChapter> chapters,
         VoiceCastSheet sheet,
         IReadOnlyDictionary<string, byte[]> voices,
+        IReadOnlyDictionary<string, string> voiceReferenceTexts,
         IReadOnlyDictionary<string, byte[]> references,
         IVoiceEngineContributor engine,
         AudiobookFormat format,
@@ -245,7 +247,8 @@ public sealed class AudiobookRpc : IDisposable
                     }
                 }),
                 cancellation.Token,
-                references);
+                references,
+                voiceReferenceTexts);
 
             // Only a finished render says anything about how fast this machine
             // is. A stopped one is a partial measurement of an unknown fraction.

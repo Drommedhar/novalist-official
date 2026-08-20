@@ -21,6 +21,9 @@ namespace Novalist.Core.Services;
 /// used one. Kept so a writer can ask for the same voice again - design is not
 /// reproducible, and without the number a voice is only recoverable as the audio
 /// already stored beside it.</param>
+/// <param name="ReferenceText">The exact words spoken in the stored reference
+/// audio. Transcript-conditioned cloning needs both; guessing them later loses
+/// the high-fidelity path.</param>
 public sealed record DesignedVoice(
     string VoiceId,
     string DisplayName,
@@ -29,7 +32,8 @@ public sealed record DesignedVoice(
     string AudioFormat,
     int SampleRate,
     string DesignedAt,
-    int? Seed = null);
+    int? Seed = null,
+    string ReferenceText = "");
 
 /// <summary>
 /// The voices this book has been given, and the audio that is each one.
@@ -186,6 +190,22 @@ public sealed class VoiceStore
                 audio[id] = bytes;
         }
         return audio;
+    }
+
+    /// <summary>The exact reference transcript for every voice named. Older
+    /// voices created before transcripts were stored are omitted; an engine
+    /// that requires one can then refuse clearly rather than silently dropping
+    /// to a lower-fidelity clone.</summary>
+    public async Task<IReadOnlyDictionary<string, string>> ReadReferenceTextsForAsync(
+        IEnumerable<string> voiceIds)
+    {
+        var wanted = voiceIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .ToHashSet(StringComparer.Ordinal);
+
+        return (await ListAsync())
+            .Where(v => wanted.Contains(v.VoiceId) && !string.IsNullOrWhiteSpace(v.ReferenceText))
+            .ToDictionary(v => v.VoiceId, v => v.ReferenceText, StringComparer.Ordinal);
     }
 
     /// <summary>The file one voice's audio lives in. The id is a host-made

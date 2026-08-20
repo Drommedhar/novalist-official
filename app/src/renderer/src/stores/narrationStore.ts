@@ -118,7 +118,7 @@ export interface SystemVoice {
 export interface VoiceEngine {
   engineId: string
   engineName: string
-  /** VoiceEngineFeatures as a bit field; see FEATURE_DESIGN below. */
+  /** VoiceEngineFeatures as a bit field; see the feature constants below. */
   features: number
   isReady: boolean
   isPreparing: boolean
@@ -131,6 +131,11 @@ export interface VoiceEngine {
  *  on so far: an engine that cannot design a voice is offered no design
  *  button rather than one that fails when pressed. */
 export const FEATURE_DESIGN = 1 << 0
+
+/** VoiceEngineFeatures.EmotionInferred. Such an engine reads delivery from the
+ * prose, so offering sliders or an emotion picker would promise controls that
+ * are deliberately not sent to it. */
+export const FEATURE_EMOTION_INFERRED = 1 << 4
 
 /** What a character's voice would be designed from, for the writer to read and
  *  edit before anything is sent. */
@@ -171,7 +176,8 @@ export interface NarrationRender {
   total: number
 }
 
-/** One audition clip: the same line read at one point on the emotional range. */
+/** One audition clip. Explicitly directed engines may return a range; inferred
+ * engines return one fresh performance of the words. */
 export interface AuditionClip {
   key: string
   /** base64 audio, played straight from a data URI. */

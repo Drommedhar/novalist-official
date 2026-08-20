@@ -31,6 +31,7 @@ public class NarrationDtoDefaultsTests
 
         Assert.Equal(string.Empty, result.VoiceId);
         Assert.Empty(result.ReferenceAudio);
+        Assert.Equal(string.Empty, result.ReferenceText);
         Assert.Equal("wav", result.AudioFormat);
         Assert.Equal(0, result.SampleRate);
         Assert.Equal(string.Empty, result.ResolvedDescription);
@@ -68,6 +69,7 @@ public class NarrationDtoDefaultsTests
 
         Assert.Empty(request.Segments);
         Assert.Empty(request.Voices);
+        Assert.Empty(request.VoiceReferenceTexts);
         Assert.Equal("en", request.Language);
         Assert.Equal(1.0, request.Rate);
     }

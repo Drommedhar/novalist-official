@@ -163,7 +163,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         Assert.NotNull(brief);
         Assert.Equal("Mira Vance", brief!.Name);
         Assert.Contains("Age: 34", brief.Description);
-        Assert.Contains("Build: wiry", brief.Description);
+        Assert.DoesNotContain("Build: wiry", brief.Description);
         Assert.Contains("You are late,", brief.SampleLines);
         Assert.Equal(nameof(VoiceBriefRefusal.None), brief.Refusal);
     }
@@ -477,6 +477,8 @@ public sealed class VoiceEngineRpcTests : IDisposable
         // in the message.
         Assert.All(render.Clips, c => Assert.NotNull(c.Clip));
         Assert.All(render.Clips, c => Assert.DoesNotContain("/", c.Clip!));
+        Assert.False(string.IsNullOrWhiteSpace(
+            _engine.LastRequest!.VoiceReferenceTexts[designed.VoiceId]));
     }
 
     [Fact]
@@ -792,7 +794,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     // ── narration/designNarrator ──
 
     [Fact]
-    public async Task NarratorBrief_DescribesTheBookRatherThanAnybodyInIt()
+    public async Task NarratorBrief_DescribesAnAcousticNarratorVoice()
     {
         var book = _workspace.Projects.ActiveBook!;
         book.NarrativePerson = "third limited";
@@ -801,8 +803,10 @@ public sealed class VoiceEngineRpcTests : IDisposable
 
         var brief = _rpc.NarratorBrief();
 
-        Assert.Contains("third limited", brief);
-        Assert.Contains("past", brief);
+        Assert.Contains("audiobook narrator", brief);
+        Assert.Contains("natural timbre", brief);
+        Assert.DoesNotContain("third limited", brief);
+        Assert.DoesNotContain("past", brief);
     }
 
     [Fact]
@@ -830,7 +834,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
     }
 
     [Fact]
-    public async Task DesignNarrator_WithNothingTypedFallsBackToTheBooksOwnBrief()
+    public async Task DesignNarrator_WithNothingTypedFallsBackToAStableAcousticBrief()
     {
         var book = _workspace.Projects.ActiveBook!;
         book.NarrativePerson = "first person";
@@ -839,7 +843,9 @@ public sealed class VoiceEngineRpcTests : IDisposable
 
         await KeptNarratorAsync(StubEngine.Id, "   ");
 
-        Assert.Contains("first person", _engine.LastBrief!.Description);
+        Assert.Contains("audiobook narrator", _engine.LastBrief!.Description);
+        Assert.Contains("mid-range pitch", _engine.LastBrief.Description);
+        Assert.DoesNotContain("first person", _engine.LastBrief.Description);
     }
 
     [Fact]
@@ -1572,6 +1578,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
             {
                 VoiceId = brief.VoiceId,
                 ReferenceAudio = [1, 2, 3, 4],
+                ReferenceText = brief.SampleLines.FirstOrDefault() ?? "This is the reference.",
                 SampleRate = 16000,
                 ResolvedDescription = brief.Description,
                 Seed = SeedUsed

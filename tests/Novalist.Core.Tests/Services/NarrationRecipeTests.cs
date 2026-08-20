@@ -45,8 +45,10 @@ public class NarrationRecipeTests
         string engine = "eng",
         string language = "en",
         double rate = 1.0,
-        byte[]? voice = null)
-        => NarrationRecipe.For(segment, engine, language, rate, voice ?? [1, 2, 3]);
+        byte[]? voice = null,
+        string referenceText = "Reference words.")
+        => NarrationRecipe.For(
+            segment, engine, language, rate, voice ?? [1, 2, 3], referenceText);
 
     [Fact]
     public void TheSameLineAskedForTwiceIsTheSameKey()
@@ -72,6 +74,12 @@ public class NarrationRecipeTests
         // have gone on being served in the voice just replaced.
         Assert.NotEqual(For(Line(), voice: [1, 2, 3]), For(Line(), voice: [4, 5, 6]));
     }
+
+    [Fact]
+    public void CorrectingTheReferenceTranscriptChangesIt()
+        => Assert.NotEqual(
+            For(Line(), referenceText: "These were the words."),
+            For(Line(), referenceText: "These are the words."));
 
     [Fact]
     public void ChangingTheSpeedChangesIt()

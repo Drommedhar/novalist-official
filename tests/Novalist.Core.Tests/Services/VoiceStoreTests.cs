@@ -30,7 +30,7 @@ public class VoiceStoreTests : IDisposable
 
     private static DesignedVoice Voice(string id = "v1", string format = "wav") => new(
         id, "Mira Vance", "Age: 34. Build: wiry.", "com.example.engine", format, 24000,
-        "2026-08-18T10:00:00Z");
+        "2026-08-18T10:00:00Z", ReferenceText: "This is the exact reference.");
 
     private static byte[] Audio() => [0x52, 0x49, 0x46, 0x46, 0x00, 0x01, 0x02, 0x03];
 
@@ -68,6 +68,7 @@ public class VoiceStoreTests : IDisposable
         Assert.Equal("Mira Vance", stored.DisplayName);
         Assert.Equal("com.example.engine", stored.EngineId);
         Assert.Equal(24000, stored.SampleRate);
+        Assert.Equal("This is the exact reference.", stored.ReferenceText);
         Assert.Equal(Audio(), await Store().ReadAudioAsync("v1"));
         Assert.True(File.Exists(Path.Combine(VoicesDir(), "v1.wav")));
     }
@@ -153,6 +154,19 @@ public class VoiceStoreTests : IDisposable
 
         Assert.Equal(["v1"], audio.Keys);
         Assert.Equal(Audio(), audio["v1"]);
+    }
+
+    [Fact]
+    public async Task ReadReferenceTextsForAsync_GathersOnlyExactTranscripts()
+    {
+        await NewProjectAsync();
+        await Store().SaveAsync(Voice("v1"), Audio());
+        await Store().SaveAsync(Voice("old") with { ReferenceText = string.Empty }, Audio());
+
+        var texts = await Store().ReadReferenceTextsForAsync(["v1", "old", "missing"]);
+
+        Assert.Equal(["v1"], texts.Keys);
+        Assert.Equal("This is the exact reference.", texts["v1"]);
     }
 
     [Fact]

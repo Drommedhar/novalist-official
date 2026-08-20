@@ -181,7 +181,8 @@ public sealed class NarrationRenderJob
         NarrationRenderSettings? settings = null,
         IProgress<NarrationRenderProgress>? progress = null,
         CancellationToken cancellationToken = default,
-        IReadOnlyDictionary<string, byte[]>? clips = null)
+        IReadOnlyDictionary<string, byte[]>? clips = null,
+        IReadOnlyDictionary<string, string>? voiceReferenceTexts = null)
     {
         settings ??= new NarrationRenderSettings();
         Directory.CreateDirectory(_folder);
@@ -228,6 +229,7 @@ public sealed class NarrationRenderJob
             {
                 rendered = await RenderChapterAsync(
                     chapter, name, sheet, voices, features, language, settings, clips,
+                    voiceReferenceTexts,
                     spoken =>
                     {
                         segmentsDone++;
@@ -305,6 +307,7 @@ public sealed class NarrationRenderJob
         string language,
         NarrationRenderSettings settings,
         IReadOnlyDictionary<string, byte[]>? clips,
+        IReadOnlyDictionary<string, string>? voiceReferenceTexts,
         Action<double> spoke,
         CancellationToken cancellationToken)
     {
@@ -331,13 +334,16 @@ public sealed class NarrationRenderJob
                 // one breath. A recording is listened to end to end, and a model
                 // that starts each call afresh resets its pitch and pace at
                 // every full stop otherwise.
-                var joined = NarrationRender.Joined(window, settings.JoinCharacters);
+                var joined = NarrationRender.Joined(
+                    window,
+                    settings.JoinCharacters,
+                    features.HasFlag(VoiceEngineFeatures.EmotionInferred));
                 var covers = joined.ToDictionary(
                     j => j.Segment.Key, j => j.Covers, StringComparer.Ordinal);
 
                 var request = NarrationRender.Build(
                     [.. joined.Select(j => j.Segment)], sheet, voices, features, language,
-                    settings.Rate, clips, _ => scene.Where);
+                    settings.Rate, clips, _ => scene.Where, voiceReferenceTexts);
 
                 // Segments the cast could not place - no voice, or a voice this
                 // machine does not have - never reach the engine. Counted in

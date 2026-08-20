@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Crosshair, MapPin, Play, Sliders, Sparkles, Square, Trash2 } from 'lucide-react'
 import {
   FEATURE_DESIGN,
+  FEATURE_EMOTION_INFERRED,
   NARRATOR,
   useNarrationStore,
   type DesignedVoice,
@@ -143,6 +144,14 @@ export function NarrationView(): React.JSX.Element {
     return map
   }, [members])
 
+  /** Whether this voice deliberately takes its delivery from the prose instead
+   *  of the host's detected/manual direction. */
+  const voiceInfersDelivery = (voiceId: string | null): boolean => {
+    const owner = designed.find((voice) => voice.voiceId === voiceId)?.engineId
+    const features = engines.find((engine) => engine.engineId === owner)?.features ?? 0
+    return (features & FEATURE_EMOTION_INFERRED) !== 0
+  }
+
   const pushBook = (): void => {
     const frame = frameRef.current?.contentWindow as NarrationWindow | null
     if (!frame || !readyRef.current) return
@@ -187,7 +196,9 @@ export function NarrationView(): React.JSX.Element {
                 label:
                   (segment.speakerName ?? t('narration.narrator')) +
                   ' · ' +
-                  t(`emotion.${segment.directionKey}`, segment.directionKey)
+                  (voiceInfersDelivery(segment.voiceId)
+                    ? t('narration.automaticDelivery')
+                    : t(`emotion.${segment.directionKey}`, segment.directionKey))
               }))
             }))
           })) ?? [],
@@ -513,6 +524,8 @@ function SegmentPanel({ step }: { step: ReadingStep }): React.JSX.Element {
   const emotions = useNarrationStore((s) => s.emotions)
   const members = useNarrationStore((s) => s.members)
   const reading = useNarrationStore((s) => s.reading)
+  const engines = useNarrationStore((s) => s.engines)
+  const designed = useNarrationStore((s) => s.designed)
   const [editing, setEditing] = useState(false)
   /**
    * How many lines after this one the direction applies to.
@@ -525,6 +538,10 @@ function SegmentPanel({ step }: { step: ReadingStep }): React.JSX.Element {
 
   const segment = step.segment
   const narration = segment.kind === 'Narration'
+  const owner = designed.find((voice) => voice.voiceId === segment.voiceId)?.engineId
+  const inferred =
+    (engines.find((engine) => engine.engineId === owner)?.features ?? 0) &
+    FEATURE_EMOTION_INFERRED
   const ref: SegmentRef = {
     chapterGuid: step.chapterGuid,
     sceneId: step.sceneId,
@@ -622,43 +639,50 @@ function SegmentPanel({ step }: { step: ReadingStep }): React.JSX.Element {
           )}
         </label>
 
-        <label className="narration-panel-field">
-          <span>{t('narration.directionFor')}</span>
-          <select
-            value={segment.directionKey}
-            onChange={(e) => void setDirection(ref, e.target.value)}
-          >
-            {emotions.map((key) => (
-              <option key={key} value={key}>
-                {t(`emotion.${key}`, key)}
-              </option>
-            ))}
-          </select>
-          <span className={`narration-chip source ${segment.directionSource.toLowerCase()}`}>
-            {segment.directionSource === 'Verb' && segment.directionEvidence
-              ? t('narration.source.verbWith', { verb: segment.directionEvidence })
-              : t(SOURCE_KEYS[segment.directionSource])}
-          </span>
-          {segment.directionSource === 'Writer' && (
+        {inferred !== 0 ? (
+          <label className="narration-panel-field">
+            <span>{t('narration.directionFor')}</span>
+            <span className="narration-panel-static">{t('narration.automaticDelivery')}</span>
+          </label>
+        ) : (
+          <label className="narration-panel-field">
+            <span>{t('narration.directionFor')}</span>
+            <select
+              value={segment.directionKey}
+              onChange={(e) => void setDirection(ref, e.target.value)}
+            >
+              {emotions.map((key) => (
+                <option key={key} value={key}>
+                  {t(`emotion.${key}`, key)}
+                </option>
+              ))}
+            </select>
+            <span className={`narration-chip source ${segment.directionSource.toLowerCase()}`}>
+              {segment.directionSource === 'Verb' && segment.directionEvidence
+                ? t('narration.source.verbWith', { verb: segment.directionEvidence })
+                : t(SOURCE_KEYS[segment.directionSource])}
+            </span>
+            {segment.directionSource === 'Writer' && (
+              <button
+                type="button"
+                className="narration-clear"
+                onClick={() => void setDirection(ref, null)}
+              >
+                {t('narration.clearDirection')}
+              </button>
+            )}
+            {/* Behind the names, for the delivery none of them is. */}
             <button
               type="button"
               className="narration-clear"
-              onClick={() => void setDirection(ref, null)}
+              onClick={() => setEditing((was) => !was)}
             >
-              {t('narration.clearDirection')}
+              {t('narration.byHand')}
             </button>
-          )}
-          {/* Behind the names, for the delivery none of them is. */}
-          <button
-            type="button"
-            className="narration-clear"
-            onClick={() => setEditing((was) => !was)}
-          >
-            {t('narration.byHand')}
-          </button>
-        </label>
+          </label>
+        )}
 
-        {editing && runMax > 1 && (
+        {inferred === 0 && editing && runMax > 1 && (
           <label className="narration-panel-field">
             <span>{t('narration.applyTo')}</span>
             <input
@@ -676,7 +700,7 @@ function SegmentPanel({ step }: { step: ReadingStep }): React.JSX.Element {
           </label>
         )}
 
-        {editing && (
+        {inferred === 0 && editing && (
           <DirectionEditor
             refs={runRefs}
             vector={segment.directionVector}
@@ -918,6 +942,9 @@ function DesignDialog(): React.JSX.Element {
     ? narratorVoiceId
     : (members.find((m) => m.characterId === brief.characterId)?.voiceId ?? null)
   const kept = designed.find((d) => d.voiceId === castTo) ?? null
+  const keptFeatures =
+    engines.find((engine) => engine.engineId === kept?.engineId)?.features ?? 0
+  const auditionIsAutomatic = (keptFeatures & FEATURE_EMOTION_INFERRED) !== 0
   // Their own words where there are any. A voice auditioned on a line the
   // character actually speaks tells you something; one auditioned on a stock
   // sentence tells you about the sentence.
@@ -1032,9 +1059,13 @@ function DesignDialog(): React.JSX.Element {
                 disabled={busy}
                 onClick={() => void auditionVoice(kept.voiceId, auditionText)}
               >
-                {busy ? t('narration.auditioning') : t('narration.audition')}
+                {busy
+                  ? t('narration.auditioning')
+                  : t(auditionIsAutomatic ? 'narration.auditionAutomatic' : 'narration.audition')}
               </button>
-              <p className="narration-design-note">{t('narration.auditionNote')}</p>
+              <p className="narration-design-note">
+                {t(auditionIsAutomatic ? 'narration.auditionAutomaticNote' : 'narration.auditionNote')}
+              </p>
             </div>
           )}
 

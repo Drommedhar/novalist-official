@@ -222,7 +222,7 @@ public class NarrationRenderTests
             [Segment("d:1", "A line.", "mira")], new VoiceCastSheet()));
 
     [Fact]
-    public void NarratorBrief_DescribesTheBookRatherThanACharacter()
+    public void NarratorBrief_IsAnAcousticVoiceDesignInstruction()
     {
         var book = new BookData
         {
@@ -233,13 +233,15 @@ public class NarrationRenderTests
 
         var brief = NarrationRender.NarratorBrief(book);
 
-        Assert.Contains("Narration: third limited", brief);
-        Assert.Contains("Tense: past", brief);
-        Assert.Contains("A harbourmaster hides a wreck.", brief);
+        Assert.Contains("audiobook narrator", brief);
+        Assert.Contains("mid-range pitch", brief);
+        Assert.Contains("natural timbre", brief);
+        Assert.DoesNotContain("third limited", brief);
+        Assert.DoesNotContain("harbourmaster", brief);
     }
 
     [Fact]
-    public void NarratorBrief_KeepsItsOwnLabelsWhileFilteringTheWritersWords()
+    public void NarratorBrief_NeverIncludesPlotOrMood()
     {
         // "Tense" is one of the sixteen emotion keys, so filtering the finished
         // sentence deleted the label and left the value dangling after a colon:
@@ -255,19 +257,19 @@ public class NarrationRenderTests
 
         var brief = NarrationRender.NarratorBrief(book, lexicon);
 
-        Assert.Contains("Tense: past", brief);
-        Assert.DoesNotContain(". : ", brief);
-        // And the writer's own half is still filtered.
+        Assert.Contains("Neutral baseline", brief);
         Assert.DoesNotContain("furious", brief, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("harbourmaster", brief, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void NarratorBrief_SaysOnlyWhatTheWriterHasDeclared()
+    public void NarratorBrief_HasANeutralDefaultForAnyBook()
     {
-        Assert.Equal(string.Empty, NarrationRender.NarratorBrief(new BookData()));
+        Assert.NotEmpty(NarrationRender.NarratorBrief(new BookData()));
         Assert.Equal(string.Empty, NarrationRender.NarratorBrief(null));
-        Assert.Equal(
-            "Tense: present",
-            NarrationRender.NarratorBrief(new BookData { Tense = " present " }));
+        Assert.DoesNotContain(
+            "present",
+            NarrationRender.NarratorBrief(new BookData { Tense = " present " }),
+            StringComparison.OrdinalIgnoreCase);
     }
 }
