@@ -472,6 +472,12 @@ export function SettingsView(): React.JSX.Element {
   const sectionSurfaceRef = useRef<HTMLDivElement>(null)
   const voices = useSpeechVoices()
   const systemVoices = useSystemVoices(view !== null)
+  // Above the "still loading" return below, with the rest of the hooks. It was
+  // under it, so the render that first had a settings model ran one hook more
+  // than the render that did not, and React tore the screen down rather than
+  // update it: opening Settings before the model had arrived - which is what
+  // happens with no project open - left the writer looking at nothing.
+  const writingLanguages = useWritingLanguages()
 
   /**
    * Close the project from inside Settings (mobile only - see the registry's
@@ -575,7 +581,6 @@ export function SettingsView(): React.JSX.Element {
   if (!view) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 
   const eff = view.effective
-  const writingLanguages = useWritingLanguages()
   // The language the prose is in, which is what read-aloud speaks and therefore
   // what the voice has to match.
   const writingLanguage = eff.autoReplacementLanguage || 'en'

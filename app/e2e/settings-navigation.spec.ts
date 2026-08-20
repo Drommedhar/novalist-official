@@ -171,5 +171,16 @@ test('global Settings remains useful when no project is open', async () => {
   await expect(h.page.locator('.settings-scope-badge')).toHaveText('Global default')
   await expect(h.page.locator('.settings-nav-heading', { hasText: 'Project' })).toHaveCount(0)
 
+  // Settings can be opened before the settings model has arrived - on a slow
+  // start that is the ordinary case with no project open - and the screen has
+  // to survive the model landing under it. It did not: the loaded render ran a
+  // hook the loading one had not, React threw the view away, and the writer was
+  // left with a blank centre until they navigated somewhere else and back.
+  await h.page.evaluate(() => window.novalistStores.settings.setState({ view: null }))
+  await expect(h.page.locator('.settings-view')).toHaveCount(0)
+  await h.page.evaluate(() => window.novalistStores.settings.getState().load())
+  await expect(h.page.locator('.settings-view')).toBeVisible({ timeout: 30_000 })
+  await expect(h.page.locator('#set-theme')).toBeVisible()
+
   await h.close()
 })

@@ -18,6 +18,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- Opening Settings while the app was still starting - which is what happens with no project open on a slow start - could leave the centre of the window blank, with nothing but a switch to another view and back to get the page to appear.
 - The number boxes in Settings — font size, line height, letter and paragraph spacing, read-aloud speed, custom text-block width and book font size — now take the number you type. They used to correct the value after every keystroke, so the first digit of a two-digit number was pushed to the nearest allowed one and the rest of what you typed landed on top of that: font size went 17, 8, 36 and never 22. What you type is read once now, when you leave the box or press Enter, and only then held to the range.
 
 ---
