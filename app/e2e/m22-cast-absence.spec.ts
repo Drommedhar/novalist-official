@@ -33,6 +33,13 @@ test('the dashboard names the character who disappears and the chapters they mis
     // Present in the first and the last of five chapters: the gap is the
     // middle three, and nothing is owing at the end.
     for (const title of ['One', 'Two', 'Three', 'Four', 'Five']) {
+      // Half-way through, the shell is told about a book that is still being
+      // built. Startup does exactly this on a slow machine: the state read that
+      // runs behind settings and the extensions can land while a project is
+      // being made around it, and opening a project lands on the Dashboard - so
+      // the cards ask their questions of half a book. This is where the report
+      // was lost on the build machine and nowhere else.
+      if (title === 'Three') window.novalistStores.project.getState().applyState(state as never)
       state = await rpc.request('project/createChapter', [title])
       const chapters = (state as { chapters: { guid: string; title: string }[] }).chapters
       const guid = chapters[chapters.length - 1].guid
@@ -50,10 +57,9 @@ test('the dashboard names the character who disappears and the chapters they mis
   }, workDir)
   await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
 
-  // The card asks for the report once, when it mounts, and a report with
-  // nothing in it is drawn as no card at all - so a screen put up before the
-  // analysis can answer stays empty however long the assertion waits. Ask the
-  // report directly first, then put the screen up.
+  // The report has to be able to answer before the screen is asked about it -
+  // a report with nothing in it is drawn as no card at all, so a card that
+  // asked too early is indistinguishable from a book where nobody disappears.
   await expect
     .poll(
       () =>
