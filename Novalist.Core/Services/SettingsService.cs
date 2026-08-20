@@ -126,4 +126,42 @@ public class SettingsService : ISettingsService
         var key = NormalizePath(path);
         Settings.RecentProjects.RemoveAll(r => NormalizePath(r.Path) == key);
     }
+
+    /// <summary>
+    /// Follow a recent project to where it lives now, keeping its place in the
+    /// list and its cover.
+    ///
+    /// The same project, not a new one: re-adding it would stamp it as
+    /// just-opened and push it to the top of a list the writer has not touched.
+    /// The cover is stored as an absolute path inside the project, so it moves
+    /// with it - and only the part that named the old folder is rewritten, so a
+    /// cover the writer pointed somewhere else entirely is left alone.
+    ///
+    /// A row that already names the destination is the same project reached by
+    /// its new address; the one being moved carries the history, so the other
+    /// goes.
+    /// </summary>
+    public void RelocateRecentProject(string oldPath, string newPath)
+    {
+        if (string.IsNullOrWhiteSpace(oldPath) || string.IsNullOrWhiteSpace(newPath)) return;
+        var key = NormalizePath(oldPath);
+        var entry = Settings.RecentProjects.FirstOrDefault(r => NormalizePath(r.Path) == key);
+        if (entry == null) return;
+
+        var newKey = NormalizePath(newPath);
+        Settings.RecentProjects.RemoveAll(r => !ReferenceEquals(r, entry) && NormalizePath(r.Path) == newKey);
+
+        entry.CoverImagePath = Rebase(entry.CoverImagePath, oldPath, newPath);
+        entry.Path = newPath;
+    }
+
+    /// <summary>A path under <paramref name="oldRoot"/>, re-expressed under
+    /// <paramref name="newRoot"/>. Anything else is returned untouched.</summary>
+    private static string Rebase(string path, string oldRoot, string newRoot)
+    {
+        if (string.IsNullOrEmpty(path)) return path;
+        var prefix = oldRoot.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        if (!path.StartsWith(prefix, StringComparison.Ordinal)) return path;
+        return newRoot.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar + path[prefix.Length..];
+    }
 }

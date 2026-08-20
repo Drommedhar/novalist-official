@@ -1229,23 +1229,38 @@ public class ProjectServiceTests : IDisposable
         await Create();
         var root = _sut.ProjectRoot!;
 
-        Assert.True(await _sut.ProjectExistsAtAsync(root));
+        Assert.Equal(ProjectPresence.Present, await _sut.ProbeProjectAsync(root));
 
-        // The writer deleted the folder. Nothing is there to open.
+        // The writer deleted the folder. Nothing is there to open, and the
+        // folder it stood in can still be read - so we can say so.
         Directory.Delete(root, recursive: true);
-        Assert.False(await _sut.ProjectExistsAtAsync(root));
+        Assert.Equal(ProjectPresence.Absent, await _sut.ProbeProjectAsync(root));
     }
 
     [Fact]
     public async Task AFolderThatIsNotAProjectIsNotOneEitherWay()
     {
-        // A folder that exists but never held a project, an empty path, and a
-        // path no filesystem would accept - none of them are somewhere to go
-        // back to, and none of them may throw on the way to saying so.
-        Assert.False(await _sut.ProjectExistsAtAsync(_dir.Path));
-        Assert.False(await _sut.ProjectExistsAtAsync(""));
-        Assert.False(await _sut.ProjectExistsAtAsync("   "));
-        Assert.False(await _sut.ProjectExistsAtAsync("\0not-a-path"));
+        // A folder that exists but never held a project, and an empty path:
+        // neither is somewhere to go back to, and neither may throw on the way
+        // to saying so.
+        Assert.Equal(ProjectPresence.Absent, await _sut.ProbeProjectAsync(_dir.Path));
+        Assert.Equal(ProjectPresence.Absent, await _sut.ProbeProjectAsync(""));
+        Assert.Equal(ProjectPresence.Absent, await _sut.ProbeProjectAsync("   "));
+
+        // A path no filesystem would accept has nowhere to look for it either,
+        // so it is unestablished rather than proven gone. Still no throw.
+        Assert.Equal(ProjectPresence.Unknown, await _sut.ProbeProjectAsync("\0not-a-path"));
+    }
+
+    [Fact]
+    public async Task AProjectWeCannotEvenReachTheFolderOfIsNotDeclaredGone()
+    {
+        // The sandboxed builds live here: on iOS a project sits behind a grant
+        // that is not active while the recents list is being built, and the
+        // whole tree above it reads as missing. Answering "absent" is what made
+        // the list prune itself out of existence on every launch.
+        var unreachable = Path.Combine(_dir.Path, "no-such-folder", "The Chart");
+        Assert.Equal(ProjectPresence.Unknown, await _sut.ProbeProjectAsync(unreachable));
     }
 
     [Theory]
@@ -1253,7 +1268,7 @@ public class ProjectServiceTests : IDisposable
     [InlineData(typeof(UnauthorizedAccessException))]
     [InlineData(typeof(ArgumentException))]
     [InlineData(typeof(NotSupportedException))]
-    public async Task APathThatCannotEvenBeCheckedIsNotAProject(Type thrown)
+    public async Task APathThatCannotEvenBeCheckedIsNotDeclaredGone(Type thrown)
     {
         // A disconnected share, a path the process may not stat, something no
         // filesystem accepts. The recents list has to survive all of them: one
@@ -1263,7 +1278,9 @@ public class ProjectServiceTests : IDisposable
         files.ExistsAsync(Arg.Any<string>())
             .Returns<Task<bool>>(_ => throw (Exception)Activator.CreateInstance(thrown)!);
 
-        Assert.False(await new ProjectService(files).ProjectExistsAtAsync(@"\\nas\gone"));
+        Assert.Equal(
+            ProjectPresence.Unknown,
+            await new ProjectService(files).ProbeProjectAsync(@"\\nas\gone"));
     }
 
     [Fact]
@@ -1275,7 +1292,7 @@ public class ProjectServiceTests : IDisposable
         // The folder is still there; what made it a project is not.
         File.Delete(Path.Combine(root, ".novalist", "project.json"));
 
-        Assert.False(await _sut.ProjectExistsAtAsync(root));
+        Assert.Equal(ProjectPresence.Absent, await _sut.ProbeProjectAsync(root));
     }
 
     [Fact]

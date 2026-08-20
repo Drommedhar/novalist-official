@@ -80,6 +80,11 @@ interface Window {
     autoUpdate: boolean
     requestBackendPort(): void
     pickFolder(title: string): Promise<string | null>
+    // Mobile-only: the folder a new project goes in unless the writer picks
+    // another - Novalist's own folder in the Files app. Absent on the desktop,
+    // where the writer's own filesystem is the default and there is no reason
+    // to steer them anywhere in particular.
+    defaultProjectRoot?(): Promise<string | null>
     captureRegion(
       rect: { x: number; y: number; width: number; height: number },
       outputPath: string,

@@ -41,7 +41,14 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         _bridge = nativeEnd;
         // UnavailableProcessRunner: the sandbox forbids launching `git`, so Git
         // degrades to "unavailable" rather than throwing (Phase 3).
-        _host = new BackendHost(FileSystem.Current.AppDataDirectory, new UnavailableProcessRunner());
+        // IosStoredPathResolver: a path in settings is not an address here - the
+        // container moves with every update and the writer's own folders are
+        // locked until their grant is resumed. Without it the recent-projects
+        // list reads as a list of deleted projects and erases itself.
+        _host = new BackendHost(
+            FileSystem.Current.AppDataDirectory,
+            new UnavailableProcessRunner(),
+            new IosStoredPathResolver());
         _host.Attach(backendEnd, backendEnd);
 
         _web = new HybridWebView
@@ -945,6 +952,17 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                 // folder). SecurityScopedFolders persists a bookmark and keeps the
                 // scope open so the backend can read/write it. Null on cancel.
                 return await SecurityScopedFolders.PickFolderAsync().ConfigureAwait(false);
+            }
+            case "defaultProjectRoot":
+            {
+                // Where a new project goes when the writer does not say otherwise:
+                // Novalist's own folder in the Files app. Offering it means the
+                // common path never involves the picker at all, and a project made
+                // this way needs no grant to be read back on the next launch.
+                var documents = AppFolders.Documents;
+                if (string.IsNullOrEmpty(documents)) return null;
+                Directory.CreateDirectory(documents);
+                return documents;
             }
             case "beginProjectAccess":
                 // Mirror the MAS contract: resolve the stored bookmark and start

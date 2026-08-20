@@ -136,6 +136,73 @@ public class SettingsServiceTests
         Assert.Contains(sut.Settings.RecentProjects, r => r.Path == "not\0a path");
     }
 
+    // ── following a project the platform has moved ──
+
+    private static string P(params string[] parts) => Path.Combine(parts);
+
+    [Fact]
+    public void RelocateRecentProject_FollowsThePathAndTheCover_WithoutReordering()
+    {
+        using var dir = new TempDir();
+        var sut = new SettingsService(dir.Path);
+        var oldRoot = P("/old", "container", "The Chart");
+        var newRoot = P("/new", "container", "The Chart");
+        sut.AddRecentProject("Older", "/elsewhere");
+        sut.AddRecentProject("The Chart", oldRoot, P(oldRoot, "Images", "cover.png"));
+
+        sut.RelocateRecentProject(oldRoot, newRoot);
+
+        // Still the newest entry, still one entry - a move is not a re-open.
+        Assert.Equal(2, sut.Settings.RecentProjects.Count);
+        var moved = sut.Settings.RecentProjects[0];
+        Assert.Equal(newRoot, moved.Path);
+        Assert.Equal(P(newRoot, "Images", "cover.png"), moved.CoverImagePath);
+    }
+
+    [Fact]
+    public void RelocateRecentProject_LeavesACoverThatWasNeverInsideTheProject()
+    {
+        using var dir = new TempDir();
+        var sut = new SettingsService(dir.Path);
+        var outside = P("/pictures", "cover.png");
+        sut.AddRecentProject("The Chart", P("/old", "The Chart"), outside);
+
+        sut.RelocateRecentProject(P("/old", "The Chart"), P("/new", "The Chart"));
+
+        Assert.Equal(outside, sut.Settings.RecentProjects[0].CoverImagePath);
+    }
+
+    [Fact]
+    public void RelocateRecentProject_AbsorbsARowThatAlreadyNamedTheDestination()
+    {
+        using var dir = new TempDir();
+        var sut = new SettingsService(dir.Path);
+        var newRoot = P("/new", "The Chart");
+        sut.AddRecentProject("The Chart (stale)", newRoot);
+        sut.AddRecentProject("The Chart", P("/old", "The Chart"));
+
+        sut.RelocateRecentProject(P("/old", "The Chart"), newRoot);
+
+        var only = Assert.Single(sut.Settings.RecentProjects);
+        Assert.Equal("The Chart", only.Name);
+        Assert.Equal(newRoot, only.Path);
+    }
+
+    [Theory]
+    [InlineData("/nobody/has/this", "/new")]   // nothing to move
+    [InlineData("/old", "")]                   // nowhere to move it to
+    [InlineData("", "/new")]                   // no idea what to move
+    public void RelocateRecentProject_DoesNothingItCannotDo(string from, string to)
+    {
+        using var dir = new TempDir();
+        var sut = new SettingsService(dir.Path);
+        sut.AddRecentProject("The Chart", "/old");
+
+        sut.RelocateRecentProject(from, to);
+
+        Assert.Equal("/old", Assert.Single(sut.Settings.RecentProjects).Path);
+    }
+
     [Fact]
     public void Effective_ReflectsActiveOverrides()
     {

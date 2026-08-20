@@ -40,6 +40,12 @@ From the welcome content Novalist shows [before a project is open](01-getting-st
 
 This also covers projects copied from another machine, restored from backup, or cloned from Git — there is no separate "import" step for native projects. For projects from the legacy Obsidian plugin, use **Import from Obsidian Plugin...** instead.
 
+### When a recent project disappears from the list
+
+A project leaves **Recent Projects** when Novalist can see the folder it lived in and the project is no longer there — you deleted it, or moved it somewhere Novalist was not told about. That is the only case.
+
+A project Novalist simply cannot reach right now stays on the list: a network share that is offline, an external drive that is unplugged, a folder that is still syncing. Plug the drive back in and the entry works again. If you open one of these and the project really has moved, Novalist asks you to point at its new folder rather than forgetting it for you.
+
 ## Starting from a premise
 
 The new-project dialog has a **Start from a premise (Snowflake method)** tick box. With it on, once the project exists Novalist asks for the book in one sentence, then in one paragraph, then act by act - and offers to create a run of placeholder chapters under each act so you have a shape to write into.

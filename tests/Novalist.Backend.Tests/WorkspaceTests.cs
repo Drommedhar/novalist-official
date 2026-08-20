@@ -1,4 +1,5 @@
 using Novalist.Backend;
+using Novalist.Core.Services;
 using Xunit;
 
 namespace Novalist.Backend.Tests;
@@ -234,6 +235,120 @@ public sealed class WorkspaceTests : IDisposable
 
         // The folder survives; the thing that made it a project does not.
         Directory.Delete(Path.Combine(root, ".novalist"), recursive: true);
+
+        Assert.Empty(await workspace.GetRecentProjectsAsync());
+    }
+
+    // ── recents on a platform that moves the ground under them ──
+
+    /// <summary>
+    /// The iOS half of <see cref="IStoredPathResolver"/>, without iOS: a stored
+    /// path is unreachable until it is resolved, and resolving it may also
+    /// report that the folder now lives somewhere else.
+    /// </summary>
+    private sealed class FakeResolver : IStoredPathResolver
+    {
+        private readonly Func<string, string?> _resolve;
+        public int Calls { get; private set; }
+        public FakeResolver(Func<string, string?> resolve) => _resolve = resolve;
+        public string? Resolve(string storedPath)
+        {
+            Calls++;
+            return _resolve(storedPath);
+        }
+    }
+
+    /// <summary>A recent entry pointing anywhere, written straight into settings -
+    /// the projects these tests describe are ones the workspace cannot open yet.</summary>
+    private async Task<Workspace> WithRecentAsync(string name, string path, IStoredPathResolver? resolver = null)
+    {
+        var workspace = new Workspace(Path.Combine(_root, "settings"), resolver);
+        await workspace.Settings.LoadAsync();
+        workspace.Settings.AddRecentProject(name, path);
+        await workspace.Settings.SaveAsync();
+        return workspace;
+    }
+
+    [Fact]
+    public async Task Recents_KeepAProjectWeSimplyCannotSeeRightNow()
+    {
+        // Nothing above the project is readable either - an unmounted volume, or
+        // an iOS folder whose grant is not active. Not a deleted book.
+        var unreachable = Path.Combine(_root, "not-mounted", "The Chart");
+        var workspace = await WithRecentAsync("The Chart", unreachable);
+
+        Assert.Equal([unreachable], (await workspace.GetRecentProjectsAsync()).Select(r => r.Path));
+
+        // And still there on the next launch: the list must not prune itself.
+        await workspace.Settings.LoadAsync();
+        Assert.Contains(workspace.Settings.Settings.RecentProjects, r => r.Path == unreachable);
+    }
+
+    [Fact]
+    public async Task Recents_ResumeAGrantAndTheProjectIsThereAllAlong()
+    {
+        // What the resolver does on iOS: the path was right, it just could not be
+        // read until the folder's grant was resumed. Modelled by a resolver that
+        // makes the project appear and hands the same path back.
+        var workspace = CreateWorkspace();
+        await workspace.Projects.CreateProjectAsync(_root, "Grant", "Book One");
+        var root = workspace.Projects.ProjectRoot!;
+        var hidden = Path.Combine(_root, "locked", "Grant");
+        Directory.CreateDirectory(Path.Combine(_root, "locked"));
+
+        var resolver = new FakeResolver(p =>
+        {
+            if (p != hidden) return null;
+            Directory.Move(root, hidden);
+            return hidden;
+        });
+        var reader = await WithRecentAsync("Grant", hidden, resolver);
+
+        var recents = await reader.GetRecentProjectsAsync();
+
+        Assert.Equal([hidden], recents.Select(r => r.Path));
+        Assert.Equal(1, resolver.Calls);
+    }
+
+    [Fact]
+    public async Task Recents_FollowAProjectTheSandboxHasMovedUnderneathIt()
+    {
+        // An iOS update re-creates the app container under a new UUID, so every
+        // project inside it has a new absolute path while settings still name the
+        // old one. The resolver reports the new home; the entry follows it.
+        var workspace = CreateWorkspace();
+        await workspace.Projects.CreateProjectAsync(Path.Combine(_root, "new-container"), "Moved", "Book One");
+        var newRoot = workspace.Projects.ProjectRoot!;
+        var oldRoot = Path.Combine(_root, "old-container", "Moved");
+        Directory.CreateDirectory(Path.Combine(_root, "old-container"));
+
+        var reader = await WithRecentAsync("Moved", oldRoot, new FakeResolver(p => p == oldRoot ? newRoot : null));
+
+        var only = Assert.Single(await reader.GetRecentProjectsAsync());
+        Assert.Equal(newRoot, only.Path);
+
+        // Written back, so the next launch does not have to work it out again.
+        await reader.Settings.LoadAsync();
+        Assert.Equal(newRoot, Assert.Single(reader.Settings.Settings.RecentProjects).Path);
+    }
+
+    [Fact]
+    public async Task Recents_AResolverThatCannotHelp_LeavesTheVerdictAlone()
+    {
+        // The folder it stood in is readable and the project is not in it. A
+        // resolver with nothing to offer does not turn that into a maybe.
+        var workspace = await WithRecentAsync(
+            "Gone", Path.Combine(_root, "Gone"), new FakeResolver(_ => null));
+
+        Assert.Empty(await workspace.GetRecentProjectsAsync());
+    }
+
+    [Fact]
+    public async Task Recents_AResolverPointingSomewhereEmpty_ChangesNothing()
+    {
+        // It answered, but the place it named is not a project either.
+        var workspace = await WithRecentAsync(
+            "Gone", Path.Combine(_root, "Gone"), new FakeResolver(_ => Path.Combine(_root, "also-gone")));
 
         Assert.Empty(await workspace.GetRecentProjectsAsync());
     }

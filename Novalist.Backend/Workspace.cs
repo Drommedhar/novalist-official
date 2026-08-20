@@ -21,9 +21,15 @@ public sealed partial class Workspace : IDisposable
     /// as the narration clip cache, land beside everything else.</summary>
     public string? SettingsDirectory { get; }
 
-    public Workspace(string? settingsDirectory = null)
+    /// <summary>Platform help for paths that have stopped working - see
+    /// <see cref="IStoredPathResolver"/>. Null on the desktop, where a stored
+    /// path is simply an address.</summary>
+    private readonly IStoredPathResolver? _storedPaths;
+
+    public Workspace(string? settingsDirectory = null, IStoredPathResolver? storedPaths = null)
     {
         SettingsDirectory = settingsDirectory;
+        _storedPaths = storedPaths;
         FileService = new FileService();
         Projects = new ProjectService(FileService);
         Settings = new SettingsService(settingsDirectory);
@@ -347,27 +353,63 @@ public sealed partial class Workspace : IDisposable
     /// failing when it is clicked. The list is a set of ways back into work, and
     /// a row that cannot be opened is not one of those - it is a dead end the
     /// writer has to learn to skip past.
+    ///
+    /// Dropped only when the folder is provably gone, though. This used to
+    /// forget any entry it could not read, which on iOS is every entry on every
+    /// launch: the projects sit behind security-scoped grants that are not
+    /// resumed until a project is opened, so building the list was enough to
+    /// erase it - permanently, because the pruned list is written back. Now a
+    /// path that cannot be read is first handed to the platform's
+    /// <see cref="IStoredPathResolver"/>, which resumes the grant and follows
+    /// the app container if an update moved it underneath the project, and only
+    /// a folder still provably absent afterwards is forgotten. One that simply
+    /// cannot be seen right now is offered anyway - opening it takes the same
+    /// path, grant and all, and an offline volume is not a deleted book.
     /// </summary>
     public async Task<RecentProjectDto[]> GetRecentProjectsAsync()
     {
         await Settings.LoadAsync();
         var results = new List<RecentProjectDto>();
-        var dropped = false;
+        var changed = false;
 
         // Over a copy: the loop removes from the list it is walking.
         foreach (var r in Settings.Settings.RecentProjects.ToList())
         {
-            if (!await Projects.ProjectExistsAtAsync(r.Path))
+            var path = r.Path;
+            var presence = await Projects.ProbeProjectAsync(path);
+
+            if (presence != ProjectPresence.Present && _storedPaths != null)
+            {
+                var resolved = _storedPaths.Resolve(path);
+                if (!string.IsNullOrEmpty(resolved))
+                {
+                    var after = await Projects.ProbeProjectAsync(resolved);
+                    if (after == ProjectPresence.Present)
+                    {
+                        if (!string.Equals(resolved, path, StringComparison.Ordinal))
+                        {
+                            // Mutates the entry in place, so r.CoverImagePath below
+                            // is the moved one.
+                            Settings.RelocateRecentProject(path, resolved);
+                            changed = true;
+                        }
+                        path = resolved;
+                        presence = after;
+                    }
+                }
+            }
+
+            if (presence == ProjectPresence.Absent)
             {
                 Settings.RemoveRecentProject(r.Path);
-                dropped = true;
+                changed = true;
                 continue;
             }
 
-            results.Add(new RecentProjectDto(r.Name, r.Path, await LoadCoverDataUriAsync(r.CoverImagePath)));
+            results.Add(new RecentProjectDto(r.Name, path, await LoadCoverDataUriAsync(r.CoverImagePath)));
         }
 
-        if (dropped) await Settings.SaveAsync();
+        if (changed) await Settings.SaveAsync();
         return results.ToArray();
     }
 

@@ -23,4 +23,8 @@ public interface ISettingsService
     Task SaveAsync();
     void AddRecentProject(string name, string path, string coverImagePath = "");
     void RemoveRecentProject(string path);
+
+    /// <summary>Point a recent project at the folder it lives in now, without
+    /// disturbing its place in the list.</summary>
+    void RelocateRecentProject(string oldPath, string newPath);
 }

@@ -111,33 +111,91 @@ public static class SecurityScopedFolders
     }
 
     /// <summary>
-    /// Begin security-scoped access to a previously-picked path. Returns true when
-    /// access is available; false only when there is no usable bookmark (exact or
-    /// an ancestor's), so the renderer can re-prompt for the folder.
+    /// Make a stored path usable. Returns true when access is available at that
+    /// exact path; false when the folder has moved or is out of reach, so the
+    /// renderer can re-prompt for it.
+    ///
+    /// Not the same question as "is there a bookmark". Novalist's own Documents
+    /// folder is where new projects go now, and nothing inside the app's
+    /// container needs a grant to be read - answering "no bookmark, ask the
+    /// writer" there put a folder picker in front of every project the app had
+    /// made itself. So the bookmark is tried first, and anything it cannot
+    /// account for is put to the filesystem: a folder we can already see is a
+    /// folder we can already open.
     /// </summary>
     public static bool BeginAccess(string path)
     {
         if (string.IsNullOrEmpty(path)) return false;
+        var current = ResolveCurrentPath(path);
+        if (current != null) return current == path;
+        return Directory.Exists(path);
+    }
+
+    /// <summary>
+    /// Where a previously-picked path lives now, with its grant resumed - or null
+    /// when no bookmark covers it.
+    ///
+    /// This is the part a stored path cannot do for itself. A bookmark tracks the
+    /// folder, not the spelling of its location, so it still resolves after iOS
+    /// has moved it: an app update re-creates the container under a fresh UUID
+    /// and rewrites the absolute path of everything inside it, and a folder the
+    /// writer moved in the Files app simply is not where it was. Resolving tells
+    /// us the current address; the store is re-keyed to it so the next launch
+    /// finds it directly, and a bookmark iOS reports as stale is rewritten from
+    /// the resolved URL before it decays into an unusable one.
+    ///
+    /// The tail matters: a bookmark for a parent folder covers the projects
+    /// inside it, so when the parent has moved, its children move with it.
+    /// </summary>
+    public static string? ResolveCurrentPath(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return null;
         lock (Gate)
         {
-            if (Active.ContainsKey(path)) return true;
+            if (Active.ContainsKey(path)) return path;
         }
 
-        var (bookmark, _) = FindBookmark(path);
-        if (bookmark == null) return false;
+        var (bookmark, key) = FindBookmark(path);
+        if (bookmark == null || key == null) return null;
         try
         {
             var data = new NSData(bookmark, NSDataBase64DecodingOptions.None);
             var url = NSUrl.FromBookmarkData(
-                data, NSUrlBookmarkResolutionOptions.WithoutUI, null, out _, out var err);
-            if (url == null || err != null) return false;
-            if (!url.StartAccessingSecurityScopedResource()) return false;
-            lock (Gate) Active[path] = url;
-            return true;
+                data, NSUrlBookmarkResolutionOptions.WithoutUI, null, out var stale, out var err);
+            if (url == null || err != null) return null;
+            if (!url.StartAccessingSecurityScopedResource()) return null;
+
+            var home = url.Path;
+            if (string.IsNullOrEmpty(home)) return null;
+            if (home != key || stale) Rekey(key, home, url, stale);
+
+            var current = home + path[key.Length..];
+            lock (Gate) Active[current] = url;
+            return current;
         }
         catch
         {
-            return false;
+            return null;
+        }
+    }
+
+    /// <summary>Move a bookmark to the path it now resolves to, refreshing the
+    /// bookmark itself when iOS says the old one is on its way out.</summary>
+    private static void Rekey(string oldKey, string newKey, NSUrl url, bool stale)
+    {
+        lock (Gate)
+        {
+            var map = Load();
+            if (!map.TryGetValue(oldKey, out var data)) return;
+            if (stale)
+            {
+                var fresh = url.CreateBookmarkData(0, Array.Empty<string>(), null, out var err);
+                if (fresh != null && err == null)
+                    data = fresh.GetBase64EncodedString(NSDataBase64EncodingOptions.None);
+            }
+            map.Remove(oldKey);
+            map[newKey] = data;
+            Save(map);
         }
     }
 

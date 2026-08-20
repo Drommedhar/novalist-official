@@ -30,6 +30,17 @@ export function CreateProjectDialog({ onClose }: { onClose: () => void }): React
       .catch(() => setTemplates([]))
   }, [])
 
+  // On iOS a project has to go somewhere the app can still read after an update,
+  // and the writer has no filesystem to reason about - so Novalist's own folder
+  // in the Files app is filled in for them, and Browse is there for anyone who
+  // wants somewhere else. The desktop does not implement this and keeps its empty
+  // field: there, where a book lives is the writer's decision to make first.
+  useEffect(() => {
+    void window.novalist.defaultProjectRoot?.().then((root) => {
+      if (root) setLocation((current) => current || root)
+    })
+  }, [])
+
   const create = async (): Promise<void> => {
     if (!projectName.trim() || !location) return
     setError(null)

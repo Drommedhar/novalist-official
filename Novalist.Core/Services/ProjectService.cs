@@ -166,27 +166,41 @@ public partial class ProjectService : IProjectService
     /// Whether a folder still holds a Novalist project.
     ///
     /// The same file <see cref="LoadProjectAsync"/> would open, so a path that
-    /// answers true here is one that can actually be opened. Used to keep the
-    /// recent-projects list honest: a folder the writer has since deleted, or
-    /// one whose project was moved out from under it, is not somewhere to offer
-    /// to go back to.
+    /// answers <see cref="ProjectPresence.Present"/> is one that can actually be
+    /// opened. Used to keep the recent-projects list honest: a folder the writer
+    /// has since deleted, or one whose project was moved out from under it, is
+    /// not somewhere to offer to go back to.
     ///
-    /// Anything unreadable answers false rather than throwing. A recents list
-    /// that cannot be built is worse than one entry short.
+    /// The third answer is the point of this method. "The project file is not
+    /// there" and "I was not allowed to look" arrive identically - as a false
+    /// from the file service, or as an exception this swallows - and treating
+    /// the second as the first is how the iOS build erased its own recent
+    /// projects: the folders live behind a security-scoped grant that is not
+    /// active while the list is being built, every entry read as deleted, and
+    /// the list pruned itself out of existence on every launch. So absence is
+    /// only reported when the folder's PARENT can be read and the project is
+    /// genuinely not in it. Anything else is <see cref="ProjectPresence.Unknown"/>:
+    /// come back later, and keep the entry meanwhile.
     /// </summary>
-    public async Task<bool> ProjectExistsAtAsync(string projectDirectory)
+    public async Task<ProjectPresence> ProbeProjectAsync(string projectDirectory)
     {
-        if (string.IsNullOrWhiteSpace(projectDirectory)) return false;
+        if (string.IsNullOrWhiteSpace(projectDirectory)) return ProjectPresence.Absent;
 
         try
         {
             var metadataPath = _fileService.CombinePath(projectDirectory, ".novalist", "project.json");
-            return await _fileService.ExistsAsync(metadataPath);
+            if (await _fileService.ExistsAsync(metadataPath)) return ProjectPresence.Present;
+
+            var parent = _fileService.GetDirectoryName(projectDirectory);
+            if (!string.IsNullOrEmpty(parent) && await _fileService.DirectoryExistsAsync(parent))
+                return ProjectPresence.Absent;
+
+            return ProjectPresence.Unknown;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
             or ArgumentException or NotSupportedException)
         {
-            return false;
+            return ProjectPresence.Unknown;
         }
     }
 

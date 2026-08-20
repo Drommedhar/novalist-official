@@ -25,9 +25,17 @@ public sealed class BackendHost : IDisposable
     /// <see cref="UnavailableProcessRunner"/> so Git degrades to "unavailable"
     /// inside the sandbox.
     /// </param>
-    public BackendHost(string? settingsDirectory = null, IProcessRunner? processRunner = null)
+    /// <param name="storedPaths">
+    /// Platform rescue for stored paths that have stopped resolving - see
+    /// <see cref="IStoredPathResolver"/>. The mobile host passes one because iOS
+    /// moves its container and locks its folders; the desktop passes null.
+    /// </param>
+    public BackendHost(
+        string? settingsDirectory = null,
+        IProcessRunner? processRunner = null,
+        IStoredPathResolver? storedPaths = null)
     {
-        _workspace = new Workspace(settingsDirectory);
+        _workspace = new Workspace(settingsDirectory, storedPaths);
         _processRunner = processRunner;
     }
 

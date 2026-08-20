@@ -11,6 +11,18 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- Novalist keeps a folder of its own in the Files app ("On My iPhone ->
+	     Novalist"), which is where new projects go unless the writer picks
+	     somewhere else. Two reasons it is worth the two keys: a project there is
+	     visible to the writer, to iCloud backup and to any app they want to sync
+	     it with; and it is readable without a security-scoped grant, so the
+	     recent-projects list still works on the first launch after an update.
+	     LSSupportsOpeningDocumentsInPlace is what makes the folder editable in
+	     place rather than something Files copies in and out. -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>1</integer>

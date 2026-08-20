@@ -49,6 +49,7 @@ public class BackupServiceTests
         public Task SaveAsync() => Task.CompletedTask;
         public void AddRecentProject(string name, string path, string coverImagePath = "") { }
         public void RemoveRecentProject(string path) { }
+        public void RelocateRecentProject(string oldPath, string newPath) { }
     }
 
     private static (BackupService Sut, InMemoryFileService Files, FakeArchiveService Archive, StubSettings Settings)

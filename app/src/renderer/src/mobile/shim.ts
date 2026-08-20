@@ -104,6 +104,7 @@ const novalist: Window['novalist'] = {
   autoUpdate: false,
   requestBackendPort,
   pickFolder: (title) => hostCall<string | null>('pickFolder', [title]),
+  defaultProjectRoot: () => hostCall<string | null>('defaultProjectRoot', []),
   saveFile: (defaultName) => hostCall<string | null>('saveFile', [defaultName]),
   // Window capture is an Electron capability with no iOS equivalent, so map
   // image export reports failure rather than pretending to have written a file.
