@@ -4,6 +4,8 @@ Novalist is extensible. An extension is a small .NET assembly that runs inside t
 
 This page covers using extensions. For writing them, see the [Extension Guide](https://github.com/Drommedhar/novalist-official/blob/main/docs/extension-guide.md).
 
+**Not in the Mac App Store edition.** Everything on this page describes the Novalist you download directly. See [Editions and extensions](#editions-and-extensions) below.
+
 ## How extensions run
 
 The Novalist interface is an Electron shell; all project logic lives in the bundled C# core process that starts with the app. Extensions are loaded by that core process, not by the interface — an extension is a .NET DLL plus an `extension.json` manifest, discovered at startup from the user extensions folder.
@@ -250,6 +252,19 @@ A voice engine is told what it can be asked for by its own capability flags, and
 The direction always travels beside the words, never inside them. Concatenating it into the text is one bad prompt away from the word "angry" being read out in the middle of a sentence.
 
 **A voice engine may not reach the network.** The seam carries no endpoint, no key and no base URL, because Novalist's read-aloud promises that listening to your book sends nothing anywhere — and an engine that broke that promise would be breaking it on the app's behalf.
+
+## Editions and extensions
+
+Novalist for macOS is distributed two ways, and only one of them has extensions.
+
+- **Downloaded directly** (the `.dmg`) — the full extension feature, exactly as this page describes it: the gallery, installing from a folder, and everything an extension contributes.
+- **Mac App Store** — no extension feature at all. There is no gallery, nothing can be installed from a folder, and no extension is loaded even if one is already sitting in the extensions folder from an earlier install.
+
+The reason is what an extension is. It is a program that Novalist downloads and runs, and once it is running it adds views, commands, export formats and hooks to the app. App Store rules do not allow an app to bring in code that changes what it does after the app has been reviewed, and the sandbox the App Store edition runs inside would not load such a program in any case. So rather than a feature that fails when used, the App Store edition does not carry it: the Extensions view and the Extensions section in Settings explain this in place of the usual controls.
+
+Nothing about your writing depends on which edition you use. Projects are identical in both, so a project made in one opens unchanged in the other — including a project whose scenes were written with the help of an extension. What you lose in the App Store edition is the ability to add extensions, not access to anything you have already written.
+
+Windows and Linux are unaffected; neither is distributed through the App Store.
 
 ## Where to go next
 

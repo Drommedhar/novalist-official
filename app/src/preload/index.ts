@@ -5,8 +5,17 @@ const material =
 
 // True only in the Mac App Store (sandboxed) build. Apple forbids self-updating
 // there (the store delivers updates), so the download-and-run-installer flow is
-// disabled for MAS.
-const isMas = (process as NodeJS.Process & { mas?: boolean }).mas === true
+// disabled for MAS - and so is the extension feature, which the App Store does
+// not allow because an extension is code that arrives after review and adds
+// features.
+//
+// NOVALIST_FORCE_MAS stands in for the real thing so the e2e run can render the
+// App Store build's UI without an App Store build, the same way
+// NOVALIST_FORCE_MOBILE stands in for the phone shell. Never set in a shipped
+// build.
+const isMas =
+  (process as NodeJS.Process & { mas?: boolean }).mas === true ||
+  process.env.NOVALIST_FORCE_MAS === '1'
 
 /**
  * Minimal privileged surface. The backend MessagePort cannot cross the context
@@ -17,7 +26,8 @@ contextBridge.exposeInMainWorld('novalist', {
   material,
   platform: process.platform,
   // True only in the Mac App Store build. The renderer uses this to hide
-  // self-update UI (the store delivers updates there).
+  // self-update UI (the store delivers updates there) and to replace the
+  // Extensions view and its Settings card with an explanation.
   isMas,
   // The phone shell (single pane, native tab bar) is what the iOS build gets
   // from its own bridge; here it is off, except when NOVALIST_FORCE_MOBILE asks

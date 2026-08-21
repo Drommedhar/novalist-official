@@ -1732,6 +1732,11 @@
     "reload": "Neu laden",
     "openFolder": "Erweiterungsordner öffnen",
     "noExtensions": "Keine Erweiterungen installiert. Legen Sie Erweiterungsordner im Extensions-Verzeichnis ab.",
+    "unavailable": {
+      "title": "Erweiterungen sind in dieser Ausgabe nicht verfügbar",
+      "why": "Eine Novalist-Erweiterung ist ein kleines Programm, das die App herunterlädt und ausführt, um Funktionen zu ergänzen. Die App-Store-Regeln erlauben das nicht, deshalb enthält diese Ausgabe die Erweiterungsfunktion gar nicht: Es gibt keinen Katalog, und es lässt sich keine Erweiterung aus einem Ordner installieren.",
+      "where": "Die direkt von der Novalist-Releaseseite geladene Ausgabe unterstützt Erweiterungen vollständig, einschließlich Katalog. Projekte sind in beiden Ausgaben identisch, nichts Geschriebenes hängt also an einer davon."
+    },
     "loadError": "Laden fehlgeschlagen",
     "version": "Version",
     "author": "Von",

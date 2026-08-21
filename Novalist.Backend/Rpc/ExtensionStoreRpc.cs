@@ -56,6 +56,11 @@ public sealed class ExtensionStoreRpc
     [JsonRpcMethod("store/index")]
     public async Task<StoreEntryDto[]> IndexAsync()
     {
+        // No gallery request at all from a build that could not install what it
+        // came back with. See ExtensionLoader.ExtensionsDisabled.
+        if (ExtensionLoader.DisabledByEnvironment)
+            return [];
+
         var gallery = await GalleryAsync();
         var entries = await gallery.FetchGalleryIndexAsync();
         var result = new List<StoreEntryDto>(entries.Count);
@@ -148,6 +153,12 @@ public sealed class ExtensionStoreRpc
 
     private async Task<StoreInstallResultDto> InstallCoreAsync(string id, string repo)
     {
+        if (ExtensionLoader.DisabledByEnvironment)
+        {
+            Log.Warn("Store install refused: extensions are disabled in this build.");
+            return new StoreInstallResultDto(id, false, "disabled");
+        }
+
         var gallery = await GalleryAsync();
         var entry = await ResolveEntryAsync(gallery, id, repo);
         var release = await gallery.GetLatestCompatibleReleaseAsync(entry);

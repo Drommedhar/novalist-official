@@ -45,7 +45,13 @@ export class BackendProcess {
       // Python environment and its downloaded models beside itself, and the
       // application directory is read-only on macOS and unwritable for a
       // standard user on Windows.
-      ...bundledExtensions()
+      //
+      // Both of these are off in the Mac App Store build: an extension is a
+      // .NET assembly that arrives after review and adds features, which the
+      // App Store does not allow an app to download and run. The flag stops the
+      // loader before it discovers anything, and nothing is seeded for it to
+      // find. See ExtensionLoader.ExtensionsDisabled.
+      ...(isMasBuild() ? { NOVALIST_EXTENSIONS_DISABLED: '1' } : bundledExtensions())
     }
     const child = spawn(exe, [], { stdio: ['pipe', 'pipe', 'pipe'], env })
     this.child = child
@@ -90,6 +96,21 @@ export class BackendProcess {
     this.child?.kill()
     this.child = null
   }
+}
+
+/**
+ * True in the Mac App Store build, where the extension feature is off.
+ *
+ * NOVALIST_FORCE_MAS stands in for the real thing so the e2e run can render the
+ * App Store build's UI without an App Store build, the same way
+ * NOVALIST_FORCE_MOBILE stands in for the phone shell. It is never set in a
+ * shipped build.
+ */
+function isMasBuild(): boolean {
+  return (
+    (process as NodeJS.Process & { mas?: boolean }).mas === true ||
+    process.env.NOVALIST_FORCE_MAS === '1'
+  )
 }
 
 /**

@@ -21,16 +21,44 @@ public sealed class ExtensionLoader
 
     private readonly string? _extensionsDirOverride;
     private readonly string? _bundledDirOverride;
+    private readonly bool? _disabledOverride;
 
     /// <param name="extensionsDir">Extensions directory; defaults to %APPDATA%/Novalist/Extensions. Tests pass a temp dir.</param>
     /// <param name="bundledDir">Where extensions shipped inside the application
     /// live. Null uses NOVALIST_BUNDLED_EXTENSIONS, which the app sets when it
     /// is packaged and leaves unset otherwise.</param>
-    public ExtensionLoader(string? extensionsDir = null, string? bundledDir = null)
+    /// <param name="disabled">Whether the extension feature is off entirely.
+    /// Null uses NOVALIST_EXTENSIONS_DISABLED, which the app sets in the Mac App
+    /// Store build and leaves unset everywhere else. Tests pass it directly.</param>
+    public ExtensionLoader(string? extensionsDir = null, string? bundledDir = null, bool? disabled = null)
     {
         _extensionsDirOverride = extensionsDir;
         _bundledDirOverride = bundledDir;
+        _disabledOverride = disabled;
     }
+
+    /// <summary>
+    /// Whether this build has no extension feature at all.
+    ///
+    /// True in the Mac App Store build. An extension is a .NET assembly that is
+    /// downloaded after review and adds views, commands and hooks to the app,
+    /// which the App Store does not permit an app to do; the sandbox that build
+    /// runs under does not grant the entitlements to load one either. So the
+    /// feature is not degraded there, it is absent: nothing is seeded, nothing
+    /// is discovered, and nothing can be installed.
+    ///
+    /// The Developer ID build downloaded directly is unaffected - App Store
+    /// rules do not reach it, and its entitlements already allow this.
+    /// </summary>
+    public bool ExtensionsDisabled => _disabledOverride ?? DisabledByEnvironment;
+
+    /// <summary>The same answer for callers that hold no loader - the store RPC
+    /// reaches the gallery without one. See <see cref="ExtensionsDisabled"/>.</summary>
+    public static bool DisabledByEnvironment =>
+        string.Equals(
+            Environment.GetEnvironmentVariable("NOVALIST_EXTENSIONS_DISABLED"),
+            "1",
+            StringComparison.Ordinal);
 
     /// <summary>Where extensions shipped inside the application live, or null
     /// when this build ships none.</summary>
@@ -147,6 +175,13 @@ public sealed class ExtensionLoader
     public List<ExtensionInfo> DiscoverExtensions()
     {
         var results = new List<ExtensionInfo>();
+
+        // Before the directory is even created: a build with no extension
+        // feature should leave no trace of one on disk for somebody to wonder
+        // about. See ExtensionsDisabled.
+        if (ExtensionsDisabled)
+            return results;
+
         var extensionsDir = _extensionsDirOverride ?? GetExtensionsDirectory();
 
         // Created before the scan rather than instead of it, so a first run that

@@ -16,6 +16,10 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+### Changed
+
+- **Extensions in the Mac App Store edition** - the App Store edition of Novalist no longer offers extensions, and now explains why where they used to be. An extension is a program Novalist downloads and runs to add features, which App Store rules do not permit and the sandbox that edition runs in would not load. There is no gallery, nothing can be installed from a folder, and no extension is loaded even if one is left over from an earlier install. The Novalist you download directly keeps the extension feature in full, on macOS as on Windows and Linux, and projects are identical across all of them - a book written with an extension's help opens unchanged either way.
+
 ### Fixed
 
 - A project on a drive that is unplugged, a share that is offline, or a folder that is still syncing no longer disappears from **Recent Projects**. Novalist used to read "I cannot get to this" as "this was deleted" and remove the entry for good - the only way back was to browse for the folder again. An entry is now only forgotten when Novalist can see the folder it lived in and the project is genuinely not in it.

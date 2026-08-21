@@ -274,6 +274,13 @@ jobs:
         working-directory: app
         run: npm run build
 
+      # No "Stage bundled extensions" step here, deliberately. This build has no
+      # extension feature at all - the App Store does not allow an app to bring
+      # in code that adds features after review, so the app sets
+      # NOVALIST_EXTENSIONS_DISABLED and the backend seeds, discovers and
+      # installs nothing. Staging extensions into the package would only put
+      # assemblies in front of App Review that nothing loads.
+
       - name: Write provisioning profile
         working-directory: app
         shell: bash

@@ -5,8 +5,68 @@ using Xunit;
 
 namespace Novalist.Backend.Tests;
 
+// Serialized with the rest of the extension tests: two of these move
+// NOVALIST_EXTENSIONS_DISABLED, which is process-wide, and the store RPC reads
+// it.
+[Collection("BackendStatics")]
 public class ExtensionLoaderTests
 {
+    [Fact]
+    public void Discover_Disabled_ReturnsEmptyAndCreatesNoDirectory()
+    {
+        using var dir = new TempDir();
+        var sub = Path.Combine(dir.Path, "exts");
+        var loader = new ExtensionLoader(sub, disabled: true);
+
+        Assert.True(loader.ExtensionsDisabled);
+        Assert.Empty(loader.DiscoverExtensions());
+        // Not even the folder. A build with no extension feature should leave no
+        // trace of one on disk for somebody to find and wonder about.
+        Assert.False(Directory.Exists(sub));
+    }
+
+    [Fact]
+    public void Discover_Disabled_DoesNotSeedBundled()
+    {
+        using var dir = new TempDir();
+        var bundled = dir.Combine("bundled", "Sample");
+        Directory.CreateDirectory(bundled);
+        File.WriteAllText(Path.Combine(bundled, "extension.json"),
+            """{ "id": "ext.bundled", "name": "B", "version": "1.0.0" }""");
+        var target = dir.Combine("exts");
+
+        var loader = new ExtensionLoader(target, dir.Combine("bundled"), disabled: true);
+
+        Assert.Empty(loader.DiscoverExtensions());
+        Assert.False(Directory.Exists(target));
+    }
+
+    [Fact]
+    public void ExtensionsDisabled_FallsBackToEnvironment()
+    {
+        var prev = Environment.GetEnvironmentVariable("NOVALIST_EXTENSIONS_DISABLED");
+        try
+        {
+            Environment.SetEnvironmentVariable("NOVALIST_EXTENSIONS_DISABLED", null);
+            Assert.False(ExtensionLoader.DisabledByEnvironment);
+            Assert.False(new ExtensionLoader().ExtensionsDisabled);
+
+            // Only "1" counts, so a stray value never silently removes the feature.
+            Environment.SetEnvironmentVariable("NOVALIST_EXTENSIONS_DISABLED", "0");
+            Assert.False(ExtensionLoader.DisabledByEnvironment);
+
+            Environment.SetEnvironmentVariable("NOVALIST_EXTENSIONS_DISABLED", "1");
+            Assert.True(ExtensionLoader.DisabledByEnvironment);
+            Assert.True(new ExtensionLoader().ExtensionsDisabled);
+            // An explicit answer still wins over the environment.
+            Assert.False(new ExtensionLoader(disabled: false).ExtensionsDisabled);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("NOVALIST_EXTENSIONS_DISABLED", prev);
+        }
+    }
+
     [Fact]
     public void GetExtensionsDirectory_HonorsSettingsDirOverride()
     {

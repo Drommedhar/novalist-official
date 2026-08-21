@@ -2137,6 +2137,11 @@
     "reload": "Reload",
     "openFolder": "Open Extensions Folder",
     "noExtensions": "No extensions installed. Place extension folders in the Extensions directory.",
+    "unavailable": {
+      "title": "Extensions are not available in this edition",
+      "why": "A Novalist extension is a small program the app downloads and runs to add features. App Store rules do not allow an app to do that, so this edition ships without the extension feature entirely: there is no gallery, and no extension can be installed from a folder.",
+      "where": "The edition of Novalist downloaded directly from its releases page supports extensions in full, gallery included. Projects are the same on both, so nothing written here is tied to one of them."
+    },
     "loadError": "Failed to load",
     "version": "Version",
     "author": "By",

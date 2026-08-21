@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { useOnboardingStore } from '../stores/onboardingStore'
 import { useShellStore, type MainView } from '../stores/shellStore'
+import { extensionsAvailable } from '../views/extensions/ExtensionsUnavailable'
 
 /**
  * What a view is for, said once, the first time it is opened.
@@ -65,6 +66,11 @@ export function ViewIntro({ view }: { view: MainView }): React.JSX.Element | nul
   // The walkthrough is already explaining these views, one at a time. Two
   // explanations of the same screen at once is worse than neither.
   if (!due || tourOpen) return null
+
+  // In the App Store build the Extensions view is itself an explanation of why
+  // there are none. The intro would sit directly above it offering to find,
+  // install and remove them.
+  if (view === 'extensions' && !extensionsAvailable()) return null
 
   const intro = VIEW_INTROS[view]
 

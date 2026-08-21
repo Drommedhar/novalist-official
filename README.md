@@ -181,6 +181,8 @@ Extensions are .NET 8 class libraries loaded by the core process at runtime from
 
 The Extensions view has a built-in **store**: browse the online extension gallery, read each extension's README and release notes, and install or update extensions in place (with download progress and a cancel option) without leaving the app. It can also check installed extensions for updates on startup.
 
+The **Mac App Store edition has no extension feature** - no gallery, no installing from a folder, and no extension loaded. An extension is code the app downloads and runs to add features, which App Store rules do not permit and the sandbox would not load. The directly downloaded builds (macOS `.dmg`, Windows, Linux) are unaffected. Projects are identical across editions. See [`docs/manual/24-extensions.md`](docs/manual/24-extensions.md).
+
 ## Building
 
 Novalist is an Electron + React front end over a bundled .NET 8 core process (`Novalist.Backend`).

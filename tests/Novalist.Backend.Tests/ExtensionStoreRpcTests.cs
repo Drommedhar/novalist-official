@@ -14,6 +14,9 @@ namespace Novalist.Backend.Tests;
 /// (no real network): browse, readme, releases, update-check, and download +
 /// install of a real sample extension that then loads live in the host.
 /// </summary>
+// Serialized with the other extension tests: the disabled case moves
+// NOVALIST_EXTENSIONS_DISABLED, which is process-wide.
+[Collection("BackendStatics")]
 public sealed class ExtensionStoreRpcTests : IDisposable
 {
     private const string SampleId = "com.novalist.sample";
@@ -230,6 +233,37 @@ public sealed class ExtensionStoreRpcTests : IDisposable
     }
 
     // ── Install / Update ────────────────────────────────────────────
+
+    /// <summary>The Mac App Store build asks the gallery nothing and installs
+    /// nothing: it could not load what came back. The router throws, so a request
+    /// that slipped through fails the test rather than passing quietly.</summary>
+    [Fact]
+    public async Task Store_Disabled_MakesNoRequestAndRefusesInstall()
+    {
+        var prev = Environment.GetEnvironmentVariable("NOVALIST_EXTENSIONS_DISABLED");
+        try
+        {
+            Environment.SetEnvironmentVariable("NOVALIST_EXTENSIONS_DISABLED", "1");
+            var rpc = Rpc(_ => throw new InvalidOperationException("no request expected"));
+
+            Assert.Empty(await rpc.IndexAsync());
+
+            var install = await rpc.InstallAsync(SampleId, Repo);
+            Assert.False(install.Success);
+            Assert.Equal("disabled", install.Error);
+
+            var update = await rpc.UpdateAsync(SampleId, Repo);
+            Assert.False(update.Success);
+            Assert.Equal("disabled", update.Error);
+
+            Assert.False(Directory.Exists(Path.Combine(_extDir, SampleId)));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("NOVALIST_EXTENSIONS_DISABLED", prev);
+        }
+    }
+
 
     [Fact]
     public async Task Install_DownloadsInstallsAndLoadsLive_WithProgress()

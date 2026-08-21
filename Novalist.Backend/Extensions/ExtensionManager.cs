@@ -299,6 +299,12 @@ public sealed class ExtensionManager
     /// </summary>
     public async Task<string> InstallFromFolderAsync(string sourceFolder)
     {
+        // The Mac App Store build has no extension feature and its UI offers no
+        // way here, but the RPC method still exists - so it refuses rather than
+        // writing an assembly into the container that nothing will ever load.
+        if (_loader.ExtensionsDisabled)
+            throw new InvalidOperationException("Extensions are not available in this edition.");
+
         if (string.IsNullOrWhiteSpace(sourceFolder) || !Directory.Exists(sourceFolder))
             throw new DirectoryNotFoundException("The selected folder does not exist.");
 

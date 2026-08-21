@@ -34,6 +34,10 @@ import { SettingsView } from '../views/settings/SettingsView'
 import { MapsView } from '../views/maps/MapsView'
 import { ExtensionWebView } from '../views/extensions/ExtensionWebView'
 import { ExtensionsView } from '../views/extensions/ExtensionsView'
+import {
+  extensionsAvailable,
+  ExtensionsUnavailableView
+} from '../views/extensions/ExtensionsUnavailable'
 import { AboutView } from '../views/about/AboutView'
 import { useExtensionsStore } from '../stores/extensionsStore'
 import { HostBridgeOverlays } from './HostBridgeOverlays'
@@ -421,7 +425,7 @@ function MainAreaContent({ view, paneId }: { view: MainView; paneId: string }): 
   if (mainView === 'extensions') {
     return (
       <main className="main-area">
-        <ExtensionsView />
+        {extensionsAvailable() ? <ExtensionsView /> : <ExtensionsUnavailableView />}
       </main>
     )
   }

@@ -39,6 +39,30 @@ public class ExtensionManagerTests
     }
 
     [Fact]
+    public async Task InstallFromFolder_Disabled_RefusesAndWritesNothing()
+    {
+        using var ext = new TempDir();
+        using var source = new TempDir();
+        File.WriteAllText(source.Combine("extension.json"),
+            $$"""{ "id": "{{SampleId}}", "name": "Sample", "entryAssembly": "Novalist.Sdk.Example.dll" }""");
+
+        var settings = Substitute.For<ISettingsService>();
+        settings.Settings.Returns(new AppSettings());
+        settings.SaveAsync().Returns(Task.CompletedTask);
+        var host = new HostServices(Substitute.For<IFileService>(), Substitute.For<IProjectService>(),
+            Substitute.For<IEntityService>(), settings);
+        var extRoot = ext.Combine("exts");
+        var mgr = new ExtensionManager(settings, host,
+            new ExtensionLoader(extRoot, disabled: true));
+
+        // The App Store build offers no way here, but the RPC method still
+        // exists - so it refuses rather than writing an assembly nothing loads.
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => mgr.InstallFromFolderAsync(source.Path));
+        Assert.False(Directory.Exists(extRoot));
+    }
+
+    [Fact]
     public async Task LoadAll_LoadsSample_CollectsHooks_SkipsDisabledAndBad()
     {
         using var ext = new TempDir();
