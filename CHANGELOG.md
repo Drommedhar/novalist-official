@@ -22,7 +22,9 @@ Nothing yet.
 
 ## [3.2.2] - 2026-08-31
 
-Nothing yet.
+### Fixed
+
+- Diagnostic logging works again in the desktop app: opting in creates and writes the content-safe log, survives a restart, and the buttons open the log folder or current file as labelled.
 
 ---
 
@@ -34,7 +36,6 @@ Nothing yet.
 
 ### Fixed
 
-- Diagnostic logging works again in the desktop app: opting in creates and writes the content-safe log, survives a restart, and the buttons open the log folder or current file as labelled.
 - A project on a drive that is unplugged, a share that is offline, or a folder that is still syncing no longer disappears from **Recent Projects**. Novalist used to read "I cannot get to this" as "this was deleted" and remove the entry for good - the only way back was to browse for the folder again. An entry is now only forgotten when Novalist can see the folder it lived in and the project is genuinely not in it.
 - The Plot Grid's button for a new plotline read "+ + Add plotline" - it drew a plus of its own next to a label that already had one. One plus now.
 
