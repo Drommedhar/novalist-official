@@ -37,6 +37,10 @@ public sealed class SerialDispatchTests : IDisposable
         private int _inside;
 
         public int Peak { get; private set; }
+        public TaskCompletionSource HeldSlowEntered { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource ReleaseHeldSlow { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         [JsonRpcMethod("spec/slow")]
         public async Task<int> SlowAsync()
@@ -54,6 +58,17 @@ public sealed class SerialDispatchTests : IDisposable
             var now = Interlocked.Increment(ref _inside);
             if (now > Peak) Peak = now;
             await Task.Delay(40);
+            Interlocked.Decrement(ref _inside);
+            return now;
+        }
+
+        [JsonRpcMethod("spec/heldSlow")]
+        public async Task<int> HeldSlowAsync()
+        {
+            var now = Interlocked.Increment(ref _inside);
+            if (now > Peak) Peak = now;
+            HeldSlowEntered.TrySetResult();
+            await ReleaseHeldSlow.Task;
             Interlocked.Decrement(ref _inside);
             return now;
         }
@@ -121,9 +136,20 @@ public sealed class SerialDispatchTests : IDisposable
         using (client)
         using (server)
         {
-            await Task.WhenAll(
-                client.InvokeAsync<int>("spec/slow"),
-                client.InvokeAsync<int>("system/ping"));
+            var slow = client.InvokeAsync<int>("spec/heldSlow");
+            try
+            {
+                // Do not ask the scheduler to make two short calls happen to
+                // overlap. Hold the serialized call open after proving it has
+                // entered, then require ping to answer while it is still there.
+                await target.HeldSlowEntered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                await client.InvokeAsync<int>("system/ping").WaitAsync(TimeSpan.FromSeconds(5));
+            }
+            finally
+            {
+                target.ReleaseHeldSlow.TrySetResult();
+            }
+            await slow.WaitAsync(TimeSpan.FromSeconds(5));
         }
 
         Assert.True(target.Peak > 1, "system/ping should have run alongside the slow call");
