@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Novalist.Backend;
+using Novalist.Backend.Extensions;
 using Novalist.Backend.Rpc;
 using Novalist.Core.Models;
 using Xunit;
@@ -22,6 +23,8 @@ public sealed class SettingsRpcTests : IDisposable
 
     public void Dispose()
     {
+        Log.EnableFileLogging(false);
+        SettingsRpc.LogsDirectoryOverride = null;
         try { Directory.Delete(_root, true); } catch (IOException) { }
     }
 
@@ -53,6 +56,23 @@ public sealed class SettingsRpcTests : IDisposable
         Assert.Equal(18, effective.GetProperty("editorFontSize").GetDouble());
         Assert.Equal("Discord", effective.GetProperty("theme").GetString());
         Assert.False(effective.GetProperty("grammarCheckEnabled").GetBoolean());
+    }
+
+    [Fact]
+    public async Task UpdateGlobal_TurnsDiagnosticFileLoggingOnAndOffImmediately()
+    {
+        await _rpc.UpdateGlobalAsync(Patch("""{"diagnosticLoggingEnabled":true}"""));
+        Log.Info("settings test state=enabled");
+
+        var log = _rpc.LogInfo().CurrentLog;
+        Assert.NotNull(log);
+        Assert.Contains("Diagnostic logging enabled", File.ReadAllText(log));
+        Assert.Contains("settings test state=enabled", File.ReadAllText(log));
+
+        await _rpc.UpdateGlobalAsync(Patch("""{"diagnosticLoggingEnabled":false}"""));
+        var length = new FileInfo(log).Length;
+        Log.Info("settings test state=disabled");
+        Assert.Equal(length, new FileInfo(log).Length);
     }
 
     [Fact]
@@ -483,10 +503,12 @@ public sealed class SettingsRpcTests : IDisposable
     [Fact]
     public void LogInfo_And_ClearLogs_RpcMethods_UseOverrideAndDefault()
     {
-        // Default (no override): reads the OS app-data path read-only; must not throw.
+        // Default (no override): follows this workspace's settings root and ensures
+        // there is a folder the shell can actually open.
         SettingsRpc.LogsDirectoryOverride = null;
         var defaultInfo = _rpc.LogInfo();
-        Assert.EndsWith(Path.Combine("Novalist", "logs"), defaultInfo.Directory);
+        Assert.Equal(Path.Combine(_root, "settings", "logs"), defaultInfo.Directory);
+        Assert.True(Directory.Exists(defaultInfo.Directory));
 
         // Overridden to a temp directory for the mutating path.
         var dir = Path.Combine(_root, "rpc-logs");

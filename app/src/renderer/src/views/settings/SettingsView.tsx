@@ -1549,7 +1549,7 @@ export function SettingsView(): React.JSX.Element {
                         directory: string
                         currentLog: string | null
                       }>('settings/logInfo')
-                      await window.novalist.revealPath(info.directory)
+                      await window.novalist.openExternal(info.directory)
                     })()
                   }}
                 >
@@ -1564,7 +1564,7 @@ export function SettingsView(): React.JSX.Element {
                         currentLog: string | null
                       }>('settings/logInfo')
                       if (info.currentLog) await window.novalist.openExternal(info.currentLog)
-                      else await window.novalist.revealPath(info.directory)
+                      else await window.novalist.openExternal(info.directory)
                     })()
                   }}
                 >

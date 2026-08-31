@@ -1,7 +1,6 @@
 import { dialog, ipcMain, BrowserWindow, shell, clipboard } from 'electron'
 import { writeFile } from 'node:fs/promises'
 import { join, normalize, isAbsolute } from 'node:path'
-import { pathToFileURL } from 'node:url'
 import { currentProjectRoot } from './protocols'
 import { saveBookmark, beginAccess, endAccess } from './mac-bookmarks'
 
@@ -24,8 +23,7 @@ export function registerDialogHandlers(): void {
     }
     const resolved = resolveProjectPath(target)
     if (!resolved) return false
-    await shell.openExternal(pathToFileURL(resolved).toString())
-    return true
+    return (await shell.openPath(resolved)) === ''
   })
 
   ipcMain.handle('novalist:reveal-path', (_event, target: string) => {

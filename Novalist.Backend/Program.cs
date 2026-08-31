@@ -37,6 +37,8 @@ internal class Program
         // never when a test/tool supplied its own NOVALIST_SETTINGS_DIR.
         if (Environment.GetEnvironmentVariable("NOVALIST_ALLOW_LEGACY_MIGRATION") == "1")
             DataMigration.MigrateLegacyIfNeeded(settingsDir);
+        Extensions.Log.Configure(settingsDir);
+        Extensions.Log.Info("Backend startup begin.");
         using var host = new BackendHost(settingsDir);
         await host.RunAsync(stdout, stdin);
         return 0;

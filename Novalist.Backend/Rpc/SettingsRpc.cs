@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using Novalist.Backend.Extensions;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
 using StreamJsonRpc;
@@ -74,6 +75,12 @@ public sealed class SettingsRpc
         if (patch.ContainsKey(LanguageKey))
             settings.AutoReplacements = AutoReplacementDefaults.GetPreset(settings.AutoReplacementLanguage);
         await _workspace.Settings.SaveAsync();
+        if (patch.ContainsKey("diagnosticLoggingEnabled"))
+        {
+            Log.SetDirectory(LogsDirectory);
+            Log.EnableFileLogging(settings.DiagnosticLoggingEnabled);
+            Log.Info($"Diagnostic logging {(settings.DiagnosticLoggingEnabled ? "enabled" : "disabled")} by user.");
+        }
         RaiseLanguageIfChanged(beforeLanguage);
         return await GetAsync();
     }
@@ -306,20 +313,29 @@ public sealed class SettingsRpc
 
     /// <summary>Reports the diagnostic-log directory and newest log file (if any).</summary>
     [JsonRpcMethod("settings/logInfo")]
-    public LogInfoDto LogInfo() => ResolveLogInfo(LogsDirectory);
+    public LogInfoDto LogInfo()
+    {
+        Directory.CreateDirectory(LogsDirectory);
+        return ResolveLogInfo(LogsDirectory);
+    }
 
     /// <summary>Deletes every <c>*.log</c> file in the diagnostic-log directory.</summary>
     [JsonRpcMethod("settings/clearLogs")]
-    public int ClearLogs() => ClearLogFiles(LogsDirectory);
+    public int ClearLogs()
+    {
+        Log.SetDirectory(LogsDirectory);
+        return Log.ClearLogFiles();
+    }
 
-    /// <summary>Test seam: overrides the diagnostic-log directory (null = OS default).</summary>
+    /// <summary>Test seam: overrides the diagnostic-log directory (null = workspace data root).</summary>
     internal static string? LogsDirectoryOverride { get; set; }
 
     /// <summary>Diagnostic-log directory, matching the desktop shell's convention.</summary>
-    internal static string LogsDirectory => LogsDirectoryOverride
-        ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Novalist",
+    internal string LogsDirectory => LogsDirectoryOverride
+        ?? Path.Combine(_workspace.SettingsDirectory
+            ?? Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "Novalist"),
             "logs");
 
     internal static LogInfoDto ResolveLogInfo(string directory)
