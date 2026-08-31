@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.2.1] - 2026-08-21
+
 ### Changed
 
 - **Extensions in the Mac App Store edition** - the App Store edition of Novalist no longer offers extensions, and now explains why where they used to be. An extension is a program Novalist downloads and runs to add features, which App Store rules do not permit and the sandbox that edition runs in would not load. There is no gallery, nothing can be installed from a folder, and no extension is loaded even if one is left over from an earlier install. The Novalist you download directly keeps the extension feature in full, on macOS as on Windows and Linux, and projects are identical across all of them - a book written with an extension's help opens unchanged either way.
@@ -1492,7 +1498,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.2...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.2.1...HEAD
+[3.2.1]: https://github.com/Drommedhar/novalist-official/compare/v3.2...v3.2.1
 [3.2]: https://github.com/Drommedhar/novalist-official/compare/v3.1.2...v3.2
 [3.1.2]: https://github.com/Drommedhar/novalist-official/compare/v3.1.1...v3.1.2
 [3.1.1]: https://github.com/Drommedhar/novalist-official/compare/v3.1...v3.1.1
