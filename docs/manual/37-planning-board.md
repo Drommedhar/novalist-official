@@ -16,17 +16,23 @@ Boards are stored one JSON file each in a `Canvases/` folder beside `Maps/` in t
 
 **Add card** drops a new card near the top left. Each card has a title and a body, and both are free text — a card can be a scene you might write, a question you cannot answer yet, a line of dialogue you do not want to lose, or a note to yourself.
 
-Drag a card by its body to move it. Click into the title or the body to type; typing does not move the card.
+Each card has a visible move grip at the top. Drag the grip to move the card; with the grip focused, use the arrow keys to nudge it. The title and body remain ordinary text fields, so clicking either one places the cursor for editing.
 
 Changes save automatically two seconds after you stop, the same as the editor.
 
 ## Connectors
 
-Select a card, press **Connect...**, then click a second card. A line is drawn between them.
+Each card has four connection handles, one centred on every side. Drag any handle onto any part of a different card and release. The handle chooses the side where the line leaves the first card; the point where you release chooses the nearest side of the second card. Those endpoints stay on the chosen sides when cards move or the board is reopened. There is no separate connection mode or **Connect** button.
+
+With the keyboard, focus one of a card's connection handles and press Enter or Space, then focus a handle on the destination card and press Enter or Space again. Escape cancels while choosing a destination.
+
+A new connector opens an **Add label** field directly at the middle of its line. Type the relationship and press Enter or click elsewhere to keep it. Leading and trailing spaces are removed; an empty label is allowed. Press Escape while editing to restore the previous label.
+
+To rename an existing connector, click its line or label and edit the same inline field. Connector labels save automatically with the rest of the board.
 
 The label on a connector is the point. "Because of", "three weeks later", "but only if she lied" — the line records *why* two ideas are related, which is the part you forget. An unlabelled connector is allowed; it just says less.
 
-Deleting a card also removes every connector attached to it, so the board never draws a line to nothing.
+The **Delete connector** button beside the inline field removes only that line. Deleting a card also removes every connector attached to it, so the board never draws a line to nothing.
 
 ## Turning a card into a scene
 

@@ -1,3 +1,4 @@
+using Novalist.Backend.Extensions;
 using StreamJsonRpc;
 using StreamJsonRpc.Protocol;
 
@@ -33,6 +34,23 @@ namespace Novalist.Backend;
 /// </remarks>
 internal sealed class SerialDispatchJsonRpc : JsonRpc
 {
+    /// <summary>
+    /// Only protocol names compiled into the backend are safe to repeat in a
+    /// diagnostic log. The incoming request method is untrusted text too: a
+    /// caller can put a chapter title there just as easily as in an argument.
+    /// </summary>
+    private static readonly HashSet<string> DiagnosticMethods = typeof(SerialDispatchJsonRpc)
+        .Assembly
+        .GetTypes()
+        .SelectMany(type => type.GetMethods())
+        .SelectMany(method => method.GetCustomAttributes(
+            typeof(JsonRpcMethodAttribute), inherit: true)
+            .Cast<JsonRpcMethodAttribute>())
+        .Select(attribute => attribute.Name)
+        .Where(name => !string.IsNullOrEmpty(name))
+        .Select(name => name!)
+        .ToHashSet(StringComparer.Ordinal);
+
     /// <summary>
     /// The calls that must not queue, because something already holding the
     /// gate is waiting for them.
@@ -174,4 +192,22 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
             _gate.Release();
         }
     }
+
+    /// <summary>
+    /// Records RPC failures at the point StreamJsonRpc converts an exception
+    /// into an error response. Request arguments, error messages and stacks are
+    /// deliberately excluded: all three can contain manuscript content or
+    /// paths. Method names are repeated only when they are part of the RPC
+    /// vocabulary compiled into this backend assembly.
+    /// </summary>
+    protected override JsonRpcError.ErrorDetail CreateErrorDetails(
+        JsonRpcRequest request, Exception exception)
+    {
+        var type = exception.GetType().FullName ?? exception.GetType().Name;
+        Log.Error($"rpc failed method={DiagnosticMethodName(request.Method)} type={type}.");
+        return base.CreateErrorDetails(request, exception);
+    }
+
+    internal static string DiagnosticMethodName(string? method)
+        => method != null && DiagnosticMethods.Contains(method) ? method : "unknown";
 }

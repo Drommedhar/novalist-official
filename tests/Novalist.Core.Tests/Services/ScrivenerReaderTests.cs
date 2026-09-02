@@ -71,6 +71,104 @@ public class ScrivenerReaderTests : IDisposable
         Assert.True(ScrivenerReader.LooksLikeScrivener(Path.Combine(root, "Book.scrivx")));
     }
 
+    [Fact]
+    public void TheSelectedScrivxIsUsedEvenWhenAnotherManifestIsBesideIt()
+    {
+        // Linux users select the binder file itself. The reader used to ignore
+        // that path and enumerate the parent folder, so a sync conflict copy or
+        // another manifest beside it could be opened instead.
+        var root = NewProject();
+        File.WriteAllText(Path.Combine(root, "00-broken.scrivx"), "<broken");
+        var selected = Path.Combine(root, "Chosen.SCRIVX");
+        File.WriteAllText(
+            selected,
+            """
+            <?xml version="1.0"?>
+            <ScrivenerProject><Binder>
+              <BinderItem UUID="D" Type="DraftFolder"><Title>Draft</Title><Children>
+                <BinderItem UUID="S1" Type="Text"><Title>Chosen scene</Title></BinderItem>
+              </Children></BinderItem>
+            </Binder></ScrivenerProject>
+            """,
+            Encoding.UTF8);
+        var data = Path.Combine(root, "FILES", "dAtA", "s1");
+        Directory.CreateDirectory(data);
+        File.WriteAllText(Path.Combine(data, "CONTENT.RTF"), Rtf("Selected Linux prose."));
+
+        var scene = Assert.Single(ScrivenerReader.Read(selected).Scenes);
+        Assert.Equal("Chosen scene", scene.Title);
+        Assert.Equal("Selected Linux prose.", scene.Text);
+        Assert.Equal(["D", "S1"], ScrivenerReader.Outline(selected).Select(row => row.Key));
+    }
+
+    [Fact]
+    public void AFolderWithSeveralUnmatchedManifestsIsReportedAsAmbiguous()
+    {
+        var root = NewProject("Renamed.scriv");
+        File.WriteAllText(Path.Combine(root, "Original.scrivx"), "<ScrivenerProject/>");
+        File.WriteAllText(Path.Combine(root, "Original-conflict.scrivx"), "<ScrivenerProject/>");
+        var diagnostics = new List<ScrivenerReadDiagnostic>();
+
+        Assert.True(ScrivenerReader.Read(root, null, diagnostics.Add).IsEmpty);
+
+        Assert.Equal(
+            new ScrivenerReadDiagnostic("manifest", "ambiguous"),
+            Assert.Single(diagnostics));
+    }
+
+    [Fact]
+    public void ProjectPackagePathsAreResolvedWithoutAssumingLinuxCasing()
+    {
+        // NTFS hides this bug; ext4 does not. Archives and sync tools can alter
+        // the spelling of package components even though they remain the same
+        // Scrivener names.
+        var root = NewProject("Case.scriv");
+        File.WriteAllText(
+            Path.Combine(root, "CASE.SCRIVX"),
+            """
+            <?xml version="1.0"?>
+            <ScrivenerProject><Binder>
+              <BinderItem UUID="D" Type="DraftFolder"><Title>Draft</Title><Children>
+                <BinderItem UUID="S1" Type="Text"><Title>Scene</Title></BinderItem>
+              </Children></BinderItem>
+            </Binder></ScrivenerProject>
+            """,
+            Encoding.UTF8);
+        var data = Path.Combine(root, "FILES", "dAtA", "s1");
+        Directory.CreateDirectory(data);
+        File.WriteAllText(Path.Combine(data, "CONTENT.RTF"), Rtf("Linux prose."));
+
+        var project = ScrivenerReader.Read(root);
+
+        Assert.Equal("3", project.Version);
+        Assert.Equal("Linux prose.", Assert.Single(project.Scenes).Text);
+    }
+
+    [Fact]
+    public void ADefaultXmlNamespaceDoesNotHideTheBinder()
+    {
+        // XML repair/copying tools sometimes add a default namespace. The
+        // Scrivener vocabulary is still identified completely by local name.
+        var root = NewProject("Namespaced.scriv");
+        File.WriteAllText(
+            Path.Combine(root, "Namespaced.scrivx"),
+            """
+            <?xml version="1.0"?>
+            <ScrivenerProject xmlns="urn:scrivener-project">
+              <Binder>
+                <BinderItem UUID="D" Type="DraftFolder"><Title>Draft</Title><Children>
+                  <BinderItem UUID="S1" Type="Text"><Title>Namespaced scene</Title></BinderItem>
+                </Children></BinderItem>
+              </Binder>
+            </ScrivenerProject>
+            """,
+            Encoding.UTF8);
+
+        var scene = Assert.Single(ScrivenerReader.Read(root).Scenes);
+
+        Assert.Equal("Namespaced scene", scene.Title);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
@@ -546,6 +644,34 @@ public class ScrivenerReaderTests : IDisposable
     }
 
     [Fact]
+    public void ReadFailuresExposeOnlyContentFreeDiagnosticReasons()
+    {
+        var diagnostics = new List<ScrivenerReadDiagnostic>();
+
+        Assert.True(ScrivenerReader.Read(
+            Path.Combine(_dir.Path, "missing.scriv"), null, diagnostics.Add).IsEmpty);
+        Assert.Equal(
+            new ScrivenerReadDiagnostic("path", "not-found"),
+            Assert.Single(diagnostics));
+
+        diagnostics.Clear();
+        Assert.True(ScrivenerReader.Read(NewProject("NoManifest.scriv"), null, diagnostics.Add).IsEmpty);
+        Assert.Equal(
+            new ScrivenerReadDiagnostic("manifest", "not-found"),
+            Assert.Single(diagnostics));
+
+        diagnostics.Clear();
+        var noBinder = NewProject("NoBinder.scriv");
+        File.WriteAllText(
+            Path.Combine(noBinder, "NoBinder.scrivx"),
+            "<?xml version=\"1.0\"?><ScrivenerProject/>");
+        Assert.True(ScrivenerReader.Read(noBinder, null, diagnostics.Add).IsEmpty);
+        Assert.Equal(
+            new ScrivenerReadDiagnostic("binder", "not-found"),
+            Assert.Single(diagnostics));
+    }
+
+    [Fact]
     public void AMalformedScrivxReadsAsEmptyRatherThanThrowing()
     {
         // An import that cannot start should say so in the dialog, not crash.
@@ -553,6 +679,153 @@ public class ScrivenerReaderTests : IDisposable
         File.WriteAllText(Path.Combine(root, "Book.scrivx"), "<not xml at all");
 
         Assert.True(ScrivenerReader.Read(root).IsEmpty);
+    }
+
+    [Fact]
+    public void MalformedXmlHasADiagnosticReasonWithoutLeakingItsContents()
+    {
+        var root = NewProject();
+        File.WriteAllText(
+            Path.Combine(root, "Book.scrivx"),
+            "<PrivateChapterTitle></PrivateSecret>");
+        var diagnostics = new List<ScrivenerReadDiagnostic>();
+
+        Assert.True(ScrivenerReader.Read(root, null, diagnostics.Add).IsEmpty);
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("manifest", diagnostic.Stage);
+        Assert.Equal("invalid-xml", diagnostic.Reason);
+        Assert.Equal("XmlException", diagnostic.ExceptionType);
+        Assert.Equal("An XML start tag does not match its end tag.", diagnostic.Detail);
+        Assert.Equal(1, diagnostic.LineNumber);
+        Assert.True(diagnostic.LinePosition > 0);
+        Assert.NotEqual(0, diagnostic.ErrorCode);
+        Assert.DoesNotContain("private", diagnostic.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("Unexpected end of file. The following elements are not closed: PrivateTitle.", "The XML ended before one or more elements were closed.")]
+    [InlineData("The 'Private' start tag does not match the end tag of 'Secret'.", "An XML start tag does not match its end tag.")]
+    [InlineData("Reference to undeclared entity 'Private'.", "The XML references an entity that was not declared.")]
+    [InlineData("The 'private' prefix is undeclared prefix data.", "The XML uses a namespace prefix that was not declared.")]
+    [InlineData("Root element is missing.", "The XML root element is missing.")]
+    [InlineData("There are multiple root elements.", "The XML contains more than one root element.")]
+    [InlineData("Data at the root level is invalid.", "Data at the XML root is invalid.")]
+    [InlineData("Name cannot begin with the ' ' character.", "An XML name begins with a character XML does not allow.")]
+    [InlineData("A name was started with an invalid character.", "An XML name begins with a character XML does not allow.")]
+    [InlineData("Invalid character in the given encoding.", "The XML contains a character XML does not allow.")]
+    [InlineData("The '=' character cannot be included in a name.", "The XML contains a character XML does not allow.")]
+    [InlineData("For security reasons DTD is prohibited in this XML document.", "The XML contains a DTD, which this parser does not allow.")]
+    [InlineData("There is an unclosed literal string.", "The XML contains an unterminated quoted value.")]
+    [InlineData("Unexpected token PrivateTitle.", "The XML contains an unexpected token.")]
+    [InlineData("Private unclassified parser wording.", "The XML parser rejected the document; source-specific details were redacted.")]
+    public void XmlDiagnosticDetailsUseAContentFreeVocabulary(string runtimeMessage, string expected)
+    {
+        var detail = ScrivenerReader.SafeExceptionDetail(new System.Xml.XmlException(runtimeMessage));
+
+        Assert.Equal(expected, detail);
+        Assert.DoesNotContain("Private", detail, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Secret", detail, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void NonXmlDiagnosticDetailsNeverRepeatRuntimeMessages()
+    {
+        Assert.Equal(
+            "The operating system denied access to a project file.",
+            ScrivenerReader.SafeExceptionDetail(
+                new UnauthorizedAccessException("Private path and title")));
+        Assert.Equal(
+            "The operating system could not read a project file; it may be locked or unavailable.",
+            ScrivenerReader.SafeExceptionDetail(new IOException("Private path and title")));
+        Assert.Equal(
+            "The project could not be read.",
+            ScrivenerReader.SafeExceptionDetail(new InvalidOperationException("Private title")));
+    }
+
+    [Fact]
+    public void AnUnreadableManifestHasAContentFreePackageDiagnostic()
+    {
+        var root = NewProject();
+        WriteScrivx(root, "");
+        var diagnostics = new List<ScrivenerReadDiagnostic>();
+        using var locked = File.Open(
+            Path.Combine(root, "Book.scrivx"), FileMode.Open, FileAccess.Read, FileShare.None);
+
+        Assert.True(ScrivenerReader.Read(root, null, diagnostics.Add).IsEmpty);
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("package", diagnostic.Stage);
+        Assert.Equal("access-failed", diagnostic.Reason);
+        Assert.Equal("IOException", diagnostic.ExceptionType);
+        Assert.Contains("could not read", diagnostic.Detail);
+        Assert.NotEqual(0, diagnostic.ErrorCode);
+        Assert.DoesNotContain(root, diagnostic.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void InvalidSupportingXmlDoesNotMakeTheOutlineThrow()
+    {
+        var root = NewProject();
+        WriteScrivx(root, "<BinderItem UUID=\"D\" Type=\"DraftFolder\"><Title>Draft</Title></BinderItem>");
+        var files = Path.Combine(root, "Files");
+        Directory.CreateDirectory(files);
+        File.WriteAllText(Path.Combine(files, "styles.xml"), "<broken");
+        var diagnostics = new List<ScrivenerReadDiagnostic>();
+
+        Assert.Empty(ScrivenerReader.Outline(root, diagnostics.Add));
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("supporting-files", diagnostic.Stage);
+        Assert.Equal("invalid-xml", diagnostic.Reason);
+        Assert.Equal("XmlException", diagnostic.ExceptionType);
+        Assert.NotEmpty(diagnostic.Detail);
+        Assert.Equal(1, diagnostic.LineNumber);
+        Assert.True(diagnostic.LinePosition > 0);
+        Assert.NotEqual(0, diagnostic.ErrorCode);
+    }
+
+    [Fact]
+    public void AContentReadFailureIsReportedWithoutAPathOrProse()
+    {
+        var root = NewProject();
+        Directory.CreateDirectory(Path.Combine(root, "Files", "Data"));
+        WriteScrivx(root, """
+            <BinderItem UUID="D" Type="DraftFolder"><Title>Draft</Title><Children>
+              <BinderItem UUID="S1" Type="Text"><Title>Scene</Title></BinderItem>
+            </Children></BinderItem>
+            """);
+        WriteDoc3(root, "S1", "Private prose.");
+        var diagnostics = new List<ScrivenerReadDiagnostic>();
+        using var locked = File.Open(
+            Path.Combine(root, "Files", "Data", "S1", "content.rtf"),
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.None);
+
+        Assert.True(ScrivenerReader.Read(root, null, diagnostics.Add).IsEmpty);
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("content", diagnostic.Stage);
+        Assert.Equal("read-failed", diagnostic.Reason);
+        Assert.Equal("IOException", diagnostic.ExceptionType);
+        Assert.Contains("could not read", diagnostic.Detail);
+        Assert.NotEqual(0, diagnostic.ErrorCode);
+        Assert.DoesNotContain(root, diagnostic.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void AnEmptyBinderHasAnOutlineDiagnostic()
+    {
+        var root = NewProject();
+        WriteScrivx(root, "");
+        var diagnostics = new List<ScrivenerReadDiagnostic>();
+
+        Assert.Empty(ScrivenerReader.Outline(root, diagnostics.Add));
+
+        Assert.Equal(
+            new ScrivenerReadDiagnostic("binder", "empty"),
+            Assert.Single(diagnostics));
     }
 
     [Fact]

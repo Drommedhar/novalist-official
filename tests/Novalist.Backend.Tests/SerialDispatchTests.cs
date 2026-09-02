@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Nerdbank.Streams;
 using Novalist.Backend;
+using Novalist.Backend.Extensions;
 using StreamJsonRpc;
 using Xunit;
 
@@ -16,6 +17,7 @@ namespace Novalist.Backend.Tests;
 /// worked out, and Settings certain no extensions were installed while five sat
 /// on disk. Both were a read of state something else was still rebuilding.
 /// </summary>
+[Collection("BackendStatics")]
 public sealed class SerialDispatchTests : IDisposable
 {
     private readonly string _root;
@@ -28,6 +30,8 @@ public sealed class SerialDispatchTests : IDisposable
 
     public void Dispose()
     {
+        Log.EnableFileLogging(false);
+        Log.SetSinkOverride(null);
         try { Directory.Delete(_root, true); } catch (IOException) { }
     }
 
@@ -72,6 +76,14 @@ public sealed class SerialDispatchTests : IDisposable
             Interlocked.Decrement(ref _inside);
             return now;
         }
+
+        [JsonRpcMethod("spec/fail")]
+        public static void Fail(string privateText)
+            => throw new InvalidOperationException("Rejected: " + privateText);
+
+        [JsonRpcMethod("private manuscript method")]
+        public static void FailWithUnsafeMethodName()
+            => throw new InvalidOperationException("private exception message");
     }
 
     private static (JsonRpc client, Overlap target, IDisposable server) Pair(bool serial)
@@ -153,6 +165,41 @@ public sealed class SerialDispatchTests : IDisposable
         }
 
         Assert.True(target.Peak > 1, "system/ping should have run alongside the slow call");
+    }
+
+    [Fact]
+    public async Task FailedHandlers_AreLoggedWithoutArgumentsOrExceptionMessages()
+    {
+        Log.SetSinkOverride(new LogFileSink(Path.Combine(_root, "logs")));
+        Log.EnableFileLogging(true);
+        var (client, _, server) = Pair(serial: true);
+        using (client)
+        using (server)
+        {
+            await Assert.ThrowsAsync<RemoteInvocationException>(
+                () => client.InvokeAsync("spec/fail", "private manuscript sentence"));
+            await Assert.ThrowsAsync<RemoteInvocationException>(
+                () => client.InvokeAsync("private manuscript method"));
+        }
+
+        var content = File.ReadAllText(Log.CurrentLogPath);
+        Assert.Contains("rpc failed method=unknown", content);
+        Assert.Contains("type=System.InvalidOperationException", content);
+        Assert.DoesNotContain("spec/fail", content);
+        Assert.DoesNotContain("private manuscript sentence", content);
+        Assert.DoesNotContain("private manuscript method", content);
+        Assert.DoesNotContain("private exception message", content);
+        Assert.DoesNotContain("Rejected:", content);
+    }
+
+    [Fact]
+    public void DiagnosticMethodNames_AreLimitedToTheCompiledBackendSurface()
+    {
+        Assert.Equal(
+            "manuscriptImport/run",
+            SerialDispatchJsonRpc.DiagnosticMethodName("manuscriptImport/run"));
+        Assert.Equal("unknown", SerialDispatchJsonRpc.DiagnosticMethodName("PrivateChapterTitle"));
+        Assert.Equal("unknown", SerialDispatchJsonRpc.DiagnosticMethodName(null));
     }
 
     [Fact]

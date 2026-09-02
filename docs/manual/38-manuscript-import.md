@@ -14,7 +14,7 @@ The dialog lists the extensions it can read, so you know what to look for before
 | Markdown | `.md`, `.markdown` | `#` headings, paragraphs, and `***` / `---` scene breaks. |
 | Plain text | `.txt` | Paragraphs, "Chapter N" lines, and ornament scene breaks. |
 | Rich text | `.rtf` | Paragraphs, headings, bold and italic, lists, and alignment. See [Formatting](#formatting). |
-| Scrivener | `.scriv` | The draft as parts, chapters and scenes, plus Codex entries and research. See below. |
+| Scrivener | `.scriv`, `.scrivx` | The draft as parts, chapters and scenes, plus Codex entries and research. See below. |
 
 Import recovers **words and the shape they were written in** — not the page they were written on. Fonts, type sizes, colours, margins and compile settings stay in the program you left; images, footnotes and comments are not carried over either.
 
@@ -37,7 +37,7 @@ A document Novalist cannot make sense of is reported on its own and the rest of 
 
 ## Scrivener projects
 
-A Scrivener project is a folder rather than a file, so it has its own button: **Choose a Scrivener project**. Point it at the `.scriv` folder. Both Scrivener 2 and Scrivener 3 projects are read.
+A Scrivener project is normally a `.scriv` folder, so it has its own button: **Choose a Scrivener project**. If your file picker exposes the binder inside that folder instead, choose its `.scrivx` file with **Choose a manuscript file**. Both Scrivener 2 and Scrivener 3 projects are read, including projects moved from Windows or Scrivenix onto a case-sensitive Linux filesystem.
 
 Novalist takes the binder at its word rather than guessing from headings — the binder already says where the chapters are. It reads what each part of the binder *is* from Scrivener's own markers rather than from folder titles, so a project in German, or one where you renamed the draft folder, imports the same as any other.
 
@@ -157,7 +157,7 @@ That means running an import twice gives you the book twice rather than destroyi
 
 ## If nothing is found
 
-"Nothing could be read from that file" means the format is not supported, the file is empty, or it is damaged. Novalist never reports an error for a file it cannot read: you did not write that file, so "nothing found" is the useful answer.
+"Nothing could be read from that file" means the format is not supported, the file is empty, or it is damaged. Novalist never reports an error for a file it cannot read: you did not write that file, so "nothing found" is the useful answer. With diagnostic logging enabled, the log records why an unreadable Scrivener project stopped — for example, a missing or ambiguous manifest, invalid XML, missing binder, or unreadable document. Parser failures include a safe explanation, error code and, for XML, the line and position. The explanation describes the parser problem without copying names or values from the source; duplicate failures from the preview's two parsing passes are collapsed into one entry.
 
 ## Where to go next
 

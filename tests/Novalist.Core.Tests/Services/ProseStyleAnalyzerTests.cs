@@ -125,6 +125,18 @@ public class ProseStyleAnalyzerTests
         Assert.Equal(2, weak.Count);
     }
 
+    [Fact]
+    public void WeakVerbs_IgnoreDialogueButKeepNarration()
+    {
+        var weak = Find(
+            ProseStyleAnalyzer.Analyze(
+                "\"You're going to get yourself killed, Kay.\" He got the keys and left.", "en"),
+            "weakVerbs");
+
+        Assert.Equal(1, weak.Count);
+        Assert.Equal("got", weak.Examples[0].Text);
+    }
+
     // ── Passive voice ──
 
     [Fact]
@@ -150,6 +162,42 @@ public class ProseStyleAnalyzerTests
         var passive = Find(
             ProseStyleAnalyzer.Analyze("It was opened. It was closed. It was locked.", "en"), "passiveVoice");
         Assert.Equal(3, passive.Count);
+    }
+
+    [Fact]
+    public void PassiveVoice_IgnoresDialogueButKeepsNarration()
+    {
+        var passive = Find(
+            ProseStyleAnalyzer.Analyze(
+                "“Mark was a good guy but he was mixed up in a lot.” The gate was blocked by snow.",
+                "en"),
+            "passiveVoice");
+
+        Assert.Equal(1, passive.Count);
+        Assert.Equal("was blocked", passive.Examples[0].Text);
+    }
+
+    [Fact]
+    public void DialogueOnly_DoesNotFlagWeakVerbsOrPassiveVoice()
+    {
+        var report = ProseStyleAnalyzer.Analyze(
+            "“You're going to get yourself killed, Kay. Mark was mixed up in a lot.”",
+            "en",
+            scope: ProseScope.DialogueOnly);
+
+        Assert.Equal(0, Find(report, "weakVerbs").Count);
+        Assert.Equal(0, Find(report, "passiveVoice").Count);
+    }
+
+    [Fact]
+    public void PassiveVoice_DoesNotBridgeAcrossQuotedSpeech()
+    {
+        var passive = Find(
+            ProseStyleAnalyzer.Analyze("The gate was \"not\" blocked. The road was blocked.", "en"),
+            "passiveVoice");
+
+        Assert.Equal(1, passive.Count);
+        Assert.Equal("was blocked", passive.Examples[0].Text);
     }
 
     // ── Cliches ──

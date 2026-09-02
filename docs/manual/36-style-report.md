@@ -21,8 +21,8 @@ Each report shows a count and a rate per 1000 words. Click one to see examples w
 
 - **Adverbs** — words ending in an adverb suffix. Often a sign the verb is doing too little on its own. Common false positives ("only", "family", "reply") are excluded.
 - **Filter words** — verbs that put the narrator between the reader and the scene: "she saw the door open" rather than "the door opened".
-- **Weak verbs** — verbs that usually have a more specific alternative.
-- **Passive voice** — an auxiliary followed by a participle. Deliberately conservative: it would rather miss a few than flag prose that is fine, because you cannot argue with a wrong flag.
+- **Weak verbs** — verbs that usually have a more specific alternative. Quoted dialogue is ignored, where ordinary conversational verbs are natural rather than weak writing.
+- **Passive voice** — an auxiliary followed by a participle. Quoted dialogue is ignored. The check is deliberately conservative: it would rather miss a few than flag prose that is fine, because you cannot argue with a wrong flag.
 - **Stock phrases** — clichés matched literally against a bundled list.
 - **Sticky sentences** — sentences where function words crowd out the images. Short sentences are ignored, since a high function-word share is normal there and says nothing.
 - **Repeated sentence openers** — three or more sentences in a row starting with the same word.
@@ -85,6 +85,8 @@ A drop-down beside the scope buttons chooses **Everything**, **Narration only**,
 This matters more than it sounds. A character written to speak in cliches is not a writing problem, and a report that counts their lines alongside your narration says otherwise — which is the most common complaint about tools of this kind. Novalist has segmented dialogue precisely for a long time and never used it here.
 
 **Narration only** takes every quoted line out and leaves a space where each one was, so the sentences either side of a cut stay whole. **Dialogue only** keeps just the quoted speech.
+
+Weak verbs and passive voice are treated as narration problems, not dialogue problems. Those two reports therefore leave quoted speech alone even when the selected text scope includes dialogue; the other reports still measure the chosen scope normally.
 
 ## Paragraph shape
 

@@ -92,7 +92,17 @@ test('every format the dialog advertises is one the reader accepts', async () =>
   // The dialog lists these to the writer before the picker opens, so a format
   // named here and unreadable is a promise the file picker cannot keep.
   expect(formats).toEqual(
-    expect.arrayContaining(['.docx', '.odt', '.epub', '.md', '.markdown', '.txt', '.rtf', '.scriv'])
+    expect.arrayContaining([
+      '.docx',
+      '.odt',
+      '.epub',
+      '.md',
+      '.markdown',
+      '.txt',
+      '.rtf',
+      '.scriv',
+      '.scrivx'
+    ])
   )
   await app.close()
 })
@@ -205,14 +215,19 @@ test('a DOCX Novalist wrote is a DOCX Novalist can read back', async () => {
   await app.close()
 })
 
-test('a Scrivener project imports through the app, not just through the reader', async () => {
+test('a directly selected Scrivenix binder imports from a Linux-style package', async () => {
   test.setTimeout(180_000)
   const workDir = mkdtempSync(join(tmpdir(), 'nl-imp-scriv-'))
   const root = join(workDir, 'Book.scriv')
-  mkdirSync(join(root, 'Files', 'Data', 'S1'), { recursive: true })
-  mkdirSync(join(root, 'Files', 'Data', 'E1'), { recursive: true })
+  const binder = join(root, 'SCRIVENIX.SCRIVX')
+  // These spellings are deliberately inconsistent. They take the real
+  // case-insensitive fallback on Ubuntu CI while still describing the ordinary
+  // Scrivener 3 package a Scrivenix/Wine user moves between filesystems.
+  mkdirSync(join(root, 'fIlEs', 'dAtA', 's1'), { recursive: true })
+  mkdirSync(join(root, 'fIlEs', 'dAtA', 'e1'), { recursive: true })
 
-  writeFileSync(join(root, 'Book.scrivx'), `<?xml version="1.0"?>
+  writeFileSync(join(root, '00-sync-conflict.scrivx'), '<broken')
+  writeFileSync(binder, `<?xml version="1.0"?>
 <ScrivenerProject><Binder>
   <BinderItem UUID="D" Type="DraftFolder"><Title>Manuscript</Title><Children>
     <BinderItem UUID="C1" Type="Folder"><Title>Chapter</Title><Children>
@@ -226,20 +241,23 @@ test('a Scrivener project imports through the app, not just through the reader',
   </BinderItem>
   <BinderItem UUID="T" Type="TrashFolder"><Title>Trash</Title></BinderItem>
 </Binder></ScrivenerProject>`)
-  writeFileSync(join(root, 'Files', 'Data', 'S1', 'content.rtf'), RTF('She arrived at dusk.'))
-  writeFileSync(join(root, 'Files', 'Data', 'S1', 'synopsis.txt'), 'She arrives.')
-  writeFileSync(join(root, 'Files', 'Data', 'E1', 'content.rtf'), RTF('Mira Vance, harbourmaster.'))
+  writeFileSync(join(root, 'fIlEs', 'dAtA', 's1', 'CONTENT.RTF'), RTF('She arrived at dusk.'))
+  writeFileSync(join(root, 'fIlEs', 'dAtA', 's1', 'SYNOPSIS.TXT'), 'She arrives.')
+  writeFileSync(
+    join(root, 'fIlEs', 'dAtA', 'e1', 'CONTENT.RTF'),
+    RTF('Mira Vance, harbourmaster.')
+  )
 
   const { app, page } = await launch(workDir)
   await newProject(page, workDir)
 
-  const plan = await preview(page, root)
+  const plan = await preview(page, binder)
   expect(plan.format).toBe('scrivener3')
   // The draft is the manuscript; the Characters folder is not a chapter.
   expect(plan.chapterCount).toBe(1)
   expect(plan.chapters[0].title).toBe('Chapter')
 
-  await runImport(page, root)
+  await runImport(page, binder)
 
   const chapters = await structure(page)
   expect(chapters.map((c) => c.title)).toEqual(['Chapter'])

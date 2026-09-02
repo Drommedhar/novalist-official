@@ -57,7 +57,7 @@ public sealed class CanvasRpcTests : IDisposable
         var withCards = created with
         {
             Cards = [Card("c1", "First", "Body"), Card("c2", "Second")],
-            Connectors = [new CanvasConnectorDto("k1", "c1", "c2", "leads to")]
+            Connectors = [new CanvasConnectorDto("k1", "c1", "c2", "leads to", "right", "left")]
         };
         await _rpc.SaveAsync(withCards);
 
@@ -67,6 +67,8 @@ public sealed class CanvasRpcTests : IDisposable
         Assert.Equal(2, loaded!.Cards.Length);
         Assert.Equal("Body", loaded.Cards[0].Text);
         Assert.Equal("leads to", loaded.Connectors[0].Label);
+        Assert.Equal("right", loaded.Connectors[0].FromSide);
+        Assert.Equal("left", loaded.Connectors[0].ToSide);
     }
 
     [Fact]

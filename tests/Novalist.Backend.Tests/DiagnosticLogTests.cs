@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Novalist.Backend.Tests;
 
+[Collection("BackendStatics")]
 public sealed class DiagnosticLogTests : IDisposable
 {
     private readonly bool _originalVerbose = Log.Verbose;
@@ -11,7 +12,7 @@ public sealed class DiagnosticLogTests : IDisposable
     public void Dispose()
     {
         Log.EnableFileLogging(false);
-        Log.SinkOverride = null;
+        Log.SetSinkOverride(null);
         Log.Verbose = _originalVerbose;
     }
 
@@ -85,7 +86,7 @@ public sealed class DiagnosticLogTests : IDisposable
     public void Facade_WritesEveryLevelOnlyWhenEnabled()
     {
         using var root = new TempDir();
-        Log.SinkOverride = new LogFileSink(root.Combine("logs"));
+        Log.SetSinkOverride(new LogFileSink(root.Combine("logs")));
         Log.Verbose = true;
         Log.EnableFileLogging(true);
 
@@ -93,7 +94,7 @@ public sealed class DiagnosticLogTests : IDisposable
         Log.Info("info count=1");
         Log.Warn("warn type=Example");
         Log.Error("error state=failed");
-        Log.Error("error with type", new InvalidOperationException("Example"));
+        Log.Error("error with type", new InvalidOperationException("private manuscript sentence"));
 
         Assert.Equal(root.Combine("logs"), Log.LogDirectory);
         var content = File.ReadAllText(Log.CurrentLogPath);
@@ -101,7 +102,8 @@ public sealed class DiagnosticLogTests : IDisposable
         Assert.Contains("[INFO] info count=1", content);
         Assert.Contains("[WARN] warn type=Example", content);
         Assert.Contains("[ERROR] error state=failed", content);
-        Assert.Contains("InvalidOperationException", content);
+        Assert.Contains("type=System.InvalidOperationException", content);
+        Assert.DoesNotContain("private manuscript sentence", content);
 
         Assert.Equal(1, Log.ClearLogFiles());
         Log.EnableFileLogging(false);

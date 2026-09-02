@@ -1,4 +1,5 @@
 using Novalist.Backend;
+using Novalist.Backend.Extensions;
 using Novalist.Backend.Rpc;
 using Xunit;
 
@@ -8,6 +9,7 @@ namespace Novalist.Backend.Tests;
 /// Bringing an existing manuscript into a project. Preview must never write;
 /// run must only ever append.
 /// </summary>
+[Collection("BackendStatics")]
 public sealed class ManuscriptImportRpcTests : IDisposable
 {
     private readonly string _root;
@@ -26,6 +28,8 @@ public sealed class ManuscriptImportRpcTests : IDisposable
 
     public void Dispose()
     {
+        Log.EnableFileLogging(false);
+        Log.SetSinkOverride(null);
         try { Directory.Delete(_root, true); } catch (IOException) { }
     }
 
@@ -48,6 +52,8 @@ public sealed class ManuscriptImportRpcTests : IDisposable
         Assert.Contains(".docx", formats);
         Assert.Contains(".epub", formats);
         Assert.Contains(".md", formats);
+        Assert.Contains(".scriv", formats);
+        Assert.Contains(".scrivx", formats);
     }
 
     [Fact]
@@ -78,6 +84,46 @@ public sealed class ManuscriptImportRpcTests : IDisposable
 
         Assert.Equal(0, plan.ChapterCount);
         Assert.Empty(plan.Chapters);
+    }
+
+    [Fact]
+    public void Preview_DiagnosticsRecordInputShapeAndCountsWithoutNamesPathsOrProse()
+    {
+        Log.SetSinkOverride(new LogFileSink(Path.Combine(_root, "logs")));
+        Log.EnableFileLogging(true);
+
+        _rpc.Preview(WriteMarkdown("# Private chapter title\n\nPrivate manuscript sentence."));
+        _rpc.Preview(Path.Combine(_root, "missing.docx"));
+        _rpc.Preview(Path.Combine(_root, "missing.private-suffix"));
+        _rpc.Preview(Path.Combine(_root, "missing.scrivx"));
+        var malformedBinder = Path.Combine(_root, "Private Binder.scrivx");
+        File.WriteAllText(malformedBinder, "<PrivateElement></SecretEndTag>");
+        _rpc.Preview(malformedBinder);
+
+        var content = File.ReadAllText(Log.CurrentLogPath);
+        Assert.Contains("manuscriptImport/preview complete source=file extension=.md", content);
+        Assert.Contains("chapters=1 scenes=1", content);
+        Assert.Contains("manuscriptImport/preview empty source=missing extension=.docx", content);
+        Assert.Contains("manuscriptImport/preview empty source=missing extension=other", content);
+        Assert.DoesNotContain("private-suffix", content);
+        Assert.Contains(
+            "manuscriptImport/preview scrivener stage=path reason=not-found type=none.",
+            content);
+        const string invalidXml =
+            "manuscriptImport/preview scrivener stage=manifest reason=invalid-xml type=XmlException";
+        Assert.Contains(invalidXml, content);
+        Assert.Equal(1, content.Split(invalidXml, StringSplitOptions.None).Length - 1);
+        Assert.Contains("line=1 position=", content);
+        Assert.Contains("code=0x", content);
+        Assert.Contains("message=\"", content);
+        Assert.Contains("An XML start tag does not match its end tag.", content);
+        Assert.DoesNotContain("PrivateElement", content);
+        Assert.DoesNotContain("SecretEndTag", content);
+        Assert.DoesNotContain(_root, content);
+        Assert.DoesNotContain("manuscript.md", content);
+        Assert.DoesNotContain("Private Binder", content);
+        Assert.DoesNotContain("Private chapter title", content);
+        Assert.DoesNotContain("Private manuscript sentence", content);
     }
 
     [Fact]
@@ -151,10 +197,25 @@ public sealed class ManuscriptImportRpcTests : IDisposable
     [Fact]
     public async Task Run_WithoutAProject_Throws()
     {
+        Log.SetSinkOverride(new LogFileSink(Path.Combine(_root, "logs")));
+        Log.EnableFileLogging(true);
         using var bare = new Workspace(Path.Combine(_root, "settings2"));
         var rpc = new ManuscriptImportRpc(bare);
+        var path = Path.Combine(_root, "Private manuscript.md");
+        File.WriteAllText(path, "# Private chapter title\n\nPrivate manuscript sentence.");
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => rpc.RunAsync(WriteMarkdown(TwoChapters)));
+            () => rpc.RunAsync(path));
+
+        var content = File.ReadAllText(Log.CurrentLogPath);
+        Assert.Contains(
+            "manuscriptImport/run failed stage=validate source=file extension=.md",
+            content);
+        Assert.Contains("type=System.InvalidOperationException", content);
+        Assert.DoesNotContain(_root, content);
+        Assert.DoesNotContain("Private manuscript", content);
+        Assert.DoesNotContain("Private chapter title", content);
+        Assert.DoesNotContain("Private manuscript sentence", content);
+        Assert.DoesNotContain("No project open", content);
     }
 }

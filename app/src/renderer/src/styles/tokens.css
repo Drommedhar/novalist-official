@@ -80,6 +80,16 @@
   --nl-radius-xl: var(--nv-radius-card); /* 18px - cards and panels */
   --nl-radius-pill: var(--nv-radius-pill); /* 99px - chips and pills, never 18 */
 
+  /* Rules and compact panel widths. These predate the spacing scale but are
+     distinct geometry: a one-pixel rule should not become two pixels merely
+     because the smallest spacing step is two, and inspectors need a stable
+     readable width independent of their padding. */
+  --nl-rule-width: 1px;
+  --nl-rule-width-emphasis: 3px;
+  --nl-field-width-sm: 220px;
+  --nl-inline-editor-width: 160px;
+  --nl-panel-width-sm: 260px;
+
   /* Content measure: the brand column and the 66ch prose limit. */
   --nl-measure: var(--nv-measure);
   --nl-gutter: var(--nv-gutter);

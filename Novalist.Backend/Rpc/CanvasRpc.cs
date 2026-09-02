@@ -60,7 +60,9 @@ public sealed class CanvasRpc
                 Id = c.Id,
                 FromCardId = c.FromCardId,
                 ToCardId = c.ToCardId,
-                Label = c.Label
+                Label = c.Label,
+                FromSide = c.FromSide ?? string.Empty,
+                ToSide = c.ToSide ?? string.Empty
             }).ToList()
         });
     }
@@ -115,7 +117,8 @@ public sealed class CanvasRpc
                 card.Width, card.Height, card.Color,
                 card.SceneId, card.ChapterGuid, card.EntityId)).ToArray(),
             c.Connectors.Select(conn => new CanvasConnectorDto(
-                conn.Id, conn.FromCardId, conn.ToCardId, conn.Label)).ToArray());
+                conn.Id, conn.FromCardId, conn.ToCardId, conn.Label,
+                conn.FromSide ?? string.Empty, conn.ToSide ?? string.Empty)).ToArray());
 }
 
 public sealed record CanvasSummaryDto(string Id, string Name);
@@ -125,7 +128,9 @@ public sealed record CanvasCardDto(
     double Width, double Height, string Color,
     string SceneId, string ChapterGuid, string EntityId);
 
-public sealed record CanvasConnectorDto(string Id, string FromCardId, string ToCardId, string Label);
+public sealed record CanvasConnectorDto(
+    string Id, string FromCardId, string ToCardId, string Label,
+    string FromSide = "", string ToSide = "");
 
 public sealed record CanvasDto(
     string Id, string Name, double PanX, double PanY, double Zoom,

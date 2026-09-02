@@ -69,6 +69,14 @@ public class CanvasConnector
 
     [JsonPropertyName("label")]
     public string Label { get; set; } = string.Empty;
+
+    /// <summary>The cardinal edge of the source card chosen by the writer.</summary>
+    [JsonPropertyName("fromSide")]
+    public string FromSide { get; set; } = string.Empty;
+
+    /// <summary>The cardinal edge of the destination card nearest the drop.</summary>
+    [JsonPropertyName("toSide")]
+    public string ToSide { get; set; } = string.Empty;
 }
 
 /// <summary>One planning board.</summary>

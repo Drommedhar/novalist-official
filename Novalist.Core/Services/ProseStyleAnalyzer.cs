@@ -168,6 +168,7 @@ public static partial class ProseStyleAnalyzer
         var sentences = SplitSentences(plain);
         var words = WordRegex().Matches(plain);
         var wordCount = words.Count;
+        var dialogueMask = BuildDialogueMask(plain);
 
         var lengths = sentences.Select(s => WordRegex().Matches(s.Text).Count).Where(n => n > 0).ToArray();
 
@@ -175,8 +176,10 @@ public static partial class ProseStyleAnalyzer
         {
             WordListFinding("adverbs", plain, words, AdverbMatcher(lexicon), lexicon?.AdverbSuffixes.Count > 0),
             WordListFinding("filterWords", plain, words, SetMatcher(lexicon?.FilterWords), lexicon?.FilterWords.Count > 0),
-            WordListFinding("weakVerbs", plain, words, SetMatcher(lexicon?.WeakVerbs), lexicon?.WeakVerbs.Count > 0),
-            PassiveFinding(plain, sentences, wordCount, lexicon),
+            WordListFinding(
+                "weakVerbs", plain, words, SetMatcher(lexicon?.WeakVerbs),
+                lexicon?.WeakVerbs.Count > 0, dialogueMask),
+            PassiveFinding(plain, sentences, wordCount, lexicon, dialogueMask),
             ClicheFinding(plain, wordCount, lexicon),
             StickyFinding(sentences, wordCount, lexicon),
             RepeatedOpenersFinding(sentences, wordCount)
@@ -329,7 +332,8 @@ public static partial class ProseStyleAnalyzer
 
     /// <summary>Word-level report driven by a predicate over the lowercased word.</summary>
     private static ProseStyleFinding WordListFinding(
-        string key, string text, MatchCollection words, Func<string, bool>? predicate, bool? supported)
+        string key, string text, MatchCollection words, Func<string, bool>? predicate, bool? supported,
+        bool[]? ignoredOffsets = null)
     {
         if (predicate == null || supported != true)
             return new ProseStyleFinding { Key = key, Supported = false };
@@ -339,6 +343,8 @@ public static partial class ProseStyleAnalyzer
         foreach (Match w in words)
         {
             if (!predicate(w.Value.ToLowerInvariant()))
+                continue;
+            if (ignoredOffsets != null && IsInside(w.Index, ignoredOffsets))
                 continue;
 
             count++;
@@ -359,6 +365,29 @@ public static partial class ProseStyleAnalyzer
             Examples = hits
         };
     }
+
+    /// <summary>A constant-time lookup of which character offsets are quoted
+    /// speech. The mask is empty when there is no dialogue, avoiding a
+    /// manuscript-sized allocation for narration-only work.</summary>
+    private static bool[] BuildDialogueMask(string text)
+    {
+        var spans = Utilities.DialogueScanner.QuoteRegex.Matches(text);
+        if (spans.Count == 0)
+            return [];
+
+        var mask = new bool[text.Length];
+        foreach (Match span in spans)
+            Array.Fill(mask, true, span.Index, span.Length);
+        return mask;
+    }
+
+    private static bool IsInside(int offset, bool[] mask)
+        => mask.Length > 0 && mask[offset];
+
+    /// <summary>Passive candidates cannot cross a quoted run either: words on
+    /// opposite sides of a line of speech are not one grammatical phrase.</summary>
+    private static bool IntersectsDialogue(int offset, int length, bool[] mask)
+        => mask.Length > 0 && Array.IndexOf(mask, true, offset, length) >= 0;
 
     private static Func<string, bool>? SetMatcher(IReadOnlyList<string>? list)
     {
@@ -388,7 +417,8 @@ public static partial class ProseStyleAnalyzer
     /// miss when the writer cannot argue with it.
     /// </summary>
     private static ProseStyleFinding PassiveFinding(
-        string text, List<Sentence> sentences, int wordCount, SceneAnalysisLexicon? lexicon)
+        string text, List<Sentence> sentences, int wordCount, SceneAnalysisLexicon? lexicon,
+        bool[] dialogueMask)
     {
         if (lexicon == null || lexicon.PassiveAuxiliaries.Count == 0)
             return new ProseStyleFinding { Key = "passiveVoice", Supported = false };
@@ -405,21 +435,27 @@ public static partial class ProseStyleAnalyzer
                 if (!auxiliaries.Contains(words[i].Value.ToLowerInvariant()))
                     continue;
 
+                var auxiliaryOffset = sentence.Offset + words[i].Index;
+                if (IsInside(auxiliaryOffset, dialogueMask))
+                    continue;
+
                 for (var j = i + 1; j < Math.Min(i + 3, words.Count); j++)
                 {
                     if (!LooksLikeParticiple(words[j].Value.ToLowerInvariant()))
                         continue;
 
+                    var length = words[j].Index + words[j].Length - words[i].Index;
+                    if (IntersectsDialogue(auxiliaryOffset, length, dialogueMask))
+                        continue;
+
                     count++;
                     if (hits.Count < MaxExamples)
                     {
-                        var offset = sentence.Offset + words[i].Index;
-                        var length = words[j].Index + words[j].Length - words[i].Index;
                         hits.Add(new ProseStyleHit
                         {
                             Text = sentence.Text[words[i].Index..(words[j].Index + words[j].Length)],
-                            Offset = offset,
-                            Context = Context(text, offset, length)
+                            Offset = auxiliaryOffset,
+                            Context = Context(text, auxiliaryOffset, length)
                         });
                     }
                     break;

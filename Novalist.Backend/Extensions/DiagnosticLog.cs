@@ -12,12 +12,28 @@ internal static class Log
     internal static bool Verbose { get; set; } =
         Environment.GetEnvironmentVariable("NOVALIST_VERBOSE") == "1";
 
-    internal static LogFileSink? SinkOverride { get; set; }
+    private static readonly object StateGate = new();
+    private static LogFileSink? _sinkOverride;
 
     private static LogFileSink? _sink;
-    private static volatile bool _fileEnabled;
+    private static bool _fileEnabled;
 
-    private static LogFileSink Sink => SinkOverride ?? (_sink ??= new LogFileSink());
+    internal static void SetSinkOverride(LogFileSink? sink)
+    {
+        lock (StateGate)
+            _sinkOverride = sink;
+    }
+
+    private static LogFileSink Sink
+    {
+        get
+        {
+            lock (StateGate)
+                return SinkUnsafe();
+        }
+    }
+
+    private static LogFileSink SinkUnsafe() => _sinkOverride ?? (_sink ??= new LogFileSink());
 
     internal static string LogDirectory => Sink.Directory;
     internal static string CurrentLogPath => Sink.CurrentLogPath;
@@ -28,16 +44,27 @@ internal static class Log
     {
         var root = settingsDirectory ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Novalist");
-        SetDirectory(Path.Combine(root, "logs"));
-        EnableFileLogging(ReadEnabled(Path.Combine(root, "settings.json")));
+        var enabled = ReadEnabled(Path.Combine(root, "settings.json"));
+        lock (StateGate)
+        {
+            _sink = new LogFileSink(Path.Combine(root, "logs"));
+            _fileEnabled = enabled;
+        }
     }
 
-    internal static void SetDirectory(string directory) => _sink = new LogFileSink(directory);
+    internal static void SetDirectory(string directory)
+    {
+        lock (StateGate)
+            _sink = new LogFileSink(directory);
+    }
 
     internal static void EnableFileLogging(bool enabled)
     {
-        if (enabled) _ = Sink;
-        _fileEnabled = enabled;
+        lock (StateGate)
+        {
+            if (enabled) _ = SinkUnsafe();
+            _fileEnabled = enabled;
+        }
     }
 
     internal static int ClearLogFiles() => Sink.Clear();
@@ -60,7 +87,14 @@ internal static class Log
 
     private static void ToFile(string line)
     {
-        if (_fileEnabled) Sink.Write(LogRedactor.Scrub(line));
+        LogFileSink? sink;
+        lock (StateGate)
+        {
+            if (!_fileEnabled) return;
+            sink = SinkUnsafe();
+        }
+
+        sink.Write(LogRedactor.Scrub(line));
     }
 
     public static void Debug(string message)
@@ -88,7 +122,13 @@ internal static class Log
 
     public static void Error(string message, Exception? exception = null)
     {
-        var line = exception == null ? $"[ERROR] {message}" : $"[ERROR] {message} :: {exception}";
+        // Exception.Message and Exception.ToString() routinely contain paths,
+        // document titles, snippets of malformed input, and other user data.
+        // The diagnostic log only needs the failure's shape; callers add the
+        // content-free operation/stage beside it.
+        var line = exception == null
+            ? $"[ERROR] {message}"
+            : $"[ERROR] {message} :: type={exception.GetType().FullName}";
         System.Diagnostics.Debug.WriteLine(line);
         Console.Error.WriteLine(line);
         ToFile(line);

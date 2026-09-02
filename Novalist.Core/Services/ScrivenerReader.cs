@@ -174,6 +174,21 @@ public sealed class ScrivenerProject
 }
 
 /// <summary>
+/// A content-safe explanation of why a Scrivener project could not be read.
+/// Stage and reason are parser-owned constants. <see cref="Detail"/> is a
+/// parser-owned explanation rather than the raw exception message; XML
+/// failures also carry their parser-reported line and position.
+/// </summary>
+public sealed record ScrivenerReadDiagnostic(
+    string Stage,
+    string Reason,
+    string ExceptionType = "",
+    string Detail = "",
+    int LineNumber = 0,
+    int LinePosition = 0,
+    int ErrorCode = 0);
+
+/// <summary>
 /// Reads a Scrivener project folder.
 ///
 /// Both layouts are handled because both are in the wild: Scrivener 2 numbers
@@ -201,6 +216,9 @@ public static class ScrivenerReader
     /// <summary>The extension a Scrivener project folder carries.</summary>
     public const string ProjectExtension = ".scriv";
 
+    /// <summary>The extension of the binder manifest inside a project.</summary>
+    public const string BinderExtension = ".scrivx";
+
     /// <summary>The chapter a draft document lands in when the binder gave it
     /// no folder of its own.</summary>
     public const string DefaultChapterTitle = "Imported";
@@ -220,7 +238,7 @@ public static class ScrivenerReader
         if (string.IsNullOrWhiteSpace(path)) return false;
         if (Directory.Exists(path))
             return Path.GetExtension(path).Equals(ProjectExtension, StringComparison.OrdinalIgnoreCase);
-        return Path.GetExtension(path).Equals(".scrivx", StringComparison.OrdinalIgnoreCase);
+        return Path.GetExtension(path).Equals(BinderExtension, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -228,7 +246,7 @@ public static class ScrivenerReader
     /// anything unreadable: an import that cannot start should say so in the
     /// dialog, not crash the app.
     /// </summary>
-    public static ScrivenerProject Read(string path) => Read(path, null);
+    public static ScrivenerProject Read(string path) => Read(path, null, null);
 
     /// <summary>
     /// Reads a project, sending the binder rows named in <paramref name="mapping"/>
@@ -240,10 +258,21 @@ public static class ScrivenerReader
     /// </summary>
     public static ScrivenerProject Read(
         string path, IReadOnlyDictionary<string, ScrivenerDestination>? mapping)
+        => Read(path, mapping, null);
+
+    /// <summary>
+    /// Reads a project and reports content-safe failure details to
+    /// <paramref name="diagnostic"/>. Raw exception messages never reach the
+    /// callback because XML errors can repeat user-authored element names.
+    /// </summary>
+    public static ScrivenerProject Read(
+        string path,
+        IReadOnlyDictionary<string, ScrivenerDestination>? mapping,
+        Action<ScrivenerReadDiagnostic>? diagnostic)
     {
         try
         {
-            var opened = Open(path);
+            var opened = Open(path, diagnostic);
             if (opened == null) return new ScrivenerProject();
 
             var (_, binder, ctx) = opened.Value;
@@ -259,7 +288,7 @@ public static class ScrivenerReader
                     DestinationOf(item, draft, ctx, mapping, inherited: null), depth: 0);
             }
 
-            return new ScrivenerProject
+            var project = new ScrivenerProject
             {
                 Scenes = ctx.Scenes,
                 Entities = ctx.Entities,
@@ -268,10 +297,14 @@ public static class ScrivenerReader
                 Version = ctx.Version,
                 Losses = [.. ctx.Losses.Distinct(StringComparer.Ordinal)]
             };
+            if (project.IsEmpty)
+                Report(diagnostic, "read", "no-importable-content");
+            return project;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
             or System.Xml.XmlException)
         {
+            Report(diagnostic, "content", "read-failed", ex);
             return new ScrivenerProject();
         }
     }
@@ -285,63 +318,247 @@ public static class ScrivenerReader
     /// dialog shows as a project it could not read rather than as an error.
     /// </summary>
     public static IReadOnlyList<ScrivenerBinderRow> Outline(string path)
+        => Outline(path, null);
+
+    /// <summary>Reads the redirectable binder rows and reports content-free
+    /// failure details through <paramref name="diagnostic"/>.</summary>
+    public static IReadOnlyList<ScrivenerBinderRow> Outline(
+        string path, Action<ScrivenerReadDiagnostic>? diagnostic)
     {
-        try
+        var opened = Open(path, diagnostic);
+        if (opened == null) return [];
+
+        var (_, binder, ctx) = opened.Value;
+        var top = binder.Elements("BinderItem").ToList();
+        if (top.Count == 0)
         {
-            var opened = Open(path);
-            if (opened == null) return [];
-
-            var (_, binder, ctx) = opened.Value;
-            var top = binder.Elements("BinderItem").ToList();
-            var draft = top.FirstOrDefault(i => TypeOf(i) == DraftFolder);
-            var rows = new List<ScrivenerBinderRow>();
-
-            foreach (var item in top)
-            {
-                var destination = DestinationOf(item, draft, ctx, mapping: null, inherited: null);
-                var children = ChildrenOf(item);
-                rows.Add(new ScrivenerBinderRow(
-                    KeyOf(item, ctx), TitleOf(item), 0, destination,
-                    DocumentsIn(item), children.Count > 0));
-
-                foreach (var child in children)
-                {
-                    rows.Add(new ScrivenerBinderRow(
-                        KeyOf(child, ctx),
-                        TitleOf(child),
-                        1,
-                        DestinationOf(child, draft, ctx, mapping: null, inherited: destination),
-                        DocumentsIn(child),
-                        ChildrenOf(child).Count > 0));
-                }
-            }
-
-            return rows;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
-            or System.Xml.XmlException)
-        {
+            Report(diagnostic, "binder", "empty");
             return [];
         }
+
+        var draft = top.FirstOrDefault(i => TypeOf(i) == DraftFolder);
+        var rows = new List<ScrivenerBinderRow>();
+
+        foreach (var item in top)
+        {
+            var destination = DestinationOf(item, draft, ctx, mapping: null, inherited: null);
+            var children = ChildrenOf(item);
+            rows.Add(new ScrivenerBinderRow(
+                KeyOf(item, ctx), TitleOf(item), 0, destination,
+                DocumentsIn(item), children.Count > 0));
+
+            foreach (var child in children)
+            {
+                rows.Add(new ScrivenerBinderRow(
+                    KeyOf(child, ctx),
+                    TitleOf(child),
+                    1,
+                    DestinationOf(child, draft, ctx, mapping: null, inherited: destination),
+                    DocumentsIn(child),
+                    ChildrenOf(child).Count > 0));
+            }
+        }
+
+        return rows;
     }
 
     /// <summary>Opens the project's binder, or null when there is nothing to read.</summary>
-    private static (XDocument Document, XElement Binder, Context Context)? Open(string path)
+    private static (XDocument Document, XElement Binder, Context Context)? Open(
+        string path, Action<ScrivenerReadDiagnostic>? diagnostic)
     {
-        var root = ResolveRoot(path);
-        if (root == null) return null;
+        try
+        {
+            var root = ResolveRoot(path);
+            if (root == null)
+            {
+                Report(diagnostic, "path", "not-found");
+                return null;
+            }
 
-        var scrivx = Directory.EnumerateFiles(root, "*.scrivx").FirstOrDefault();
-        if (scrivx == null) return null;
+            var resolvedBinder = ResolveBinderFile(path, root);
+            var scrivx = resolvedBinder.Path;
+            if (scrivx == null)
+            {
+                Report(diagnostic, "manifest", resolvedBinder.FailureReason);
+                return null;
+            }
 
-        var document = XDocument.Load(scrivx);
-        var binder = document.Descendants("Binder").FirstOrDefault();
-        if (binder == null) return null;
+            XDocument document;
+            try
+            {
+                document = LoadXml(scrivx);
+            }
+            catch (System.Xml.XmlException ex)
+            {
+                Report(diagnostic, "manifest", "invalid-xml", ex);
+                return null;
+            }
 
-        // Scrivener 3 keeps documents under Files/Data; Scrivener 2 under
-        // Files/Docs. Which folder exists is what tells them apart.
-        var version = Directory.Exists(Path.Combine(root, "Files", "Data")) ? "3" : "2";
-        return (document, binder, new Context(root, version, document));
+            var binder = document.Descendants("Binder").FirstOrDefault();
+            if (binder == null)
+            {
+                Report(diagnostic, "binder", "not-found");
+                return null;
+            }
+
+            // Scrivener itself uses these exact names, but a project produced
+            // under Wine can live on a case-sensitive Linux filesystem after
+            // travelling through sync or archive tools. Resolve every package
+            // component without assuming its casing survived that trip.
+            var files = FindDirectory(root, "Files");
+            var data = FindDirectory(files, "Data");
+            var docs = FindDirectory(files, "Docs");
+
+            // Scrivener 3 keys binder entries and Data folders by UUID;
+            // Scrivener 2 uses numeric IDs under Docs. The binder attributes are
+            // the fallback when only the .scrivx was copied and no payload
+            // directory is present yet.
+            var version = data != null || (docs == null
+                && binder.Descendants("BinderItem").Any(i => UuidOf(i).Length > 0))
+                ? "3"
+                : "2";
+            return (document, binder, new Context(files, data, docs, version, document));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Report(diagnostic, "package", "access-failed", ex);
+            return null;
+        }
+        catch (System.Xml.XmlException ex)
+        {
+            Report(diagnostic, "supporting-files", "invalid-xml", ex);
+            return null;
+        }
+    }
+
+    /// <summary>The manifest the caller selected, or the best manifest in a
+    /// selected project folder. Selecting a .scrivx must use that exact file:
+    /// choosing an arbitrary sibling made conflict copies and adjacent projects
+    /// import the wrong binder. When a folder contains several manifests and
+    /// none matches its folder name, guessing would have the same failure mode,
+    /// so the ambiguity is reported instead.</summary>
+    private static (string? Path, string FailureReason) ResolveBinderFile(
+        string path,
+        string root)
+    {
+        if (File.Exists(path))
+            return Path.GetExtension(path).Equals(BinderExtension, StringComparison.OrdinalIgnoreCase)
+                ? (path, string.Empty)
+                : (null, "not-found");
+
+        var candidates = Directory.EnumerateFiles(root)
+            .Where(file => Path.GetExtension(file).Equals(
+                BinderExtension, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (candidates.Count == 0)
+            return (null, "not-found");
+
+        var expected = Path.GetFileNameWithoutExtension(
+            Path.TrimEndingDirectorySeparator(root)) + BinderExtension;
+        var matching = candidates
+            .Where(file => Path.GetFileName(file).Equals(
+                expected, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        if (matching.Count == 1)
+            return (matching[0], string.Empty);
+        if (matching.Count == 0 && candidates.Count == 1)
+            return (candidates[0], string.Empty);
+        return (null, "ambiguous");
+    }
+
+    private static XDocument LoadXml(string path)
+    {
+        var document = XDocument.Load(path);
+        // Scrivener's manifests are normally unnamespaced. Some XML tools add
+        // a default namespace while copying or repairing one; local names still
+        // carry the complete Scrivener vocabulary, so tolerate that harmless
+        // wrapper rather than reporting an empty project.
+        foreach (var element in document.Descendants().Where(e => e.Name.NamespaceName.Length > 0))
+            element.Name = element.Name.LocalName;
+        return document;
+    }
+
+    private static string? FindDirectory(string? parent, string name)
+    {
+        if (parent == null || !Directory.Exists(parent)) return null;
+        var exact = Path.Combine(parent, name);
+        return Directory.Exists(exact) ? exact : Directory.EnumerateDirectories(parent).FirstOrDefault(path => Path.GetFileName(path).Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string? FindFile(string? parent, string name)
+    {
+        if (parent == null || !Directory.Exists(parent)) return null;
+        var exact = Path.Combine(parent, name);
+        return File.Exists(exact) ? exact : Directory.EnumerateFiles(parent).FirstOrDefault(path => Path.GetFileName(path).Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static void Report(
+        Action<ScrivenerReadDiagnostic>? diagnostic,
+        string stage,
+        string reason,
+        string exceptionType = "")
+        => diagnostic?.Invoke(new ScrivenerReadDiagnostic(stage, reason, exceptionType));
+
+    private static void Report(
+        Action<ScrivenerReadDiagnostic>? diagnostic,
+        string stage,
+        string reason,
+        Exception exception)
+    {
+        var xml = exception as System.Xml.XmlException;
+        diagnostic?.Invoke(new ScrivenerReadDiagnostic(
+            stage,
+            reason,
+            exception.GetType().Name,
+            SafeExceptionDetail(exception),
+            xml?.LineNumber ?? 0,
+            xml?.LinePosition ?? 0,
+            exception.HResult));
+    }
+
+    /// <summary>
+    /// Converts runtime wording into a useful fixed explanation. Raw XML
+    /// messages are not safe to redact heuristically: an unexpected-EOF error
+    /// can list every still-open element without quoting any of their names.
+    /// </summary>
+    internal static string SafeExceptionDetail(Exception exception)
+    {
+        if (exception is UnauthorizedAccessException)
+            return "The operating system denied access to a project file.";
+        if (exception is IOException)
+            return "The operating system could not read a project file; it may be locked or unavailable.";
+        if (exception is not System.Xml.XmlException xml)
+            return "The project could not be read.";
+
+        var message = xml.Message.ToLowerInvariant();
+        if (message.Contains("unexpected end of file", StringComparison.Ordinal))
+            return "The XML ended before one or more elements were closed.";
+        if (message.Contains("does not match the end tag", StringComparison.Ordinal))
+            return "An XML start tag does not match its end tag.";
+        if (message.Contains("undeclared entity", StringComparison.Ordinal))
+            return "The XML references an entity that was not declared.";
+        if (message.Contains("undeclared prefix", StringComparison.Ordinal))
+            return "The XML uses a namespace prefix that was not declared.";
+        if (message.Contains("root element is missing", StringComparison.Ordinal))
+            return "The XML root element is missing.";
+        if (message.Contains("multiple root elements", StringComparison.Ordinal))
+            return "The XML contains more than one root element.";
+        if (message.Contains("data at the root level is invalid", StringComparison.Ordinal))
+            return "Data at the XML root is invalid.";
+        if (message.Contains("name cannot begin", StringComparison.Ordinal)
+            || message.Contains("name was started with an invalid", StringComparison.Ordinal))
+            return "An XML name begins with a character XML does not allow.";
+        if (message.Contains("invalid character", StringComparison.Ordinal)
+            || message.Contains("cannot be included in a name", StringComparison.Ordinal))
+            return "The XML contains a character XML does not allow.";
+        if (message.Contains("dtd is prohibited", StringComparison.Ordinal))
+            return "The XML contains a DTD, which this parser does not allow.";
+        if (message.Contains("unclosed literal string", StringComparison.Ordinal))
+            return "The XML contains an unterminated quoted value.";
+        if (message.Contains("unexpected token", StringComparison.Ordinal))
+            return "The XML contains an unexpected token.";
+        return "The XML parser rejected the document; source-specific details were redacted.";
     }
 
     private static List<XElement> ChildrenOf(XElement item)
@@ -815,7 +1032,9 @@ public static class ScrivenerReader
         if (ctx.Version == "3")
         {
             var uuid = UuidOf(item);
-            return uuid.Length == 0 ? null : Path.Combine(ctx.Root, "Files", "Data", uuid, name3);
+            if (uuid.Length == 0) return null;
+            var folder = FindDirectory(ctx.DataRoot, uuid);
+            return FindFile(folder, name3);
         }
 
         var id = ((string?)item.Attribute("ID") ?? string.Empty).Trim();
@@ -823,7 +1042,7 @@ public static class ScrivenerReader
 
         // Files/Docs/12.rtf, 12_notes.rtf, 12_synopsis.txt - and 12.pdf for an
         // imported file, which keeps its own extension rather than taking a suffix.
-        return Path.Combine(ctx.Root, "Files", "Docs", id + suffix2);
+        return FindFile(ctx.DocsRoot, id + suffix2);
     }
 
     /// <summary>An RTF document's plain text, semantic editor HTML and Markdown.
@@ -841,7 +1060,9 @@ public static class ScrivenerReader
         var paragraphs = ScrivenerFormatting.Apply(
             document.Paragraphs,
             ctx.Styles,
-            ReadStyleIds(Path.ChangeExtension(file, ".styles")));
+            ReadStyleIds(FindFile(
+                Path.GetDirectoryName(file),
+                Path.GetFileNameWithoutExtension(file) + ".styles")));
         return new RichContent(
             ImportedRichText.ToPlainText(paragraphs),
             ImportedRichText.ToHtml(paragraphs),
@@ -849,8 +1070,8 @@ public static class ScrivenerReader
             paragraphs);
     }
 
-    private static IReadOnlyList<string> ReadStyleIds(string path)
-        => File.Exists(path)
+    private static IReadOnlyList<string> ReadStyleIds(string? path)
+        => path != null && File.Exists(path)
             ? File.ReadAllText(path)
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             : [];
@@ -1061,9 +1282,15 @@ public static class ScrivenerReader
         private readonly Dictionary<string, string> _statuses;
         private readonly Dictionary<string, int> _scenePositions = new(StringComparer.Ordinal);
 
-        public Context(string root, string version, XDocument document)
+        public Context(
+            string? filesRoot,
+            string? dataRoot,
+            string? docsRoot,
+            string version,
+            XDocument document)
         {
-            Root = root;
+            DataRoot = dataRoot;
+            DocsRoot = docsRoot;
             Version = version;
             TemplateFolderUuid = (document.Descendants("TemplateFolderUUID").FirstOrDefault()
                 ?.Value ?? string.Empty).Trim();
@@ -1071,7 +1298,7 @@ public static class ScrivenerReader
             _statuses = NamesById(document, "StatusSettings", "Status");
             CustomFields = ReadCustomFields(document);
             _customIds = [.. CustomFields.Select(f => f.Id)];
-            Styles = ReadStyles(root);
+            Styles = ReadStyles(filesRoot);
         }
 
         private readonly HashSet<string> _customIds;
@@ -1116,14 +1343,14 @@ public static class ScrivenerReader
             return fields;
         }
 
-        private static IReadOnlyDictionary<string, ScrivenerStyleInfo> ReadStyles(string root)
+        private static IReadOnlyDictionary<string, ScrivenerStyleInfo> ReadStyles(string? filesRoot)
         {
-            var path = Path.Combine(root, "Files", "styles.xml");
-            if (!File.Exists(path))
+            var path = FindFile(filesRoot, "styles.xml");
+            if (path == null || !File.Exists(path))
                 return new Dictionary<string, ScrivenerStyleInfo>(StringComparer.Ordinal);
 
             var result = new Dictionary<string, ScrivenerStyleInfo>(StringComparer.Ordinal);
-            var document = XDocument.Load(path);
+            var document = LoadXml(path);
             foreach (var style in document.Descendants("Style"))
             {
                 var id = ((string?)style.Attribute("ID") ?? string.Empty).Trim();
@@ -1167,7 +1394,8 @@ public static class ScrivenerReader
             return result;
         }
 
-        public string Root { get; }
+        public string? DataRoot { get; }
+        public string? DocsRoot { get; }
         public string Version { get; }
         public string TemplateFolderUuid { get; }
 

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Novalist.Backend.Extensions;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
 using StreamJsonRpc;
@@ -23,7 +25,9 @@ public sealed class ManuscriptImportRpc
     /// <summary>File extensions the importer can read.</summary>
     [JsonRpcMethod("manuscriptImport/formats")]
     public string[] Formats()
-        => [.. ManuscriptReader.SupportedExtensions, ScrivenerReader.ProjectExtension];
+        => [.. ManuscriptReader.SupportedExtensions,
+            ScrivenerReader.ProjectExtension,
+            ScrivenerReader.BinderExtension];
 
     /// <summary>
     /// What importing this file would create. Reads and splits without writing
@@ -32,22 +36,114 @@ public sealed class ManuscriptImportRpc
     [JsonRpcMethod("manuscriptImport/preview")]
     public ImportPlanDto Preview(string path, ImportMappingDto[]? mapping = null)
     {
+        var started = Stopwatch.GetTimestamp();
+        var source = SourceShape(path);
+        var extension = SourceExtension(path);
+        var isScrivener = ScrivenerReader.LooksLikeScrivener(path);
+        Log.Info(
+            $"manuscriptImport/preview start source={source} extension={extension} " +
+            $"scrivener={isScrivener} mapping={mapping?.Length ?? 0}.");
+
+        ImportPlanDto plan;
         // A Scrivener project is a folder rather than a file, and its binder
         // already says where the chapters are - so it never goes through the
         // heading-guessing splitter.
-        if (ScrivenerReader.LooksLikeScrivener(path))
+        if (isScrivener)
         {
             var chosen = MappingFrom(mapping);
-            return ScrivenerPlan(
-                ScrivenerReader.Read(path, chosen),
+            // Read and Outline both open the package. The same parse failure is
+            // one diagnostic event, not two identical warnings a millisecond
+            // apart.
+            var diagnostics = new HashSet<ScrivenerReadDiagnostic>();
+            void Diagnostic(ScrivenerReadDiagnostic diagnostic)
+            {
+                if (diagnostics.Add(diagnostic))
+                    LogScrivenerDiagnostic("preview", diagnostic);
+            }
+            plan = ScrivenerPlan(
+                ScrivenerReader.Read(path, chosen, Diagnostic),
                 // The rows are what the rules found, so the dialog can offer the
                 // writer's choice over the top of them without a second read of
                 // the binder deciding something different.
-                ScrivenerReader.Outline(path),
+                ScrivenerReader.Outline(path, Diagnostic),
                 chosen);
         }
+        else
+        {
+            plan = ToDto(ManuscriptSplitter.Split(ManuscriptReader.Read(path)));
+        }
 
-        return ToDto(ManuscriptSplitter.Split(ManuscriptReader.Read(path)));
+        LogPreview(plan, source, extension, isScrivener, mapping?.Length ?? 0, started);
+        return plan;
+    }
+
+    /// <summary>The path's existence shape, never the path or its name.</summary>
+    private static string SourceShape(string path)
+        => Directory.Exists(path) ? "directory" : File.Exists(path) ? "file" : "missing";
+
+    /// <summary>
+    /// A known input extension is useful when a Linux file picker supplies the
+    /// binder file instead of its package folder. Unknown extensions are
+    /// collapsed so a writer-created suffix cannot become diagnostic content.
+    /// </summary>
+    private static string SourceExtension(string path)
+    {
+        var extension = Path.GetExtension(path).ToLowerInvariant();
+        if (extension == ScrivenerReader.BinderExtension
+            || extension == ScrivenerReader.ProjectExtension
+            || ManuscriptReader.SupportedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+            return extension;
+        return extension.Length == 0 ? "none" : "other";
+    }
+
+    private static void LogPreview(
+        ImportPlanDto plan,
+        string source,
+        string extension,
+        bool isScrivener,
+        int mappingCount,
+        long started)
+    {
+        var line =
+            $"manuscriptImport/preview {(HasSomething(plan) ? "complete" : "empty")} " +
+            $"source={source} extension={extension} scrivener={isScrivener} mapping={mappingCount} " +
+            $"format={(plan.Format.Length > 0 ? plan.Format : "unknown")} " +
+            $"chapters={plan.ChapterCount} scenes={plan.SceneCount} words={plan.WordCount} " +
+            $"characters={plan.CharacterCount} locations={plan.LocationCount} " +
+            $"research={plan.ResearchCount} targets={plan.Targets.Length} losses={plan.Losses.Length} " +
+            $"durationMs={Stopwatch.GetElapsedTime(started).TotalMilliseconds:F0}.";
+        if (HasSomething(plan)) Log.Info(line);
+        else Log.Warn(line);
+    }
+
+    private static bool HasSomething(ImportPlanDto plan)
+        => plan.ChapterCount > 0
+            || plan.CharacterCount > 0
+            || plan.LocationCount > 0
+            || plan.ResearchCount > 0;
+
+    /// <summary>
+    /// Parser-owned stage/reason values, exception types and fixed diagnostic
+    /// details are safe to record. Raw runtime messages never reach this layer.
+    /// </summary>
+    private static void LogScrivenerDiagnostic(
+        string operation,
+        ScrivenerReadDiagnostic diagnostic)
+    {
+        var location = diagnostic.LineNumber > 0
+            ? $" line={diagnostic.LineNumber} position={diagnostic.LinePosition}"
+            : string.Empty;
+        var detail = diagnostic.Detail.Length > 0
+            ? $" message=\"{diagnostic.Detail}\""
+            : string.Empty;
+        var code = diagnostic.ErrorCode != 0
+            ? $" code=0x{unchecked((uint)diagnostic.ErrorCode):X8}"
+            : string.Empty;
+        Log.Warn(
+            $"manuscriptImport/{operation} scrivener stage={diagnostic.Stage} " +
+            $"reason={diagnostic.Reason} " +
+            $"type={(diagnostic.ExceptionType.Length > 0 ? diagnostic.ExceptionType : "none")}" +
+            $"{location}{code}{detail}.");
     }
 
     /// <summary>The writer's choices, by binder key. Null when they have made
@@ -229,34 +325,101 @@ public sealed class ManuscriptImportRpc
     [JsonRpcMethod("manuscriptImport/run")]
     public async Task<ImportResultDto> RunAsync(string path, ImportMappingDto[]? mapping = null)
     {
-        if (_workspace.Projects.ActiveBook == null)
-            throw new InvalidOperationException("No project open.");
-
-        if (ScrivenerReader.LooksLikeScrivener(path))
-            return await RunScrivenerAsync(ScrivenerReader.Read(path, MappingFrom(mapping)));
-
-        var plan = ManuscriptSplitter.Split(ManuscriptReader.Read(path));
-        if (plan.IsEmpty)
-            return new ImportResultDto(0, 0, 0, 0, 0, 0);
-
-        var chapters = 0;
-        var scenes = 0;
-
-        foreach (var importedChapter in plan.Chapters)
+        var started = Stopwatch.GetTimestamp();
+        var source = SourceShape(path);
+        var extension = SourceExtension(path);
+        var isScrivener = false;
+        var stage = "validate";
+        try
         {
-            var chapter = await _workspace.Projects.CreateChapterAsync(importedChapter.Title);
-            chapters++;
+            if (_workspace.Projects.ActiveBook == null)
+                throw new InvalidOperationException("No project open.");
 
-            foreach (var importedScene in importedChapter.Scenes)
+            stage = "detect";
+            isScrivener = ScrivenerReader.LooksLikeScrivener(path);
+            Log.Info(
+                $"manuscriptImport/run start source={source} extension={extension} " +
+                $"scrivener={isScrivener} mapping={mapping?.Length ?? 0}.");
+
+            ImportResultDto result;
+            if (isScrivener)
             {
-                var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, importedScene.Title);
-                await _workspace.WriteSceneAsync(
-                    chapter.Guid, scene.Id, importedScene.Html, PlainTextOf(importedScene.Html));
-                scenes++;
+                stage = "read-scrivener";
+                var project = ScrivenerReader.Read(
+                    path,
+                    MappingFrom(mapping),
+                    diagnostic => LogScrivenerDiagnostic("run", diagnostic));
+                result = await RunScrivenerAsync(project, next => stage = next);
             }
-        }
+            else
+            {
+                stage = "read-manuscript";
+                var plan = ManuscriptSplitter.Split(ManuscriptReader.Read(path));
+                if (plan.IsEmpty)
+                {
+                    result = new ImportResultDto(0, 0, 0, 0, 0, 0);
+                }
+                else
+                {
+                    stage = "write-manuscript";
+                    var chapters = 0;
+                    var scenes = 0;
 
-        return new ImportResultDto(chapters, scenes, plan.WordCount, 0, 0, 0);
+                    foreach (var importedChapter in plan.Chapters)
+                    {
+                        var chapter = await _workspace.Projects.CreateChapterAsync(importedChapter.Title);
+                        chapters++;
+
+                        foreach (var importedScene in importedChapter.Scenes)
+                        {
+                            var scene = await _workspace.Projects.CreateSceneAsync(
+                                chapter.Guid, importedScene.Title);
+                            await _workspace.WriteSceneAsync(
+                                chapter.Guid, scene.Id, importedScene.Html, PlainTextOf(importedScene.Html));
+                            scenes++;
+                        }
+                    }
+
+                    result = new ImportResultDto(chapters, scenes, plan.WordCount, 0, 0, 0);
+                }
+            }
+
+            LogRun(result, source, extension, isScrivener, mapping?.Length ?? 0, started);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(
+                $"manuscriptImport/run failed stage={stage} source={source} extension={extension} " +
+                $"scrivener={isScrivener} mapping={mapping?.Length ?? 0} " +
+                $"type={ex.GetType().FullName} " +
+                $"durationMs={Stopwatch.GetElapsedTime(started).TotalMilliseconds:F0}.");
+            throw;
+        }
+    }
+
+    private static void LogRun(
+        ImportResultDto result,
+        string source,
+        string extension,
+        bool isScrivener,
+        int mappingCount,
+        long started)
+    {
+        var empty = result.Chapters == 0
+            && result.Scenes == 0
+            && result.Characters == 0
+            && result.Locations == 0
+            && result.Research == 0;
+        var line =
+            $"manuscriptImport/run {(empty ? "empty" : "complete")} source={source} " +
+            $"extension={extension} scrivener={isScrivener} mapping={mappingCount} " +
+            $"chapters={result.Chapters} scenes={result.Scenes} words={result.Words} " +
+            $"characters={result.Characters} locations={result.Locations} research={result.Research} " +
+            $"drafts={result.Drafts} books={result.Books} " +
+            $"durationMs={Stopwatch.GetElapsedTime(started).TotalMilliseconds:F0}.";
+        if (empty) Log.Warn(line);
+        else Log.Info(line);
     }
 
     /// <summary>
@@ -269,10 +432,13 @@ public sealed class ManuscriptImportRpc
     /// the scene is exported. Character and setting sketches become Codex
     /// entries; everything else that carried content becomes research.
     /// </summary>
-    private async Task<ImportResultDto> RunScrivenerAsync(ScrivenerProject project)
+    private async Task<ImportResultDto> RunScrivenerAsync(
+        ScrivenerProject project,
+        Action<string> setStage)
     {
         if (project.IsEmpty) return new ImportResultDto(0, 0, 0, 0, 0, 0);
 
+        setStage("prepare-scrivener");
         var projects = _workspace.Projects;
         // Where to come back to. A folder sent to a draft or a book of its own is
         // filled by going there and returning, because chapters are only ever
@@ -289,6 +455,7 @@ public sealed class ManuscriptImportRpc
 
         foreach (var target in GroupTargets(project))
         {
+            setStage($"write-{target.Kind.ToString().ToLowerInvariant()}");
             switch (target.Kind)
             {
                 case ScrivenerTargetKind.Draft:
@@ -324,9 +491,12 @@ public sealed class ManuscriptImportRpc
 
         // The Codex is the active book's and research is the project's, so both
         // land where the writer was rather than in whatever was created.
+        setStage("write-entities");
         var (characters, locations) = await ImportEntitiesAsync(project);
+        setStage("write-research");
         var research = await ImportResearchAsync(project);
 
+        setStage("save-project");
         await projects.SaveScenesAsync();
         await projects.SaveProjectAsync();
         return new ImportResultDto(

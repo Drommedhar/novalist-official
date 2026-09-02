@@ -65,7 +65,8 @@ public class CanvasServiceTests
         created.Cards.Add(new CanvasCard { Id = "c2", Title = "Other" });
         created.Connectors.Add(new CanvasConnector
         {
-            Id = "k1", FromCardId = "c1", ToCardId = "c2", Label = "because of"
+            Id = "k1", FromCardId = "c1", ToCardId = "c2", Label = "because of",
+            FromSide = "right", ToSide = "left"
         });
         await sut.SaveAsync(created);
 
@@ -76,6 +77,36 @@ public class CanvasServiceTests
         Assert.Equal("A thought", loaded.Cards[0].Text);
         Assert.Equal(10, loaded.Cards[0].X);
         Assert.Equal("because of", loaded.Connectors[0].Label);
+        Assert.Equal("right", loaded.Connectors[0].FromSide);
+        Assert.Equal("left", loaded.Connectors[0].ToSide);
+    }
+
+    [Fact]
+    public async Task Load_ConnectorWrittenBeforeEdgeHandles_UsesEmptySides()
+    {
+        var (sut, _, files, _) = Build();
+        var created = await sut.CreateAsync("Board");
+        await files.WriteTextAsync(
+            files.CombinePath(sut.GetCanvasRoot(), $"{created.Id}.json"),
+            $$"""
+            {
+              "id": "{{created.Id}}",
+              "name": "Board",
+              "cards": [],
+              "connectors": [
+                { "id": "old", "fromCardId": "a", "toCardId": "b", "label": "legacy" }
+              ],
+              "panX": 0,
+              "panY": 0,
+              "zoom": 1
+            }
+            """);
+
+        var loaded = await sut.LoadAsync(created.Id);
+
+        Assert.NotNull(loaded);
+        Assert.Equal(string.Empty, loaded!.Connectors[0].FromSide);
+        Assert.Equal(string.Empty, loaded.Connectors[0].ToSide);
     }
 
     [Fact]

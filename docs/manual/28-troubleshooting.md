@@ -29,7 +29,7 @@ Backing up just the project folder is enough to safeguard your writing.
 
 **Settings → Diagnostics → Diagnostic logging** is an opt-in file log written to the `logs/` folder under the app data folder. It exists so you can attach a log to a bug report for issues we cannot reproduce.
 
-The log **never contains story content** — no titles, no prose, no entity data, no file paths. It records only structural information: state names, counts, timings, and error stack traces. You can send it without exposing your writing.
+The log **never contains story content** — no titles, prose, entity data, file paths, or request arguments. It records structural information such as operation and state names, counts, timings, known file-format extensions, and exception types. For a failed Scrivener parse it also records a useful parser explanation, error code, and XML line and position. The explanation comes from a safe vocabulary such as “start tag does not match its end tag”; names and values from the source XML are never copied into it. Other backend failures still omit their free-form exception messages. Import previews and runs record their stages and outcomes, and failures at the backend boundary are recorded even when a feature has no dedicated logging of its own. You can send the log without exposing your writing.
 
 ## I deleted a scene by accident. Can I get it back?
 

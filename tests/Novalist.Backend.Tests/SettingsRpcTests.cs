@@ -7,6 +7,7 @@ using Xunit;
 
 namespace Novalist.Backend.Tests;
 
+[Collection("BackendStatics")]
 public sealed class SettingsRpcTests : IDisposable
 {
     private readonly string _root;

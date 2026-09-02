@@ -16,7 +16,18 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- The Style report no longer treats ordinary speech as weak prose: weak-verb and passive-voice findings ignore quoted dialogue while continuing to report the same wording in narration.
+
+### Fixed
+
+- Planning-board connectors can now be drawn directly from any of four card-edge handles and labelled on the line. Cards have a dedicated move grip for reliable mouse and keyboard movement, connector endpoints stay on their chosen sides, and the separate **Connect** button is gone. Pending board edits are also saved before switching boards or leaving the view.
+- Scrivener projects selected as a `.scrivx` binder now open that exact file, including projects from case-sensitive Linux filesystems where the package's filename casing differs. The importer also advertises `.scrivx` alongside `.scriv`.
+
+### Security
+
+- Diagnostic logging now records content-safe manuscript-import stages, outcomes, counts and timings, explains why an unreadable Scrivener project could not be opened, and captures failures from every backend request. Scrivener parser failures include one deduplicated, sanitized exception message plus XML line and position; paths, quoted source values, titles, prose and request arguments remain excluded.
 
 ---
 
