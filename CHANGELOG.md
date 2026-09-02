@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.2.3] - 2026-09-02
+
 ### Changed
 
 - The Style report no longer treats ordinary speech as weak prose: weak-verb and passive-voice findings ignore quoted dialogue while continuing to report the same wording in narration.
@@ -1516,7 +1522,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.2.2...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.2.3...HEAD
+[3.2.3]: https://github.com/Drommedhar/novalist-official/compare/v3.2.2...v3.2.3
 [3.2.2]: https://github.com/Drommedhar/novalist-official/compare/v3.2.1...v3.2.2
 [3.2.1]: https://github.com/Drommedhar/novalist-official/compare/v3.2...v3.2.1
 [3.2]: https://github.com/Drommedhar/novalist-official/compare/v3.1.2...v3.2
