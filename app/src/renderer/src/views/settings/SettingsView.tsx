@@ -808,6 +808,18 @@ export function SettingsView(): React.JSX.Element {
             onCommit={(v) => void update(scopeFor('editor'), { editorParagraphSpacing: v })}
           />
           <div className="settings-hint">{t('settings.paragraphSpacingDesc')}</div>
+          <label className="inspector-label" htmlFor="set-first-line-indent">
+            {t('settings.firstLineIndent')}
+          </label>
+          <SettingNumber
+            id="set-first-line-indent"
+            min={0}
+            max={4}
+            step={0.1}
+            value={eff.editorFirstLineIndent}
+            onCommit={(v) => void update(scopeFor('editor'), { editorFirstLineIndent: v })}
+          />
+          <div className="settings-hint">{t('settings.firstLineIndentDesc')}</div>
           <label className="inspector-label" htmlFor="set-readaloud-rate">
             {t('settings.readAloudRate')}
           </label>

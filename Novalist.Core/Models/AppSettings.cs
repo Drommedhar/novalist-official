@@ -66,6 +66,13 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("editorParagraphSpacing")]
     public double EditorParagraphSpacing { get; set; } = 0.75;
 
+    /// <summary>
+    /// How far the first line of an ordinary prose paragraph is inset, in ems.
+    /// Zero keeps the existing flush-left editor presentation.
+    /// </summary>
+    [JsonPropertyName("editorFirstLineIndent")]
+    public double EditorFirstLineIndent { get; set; }
+
     [JsonPropertyName("enableBookParagraphSpacing")]
     public bool EnableBookParagraphSpacing { get; set; }
 

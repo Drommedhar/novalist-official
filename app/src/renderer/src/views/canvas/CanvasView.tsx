@@ -4,6 +4,7 @@ import { FileUp, GripHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { InputDialog } from '../../shell/InputDialog'
 import { useProjectStore, type ProjectStateDto } from '../../stores/projectStore'
+import { persistPendingWrite, registerPendingWrite } from '../../stores/pendingWrites'
 import './canvas.css'
 
 type ConnectorSide = 'top' | 'right' | 'bottom' | 'left'
@@ -205,6 +206,7 @@ export function CanvasView(): React.JSX.Element {
   const dragFrame = useRef<number | null>(null)
   const saveTimer = useRef<number | null>(null)
   const pendingSave = useRef<Canvas | null>(null)
+  const inFlightSave = useRef<Promise<unknown> | null>(null)
   const connectorInputRefs = useRef(new Map<string, HTMLInputElement>())
   const connectorLabelRefs = useRef(new Map<string, HTMLButtonElement>())
   const cardMoveHandleRefs = useRef(new Map<string, HTMLButtonElement>())
@@ -231,9 +233,25 @@ export function CanvasView(): React.JSX.Element {
   const flushPendingSave = useCallback(async (): Promise<void> => {
     if (saveTimer.current) window.clearTimeout(saveTimer.current)
     saveTimer.current = null
-    const pending = pendingSave.current
-    pendingSave.current = null
-    if (pending) await rpc.request('canvas/save', [pending])
+    while (true) {
+      const active = inFlightSave.current
+      if (active) {
+        await active
+        continue
+      }
+      const pending = pendingSave.current
+      if (!pending) return
+      const request = persistPendingWrite(`canvas:${pending.id}`, () =>
+        rpc.request('canvas/save', [pending])
+      )
+      inFlightSave.current = request
+      try {
+        await request
+        if (pendingSave.current === pending) pendingSave.current = null
+      } finally {
+        if (inFlightSave.current === request) inFlightSave.current = null
+      }
+    }
   }, [])
 
   /** Queues a save. Every persistent mutation goes through here. */
@@ -250,7 +268,7 @@ export function CanvasView(): React.JSX.Element {
   )
 
   /** Commit the live inline value before another control unmounts its editor. */
-  const commitActiveConnectorEdit = (restore = false): void => {
+  const commitActiveConnectorEdit = useCallback((restore = false): void => {
     const editing = editingOriginalLabel.current
     const current = canvasRef.current
     if (!editing || !current) return
@@ -267,7 +285,16 @@ export function CanvasView(): React.JSX.Element {
       }
     }
     editingOriginalLabel.current = null
-  }
+  }, [queueSave])
+
+  useEffect(
+    () =>
+      registerPendingWrite(async () => {
+        commitActiveConnectorEdit()
+        await flushPendingSave()
+      }),
+    [commitActiveConnectorEdit, flushPendingSave]
+  )
 
   // Flush persistent work when leaving, while discarding purely visual pointer
   // gestures. A cancelled drag must never become project data.
@@ -276,7 +303,9 @@ export function CanvasView(): React.JSX.Element {
       if (dragFrame.current) window.cancelAnimationFrame(dragFrame.current)
       cardDragRef.current = null
       connectorDragRef.current = null
-      void flushPendingSave()
+      // flushPendingSave registers the actual board payload globally before it
+      // awaits the backend, so the acknowledgement survives this component.
+      void flushPendingSave().catch(() => {})
     },
     [flushPendingSave]
   )
@@ -338,7 +367,7 @@ export function CanvasView(): React.JSX.Element {
     await flushPendingSave()
     const renamed = { ...current, name }
     replaceCanvas(renamed)
-    await rpc.request('canvas/save', [renamed])
+    await persistPendingWrite(`canvas:${renamed.id}`, () => rpc.request('canvas/save', [renamed]))
     setBoards(await rpc.request<CanvasSummary[]>('canvas/list'))
   }
 

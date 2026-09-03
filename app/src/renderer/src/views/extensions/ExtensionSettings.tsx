@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Play, SlidersHorizontal } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { persistPendingWrite, registerPendingWrite } from '../../stores/pendingWrites'
 import '../../shell/hostBridge.css'
 
 interface SettingsPageDto {
@@ -143,27 +144,61 @@ function ExtensionSchemaForm({
   valuesRef.current = values
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const dirty = useRef(false)
+  const inFlightSave = useRef<Promise<unknown> | null>(null)
 
-  const flush = useCallback((): void => {
-    if (!dirty.current) return
-    dirty.current = false
-    void rpc
-      .request('extensions/settingsSchema/save', [extIdRef.current, valuesRef.current])
-      .then(onSaved)
+  const flush = useCallback(async (): Promise<void> => {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = null
+    while (true) {
+      const activeSave = inFlightSave.current
+      if (activeSave) {
+        await activeSave
+        continue
+      }
+      if (!dirty.current) return
+      dirty.current = false
+      const extensionId = extIdRef.current
+      const pendingValues = valuesRef.current
+      const request = persistPendingWrite(`extension-settings:${extensionId}`, () =>
+        rpc.request('extensions/settingsSchema/save', [extensionId, pendingValues])
+      )
+      inFlightSave.current = request
+      try {
+        await request
+        onSaved()
+      } catch (error) {
+        dirty.current = true
+        throw error
+      } finally {
+        if (inFlightSave.current === request) inFlightSave.current = null
+      }
+    }
   }, [onSaved])
 
   const set = (key: string, value: string): void => {
     setValues((v) => ({ ...v, [key]: value }))
     dirty.current = true
     if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(flush, 600)
+    saveTimer.current = setTimeout(() => {
+      saveTimer.current = null
+      void flush().catch(() => {})
+    }, 600)
   }
+
+  useEffect(
+    () =>
+      registerPendingWrite(() => {
+        return flush()
+      }),
+    [flush]
+  )
 
   // Persist a pending edit if the user navigates away before the debounce fires.
   useEffect(
     () => () => {
       if (saveTimer.current) clearTimeout(saveTimer.current)
-      flush()
+      // The actual schema payload is retained by flush through its keyed write.
+      void flush().catch(() => {})
     },
     [flush]
   )

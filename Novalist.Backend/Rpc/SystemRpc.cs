@@ -19,6 +19,14 @@ public sealed class SystemRpc
         Version: ResolveVersion(typeof(SystemRpc).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion));
 
+    /// <summary>
+    /// Waits behind all earlier workspace requests in the serial dispatcher.
+    /// The updater uses this as a persistence fence without waiting for
+    /// unrelated long-running work that deliberately bypasses that dispatcher.
+    /// </summary>
+    [JsonRpcMethod("system/barrier")]
+    public bool Barrier() => true;
+
     [JsonRpcMethod("system/shutdown")]
     public void Shutdown() => _requestShutdown();
 

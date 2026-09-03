@@ -246,7 +246,13 @@ public sealed class SerialDispatchTests : IDisposable
         }
 
         // And everything that touches the project's own state must not.
-        foreach (var method in new[] { "dashboard/get", "extensions/load", "scenes/write", "entities/list" })
+        foreach (var method in new[]
+                 {
+                     "dashboard/get", "extensions/load", "scenes/write", "entities/list",
+                     // This is useful only when it waits behind earlier
+                     // workspace writes; making it reentrant defeats the fence.
+                     "system/barrier"
+                 })
         {
             Assert.False(SerialDispatchJsonRpc.IsReentrant(method), method + " must queue");
         }

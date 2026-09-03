@@ -56,9 +56,9 @@ public class ScrivenerReaderTests : IDisposable
     // ── Recognition ──
 
     [Fact]
-    public void AProjectFolderIsRecognised()
+    public void AProjectFolderIsRecognisedWithoutDependingOnItsName()
     {
-        Assert.True(ScrivenerReader.LooksLikeScrivener(NewProject()));
+        Assert.True(ScrivenerReader.LooksLikeScrivener(NewProject("Arit")));
     }
 
     [Fact]
@@ -72,14 +72,21 @@ public class ScrivenerReaderTests : IDisposable
     }
 
     [Fact]
+    public void AMissingScrivPathStillUsesScrivenerDiagnostics()
+    {
+        Assert.True(ScrivenerReader.LooksLikeScrivener(
+            Path.Combine(_dir.Path, "Missing.scriv")));
+    }
+
+    [Fact]
     public void TheSelectedScrivxIsUsedEvenWhenAnotherManifestIsBesideIt()
     {
         // Linux users select the binder file itself. The reader used to ignore
         // that path and enumerate the parent folder, so a sync conflict copy or
         // another manifest beside it could be opened instead.
-        var root = NewProject();
+        var root = NewProject("Arit");
         File.WriteAllText(Path.Combine(root, "00-broken.scrivx"), "<broken");
-        var selected = Path.Combine(root, "Chosen.SCRIVX");
+        var selected = Path.Combine(root, "Arit.scrivx");
         File.WriteAllText(
             selected,
             """
@@ -102,9 +109,9 @@ public class ScrivenerReaderTests : IDisposable
     }
 
     [Fact]
-    public void AFolderWithSeveralUnmatchedManifestsIsReportedAsAmbiguous()
+    public void AFolderWithSeveralManifestsIsAmbiguousEvenWhenOneMatchesItsName()
     {
-        var root = NewProject("Renamed.scriv");
+        var root = NewProject("Original.scriv");
         File.WriteAllText(Path.Combine(root, "Original.scrivx"), "<ScrivenerProject/>");
         File.WriteAllText(Path.Combine(root, "Original-conflict.scrivx"), "<ScrivenerProject/>");
         var diagnostics = new List<ScrivenerReadDiagnostic>();
@@ -178,9 +185,9 @@ public class ScrivenerReaderTests : IDisposable
     }
 
     [Fact]
-    public void AnOrdinaryFolderIsNotAProject()
+    public void AnySelectedFolderUsesTheOnlyDirectoryBasedImporter()
     {
-        Assert.False(ScrivenerReader.LooksLikeScrivener(_dir.Path));
+        Assert.True(ScrivenerReader.LooksLikeScrivener(_dir.Path));
     }
 
     [Fact]

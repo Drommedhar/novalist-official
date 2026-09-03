@@ -122,8 +122,21 @@ contextBridge.exposeInMainWorld('novalist', {
   replaceMisspelling(replacement: string): void {
     ipcRenderer.send('novalist:replace-misspelling', replacement)
   },
-  pickFile(title: string, mode?: 'images' | 'all'): Promise<string | null> {
-    return ipcRenderer.invoke('novalist:pick-file', title, mode)
+  pickFile(
+    title: string,
+    mode?: 'images' | 'all' | 'manuscript',
+    options?: {
+      extensions?: string[]
+      filterName?: string
+      scrivenerAccessTitle?: string
+    }
+  ): Promise<string | null> {
+    return ipcRenderer.invoke('novalist:pick-file', title, mode, options)
+  },
+  /** Releases a temporary, sandbox-readable copy made for manuscript import.
+   *  It is a no-op for ordinary desktop file selections. */
+  releasePickedFile(path: string): Promise<void> {
+    return ipcRenderer.invoke('novalist:release-picked-file', path)
   },
   /** Absolute path of a dropped File. Electron removed File.path, so resolving
    *  it has to happen here in the preload. Empty string when unavailable. */
@@ -173,12 +186,19 @@ contextBridge.exposeInMainWorld('novalist', {
     // against these, and an import that overtook the message got a 404.
     return ipcRenderer.invoke('novalist:register-ext-roots', roots)
   },
-  // App self-update (ported download-and-run-installer flow).
+  // App self-update. Download and launch are separate so the renderer can
+  // finish its final saves and close backup before any installer/helper runs.
   checkAppUpdate(): Promise<unknown> {
     return ipcRenderer.invoke('novalist:check-app-update')
   },
-  downloadAppUpdate(info: unknown): Promise<string> {
+  hasDetachedPanes(): Promise<boolean> {
+    return ipcRenderer.invoke('novalist:has-detached-panes')
+  },
+  downloadAppUpdate(info: unknown): Promise<{ filePath: string; launchToken: string | null }> {
     return ipcRenderer.invoke('novalist:download-app-update', info)
+  },
+  launchAppUpdate(token: string): Promise<void> {
+    return ipcRenderer.invoke('novalist:launch-app-update', token)
   },
   // Tells main the startup update check finished, so it can close the splash.
   updatesChecked(): void {

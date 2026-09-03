@@ -34,6 +34,7 @@ public sealed class EffectiveSettings : IEffectiveSettings
     public string? ReadAloudVoiceUri => O?.ReadAloudVoiceUri ?? G.ReadAloudVoiceUri;
     public double EditorLetterSpacing => O?.EditorLetterSpacing ?? G.EditorLetterSpacing;
     public double EditorParagraphSpacing => O?.EditorParagraphSpacing ?? G.EditorParagraphSpacing;
+    public double EditorFirstLineIndent => O?.EditorFirstLineIndent ?? G.EditorFirstLineIndent;
     public bool ComposeDimming => O?.ComposeDimming ?? G.ComposeDimming;
     public bool TypewriterScrollEnabled => O?.TypewriterScrollEnabled ?? G.TypewriterScrollEnabled;
     public string TypewriterScrollAnchor => O?.TypewriterScrollAnchor ?? G.TypewriterScrollAnchor;

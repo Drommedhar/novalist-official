@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useShellStore } from '../stores/shellStore'
+import { registerPendingWrite } from '../stores/pendingWrites'
 
 /**
  * Tell the shell that leaving this screen would cost the writer work.
@@ -30,6 +31,12 @@ export function useUnsavedGuard(
       isDirty: () => latest.current.dirty,
       save: () => latest.current.save()
     })
-    return () => clearUnsavedGuard(id)
+    const unregisterWrite = registerPendingWrite(async () => {
+      if (latest.current.dirty) await latest.current.save()
+    })
+    return () => {
+      unregisterWrite()
+      clearUnsavedGuard(id)
+    }
   }, [id, label])
 }

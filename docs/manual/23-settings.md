@@ -91,8 +91,9 @@ On macOS 26 and later the window uses the native Liquid Glass material; older ma
 - **Line Height** — the space between lines, as a multiple of the font size (1-2.5). Defaults to 1.7. Opening the lines up is the single most effective change for lines that are hard to track, and no theme can do it — themes are colour only.
 - **Letter Spacing** — extra space between letters in pixels (-1 to 4). Defaults to 0, which leaves the typeface exactly as its designer set it.
 - **Paragraph Spacing** — how large a gap **Book Paragraph Spacing** inserts between paragraphs, in ems (0-3). Defaults to 0.75.
+- **First-line indent** — how far the first line of an ordinary prose paragraph is inset, in ems (0-4). Defaults to 0, so existing projects remain flush left. Headings, block quotes, verse, lists, images, and centred or right-aligned paragraphs are not indented.
 
-All three apply to the scene editor, to Manuscript mode, and to the Expose.
+These presentation settings apply to the scene editor, to Manuscript mode, and to the Expose.
 
 Every number box here — and everywhere else in Settings — takes what you type and applies it when you leave the box or press Enter. A number outside the range shown is brought to the nearest end of it at that point, not while you are still typing, so a two-digit value can be typed straight in.
 
@@ -227,6 +228,8 @@ The default bindings are listed in [Hotkeys](26-hotkeys.md).
 - **Check for updates** — when on, Novalist checks for a newer application version on startup.
 - **Check for extension updates** — when on, Novalist checks installed extensions for newer versions.
 - **GitHub token** — a personal access token (masked) used for GitHub operations such as extension updates and authenticated Git remotes.
+
+When you choose **Download & Install**, the update window stays open while the file downloads. Novalist finishes pending editor, manuscript, map, planning-board, book-matter, and extension-settings saves, creates the normal close backup, starts the operating system's installer, and then closes itself. Resolve any save conflict first. Detached panes must also be closed before updating; after the last one closes, the main window reconnects automatically. If the installer cannot be started, Novalist remains open and shows the reason so you can retry.
 
 ## Narration
 

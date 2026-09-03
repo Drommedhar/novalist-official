@@ -22,6 +22,7 @@ public class EffectiveSettingsTests
             ReadAloudVoiceUri = "urn:voice:de",
             EditorLetterSpacing = 0.25,
             EditorParagraphSpacing = 0.9,
+            EditorFirstLineIndent = 1.6,
             ComposeDimming = true,
             TypewriterScrollEnabled = true,
             TypewriterScrollAnchor = "center",
@@ -55,6 +56,7 @@ public class EffectiveSettingsTests
         Assert.Equal("urn:voice:de", sut.ReadAloudVoiceUri);
         Assert.Equal(0.25, sut.EditorLetterSpacing);
         Assert.Equal(0.9, sut.EditorParagraphSpacing);
+        Assert.Equal(1.6, sut.EditorFirstLineIndent);
         Assert.True(sut.ComposeDimming);
         Assert.True(sut.TypewriterScrollEnabled);
         Assert.Equal("center", sut.TypewriterScrollAnchor);
@@ -94,6 +96,7 @@ public class EffectiveSettingsTests
             ReadAloudVoiceUri = "urn:voice:en",
             EditorLetterSpacing = 1.5,
             EditorParagraphSpacing = 0,
+            EditorFirstLineIndent = 2.4,
             ComposeDimming = false,
             TypewriterScrollEnabled = false,
             TypewriterScrollAnchor = "top",
@@ -124,6 +127,7 @@ public class EffectiveSettingsTests
         Assert.Equal("urn:voice:en", sut.ReadAloudVoiceUri);
         Assert.Equal(1.5, sut.EditorLetterSpacing);
         Assert.Equal(0, sut.EditorParagraphSpacing);
+        Assert.Equal(2.4, sut.EditorFirstLineIndent);
         Assert.Equal("light", sut.Theme);
         Assert.Equal("#abc", sut.AccentColor);
         Assert.Equal("Mono", sut.EditorFontFamily);

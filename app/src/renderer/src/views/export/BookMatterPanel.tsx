@@ -1,7 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import {
+  persistPendingWrite,
+  registerPendingWrite,
+  retainPendingWrite
+} from '../../stores/pendingWrites'
 
 interface Matter {
   id: string
@@ -17,6 +22,7 @@ interface Matter {
 
 /** Autosave delay, matching the scene editor's. */
 const SAVE_DELAY_MS = 2000
+let matterFenceSequence = 0
 
 /**
  * Front and back matter: the pages around the story. Typed rather than free
@@ -31,6 +37,21 @@ export function BookMatterPanel(): React.JSX.Element {
   const [newKind, setNewKind] = useState('Dedication')
   const [openId, setOpenId] = useState<string | null>(null)
   const [drafts, setDrafts] = useState<Record<string, string>>({})
+  const draftsRef = useRef(drafts)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const inFlightSave = useRef<Promise<void> | null>(null)
+  const immediateWrites = useRef(new Set<Promise<unknown>>())
+  const inFlightFenceKey = useRef(`matter:in-flight:${++matterFenceSequence}`)
+  draftsRef.current = drafts
+
+  const trackWrite = useCallback(<T,>(write: Promise<T>): Promise<T> => {
+    immediateWrites.current.add(write)
+    void write.then(
+      () => immediateWrites.current.delete(write),
+      () => immediateWrites.current.delete(write)
+    )
+    return write
+  }, [])
 
   const load = useCallback(async () => {
     setItems(await rpc.request<Matter[]>('matter/list'))
@@ -41,25 +62,93 @@ export function BookMatterPanel(): React.JSX.Element {
     void load()
   }, [load])
 
+  const flushDrafts = useCallback(async (): Promise<void> => {
+    if (saveTimer.current) window.clearTimeout(saveTimer.current)
+    saveTimer.current = null
+    while (true) {
+      const activeSave = inFlightSave.current
+      if (activeSave) {
+        await activeSave
+        continue
+      }
+      const pending = { ...draftsRef.current }
+      const ids = Object.keys(pending)
+      if (ids.length === 0) return
+      const request = (async (): Promise<void> => {
+        for (const id of ids) {
+          const content = pending[id]
+          await persistPendingWrite(`matter:content:${id}`, () =>
+            rpc.request('matter/update', [id, null, content, null, null, null])
+          )
+        }
+        const next = { ...draftsRef.current }
+        for (const id of ids) {
+          if (next[id] === pending[id]) delete next[id]
+        }
+        draftsRef.current = next
+        setDrafts(next)
+        await load()
+      })()
+      inFlightSave.current = request
+      try {
+        await request
+      } finally {
+        if (inFlightSave.current === request) inFlightSave.current = null
+      }
+    }
+  }, [load])
+
+  const changeDraft = (id: string, content: string): void => {
+    const next = { ...draftsRef.current, [id]: content }
+    draftsRef.current = next
+    setDrafts(next)
+  }
+
   // Body text is debounced so typing does not write the project file on every
   // keystroke; the toggles save immediately because they are single decisions.
   useEffect(() => {
-    const ids = Object.keys(drafts)
-    if (ids.length === 0) return
-    const timer = window.setTimeout(() => {
-      void (async () => {
-        for (const id of ids) {
-          await rpc.request('matter/update', [id, null, drafts[id], null, null, null])
-        }
-        setDrafts({})
-        await load()
-      })()
+    if (Object.keys(drafts).length === 0) return
+    if (saveTimer.current) window.clearTimeout(saveTimer.current)
+    saveTimer.current = window.setTimeout(() => {
+      saveTimer.current = null
+      void flushDrafts().catch(() => {})
     }, SAVE_DELAY_MS)
-    return () => window.clearTimeout(timer)
-  }, [drafts, load])
+    return () => {
+      if (saveTimer.current) window.clearTimeout(saveTimer.current)
+    }
+  }, [drafts, flushDrafts])
+
+  const flushAllWrites = useCallback(async (): Promise<void> => {
+    const immediate = [...immediateWrites.current]
+    await flushDrafts()
+    const results = await Promise.allSettled(immediate)
+    const failure = results.find((result) => result.status === 'rejected')
+    if (failure?.status === 'rejected') throw failure.reason
+  }, [flushDrafts])
+
+  useEffect(() => registerPendingWrite(flushAllWrites), [flushAllWrites])
+
+  useEffect(
+    () => () => {
+      if (saveTimer.current) window.clearTimeout(saveTimer.current)
+      // Draft payloads retain themselves by matter id. Immediate button writes
+      // have already started, so retain only an acknowledgement of those exact
+      // promises; retrying this fence cannot repeat a create/reorder/delete.
+      void flushDrafts().catch(() => {})
+      const immediate = [...immediateWrites.current]
+      if (immediate.length > 0) {
+        retainPendingWrite(inFlightFenceKey.current, async () => {
+          const results = await Promise.allSettled(immediate)
+          const failure = results.find((result) => result.status === 'rejected')
+          if (failure?.status === 'rejected') throw failure.reason
+        })
+      }
+    },
+    [flushDrafts]
+  )
 
   const add = async (): Promise<void> => {
-    setItems(await rpc.request<Matter[]>('matter/create', [newKind]))
+    setItems(await trackWrite(rpc.request<Matter[]>('matter/create', [newKind])))
   }
 
   const update = async (
@@ -67,24 +156,26 @@ export function BookMatterPanel(): React.JSX.Element {
     patch: { title?: string; included?: boolean; inTableOfContents?: boolean; placement?: string }
   ): Promise<void> => {
     setItems(
-      await rpc.request<Matter[]>('matter/update', [
-        id,
-        patch.title ?? null,
-        null,
-        patch.included ?? null,
-        patch.inTableOfContents ?? null,
-        patch.placement ?? null
-      ])
+      await trackWrite(
+        rpc.request<Matter[]>('matter/update', [
+          id,
+          patch.title ?? null,
+          null,
+          patch.included ?? null,
+          patch.inTableOfContents ?? null,
+          patch.placement ?? null
+        ])
+      )
     )
   }
 
   const move = async (id: string, delta: number): Promise<void> => {
-    setItems(await rpc.request<Matter[]>('matter/reorder', [id, delta]))
+    setItems(await trackWrite(rpc.request<Matter[]>('matter/reorder', [id, delta])))
   }
 
   const remove = async (id: string): Promise<void> => {
     if (!window.confirm(t('matter.deleteConfirm'))) return
-    setItems(await rpc.request<Matter[]>('matter/delete', [id]))
+    setItems(await trackWrite(rpc.request<Matter[]>('matter/delete', [id])))
   }
 
   const group = (placement: string): Matter[] => items.filter((m) => m.placement === placement)
@@ -144,7 +235,7 @@ export function BookMatterPanel(): React.JSX.Element {
                 id={`matter-body-${m.id}`}
                 className="inspector-input matter-content"
                 value={drafts[m.id] ?? m.content}
-                onChange={(e) => setDrafts((prev) => ({ ...prev, [m.id]: e.target.value }))}
+                onChange={(e) => changeDraft(m.id, e.target.value)}
               />
 
               <label className="relationships-toggle">

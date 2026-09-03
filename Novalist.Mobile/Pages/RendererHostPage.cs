@@ -10,6 +10,7 @@ using Novalist.Mobile.Services;
 #if IOS
 using CoreGraphics;
 using UIKit;
+using UniformTypeIdentifiers;
 using WebKit;
 #endif
 
@@ -907,6 +908,41 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         return list;
     }
 
+    private static string[] ManuscriptExtensions(JsonElement args) =>
+        ArgStrings(args, 2)
+            .Select(raw => raw.Trim().TrimStart('.').ToLowerInvariant())
+            .Where(extension => extension.Length > 0 &&
+                extension.All(char.IsAsciiLetterOrDigit))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+    private static FilePickerFileType? ManuscriptFileTypes(IEnumerable<string> extensions)
+    {
+#if IOS
+        var identifiers = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var extension in extensions)
+        {
+            // Prefer a system-declared type (DOCX, EPUB, RTF, and so on), while
+            // still getting an extension-specific UTI for every runtime format.
+            // Info.plist imports Scrivener's types so .scriv is understood as a
+            // package and .scrivx as XML; Novalist does not claim ownership.
+            using var type = UTType.CreateFromExtension(
+                extension,
+                extension == "scriv" ? UTTypes.Package : UTTypes.Data);
+            if (string.IsNullOrEmpty(type?.Identifier)) return null;
+            identifiers.Add(type.Identifier);
+        }
+
+        if (identifiers.Count == 0) return null;
+        return new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+        {
+            [DevicePlatform.iOS] = identifiers
+        });
+#else
+        return null;
+#endif
+    }
+
     // Absolute folder of the open project; set via setProjectRoot on project open.
     private string? _projectRoot;
 
@@ -953,6 +989,9 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                 // scope open so the backend can read/write it. Null on cancel.
                 return await SecurityScopedFolders.PickFolderAsync().ConfigureAwait(false);
             }
+            case "releasePickedFile":
+                SecurityScopedFolders.ReleaseTemporaryManuscriptAccess(ArgString(args, 0));
+                return null;
             case "defaultProjectRoot":
             {
                 // Where a new project goes when the writer does not say otherwise:
@@ -986,7 +1025,8 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                 // Images get the photo-library / Files choice (ImagePicking): the
                 // document picker alone cannot see the camera roll. args[2] carries
                 // the localized sheet labels (photos, files, cancel), in that order.
-                if (ArgString(args, 1) == "images")
+                var mode = ArgString(args, 1);
+                if (mode == "images")
                 {
                     var labels = ArgStrings(args, 2);
                     return await ImagePicking.PickImageAsync(
@@ -996,6 +1036,19 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                         labels.ElementAtOrDefault(2) ?? "Cancel").ConfigureAwait(false);
                 }
                 var options = new PickOptions { PickerTitle = ArgString(args, 0) };
+                if (mode == "manuscript")
+                {
+                    var extensions = ManuscriptExtensions(args);
+                    options.FileTypes = ManuscriptFileTypes(extensions);
+                    // An absent/malformed backend list must never turn the
+                    // manuscript chooser into an unrestricted file picker.
+                    if (options.FileTypes == null) return null;
+                    return await SecurityScopedFolders.PickManuscriptAsync(
+                        options.PickerTitle ?? "",
+                        options.FileTypes.Value,
+                        extensions,
+                        ArgString(args, 3)).ConfigureAwait(false);
+                }
                 var result = await MainThread.InvokeOnMainThreadAsync(() => FilePicker.Default.PickAsync(options))
                     .ConfigureAwait(false);
                 return result?.FullPath;

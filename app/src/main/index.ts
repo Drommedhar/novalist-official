@@ -5,9 +5,11 @@ import {
   ipcMain,
   shell,
   nativeImage,
-  screen
+  screen,
+  type WebContents
 } from 'electron'
 import { join } from 'node:path'
+import { randomUUID } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { BackendProcess } from './backend-process'
 import {
@@ -18,7 +20,12 @@ import {
 import { registerDialogHandlers } from './dialogs'
 import { registerSpellCheckHandlers, attachSpellingMenu } from './spellcheck'
 import { applyMenuTemplate, installAppMenu, type MenuLabels, type MenuNode } from './menu'
-import { checkAppUpdate, downloadAndInstall } from './appUpdater'
+import {
+  checkAppUpdate,
+  downloadAppUpdate,
+  launchAppUpdate,
+  type DownloadedAppUpdate
+} from './appUpdater'
 import { createSplashWindow, setSplashStatus } from './splash'
 import { registerProtocolSchemes, registerProtocolHandlers } from './protocols'
 import { SCHEME, parseDeepLink, deepLinkFromArgv, type DeepLink } from './deeplink'
@@ -29,6 +36,12 @@ app.setName('Novalist')
 
 const material = detectMaterial(process.platform, process.getSystemVersion())
 const backend = new BackendProcess()
+
+function attachBackendPort(sender: WebContents): void {
+  const { port1, port2 } = new MessageChannelMain()
+  backend.attachPort(port1)
+  sender.postMessage('novalist:backend-port', null, [port2])
+}
 
 /** Resolves the app icon: packaged resources first, then the repo dev path. */
 function resolveIconPath(): string | null {
@@ -200,6 +213,17 @@ ipcMain.handle(
       }
     })
     win.once('ready-to-show', () => win.show())
+    win.on('closed', () => {
+      const anotherDetachedPane = BrowserWindow.getAllWindows().some(
+        (candidate) => candidate !== mainWindow && !candidate.isDestroyed()
+      )
+      if (!anotherDetachedPane && mainWindow && !mainWindow.isDestroyed()) {
+        // The backend transport currently has one renderer-facing channel.
+        // A detached pane owns it while open; give it back to the main window
+        // as soon as the last detached pane closes.
+        attachBackendPort(mainWindow.webContents)
+      }
+    })
     attachSpellingMenu(win, () => spellingMenuLabels)
 
     const query: Record<string, string> = { pane: request.view }
@@ -226,9 +250,7 @@ ipcMain.on('novalist:spellcheck-menu-labels', (_event, labels: typeof spellingMe
 
 // The renderer asks for a fresh backend channel on boot (and after backend restarts).
 ipcMain.on('novalist:request-backend-port', (event) => {
-  const { port1, port2 } = new MessageChannelMain()
-  backend.attachPort(port1)
-  event.sender.postMessage('novalist:backend-port', null, [port2])
+  attachBackendPort(event.sender)
 })
 
 // App self-update (GitHub release → download installer → open). Extension
@@ -236,12 +258,41 @@ ipcMain.on('novalist:request-backend-port', (event) => {
 // Disabled in the Mac App Store build: Apple prohibits self-updating, so even a
 // manual trigger must do nothing there (updates arrive via the App Store).
 const isMasBuild = (process as NodeJS.Process & { mas?: boolean }).mas === true
+const pendingAppUpdates = new Map<
+  number,
+  { token: string; update: DownloadedAppUpdate }
+>()
 ipcMain.handle('novalist:check-app-update', () => (isMasBuild ? null : checkAppUpdate()))
-ipcMain.handle('novalist:download-app-update', (event, info) => {
+ipcMain.handle('novalist:has-detached-panes', () =>
+  BrowserWindow.getAllWindows().some((candidate) => candidate !== mainWindow && !candidate.isDestroyed())
+)
+ipcMain.handle('novalist:download-app-update', async (event, info) => {
   if (isMasBuild) throw new Error('Self-update is disabled in the App Store build.')
   const win = BrowserWindow.fromWebContents(event.sender)
   if (!win) throw new Error('No window for update download.')
-  return downloadAndInstall(info, win)
+  const update = await downloadAppUpdate(info, win)
+  if (!update.handoff) {
+    pendingAppUpdates.delete(event.sender.id)
+    return { filePath: update.filePath, launchToken: null }
+  }
+  const token = randomUUID()
+  pendingAppUpdates.set(event.sender.id, { token, update })
+  return { filePath: update.filePath, launchToken: token }
+})
+ipcMain.handle('novalist:launch-app-update', async (event, token: string) => {
+  if (isMasBuild) throw new Error('Self-update is disabled in the App Store build.')
+  const pending = pendingAppUpdates.get(event.sender.id)
+  if (!pending || typeof token !== 'string' || pending.token !== token) {
+    throw new Error('The downloaded update is no longer available. Download it again.')
+  }
+  // A launch token is one-shot. A failed OS handoff leaves Novalist open, and
+  // retrying through the dialog obtains a fresh token for the cached download.
+  pendingAppUpdates.delete(event.sender.id)
+  await launchAppUpdate(pending.update)
+  // Launch acknowledgement and shutdown are one main-process operation. In
+  // particular, a spawned Linux helper must never be left waiting because its
+  // renderer disappeared before it could send a second, unauthenticated IPC.
+  app.quit()
 })
 
 // The menu bar's contents come from the renderer's command registry, because

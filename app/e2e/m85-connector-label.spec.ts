@@ -420,6 +420,11 @@ test('a planning-board connector can be labelled, reopened, cleared and deleted'
   await h.page.keyboard.press('Enter')
   await expect(label).toBeVisible()
   await h.page.getByRole('button', { name: 'Delete connector' }).click()
+  // Connector deletion deliberately restores keyboard focus on the source
+  // card's move handle in the next animation frame. Wait for that hand-off
+  // before starting a new keyboard gesture, or the scheduled focus can steal
+  // Enter after firstTop.focus() and leave no card selected.
+  await expect(cards.nth(0).locator('.canvas-card-move-handle')).toBeFocused()
 
   // Deleting a card also clears an armed keyboard source. The first action on
   // the remaining card starts a new connection instead of targeting a ghost.

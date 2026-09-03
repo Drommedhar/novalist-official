@@ -37,7 +37,9 @@ A document Novalist cannot make sense of is reported on its own and the rest of 
 
 ## Scrivener projects
 
-A Scrivener project is normally a `.scriv` folder, so it has its own button: **Choose a Scrivener project**. If your file picker exposes the binder inside that folder instead, choose its `.scrivx` file with **Choose a manuscript file**. Both Scrivener 2 and Scrivener 3 projects are read, including projects moved from Windows or Scrivenix onto a case-sensitive Linux filesystem.
+A Scrivener project keeps its binder in a `.scrivx` manifest inside a project folder, which Scrivener normally names with a `.scriv` suffix. Use the same **Choose a manuscript** button as every other format. On Windows, Linux and the direct-download Mac build, open the project folder or package and select its `.scrivx` file. In the sandboxed Mac App Store build and the iOS app, you may instead select the `.scriv` package or project folder so Novalist receives access to the documents beside the binder. If you select a `.scrivx` there, confirm its exact parent project folder when asked. A folder with more than one manifest is never guessed: enter it and select the intended `.scrivx`. The folder itself can have any name or no `.scriv` suffix, and an explicitly selected manifest is always authoritative. Both Scrivener 2 and Scrivener 3 projects are read, including projects created by Scrivenix or moved onto a case-sensitive Linux filesystem.
+
+The Mac App Store build temporarily copies the selected binder and its `Files` folder into Novalist's private app container because its importer runs in a separate process from the file picker. Large projects can therefore need comparable free space while the import dialog is open. The copy is removed when you choose another source, close the dialog, complete the import or quit Novalist; stale copies left by a crash are cleared on the next start. Settings, icons and snapshots are not copied.
 
 Novalist takes the binder at its word rather than guessing from headings — the binder already says where the chapters are. It reads what each part of the binder *is* from Scrivener's own markers rather than from folder titles, so a project in German, or one where you renamed the draft folder, imports the same as any other.
 
@@ -45,7 +47,7 @@ Novalist takes the binder at its word rather than guessing from headings — the
 
 Scrivener marks only three things: the draft folder, the trash, and its template sheets. Everything else in the binder is your own arrangement, and no set of rules reads that reliably. A project whose draft folder is empty because you were about to start a fresh draft, with nine finished drafts filed under a folder called "Old", is an ordinary way to work — and read by rules alone it is a project with no manuscript and a great deal of research.
 
-So the rules produce a starting point and you correct it. Choosing a Scrivener project shows **Where each folder goes**: one row per binder folder, already filled in with what Novalist made of it, and a menu on each row to say otherwise.
+So the rules produce a starting point and you correct it. Choosing a Scrivener manifest shows **Where each folder goes**: one row per binder folder, already filled in with what Novalist made of it, and a menu on each row to say otherwise.
 
 | Destination | What the folder becomes |
 | --- | --- |

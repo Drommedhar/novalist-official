@@ -10,12 +10,18 @@ import {
 import { rpc } from '../../rpc/client'
 import { useProjectStore } from '../../stores/projectStore'
 import { useSettingsStore } from '../../stores/settingsStore'
+import {
+  persistPendingWrite,
+  registerPendingWrite,
+  retainPendingWrite
+} from '../../stores/pendingWrites'
 import '../editor/editor.css'
 import './expose.css'
 
 /** Counts refreshed while typing; save runs on the slower autosave beat. */
 const MEASURE_DELAY_MS = 300
 const SAVE_DELAY_MS = 2000
+const EXPOSE_WRITE_KEY = 'expose:document'
 
 interface ExposeState {
   html: string
@@ -101,10 +107,26 @@ export function ExposeView(): React.JSX.Element {
       if (measureTimer.current) clearTimeout(measureTimer.current)
       if (saveTimer.current) {
         clearTimeout(saveTimer.current)
-        void rpc.request('expose/save', [currentHtmlRef.current])
+        const html = currentHtmlRef.current
+        retainPendingWrite(EXPOSE_WRITE_KEY, () => rpc.request('expose/save', [html]))
       }
     }
   }, [])
+
+  useEffect(
+    () =>
+      registerPendingWrite(async () => {
+        const live = editorRef.current
+        if (!live && !saveTimer.current) return
+        live?.flushPendingContentChange()
+        if (live) currentHtmlRef.current = live.getContent()
+        if (saveTimer.current) clearTimeout(saveTimer.current)
+        saveTimer.current = null
+        const html = currentHtmlRef.current
+        await persistPendingWrite(EXPOSE_WRITE_KEY, () => rpc.request('expose/save', [html]))
+      }),
+    []
+  )
 
   useEffect(() => {
     const iframe = iframeRef.current
@@ -120,7 +142,8 @@ export function ExposeView(): React.JSX.Element {
         editor.setReadingComfort(
           view.effective.editorLineHeight,
           view.effective.editorLetterSpacing,
-          view.effective.editorParagraphSpacing
+          view.effective.editorParagraphSpacing,
+          view.effective.editorFirstLineIndent
         )
       }
       editor.setContextMenuLabels(
@@ -156,7 +179,7 @@ export function ExposeView(): React.JSX.Element {
           if (saveTimer.current) clearTimeout(saveTimer.current)
           saveTimer.current = setTimeout(() => {
             saveTimer.current = null
-            void rpc.request('expose/save', [html])
+            retainPendingWrite(EXPOSE_WRITE_KEY, () => rpc.request('expose/save', [html]))
           }, SAVE_DELAY_MS)
           break
         }
@@ -180,9 +203,14 @@ export function ExposeView(): React.JSX.Element {
       pushConfig(existing)
     }
 
+    const unsubscribeSettings = useSettingsStore.subscribe(() => {
+      if (editorRef.current) pushConfig(editorRef.current)
+    })
+
     return () => {
       dispose()
       observer.disconnect()
+      unsubscribeSettings()
       editorRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

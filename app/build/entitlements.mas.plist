@@ -27,11 +27,11 @@
          with the same provisioning profile. A self-contained single-file exe
          that extracts native libs to a temp dir may be blocked or need
          DOTNET_BUNDLE_EXTRACT_BASE_DIR pointed inside the container.
-      2. Folder access granted to the MAIN process via the open panel is shared
-         with the child through the same sandbox container, BUT security-scoped
-         bookmarks resolved in the main process do not automatically transfer to
-         the child — the backend may lose access after a restart until the app
-         re-grants it.
+      2. PowerBox grants and security-scoped bookmarks resolved in the MAIN
+         process do not transfer to the already-running backend child. Inputs
+         the backend must read, including whole Scrivener packages, are copied
+         by the main process into its per-profile container staging directory
+         first; both inherited processes can read that container-owned copy.
   -->
   <key>com.apple.security.app-sandbox</key>
   <true/>

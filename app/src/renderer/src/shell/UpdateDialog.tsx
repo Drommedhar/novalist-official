@@ -18,6 +18,8 @@ interface UpdateDialogProps {
   /** App-installer download progress percent, else null. */
   progress: number | null
   downloading: boolean
+  /** Exact handoff failure, kept visible so a retry is informed. */
+  error: string | null
   onDownload(): void
   onUpdateExt(u: StoreUpdate): void
   onClose(): void
@@ -35,6 +37,7 @@ export function UpdateDialog({
   updatingExtId,
   progress,
   downloading,
+  error,
   onDownload,
   onUpdateExt,
   onClose
@@ -47,12 +50,15 @@ export function UpdateDialog({
     : ''
 
   return (
-    <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className="dialog-overlay"
+      onPointerDown={(e) => e.target === e.currentTarget && !downloading && onClose()}
+    >
       <div
         className="dialog-card"
         role="dialog"
         aria-label={t('update.available')}
-        onKeyDown={(e) => e.key === 'Escape' && onClose()}
+        onKeyDown={(e) => e.key === 'Escape' && !downloading && onClose()}
       >
         <div className="dialog-title">
           {nothing ? t('update.upToDate') : t('update.available')}
@@ -69,7 +75,32 @@ export function UpdateDialog({
                 hashes to the writer as characters. */}
             <div className="update-notes">
               {appUpdate.notes.trim() ? (
-                <Markdown remarkPlugins={[remarkGfm]}>{appUpdate.notes}</Markdown>
+                <Markdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    a: ({ href, children }) => (
+                      <a
+                        href={href}
+                        onClick={(event) => {
+                          event.preventDefault()
+                          if (!href) return
+                          try {
+                            const target = new URL(href, RELEASES_URL)
+                            if (target.protocol === 'https:' || target.protocol === 'http:') {
+                              void window.novalist.openExternal(target.toString())
+                            }
+                          } catch {
+                            // Invalid release-note links remain inert.
+                          }
+                        }}
+                      >
+                        {children}
+                      </a>
+                    )
+                  }}
+                >
+                  {appUpdate.notes}
+                </Markdown>
               ) : (
                 t('update.noNotes')
               )}
@@ -87,9 +118,15 @@ export function UpdateDialog({
                 </span>
               </div>
             )}
+            {error && (
+              <p className="update-error" role="alert">
+                {t('update.error').replace('{0}', error)}
+              </p>
+            )}
             <div className="dialog-actions">
               <button
                 className="dialog-button"
+                disabled={downloading}
                 onClick={() => void window.novalist.openExternal(RELEASES_URL)}
               >
                 {t('update.viewRelease')}
@@ -111,7 +148,7 @@ export function UpdateDialog({
                 </span>
                 <button
                   className="dialog-button"
-                  disabled={updatingExtId !== null}
+                  disabled={downloading || updatingExtId !== null}
                   onClick={() => onUpdateExt(u)}
                 >
                   {updatingExtId === u.extensionId ? t('update.updating') : t('update.updateAction')}
@@ -122,7 +159,7 @@ export function UpdateDialog({
         )}
 
         <div className="dialog-actions">
-          <button className="dialog-button" onClick={onClose}>
+          <button className="dialog-button" disabled={downloading} onClick={onClose}>
             {nothing ? t('dialog.close') : t('update.later')}
           </button>
         </div>

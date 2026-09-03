@@ -168,6 +168,9 @@ export const SETTINGS_REGISTRY: readonly SettingsSectionMetadata[] = [
       control('paragraph-spacing', 'settings.paragraphSpacing', 'set-paraspacing', [
         'settings.paragraphSpacingDesc'
       ]),
+      control('first-line-indent', 'settings.firstLineIndent', 'set-first-line-indent', [
+        'settings.firstLineIndentDesc'
+      ]),
       control('read-aloud-speed', 'settings.readAloudRate', 'set-readaloud-rate'),
       control('read-aloud-voice', 'settings.readAloudVoice', 'set-readaloud-voice', [
         'settings.readAloudDesc',

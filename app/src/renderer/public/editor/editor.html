@@ -21,6 +21,7 @@
     --padding-h: 24px;
     --padding-v: 8px;
     --book-width: none;
+    --first-line-indent: 0em;
     /* Scrollbar colours mirror the host's --nl-scrollbar-* tokens; setTheme
        overwrites them whenever the app theme changes. */
     --scrollbar-size: 10px;
@@ -113,13 +114,14 @@ body { display: flex; justify-content: center; }
     content: '';
     display: block;
 }
-#editor p { margin: 0; }
+#editor p,
+#editor div:not(.nv-page) { margin: 0; text-indent: var(--first-line-indent); }
 #editor.book-spacing p { padding-bottom: var(--paragraph-spacing, 0.75em); }
 #editor.book-spacing p:empty { padding-bottom: 0; min-height: 1em; }
 /* Named paragraph styles. Exporters read the class; these rules are what make
    a styled paragraph recognisable on screen instead of invisible state. */
-#editor .nv-style-heading { font-size: 1.5em; font-weight: 700; line-height: 1.3; }
-#editor .nv-style-subheading { font-size: 1.2em; font-weight: 600; line-height: 1.35; }
+#editor .nv-style-heading { font-size: 1.5em; font-weight: 700; line-height: 1.3; text-indent: 0; }
+#editor .nv-style-subheading { font-size: 1.2em; font-weight: 600; line-height: 1.35; text-indent: 0; }
 #editor .nv-style-blockquote { margin: 0.6em 2em; font-style: italic; text-indent: 0; }
 /* A passage the writer marked to come back to. A class rather than an inline
    colour, so a theme can restyle it and an export can decide what it means. */
@@ -140,10 +142,21 @@ body.dim-others #editor > .nv-page > .nv-focus-block { opacity: 1; }
 #editor .nv-style-poetry { margin: 0 0 0.2em 2em; text-indent: 0; text-align: left; white-space: pre-wrap; }
 #editor ul, #editor ol { margin: 0.6em 0 0.6em 2em; padding: 0; }
 #editor li { margin-bottom: 0.2em; text-indent: 0; text-align: left; }
+#editor li p,
+#editor li div { text-indent: 0; text-align: left; }
+#editor p[style*="text-align:center"],
+#editor p[style*="text-align: center"],
+#editor p[style*="text-align:right"],
+#editor p[style*="text-align: right"],
+#editor div[style*="text-align:center"],
+#editor div[style*="text-align: center"],
+#editor div[style*="text-align:right"],
+#editor div[style*="text-align: right"],
+#editor .nv-scene-break { text-indent: 0; }
 #editor ::selection { background: var(--selection-bg); }
 /* A picture in the prose sits on its own line, centred, and never wider than
    the measure - the text is still what the page is for. */
-#editor p.nv-image { text-align: center; text-indent: 0; margin: 0.8em 0; }
+#editor .nv-image { text-align: center; text-indent: 0; margin: 0.8em 0; }
 #editor img { max-width: 100%; height: auto; }
 
 /* ===== Print =====
@@ -1223,6 +1236,7 @@ function setContent(html) {
         const bodyContent = extractBody(html);
         editor.innerHTML = bodyContent;
     }
+    refreshSceneBreakClasses(editor);
     const changed = editor.innerHTML !== previous;
     lastHtml = editor.innerHTML;
     isSettingContent = false;
@@ -1260,6 +1274,21 @@ function getContent() {
 
 function getPlainText() {
     return editor.innerText || '';
+}
+
+/** Marks ornament-only prose blocks so typography never treats them as prose. */
+function refreshSceneBreakClasses(root) {
+    root.querySelectorAll('p, div').forEach(function (block) {
+        // Page wrappers and structural containers are not paragraphs. Only a
+        // leaf block can be the ornament the writer typed between scenes.
+        if (block.classList.contains('nv-page') || block.querySelector('p, div, h1, h2, h3, h4, h5, h6, blockquote, li')) return;
+        const text = block.textContent || '';
+        // Match the ornament grammar used by Prose Cleanup. It is deliberately
+        // broader than one preferred glyph so imported/custom separators are
+        // presentation-neutral too.
+        const isBreak = /^[\s\u00a0]*[*\-#•_~](?:[\s\u00a0]*[*\-#•_~])*[\s\u00a0]*$/u.test(text);
+        block.classList.toggle('nv-scene-break', isBreak);
+    });
 }
 
 function extractBody(html) {
@@ -1542,16 +1571,18 @@ function setPadding(horizontal, vertical) {
 }
 
 /**
- * Reading comfort. Leading, letter spacing and the gap between paragraphs,
- * none of which a theme can reach - themes here are colour only.
+ * Reading comfort. Leading, letter spacing, the gap between paragraphs and
+ * first-line indent, none of which a colour-only theme can reach.
  */
-function setReadingComfort(lineHeight, letterSpacing, paragraphSpacing) {
+function setReadingComfort(lineHeight, letterSpacing, paragraphSpacing, firstLineIndent) {
     const root = document.documentElement;
     root.style.setProperty('--line-height', lineHeight > 0 ? String(lineHeight) : '1.7');
     root.style.setProperty(
         '--letter-spacing', letterSpacing ? letterSpacing + 'px' : 'normal');
     root.style.setProperty(
         '--paragraph-spacing', (paragraphSpacing >= 0 ? paragraphSpacing : 0.75) + 'em');
+    root.style.setProperty(
+        '--first-line-indent', (firstLineIndent >= 0 ? firstLineIndent : 0) + 'em');
 }
 
 function setBookParagraphSpacing(enabled) {
@@ -2940,6 +2971,26 @@ function getCleanContentHtml() {
     return clone.innerHTML;
 }
 
+function reportContentChanged() {
+    refreshSceneBreakClasses(editor);
+    const html = getCleanContentHtml();
+    if (html !== lastHtml) {
+        lastHtml = html;
+        sendMessage({
+            type: 'contentChanged',
+            html: html,
+            plainText: editor.innerText || ''
+        });
+    }
+}
+
+/** Flushes the iframe's short debounce before an application-level save. */
+function flushPendingContentChange() {
+    if (contentChangeTimer) clearTimeout(contentChangeTimer);
+    contentChangeTimer = null;
+    if (!isSettingContent) reportContentChanged();
+}
+
 editor.addEventListener('input', () => {
     if (isSettingContent) return;
     // Typing over a passage being read back is the writer taking over.
@@ -2957,15 +3008,8 @@ editor.addEventListener('input', () => {
 
     if (contentChangeTimer) clearTimeout(contentChangeTimer);
     contentChangeTimer = setTimeout(() => {
-        const html = getCleanContentHtml();
-        if (html !== lastHtml) {
-            lastHtml = html;
-            sendMessage({
-                type: 'contentChanged',
-                html: html,
-                plainText: editor.innerText || ''
-            });
-        }
+        contentChangeTimer = null;
+        reportContentChanged();
     }, 50);
 
     // Request grammar check after typing pause

@@ -1,6 +1,7 @@
 using Novalist.Backend;
 using Novalist.Backend.Extensions;
 using Novalist.Backend.Rpc;
+using Novalist.Core.Tests.TestHelpers;
 using Xunit;
 
 namespace Novalist.Backend.Tests;
@@ -49,11 +50,30 @@ public sealed class ManuscriptImportRpcTests : IDisposable
     {
         var formats = _rpc.Formats();
 
-        Assert.Contains(".docx", formats);
-        Assert.Contains(".epub", formats);
-        Assert.Contains(".md", formats);
-        Assert.Contains(".scriv", formats);
-        Assert.Contains(".scrivx", formats);
+        Assert.Equal(
+            [".docx", ".odt", ".epub", ".md", ".markdown", ".txt", ".rtf", ".scriv", ".scrivx"],
+            formats);
+    }
+
+    [Fact]
+    public void PickerFailure_LogsOnlyAllowlistedNativeDetails()
+    {
+        Log.SetSinkOverride(new LogFileSink(Path.Combine(_root, "logs")));
+        Log.EnableFileLogging(true);
+
+        _rpc.PickerFailure("project", "disk-full");
+        _rpc.PickerFailure("source", "manifest-ambiguous");
+        _rpc.PickerFailure("Private chapter title", "Private manuscript sentence");
+
+        var content = File.ReadAllText(Log.CurrentLogPath);
+        Assert.Contains(
+            "manuscriptImport/picker failed stage=project reason=disk-full.", content);
+        Assert.Contains(
+            "manuscriptImport/picker failed stage=unknown reason=other.", content);
+        Assert.Contains(
+            "manuscriptImport/picker failed stage=source reason=manifest-ambiguous.", content);
+        Assert.DoesNotContain("Private chapter title", content);
+        Assert.DoesNotContain("Private manuscript sentence", content);
     }
 
     [Fact]
@@ -87,6 +107,22 @@ public sealed class ManuscriptImportRpcTests : IDisposable
     }
 
     [Fact]
+    public void Preview_ReadsASuffixlessScrivenixDirectoryWithoutNameHeuristics()
+    {
+        Log.SetSinkOverride(new LogFileSink(Path.Combine(_root, "logs")));
+        Log.EnableFileLogging(true);
+        var project = ScrivenerProjectBuilder.BuildV3(_root, "Arit");
+
+        var plan = _rpc.Preview(project);
+
+        Assert.Equal("scrivener3", plan.Format);
+        Assert.Equal(5, plan.SceneCount);
+        Assert.Contains(
+            "manuscriptImport/preview start source=directory extension=none scrivener=True",
+            File.ReadAllText(Log.CurrentLogPath));
+    }
+
+    [Fact]
     public void Preview_DiagnosticsRecordInputShapeAndCountsWithoutNamesPathsOrProse()
     {
         Log.SetSinkOverride(new LogFileSink(Path.Combine(_root, "logs")));
@@ -95,6 +131,7 @@ public sealed class ManuscriptImportRpcTests : IDisposable
         _rpc.Preview(WriteMarkdown("# Private chapter title\n\nPrivate manuscript sentence."));
         _rpc.Preview(Path.Combine(_root, "missing.docx"));
         _rpc.Preview(Path.Combine(_root, "missing.private-suffix"));
+        _rpc.Preview(Path.Combine(_root, "missing.scriv"));
         _rpc.Preview(Path.Combine(_root, "missing.scrivx"));
         var malformedBinder = Path.Combine(_root, "Private Binder.scrivx");
         File.WriteAllText(malformedBinder, "<PrivateElement></SecretEndTag>");
@@ -106,6 +143,9 @@ public sealed class ManuscriptImportRpcTests : IDisposable
         Assert.Contains("manuscriptImport/preview empty source=missing extension=.docx", content);
         Assert.Contains("manuscriptImport/preview empty source=missing extension=other", content);
         Assert.DoesNotContain("private-suffix", content);
+        Assert.Contains(
+            "manuscriptImport/preview start source=missing extension=.scriv scrivener=True",
+            content);
         Assert.Contains(
             "manuscriptImport/preview scrivener stage=path reason=not-found type=none.",
             content);

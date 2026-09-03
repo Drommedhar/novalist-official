@@ -16,7 +16,14 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- Editor typography now includes a first-line indent setting. The amount is measured in ems, applies in the scene editor, Manuscript mode, and Exposé, can be overridden per project, and `0` keeps paragraphs flush left.
+
+### Fixed
+
+- Manuscript import now uses one chooser restricted to every format Novalist can read. Scrivenix `.scrivx` manifests can be chosen directly regardless of their folder's name, while sandboxed Macs copy the selected binder and its document payload into Novalist's private container for the duration of the import.
+- Launching a downloaded desktop update now locks the handoff, finishes pending edits and the close backup, and closes Novalist after the operating system successfully starts the installer. Detached panes reconnect the main window when closed; launch or save failures stay visible and leave the app open for a retry. AppImage updates also retain a recoverable previous executable.
 
 ---
 

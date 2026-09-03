@@ -15,6 +15,7 @@ import { SceneBulkBar } from '../../shell/SceneBulkBar'
 import { Board } from './Board'
 import { rpc as rpcClient } from '../../rpc/client'
 import { LazyBlock } from '../../shell/LazyBlock'
+import { registerPendingWrite } from '../../stores/pendingWrites'
 
 // How many chapter blocks are built up front. Everything past this waits until
 // it is scrolled near, which is what keeps a fifty-chapter book openable.
@@ -41,7 +42,14 @@ interface ManuscriptWindow extends Window {
     scrollbarThumbActive?: string
   ): void
   setFont(family: string, size: number): void
-  setReadingComfort(lineHeight: number, letterSpacing: number): void
+  setReadingComfort(lineHeight: number, letterSpacing: number, firstLineIndent: number): void
+  flushPendingChanges(): Array<{
+    sceneId: string
+    chapterGuid: string
+    html: string
+    plainText: string
+    wordCount: number
+  }>
 }
 
 const MODES: ManuscriptMode[] = ['manuscript', 'corkboard', 'outliner', 'board']
@@ -236,8 +244,13 @@ function ManuscriptFrame(): React.JSX.Element {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const readyRef = useRef(false)
   const sections = useManuscriptStore((s) => s.sections)
+  const effective = useSettingsStore((s) => s.view?.effective)
+  const sectionsRef = useRef(sections)
+  const effectiveRef = useRef(effective)
+  sectionsRef.current = sections
+  effectiveRef.current = effective
 
-  const push = (): void => {
+  const pushPresentation = (): void => {
     const win = iframeRef.current?.contentWindow as ManuscriptWindow | null
     if (!win || !readyRef.current) return
     const style = getComputedStyle(document.documentElement)
@@ -257,12 +270,21 @@ function ManuscriptFrame(): React.JSX.Element {
     )
     // Manuscript mode is the same prose in a longer strip, so it reads with the
     // writer's own face and leading rather than the page's defaults.
-    const eff = useSettingsStore.getState().view?.effective
+    const eff = effectiveRef.current
     if (eff) {
       win.setFont(eff.editorFontFamily, eff.editorFontSize)
-      win.setReadingComfort(eff.editorLineHeight, eff.editorLetterSpacing)
+      win.setReadingComfort(
+        eff.editorLineHeight,
+        eff.editorLetterSpacing,
+        eff.editorFirstLineIndent
+      )
     }
-    const payload = sections.map((s) => ({
+  }
+
+  const pushContent = (): void => {
+    const win = iframeRef.current?.contentWindow as ManuscriptWindow | null
+    if (!win || !readyRef.current) return
+    const payload = sectionsRef.current.map((s) => ({
       chapterGuid: s.chapterGuid,
       chapterTitle: s.chapterTitle,
       status: s.status,
@@ -275,6 +297,11 @@ function ManuscriptFrame(): React.JSX.Element {
       }))
     }))
     win.setManuscript(JSON.stringify(payload))
+  }
+
+  const push = (): void => {
+    pushPresentation()
+    pushContent()
   }
 
   useEffect(() => {
@@ -335,11 +362,37 @@ function ManuscriptFrame(): React.JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Re-push whenever sections change (e.g. filter or status cycle).
+  useEffect(
+    () =>
+      registerPendingWrite(async () => {
+        const win = iframeRef.current?.contentWindow as ManuscriptWindow | null
+        const store = useManuscriptStore.getState()
+        for (const change of win?.flushPendingChanges() ?? []) {
+          store.onSceneContentChanged(
+            change.sceneId,
+            change.html,
+            change.plainText,
+            change.wordCount
+          )
+        }
+        await store.flushPendingSave()
+      }),
+    []
+  )
+
+  // The refs make the iframe's one-shot ready message use the newest snapshot
+  // rather than the empty arrays captured on the component's first render.
   useEffect(() => {
-    push()
+    pushContent()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sections])
+
+  // Typography changes are non-destructive: do not rebuild every scene (and
+  // its caret/undo history) merely to change one CSS custom property.
+  useEffect(() => {
+    pushPresentation()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effective])
 
   return (
     <iframe

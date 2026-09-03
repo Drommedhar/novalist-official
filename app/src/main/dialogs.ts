@@ -1,8 +1,78 @@
-import { dialog, ipcMain, BrowserWindow, shell, clipboard } from 'electron'
+import {
+  dialog,
+  ipcMain,
+  BrowserWindow,
+  shell,
+  clipboard,
+  type OpenDialogOptions
+} from 'electron'
 import { writeFile } from 'node:fs/promises'
-import { join, normalize, isAbsolute } from 'node:path'
+import { dirname, extname, join, normalize, isAbsolute } from 'node:path'
 import { currentProjectRoot } from './protocols'
 import { saveBookmark, beginAccess, endAccess } from './mac-bookmarks'
+import {
+  initializeManuscriptStaging,
+  releaseStagedManuscript,
+  stageManuscriptSource
+} from './manuscript-staging'
+
+const isSandboxedMas =
+  (process.platform === 'darwin' &&
+    (process as NodeJS.Process & { mas?: boolean }).mas === true) ||
+  process.env.NOVALIST_FORCE_MAS === '1'
+
+function manuscriptPickerProperties(): NonNullable<OpenDialogOptions['properties']> {
+  // A sandboxed Mac must grant the whole Scrivener package, not only its
+  // manifest, because the prose lives in sibling Files/Data or Files/Docs.
+  // macOS can choose files and directories in one panel; Windows and Linux
+  // cannot, so they open the package and choose its exact .scrivx instead.
+  return isSandboxedMas
+    ? ['openFile', 'openDirectory', 'treatPackageAsDirectory']
+    : ['openFile', 'treatPackageAsDirectory']
+}
+
+interface FilePickerOptions {
+  extensions?: unknown
+  filterName?: unknown
+  scrivenerAccessTitle?: unknown
+}
+
+type StagingFailureReason =
+  | 'access-denied'
+  | 'disk-full'
+  | 'source-missing'
+  | 'unsafe-link'
+  | 'manifest-not-found'
+  | 'manifest-ambiguous'
+  | 'invalid-manifest'
+  | 'invalid-project'
+  | 'io'
+  | 'other'
+
+function stagingFailureReason(error: unknown): StagingFailureReason {
+  const code =
+    typeof error === 'object' && error !== null && 'code' in error
+      ? String(error.code)
+      : ''
+  if (code === 'EACCES' || code === 'EPERM' || code === 'EROFS') return 'access-denied'
+  if (code === 'ENOSPC' || code === 'EDQUOT') return 'disk-full'
+  if (code === 'ENOENT' || code === 'ENOTDIR') return 'source-missing'
+  if (code === 'ELOOP') return 'unsafe-link'
+  if (code === 'NOVALIST_MANIFEST_NOT_FOUND') return 'manifest-not-found'
+  if (code === 'NOVALIST_MANIFEST_AMBIGUOUS') return 'manifest-ambiguous'
+  if (code === 'NOVALIST_INVALID_MANIFEST') return 'invalid-manifest'
+  if (code.length > 0) return 'io'
+  return error instanceof Error ? 'invalid-project' : 'other'
+}
+
+function manuscriptStagingError(
+  stage: 'project' | 'source',
+  error: unknown
+): Error {
+  const reason = stagingFailureReason(error)
+  console.error(`[manuscript-import] staging failed stage=${stage} reason=${reason}.`)
+  return new Error(`manuscript-staging-failed:${stage}:${reason}`)
+}
 
 /** Resolves a renderer-supplied path (project-relative or absolute) to an
  * absolute path inside the open project, guarding against traversal. */
@@ -16,6 +86,13 @@ function resolveProjectPath(target: string): string | null {
 
 /** Native file/folder pickers, exposed to the renderer through the preload bridge. */
 export function registerDialogHandlers(): void {
+  if (isSandboxedMas) {
+    void initializeManuscriptStaging().catch((error: unknown) => {
+      const reason = stagingFailureReason(error)
+      console.error(`[manuscript-import] staging failed stage=prepare reason=${reason}.`)
+    })
+  }
+
   ipcMain.handle('novalist:open-external', async (_event, target: string) => {
     if (/^https?:\/\//i.test(target)) {
       await shell.openExternal(target)
@@ -83,19 +160,99 @@ export function registerDialogHandlers(): void {
   // from a stored path. Returning false lets the renderer re-prompt for access.
   ipcMain.handle('novalist:begin-project-access', (_event, path: string) => beginAccess(path))
   ipcMain.on('novalist:end-project-access', (_event, path: string) => endAccess(path))
+  ipcMain.handle('novalist:release-picked-file', (_event, path: string) =>
+    typeof path === 'string' ? releaseStagedManuscript(path) : undefined
+  )
 
-  ipcMain.handle('novalist:pick-file', async (event, title: string, mode?: string) => {
-    const win = BrowserWindow.fromWebContents(event.sender)
-    const result = await dialog.showOpenDialog(win!, {
-      title,
-      properties: ['openFile'],
-      filters:
-        mode === 'all'
-          ? [{ name: 'All files', extensions: ['*'] }]
-          : [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'] }]
-    })
-    return result.canceled ? null : result.filePaths[0]
-  })
+  ipcMain.handle(
+    'novalist:pick-file',
+    async (
+      event,
+      title: string,
+      mode?: string,
+      options?: FilePickerOptions
+    ) => {
+      const manuscriptExtensions = Array.isArray(options?.extensions)
+        ? [
+            ...new Set(
+              options.extensions
+                .filter((extension): extension is string => typeof extension === 'string')
+                .map((extension) => extension.trim().replace(/^\./, '').toLowerCase())
+                .filter((extension) => /^[a-z0-9]+$/.test(extension))
+            )
+          ]
+        : []
+      const manuscriptFilterName =
+        typeof options?.filterName === 'string' && options.filterName.trim().length > 0
+          ? options.filterName.trim().slice(0, 80)
+          : 'Manuscripts'
+      const scrivenerAccessTitle =
+        typeof options?.scrivenerAccessTitle === 'string' &&
+        options.scrivenerAccessTitle.trim().length > 0
+          ? options.scrivenerAccessTitle.trim().slice(0, 160)
+          : title
+      // The backend owns the readable-format list. Opening an unrestricted picker
+      // while that list is unavailable would recreate the mismatch this mode is
+      // meant to prevent.
+      if (mode === 'manuscript' && manuscriptExtensions.length === 0) return null
+
+      const win = BrowserWindow.fromWebContents(event.sender)
+      const result = await dialog.showOpenDialog(win!, {
+        title,
+        properties: mode === 'manuscript' ? manuscriptPickerProperties() : ['openFile'],
+        // Captures the package-wide grant when a sandboxed Mac selects a .scriv
+        // package or a suffixless Scrivenix project directory.
+        securityScopedBookmarks: mode === 'manuscript' && isSandboxedMas,
+        filters:
+          mode === 'all'
+            ? [{ name: 'All files', extensions: ['*'] }]
+            : mode === 'manuscript'
+              ? [
+                  {
+                    name: manuscriptFilterName,
+                    extensions: manuscriptExtensions
+                  }
+                ]
+            : [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'] }]
+      })
+      if (result.canceled || result.filePaths.length === 0) return null
+
+      const picked = result.filePaths[0]
+      if (mode !== 'manuscript' || !isSandboxedMas) return picked
+
+      // A direct .scrivx choice grants only that XML file under App Sandbox,
+      // while importing it also needs its sibling payload. Ask for its exact
+      // parent as an access grant, but return the original file so the reader
+      // never guesses between manifests.
+      if (extname(picked).toLowerCase() === '.scrivx') {
+        const projectRoot = dirname(picked)
+        const access = await dialog.showOpenDialog(win!, {
+          title: scrivenerAccessTitle,
+          defaultPath: dirname(projectRoot),
+          properties: ['openDirectory', 'treatPackageAsDirectory'],
+          securityScopedBookmarks: true
+        })
+        if (
+          access.canceled ||
+          access.filePaths.length === 0 ||
+          normalize(access.filePaths[0]) !== normalize(projectRoot)
+        ) {
+          return null
+        }
+        try {
+          return await stageManuscriptSource(picked, projectRoot)
+        } catch (error) {
+          throw manuscriptStagingError('project', error)
+        }
+      }
+
+      try {
+        return await stageManuscriptSource(picked)
+      } catch (error) {
+        throw manuscriptStagingError('source', error)
+      }
+    }
+  )
 
   ipcMain.handle('novalist:save-file', async (event, defaultName: string) => {
     const win = BrowserWindow.fromWebContents(event.sender)

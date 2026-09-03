@@ -107,6 +107,23 @@ public class ProjectServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task LoadProject_PreservesLegacyPinnedEditorIndent()
+    {
+        await Create();
+        var root = _sut.ProjectRoot!;
+        var settingsPath = Path.Combine(root, ".novalist", "settings.json");
+        await File.WriteAllTextAsync(
+            settingsPath,
+            """{"overrides":{"editorFontSize":17}}""");
+
+        var loaded = new ProjectService(new FileService());
+        await loaded.LoadProjectAsync(root);
+
+        Assert.True(loaded.ProjectSettings.Overrides.HasEditorOverride);
+        Assert.Equal(0, loaded.ProjectSettings.Overrides.EditorFirstLineIndent);
+    }
+
+    [Fact]
     public async Task LoadProject_MissingFile_Throws()
     {
         var loaded = new ProjectService(new FileService());
@@ -1324,4 +1341,3 @@ public class ProjectServiceTests : IDisposable
             Path.Combine(_sut.ActiveBookRoot!, "Drafts", draft.FolderName)));
     }
 }
-

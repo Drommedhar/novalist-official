@@ -189,7 +189,7 @@ public sealed record ScrivenerReadDiagnostic(
     int ErrorCode = 0);
 
 /// <summary>
-/// Reads a Scrivener project folder.
+/// Reads a Scrivener project from its folder or exact binder manifest.
 ///
 /// Both layouts are handled because both are in the wild: Scrivener 2 numbers
 /// its documents and keeps them in <c>Files/Docs/&lt;id&gt;.rtf</c>, Scrivener 3
@@ -230,15 +230,17 @@ public static class ScrivenerReader
     private const string TrashFolder = "TrashFolder";
     private const string Folder = "Folder";
 
-    /// <summary>Whether a path looks like a Scrivener project. True for the
-    /// folder and for the .scrivx inside it, since a file picker gives one or
-    /// the other depending on the platform.</summary>
+    /// <summary>Whether a path should be handled as a Scrivener project. A
+    /// selected directory is a Scrivener candidate regardless of its name,
+    /// because Scrivenix projects do not necessarily carry a .scriv suffix and
+    /// no other built-in manuscript format is directory-based.</summary>
     public static bool LooksLikeScrivener(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return false;
-        if (Directory.Exists(path))
-            return Path.GetExtension(path).Equals(ProjectExtension, StringComparison.OrdinalIgnoreCase);
-        return Path.GetExtension(path).Equals(BinderExtension, StringComparison.OrdinalIgnoreCase);
+        if (Directory.Exists(path)) return true;
+        var extension = Path.GetExtension(path);
+        return extension.Equals(BinderExtension, StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(ProjectExtension, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -434,9 +436,8 @@ public static class ScrivenerReader
     /// <summary>The manifest the caller selected, or the best manifest in a
     /// selected project folder. Selecting a .scrivx must use that exact file:
     /// choosing an arbitrary sibling made conflict copies and adjacent projects
-    /// import the wrong binder. When a folder contains several manifests and
-    /// none matches its folder name, guessing would have the same failure mode,
-    /// so the ambiguity is reported instead.</summary>
+    /// import the wrong binder. A selected folder is accepted only when it has
+    /// one manifest; its name is never used to choose between several files.</summary>
     private static (string? Path, string FailureReason) ResolveBinderFile(
         string path,
         string root)
@@ -453,16 +454,7 @@ public static class ScrivenerReader
             .ToList();
         if (candidates.Count == 0)
             return (null, "not-found");
-
-        var expected = Path.GetFileNameWithoutExtension(
-            Path.TrimEndingDirectorySeparator(root)) + BinderExtension;
-        var matching = candidates
-            .Where(file => Path.GetFileName(file).Equals(
-                expected, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-        if (matching.Count == 1)
-            return (matching[0], string.Empty);
-        if (matching.Count == 0 && candidates.Count == 1)
+        if (candidates.Count == 1)
             return (candidates[0], string.Empty);
         return (null, "ambiguous");
     }

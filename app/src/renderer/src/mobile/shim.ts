@@ -93,6 +93,18 @@ function hostCall<T>(method: string, args: unknown[]): Promise<T> {
   return promise
 }
 
+function manuscriptExtensions(options?: { extensions?: string[] }): string[] {
+  if (!Array.isArray(options?.extensions)) return []
+  return [
+    ...new Set(
+      options.extensions
+        .filter((extension): extension is string => typeof extension === 'string')
+        .map((extension) => extension.trim().replace(/^\./, '').toLowerCase())
+        .filter((extension) => /^[a-z0-9]+$/.test(extension))
+    )
+  ]
+}
+
 // --- window.novalist -----------------------------------------------------
 
 const novalist: Window['novalist'] = {
@@ -112,7 +124,7 @@ const novalist: Window['novalist'] = {
   // An image request opens a native "Photo Library / Browse Files" sheet, so the
   // host needs those three labels localized; the renderer owns the locale files,
   // the native side only renders what it is handed.
-  pickFile: (title, mode) =>
+  pickFile: (title, mode, options) =>
     hostCall<string | null>('pickFile', [
       title,
       mode ?? 'all',
@@ -122,8 +134,14 @@ const novalist: Window['novalist'] = {
             i18next.t('mobile.imageSource.files'),
             i18next.t('dialog.cancel')
           ]
-        : []
+        : mode === 'manuscript'
+          ? manuscriptExtensions(options)
+          : [],
+      mode === 'manuscript' ? (options?.scrivenerAccessTitle ?? title) : ''
     ]),
+  // The native host retains a security-scoped URL while preview/import reads
+  // the selection (and the whole parent project for a direct .scrivx).
+  releasePickedFile: (path) => hostCall<void>('releasePickedFile', [path]),
   // iOS spell-checks a contenteditable natively once the element carries
   // spellcheck="true", which the editor already sets from the same setting.
   // There is no session to configure and no menu for us to build: the system
@@ -202,7 +220,9 @@ const novalist: Window['novalist'] = {
   registerExtensionRoots: () => Promise.resolve(),
   // Store-delivered updates: no self-update on mobile.
   checkAppUpdate: async () => null,
-  downloadAppUpdate: async () => '',
+  hasDetachedPanes: async () => false,
+  downloadAppUpdate: async () => ({ filePath: '', launchToken: null }),
+  launchAppUpdate: async () => {},
   // No protocol handler on mobile: there is nothing to register a scheme with.
   takeDeepLink: () => Promise.resolve(null),
   onDeepLink: () => {},

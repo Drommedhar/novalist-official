@@ -51,10 +51,11 @@ public sealed class SettingsRpcTests : IDisposable
     public async Task UpdateGlobal_ChangesEffective()
     {
         var view = await _rpc.UpdateGlobalAsync(Patch(
-            """{"editorFontSize": 18, "theme": "Discord", "grammarCheckEnabled": false, "unknownKey": "ignored"}"""));
+            """{"editorFontSize": 18, "editorFirstLineIndent": 1.7, "theme": "Discord", "grammarCheckEnabled": false, "unknownKey": "ignored"}"""));
 
         var effective = view.GetProperty("effective");
         Assert.Equal(18, effective.GetProperty("editorFontSize").GetDouble());
+        Assert.Equal(1.7, effective.GetProperty("editorFirstLineIndent").GetDouble());
         Assert.Equal("Discord", effective.GetProperty("theme").GetString());
         Assert.False(effective.GetProperty("grammarCheckEnabled").GetBoolean());
     }

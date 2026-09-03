@@ -71,6 +71,7 @@ public sealed class ManuscriptRpc
                     scene.Id,
                     scene.Title,
                     html,
+                    Core.Services.ContentHasher.Hash(html),
                     scene.WordCount,
                     scene.Synopsis,
                     scene.AnalysisOverrides?.Pov,
@@ -175,6 +176,9 @@ public sealed record ManuscriptSceneDto(
     string SceneId,
     string Title,
     string Html,
+    /// <summary>Fingerprint of the exact content returned to the manuscript
+    /// editor, used to refuse a later write over another editor's version.</summary>
+    string Hash,
     int WordCount,
     string? Synopsis,
     string? Pov,

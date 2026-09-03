@@ -19,6 +19,21 @@ export class RpcClient {
   private buffer = new Uint8Array(0)
   private readonly connectListeners = new Set<() => void>()
   private connecting: Promise<void> | null = null
+  private resolveConnect: (() => void) | null = null
+
+  constructor() {
+    // Main may replace a renderer's channel after a detached pane closes. Keep
+    // accepting ports after the initial connect instead of leaving the main
+    // window permanently attached to a closed MessagePort.
+    window.addEventListener('message', (event) => {
+      if ((event.data as { novalist?: string })?.novalist !== 'backend-port') return
+      const port = event.ports[0]
+      if (!port) return
+      this.attach(port)
+      this.resolveConnect?.()
+      this.resolveConnect = null
+    })
+  }
 
   /**
    * Requests a backend port from main and resolves once frames can flow.
@@ -31,13 +46,7 @@ export class RpcClient {
   connect(): Promise<void> {
     if (this.connecting) return this.connecting
     this.connecting = new Promise((resolve) => {
-      const onMessage = (event: MessageEvent): void => {
-        if ((event.data as { novalist?: string })?.novalist !== 'backend-port') return
-        window.removeEventListener('message', onMessage)
-        this.attach(event.ports[0])
-        resolve()
-      }
-      window.addEventListener('message', onMessage)
+      this.resolveConnect = resolve
       window.novalist.requestBackendPort()
     })
     return this.connecting
@@ -50,7 +59,13 @@ export class RpcClient {
   }
 
   attach(port: MessagePort): void {
-    this.port?.close()
+    if (this.port) {
+      for (const [, pending] of this.pending) {
+        pending.reject(new Error('backend connection changed'))
+      }
+      this.pending.clear()
+      this.port.close()
+    }
     this.port = port
     this.buffer = new Uint8Array(0)
     port.onmessage = (event) => this.onPortMessage(event.data)
@@ -148,6 +163,7 @@ export class RpcClient {
       this.notificationHandlers.get(message.method)?.(message.params)
     }
   }
+
 }
 
 function findSequence(haystack: Uint8Array, needle: number[]): number {

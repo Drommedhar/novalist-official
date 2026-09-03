@@ -23,6 +23,7 @@ import { EntityTypeDialog } from '../../shell/EntityTypeDialog'
 import { AppendToEntityDialog } from '../../shell/AppendToEntityDialog'
 import { InputDialog } from '../../shell/InputDialog'
 import { rpc } from '../../rpc/client'
+import { registerPendingWrite } from '../../stores/pendingWrites'
 import { useEntityPeek, type PeekScope } from './PeekCard'
 import './editor.css'
 
@@ -48,7 +49,11 @@ function pushEditorSettings(editor: EditorWindow, initial = false): void {
   const eff = view.effective
   editor.setFont(eff.editorFontFamily, eff.editorFontSize)
   editor.setReadingComfort(
-    eff.editorLineHeight, eff.editorLetterSpacing, eff.editorParagraphSpacing)
+    eff.editorLineHeight,
+    eff.editorLetterSpacing,
+    eff.editorParagraphSpacing,
+    eff.editorFirstLineIndent
+  )
   if (!initial || eff.readabilityHighlighting) {
     editor.setReadabilityEnabled(eff.readabilityHighlighting)
   }
@@ -372,6 +377,27 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   // The last announcement this pane made itself, so it does not answer its own
   // news by re-reading what it has just written.
   const ownAnnotationsRef = useRef(0)
+
+  // The iframe normally reports an edit after 50 ms and the project store
+  // writes it after two seconds. An update may already be cached, so capture
+  // the live DOM and drain both delays before the installer is allowed to run.
+  useEffect(
+    () =>
+      registerPendingWrite(async () => {
+        const live = editorRef.current
+        const store = useProjectStore.getState()
+        const current = editorPane(store, pane)
+        if (live && current.sceneId) {
+          const html = live.getContent()
+          const plainText = live.getPlainText()
+          if (html !== current.html || plainText !== current.plainText) {
+            store.onEditorContentChanged(pane, html, plainText)
+          }
+        }
+        await useProjectStore.getState().flushPane(pane)
+      }),
+    [pane, openSceneId]
+  )
   const entityIndexRef = useRef<
     Map<string, { id: string; name: string; detail: string; imagePath: string | null; type: string }>
   >(new Map())

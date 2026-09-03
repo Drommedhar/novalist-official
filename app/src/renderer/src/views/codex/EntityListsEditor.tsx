@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, X, Sparkles, Loader2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useCodexStore } from '../../stores/codexStore'
+import { persistPendingWrite, registerPendingWrite } from '../../stores/pendingWrites'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 
 interface SectionRow {
@@ -124,47 +125,86 @@ export function EntityListsEditor(): React.JSX.Element | null {
    *
    * Waiting for the typing to stop is both simpler and correct: whatever the
    * row finally says is what gets written, once.
-   */
+  */
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const saveNow = useRef<() => void>(() => {})
+  const pendingRelationshipSave = useRef<{
+    selectedId: string
+    entityType: string
+    rows: RelationshipRow[]
+  } | null>(null)
+  const inFlightSave = useRef<Promise<void> | null>(null)
+
+  const flushRelationships = useCallback(async (): Promise<void> => {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = null
+    if (inFlightSave.current) await inFlightSave.current
+
+    while (pendingRelationshipSave.current) {
+      const pending = pendingRelationshipSave.current
+      const request = persistPendingWrite(
+        `entity-relationships:${pending.entityType}:${pending.selectedId}`,
+        async () => {
+          const updated = await rpc.request<Record<string, unknown>>('entities/setRelationships', [
+            pending.selectedId,
+            pending.rows,
+            pending.entityType
+          ])
+          const codex = useCodexStore.getState()
+          if (
+            codex.selectedId === pending.selectedId &&
+            codex.entityType === pending.entityType
+          ) {
+            useCodexStore.setState({ selectedRecord: updated })
+          }
+        }
+      )
+      inFlightSave.current = request
+      try {
+        await request
+        if (pendingRelationshipSave.current === pending) {
+          pendingRelationshipSave.current = null
+        }
+      } finally {
+        if (inFlightSave.current === request) inFlightSave.current = null
+      }
+    }
+  }, [])
 
   const persistRelationships = (): void => {
     if (!selectedId) return
-    const write = (): void => {
-      saveTimer.current = null
-      void rpc
-        .request<Record<string, unknown>>('entities/setRelationships', [
-          selectedId,
-          // Read as it is written rather than captured when the save was asked
-          // for: the point is to write the row as it finally stands.
-          rowsRef.current.map((r) => ({
-            role: r.role,
-            target: r.target,
-            inverseRole: r.inverseRole ?? '',
-            category: r.category ?? ''
-          })),
-          // Without this the backend falls back to "character", so saving a tie
-          // on a location, an item or a piece of lore looked for a character with
-          // that id, found none, and threw. The write-back stopped being
-          // character-only; the call never said so.
-          entityType
-        ])
-        .then((updated) => useCodexStore.setState({ selectedRecord: updated }))
+    pendingRelationshipSave.current = {
+      selectedId,
+      entityType,
+      // Capture the owner and rows together. On a quick entry switch, the new
+      // entry's rows must never be written through an old closure's id.
+      rows: rowsRef.current.map((r) => ({
+        role: r.role,
+        target: r.target,
+        inverseRole: r.inverseRole ?? '',
+        category: r.category ?? ''
+      }))
     }
-
-    saveNow.current = write
     if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(write, SAVE_SETTLE_MS)
+    saveTimer.current = setTimeout(
+      () => void flushRelationships().catch(() => {}),
+      SAVE_SETTLE_MS
+    )
   }
 
   // Leaving the entry writes what was still settling rather than dropping it.
   useEffect(() => {
     return () => {
-      if (!saveTimer.current) return
-      clearTimeout(saveTimer.current)
-      saveNow.current()
+      if (saveTimer.current) clearTimeout(saveTimer.current)
+      // The concrete entity payload is retained by flushRelationships.
+      void flushRelationships().catch(() => {})
     }
-  }, [selectedId])
+  }, [selectedId, flushRelationships])
+
+  useEffect(
+    () =>
+      registerPendingWrite(flushRelationships),
+    [flushRelationships]
+  )
 
   if (!record || !selectedId) return null
 

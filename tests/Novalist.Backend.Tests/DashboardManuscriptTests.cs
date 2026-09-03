@@ -382,7 +382,9 @@ public sealed class DashboardManuscriptTests : IDisposable
 
         var all = await manuscript.GetAsync("All");
         var section = all.Single(s => s.ChapterGuid == chapterGuid);
-        Assert.Contains("Es war kalt", section.Scenes.Single(s => s.SceneId == sceneId).Html);
+        var scene = section.Scenes.Single(s => s.SceneId == sceneId);
+        Assert.Contains("Es war kalt", scene.Html);
+        Assert.Equal(Novalist.Core.Services.ContentHasher.Hash(scene.Html), scene.Hash);
         Assert.Equal("Outline", section.Status);
 
         Assert.Empty(await manuscript.GetAsync("Final"));

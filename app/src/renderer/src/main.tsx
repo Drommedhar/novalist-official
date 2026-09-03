@@ -14,6 +14,7 @@ import { useSettingsStore } from './stores/settingsStore'
 import { useExtensionsStore } from './stores/extensionsStore'
 import { useOnboardingStore } from './stores/onboardingStore'
 import { useNarrationStore } from './stores/narrationStore'
+import { useManuscriptStore } from './stores/manuscriptStore'
 import { rpc } from './rpc/client'
 import { postThemeToFrame, themeTokens, watchTheme } from './shell/extensionTheme'
 
@@ -26,7 +27,8 @@ window.novalistStores = {
   settings: useSettingsStore,
   extensions: useExtensionsStore,
   onboarding: useOnboardingStore,
-  narration: useNarrationStore
+  narration: useNarrationStore,
+  manuscript: useManuscriptStore
 }
 window.novalistRpc = rpc
 // The theme bridge for extension frames. Exposed for the same reason as the

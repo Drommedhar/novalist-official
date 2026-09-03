@@ -175,6 +175,7 @@ let installedActions: HotkeyAction[] = []
  * {@link setExtensionHotkeys} takes effect without reinstalling the listener.
  */
 let extensionActions: HotkeyAction[] = []
+let hotkeysEnabled = true
 
 /** Replaces the set of extension-contributed hotkeys. */
 export function setExtensionHotkeys(actions: HotkeyAction[]): void {
@@ -196,6 +197,7 @@ export function dispatchForwardedHotkey(payload: {
   shiftKey: boolean
   altKey: boolean
 }): boolean {
+  if (!hotkeysEnabled) return false
   const synthetic = {
     key: payload.key,
     code: payload.code,
@@ -215,9 +217,15 @@ export function dispatchForwardedHotkey(payload: {
   return false
 }
 
+/** Temporarily blocks both shell and iframe-forwarded command shortcuts. */
+export function setHotkeysEnabled(enabled: boolean): void {
+  hotkeysEnabled = enabled
+}
+
 export function installHotkeys(actions: HotkeyAction[]): () => void {
   installedActions = actions
   const onKeyDown = (event: KeyboardEvent): void => {
+    if (!hotkeysEnabled) return
     const target = event.target as HTMLElement | null
     const inField =
       target?.tagName === 'INPUT' ||

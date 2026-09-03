@@ -11,8 +11,9 @@ Everything here is in **Settings → Editor**, and every one of them applies to 
 - **Line Height** — 1 to 2.5. Opening the lines up is usually the single most effective change for text that is hard to track.
 - **Letter Spacing** — -1 to 4 pixels.
 - **Paragraph Spacing** — 0 to 3 ems, used when **Book Paragraph Spacing** is on.
+- **First-line indent** — 0 to 4 ems for ordinary prose paragraphs; 0 leaves them flush left.
 
-All five can be set globally or [pinned to one project](23-settings.md#global-vs-project-settings), so a book you find hard to read can carry its own settings.
+All of them can be set globally or [pinned to one project](23-settings.md#global-vs-project-settings), so a book you find hard to read can carry its own settings.
 
 ## High Contrast theme
 

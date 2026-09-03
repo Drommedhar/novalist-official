@@ -503,6 +503,8 @@ public partial class ProjectService : IProjectService
         {
             var json = await _fileService.ReadTextAsync(settingsPath);
             ProjectSettings = JsonSerializer.Deserialize<ProjectSettings>(json, JsonOptions) ?? new ProjectSettings();
+            ProjectSettings.Overrides ??= new SettingsOverrides();
+            ProjectSettings.Overrides.ApplyCompatibilityDefaults();
         }
         else
         {

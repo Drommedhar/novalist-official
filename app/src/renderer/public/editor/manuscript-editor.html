@@ -21,6 +21,7 @@
     --divider: rgb(237 230 211 / 0.1);
     --font-family: 'Newsreader', Georgia, serif;
     --font-size: 17px;
+    --first-line-indent: 0em;
     /* Scrollbar colours mirror the host's --nl-scrollbar-* tokens; setTheme
        overwrites them whenever the app theme changes. */
     --scrollbar-size: 10px;
@@ -146,7 +147,26 @@ body { display: flex; justify-content: center; }
 .scene-editor:focus {
     border-left-color: var(--accent);
 }
-.scene-editor p { margin: 0; }
+.scene-editor p,
+.scene-editor div { margin: 0; text-indent: var(--first-line-indent); }
+.scene-editor .nv-style-heading,
+.scene-editor .nv-style-subheading,
+.scene-editor .nv-style-blockquote,
+.scene-editor .nv-style-poetry,
+.scene-editor li,
+.scene-editor li p,
+.scene-editor li div,
+.scene-editor p.nv-image,
+.scene-editor div.nv-image,
+.scene-editor p[style*="text-align:center"],
+.scene-editor p[style*="text-align: center"],
+.scene-editor p[style*="text-align:right"],
+.scene-editor p[style*="text-align: right"],
+.scene-editor div[style*="text-align:center"],
+.scene-editor div[style*="text-align: center"],
+.scene-editor div[style*="text-align:right"],
+.scene-editor div[style*="text-align: right"],
+.scene-editor .nv-scene-break { text-indent: 0; }
 .scene-editor.book-spacing p { padding-bottom: 0.75em; }
 .scene-editor.book-spacing p:empty { padding-bottom: 0; min-height: 1em; }
 .scene-editor ::selection { background: var(--selection-bg); }
@@ -270,6 +290,7 @@ function setManuscript(sectionsJson) {
 
             const html = scene.html || '<p><br></p>';
             editor.innerHTML = html;
+            refreshSceneBreakClasses(editor);
             lastHtmlMap[scene.sceneId] = editor.innerHTML;
 
             editor.addEventListener('input', () => onSceneInput(editor));
@@ -301,34 +322,62 @@ sendMessage({ type: 'ready' });
 
 // ── Scene Content Changes ───────────────────────────────────────
 
+/** Marks ornament-only blocks so first-line indent is reserved for prose. */
+function refreshSceneBreakClasses(root) {
+    root.querySelectorAll('p, div').forEach(function (block) {
+        if (block.querySelector('p, div, h1, h2, h3, h4, h5, h6, blockquote, li')) return;
+        const text = block.textContent || '';
+        block.classList.toggle(
+            'nv-scene-break',
+            /^[\s\u00a0]*[*\-#•_~](?:[\s\u00a0]*[*\-#•_~])*[\s\u00a0]*$/u.test(text));
+    });
+}
+
+function captureSceneChange(editor) {
+    const sceneId = editor.dataset.sceneId;
+    const chapterGuid = editor.dataset.chapterGuid;
+    refreshSceneBreakClasses(editor);
+    const html = editor.innerHTML;
+    if (html === lastHtmlMap[sceneId]) return null;
+    lastHtmlMap[sceneId] = html;
+    const plainText = editor.innerText || '';
+    const wordCount = countWords(plainText);
+
+    // Update inline word count
+    const wcEl = document.getElementById('wc-' + sceneId);
+    if (wcEl) wcEl.textContent = wordCount + ' words';
+    updateFooter();
+    return { sceneId, chapterGuid, html, plainText, wordCount };
+}
+
+function reportSceneChange(editor) {
+    const change = captureSceneChange(editor);
+    if (change) sendMessage(Object.assign({ type: 'sceneContentChanged' }, change));
+}
+
 function onSceneInput(editor) {
     if (isSettingContent) return;
     const sceneId = editor.dataset.sceneId;
-    const chapterGuid = editor.dataset.chapterGuid;
 
     if (contentChangeTimers[sceneId]) clearTimeout(contentChangeTimers[sceneId]);
     contentChangeTimers[sceneId] = setTimeout(() => {
-        const html = editor.innerHTML;
-        if (html !== lastHtmlMap[sceneId]) {
-            lastHtmlMap[sceneId] = html;
-            const plainText = editor.innerText || '';
-            const wordCount = countWords(plainText);
-
-            // Update inline word count
-            const wcEl = document.getElementById('wc-' + sceneId);
-            if (wcEl) wcEl.textContent = wordCount + ' words';
-
-            sendMessage({
-                type: 'sceneContentChanged',
-                sceneId: sceneId,
-                chapterGuid: chapterGuid,
-                html: html,
-                plainText: plainText,
-                wordCount: wordCount
-            });
-            updateFooter();
-        }
+        delete contentChangeTimers[sceneId];
+        reportSceneChange(editor);
     }, 50);
+}
+
+/** Flushes every scene's short iframe debounce before the host saves. */
+function flushPendingChanges() {
+    if (isSettingContent) return [];
+    const changes = [];
+    wrapper.querySelectorAll('.scene-editor').forEach(function (editor) {
+        const sceneId = editor.dataset.sceneId;
+        if (contentChangeTimers[sceneId]) clearTimeout(contentChangeTimers[sceneId]);
+        delete contentChangeTimers[sceneId];
+        const change = captureSceneChange(editor);
+        if (change) changes.push(change);
+    });
+    return changes;
 }
 
 function countWords(text) {
@@ -358,6 +407,7 @@ function updateSceneContent(sceneId, html) {
     const editor = wrapper.querySelector('.scene-editor[data-scene-id="' + sceneId + '"]');
     if (editor) {
         editor.innerHTML = html || '<p><br></p>';
+        refreshSceneBreakClasses(editor);
         lastHtmlMap[sceneId] = editor.innerHTML;
     }
     isSettingContent = false;
@@ -380,12 +430,14 @@ function setTheme(bg, fg, caretColor, selectionBg, accent, subtle, divider, scro
     if (scrollbarThumbActive) root.style.setProperty('--scrollbar-thumb-active', scrollbarThumbActive);
 }
 
-/** Leading and letter spacing, same contract as the scene editor. */
-function setReadingComfort(lineHeight, letterSpacing) {
+/** Leading, letter spacing and first-line indent, same contract as the scene editor. */
+function setReadingComfort(lineHeight, letterSpacing, firstLineIndent) {
     const root = document.documentElement;
     root.style.setProperty('--line-height', lineHeight > 0 ? String(lineHeight) : '1.6');
     root.style.setProperty(
         '--letter-spacing', letterSpacing ? letterSpacing + 'px' : 'normal');
+    root.style.setProperty(
+        '--first-line-indent', (firstLineIndent >= 0 ? firstLineIndent : 0) + 'em');
 }
 
 function setFont(family, size) {

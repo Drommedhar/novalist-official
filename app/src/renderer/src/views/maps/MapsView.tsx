@@ -16,6 +16,11 @@ import {
 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
+import {
+  persistPendingWrite,
+  registerPendingWrite,
+  retainPendingWrite
+} from '../../stores/pendingWrites'
 import { InputDialog } from '../../shell/InputDialog'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { ToolRail } from './ToolRail'
@@ -35,6 +40,8 @@ import {
 } from './mapModel'
 import { MapScaleDialog } from './MapScaleDialog'
 import './map.css'
+
+const MAP_WRITE_KEY = 'maps:document'
 
 interface MapRefDto {
   id: string
@@ -128,9 +135,39 @@ export function MapsView(): React.JSX.Element {
     return (iframeRef.current?.contentWindow as MapWindow | null) ?? null
   }, [])
 
-  const persist = useCallback((json: string): void => {
-    void rpc.request('maps/save', [json])
+  const persist = useCallback((json: string): Promise<void> => {
+    return persistPendingWrite(MAP_WRITE_KEY, () => rpc.request('maps/save', [json]))
   }, [])
+
+  const retain = useCallback((json: string): void => {
+    retainPendingWrite(MAP_WRITE_KEY, () => rpc.request('maps/save', [json]))
+  }, [])
+
+  const flushPendingMapSave = useCallback(async (): Promise<void> => {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = null
+    const win = getWin()
+    if (!win || !readyRef.current || typeof win.getMapData !== 'function') return
+    // Read the iframe rather than React state: a final pointer event can reach
+    // the map before its postMessage reaches the host.
+    await persist(win.getMapData())
+  }, [getWin, persist])
+
+  useEffect(
+    () => registerPendingWrite(flushPendingMapSave),
+    [flushPendingMapSave]
+  )
+
+  useEffect(
+    () => () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current)
+      const win = getWin()
+      if (!win || !readyRef.current || typeof win.getMapData !== 'function') return
+      const json = win.getMapData()
+      retain(json)
+    },
+    [getWin, retain]
+  )
 
   /** Read authoritative state from the canvas, mutate, push back + persist. */
   const commitMap = useCallback(
@@ -149,12 +186,15 @@ export function MapsView(): React.JSX.Element {
       setMapModel(data)
       if (debounceSaveMs) {
         if (saveTimer.current) clearTimeout(saveTimer.current)
-        saveTimer.current = setTimeout(() => persist(json), debounceSaveMs)
+        saveTimer.current = setTimeout(() => {
+          saveTimer.current = null
+          retain(json)
+        }, debounceSaveMs)
       } else {
-        persist(json)
+        retain(json)
       }
     },
-    [getWin, persist]
+    [getWin, retain]
   )
 
   const refreshModelFromView = useCallback((): void => {
@@ -334,17 +374,23 @@ export function MapsView(): React.JSX.Element {
         case 'mapChanged':
           if (saveTimer.current) clearTimeout(saveTimer.current)
           saveTimer.current = setTimeout(() => {
+            saveTimer.current = null
             const win = getWin()
             if (!win || typeof win.getMapData !== 'function') return
-            persist(win.getMapData())
+            const json = win.getMapData()
+            retain(json)
           }, MAP_AUTOSAVE_MS)
           refreshModelFromView()
           break
         case 'viewChanged':
           if (saveTimer.current) clearTimeout(saveTimer.current)
           saveTimer.current = setTimeout(() => {
+            saveTimer.current = null
             const win = getWin()
-            if (win && typeof win.getMapData === 'function') persist(win.getMapData())
+            if (win && typeof win.getMapData === 'function') {
+              const json = win.getMapData()
+              retain(json)
+            }
           }, MAP_AUTOSAVE_MS)
           break
         case 'placePinAt': {
@@ -447,7 +493,7 @@ export function MapsView(): React.JSX.Element {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [getWin, persist, pushMap, pushStringsAndOptions, refreshModelFromView, showPinPeek, start3DLoading, t]
+    [getWin, pushMap, pushStringsAndOptions, refreshModelFromView, retain, showPinPeek, start3DLoading, t]
   )
 
   apiRef.current.onMapMessage = handleMessage

@@ -3,11 +3,14 @@ import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from './projectStore'
 import { useFilterStore } from './filterStore'
 import type { ColourDimension } from '../views/manuscript/sceneColour'
+import i18n from '../i18n'
 
 export interface ManuscriptSceneDto {
   sceneId: string
   title: string
   html: string
+  /** Fingerprint of the exact prose this editor loaded. */
+  hash: string
   wordCount: number
   synopsis: string | null
   pov: string | null
@@ -32,7 +35,109 @@ export type ManuscriptMode = 'manuscript' | 'corkboard' | 'outliner' | 'board'
 // Matches the Avalonia ManuscriptViewModel autosave debounce.
 const MANUSCRIPT_AUTOSAVE_MS = 800
 
-const saveTimers = new Map<string, ReturnType<typeof setTimeout>>()
+interface PendingManuscriptSave {
+  timer: ReturnType<typeof setTimeout> | null
+  inFlight: Promise<void> | null
+  chapterGuid: string
+  sceneId: string
+  html: string
+  plainText: string
+  expectedHash: string
+}
+
+interface SceneWriteResult {
+  sceneId: string
+  wordCount: number
+  hash: string
+  conflicted: boolean
+  diskHtml: string | null
+}
+
+const saveTimers = new Map<string, PendingManuscriptSave>()
+/** A second debounce may mature while the first payload is still on the wire.
+ *  Serialize by scene so its expected hash can be advanced by the predecessor
+ *  before the successor is sent. */
+const sceneWriteTails = new Map<string, Promise<void>>()
+
+function writePendingManuscriptSave(save: PendingManuscriptSave): Promise<void> {
+  if (save.inFlight) return save.inFlight
+  if (save.timer) clearTimeout(save.timer)
+  save.timer = null
+  const predecessor = sceneWriteTails.get(save.sceneId) ?? Promise.resolve()
+  const write = predecessor.catch(() => {}).then(async (): Promise<void> => {
+    // Read the base only after our predecessor has settled. It may have
+    // advanced the section hash while this save was queued behind it.
+    const expectedHash = useManuscriptStore
+      .getState()
+      .sections.flatMap((section) => section.scenes)
+      .find((scene) => scene.sceneId === save.sceneId)?.hash
+
+    const result = await rpc.request<SceneWriteResult>('scenes/write', [
+      save.chapterGuid,
+      save.sceneId,
+      save.html,
+      save.plainText,
+      expectedHash ?? save.expectedHash
+    ])
+    const current = saveTimers.get(save.sceneId)
+    if (result.conflicted) {
+      // Prefer the newest local manuscript payload if the writer typed while
+      // this request was in flight. Nothing was written, and the normal merge
+      // dialog now owns the explicit choice between both versions.
+      const mine = current ?? save
+      useProjectStore.setState({
+        sceneConflict: {
+          chapterGuid: mine.chapterGuid,
+          sceneId: mine.sceneId,
+          mine: mine.html,
+          theirs: result.diskHtml ?? '',
+          plainText: mine.plainText
+        }
+      })
+      throw new Error(i18n.t('update.sceneWriteConflict'))
+    }
+
+    useManuscriptStore.setState((state) => ({
+      sections: state.sections.map((section) => ({
+        ...section,
+        scenes: section.scenes.map((scene) =>
+          scene.sceneId !== save.sceneId
+            ? scene
+            : current && current !== save
+              ? { ...scene, hash: result.hash }
+              : { ...scene, html: save.html, hash: result.hash, wordCount: result.wordCount }
+        )
+      }))
+    }))
+    useProjectStore
+      .getState()
+      .applyManuscriptSceneWrite(
+        save.chapterGuid,
+        save.sceneId,
+        save.html,
+        save.plainText,
+        result.wordCount,
+        result.hash
+      )
+  })
+  save.inFlight = write
+  const tail = write.catch(() => {})
+  sceneWriteTails.set(save.sceneId, tail)
+  void tail.then(() => {
+    if (sceneWriteTails.get(save.sceneId) === tail) sceneWriteTails.delete(save.sceneId)
+  })
+  // Keep a rejected payload available for the update button's retry. A newer
+  // edit may already have replaced this entry, in which case it wins.
+  void write.then(
+    () => {
+      if (saveTimers.get(save.sceneId) === save) saveTimers.delete(save.sceneId)
+    },
+    () => {
+      if (saveTimers.get(save.sceneId) === save) save.inFlight = null
+    }
+  )
+  return write
+}
 
 interface ManuscriptState {
   mode: ManuscriptMode
@@ -66,6 +171,11 @@ interface ManuscriptState {
   applyList(filterListId: string): Promise<void>
   load(): Promise<void>
   onSceneContentChanged(sceneId: string, html: string, plainText: string, wordCount: number): void
+  /** Writes every scene still waiting in the manuscript editor's debounce. */
+  flushPendingSave(): Promise<void>
+  /** Adopts a conflict resolution and retires the manuscript payload it chose
+   *  between, so it cannot be submitted again after the merge. */
+  acceptResolvedScene(sceneId: string, html: string, wordCount: number, hash: string): void
   cycleStatus(chapterGuid: string): Promise<void>
   setSynopsis(chapterGuid: string, sceneId: string, synopsis: string): Promise<void>
   setPov(chapterGuid: string, sceneId: string, pov: string): Promise<void>
@@ -152,14 +262,53 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
       }))
     })
     const existing = saveTimers.get(sceneId)
-    if (existing) clearTimeout(existing)
-    saveTimers.set(
+    if (existing?.timer) clearTimeout(existing.timer)
+    const save: PendingManuscriptSave = {
+      timer: null,
+      inFlight: null,
+      chapterGuid: section.chapterGuid,
       sceneId,
-      setTimeout(() => {
-        saveTimers.delete(sceneId)
-        void rpc.request('scenes/write', [section.chapterGuid, sceneId, html, plainText])
-      }, MANUSCRIPT_AUTOSAVE_MS)
-    )
+      html,
+      plainText,
+      expectedHash: section.scenes.find((scene) => scene.sceneId === sceneId)?.hash ?? ''
+    }
+    save.timer = setTimeout(() => {
+      void writePendingManuscriptSave(save).catch(() => {
+        // The payload stays in saveTimers for an explicit retry, while a scene
+        // conflict is surfaced through projectStore's merge dialog.
+      })
+    }, MANUSCRIPT_AUTOSAVE_MS)
+    saveTimers.set(sceneId, save)
+  },
+
+  flushPendingSave: async () => {
+    if (useProjectStore.getState().sceneConflict) {
+      throw new Error(i18n.t('update.unsavedConflict'))
+    }
+    const pending = [...saveTimers.values()]
+    for (const save of pending) {
+      await writePendingManuscriptSave(save)
+    }
+    // Another concurrently flushed editor can be the path that discovers the
+    // conflict. A manuscript flush still cannot certify a safe shutdown merely
+    // because its own queue happened to empty first.
+    if (useProjectStore.getState().sceneConflict) {
+      throw new Error(i18n.t('update.unsavedConflict'))
+    }
+  },
+
+  acceptResolvedScene: (sceneId, html, wordCount, hash) => {
+    const pending = saveTimers.get(sceneId)
+    if (pending?.timer) clearTimeout(pending.timer)
+    saveTimers.delete(sceneId)
+    set({
+      sections: get().sections.map((section) => ({
+        ...section,
+        scenes: section.scenes.map((scene) =>
+          scene.sceneId === sceneId ? { ...scene, html, wordCount, hash } : scene
+        )
+      }))
+    })
   },
 
   cycleStatus: async (chapterGuid) => {

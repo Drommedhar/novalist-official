@@ -103,6 +103,10 @@ export function editorPane(state: ProjectState, paneId: string | null): EditorPa
 const AUTOSAVE_DELAY_MS = 2000
 
 const autosaveTimers = new Map<string, ReturnType<typeof setTimeout>>()
+/** A timer disappears as soon as it starts its write, so keep the write itself
+ *  visible until the backend has answered. A shutdown flush can then await it
+ *  instead of issuing the same scene write again with the same disk hash. */
+const autosaveWrites = new Map<string, Promise<void>>()
 
 interface ProjectState {
   isLoaded: boolean
@@ -169,6 +173,16 @@ interface ProjectState {
   /** Writes one pane's unsaved edit now, cancelling its autosave timer. */
   flushPane(paneId: string): Promise<void>
   flushPendingSave(): Promise<void>
+  /** Applies a manuscript-editor acknowledgement without blessing a divergent
+   *  dirty EditorFrame with the manuscript's newer disk hash. */
+  applyManuscriptSceneWrite(
+    chapterGuid: string,
+    sceneId: string,
+    html: string,
+    plainText: string,
+    wordCount: number,
+    hash: string
+  ): void
   /** @param insertAtOrder where the chapter goes, one-based; omit to append. */
   createChapter(title: string, insertAtOrder?: number): Promise<void>
   createScene(chapterGuid: string, title: string): Promise<void>
@@ -411,6 +425,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         )
       }
     })
+    // manuscriptStore imports this store, so load it lazily here rather than
+    // creating an eager module cycle. A resolved manuscript payload must be
+    // retired or its old version would immediately conflict again on shutdown.
+    const { useManuscriptStore } = await import('./manuscriptStore')
+    useManuscriptStore
+      .getState()
+      .acceptResolvedScene(conflict.sceneId, html, result.wordCount, result.hash)
   },
 
   dismissSceneConflict: () => set({ sceneConflict: null }),
@@ -509,13 +530,63 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const timer = autosaveTimers.get(paneId)
     if (timer) clearTimeout(timer)
     autosaveTimers.delete(paneId)
+    const inFlight = autosaveWrites.get(paneId)
+    if (inFlight) await inFlight
     await flushEditor(get().editors[paneId])
   },
 
   flushPendingSave: async () => {
-    for (const timer of autosaveTimers.values()) clearTimeout(timer)
-    autosaveTimers.clear()
-    for (const editor of Object.values(get().editors)) await flushEditor(editor)
+    const paneIds = new Set([
+      ...Object.keys(get().editors),
+      ...autosaveTimers.keys(),
+      ...autosaveWrites.keys()
+    ])
+    for (const paneId of paneIds) await get().flushPane(paneId)
+  },
+
+  applyManuscriptSceneWrite: (chapterGuid, sceneId, html, plainText, wordCount, hash) => {
+    set((state) => {
+      let hasDivergentDirtyEditor = false
+      const editors = mapEditors(state.editors, (editor) => {
+        if (editor.sceneId !== sceneId) return editor
+        const matches = editor.html === html && (editor.plainText ?? '') === plainText
+        if (editor.isDirty && !matches) {
+          hasDivergentDirtyEditor = true
+          return editor
+        }
+        // A clean frame must follow the version just written elsewhere. An
+        // exact dirty match is now acknowledged too; there is no conflict to
+        // ask the writer to resolve.
+        return { ...editor, html, plainText, isDirty: false }
+      })
+      const stillDirty = Object.values(editors).some(
+        (editor) => editor.sceneId === sceneId && editor.isDirty
+      )
+      return {
+        // A divergent editor still owns the hash it read. Keeping that base
+        // makes its later checked write conflict with this manuscript save;
+        // advancing it here would authorize a silent overwrite.
+        sceneHashes: hasDivergentDirtyEditor
+          ? state.sceneHashes
+          : { ...state.sceneHashes, [sceneId]: hash },
+        editors,
+        ...mirror(editors, state.activeEditorPaneId),
+        dirtyMap:
+          state.dirtyMap[sceneId] !== stillDirty
+            ? { ...state.dirtyMap, [sceneId]: stillDirty }
+            : state.dirtyMap,
+        chapters: state.chapters.map((chapter) =>
+          chapter.guid === chapterGuid
+            ? {
+                ...chapter,
+                scenes: chapter.scenes.map((scene) =>
+                  scene.id === sceneId ? { ...scene, wordCount } : scene
+                )
+              }
+            : chapter
+        )
+      }
+    })
   },
 
   createChapter: async (title, insertAtOrder) => {
@@ -746,7 +817,16 @@ function scheduleSave(
     pane,
     setTimeout(() => {
       autosaveTimers.delete(pane)
-      void saveScene(chapterGuid, sceneId, html, plainText)
+      const write = saveScene(chapterGuid, sceneId, html, plainText)
+      autosaveWrites.set(pane, write)
+      void write.then(
+        () => {
+          if (autosaveWrites.get(pane) === write) autosaveWrites.delete(pane)
+        },
+        () => {
+          if (autosaveWrites.get(pane) === write) autosaveWrites.delete(pane)
+        }
+      )
     }, AUTOSAVE_DELAY_MS)
   )
 }
@@ -787,16 +867,28 @@ async function saveScene(
   }
 
   useProjectStore.setState((state) => {
-    // The scene is on disk, so every pane holding it is clean - two panes on one
-    // scene must not leave the second one claiming unsaved work forever.
+    // Only the exact content acknowledged by the backend is clean. The writer
+    // may have typed again while this request was in flight; clearing that newer
+    // edit here would make a shutdown flush believe there was nothing to save.
     const editors = mapEditors(state.editors, (editor) =>
-      editor.sceneId === sceneId && editor.isDirty ? { ...editor, isDirty: false } : editor
+      editor.sceneId === sceneId &&
+      editor.isDirty &&
+      editor.html === html &&
+      (editor.plainText ?? '') === plainText
+        ? { ...editor, isDirty: false }
+        : editor
+    )
+    const stillDirty = Object.values(editors).some(
+      (editor) => editor.sceneId === sceneId && editor.isDirty
     )
     return {
       sceneHashes: { ...state.sceneHashes, [sceneId]: result.hash },
       editors,
       ...mirror(editors, state.activeEditorPaneId),
-      dirtyMap: state.dirtyMap[sceneId] ? { ...state.dirtyMap, [sceneId]: false } : state.dirtyMap,
+      dirtyMap:
+        state.dirtyMap[sceneId] !== stillDirty
+          ? { ...state.dirtyMap, [sceneId]: stillDirty }
+          : state.dirtyMap,
       chapters: state.chapters.map((c) =>
         c.guid === chapterGuid
           ? {

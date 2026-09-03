@@ -34,6 +34,17 @@ public class BackendHostTests
     }
 
     [Fact]
+    public async Task Barrier_RoundTrips()
+    {
+        var (serverStream, clientStream) = FullDuplexStream.CreatePair();
+        using var host = new BackendHost();
+        host.Attach(serverStream, serverStream);
+        using var client = CreateClient(clientStream);
+
+        Assert.True(await client.InvokeAsync<bool>("system/barrier"));
+    }
+
+    [Fact]
     public async Task Shutdown_CompletesRunAsync()
     {
         var (serverStream, clientStream) = FullDuplexStream.CreatePair();

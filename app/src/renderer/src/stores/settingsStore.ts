@@ -17,6 +17,7 @@ export interface EffectiveSettings {
   readAloudVoiceUri: string | null
   editorLetterSpacing: number
   editorParagraphSpacing: number
+  editorFirstLineIndent: number
   composeDimming: boolean
   typewriterScrollEnabled: boolean
   typewriterScrollAnchor: string

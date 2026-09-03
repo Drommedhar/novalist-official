@@ -128,6 +128,10 @@ public class SettingsOverrides
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? EditorParagraphSpacing { get; set; }
 
+    [JsonPropertyName("editorFirstLineIndent")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? EditorFirstLineIndent { get; set; }
+
     [JsonPropertyName("theme")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Theme { get; set; }
@@ -167,7 +171,7 @@ public class SettingsOverrides
         || EditorLineHeight != null || EditorLetterSpacing != null
         || ReadAloudRate != null || ReadAloudVoiceUri != null
         || ReadabilityHighlighting != null
-        || EditorParagraphSpacing != null
+        || EditorParagraphSpacing != null || EditorFirstLineIndent != null
         || ComposeDimming != null
         || TypewriterScrollEnabled != null || TypewriterScrollAnchor != null || PageViewEnabled != null
         || EnableBookParagraphSpacing != null || EnableBookWidth != null || BookPageFormat != null
@@ -182,6 +186,21 @@ public class SettingsOverrides
         || SpellCheckEnabled != null || SpellCheckLanguages != null
         || GrammarCheckApiUrl != null || GrammarCheckApiKey != null || GrammarCheckUsername != null
         || GrammarCheckPickyMode != null || GrammarCheckMotherTongue != null;
+
+    /// <summary>
+    /// Fills settings introduced after project-scoped sections shipped.
+    ///
+    /// A project that already pinned its Editor section promised to keep the
+    /// typography it had at that point. Older files cannot name first-line
+    /// indent, so preserving their pre-feature appearance means pinning it to
+    /// zero instead of letting a later global indent leak into the project.
+    /// An entirely unpinned section remains empty and continues to inherit.
+    /// </summary>
+    public void ApplyCompatibilityDefaults()
+    {
+        if (HasEditorOverride && EditorFirstLineIndent is null)
+            EditorFirstLineIndent = 0;
+    }
 
     /// <summary>
     /// Pins the Appearance section to the project by copying the values in
@@ -208,6 +227,7 @@ public class SettingsOverrides
         ReadAloudVoiceUri = source.ReadAloudVoiceUri;
         EditorLetterSpacing = source.EditorLetterSpacing;
         EditorParagraphSpacing = source.EditorParagraphSpacing;
+        EditorFirstLineIndent = source.EditorFirstLineIndent;
         ComposeDimming = source.ComposeDimming;
         TypewriterScrollEnabled = source.TypewriterScrollEnabled;
         TypewriterScrollAnchor = source.TypewriterScrollAnchor;
@@ -257,6 +277,7 @@ public class SettingsOverrides
         ReadAloudVoiceUri = null;
         EditorLetterSpacing = null;
         EditorParagraphSpacing = null;
+        EditorFirstLineIndent = null;
         ComposeDimming = null;
         TypewriterScrollEnabled = null;
         TypewriterScrollAnchor = null;

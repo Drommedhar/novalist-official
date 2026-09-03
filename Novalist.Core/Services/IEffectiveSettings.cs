@@ -23,6 +23,7 @@ public interface IEffectiveSettings
     string? ReadAloudVoiceUri { get; }
     double EditorLetterSpacing { get; }
     double EditorParagraphSpacing { get; }
+    double EditorFirstLineIndent { get; }
     /// <summary>Whether the editor dims every paragraph but the current one.</summary>
     bool ComposeDimming { get; }
 

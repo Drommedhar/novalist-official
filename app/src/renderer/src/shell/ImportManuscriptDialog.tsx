@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FileInput, FolderInput, Import } from 'lucide-react'
+import { FileInput, Import } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 
@@ -88,6 +88,14 @@ const DESTINATIONS: Destination[] = [
   'skip'
 ]
 
+function stagingFailure(error: unknown): { stage: string; reason: string } | null {
+  const message = error instanceof Error ? error.message : String(error)
+  const match = message.match(
+    /manuscript-staging-failed:(project|source):(access-denied|disk-full|source-missing|unsafe-link|manifest-not-found|manifest-ambiguous|invalid-manifest|invalid-project|io|other)/
+  )
+  return match ? { stage: match[1], reason: match[2] } : null
+}
+
 /**
  * Brings an existing manuscript into the open project.
  *
@@ -102,9 +110,11 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
   const [plan, setPlan] = useState<ImportPlan | null>(null)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [busy, setBusy] = useState(false)
-  // The OS picker cannot be filtered here, so the reader tells us what it can
-  // actually open and we say so up front instead of failing after the choice.
+  // The reader owns this list; the same values are shown here and passed to the
+  // native picker so neither UI can promise a format the backend cannot open.
   const [formats, setFormats] = useState<string[]>([])
+  const [formatsFailed, setFormatsFailed] = useState(false)
+  const [openFailed, setOpenFailed] = useState(false)
   // The binder as the rules read it, kept from the first look at the project so
   // the rows and their detected destinations stay put while choices are made.
   const [rows, setRows] = useState<ImportMappingRow[]>([])
@@ -113,8 +123,31 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
   const [overrides, setOverrides] = useState<Record<string, Destination>>({})
 
   useEffect(() => {
-    void rpc.request<string[]>('manuscriptImport/formats').then(setFormats)
+    let current = true
+    void rpc
+      .request<string[]>('manuscriptImport/formats')
+      .then((supported) => {
+        if (current) setFormats(supported)
+      })
+      .catch(() => {
+        if (current) setFormatsFailed(true)
+      })
+    return () => {
+      current = false
+    }
   }, [])
+
+  // MAS selections are copied into the app container; iOS keeps a native file
+  // or folder scope open. Retain either through preview/import, then release it
+  // on replacement or close.
+  useEffect(() => {
+    if (!path) return undefined
+    return () => {
+      void window.novalist.releasePickedFile(path).catch(() => {
+        // Desktop startup or mobile process exit cleans up a missed release.
+      })
+    }
+  }, [path])
 
   const asArgument = (chosen: Record<string, Destination>): { key: string; destination: string }[] =>
     Object.entries(chosen).map(([key, destination]) => ({ key, destination }))
@@ -176,16 +209,36 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
   const destinationOf = (row: ImportMappingRow): Destination =>
     overrides[row.key] ?? row.destination
 
-  /** A Scrivener project is a folder, not a file, so it needs the folder
-   *  picker - the file picker cannot select one. */
-  const pickProject = async (): Promise<void> => {
-    const chosen = await window.novalist.pickFolder(t('manuscriptImport.chooseScrivener'))
-    if (chosen) await preview(chosen)
-  }
-
   const pick = async (): Promise<void> => {
-    const chosen = await window.novalist.pickFile(t('manuscriptImport.choose'), 'all')
-    if (chosen) await preview(chosen)
+    if (formats.length === 0) return
+    setBusy(true)
+    setOpenFailed(false)
+    try {
+      const chosen = await window.novalist.pickFile(
+        t('manuscriptImport.choose'),
+        'manuscript',
+        {
+          extensions: formats,
+          filterName: t('manuscriptImport.filterName'),
+          scrivenerAccessTitle: t('manuscriptImport.scrivenerAccess')
+        }
+      )
+      if (chosen) await preview(chosen)
+    } catch (error) {
+      const failure = stagingFailure(error)
+      if (failure) {
+        void rpc
+          .request<void>('manuscriptImport/pickerFailure', [failure.stage, failure.reason])
+          .catch(() => {
+            // The backend may itself be unavailable; the in-dialog error remains.
+          })
+      }
+      setOpenFailed(true)
+      setPlan(null)
+      setRows([])
+    } finally {
+      setBusy(false)
+    }
   }
 
   /** A Scrivener project can be worth importing for its Codex sketches and
@@ -206,22 +259,31 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
       setPlan(null)
       setRows([])
       setOverrides({})
+      setPath('')
     } finally {
       setBusy(false)
     }
   }
 
   const fileName = path.split(/[\\/]/).pop() ?? ''
+  const close = (): void => {
+    if (!busy) props.onClose()
+  }
 
   return (
-    <div className="dialog-overlay" onClick={props.onClose}>
+    <div className="dialog-overlay" onClick={close}>
       <div
         className="dialog-card dialog-card-wide import-manuscript-dialog"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="dialog-header">
           <h3>{t('manuscriptImport.title')}</h3>
-          <button className="dialog-close" onClick={props.onClose} aria-label={t('dialog.close')}>
+          <button
+            className="dialog-close"
+            disabled={busy}
+            onClick={close}
+            aria-label={t('dialog.close')}
+          >
             ×
           </button>
         </div>
@@ -232,13 +294,24 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
             {t('manuscriptImport.formats', { formats: formats.join(', ') })}
           </p>
         )}
+        {formatsFailed && (
+          <p className="settings-hint" role="alert">
+            {t('manuscriptImport.formatsUnavailable')}
+          </p>
+        )}
+        {openFailed && (
+          <p className="settings-hint" role="alert">
+            {t('manuscriptImport.openFailed')}
+          </p>
+        )}
 
         <div className="settings-button-row">
-          <button className="dialog-button" disabled={busy} onClick={() => void pick()}>
+          <button
+            className="dialog-button"
+            disabled={busy || formats.length === 0}
+            onClick={() => void pick()}
+          >
             <FileInput size={14} /> {t('manuscriptImport.choose')}
-          </button>
-          <button className="dialog-button" disabled={busy} onClick={() => void pickProject()}>
-            <FolderInput size={14} /> {t('manuscriptImport.chooseScrivener')}
           </button>
           {fileName && <span className="settings-hint">{fileName}</span>}
         </div>

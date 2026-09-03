@@ -4,6 +4,28 @@ import { useProjectStore } from '../stores/projectStore'
 
 /** How often to ask the backend whether an interval backup is due. */
 const POLL_MS = 60_000
+let closeBackupHandledForQuit = false
+
+/** Creates the normal close backup and waits for the backend to finish it. */
+export async function createCloseBackup(): Promise<void> {
+  if (!useProjectStore.getState().projectName) return
+  try {
+    await rpc.request('backup/create', ['close'])
+  } catch {
+    // Backups are best-effort. A failed archive must not trap a writer in the
+    // application after their live project data has already been saved.
+  }
+}
+
+/** Prevents beforeunload from starting the same close archive a second time. */
+export function markCloseBackupHandledForQuit(): void {
+  closeBackupHandledForQuit = true
+}
+
+/** Restores normal close-backup behavior when an installer handoff is rejected. */
+export function clearCloseBackupHandledForQuit(): void {
+  closeBackupHandledForQuit = false
+}
 
 /**
  * Drives automatic whole-project backups.
@@ -46,7 +68,11 @@ export function useBackupScheduler(): void {
     }, POLL_MS)
 
     const onUnload = (): void => {
-      void rpc.request('backup/create', ['close']).catch(() => {})
+      if (closeBackupHandledForQuit) {
+        closeBackupHandledForQuit = false
+        return
+      }
+      void createCloseBackup()
     }
     window.addEventListener('beforeunload', onUnload)
 

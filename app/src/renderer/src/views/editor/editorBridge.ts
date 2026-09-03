@@ -8,6 +8,11 @@
 /** The editor page's global functions the host is allowed to call. */
 export interface EditorWindow extends Window {
   setContent(html: string): void
+  /** Clean stored HTML and plain text currently in the live contenteditable. */
+  getContent(): string
+  getPlainText(): string
+  /** Sends any edit still inside the iframe's short change debounce. */
+  flushPendingContentChange(): void
   setTheme(
     bg: string,
     fg: string,
@@ -33,8 +38,13 @@ export interface EditorWindow extends Window {
   /** The host has spoken one sentence through the system engine; advance. */
   onSentenceSpoken(ok: boolean): void
   stopReadAloud(): void
-  /** Leading, letter spacing (px) and the gap between paragraphs (em). */
-  setReadingComfort(lineHeight: number, letterSpacing: number, paragraphSpacing: number): void
+  /** Leading, letter spacing (px), paragraph gap and first-line indent (em). */
+  setReadingComfort(
+    lineHeight: number,
+    letterSpacing: number,
+    paragraphSpacing: number,
+    firstLineIndent: number
+  ): void
   setLanguage(lang: string): void
   setSpellCheck(enabled: boolean): void
   /** Mobile mode: full-width text (no margin comment gutter) + touch-sized UI. */

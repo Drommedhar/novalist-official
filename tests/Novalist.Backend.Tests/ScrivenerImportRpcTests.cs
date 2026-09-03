@@ -54,10 +54,13 @@ public sealed class ScrivenerImportRpcTests : IDisposable
         => _workspace.Projects.GetScenesForChapter(chapter.Guid);
 
     [Fact]
-    public void TheScrivExtensionIsOfferedAlongsideTheFileFormats()
+    public void BothScrivenerPathShapesAreOfferedAlongsideTheFileFormats()
     {
-        Assert.Contains(".scriv", _rpc.Formats());
-        Assert.Contains(".docx", _rpc.Formats());
+        var formats = _rpc.Formats();
+
+        Assert.Contains(".scrivx", formats);
+        Assert.Contains(".docx", formats);
+        Assert.Contains(".scriv", formats);
     }
 
     // ── Preview ──

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ModePanel } from './ModePanel'
 import { ModeRail } from './ModeRail'
 import { Binder } from './Binder'
@@ -11,7 +12,7 @@ import { FindReplaceDialog } from './FindReplaceDialog'
 import { CleanupDialog } from './CleanupDialog'
 import { HelpOverlay } from './HelpOverlay'
 import { runCommand } from './commands'
-import { buildDefaultHotkeys, installHotkeys } from './hotkeys'
+import { buildDefaultHotkeys, installHotkeys, setHotkeysEnabled } from './hotkeys'
 import { buildMenuLabels, buildMenuTemplate, OPEN_RECENT } from './menuLayout'
 import { Inspector } from './Inspector'
 import { Toolbar } from './Toolbar'
@@ -23,7 +24,12 @@ import { SceneNotesDock } from './SceneNotesDock'
 import { ShellDialogs } from './ShellDialogs'
 import { StartScreen } from './StartScreen'
 import { UpdateDialog } from './UpdateDialog'
-import { useBackupScheduler } from './useBackupScheduler'
+import {
+  clearCloseBackupHandledForQuit,
+  createCloseBackup,
+  markCloseBackupHandledForQuit,
+  useBackupScheduler
+} from './useBackupScheduler'
 import { useSpellCheck } from './useSpellCheck'
 import { SceneConflictDialog } from './SceneConflictDialog'
 import { UnsavedLeaveDialog } from './UnsavedLeaveDialog'
@@ -39,6 +45,8 @@ import { chromeForView, modeOf } from './modes'
 import { helpTargetForContext, type ManualTarget } from './helpTargets'
 import { useSettingsNavigation } from '../views/settings/settingsNavigation'
 import { useEditorBridge } from '../stores/editorBridgeStore'
+import { flushPendingWrites } from '../stores/pendingWrites'
+import { useManuscriptStore } from '../stores/manuscriptStore'
 import './shell.css'
 
 
@@ -61,7 +69,22 @@ async function hydrate(): Promise<void> {
   await useExtensionsStore.getState().load()
 }
 
+async function within<T>(promise: Promise<T>, milliseconds: number, timeoutMessage: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | null = null
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(() => reject(new Error(timeoutMessage)), milliseconds)
+      })
+    ])
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
+}
+
 export function AppShell(): React.JSX.Element {
+  const { t } = useTranslation()
   useBackupScheduler()
   useSpellCheck()
   const binderVisible = useShellStore((s) => s.binderVisible)
@@ -146,8 +169,15 @@ export function AppShell(): React.JSX.Element {
   const [updateOpen, setUpdateOpen] = useState(false)
   const [updateProgress, setUpdateProgress] = useState<number | null>(null)
   const [downloading, setDownloading] = useState(false)
+  const downloadingRef = useRef(false)
+  const [updateError, setUpdateError] = useState<string | null>(null)
+
+  useEffect(() => {
+    downloadingRef.current = downloading
+  }, [downloading])
 
   const runUpdateCheck = async (manual: boolean): Promise<void> => {
+    setUpdateError(null)
     let app: AppUpdate | null = null
     let ext: StoreUpdate[] = []
     try {
@@ -241,6 +271,7 @@ export function AppShell(): React.JSX.Element {
       chapter?: string
       scene?: string
     }): Promise<void> => {
+      if (downloadingRef.current) return
       try {
         await useProjectStore.getState().openProject(link.project)
         // A scene id means nothing without the chapter that holds it, so the
@@ -268,7 +299,10 @@ export function AppShell(): React.JSX.Element {
     if (isLoaded && !hasSeenTour()) useShellStore.getState().setTourOpen(true)
   }, [isLoaded])
 
-  useEffect(() => installHotkeys(hotkeys), [hotkeys])
+  useEffect(() => {
+    setHotkeysEnabled(!downloading)
+    if (!downloading) return installHotkeys(hotkeys)
+  }, [hotkeys, downloading])
 
   // The menu bar is generated from the command registry, so it has to be
   // rebuilt whenever any of its three inputs move: the language its labels are
@@ -293,6 +327,9 @@ export function AppShell(): React.JSX.Element {
       if (data?.novalist === 'update-progress' && typeof data.percent === 'number')
         setUpdateProgress(data.percent)
       if (data?.novalist === 'menu-command' && data.command) {
+        // The update dialog is deliberately non-dismissible during handoff;
+        // native menu commands must respect the same lock.
+        if (downloadingRef.current) return
         // Every menu item but the updater is a registry command, so the menu
         // bar cannot offer anything the palette does not also have.
         if (data.command === 'help:checkUpdates') void runUpdateCheck(true)
@@ -306,12 +343,69 @@ export function AppShell(): React.JSX.Element {
   }, [])
 
   const downloadAppUpdate = async (): Promise<void> => {
-    if (!appUpdate) return
+    if (!appUpdate || downloadingRef.current) return
+    downloadingRef.current = true
     setDownloading(true)
     setUpdateProgress(0)
+    setUpdateError(null)
     try {
-      await window.novalist.downloadAppUpdate(appUpdate)
+      const prepareToQuit = (): Promise<void> =>
+        within(
+          (async () => {
+            if (await window.novalist.hasDetachedPanes()) {
+              throw new Error(t('update.closeDetachedPanes'))
+            }
+            // Mounted editors own short debounces before their stores do. Drain
+            // those and await each surface's own persistence request.
+            await flushPendingWrites()
+            // A view may have unmounted after queueing its store-level save, so
+            // drain the global queues as well as the currently mounted surfaces.
+            await useProjectStore.getState().flushPendingSave()
+            await useManuscriptStore.getState().flushPendingSave()
+            // Every ordinary workspace mutation uses one backend queue. This
+            // no-op sits behind all requests already sent to that queue, covering
+            // immediate settings/toggle writes that have no local debounce while
+            // excluding long-running voice, export, backup, and Git work.
+            await rpc.request('system/barrier')
+            const project = useProjectStore.getState()
+            if (
+              project.sceneConflict ||
+              project.isDirty ||
+              Object.values(project.dirtyMap).some(Boolean)
+            ) {
+              throw new Error(t('update.unsavedConflict'))
+            }
+          })(),
+          10_000,
+          t('update.workspaceBusy')
+        )
+
+      await prepareToQuit()
+      const result = await window.novalist.downloadAppUpdate(appUpdate)
+      if (result.launchToken) {
+        // Downloads can take minutes. Even with the dialog locked, native
+        // commands and background work may have changed project data, so take
+        // one final persistence acknowledgement before the installer can run.
+        await prepareToQuit()
+        await createCloseBackup()
+        await prepareToQuit()
+        markCloseBackupHandledForQuit()
+        try {
+          // The token-authenticated main-process call launches and quits as one
+          // operation, so a Linux helper cannot be left waiting on a renderer
+          // that never managed to send a separate quit acknowledgement.
+          await window.novalist.launchAppUpdate(result.launchToken)
+        } catch (error) {
+          clearCloseBackupHandledForQuit()
+          throw error
+        }
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      console.error(`[update] download or installer handoff failed: ${message}`)
+      setUpdateError(message)
     } finally {
+      downloadingRef.current = false
       setDownloading(false)
     }
   }
@@ -378,11 +472,13 @@ export function AppShell(): React.JSX.Element {
           updatingExtId={updatingExtId}
           progress={updateProgress}
           downloading={downloading}
+          error={updateError}
           onDownload={() => void downloadAppUpdate()}
           onUpdateExt={(u) => void updateExtension(u)}
           onClose={() => {
             setUpdateOpen(false)
             setUpdateProgress(null)
+            setUpdateError(null)
           }}
         />
       )}

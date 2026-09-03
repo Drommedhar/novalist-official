@@ -29,6 +29,18 @@ public sealed class ManuscriptImportRpc
             ScrivenerReader.ProjectExtension,
             ScrivenerReader.BinderExtension];
 
+    /// <summary>Records a content-free failure that happened in the native
+    /// picker before the selected source could reach this backend.</summary>
+    [JsonRpcMethod("manuscriptImport/pickerFailure")]
+    public void PickerFailure(string? stage, string? reason)
+    {
+        var safeStage = stage is "project" or "source" ? stage : "unknown";
+        var safeReason = reason is "access-denied" or "disk-full" or "source-missing"
+            or "unsafe-link" or "manifest-not-found" or "manifest-ambiguous"
+            or "invalid-manifest" or "invalid-project" or "io" or "other" ? reason : "other";
+        Log.Warn($"manuscriptImport/picker failed stage={safeStage} reason={safeReason}.");
+    }
+
     /// <summary>
     /// What importing this file would create. Reads and splits without writing
     /// anything, so it is safe to run on the wrong file.
@@ -45,9 +57,8 @@ public sealed class ManuscriptImportRpc
             $"scrivener={isScrivener} mapping={mapping?.Length ?? 0}.");
 
         ImportPlanDto plan;
-        // A Scrivener project is a folder rather than a file, and its binder
-        // already says where the chapters are - so it never goes through the
-        // heading-guessing splitter.
+        // A Scrivener folder or exact binder already says where the chapters
+        // are, so it never goes through the heading-guessing splitter.
         if (isScrivener)
         {
             var chosen = MappingFrom(mapping);

@@ -28,6 +28,7 @@ interface Window {
     extensions: typeof import('./stores/extensionsStore').useExtensionsStore
     onboarding: typeof import('./stores/onboardingStore').useOnboardingStore
     narration: typeof import('./stores/narrationStore').useNarrationStore
+    manuscript: typeof import('./stores/manuscriptStore').useManuscriptStore
   }
   novalistRpc: import('./rpc/client').RpcClient
   novalistExtensionTheme: {
@@ -103,7 +104,16 @@ interface Window {
     onSpellingContext(handler: (word: string, suggestions: string[]) => void): void
     /** Applies a correction through Chromium, which owns the misspelled range. */
     replaceMisspelling(replacement: string): void
-    pickFile(title: string, mode?: 'images' | 'all'): Promise<string | null>
+    pickFile(
+      title: string,
+      mode?: 'images' | 'all' | 'manuscript',
+      options?: {
+        extensions?: string[]
+        filterName?: string
+        scrivenerAccessTitle?: string
+      }
+    ): Promise<string | null>
+    releasePickedFile(path: string): Promise<void>
     /** Absolute path of a dropped File (Electron removed File.path). */
     filePath(file: File): string
     openExternal(target: string): Promise<boolean>
@@ -121,7 +131,9 @@ interface Window {
     }): Promise<void>
     registerExtensionRoots(roots: Record<string, string>): Promise<void>
     checkAppUpdate(): Promise<AppUpdate | null>
-    downloadAppUpdate(info: AppUpdate): Promise<string>
+    hasDetachedPanes(): Promise<boolean>
+    downloadAppUpdate(info: AppUpdate): Promise<AppUpdateDownloadResult>
+    launchAppUpdate(token: string): Promise<void>
     updatesChecked(): void
     /** Repaints the system window controls to match the theme. Desktop only;
      *  a no-op on macOS and on the mobile build. */
@@ -157,4 +169,10 @@ interface AppUpdate {
   downloadUrl: string
   assetName: string
   assetSize: number
+}
+
+interface AppUpdateDownloadResult {
+  filePath: string
+  /** Null for an extracted Linux build whose download was only revealed. */
+  launchToken: string | null
 }

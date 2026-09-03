@@ -206,6 +206,13 @@
   color: var(--nl-text-subtle);
 }
 
+.update-error {
+  margin: var(--nl-space-sm) 0;
+  color: var(--nl-danger);
+  font-size: var(--nl-font-ui);
+  overflow-wrap: anywhere;
+}
+
 /* Snapshots dialog: take button, list, and empty state. Row/action styles are
  * shared with the inspector (inspector.css). */
 .dialog-inline-button {

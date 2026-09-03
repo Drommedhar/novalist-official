@@ -412,6 +412,7 @@ public sealed class SettingsRpc
             ["readAloudVoiceUri"] = effective.ReadAloudVoiceUri,
             ["editorLetterSpacing"] = effective.EditorLetterSpacing,
             ["editorParagraphSpacing"] = effective.EditorParagraphSpacing,
+            ["editorFirstLineIndent"] = effective.EditorFirstLineIndent,
             ["composeDimming"] = effective.ComposeDimming,
             ["typewriterScrollEnabled"] = effective.TypewriterScrollEnabled,
             ["typewriterScrollAnchor"] = effective.TypewriterScrollAnchor,

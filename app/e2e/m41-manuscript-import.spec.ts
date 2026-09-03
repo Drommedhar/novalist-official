@@ -1,5 +1,13 @@
 import { test, expect, _electron as electron, type Page } from '@playwright/test'
-import { cpSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
@@ -32,7 +40,10 @@ const REAL_SCRIVENER_FIXTURE = join(
   'RealFormatting.scriv'
 )
 
-async function launch(workDir: string): Promise<{
+async function launch(
+  workDir: string,
+  extraEnv: Record<string, string> = {}
+): Promise<{
   app: Awaited<ReturnType<typeof electron.launch>>
   page: Page
 }> {
@@ -41,8 +52,14 @@ async function launch(workDir: string): Promise<{
   ) as Record<string, string>
   env.NOVALIST_NO_SPLASH = '1'
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
+  Object.assign(env, extraEnv)
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  // Keep this test app's Chromium data and single-instance lock separate from
+  // an installed Novalist the developer may already have open.
+  const app = await electron.launch({
+    args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'electron-data')}`],
+    env
+  })
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
   return { app, page }
@@ -91,19 +108,17 @@ test('every format the dialog advertises is one the reader accepts', async () =>
 
   // The dialog lists these to the writer before the picker opens, so a format
   // named here and unreadable is a promise the file picker cannot keep.
-  expect(formats).toEqual(
-    expect.arrayContaining([
-      '.docx',
-      '.odt',
-      '.epub',
-      '.md',
-      '.markdown',
-      '.txt',
-      '.rtf',
-      '.scriv',
-      '.scrivx'
-    ])
-  )
+  expect(formats).toEqual([
+    '.docx',
+    '.odt',
+    '.epub',
+    '.md',
+    '.markdown',
+    '.txt',
+    '.rtf',
+    '.scriv',
+    '.scrivx'
+  ])
   await app.close()
 })
 
@@ -215,11 +230,11 @@ test('a DOCX Novalist wrote is a DOCX Novalist can read back', async () => {
   await app.close()
 })
 
-test('a directly selected Scrivenix binder imports from a Linux-style package', async () => {
+test('a directly selected Scrivenix binder imports from a suffixless Linux package', async () => {
   test.setTimeout(180_000)
   const workDir = mkdtempSync(join(tmpdir(), 'nl-imp-scriv-'))
-  const root = join(workDir, 'Book.scriv')
-  const binder = join(root, 'SCRIVENIX.SCRIVX')
+  const root = join(workDir, 'Arit')
+  const binder = join(root, 'Arit.scrivx')
   // These spellings are deliberately inconsistent. They take the real
   // case-insensitive fallback on Ubuntu CI while still describing the ordinary
   // Scrivener 3 package a Scrivenix/Wine user moves between filesystems.
@@ -269,6 +284,134 @@ test('a directly selected Scrivenix binder imports from a Linux-style package', 
   )) as { name: string }[]
   expect(characters.map((c) => c.name)).toContain('Mira Vance')
 
+  await app.close()
+})
+
+test('a sandboxed Mac stages a selected Scrivener project for the backend', async () => {
+  test.setTimeout(180_000)
+  const workDir = mkdtempSync(join(tmpdir(), 'nl-imp-mas-'))
+  const root = join(workDir, 'Arit')
+  const binder = join(root, 'RealFormatting.scrivx')
+  cpSync(REAL_SCRIVENER_FIXTURE, root, { recursive: true })
+
+  const { app, page } = await launch(workDir, { NOVALIST_FORCE_MAS: '1' })
+  await newProject(page, workDir)
+
+  await app.evaluate(async ({ dialog }, input: { binder: string; root: string; parent: string }) => {
+    let call = 0
+    dialog.showOpenDialog = ((...args: unknown[]) => {
+      call += 1
+      const options = args[args.length - 1] as {
+        title?: string
+        defaultPath?: string
+        properties?: string[]
+        securityScopedBookmarks?: boolean
+        filters?: { name: string; extensions: string[] }[]
+      }
+      if (call === 1) {
+        if (!options.properties?.includes('openFile')) throw new Error('files unavailable')
+        if (!options.properties.includes('openDirectory')) throw new Error('folders unavailable')
+        if (!options.properties.includes('treatPackageAsDirectory')) {
+          throw new Error('package cannot be entered to resolve multiple manifests')
+        }
+        if (!options.securityScopedBookmarks) throw new Error('sandbox bookmark not requested')
+        if (options.filters?.[0]?.name !== 'Manuscripts') throw new Error('filter not localized')
+        if (options.filters?.[0]?.extensions.includes('*')) throw new Error('unrestricted filter')
+        return Promise.resolve({
+          canceled: false,
+          filePaths: [input.binder],
+          bookmarks: ['manifest-bookmark']
+        })
+      }
+      if (call === 2) {
+        if (options.defaultPath !== input.parent) throw new Error('wrong access-folder parent')
+        if (
+          JSON.stringify(options.properties) !==
+          JSON.stringify(['openDirectory', 'treatPackageAsDirectory'])
+        ) {
+          throw new Error('access prompt is not folder-only')
+        }
+        if (!options.securityScopedBookmarks) throw new Error('folder bookmark not requested')
+        return Promise.resolve({
+          canceled: false,
+          filePaths: [input.root],
+          bookmarks: ['folder-bookmark']
+        })
+      }
+      throw new Error('unexpected third picker')
+    }) as never
+  }, { binder, root, parent: workDir })
+
+  const formats = [
+    '.docx',
+    '.odt',
+    '.epub',
+    '.md',
+    '.markdown',
+    '.txt',
+    '.rtf',
+    '.scriv',
+    '.scrivx'
+  ]
+  const staged = await page.evaluate((extensions: string[]) =>
+    window.novalist.pickFile('Choose a manuscript...', 'manuscript', {
+      extensions,
+      filterName: 'Manuscripts',
+      scrivenerAccessTitle: 'Choose the Scrivener project folder to allow access...'
+    }), formats)
+  expect(staged).toBeTruthy()
+  expect(staged).not.toBe(binder)
+  expect(staged!.startsWith(join(workDir, 'electron-data', 'manuscript-import-staging'))).toBe(true)
+  expect(existsSync(staged!)).toBe(true)
+
+  // The child can still parse the staged manifest and sibling payload after the
+  // PowerBox-only source has gone, proving it never depended on that process-local grant.
+  rmSync(root, { recursive: true, force: true })
+  const plan = await preview(page, staged!)
+  expect(plan.format).toBe('scrivener3')
+  expect(plan.sceneCount).toBeGreaterThan(0)
+
+  await page.evaluate((path: string) => window.novalist.releasePickedFile(path), staged!)
+  await expect.poll(() => existsSync(staged!)).toBe(false)
+
+  // Directory selection is available on MAS, but an arbitrary folder must be
+  // rejected before staging rather than recursively copying private files.
+  await app.evaluate(async ({ dialog }, picked: string) => {
+    dialog.showOpenDialog = () =>
+      Promise.resolve({ canceled: false, filePaths: [picked], bookmarks: ['folder'] }) as never
+  }, workDir)
+  const arbitraryDirectoryWasRejected = await page.evaluate(async (extensions: string[]) => {
+    try {
+      await window.novalist.pickFile('Choose a manuscript...', 'manuscript', {
+        extensions,
+        filterName: 'Manuscripts',
+        scrivenerAccessTitle: 'Choose the Scrivener project folder to allow access...'
+      })
+      return false
+    } catch {
+      return true
+    }
+  }, formats)
+  expect(arbitraryDirectoryWasRejected).toBe(true)
+  expect(readdirSync(join(workDir, 'electron-data', 'manuscript-import-staging'))).toEqual([])
+
+  // Exercise the dialog-owned lifetime too: closing it releases the staged
+  // source without callers having to know that the picker returned a copy.
+  const secondRoot = join(workDir, 'AritAgain')
+  cpSync(REAL_SCRIVENER_FIXTURE, secondRoot, { recursive: true })
+  await app.evaluate(async ({ dialog }, picked: string) => {
+    dialog.showOpenDialog = () =>
+      Promise.resolve({ canceled: false, filePaths: [picked], bookmarks: ['folder'] }) as never
+  }, secondRoot)
+  await page.evaluate(() => window.novalistStores.shell.getState().openDialog('importManuscript'))
+  await page.getByRole('button', { name: /Choose a manuscript/ }).click()
+  await expect(page.locator('.import-mapping-row').first()).toBeVisible({ timeout: 30_000 })
+  expect(readdirSync(join(workDir, 'electron-data', 'manuscript-import-staging'))).toHaveLength(1)
+  await page.locator('.import-manuscript-dialog .dialog-close').click()
+  await expect(page.locator('.import-manuscript-dialog')).toHaveCount(0)
+  await expect
+    .poll(() => readdirSync(join(workDir, 'electron-data', 'manuscript-import-staging')))
+    .toEqual([])
   await app.close()
 })
 
@@ -333,24 +476,56 @@ const OLD_DRAFTS_FIXTURE = join(
 test('a binder whose drafts are only drafts by convention can be told so', async () => {
   test.setTimeout(180_000)
   const workDir = mkdtempSync(join(tmpdir(), 'nl-imp-map-'))
-  const root = join(workDir, 'OldDrafts.scriv')
+  const root = join(workDir, 'OldDrafts')
+  const binder = join(root, 'OldDrafts.scrivx')
   cpSync(OLD_DRAFTS_FIXTURE, root, { recursive: true })
 
   const { app, page } = await launch(workDir)
   await newProject(page, workDir)
 
-  // The folder picker is the OS's, so it is answered for it in the main process
+  const advertisedFormats = (await page.evaluate(() =>
+    window.novalistRpc.request('manuscriptImport/formats')
+  )) as string[]
+  const pickerExtensions = advertisedFormats.map((extension) => extension.replace(/^\./, ''))
+
+  // The file picker is the OS's, so it is answered for it in the main process
   // - the renderer's bridge is frozen and cannot be stubbed from the page, and
   // stubbing it there would skip the IPC this actually goes through. Everything
-  // after this point is the dialog doing its own work.
-  await app.evaluate(async ({ dialog }, picked: string) => {
-    dialog.showOpenDialog = () =>
-      Promise.resolve({ canceled: false, filePaths: [picked] }) as never
-  }, root)
+  // after this point is the dialog doing its own work. The assertions in the
+  // stub keep this a supported-manuscript picker rather than an unrestricted
+  // file dialog or the old folder picker.
+  await app.evaluate(async ({ dialog }, input: { picked: string; extensions: string[] }) => {
+    dialog.showOpenDialog = ((...args: unknown[]) => {
+      const options = args[args.length - 1] as {
+        properties?: string[]
+        filters?: { name: string; extensions: string[] }[]
+      }
+      const extensions = options.filters?.flatMap((filter) => filter.extensions) ?? []
+      if (!options.properties?.includes('openFile')) throw new Error('not a file picker')
+      if (options.properties.includes('openDirectory')) throw new Error('still a folder picker')
+      if (!options.properties.includes('treatPackageAsDirectory')) {
+        throw new Error('Scrivener packages cannot be opened')
+      }
+      if (options.filters?.[0]?.name !== 'Manuscripts') {
+        throw new Error('manuscript filter is not localized')
+      }
+      if (extensions.includes('*')) throw new Error('manuscript picker allows every file type')
+      if (JSON.stringify(extensions) !== JSON.stringify(input.extensions)) {
+        throw new Error('manuscript picker and advertised formats disagree')
+      }
+      return Promise.resolve({ canceled: false, filePaths: [input.picked] })
+    }) as never
+  }, { picked: binder, extensions: pickerExtensions })
 
   await page.evaluate(() => window.novalistStores.shell.getState().openDialog('importManuscript'))
   await page.locator('.import-manuscript-dialog').waitFor()
-  await page.getByRole('button', { name: /Scrivener project/ }).click()
+  await expect(
+    page.getByText(`Readable formats: ${advertisedFormats.join(', ')}`, { exact: true })
+  ).toBeVisible()
+  const chooser = page.getByRole('button', { name: /Choose a manuscript/ })
+  await expect(chooser).toBeVisible()
+  await expect(page.locator('.settings-button-row > button')).toHaveCount(1)
+  await chooser.click()
 
   const rows = page.locator('.import-mapping-row')
   await expect(rows.first()).toBeVisible({ timeout: 30_000 })

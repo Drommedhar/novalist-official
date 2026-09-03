@@ -192,6 +192,7 @@ public class SettingsOverridesTests
             ReadAloudVoiceUri = "urn:voice:en-GB",
             EditorLetterSpacing = 1,
             EditorParagraphSpacing = 0,
+            EditorFirstLineIndent = 2,
             BookFontSize = 12,
             EnableBookWidth = true
         };
@@ -228,6 +229,7 @@ public class SettingsOverridesTests
         ReadAloudVoiceUri = "urn:voice:en-GB",
         EditorLetterSpacing = 0.5,
         EditorParagraphSpacing = 1.2,
+        EditorFirstLineIndent = 1.8,
         ComposeDimming = true,
         TypewriterScrollEnabled = true,
         TypewriterScrollAnchor = "center",
@@ -280,6 +282,7 @@ public class SettingsOverridesTests
         Assert.Equal("urn:voice:en-GB", o.ReadAloudVoiceUri);
         Assert.Equal(0.5, o.EditorLetterSpacing);
         Assert.Equal(1.2, o.EditorParagraphSpacing);
+        Assert.Equal(1.8, o.EditorFirstLineIndent);
         Assert.True(o.ComposeDimming);
         Assert.True(o.TypewriterScrollEnabled);
         Assert.Equal("center", o.TypewriterScrollAnchor);
