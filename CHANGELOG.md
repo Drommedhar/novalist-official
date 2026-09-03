@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.2.4] - 2026-09-03
+
 ### Added
 
 - Editor typography now includes a first-line indent setting. The amount is measured in ems, applies in the scene editor, Manuscript mode, and Exposé, can be overridden per project, and `0` keeps paragraphs flush left.
@@ -1530,7 +1536,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.2.3...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.2.4...HEAD
+[3.2.4]: https://github.com/Drommedhar/novalist-official/compare/v3.2.3...v3.2.4
 [3.2.3]: https://github.com/Drommedhar/novalist-official/compare/v3.2.2...v3.2.3
 [3.2.2]: https://github.com/Drommedhar/novalist-official/compare/v3.2.1...v3.2.2
 [3.2.1]: https://github.com/Drommedhar/novalist-official/compare/v3.2...v3.2.1
