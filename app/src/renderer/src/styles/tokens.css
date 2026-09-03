@@ -351,7 +351,71 @@
   --nl-readability-very-difficult: #a44a41;
 }
 
-/* The light theme was removed; Default resolves to the identity palette above. */
+/* ===== Light theme: warm paper =====
+   A reading-first inversion of the identity palette. Warm paper replaces Ink
+   Night, while text and gilt are darkened rather than reused verbatim so copy,
+   links and controls keep their contrast on every light surface. */
+:root[data-theme='light'] {
+  --nl-base: 247 243 234; /* raw rgb of the paper ground, for the material layer */
+  --nl-surface-window: #f7f3ea;
+  --nl-surface-sidebar: #eee8dc;
+  --nl-surface-toolbar: #f3eee4;
+  --nl-surface-inspector: #eee8dc;
+  --nl-surface-editor: #fffdf8;
+  --nl-surface-card: #fffaf1;
+  --nl-surface-input: #ffffff;
+  --nl-surface-overlay: rgb(255 253 248 / 0.92);
+  --nl-surface-hover: rgb(40 35 27 / 0.055);
+  --nl-surface-selected: rgb(130 92 16 / 0.13);
+
+  --nl-text: #28231b;
+  --nl-text-dim: #625c52;
+  --nl-text-subtle: #6f685d;
+
+  /* The dark theme's gilt is too pale on paper; this is the same brass family
+     deepened until links and control labels retain contrast. */
+  --nl-accent: #825c10;
+  --nl-accent-hover: #6f4b0d;
+  --nl-accent-ink: #fffaf1;
+  --nl-focus-ring: rgb(130 92 16 / 0.8);
+
+  --nl-border: rgb(40 35 27 / 0.16);
+  --nl-border-subtle: rgb(40 35 27 / 0.09);
+  --nl-border-firm: rgb(40 35 27 / 0.28);
+
+  --nl-success: #356d3d;
+  --nl-warning: #8f5210;
+  --nl-danger: #a83f38;
+  --nl-danger-soft: rgb(168 63 56 / 0.12);
+
+  /* Manuscript progress, drafting through to brass. */
+  --nl-status-outline: #6f685d;
+  --nl-status-first-draft: #965629;
+  --nl-status-revised: #526587;
+  --nl-status-edited: var(--nl-success);
+  --nl-status-final: var(--nl-accent);
+
+  --nl-git-dirty: #965629;
+  --nl-git-clean: var(--nl-success);
+  --nl-favorite: var(--nl-accent);
+
+  --nl-readability-very-easy: #306a39;
+  --nl-readability-easy: #506f2b;
+  --nl-readability-moderate: var(--nl-accent);
+  --nl-readability-difficult: #984b20;
+  --nl-readability-very-difficult: #a13a35;
+
+  --nl-scrollbar-thumb: rgb(40 35 27 / 0.18);
+  --nl-scrollbar-thumb-hover: rgb(40 35 27 / 0.32);
+  --nl-scrollbar-thumb-active: rgb(130 92 16 / 0.62);
+
+  /* White hairlines and the identity's near-black cast are too strong on paper. */
+  --nl-glass-hairline: rgb(40 35 27 / 0.14);
+  --nl-elevation-low: 0 2px 8px -4px rgb(40 35 27 / 0.24);
+  --nl-elevation-md: 0 12px 32px -16px rgb(40 35 27 / 0.32);
+  --nl-elevation-high: 0 30px 80px -40px rgb(40 35 27 / 0.42);
+  --nl-elevation-side: -8px 0 32px rgb(40 35 27 / 0.18);
+}
 
 /* Foil follows whichever accent is in play, so the gradient stays coherent
    under the alternate themes and under a user-set accent colour. On the default

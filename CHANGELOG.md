@@ -19,6 +19,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 ### Added
 
 - Editor typography now includes a first-line indent setting. The amount is measured in ems, applies in the scene editor, Manuscript mode, and Exposé, can be overridden per project, and `0` keeps paragraphs flush left.
+- Light theme for the full UI was added
 
 ### Fixed
 

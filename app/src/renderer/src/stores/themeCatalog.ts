@@ -36,6 +36,7 @@ export interface CatalogTheme {
 const BUILT_IN: CatalogTheme[] = [
   { name: 'Default', slug: 'dark', tokens: {}, css: null, origin: 'built-in' },
   { name: 'Discord', slug: 'discord', tokens: {}, css: null, origin: 'built-in' },
+  { name: 'Light', slug: 'light', tokens: {}, css: null, origin: 'built-in' },
   {
     name: 'High Contrast',
     slug: 'high-contrast',
