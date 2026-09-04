@@ -10,7 +10,7 @@ import { TensionCard } from './TensionCard'
 import { CastAbsenceCard } from './CastAbsenceCard'
 import { SceneAxisCard } from './SceneAxisCard'
 import { InputDialog } from '../../shell/InputDialog'
-import { useProjectStore } from '../../stores/projectStore'
+import { useBookScope, useProjectStore } from '../../stores/projectStore'
 import './dashboard.css'
 
 interface DashboardDto {
@@ -96,7 +96,18 @@ interface StageTally {
   wordCount: number
 }
 
+/**
+ * A dashboard belongs to one book, including the cards that fetch their own
+ * reports when they mount. Giving that whole surface the shared book-scope key
+ * makes a book switch a fresh dashboard instead of leaving every one-shot read
+ * showing the book that used to be active.
+ */
 export function DashboardView(): React.JSX.Element {
+  const bookScope = useBookScope()
+  return <BookDashboard key={bookScope} />
+}
+
+function BookDashboard(): React.JSX.Element {
   const { t } = useTranslation()
   const [stageBreakdown, setStageBreakdown] = useState<StageTally[]>([])
   const [data, setData] = useState<DashboardDto | null>(null)

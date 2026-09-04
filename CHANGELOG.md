@@ -16,7 +16,10 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Screens and dialogs that are taller than the available desktop window now gain a vertical scrollbar, so their controls and action buttons remain reachable on scaled 1080p displays.
+- Switching books while the Dashboard is open now refreshes its figures, artwork, and book-specific report cards immediately.
 
 ---
 

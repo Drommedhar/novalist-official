@@ -84,3 +84,26 @@ test('the Codex follows the book without being navigated away from and back', as
 
   await h.close()
 })
+
+test('the Dashboard follows the book without being navigated away from and back', async () => {
+  test.setTimeout(180_000)
+  const h = await launchApp('nl-bookswitch-dashboard-')
+  await seedBook(h, { 'Chapter One': ['Arrival'] })
+
+  await h.rpc('project/createBook', ['Book Two'])
+  await switchTo(h, 'Book One')
+  await h.page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
+
+  const chapters = h.page
+    .locator('.dashboard-metric', { has: h.page.getByText('Chapters', { exact: true }) })
+    .locator('.dashboard-metric-value')
+  await expect(chapters).toHaveText('1', { timeout: 15_000 })
+
+  // Stay on the Dashboard. Its metric and its one-shot report cards all have
+  // to be replaced by reads from the newly active book without an unmount
+  // caused by visiting another view first.
+  await switchTo(h, 'Book Two')
+  await expect(chapters).toHaveText('0', { timeout: 15_000 })
+
+  await h.close()
+})

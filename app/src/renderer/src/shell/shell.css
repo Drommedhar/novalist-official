@@ -1387,9 +1387,11 @@
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: safe center;
+  justify-content: safe center;
+  padding: var(--nl-space-xl);
   background: var(--nl-surface-overlay);
+  overflow-y: auto;
   z-index: 200;
 }
 
@@ -1400,6 +1402,8 @@
   flex-direction: column;
   gap: var(--nl-space-lg);
   width: min(var(--nl-dialog-width), 85vw);
+  max-height: 100%;
+  overflow-y: auto;
   padding: var(--nl-space-xxl);
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
@@ -1552,17 +1556,21 @@
 .start-screen {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   flex: 1;
+  min-height: 0;
   background: var(--nl-surface-editor);
+  overflow-y: auto;
 }
 
 .start-card {
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex: none;
   gap: var(--nl-space-lg);
   width: min(820px, 92vw);
+  margin: auto;
   padding: var(--nl-space-xxl);
 }
 
