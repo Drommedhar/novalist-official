@@ -843,14 +843,15 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
         }
         case 'grammarCheckRequest': {
           if (!editor) return
+          const requestId = Number(message.requestId)
           void rpc
             .request<unknown[]>('grammar/check', [String(message.plainText ?? '')])
             .then((issues) => {
-              editorRef.current?.setGrammarIssues(JSON.stringify(issues))
+              if (editorRef.current === editor) editor.setGrammarIssues(JSON.stringify(issues), requestId)
             })
             .catch(() => {
               // Offline or endpoint unavailable: clear underlines quietly.
-              editorRef.current?.setGrammarIssues('[]')
+              if (editorRef.current === editor) editor.setGrammarIssues('[]', requestId)
             })
           break
         }

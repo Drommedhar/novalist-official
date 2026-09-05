@@ -80,7 +80,8 @@ export interface EditorWindow extends Window {
   setExtensionContextMenuItems(itemsJson: string): void
   applyInlineActionResult(resultJson: string): void
   setGrammarCheckEnabled(enabled: boolean): void
-  setGrammarIssues(issuesJson: string): void
+  /** Echo the request ID so results for earlier text or scenes are ignored. */
+  setGrammarIssues(issuesJson: string, requestId?: number): void
   addCommentToSelection(id: string): void
   /** Turns the selection into a link, or unlinks it when the address is empty. */
   applyLink(href: string): void

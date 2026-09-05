@@ -1227,6 +1227,9 @@ function sendMessage(msg) {
 
 function setContent(html) {
     isSettingContent = true;
+    hideGrammarPopup();
+    hideContextMenu();
+    grammarIssues = [];
     // Captured before the write and compared after it, so the browser has
     // normalised both sides and the comparison is honest.
     const previous = editor.innerHTML;
@@ -1847,8 +1850,10 @@ function updateFocusBlock() {
 }
 
 function setTypewriterScroll(enabled, anchor) {
+    const nextAnchor = (anchor === 'top' || anchor === 'bottom') ? anchor : 'middle';
+    if (typewriterEnabled === !!enabled && typewriterAnchor === nextAnchor) return;
     typewriterEnabled = !!enabled;
-    typewriterAnchor = (anchor === 'top' || anchor === 'bottom') ? anchor : 'middle';
+    typewriterAnchor = nextAnchor;
     document.body.classList.toggle('typewriter-on', typewriterEnabled);
     typewriterLastY = -9999;
     scheduleTypewriterRecenter();
@@ -1887,8 +1892,9 @@ wrapper.addEventListener('wheel', () => {
 }, { passive: true });
 
 function recenterCaret() {
+    if (typewriterMouseDown || Date.now() < typewriterSuspendUntil) return;
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return;
+    if (!isCaretInEditor(sel)) return;
     const range = sel.getRangeAt(0);
 
     // Measure caret without mutating the DOM — any insertNode/removeChild here
@@ -1938,7 +1944,7 @@ function recenterCaret() {
 
         if (Math.abs(delta) > 1) {
             programmaticScrollUntil = Date.now() + 150;
-        wrapper.scrollTop = wrapper.scrollTop + delta;
+            wrapper.scrollTop = wrapper.scrollTop + delta;
         }
     }
 }
@@ -2993,6 +2999,7 @@ function flushPendingContentChange() {
 
 editor.addEventListener('input', () => {
     if (isSettingContent) return;
+    scheduleTypewriterRecenter();
     // Typing over a passage being read back is the writer taking over.
     if (readAloudActive) stopReadAloud();
     requestReadability();
@@ -3146,7 +3153,15 @@ document.addEventListener('selectionchange', () => {
             }
         }
     }
-    scheduleTypewriterRecenter();
+});
+
+// Follow deliberate keyboard movement, not selectionchange: decoration and
+// pagination also restore selections, including a caret the writer scrolled
+// away from while reading. Those background updates must leave the view alone.
+editor.addEventListener('keydown', (e) => {
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+        scheduleTypewriterRecenter();
+    }
 });
 
 // ── Margin Comment Gutter ───────────────────────────────────────
@@ -3530,6 +3545,8 @@ let contextMenuTarget = null;
 // Selection captured when the menu opened (see the contextmenu handler).
 let contextMenuRange = null;
 let contextMenuText = '';
+let contextSpellingPoint = null;
+let contextSpellingTarget = null;
 
 // Same trick the floating toolbar uses: swallowing mousedown keeps focus — and
 // therefore the selection — inside the editor while a menu row is clicked.
@@ -3637,6 +3654,18 @@ document.addEventListener('contextmenu', (e) => {
     // allows an empty selection still has to know where to write.
     contextMenuRange = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
     contextMenuText = hasSelection ? sel.toString() : '';
+    contextSpellingTarget = null;
+    contextSpellingPoint = null;
+    // A right-click need not move the selection (notably on Windows). Capture
+    // the point in the prose, independently of where the caret was parked.
+    const hit = document.caretRangeFromPoint(e.clientX, e.clientY);
+    if (hit && editor.contains(hit.startContainer)) {
+        const block = getContainingBlock(hit.startContainer) || editor;
+        const before = document.createRange();
+        before.selectNodeContents(block);
+        before.setEnd(hit.startContainer, hit.startOffset);
+        contextSpellingPoint = { block, offset: before.toString().length, text: block.textContent };
+    }
 
     let html = '';
 
@@ -3772,9 +3801,17 @@ document.addEventListener('contextmenu', (e) => {
 contextMenu.addEventListener('click', (e) => {
     const suggestion = e.target.closest('.cm-suggestion');
     if (suggestion && suggestion.hasAttribute('data-spelling')) {
-        // Chromium owns the misspelled range; replacing the text here would
-        // lose whatever markup the word sits inside.
-        sendMessage({ type: 'replaceMisspelling', replacement: suggestion.getAttribute('data-spelling') });
+        const target = contextSpellingTarget;
+        if (target && editor.contains(target.block) && target.block.textContent === target.text) {
+            // Underline refreshes can split/merge the text nodes while the
+            // menu is open. Resolve the saved block offset against those nodes.
+            const from = textPointInElement(target.block, target.start);
+            const to = textPointInElement(target.block, target.start + target.word.length);
+            const range = document.createRange();
+            range.setStart(from.node, from.offset);
+            range.setEnd(to.node, to.offset);
+            replaceProofingRange(range, target.word, suggestion.getAttribute('data-spelling'));
+        }
         hideContextMenu();
         return;
     }
@@ -3927,6 +3964,8 @@ function hideContextMenu() {
     // Drop the captured selection so a later action can never act on a stale range.
     contextMenuRange = null;
     contextMenuText = '';
+    contextSpellingPoint = null;
+    contextSpellingTarget = null;
     // The selection usually survives the menu, so the format bar is due back.
     updateFloatingToolbar();
 }
@@ -3962,15 +4001,23 @@ let grammarIssues = [];
 let grammarCheckTimer = null;
 let grammarEnabled = false;
 let grammarChecking = false;
+let grammarRequestId = 0;
+let pendingGrammarRequest = null;
 const grammarPopup = document.getElementById('grammar-popup');
 const grammarStatusBar = document.getElementById('grammar-status-bar');
+grammarPopup.addEventListener('mousedown', (e) => e.preventDefault());
 
 function setGrammarCheckEnabled(enabled) {
     logToHost("setGrammarCheckEnabled: enabled=" + enabled);
     grammarEnabled = enabled;
     if (!enabled) {
-        clearGrammarHighlights();
+        grammarRequestId++;
+        pendingGrammarRequest = null;
+        if (grammarCheckTimer) clearTimeout(grammarCheckTimer);
+        grammarCheckTimer = null;
+        grammarChecking = false;
         grammarIssues = [];
+        applyGrammarHighlights();
         hideGrammarPopup();
     } else {
         // Trigger an initial check if there's content
@@ -3979,7 +4026,18 @@ function setGrammarCheckEnabled(enabled) {
     updateGrammarStatusBar();
 }
 
-function setGrammarIssues(issuesJson) {
+function setGrammarIssues(issuesJson, requestId) {
+    if (requestId !== undefined) {
+        if (!grammarEnabled || !pendingGrammarRequest || requestId !== pendingGrammarRequest.id) return;
+        const expected = pendingGrammarRequest.text;
+        pendingGrammarRequest = null;
+        if (buildGrammarPlainTextMap().plainText !== expected) {
+            requestGrammarCheck();
+            return;
+        }
+    }
+    hideGrammarPopup();
+    if (contextMenu.querySelector('[data-replacement]')) hideContextMenu();
     logToHost("setGrammarIssues called: raw issues length = " + (issuesJson ? issuesJson.length : 0));
     try {
         const raw = JSON.parse(issuesJson);
@@ -4042,9 +4100,9 @@ function buildGrammarPlainTextMap() {
             pos += t.length;
         } else if (node.nodeType === Node.ELEMENT_NODE) {
             const tag = node.tagName;
-            const isBlock = tag === 'P' || tag === 'DIV' || tag === 'BR'
+            const isBlock = !node.classList.contains('nv-page') && (tag === 'P' || tag === 'DIV' || tag === 'BR'
                          || tag === 'H1' || tag === 'H2' || tag === 'H3'
-                         || tag === 'H4' || tag === 'H5' || tag === 'H6';
+                         || tag === 'H4' || tag === 'H5' || tag === 'H6');
 
             if (isBlock && prevBlockEnd !== null && pos > 0) {
                 parts.push('\n');
@@ -4072,40 +4130,56 @@ function buildGrammarPlainTextMap() {
 }
 
 function isCaretInEditor(sel) {
-    // Grammar results land seconds after the request, long after the user may
-    // have clicked away. Only touch the selection when it is still a collapsed
-    // caret inside the focused editor — otherwise restoring would yank focus
-    // back out of whatever the user moved on to.
+    // Only scroll for a collapsed caret inside the focused prose surface.
     if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return false;
     const active = document.activeElement;
     if (active !== editor && !editor.contains(active)) return false;
     return editor.contains(sel.getRangeAt(0).startContainer);
 }
 
-function applyGrammarHighlights() {
-    // Save the caret relative to its own block, not to the whole editor. A flat
-    // offset over the editor cannot tell "end of block N" from "start of block
-    // N+1" or from an empty block between them, because Range.toString() puts no
-    // separator between blocks — all three collapse onto the same number, and
-    // restoring it drags the caret back to the end of the previous paragraph.
-    // Within a single block the offset is unambiguous, and the block element
-    // survives the unwrap/re-wrap below (only text nodes are split and merged).
+function captureProofingSelection() {
+    // Setting a selection in contenteditable also focuses it in Chromium.
+    // A result arriving while the writer edits a comment must not take focus.
+    if (document.activeElement !== editor && !editor.contains(document.activeElement)) return null;
     const sel = window.getSelection();
-    let caretBlock = null;
-    let caretOffsetInBlock = -1;
-    if (isCaretInEditor(sel)) {
-        const r = sel.getRangeAt(0);
-        caretBlock = getContainingBlock(r.startContainer) || editor;
-        const preRange = document.createRange();
-        preRange.selectNodeContents(caretBlock);
-        preRange.setEnd(r.startContainer, r.startOffset);
-        caretOffsetInBlock = preRange.toString().length;
-    }
+    if (!sel || !editor.contains(sel.anchorNode) || !editor.contains(sel.focusNode)) return null;
+    const point = (node, offset) => {
+        const block = getContainingBlock(node) || editor;
+        const before = document.createRange();
+        before.selectNodeContents(block);
+        before.setEnd(node, offset);
+        return { block, offset: before.toString().length };
+    };
+    return { anchor: point(sel.anchorNode, sel.anchorOffset), focus: point(sel.focusNode, sel.focusOffset) };
+}
 
+function textPointInElement(element, offset) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    let node;
+    let last = null;
+    while ((node = walker.nextNode())) {
+        if (offset <= node.length) return { node, offset };
+        offset -= node.length;
+        last = node;
+    }
+    return { node: last || element, offset: last ? last.length : 0 };
+}
+
+function restoreProofingSelection(saved) {
+    if (!saved || !editor.contains(saved.anchor.block) || !editor.contains(saved.focus.block)) return;
+    const anchor = textPointInElement(saved.anchor.block, saved.anchor.offset);
+    const focus = textPointInElement(saved.focus.block, saved.focus.offset);
+    window.getSelection().setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset);
+}
+
+function applyGrammarHighlights() {
+    // Keep both endpoints and selection direction within their own blocks;
+    // offsets across the whole editor cannot distinguish empty paragraphs.
+    const savedSelection = captureProofingSelection();
+    const scrollTop = wrapper.scrollTop;
     const restoreCaret = () => {
-        if (!caretBlock || caretOffsetInBlock < 0) return;
-        if (!editor.contains(caretBlock)) return; // block was replaced meanwhile
-        restoreCaretInElement(caretBlock, caretOffsetInBlock);
+        restoreProofingSelection(savedSelection);
+        wrapper.scrollTop = scrollTop;
     };
 
     // Remove existing highlights
@@ -4150,8 +4224,7 @@ function applyGrammarHighlights() {
         }
 
         // Wrap each fragment in its own span sharing the same data-issue-index.
-        // applyGrammarSuggestion collapses all such spans into a single
-        // replacement text node, so the whole issue range gets replaced.
+        // applyGrammarSuggestion replaces one range spanning all fragments.
         for (const f of fragments) {
             const range = document.createRange();
             range.setStart(f.node, f.start);
@@ -4167,6 +4240,8 @@ function applyGrammarHighlights() {
                 // mid-fragment; skip silently and let the recheck reconcile.
             }
         }
+        const target = grammarIssueRange(issueIdx);
+        issue.text = target ? target.toString() : '';
     }
 
     restoreCaret();
@@ -4232,8 +4307,13 @@ function hideGrammarPopup() {
 }
 
 function applyGrammarSuggestion(issueIndex, replacement) {
+    const issue = grammarIssues[issueIndex];
+    const range = grammarIssueRange(issueIndex);
+    if (!issue || !range || range.toString() !== issue.text) {
+        requestGrammarCheck();
+        return;
+    }
     const spans = editor.querySelectorAll('[data-issue-index="' + issueIndex + '"]');
-    if (spans.length === 0) return;
 
     // Strip grammar-issue classes and attributes first so the browser does not
     // preserve the underline style when replacing the elements via insertText.
@@ -4244,62 +4324,69 @@ function applyGrammarSuggestion(issueIndex, replacement) {
         span.removeAttribute('data-issue-index');
     }
 
-    // Route the replacement through execCommand so the change lands on the
-    // contentEditable undo stack and Ctrl+Z reverts it like a normal edit.
-    // selectNode targets the wrapping span itself, so insertText/delete replace
-    // the entire element (including its .grammar-issue wrapper) atomically.
-    // Use preventScroll on focus + snapshot/restore wrapper scrollTop so the
-    // viewport doesn't jump to the top when focus moves into the editor.
-    const savedScrollTop = wrapper.scrollTop;
-    editor.focus({ preventScroll: true });
-    const sel = window.getSelection();
-
-    const firstRange = document.createRange();
-    firstRange.selectNode(spans[0]);
-    sel.removeAllRanges();
-    sel.addRange(firstRange);
-    document.execCommand('insertText', false, replacement);
-
-    // Drop any remaining fragments (rare: issue range was split by an inline
-    // highlight). Each delete is its own undo step.
-    for (let i = 1; i < spans.length; i++) {
-        const s = spans[i];
-        if (!s.parentNode) continue;
-        const r = document.createRange();
-        r.selectNode(s);
-        sel.removeAllRanges();
-        sel.addRange(r);
-        document.execCommand('delete', false);
-    }
-
-    if (wrapper.scrollTop !== savedScrollTop) {
-        wrapper.scrollTop = savedScrollTop;
-    }
+    // One range covers every fragment, including intervening inline markup.
+    // A sentence correction is one native undo step, just like typing over it.
+    if (!replaceProofingRange(range, issue.text, replacement)) return;
 
     // Remove the issue from the list. The input event fired by execCommand
     // takes care of the contentChanged notification and the grammar recheck.
     grammarIssues.splice(issueIndex, 1);
+    for (const mark of editor.querySelectorAll('.grammar-issue')) {
+        const index = Number(mark.dataset.issueIndex);
+        if (index > issueIndex) mark.dataset.issueIndex = index - 1;
+    }
     updateGrammarStatusBar();
+}
+
+function grammarIssueRange(issueIndex) {
+    const spans = editor.querySelectorAll('.grammar-issue[data-issue-index="' + issueIndex + '"]');
+    if (!spans.length) return null;
+    const range = document.createRange();
+    range.setStartBefore(spans[0]);
+    range.setEndAfter(spans[spans.length - 1]);
+    return range;
+}
+
+function replaceProofingRange(range, expectedText, replacement) {
+    if (!range || range.collapsed || !editor.contains(range.startContainer)
+        || !editor.contains(range.endContainer) || range.toString() !== expectedText) return false;
+    const scrollTop = wrapper.scrollTop;
+    editor.focus({ preventScroll: true });
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    const applied = document.execCommand(replacement === '' ? 'delete' : 'insertText', false, replacement);
+    // A correction restores focus, but must not move the line out from under
+    // the popup on the input handler's next animation frame.
+    if (typewriterFrame) cancelAnimationFrame(typewriterFrame);
+    typewriterFrame = 0;
+    wrapper.scrollTop = scrollTop;
+    return applied;
 }
 
 function requestGrammarCheck() {
     logToHost("requestGrammarCheck called: grammarEnabled=" + grammarEnabled + ", grammarChecking=" + grammarChecking);
+    const requestId = ++grammarRequestId;
+    pendingGrammarRequest = null;
+    if (grammarCheckTimer) clearTimeout(grammarCheckTimer);
+    grammarCheckTimer = null;
     if (!grammarEnabled) return;
     if (grammarChecking) {
         grammarChecking = false;
         updateGrammarStatusBar();
     }
-    if (grammarCheckTimer) clearTimeout(grammarCheckTimer);
     grammarCheckTimer = setTimeout(() => {
         grammarCheckTimer = null;
         // Use buildGrammarPlainTextMap so the text we send and the offsets we
         // get back stay aligned with our highlight-positioning logic.
         const { plainText } = buildGrammarPlainTextMap();
+        pendingGrammarRequest = { id: requestId, text: plainText };
         grammarChecking = true;
         logToHost("requestGrammarCheck timer fired: grammarChecking set to true, sending request. Plain text len=" + plainText.length);
         updateGrammarStatusBar();
         sendMessage({
             type: 'grammarCheckRequest',
+            requestId: requestId,
             plainText: plainText
         });
     }, 1500);
@@ -4678,6 +4765,21 @@ window.setFootnotesData = function (data) {
 window.setSpellingSuggestions = function (word, suggestions) {
     if (!contextMenu || !contextMenu.classList.contains('visible')) return;
     if (!word) return;
+    contextSpellingTarget = null;
+    const point = contextSpellingPoint;
+    if (point && editor.contains(point.block) && point.block.textContent === point.text) {
+        // Match only the occurrence containing the original right-click, never
+        // the first matching word in the scene or the current caret position.
+        let start = point.text.indexOf(word);
+        while (start !== -1) {
+            if (start <= point.offset && point.offset <= start + word.length
+                && !isWordChar(point.text[start - 1]) && !isWordChar(point.text[start + word.length])) {
+                contextSpellingTarget = { block: point.block, start, text: point.text, word };
+                break;
+            }
+            start = point.text.indexOf(word, start + 1);
+        }
+    }
 
     // Chromium can report the same menu more than once - a second listener, a
     // re-send - and the block was being prepended each time, so the writer saw
