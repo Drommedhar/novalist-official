@@ -26,8 +26,31 @@ public class GrammarCheckServiceTests
     [InlineData("ja", "ja-JP")]
     [InlineData("zh", "zh-CN")]
     [InlineData("unknown", "en-US")]
+    [InlineData("en-GB", "en-GB")]
+    [InlineData(" en-gb-oxendict ", "en-GB")]
+    [InlineData("en-AU", "en-AU")]
+    [InlineData("de-CH", "de-CH")]
+    [InlineData("pt-PT", "pt-PT")]
     public void MapLanguageCode(string app, string expected)
         => Assert.Equal(expected, GrammarCheckService.MapLanguageCode(app));
+
+    [Theory]
+    [InlineData("en", "en-GB,en-GB-oxendict", "en-GB")]
+    [InlineData("en", "en-GB-oxendict", "en-GB")]
+    [InlineData("en", "en,en-GB", "en-GB")]
+    [InlineData("en", "de-DE,en-GB", "en-GB")]
+    [InlineData("en", "en-US,en-GB", "en-US")]
+    [InlineData("en-GB", "en-US,en-GB", "en-GB")]
+    [InlineData("en", "", "en-US")]
+    [InlineData("en", "de-DE", "en-US")]
+    [InlineData("en", "en,en-unsupported", "en-US")]
+    [InlineData("en", " EN-gb ,en-GB", "en-GB")]
+    [InlineData("de-low", "en-GB,de-CH", "de-CH")]
+    [InlineData("pt", "pt-PT", "pt-PT")]
+    [InlineData("fr", "en-GB", "fr")]
+    public void ResolveLanguageCode_UsesOnlyAnUnambiguousVariantOfTheWritingLanguage(
+        string writing, string dictionaries, string expected)
+        => Assert.Equal(expected, GrammarCheckService.ResolveLanguageCode(writing, dictionaries.Split(',')));
 
     [Fact]
     public void ApiUrl_BlankResetsToDefault()

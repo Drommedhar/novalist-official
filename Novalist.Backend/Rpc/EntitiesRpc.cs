@@ -1207,16 +1207,9 @@ public sealed class EntitiesRpc
         return await GetCustomPropsAsync(type, id);
     }
 
-    private async Task<(object Entity, string? TemplateId)> LoadWithTemplateAsync(string type, string id)
+    private async Task<(IEntityData Entity, string? TemplateId)> LoadWithTemplateAsync(string type, string id)
     {
-        object entity = type switch
-        {
-            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
-            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
-            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
-            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
-            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
-        } ?? throw Unknown(id);
+        var entity = await FindEntityAsync(type, id) ?? throw Unknown(id);
         var templateId = entity.GetType().GetProperty("TemplateId")?.GetValue(entity) as string;
         return (entity, templateId);
     }
@@ -1230,27 +1223,10 @@ public sealed class EntitiesRpc
             "character" => book.CharacterTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? [],
             "location" => book.LocationTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? [],
             "item" => book.ItemTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? [],
-            _ => book.LoreTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? []
+            "lore" => book.LoreTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? [],
+            _ => book.CustomEntityTemplates
+                .FirstOrDefault(t => t.Id == templateId && t.EntityTypeKey == type)?.CustomPropertyDefs ?? []
         };
-    }
-
-    private async Task SaveEntityAsync(object entity)
-    {
-        switch (entity)
-        {
-            case CharacterData c:
-                await _entities.SaveCharacterAsync(c);
-                break;
-            case LocationData l:
-                await _entities.SaveLocationAsync(l);
-                break;
-            case ItemData i:
-                await _entities.SaveItemAsync(i);
-                break;
-            default:
-                await _entities.SaveLoreAsync((LoreData)entity);
-                break;
-        }
     }
 
     [JsonRpcMethod("entities/addImage")]
@@ -2055,6 +2031,15 @@ public sealed class EntitiesRpc
             {
                 property.SetValue(entity, field.DefaultValue);
             }
+        }
+
+        if (entity is CharacterData character &&
+            book.CharacterTemplates.FirstOrDefault(t => t.Id == templateId) is { AgeMode: "date" } ageTemplate)
+        {
+            character.AgeMode = "date";
+            character.AgeIntervalUnit = ageTemplate.AgeIntervalUnit ?? IntervalUnit.Years;
+            character.BirthDate = character.Age;
+            character.Age = string.Empty;
         }
 
         var props = (Dictionary<string, string>)entity.GetType()

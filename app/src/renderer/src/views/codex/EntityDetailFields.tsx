@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import type { CustomTypeDefinition } from './CustomTypeManager'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 
 const LORE_CATEGORIES = ['Organization', 'Culture', 'History', 'Other']
-const REF_TYPES = ['character', 'location', 'item', 'lore']
+const refTargetType = (field: CustomTypeDefinition['defaultFields'][number]): string =>
+  (field.enumOptions?.[0] || 'character').toLowerCase()
 
 type Control = 'text' | 'textarea' | 'category' | 'parent' | 'date' | 'ref' | 'group'
 
@@ -117,7 +118,8 @@ export function EntityDetailFields({
 }): React.JSX.Element {
   const { t } = useTranslation()
   const [locationNames, setLocationNames] = useState<string[]>([])
-  const [refNames, setRefNames] = useState<string[]>([])
+  const [refNames, setRefNames] = useState<Record<string, string[]>>({})
+  const refListId = useId()
   // Every group name any entry in the project uses, whatever its type - a
   // faction spans them, which is the whole reason a group is worth having.
   const [groupNames, setGroupNames] = useState<string[]>([])
@@ -155,18 +157,23 @@ export function EntityDetailFields({
       .catch(() => setLocationNames([]))
   }, [needsParent])
 
-  // EntityRef custom fields offer a name picker across the built-in entity types.
-  const needsRefs = custom && (customDef?.defaultFields ?? []).some((f) => f.type === 'EntityRef')
+  // Each field's target is stored in enumOptions, including custom type keys.
   useEffect(() => {
-    if (!needsRefs) return
+    let cancelled = false
+    setRefNames({})
+    const types = custom
+      ? [...new Set((customDef?.defaultFields ?? []).filter((f) => f.type === 'EntityRef').map(refTargetType))]
+      : []
     void Promise.all(
-      REF_TYPES.map((type) =>
-        rpc.request<{ name: string }[]>('entities/list', [type]).catch(() => [])
-      )
-    )
-      .then((lists) => setRefNames([...new Set(lists.flat().map((e) => e.name))].sort()))
-      .catch(() => setRefNames([]))
-  }, [needsRefs])
+      types.map(async (type) => {
+        const list = await rpc.request<{ name: string }[]>('entities/list', [type]).catch(() => [])
+        return [type, [...new Set(list.map((e) => e.name))].sort()] as const
+      })
+    ).then((lists) => {
+      if (!cancelled) setRefNames(Object.fromEntries(lists))
+    })
+    return () => { cancelled = true }
+  }, [custom, customDef, record.id])
 
   const readValue = (key: string, isCustom: boolean): string => {
     if (key === 'name') return String(record.name ?? '')
@@ -179,7 +186,8 @@ export function EntityDetailFields({
     control: Control,
     isCustom: boolean,
     options?: string[],
-    label?: string
+    label?: string,
+    refType?: string
   ): React.JSX.Element => {
     const value = readValue(key, isCustom)
     const commit = (v: string): void => {
@@ -193,6 +201,7 @@ export function EntityDetailFields({
       return (
         <select
           className="dialog-input codex-field-input"
+          aria-label={label}
           value={value || opts[0]}
           onChange={(e) => commit(e.target.value)}
         >
@@ -209,7 +218,7 @@ export function EntityDetailFields({
       control === 'parent'
         ? 'codex-location-names'
         : control === 'ref'
-          ? 'codex-ref-names'
+          ? `${refListId}-${key}`
           : control === 'group'
             ? 'codex-group-names'
             : undefined
@@ -218,6 +227,7 @@ export function EntityDetailFields({
         <input
           className="outliner-input codex-field-input"
           type={inputType}
+          aria-label={label}
           list={listId}
           defaultValue={value}
           key={`${key}:${value}`}
@@ -231,8 +241,8 @@ export function EntityDetailFields({
           </datalist>
         )}
         {control === 'ref' && (
-          <datalist id="codex-ref-names">
-            {refNames.map((n) => (
+          <datalist id={listId}>
+            {(refNames[refType ?? 'character'] ?? []).map((n) => (
               <option key={n} value={n} />
             ))}
           </datalist>
@@ -315,12 +325,19 @@ export function EntityDetailFields({
                   ? ['true', 'false']
                   : undefined
               : undefined
-            const label = field.labelKey ? t(field.labelKey) : (def?.displayName ?? field.key)
+            const birthday = entityType === 'character' && field.key === 'age' && record.ageMode === 'date'
+            const label = birthday
+              ? t('entityEditor.birthDate')
+              : field.labelKey ? t(field.labelKey) : (def?.displayName ?? field.key)
             return (
               <div key={field.key} className="codex-field">
                 <dt>{label}</dt>
                 <dd>
-                  {renderControl(field.key, field.control, custom, options, label)}
+                  {renderControl(
+                    birthday ? 'birthDate' : field.key,
+                    birthday ? 'date' : field.control,
+                    custom, options, label, def && refTargetType(def)
+                  )}
                   {/* The question that made the field worth having, kept where
                       the field is. The wizards carry it during creation and
                       then it disappears, which is the moment it stops helping. */}

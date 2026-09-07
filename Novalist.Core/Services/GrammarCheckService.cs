@@ -271,11 +271,42 @@ public sealed class GrammarCheckService
     }
 
     /// <summary>
+    /// Regional dictionaries supported by LanguageTool. Oxford's spelling
+    /// dictionary belongs to British English; it is not a separate API language.
+    /// </summary>
+    private static readonly Dictionary<string, string> LanguageVariants = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["en-US"] = "en-US", ["en-GB"] = "en-GB", ["en-GB-oxendict"] = "en-GB",
+        ["en-AU"] = "en-AU", ["en-CA"] = "en-CA", ["en-NZ"] = "en-NZ", ["en-ZA"] = "en-ZA",
+        ["de-DE"] = "de-DE", ["de-AT"] = "de-AT", ["de-CH"] = "de-CH", ["de-LU"] = "de-LU",
+        ["pt-BR"] = "pt-BR", ["pt-PT"] = "pt-PT", ["pt-AO"] = "pt-AO", ["pt-MZ"] = "pt-MZ"
+    };
+
+    /// <summary>
+    /// Uses the selected spelling variant of the writing language when it is
+    /// unambiguous. Additional dictionaries must not change the language of the
+    /// manuscript, and conflicting variants retain the writing-language default.
+    /// </summary>
+    public static string ResolveLanguageCode(string writingLanguage, IEnumerable<string> spellingLanguages)
+    {
+        var language = MapLanguageCode(writingLanguage);
+        var prefix = language.Split('-')[0] + "-";
+        var variants = spellingLanguages
+            .Select(tag => LanguageVariants.GetValueOrDefault(tag.Trim()))
+            .Where(variant => variant != null && variant.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .Distinct()
+            .ToArray();
+        return variants.Length == 1 ? variants[0]! : language;
+    }
+
+    /// <summary>
     /// Maps an application language code to a LanguageTool language code.
     /// </summary>
     public static string MapLanguageCode(string appLanguage)
     {
-        return appLanguage switch
+        var code = appLanguage.Trim();
+        if (LanguageVariants.TryGetValue(code, out var variant)) return variant;
+        return code.ToLowerInvariant() switch
         {
             "en" => "en-US",
             "de" or "de-low" or "de-guillemet" => "de-DE",

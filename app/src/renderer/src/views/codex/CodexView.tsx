@@ -63,7 +63,7 @@ interface PhoneEntityRow {
   labelKey: string
   /** Whether this editor applies to the entry in front of the writer. */
   applies: (entityType: EntityType, entityId: string | null) => boolean
-  render: (entityType: EntityType, entityId: string) => React.ReactNode
+  render: (entityType: EntityType, entityId: string, customDef?: CustomTypeDefinition) => React.ReactNode
 }
 
 /**
@@ -85,7 +85,7 @@ const PHONE_ENTITY_GROUPS: { headerKey: string; rows: PhoneEntityRow[] }[] = [
         id: 'relationships',
         labelKey: 'mobile.entity.relationships',
         applies: () => true,
-        render: () => <EntityListsEditor />
+        render: (_entityType, _entityId, customDef) => <EntityListsEditor customDef={customDef} />
       },
       {
         id: 'customProperties',
@@ -180,13 +180,14 @@ const PHONE_ENTITY_GROUPS: { headerKey: string; rows: PhoneEntityRow[] }[] = [
 function phoneEntityPage(
   id: string,
   entityType: EntityType,
-  entityId: string | null
+  entityId: string | null,
+  customDef?: CustomTypeDefinition
 ): React.ReactNode {
   const row = PHONE_ENTITY_GROUPS.flatMap((group) => group.rows).find(
     (candidate) => candidate.id === id
   )
   if (!row || !row.applies(entityType, entityId)) return null
-  return <div className="codex-phone-page">{row.render(entityType, entityId ?? '')}</div>
+  return <div className="codex-phone-page">{row.render(entityType, entityId ?? '', customDef)}</div>
 }
 
 function PhoneEntitySections({
@@ -517,7 +518,7 @@ export function CodexView(): React.JSX.Element {
                 </details>
               )}
               <OverridesEditor />
-              <EntityListsEditor />
+              <EntityListsEditor customDef={customTypes.find((d) => d.typeKey === entityType)} />
                 </>
               )}
             </>
@@ -664,7 +665,7 @@ export function CodexView(): React.JSX.Element {
   return isPhone ? (
     <MobileNav
       title={t('shell.view.codex')}
-      renderPage={(id) => phoneEntityPage(id, entityType, selectedId)}
+      renderPage={(id) => phoneEntityPage(id, entityType, selectedId, customTypes.find((d) => d.typeKey === entityType))}
     >
       {tree}
     </MobileNav>

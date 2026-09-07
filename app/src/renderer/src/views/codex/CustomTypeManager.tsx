@@ -132,8 +132,8 @@ export function CustomTypeManager({
             enumOptions:
               f.type === 'Enum' && f.enumOptionsText.trim()
                 ? f.enumOptionsText.split(',').map((o) => o.trim()).filter(Boolean)
-                : f.type === 'EntityRef' && f.enumOptionsText.trim()
-                  ? [f.enumOptionsText.trim()]
+                : f.type === 'EntityRef'
+                  ? [f.enumOptionsText.trim() || 'character']
                   : null,
             required: f.required,
             prompt: f.prompt.trim()
@@ -295,7 +295,10 @@ export function CustomTypeManager({
                   <select
                     className="dialog-input type-manager-type"
                     value={field.type}
-                    onChange={(e) => patchField(index, { type: e.target.value })}
+                    onChange={(e) => patchField(index, {
+                      type: e.target.value,
+                      enumOptionsText: e.target.value === 'EntityRef' ? 'character' : ''
+                    })}
                   >
                     {FIELD_TYPES.map((ft) => (
                       <option key={ft} value={ft}>

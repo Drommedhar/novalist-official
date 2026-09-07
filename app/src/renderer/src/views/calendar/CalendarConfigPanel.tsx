@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { persistPendingWrite } from '../../stores/pendingWrites'
+import { useBookScope } from '../../stores/projectStore'
 
 /** A named stretch of years in the book's reckoning. */
 interface CalendarEra {
@@ -37,17 +39,20 @@ export function CalendarConfigPanel(): React.JSX.Element {
   const { t } = useTranslation()
   const [config, setConfig] = useState<CalendarConfig | null>(null)
   const [busy, setBusy] = useState(false)
+  const scope = useBookScope()
+  const saveRevision = useRef(0)
 
   useEffect(() => {
     void rpc.request<CalendarConfig>('calendar/getConfig').then(setConfig)
   }, [])
 
   const save = async (next: CalendarConfig): Promise<void> => {
+    const revision = ++saveRevision.current
     setConfig(next)
     setBusy(true)
     try {
-      setConfig(
-        await rpc.request<CalendarConfig>('calendar/setConfig', [
+      await persistPendingWrite(`calendar-config:${scope}`, async () => {
+        const saved = await rpc.request<CalendarConfig>('calendar/setConfig', [
           next.type,
           next.yearLabel,
           next.monthNames,
@@ -55,9 +60,15 @@ export function CalendarConfigPanel(): React.JSX.Element {
           next.weekdayNames,
           next.eras
         ])
-      )
+        // The stored calendar omits unnamed rows and sorts eras. Keep the
+        // editable draft so adding a blank row or clearing a name to replace
+        // it does not remove the input under the writer's cursor.
+        if (saveRevision.current === revision) {
+          setConfig((draft) => draft && { ...draft, yearLength: saved.yearLength })
+        }
+      })
     } finally {
-      setBusy(false)
+      if (saveRevision.current === revision) setBusy(false)
     }
   }
 

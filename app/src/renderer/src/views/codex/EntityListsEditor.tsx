@@ -5,6 +5,7 @@ import { rpc } from '../../rpc/client'
 import { useCodexStore } from '../../stores/codexStore'
 import { persistPendingWrite, registerPendingWrite } from '../../stores/pendingWrites'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
+import type { CustomTypeDefinition } from './CustomTypeManager'
 
 interface SectionRow {
   title: string
@@ -33,15 +34,18 @@ const SAVE_SETTLE_MS = 350
 /** The kinds the picker offers. Blank is allowed: not every tie has a kind. */
 const TIE_KINDS = ['', 'family', 'ally', 'rival', 'member', 'owner', 'place']
 
-/** Built-in types that carry relationships. Custom types manage their own. */
+/** Built-in types always carry relationships; custom types opt in through their schema. */
 const RELATIONSHIP_TYPES = ['character', 'location', 'item', 'lore']
 
 /** Aliases, sections, and relationships of the selected entity. */
-export function EntityListsEditor(): React.JSX.Element | null {
+export function EntityListsEditor({
+  customDef
+}: { customDef?: CustomTypeDefinition }): React.JSX.Element | null {
   const { t } = useTranslation()
   const entityType = useCodexStore((s) => s.entityType)
   const selectedId = useCodexStore((s) => s.selectedId)
   const record = useCodexStore((s) => s.selectedRecord)
+  const includeRelationships = RELATIONSHIP_TYPES.includes(entityType) || !!customDef?.features.includeRelationships
   const [aliases, setAliases] = useState<string[]>([])
   const [aliasDraft, setAliasDraft] = useState('')
   const [sections, setSections] = useState<SectionRow[]>([])
@@ -103,7 +107,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
   useEffect(() => {
     // Every type that carries relationships, not characters alone: a location
     // with no name suggestions is a relationship row nobody fills in.
-    if (!RELATIONSHIP_TYPES.includes(entityType)) return
+    if (!includeRelationships) return
     void rpc
       .request<{ characterNames: string[]; roles: string[] }>('entities/relationshipSuggestions')
       .then((s) => {
@@ -111,7 +115,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
         setRoleSuggestions(s.roles)
       })
       .catch(() => {})
-  }, [entityType, selectedId])
+  }, [entityType, selectedId, includeRelationships])
 
   /**
    * One save, once the edits have settled.
@@ -289,7 +293,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
         />
       </div>
 
-      {RELATIONSHIP_TYPES.includes(entityType) && (
+      {includeRelationships && (
         <>
           <div className="inspector-label">{t('entityEditor.relationships')}</div>
           <datalist id="codex-rel-names">

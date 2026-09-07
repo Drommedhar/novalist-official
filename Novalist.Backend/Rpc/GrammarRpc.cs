@@ -36,8 +36,9 @@ public sealed class GrammarRpc
             return [];
         }
         Configure();
-        var language = GrammarCheckService.MapLanguageCode(
-            _workspace.Settings.Effective.AutoReplacementLanguage);
+        var effective = _workspace.Settings.Effective;
+        var language = GrammarCheckService.ResolveLanguageCode(
+            effective.AutoReplacementLanguage, effective.SpellCheckLanguages);
         var coreIssues = await _service.CheckAsync(text, language, cancellationToken);
         var results = coreIssues
             .Select(i => new GrammarIssueDto(

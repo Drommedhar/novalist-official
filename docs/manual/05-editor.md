@@ -194,6 +194,8 @@ Spell check catches misspelt words; grammar check catches the rest. When **Gramm
 
 By default the free public LanguageTool endpoint is used; the URL is configurable to point at a self-hosted server (to keep your text local), and Premium credentials, picky mode, and a mother-tongue setting for false-friend detection are available in the same settings section.
 
+Grammar checking follows your writing language and uses the regional variant selected under **Dictionaries** when there is one matching variant. For British English, select **en-GB**; **en-GB-oxendict** also uses British English for grammar checking. Selecting conflicting variants, such as both British and American English, keeps the writing language's default variant.
+
 ## Slash commands
 
 Typing **`/`** at the start of an empty line opens a menu of extension actions that work with nothing selected — chiefly, with the AI Assistant installed, continuing the prose from where you stopped or writing towards a beat you describe. Type to filter, arrow to choose, Enter to run; Escape closes it and leaves what you typed alone. See [Extensions](24-extensions.md#writing-from-the-caret-slash-commands).

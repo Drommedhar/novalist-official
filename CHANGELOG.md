@@ -20,6 +20,10 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 - Screens and dialogs that are taller than the available desktop window now gain a vertical scrollbar, so their controls and action buttons remain reachable on scaled 1080p displays.
 - Switching books while the Dashboard is open now refreshes its figures, artwork, and book-specific report cards immediately.
+- Custom entity reference fields now suggest entries of the selected target type, enabled Relationships sections appear, and added custom properties remain available to edit.
+- Adding months, weekdays, and eras in Calendar setup now keeps the new rows visible while you fill them in; saving an earlier edit no longer interrupts later typing.
+- Grammar checking now follows the selected regional spelling dictionary, so British English words are no longer flagged as American English spelling mistakes when British dictionaries are selected.
+- Characters created from a template with date-based ages now inherit its birthday setting and interval unit, and show an editable birth date instead of a plain age field.
 
 ---
 

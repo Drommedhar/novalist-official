@@ -697,6 +697,93 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task CustomProps_CustomType_AddEditRemoveSurvivesReload()
+    {
+        await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            "faction", "Faction", "Factions", [],
+            IncludeImages: true, IncludeRelationships: true, IncludeSections: true));
+        var created = await _rpc.CreateAsync("faction", "Nightwatch");
+        var id = created.GetProperty("id").GetString()!;
+
+        var added = Assert.Single(await _rpc.SetCustomPropAsync("faction", id, "Motto", ""));
+        Assert.Equal("Motto", added.Key);
+        Assert.Equal("", added.Value);
+        Assert.Equal("String", added.PropType);
+        await _rpc.SetCustomPropAsync("faction", id, "Motto", "We hold");
+
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        Assert.Equal("We hold", Assert.Single(await _rpc.GetCustomPropsAsync("faction", id)).Value);
+        Assert.Equal("We hold", (await _rpc.GetAsync("faction", id))
+            .GetProperty("customProperties").GetProperty("Motto").GetString());
+
+        Assert.Empty(await _rpc.SetCustomPropAsync("faction", id, "Motto", null));
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        Assert.Empty(await _rpc.GetCustomPropsAsync("faction", id));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.SetCustomPropAsync("faction", "missing", "Motto", "We hold"));
+    }
+
+    [Theory]
+    [InlineData(null, "", "Years")]
+    [InlineData(IntervalUnit.Months, "2000-04-12", "Months")]
+    [InlineData(IntervalUnit.Days, "1999-01-01", "Days")]
+    public async Task CharacterTemplate_DateAgeCopiesBirthDateAndInterval(
+        IntervalUnit? unit, string birthDate, string expectedUnit)
+    {
+        var template = new CharacterTemplate
+        {
+            Name = "Birthdays", AgeMode = "date", AgeIntervalUnit = unit,
+            Fields = [new TemplateField { Key = "Age", DefaultValue = birthDate }]
+        };
+        _workspace.Projects.ActiveBook!.CharacterTemplates.Add(template);
+        var created = await _rpc.CreateAsync("character", "Mira", template.Id);
+        Assert.Equal("date", created.GetProperty("ageMode").GetString());
+        Assert.Equal(expectedUnit, created.GetProperty("ageIntervalUnit").GetString());
+        Assert.Equal(birthDate, created.GetProperty("birthDate").GetString());
+        Assert.Equal("", created.GetProperty("age").GetString());
+
+        var id = created.GetProperty("id").GetString()!;
+        await _rpc.UpdateAsync("character", id, new Dictionary<string, string> { ["birthDate"] = "2001-05-13" });
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        var loaded = await _rpc.GetAsync("character", id);
+        Assert.Equal("2001-05-13", loaded.GetProperty("birthDate").GetString());
+        Assert.Equal("date", loaded.GetProperty("ageMode").GetString());
+        Assert.Equal(expectedUnit, loaded.GetProperty("ageIntervalUnit").GetString());
+    }
+
+    [Fact]
+    public async Task CustomProps_CustomType_ResolvesOnlyItsOwnTemplate()
+    {
+        await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            "faction", "Faction", "Factions", [],
+            IncludeImages: true, IncludeRelationships: true, IncludeSections: true));
+        var book = _workspace.Projects.ActiveBook!;
+        book.CustomEntityTemplates.Add(new CustomEntityTemplate
+        {
+            Id = "shared-id", EntityTypeKey = "realm", Name = "Other type",
+            CustomPropertyDefs = [new CustomPropertyDefinition { Key = "Allegiance", Type = CustomPropertyType.Int }]
+        });
+        book.CustomEntityTemplates.Add(new CustomEntityTemplate
+        {
+            Id = "shared-id", EntityTypeKey = "faction", Name = "Faction template",
+            CustomPropertyDefs = [new CustomPropertyDefinition
+            {
+                Key = "Allegiance", Type = CustomPropertyType.Enum,
+                EnumOptions = ["North", "South"], DefaultValue = "North"
+            }]
+        });
+        var created = await _rpc.CreateAsync("faction", "Nightwatch", "shared-id");
+        var id = created.GetProperty("id").GetString()!;
+        var prop = Assert.Single(await _rpc.SetCustomPropAsync("faction", id, "Allegiance", "South"));
+        Assert.Equal("Enum", prop.PropType);
+        Assert.Equal("South", prop.Value);
+        Assert.Equal(["North", "South"], prop.EnumOptions);
+
+        book.CustomEntityTemplates.RemoveAll(t => t.EntityTypeKey == "faction");
+        Assert.Equal("String", Assert.Single(await _rpc.GetCustomPropsAsync("faction", id)).PropType);
+    }
+
+    [Fact]
     public async Task Images_AddFromGalleryAndImport_ThenRemove()
     {
         var created = await _rpc.CreateAsync("character", "Mira");

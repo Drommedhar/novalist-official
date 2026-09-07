@@ -273,6 +273,8 @@ Resolved override values appear everywhere the character surfaces for that scope
 
 When a character's age is kept as a **birth date**, the age shown on the focus-peek card and in the Inspector's character cards is the age **at that scene** — computed from the birth date against the open scene's story date (falling back to the chapter's date, then to today). The interval unit (years, months, or days) follows the character's age setting.
 
+In a character template, enable **Age** and choose **Date (Birthdate)** with the desired interval unit. Characters created with that template show a **Birth date** field; any Age default in the template becomes the starting birth date. Use a date such as `2000-04-12`.
+
 ## Custom entity types
 
 Beyond the four built-ins you can define your own types: Factions, Spells, Vehicles, Races — whatever the project needs.

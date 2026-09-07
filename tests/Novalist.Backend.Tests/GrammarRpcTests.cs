@@ -99,6 +99,41 @@ public sealed class GrammarRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Check_UsesBritishDictionariesForEnglishGrammar()
+    {
+        _workspace.Settings.Settings.AutoReplacementLanguage = "en";
+        _workspace.Settings.Settings.SpellCheckLanguages = ["en-GB", "en-GB-oxendict"];
+
+        await _rpc.CheckAsync("I realise it now.", CancellationToken.None);
+
+        Assert.Contains("language=en-GB", _handler.LastRequestBody);
+        Assert.DoesNotContain("language=en-US", _handler.LastRequestBody);
+    }
+
+    [Fact]
+    public async Task Check_UsesProjectDictionaryOverridesAndRevertsToGlobal()
+    {
+        _workspace.Settings.Settings.AutoReplacementLanguage = "en";
+        _workspace.Settings.Settings.SpellCheckLanguages = ["en-US"];
+        await _workspace.Projects.CreateProjectAsync(_root, "Grammar", "Book");
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        var settings = new SettingsRpc(_workspace);
+        await settings.UpdateProjectAsync(new Dictionary<string, JsonElement>
+        {
+            ["spellCheckLanguages"] = JsonSerializer.SerializeToElement(new[] { "en-GB", "en-GB-oxendict" })
+        });
+        await _rpc.CheckAsync("I realise it now.", CancellationToken.None);
+        Assert.Contains("language=en-GB", _handler.LastRequestBody);
+
+        await settings.UpdateProjectAsync(new Dictionary<string, JsonElement>
+        {
+            ["spellCheckLanguages"] = JsonSerializer.SerializeToElement<string[]?>(null)
+        });
+        await _rpc.CheckAsync("I realize it now.", CancellationToken.None);
+        Assert.Contains("language=en-US", _handler.LastRequestBody);
+    }
+
+    [Fact]
     public async Task AddToDictionary_WithoutCredentials_ReturnsFalse()
     {
         Assert.False(await _rpc.AddToDictionaryAsync("Frostschwur", CancellationToken.None));

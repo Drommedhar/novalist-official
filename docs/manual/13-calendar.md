@@ -83,7 +83,7 @@ Years can be negative: `-12.2.3` is a date twelve years before year zero. Tick *
 
 The [Timeline](12-timeline.md) reads your calendar too: on a custom calendar it groups by in-world year, labelled with the era, instead of trying to parse your dates as real ones and putting every scene in the undated bucket. A date the calendar cannot read keeps its own group rather than disappearing.
 
-A month cannot be shorter than one day, and a month with no name is dropped, so a half-finished edit can never leave a calendar whose months and lengths disagree.
+A month cannot be shorter than one day. New or unnamed rows stay in the setup panel while you edit, but only named months, weekdays, and eras are included in the saved calendar. Each era needs a distinct starting year.
 
 Turning the custom calendar back off returns to Gregorian without discarding what you defined.
 
