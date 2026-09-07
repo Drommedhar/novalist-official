@@ -610,7 +610,7 @@
     "grammarCheckProvider": "Grammar checker",
     "grammarCheckHarper": "Harper (offline, English)",
     "grammarCheckHarperDesc": "Free English grammar, spelling, and style checks on your device. Works offline from first use, with no account or downloads. Uses your writing language, selected English dictionary variant, and learned words.",
-    "grammarCheckHarperEnglishOnly": "Harper checks English only. To check this writing language, choose LanguageTool.",
+    "grammarCheckHarperEnglishOnly": "Harper checks English only. Select an English dictionary, or choose LanguageTool to check another language.",
     "grammarCheckDesc": "Checks your text for grammar, spelling, and style issues using LanguageTool. Requires an internet connection (or a self-hosted LanguageTool server).",
     "grammarCheckApiUrl": "LanguageTool API URL",
     "grammarCheckApiUrlDesc": "Endpoint used for grammar checks. Leave blank to use the free public API. Point at a self-hosted LanguageTool server (for example http://localhost:8081/v2/check) to keep your text local.",

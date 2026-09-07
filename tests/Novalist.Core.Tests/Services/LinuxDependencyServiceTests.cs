@@ -21,6 +21,11 @@ public class LinuxDependencyServiceTests : IDisposable
 
     private static FakeProcessRunner NoLdconfig() => new(_ => (0, "", ""));
 
+    private sealed class InlineProgress(Action<string> report) : IProgress<string>
+    {
+        public void Report(string value) => report(value);
+    }
+
     [Theory]
     [InlineData("ID=ubuntu", LinuxDistro.Debian)]
     [InlineData("ID=debian", LinuxDistro.Debian)]
@@ -199,15 +204,13 @@ public class LinuxDependencyServiceTests : IDisposable
     {
         LinuxDependencyService.ProcessRunner = new FakeProcessRunner(_ => (0, "line1\nline2", "warn"));
         var reported = new List<string>();
-        var progress = new Progress<string>(reported.Add);
+        var progress = new InlineProgress(reported.Add);
 
         var result = await LinuxDependencyService.InstallAsync("apt install x", progress);
 
         Assert.True(result.Success);
         Assert.Equal("Installation complete.", result.Message);
-        // Progress callbacks are posted asynchronously; give them a moment.
-        await Task.Delay(50);
-        Assert.Contains("line1", reported);
+        Assert.Equal(["line1", "line2", "warn"], reported);
     }
 
     [Theory]

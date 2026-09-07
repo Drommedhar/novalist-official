@@ -20,7 +20,7 @@ export async function checkGrammar(text: string): Promise<GrammarIssue[]> {
   // it must not contact LanguageTool, even if an account is still configured.
   const extensions = rpc.request<GrammarIssue[]>('grammar/check', [text])
   const local = (async () => {
-    if (!/^en(?:-|$)/i.test(effective.autoReplacementLanguage.trim())) return []
+    if (!/^en(?:-|$)/i.test(effective.grammarCheckLanguage)) return []
     const [{ checkHarper }, words] = await Promise.all([
       import('./harper'),
       rpc.request<string[]>('spell/dictionary')

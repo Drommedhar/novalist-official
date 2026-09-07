@@ -283,16 +283,31 @@ public sealed class GrammarCheckService
     };
 
     /// <summary>
-    /// Uses the selected spelling variant of the writing language when it is
-    /// unambiguous. Additional dictionaries must not change the language of the
-    /// manuscript, and conflicting variants retain the writing-language default.
+    /// Explicit dictionaries from one language determine the proofing language,
+    /// even when the quote-style preset belongs to another language. Mixed
+    /// languages fall back to the writing language and its selected variant.
     /// </summary>
     public static string ResolveLanguageCode(string writingLanguage, IEnumerable<string> spellingLanguages)
     {
         var language = MapLanguageCode(writingLanguage);
+        // Older dictionary-picker edits copied these inherited quote presets
+        // into the explicit list. They are not selectable spelling dictionaries.
+        var dictionaries = spellingLanguages.Select(tag => tag.Trim())
+            .Where(tag => tag.Length > 0
+                && !tag.Equals("de-low", StringComparison.OrdinalIgnoreCase)
+                && !tag.Equals("de-guillemet", StringComparison.OrdinalIgnoreCase)).ToArray();
+        var families = dictionaries.Select(tag => tag.Split('-')[0].ToLowerInvariant())
+            .Distinct().ToArray();
+        if (families.Length == 1 && !language.Split('-')[0].Equals(families[0], StringComparison.OrdinalIgnoreCase))
+        {
+            var mapped = MapLanguageCode(families[0]);
+            // A dictionary outside the mapping must not inherit its English
+            // fallback and incorrectly enable the English-only checker.
+            language = mapped.Split('-')[0] == families[0] ? mapped : families[0];
+        }
         var prefix = language.Split('-')[0] + "-";
-        var variants = spellingLanguages
-            .Select(tag => LanguageVariants.GetValueOrDefault(tag.Trim()))
+        var variants = dictionaries
+            .Select(tag => LanguageVariants.GetValueOrDefault(tag))
             .Where(variant => variant != null && variant.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             .Distinct()
             .ToArray();
@@ -316,10 +331,13 @@ public sealed class GrammarCheckService
             "it" => "it",
             "nl" => "nl",
             "pl" => "pl-PL",
+            "cs" => "cs",
+            "sk" => "sk",
             "ru" => "ru-RU",
             "uk" => "uk-UA",
             "ja" => "ja-JP",
-            "zh" => "zh-CN",
+            "zh" or "zh-cn" => "zh-CN",
+            "ko" => "ko",
             _ => "en-US"
         };
     }

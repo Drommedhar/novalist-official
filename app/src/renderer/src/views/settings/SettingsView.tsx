@@ -1294,7 +1294,7 @@ export function SettingsView(): React.JSX.Element {
           <div className="settings-hint">{t('settings.spellCheckHint')}</div>
           <SpellCheckCard
             enabled={eff.spellCheckEnabled}
-            languages={eff.spellCheckLanguages}
+            languages={(view.overrides?.spellCheckLanguages ?? view.global.spellCheckLanguages ?? []) as string[]}
             onLanguagesChange={(languages) =>
               void update(scopeFor('writing'), { spellCheckLanguages: languages })
             }
@@ -1333,7 +1333,7 @@ export function SettingsView(): React.JSX.Element {
                 {t(eff.grammarCheckProvider === 'harper'
                   ? 'settings.grammarCheckHarperDesc' : 'settings.grammarCheckDesc')}
               </div>
-              {eff.grammarCheckProvider === 'harper' && !/^en(?:-|$)/i.test(eff.autoReplacementLanguage.trim()) && (
+              {eff.grammarCheckProvider === 'harper' && !/^en(?:-|$)/i.test(eff.grammarCheckLanguage) && (
                 <div className="settings-hint">{t('settings.grammarCheckHarperEnglishOnly')}</div>
               )}
               {eff.grammarCheckProvider !== 'harper' && <>

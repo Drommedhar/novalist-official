@@ -22,6 +22,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- Harper now recognises explicitly selected English dictionaries even when a different quote-style preset is selected, so British English checks no longer stop with an incorrect language warning.
 - Adding a word to your dictionary now clears grammar spelling warnings and keeps it accepted on later checks, including with free LanguageTool accounts. Words split across bold or italic text are learned in full.
 - Screens and dialogs that are taller than the available desktop window now gain a vertical scrollbar, so their controls and action buttons remain reachable on scaled 1080p displays.
 - Switching books while the Dashboard is open now refreshes its figures, artwork, and book-specific report cards immediately.

@@ -29,8 +29,11 @@ export function SpellCheckCard(props: {
   if (!props.enabled) return null
 
   const toggleLanguage = (tag: string, checked: boolean): void => {
+    // A previous picker could copy an inherited quote preset (e.g. de-low)
+    // into the saved list. An edit should contain only selectable dictionaries.
+    const selected = props.languages.filter(language => available.includes(language))
     props.onLanguagesChange(
-      checked ? [...props.languages, tag] : props.languages.filter((l) => l !== tag)
+      checked ? [...selected, tag] : selected.filter((l) => l !== tag)
     )
   }
 

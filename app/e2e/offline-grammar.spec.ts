@@ -28,7 +28,10 @@ async function grammarServer() {
 
 async function reopenEditor(h: Harness): Promise<void> {
   await h.page.reload()
-  await h.page.waitForFunction(() => !!window.novalistStores?.settings.getState().view)
+  // Project hydration follows settings and selects the Dashboard. Wait for it
+  // before entering Write, otherwise it can switch views after enterWriting.
+  await h.page.waitForFunction(() => !!window.novalistStores?.settings.getState().view
+    && window.novalistStores.project.getState().chapters.length > 0)
   await enterWriting(h.page)
   await h.page.locator('.binder-scene-row').first().click()
   await expect(h.page.frameLocator('.editor-frame').locator('#editor')).toBeVisible()
@@ -42,8 +45,10 @@ test('Harper checks British English offline and keeps learned words after reopen
     await h.page.evaluate(async url => {
       await window.novalistStores.settings.getState().update('global', {
         grammarCheckProvider: 'harper', grammarCheckEnabled: true,
-        autoReplacementLanguage: 'en', autoReplacementEnabled: false,
-        spellCheckLanguages: ['en-GB', 'en-GB-oxendict'], spellCheckEnabled: true,
+        autoReplacementLanguage: 'de-guillemet', autoReplacementEnabled: false,
+        // Legacy picker state: de-guillemet could be saved without appearing
+        // in the dictionary grid. The checked British dictionaries must win.
+        spellCheckLanguages: ['de-guillemet', 'en-GB', 'en-GB-oxendict'], spellCheckEnabled: true,
         grammarCheckApiUrl: url, grammarCheckUsername: 'saved-user', grammarCheckApiKey: 'saved-key'
       })
     }, server.url)
@@ -103,7 +108,7 @@ test('Harper checks British English offline and keeps learned words after reopen
 
     // Unsupported writing languages never silently fall back to a server.
     await h.page.evaluate(() => window.novalistStores.settings.getState().update('global', {
-      autoReplacementLanguage: 'de-low'
+      autoReplacementLanguage: 'de-low', spellCheckLanguages: []
     }))
     await expect(frame.locator('.grammar-issue')).toHaveCount(0, { timeout: 20_000 })
     expect(server.requests).toEqual([])
@@ -118,9 +123,13 @@ test('the grammar provider control follows global and project scope', async () =
   try {
     await dismissTour(h.page)
     await seedBook(h, {})
-    await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('writingAssistance'))
+    await h.page.evaluate(() => {
+      window.novalist.spellCheckLanguages = async () => ['en', 'en-GB', 'en-GB-oxendict', 'de-DE']
+      window.novalistStores.shell.getState().openSettings('writingAssistance')
+    })
     const provider = h.page.locator('#set-gc-provider')
     await expect(provider).toHaveValue('languagetool')
+    await expect(h.page.getByRole('checkbox', { name: 'en', exact: true })).not.toBeChecked()
     await provider.selectOption('harper')
     await expect(provider).toHaveValue('harper')
     await expect(h.page.locator('#set-gc-url')).toHaveCount(0)
@@ -138,8 +147,25 @@ test('the grammar provider control follows global and project scope', async () =
     await expect(scope).not.toBeChecked()
     await expect(provider).toHaveValue('harper')
     await h.page.evaluate(() => window.novalistStores.settings.getState().update('global', {
-      autoReplacementLanguage: 'de-low'
+      autoReplacementLanguage: 'de-low', spellCheckLanguages: ['de-low']
     }))
+    const englishOnly = h.page.getByText('Harper checks English only.', { exact: false })
+    await expect(englishOnly).toBeVisible()
+    for (const tag of ['en-GB', 'en-GB-oxendict']) {
+      await h.page.getByRole('checkbox', { name: tag, exact: true }).click()
+      await expect(h.page.getByRole('checkbox', { name: tag, exact: true })).toBeChecked()
+    }
+    expect(await h.page.evaluate(() => window.novalistStores.settings.getState().view!.global.spellCheckLanguages))
+      .toEqual(['en-GB', 'en-GB-oxendict'])
+    await expect(h.page.getByText('Harper checks English only.', { exact: false })).toHaveCount(0)
+    expect(await h.page.evaluate(() => window.novalistStores.settings.getState().view!.effective.grammarCheckLanguage))
+      .toBe('en-GB')
+    for (const tag of ['en-GB', 'en-GB-oxendict']) {
+      await h.page.getByRole('checkbox', { name: tag, exact: true }).click()
+      await expect(h.page.getByRole('checkbox', { name: tag, exact: true })).not.toBeChecked()
+    }
+    expect(await h.page.evaluate(() => window.novalistStores.settings.getState().view!.global.spellCheckLanguages))
+      .toEqual([])
     await expect(h.page.getByText('Harper checks English only.', { exact: false })).toBeVisible()
   } finally {
     await h.close()

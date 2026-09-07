@@ -42,13 +42,15 @@ public sealed class SettingsRpcTests : IDisposable
     public async Task GrammarProvider_PersistsAndRespectsProjectScope()
     {
         var view = await _rpc.UpdateGlobalAsync(Patch(
-            """{"grammarCheckProvider":"harper","autoReplacementLanguage":"en","spellCheckLanguages":["en-GB","en-GB-oxendict"]}"""));
+            """{"grammarCheckProvider":"harper","autoReplacementLanguage":"de-guillemet","spellCheckLanguages":["en-GB","en-GB-oxendict"]}"""));
         Assert.Equal("harper", view.GetProperty("effective").GetProperty("grammarCheckProvider").GetString());
         Assert.Equal("en-GB", view.GetProperty("effective").GetProperty("grammarCheckLanguage").GetString());
+        Assert.Equal("de-guillemet", view.GetProperty("effective").GetProperty("autoReplacementLanguage").GetString());
 
         using var reopened = new Workspace(Path.Combine(_root, "settings"));
         var saved = await new SettingsRpc(reopened).GetAsync();
         Assert.Equal("harper", saved.GetProperty("effective").GetProperty("grammarCheckProvider").GetString());
+        Assert.Equal("en-GB", saved.GetProperty("effective").GetProperty("grammarCheckLanguage").GetString());
 
         await OpenProjectAsync();
         view = await _rpc.UpdateProjectAsync(Patch("""{"grammarCheckProvider":"languagetool"}"""));

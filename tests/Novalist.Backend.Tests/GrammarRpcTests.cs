@@ -100,10 +100,13 @@ public sealed class GrammarRpcTests : IDisposable
         Assert.Contains("level=picky", _handler.LastRequestBody);
     }
 
-    [Fact]
-    public async Task Check_UsesBritishDictionariesForEnglishGrammar()
+    [Theory]
+    [InlineData("en")]
+    [InlineData("de-low")]
+    [InlineData("fr")]
+    public async Task Check_UsesBritishDictionariesForEnglishGrammar(string quoteLanguage)
     {
-        _workspace.Settings.Settings.AutoReplacementLanguage = "en";
+        _workspace.Settings.Settings.AutoReplacementLanguage = quoteLanguage;
         _workspace.Settings.Settings.SpellCheckLanguages = ["en-GB", "en-GB-oxendict"];
 
         await _rpc.CheckAsync("I realise it now.", CancellationToken.None);

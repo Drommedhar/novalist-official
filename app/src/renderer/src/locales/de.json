@@ -488,7 +488,7 @@
     "grammarCheckProvider": "Grammatikprüfung",
     "grammarCheckHarper": "Harper (offline, Englisch)",
     "grammarCheckHarperDesc": "Kostenlose englische Grammatik-, Rechtschreib- und Stilprüfung auf Ihrem Gerät. Funktioniert ab der ersten Nutzung offline, ohne Konto oder Downloads. Berücksichtigt Ihre Schreibsprache, die gewählte englische Wörterbuchvariante und gelernte Wörter.",
-    "grammarCheckHarperEnglishOnly": "Harper prüft nur Englisch. Wählen Sie LanguageTool, um diese Schreibsprache zu prüfen.",
+    "grammarCheckHarperEnglishOnly": "Harper prüft nur Englisch. Wählen Sie ein englisches Wörterbuch oder LanguageTool, um eine andere Sprache zu prüfen.",
     "grammarCheckDesc": "Prüft Ihren Text auf Grammatik-, Rechtschreib- und Stilfehler mithilfe von LanguageTool. Erfordert eine Internetverbindung (oder einen selbst gehosteten LanguageTool-Server).",
     "grammarCheckApiUrl": "LanguageTool-API-URL",
     "grammarCheckApiUrlDesc": "Endpunkt für Grammatikprüfungen. Leer lassen, um die kostenlose öffentliche API zu verwenden. Verweisen Sie auf einen selbst gehosteten LanguageTool-Server (z. B. http://localhost:8081/v2/check), damit Ihr Text lokal bleibt.",

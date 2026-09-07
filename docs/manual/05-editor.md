@@ -197,7 +197,7 @@ When **Grammar & Spelling Check** is enabled in [Settings](23-settings.md) → W
 
 By default the free public LanguageTool endpoint is used; the URL is configurable to point at a self-hosted server (to keep your text local), and Premium credentials, picky mode, and a mother-tongue setting for false-friend detection are available in the same settings section.
 
-Grammar checking follows your writing language and uses the regional variant selected under **Dictionaries** when there is one matching variant. For British English, select **en-GB**; **en-GB-oxendict** also uses British English for grammar checking. Selecting conflicting variants, such as both British and American English, keeps the writing language's default variant.
+When all selected **Dictionaries** belong to one language, grammar checking uses that language, even if your **Quote Style** preset belongs to another. For British English, select **en-GB**; **en-GB-oxendict** also uses British English for grammar checking. With no dictionaries selected, or dictionaries from several languages, grammar follows your writing language and any matching regional dictionary. Conflicting variants, such as British and American English together, use that language's default variant unless the writing-language setting already specifies a region in that language.
 
 **Add to dictionary** teaches both the native spell checker and the selected grammar checker. Learned words are accepted on subsequent checks and after reopening the app, including with free LanguageTool accounts. Grammar and style suggestions about those words can still appear. Harper also accepts names from the project's Codex.
 
