@@ -1,46 +1,73 @@
-import type { Page } from '@playwright/test'
+import type { JSHandle, Page } from '@playwright/test'
+
+type Outcome<T> =
+  | { ok: true; value: T }
+  | { ok: false; message: string; stack?: string }
+
+type Evaluation<Arg, Result> = ((arg: Arg) => Result | Promise<Result>) & {
+  result?: Promise<Outcome<Result>>
+}
 
 /**
- * The first evaluate against a renderer that has only just loaded.
+ * Electron can lose an evaluation reply shortly after the renderer loads,
+ * reporting "Execution context was destroyed" even while the page survives.
+ * Retrying the callback itself can repeat a completed write: a scene creation
+ * lost this way left two copies of "Keep" in the archive regression.
  *
- * Within roughly the first second after the page's `load`, a `page.evaluate`
- * that does real work - creating a project is the one that shows it - can fail
- * with "Execution context was destroyed, most likely because of a navigation".
- * It is intermittent, around one run in six locally, and it fails the setup step
- * of whichever spec happens to lose the race rather than anything the spec is
- * testing.
- *
- * What was ruled out, by instrumenting the page: there is no second navigation
- * (`framenavigated` never fires again), no reload (`load` and `domcontentloaded`
- * fire exactly once), no crash, no page error, no console error, and no frame
- * attach or detach - the page holds at one frame throughout. Waiting for the
- * window to be shown does not help, and neither does waiting for the start
- * screen to render: gated on `.start-screen` it still failed 4 runs in 15. Only
- * elapsed time helps, and a one-second pause made it 0 in 15.
- *
- * So there is no signal to wait for, only a window to get past. Rather than pad
- * every spec with a sleep, this retries - and only on that one error, so a
- * genuine failure inside the callback still fails on the first attempt.
+ * Keep the callback and its single result on a renderer handle. Transport
+ * retries reuse that handle and await the original result. A real navigation
+ * invalidates the handle and fails the call instead of replaying a mutation in
+ * the new document.
  */
 export async function evaluateWhenReady<Arg, Result>(
   page: Page,
   fn: (arg: Arg) => Result | Promise<Result>,
   arg?: Arg
 ): Promise<Result> {
-  let last: unknown
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    try {
-      // Playwright unboxes handles out of the argument type, which a plain
-      // generic passthrough cannot express. Callers keep their own types; only
-      // this hop is loose.
-      return (await page.evaluate(
-        fn as unknown as (a: unknown) => Result, arg as unknown
-      )) as Result
-    } catch (error) {
-      if (!String(error).includes('Execution context was destroyed')) throw error
-      last = error
-      await page.waitForTimeout(250)
+  async function retryTransport<T>(operation: () => Promise<T>): Promise<T> {
+    let last: unknown
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      try {
+        return await operation()
+      } catch (error) {
+        if (!String(error).includes('Execution context was destroyed')) throw error
+        last = error
+        await page.waitForTimeout(250)
+      }
     }
+    throw last
   }
-  throw last
+
+  // Obtain the function without calling it. Retrying this read cannot write to
+  // the project, and subsequent calls stay bound to this execution context.
+  const callback = await retryTransport(() =>
+    page.evaluateHandle(`(${fn.toString()})`)
+  ) as JSHandle<Evaluation<Arg, Result>>
+  try {
+    await retryTransport(() => callback.evaluate((run, value) => {
+      // Store the promise before invoking the callback, so even a lost start
+      // acknowledgement cannot schedule it twice. Capture rejection immediately
+      // to avoid unhandled errors while the transport is recovering.
+      // Playwright unboxes handle arguments; this helper's callers pass values.
+      run.result ??= Promise.resolve().then(() => run(value as Arg)).then(
+        (value) => ({ ok: true as const, value }),
+        (error: unknown) => ({
+          ok: false as const,
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        })
+      )
+    }, arg as Arg))
+    const outcome = await retryTransport(() =>
+      callback.evaluate(async (run) => await run.result!)
+    )
+    if (!outcome.ok) {
+      const error = new Error(outcome.message)
+      if (outcome.stack) error.stack = outcome.stack
+      throw error
+    }
+    return outcome.value
+  } finally {
+    await callback.dispose()
+  }
 }

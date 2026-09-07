@@ -80,6 +80,9 @@ jobs:
           $overall = ($rates | Measure-Object -Minimum).Minimum   # lowest assembly rate
           "coverage=$overall" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
+      - name: Test coverage badge publisher
+        run: python -m unittest tools/test_coverage_badge.py
+
       # Publish the measured number BEFORE enforcing, so a drop below 100% still
       # updates the badge (the build then fails on the next step).
       - name: Publish coverage badge
@@ -128,6 +131,10 @@ jobs:
       - name: Install app dependencies
         working-directory: app
         run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: app
+        run: npx playwright install --with-deps --only-shell chromium
 
       - name: Typecheck
         working-directory: app

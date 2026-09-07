@@ -22,7 +22,7 @@ $color =
 
 # Trim a trailing ".0" for a tidy "100%" instead of "100.0%".
 $msg = ($Coverage -replace '\.0+$', '') + '%'
-$json = (@{ schemaVersion = 1; label = 'coverage'; message = $msg; color = $color } | ConvertTo-Json -Compress)
+$json = ([ordered]@{ schemaVersion = 1; label = 'coverage'; message = $msg; color = $color } | ConvertTo-Json -Compress)
 
 $token = $env:GH_TOKEN
 if ([string]::IsNullOrEmpty($token)) { throw 'GH_TOKEN is not set.' }
@@ -40,14 +40,23 @@ if (-not (Test-Path $work)) {
 
 Set-Content -Path (Join-Path $work $FileName) -Value $json -NoNewline
 git -C $work add $FileName
+if ($LASTEXITCODE -ne 0) { throw 'Could not stage the coverage badge.' }
+
+# An unchanged badge is a successful no-op. Attempting a commit instead leaves
+# LASTEXITCODE=1, which GitHub Actions propagates even after this script returns.
+git -C $work diff --cached --quiet
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "Coverage badge unchanged ($msg) — nothing to push."
+    return
+}
+if ($LASTEXITCODE -ne 1) { throw 'Could not compare the coverage badge.' }
+
 git -C $work -c user.name='github-actions[bot]' `
             -c user.email='github-actions[bot]@users.noreply.github.com' `
             commit -m "chore: coverage badge $msg [skip ci]" 2>$null
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Coverage badge unchanged ($msg) — nothing to push."
-    return
-}
+if ($LASTEXITCODE -ne 0) { throw 'Could not commit the coverage badge.' }
 
 git -C $work push origin "HEAD:$Branch"
+if ($LASTEXITCODE -ne 0) { throw 'Could not push the coverage badge.' }
 Write-Host "Published coverage badge: $msg ($color)"

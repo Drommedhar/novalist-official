@@ -69,14 +69,8 @@ export async function launchApp(
     )
   }
 
-  // Through the retry rather than a bare evaluate. For about a second after the
-  // page loads, an evaluate that does real work can die with "Execution context
-  // was destroyed" - see appReady.ts for everything that was ruled out. Only the
-  // first call of a spec was guarded that way, so whichever call happened to
-  // land next in that window failed instead: three specs died in `seedBook`,
-  // creating a scene or reading the state back, rather than on anything they
-  // were testing. The retry fires on that one error alone, so a genuine failure
-  // inside the call still fails on the first attempt.
+  // Recover lost evaluation replies through the same renderer result. Replaying
+  // an RPC after a lost reply can create a second scene or chapter.
   const rpc = <T,>(method: string, params: unknown[] = []): Promise<T> =>
     evaluateWhenReady(
       page,
