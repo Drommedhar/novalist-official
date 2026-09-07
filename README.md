@@ -57,7 +57,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Auto-replacements** for smart quotes, em-dashes, and ellipses with language presets (English, German, French, Spanish, Italian, Portuguese, Russian, Polish, Czech, Slovak) — or switched off entirely, so every character you type is the character that lands. The list is yours to edit: add your own rules, plain text or regular expressions with capture groups, and run them over prose you already wrote.
 - **Dialogue punctuation correction** as you type.
 - **Offline spell check** using the operating system's own checker — no server, no account, no network — with a personal dictionary that travels with your settings.
-- **Grammar check** via LanguageTool (public endpoint by default; self-hosted endpoint supported).
+- **Grammar check** with bundled Harper for free, offline English checks, or LanguageTool for multiple languages (public endpoint by default; self-hosted endpoint supported).
 - Live word count, reading time, and Flesch readability score in the status bar; per-chapter readability in the Project Overview.
 
 ### Project structure

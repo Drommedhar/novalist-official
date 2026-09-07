@@ -16,8 +16,13 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+### Added
+
+- **Offline grammar checking** — choose Harper in Writing assistance for free English grammar, spelling, and style checks on your device, including British English and your learned words. No account, download, or connection is needed to use Harper.
+
 ### Fixed
 
+- Adding a word to your dictionary now clears grammar spelling warnings and keeps it accepted on later checks, including with free LanguageTool accounts. Words split across bold or italic text are learned in full.
 - Screens and dialogs that are taller than the available desktop window now gain a vertical scrollbar, so their controls and action buttons remain reachable on scaled 1080p displays.
 - Switching books while the Dashboard is open now refreshes its figures, artwork, and book-specific report cards immediately.
 - Custom entity reference fields now suggest entries of the selected target type, enabled Relationships sections appear, and added custom properties remain available to edit.

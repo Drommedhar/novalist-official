@@ -190,11 +190,18 @@ On macOS this is the system spell checker and is entirely local. On Windows and 
 
 ## Grammar check
 
-Spell check catches misspelt words; grammar check catches the rest. When **Grammar & Spelling Check** is enabled in [Settings](23-settings.md) → Writing assistance, Novalist sends your text to a LanguageTool-compatible API and underlines issues inline. Click an underlined passage to see suggestions and apply one. Unlike spell check, this one needs a server.
+When **Grammar & Spelling Check** is enabled in [Settings](23-settings.md) → Writing assistance, Novalist underlines grammar, spelling, and style issues inline. Click an underlined passage to see suggestions and apply one. Choose the **Grammar checker** in the same section:
+
+- **Harper (offline, English)** checks English on your device for free. It is bundled with Novalist, works offline from the first check, and needs no account or download. Harper does not check other writing languages; choose LanguageTool for those.
+- **LanguageTool** checks multiple languages through a server. It remains the default for existing and new installations.
 
 By default the free public LanguageTool endpoint is used; the URL is configurable to point at a self-hosted server (to keep your text local), and Premium credentials, picky mode, and a mother-tongue setting for false-friend detection are available in the same settings section.
 
 Grammar checking follows your writing language and uses the regional variant selected under **Dictionaries** when there is one matching variant. For British English, select **en-GB**; **en-GB-oxendict** also uses British English for grammar checking. Selecting conflicting variants, such as both British and American English, keeps the writing language's default variant.
+
+**Add to dictionary** teaches both the native spell checker and the selected grammar checker. Learned words are accepted on subsequent checks and after reopening the app, including with free LanguageTool accounts. Grammar and style suggestions about those words can still appear. Harper also accepts names from the project's Codex.
+
+The provider choice can be overridden per project with the Writing assistance override switch. Switching to Harper keeps your LanguageTool settings for later; Harper does not use that server or account.
 
 ## Slash commands
 

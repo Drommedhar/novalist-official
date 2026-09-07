@@ -80,6 +80,28 @@ test('successive corrections retain the remaining issue targets and suggestions'
   await expect(page.locator('#editor')).toHaveText('This is the end.')
 })
 
+for (const menu of ['popup', 'context']) {
+  test(`learning a word across inline markup saves the whole word from the ${menu} menu`, async ({ page }) => {
+    await content(page, '<p>The <b>Ael</b>thorn banner burned.</p>')
+    await issues(page, [{ ...issue(4, 8, 'Author'), type: 'spelling' }])
+    await page.locator('.grammar-issue').last().click({ button: menu === 'popup' ? 'left' : 'right' })
+    const action = menu === 'popup' ? '.gp-suggestion' : '[data-action="addToDictionary"]'
+    await page.locator(action, { hasText: 'Add to Dictionary' }).click()
+    const messages = await page.evaluate(() => (window as unknown as ProofingWindow).proofingRequests)
+    expect(messages).toContainEqual({ type: 'addToDictionary', word: 'Aelthorn' })
+  })
+
+  test(`a deletion suggestion has a visible label and is undoable from the ${menu} menu`, async ({ page }) => {
+    await content(page, '<p>This is extra text.</p>')
+    await issues(page, [issue(8, 6, '')])
+    await page.locator('.grammar-issue').click({ button: menu === 'popup' ? 'left' : 'right' })
+    await page.locator(menu === 'popup' ? '.gp-suggestion' : '.cm-suggestion', { hasText: 'Delete' }).click()
+    await expect(page.locator('#editor')).toHaveText('This is text.')
+    await page.keyboard.press('ControlOrMeta+z')
+    await expect(page.locator('#editor')).toHaveText('This is extra text.')
+  })
+}
+
 test('late grammar results cannot underline edited text or another scene', async ({ page }) => {
   await content(page, '<p id="text">Ths is a sentence.</p>')
   await page.evaluate(() => (window as unknown as EditorWindow).setGrammarCheckEnabled(true))

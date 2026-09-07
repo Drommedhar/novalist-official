@@ -17,7 +17,8 @@ import { useSettingsStore } from '../stores/settingsStore'
  * red" looks like: the writer's settings so it survives a restart and travels
  * to their other machines, the platform session so the underline under the word
  * they just right-clicked goes away now, and LanguageTool's own list so the
- * grammar side stops flagging it too.
+ * grammar side stops flagging it too. Local dictionary filtering also works
+ * with the free LanguageTool endpoint and with Harper.
  *
  * Returns the writer's list as it stands after the word was learned.
  */
@@ -28,15 +29,20 @@ export async function learnWord(word: string): Promise<string[]> {
   const words = await rpc.request<string[]>('spell/addWord', [clean])
 
   const effective = useSettingsStore.getState().view?.effective
-  await window.novalist.applySpellCheck(
-    effective?.spellCheckEnabled ?? true,
-    effective?.spellCheckLanguages ?? [],
-    words
-  )
+  await Promise.all([
+    window.novalist.applySpellCheck(
+      effective?.spellCheckEnabled ?? true,
+      effective?.spellCheckLanguages ?? [],
+      words
+    ),
+    // Recheck every open editor immediately. Saving the list alone left the
+    // grammar underline in place until the next edit.
+    useSettingsStore.getState().load()
+  ])
 
   // Best-effort: this one needs LanguageTool Plus credentials, and a writer
   // without them must still get the other two.
-  await rpc.request<boolean>('grammar/addToDictionary', [clean]).catch(() => false)
+  void rpc.request<boolean>('grammar/addToDictionary', [clean]).catch(() => false)
   return words
 }
 

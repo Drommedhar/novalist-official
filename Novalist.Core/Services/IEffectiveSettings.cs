@@ -49,6 +49,7 @@ public interface IEffectiveSettings
     List<AutoReplacementPair> AutoReplacements { get; }
     bool DialogueCorrectionEnabled { get; }
     bool GrammarCheckEnabled { get; }
+    string GrammarCheckProvider { get; }
     bool SpellCheckEnabled { get; }
 
     /// <summary>Language tags the spell checker loads. Falls back to the writing

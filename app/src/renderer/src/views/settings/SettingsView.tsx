@@ -1315,80 +1315,103 @@ export function SettingsView(): React.JSX.Element {
           </label>
           {eff.grammarCheckEnabled && (
             <div className="settings-subgroup">
-              <label className="inspector-label" htmlFor="set-gc-url">
-                {t('settings.grammarCheckApiUrl')}
-              </label>
-              <SettingInput
-                id="set-gc-url"
-                value={eff.grammarCheckApiUrl ?? ''}
-                placeholder="https://api.languagetool.org/v2/check"
-                onCommit={(v) =>
-                  void update(scopeFor('writing'), { grammarCheckApiUrl: v.trim() || null })
-                }
-              />
-              <label className="inspector-label" htmlFor="set-gc-user">
-                {t('settings.grammarCheckUsername')}
-              </label>
-              <SettingInput
-                id="set-gc-user"
-                value={eff.grammarCheckUsername ?? ''}
-                placeholder={t('settings.grammarCheckUsernamePlaceholder')}
-                onCommit={(v) =>
-                  void update(scopeFor('writing'), { grammarCheckUsername: v.trim() || null })
-                }
-              />
-              <label className="inspector-label" htmlFor="set-gc-key">
-                {t('settings.grammarCheckApiKey')}
-              </label>
-              <SettingInput
-                id="set-gc-key"
-                type="password"
-                value={eff.grammarCheckApiKey ?? ''}
-                onCommit={(v) =>
-                  void update(scopeFor('writing'), { grammarCheckApiKey: v.trim() || null })
-                }
-              />
-              <button
-                className="dialog-button settings-link"
-                onClick={() =>
-                  void window.novalist.openExternal(
-                    'https://languagetool.org/editor/settings/access-tokens'
-                  )
-                }
-              >
-                <ExternalLink size={13} strokeWidth={2} /> {t('settings.grammarCheckGetApiKey')}
-              </button>
-              <label className="relationships-toggle">
-                <input
-                  id="set-gc-picky"
-                  type="checkbox"
-                  checked={eff.grammarCheckPickyMode}
-                  onChange={(e) =>
-                    void update(scopeFor('writing'), { grammarCheckPickyMode: e.target.checked })
-                  }
-                />
-                {t('settings.grammarCheckPickyMode')}
-              </label>
-              <label className="inspector-label" htmlFor="set-gc-mother">
-                {t('settings.grammarCheckMotherTongue')}
+              <label className="inspector-label" htmlFor="set-gc-provider">
+                {t('settings.grammarCheckProvider')}
               </label>
               <select
-                id="set-gc-mother"
+                id="set-gc-provider"
                 className="dialog-input"
-                value={eff.grammarCheckMotherTongue ?? ''}
+                value={eff.grammarCheckProvider}
                 onChange={(e) =>
-                  void update(scopeFor('writing'), {
-                    grammarCheckMotherTongue: e.target.value || null
-                  })
+                  void update(scopeFor('writing'), { grammarCheckProvider: e.target.value })
                 }
               >
-                <option value="">{t('settings.grammarCheckMotherTongueNone')}</option>
-                {['en', 'de', 'fr', 'es', 'it', 'pt', 'nl', 'pl', 'ru', 'zh', 'ja'].map((code) => (
-                  <option key={code} value={code}>
-                    {code}
-                  </option>
-                ))}
+                <option value="languagetool">LanguageTool</option>
+                <option value="harper">{t('settings.grammarCheckHarper')}</option>
               </select>
+              <div className="settings-hint">
+                {t(eff.grammarCheckProvider === 'harper'
+                  ? 'settings.grammarCheckHarperDesc' : 'settings.grammarCheckDesc')}
+              </div>
+              {eff.grammarCheckProvider === 'harper' && !/^en(?:-|$)/i.test(eff.autoReplacementLanguage.trim()) && (
+                <div className="settings-hint">{t('settings.grammarCheckHarperEnglishOnly')}</div>
+              )}
+              {eff.grammarCheckProvider !== 'harper' && <>
+                <label className="inspector-label" htmlFor="set-gc-url">
+                  {t('settings.grammarCheckApiUrl')}
+                </label>
+                <SettingInput
+                  id="set-gc-url"
+                  value={eff.grammarCheckApiUrl ?? ''}
+                  placeholder="https://api.languagetool.org/v2/check"
+                  onCommit={(v) =>
+                    void update(scopeFor('writing'), { grammarCheckApiUrl: v.trim() || null })
+                  }
+                />
+                <label className="inspector-label" htmlFor="set-gc-user">
+                  {t('settings.grammarCheckUsername')}
+                </label>
+                <SettingInput
+                  id="set-gc-user"
+                  value={eff.grammarCheckUsername ?? ''}
+                  placeholder={t('settings.grammarCheckUsernamePlaceholder')}
+                  onCommit={(v) =>
+                    void update(scopeFor('writing'), { grammarCheckUsername: v.trim() || null })
+                  }
+                />
+                <label className="inspector-label" htmlFor="set-gc-key">
+                  {t('settings.grammarCheckApiKey')}
+                </label>
+                <SettingInput
+                  id="set-gc-key"
+                  type="password"
+                  value={eff.grammarCheckApiKey ?? ''}
+                  onCommit={(v) =>
+                    void update(scopeFor('writing'), { grammarCheckApiKey: v.trim() || null })
+                  }
+                />
+                <button
+                  className="dialog-button settings-link"
+                  onClick={() =>
+                    void window.novalist.openExternal(
+                      'https://languagetool.org/editor/settings/access-tokens'
+                    )
+                  }
+                >
+                  <ExternalLink size={13} strokeWidth={2} /> {t('settings.grammarCheckGetApiKey')}
+                </button>
+                <label className="relationships-toggle">
+                  <input
+                    id="set-gc-picky"
+                    type="checkbox"
+                    checked={eff.grammarCheckPickyMode}
+                    onChange={(e) =>
+                      void update(scopeFor('writing'), { grammarCheckPickyMode: e.target.checked })
+                    }
+                  />
+                  {t('settings.grammarCheckPickyMode')}
+                </label>
+                <label className="inspector-label" htmlFor="set-gc-mother">
+                  {t('settings.grammarCheckMotherTongue')}
+                </label>
+                <select
+                  id="set-gc-mother"
+                  className="dialog-input"
+                  value={eff.grammarCheckMotherTongue ?? ''}
+                  onChange={(e) =>
+                    void update(scopeFor('writing'), {
+                      grammarCheckMotherTongue: e.target.value || null
+                    })
+                  }
+                >
+                  <option value="">{t('settings.grammarCheckMotherTongueNone')}</option>
+                  {['en', 'de', 'fr', 'es', 'it', 'pt', 'nl', 'pl', 'ru', 'zh', 'ja'].map((code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
+                </select>
+              </>}
             </div>
           )}
         </>

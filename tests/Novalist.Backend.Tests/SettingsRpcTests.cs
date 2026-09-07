@@ -39,6 +39,27 @@ public sealed class SettingsRpcTests : IDisposable
         JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json)!;
 
     [Fact]
+    public async Task GrammarProvider_PersistsAndRespectsProjectScope()
+    {
+        var view = await _rpc.UpdateGlobalAsync(Patch(
+            """{"grammarCheckProvider":"harper","autoReplacementLanguage":"en","spellCheckLanguages":["en-GB","en-GB-oxendict"]}"""));
+        Assert.Equal("harper", view.GetProperty("effective").GetProperty("grammarCheckProvider").GetString());
+        Assert.Equal("en-GB", view.GetProperty("effective").GetProperty("grammarCheckLanguage").GetString());
+
+        using var reopened = new Workspace(Path.Combine(_root, "settings"));
+        var saved = await new SettingsRpc(reopened).GetAsync();
+        Assert.Equal("harper", saved.GetProperty("effective").GetProperty("grammarCheckProvider").GetString());
+
+        await OpenProjectAsync();
+        view = await _rpc.UpdateProjectAsync(Patch("""{"grammarCheckProvider":"languagetool"}"""));
+        Assert.True(view.GetProperty("overriddenSections").GetProperty("writing").GetBoolean());
+        Assert.Equal("languagetool", view.GetProperty("effective").GetProperty("grammarCheckProvider").GetString());
+        Assert.Equal("harper", view.GetProperty("global").GetProperty("grammarCheckProvider").GetString());
+        view = await _rpc.ClearSectionAsync("writing");
+        Assert.Equal("harper", view.GetProperty("effective").GetProperty("grammarCheckProvider").GetString());
+    }
+
+    [Fact]
     public async Task Get_WithoutProject_HasNoOverrides()
     {
         var view = await _rpc.GetAsync();

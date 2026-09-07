@@ -42,6 +42,10 @@ public class SettingsOverrides
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? GrammarCheckEnabled { get; set; }
 
+    [JsonPropertyName("grammarCheckProvider")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? GrammarCheckProvider { get; set; }
+
     [JsonPropertyName("spellCheckEnabled")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? SpellCheckEnabled { get; set; }
@@ -182,7 +186,7 @@ public class SettingsOverrides
     public bool HasWritingOverride =>
         AutoReplacementLanguage != null || AutoReplacementEnabled != null
         || AutoReplacements != null || ReviewerName != null
-        || DialogueCorrectionEnabled != null || GrammarCheckEnabled != null
+        || DialogueCorrectionEnabled != null || GrammarCheckEnabled != null || GrammarCheckProvider != null
         || SpellCheckEnabled != null || SpellCheckLanguages != null
         || GrammarCheckApiUrl != null || GrammarCheckApiKey != null || GrammarCheckUsername != null
         || GrammarCheckPickyMode != null || GrammarCheckMotherTongue != null;
@@ -249,6 +253,7 @@ public class SettingsOverrides
         AutoReplacements = [.. source.AutoReplacements];
         DialogueCorrectionEnabled = source.DialogueCorrectionEnabled;
         GrammarCheckEnabled = source.GrammarCheckEnabled;
+        GrammarCheckProvider = source.GrammarCheckProvider;
         SpellCheckEnabled = source.SpellCheckEnabled;
         SpellCheckLanguages = [.. source.SpellCheckLanguages];
         GrammarCheckApiUrl = source.GrammarCheckApiUrl;
@@ -299,6 +304,7 @@ public class SettingsOverrides
         AutoReplacements = null;
         DialogueCorrectionEnabled = null;
         GrammarCheckEnabled = null;
+        GrammarCheckProvider = null;
         SpellCheckEnabled = null;
         SpellCheckLanguages = null;
         GrammarCheckApiUrl = null;

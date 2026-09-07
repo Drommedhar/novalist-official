@@ -23,6 +23,7 @@ import { EntityTypeDialog } from '../../shell/EntityTypeDialog'
 import { AppendToEntityDialog } from '../../shell/AppendToEntityDialog'
 import { InputDialog } from '../../shell/InputDialog'
 import { rpc } from '../../rpc/client'
+import { checkGrammar } from '../../proofing/grammar'
 import { registerPendingWrite } from '../../stores/pendingWrites'
 import { useEntityPeek, type PeekScope } from './PeekCard'
 import './editor.css'
@@ -161,6 +162,7 @@ function pushEditorConfig(editor: EditorWindow, t: TFunction): void {
       link: t('blockStyle.link'),
       peekEntity: t('blockStyle.peekEntity'),
       addToDictionary: t('editor.contextMenu.addToDictionary'),
+      removeText: t('dialog.delete'),
       createEntity: t('editor.contextMenu.createEntity'),
       appendToEntity: t('editor.contextMenu.appendToEntity'),
       splitScene: t('editor.contextMenu.splitScene'),
@@ -844,8 +846,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
         case 'grammarCheckRequest': {
           if (!editor) return
           const requestId = Number(message.requestId)
-          void rpc
-            .request<unknown[]>('grammar/check', [String(message.plainText ?? '')])
+          void checkGrammar(String(message.plainText ?? ''))
             .then((issues) => {
               if (editorRef.current === editor) editor.setGrammarIssues(JSON.stringify(issues), requestId)
             })

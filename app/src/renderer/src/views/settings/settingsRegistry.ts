@@ -220,6 +220,9 @@ export const SETTINGS_REGISTRY: readonly SettingsSectionMetadata[] = [
       control('grammar-check', 'settings.grammarCheck', 'set-grammar-check', [
         'settings.grammarCheckDesc'
       ]),
+      control('grammar-provider', 'settings.grammarCheckProvider', 'set-gc-provider', [
+        'settings.grammarCheckHarper', 'settings.grammarCheckHarperDesc'
+      ]),
       control('grammar-server', 'settings.grammarCheckApiUrl', 'set-gc-url', [
         'settings.grammarCheckApiUrlDesc'
       ]),

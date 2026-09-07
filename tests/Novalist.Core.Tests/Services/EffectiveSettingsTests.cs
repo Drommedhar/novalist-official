@@ -7,6 +7,28 @@ namespace Novalist.Core.Tests.Services;
 public class EffectiveSettingsTests
 {
     [Fact]
+    public void GrammarProvider_CanBePinnedAndReturnedToTheGlobalDefault()
+    {
+        var global = new AppSettings();
+        var overrides = new SettingsOverrides { GrammarCheckProvider = "harper" };
+        var effective = new EffectiveSettings(() => global, () => overrides);
+
+        Assert.Equal("languagetool", global.GrammarCheckProvider);
+        Assert.True(overrides.HasWritingOverride);
+        Assert.Equal("harper", effective.GrammarCheckProvider);
+        overrides.ClearWriting();
+        Assert.False(overrides.HasWritingOverride);
+        Assert.Equal("languagetool", effective.GrammarCheckProvider);
+
+        global.GrammarCheckProvider = "harper";
+        overrides.PinWriting(effective);
+        global.GrammarCheckProvider = "languagetool";
+        Assert.Equal("harper", effective.GrammarCheckProvider);
+        overrides.ClearWriting();
+        Assert.Equal("languagetool", effective.GrammarCheckProvider);
+    }
+
+    [Fact]
     public void Resolves_ToGlobal_WhenNoOverrides()
     {
         var global = new AppSettings

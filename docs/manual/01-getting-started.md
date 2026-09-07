@@ -28,7 +28,7 @@ No account is required. Novalist works fully offline. The only times it touches 
 
 - Checking for application and extension updates (toggleable in [Settings](23-settings.md)).
 - Browsing the extension store.
-- Calling the LanguageTool grammar service when grammar check is enabled (toggleable, and the endpoint can be replaced with a self-hosted server).
+- Calling the LanguageTool grammar service when it is selected and grammar check is enabled (toggleable, with a self-hosted endpoint option). Choosing bundled Harper instead provides English grammar checks entirely offline.
 
 ## First-time guidance
 

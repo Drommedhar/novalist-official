@@ -190,7 +190,7 @@ Definitions live with the book, not globally - the things worth tracking in a th
   - **Dictionaries** — the language tags this build can load. Leave them all unticked to follow your Quote Style language, or tick several to check against more than one at once. On macOS the list is empty and hidden, because the system checker decides for itself. On Windows and Linux a dictionary is downloaded once, the first time it is used, and works offline afterwards.
   - **Your dictionary** — the words you added by right-clicking a red-underlined word in your prose and choosing **Add to dictionary**. They are stored with your settings rather than in the system dictionary, so they follow you to another machine. Each has a delete button to forget it again.
   - **Codex names are never flagged.** Every character name, surname and alias, and every location, item and lore entry in the open book, is given to the spell checker automatically. A secondary-world manuscript is otherwise a wall of red underlines despite the Codex holding every one of those names. They are not added to your dictionary — they follow the Codex, so renaming a character stops the old spelling being accepted.
-- **Grammar & Spelling Check** — underlines grammar, spelling, and style issues in the editor using **LanguageTool**. Unlike spell check, this one requires an internet connection (or a self-hosted LanguageTool server). When enabled, a configuration sub-panel appears:
+- **Grammar & Spelling Check** — underlines grammar, spelling, and style issues in the editor. When enabled, choose a **Grammar checker**: **Harper (offline, English)** is free and bundled, so it works on your device from first use without an account or download; **LanguageTool** supports multiple languages through a server and remains the default. Both respect your learned words and selected regional spelling variant. Harper supports English writing languages only and also accepts Codex names. The following settings appear for LanguageTool:
   - **API URL** — the LanguageTool endpoint. Leave blank for the public endpoint, or point it at your own server (for example `https://api.languagetool.org/v2/check`).
   - **Username** and **API Key** — credentials for a LanguageTool Premium account; the API key field is masked. A **Get API key** link opens LanguageTool's access-token page in your browser.
   - **Picky Mode** — turns on LanguageTool's stricter style and typography rules.
@@ -268,7 +268,7 @@ A read-only list of the extensions installed for Novalist. Each row shows the ex
 
 - **Set the editor font to taste, not to the theme.** The interface keeps the identity's faces whatever you choose, so picking your own writing typeface in Editor → Font Family changes only the page you write on.
 - **Disable grammar check if it slows you down.** It calls a remote API; some networks are slow enough that the underlines lag. Spell check is unaffected — it runs locally and stays on.
-- **Use a self-hosted LanguageTool for offline use.** A `docker-compose` LanguageTool image takes minutes and removes the cloud dependency — point the API URL at it.
+- **Choose Harper for offline English grammar checks.** For other languages, a self-hosted LanguageTool server can remove the cloud dependency — point the API URL at it.
 - **Preview your trim size early.** Turning on Book Width with your real page format and book font shows the characters-per-line you will actually get in print.
 
 ## Where to go next

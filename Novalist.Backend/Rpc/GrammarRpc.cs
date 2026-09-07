@@ -3,7 +3,7 @@ using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
 
-/// <summary>Grammar checking (LanguageTool) for the editor round-trip.</summary>
+/// <summary>Server and extension grammar checks. Harper runs locally in the renderer.</summary>
 public sealed class GrammarRpc
 {
     private readonly Workspace _workspace;
@@ -35,23 +35,29 @@ public sealed class GrammarRpc
         {
             return [];
         }
-        Configure();
         var effective = _workspace.Settings.Effective;
-        var language = GrammarCheckService.ResolveLanguageCode(
-            effective.AutoReplacementLanguage, effective.SpellCheckLanguages);
-        var coreIssues = await _service.CheckAsync(text, language, cancellationToken);
-        var results = coreIssues
-            .Select(i => new GrammarIssueDto(
-                i.Message,
-                i.Offset,
-                i.Length,
-                i.Type.ToString().ToLowerInvariant(),
-                i.Replacements.Take(5).ToArray()))
-            .ToList();
+        var results = new List<GrammarIssueDto>();
+        if (effective.GrammarCheckProvider != "harper")
+        {
+            Configure();
+            var language = GrammarCheckService.ResolveLanguageCode(
+                effective.AutoReplacementLanguage, effective.SpellCheckLanguages);
+            var coreIssues = await _service.CheckAsync(text, language, cancellationToken);
+            results.AddRange(coreIssues.Select(i => new GrammarIssueDto(
+                i.Message, i.Offset, i.Length,
+                i.Type.ToString().ToLowerInvariant(), i.Replacements.Take(5).ToArray())));
+        }
 
         // Merge in extension-contributed grammar issues (best-effort; matches the
         // desktop's GrammarCheckExtension.QueryContributorsAsync behavior).
         results.AddRange(await QueryContributorsAsync(text, cancellationToken));
+        // The free endpoint cannot store a personal dictionary. Respect the
+        // writer's local words on every response, without hiding grammar or
+        // style findings about those same words.
+        var words = _workspace.Settings.Settings.SpellCheckCustomWords.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        results.RemoveAll(issue => issue.Type == "spelling"
+            && issue.Offset >= 0 && issue.Length > 0 && issue.Offset <= text.Length - issue.Length
+            && words.Contains(text.Substring(issue.Offset, issue.Length)));
         return results.ToArray();
     }
 
@@ -97,6 +103,9 @@ public sealed class GrammarRpc
     [JsonRpcMethod("grammar/addToDictionary")]
     public async Task<bool> AddToDictionaryAsync(string word, CancellationToken cancellationToken)
     {
+        // A previously configured LanguageTool account must not receive words
+        // after the writer has selected the offline provider.
+        if (_workspace.Settings.Effective.GrammarCheckProvider == "harper") return false;
         Configure();
         return await _service.AddToDictionaryAsync(word, cancellationToken);
     }

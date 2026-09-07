@@ -53,6 +53,7 @@ public sealed class EffectiveSettings : IEffectiveSettings
     public List<AutoReplacementPair> AutoReplacements => O?.AutoReplacements ?? G.AutoReplacements;
     public bool DialogueCorrectionEnabled => O?.DialogueCorrectionEnabled ?? G.DialogueCorrectionEnabled;
     public bool GrammarCheckEnabled => O?.GrammarCheckEnabled ?? G.GrammarCheckEnabled;
+    public string GrammarCheckProvider => O?.GrammarCheckProvider ?? G.GrammarCheckProvider;
     public bool SpellCheckEnabled => O?.SpellCheckEnabled ?? G.SpellCheckEnabled;
 
     public IReadOnlyList<string> SpellCheckLanguages

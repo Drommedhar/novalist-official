@@ -137,6 +137,10 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("grammarCheckEnabled")]
     public bool GrammarCheckEnabled { get; set; } = true;
 
+    /// <summary>Grammar provider: languagetool (server) or harper (bundled, offline English).</summary>
+    [JsonPropertyName("grammarCheckProvider")]
+    public string GrammarCheckProvider { get; set; } = "languagetool";
+
     /// <summary>
     /// Underline misspellings in the prose surface using the platform's own
     /// spell checker. Works with no network, unlike the LanguageTool grammar

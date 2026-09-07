@@ -428,6 +428,9 @@ public sealed class SettingsRpc
             ["reviewerName"] = effective.ReviewerName,
             ["dialogueCorrectionEnabled"] = effective.DialogueCorrectionEnabled,
             ["grammarCheckEnabled"] = effective.GrammarCheckEnabled,
+            ["grammarCheckProvider"] = effective.GrammarCheckProvider,
+            ["grammarCheckLanguage"] = GrammarCheckService.ResolveLanguageCode(
+                effective.AutoReplacementLanguage, effective.SpellCheckLanguages),
             ["spellCheckEnabled"] = effective.SpellCheckEnabled,
             ["spellCheckLanguages"] = effective.SpellCheckLanguages,
             ["grammarCheckApiUrl"] = effective.GrammarCheckApiUrl,

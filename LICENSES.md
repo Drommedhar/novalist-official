@@ -3,6 +3,16 @@
 Novalist itself is licensed under the MIT License — see [LICENSE](LICENSE) for
 the project copyright.
 
+## Harper (Apache-2.0)
+
+The optional offline English grammar checker bundles [harper.js](https://github.com/Automattic/harper)
+version 2.7.0 and its WebAssembly binary, distributed under the Apache License 2.0.
+The unmodified license is included in the app at `licenses/harper-LICENSE.txt`.
+Harper also bundles [fflate](https://github.com/101arrowz/fflate) under the MIT License;
+its license is included at `licenses/fflate-LICENSE.txt`.
+
+## Vegetation assets (MIT)
+
 The vegetation assets and the techniques they exercise are derived from the
 open-source project [revo-realms](https://github.com/alezen9/revo-realms) by
 Aleksandar Gjoreski. That project is also distributed under the MIT License,

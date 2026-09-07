@@ -49,8 +49,10 @@ public sealed class ExtensionGrammarAndEntityTests
 
     // ── Grammar merge ───────────────────────────────────────────────
 
-    [Fact]
-    public async Task Grammar_MergesSampleStyleContributorIssues()
+    [Theory]
+    [InlineData("languagetool")]
+    [InlineData("harper")]
+    public async Task Grammar_MergesSampleStyleContributorIssues(string provider)
     {
         using var root = new TempDir();
         using var ext = new TempDir();
@@ -59,6 +61,7 @@ public sealed class ExtensionGrammarAndEntityTests
         try
         {
             ws.Settings.Settings.GrammarCheckEnabled = true;
+            ws.Settings.Settings.GrammarCheckProvider = provider;
             var rpc = new GrammarRpc(ws, new HttpClient(new EmptyMatchesHandler()));
 
             var issues = await rpc.CheckAsync("this text is very unique indeed", CancellationToken.None);

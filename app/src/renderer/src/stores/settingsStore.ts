@@ -36,6 +36,9 @@ export interface EffectiveSettings {
   reviewerName: string
   dialogueCorrectionEnabled: boolean
   grammarCheckEnabled: boolean
+  grammarCheckProvider: 'languagetool' | 'harper'
+  /** Resolved from the writing language and selected spelling dictionaries. */
+  grammarCheckLanguage: string
   spellCheckEnabled: boolean
   spellCheckLanguages: string[]
   grammarCheckApiUrl: string | null

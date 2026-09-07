@@ -3678,11 +3678,11 @@ document.addEventListener('contextmenu', (e) => {
             html += '<div class="cm-grammar-msg">' + escapeHtml(issue.message) + '</div>';
             if (issue.replacements && issue.replacements.length > 0) {
                 for (const rep of issue.replacements) {
-                    html += '<div class="cm-suggestion" data-issue-index="' + index + '" data-replacement="' + escapeHtml(rep) + '">' + escapeHtml(rep) + '</div>';
+                    html += '<div class="cm-suggestion" data-issue-index="' + index + '" data-replacement="' + escapeHtml(rep) + '">' + escapeHtml(rep || contextMenuLabels.removeText || 'Delete') + '</div>';
                 }
             }
             if (issue.type === 'spelling') {
-                const word = issueSpan.textContent || '';
+                const word = issue.text || '';
                 if (word.trim().length > 0) {
                     html += '<div class="cm-item" data-action="addToDictionary" data-word="' + escapeHtml(word.trim()) + '"><span>' + escapeHtml(contextMenuLabels.addToDictionary || 'Add to Dictionary') + '</span></div>';
                 }
@@ -4264,7 +4264,7 @@ function showGrammarPopup(issueIndex, x, y) {
         for (const rep of issue.replacements) {
             const btn = document.createElement('span');
             btn.className = 'gp-suggestion';
-            btn.textContent = rep;
+            btn.textContent = rep || contextMenuLabels.removeText || 'Delete';
             btn.addEventListener('click', () => {
                 applyGrammarSuggestion(issueIndex, rep);
                 hideGrammarPopup();
@@ -4276,11 +4276,11 @@ function showGrammarPopup(issueIndex, x, y) {
     if (issue.type === 'spelling') {
         const spans = editor.querySelectorAll('[data-issue-index="' + issueIndex + '"]');
         if (spans.length > 0) {
-            const word = spans[0].textContent || '';
+            const word = issue.text || '';
             if (word.trim().length > 0) {
                 const addBtn = document.createElement('span');
                 addBtn.className = 'gp-suggestion';
-                addBtn.textContent = '+ Dictionary';
+                addBtn.textContent = contextMenuLabels.addToDictionary || 'Add to Dictionary';
                 addBtn.style.opacity = '0.7';
                 addBtn.addEventListener('click', () => {
                     sendMessage({ type: 'addToDictionary', word: word.trim() });
