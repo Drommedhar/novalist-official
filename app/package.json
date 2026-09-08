@@ -5,6 +5,8 @@
   "main": "./out/main/index.js",
   "private": true,
   "scripts": {
+    "postinstall": "node scripts/patch-electron-builder.cjs",
+    "test:packaging": "node --test scripts/patch-electron-builder.test.cjs",
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "build:mobile": "vite build --config vite.mobile.config.ts",
@@ -36,7 +38,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.0",
     "electron": "^38.8.6",
-    "electron-builder": "^26.15.3",
+    "electron-builder": "26.15.3",
     "electron-vite": "^5.0.0",
     "typescript": "^7.0.2",
     "vite": "^7.0.2"

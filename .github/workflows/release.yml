@@ -8,7 +8,7 @@ on:
 
 env:
   DOTNET_VERSION: 8.0.x
-  NODE_VERSION: "20"
+  NODE_VERSION: "22"
 
 jobs:
   # Tag routing:

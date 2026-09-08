@@ -132,6 +132,10 @@ jobs:
         working-directory: app
         run: npm ci
 
+      - name: Test packaging patches
+        working-directory: app
+        run: npm run test:packaging
+
       - name: Install Playwright Chromium
         working-directory: app
         run: npx playwright install --with-deps --only-shell chromium
