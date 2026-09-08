@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.2.6] - 2026-09-08
+
 ### Added
 
 - **Offline grammar checking** — choose Harper in Writing assistance for free English grammar, spelling, and style checks on your device, including British English and your learned words. No account, download, or connection is needed to use Harper.
@@ -1549,7 +1555,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.2.4...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.2.6...HEAD
+[3.2.6]: https://github.com/Drommedhar/novalist-official/compare/v3.2.5...v3.2.6
 [3.2.4]: https://github.com/Drommedhar/novalist-official/compare/v3.2.3...v3.2.4
 [3.2.3]: https://github.com/Drommedhar/novalist-official/compare/v3.2.2...v3.2.3
 [3.2.2]: https://github.com/Drommedhar/novalist-official/compare/v3.2.1...v3.2.2
