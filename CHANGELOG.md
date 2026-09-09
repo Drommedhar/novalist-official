@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.3] - 2026-09-09
+
 ### Changed
 
 - Apple Silicon narration can begin playing before a passage finishes generating, while using less memory. Completed passages remain cached for replay; other speed settings preserve pitch by finishing the passage before playback.
@@ -1563,7 +1569,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.2.6...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.3...HEAD
+[3.3]: https://github.com/Drommedhar/novalist-official/compare/v3.2.6...v3.3
 [3.2.6]: https://github.com/Drommedhar/novalist-official/compare/v3.2.5...v3.2.6
 [3.2.4]: https://github.com/Drommedhar/novalist-official/compare/v3.2.3...v3.2.4
 [3.2.3]: https://github.com/Drommedhar/novalist-official/compare/v3.2.2...v3.2.3
