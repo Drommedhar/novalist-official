@@ -212,6 +212,13 @@ public sealed class NarrationSegment
 /// <summary>A run of the book to be spoken in one go.</summary>
 public sealed class NarrationRequest
 {
+    /// <summary>Optional live playback sink. Engines may call it in generation
+    /// order with consecutive, independently decodable audio chunks. These are
+    /// previews only: RenderAsync must still yield one complete clip per segment
+    /// for caching/export. Null retains the complete-clip contract. Invoked
+    /// synchronously on the rendering task; stop invoking after cancellation.</summary>
+    public Action<NarrationClip>? AudioChunk { get; init; }
+
     /// <summary>The segments, in reading order.</summary>
     public IReadOnlyList<NarrationSegment> Segments { get; init; } = [];
 

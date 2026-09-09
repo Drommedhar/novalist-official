@@ -227,6 +227,22 @@ Two smaller notes on direction, both already true and both easy to get wrong:
 - **The vector reaching you already includes the speaker's standing register** — a per-character offset the writer set on the cast rail. There is nothing extra to apply.
 - **A direction never enters the text.** It travels beside the words. An engine that wants in-band tags adds them in its own adapter, where it knows its own syntax.
 
+### Streaming speech previews
+
+`NarrationRequest.AudioChunk` is an optional synchronous callback for consecutive,
+independently decodable chunks during `RenderAsync`. Invoke it in generation
+order with the segment key, audio bytes, format, sample rate, and duration.
+When the callback is null, return complete clips as before. Engines may ignore
+it when streaming is unavailable or pitch-preserving speed adjustment needs
+the complete waveform.
+
+The callback is for live preview only. Still yield exactly one complete
+`NarrationClip` per segment from `RenderAsync`, or an error if that segment
+fails. Only complete clips enter the replay cache or audiobook export. Stop
+callbacks after cancellation; never log audio or manuscript content. The host
+currently previews the first passage of each requested window, preserving
+reading order across cached passages and multiple engines.
+
 ### Reading a scene
 
 `IExtensionStoryService.GetSceneDetail` returns point of view, intensity, emotion, conflict, stage, tags, plot threads, story dates, narrative mode and act — and now **`Cast`** (ids of the Codex entries the writer said are in the scene) and **`FocusEntityId`** (the one it is about). It also carries **`Inactive`**: a scene the writer has parked is out of the book but still in the plan, and an extension that cannot tell the two apart counts words the manuscript does not contain.

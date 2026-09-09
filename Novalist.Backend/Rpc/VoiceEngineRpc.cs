@@ -555,7 +555,7 @@ public sealed class VoiceEngineRpc
     /// to get a second answer.</param>
     [JsonRpcMethod("narration/render")]
     public async Task<NarrationRenderDto> RenderAsync(
-        int from, int count, double rate = 1.0, bool rebuild = false)
+        int from, int count, double rate = 1.0, bool rebuild = false, string? streamId = null)
     {
         var segments = await SegmentsAsync();
         var placed = segments
@@ -653,8 +653,18 @@ public sealed class VoiceEngineRpc
                 // Only the lines that still have to be made. An engine handed
                 // a window it has already spoken would spend a minute
                 // reproducing what is on disk beside it.
+                var sequence = 0;
                 var asking = new Sdk.Models.Narration.NarrationRequest
                 {
+                    // Only the first passage can play before this window is
+                    // sorted. Later passages may belong to another engine or
+                    // already be cached and must not overtake it.
+                    AudioChunk = string.IsNullOrEmpty(streamId) ? null : chunk =>
+                    {
+                        if (!cancellation.IsCancellationRequested && chunk.Key == window[0].Key)
+                            AudioChunk?.Invoke(new NarrationAudioChunkDto(
+                                streamId, chunk.Key, sequence++, Convert.ToBase64String(chunk.Audio), chunk.SampleRate));
+                    },
                     Segments = fresh,
                     Voices = request.Voices,
                     VoiceReferenceTexts = request.VoiceReferenceTexts,
@@ -1107,6 +1117,10 @@ public sealed class VoiceEngineRpc
     /// </summary>
     public static Action<NarrationMakingDto>? Making { get; set; }
 
+    /// <summary>Transient audio for the active reading. Never logged or cached
+    /// as a complete passage; the render result supplies the finished clip.</summary>
+    public static Action<NarrationAudioChunkDto>? AudioChunk { get; set; }
+
     private static void SayMaking(IReadOnlyList<string> outstanding)
         => Making?.Invoke(new NarrationMakingDto(outstanding.Count > 0 ? outstanding[0] : null));
 
@@ -1320,6 +1334,8 @@ public sealed record NarrationMakingDto(string? Key);
 /// <param name="Clip">The name to fetch the audio by, or null when this segment
 /// could not be spoken.</param>
 public sealed record NarrationClipDto(string Key, string? Clip, double DurationMs, string? Error);
+
+public sealed record NarrationAudioChunkDto(string StreamId, string Key, int Sequence, string Audio, int SampleRate = 24000);
 
 /// <summary>What one render window produced.</summary>
 /// <param name="EngineId">Null when no engine is ready, which is the signal to

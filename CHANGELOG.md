@@ -16,7 +16,14 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- Apple Silicon narration can begin playing before a passage finishes generating, while using less memory. Completed passages remain cached for replay; other speed settings preserve pitch by finishing the passage before playback.
+- The Qwen Speech extension uses MLX for faster narration on native Apple Silicon Macs, retaining full BF16 model weights and existing saved Qwen voices. Upgrading requires one preparation download; other platforms continue using PyTorch.
+
+### Fixed
+
+- Narration measures generation speed before starting streamed playback. Slower or uneven generation buffers complete passages, preventing speech from repeatedly stopping between tiny audio chunks.
 
 ---
 

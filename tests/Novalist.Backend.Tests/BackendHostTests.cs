@@ -98,6 +98,27 @@ public class BackendHostTests
     }
 
     [Fact]
+    public async Task NarrationChunksReachTheClientWithTheirReadingIdentity()
+    {
+        var (serverStream, clientStream) = FullDuplexStream.CreatePair();
+        using var host = new BackendHost();
+        host.Attach(serverStream, serverStream);
+        var formatter = new SystemTextJsonFormatter();
+        formatter.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        using var client = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, formatter));
+        var received = new TaskCompletionSource<NarrationAudioChunkDto>(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.AddLocalRpcMethod("narration/audioChunk", new Action<NarrationAudioChunkDto>(chunk => received.TrySetResult(chunk)));
+        client.StartListening();
+        var expected = new NarrationAudioChunkDto("reading", "passage", 0, "AQI=");
+        try
+        {
+            VoiceEngineRpc.AudioChunk!(expected);
+            Assert.Equal(expected, await received.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+        }
+        finally { VoiceEngineRpc.AudioChunk = null; }
+    }
+
+    [Fact]
     public void RequestShutdown_IsIdempotent()
     {
         using var host = new BackendHost();

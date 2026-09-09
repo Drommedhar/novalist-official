@@ -615,6 +615,68 @@ public sealed class VoiceEngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Render_StreamsBeforeCompletionAndCachesOnlyTheCompletePassage()
+    {
+        var mira = await MiraAsync();
+        await SceneAsync("<p>\"A,\" said Mira. She waited.</p>");
+        await _rpc.PrepareAsync(StubEngine.Id);
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
+        await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
+        var before = _cache.Size();
+        var said = new List<NarrationAudioChunkDto>();
+        var arrived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _engine.ChunkHold = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        VoiceEngineRpc.AudioChunk = chunk => { said.Add(chunk); arrived.TrySetResult(); };
+        try
+        {
+            var rendering = _rpc.RenderAsync(0, 8, streamId: "reading-1");
+            await arrived.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.False(rendering.IsCompleted);
+            Assert.Equal(before, _cache.Size());
+            _engine.ChunkHold.SetResult();
+            var result = await rendering;
+            Assert.Equal(2, said.Count);
+            Assert.Equal(new[] { 0, 1 }, said.Select(c => c.Sequence));
+            Assert.All(said, c => {
+                Assert.Equal("reading-1", c.StreamId);
+                Assert.Equal(0, c.SampleRate);
+                Assert.Equal(result.Clips[0].Key, c.Key);
+                Assert.Equal(new byte[] { 1, 2 }, Convert.FromBase64String(c.Audio));
+            });
+            Assert.True(_cache.Size() > before);
+            said.Clear();
+            await _rpc.RenderAsync(0, 8, streamId: "cached");
+            Assert.Empty(said);
+        }
+        finally { _engine.ChunkHold.TrySetResult(); VoiceEngineRpc.AudioChunk = null; }
+    }
+
+    [Fact]
+    public async Task Render_RejectsLateChunksAfterStopEvenWhenTheEngineIgnoresCancellation()
+    {
+        var mira = await MiraAsync();
+        await SceneAsync("<p>\"A,\" said Mira. She waited.</p>");
+        await _rpc.PrepareAsync(StubEngine.Id);
+        var designed = await KeptAsync(StubEngine.Id, mira.Id, "Low and level.");
+        await new NarrationRpc(_workspace).SetVoiceAsync(null, designed.VoiceId);
+        _engine.ChunkHold = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _engine.IgnoreCancellation = true;
+        var arrived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var said = new List<NarrationAudioChunkDto>();
+        VoiceEngineRpc.AudioChunk = chunk => { said.Add(chunk); arrived.TrySetResult(); };
+        try
+        {
+            var rendering = _rpc.RenderAsync(0, 8, streamId: "stopped");
+            await arrived.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            _rpc.RenderStop();
+            _engine.ChunkHold.SetResult();
+            Assert.Empty((await rendering).Clips);
+            Assert.Single(said);
+        }
+        finally { _engine.ChunkHold.TrySetResult(); VoiceEngineRpc.AudioChunk = null; }
+    }
+
+    [Fact]
     public async Task Render_SaysWhichLineIsBeingMadeAsItHappens()
     {
         // A window is one request and one answer, so without this the page
@@ -1517,6 +1579,7 @@ public sealed class VoiceEngineRpcTests : IDisposable
         /// <summary>An engine that returns nothing at all - a sidecar that died
         /// between being asked and answering.</summary>
         public bool RenderNothing { get; set; }
+        public TaskCompletionSource? ChunkHold { get; set; }
 
         /// <summary>Held before the second clip, so a test can stop a render
         /// while it is genuinely in flight rather than before it starts.</summary>
@@ -1620,6 +1683,12 @@ public sealed class VoiceEngineRpcTests : IDisposable
                     throw new InvalidOperationException("no");
                 if (given == 1 && Hold != null)
                     await Hold.Task;
+                if (ChunkHold != null)
+                {
+                    request.AudioChunk?.Invoke(new NarrationClip { Key = segment.Key, Audio = [1, 2] });
+                    await ChunkHold.Task;
+                    request.AudioChunk?.Invoke(new NarrationClip { Key = segment.Key, Audio = [1, 2] });
+                }
                 if (!IgnoreCancellation)
                     cancellationToken.ThrowIfCancellationRequested();
                 given++;

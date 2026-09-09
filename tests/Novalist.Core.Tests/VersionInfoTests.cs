@@ -5,8 +5,40 @@ using Xunit;
 
 namespace Novalist.Core.Tests;
 
+[CollectionDefinition("VersionEnvironment", DisableParallelization = true)]
+public sealed class VersionEnvironmentCollection;
+
+[Collection("VersionEnvironment")]
 public class VersionInfoTests
 {
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("  3.3.0  ")]
+    [InlineData("3.3.0-dev")]
+    public void Version_HonorsOverride_AndRestoresAssemblyFallback(string? forcedVersion)
+    {
+        var previous = Environment.GetEnvironmentVariable("NOVALIST_FORCE_VERSION");
+        try
+        {
+            Environment.SetEnvironmentVariable("NOVALIST_FORCE_VERSION", null);
+            var assemblyVersion = VersionInfo.Version; // Populate the metadata cache first.
+            Environment.SetEnvironmentVariable("NOVALIST_FORCE_VERSION", forcedVersion);
+
+            var expected = string.IsNullOrWhiteSpace(forcedVersion) ? assemblyVersion : forcedVersion.Trim();
+            Assert.Equal(expected, VersionInfo.Version);
+            Assert.Equal(expected.Contains("-dev", StringComparison.Ordinal), VersionInfo.IsDev);
+
+            Environment.SetEnvironmentVariable("NOVALIST_FORCE_VERSION", null);
+            Assert.Equal(assemblyVersion, VersionInfo.Version);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("NOVALIST_FORCE_VERSION", previous);
+        }
+    }
+
     [Fact]
     public void Version_IsNonEmpty()
         => Assert.False(string.IsNullOrWhiteSpace(VersionInfo.Version));

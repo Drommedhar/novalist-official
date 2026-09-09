@@ -66,6 +66,7 @@ public class NarrationDtoDefaultsTests
     public void NarrationRequest_Defaults()
     {
         var request = new NarrationRequest();
+        Assert.Null(request.AudioChunk);
 
         Assert.Empty(request.Segments);
         Assert.Empty(request.Voices);

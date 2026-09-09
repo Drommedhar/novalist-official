@@ -3,16 +3,24 @@ using System.Reflection;
 namespace Novalist.Core;
 
 /// <summary>
-/// Provides the application version derived from the assembly metadata.
+/// Provides the application version, honoring NOVALIST_FORCE_VERSION for development.
 /// </summary>
 public static class VersionInfo
 {
     private static readonly Lazy<string> _version = new(() => ReadVersion(typeof(VersionInfo).Assembly));
 
     /// <summary>
-    /// Semantic version string (e.g. "1.2.0" or "0.0.1-dev").
+    /// Semantic version string (e.g. "1.2.0" or "0.0.1-dev"). A nonblank
+    /// NOVALIST_FORCE_VERSION overrides assembly metadata, including for extensions.
     /// </summary>
-    public static string Version => _version.Value;
+    public static string Version
+    {
+        get
+        {
+            var forcedVersion = Environment.GetEnvironmentVariable("NOVALIST_FORCE_VERSION")?.Trim();
+            return string.IsNullOrEmpty(forcedVersion) ? _version.Value : forcedVersion;
+        }
+    }
 
     /// <summary>
     /// Returns <c>true</c> when running a local/dev build (version suffix "dev").

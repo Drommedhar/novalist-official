@@ -150,6 +150,8 @@ public sealed class BackendHost : IDisposable
         // learn nothing until the whole window was done.
         Rpc.VoiceEngineRpc.Making = making =>
             _ = rpc.NotifyAsync("narration/making", making);
+        Rpc.VoiceEngineRpc.AudioChunk = chunk =>
+            _ = rpc.NotifyAsync("narration/audioChunk", chunk);
         // Themes, Locales and Analysis were read once at startup and a restart
         // was needed after any change - which is the wrong loop for something a
         // writer iterates on. The renderer reloads the folders it is told about.

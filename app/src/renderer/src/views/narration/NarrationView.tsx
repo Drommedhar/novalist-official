@@ -441,7 +441,7 @@ export function NarrationView(): React.JSX.Element {
             )}
             {/* Making speech takes seconds, and a transport that says nothing
                 for that long reads as a button that did not work. */}
-            {preparing && speaking === null
+            {preparing
               ? t('narration.preparingReading')
               : speaking === null
                 ? selected
