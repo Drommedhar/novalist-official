@@ -195,12 +195,12 @@ public sealed class AudiobookRpcTests : IDisposable
         await ChapterAsync("One", "<p>Hello there.</p>");
         await CastNarratorAsync();
         _engine.Ready = true;
-        _engine.Hold = new TaskCompletionSource();
+        var hold = _engine.Hold = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         var status = await _rpc.StartAsync("WavPerChapter", Output);
 
         Assert.Equal("rendering", status.Phase);
-        _engine.Hold.SetResult();
+        hold.SetResult();
         await SettledAsync();
     }
 
@@ -255,16 +255,17 @@ public sealed class AudiobookRpcTests : IDisposable
         await ChapterAsync("One", "<p>Hello there.</p>");
         await CastNarratorAsync();
         _engine.Ready = true;
-        _engine.Hold = new TaskCompletionSource();
-        _engine.Started = new TaskCompletionSource();
+        var hold = _engine.Hold = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _engine.Started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await _rpc.StartAsync("WavPerChapter", Output);
-        await _engine.Started.Task;
+        await _engine.Started.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Null(_engine.Hold); // The engine has consumed it; release our retained reference.
 
         var second = await _rpc.StartAsync("WavPerChapter", Output);
 
         Assert.Equal("rendering", second.Phase);
         Assert.Equal(1, _engine.Renders);
-        _engine.Hold.SetResult();
+        hold.SetResult();
         await SettledAsync();
     }
 
@@ -448,11 +449,11 @@ public sealed class AudiobookRpcTests : IDisposable
         await ChapterAsync("One", "<p>Hello there.</p>");
         await CastNarratorAsync();
         _engine.Ready = true;
-        _engine.Hold = new TaskCompletionSource();
+        var hold = _engine.Hold = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await _rpc.StartAsync("WavPerChapter", Output);
 
         Assert.True(_rpc.Stop());
-        _engine.Hold.SetResult();
+        hold.SetResult();
         var status = await SettledAsync();
 
         Assert.NotEqual("rendering", status.Phase);
@@ -472,11 +473,11 @@ public sealed class AudiobookRpcTests : IDisposable
         await ChapterAsync("One", "<p>Hello there.</p>");
         await CastNarratorAsync();
         _engine.Ready = true;
-        _engine.Hold = new TaskCompletionSource();
+        var hold = _engine.Hold = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await _rpc.StartAsync("WavPerChapter", Output);
 
         _rpc.Dispose();
-        _engine.Hold.SetResult();
+        hold.SetResult();
 
         Assert.NotNull(_rpc.Status());
     }
@@ -713,12 +714,13 @@ public sealed class AudiobookRpcTests : IDisposable
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             Renders++;
+            // Consume the one-shot hold before signalling so tests always exercise
+            // the background task winning the race to clear the shared property.
+            var wait = Hold;
+            Hold = null;
             Started?.TrySetResult();
-            if (Hold is { } wait)
-            {
-                Hold = null;
+            if (wait != null)
                 await wait.Task;
-            }
             if (Throw)
                 throw new InvalidOperationException("no");
 
