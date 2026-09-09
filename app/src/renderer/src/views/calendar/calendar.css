@@ -1,8 +1,8 @@
 /* ===== Calendar view (parity port of Avalonia CalendarView) ===== */
 
 .calendar {
-  --cal-gutter: 56px;
-  --cal-hour: 48px;
+  --cal-gutter: var(--nl-calendar-time-gutter);
+  --cal-hour: var(--nl-calendar-hour-height);
 }
 
 /* ---- Event chip: title line + optional note line ---- */
@@ -19,7 +19,7 @@
 
 .calendar-event-note {
   display: block;
-  margin-top: 1px;
+  margin-top: var(--nl-rule-width);
   font-size: var(--nl-font-caption);
   font-style: italic;
   color: var(--nl-text-subtle);
@@ -38,20 +38,20 @@
 
 .calendar-week-allday {
   display: grid;
-  grid-template-columns: var(--cal-gutter) repeat(7, 1fr);
-  border-bottom: 1px solid var(--nl-border);
+  grid-template-columns: var(--cal-gutter) repeat(var(--cal-weekdays, 7), minmax(0, 1fr));
+  border-bottom: var(--nl-rule-width) solid var(--nl-border);
   background: var(--nl-surface-toolbar);
 }
 
 .calendar-week-corner {
-  border-right: 1px solid var(--nl-border-subtle);
+  border-right: var(--nl-rule-width) solid var(--nl-border-subtle);
 }
 
 .calendar-allday-col {
-  border-right: 1px solid var(--nl-border-subtle);
+  border-right: var(--nl-rule-width) solid var(--nl-border-subtle);
   padding: var(--nl-space-sm);
   min-width: 0;
-  min-height: 56px;
+  min-height: var(--nl-calendar-time-gutter);
 }
 
 .calendar-allday-col.today {
@@ -79,13 +79,13 @@
 
 .calendar-week-hours {
   display: grid;
-  grid-template-columns: var(--cal-gutter) repeat(7, 1fr);
+  grid-template-columns: var(--cal-gutter) repeat(var(--cal-weekdays, 7), minmax(0, 1fr));
 }
 
 .calendar-hour-gutter {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--nl-border-subtle);
+  border-right: var(--nl-rule-width) solid var(--nl-border-subtle);
 }
 
 .calendar-hour-label {
@@ -98,7 +98,7 @@
 
 .calendar-day-track {
   position: relative;
-  border-right: 1px solid var(--nl-border-subtle);
+  border-right: var(--nl-rule-width) solid var(--nl-border-subtle);
   min-width: 0;
 }
 
@@ -108,7 +108,7 @@
 
 .calendar-hour-line {
   height: var(--cal-hour);
-  border-bottom: 1px solid var(--nl-border-subtle);
+  border-bottom: var(--nl-rule-width) solid var(--nl-border-subtle);
 }
 
 .calendar-timed-event {
@@ -125,7 +125,7 @@
   font-size: var(--nl-font-caption);
   line-height: 1.2;
   cursor: pointer;
-  box-shadow: 0 0 0 1px var(--nl-surface-editor);
+  box-shadow: 0 0 0 var(--nl-rule-width) var(--nl-surface-editor);
 }
 
 .calendar-timed-event:hover {
@@ -163,7 +163,7 @@
 
 .calendar-month-weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(var(--cal-weekdays, 7), minmax(0, 1fr));
   gap: var(--nl-space-tighter);
   padding: var(--nl-space-sm) var(--nl-space-lg) 0;
 }
@@ -200,9 +200,9 @@
 
 /* ---- Year: month cards list their scenes ---- */
 .calendar .calendar-year {
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--nl-field-width-sm), 1fr));
   align-content: start;
-  grid-auto-rows: minmax(130px, 220px);
+  grid-auto-rows: minmax(calc(var(--nl-panel-width-sm) / 2), var(--nl-field-width-sm));
 }
 
 .calendar .calendar-year-month {
@@ -225,7 +225,7 @@
   width: 100%;
   text-align: left;
   padding: var(--nl-space-md) var(--nl-space-lg);
-  border-bottom: 1px solid var(--nl-border);
+  border-bottom: var(--nl-rule-width) solid var(--nl-border);
   background: transparent;
   cursor: pointer;
 }
@@ -259,7 +259,7 @@
 /* In-world calendar editor, opened from the calendar toolbar. */
 .calendar-config-shell {
   padding: var(--nl-space-md);
-  border-bottom: 1px solid var(--nl-border);
+  border-bottom: var(--nl-rule-width) solid var(--nl-border);
   max-height: 50vh;
   overflow-y: auto;
 }
@@ -268,7 +268,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--nl-space-tightest);
-  max-width: 560px;
+  max-width: calc(var(--nl-panel-width-sm) * 2 + var(--nl-space-xxl));
 }
 
 .calendar-config-row {
@@ -278,5 +278,9 @@
 }
 
 .calendar-config-days {
-  max-width: 90px;
+  max-width: calc(var(--nl-space-xl) * 4);
+}
+
+.calendar .calendar-month {
+  grid-template-columns: repeat(var(--cal-weekdays, 7), minmax(0, 1fr));
 }

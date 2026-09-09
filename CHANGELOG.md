@@ -23,6 +23,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- Custom calendars now show your month names, weekday names, month lengths, and eras in all three views. Scene placement and navigation follow your world’s dates, and setup changes appear automatically. Dragging a scene also preserves its date range, times, and note.
 - Narration measures generation speed before starting streamed playback. Slower or uneven generation buffers complete passages, preventing speech from repeatedly stopping between tiny audio chunks.
 
 ---

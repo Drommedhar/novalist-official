@@ -89,6 +89,9 @@
   --nl-field-width-sm: 220px;
   --nl-inline-editor-width: 160px;
   --nl-panel-width-sm: 260px;
+  /* Calendar time tracks keep the same hour scale at every density. */
+  --nl-calendar-hour-height: 48px;
+  --nl-calendar-time-gutter: 56px;
 
   /* Content measure: the brand column and the 66ch prose limit. */
   --nl-measure: var(--nv-measure);

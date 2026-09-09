@@ -92,6 +92,60 @@ public sealed class CalendarRpcTests : IDisposable
         Assert.Equal("1043-03-05", _rpc.GetAnchor());
     }
 
+    [Fact]
+    public async Task CustomCalendar_ResolvesAndClipsRangesAcrossYears_AndReschedules()
+    {
+        await _rpc.SetConfigAsync("Custom", "Cycle", ["Rimefall", "Thaw", "Highsun"],
+            [30, 30, 40], ["Firstday", "Starday"]);
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Crossing");
+        await _workspace.Projects.SetSceneDateRangeAsync(chapter.Guid, scene.Id, new StoryDateRange
+        {
+            Start = "-1.3.39", End = "0.1.2", StartTime = "09:30", EndTime = "10:00", Note = "Crossing"
+        });
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Invalid", "0.4.1");
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Undated");
+        var events = _rpc.Get("-1.3.40", "0.1.1");
+        Assert.Equal(new[] { "-1.3.40", "0.1.1" }, events.Select(e => e.Date));
+        Assert.All(events, e => { Assert.Equal(scene.Id, e.SceneId); Assert.Equal(9, e.StartHour); });
+        Assert.Empty(_rpc.Get("1.1.1", "1.1.2"));
+        await _rpc.RescheduleAsync(chapter.Guid, scene.Id, "812.3.40");
+        var moved = Assert.Single(_rpc.Get("812.3.40", "812.3.40"), e => e.SceneId == scene.Id);
+        Assert.Equal(9, moved.StartHour);
+        Assert.Equal(10, moved.EndHour);
+        Assert.Equal("Crossing", moved.Note);
+        Assert.Equal("813.1.3", scene.DateRange!.End);
+        Assert.Throws<FormatException>(() => _rpc.Get("0.4.1", "0.1.1"));
+        Assert.Throws<FormatException>(() => _rpc.Get("0.1.1", "0.1.31"));
+    }
+
+    [Fact]
+    public async Task Reschedule_PreservesGregorianRangesBeforeYearOneHundred()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await _workspace.Projects.SetSceneDateRangeAsync(chapter.Guid, scene.Id,
+            new StoryDateRange { Start = "0012-02-28", End = "0012-03-01" });
+        await _rpc.RescheduleAsync(chapter.Guid, scene.Id, "0012-02-29");
+        Assert.Equal(new[] { "0012-02-29", "0012-03-01", "0012-03-02" },
+            _rpc.Get("0012-02-01", "0012-03-31").Select(e => e.Date));
+    }
+
+    [Fact]
+    public async Task CustomCalendar_AnchorUsesSavedDateOrFirstDatedScene()
+    {
+        await _rpc.SetConfigAsync("Custom", "", ["Rimefall"], [40], ["Starday"]);
+        Assert.Equal("0.1.1", _rpc.GetAnchor());
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Undated");
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Invalid", "bad");
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Dated", "-12.1.40");
+        await _rpc.SetAnchorAsync("2026-09-09");
+        Assert.Equal("-12.1.40", _rpc.GetAnchor());
+        await _rpc.SetAnchorAsync("812.1.40");
+        Assert.Equal("812.1.40", _rpc.GetAnchor());
+    }
+
     [Theory]
     [InlineData(null, null)]
     [InlineData("", null)]

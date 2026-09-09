@@ -5,22 +5,8 @@ import { rpc } from '../../rpc/client'
 import { persistPendingWrite } from '../../stores/pendingWrites'
 import { useBookScope } from '../../stores/projectStore'
 
-/** A named stretch of years in the book's reckoning. */
-interface CalendarEra {
-  name: string
-  startYear: number
-  countsDown: boolean
-}
-
-interface CalendarConfig {
-  type: string
-  yearLabel: string
-  monthNames: string[]
-  daysPerMonth: number[]
-  weekdayNames: string[]
-  yearLength: number
-  eras: CalendarEra[]
-}
+import type { CalendarConfig } from './calendarDates'
+type CalendarEra = CalendarConfig['eras'][number]
 
 /** What a brand-new custom calendar starts from, so the editor is never empty. */
 const STARTER_MONTHS = ['First Month', 'Second Month', 'Third Month']
@@ -35,7 +21,7 @@ const STARTER_WEEKDAYS = ['Firstday', 'Secondday', 'Thirdday', 'Fourthday', 'Fif
  * The parsing and arithmetic already understood a custom calendar; this is the
  * surface that lets a writer define one.
  */
-export function CalendarConfigPanel(): React.JSX.Element {
+export function CalendarConfigPanel({ onSaved }: { onSaved?(config: CalendarConfig): void }): React.JSX.Element {
   const { t } = useTranslation()
   const [config, setConfig] = useState<CalendarConfig | null>(null)
   const [busy, setBusy] = useState(false)
@@ -65,6 +51,7 @@ export function CalendarConfigPanel(): React.JSX.Element {
         // it does not remove the input under the writer's cursor.
         if (saveRevision.current === revision) {
           setConfig((draft) => draft && { ...draft, yearLength: saved.yearLength })
+          onSaved?.(saved)
         }
       })
     } finally {

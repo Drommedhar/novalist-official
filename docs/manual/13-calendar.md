@@ -1,6 +1,6 @@
 # Calendar & story dates
 
-The Calendar lays your scenes out on a Gregorian calendar, using the story dates stored on scenes and chapters. Use it to see the in-world schedule of the book — what happens on which day, and at what time.
+The Calendar lays your scenes out using the book’s calendar and the story dates stored on scenes and chapters. Books without a custom calendar use Gregorian dates. Use it to see the in-world schedule of the book — what happens on which day, and at what time.
 
 ![The Calendar view](images/calendar.png)
 
@@ -20,7 +20,7 @@ Buttons at the top-left switch between three modes:
 
 ### Week
 
-Seven day columns headed by weekday and date. Each day has two parts:
+Day columns headed by weekday and date: seven for Gregorian calendars, or your configured weekdays for a custom calendar. Each day has two parts:
 
 - An **all-day band** at the top, where all-day scenes sit as chips.
 - A scrolling **24-hour timed grid** below it, with an hour gutter down the side. Timed scenes are placed by time of day and sized to their duration, with their start time (`09:30`) prefixed to the title. When several scenes overlap in time, they split into **side-by-side columns** so every one stays visible — the fast way to spot clashes where two scenes claim the same hours.
@@ -37,7 +37,7 @@ Use this view for the in-world pace of a chapter — and for finding empty days 
 
 ### Year
 
-Twelve month cards. Each card lists the **scenes** that fall in that month (deduplicated so a multi-day scene appears once) with a scene count in its header. Click a scene to open it, or click the month header to jump into that month's Month view.
+A card for each month: twelve for Gregorian calendars, or your configured months for a custom calendar. Each card lists the **scenes** that fall in that month (deduplicated so a multi-day scene appears once) with a scene count in its header. Click a scene to open it, or click the month header to jump into that month's Month view.
 
 Use this view for macro-scale pacing and seasonal gaps.
 
@@ -57,7 +57,7 @@ The bulk bar at the bottom of the Calendar also offers **Shift dates**, which as
 
 ## Navigation and the anchor date
 
-A **Today** button jumps back to the current date. The **Previous / Next** arrows step by one week, month, or year depending on the mode; the label between them shows the visible range. The date the calendar is centered on — the **anchor date** — is saved with the project, so the Calendar reopens where you left it.
+On Gregorian calendars, a **Today** button jumps back to the current date. Custom calendars have no real-world “today”: without a valid saved anchor, they open at the first dated scene in chapter order, or `0.1.1` when none is dated. The **Previous / Next** arrows step by one week, month, or year depending on the mode; the label between them shows the visible range. The date the calendar is centered on — the **anchor date** — is saved with the project, so the Calendar reopens where you left it.
 
 ## Tips
 
@@ -76,6 +76,10 @@ Press **Calendar setup** in the toolbar and tick **Use a custom in-world calenda
 - **Eras** — named stretches of years, each with the year it starts in. A date takes the latest era that starts at or before it, so a story that spans a change of reckoning reads correctly on both sides of it. Leave the list empty to use the single year label throughout.
 
 Switching a book to a custom calendar for the first time starts you with three months and a five-day week so there is something to edit rather than an empty form.
+
+Changes save automatically; there is no separate Save button. The Week, Month, and Year views update as you edit, using your month names, month lengths, weekdays, and era labels. Navigation and drag-and-drop use the same calendar. Moving a scene preserves its date-range length, times, and note.
+
+For custom calendars, `0.1.1` falls on the first named weekday. The weekday cycle continues across month and year boundaries. If no weekdays are named, the display uses a single numbered day column until you add them.
 
 Write in-world dates as **year.month.day** — `812.3.14` is the 14th day of the third month of year 812. Durations, "three days later" arithmetic, and the gaps the Timeline shows are then all counted in your world's time.
 

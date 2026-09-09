@@ -1,10 +1,12 @@
 using System.Globalization;
 using Novalist.Core.Utilities;
+using Novalist.Core.Services;
+using Novalist.Core.Models;
 using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
 
-/// <summary>Story calendar: scene events resolved onto Gregorian dates.</summary>
+/// <summary>Story calendar: scene events resolved using the active book’s calendar.</summary>
 public sealed class CalendarRpc
 {
     private readonly Workspace _workspace;
@@ -98,8 +100,17 @@ public sealed class CalendarRpc
         var projects = _workspace.Projects;
         var book = projects.ActiveBook ?? throw new InvalidOperationException("No project open.");
         var manifest = projects.ScenesManifest;
-        var from = ParseIso(fromIso);
-        var to = ParseIso(toIso);
+        var custom = book.Calendar?.Type == InWorldCalendarType.Custom;
+        var calendar = new InWorldCalendarService();
+        long? ParseScene(string? value) => custom
+            ? calendar.Parse(value!, book.Calendar)
+            : TryParseDate(value, out var date) ? date.Date.Ticks / TimeSpan.TicksPerDay : null;
+        var from = custom
+            ? calendar.Parse(fromIso, book.Calendar) ?? throw new FormatException("Invalid calendar date.")
+            : ParseIso(fromIso).Ticks / TimeSpan.TicksPerDay;
+        var to = custom
+            ? calendar.Parse(toIso, book.Calendar) ?? throw new FormatException("Invalid calendar date.")
+            : ParseIso(toIso).Ticks / TimeSpan.TicksPerDay;
 
         var events = new List<CalendarEventDto>();
         foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
@@ -111,16 +122,17 @@ public sealed class CalendarRpc
             {
                 var range = StoryDateResolver.Resolve(scene, chapter, book.Acts);
                 if (range?.Start == null) continue;
-                if (!TryParseDate(range.Start, out var start)) continue;
-                var end = TryParseDate(range.End, out var parsedEnd) ? parsedEnd : start;
+                if (ParseScene(range.Start) is not { } start) continue;
+                var end = ParseScene(range.End) ?? start;
                 var startTime = ParseTime(range.StartTime);
                 var endTime = ParseTime(range.EndTime);
 
-                for (var day = start.Date; day <= end.Date; day = day.AddDays(1))
+                for (var day = Math.Max(start, from); day <= Math.Min(end, to); day++)
                 {
-                    if (day < from || day > to) continue;
                     events.Add(new CalendarEventDto(
-                        day.ToString("yyyy-MM-dd"),
+                        custom
+                            ? calendar.AddDays(range.Start, day - start, book.Calendar)
+                            : new DateTime(day * TimeSpan.TicksPerDay).ToString("yyyy-MM-dd"),
                         chapter.Guid,
                         scene.Id,
                         scene.Title,
@@ -141,11 +153,44 @@ public sealed class CalendarRpc
     [JsonRpcMethod("calendar/reschedule")]
     public async Task RescheduleAsync(string chapterGuid, string sceneId, string dateIso)
     {
-        await _workspace.Projects.SetSceneDateAsync(chapterGuid, sceneId, dateIso);
+        var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        var book = _workspace.Projects.ActiveBook!;
+        var calendar = new InWorldCalendarService();
+        var range = StoryDateResolver.Resolve(scene, chapter, book.Acts)?.Clone() ?? new StoryDateRange();
+        if (book.Calendar?.Type == InWorldCalendarType.Custom)
+        {
+            var shift = calendar.DiffDays(range.Start, dateIso, book.Calendar);
+            range.End = shift is { } days ? calendar.AddDays(range.End, days, book.Calendar) : string.Empty;
+        }
+        else if (TryParseDate(range.Start, out var start) && TryParseDate(dateIso, out var target)
+                 && TryParseDate(range.End, out var end))
+        {
+            range.End = end.AddDays((target.Date - start.Date).Days).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+        range.Start = dateIso;
+        await _workspace.Projects.SetSceneDateRangeAsync(chapterGuid, sceneId, range);
     }
 
     [JsonRpcMethod("calendar/getAnchor")]
-    public string? GetAnchor() => _workspace.Projects.ProjectSettings.CalendarAnchor;
+    public string? GetAnchor()
+    {
+        var saved = _workspace.Projects.ProjectSettings.CalendarAnchor;
+        var book = _workspace.Projects.ActiveBook;
+        if (book?.Calendar?.Type != InWorldCalendarType.Custom) return saved;
+        var calendar = new InWorldCalendarService();
+        if (calendar.Parse(saved!, book.Calendar) != null) return saved;
+
+        // A real-world anchor usually cannot be used after switching calendars.
+        // Open at the first dated scene, or the beginning of year zero in an empty book.
+        foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
+        foreach (var scene in (_workspace.Projects.ScenesManifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [])
+                     .Where(s => s.ArchivedAt == null).OrderBy(s => s.Order))
+        {
+            var date = StoryDateResolver.Resolve(scene, chapter, book.Acts)?.Start;
+            if (calendar.Parse(date!, book.Calendar) != null) return date;
+        }
+        return "0.1.1";
+    }
 
     [JsonRpcMethod("calendar/setAnchor")]
     public async Task SetAnchorAsync(string anchorIso)
