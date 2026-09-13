@@ -46,5 +46,11 @@
   "author": "Novalist",
   "optionalDependencies": {
     "electron-liquid-glass": "^1.1.1"
+  },
+  "homepage": "https://github.com/Drommedhar/novalist-official",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Drommedhar/novalist-official.git"
   }
 }
