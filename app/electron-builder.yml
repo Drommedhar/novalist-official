@@ -84,6 +84,9 @@ linux:
   icon: build/icon.png
   target:
     - AppImage
+    - deb
+    - rpm
   category: Office
+  maintainer: Novalist
   artifactName: Novalist-x86_64.${ext}
 npmRebuild: true
