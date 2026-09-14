@@ -47,12 +47,15 @@ export function expandCaptures(template: string, match: RegExpExecArray): string
   )
 }
 
-function countOccurrences(text: string, token: string): number {
+function countOccurrences(text: string, token: string, skipIfSurroundedByAlpha = false): number {
   if (!token) return 0
   let count = 0
   let at = text.indexOf(token)
   while (at !== -1) {
-    count += 1
+    const before = text[at - 1]
+    const after = text[at + token.length]
+    const surroundedByAlpha = skipIfSurroundedByAlpha && before && after && /[a-z]/i.test(before) && /[a-z]/i.test(after)
+    if (!surroundedByAlpha) count += 1
     at = text.indexOf(token, at + token.length)
   }
   return count
@@ -82,8 +85,10 @@ function attempt(
   // chosen by which of the two the line is already carrying more of.
   if (rule.start === rule.end && rule.startReplace !== rule.endReplace) {
     if (rule.end && lineText.endsWith(rule.end)) {
-      const opens = countOccurrences(lineText, rule.startReplace)
-      const closes = countOccurrences(lineText, rule.endReplace)
+      // Count quotes excluding those surrounded by alphabet characters on both sides
+      // (e.g., apostrophes in "it's", "don't")
+      const opens = countOccurrences(lineText, rule.startReplace, true)
+      const closes = countOccurrences(lineText, rule.endReplace, true)
       if (opens > closes) {
         return {
           replacement: rule.endReplace,
