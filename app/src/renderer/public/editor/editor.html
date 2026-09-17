@@ -2519,8 +2519,10 @@ function tryAutoReplace(inputText) {
         // Paired quotes: same trigger, different open/close
         if (pair.start === pair.end && pair.startReplace !== pair.endReplace) {
             if (lineText.endsWith(pair.end)) {
-                const opens = countOccurrences(lineText, pair.startReplace);
-                const closes = countOccurrences(lineText, pair.endReplace);
+                // Count quotes excluding those surrounded by alphabet characters on both sides
+                // (e.g., apostrophes in "it's", "don't")
+                const opens = countOccurrences(lineText, pair.startReplace, true);
+                const closes = countOccurrences(lineText, pair.endReplace, true);
                 if (opens > closes) {
                     return {
                         replacement: pair.endReplace,
@@ -2540,10 +2542,16 @@ function tryAutoReplace(inputText) {
     return null;
 }
 
-function countOccurrences(text, token) {
+function countOccurrences(text, token, skipIfSurroundedByAlpha = false) {
     if (!token) return 0;
     let count = 0, idx = 0;
-    while ((idx = text.indexOf(token, idx)) >= 0) { count++; idx += token.length; }
+    while ((idx = text.indexOf(token, idx)) >= 0) {
+        const before = text[idx - 1];
+        const after = text[idx + token.length];
+        const surroundedByAlpha = skipIfSurroundedByAlpha && before && after && /[a-z]/i.test(before) && /[a-z]/i.test(after);
+        if (!surroundedByAlpha) count++;
+        idx += token.length;
+    }
     return count;
 }
 

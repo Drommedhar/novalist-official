@@ -25,6 +25,8 @@ public class DialogueScannerTests
     [InlineData("<p>»Ich gehe nicht.«</p>", "Ich gehe nicht.")]
     [InlineData("<p>‹kurz›</p>", "kurz")]
     [InlineData("<p>‚knapp‘</p>", "knapp")]
+    [InlineData("<p>'I won't go.'</p>", "I won't go.")]
+    [InlineData("<p>‘I won't go.’</p>", "I won't go.")]
     public void Scan_RecognizesEveryQuotePair(string html, string expected)
         => Assert.Equal(expected, Assert.Single(DialogueScanner.Scan(html)).Text);
 

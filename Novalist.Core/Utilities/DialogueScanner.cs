@@ -71,7 +71,7 @@ public static class DialogueScanner
     /// narrator said everybody's words.
     /// </summary>
     public static readonly Regex QuoteRegex = new(
-        "(?:\"[^\"]*\"|“[^”]*”|„[^“]*“|«[^»]*»|»[^«]*«|‹[^›]*›|‚[^‘]*‘|「[^」]*」|『[^』]*』)",
+        "(?:\"[^\"]*\"|“[^”]*”|'(?:[^']|'(?=\\w))*'(?!\\w)|‘(?:[^’]|’(?=\\w))*’(?!\\w)|„[^“]*“|«[^»]*»|»[^«]*«|‹[^›]*›|‚[^‘]*‘|「[^」]*」|『[^』]*』)",
         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline);
 
     /// <summary>How much prose either side of a quote is kept as attribution
@@ -326,7 +326,7 @@ public static class DialogueScanner
     }
 
     private static bool IsQuoteMark(char ch)
-        => ch is '"' or '“' or '”' or '„' or '«' or '»' or '‹' or '›' or '‚' or '‘';
+        => ch is '"' or '\'' or '‘' or '’' or '“' or '”' or '„' or '«' or '»' or '‹' or '›' or '‚' or '‘';
 
     /// <summary>
     /// Whether the markup behind a spoken range is literal text — no tags and no
