@@ -28,39 +28,43 @@ async function isRecognised(
   word: string
 ): Promise<boolean> {
   const editor = page.frameLocator('.editor-frame').locator('#editor')
-  const frameBox = (await page.locator('.editor-frame').boundingBox())!
-  const local = await editor.evaluate((el, needle: string) => {
-    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
-    let node = walker.nextNode()
-    while (node) {
-      const at = (node.textContent ?? '').indexOf(needle)
-      if (at >= 0) {
-        const range = document.createRange()
-        range.setStart(node, at)
-        range.setEnd(node, at + needle.length)
-        const r = range.getBoundingClientRect()
-        return { x: r.x, y: r.y, width: r.width, height: r.height }
-      }
-      node = walker.nextNode()
-    }
-    return null
-  }, word)
-  if (!local) throw new Error(`"${word}" is not in the prose`)
+  const card = page.locator('.peek-card-anchor')
+  // Leave both the prose and any previous card, and wait for its actual exit.
+  // Moving down within the editor can still hit the nearest name.
+  await page.mouse.move(0, 0)
+  await expect(card).toBeHidden()
 
-  const x = frameBox.x + local.x + local.width / 2
-  const y = frameBox.y + local.y + local.height / 2
-  // Away first, so a card left over from the previous word cannot be mistaken
-  // for this one's.
-  await page.mouse.move(x, y + 160)
-  await page.waitForTimeout(400)
-  await page.mouse.move(x, y)
-  await page.waitForTimeout(150)
-  await page.mouse.move(x + 2, y)
-  return page
-    .locator('.peek-card-anchor')
-    .waitFor({ state: 'visible', timeout: 6_000 })
-    .then(() => true)
-    .catch(() => false)
+  const hoverWord = async (): Promise<void> => {
+    const local = await editor.evaluate((el, needle: string) => {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+      let node = walker.nextNode()
+      while (node) {
+        const at = (node.textContent ?? '').indexOf(needle)
+        if (at >= 0) {
+          const range = document.createRange()
+          range.setStart(node, at)
+          range.setEnd(node, at + needle.length)
+          // A range can span lines; hover an actual text fragment.
+          const r = range.getClientRects()[0]
+          return { x: r.x + r.width / 2, y: r.y + r.height / 2 }
+        }
+        node = walker.nextNode()
+      }
+      return null
+    }, word)
+    if (!local) throw new Error(`"${word}" is not in the prose`)
+    const frame = (await page.locator('.editor-frame').boundingBox())!
+    await page.mouse.move(frame.x + local.x, frame.y + local.y)
+  }
+
+  await hoverWord()
+  // Page-view setup can reflow the prose after typing. Waiting on the card at
+  // a single old coordinate leaves the pointer in the page margin forever.
+  // Re-measure the word on each attempt so we keep hovering the actual name.
+  return expect.poll(async () => {
+    await hoverWord()
+    return card.isVisible()
+  }, { timeout: 6_000 }).toBe(true).then(() => true).catch(() => false)
 }
 
 test('a surname is recognised in the prose', async () => {
