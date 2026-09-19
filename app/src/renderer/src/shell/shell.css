@@ -660,6 +660,14 @@
   padding: var(--nl-space-sm) var(--nl-space-md) var(--nl-space-md);
 }
 
+/* The dock shares its width with the binder and inspector. Wrap whole field
+   groups before they become too narrow, and scroll inside the resized dock. */
+.notes-dock > .notes-dock-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--nl-field-width-sm)), 1fr));
+  overflow: auto;
+}
+
 .notes-dock-col {
   display: flex;
   flex-direction: column;
@@ -4134,7 +4142,7 @@
 
 /* The open scene's own fields, beside its synopsis and notes in the dock. */
 .notes-dock-props {
-  min-width: 200px;
+  min-width: 0;
 }
 
 .notes-dock-prop {

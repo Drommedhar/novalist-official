@@ -3,6 +3,7 @@ import { rpc } from '../rpc/client'
 import { paneLeaves, useShellStore } from './shellStore'
 import { useSettingsStore } from './settingsStore'
 import { useCodexStore } from './codexStore'
+import { flushPendingWrites } from './pendingWrites'
 
 export interface SceneDto {
   id: string
@@ -238,7 +239,15 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   applyState: (state) => {
     const prevPath = get().projectPath
     const prevBookId = get().activeBookId
+    const projectChanged = state.projectPath !== prevPath
+    if (projectChanged) {
+      // All create/open/close paths meet here. Pane state survives ordinary
+      // view navigation, but must never survive a change of project.
+      for (const timer of autosaveTimers.values()) clearTimeout(timer)
+      autosaveTimers.clear()
+    }
     set({
+      ...(projectChanged ? { ...clearedEditorState(), drafts: [] } : {}),
       isLoaded: state.isLoaded,
       projectName: state.projectName,
       projectPath: state.projectPath,
@@ -320,6 +329,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       if (!repicked) return
       target = repicked
     }
+    await flushPendingWrites()
+    await get().flushPendingSave()
     const state = await rpc.request<ProjectStateDto>('project/open', [target])
     get().applyState(state)
   },
@@ -329,6 +340,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     // survivable while the welcome screen was somewhere else; now that it is
     // what this window holds until a project is open, there was somewhere to go
     // back to and no way to get there.
+    await flushPendingWrites()
+    await get().flushPendingSave()
     const state = await rpc.request<ProjectStateDto>('project/close')
     get().applyState(state)
   },
@@ -680,7 +693,7 @@ export function useBookScope(): string {
   return useProjectStore((s) => `${s.projectPath ?? ''}|${s.activeBookId ?? ''}`)
 }
 
-/** Full editor reset used when the active book/draft changes. */
+/** Full editor reset used when the project, active book or draft changes. */
 function clearedEditorState(): Partial<ProjectState> {
   return {
     openChapterGuid: null,
@@ -689,6 +702,9 @@ function clearedEditorState(): Partial<ProjectState> {
     openScenePlainText: null,
     openTabs: [],
     editors: {},
+    activeEditorPaneId: null,
+    sceneHashes: {},
+    sceneConflict: null,
     dirtyMap: {},
     isDirty: false
   }

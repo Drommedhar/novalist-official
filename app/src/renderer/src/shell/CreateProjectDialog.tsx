@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { FolderOpen } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
+import { flushPendingWrites } from '../stores/pendingWrites'
 import { SnowflakeSetup } from './SnowflakeSetup'
 
 /**
@@ -46,6 +47,8 @@ export function CreateProjectDialog({ onClose }: { onClose: () => void }): React
     setError(null)
     setCreating(true)
     try {
+      await flushPendingWrites()
+      await useProjectStore.getState().flushPendingSave()
       const state = await rpc.request<ProjectStateDto>('project/create', [
         location,
         projectName.trim(),
