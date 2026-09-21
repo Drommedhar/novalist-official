@@ -19,6 +19,40 @@ public class ProjectServiceTests : IDisposable
 
     // ── creation / load ──
 
+    [Theory]
+    [InlineData("book one")]
+    [InlineData("Book Two")]
+    [InlineData("  Revised / title  ")]
+    public async Task RenameBook_ChangesDisplayNameWithoutMovingItsFiles(string name)
+    {
+        await Create();
+        var book = _sut.ActiveBook!;
+        var bookRoot = _sut.ActiveBookRoot;
+        var chapter = await _sut.CreateChapterAsync("Opening");
+        await _sut.CreateSceneAsync(chapter.Guid, "Arrival");
+        await _sut.CreateBookAsync("Book Two");
+        await _sut.RenameBookAsync(book.Id, name);
+
+        Assert.Equal(name.Trim(), book.Name);
+        await _sut.SwitchBookAsync(book.Id);
+        Assert.Equal(bookRoot, _sut.ActiveBookRoot);
+        Assert.True(Directory.Exists(bookRoot));
+        var root = _sut.ProjectRoot!;
+        await _sut.LoadProjectAsync(root);
+        Assert.Equal(name.Trim(), _sut.ActiveBook!.Name);
+        Assert.Equal("Arrival", _sut.GetScenesForChapter(chapter.Guid).Single().Title);
+    }
+
+    [Fact]
+    public async Task RenameBook_WithoutAValidBookOrName_DoesNothing()
+    {
+        await _sut.RenameBookAsync("missing", "Title");
+        await Create();
+        await _sut.RenameBookAsync("missing", "Title");
+        await _sut.RenameBookAsync(_sut.ActiveBook!.Id, "  ");
+        Assert.Equal("Book One", _sut.ActiveBook.Name);
+    }
+
     [Fact]
     public async Task CreateProject_BuildsStructureAndState()
     {

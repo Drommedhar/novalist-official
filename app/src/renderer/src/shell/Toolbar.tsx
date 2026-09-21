@@ -41,9 +41,11 @@ export function Toolbar(): React.JSX.Element {
     <select
       className="toolbar-select"
       data-command="project.newBook"
+      aria-label={t('book.pickerTooltip')}
       value={activeBookId ?? ''}
       onChange={(e) => {
         if (e.target.value === '__new__') runCommand('project.newBook')
+        else if (e.target.value === '__rename__') runCommand('project.renameBook')
         else void useProjectStore.getState().switchBook(e.target.value)
       }}
     >
@@ -53,6 +55,7 @@ export function Toolbar(): React.JSX.Element {
         </option>
       ))}
       <option value="__new__">{t('book.addBook')}</option>
+      <option value="__rename__" data-command="project.renameBook">{t('book.renameBookTitle')}</option>
     </select>
   )
 

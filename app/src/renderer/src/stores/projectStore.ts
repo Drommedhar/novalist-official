@@ -239,6 +239,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   applyState: (state) => {
     const prevPath = get().projectPath
     const prevBookId = get().activeBookId
+    const prevName = get().projectName
     const projectChanged = state.projectPath !== prevPath
     if (projectChanged) {
       // All create/open/close paths meet here. Pane state survives ordinary
@@ -256,6 +257,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       chapters: state.chapters
     })
     window.novalist.setProjectRoot(state.projectPath)
+    if (projectChanged || state.projectName !== prevName) void get().loadRecents()
     if (state.isLoaded) void get().loadDrafts()
     // The effective language/theme can carry a per-project override, so re-apply
     // settings whenever the active project changes - otherwise a project opened

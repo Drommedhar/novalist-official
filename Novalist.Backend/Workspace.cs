@@ -426,14 +426,14 @@ public sealed partial class Workspace : IDisposable
         return Path.Combine(Projects.ActiveBookRoot, rel.Replace('/', Path.DirectorySeparatorChar));
     }
 
-    /// <summary>Re-records the active project's cover path on its recent-projects
-    /// entry (e.g. after the cover changes) so the welcome screen stays current.</summary>
-    internal async Task RefreshRecentCoverAsync()
+    /// <summary>Refreshes the active project's name and cover in recents.</summary>
+    internal async Task RefreshRecentProjectAsync()
     {
         var root = Projects.ProjectRoot;
         if (root == null) return;
         var recent = Settings.Settings.RecentProjects.FirstOrDefault(r => r.Path == root);
         if (recent == null) return;
+        recent.Name = Projects.CurrentProject!.Name;
         recent.CoverImagePath = ActiveCoverAbsolutePath() ?? string.Empty;
         await Settings.SaveAsync();
     }

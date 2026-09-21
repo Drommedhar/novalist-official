@@ -56,6 +56,7 @@ export type ShellDialog =
   | 'book'
   | 'draft'
   | 'renameProject'
+  | 'renameBook'
   | 'snapshots'
   | 'draftCompare'
   | 'deleteDraft'

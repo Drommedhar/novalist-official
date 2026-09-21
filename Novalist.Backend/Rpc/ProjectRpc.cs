@@ -182,6 +182,7 @@ public sealed class ProjectRpc
     public async Task<ProjectStateDto> RenameAsync(string newName)
     {
         await _workspace.Projects.RenameProjectAsync(newName);
+        await _workspace.RefreshRecentProjectAsync();
         return _workspace.BuildState();
     }
 
@@ -219,6 +220,14 @@ public sealed class ProjectRpc
     public async Task<ProjectStateDto> CreateBookAsync(string name)
     {
         await _workspace.Projects.CreateBookAsync(name);
+        return _workspace.BuildState();
+    }
+
+    [JsonRpcMethod("project/renameBook")]
+    public async Task<ProjectStateDto> RenameBookAsync(string bookId, string newName)
+    {
+        await _workspace.Projects.RenameBookAsync(bookId, newName);
+        await _workspace.RefreshRecentProjectAsync();
         return _workspace.BuildState();
     }
 

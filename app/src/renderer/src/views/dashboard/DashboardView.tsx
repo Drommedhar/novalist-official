@@ -109,6 +109,7 @@ export function DashboardView(): React.JSX.Element {
 
 function BookDashboard(): React.JSX.Element {
   const { t } = useTranslation()
+  const projectName = useProjectStore((s) => s.projectName) ?? ''
   const [stageBreakdown, setStageBreakdown] = useState<StageTally[]>([])
   const [data, setData] = useState<DashboardDto | null>(null)
   const [range, setRange] = useState(30)
@@ -229,7 +230,7 @@ function BookDashboard(): React.JSX.Element {
           <img
             className="dashboard-cover-img"
             src={`novalist-project://nl/${encodeURI(banner)}`}
-            alt={data.projectName}
+            alt={projectName}
           />
         ) : (
           <div className="dashboard-cover-empty">{t('dashboard.noBanner')}</div>
@@ -253,7 +254,7 @@ function BookDashboard(): React.JSX.Element {
             <img
               className="dashboard-bookcover-img"
               src={`novalist-project://nl/${encodeURI(cover)}`}
-              alt={data.projectName}
+              alt={projectName}
             />
           ) : (
             <div className="dashboard-bookcover-empty">{t('dashboard.noCover')}</div>
@@ -276,7 +277,7 @@ function BookDashboard(): React.JSX.Element {
       </div>
 
       <div className="dashboard-header">
-        <h1 className="dashboard-title">{data.projectName}</h1>
+        <h1 className="dashboard-title">{projectName}</h1>
         {data.author && <div className="dashboard-author">{data.author}</div>}
         <div className="dashboard-subtitle">{t('dashboard.subtitle')}</div>
       </div>

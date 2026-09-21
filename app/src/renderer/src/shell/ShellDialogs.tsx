@@ -12,6 +12,7 @@ import { SnapshotsDialog } from './SnapshotsDialog'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { useShellStore } from '../stores/shellStore'
+import { flushPendingWrites } from '../stores/pendingWrites'
 
 /**
  * Every dialog the shell owns, raised by whichever surface asked for it.
@@ -29,6 +30,7 @@ export function ShellDialogs(): React.JSX.Element | null {
   const dialog = useShellStore((s) => s.dialog)
   const close = useShellStore((s) => s.closeDialog)
   const projectName = useProjectStore((s) => s.projectName)
+  const activeBook = useProjectStore((s) => s.books.find((b) => b.id === s.activeBookId))
   const chapters = useProjectStore((s) => s.chapters)
   const drafts = useProjectStore((s) => s.drafts)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
@@ -96,6 +98,27 @@ export function ShellDialogs(): React.JSX.Element | null {
         onSubmit={(name) => {
           close()
           void useProjectStore.getState().createBook(name)
+        }}
+      />
+    )
+  }
+
+  if (dialog === 'renameBook') {
+    if (!activeBook) return null
+    return (
+      <InputDialog
+        title={t('book.renameBookTitle')}
+        initialValue={activeBook.name}
+        onCancel={close}
+        onSubmit={(name) => {
+          close()
+          void (async () => {
+            await flushPendingWrites()
+            await useProjectStore.getState().flushPendingSave()
+            const state = await rpc.request<ProjectStateDto>('project/renameBook', [activeBook.id, name])
+            useProjectStore.getState().applyState(state)
+            await useProjectStore.getState().loadRecents()
+          })()
         }}
       />
     )

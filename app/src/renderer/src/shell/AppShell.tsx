@@ -92,6 +92,18 @@ export function AppShell(): React.JSX.Element {
   const modePanelOpen = useShellStore((s) => s.modePanelOpen)
   const modePanelDocked = useShellStore((s) => s.modePanelDocked)
   const backendVersion = useShellStore((s) => s.backendVersion)
+  useEffect(() => {
+    if (!backendVersion) return
+    // Projects can be removed in the file manager while this window is open.
+    const refresh = (): void => { void useProjectStore.getState().loadRecents() }
+    const onVisible = (): void => { if (document.visibilityState === 'visible') refresh() }
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [backendVersion])
   const focusMode = useShellStore((s) => s.focusMode)
   const inspectorVisible = useShellStore((s) => s.inspectorVisible)
   const inspectorOverlayOpen = useShellStore((s) => s.inspectorOverlayOpen)

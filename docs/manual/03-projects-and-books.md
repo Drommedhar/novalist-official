@@ -27,6 +27,10 @@ A **project** is the top container. It owns the recent-projects entry, the proje
 
 A **book** is where the actual story lives. You can have a single book (most users) or many books (a series, related novellas, an anthology). Each book has its own drafts, entities, plotlines, acts, calendar, and templates.
 
+To rename a book, select it in the project bar's book picker, then choose **Rename Book** from that picker. The command is also available in the command palette. In a compact window, the book picker is under the project bar's **More** menu. Renaming changes the book's displayed name while keeping its folder, chapters, scenes, and drafts in place. The project name is unchanged.
+
+To rename the project, double-click its name in the project bar or use **Rename Project** in the command palette. The new name appears immediately on the Dashboard and in Recent Projects.
+
 A **draft** is one version of a book's manuscript. Most books have a single draft; create more when you want to keep a rewrite separate from the original without losing it.
 
 The **World Bible** is a shared entity pool across books. Characters, locations, items, and lore stored there are visible from every book, so a series of novels can share the same cast without duplicating data. World Bible entries are marked with a **WB** badge in the [Codex](06-codex.md).
@@ -41,6 +45,8 @@ From the welcome content Novalist shows [before a project is open](01-getting-st
 This also covers projects copied from another machine, restored from backup, or cloned from Git — there is no separate "import" step for native projects. For projects from the legacy Obsidian plugin, use **Import from Obsidian Plugin...** instead.
 
 ### When a recent project disappears from the list
+
+Recent Projects refreshes when you create, open, or close a project and when you return to the app. Closing a new project therefore makes it available on the welcome screen immediately.
 
 A project leaves **Recent Projects** when Novalist can see the folder it lived in and the project is no longer there — you deleted it, or moved it somewhere Novalist was not told about. That is the only case.
 

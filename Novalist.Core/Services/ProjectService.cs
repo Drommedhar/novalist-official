@@ -786,19 +786,14 @@ public partial class ProjectService : IProjectService
     public async Task RenameBookAsync(string bookId, string newName)
     {
         if (CurrentProject == null || ProjectRoot == null) return;
+        if (string.IsNullOrWhiteSpace(newName)) return;
 
         var book = CurrentProject.Books.FirstOrDefault(b => b.Id == bookId);
         if (book == null) return;
 
-        var oldFolderPath = _fileService.CombinePath(ProjectRoot, book.FolderName);
-        var newFolderName = SanitizeFileName(newName);
-        var newFolderPath = _fileService.CombinePath(ProjectRoot, newFolderName);
-
-        if (await _fileService.DirectoryExistsAsync(oldFolderPath) && oldFolderPath != newFolderPath)
-            Directory.Move(oldFolderPath, newFolderPath);
-
-        book.Name = newName;
-        book.FolderName = newFolderName;
+        // A display name is not a storage path. Keeping the folder stable also
+        // allows duplicate titles and preserves paths held by open editors.
+        book.Name = newName.Trim();
         await SaveProjectAsync();
     }
 

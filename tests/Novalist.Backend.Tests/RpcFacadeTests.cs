@@ -138,6 +138,27 @@ public sealed class RpcFacadeTests : IAsyncDisposable
         await InvokeAsync<ProjectStateDto>("project/create", _root, "OldName", "Book");
         var renamed = await InvokeAsync<ProjectStateDto>("project/rename", "NewName");
         Assert.Equal("NewName", renamed.ProjectName);
+        Assert.Equal("NewName", Assert.Single(await InvokeAsync<RecentProjectDto[]>("project/recent")).Name);
+        await InvokeAsync<ProjectStateDto>("project/close");
+        Assert.Equal("NewName", Assert.Single(await InvokeAsync<RecentProjectDto[]>("project/recent")).Name);
+    }
+
+    [Fact]
+    public async Task RenameBook_PreservesTheManuscriptAndOtherBook()
+    {
+        var created = await InvokeAsync<ProjectStateDto>("project/create", _root, "Novel", "Book One");
+        var firstId = created.ActiveBookId!;
+        var chapter = (await InvokeAsync<ProjectStateDto>("project/createChapter", "Chapter")).Chapters.Single();
+        var scene = (await InvokeAsync<ProjectStateDto>("project/createScene", chapter.Guid, "Scene")).Chapters.Single().Scenes.Single();
+        await InvokeAsync<SceneWriteResultDto>("scenes/write", chapter.Guid, scene.Id, "<p>Still here</p>", "Still here");
+        await InvokeAsync<ProjectStateDto>("project/createBook", "Book Two");
+        var renamed = await InvokeAsync<ProjectStateDto>("project/renameBook", firstId, "  New title  ");
+        Assert.Equal("New title", renamed.Books.Single(b => b.Id == firstId).Name);
+        Assert.Contains(renamed.Books, b => b.Name == "Book Two");
+        await InvokeAsync<ProjectStateDto>("project/open", created.ProjectPath!);
+        var switched = await InvokeAsync<ProjectStateDto>("project/switchBook", firstId);
+        Assert.Equal("New title", switched.Books.Single(b => b.Id == firstId).Name);
+        Assert.Contains("Still here", (await InvokeAsync<SceneContentDto>("scenes/read", chapter.Guid, scene.Id)).Html);
     }
 
     [Fact]

@@ -414,7 +414,7 @@ public sealed partial class DashboardRpc
             projects.ActiveBook.CoverImage = relative;
         await projects.SaveProjectAsync();
         // Keep the welcome-screen thumbnail in step with the new/removed cover.
-        await _workspace.RefreshRecentCoverAsync();
+        await _workspace.RefreshRecentProjectAsync();
     }
 
     /// <summary>

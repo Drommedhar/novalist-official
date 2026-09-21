@@ -544,6 +544,14 @@ export const COMMANDS: CommandDef[] = [
     run: () => shell().openDialog('book')
   },
   {
+    id: 'project.renameBook',
+    labelKey: 'book.renameBookTitle',
+    categoryKey: 'hotkeys.category.project',
+    scope: 'project',
+    available: projectOpen,
+    run: () => shell().openDialog('renameBook')
+  },
+  {
     id: 'project.newDraft',
     labelKey: 'draft.newTitle',
     categoryKey: 'hotkeys.category.project',

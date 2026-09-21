@@ -425,15 +425,15 @@ public sealed class WorkspaceTests : IDisposable
     }
 
     [Fact]
-    public async Task RefreshRecentCover_NoOp_WhenNoProjectOrNotInRecents()
+    public async Task RefreshRecentProject_NoOp_WhenNoProjectOrNotInRecents()
     {
         // No project open -> ProjectRoot null -> silent no-op.
-        await CreateWorkspace().RefreshRecentCoverAsync();
+        await CreateWorkspace().RefreshRecentProjectAsync();
 
         // Project open but absent from the recents list -> silent no-op.
         var workspace = await CreateOpenProjectAsync();
         workspace.Settings.Settings.RecentProjects.Clear();
-        await workspace.RefreshRecentCoverAsync();
+        await workspace.RefreshRecentProjectAsync();
         Assert.Empty(workspace.Settings.Settings.RecentProjects);
     }
 
