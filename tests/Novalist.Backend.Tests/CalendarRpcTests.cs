@@ -182,6 +182,18 @@ public sealed class CalendarRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task StoryStart_IgnoresOverflowingCustomDates()
+    {
+        await _rpc.SetConfigAsync("Custom", "Cycle", ["First"], [30], ["Day"]);
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        foreach (var date in new[] { "9223372036854775808.1.1", "1.2147483648.1", "1.1.2147483648" })
+            await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Invalid", date);
+        Assert.Null(_rpc.GetStoryStart());
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Dated", "12.1.5");
+        Assert.Equal("12.1.5", _rpc.GetStoryStart());
+    }
+
+    [Fact]
     public async Task StoryStart_NormalizesGregorianDatesForTheRenderer()
     {
         var chapter = await _workspace.Projects.CreateChapterAsync("C");
