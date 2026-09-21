@@ -5,6 +5,25 @@
   --cal-hour: var(--nl-calendar-hour-height);
 }
 
+.calendar-go-to {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-md);
+  border-bottom: var(--nl-rule-width) solid var(--nl-border);
+}
+
+.calendar-go-to .inspector-input {
+  width: var(--nl-field-width-sm);
+  max-width: 100%;
+}
+
+.calendar-go-to-error {
+  flex-basis: 100%;
+  color: var(--nl-danger);
+}
+
 /* ---- Event chip: title line + optional note line ---- */
 .calendar .calendar-event {
   white-space: normal;

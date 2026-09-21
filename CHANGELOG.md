@@ -16,6 +16,14 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+### Added
+
+- **Go to date** in the Calendar lets you jump directly to any valid story date while keeping the current Week, Month, or Year view. It supports Gregorian and custom calendars, including negative custom years.
+
+### Changed
+
+- The Calendar opens at the earliest valid scene date, including dates inherited from chapters or acts. **Story start** replaces **Today** and returns to that date after browsing. Books without dated scenes use the saved calendar location as a fallback.
+
 ### Fixed
 
 - Scene notes now wrap into readable columns and scroll within the dock, keeping every field reachable in smaller windows and on scaled displays.

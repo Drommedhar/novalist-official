@@ -180,16 +180,46 @@ public sealed class CalendarRpc
         var calendar = new InWorldCalendarService();
         if (calendar.Parse(saved!, book.Calendar) != null) return saved;
 
-        // A real-world anchor usually cannot be used after switching calendars.
-        // Open at the first dated scene, or the beginning of year zero in an empty book.
-        foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
+        return GetStoryStart() ?? "0.1.1";
+    }
+
+    /// <summary>The earliest date displayed by the calendar, including inherited dates.</summary>
+    [JsonRpcMethod("calendar/getStoryStart")]
+    public string? GetStoryStart()
+    {
+        var book = _workspace.Projects.ActiveBook;
+        if (book == null) return null;
+        var custom = book.Calendar?.Type == InWorldCalendarType.Custom;
+        var calendar = new InWorldCalendarService();
+        long? earliest = null;
+        string? result = null;
+        foreach (var chapter in book.Chapters)
         foreach (var scene in (_workspace.Projects.ScenesManifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [])
-                     .Where(s => s.ArchivedAt == null).OrderBy(s => s.Order))
+                     .Where(s => s.ArchivedAt == null))
         {
-            var date = StoryDateResolver.Resolve(scene, chapter, book.Acts)?.Start;
-            if (calendar.Parse(date!, book.Calendar) != null) return date;
+            var raw = StoryDateResolver.Resolve(scene, chapter, book.Acts)?.Start;
+            long? ordinal;
+            string? date;
+            if (custom)
+            {
+                // Ignore malformed imported dates just as undated scenes are ignored.
+                try { ordinal = calendar.Parse(raw!, book.Calendar); }
+                catch (OverflowException) { continue; }
+                date = raw?.Trim();
+            }
+            else
+            {
+                if (!TryParseDate(raw, out var parsed)) continue;
+                ordinal = parsed.Date.Ticks / TimeSpan.TicksPerDay;
+                date = parsed.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            }
+            if (ordinal is { } day && (earliest == null || day < earliest))
+            {
+                earliest = day;
+                result = date;
+            }
         }
-        return "0.1.1";
+        return result;
     }
 
     [JsonRpcMethod("calendar/setAnchor")]

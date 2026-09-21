@@ -57,7 +57,11 @@ The bulk bar at the bottom of the Calendar also offers **Shift dates**, which as
 
 ## Navigation and the anchor date
 
-On Gregorian calendars, a **Today** button jumps back to the current date. Custom calendars have no real-world “today”: without a valid saved anchor, they open at the first dated scene in chapter order, or `0.1.1` when none is dated. The **Previous / Next** arrows step by one week, month, or year depending on the mode; the label between them shows the visible range. The date the calendar is centered on — the **anchor date** — is saved with the project, so the Calendar reopens where you left it.
+Use **Go to date** to jump directly to a distant year without stepping through the arrows. Enter a Gregorian date as `year-month-day` (for example, `2326-03-14`), or a custom date as `year.month.day` (for example, `812.3.14`), then press **Go** or Enter. Custom dates use the underlying calendar year before era labels are applied, including zero or negative years. Invalid dates show an error. The jump keeps your current Week, Month, or Year view. Press Escape to cancel.
+
+The Calendar opens at the earliest valid scene date in the story, for both Gregorian and custom calendars. This is chronological order, regardless of chapter order, and includes dates inherited from a chapter or act. Archived and undated scenes are ignored. **Story start** returns to that date after you browse elsewhere, keeping the current view. It is disabled when no scenes have valid dates.
+
+The **Previous / Next** arrows step by one week, month, or year depending on the mode; the label between them shows the visible range. Navigation saves the date you visit as a fallback. When there are no dated scenes, the Calendar uses this saved date, or the current Gregorian date / custom date `0.1.1` if there is no valid saved date.
 
 ## Tips
 

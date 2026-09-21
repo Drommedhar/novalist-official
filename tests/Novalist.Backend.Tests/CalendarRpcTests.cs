@@ -147,6 +147,49 @@ public sealed class CalendarRpcTests : IDisposable
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StoryStart_UsesChronologicalDatesAndInheritance_IgnoresSavedAnchor(bool custom)
+    {
+        if (custom)
+            await _rpc.SetConfigAsync("Custom", "Cycle", ["First", "Last"], [30, 40], ["Day"]);
+        Assert.Null(_rpc.GetStoryStart());
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Undated");
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Invalid", "bad date");
+        var later = custom ? "300.2.40" : "2326-03-14";
+        var earlier = custom ? "-12.2.40" : "1043-03-05";
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Later", later);
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Earlier", earlier);
+        var archived = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Archived",
+            custom ? "-100.1.1" : "0100-01-01");
+        archived.ArchivedAt = DateTime.UtcNow;
+        await _rpc.SetAnchorAsync(later);
+        Assert.Equal(earlier, _rpc.GetStoryStart());
+
+        var inherited = custom ? "-20.1.1" : "1000-01-02";
+        chapter.DateRange = new StoryDateRange { Start = inherited };
+        Assert.Equal(inherited, _rpc.GetStoryStart());
+
+        chapter.DateRange = null;
+        chapter.Act = "Act I";
+        _workspace.Projects.ActiveBook!.Acts.Add(new ActData
+        {
+            Name = "Act I", DateRange = new StoryDateRange { Start = inherited }
+        });
+        Assert.Equal(inherited, _rpc.GetStoryStart());
+        Assert.Equal(later, _rpc.GetAnchor());
+    }
+
+    [Fact]
+    public async Task StoryStart_NormalizesGregorianDatesForTheRenderer()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Scene", "March 5, 1043");
+        Assert.Equal("1043-03-05", _rpc.GetStoryStart());
+    }
+
+    [Theory]
     [InlineData(null, null)]
     [InlineData("", null)]
     [InlineData("09:30", 9 * 60 + 30)]

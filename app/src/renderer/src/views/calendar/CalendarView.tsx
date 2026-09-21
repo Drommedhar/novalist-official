@@ -130,9 +130,14 @@ function BookCalendarView(): React.JSX.Element {
   const { t, i18n } = useTranslation()
   const [mode, setMode] = useState<CalendarMode>('week')
   const [configOpen, setConfigOpen] = useState(false)
+  const [goToOpen, setGoToOpen] = useState(false)
+  const [goToValue, setGoToValue] = useState('')
+  const [goToError, setGoToError] = useState(false)
+  const goToButton = useRef<HTMLButtonElement>(null)
   const [config, setConfig] = useState<CalendarConfig | null>(null)
   const dates = useMemo(() => config ? new CalendarDates(config, i18n.language) : null, [config, i18n.language])
   const [anchor, setAnchor] = useState<CalendarDate | null>(null)
+  const [storyStart, setStoryStart] = useState<CalendarDate | null>(null)
   const [events, setEvents] = useState<CalendarEventDto[]>([])
   const [dragging, setDragging] = useState<CalendarEventDto | null>(null)
 
@@ -143,14 +148,19 @@ function BookCalendarView(): React.JSX.Element {
     const calendar = new CalendarDates(next, i18n.language)
     const typeChanged = next.type !== config?.type
     setConfig(next)
+    setGoToOpen(false)
     setAnchor((current) => {
       if (!current || typeChanged) return calendar.today()
       const month = Math.min(current.month, calendar.months.length)
       return { ...current, month, day: Math.min(current.day, calendar.daysInMonth({ ...current, month })) }
     })
-    if (typeChanged) {
-      const saved = await rpc.request<string | null>('calendar/getAnchor')
-      if (configRevision.current === revision) setAnchor(calendar.parse(saved) ?? calendar.today())
+    const [start, saved] = await Promise.all([
+      rpc.request<string | null>('calendar/getStoryStart'),
+      typeChanged ? rpc.request<string | null>('calendar/getAnchor') : Promise.resolve(null)
+    ])
+    if (configRevision.current === revision) {
+      setStoryStart(calendar.parse(start))
+      if (typeChanged) setAnchor(calendar.parse(start) ?? calendar.parse(saved) ?? calendar.today())
     }
   }
 
@@ -158,12 +168,14 @@ function BookCalendarView(): React.JSX.Element {
     let disposed = false
     void Promise.all([
       rpc.request<CalendarConfig>('calendar/getConfig'),
-      rpc.request<string | null>('calendar/getAnchor')
-    ]).then(([loaded, saved]) => {
+      rpc.request<string | null>('calendar/getAnchor'),
+      rpc.request<string | null>('calendar/getStoryStart')
+    ]).then(([loaded, saved, start]) => {
       if (disposed) return
       const calendar = new CalendarDates(loaded, i18n.language)
       setConfig(loaded)
-      setAnchor(calendar.parse(saved) ?? calendar.today())
+      setStoryStart(calendar.parse(start))
+      setAnchor(calendar.parse(start) ?? calendar.parse(saved) ?? calendar.today())
     })
     return () => { disposed = true }
   }, [])
@@ -182,6 +194,7 @@ function BookCalendarView(): React.JSX.Element {
     }
     setDragging(null)
     setEvents(await load())
+    setStoryStart(dates.parse(await rpc.request<string | null>('calendar/getStoryStart')))
   }
 
   const load = useCallback(async (): Promise<CalendarEventDto[]> => {
@@ -284,9 +297,27 @@ function BookCalendarView(): React.JSX.Element {
           </button>
         ))}
         <div className="toolbar-spacer" />
-        {!dates.custom && <button className="dashboard-range" onClick={() => jumpTo(dates.today())}>
-          {t('calendar.today')}
-        </button>}
+        <button
+          ref={goToButton}
+          className={`dashboard-range${goToOpen ? ' active' : ''}`}
+          aria-expanded={goToOpen}
+          aria-controls="calendar-go-to"
+          onClick={() => {
+            setGoToValue(dates.key(anchor))
+            setGoToError(false)
+            setGoToOpen((open) => !open)
+          }}
+        >
+          {t('calendar.goToDate')}
+        </button>
+        <button
+          className="dashboard-range"
+          disabled={!storyStart}
+          title={t(storyStart ? 'calendar.storyStartHint' : 'calendar.noStoryDates')}
+          onClick={() => { if (storyStart) jumpTo(storyStart) }}
+        >
+          {t('calendar.storyStart')}
+        </button>
         {/* Back, where you are, forward: one control, so a phone wrapping the
             toolbar onto a second line keeps them together instead of leaving an
             arrow stranded at the end of each line. */}
@@ -306,6 +337,57 @@ function BookCalendarView(): React.JSX.Element {
           {t('calendarConfig.title')}
         </button>
       </div>
+
+      {goToOpen && (
+        <form
+          id="calendar-go-to"
+          className="calendar-go-to"
+          onSubmit={(event) => {
+            event.preventDefault()
+            const target = dates.parse(goToValue)
+            if (!target) {
+              setGoToError(true)
+              return
+            }
+            jumpTo(target)
+            setGoToOpen(false)
+            goToButton.current?.focus()
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.preventDefault()
+              event.stopPropagation()
+              setGoToOpen(false)
+              goToButton.current?.focus()
+            }
+          }}
+        >
+          <label htmlFor="calendar-go-to-input">{t('calendar.goToDate')}</label>
+          <input
+            id="calendar-go-to-input"
+            className="inspector-input"
+            type="text"
+            autoFocus
+            value={goToValue}
+            onFocus={(event) => event.currentTarget.select()}
+            onChange={(event) => {
+              setGoToValue(event.target.value)
+              setGoToError(false)
+            }}
+            aria-invalid={goToError}
+            aria-describedby={`calendar-go-to-hint${goToError ? ' calendar-go-to-error' : ''}`}
+          />
+          <button className="dashboard-range" type="submit">{t('calendar.go')}</button>
+          <span id="calendar-go-to-hint" className="settings-hint">
+            {t(dates.custom ? 'calendar.goToCustomHint' : 'calendar.goToGregorianHint')}
+          </span>
+          {goToError && (
+            <span id="calendar-go-to-error" className="calendar-go-to-error" role="alert">
+              {t('calendar.invalidDate')}
+            </span>
+          )}
+        </form>
+      )}
 
       {configOpen && (
         <div className="calendar-config-shell">

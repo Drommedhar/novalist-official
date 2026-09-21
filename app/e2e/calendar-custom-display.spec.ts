@@ -44,13 +44,14 @@ test('custom names, lengths, eras, scenes and navigation reach all calendar view
     await expect(view.locator('.calendar-header-label')).toHaveText('Rimefall 814 After the Fall')
     await expect(view.locator('.calendar-cell:not(.outside)')).toHaveCount(30)
     await expect(view.locator('.calendar-event-title').filter({ hasText: 'Crossing' })).toHaveCount(1)
-    // Reopening the view uses the persisted custom anchor.
+    // Reopening the view returns to the earliest story date after rescheduling.
     await h.page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
     await h.page.evaluate(() => window.novalistStores.shell.getState().setMainView('calendar'))
-    await expect(view.locator('.calendar-header-label')).toContainText('814 After the Fall')
+    await expect(view.locator('.calendar-header-label')).toContainText('813 After the Fall')
     await view.getByRole('button', { name: 'Calendar setup', exact: true }).click()
     await panel.getByRole('checkbox', { name: 'Use a custom in-world calendar', exact: true }).uncheck()
-    await expect(view.getByRole('button', { name: 'Today', exact: true })).toBeVisible()
+    await expect(view.getByRole('button', { name: 'Today', exact: true })).toHaveCount(0)
+    await expect(view.getByRole('button', { name: 'Story start', exact: true })).toBeDisabled()
     await view.getByRole('button', { name: 'Year', exact: true }).click()
     await expect(view.locator('.calendar-year-title')).toHaveCount(12)
     await expect(view.locator('.calendar-year-title').first()).toHaveText('January')
