@@ -32,8 +32,16 @@ public sealed class CanvasRpc
     }
 
     [JsonRpcMethod("canvas/save")]
-    public async Task SaveAsync(CanvasDto canvas)
+    public async Task SaveAsync(CanvasDto canvas, Dictionary<string, string>? renamedCards = null)
     {
+        // Only explicit title edits rename scenes. Saving an older board after
+        // moving a card must not revert a newer title from the manuscript.
+        foreach (var card in canvas.Cards)
+        {
+            if (renamedCards?.TryGetValue(card.Id, out var title) == true
+                && FindLinkedScene(card.SceneId) is { } linked)
+                await _workspace.Projects.RenameSceneAsync(linked.Chapter.Guid, linked.Scene.Id, title);
+        }
         await Service.SaveAsync(new CanvasData
         {
             Id = canvas.Id,
@@ -72,9 +80,8 @@ public sealed class CanvasRpc
 
     /// <summary>
     /// Turns a card into a real scene in the given chapter and links the two, so
-    /// the board keeps a pointer to where the idea ended up. This is the only
-    /// place a board touches the manuscript, and it is always the writer's
-    /// explicit act.
+    /// the board keeps a pointer to where the idea ended up. Subsequent title
+    /// edits keep the linked scene in sync without creating another scene.
     /// </summary>
     [JsonRpcMethod("canvas/promoteCard")]
     public async Task<CanvasDto?> PromoteCardAsync(string canvasId, string cardId, string chapterGuid)
@@ -85,7 +92,7 @@ public sealed class CanvasRpc
             return null;
 
         // Already promoted: the card points at a scene, so do not make a second.
-        if (!string.IsNullOrEmpty(card.SceneId))
+        if (FindLinkedScene(card.SceneId) != null)
             return ToDto(canvas);
 
         var title = string.IsNullOrWhiteSpace(card.Title) ? "Untitled" : card.Title.Trim();
@@ -105,17 +112,35 @@ public sealed class CanvasRpc
         return ToDto(canvas);
     }
 
-    private static CanvasDto ToDto(CanvasData c) =>
+    private (ChapterData Chapter, SceneData Scene)? FindLinkedScene(string sceneId)
+    {
+        if (string.IsNullOrEmpty(sceneId)) return null;
+        foreach (var chapter in _workspace.Projects.GetChaptersOrdered())
+        {
+            var scene = _workspace.Projects.GetScenesForChapter(chapter.Guid)
+                .FirstOrDefault(s => s.Id == sceneId && s.ArchivedAt == null);
+            if (scene != null) return (chapter, scene);
+        }
+        return null;
+    }
+
+    private CanvasCardDto ToCardDto(CanvasCard card)
+    {
+        var linked = FindLinkedScene(card.SceneId);
+        return new CanvasCardDto(
+            card.Id, linked?.Scene.Title ?? card.Title, card.Text, card.X, card.Y,
+            card.Width, card.Height, card.Color,
+            linked?.Scene.Id ?? "", linked?.Chapter.Guid ?? "", card.EntityId);
+    }
+
+    private CanvasDto ToDto(CanvasData c) =>
         new(
             c.Id,
             c.Name,
             c.PanX,
             c.PanY,
             c.Zoom,
-            c.Cards.Select(card => new CanvasCardDto(
-                card.Id, card.Title, card.Text, card.X, card.Y,
-                card.Width, card.Height, card.Color,
-                card.SceneId, card.ChapterGuid, card.EntityId)).ToArray(),
+            c.Cards.Select(ToCardDto).ToArray(),
             c.Connectors.Select(conn => new CanvasConnectorDto(
                 conn.Id, conn.FromCardId, conn.ToCardId, conn.Label,
                 conn.FromSide ?? string.Empty, conn.ToSide ?? string.Empty)).ToArray());

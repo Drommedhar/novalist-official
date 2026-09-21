@@ -206,6 +206,7 @@ export function CanvasView(): React.JSX.Element {
   const dragFrame = useRef<number | null>(null)
   const saveTimer = useRef<number | null>(null)
   const pendingSave = useRef<Canvas | null>(null)
+  const pendingTitles = useRef(new Map<string, string>())
   const inFlightSave = useRef<Promise<unknown> | null>(null)
   const connectorInputRefs = useRef(new Map<string, HTMLInputElement>())
   const connectorLabelRefs = useRef(new Map<string, HTMLButtonElement>())
@@ -241,13 +242,20 @@ export function CanvasView(): React.JSX.Element {
       }
       const pending = pendingSave.current
       if (!pending) return
-      const request = persistPendingWrite(`canvas:${pending.id}`, () =>
-        rpc.request('canvas/save', [pending])
-      )
+      const titles = Object.fromEntries(pendingTitles.current)
+      const request = persistPendingWrite(`canvas:${pending.id}`, async () => {
+        await rpc.request('canvas/save', [pending, titles])
+        if (pendingSave.current === pending) pendingSave.current = null
+        for (const [id, title] of Object.entries(titles)) {
+          if (pendingTitles.current.get(id) === title) pendingTitles.current.delete(id)
+        }
+        if (Object.keys(titles).length > 0) {
+          useProjectStore.getState().applyState(await rpc.request<ProjectStateDto>('project/getState'))
+        }
+      })
       inFlightSave.current = request
       try {
         await request
-        if (pendingSave.current === pending) pendingSave.current = null
       } finally {
         if (inFlightSave.current === request) inFlightSave.current = null
       }
@@ -425,6 +433,7 @@ export function CanvasView(): React.JSX.Element {
   const updateCard = (id: string, patch: Partial<CanvasCard>): void => {
     const current = canvasRef.current
     if (!current) return
+    if (patch.title !== undefined) pendingTitles.current.set(id, patch.title)
     queueSave({
       ...current,
       cards: current.cards.map((card) => (card.id === id ? { ...card, ...patch } : card))
@@ -567,10 +576,17 @@ export function CanvasView(): React.JSX.Element {
     }
   }
 
-  const renderedCard = (card: CanvasCard): CanvasCard =>
-    dragPosition?.cardId === card.id
-      ? { ...card, x: dragPosition.x, y: dragPosition.y }
-      : card
+  const renderedCard = (card: CanvasCard): CanvasCard => {
+    const chapter = chapters.find((c) => c.scenes.some((s) => s.id === card.sceneId))
+    const scene = chapter?.scenes.find((s) => s.id === card.sceneId)
+    return {
+      ...card,
+      title: pendingTitles.current.has(card.id) ? card.title : (scene?.title ?? card.title),
+      sceneId: scene?.id ?? '',
+      chapterGuid: chapter?.guid ?? '',
+      ...(dragPosition?.cardId === card.id ? { x: dragPosition.x, y: dragPosition.y } : {})
+    }
+  }
 
   const cardById = (id: string): CanvasCard | undefined => {
     const card = canvas?.cards.find((item) => item.id === id)
@@ -807,7 +823,7 @@ export function CanvasView(): React.JSX.Element {
     }
   }
 
-  const selected = canvas?.cards.find((card) => card.id === selectedId) ?? null
+  const selected = selectedId ? cardById(selectedId) ?? null : null
   const previewFrom = connectorPreview ? cardById(connectorPreview.fromCardId) : undefined
   const previewStart =
     connectorPreview && previewFrom

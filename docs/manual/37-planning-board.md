@@ -2,7 +2,7 @@
 
 The **Planning board** is an infinite surface for ideas that are not yet scenes: loose cards you can drag anywhere, and lines you draw between them with your own labels. Open it from the **Plan** mode, under **Shape** in the mode panel.
 
-Everything else in Novalist that shows relationships works it out for you — the [Relationships graph](14-relationships.md) lays characters out automatically, the [Timeline](12-timeline.md) orders real chapters and scenes, [Maps](29-maps.md) place pins on geography. The board is the opposite: nothing on it is derived, and nothing on it is part of your manuscript. That is what makes it usable for a half-formed thought.
+The [Relationships graph](14-relationships.md) lays characters out automatically, the [Timeline](12-timeline.md) orders real chapters and scenes, and [Maps](29-maps.md) place pins on geography. On a planning board, you arrange the cards and draw the connections yourself. Cards remain separate from your manuscript until you choose to create them as scenes.
 
 ## Boards
 
@@ -38,13 +38,13 @@ The **Delete connector** button beside the inline field removes only that line. 
 
 **Make this a scene** promotes the selected card into a real scene in the first chapter:
 
-- The card's **title** becomes the scene's title. A card with no title gets "Untitled".
+- The card's **title** becomes the scene's title. A card with no title gets "Untitled". Afterwards, renaming either the card or the scene updates the other title, even if the scene moves to another chapter.
 - The card's **body** becomes the scene's **synopsis**, not its prose. A planning note describes a scene; it is not the scene itself, and dropping it into the manuscript as text would be a lie about your word count.
 - The card **stays on the board**, marked as being in the manuscript, and keeps pointing at the scene it became. The board remains the map of your thinking; promoting does not consume the card.
 
-Promoting the same card twice does nothing the second time — it already has a scene.
+**Make this a scene** is disabled while the card points to an existing scene, preventing duplicates. If that scene is removed from the manuscript, the card becomes available to create as a scene again. The card's body remains an independent planning note after creation; later body edits do not replace the scene's synopsis or prose.
 
-This is the only point at which a board touches your book. Until then, nothing on the board counts towards a word goal, appears in the binder, or shows up in an export.
+Before creation, nothing on the board counts towards a word goal, appears in the binder, or shows up in an export.
 
 ## Where to go next
 

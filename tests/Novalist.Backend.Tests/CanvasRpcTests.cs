@@ -135,6 +135,79 @@ public sealed class CanvasRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task LinkedCard_LoadFollowsSceneRenamesAndMoves()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var other = await _workspace.Projects.CreateChapterAsync("Two");
+        var board = await _rpc.CreateAsync("Board");
+        await _rpc.SaveAsync(WithCard(board, Card("c1", "Original")));
+        var promoted = (await _rpc.PromoteCardAsync(board.Id, "c1", chapter.Guid))!;
+        var sceneId = promoted.Cards.Single().SceneId;
+        await _workspace.Projects.RenameSceneAsync(chapter.Guid, sceneId, "New scene title");
+        await _workspace.Projects.MoveScenesAsync([sceneId], other.Guid, 0);
+
+        var loaded = (await _rpc.LoadAsync(board.Id))!.Cards.Single();
+        Assert.Equal("New scene title", loaded.Title);
+        Assert.Equal(other.Guid, loaded.ChapterGuid);
+        Assert.Equal(sceneId, loaded.SceneId);
+        // A layout save from an older board must not undo a manuscript rename.
+        await _rpc.SaveAsync(promoted with { PanX = 100 });
+        Assert.Equal("New scene title", _workspace.Projects.GetScenesForChapter(other.Guid).Single().Title);
+        Assert.Equal("New scene title", (await _rpc.LoadAsync(board.Id))!.Cards.Single().Title);
+    }
+
+    [Fact]
+    public async Task LinkedCard_ExplicitTitleEditRenamesSceneAndSurvivesReopening()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var board = await _rpc.CreateAsync("Board");
+        await _rpc.SaveAsync(WithCard(board, Card("c1", "Original", "Initial synopsis")));
+        var promoted = (await _rpc.PromoteCardAsync(board.Id, "c1", chapter.Guid))!;
+        var edited = promoted with { Cards = [promoted.Cards.Single() with { Title = "New title", Text = "Board-only notes" }] };
+        await _rpc.SaveAsync(edited, new() { ["c1"] = "New title" });
+
+        var root = _workspace.Projects.ProjectRoot!;
+        _workspace.CloseProject();
+        await _workspace.OpenProjectAsync(root);
+        var scene = _workspace.Projects.GetScenesForChapter(chapter.Guid).Single();
+        Assert.Equal("New title", scene.Title);
+        Assert.Equal("Initial synopsis", scene.Synopsis);
+        var card = (await _rpc.LoadAsync(board.Id))!.Cards.Single();
+        Assert.Equal("New title", card.Title);
+        Assert.Equal("Board-only notes", card.Text);
+        await _rpc.PromoteCardAsync(board.Id, "c1", chapter.Guid);
+        Assert.Single(_workspace.Projects.GetScenesForChapter(chapter.Guid));
+    }
+
+    [Fact]
+    public async Task LinkedCard_ArchivedSceneStopsBeingLinked_AndCanBeRecreated()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var board = await _rpc.CreateAsync("Board");
+        await _rpc.SaveAsync(WithCard(board, Card("c1", "Original")));
+        var promoted = (await _rpc.PromoteCardAsync(board.Id, "c1", chapter.Guid))!;
+        var archived = _workspace.Projects.GetScenesForChapter(chapter.Guid).Single();
+        archived.ArchivedAt = DateTime.UtcNow;
+        await _workspace.Projects.SaveScenesAsync();
+        Assert.Empty((await _rpc.LoadAsync(board.Id))!.Cards.Single().SceneId);
+        await _rpc.SaveAsync(promoted, new() { ["c1"] = "Do not rename the archive" });
+        Assert.Equal("Original", archived.Title);
+        var recreated = (await _rpc.PromoteCardAsync(board.Id, "c1", chapter.Guid))!.Cards.Single();
+        Assert.NotEmpty(recreated.SceneId);
+        Assert.NotEqual(archived.Id, recreated.SceneId);
+    }
+
+    [Fact]
+    public async Task UnlinkedCard_TitleEditAndMissingSceneRemainBoardOnly()
+    {
+        var board = await _rpc.CreateAsync("Board");
+        var withCards = board with { Cards = [Card("c1", "Loose"), Card("c2", "Missing") with { SceneId = "gone" }] };
+        await _rpc.SaveAsync(withCards, new() { ["c1"] = "Loose", ["c2"] = "Missing" });
+        Assert.All((await _rpc.LoadAsync(board.Id))!.Cards, card => Assert.Empty(card.SceneId));
+        Assert.Empty(_workspace.BuildState().Chapters);
+    }
+
+    [Fact]
     public async Task PromoteCard_UnknownCard_IsNull()
     {
         var chapter = await _workspace.Projects.CreateChapterAsync("One");

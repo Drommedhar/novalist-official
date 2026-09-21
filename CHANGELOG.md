@@ -28,6 +28,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 - Books can be renamed from the book picker. Renaming a project immediately updates its dashboard heading and recent-project entry.
 - Recent projects refresh after creating, opening, or closing a project and when returning to the app, removing entries for deleted projects without a restart.
+- Planning cards created as scenes keep their titles in sync with the manuscript, including when the scene moves to another chapter.
 - Scene notes now wrap into readable columns and scroll within the dock, keeping every field reachable in smaller windows and on scaled displays.
 - Closing a project or switching to another now clears the previous project's scenes and tabs, and saves pending editor changes before leaving.
 
