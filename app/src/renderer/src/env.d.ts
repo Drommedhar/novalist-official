@@ -92,6 +92,10 @@ interface Window {
       scale: number
     ): Promise<boolean>
     saveFile(defaultName: string): Promise<string | null>
+    /** iOS: deliver a staged export through the share sheet. False means cancelled. */
+    shareExport?(path: string): Promise<boolean>
+    /** iOS: release this export's temporary file and any companion assets. */
+    releaseExport?(path: string): Promise<void>
     applySpellCheck(enabled: boolean, languages: string[], words: string[]): Promise<string[]>
     spellCheckLanguages(): Promise<string[]>
     setSpellCheckMenuLabels(labels: { addToDictionary: string; noSuggestions: string }): void

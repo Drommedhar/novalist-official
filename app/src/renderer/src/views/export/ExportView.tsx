@@ -8,9 +8,12 @@ import { PublishingPanel } from './PublishingPanel'
 import { ReplacementsPanel } from './ReplacementsPanel'
 import { ExportLayoutPanel } from './ExportLayoutPanel'
 import { AudiobookPanel } from './AudiobookPanel'
-import { useProjectStore } from '../../stores/projectStore'
+import { useBookScope, useProjectStore } from '../../stores/projectStore'
 import { useStageStore } from '../../stores/stageStore'
+import { useShellStore } from '../../stores/shellStore'
+import { flushPendingWrites } from '../../stores/pendingWrites'
 import './export.css'
+import './mobile-export.css'
 
 /**
  * What is being exported, kept apart from what file it comes out as.
@@ -102,6 +105,8 @@ export function ExportView(): React.JSX.Element {
   const { t } = useTranslation()
   const projectName = useProjectStore((s) => s.projectName)
   const chapters = useProjectStore((s) => s.chapters)
+  const pendingChapter = useShellStore((s) => s.pendingExportChapter)
+  const bookScope = useBookScope()
   const books = useProjectStore((s) => s.books)
   const activeBookId = useProjectStore((s) => s.activeBookId)
   const otherBooks = books.filter((b) => b.id !== activeBookId)
@@ -145,7 +150,7 @@ export function ExportView(): React.JSX.Element {
   const [preview, setPreview] = useState<PreviewDto | null>(null)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [initialized, setInitialized] = useState(false)
+  const [initializedScope, setInitializedScope] = useState<string | null>(null)
   const [entities, setEntities] = useState<Record<string, EntityOption[]>>({})
   const [entitiesLoaded, setEntitiesLoaded] = useState(false)
   const [selectedEntities, setSelectedEntities] = useState<Set<string>>(new Set())
@@ -167,13 +172,32 @@ export function ExportView(): React.JSX.Element {
     void rpc.request<ExtensionFormatDto[]>('export/extensionFormats').then(setExtFormats)
   }, [])
 
-  // Select every chapter once they have loaded.
+  // A binder action selects just that chapter, even when Export is already open.
   useEffect(() => {
-    if (!initialized && chapters.length > 0) {
-      setSelected(new Set(chapters.map((c) => c.guid)))
-      setInitialized(true)
+    if (pendingChapter) {
+      const chapter = chapters.find((c) => c.guid === pendingChapter)
+      setSelected(new Set(chapter ? [chapter.guid] : []))
+      if (chapter) setTitle(chapter.title)
+      setContent('manuscript')
+      setExtraBooks(new Set())
+      setIncludeTitlePage(false)
+      setInitializedScope(bookScope)
+      useShellStore.setState({ pendingExportChapter: null })
+      return
     }
-  }, [chapters, initialized])
+    if (initializedScope !== bookScope && chapters.length > 0) {
+      const remembered = window.novalist.isMobile ? useShellStore.getState().mobileExportSelection : null
+      const selection = remembered?.scope === bookScope ? remembered.chapters : chapters.map((c) => c.guid)
+      setSelected(new Set(selection.filter((id) => chapters.some((c) => c.guid === id))))
+      setInitializedScope(bookScope)
+    }
+  }, [chapters, initializedScope, pendingChapter, bookScope])
+
+  useEffect(() => {
+    if (window.novalist.isMobile && initializedScope === bookScope && !pendingChapter) {
+      useShellStore.setState({ mobileExportSelection: { scope: bookScope, chapters: [...selected] } })
+    }
+  }, [selected, initializedScope, pendingChapter, bookScope])
 
   const isCodex = content === 'codex'
   const isData = content === 'data' || content === 'report'
@@ -303,12 +327,16 @@ export function ExportView(): React.JSX.Element {
   }
 
   const run = async (): Promise<void> => {
-    const extension = extFormat?.fileExtension ?? FORMATS.find((f) => f.format === format)?.extension ?? ''
-    const output = await window.novalist.saveFile(`${title || 'manuscript'}${extension}`)
-    if (!output) return
+    if (busy) return
+    let output: string | null = null
     setBusy(true)
     setResult(null)
     try {
+      const extension = extFormat?.fileExtension ?? FORMATS.find((f) => f.format === format)?.extension ?? ''
+      output = await window.novalist.saveFile(`${title || 'manuscript'}${extension}`)
+      if (!output) return
+      await flushPendingWrites()
+      await useProjectStore.getState().flushPendingSave()
       const exported = await rpc.request<{ outputPath: string; success: boolean }>('export/run', [
         format,
         output,
@@ -332,10 +360,22 @@ export function ExportView(): React.JSX.Element {
         chaptersVisible && extraBooks.size > 0 ? [...extraBooks] : null,
         forReaders
       ])
-      setResult(exported.success ? t('export.exportSuccess') : t('export.exportFailed'))
+      if (!exported.success) {
+        setResult(t('export.exportFailed'))
+      } else if (window.novalist.isMobile) {
+        if (!window.novalist.shareExport) throw new Error('Export sharing is unavailable')
+        const shared = await window.novalist.shareExport(output)
+        setResult(t(shared ? 'export.exportSuccess' : 'export.exportCancelled'))
+      } else {
+        setResult(t('export.exportSuccess'))
+      }
     } catch {
       setResult(t('export.exportFailed'))
     } finally {
+      if (output && window.novalist.releaseExport) {
+        // A cleanup error must not change the result of a completed share.
+        await window.novalist.releaseExport(output).catch(() => {})
+      }
       setBusy(false)
     }
   }
@@ -352,6 +392,7 @@ export function ExportView(): React.JSX.Element {
   return (
     <div className="dashboard export-view">
       <h1 className="dashboard-title">{t('shell.view.export')}</h1>
+      {window.novalist.isMobile && <p className="export-mobile-hint">{t('export.mobileShareHint')}</p>}
       <div className="dashboard-card export-card">
         <div className="export-field">
           <label className="inspector-label" htmlFor="export-content">

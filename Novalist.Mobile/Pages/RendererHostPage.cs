@@ -34,6 +34,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
     private readonly HybridWebView _web;
     private readonly BackendHost _host;
     private readonly IFileService _files = new CoordinatedFileService(new IosFileAccessCoordinator());
+    private readonly ExportFiles _exports = new(FileSystem.Current.CacheDirectory);
     private readonly Stream _bridge;
     private readonly CancellationTokenSource _cts = new();
 
@@ -1057,11 +1058,16 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                 return result?.FullPath;
             }
             case "saveFile":
+                return _exports.Create(ArgString(args, 0));
+            case "shareExport":
             {
-                // App-container: hand back a cache path the backend can write to.
-                var name = ArgString(args, 0);
-                return Path.Combine(FileSystem.Current.CacheDirectory, string.IsNullOrEmpty(name) ? "export" : name);
+                var path = ArgString(args, 0);
+                var shared = await Task.Run(() => _exports.PrepareShare(path)).ConfigureAwait(false);
+                return await ExportSharing.ShareAsync(shared).ConfigureAwait(false);
             }
+            case "releaseExport":
+                await Task.Run(() => _exports.Release(ArgString(args, 0))).ConfigureAwait(false);
+                return null;
             case "openExternal":
             {
                 var target = ArgString(args, 0);

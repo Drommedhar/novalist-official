@@ -1551,6 +1551,9 @@
     "viewOptions": "Ansichtsoptionen"
   },
   "export": {
+    "exportChapter": "Kapitel exportieren…",
+    "exportCancelled": "Export abgebrochen.",
+    "mobileShareHint": "Nach dem Export kannst du die Datei teilen oder in „Dateien“ sichern. Exporte mit zusätzlichen Dateien werden als ZIP-Archiv geteilt.",
     "header": "Roman exportieren",
     "noChapters": "Keine Kapitel gefunden. Erstelle zuerst einige Kapitel.",
     "options": "Export-Optionen",
@@ -1596,7 +1599,7 @@
     "selectedCount": "Ausgewählt: {0} Kapitel",
     "exporting": "Exportiere…",
     "exportSuccess": "Export abgeschlossen.",
-    "exportFailed": "Export fehlgeschlagen: {0}",
+    "exportFailed": "Export fehlgeschlagen.",
     "exportAction": "Exportieren",
     "selectedOfTotal": "{{selected}} von {{total}} ausgewählt",
     "includeCover": "Buchcover einbinden",

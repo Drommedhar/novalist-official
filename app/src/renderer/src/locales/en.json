@@ -1956,6 +1956,9 @@
     "viewOptions": "View options"
   },
   "export": {
+    "exportChapter": "Export chapter…",
+    "exportCancelled": "Export cancelled.",
+    "mobileShareHint": "After exporting, share the file or choose Save to Files. Exports with companion files are shared as a ZIP archive.",
     "header": "Export Novel",
     "noChapters": "No chapters found. Create some chapters first.",
     "options": "Export Options",
@@ -2001,7 +2004,7 @@
     "selectedCount": "Selected: {0} chapter(s)",
     "exporting": "Exporting…",
     "exportSuccess": "Export complete.",
-    "exportFailed": "Export failed: {0}",
+    "exportFailed": "Export failed.",
     "exportAction": "Export",
     "selectedOfTotal": "{{selected}} of {{total}} selected",
     "includeCover": "Include the book cover",

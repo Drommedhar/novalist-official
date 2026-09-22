@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Novalist.Core\Novalist.Core.csproj" />
+    <!-- Exercise the mobile staging policy without loading UIKit on the test host. -->
+    <Compile Include="..\..\Novalist.Mobile\Services\ExportFiles.cs" Link="Mobile\ExportFiles.cs" />
   </ItemGroup>
 
   <ItemGroup>

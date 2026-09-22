@@ -113,6 +113,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Layout presets** — Default, **Shunn Manuscript Format** (industry-standard submission format), Ebook Flow, and **Normseiten** (German standard pages: 60 characters per line, 30 lines per page, exact page count) set fonts, spacing, and margins, alongside any layout you author yourself.
 - **Exposé** — a per-book pitch document with its own editor, live character and Normseiten counts against limits you set, and a Normseiten DOCX export.
 - Chapter-level selection with select-all / select-none, per-entry selection for codex exports, optional title page, custom title and author.
+- On iPhone and iPad, export from the chapter list or export a single chapter from its menu, then share the file or save it to Files.
 - Extensions can contribute additional formats and presets.
 
 ### Version control

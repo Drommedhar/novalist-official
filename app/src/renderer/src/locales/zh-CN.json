@@ -1991,6 +1991,9 @@
     "viewOptions": "视图选项"
   },
   "export": {
+    "exportChapter": "导出章节…",
+    "exportCancelled": "导出已取消。",
+    "mobileShareHint": "导出后，可以分享文件或选择“存储到文件”。包含附属文件的导出将打包为 ZIP 压缩包。",
     "header": "导出小说",
     "noChapters": "未找到章节。请先创建一些章节。",
     "options": "导出选项",
@@ -2036,7 +2039,7 @@
     "selectedCount": "已选：{0} 个章节",
     "exporting": "正在导出...",
     "exportSuccess": "导出完成。",
-    "exportFailed": "导出失败：{0}",
+    "exportFailed": "导出失败。",
     "exportAction": "导出",
     "selectedOfTotal": "已选择 {{selected}} / {{total}}",
     "includeCover": "包含书籍封面",

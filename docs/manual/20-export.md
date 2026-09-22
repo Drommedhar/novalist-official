@@ -6,6 +6,8 @@ The Export view turns your book into a file you can send to a beta reader, an ed
 
 Pick the **Publish** mode in the rail, then **Export** under **Produce** in the mode panel.
 
+On **iPhone**, open **Write** and tap **Export** above the chapter list. On **iPad**, use **Export** in the sidebar or the same chapter-list button. For one chapter, tap its **…** menu and choose **Export chapter…**; that chapter starts selected, and you can adjust the selection before exporting.
+
 ## The export form
 
 - **What to export** — **The manuscript** or **The codex (world bible)**. What comes out and what kind of file it comes out as are two different questions, so they are two drop-downs. The codex export writes your codex entries as a world bible, with images written to a folder beside a Markdown file or drawn into the document for a PDF.
@@ -31,6 +33,8 @@ Pick the **Publish** mode in the rail, then **Export** under **Produce** in the 
   - The "*n* of *m*" count below the list always reports your whole selection, not just the filtered part.
 
 Click **Export**. The system file save dialog asks where to save; pick a location and filename (the extension is pre-filled to match the format). The button shows "Exporting…" while the job runs and a result line reports success or failure.
+
+On **iPhone and iPad**, Novalist first creates the file, then opens the iOS share sheet. Choose **Save to Files**, AirDrop, or another app. Exports with companion files, such as Markdown with images, are shared as a **ZIP archive** containing the document and its assets. Cancelling the share sheet returns to Export without saving a copy; you can retry. Pending edits are saved before the export runs.
 
 ## A box set
 

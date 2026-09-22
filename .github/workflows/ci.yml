@@ -194,6 +194,10 @@ jobs:
         working-directory: app
         run: npm run build
 
+      - name: Build mobile renderer
+        working-directory: app
+        run: npm run build:mobile
+
       - name: E2E (Playwright against the real app)
         working-directory: app
         run: xvfb-run --auto-servernum npx playwright test

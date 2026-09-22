@@ -76,7 +76,7 @@ export interface ActiveExtView {
 export type InspectorTab = 'context' | 'footnotes' | 'inbox'
 
 /** Active destination in the mobile bottom (native Liquid Glass) tab bar. */
-export type MobileTab = 'dashboard' | 'manuscript' | 'codex' | 'planning' | 'settings'
+export type MobileTab = 'dashboard' | 'manuscript' | 'codex' | 'planning' | 'settings' | 'export'
 
 /* ===== Panes =====
  * The content area was one view at a time, with the editor allowed to split in
@@ -449,6 +449,10 @@ interface ShellState {
   /** One-shot request to open a specific map and centre a pin, consumed by
    * MapsView. Set by the focus-peek card's "ON MAPS" links. */
   pendingMapNav: { mapId: string; pinId: string } | null
+  /** Chapter requested from the binder; consumed by ExportView. */
+  pendingExportChapter: string | null
+  /** Preserve chapter scope when iPad resizing replaces the mobile shell. */
+  mobileExportSelection: { scope: string; chapters: string[] } | null
   backendVersion: string | null
   focusMode: boolean
   findReplaceOpen: boolean
@@ -523,6 +527,7 @@ interface ShellState {
   applyLayout(name: string): void
   deleteLayout(name: string): void
   setMobileTab(tab: MobileTab): void
+  openExport(chapterGuid?: string): void
   setMobileLayout(layout: MobileLayout): void
   /**
    * Tablet: whether the native sidebar is showing as an icon-only rail. Lives
@@ -720,6 +725,8 @@ export const useShellStore = create<ShellState>((set, get) => ({
   notesDockVisible: false,
   settingsSearch: '',
   pendingMapNav: null,
+  pendingExportChapter: null,
+  mobileExportSelection: null,
   backendVersion: null,
   focusMode: false,
   findReplaceOpen: false,
@@ -898,6 +905,15 @@ export const useShellStore = create<ShellState>((set, get) => ({
     }),
 
   setMobileTab: (mobileTab) => set({ mobileTab }),
+  openExport: (chapterGuid) =>
+    get().guardLeave(() =>
+      set((s) => ({
+        ...showView(s, 'export'),
+        mobileTab: 'export',
+        pendingExportChapter: chapterGuid ?? null,
+        mobileExportSelection: null
+      }))
+    ),
   setMobileLayout: (mobileLayout) => set({ mobileLayout }),
   setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
   navigateToMapPin: (mapId, pinId) =>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronDown, ChevronRight, MoreHorizontal, Pin, Plus } from 'lucide-react'
+import { ChevronDown, ChevronRight, FileDown, MoreHorizontal, Pin, Plus } from 'lucide-react'
 import { useBookScope, useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { ContextMenu, type ContextMenuItem } from './ContextMenu'
@@ -548,6 +548,10 @@ export function Binder(): React.JSX.Element {
       : []
     return [
       ...chapterMoves,
+      ...(isMobile ? [{
+        label: t('export.exportChapter'),
+        onClick: () => useShellStore.getState().openExport(chapter.guid)
+      }] : []),
       {
         // Without this the only way to put a chapter mid-book was to append it
         // and drag it up past everything after it - a dozen drags on a long
@@ -781,6 +785,10 @@ export function Binder(): React.JSX.Element {
           <button className="binder-mobile-add" onClick={() => setAddChapterOpen(true)}>
             <Plus size={15} strokeWidth={2} />
             {t('shell.newChapter')}
+          </button>
+          <button className="binder-mobile-add" onClick={() => useShellStore.getState().openExport()}>
+            <FileDown size={15} strokeWidth={2} />
+            {t('shell.view.export')}
           </button>
         </div>
       )}

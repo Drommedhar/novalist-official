@@ -10,6 +10,7 @@ import { SettingsView } from '../views/settings/SettingsView'
 import { TimelineView } from '../views/timeline/TimelineView'
 import { PlotGridView } from '../views/plotgrid/PlotGridView'
 import { CalendarView } from '../views/calendar/CalendarView'
+import { ExportView } from '../views/export/ExportView'
 import { MobileInspectorSheet } from './MobileInspectorSheet'
 import { TabletShell } from './TabletShell'
 import { useShellStore, type MobileTab, type MainView } from '../stores/shellStore'
@@ -151,6 +152,10 @@ export function MobileShell(): React.JSX.Element {
       // per destination, so there is no tab-to-view mapping and no Plan drawer.
       if (layout === 'tablet') {
         if (key === 'codex') useCodexStore.setState({ selectedId: null, selectedRecord: null })
+        if (key === 'export') {
+          useShellStore.getState().openExport()
+          return
+        }
         useShellStore.getState().setMainView(key as MainView)
         return
       }
@@ -188,7 +193,8 @@ export function MobileShell(): React.JSX.Element {
   useEffect(() => {
     if (layout !== 'tablet') return
     window.novalist.setSidebarSelection?.(mainView)
-  }, [layout, mainView])
+    if (tab === 'export' && mainView !== 'export') setTab('manuscript')
+  }, [layout, mainView, tab, setTab])
 
   // The phone navigates via the tab rather than the pane tree, so mainView is
   // kept in sync with it for two reasons: the status bar, the palette and the
@@ -204,7 +210,8 @@ export function MobileShell(): React.JSX.Element {
       manuscript: 'write',
       codex: 'codex',
       planning: planningView,
-      settings: 'settings'
+      settings: 'settings',
+      export: 'export'
     }
     useShellStore.getState().setMainView(map[tab])
   }, [tab, planningView, layout])
@@ -213,7 +220,8 @@ export function MobileShell(): React.JSX.Element {
   // first-run tour walks them) has to be pushed across, or the bar names one
   // place while the screen shows another.
   useEffect(() => {
-    window.novalist.setSelectedTab?.(NATIVE_TAB_ORDER.indexOf(tab))
+    // Export is reached from Write, and returns there; it has no sixth native tab.
+    window.novalist.setSelectedTab?.(NATIVE_TAB_ORDER.indexOf(tab === 'export' ? 'manuscript' : tab))
   }, [tab])
 
   const selectPlanning = (target: PlanningTarget): void => {
@@ -303,6 +311,7 @@ export function MobileShell(): React.JSX.Element {
       </div>
     )
   else if (tab === 'settings') content = <SettingsView />
+  else if (tab === 'export') content = <ExportView />
   else if (tab === 'planning')
     content =
       planningView === 'plotGrid' ? (
@@ -316,6 +325,14 @@ export function MobileShell(): React.JSX.Element {
 
   return (
     <div className="mobile-shell">
+      {tab === 'export' && (
+        <div className="mobile-editor-bar">
+          <button type="button" className="mobile-back" onClick={() => setTab('manuscript')}>
+            <ChevronLeft size={20} strokeWidth={2} />
+            <span>{t('shell.chapters')}</span>
+          </button>
+        </div>
+      )}
       {inEditor && (
         <div className="mobile-editor-bar">
           <button
