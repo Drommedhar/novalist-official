@@ -253,10 +253,13 @@ public sealed class ExtensionContribRpc
            ?? [];
 
     [JsonRpcMethod("extensions/settingsSchema/save")]
-    public async Task SaveSettingsSchemaAsync(string extensionId, Dictionary<string, string> values)
+    public async Task<SettingsSchemaDto?> SaveSettingsSchemaAsync(string extensionId, Dictionary<string, string> values)
     {
-        if (Host == null) return;
+        if (Host == null) return null;
         await Host.ApplySettingsSchemaAsync(extensionId, values ?? new Dictionary<string, string>());
+        var entry = Host.EnumerateSettingsSchemas().FirstOrDefault(x => x.ExtensionId == extensionId);
+        return entry.Contributor == null ? null
+            : ToDto(entry.ExtensionId, entry.ExtensionName, entry.Contributor.GetSettingsSchema());
     }
 
     /// <summary>Runs a schema action button (e.g. "Refresh models") for an
@@ -280,7 +283,7 @@ public sealed class ExtensionContribRpc
             schema.Fields.Select(f => new SettingsFieldDto(
                 f.Key, f.Label, f.Type.ToString().ToLowerInvariant(), f.Value,
                 f.Options?.ToArray(), f.Min, f.Max, f.Group, f.Help,
-                f.VisibleWhenKey, f.VisibleWhenValues?.ToArray(), f.Suggestions?.ToArray())).ToArray());
+                f.VisibleWhenKey, f.VisibleWhenValues?.ToArray(), f.Suggestions?.ToArray(), f.OptionLabels)).ToArray());
 }
 
 /// <summary>An inline action as the editor sees it. <c>AllowsEmptySelection</c>
@@ -313,4 +316,5 @@ public sealed record SettingsSchemaDto(string ExtensionId, string ExtensionName,
 public sealed record SettingsFieldDto(
     string Key, string Label, string Type, string Value,
     IReadOnlyList<string>? Options, double? Min, double? Max, string? Group, string? Help,
-    string? VisibleWhenKey, IReadOnlyList<string>? VisibleWhenValues, IReadOnlyList<string>? Suggestions);
+    string? VisibleWhenKey, IReadOnlyList<string>? VisibleWhenValues, IReadOnlyList<string>? Suggestions,
+    IReadOnlyDictionary<string, string>? OptionLabels = null);

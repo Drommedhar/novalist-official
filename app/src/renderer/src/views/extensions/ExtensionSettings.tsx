@@ -26,6 +26,7 @@ interface SettingsFieldDto {
   type: string
   value: string
   options: string[] | null
+  optionLabels?: Record<string, string> | null
   min: number | null
   max: number | null
   group: string | null
@@ -146,6 +147,20 @@ function ExtensionSchemaForm({
   const dirty = useRef(false)
   const inFlightSave = useRef<Promise<unknown> | null>(null)
 
+  const adoptSchema = useCallback((next: SettingsSchemaDto, submitted: Record<string, string>): void => {
+    setActive(next)
+    // Apply values computed by the extension (e.g. a provider's URL), while
+    // preserving anything edited after this request was sent.
+    const merged = { ...valuesRef.current }
+    for (const field of next.fields) {
+      if (merged[field.key] === submitted[field.key] || !(field.key in merged)) {
+        merged[field.key] = field.value
+      }
+    }
+    valuesRef.current = merged
+    setValues(merged)
+  }, [])
+
   const flush = useCallback(async (): Promise<void> => {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = null
@@ -159,9 +174,10 @@ function ExtensionSchemaForm({
       dirty.current = false
       const extensionId = extIdRef.current
       const pendingValues = valuesRef.current
-      const request = persistPendingWrite(`extension-settings:${extensionId}`, () =>
-        rpc.request('extensions/settingsSchema/save', [extensionId, pendingValues])
-      )
+      const request = persistPendingWrite(`extension-settings:${extensionId}`, async () => {
+        const next = await rpc.request<SettingsSchemaDto | null>('extensions/settingsSchema/save', [extensionId, pendingValues])
+        if (next) adoptSchema(next, pendingValues)
+      })
       inFlightSave.current = request
       try {
         await request
@@ -173,10 +189,12 @@ function ExtensionSchemaForm({
         if (inFlightSave.current === request) inFlightSave.current = null
       }
     }
-  }, [onSaved])
+  }, [onSaved, adoptSchema])
 
   const set = (key: string, value: string): void => {
-    setValues((v) => ({ ...v, [key]: value }))
+    const next = { ...valuesRef.current, [key]: value }
+    valuesRef.current = next
+    setValues(next)
     dirty.current = true
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {
@@ -206,16 +224,14 @@ function ExtensionSchemaForm({
   const runAction = async (key: string): Promise<void> => {
     setRunningAction(key)
     try {
+      await flush()
+      const submitted = valuesRef.current
       const next = await rpc.request<SettingsSchemaDto | null>('extensions/settingsSchema/action', [
         active.extensionId,
         key,
-        values
+        submitted
       ])
-      if (next) {
-        setActive(next)
-        // Adopt any new fields' defaults but keep the user's current edits.
-        setValues((v) => ({ ...Object.fromEntries(next.fields.map((f) => [f.key, f.value])), ...v }))
-      }
+      if (next) adoptSchema(next, submitted)
     } finally {
       setRunningAction(null)
     }
@@ -296,7 +312,7 @@ function SchemaInput({
         <select className="ext-schema-input" value={value} onChange={(e) => onChange(e.target.value)}>
           {(field.options ?? []).map((opt) => (
             <option key={opt} value={opt}>
-              {opt}
+              {field.optionLabels?.[opt] ?? opt}
             </option>
           ))}
         </select>

@@ -7,10 +7,10 @@ public interface IAiService
     /// <summary>Configure the service from settings.</summary>
     void Configure(AiSettings settings);
 
-    /// <summary>Check if the LM Studio server is reachable.</summary>
+    /// <summary>Check if the configured AI service is reachable.</summary>
     Task<bool> IsServerRunningAsync();
 
-    /// <summary>List available LLM models on the LM Studio server.</summary>
+    /// <summary>List available models from the configured AI service.</summary>
     Task<List<AiModelInfo>> ListModelsAsync();
 
     /// <summary>Ensure the configured model is loaded with the desired context length.</summary>

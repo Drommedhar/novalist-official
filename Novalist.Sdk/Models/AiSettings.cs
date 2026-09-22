@@ -69,17 +69,15 @@ public class AiSettings
     public int AnthropicMaxTokens { get; set; } = 8192;
 
     /// <summary>
-    /// Named preset for the OpenAI-compatible endpoint. Every one of these
-    /// speaks the same wire format as LM Studio, so they differ only by base
-    /// URL - picking one fills the URL in rather than making the user find it.
-    /// Empty means the URL was set by hand.
+    /// Legacy endpoint selection, retained for settings saved before services
+    /// such as Ollama were listed directly in <see cref="Provider"/>.
     /// </summary>
     [JsonPropertyName("openAiCompatiblePreset")]
     public string OpenAiCompatiblePreset { get; set; } = string.Empty;
 
     /// <summary>
-    /// Base URLs for <see cref="OpenAiCompatiblePreset"/>. Keys are stable
-    /// identifiers the UI localizes; values are the documented endpoints.
+    /// Default base URLs for compatible services. Keys are stable provider ids;
+    /// also used to migrate <see cref="OpenAiCompatiblePreset"/>.
     /// </summary>
     public static IReadOnlyDictionary<string, string> OpenAiCompatiblePresets { get; } =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)

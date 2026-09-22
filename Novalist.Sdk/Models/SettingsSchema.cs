@@ -61,6 +61,9 @@ public sealed class SettingsField
     /// <summary>Choices for <see cref="SettingsFieldType.Select"/>.</summary>
     public IReadOnlyList<string>? Options { get; init; }
 
+    /// <summary>Optional display labels keyed by the stable option values.</summary>
+    public IReadOnlyDictionary<string, string>? OptionLabels { get; init; }
+
     /// <summary>Optional minimum for <see cref="SettingsFieldType.Number"/>.</summary>
     public double? Min { get; init; }
 

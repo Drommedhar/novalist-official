@@ -37,7 +37,10 @@ public sealed class WizardDefinition
     public Func<WizardResult, Task>? OnCompleted { get; set; }
 }
 
-/// <summary>Condition gating step visibility against the answer map. </summary>
+/// <summary>
+/// Condition gating step visibility against the answer map. If the referenced
+/// step is hidden, dependent steps are hidden too, even when its answer is seeded.
+/// </summary>
 public sealed class WizardCondition
 {
     public string StepId { get; set; } = string.Empty;

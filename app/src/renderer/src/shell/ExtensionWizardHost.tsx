@@ -10,10 +10,21 @@ import {
 } from '../stores/hostBridgeStore'
 import './hostBridge.css'
 
-/** Evaluates a step's VisibleWhen condition against the current answers. */
-function isVisible(step: WizardStepDef, answers: Record<string, WizardAnswer>): boolean {
+/** A hidden question also hides the steps that depend on its answer. */
+function isVisible(
+  step: WizardStepDef,
+  answers: Record<string, WizardAnswer>,
+  steps: WizardStepDef[],
+  visiting = new Set<string>()
+): boolean {
   const cond = step.visibleWhen
   if (!cond) return true
+  if (visiting.has(step.id)) return false
+  visiting.add(step.id)
+  // Seeded answers remain available if a branch is enabled again, but must
+  // not expose child pages while their controlling question is hidden.
+  const dependency = steps.find((s) => s.id === cond.stepId)
+  if (dependency && !isVisible(dependency, answers, steps, visiting)) return false
   const answer = answers[cond.stepId]
   const text = answer?.text ?? ''
   switch (cond.operator) {
@@ -57,13 +68,15 @@ export function ExtensionWizardHost(): React.JSX.Element | null {
     setAnswers(seeded)
     setDynChoices({})
     setError(null)
-    const firstVisible = wizard.definition.steps.findIndex((s) => isVisible(s, seeded))
+    const firstVisible = wizard.definition.steps.findIndex((s) =>
+      isVisible(s, seeded, wizard.definition.steps)
+    )
     setIndex(firstVisible < 0 ? 0 : firstVisible)
   }, [wizard])
 
   const nextVisible = useCallback(
     (from: number): number => {
-      for (let j = from + 1; j < steps.length; j++) if (isVisible(steps[j], answers)) return j
+      for (let j = from + 1; j < steps.length; j++) if (isVisible(steps[j], answers, steps)) return j
       return -1
     },
     [steps, answers]
@@ -173,7 +186,7 @@ export function ExtensionWizardHost(): React.JSX.Element | null {
     else setIndex(next)
   }
 
-  const visibleSteps = steps.filter((s) => isVisible(s, answers))
+  const visibleSteps = steps.filter((s) => isVisible(s, answers, steps))
   const position = visibleSteps.indexOf(step) + 1
 
   return (

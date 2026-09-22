@@ -394,7 +394,9 @@ public sealed class ExtensionContribRpcTests : IDisposable
         Assert.Equal("autoStartBreaks", gated.VisibleWhenKey);
         Assert.Equal(new[] { "true" }, gated.VisibleWhenValues);
 
-        await _rpc.SaveSettingsSchemaAsync(SampleId, new Dictionary<string, string> { ["duration"] = "45" });
+        var saved = await _rpc.SaveSettingsSchemaAsync(SampleId, new Dictionary<string, string> { ["duration"] = "45" });
+        Assert.NotNull(saved);
+        Assert.Equal("45", saved.Fields.First(f => f.Key == "duration").Value);
         Assert.Equal("45", _rpc.SettingsSchemas().Single().Fields.First(f => f.Key == "duration").Value);
 
         // Null values dictionary is tolerated.
