@@ -110,11 +110,15 @@ Limitations of the importer:
 
 ## Cloud sync caveats
 
-Novalist projects work with any file-sync service (Dropbox, OneDrive, iCloud Drive, Google Drive's desktop client, Syncthing). A few rules:
+On desktop, Novalist projects can live in folders managed by file-sync services (Dropbox, OneDrive, iCloud Drive, Google Drive's desktop client, Syncthing). On iPhone and iPad, select the project folder in **iCloud Drive** through Files. A provider being visible in Files does not guarantee it supports opening folders in other apps.
+
+The iOS app coordinates project reads and saves with iCloud, allowing files to download before they are read and making completed writes available for upload. Upload scheduling remains controlled by iCloud. If a download or access fails, reconnect and retry; an unavailable Codex file is reported as an error rather than omitted from the list.
+
+A few rules:
 
 - **Don't have the project open on two machines at once.** Cloud-sync conflict files can result.
 - **Wait for sync to finish before opening on another machine.** Otherwise you might open a half-synced state.
-- **Beware of placeholder files.** Some sync clients keep "online-only" placeholders for unopened files; Novalist needs the actual content.
+- **Keep files downloaded for offline work.** On iOS, use **Keep Downloaded** in Files for the project folder before going offline. Desktop sync clients may also need their equivalent setting for "online-only" files.
 
 ## Performance issues
 

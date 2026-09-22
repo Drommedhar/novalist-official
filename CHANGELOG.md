@@ -26,6 +26,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- Codex loads now report file-access failures instead of silently leaving affected entries out of the list.
 - Books can be renamed from the book picker. Renaming a project immediately updates its dashboard heading and recent-project entry.
 - Recent projects refresh after creating, opening, or closing a project and when returning to the app, removing entries for deleted projects without a restart.
 - Planning cards created as scenes keep their titles in sync with the manuscript, including when the scene moves to another chapter.

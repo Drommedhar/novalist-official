@@ -31,6 +31,7 @@ public sealed class EntityHistory
     public const int KeepPerEntity = 25;
 
     private readonly IProjectService _projects;
+    private readonly IFileService _files;
     private readonly Func<DateTime> _now;
 
     /// <param name="now">
@@ -40,6 +41,7 @@ public sealed class EntityHistory
     public EntityHistory(IProjectService projects, Func<DateTime>? now = null)
     {
         _projects = projects;
+        _files = ProjectFiles.For(projects);
         _now = now ?? (() => DateTime.UtcNow);
     }
 
@@ -55,7 +57,7 @@ public sealed class EntityHistory
 
         var dir = DirectoryFor(entityId);
         if (dir == null) return;
-        Directory.CreateDirectory(dir);
+        await _files.CreateDirectoryAsync(dir).ConfigureAwait(false);
 
         // Sortable and readable in a file listing. Two saves inside the same
         // millisecond - which a script, or a paste over a whole field set, will
@@ -63,29 +65,29 @@ public sealed class EntityHistory
         // first, losing exactly the revision somebody would want back.
         var stamp = $"{_now():yyyyMMdd-HHmmssfff}";
         var path = Path.Combine(dir, $"{stamp}.json");
-        for (var n = 1; File.Exists(path) && n < 1000; n++)
+        for (var n = 1; await _files.ExistsAsync(path).ConfigureAwait(false) && n < 1000; n++)
             path = Path.Combine(dir, $"{stamp}-{n:000}.json");
 
-        await File.WriteAllTextAsync(path, previousJson);
-        Prune(dir);
+        await _files.WriteTextAsync(path, previousJson).ConfigureAwait(false);
+        await PruneAsync(dir).ConfigureAwait(false);
     }
 
     /// <summary>Revisions for an entry, newest first.</summary>
-    public IReadOnlyList<EntityRevision> List(string entityId)
+    public IReadOnlyList<EntityRevision> List(string entityId) => ListAsync(entityId).GetAwaiter().GetResult();
+
+    public async Task<IReadOnlyList<EntityRevision>> ListAsync(string entityId)
     {
         var dir = DirectoryFor(entityId);
-        if (dir == null || !Directory.Exists(dir)) return [];
+        if (dir == null || !await _files.DirectoryExistsAsync(dir).ConfigureAwait(false)) return [];
 
-        return [.. Directory.EnumerateFiles(dir, "*.json")
-            .Select(path => new FileInfo(path))
-            // Without the extension: "...fff.json" and "...fff-001.json" differ
-            // first at '.' against '-', and '.' sorts higher, so the extension
-            // would put a same-millisecond pair in the wrong order.
-            .OrderByDescending(f => Path.GetFileNameWithoutExtension(f.Name), StringComparer.Ordinal)
-            .Select(f => new EntityRevision(
-                Path.GetFileNameWithoutExtension(f.Name),
-                Parse(Path.GetFileNameWithoutExtension(f.Name)),
-                f.Length))];
+        var files = await _files.GetFilesAsync(dir, "*.json").ConfigureAwait(false);
+        var result = new List<EntityRevision>();
+        foreach (var path in files.OrderByDescending(Path.GetFileNameWithoutExtension, StringComparer.Ordinal))
+        {
+            var id = Path.GetFileNameWithoutExtension(path);
+            result.Add(new EntityRevision(id, Parse(id), await _files.GetFileSizeAsync(path).ConfigureAwait(false)));
+        }
+        return result;
     }
 
     /// <summary>
@@ -100,18 +102,19 @@ public sealed class EntityHistory
         if (revisionId.Contains('/') || revisionId.Contains('\\') || revisionId.Contains("..")) return null;
 
         var path = Path.Combine(dir, $"{revisionId}.json");
-        return File.Exists(path) ? await File.ReadAllTextAsync(path) : null;
+        return await _files.ExistsAsync(path).ConfigureAwait(false)
+            ? await _files.ReadTextAsync(path).ConfigureAwait(false) : null;
     }
 
-    private static void Prune(string dir)
+    private async Task PruneAsync(string dir)
     {
-        var files = Directory.EnumerateFiles(dir, "*.json")
+        var files = (await _files.GetFilesAsync(dir, "*.json").ConfigureAwait(false))
             .OrderByDescending(Path.GetFileNameWithoutExtension, StringComparer.Ordinal)
             .Skip(KeepPerEntity)
             .ToList();
         foreach (var stale in files)
         {
-            try { File.Delete(stale); }
+            try { await _files.DeleteFileAsync(stale).ConfigureAwait(false); }
             catch (IOException) { /* Something else has it; it goes next time. */ }
         }
     }

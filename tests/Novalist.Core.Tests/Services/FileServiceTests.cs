@@ -173,6 +173,20 @@ public class FileServiceTests
     }
 
     [Fact]
+    public async Task MoveDirectoryAsync_PreservesTheFilesInside()
+    {
+        using var dir = new TempDir();
+        var source = dir.Combine("chapter");
+        var destination = dir.Combine("renamed");
+        await _sut.WriteTextAsync(Path.Combine(source, "scene.novalist"), "prose");
+
+        await _sut.MoveDirectoryAsync(source, destination);
+
+        Assert.False(Directory.Exists(source));
+        Assert.Equal("prose", await _sut.ReadTextAsync(Path.Combine(destination, "scene.novalist")));
+    }
+
+    [Fact]
     public void PathHelpers()
     {
         Assert.Equal(Path.Combine("a", "b"), _sut.CombinePath("a", "b"));

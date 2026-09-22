@@ -24,6 +24,7 @@ public interface IFileService
     Task DeleteFileAsync(string path);
     Task DeleteDirectoryAsync(string path, bool recursive = true);
     Task MoveFileAsync(string oldPath, string newPath);
+    Task MoveDirectoryAsync(string oldPath, string newPath);
 
     /// <summary>Size of the file in bytes. Used by the draft-index re-hash fast-path.</summary>
     Task<long> GetFileSizeAsync(string path);

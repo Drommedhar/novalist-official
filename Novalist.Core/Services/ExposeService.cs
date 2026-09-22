@@ -35,10 +35,12 @@ public sealed partial class ExposeService
     public const string FileName = "Expose.novalist";
 
     private readonly IProjectService _projectService;
+    private readonly IFileService _files;
 
     public ExposeService(IProjectService projectService)
     {
         _projectService = projectService;
+        _files = ProjectFiles.For(projectService);
     }
 
     /// <summary>Full path of the active book's exposé file, or null with no book open.</summary>
@@ -52,8 +54,8 @@ public sealed partial class ExposeService
     public async Task<ExposeState> GetAsync()
     {
         var path = GetExposePath();
-        var html = path != null && File.Exists(path)
-            ? await File.ReadAllTextAsync(path, Encoding.UTF8)
+        var html = path != null && await _files.ExistsAsync(path)
+            ? await _files.ReadTextAsync(path)
             : string.Empty;
         return Describe(html);
     }
@@ -64,8 +66,8 @@ public sealed partial class ExposeService
         var path = GetExposePath();
         if (path != null)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            await File.WriteAllTextAsync(path, html ?? string.Empty, Encoding.UTF8);
+            await _files.CreateDirectoryAsync(Path.GetDirectoryName(path)!);
+            await _files.WriteTextAsync(path, html ?? string.Empty);
         }
         return Describe(html ?? string.Empty);
     }

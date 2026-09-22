@@ -26,11 +26,12 @@ public sealed partial class Workspace : IDisposable
     /// path is simply an address.</summary>
     private readonly IStoredPathResolver? _storedPaths;
 
-    public Workspace(string? settingsDirectory = null, IStoredPathResolver? storedPaths = null)
+    public Workspace(string? settingsDirectory = null, IStoredPathResolver? storedPaths = null,
+        IFileService? fileService = null)
     {
         SettingsDirectory = settingsDirectory;
         _storedPaths = storedPaths;
-        FileService = new FileService();
+        FileService = fileService ?? new FileService();
         Projects = new ProjectService(FileService);
         Settings = new SettingsService(settingsDirectory);
         // Beside the settings rather than inside a project: a thought that
@@ -46,7 +47,7 @@ public sealed partial class Workspace : IDisposable
         SceneAnalysisLexicon.RegisterUserDirectory(UserAssets.AnalysisDirectory);
     }
 
-    public FileService FileService { get; }
+    public IFileService FileService { get; }
     public ProjectService Projects { get; }
     public SettingsService Settings { get; }
 

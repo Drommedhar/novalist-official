@@ -2,6 +2,8 @@ using System.Text.Json;
 using Nerdbank.Streams;
 using Novalist.Backend;
 using Novalist.Backend.Rpc;
+using Novalist.Core.Services;
+using Novalist.Core.Tests.TestHelpers;
 using StreamJsonRpc;
 using Xunit;
 
@@ -17,6 +19,46 @@ public class BackendHostTests
         var rpc = new JsonRpc(new HeaderDelimitedMessageHandler(duplex, duplex, formatter));
         rpc.StartListening();
         return rpc;
+    }
+
+    [Fact]
+    public async Task RendererProjectSceneAndCodexRequestsReachTheHostsFileCoordinator()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "nl-coordinated-host-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var coordinator = new RecordingFileCoordinator();
+            var files = new CoordinatedFileService(coordinator);
+            var (serverStream, clientStream) = FullDuplexStream.CreatePair();
+            using var host = new BackendHost(Path.Combine(root, "settings"), fileService: files);
+            host.Attach(serverStream, serverStream);
+            using var client = CreateClient(clientStream);
+
+            var project = await client.InvokeAsync<ProjectStateDto>("project/create", root, "Cloud", "Book");
+            var state = await client.InvokeAsync<ProjectStateDto>("project/createChapter", "Chapter");
+            var chapter = Assert.Single(state.Chapters);
+            state = await client.InvokeAsync<ProjectStateDto>("project/createScene", chapter.Guid, "Scene");
+            var scene = Assert.Single(Assert.Single(state.Chapters).Scenes);
+            await client.InvokeAsync<SceneWriteResultDto>("scenes/write", chapter.Guid, scene.Id,
+                "<p>Cloud prose</p>", "Cloud prose");
+            var character = await client.InvokeAsync<JsonElement>("entities/create", "character", "Mira");
+            var characterId = character.GetProperty("id").GetString()!;
+
+            Assert.Same(files, host.Workspace.FileService);
+            Assert.Contains(coordinator.Accesses, a => a.Operation == "write" && a.Path.EndsWith("project.json"));
+            Assert.Contains(coordinator.Accesses, a => a.Operation == "write" && a.Path.EndsWith("scenes.json"));
+            Assert.Contains(coordinator.Accesses, a => a.Operation == "write" && a.Path.EndsWith(characterId + ".json"));
+            Assert.Contains(coordinator.Accesses, a => a.Operation == "write" && a.Path.EndsWith(".novalist"));
+
+            await client.InvokeAsync<ProjectStateDto>("project/close");
+            await client.InvokeAsync<ProjectStateDto>("project/open", project.ProjectPath);
+            var content = await client.InvokeAsync<SceneContentDto>("scenes/read", chapter.Guid, scene.Id);
+            var loaded = await client.InvokeAsync<JsonElement>("entities/get", "character", characterId);
+            Assert.Equal("<p>Cloud prose</p>", content.Html);
+            Assert.Equal("Mira", loaded.GetProperty("name").GetString());
+        }
+        finally { Directory.Delete(root, recursive: true); }
     }
 
     [Fact]

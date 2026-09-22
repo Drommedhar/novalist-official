@@ -7,6 +7,8 @@ namespace Novalist.Core.Services;
 public partial class ProjectService : IProjectService
 {
     private readonly IFileService _fileService;
+    /// <summary>The host's file access policy, shared by services writing this project.</summary>
+    public IFileService FileService => _fileService;
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -1356,7 +1358,7 @@ public partial class ProjectService : IProjectService
 
         if (await _fileService.DirectoryExistsAsync(oldFolderPath) && oldFolderPath != newFolderPath)
         {
-            Directory.Move(oldFolderPath, newFolderPath);
+            await _fileService.MoveDirectoryAsync(oldFolderPath, newFolderPath);
         }
 
         await SaveProjectAsync();
@@ -1778,34 +1780,35 @@ public partial class ProjectService : IProjectService
         if (await _fileService.DirectoryExistsAsync(oldChapters))
         {
             await _fileService.CreateDirectoryAsync(newChapters);
-            foreach (var sub in Directory.GetDirectories(oldChapters))
+            foreach (var sub in await _fileService.GetDirectoriesAsync(oldChapters))
             {
                 var name = Path.GetFileName(sub);
                 var target = _fileService.CombinePath(newChapters, name);
-                if (Directory.Exists(target))
+                if (await _fileService.DirectoryExistsAsync(target))
                 {
                     // Target chapter folder exists — only merge in if it has no
                     // scene files (i.e. an empty stub from a half-finished prior
                     // migration). If it already has scenes, leave both intact.
-                    if (Directory.EnumerateFileSystemEntries(target).Any()) continue;
-                    foreach (var file in Directory.EnumerateFiles(sub))
-                        File.Move(file, _fileService.CombinePath(target, Path.GetFileName(file)));
-                    try { Directory.Delete(sub); } catch { /* leave empty */ }
+                    if ((await _fileService.GetFilesAsync(target)).Count > 0 ||
+                        (await _fileService.GetDirectoriesAsync(target)).Count > 0) continue;
+                    foreach (var file in await _fileService.GetFilesAsync(sub))
+                        await _fileService.MoveFileAsync(file, _fileService.CombinePath(target, Path.GetFileName(file)));
+                    try { await _fileService.DeleteDirectoryAsync(sub, recursive: false); } catch { /* leave empty */ }
                 }
                 else
                 {
-                    Directory.Move(sub, target);
+                    await _fileService.MoveDirectoryAsync(sub, target);
                 }
             }
             // Drop the legacy chapters folder if it's now empty.
-            TryDeleteEmptyDir(oldChapters);
+            await TryDeleteEmptyDirAsync(oldChapters);
         }
 
         // Snapshots: same pattern.
         var oldSnaps = _fileService.CombinePath(bookRoot, book.SnapshotFolder);
         var newSnaps = _fileService.CombinePath(draftRoot, book.SnapshotFolder);
         if (await _fileService.DirectoryExistsAsync(oldSnaps) && !await _fileService.DirectoryExistsAsync(newSnaps))
-            Directory.Move(oldSnaps, newSnaps);
+            await _fileService.MoveDirectoryAsync(oldSnaps, newSnaps);
 
         // scenes.json: legacy under .book/, draft expects it at draft root.
         var oldScenes = _fileService.CombinePath(bookRoot, ".book", "scenes.json");
@@ -1871,9 +1874,14 @@ public partial class ProjectService : IProjectService
     // the catch only fires when the OS refuses to delete an empty directory
     // (another process holding a handle), which is not reproducible in a test.
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    private static void TryDeleteEmptyDir(string dir)
+    private async Task TryDeleteEmptyDirAsync(string dir)
     {
-        try { if (!Directory.EnumerateFileSystemEntries(dir).Any()) Directory.Delete(dir); }
+        try
+        {
+            if ((await _fileService.GetFilesAsync(dir)).Count == 0 &&
+                (await _fileService.GetDirectoriesAsync(dir)).Count == 0)
+                await _fileService.DeleteDirectoryAsync(dir, recursive: false);
+        }
         catch { /* leave the empty folder if something is holding it */ }
     }
 

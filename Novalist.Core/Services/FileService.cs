@@ -143,6 +143,12 @@ public class FileService : IFileService
     public Task<long> GetFileSizeAsync(string path)
         => Task.FromResult(new FileInfo(path).Length);
 
+    public Task MoveDirectoryAsync(string oldPath, string newPath)
+    {
+        Directory.Move(oldPath, newPath);
+        return Task.CompletedTask;
+    }
+
     public Task<DateTime> GetLastWriteTimeUtcAsync(string path)
         => Task.FromResult(File.GetLastWriteTimeUtc(path));
 

@@ -33,6 +33,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
 {
     private readonly HybridWebView _web;
     private readonly BackendHost _host;
+    private readonly IFileService _files = new CoordinatedFileService(new IosFileAccessCoordinator());
     private readonly Stream _bridge;
     private readonly CancellationTokenSource _cts = new();
 
@@ -49,7 +50,8 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         _host = new BackendHost(
             FileSystem.Current.AppDataDirectory,
             new UnavailableProcessRunner(),
-            new IosStoredPathResolver());
+            new IosStoredPathResolver(),
+            _files);
         _host.Attach(backendEnd, backendEnd);
 
         _web = new HybridWebView
@@ -946,7 +948,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
     // Absolute folder of the open project; set via setProjectRoot on project open.
     private string? _projectRoot;
 
-    private string? ReadProjectImage(string relative)
+    private async Task<string?> ReadProjectImageAsync(string relative)
     {
         if (string.IsNullOrEmpty(_projectRoot) || string.IsNullOrEmpty(relative)) return null;
         try
@@ -954,9 +956,10 @@ public sealed class RendererHostPage : ContentPage, IDisposable
             var rootFull = Path.GetFullPath(_projectRoot);
             var full = Path.GetFullPath(Path.Combine(rootFull, relative));
             // Never serve outside the project folder.
-            if (!full.StartsWith(rootFull, StringComparison.Ordinal)) return null;
-            if (!File.Exists(full)) return null;
-            var bytes = File.ReadAllBytes(full);
+            if (!full.StartsWith(rootFull.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
+                    StringComparison.Ordinal)) return null;
+            if (!await _files.ExistsAsync(full)) return null;
+            var bytes = await _files.ReadBytesAsync(full);
             return $"data:{MimeForExtension(full)};base64,{Convert.ToBase64String(bytes)}";
         }
         catch
@@ -1019,7 +1022,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                 // Read a project-relative image and return it as a data: URI. The
                 // mobile build has no custom-scheme handler, so novalist-project://
                 // <img> srcs are rewritten to call this (see mobile/projectImages).
-                return ReadProjectImage(ArgString(args, 0));
+                return await ReadProjectImageAsync(ArgString(args, 0));
             case "pickFile":
             {
                 // Images get the photo-library / Files choice (ImagePicking): the

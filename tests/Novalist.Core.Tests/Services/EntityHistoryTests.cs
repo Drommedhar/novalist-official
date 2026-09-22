@@ -1,6 +1,7 @@
 using NSubstitute;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
+using Novalist.Core.Tests.TestHelpers;
 using Xunit;
 
 namespace Novalist.Core.Tests.Services;
@@ -173,23 +174,29 @@ public sealed class EntityHistoryTests : IDisposable
     [Fact]
     public async Task ARevisionSomethingElseIsHoldingIsLeftForNextTime()
     {
+        var coordinator = new RecordingFileCoordinator();
+        var projects = new ProjectService(new CoordinatedFileService(coordinator));
+        await projects.CreateProjectAsync(_root, "History", "Book");
+        var history = new EntityHistory(projects);
         for (var i = 0; i < EntityHistory.KeepPerEntity + 1; i++)
         {
-            await _sut.RecordAsync("mira", $"state {i}", $"state {i + 1}");
+            await history.RecordAsync("mira", $"state {i}", $"state {i + 1}");
             await Task.Delay(2);
         }
-        var dir = Path.Combine(_root, "Snapshots", "Entities", "mira");
+        var dir = Path.Combine(projects.ActiveDraftRoot!, "Snapshots", "Entities", "mira");
         var oldest = Directory.EnumerateFiles(dir).OrderBy(f => f, StringComparer.Ordinal).First();
 
-        // Held open with no sharing: pruning cannot delete it, and must carry on
-        // rather than failing the save it is part of.
-        using (File.Open(oldest, FileMode.Open, FileAccess.Read, FileShare.None))
+        // Model a busy provider deterministically. Unix permits unlinking an
+        // open file, so FileShare.None does not exercise this case on macOS.
+        coordinator.BeforeWrite = (path, deleting) =>
         {
-            await _sut.RecordAsync("mira", "one more", "and another");
-        }
+            if (deleting && path == oldest) throw new IOException("Revision is busy");
+        };
+        await history.RecordAsync("mira", "one more", "and another");
 
         Assert.True(File.Exists(oldest));
-        Assert.NotEmpty(_sut.List("mira"));
+        Assert.NotEmpty(history.List("mira"));
+        projects.CloseProject();
     }
 
     [Theory]

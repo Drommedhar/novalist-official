@@ -126,6 +126,18 @@ public sealed class InMemoryFileService : IFileService
             ? Task.FromResult((long)System.Text.Encoding.UTF8.GetByteCount(v))
             : throw new FileNotFoundException(path);
 
+    public async Task MoveDirectoryAsync(string oldPath, string newPath)
+    {
+        var prefix = Canonical(oldPath) + Path.DirectorySeparatorChar;
+        foreach (var path in Files.Keys.Where(p => Canonical(p).StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).ToArray())
+            await MoveFileAsync(path, Path.Combine(newPath, Path.GetRelativePath(oldPath, path)));
+        foreach (var path in Dirs.Where(p => Same(p, oldPath) || Canonical(p).StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).ToArray())
+        {
+            Dirs.Remove(path);
+            Dirs.Add(Same(path, oldPath) ? newPath : Path.Combine(newPath, Path.GetRelativePath(oldPath, path)));
+        }
+    }
+
     public Task<DateTime> GetLastWriteTimeUtcAsync(string path)
         => Mtimes.TryGetValue(path, out var t) ? Task.FromResult(t) : throw new FileNotFoundException(path);
 

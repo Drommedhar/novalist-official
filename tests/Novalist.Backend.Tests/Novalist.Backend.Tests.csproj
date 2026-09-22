@@ -18,6 +18,8 @@
          like, and two hand-kept copies would drift. -->
     <Compile Include="..\Novalist.Core.Tests\TestHelpers\ScrivenerProjectBuilder.cs"
              Link="TestHelpers\ScrivenerProjectBuilder.cs" />
+    <Compile Include="..\Novalist.Core.Tests\TestHelpers\RecordingFileCoordinator.cs"
+             Link="TestHelpers\RecordingFileCoordinator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Fixtures\Scrivener\**\*"

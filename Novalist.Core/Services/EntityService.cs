@@ -7,6 +7,7 @@ namespace Novalist.Core.Services;
 public class EntityService : IEntityService
 {
     private readonly IProjectService _projectService;
+    private readonly IFileService _files;
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -18,6 +19,7 @@ public class EntityService : IEntityService
     public EntityService(IProjectService projectService)
     {
         _projectService = projectService;
+        _files = ProjectFiles.For(projectService);
     }
 
     private string BookRoot => _projectService.ActiveBookRoot
@@ -157,13 +159,13 @@ public class EntityService : IEntityService
         var (bookFolder, wbFolder) = GetEntityFolders(type);
         var sourceDir = Path.Combine(BookRoot, bookFolder);
         var destDir = Path.Combine(WorldBibleRoot, wbFolder);
-        Directory.CreateDirectory(destDir);
+        await _files.CreateDirectoryAsync(destDir);
 
         var sourceFile = Path.Combine(sourceDir, $"{id}.json");
         var destFile = Path.Combine(destDir, $"{id}.json");
 
-        if (File.Exists(sourceFile))
-            File.Move(sourceFile, destFile, overwrite: false);
+        if (await _files.ExistsAsync(sourceFile))
+            await _files.MoveFileAsync(sourceFile, destFile);
     }
 
     public async Task MoveEntityToBookAsync(EntityType type, string id)
@@ -173,13 +175,13 @@ public class EntityService : IEntityService
         var (bookFolder, wbFolder) = GetEntityFolders(type);
         var sourceDir = Path.Combine(WorldBibleRoot, wbFolder);
         var destDir = Path.Combine(BookRoot, bookFolder);
-        Directory.CreateDirectory(destDir);
+        await _files.CreateDirectoryAsync(destDir);
 
         var sourceFile = Path.Combine(sourceDir, $"{id}.json");
         var destFile = Path.Combine(destDir, $"{id}.json");
 
-        if (File.Exists(sourceFile))
-            File.Move(sourceFile, destFile, overwrite: false);
+        if (await _files.ExistsAsync(sourceFile))
+            await _files.MoveFileAsync(sourceFile, destFile);
 
         await Task.CompletedTask;
     }
@@ -212,13 +214,13 @@ public class EntityService : IEntityService
         var typeDef = GetCustomEntityTypeOrThrow(entityTypeKey);
         var sourceDir = Path.Combine(BookRoot, typeDef.FolderName);
         var destDir = Path.Combine(WorldBibleRoot, typeDef.FolderName);
-        Directory.CreateDirectory(destDir);
+        await _files.CreateDirectoryAsync(destDir);
 
         var sourceFile = Path.Combine(sourceDir, $"{id}.json");
         var destFile = Path.Combine(destDir, $"{id}.json");
 
-        if (File.Exists(sourceFile))
-            File.Move(sourceFile, destFile, overwrite: false);
+        if (await _files.ExistsAsync(sourceFile))
+            await _files.MoveFileAsync(sourceFile, destFile);
 
         await Task.CompletedTask;
     }
@@ -230,13 +232,13 @@ public class EntityService : IEntityService
         var typeDef = GetCustomEntityTypeOrThrow(entityTypeKey);
         var sourceDir = Path.Combine(WorldBibleRoot, typeDef.FolderName);
         var destDir = Path.Combine(BookRoot, typeDef.FolderName);
-        Directory.CreateDirectory(destDir);
+        await _files.CreateDirectoryAsync(destDir);
 
         var sourceFile = Path.Combine(sourceDir, $"{id}.json");
         var destFile = Path.Combine(destDir, $"{id}.json");
 
-        if (File.Exists(sourceFile))
-            File.Move(sourceFile, destFile, overwrite: false);
+        if (await _files.ExistsAsync(sourceFile))
+            await _files.MoveFileAsync(sourceFile, destFile);
 
         await Task.CompletedTask;
     }
@@ -283,23 +285,23 @@ public class EntityService : IEntityService
     public async Task<string> ImportAttachmentAsync(string sourcePath)
     {
         var folder = Path.Combine(BookRoot, AttachmentFolder);
-        Directory.CreateDirectory(folder);
+        await _files.CreateDirectoryAsync(folder);
 
         // The same file attached twice is one file. Matched on content rather
         // than name, because a browser saves the third copy as "deed (2).pdf".
         var sourceHash = await ComputeFileHashAsync(sourcePath);
         var sourceFullPath = Path.GetFullPath(sourcePath);
-        foreach (var existing in Directory.GetFiles(folder))
+        foreach (var existing in await _files.GetFilesAsync(folder))
         {
             if (string.Equals(Path.GetFullPath(existing), sourceFullPath, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(await ComputeFileHashAsync(existing), sourceHash, StringComparison.OrdinalIgnoreCase))
                 return Path.Combine(AttachmentFolder, Path.GetFileName(existing)).Replace('\\', '/');
         }
 
-        var destName = UniqueFileName(folder, Path.GetFileName(sourcePath));
+        var destName = await UniqueFileNameAsync(folder, Path.GetFileName(sourcePath));
         var destPath = Path.Combine(folder, destName);
         if (!string.Equals(Path.GetFullPath(destPath), sourceFullPath, StringComparison.OrdinalIgnoreCase))
-            File.Copy(sourcePath, destPath);
+            await _files.WriteBytesAsync(destPath, await _files.ReadBytesAsync(sourcePath));
 
         return Path.Combine(AttachmentFolder, destName).Replace('\\', '/');
     }
@@ -319,27 +321,27 @@ public class EntityService : IEntityService
     /// A name nothing in the folder already has. Suffixes rather than
     /// overwrites: two different files called scan.pdf are two files.
     /// </summary>
-    private static string UniqueFileName(string folder, string fileName)
+    private async Task<string> UniqueFileNameAsync(string folder, string fileName)
     {
-        if (!File.Exists(Path.Combine(folder, fileName))) return fileName;
+        if (!await _files.ExistsAsync(Path.Combine(folder, fileName))) return fileName;
         var stem = Path.GetFileNameWithoutExtension(fileName);
         var extension = Path.GetExtension(fileName);
         for (var n = 2; ; n++)
         {
             var candidate = $"{stem}-{n}{extension}";
-            if (!File.Exists(Path.Combine(folder, candidate))) return candidate;
+            if (!await _files.ExistsAsync(Path.Combine(folder, candidate))) return candidate;
         }
     }
 
     public async Task<string> ImportImageAsync(string sourcePath)
     {
         var imageDir = Path.Combine(BookRoot, Book.ImageFolder);
-        Directory.CreateDirectory(imageDir);
+        await _files.CreateDirectoryAsync(imageDir);
 
         var sourceHash = await ComputeFileHashAsync(sourcePath);
         var sourceFullPath = Path.GetFullPath(sourcePath);
 
-        foreach (var existingPath in Directory.GetFiles(imageDir)
+        foreach (var existingPath in (await _files.GetFilesAsync(imageDir))
                      .Where(file => ImageExtensions.Contains(Path.GetExtension(file).ToLowerInvariant())))
         {
             if (string.Equals(Path.GetFullPath(existingPath), sourceFullPath, StringComparison.OrdinalIgnoreCase))
@@ -351,39 +353,35 @@ public class EntityService : IEntityService
         }
 
         var fileName = Path.GetFileName(sourcePath);
-        var destName = GetUniqueImageFileName(imageDir, fileName);
+        var destName = await GetUniqueImageFileNameAsync(imageDir, fileName);
         var destPath = Path.Combine(imageDir, destName);
 
         if (!string.Equals(Path.GetFullPath(destPath), sourceFullPath, StringComparison.OrdinalIgnoreCase))
-            File.Copy(sourcePath, destPath);
+            await _files.WriteBytesAsync(destPath, await _files.ReadBytesAsync(sourcePath));
 
         return Path.Combine(Book.ImageFolder, destName).Replace('\\', '/');
     }
 
-    public List<string> GetProjectImages()
+    public List<string> GetProjectImages() => GetProjectImagesAsync().GetAwaiter().GetResult();
+
+    private async Task<List<string>> GetProjectImagesAsync()
     {
         var results = new List<string>();
 
         // Book images (recursive to support subdirectories)
         var bookImageDir = Path.Combine(BookRoot, Book.ImageFolder);
-        if (Directory.Exists(bookImageDir))
-        {
-            results.AddRange(Directory.GetFiles(bookImageDir, "*", SearchOption.AllDirectories)
-                .Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
-                .Select(f => Path.GetRelativePath(BookRoot, f).Replace('\\', '/')));
-        }
+        results.AddRange((await _files.GetFilesAsync(bookImageDir, recursive: true).ConfigureAwait(false))
+            .Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+            .Select(f => Path.GetRelativePath(BookRoot, f).Replace('\\', '/')));
 
         // World Bible images
         if (WorldBibleRoot != null)
         {
             var wbImageDir = Path.Combine(WorldBibleRoot, Project.ImageFolder);
-            if (Directory.Exists(wbImageDir))
-            {
-                results.AddRange(Directory.GetFiles(wbImageDir, "*", SearchOption.AllDirectories)
-                    .Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
-                    .Select(f => Path.Combine(Project.WorldBibleFolder,
-                        Path.GetRelativePath(WorldBibleRoot, f).Replace('\\', '/'))));
-            }
+            results.AddRange((await _files.GetFilesAsync(wbImageDir, recursive: true).ConfigureAwait(false))
+                .Where(f => ImageExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+                .Select(f => Path.Combine(Project.WorldBibleFolder,
+                    Path.GetRelativePath(WorldBibleRoot, f).Replace('\\', '/'))));
         }
 
         return results.OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToList();
@@ -421,19 +419,20 @@ public class EntityService : IEntityService
 
         // Load from book
         var bookDir = Path.Combine(BookRoot, bookFolder);
-        if (Directory.Exists(bookDir))
+        if (await _files.DirectoryExistsAsync(bookDir))
         {
-            foreach (var file in Directory.GetFiles(bookDir, "*.json"))
+            foreach (var file in await _files.GetFilesAsync(bookDir, "*.json"))
             {
                 T? entity;
                 try
                 {
-                    var json = await File.ReadAllTextAsync(file);
+                    var json = await _files.ReadTextAsync(file);
                     entity = JsonSerializer.Deserialize<T>(json, JsonOptions);
                 }
-                catch
+                catch (JsonException)
                 {
-                    // Skip a corrupt/unreadable entity file rather than failing the whole load.
+                    // Skip malformed JSON, but surface access/download failures:
+                    // unavailable cloud data must not look like a missing entry.
                     continue;
                 }
                 if (entity != null)
@@ -448,20 +447,20 @@ public class EntityService : IEntityService
         if (WorldBibleRoot != null)
         {
             var wbDir = Path.Combine(WorldBibleRoot, wbFolder);
-            if (Directory.Exists(wbDir))
+            if (await _files.DirectoryExistsAsync(wbDir))
             {
                 var bookIds = new HashSet<string>(result.Select(e => e.Id), StringComparer.Ordinal);
-                foreach (var file in Directory.GetFiles(wbDir, "*.json"))
+                foreach (var file in await _files.GetFilesAsync(wbDir, "*.json"))
                 {
                     T? entity;
                     try
                     {
-                        var json = await File.ReadAllTextAsync(file);
+                        var json = await _files.ReadTextAsync(file);
                         entity = JsonSerializer.Deserialize<T>(json, JsonOptions);
                     }
-                    catch
+                    catch (JsonException)
                     {
-                        // Skip a corrupt/unreadable entity file.
+                        // A malformed entry does not prevent loading its neighbours.
                         continue;
                     }
                     if (entity != null && !bookIds.Contains(entity.Id))
@@ -488,7 +487,7 @@ public class EntityService : IEntityService
             dir = Path.Combine(BookRoot, bookFolder);
         }
 
-        Directory.CreateDirectory(dir);
+        await _files.CreateDirectoryAsync(dir);
 
         var filePath = Path.Combine(dir, $"{id}.json");
         var json = JsonSerializer.Serialize(entity, JsonOptions);
@@ -496,22 +495,21 @@ public class EntityService : IEntityService
         // What the entry said before this write, kept so overwriting a
         // character sheet has an answer inside the app. Taken before the write
         // because the state worth keeping is the one being replaced.
-        if (File.Exists(filePath))
+        if (await _files.ExistsAsync(filePath))
         {
-            var previous = await File.ReadAllTextAsync(filePath);
+            var previous = await _files.ReadTextAsync(filePath);
             await new EntityHistory(_projectService).RecordAsync(id, previous, json);
         }
 
-        await File.WriteAllTextAsync(filePath, json);
+        await _files.WriteTextAsync(filePath, json);
     }
 
-    private Task DeleteEntityAsync(string folder, string id, bool isWorldBible)
+    private async Task DeleteEntityAsync(string folder, string id, bool isWorldBible)
     {
         string root = isWorldBible && WorldBibleRoot != null ? WorldBibleRoot : BookRoot;
         var filePath = Path.Combine(root, folder, $"{id}.json");
-        if (File.Exists(filePath))
-            File.Delete(filePath);
-        return Task.CompletedTask;
+        if (await _files.ExistsAsync(filePath))
+            await _files.DeleteFileAsync(filePath);
     }
 
     private (string bookFolder, string wbFolder) GetEntityFolders(EntityType type) => type switch
@@ -523,21 +521,21 @@ public class EntityService : IEntityService
         _ => throw new ArgumentOutOfRangeException(nameof(type))
     };
 
-    private static async Task<string> ComputeFileHashAsync(string filePath)
+    private async Task<string> ComputeFileHashAsync(string filePath)
     {
-        var bytes = await File.ReadAllBytesAsync(filePath);
+        var bytes = await _files.ReadBytesAsync(filePath);
         var hash = SHA256.HashData(bytes);
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
-    private static string GetUniqueImageFileName(string imageDir, string originalFileName)
+    private async Task<string> GetUniqueImageFileNameAsync(string imageDir, string originalFileName)
     {
         var baseName = Path.GetFileNameWithoutExtension(originalFileName);
         var extension = Path.GetExtension(originalFileName);
         var candidate = originalFileName;
         var suffix = 2;
 
-        while (File.Exists(Path.Combine(imageDir, candidate)))
+        while (await _files.ExistsAsync(Path.Combine(imageDir, candidate)))
         {
             candidate = $"{baseName} ({suffix}){extension}";
             suffix++;

@@ -132,8 +132,8 @@ public sealed class ResearchService : IResearchService
             attempt++;
         }
 
-        var bytes = await System.IO.File.ReadAllBytesAsync(sourcePath).ConfigureAwait(false);
-        await System.IO.File.WriteAllBytesAsync(dest, bytes).ConfigureAwait(false);
+        var bytes = await _fileService.ReadBytesAsync(sourcePath).ConfigureAwait(false);
+        await _fileService.WriteBytesAsync(dest, bytes).ConfigureAwait(false);
 
         return _fileService.CombinePath(ResearchFolderName, _fileService.GetFileName(dest)).Replace('\\', '/');
     }

@@ -30,12 +30,17 @@ public sealed class BackendHost : IDisposable
     /// <see cref="IStoredPathResolver"/>. The mobile host passes one because iOS
     /// moves its container and locks its folders; the desktop passes null.
     /// </param>
+    /// <param name="fileService">
+    /// File access policy supplied by the host. iOS coordinates project IO with
+    /// the document provider; desktop defaults to ordinary filesystem access.
+    /// </param>
     public BackendHost(
         string? settingsDirectory = null,
         IProcessRunner? processRunner = null,
-        IStoredPathResolver? storedPaths = null)
+        IStoredPathResolver? storedPaths = null,
+        IFileService? fileService = null)
     {
-        _workspace = new Workspace(settingsDirectory, storedPaths);
+        _workspace = new Workspace(settingsDirectory, storedPaths, fileService);
         _processRunner = processRunner;
     }
 
