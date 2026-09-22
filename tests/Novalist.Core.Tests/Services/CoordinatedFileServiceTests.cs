@@ -106,7 +106,11 @@ public sealed class CoordinatedFileServiceTests
         Directory.CreateDirectory(destination);
         var files = new CoordinatedFileService(new RecordingFileCoordinator());
 
-        await Assert.ThrowsAnyAsync<IOException>(() => files.WriteTextAsync(destination, "cannot replace a directory"));
+        var error = await Record.ExceptionAsync(() => files.WriteTextAsync(destination, "cannot replace a directory"));
+
+        // Replacing a directory can report access denied on Windows or an IO error on Unix.
+        Assert.True(error is IOException or UnauthorizedAccessException,
+            $"Expected a filesystem error, got {error?.GetType().Name ?? "no exception"}.");
 
         Assert.Empty(Directory.GetFiles(dir.Path));
         Assert.True(Directory.Exists(destination));
