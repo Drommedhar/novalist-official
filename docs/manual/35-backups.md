@@ -60,14 +60,17 @@ All of these live in **Settings → Backups**.
 
 In **Settings → Backups**, each archive is listed with its date, what triggered it, and its size. Press **Restore** on the one you want and confirm.
 
-Restoring overwrites the project folder with the contents of the archive, then reopens the project so what you see matches what is on disk.
+Restoring replaces the project contents with the selected version, then reopens the project. Chapters, scenes, images and other files added after the backup are removed. The ZIP is extracted and checked before the project is changed.
 
-**Restoring is undoable.** Novalist archives the current state first, tagged *Before restore*, so if you pick the wrong one you can restore your way back out. That pre-restore archive counts against the retention limit like any other.
+**Restoring is undoable.** Novalist archives the current state first, tagged *Before restore*, even when automatic backups are disabled. If you pick the wrong version, you can restore that safety backup. It counts against the retention limit; retention is applied after the selected version has been restored.
 
-Two things restoring does not do:
+Restore preserves `.git`, which is not included in backups. Your Git history survives intact. Keep your backup folder outside the project folder.
 
-- It does not delete files that were added after the backup was taken. The archive is unpacked over the folder, so a scene created since the backup will still be there afterwards. If you need an exact match, move the project folder aside and restore into an empty one.
-- It does not touch the `.git` folder, since that was never archived. Your Git history survives a restore intact.
+### Restore as a new project
+
+Choose **Restore backup as new project** on the welcome screen without opening a project first. Select a Novalist backup ZIP (including one in a synced folder), enter a new project name, and choose its parent folder. **Restore and open** creates a separate project and opens it. An existing folder is never overwritten.
+
+The same action is available in **Settings → Backups**, both above the list and beside each saved version. Using a version's action preselects that ZIP. The existing project remains unchanged, so you can switch between the original and the restored copy to compare them.
 
 ## Housekeeping
 

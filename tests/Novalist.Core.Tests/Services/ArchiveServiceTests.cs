@@ -154,4 +154,69 @@ public class ArchiveServiceTests
         Assert.Equal(0, restored);
         Assert.False(File.Exists(temp.Combine("escaped.txt")));
     }
+
+    [Theory]
+    [InlineData("../out-sibling/escaped.txt")]
+    [InlineData("..\\out-sibling\\escaped.txt")]
+    [InlineData(".git/HEAD")]
+    [InlineData(".GIT/HEAD")]
+    public async Task RestoreProjectAsync_RejectsUnsafeEntriesBeforeChangingTheDestination(string entryName)
+    {
+        using var temp = new TempDir();
+        var archive = temp.Combine("unsafe.zip");
+        using (var zip = ZipFile.Open(archive, ZipArchiveMode.Create))
+        {
+            using (var writer = new StreamWriter(zip.CreateEntry(".novalist/project.json").Open()))
+                writer.Write("{\"name\":\"Book\",\"books\":[{\"name\":\"One\"}]}");
+            using (var writer = new StreamWriter(zip.CreateEntry(entryName).Open()))
+                writer.Write("unsafe");
+        }
+        var destination = temp.Combine("out");
+        Write(Path.Combine(destination, "keep.txt"), "original");
+
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            new ArchiveService().RestoreProjectAsync(archive, destination, replaceExisting: true));
+
+        Assert.Equal("original", File.ReadAllText(Path.Combine(destination, "keep.txt")));
+        Assert.Single(Directory.GetFiles(destination, "*", SearchOption.AllDirectories));
+        Assert.False(Directory.Exists(temp.Combine("out-sibling")));
+    }
+
+    [Fact]
+    public async Task RestoreProjectAsync_InvalidArchiveDoesNotCreateNewDestination()
+    {
+        using var temp = new TempDir();
+        var archive = temp.Combine("unrelated.zip");
+        using (var zip = ZipFile.Open(archive, ZipArchiveMode.Create))
+            zip.CreateEntry("readme.txt");
+        var destination = temp.Combine("new-project");
+
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            new ArchiveService().RestoreProjectAsync(archive, destination, replaceExisting: false));
+
+        Assert.False(Directory.Exists(destination));
+    }
+
+    [Fact]
+    public async Task RestoreProjectAsync_RemovesLaterFilesAndPreservesNestedGit()
+    {
+        using var temp = new TempDir();
+        var source = temp.Combine("source");
+        Write(Path.Combine(source, ".novalist", "project.json"),
+            "{\"name\":\"Book\",\"books\":[{\"name\":\"One\"}]}");
+        Write(Path.Combine(source, "Book", "scene.txt"), "original");
+        var archive = temp.Combine("backup.zip");
+        var sut = new ArchiveService();
+        await sut.CreateFromDirectoryAsync(source, archive, BackupService.ExcludedDirectories);
+        var destination = temp.Combine("out");
+        Write(Path.Combine(destination, "Book", "scene.txt"), "changed");
+        Write(Path.Combine(destination, "Book", ".git", "HEAD"), "ref");
+        Write(Path.Combine(destination, "Later", "scene.txt"), "later");
+
+        await sut.RestoreProjectAsync(archive, destination, replaceExisting: true);
+
+        Assert.Equal("original", File.ReadAllText(Path.Combine(destination, "Book", "scene.txt")));
+        Assert.Equal("ref", File.ReadAllText(Path.Combine(destination, "Book", ".git", "HEAD")));
+        Assert.False(Directory.Exists(Path.Combine(destination, "Later")));
+    }
 }

@@ -21,4 +21,8 @@ public interface IArchiveService
     /// overwriting files that already exist. Returns the number of entries restored.
     /// </summary>
     Task<int> ExtractToDirectoryAsync(string zipPath, string destinationDirectory);
+
+    /// <summary>Validates and stages a project backup before writing it. Replacing
+    /// removes files absent from the backup while preserving .git directories.</summary>
+    Task RestoreProjectAsync(string zipPath, string destinationDirectory, bool replaceExisting);
 }

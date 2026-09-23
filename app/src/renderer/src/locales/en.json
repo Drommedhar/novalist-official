@@ -2581,7 +2581,12 @@
     "prune": "Delete old archives",
     "openFolder": "Open backup folder",
     "restore": "Restore",
-    "restoreConfirm": "Restore the project from the backup taken {{date}}? The current state is archived first, so this can be undone.",
+    "restoreConfirm": "Restore the project from the backup taken {{date}}? Files added since this backup will be removed. The current state is archived first, so this can be undone.",
+    "restoreAsNew": "Restore backup as new project",
+    "restoreAsNewDesc": "Choose a backup ZIP, a new project name and a parent folder. A separate copy will be created and opened; your existing project stays unchanged.",
+    "archiveFile": "Backup ZIP file",
+    "restoreAndOpen": "Restore and open",
+    "restoreFailed": "The backup could not be found. Refresh the list and try again.",
     "none": "No backups yet.",
     "noProject": "Open a project to see and create its backups.",
     "trigger": {

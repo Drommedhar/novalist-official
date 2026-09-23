@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { ChapterDialog } from './ChapterDialog'
 import { ConfirmDialog } from './ConfirmDialog'
 import { CreateProjectDialog } from './CreateProjectDialog'
+import { RestoreBackupDialog } from './RestoreBackupDialog'
 import { DraftCompareDialog } from './DraftCompareDialog'
 import { ImportManuscriptDialog } from './ImportManuscriptDialog'
 import { ImportPluginDialog } from './ImportPluginDialog'
@@ -140,6 +141,7 @@ export function ShellDialogs(): React.JSX.Element | null {
   if (dialog === 'paneLayouts') return <PaneLayoutsDialog onClose={close} />
 
   if (dialog === 'createProject') return <CreateProjectDialog onClose={close} />
+  if (dialog === 'restoreBackup') return <RestoreBackupDialog onClose={close} />
 
   if (dialog === 'importManuscript') return <ImportManuscriptDialog onClose={close} />
 

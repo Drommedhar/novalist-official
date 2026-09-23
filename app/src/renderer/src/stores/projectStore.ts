@@ -153,7 +153,7 @@ interface ProjectState {
   /** Per-scene unsaved-edit flags, keyed by sceneId (drives the tab dirty dot). */
   dirtyMap: Record<string, boolean>
   isDirty: boolean
-  applyState(state: ProjectStateDto): void
+  applyState(state: ProjectStateDto, resetEditors?: boolean): void
   loadRecents(): Promise<void>
   openProject(path: string): Promise<void>
   pickAndOpenProject(): Promise<void>
@@ -236,19 +236,19 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   dirtyMap: {},
   isDirty: false,
 
-  applyState: (state) => {
+  applyState: (state, resetEditors = false) => {
     const prevPath = get().projectPath
     const prevBookId = get().activeBookId
     const prevName = get().projectName
     const projectChanged = state.projectPath !== prevPath
-    if (projectChanged) {
+    if (projectChanged || resetEditors) {
       // All create/open/close paths meet here. Pane state survives ordinary
-      // view navigation, but must never survive a change of project.
+      // view navigation, but must never survive a project change or restore.
       for (const timer of autosaveTimers.values()) clearTimeout(timer)
       autosaveTimers.clear()
     }
     set({
-      ...(projectChanged ? { ...clearedEditorState(), drafts: [] } : {}),
+      ...(projectChanged || resetEditors ? { ...clearedEditorState(), drafts: [] } : {}),
       isLoaded: state.isLoaded,
       projectName: state.projectName,
       projectPath: state.projectPath,
@@ -257,17 +257,17 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       chapters: state.chapters
     })
     window.novalist.setProjectRoot(state.projectPath)
-    if (projectChanged || state.projectName !== prevName) void get().loadRecents()
+    if (projectChanged || resetEditors || state.projectName !== prevName) void get().loadRecents()
     if (state.isLoaded) void get().loadDrafts()
     // The effective language/theme can carry a per-project override, so re-apply
     // settings whenever the active project changes - otherwise a project opened
     // with a non-default language stays on the global language until Settings is
     // opened (which reloads settings as a side effect).
-    if (state.projectPath !== prevPath) void useSettingsStore.getState().load()
+    if (projectChanged || resetEditors) void useSettingsStore.getState().load()
     // The Codex is the active book's, and its entry count is shown outside the
     // Codex view, so it cannot wait for that view to be mounted again. Anything
     // selected belonged to the book being left, so the selection goes with it.
-    if (state.activeBookId !== prevBookId) {
+    if (state.activeBookId !== prevBookId || resetEditors) {
       useCodexStore.setState({ selectedId: null, selectedRecord: null })
       if (state.isLoaded) void useCodexStore.getState().refresh()
     }

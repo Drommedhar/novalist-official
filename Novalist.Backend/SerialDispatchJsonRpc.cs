@@ -106,9 +106,7 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
     /// exists to protect - so queueing behind them buys nothing and costs a
     /// great deal.
     ///
-    /// Not a theoretical cost. With everything queued, the scheduled backup
-    /// held the gate for four and a half seconds at startup and put every
-    /// screen that far behind; worse, a <c>git</c> call that hung took the
+    /// A <c>git</c> call that hung took the
     /// whole backend with it, where before it had only hung itself. A single
     /// stuck subprocess must not be able to freeze the application, and git
     /// talks to remotes, locks and credential prompts for a living.
@@ -116,7 +114,8 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
     private static readonly string[] Unsynchronised =
     [
         "git/",
-        "backup/",
+        // Backups must share the workspace queue: restore replaces files and
+        // reloads models, and creation/pruning must not race that replacement.
         "export/",
         // Preparing a speech engine builds a Python environment and downloads
         // several gigabytes of model. Queued, it held the gate for the whole of

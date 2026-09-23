@@ -30,6 +30,10 @@ public interface IBackupService
     /// </summary>
     Task<bool> RestoreAsync(string backupId);
 
+    /// <summary>Restores a ZIP into a new project folder without requiring an
+    /// open project. Refuses to overwrite an existing destination.</summary>
+    Task<string> RestoreAsNewProjectAsync(string archivePath, string parentDirectory, string projectName);
+
     /// <summary>
     /// Deletes archives beyond the retention count, oldest first. Milestones are
     /// not counted and never deleted.

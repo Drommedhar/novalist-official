@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { BookOpen, CircleHelp, FilePlus2, FolderOpen, Import, Settings } from 'lucide-react'
+import { ArchiveRestore, BookOpen, CircleHelp, FilePlus2, FolderOpen, Import, Settings } from 'lucide-react'
 import { runCommand } from './commands'
 import { ScratchpadPanel } from './ScratchpadPanel'
 
@@ -45,6 +45,10 @@ export function StartScreen({
         <button className="start-open secondary" onClick={() => runCommand('app.importProject')}>
           <Import size={16} strokeWidth={1.75} />
           {t('welcome.importPlugin')}
+        </button>
+        <button className="start-open secondary" onClick={() => runCommand('app.restoreBackup')}>
+          <ArchiveRestore size={16} strokeWidth={1.75} />
+          {t('backup.restoreAsNew')}
         </button>
         <div className="start-system-actions">
           <button className="start-open secondary" onClick={() => runCommand('nav.settings')}>

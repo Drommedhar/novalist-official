@@ -72,6 +72,13 @@ public sealed class BackupRpc
         return await ListAsync();
     }
 
+    [JsonRpcMethod("backup/restoreAsNewProject")]
+    public async Task<ProjectStateDto> RestoreAsNewProjectAsync(string archivePath, string parentDirectory, string projectName)
+    {
+        var root = await Service.RestoreAsNewProjectAsync(archivePath, parentDirectory, projectName);
+        return await _workspace.OpenProjectAsync(root);
+    }
+
     /// <summary>
     /// Whether an interval backup is due. The renderer polls this rather than the
     /// core owning a timer, so a backup never fires while the app is in the
