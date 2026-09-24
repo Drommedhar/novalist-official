@@ -4,9 +4,9 @@ Settings is where you configure Novalist's appearance, the editor, writing goals
 
 ## Opening Settings
 
-**Go → Settings** in the menu bar, or the command palette (`Ctrl+Shift+P`, `Cmd` on macOS). Settings opens in the main area like any other view.
+Click **Settings** at the bottom of the left sidebar on desktop. You can also use **Go → Settings** in the menu bar, or the command palette (`Ctrl+Shift+P`, `Cmd` on macOS). Settings opens in the main area like any other view.
 
-Settings is not on the mode rail. It is application-scoped — a preference is about your installation rather than about a book — so its home is the menu bar, and controls elsewhere in the app can still deep-link into the section they belong to.
+The sidebar button stays at the bottom even when the workspace list needs to scroll, and is available before you open a project. Controls elsewhere in the app can also take you directly to the settings section they belong to.
 
 ## Finding a setting
 

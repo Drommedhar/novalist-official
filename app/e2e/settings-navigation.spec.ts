@@ -6,7 +6,7 @@ test('Settings shows one categorized section and finds translated controls', asy
   const h = await launchApp('nl-settings-nav-')
   await seedBook(h, { One: ['A'] })
 
-  await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings())
+  await h.page.locator('.mode-rail').getByRole('button', { name: 'Settings', exact: true }).click()
   const surface = h.page.locator('.settings-section-surface')
   await expect(surface).toHaveAttribute('data-settings-section', 'appearance')
   await expect(surface).toHaveCount(1)
@@ -160,7 +160,7 @@ test('global Settings remains useful when no project is open', async () => {
   test.setTimeout(180_000)
   const h = await launchApp('nl-settings-global-')
 
-  await h.page.evaluate(() => window.novalistStores.shell.getState().setMainView('settings'))
+  await h.page.locator('.mode-rail').getByRole('button', { name: 'Settings', exact: true }).click()
   await expect(h.page.locator('.settings-view')).toBeVisible({ timeout: 30_000 })
   await expect(h.page.locator('.settings-section-surface')).toHaveAttribute(
     'data-settings-section',

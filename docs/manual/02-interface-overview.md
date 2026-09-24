@@ -63,7 +63,7 @@ Menu items are greyed out rather than hidden when they cannot do anything — wi
 
 ## The mode rail
 
-The narrow labelled rail on the far left. Six entries, each with an icon **and its name**, so nothing has to be hovered to be identified and nothing is ever hidden behind a "...":
+The narrow labelled rail on the far left. Each entry has an icon **and its name**, so nothing has to be hovered to be identified:
 
 - **Dashboard** — home. Not part of any mode: it is where you are before you have decided what to do today, and where a project lands when you open it.
 - **Write** — the Editor and the Manuscript view.
@@ -71,10 +71,11 @@ The narrow labelled rail on the far left. Six entries, each with an icon **and i
 - **World** — Codex, Wiki, Maps, Research, Gallery, Languages.
 - **Publish** — Exposé, Style report, Export, Git.
 - **Series** — the Series view, which is the one that sits above a single book.
+- **Settings** — pinned to the bottom for quick access to preferences, even before you open a project. In short windows, the workspace list scrolls while Settings stays in place.
 
 With no project open the modes are shown disabled rather than absent, so the shape of the window is the same before and after you open one.
 
-Settings, Extensions and About are not on the rail. They are about the installation rather than about a book, so they are reached from the menu bar, from the [command palette](25-command-palette.md), or from a link that deep-links into them.
+Settings is also in the menu bar and the [command palette](25-command-palette.md). Extensions and About are reached from the menu bar or from links elsewhere in the app.
 
 ## The mode panel
 

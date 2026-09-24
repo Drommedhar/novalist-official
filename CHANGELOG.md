@@ -16,7 +16,9 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Settings** is now pinned to the bottom of the desktop's left sidebar for quick access, including before a project is opened.
 
 ---
 

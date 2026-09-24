@@ -255,10 +255,7 @@
   color: var(--nl-text);
 }
 
-/* ===== Mode rail (the five workspaces, left of everything) =====
-   It replaced a rail of nineteen unlabelled icons that hid whatever did not
-   fit behind a "...". Six entries fit in any window, so each one can carry its
-   name and nothing is ever hidden - which is what the complaint was about. */
+/* ===== Mode rail (workspaces above, Settings pinned below) ===== */
 .mode-rail {
   /* Above the mode panel and its scrim. The panel is modal where it is an
      overlay, but the rail is how you leave it - a scrim over the way out made
@@ -277,13 +274,27 @@
   gap: var(--nl-space-tightest);
 }
 
+.mode-rail-workspaces {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.mode-rail-settings {
+  margin-top: auto;
+}
+
 .mode-rail-sep {
+  flex-shrink: 0;
   height: 1px;
   background: var(--nl-border);
   margin: var(--nl-space-tightest) var(--nl-space-tighter);
 }
 
 .mode-rail-item {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -339,7 +350,7 @@
    applies. Giving it to the current entry alone made that one entry six pixels
    taller than its neighbours, so Plan sat six pixels lower in Write than it did
    in World and the rail appeared to re-space itself every time the view
-   changed. Reserving the room in all six keeps the geometry fixed. */
+   changed. Reserving the room in every entry keeps the geometry fixed. */
 .mode-rail-item::after {
   content: '';
   display: block;
