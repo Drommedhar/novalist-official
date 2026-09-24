@@ -25,7 +25,13 @@
 }
 
 .toolbar-mac {
-  padding-left: 78px; /* traffic-light inset under hiddenInset title bar */
+  /* hiddenInset's native window buttons stay the same size when Chromium
+     zooms. Convert their clearance to CSS pixels so smaller UI scales cannot
+     put the project title underneath them or pull the workspace up into them.
+     Larger scales can still grow the toolbar to fit its enlarged controls. */
+  padding-left: calc(78px / var(--nl-ui-scale, 1));
+  min-height: calc(38px / var(--nl-ui-scale, 1));
+  flex-shrink: 0;
 }
 
 /* Everything in the strip that can be operated has to opt out of the drag
