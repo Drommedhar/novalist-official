@@ -19,11 +19,17 @@ the GitHub release notes and stamps it with the tag's version and date.
 ### Added
 
 - **Settings** is now pinned to the bottom of the desktop's left sidebar for quick access, including before a project is opened.
+
 ### Fixed
 
 - **Restore backup as new project** is available from the File menu, and its dialog and error messages are translated into Simplified Chinese.
 - Switching story structures replaces unused timeline beats instead of accumulating duplicates, while keeping events you have edited. Custom structures are also available in **Add structure**.
 - Chinese input no longer leaves unfinished pinyin beside the chosen characters when the editor repaginates. Saving, grammar checks, and editor shortcuts now wait for IME composition to finish.
+
+### Security
+
+- Updated the desktop runtime to Electron 42.11.8, including fixes for context isolation, custom protocols, and archive extraction. Extension scripts and narration keep working with its stricter protocol rules; web pages cannot read those local files, and sandboxed extension panels are restricted to their own extension's files.
+- Updated vulnerable build and update dependencies, including PostCSS, fast-uri, Undici, js-yaml, and archive utilities, to patched versions.
 
 ---
 
