@@ -162,3 +162,12 @@ jobs:
       - name: E2E (Playwright against the real app)
         working-directory: app
         run: xvfb-run --auto-servernum npx playwright test
+
+      - name: Upload failed E2E traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failures
+          path: app/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

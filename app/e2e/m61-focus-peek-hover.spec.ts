@@ -358,6 +358,11 @@ test('a hovered entity row in the inspector holds its Focus Peek still', async (
   await page.locator('.binder-scene-row').nth(1).click()
   await page.locator('.binder-scene-row').first().click()
 
+  // Scene navigation can leave an editor peek under the stationary pointer.
+  // Let it close before measuring the inspector's separate hover card.
+  await page.mouse.move(0, 0)
+  await expect(page.locator('.peek-card-anchor')).toHaveCount(0)
+
   const row = page.locator('.ctx-card').first()
   await expect(row).toBeVisible({ timeout: 30_000 })
   const rowBox = await row.boundingBox()

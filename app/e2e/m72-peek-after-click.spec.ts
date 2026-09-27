@@ -25,13 +25,31 @@ const NAME = 'Mira Vance'
 
 const peek = (page: Page): ReturnType<Page['locator']> => page.locator('.peek-card-anchor')
 
-/** Hover something, with the small second move a real hand always makes. */
-async function hover(page: Page, box: { x: number; y: number; width: number; height: number }) {
-  const x = box.x + box.width / 2
-  const y = box.y + box.height / 2
-  await page.mouse.move(x, y)
-  await page.waitForTimeout(200)
-  await page.mouse.move(x + 2, y)
+type Box = { x: number; y: number; width: number; height: number }
+
+/** Follow the name while pagination and editor layout settle after typing. */
+async function hover(page: Page, measure: () => Promise<Box>): Promise<Box> {
+  await expect(page.frameLocator('.editor-frame').locator('#editor > .nv-page')).toHaveCount(1)
+  let box!: Box
+  await expect.poll(async () => {
+    // A card anchored before reflow can cover the name's new position. Leave
+    // it first so the next move reaches the editor instead of the old card.
+    await page.mouse.move(0, 0)
+    await expect(peek(page)).toHaveCount(0)
+    box = await measure()
+    const x = box.x + box.width / 2
+    const y = box.y + box.height / 2
+    await page.mouse.move(x, y)
+    await page.waitForTimeout(200)
+    await page.mouse.move(x + 2, y)
+    // A visible card alone is insufficient: Chromium can hit-test the nearest
+    // name even when pagination moved it away from the old pointer position.
+    const current = await measure()
+    const stable = (['x', 'y', 'width', 'height'] as const)
+      .every((key) => Math.abs(current[key] - box[key]) < 1)
+    return stable && await peek(page).isVisible()
+  }, { timeout: 20_000 }).toBe(true)
+  return box
 }
 
 async function seedNamedScene(h: Harness): Promise<void> {
@@ -76,10 +94,7 @@ test('a mention put in with @ still peeks after it has been clicked', async () =
 
   const mention = page.frameLocator('.editor-frame').locator('.nv-entity-mention').first()
   await expect(mention).toBeVisible({ timeout: 15_000 })
-  const box = (await mention.boundingBox())!
-
-  await hover(page, box)
-  await expect(peek(page)).toBeVisible({ timeout: 20_000 })
+  const box = await hover(page, async () => (await mention.boundingBox())!)
 
   // A click is how a writer puts the caret in a name they are about to edit.
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
@@ -108,28 +123,28 @@ test('a plain name in the prose still peeks after it has been clicked', async ()
     .poll(async () => (await editor.innerText()).includes(NAME), { timeout: 15_000 })
     .toBe(true)
 
-  // Where the name sits, measured inside the editor and lifted into the page.
-  const frame = (await page.locator('.editor-frame').boundingBox())!
-  const local = await editor.evaluate((el, needle: string) => {
-    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
-    let node = walker.nextNode()
-    while (node) {
-      const at = (node.textContent ?? '').indexOf(needle)
-      if (at >= 0) {
-        const range = document.createRange()
-        range.setStart(node, at)
-        range.setEnd(node, at + needle.length)
-        const r = range.getBoundingClientRect()
-        return { x: r.x, y: r.y, width: r.width, height: r.height }
+  // Re-measure both the text and its frame on each initial hover attempt.
+  const box = await hover(page, async () => {
+    const local = await editor.evaluate((el, needle: string) => {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+      let node = walker.nextNode()
+      while (node) {
+        const at = (node.textContent ?? '').indexOf(needle)
+        if (at >= 0) {
+          const range = document.createRange()
+          range.setStart(node, at)
+          range.setEnd(node, at + needle.length)
+          // A name can wrap; hover a text fragment rather than the gap between lines.
+          const r = range.getClientRects()[0]
+          return { x: r.x, y: r.y, width: r.width, height: r.height }
+        }
+        node = walker.nextNode()
       }
-      node = walker.nextNode()
-    }
-    throw new Error('the name is not in the prose')
-  }, NAME)
-  const box = { ...local, x: frame.x + local.x, y: frame.y + local.y }
-
-  await hover(page, box)
-  await expect(peek(page)).toBeVisible({ timeout: 20_000 })
+      throw new Error('the name is not in the prose')
+    }, NAME)
+    const frame = (await page.locator('.editor-frame').boundingBox())!
+    return { ...local, x: frame.x + local.x, y: frame.y + local.y }
+  })
 
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
   await expect(peek(page)).toHaveCount(0, { timeout: 10_000 })
