@@ -120,6 +120,9 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Restore MAUI workloads for the mobile spike
+        run: dotnet workload restore Novalist.Mobile/Novalist.Mobile.csproj
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
