@@ -23,6 +23,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- The Narration view no longer opens with a blank reading when the book loads before its display is ready.
 - Restoring a backup replaces the project with the selected version, so chapters and files added later no longer return after reopening. Pending edits are saved into a safety backup before restoring, and the archive is checked before changing the project.
 - The backup restore dialog and error messages are translated into Simplified Chinese.
 - On macOS, the title bar keeps enough space around the native window buttons when the interface size is reduced, preventing them from overlapping the project title or workspace.

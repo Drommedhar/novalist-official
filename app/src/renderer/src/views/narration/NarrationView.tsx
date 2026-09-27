@@ -211,6 +211,11 @@ export function NarrationView(): React.JSX.Element {
     )
   }
 
+  // The listener is installed once, but the book and cast can finish loading
+  // before the frame. Its ready message must push the latest render's data.
+  const pushBookRef = useRef(pushBook)
+  pushBookRef.current = pushBook
+
   // Not gated on the frame being mounted yet. It was, and the listener was
   // therefore never attached: the frame was only in the tree once the book had
   // loaded, so on the first render there was nothing to read a ready message
@@ -228,7 +233,7 @@ export function NarrationView(): React.JSX.Element {
       }
       if (message.type === 'ready') {
         readyRef.current = true
-        pushBook()
+        pushBookRef.current()
       } else if (message.type === 'segmentClicked') {
         // The frame marks up utterances and knows them by their own key. The
         // line an utterance belongs to is the store's business, because that is
