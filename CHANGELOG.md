@@ -19,10 +19,13 @@ the GitHub release notes and stamps it with the tag's version and date.
 ### Added
 
 - **Settings** is now pinned to the bottom of the desktop's left sidebar for quick access, including before a project is opened.
+- **Restore backup as new project** opens a backup as a separate project from the welcome screen, File menu, or Settings → Backups, so the original and restored copy can be compared.
 
 ### Fixed
 
-- **Restore backup as new project** is available from the File menu, and its dialog and error messages are translated into Simplified Chinese.
+- Restoring a backup replaces the project with the selected version, so chapters and files added later no longer return after reopening. Pending edits are saved into a safety backup before restoring, and the archive is checked before changing the project.
+- The backup restore dialog and error messages are translated into Simplified Chinese.
+- On macOS, the title bar keeps enough space around the native window buttons when the interface size is reduced, preventing them from overlapping the project title or workspace.
 - Switching story structures replaces unused timeline beats instead of accumulating duplicates, while keeping events you have edited. Custom structures are also available in **Add structure**.
 - Chinese input no longer leaves unfinished pinyin beside the chosen characters when the editor repaginates. Saving, grammar checks, and editor shortcuts now wait for IME composition to finish.
 
