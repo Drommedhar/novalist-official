@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.4.1] - 2026-09-27
+
 ### Added
 
 - **Settings** is now pinned to the bottom of the desktop's left sidebar for quick access, including before a project is opened.
@@ -1608,7 +1614,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.4...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.4.1...HEAD
+[3.4.1]: https://github.com/Drommedhar/novalist-official/compare/v3.4...v3.4.1
 [3.4]: https://github.com/Drommedhar/novalist-official/compare/v3.3...v3.4
 [3.3]: https://github.com/Drommedhar/novalist-official/compare/v3.2.6...v3.3
 [3.2.6]: https://github.com/Drommedhar/novalist-official/compare/v3.2.5...v3.2.6
