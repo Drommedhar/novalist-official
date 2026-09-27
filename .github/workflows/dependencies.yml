@@ -11,11 +11,9 @@ permissions:
   contents: read
 
 jobs:
-  nuget:
-    name: NuGet dependencies (${{ matrix.target }})
+  restore:
+    name: NuGet restore (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
-    permissions:
-      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -24,14 +22,10 @@ jobs:
             os: ubuntu-latest
             dotnet: 8.0.x
             project: novalist-official.sln
-            scan: .
-            exclude: Novalist.Mobile
           - target: ios
             os: macos-latest
             dotnet: 10.0.x
             project: Novalist.Mobile/Novalist.Mobile.csproj
-            scan: Novalist.Mobile
-            exclude: ''
 
     steps:
       - uses: actions/checkout@v4
@@ -49,9 +43,42 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore "${{ matrix.project }}"
 
-      # Fork PRs still validate both restores, but cannot write snapshots.
+      - name: Upload resolved dependencies
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-assets-${{ matrix.target }}
+          path: '**/obj/project.assets.json'
+          if-no-files-found: error
+          retention-days: 1
+
+  submit:
+    name: NuGet dependencies (${{ matrix.target }})
+    needs: restore
+    # Component Detection's action downloads a Linux executable on non-Windows
+    # hosts. Restore iOS on macOS, then scan its resolved assets on Linux.
+    runs-on: ubuntu-latest
+    # Fork PRs still validate both restores, but cannot write snapshots.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: desktop
+            scan: .
+            exclude: Novalist.Mobile
+          - target: ios
+            scan: Novalist.Mobile
+            exclude: ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: nuget-assets-${{ matrix.target }}
+
       - name: Submit NuGet dependency snapshot
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         uses: advanced-security/component-detection-dependency-submission-action@ce792dce44c6e59487bcd862f3917f2c2b9a7fb0
         with:
           detectorsCategories: NuGet
