@@ -609,7 +609,7 @@ export function TimelineView(): React.JSX.Element {
 
       {/* A sub-view of the Timeline rather than its own place: structure is
           what the timeline is about, and it has no meaning without one. */}
-      {structureOpen && <StructurePanel />}
+      {structureOpen && <StructurePanel onTemplatesChanged={setStructures} />}
       {laneBy !== 'none' && (
         <div className="timeline-lanes">
           {lanes.map((lane) => (

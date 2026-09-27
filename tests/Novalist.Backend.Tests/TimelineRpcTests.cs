@@ -164,6 +164,89 @@ public sealed class TimelineRpcTests : IDisposable
         Assert.Equal(7, unchanged.Groups.SelectMany(g => g.Events).Count(e => e.IsManual));
     }
 
+    [Fact]
+    public async Task ApplyingTheSameStructureAgainDoesNotDuplicateItsEventsAfterReopen()
+    {
+        await _rpc.ApplyStructureTemplateAsync("seven-point");
+        var ids = _workspace.Projects.ProjectSettings.Timeline.ManualEvents.Select(e => e.Id).ToArray();
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+
+        await _rpc.ApplyStructureTemplateAsync("seven-point");
+
+        Assert.Equal(ids, _workspace.Projects.ProjectSettings.Timeline.ManualEvents.Select(e => e.Id));
+    }
+
+    [Fact]
+    public async Task SwitchingStructuresReplacesUnusedBeatsAndKeepsAuthoredEventsAndScenes()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("Chapter");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Written scene");
+        await _rpc.SaveEventAsync(null, "My event", "1043-01-01", "My notes", "plot", null);
+        await _rpc.ApplyStructureTemplateAsync("seven-point");
+        var hook = _workspace.Projects.ProjectSettings.Timeline.ManualEvents.Single(e => e.Title == "Hook");
+        await _rpc.SaveEventAsync(hook.Id, "My opening", "1043-01-02", "Written outline", "plot", chapter.Guid);
+
+        await _rpc.ApplyStructureTemplateAsync("three-act");
+        await _rpc.ApplyStructureTemplateAsync("seven-point");
+        await _rpc.ApplyStructureTemplateAsync("three-act");
+
+        var events = _workspace.Projects.ProjectSettings.Timeline.ManualEvents;
+        Assert.Equal(10, events.Count); // Eight current beats and the two authored events.
+        Assert.Contains(events, e => e.Title == "My event" && e.Description == "My notes");
+        Assert.Contains(events, e => e.Id == hook.Id && e.Title == "My opening" && e.Description == "Written outline");
+        Assert.Equal(scene.Id, Assert.Single(_workspace.Projects.GetScenesForChapter(chapter.Guid)).Id);
+    }
+
+    [Fact]
+    public async Task SwitchingToACustomStructureDoesNotAccumulatePreviousBeats()
+    {
+        var structures = new StructureRpc(_workspace);
+        await structures.SaveTemplateAsync(new StructureDefinitionDto(
+            "custom-test", "My structure", "", [new("arrival", "Arrival", "A beginning", 10, "plot")]));
+        Assert.Contains(_rpc.GetStructureTemplates(), t => t.Id == "custom-test");
+        await _rpc.ApplyStructureTemplateAsync("seven-point");
+
+        await _rpc.ApplyStructureTemplateAsync("custom-test");
+        await _rpc.ApplyStructureTemplateAsync("custom-test");
+
+        Assert.Equal("Arrival", Assert.Single(_workspace.Projects.ProjectSettings.Timeline.ManualEvents).Title);
+    }
+
+    [Fact]
+    public async Task SwitchingStructuresKeepsCustomPropertiesAndClearsRemovedDependencies()
+    {
+        await _rpc.ApplyStructureTemplateAsync("seven-point");
+        var events = _workspace.Projects.ProjectSettings.Timeline.ManualEvents;
+        var kept = events[0];
+        kept.Properties = new() { ["notes"] = "Keep this outline" };
+        var removed = events[1];
+        await _rpc.SaveEventAsync(null, "Dependent", "1043-01-01", "", "plot", null,
+            dependsOnEventId: removed.Id);
+
+        await _rpc.ApplyStructureTemplateAsync("three-act");
+
+        Assert.Equal(10, events.Count);
+        Assert.Equal("Keep this outline", events.Single(e => e.Id == kept.Id).Properties!["notes"]);
+        Assert.DoesNotContain(events, e => e.Id == removed.Id);
+        Assert.Null(events.Single(e => e.Title == "Dependent").DependsOnEventId);
+    }
+
+    [Fact]
+    public async Task ApplyingAStructureKeepsLegacyEventsEvenWhenTheirTitlesMatch()
+    {
+        var timeline = _workspace.Projects.ProjectSettings.Timeline;
+        timeline.ManualEvents.Add(new Novalist.Core.Models.TimelineManualEvent
+        {
+            Id = "legacy", Title = "Hook", Description = "Notes from an older version", Order = 20
+        });
+        await _rpc.ApplyStructureTemplateAsync("seven-point");
+        await _rpc.ApplyStructureTemplateAsync("three-act");
+
+        Assert.Equal(9, timeline.ManualEvents.Count);
+        Assert.Equal("Notes from an older version", timeline.ManualEvents.Single(e => e.Id == "legacy").Description);
+        Assert.All(timeline.ManualEvents.Where(e => e.Id != "legacy"), e => Assert.True(e.Order > 20));
+    }
+
     // ── Lanes ──
     //
     // Filtering the timeline to one character hides the threads being

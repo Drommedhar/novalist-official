@@ -8,6 +8,11 @@ public class TimelineData
     [JsonPropertyName("manualEvents")]
     public List<TimelineManualEvent> ManualEvents { get; set; } = [];
 
+    /// <summary>The last template applied through Add structure, so selecting
+    /// it again (including after reopening) does not append another copy.</summary>
+    [JsonPropertyName("structureTemplateId")]
+    public string StructureTemplateId { get; set; } = string.Empty;
+
     [JsonPropertyName("categories")]
     public List<TimelineCategory> Categories { get; set; } =
     [
@@ -71,6 +76,13 @@ public class TimelineCategory
 
 public class TimelineManualEvent
 {
+    /// <summary>Untouched template placeholders can be replaced when choosing
+    /// another structure. Saving an event clears this marker to keep the
+    /// writer's work. Older, unmarked events are always retained.</summary>
+    [JsonPropertyName("structureTemplateId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? StructureTemplateId { get; set; }
+
     [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
 

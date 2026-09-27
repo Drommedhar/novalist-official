@@ -78,14 +78,14 @@ Set **No lanes** to go back to the dated view.
 
 ## Story-structure templates
 
-The **Add structure...** dropdown appends a bundled set of beats to the timeline as manual events:
+The **Add structure...** dropdown adds a set of beats to the timeline as manual events. It offers your custom structures as well as these bundled templates:
 
 - **Three-Act** — Setup, Confrontation, Resolution; 8 beats.
 - **Save the Cat** — Blake Snyder's 15-beat structure.
 - **Hero's Journey** — the 12-stage monomyth.
 - **7-Point Story** — Dan Wells' 7-point structure.
 
-The beats arrive undated (they land in the `???` group). Work through them: open each beat, give it a date, link it to the chapter that delivers it, and replace the stock description with your own. Applying a template never touches your chapters or scenes — it only adds manual events, which you can edit or delete individually.
+The beats arrive undated (they land in the `???` group). Work through them: open each beat, give it a date, link it to the chapter that delivers it, and replace the stock description with your own. Selecting the same structure again keeps its existing entries. Switching to another replaces unused template beats while keeping events you have edited or given custom properties. Applying a template never touches your chapters or scenes. Events created before template tracking was introduced are also kept, so any existing duplicates can be reviewed and deleted individually.
 
 ## Manual events
 

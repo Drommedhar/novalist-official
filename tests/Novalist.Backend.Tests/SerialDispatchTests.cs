@@ -2,6 +2,7 @@ using System.Text.Json;
 using Nerdbank.Streams;
 using Novalist.Backend;
 using Novalist.Backend.Extensions;
+using Novalist.Backend.Tests.TestHelpers;
 using StreamJsonRpc;
 using Xunit;
 
@@ -182,7 +183,7 @@ public sealed class SerialDispatchTests : IDisposable
                 () => client.InvokeAsync("private manuscript method"));
         }
 
-        var content = File.ReadAllText(Log.CurrentLogPath);
+        var content = DiagnosticLogSnapshot.Read(Log.CurrentLogPath);
         Assert.Contains("rpc failed method=unknown", content);
         Assert.Contains("type=System.InvalidOperationException", content);
         Assert.DoesNotContain("spec/fail", content);

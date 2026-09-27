@@ -76,6 +76,7 @@ const FILE = [
   'app.openProject',
   'app.closeProject',
   'app.importProject',
+  'app.restoreBackup',
   'app.importManuscript',
   '-',
   'project.quickCapture',

@@ -3,6 +3,7 @@ using Novalist.Backend.Extensions;
 using Novalist.Backend.Rpc;
 using Novalist.Core.Tests.TestHelpers;
 using Xunit;
+using DiagnosticLogSnapshot = Novalist.Backend.Tests.TestHelpers.DiagnosticLogSnapshot;
 
 namespace Novalist.Backend.Tests;
 
@@ -65,7 +66,7 @@ public sealed class ManuscriptImportRpcTests : IDisposable
         _rpc.PickerFailure("source", "manifest-ambiguous");
         _rpc.PickerFailure("Private chapter title", "Private manuscript sentence");
 
-        var content = File.ReadAllText(Log.CurrentLogPath);
+        var content = DiagnosticLogSnapshot.Read(Log.CurrentLogPath);
         Assert.Contains(
             "manuscriptImport/picker failed stage=project reason=disk-full.", content);
         Assert.Contains(
@@ -119,7 +120,7 @@ public sealed class ManuscriptImportRpcTests : IDisposable
         Assert.Equal(5, plan.SceneCount);
         Assert.Contains(
             "manuscriptImport/preview start source=directory extension=none scrivener=True",
-            File.ReadAllText(Log.CurrentLogPath));
+            DiagnosticLogSnapshot.Read(Log.CurrentLogPath));
     }
 
     [Fact]
@@ -137,7 +138,7 @@ public sealed class ManuscriptImportRpcTests : IDisposable
         File.WriteAllText(malformedBinder, "<PrivateElement></SecretEndTag>");
         _rpc.Preview(malformedBinder);
 
-        var content = File.ReadAllText(Log.CurrentLogPath);
+        var content = DiagnosticLogSnapshot.Read(Log.CurrentLogPath);
         Assert.Contains("manuscriptImport/preview complete source=file extension=.md", content);
         Assert.Contains("chapters=1 scenes=1", content);
         Assert.Contains("manuscriptImport/preview empty source=missing extension=.docx", content);
@@ -247,7 +248,7 @@ public sealed class ManuscriptImportRpcTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => rpc.RunAsync(path));
 
-        var content = File.ReadAllText(Log.CurrentLogPath);
+        var content = DiagnosticLogSnapshot.Read(Log.CurrentLogPath);
         Assert.Contains(
             "manuscriptImport/run failed stage=validate source=file extension=.md",
             content);

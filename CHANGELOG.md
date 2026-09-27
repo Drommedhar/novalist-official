@@ -16,7 +16,11 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- **Restore backup as new project** is available from the File menu, and its dialog and error messages are translated into Simplified Chinese.
+- Switching story structures replaces unused timeline beats instead of accumulating duplicates, while keeping events you have edited. Custom structures are also available in **Add structure**.
+- Chinese input no longer leaves unfinished pinyin beside the chosen characters when the editor repaginates. Saving, grammar checks, and editor shortcuts now wait for IME composition to finish.
 
 ---
 

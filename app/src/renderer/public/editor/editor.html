@@ -802,6 +802,8 @@ const wrapper = document.getElementById('editor-wrapper');
 
 // ── State ────────────────────────────────────────────────────────
 let isSettingContent = false;
+let isComposing = false;
+let compositionEndTimer = null;
 let lastHtml = '';
 let entityRegex = null;
 let entityNames = [];
@@ -905,7 +907,7 @@ function reapplyReadability() {
  * sentence and the writer is usually still typing the one they are on.
  */
 function requestReadability(delay) {
-    if (!readabilityEnabled) return;
+    if (!readabilityEnabled || isComposing) return;
     if (readabilityTimer) clearTimeout(readabilityTimer);
     readabilityTimer = setTimeout(function () {
         const map = buildGrammarPlainTextMap();
@@ -1226,6 +1228,9 @@ function sendMessage(msg) {
 // ── Content Management ──────────────────────────────────────────
 
 function setContent(html) {
+    if (compositionEndTimer) clearTimeout(compositionEndTimer);
+    compositionEndTimer = null;
+    isComposing = false;
     isSettingContent = true;
     hideGrammarPopup();
     hideContextMenu();
@@ -1715,7 +1720,7 @@ function setPageView(enabled) {
 }
 
 function schedulePageViewRepaginate() {
-    if (!pageViewEnabled) return;
+    if (!pageViewEnabled || isComposing) return;
     if (pageViewRepaginateScheduled) return;
     pageViewRepaginateScheduled = true;
     setTimeout(() => {
@@ -1766,7 +1771,7 @@ function unwrapPages() {
 }
 
 function repaginatePageView() {
-    if (!pageViewEnabled) return;
+    if (!pageViewEnabled || isComposing) return;
     pageViewRepaginating = true;
     if (pageViewMutationObserver) pageViewMutationObserver.disconnect();
     try {
@@ -2569,7 +2574,7 @@ function setDialogueCorrectionConfig(configJson) {
 }
 
 function tryDialogueCorrection() {
-    if (!dialogueCorrectionConfig) return;
+    if (!dialogueCorrectionConfig || isComposing) return;
 
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return;
@@ -2986,6 +2991,7 @@ function getCleanContentHtml() {
 }
 
 function reportContentChanged() {
+    if (isComposing) return;
     refreshSceneBreakClasses(editor);
     const html = getCleanContentHtml();
     if (html !== lastHtml) {
@@ -3005,8 +3011,49 @@ function flushPendingContentChange() {
     if (!isSettingContent) reportContentChanged();
 }
 
-editor.addEventListener('input', () => {
-    if (isSettingContent) return;
+// Chromium owns a live text range until composition ends. Moving paragraphs,
+// wrapping grammar spans or replacing text during that interval commits the
+// unfinished pinyin, leaving it beside the Chinese text chosen afterwards.
+function isCompositionInput(event) {
+    return isComposing || !!(event && (event.isComposing || event.keyCode === 229));
+}
+
+editor.addEventListener('compositionstart', () => {
+    isComposing = true;
+    if (compositionEndTimer) clearTimeout(compositionEndTimer);
+    compositionEndTimer = null;
+    if (contentChangeTimer) clearTimeout(contentChangeTimer);
+    contentChangeTimer = null;
+    if (dialogueCorrectionTimer) clearTimeout(dialogueCorrectionTimer);
+    dialogueCorrectionTimer = null;
+    if (readabilityTimer) clearTimeout(readabilityTimer);
+    readabilityTimer = null;
+    if (grammarCheckTimer) clearTimeout(grammarCheckTimer);
+    grammarCheckTimer = null;
+    grammarRequestId++;
+    pendingGrammarRequest = null;
+    grammarChecking = false;
+    updateGrammarStatusBar();
+    if (readAloudActive) stopReadAloud();
+});
+
+editor.addEventListener('compositionend', () => {
+    isComposing = false;
+    // Some engines send their final input after compositionend. Wait until
+    // that edit has landed before normalizing or moving any of its nodes.
+    compositionEndTimer = setTimeout(() => {
+        compositionEndTimer = null;
+        if (isComposing || isSettingContent) return;
+        grammarIssues = [];
+        applyGrammarHighlights();
+        updateGrammarStatusBar();
+        handleEditorInput();
+        schedulePageViewRepaginate();
+    }, 0);
+});
+
+function handleEditorInput(event) {
+    if (isSettingContent || isCompositionInput(event)) return;
     scheduleTypewriterRecenter();
     // Typing over a passage being read back is the writer taking over.
     if (readAloudActive) stopReadAloud();
@@ -3029,10 +3076,12 @@ editor.addEventListener('input', () => {
 
     // Request grammar check after typing pause
     requestGrammarCheck();
-});
+}
+
+editor.addEventListener('input', handleEditorInput);
 
 editor.addEventListener('beforeinput', (e) => {
-    if (isSettingContent) return;
+    if (isSettingContent || isCompositionInput(e)) return;
     if (e.inputType !== 'insertText' || !e.data) return;
 
     const result = tryAutoReplace(e.data);
@@ -3054,6 +3103,18 @@ editor.addEventListener('beforeinput', (e) => {
 
 // Capture-phase keydown for mention picker navigation — runs before main keydown.
 editor.addEventListener('keydown', (e) => {
+    if (isCompositionInput(e)) return;
+    if (slashState) {
+        if (e.key === 'Escape') { closeSlashMenu(); e.preventDefault(); e.stopPropagation(); return; }
+        if (e.key === 'ArrowDown') { moveSlashSelection(1); e.preventDefault(); e.stopPropagation(); return; }
+        if (e.key === 'ArrowUp') { moveSlashSelection(-1); e.preventDefault(); e.stopPropagation(); return; }
+        if (e.key === 'Enter' || e.key === 'Tab') {
+            confirmSlashAt(slashSelectedIndex);
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+    }
     if (!mentionState) return;
     if (e.key === 'Escape') {
         e.preventDefault();
@@ -3087,19 +3148,8 @@ editor.addEventListener('keydown', (e) => {
     }
 }, true);
 
-editor.addEventListener('input', () => {
-
-    if (slashState) {
-        if (e.key === 'Escape') { closeSlashMenu(); e.preventDefault(); e.stopPropagation(); return; }
-        if (e.key === 'ArrowDown') { moveSlashSelection(1); e.preventDefault(); e.stopPropagation(); return; }
-        if (e.key === 'ArrowUp') { moveSlashSelection(-1); e.preventDefault(); e.stopPropagation(); return; }
-        if (e.key === 'Enter' || e.key === 'Tab') {
-            confirmSlashAt(slashSelectedIndex);
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-        }
-    }
+editor.addEventListener('input', (e) => {
+    if (isSettingContent || isCompositionInput(e)) return;
 
     if (mentionState) {
         updateMentionQuery();
@@ -3122,6 +3172,7 @@ editor.addEventListener('input', () => {
 });
 
 editor.addEventListener('keydown', (e) => {
+    if (isCompositionInput(e)) return;
     if (!completionState || completionMatches.length === 0) return;
     if (e.key === 'Escape') { e.preventDefault(); closeCompletion(); return; }
     if (e.key === 'Tab') {
@@ -3146,6 +3197,7 @@ editor.addEventListener('keydown', (e) => {
 }, true);
 
 document.addEventListener('selectionchange', () => {
+    if (isComposing) return;
     if (dimOthers) updateFocusBlock();
     if (isSettingContent) return;
     notifyFormattingChanged();
@@ -3167,6 +3219,7 @@ document.addEventListener('selectionchange', () => {
 // pagination also restore selections, including a caret the writer scrolled
 // away from while reading. Those background updates must leave the view alone.
 editor.addEventListener('keydown', (e) => {
+    if (isCompositionInput(e)) return;
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
         scheduleTypewriterRecenter();
     }
@@ -3394,6 +3447,7 @@ editor.addEventListener('mousedown', () => {
 });
 
 editor.addEventListener('keydown', (e) => {
+    if (isCompositionInput(e)) return;
     // Forward function keys (F1-F12) and Esc unconditionally so host hotkeys
     // like F11 (focus mode) and Esc work even while focus is in the editor.
     var isFunctionKey = /^F\d{1,2}$/.test(e.code);
@@ -3986,6 +4040,7 @@ document.addEventListener('click', (e) => {
     if (!contextMenu.contains(e.target)) hideContextMenu();
 });
 document.addEventListener('keydown', (e) => {
+    if (isCompositionInput(e)) return;
     if (e.key === 'Escape') {
         hideContextMenu();
         stopReadAloud();
@@ -4035,6 +4090,7 @@ function setGrammarCheckEnabled(enabled) {
 }
 
 function setGrammarIssues(issuesJson, requestId) {
+    if (isComposing) return;
     if (requestId !== undefined) {
         if (!grammarEnabled || !pendingGrammarRequest || requestId !== pendingGrammarRequest.id) return;
         const expected = pendingGrammarRequest.text;
@@ -4181,6 +4237,7 @@ function restoreProofingSelection(saved) {
 }
 
 function applyGrammarHighlights() {
+    if (isComposing) return;
     // Keep both endpoints and selection direction within their own blocks;
     // offsets across the whole editor cannot distinguish empty paragraphs.
     const savedSelection = captureProofingSelection();
@@ -4373,6 +4430,7 @@ function replaceProofingRange(range, expectedText, replacement) {
 }
 
 function requestGrammarCheck() {
+    if (isComposing) return;
     logToHost("requestGrammarCheck called: grammarEnabled=" + grammarEnabled + ", grammarChecking=" + grammarChecking);
     const requestId = ++grammarRequestId;
     pendingGrammarRequest = null;
@@ -5019,7 +5077,7 @@ function selectOneCharacter(backward) {
 }
 
 editor.addEventListener('beforeinput', (e) => {
-    if (isSettingContent || !suggestionMode) return;
+    if (isSettingContent || isCompositionInput(e) || !suggestionMode) return;
 
     if (e.inputType === 'insertText' && e.data) {
         e.preventDefault();

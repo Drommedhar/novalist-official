@@ -221,6 +221,9 @@ public sealed class TimelineRpc
             timeline.ManualEvents.Add(existing);
         }
         existing.Title = title;
+        // Once authored, this is the writer's event rather than a disposable
+        // placeholder. Switching story structures must never erase that work.
+        existing.StructureTemplateId = null;
         existing.Date = date;
         existing.Description = description;
         existing.CategoryId = categoryId;
@@ -366,20 +369,30 @@ public sealed class TimelineRpc
 
     [JsonRpcMethod("timeline/structureTemplates")]
     public StructureTemplateDto[] GetStructureTemplates() =>
-        StoryStructureTemplates.All
+        new StoryStructureService(_workspace.Projects).Available()
             .Select(t => new StructureTemplateDto(t.Id, t.DisplayName, t.Description))
             .ToArray();
 
-    // Ported from TimelineViewModel.ApplyStructureTemplateAsync: appends the
-    // template's beats as manual events; unknown ids are a no-op.
+    // Replace untouched placeholders, keeping authored events and manuscript
+    // scenes. Legacy events have no provenance and must not be guessed at.
     [JsonRpcMethod("timeline/applyStructureTemplate")]
     public async Task<TimelineDto> ApplyStructureTemplateAsync(string templateId)
     {
-        var template = StoryStructureTemplates.GetById(templateId);
+        var template = new StoryStructureService(_workspace.Projects).Find(templateId);
         if (template == null) return await Get();
 
         var timeline = _workspace.Projects.ProjectSettings.Timeline;
-        var nextOrder = timeline.ManualEvents.Count;
+        if (string.Equals(timeline.StructureTemplateId, template.Id, StringComparison.OrdinalIgnoreCase))
+            return await Get();
+
+        var removedIds = timeline.ManualEvents.Where(e => e.StructureTemplateId != null && !(e.Properties?.Count > 0))
+            .Select(e => e.Id).ToHashSet(StringComparer.Ordinal);
+        timeline.ManualEvents.RemoveAll(e => removedIds.Contains(e.Id));
+        foreach (var orphan in timeline.ManualEvents.Where(e => e.DependsOnEventId != null && removedIds.Contains(e.DependsOnEventId)))
+            orphan.DependsOnEventId = null;
+
+        timeline.StructureTemplateId = template.Id;
+        var nextOrder = timeline.ManualEvents.Select(e => e.Order).DefaultIfEmpty(-1).Max() + 1;
         foreach (var beat in template.Beats)
         {
             timeline.ManualEvents.Add(new TimelineManualEvent
@@ -388,6 +401,7 @@ public sealed class TimelineRpc
                 Title = beat.Title,
                 Description = beat.Description,
                 CategoryId = beat.CategoryId,
+                StructureTemplateId = template.Id,
                 Order = nextOrder++
             });
         }

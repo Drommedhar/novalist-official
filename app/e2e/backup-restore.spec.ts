@@ -2,6 +2,25 @@ import { expect, test } from '@playwright/test'
 import { join } from 'node:path'
 import { dismissTour, launchApp, resizeWindow, seedBook, type Book } from './harness'
 
+test('File menu opens Restore backup as new project without an open project', async () => {
+  const h = await launchApp('nl-restore-menu-')
+  try {
+    await expect.poll(() => h.app.evaluate(({ Menu }) => {
+      const file = Menu.getApplicationMenu()?.items.find(item => item.label === 'File')
+      const item = file?.submenu?.items.find(item => item.label === 'Restore backup as new project')
+      return item ? { label: item.label, enabled: item.enabled } : null
+    })).toEqual({ label: 'Restore backup as new project', enabled: true })
+    await h.app.evaluate(({ Menu, BrowserWindow }) => {
+      const file = Menu.getApplicationMenu()!.items.find(item => item.label === 'File')!
+      const item = file.submenu!.items.find(item => item.label === 'Restore backup as new project')!
+      item.click(undefined!, BrowserWindow.getAllWindows()[0], undefined!)
+    })
+    await expect(h.page.getByRole('dialog', { name: 'Restore backup as new project' })).toBeVisible()
+  } finally {
+    await h.close()
+  }
+})
+
 test('restoring a kept version removes later scenes and clears stale editor state', async () => {
   const h = await launchApp('nl-restore-version-')
   try {
