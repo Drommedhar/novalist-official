@@ -1,4 +1,4 @@
-import { app, ipcMain, net, protocol } from 'electron'
+import { app, ipcMain, net, protocol, session } from 'electron'
 import { pathToFileURL } from 'node:url'
 import { join, normalize } from 'node:path'
 
@@ -63,6 +63,34 @@ const THEME_SHIM = `(function () {
 })();
 `
 
+/** CORS headers for module requests from the renderer. The request filter below
+ * also checks the requesting frame: custom-scheme fetches can arrive without
+ * an Origin header, so that header alone cannot protect local resources. */
+function withRendererCors(request: Request, response: Response): Response {
+  const rendererOrigin = process.env.ELECTRON_RENDERER_URL
+    ? new URL(process.env.ELECTRON_RENDERER_URL).origin
+    : 'file://'
+  if (request.headers.get('Origin') !== rendererOrigin) return response
+  const headers = new Headers(response.headers)
+  headers.set('Access-Control-Allow-Origin', rendererOrigin)
+  headers.append('Vary', 'Origin')
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  })
+}
+
+function isRendererFrame(url: string): boolean {
+  if (url.startsWith(pathToFileURL(join(__dirname, '../renderer/')).href)) return true
+  if (!process.env.ELECTRON_RENDERER_URL) return false
+  try {
+    return new URL(url).origin === new URL(process.env.ELECTRON_RENDERER_URL).origin
+  } catch {
+    return false
+  }
+}
+
 /**
  * novalist-project:// serves read-only files from the active project folder so
  * project images (and later map assets) load from a real origin on every OS.
@@ -76,18 +104,45 @@ export function registerProtocolSchemes(): void {
     },
     {
       scheme: 'novalist-ext',
-      privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true }
+      privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true, corsEnabled: true }
     },
     // Rendered speech. Streaming matters here and nowhere else: a clip is
     // fetched by an <audio> element, which wants ranges rather than one blob.
     {
       scheme: 'novalist-audio',
-      privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true }
+      privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true, corsEnabled: true }
     }
   ])
 }
 
 export function registerProtocolHandlers(): void {
+  // Only the app may read narration clips or import renderer plugins. An
+  // extension panel may load its own resources, including sandboxed panels
+  // whose serialized Origin is null, but cannot read another extension's files.
+  session.defaultSession.webRequest.onBeforeRequest(
+    { urls: ['novalist-ext://*/*', 'novalist-audio://*/*'] },
+    (details, callback) => {
+      let allowed = false
+      try {
+        const frame = details.frame
+        allowed = isRendererFrame(frame?.url ?? '')
+        if (!allowed && details.url.startsWith('novalist-ext://')) {
+          const target = new URL(details.url)
+          const source = new URL(frame?.url || 'about:blank')
+          allowed = source.protocol === target.protocol && source.host === target.host
+          // A new panel starts with an empty frame URL. Its app parent may
+          // navigate it; subsequent reads use the panel's own URL.
+          if (!allowed && details.resourceType === 'subFrame') {
+            allowed = isRendererFrame(frame?.parent?.url ?? '')
+          }
+        }
+      } catch {
+        // A frame can disappear while a request is pending.
+      }
+      callback({ cancel: !allowed })
+    }
+  )
+
   ipcMain.on('novalist:set-project-root', (_event, root: string | null) => {
     projectRoot = root
   })
@@ -102,7 +157,7 @@ export function registerProtocolHandlers(): void {
     }
   )
 
-  protocol.handle('novalist-ext', (request) => {
+  protocol.handle('novalist-ext', async (request) => {
     const url = new URL(request.url)
 
     // Served for every extension, ahead of the root lookup, so a panel gets it
@@ -113,9 +168,9 @@ export function registerProtocolHandlers(): void {
     // /web/__novalist/theme.js. Accepting only the root path meant the guide's
     // own snippet 404'd in every extension laid out the usual way.
     if (isThemeShim(decodeURIComponent(url.pathname))) {
-      return new Response(THEME_SHIM, {
+      return withRendererCors(request, new Response(THEME_SHIM, {
         headers: { 'content-type': 'text/javascript; charset=utf-8' }
-      })
+      }))
     }
 
     // novalist-ext://{extensionId}/{path}: host carries the extension id.
@@ -126,7 +181,7 @@ export function registerProtocolHandlers(): void {
     if (!resolved.startsWith(normalize(root))) {
       return new Response('forbidden', { status: 403 })
     }
-    return net.fetch(pathToFileURL(resolved).toString())
+    return withRendererCors(request, await net.fetch(pathToFileURL(resolved).toString()))
   })
 
   /**
@@ -137,14 +192,14 @@ export function registerProtocolHandlers(): void {
    * bytes and hands over a name; this is where the name is turned back into
    * sound.
    */
-  protocol.handle('novalist-audio', (request) => {
+  protocol.handle('novalist-audio', async (request) => {
     const name = decodeURIComponent(new URL(request.url).pathname).replace(/^\/+/, '')
     if (!isClipName(name)) return new Response('forbidden', { status: 403 })
     const resolved = normalize(join(narrationCacheRoot(), name))
     if (!resolved.startsWith(normalize(narrationCacheRoot()))) {
       return new Response('forbidden', { status: 403 })
     }
-    return net.fetch(pathToFileURL(resolved).toString())
+    return withRendererCors(request, await net.fetch(pathToFileURL(resolved).toString()))
   })
 
   protocol.handle('novalist-project', (request) => {

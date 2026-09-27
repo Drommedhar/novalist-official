@@ -16,7 +16,10 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Security
+
+- Updated the desktop runtime to Electron 42.11.8, including fixes for context isolation, custom protocols, and archive extraction. Extension scripts and narration keep working with its stricter protocol rules; web pages cannot read those local files, and sandboxed extension panels are restricted to their own extension's files.
+- Updated vulnerable build and update dependencies, including PostCSS, fast-uri, Undici, js-yaml, and archive utilities, to patched versions.
 
 ---
 
