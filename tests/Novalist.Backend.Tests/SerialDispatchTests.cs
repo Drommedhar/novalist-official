@@ -2,6 +2,7 @@ using System.Text.Json;
 using Nerdbank.Streams;
 using Novalist.Backend;
 using Novalist.Backend.Extensions;
+using Novalist.Backend.Tests.TestHelpers;
 using StreamJsonRpc;
 using Xunit;
 
@@ -182,7 +183,7 @@ public sealed class SerialDispatchTests : IDisposable
                 () => client.InvokeAsync("private manuscript method"));
         }
 
-        var content = File.ReadAllText(Log.CurrentLogPath);
+        var content = DiagnosticLogSnapshot.Read(Log.CurrentLogPath);
         Assert.Contains("rpc failed method=unknown", content);
         Assert.Contains("type=System.InvalidOperationException", content);
         Assert.DoesNotContain("spec/fail", content);
@@ -231,7 +232,6 @@ public sealed class SerialDispatchTests : IDisposable
                      // the whole backend with it rather than only itself.
                      "git/status",
                      "git/changedScenes",
-                     "backup/create",
                      "export/run",
                      // Posts the scene to a language server and waits up to
                      // thirty seconds. Queued, one grammar check held every
@@ -249,6 +249,8 @@ public sealed class SerialDispatchTests : IDisposable
         foreach (var method in new[]
                  {
                      "dashboard/get", "extensions/load", "scenes/write", "entities/list",
+                     "backup/create", "backup/createMilestone", "backup/prune", "backup/delete",
+                     "backup/restore", "backup/restoreAsNewProject",
                      // This is useful only when it waits behind earlier
                      // workspace writes; making it reentrant defeats the fence.
                      "system/barrier"

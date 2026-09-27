@@ -50,6 +50,23 @@ public class CoreModelInstantiationTests
     }
 
     [Fact]
+    public void TimelineStructureProvenanceSurvivesSerializationAndDefaultsSafelyForOldProjects()
+    {
+        var legacy = System.Text.Json.JsonSerializer.Deserialize<TimelineData>(
+            "{\"manualEvents\":[{\"id\":\"old\",\"title\":\"Hook\"}]}")!;
+        Assert.Equal(string.Empty, legacy.StructureTemplateId);
+        Assert.Null(Assert.Single(legacy.ManualEvents).StructureTemplateId);
+
+        legacy.StructureTemplateId = "seven-point";
+        legacy.ManualEvents.Add(new TimelineManualEvent { Id = "new", StructureTemplateId = "seven-point" });
+        var restored = System.Text.Json.JsonSerializer.Deserialize<TimelineData>(
+            System.Text.Json.JsonSerializer.Serialize(legacy))!;
+        Assert.Equal("seven-point", restored.StructureTemplateId);
+        Assert.Null(restored.ManualEvents[0].StructureTemplateId);
+        Assert.Equal("seven-point", restored.ManualEvents[1].StructureTemplateId);
+    }
+
+    [Fact]
     public void LoreData_Categories_Exposed()
         => Assert.Contains("Organization", LoreData.Categories);
 

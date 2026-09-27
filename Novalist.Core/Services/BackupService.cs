@@ -79,6 +79,9 @@ public sealed class BackupService : IBackupService
     public Task<BackupInfo?> CreateAsync(string trigger) => CreateAsync(trigger, null);
 
     public async Task<BackupInfo?> CreateAsync(string trigger, string? milestoneName)
+        => await CreateArchiveAsync(trigger, milestoneName, force: false, prune: true);
+
+    private async Task<BackupInfo?> CreateArchiveAsync(string trigger, string? milestoneName, bool force, bool prune)
     {
         var projectRoot = _projectService.ProjectRoot;
 
@@ -87,17 +90,27 @@ public sealed class BackupService : IBackupService
         // because a rotating schedule is disabled would be the wrong reading of
         // both settings.
         var milestone = !string.IsNullOrWhiteSpace(milestoneName);
-        if (string.IsNullOrWhiteSpace(projectRoot) || (!Settings.BackupEnabled && !milestone))
+        if (string.IsNullOrWhiteSpace(projectRoot) || (!Settings.BackupEnabled && !milestone && !force))
             return null;
 
         var folder = ResolveBackupFolder(projectRoot);
+        var relative = Path.GetRelativePath(Path.GetFullPath(projectRoot), Path.GetFullPath(folder));
+        if (relative == "." || (!Path.IsPathRooted(relative) && relative != ".." &&
+            !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)))
+            throw new InvalidOperationException("Choose a backup folder outside the project folder.");
         await _fileService.CreateDirectoryAsync(folder);
 
         var safeTrigger = milestone
             ? BackupInfo.MilestonePrefix + SafeLabel(milestoneName!)
             : SafeTrigger(trigger);
-        var id = $"{DateTime.UtcNow.ToString(Stamp, CultureInfo.InvariantCulture)}-{safeTrigger}";
-        var path = _fileService.CombinePath(folder, id + ".zip");
+        var timestamp = DateTime.UtcNow;
+        string id, path;
+        do
+        {
+            id = $"{timestamp.ToString(Stamp, CultureInfo.InvariantCulture)}-{safeTrigger}";
+            path = _fileService.CombinePath(folder, id + ".zip");
+            timestamp = timestamp.AddSeconds(1);
+        } while (await _fileService.ExistsAsync(path));
 
         await _archiveService.CreateFromDirectoryAsync(projectRoot, path, ExcludedDirectories);
 
@@ -110,7 +123,7 @@ public sealed class BackupService : IBackupService
             Trigger = safeTrigger
         };
 
-        await PruneAsync();
+        if (prune) await PruneAsync();
         return info;
     }
 
@@ -156,10 +169,42 @@ public sealed class BackupService : IBackupService
 
         // Archive the current state first so restoring is itself undoable, even
         // when the user restores the wrong archive.
-        await CreateAsync("prerestore");
+        // Mandatory even with scheduled backups disabled. Delay retention so a
+        // quota of one cannot delete the archive we are about to restore.
+        await CreateArchiveAsync("prerestore", null, force: true, prune: false);
 
-        await _archiveService.ExtractToDirectoryAsync(target.Path, projectRoot);
+        await _archiveService.RestoreProjectAsync(target.Path, projectRoot, replaceExisting: true);
+        await PruneAsync();
         return true;
+    }
+
+    public async Task<string> RestoreAsNewProjectAsync(string archivePath, string parentDirectory, string projectName)
+    {
+        var name = projectName.Trim();
+        if (string.IsNullOrWhiteSpace(name) || name is "." or ".." || name.EndsWith('.') ||
+            name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || name.IndexOfAny("<>:\"/\\|?*".ToCharArray()) >= 0)
+            throw new ArgumentException("Enter a valid new project name.", nameof(projectName));
+        if (string.IsNullOrWhiteSpace(parentDirectory) || !await _fileService.DirectoryExistsAsync(parentDirectory))
+            throw new DirectoryNotFoundException("Choose an existing parent folder.");
+        var destination = Path.GetFullPath(_fileService.CombinePath(parentDirectory, name));
+        if (await _fileService.DirectoryExistsAsync(destination) || await _fileService.ExistsAsync(destination))
+            throw new IOException("Choose a new project folder. The destination already exists.");
+        // Do not allow a copy inside the open project: it would be included in
+        // that project's next backup and cannot serve as an independent copy.
+        if (_projectService.ProjectRoot is { } root)
+        {
+            var relative = Path.GetRelativePath(Path.GetFullPath(root), destination);
+            if (relative == "." || (!Path.IsPathRooted(relative) && relative != ".." &&
+                !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)))
+                throw new InvalidOperationException("Choose a location outside the open project.");
+        }
+        await _archiveService.RestoreProjectAsync(archivePath, destination, replaceExisting: false);
+        var restored = new ProjectService(_fileService);
+        await restored.LoadProjectAsync(destination);
+        restored.CurrentProject!.Name = name;
+        restored.CurrentProject.Id = "project-" + Guid.NewGuid().ToString("N");
+        await restored.SaveProjectAsync();
+        return destination;
     }
 
     public async Task PruneAsync()

@@ -62,6 +62,7 @@ export type ShellDialog =
   | 'deleteDraft'
   | 'paneLayouts'
   | 'createProject'
+  | 'restoreBackup'
   | 'importPlugin'
   | 'importManuscript'
 

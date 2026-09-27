@@ -4,6 +4,9 @@ import { Archive, FolderOpen, Flag, RotateCcw, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../../stores/projectStore'
 import { useSettingsStore } from '../../stores/settingsStore'
+import { useManuscriptStore } from '../../stores/manuscriptStore'
+import { flushPendingWrites } from '../../stores/pendingWrites'
+import { RestoreBackupDialog } from '../../shell/RestoreBackupDialog'
 
 export interface BackupDto {
   id: string
@@ -40,6 +43,14 @@ export function BackupsCard(): React.JSX.Element {
   const [folder, setFolder] = useState('')
   const [busy, setBusy] = useState(false)
   const [milestoneName, setMilestoneName] = useState('')
+  const [restoreCopy, setRestoreCopy] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const flushEdits = async (): Promise<void> => {
+    await flushPendingWrites()
+    await useProjectStore.getState().flushPendingSave()
+    await useManuscriptStore.getState().flushPendingSave()
+  }
 
   const refresh = useCallback(async () => {
     if (!hasProject) {
@@ -57,9 +68,13 @@ export function BackupsCard(): React.JSX.Element {
 
   const backUpNow = async (): Promise<void> => {
     setBusy(true)
+    setError(null)
     try {
+      await flushEdits()
       await rpc.request<BackupDto | null>('backup/create', ['manual'])
       await refresh()
+    } catch (e) {
+      setError(String(e))
     } finally {
       setBusy(false)
     }
@@ -71,10 +86,14 @@ export function BackupsCard(): React.JSX.Element {
     const name = milestoneName.trim()
     if (!name) return
     setBusy(true)
+    setError(null)
     try {
+      await flushEdits()
       await rpc.request<BackupDto | null>('backup/createMilestone', [name])
       setMilestoneName('')
       await refresh()
+    } catch (e) {
+      setError(String(e))
     } finally {
       setBusy(false)
     }
@@ -110,15 +129,21 @@ export function BackupsCard(): React.JSX.Element {
     const ok = window.confirm(t('backup.restoreConfirm', { date: formatDate(backup.createdAt) }))
     if (!ok) return
     setBusy(true)
+    setError(null)
     try {
-      await rpc.request<boolean>('backup/restore', [backup.id])
+      await flushEdits()
+      if (!await rpc.request<boolean>('backup/restore', [backup.id])) {
+        throw new Error(t('backup.restoreFailed'))
+      }
       // The backend reopened the project over restored files; pull the fresh
       // state so the binder is not showing chapters that no longer exist.
-      await useProjectStore.getState().flushPendingSave()
       useProjectStore
         .getState()
-        .applyState(await rpc.request<ProjectStateDto>('project/getState'))
+        .applyState(await rpc.request<ProjectStateDto>('project/getState'), true)
+      useManuscriptStore.setState({ loaded: false, sections: [], composed: null })
       await refresh()
+    } catch (e) {
+      setError(String(e))
     } finally {
       setBusy(false)
     }
@@ -126,6 +151,14 @@ export function BackupsCard(): React.JSX.Element {
 
   return (
     <>
+      {error && <p role="alert" className="settings-hint">{error}</p>}
+      <button className="dialog-button" disabled={busy} onClick={() => setRestoreCopy('')}>
+        {t('backup.restoreAsNew')}
+      </button>
+      {restoreCopy !== null && <RestoreBackupDialog archivePath={restoreCopy} onClose={() => {
+        setRestoreCopy(null)
+        void refresh()
+      }} />}
       <label className="relationships-toggle">
         <input
           type="checkbox"
@@ -257,6 +290,9 @@ export function BackupsCard(): React.JSX.Element {
                 </div>
                 <button className="dialog-button" disabled={busy} onClick={() => void restore(b)}>
                   <RotateCcw size={14} /> {t('backup.restore')}
+                </button>
+                <button className="dialog-button" disabled={busy} onClick={() => setRestoreCopy(b.path)}>
+                  {t('backup.restoreAsNew')}
                 </button>
                 <button
                   className="dialog-button"

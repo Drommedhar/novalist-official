@@ -17,6 +17,17 @@ public sealed class DiagnosticLogTests : IDisposable
     }
 
     [Fact]
+    public void LogSnapshot_CanReadWhileTheDiagnosticWriterHasTheFileOpen()
+    {
+        using var root = new TempDir();
+        var path = root.Combine("active.log");
+        File.WriteAllText(path, "completed log entry\n");
+        using var writer = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.Read);
+
+        Assert.Equal("completed log entry\n", DiagnosticLogSnapshot.Read(path));
+    }
+
+    [Fact]
     public void FileSink_WritesHeader_Appends_ClearsAndRestarts()
     {
         using var root = new TempDir();
@@ -26,7 +37,7 @@ public sealed class DiagnosticLogTests : IDisposable
         sink.Write("second line");
 
         Assert.Equal(root.Combine("logs"), sink.Directory);
-        var content = File.ReadAllText(sink.CurrentLogPath);
+        var content = DiagnosticLogSnapshot.Read(sink.CurrentLogPath);
         Assert.Contains("session start", content);
         Assert.Contains("No story content", content);
         Assert.Contains("first line", content);
@@ -35,7 +46,7 @@ public sealed class DiagnosticLogTests : IDisposable
         Assert.Equal(1, sink.Clear());
         Assert.False(File.Exists(sink.CurrentLogPath));
         sink.Write("after clear");
-        Assert.Contains("session start", File.ReadAllText(sink.CurrentLogPath));
+        Assert.Contains("session start", DiagnosticLogSnapshot.Read(sink.CurrentLogPath));
     }
 
     [Fact]
@@ -67,7 +78,7 @@ public sealed class DiagnosticLogTests : IDisposable
 
         sink.Write("after rotation");
 
-        Assert.Contains("after rotation", File.ReadAllText(sink.CurrentLogPath));
+        Assert.Contains("after rotation", DiagnosticLogSnapshot.Read(sink.CurrentLogPath));
         Assert.True(Directory.GetFiles(sink.Directory, "novalist-*.log").Length <= 6);
 
         if (OperatingSystem.IsWindows())
@@ -97,7 +108,7 @@ public sealed class DiagnosticLogTests : IDisposable
         Log.Error("error with type", new InvalidOperationException("private manuscript sentence"));
 
         Assert.Equal(root.Combine("logs"), Log.LogDirectory);
-        var content = File.ReadAllText(Log.CurrentLogPath);
+        var content = DiagnosticLogSnapshot.Read(Log.CurrentLogPath);
         Assert.Contains("debug state=ready", content);
         Assert.Contains("[INFO] info count=1", content);
         Assert.Contains("[WARN] warn type=Example", content);

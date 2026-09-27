@@ -812,6 +812,13 @@ export const COMMANDS: CommandDef[] = [
     run: () => shell().openDialog('importPlugin')
   },
   {
+    id: 'app.restoreBackup',
+    labelKey: 'backup.restoreAsNew',
+    categoryKey: 'hotkeys.category.general',
+    scope: 'application',
+    run: () => shell().openDialog('restoreBackup')
+  },
+  {
     id: 'app.importManuscript',
     labelKey: 'manuscriptImport.action',
     categoryKey: 'hotkeys.category.general',

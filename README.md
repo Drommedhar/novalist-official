@@ -87,7 +87,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 ### Planning & visualization
 
 - **Plot Grid** — spreadsheet view of plotlines (rows) by scenes (columns); toggle scene membership in a thread with a click.
-- **Timeline** — chronological view of acts, chapters, scenes, and manual events with vertical/horizontal layout and day/week/month/year zoom.
+- **Timeline** — chronological view of acts, chapters, scenes, and manual events with vertical/horizontal layout and day/week/month/year zoom. Add bundled or custom story structures, switching templates without duplicating unused beats or losing events you have edited.
 - **In-world Calendar** — Week, Month, and Year layouts; scenes and events appear on their in-world dates. **Custom calendars** let you define your world's own months, month lengths, weekday names and year label, with those names and lengths used throughout the calendar display, navigation, scene placement, and date arithmetic. Changes save automatically.
 - **Relationships graph** — auto-clustered force-directed graph of characters with family detection in English and German.
 - **Dialogue** — every line one character speaks, gathered across the book and grouped by story time, so voice drift is readable end to end. Speakers are detected offline from entity mentions, speech verbs, same-paragraph continuation, pronoun tags the narration can only mean one way, and back-and-forth alternation; each line is labelled with how it was worked out, and anything less than certain offers its likely speakers with percentage shares you can click to assign. Lines can be rewritten in place and land straight in the scene file.
@@ -118,7 +118,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ### Version control
 
-- **Automatic backups** — the whole project folder archived to a rotating ZIP outside the project, on open, on close, and on a timer, with one-click restore from Settings. The `.git` folder is skipped, and restoring archives the current state first so it can be undone.
+- **Automatic backups** — the whole project folder archived to a rotating ZIP outside the project, on open, on close, and on a timer, with one-click restore from Settings. Restore a ZIP as a separate project from the File menu or welcome screen. The `.git` folder is skipped, and restoring archives the current state first so it can be undone.
 - Built-in **Git** client — stage, commit, push, pull from the app; branch and changed-file count in the status bar.
 - Per-scene snapshot history is complementary to Git for fine-grained, per-file recovery.
 

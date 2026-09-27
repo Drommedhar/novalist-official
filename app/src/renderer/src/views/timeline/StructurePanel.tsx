@@ -42,7 +42,9 @@ const DRIFT_TOLERANCE = 8
  * makes "which beats are still holes" and "does the midpoint land in the
  * middle" answerable at all.
  */
-export function StructurePanel(): React.JSX.Element {
+export function StructurePanel({ onTemplatesChanged }: {
+  onTemplatesChanged?: (templates: StructureTemplate[]) => void
+}): React.JSX.Element {
   const { t } = useTranslation()
   const [templates, setTemplates] = useState<StructureTemplate[]>([])
   const [templateId, setTemplateId] = useState('')
@@ -51,10 +53,12 @@ export function StructurePanel(): React.JSX.Element {
   const chapters = useProjectStore((s) => s.chapters)
 
   const load = useCallback(async () => {
-    setTemplates(await rpc.request<StructureTemplate[]>('structure/templates'))
+    const available = await rpc.request<StructureTemplate[]>('structure/templates')
+    setTemplates(available)
+    onTemplatesChanged?.(available)
     setTemplateId(await rpc.request<string>('structure/get'))
     setBeats(await rpc.request<StructureBeat[]>('structure/beats'))
-  }, [])
+  }, [onTemplatesChanged])
 
   useEffect(() => {
     void load()

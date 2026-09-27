@@ -1,8 +1,10 @@
+import type { CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GitCompare, MoreHorizontal, PenLine, Plus, Search, Trash2, Wand2 } from 'lucide-react'
 import { runCommand } from './commands'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
+import { useUiScaleStore } from '../stores/uiScaleStore'
 import { chromeForView } from './modes'
 
 /**
@@ -29,6 +31,7 @@ export function Toolbar(): React.JSX.Element {
   const activeBookId = useProjectStore((s) => s.activeBookId)
   const drafts = useProjectStore((s) => s.drafts)
   const chapters = useProjectStore((s) => s.chapters)
+  const uiScale = useUiScaleStore((s) => s.percent)
   const isMac = window.novalist.platform === 'darwin'
 
   const activeDraft = drafts.find((d) => d.isActive) ?? null
@@ -79,7 +82,10 @@ export function Toolbar(): React.JSX.Element {
   )
 
   return (
-    <header className={`toolbar${isMac ? ' toolbar-mac' : ''}`}>
+    <header
+      className={`toolbar${isMac ? ' toolbar-mac' : ''}`}
+      style={{ '--nl-ui-scale': uiScale / 100 } as CSSProperties}
+    >
       {/* The burger that opened a backstage drawer is gone. Apart from the
           recent-projects list - which is now File > Recent projects, where a
           reader of any other application would look for it - the drawer was a

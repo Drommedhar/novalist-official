@@ -2589,7 +2589,12 @@
     "prune": "Alte Archive löschen",
     "openFolder": "Sicherungsordner öffnen",
     "restore": "Wiederherstellen",
-    "restoreConfirm": "Projekt aus der Sicherung vom {{date}} wiederherstellen? Der aktuelle Stand wird vorher archiviert, die Aktion lässt sich also rückgängig machen.",
+    "restoreConfirm": "Projekt aus der Sicherung vom {{date}} wiederherstellen? Seitdem hinzugefügte Dateien werden entfernt. Der aktuelle Stand wird vorher archiviert, die Aktion lässt sich also rückgängig machen.",
+    "restoreAsNew": "Sicherung als neues Projekt wiederherstellen",
+    "restoreAsNewDesc": "Wähle eine ZIP-Sicherung, einen neuen Projektnamen und einen übergeordneten Ordner. Eine separate Kopie wird erstellt und geöffnet; dein bestehendes Projekt bleibt unverändert.",
+    "archiveFile": "ZIP-Sicherung",
+    "restoreAndOpen": "Wiederherstellen und öffnen",
+    "restoreFailed": "Die Sicherung wurde nicht gefunden. Aktualisiere die Liste und versuche es erneut.",
     "none": "Noch keine Sicherungen.",
     "noProject": "Öffne ein Projekt, um seine Sicherungen zu sehen und anzulegen.",
     "trigger": {

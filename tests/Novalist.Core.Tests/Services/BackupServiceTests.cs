@@ -38,6 +38,13 @@ public class BackupServiceTests
             Extracted.Add((zipPath, destinationDirectory));
             return Task.FromResult(3);
         }
+
+        public Task RestoreProjectAsync(string zipPath, string destinationDirectory, bool replaceExisting)
+        {
+            Assert.True(replaceExisting);
+            Extracted.Add((zipPath, destinationDirectory));
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class StubSettings : ISettingsService

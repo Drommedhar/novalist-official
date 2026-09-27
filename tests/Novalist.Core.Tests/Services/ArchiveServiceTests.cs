@@ -7,6 +7,19 @@ namespace Novalist.Core.Tests.Services;
 
 public class ArchiveServiceTests
 {
+    private const string ProjectMetadata = "{\"name\":\"Book\",\"books\":[{\"name\":\"One\"}]}";
+
+    private static string ProjectArchive(TempDir temp, string metadata = ProjectMetadata)
+    {
+        var path = temp.Combine("project.zip");
+        using var zip = ZipFile.Open(path, ZipArchiveMode.Create);
+        using (var writer = new StreamWriter(zip.CreateEntry(".novalist/project.json").Open()))
+            writer.Write(metadata);
+        using (var writer = new StreamWriter(zip.CreateEntry("Book/scene.txt").Open()))
+            writer.Write("Archived scene");
+        return path;
+    }
+
     private static void Write(string path, string content)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -153,5 +166,156 @@ public class ArchiveServiceTests
 
         Assert.Equal(0, restored);
         Assert.False(File.Exists(temp.Combine("escaped.txt")));
+    }
+
+    [Theory]
+    [InlineData("../out-sibling/escaped.txt")]
+    [InlineData("..\\out-sibling\\escaped.txt")]
+    [InlineData(".git/HEAD")]
+    [InlineData(".GIT/HEAD")]
+    public async Task RestoreProjectAsync_RejectsUnsafeEntriesBeforeChangingTheDestination(string entryName)
+    {
+        using var temp = new TempDir();
+        var archive = temp.Combine("unsafe.zip");
+        using (var zip = ZipFile.Open(archive, ZipArchiveMode.Create))
+        {
+            using (var writer = new StreamWriter(zip.CreateEntry(".novalist/project.json").Open()))
+                writer.Write("{\"name\":\"Book\",\"books\":[{\"name\":\"One\"}]}");
+            using (var writer = new StreamWriter(zip.CreateEntry(entryName).Open()))
+                writer.Write("unsafe");
+        }
+        var destination = temp.Combine("out");
+        Write(Path.Combine(destination, "keep.txt"), "original");
+
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            new ArchiveService().RestoreProjectAsync(archive, destination, replaceExisting: true));
+
+        Assert.Equal("original", File.ReadAllText(Path.Combine(destination, "keep.txt")));
+        Assert.Single(Directory.GetFiles(destination, "*", SearchOption.AllDirectories));
+        Assert.False(Directory.Exists(temp.Combine("out-sibling")));
+    }
+
+    [Fact]
+    public async Task RestoreProjectAsync_InvalidArchiveDoesNotCreateNewDestination()
+    {
+        using var temp = new TempDir();
+        var archive = temp.Combine("unrelated.zip");
+        using (var zip = ZipFile.Open(archive, ZipArchiveMode.Create))
+            zip.CreateEntry("readme.txt");
+        var destination = temp.Combine("new-project");
+
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            new ArchiveService().RestoreProjectAsync(archive, destination, replaceExisting: false));
+
+        Assert.False(Directory.Exists(destination));
+    }
+
+    [Fact]
+    public async Task RestoreProjectAsync_CreatesANewFolderWithTheCompleteArchive()
+    {
+        using var temp = new TempDir();
+        var archive = ProjectArchive(temp);
+        var destination = temp.Combine("new-project");
+
+        await new ArchiveService().RestoreProjectAsync(archive, destination, replaceExisting: false);
+
+        Assert.Equal(ProjectMetadata, File.ReadAllText(Path.Combine(destination, ".novalist", "project.json")));
+        Assert.Equal("Archived scene", File.ReadAllText(Path.Combine(destination, "Book", "scene.txt")));
+        Assert.Empty(Directory.GetDirectories(temp.Path, ".novalist-restore-*"));
+        Assert.True(File.Exists(archive));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RestoreProjectAsync_NeverOverwritesAnExistingNewProjectDestination(bool isDirectory)
+    {
+        using var temp = new TempDir();
+        var archive = ProjectArchive(temp);
+        var destination = temp.Combine("existing");
+        var original = isDirectory ? Path.Combine(destination, "keep.txt") : destination;
+        Write(original, "Do not overwrite");
+
+        await Assert.ThrowsAsync<IOException>(() =>
+            new ArchiveService().RestoreProjectAsync(archive, destination, replaceExisting: false));
+
+        Assert.Equal("Do not overwrite", File.ReadAllText(original));
+        Assert.Empty(Directory.GetDirectories(temp.Path, ".novalist-restore-*"));
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("{\"name\":\"\",\"books\":[{}]}")]
+    [InlineData("{\"name\":\"Book\",\"books\":null}")]
+    [InlineData("{\"name\":\"Book\",\"books\":[]}")]
+    public async Task RestoreProjectAsync_RejectsInvalidMetadataWithoutChangingExistingFiles(string metadata)
+    {
+        using var temp = new TempDir();
+        var archive = ProjectArchive(temp, metadata);
+        var destination = temp.Combine("existing");
+        var original = Path.Combine(destination, "keep.txt");
+        Write(original, "Do not overwrite");
+
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            new ArchiveService().RestoreProjectAsync(archive, destination, replaceExisting: true));
+
+        Assert.Equal("Do not overwrite", File.ReadAllText(original));
+        Assert.Single(Directory.GetFiles(destination, "*", SearchOption.AllDirectories));
+    }
+
+    [Theory]
+    [InlineData("root")]
+    [InlineData("directory")]
+    [InlineData("file")]
+    public async Task RestoreProjectAsync_RejectsLinkedDestinationsBeforeWriting(string linkKind)
+    {
+        using var temp = new TempDir();
+        var archive = ProjectArchive(temp);
+        var destination = temp.Combine("existing");
+        var linkedDirectory = temp.Combine("linked-target");
+        var original = Path.Combine(linkedDirectory, "keep.txt");
+        Write(original, "Do not follow the link");
+        var link = linkKind == "root" ? destination : Path.Combine(destination, "link");
+        if (linkKind != "root") Directory.CreateDirectory(destination);
+        if (linkKind == "file") File.CreateSymbolicLink(link, original);
+        else Directory.CreateSymbolicLink(link, linkedDirectory);
+
+        try
+        {
+            await Assert.ThrowsAsync<IOException>(() =>
+                new ArchiveService().RestoreProjectAsync(archive, destination, replaceExisting: true));
+
+            Assert.Equal("Do not follow the link", File.ReadAllText(original));
+            Assert.False(Directory.Exists(Path.Combine(destination, ".novalist")));
+        }
+        finally
+        {
+            // Remove only the link; the fixture owns its target separately.
+            if (linkKind == "file") File.Delete(link);
+            else Directory.Delete(link);
+        }
+    }
+
+    [Fact]
+    public async Task RestoreProjectAsync_RemovesLaterFilesAndPreservesNestedGit()
+    {
+        using var temp = new TempDir();
+        var source = temp.Combine("source");
+        Write(Path.Combine(source, ".novalist", "project.json"),
+            "{\"name\":\"Book\",\"books\":[{\"name\":\"One\"}]}");
+        Write(Path.Combine(source, "Book", "scene.txt"), "original");
+        var archive = temp.Combine("backup.zip");
+        var sut = new ArchiveService();
+        await sut.CreateFromDirectoryAsync(source, archive, BackupService.ExcludedDirectories);
+        var destination = temp.Combine("out");
+        Write(Path.Combine(destination, "Book", "scene.txt"), "changed");
+        Write(Path.Combine(destination, "Book", ".git", "HEAD"), "ref");
+        Write(Path.Combine(destination, "Later", "scene.txt"), "later");
+
+        await sut.RestoreProjectAsync(archive, destination, replaceExisting: true);
+
+        Assert.Equal("original", File.ReadAllText(Path.Combine(destination, "Book", "scene.txt")));
+        Assert.Equal("ref", File.ReadAllText(Path.Combine(destination, "Book", ".git", "HEAD")));
+        Assert.False(Directory.Exists(Path.Combine(destination, "Later")));
     }
 }

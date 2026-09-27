@@ -13,6 +13,8 @@ namespace Novalist.Backend.Tests;
 ///   <item><c>Loc.Instance.CurrentLanguage</c> — the extension-facing UI language.</item>
 ///   <item><c>ExtensionsRpc.WebviewPosted</c> — set by every <c>BackendHost.Attach</c>.</item>
 ///   <item><c>HostNotifications.Error</c> — likewise.</item>
+///   <item><c>VoiceEngineRpc.Making</c> and <c>AudioChunk</c> — also replaced
+///   when a backend host attaches.</item>
 ///   <item><c>Log</c> — its opt-in flag and test sink are process-wide.</item>
 /// </list>
 /// Add a class here whenever it touches one of them; the alternative is a test

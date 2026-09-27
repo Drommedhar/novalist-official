@@ -21,6 +21,7 @@ namespace Novalist.Backend.Tests;
 /// cannot design - is a case the host has to survive rather than a case that
 /// only shows up on somebody's machine.
 /// </summary>
+[Collection("BackendStatics")]
 public sealed class VoiceEngineRpcTests : IDisposable
 {
     private readonly string _root;

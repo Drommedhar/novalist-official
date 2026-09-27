@@ -1,18 +1,13 @@
 import { useTranslation } from 'react-i18next'
-import { BookCopy, ChartNoAxesGantt, Globe, LayoutDashboard, PenLine, Send } from 'lucide-react'
+import { BookCopy, ChartNoAxesGantt, Globe, LayoutDashboard, PenLine, Send, Settings } from 'lucide-react'
 import { HOME_VIEW, MODES, modeOf, type Mode } from './modes'
 import { useProjectStore } from '../stores/projectStore'
 import { useShellStore } from '../stores/shellStore'
 
 /**
- * The five workspaces, and the way home.
- *
- * What it replaces was nineteen destinations in a rail of unlabelled icons -
- * eight of them under one heading - that you told apart by hovering for a
- * tooltip, and that hid whatever did not fit behind a "...". Six entries fit in
- * any window, so nothing is ever hidden, and each one carries its name: the
- * complaint this restructure started from was being unable to find things, and
- * an icon you have to hover to identify is a thing you cannot find.
+ * Home and the five workspaces, with Settings pinned below them. Every entry
+ * carries its name; the workspaces scroll in short windows so Settings stays
+ * within reach.
  */
 
 type IconComponent = React.ComponentType<{ size?: number; strokeWidth?: number }>
@@ -32,6 +27,7 @@ export function ModeRail(): React.JSX.Element {
   const extView = useShellStore((s) => s.extView)
   const setMode = useShellStore((s) => s.setMode)
   const goHome = useShellStore((s) => s.goHome)
+  const openSettings = useShellStore((s) => s.openSettings)
   // With no project open the modes have nothing to hold. They are shown
   // disabled rather than absent, so the shape of the app is the same before and
   // after opening one - which is the whole reason the start screen folded into
@@ -69,51 +65,64 @@ export function ModeRail(): React.JSX.Element {
     isLoaded && !atHome && modeOf(mainView) !== null ? modeOf(mainView) : null
 
   const homeLabel = isLoaded ? t('shell.view.dashboard') : t('shell.welcome')
+  const atSettings = !extView && mainView === 'settings'
+  const settingsLabel = t('shell.view.settings')
 
   return (
     <nav className="mode-rail" aria-label={t('shell.activityBar')}>
+      <div className="mode-rail-workspaces">
+        <button
+          type="button"
+          className={`mode-rail-item${atHome ? ' active' : ''}`}
+          aria-current={atHome ? 'page' : undefined}
+          disabled={!isLoaded && !appScopedView}
+          onClick={() => goHome()}
+        >
+          <LayoutDashboard size={19} strokeWidth={1.75} />
+          {/* Titled as well as labelled: the rail is sized for the longest name
+              any bundled language has, but a language somebody added themselves
+              can be longer still, and then the tooltip is the way to read it. */}
+          <span title={homeLabel}>{homeLabel}</span>
+        </button>
+        <div className="mode-rail-sep" />
+        {MODES.map((entry) => {
+          const Icon = MODE_ICONS[entry]
+          // A mode is current when the writer is in one of its views. Picking a
+          // mode and then opening Settings leaves it selected but not current,
+          // which is the honest reading of where you are.
+          const current = activeMode === entry
+          // Nothing is picked until there is a project to pick it in. The store
+          // starts on Write, which is a default rather than a decision, and
+          // showing it as chosen on the welcome screen was a claim about where
+          // the writer was that they had not made.
+          const selected = isLoaded && !atHome && mode === entry
+          return (
+            <button
+              key={entry}
+              type="button"
+              className={`mode-rail-item${current ? ' active' : ''}${
+                selected && !current ? ' selected' : ''
+              }`}
+              data-mode={entry}
+              aria-current={current ? 'page' : undefined}
+              disabled={!isLoaded}
+              onClick={() => pick(entry)}
+            >
+              <Icon size={19} strokeWidth={1.75} />
+              <span title={t(`modes.${entry}`)}>{t(`modes.${entry}`)}</span>
+            </button>
+          )
+        })}
+      </div>
       <button
         type="button"
-        className={`mode-rail-item${atHome ? ' active' : ''}`}
-        aria-current={atHome ? 'page' : undefined}
-        disabled={!isLoaded && !appScopedView}
-        onClick={() => goHome()}
+        className={`mode-rail-item mode-rail-settings${atSettings ? ' active' : ''}`}
+        aria-current={atSettings ? 'page' : undefined}
+        onClick={() => openSettings()}
       >
-        <LayoutDashboard size={19} strokeWidth={1.75} />
-        {/* Titled as well as labelled: the rail is sized for the longest name
-            any bundled language has, but a language somebody added themselves
-            can be longer still, and then the tooltip is the way to read it. */}
-        <span title={homeLabel}>{homeLabel}</span>
+        <Settings size={19} strokeWidth={1.75} />
+        <span title={settingsLabel}>{settingsLabel}</span>
       </button>
-      <div className="mode-rail-sep" />
-      {MODES.map((entry) => {
-        const Icon = MODE_ICONS[entry]
-        // A mode is current when the writer is in one of its views. Picking a
-        // mode and then opening Settings leaves it selected but not current,
-        // which is the honest reading of where you are.
-        const current = activeMode === entry
-        // Nothing is picked until there is a project to pick it in. The store
-        // starts on Write, which is a default rather than a decision, and
-        // showing it as chosen on the welcome screen was a claim about where
-        // the writer was that they had not made.
-        const selected = isLoaded && !atHome && mode === entry
-        return (
-          <button
-            key={entry}
-            type="button"
-            className={`mode-rail-item${current ? ' active' : ''}${
-              selected && !current ? ' selected' : ''
-            }`}
-            data-mode={entry}
-            aria-current={current ? 'page' : undefined}
-            disabled={!isLoaded}
-            onClick={() => pick(entry)}
-          >
-            <Icon size={19} strokeWidth={1.75} />
-            <span title={t(`modes.${entry}`)}>{t(`modes.${entry}`)}</span>
-          </button>
-        )
-      })}
     </nav>
   )
 }

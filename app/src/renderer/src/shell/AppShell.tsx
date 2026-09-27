@@ -377,7 +377,7 @@ export function AppShell(): React.JSX.Element {
             // Every ordinary workspace mutation uses one backend queue. This
             // no-op sits behind all requests already sent to that queue, covering
             // immediate settings/toggle writes that have no local debounce while
-            // excluding long-running voice, export, backup, and Git work.
+            // excluding long-running voice, export, and Git work.
             await rpc.request('system/barrier')
             const project = useProjectStore.getState()
             if (
