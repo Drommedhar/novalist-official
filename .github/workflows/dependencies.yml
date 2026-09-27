@@ -1,0 +1,60 @@
+name: Dependency submission
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nuget:
+    name: NuGet dependencies (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: desktop
+            os: ubuntu-latest
+            dotnet: 8.0.x
+            project: novalist-official.sln
+            scan: .
+            exclude: Novalist.Mobile
+          - target: ios
+            os: macos-latest
+            dotnet: 10.0.x
+            project: Novalist.Mobile/Novalist.Mobile.csproj
+            scan: Novalist.Mobile
+            exclude: ''
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+
+      # The iOS project is deliberately outside the desktop solution. Restore
+      # it on macOS with its workloads, never through an all-csproj Linux scan.
+      - name: Install iOS workloads
+        if: matrix.target == 'ios'
+        run: dotnet workload restore Novalist.Mobile/Novalist.Mobile.csproj
+
+      - name: Restore dependencies
+        run: dotnet restore "${{ matrix.project }}"
+
+      # Fork PRs still validate both restores, but cannot write snapshots.
+      - name: Submit NuGet dependency snapshot
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: advanced-security/component-detection-dependency-submission-action@ce792dce44c6e59487bcd862f3917f2c2b9a7fb0
+        with:
+          detectorsCategories: NuGet
+          filePath: ${{ matrix.scan }}
+          directoryExclusionList: ${{ matrix.exclude }}
+          correlator: nuget-${{ matrix.target }}
