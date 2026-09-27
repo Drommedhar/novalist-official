@@ -112,9 +112,8 @@
   --nl-toolbar-height: 38px;
   --nl-status-height: 24px;
   /* The mode rail carries a word under each icon, because a rail you have to
-     hover to read is a rail you cannot find anything in. Six entries, so it
-     never needs to hide any of them. Sized for two lines of the longest label
-     any bundled language has - German's "Veroeffentlichen" - rather than for
+     hover to read is a rail you cannot find anything in. Sized for two lines of
+     the longest label any bundled language has - German's "Veröffentlichen" - rather than for
      English, which is how it came out clipped at both ends. */
   --nl-mode-rail-width: 84px;
   /* Wide enough for the longest mode name beside its view count, narrow enough

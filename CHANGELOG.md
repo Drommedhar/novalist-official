@@ -16,6 +16,9 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+### Added
+
+- **Settings** is now pinned to the bottom of the desktop's left sidebar for quick access, including before a project is opened.
 ### Fixed
 
 - **Restore backup as new project** is available from the File menu, and its dialog and error messages are translated into Simplified Chinese.
