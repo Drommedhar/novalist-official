@@ -102,8 +102,16 @@ export async function resizeWindow(
   await h.app.evaluate(
     async ({ BrowserWindow }, s: { w: number; h: number; min: [number, number] }) => {
       const win = BrowserWindow.getAllWindows()[0]
-      if (win.isFullScreen()) win.setFullScreen(false)
-      if (win.isMaximized()) win.unmaximize()
+      // A real window manager applies these asynchronously. Resizing before
+      // it finishes can be ignored or overwritten by the restored bounds.
+      if (win.isFullScreen()) await new Promise<void>((resolve) => {
+        win.once('leave-full-screen', () => resolve())
+        win.setFullScreen(false)
+      })
+      if (win.isMaximized()) await new Promise<void>((resolve) => {
+        win.once('unmaximize', () => resolve())
+        win.unmaximize()
+      })
       win.setMinimumSize(s.min[0], s.min[1])
       win.setBounds({ width: s.w, height: s.h })
     },

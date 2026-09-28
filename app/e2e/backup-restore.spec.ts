@@ -159,7 +159,7 @@ for (const mobile of [false, true]) {
         return path
       })
       await expect(h.page.locator('.start-screen')).toBeVisible()
-      await h.page.locator('.library-more summary').click()
+      await h.page.getByLabel('More project actions', { exact: true }).click()
       await h.page.getByRole('button', { name: 'Restore backup as new project', exact: true }).click()
       const dialog = h.page.getByRole('dialog', { name: 'Restore backup as new project' })
       await h.app.evaluate(({ dialog }, paths) => {

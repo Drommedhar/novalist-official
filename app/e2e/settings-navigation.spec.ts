@@ -1,5 +1,57 @@
 import { test, expect } from '@playwright/test'
-import { launchApp, seedBook } from './harness'
+import { dismissTour, launchApp, seedBook } from './harness'
+
+for (const initialView of ['empty', 'global'] as const) {
+  test(`pending project settings preserve a section route (${initialView} settings)`, async () => {
+    const h = await launchApp('nl-settings-pending-')
+    try {
+      await h.page.evaluate(async () => {
+        await window.novalistStores.settings.getState().load()
+        const client = window.novalistRpc
+        const original = client.request.bind(client)
+        let release!: () => void
+        const gate = new Promise<void>(resolve => { release = resolve })
+        const state = window as typeof window & { settingsGate: { requests: number; release(): void } }
+        state.settingsGate = { requests: 0, release: () => { client.request = original; release() } }
+        client.request = async <T>(method: string, params?: unknown): Promise<T> => {
+          if (method === 'settings/get') {
+            state.settingsGate.requests++
+            await gate
+          }
+          return original<T>(method, params)
+        }
+      })
+      await seedBook(h, { Chapter: ['Scene'] })
+      await dismissTour(h.page)
+      await h.page.evaluate(initial => {
+        if (initial === 'empty') window.novalistStores.settings.setState({ view: null })
+        window.novalistStores.shell.getState().openSettings('manuscriptProperties')
+      }, initialView)
+      // Both the project change and mounting Settings request the new model.
+      // Leave it pending while React runs its navigation effects.
+      await expect.poll(() => h.page.evaluate(() =>
+        (window as unknown as { settingsGate: { requests: number } }).settingsGate.requests
+      )).toBeGreaterThanOrEqual(2)
+      await h.page.evaluate(() => new Promise<void>(resolve => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      }))
+      await h.page.evaluate(() =>
+        (window as unknown as { settingsGate: { release(): void } }).settingsGate.release()
+      )
+      const surface = h.page.locator('.settings-section-surface')
+      await expect(surface).toHaveAttribute('data-settings-section', 'manuscriptProperties')
+      await expect(surface.getByRole('button', { name: 'Add a field' })).toBeVisible()
+
+      // Once the project really is closed, the same route must still fall back.
+      await h.page.evaluate(async () => {
+        await window.novalistStores.project.getState().closeProject()
+        window.novalistStores.shell.getState().openSettings('manuscriptProperties')
+      })
+      await expect(surface).toHaveAttribute('data-settings-section', 'appearance')
+      await expect(h.page.locator('.settings-nav-heading', { hasText: 'Project' })).toHaveCount(0)
+    } finally { await h.close() }
+  })
+}
 
 test('Settings shows one categorized section and finds translated controls', async () => {
   test.setTimeout(180_000)

@@ -143,6 +143,9 @@ jobs:
         working-directory: app
         run: npx playwright install --with-deps --only-shell chromium
 
+      - name: Install E2E window manager
+        run: sudo apt-get install --no-install-recommends -y openbox wmctrl
+
       - name: Typecheck
         working-directory: app
         run: npm run typecheck
@@ -161,7 +164,7 @@ jobs:
 
       - name: E2E (Playwright against the real app)
         working-directory: app
-        run: xvfb-run --auto-servernum npx playwright test
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1600x24" bash scripts/test-e2e-linux.sh
 
       - name: Upload failed E2E traces
         if: failure()

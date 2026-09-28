@@ -75,11 +75,11 @@ test('closing shows a complete library in the global language on its first rende
     await expect(h.page.locator('.project-library')).toHaveCount(0)
     await expect(h.page.locator('.shell')).toHaveAttribute('inert', '')
     await h.page.evaluate(() => (window as unknown as { closeProbe: { release(): void } }).closeProbe.release())
-    await expect(h.page.locator('.project-library h1')).toHaveText('Project library')
+    await expect(h.page.locator('.project-library h1')).toHaveText('Your bookshelf')
     await expect(h.page.locator('.project-library img.start-recent-cover-img')).toBeVisible()
     await expect(h.page.locator('.shell')).not.toHaveAttribute('inert')
     expect(await h.page.evaluate(() => (window as unknown as { closeProbe: { first: unknown; error?: string } }).closeProbe.first))
-      .toEqual({ title: 'Project library', covers: 1, language: 'en' })
+      .toEqual({ title: 'Your bookshelf', covers: 1, language: 'en' })
     expect(await h.page.evaluate(() => (window as unknown as { closeProbe: { error?: string } }).closeProbe.error)).toBeUndefined()
 
     // A delayed response from before closing must not restore project settings.
@@ -88,6 +88,6 @@ test('closing shows a complete library in the global language on its first rende
     const current = await h.page.evaluate(() => window.novalistStores.settings.getState().view!)
     expect(current.hasProject).toBe(false)
     expect(current.effective.language).toBe('en')
-    await expect(h.page.locator('.project-library h1')).toHaveText('Project library')
+    await expect(h.page.locator('.project-library h1')).toHaveText('Your bookshelf')
   } finally { await h.close() }
 })
