@@ -581,7 +581,12 @@ export function MapsView(): React.JSX.Element {
   const onAddImage = useCallback((): void => {
     void rpc
       .request<{ path: string; url: string }[]>('gallery/list')
-      .then((imgs) => setImagePicker(imgs))
+      .then((imgs) => setImagePicker(imgs.map((img) => ({
+        ...img,
+        // The RPC's url is project-relative. Both the preview and the size
+        // probe need the project protocol; path stays book-relative for saving.
+        url: IMAGE_BASE_URL + img.url.split('/').map(encodeURIComponent).join('/')
+      }))))
   }, [])
 
   const placeImage = useCallback(

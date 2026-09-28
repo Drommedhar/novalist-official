@@ -30,6 +30,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- Map image previews now load correctly, and newly placed images keep their original proportions instead of becoming squares.
 - Unavailable projects no longer add repeated file-read delays to library startup and closing a project. They remain in the library for when their folders become available again. Startup also initializes the library and settings only once.
 - Delayed editor notifications no longer hide Focus Mode tools after you have opened them.
 - Closing a project prepares its bookshelf covers and restores the global interface language before showing the library, avoiding the empty-cover and project-language flash. Late responses from the closed project no longer replace the restored settings.
