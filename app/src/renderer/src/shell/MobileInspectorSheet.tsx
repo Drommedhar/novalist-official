@@ -4,34 +4,36 @@ import { useProjectStore } from '../stores/projectStore'
 import { ContextPanel } from './ContextPanel'
 import { AnnotationsPanel } from './AnnotationsPanel'
 import { SceneNotesFields } from './SceneNotesFields'
+import { TasksPanel } from './TasksPanel'
 import { MobileSheet } from './MobileSheet'
 
-type HubTab = 'context' | 'footnotes' | 'notes'
+type HubTab = 'context' | 'footnotes' | 'notes' | 'tasks'
 
 /**
  * Mobile writing hub: the desktop Inspector (Context + Footnotes) and the Scene
- * Notes dock collapse into one swipe-up bottom sheet with three tabs. Raised by
- * the Inspector button in the mobile editor bar.
+ * Notes dock and project to-dos share a sheet. Raised by the Inspector button
+ * in Write, including before a scene is opened.
  */
 export function MobileInspectorSheet({
-  initialTab = 'context',
+  initialTab,
   onClose
 }: {
   initialTab?: HubTab
   onClose: () => void
 }): React.JSX.Element {
   const { t } = useTranslation()
-  const [tab, setTab] = useState<HubTab>(initialTab)
   const chapters = useProjectStore((s) => s.chapters)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const chapter = chapters.find((c) => c.guid === openChapterGuid)
   const scene = chapter?.scenes.find((sc) => sc.id === openSceneId)
+  const [tab, setTab] = useState<HubTab>(initialTab ?? (scene ? 'context' : 'tasks'))
 
   const tabs: { key: HubTab; label: string }[] = [
     { key: 'context', label: t('context.tab') },
     { key: 'footnotes', label: t('footnotes.tab') },
-    { key: 'notes', label: t('sceneNotes.title') }
+    { key: 'notes', label: t('sceneNotes.title') },
+    { key: 'tasks', label: t('tasks.title') }
   ]
 
   return (
@@ -49,7 +51,9 @@ export function MobileInspectorSheet({
         ))}
       </div>
       <div className="mobile-sheet-tabbody">
-        {!(openChapterGuid && openSceneId && scene) ? (
+        {tab === 'tasks' ? (
+          <TasksPanel />
+        ) : !(openChapterGuid && openSceneId && scene) ? (
           <div className="inspector-placeholder">{t('shell.inspectorEmpty')}</div>
         ) : (
           <>
