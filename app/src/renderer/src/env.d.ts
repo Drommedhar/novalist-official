@@ -80,6 +80,7 @@ interface Window {
     isMas: boolean
     autoUpdate: boolean
     requestBackendPort(): void
+    setFocusWindow?(enabled: boolean): Promise<void>
     pickFolder(title: string): Promise<string | null>
     // Mobile-only: the folder a new project goes in unless the writer picks
     // another - Novalist's own folder in the Files app. Absent on the desktop,

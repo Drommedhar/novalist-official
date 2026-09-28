@@ -1,5 +1,6 @@
 using Novalist.Backend;
 using Novalist.Core.Services;
+using NSubstitute;
 using Xunit;
 
 namespace Novalist.Backend.Tests;
@@ -20,6 +21,158 @@ public sealed class WorkspaceTests : IDisposable
     }
 
     private Workspace CreateWorkspace() => new(Path.Combine(_root, "settings"));
+
+    [Fact]
+    public async Task Recents_UnavailableProjectsAreKeptWithoutReadingTheirManifests()
+    {
+        var files = Substitute.For<IFileService>();
+        files.CombinePath(Arg.Any<string[]>()).Returns(call => Path.Combine(call.Arg<string[]>()));
+        files.GetDirectoryName(Arg.Any<string>()).Returns(call => Path.GetDirectoryName(call.Arg<string>())!);
+        using var workspace = new Workspace(Path.Combine(_root, "settings"), fileService: files);
+        for (var i = 0; i < 10; i++)
+            workspace.Settings.AddRecentProject("Offline", Path.Combine(_root, "unavailable-" + i, "Novel"));
+        await workspace.Settings.SaveAsync();
+
+        Assert.Equal(10, (await workspace.GetRecentProjectsAsync()).Length);
+        await files.DidNotReceive().ReadTextAsync(Arg.Any<string>());
+        await files.DidNotReceive().ReadBytesAsync(Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task Recents_MenuRefreshOmitsLibraryPayloads()
+    {
+        using var workspace = await CreateOpenProjectAsync();
+        var cover = Path.Combine(_root, "large-cover.png");
+        await File.WriteAllBytesAsync(cover, new byte[2 * 1024 * 1024]);
+        await new Rpc.DashboardRpc(workspace).SetCoverAsync(cover);
+        var menu = Assert.Single(await new Rpc.ProjectRpc(workspace).GetRecentAsync(false));
+        Assert.Equal("TestNovel", menu.Name);
+        Assert.Equal(workspace.Projects.ProjectRoot, menu.Path);
+        Assert.Null(menu.Cover);
+        Assert.Null(menu.Books);
+        Assert.Null(menu.HasWorldBible);
+
+        var library = Assert.Single(await new Rpc.ProjectRpc(workspace).GetRecentAsync(true));
+        Assert.NotNull(library.Cover);
+        Assert.Equal(["Book One"], library.Books!.Select(book => book.Name));
+        Assert.True(library.HasWorldBible);
+    }
+
+    [Fact]
+    public async Task LibrarySummary_ListsBooksWithoutChangingTheOpenProject()
+    {
+        using var workspace = await CreateOpenProjectAsync();
+        var root = workspace.Projects.ProjectRoot!;
+        await new Rpc.ProjectRpc(workspace).CreateBookAsync("Book Two");
+        var active = workspace.Projects.ActiveBook!.Id;
+        var entry = Assert.Single(await workspace.GetRecentProjectsAsync());
+        Assert.Equal(workspace.Projects.CurrentProject!.Id, entry.ProjectId);
+        Assert.Equal(["Book One", "Book Two"], entry.Books!.Select(book => book.Name));
+        Assert.True(entry.HasWorldBible);
+        Assert.Equal(active, workspace.Projects.ActiveBook.Id);
+        workspace.CloseProject();
+        entry = Assert.Single(await workspace.GetRecentProjectsAsync());
+        Assert.Equal(root, entry.Path);
+        Assert.Equal(2, entry.Books!.Length);
+        Assert.False(workspace.BuildState().IsLoaded);
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("{broken")]
+    [InlineData("{\"name\":null,\"books\":[]}")]
+    [InlineData("{\"name\":\"Novel\",\"books\":null}")]
+    [InlineData("{\"name\":\"Novel\",\"books\":[null]}")]
+    [InlineData("{\"name\":\"Novel\",\"books\":[{\"name\":null}]}")]
+    public async Task LibrarySummary_UnreadableManifestKeepsTheProject(string json)
+    {
+        using var workspace = CreateWorkspace();
+        Directory.CreateDirectory(Path.Combine(_root, ".novalist"));
+        await File.WriteAllTextAsync(Path.Combine(_root, ".novalist", "project.json"), json);
+        var original = new RecentProjectDto("Still here", _root, null);
+        Assert.Equal(original, await workspace.ReadLibrarySummaryAsync(original));
+    }
+
+    [Fact]
+    public async Task LibrarySummary_OfflineProjectDoesNotBecomeAnEmptyProject()
+    {
+        using var workspace = CreateWorkspace();
+        var original = new RecentProjectDto("Offline", Path.Combine(_root, "unavailable"), null);
+        var entry = await workspace.ReadLibrarySummaryAsync(original);
+        Assert.Equal(original, entry);
+        Assert.Null(entry.Books);
+        Assert.Null(entry.HasWorldBible);
+    }
+
+    [Fact]
+    public async Task LibrarySummary_UsesEachBooksOwnCoverAndStableId()
+    {
+        using var workspace = await CreateOpenProjectAsync();
+        var rpc = new Rpc.ProjectRpc(workspace);
+        var dashboard = new Rpc.DashboardRpc(workspace);
+        var firstId = workspace.Projects.ActiveBook!.Id;
+        var first = Path.Combine(_root, "first.png");
+        await File.WriteAllBytesAsync(first, [1, 2, 3]);
+        await dashboard.SetCoverAsync(first);
+        var secondId = (await rpc.CreateBookAsync("Book Two")).Books.Last().Id;
+        await rpc.SwitchBookAsync(secondId);
+        var second = Path.Combine(_root, "second.png");
+        await File.WriteAllBytesAsync(second, [4, 5, 6]);
+        await dashboard.SetCoverAsync(second);
+        var thirdId = (await rpc.CreateBookAsync("Book Three")).Books.Last().Id;
+        await rpc.SwitchBookAsync(thirdId);
+        workspace.CloseProject();
+
+        var books = Assert.Single(await workspace.GetRecentProjectsAsync()).Books!;
+        Assert.Equal([firstId, secondId, thirdId], books.Select(book => book.Id));
+        Assert.Equal("data:image/png;base64,AQID", books[0].Cover);
+        Assert.Equal("data:image/png;base64,BAUG", books[1].Cover);
+        Assert.Null(books[2].Cover);
+        Assert.False(workspace.BuildState().IsLoaded);
+    }
+
+    [Fact]
+    public async Task LibrarySummary_KeepsLegacySingleBookCoverAndMissingCoverPlaceholder()
+    {
+        using var workspace = await CreateOpenProjectAsync();
+        var cover = Path.Combine(workspace.Projects.ActiveBookRoot!, "legacy.png");
+        await File.WriteAllBytesAsync(cover, [1, 2, 3]);
+        workspace.Projects.CurrentProject!.CoverImage = "legacy.png";
+        await workspace.Projects.SaveProjectAsync();
+        var entry = Assert.Single(await workspace.GetRecentProjectsAsync());
+        Assert.Equal("data:image/png;base64,AQID", Assert.Single(entry.Books!).Cover);
+        File.Delete(cover);
+        entry = Assert.Single(await workspace.GetRecentProjectsAsync());
+        Assert.Null(Assert.Single(entry.Books!).Cover);
+    }
+
+    [Fact]
+    public async Task OpenLibraryBook_LoadsSelectedDraftAndRemembersSelection()
+    {
+        using var workspace = await CreateOpenProjectAsync();
+        var root = workspace.Projects.ProjectRoot!;
+        var rpc = new Rpc.ProjectRpc(workspace);
+        var firstId = workspace.Projects.ActiveBook!.Id;
+        var chapter = await workspace.Projects.CreateChapterAsync("First book chapter");
+        var scene = await workspace.Projects.CreateSceneAsync(chapter.Guid, "First book scene");
+        await workspace.WriteSceneAsync(chapter.Guid, scene.Id, "<p>First book prose.</p>", "First book prose.");
+        var secondId = (await rpc.CreateBookAsync("Book Two")).Books.Last().Id;
+        await rpc.SwitchBookAsync(secondId);
+        await workspace.Projects.CreateChapterAsync("Second book chapter");
+        workspace.CloseProject();
+
+        var opened = await rpc.OpenAsync(root, firstId);
+        Assert.Equal(firstId, opened.ActiveBookId);
+        Assert.Equal("First book chapter", Assert.Single(opened.Chapters).Title);
+        Assert.Contains("First book prose.", await workspace.Projects.ReadSceneContentAsync(
+            workspace.ResolveChapter(chapter.Guid), workspace.ResolveScene(chapter.Guid, scene.Id).scene));
+        workspace.CloseProject();
+        Assert.Equal(firstId, (await rpc.OpenAsync(root)).ActiveBookId);
+        Assert.Equal("Second book chapter", Assert.Single((await rpc.OpenAsync(root, secondId)).Chapters).Title);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => rpc.OpenAsync(root, "missing-book"));
+        Assert.Equal(secondId, workspace.Projects.ActiveBook!.Id);
+    }
 
     private async Task<Workspace> CreateOpenProjectAsync()
     {

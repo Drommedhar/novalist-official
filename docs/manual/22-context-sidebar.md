@@ -13,7 +13,7 @@ The scene's **synopsis** and freeform **notes** live in the [scene-notes dock](0
 - The Inspector toggle at the far right of the toolbar, or
 - `Ctrl+Alt+I` (`Cmd+Alt+I` on macOS).
 
-**Focus mode** (`Alt+F`) hides the Inspector together with the binder, leaving only the editor.
+**Focus mode** (`F11`) tucks the Inspector and binder away. Hover at the right edge for scene context or the left edge for the binder; the panel retreats when you move back to the page. `Ctrl+Alt+I` keeps scene context open over the page until dismissed; `Escape` returns you to writing without changing the page width.
 
 When no scene is open, the Inspector shows a placeholder; open a scene from the binder and its details appear.
 

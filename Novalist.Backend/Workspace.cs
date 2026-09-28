@@ -124,10 +124,10 @@ public sealed partial class Workspace : IDisposable
         _uiPump?.Dispose();
     }
 
-    public async Task<ProjectStateDto> OpenProjectAsync(string projectDirectory)
+    public async Task<ProjectStateDto> OpenProjectAsync(string projectDirectory, string? bookId = null)
     {
         await Settings.LoadAsync();
-        var metadata = await Projects.LoadProjectAsync(projectDirectory);
+        var metadata = await Projects.LoadProjectAsync(projectDirectory, bookId);
         await Projects.ReconcileActiveDraftAsync();
         Settings.SetActiveOverrides(Projects.ProjectSettings.Overrides);
         // Record the portrait cover's absolute path so the welcome screen can
@@ -367,7 +367,7 @@ public sealed partial class Workspace : IDisposable
     /// cannot be seen right now is offered anyway - opening it takes the same
     /// path, grant and all, and an offline volume is not a deleted book.
     /// </summary>
-    public async Task<RecentProjectDto[]> GetRecentProjectsAsync()
+    public async Task<RecentProjectDto[]> GetRecentProjectsAsync(bool includeLibraryDetails = true)
     {
         await Settings.LoadAsync();
         var results = new List<RecentProjectDto>();
@@ -407,11 +407,55 @@ public sealed partial class Workspace : IDisposable
                 continue;
             }
 
-            results.Add(new RecentProjectDto(r.Name, path, await LoadCoverDataUriAsync(r.CoverImagePath)));
+            // The File menu needs names and paths, never megabytes of covers
+            // or manifests from every other project while the writer works.
+            // Unknown means the volume/grant is unavailable. Keep its entry,
+            // without opening manifests or covers the presence probe could
+            // not reach. These reads used to incur retry delays per project.
+            var readDetails = includeLibraryDetails && presence == ProjectPresence.Present;
+            var entry = new RecentProjectDto(r.Name, path, null);
+            results.Add(readDetails ? await ReadLibrarySummaryAsync(entry) : entry);
         }
 
         if (changed) await Settings.SaveAsync();
         return results.ToArray();
+    }
+
+    /// <summary>Read the manifest and book covers; never open books or load their drafts.</summary>
+    internal async Task<RecentProjectDto> ReadLibrarySummaryAsync(RecentProjectDto entry)
+    {
+        try
+        {
+            var json = await FileService.ReadTextAsync(Path.Combine(entry.Path, ".novalist", "project.json"));
+            var metadata = System.Text.Json.JsonSerializer.Deserialize<ProjectMetadata>(json);
+            if (metadata is not { Name.Length: > 0, Books: not null } ||
+                metadata.Books.Any(book => book is not { Id.Length: > 0, Name.Length: > 0, FolderName: not null })) return entry;
+            var books = new List<LibraryBookDto>();
+            foreach (var book in metadata.Books)
+            {
+                // Legacy single-book projects can keep their cover on the project.
+                // Never give an uncovered volume a different book's artwork.
+                var cover = string.IsNullOrEmpty(book.CoverImage) && metadata.Books.Count == 1
+                    ? metadata.CoverImage : book.CoverImage;
+                var path = string.IsNullOrEmpty(cover) ? null
+                    : Path.Combine(entry.Path, book.FolderName, cover.Replace('/', Path.DirectorySeparatorChar));
+                books.Add(new LibraryBookDto(book.Id, book.Name, await LoadCoverDataUriAsync(path)));
+            }
+            return entry with
+            {
+                Name = metadata.Name,
+                ProjectId = metadata.Id,
+                Books = books.ToArray(),
+                Cover = books.FirstOrDefault(book => book.Id == metadata.ActiveBookId)?.Cover,
+                HasWorldBible = !string.IsNullOrWhiteSpace(metadata.WorldBibleFolder)
+            };
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            // An offline project is still on its shelf. Unknown details are
+            // deliberately distinct from an empty project.
+            return entry;
+        }
     }
 
     /// <summary>Absolute filesystem path of the active project's portrait cover
@@ -614,4 +658,6 @@ public sealed record SceneDto(
     /// <summary>The same threads by id, so the binder can filter by one.</summary>
     IReadOnlyList<string> PlotlineIds);
 
-public sealed record RecentProjectDto(string Name, string Path, string? Cover);
+public sealed record RecentProjectDto(string Name, string Path, string? Cover,
+    string? ProjectId = null, LibraryBookDto[]? Books = null, bool? HasWorldBible = null);
+public sealed record LibraryBookDto(string Id, string Name, string? Cover);

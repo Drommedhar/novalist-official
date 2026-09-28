@@ -52,7 +52,9 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 - WYSIWYG editor with inline formatting, paragraph styles (heading, subheading, block quote, verse), bulleted and numbered lists, inline comments, and numbered footnotes — every style carried through to DOCX, EPUB, Markdown and LaTeX.
 - Auto-save with per-scene **snapshot history** and a side-by-side compare view — revert a single scene without touching the rest of the project.
-- **Focus Mode** that hides every panel except the editor.
+- **Focus Mode** (`F11`) fills the screen with a centered page that widens as you zoom and hides the title and menu bars. Hover areas grow with the space beside the page; prepared binder and context panels slide in gently. Panels and notes overlay the page; your caret, split layout and previous window state survive the round trip.
+- **Project bookshelf** with a separate cover for every book, named shelves in any order, drag ordering and search across project and book names. Click a cover to open that book directly; each project keeps its books and shared World Bible together.
+- **Scratchpad** stays within reach beside the library search, even while scrolling. Jot down ideas without opening a project and file saved notes into a project's Research inbox later.
 - **Split panes** — divide the main area as many times as you like, each pane showing any view, and tear one off into its own window.
 - **Auto-replacements** for smart quotes, em-dashes, and ellipses with language presets (English, German, French, Spanish, Italian, Portuguese, Russian, Polish, Czech, Slovak) — or switched off entirely, so every character you type is the character that lands. The list is yours to edit: add your own rules, plain text or regular expressions with capture groups, and run them over prose you already wrote.
 - **Dialogue punctuation correction** as you type.

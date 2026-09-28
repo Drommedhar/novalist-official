@@ -206,7 +206,10 @@ public partial class ProjectService : IProjectService
         }
     }
 
-    public async Task<ProjectMetadata> LoadProjectAsync(string projectDirectory)
+    public Task<ProjectMetadata> LoadProjectAsync(string projectDirectory) => LoadProjectAsync(projectDirectory, null);
+
+    /// <summary>Open a library book directly, without loading the previously active draft first.</summary>
+    public async Task<ProjectMetadata> LoadProjectAsync(string projectDirectory, string? bookId)
     {
         var metadataPath = _fileService.CombinePath(projectDirectory, ".novalist", "project.json");
         if (!await _fileService.ExistsAsync(metadataPath))
@@ -215,6 +218,13 @@ public partial class ProjectService : IProjectService
         var json = await _fileService.ReadTextAsync(metadataPath);
         var metadata = JsonSerializer.Deserialize<ProjectMetadata>(json, JsonOptions)
             ?? throw new InvalidOperationException("Failed to parse project metadata.");
+
+        if (bookId != null)
+        {
+            if (!metadata.Books.Any(book => book.Id == bookId))
+                throw new ArgumentException("Book not found.", nameof(bookId));
+            metadata.ActiveBookId = bookId;
+        }
 
         ProjectRoot = projectDirectory;
         CurrentProject = metadata;
@@ -264,6 +274,7 @@ public partial class ProjectService : IProjectService
         // surfaces the summary. A clean project produces no changes and no writes.
         await ReconcileActiveDraftAsync();
 
+        if (bookId != null) await WriteProjectJsonAsync();
         return metadata;
     }
 

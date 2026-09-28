@@ -116,9 +116,8 @@ public class SettingsService : ISettingsService
             CoverImagePath = coverImagePath
         });
 
-        // Keep only the 10 most recent
-        if (Settings.RecentProjects.Count > 10)
-            Settings.RecentProjects.RemoveRange(10, Settings.RecentProjects.Count - 10);
+        // This is also the project library. Opening an eleventh project must
+        // not silently remove the first one from the writer's shelves.
     }
 
     public void RemoveRecentProject(string path)

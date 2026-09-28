@@ -233,9 +233,9 @@ export function installHotkeys(actions: HotkeyAction[]): () => void {
       target?.isContentEditable === true
     for (const action of [...actions, ...extensionActions]) {
       if (!matchGesture(event, action.gesture)) continue
-      // Plain Ctrl+B etc. still fire in fields only when they carry modifiers
-      // beyond what text editing uses; navigation gestures always take priority.
-      if (inField && !event.ctrlKey && !event.metaKey) continue
+      // Keep ordinary typing and Alt combinations in fields. Function keys
+      // such as F11 remain available, just as they do inside the editor iframe.
+      if (inField && !event.ctrlKey && !event.metaKey && !/^F\d{1,2}$/.test(event.key)) continue
       event.preventDefault()
       action.run()
       return

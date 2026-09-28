@@ -31,7 +31,9 @@ Unfiled captures collect in the **Inbox**. When at least one exists, an **Inbox*
 
 Quick capture writes into the open project's Inbox, which is no help when the thought arrives before the right project is open — and that is exactly when thoughts arrive.
 
-With no project open, quick capture goes to the **scratchpad** instead. It lives beside your settings rather than inside any project, survives every project being closed, and is shown on the welcome screen so you can add to it and read it without opening anything.
+With no project open, quick capture goes to the **scratchpad** instead. It lives beside your settings rather than inside any project and survives every project being closed.
+
+In the Project library, choose **Scratchpad** beside the search field. The button stays visible as you scroll through shelves. It opens a dialog with the note field ready for typing and your saved notes below it. Use **Jot it down** or `Ctrl+Enter` (`Cmd+Enter` on macOS) to save. Close with the close button or `Esc` to return to your place in the library; closing and reopening the dialog keeps an unfinished note while you remain in the library.
 
 Once a project is open, the scratchpad appears at the bottom of the Research view whenever no item is selected. **File into project** moves a note into that project's Inbox, where it can be filed like any other capture.
 

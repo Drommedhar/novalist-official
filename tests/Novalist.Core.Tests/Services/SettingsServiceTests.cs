@@ -72,13 +72,14 @@ public class SettingsServiceTests
     }
 
     [Fact]
-    public void AddRecentProject_TrimsToTen()
+    public void AddRecentProject_KeepsTheWholeLibrary()
     {
         using var dir = new TempDir();
         var sut = new SettingsService(dir.Path);
         for (int i = 0; i < 12; i++)
             sut.AddRecentProject($"P{i}", $"/p{i}");
-        Assert.Equal(10, sut.Settings.RecentProjects.Count);
+        Assert.Equal(12, sut.Settings.RecentProjects.Count);
+        Assert.Contains(sut.Settings.RecentProjects, project => project.Path == "/p0");
     }
 
     [Fact]

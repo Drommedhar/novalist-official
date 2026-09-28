@@ -27,7 +27,7 @@ test('packaged app boots and connects to its bundled backend', async () => {
   const page = await app.firstWindow()
 
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
-  await expect(page.locator('.start-card')).toBeVisible()
+  await expect(page.locator('.project-library')).toBeVisible()
 
   await app.close()
 })

@@ -6,6 +6,12 @@ import {
 import { isSettingsSectionKey } from '../views/settings/settingsRegistry'
 import { HOME_VIEW, MODE_VIEWS, modeOf, type Mode } from '../shell/modes'
 
+/** Commit the active drawer field before a shortcut removes its React tree. */
+function blurFocusPanel(): void {
+  const active = document.activeElement
+  if (active instanceof HTMLElement && active.closest('.focus-panel')) active.blur()
+}
+
 /**
  * Everything the main area can show.
  *
@@ -456,6 +462,14 @@ interface ShellState {
   mobileExportSelection: { scope: string; chapters: string[] } | null
   backendVersion: string | null
   focusMode: boolean
+  focusPaneId: string | null
+  focusPanel: 'binder' | 'inspector' | 'notes' | null
+  focusPanelTransient: boolean
+  revealFocusPanel(panel: 'binder' | 'inspector'): void
+  focusToolsVisible: boolean
+  setFocusToolsVisible(visible: boolean): void
+  closeFocusPanel(): void
+  returnToFocus(): void
   findReplaceOpen: boolean
   cleanupOpen: boolean
   commandPaletteOpen: boolean
@@ -730,6 +744,25 @@ export const useShellStore = create<ShellState>((set, get) => ({
   mobileExportSelection: null,
   backendVersion: null,
   focusMode: false,
+  focusPaneId: null,
+  focusPanel: null,
+  focusPanelTransient: false,
+  revealFocusPanel: (focusPanel) => {
+    const s = get()
+    if (!s.focusMode || s.mainView !== 'write' || s.extView || (s.focusPanel && !s.focusPanelTransient)) return
+    if (s.focusPanel !== focusPanel) set({ focusPanel, focusPanelTransient: true })
+  },
+  focusToolsVisible: false,
+  setFocusToolsVisible: (focusToolsVisible) => {
+    if (get().focusToolsVisible !== focusToolsVisible) set({ focusToolsVisible })
+  },
+  closeFocusPanel: () => { blurFocusPanel(); set({ focusPanel: null, focusPanelTransient: false }) },
+  returnToFocus: () => get().guardLeave(() => {
+    const s = get()
+    const pane = s.focusPaneId && findPane(s.panes, s.focusPaneId)
+    if (pane) s.setActivePane(pane.id)
+    set((state) => ({ ...showView(state, 'write'), focusPanel: null, focusPanelTransient: false, focusToolsVisible: false }))
+  }),
   findReplaceOpen: false,
   cleanupOpen: false,
   commandPaletteOpen: false,
@@ -760,6 +793,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
     }),
 
   guardLeave: (proceed) => {
+    blurFocusPanel()
     const dirty = Object.values(get().unsavedGuards).filter((g) => g.isDirty())
     if (dirty.length === 0) {
       proceed()
@@ -937,7 +971,13 @@ export const useShellStore = create<ShellState>((set, get) => ({
     }),
   setExtView: (extView) => set({ extView }),
   setBinderTab: (binderTab) => set({ binderTab }),
-  toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
+  toggleFocusMode: () => { blurFocusPanel(); set((s) => ({
+    focusMode: !s.focusMode,
+    focusPaneId: s.focusMode ? null : s.activePaneId,
+    focusPanel: null,
+    focusPanelTransient: false,
+    focusToolsVisible: false
+  })) },
   setFindReplaceOpen: (findReplaceOpen) => set({ findReplaceOpen }),
   setCleanupOpen: (cleanupOpen) => set({ cleanupOpen }),
   setCommandPaletteOpen: (commandPaletteOpen) => set({ commandPaletteOpen }),
@@ -956,28 +996,38 @@ export const useShellStore = create<ShellState>((set, get) => ({
   setHelpOpen: (helpOpen) => set({ helpOpen }),
   setLayoutsOpen: (layoutsOpen) => set({ layoutsOpen }),
   setTourOpen: (tourOpen) => set({ tourOpen }),
-  toggleBinder: () =>
+  toggleBinder: () => {
+    blurFocusPanel()
     set((s) =>
-      s.shellCapacity === 'compact'
+      s.focusMode && s.mainView === 'write'
+        ? { focusPanel: s.focusPanel === 'binder' ? null : 'binder', focusPanelTransient: false }
+        : s.shellCapacity === 'compact'
         ? // One drawer at a time. Two of them stack against the same edge, so
           // opening the second would put it over the first.
           { binderOverlayOpen: !s.binderOverlayOpen, inspectorOverlayOpen: false, modePanelOpen: false }
         : { binderVisible: !s.binderVisible }
-    ),
+    )
+  },
   setBinderWidth: (px) => set({ binderWidth: clamp(px, BINDER_MIN, BINDER_MAX) }),
-  toggleInspector: () =>
+  toggleInspector: () => {
+    blurFocusPanel()
     set((s) =>
-      s.shellCapacity === 'wide'
+      s.focusMode && s.mainView === 'write'
+        ? { focusPanel: s.focusPanel === 'inspector' ? null : 'inspector', focusPanelTransient: false }
+        : s.shellCapacity === 'wide'
         ? { inspectorVisible: !s.inspectorVisible }
         : { inspectorOverlayOpen: !s.inspectorOverlayOpen, binderOverlayOpen: false }
-    ),
+    )
+  },
   setInspectorWidth: (px) => set({ inspectorWidth: clamp(px, INSPECTOR_MIN, INSPECTOR_MAX) }),
   setInspectorTab: (inspectorTab) => set({ inspectorTab }),
   requestFootnoteText: (footnoteId) =>
     set((s) => ({
       // Wide enough for a sidebar means showing it; anything narrower has the
       // same drawer the inspector button opens, and one drawer at a time.
-      ...(s.shellCapacity === 'wide'
+      ...(s.focusMode && s.mainView === 'write'
+        ? { focusPanel: 'inspector' as const, focusPanelTransient: false }
+        : s.shellCapacity === 'wide'
         ? { inspectorVisible: true }
         : { inspectorOverlayOpen: true, binderOverlayOpen: false }),
       inspectorTab: 'footnotes' as InspectorTab,
@@ -986,7 +1036,12 @@ export const useShellStore = create<ShellState>((set, get) => ({
   clearPendingFootnoteText: () => set({ pendingFootnoteText: null }),
   revealSuggestion: (sceneId, changeId) => set({ pendingSuggestion: { sceneId, changeId } }),
   clearPendingSuggestion: () => set({ pendingSuggestion: null }),
-  toggleNotesDock: () => set((s) => ({ notesDockVisible: !s.notesDockVisible })),
+  toggleNotesDock: () => {
+    blurFocusPanel()
+    set((s) => s.focusMode && s.mainView === 'write'
+      ? { focusPanel: s.focusPanel === 'notes' ? null : 'notes', focusPanelTransient: false }
+      : { notesDockVisible: !s.notesDockVisible })
+  },
   setBackendVersion: (backendVersion) => set({ backendVersion }),
   setShellMetrics: (rawWidth) =>
     set((s) => {

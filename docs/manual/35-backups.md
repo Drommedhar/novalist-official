@@ -68,7 +68,7 @@ Restore preserves `.git`, which is not included in backups. Your Git history sur
 
 ### Restore as a new project
 
-Choose **File → Restore backup as new project**, or use **Restore backup as new project** on the welcome screen without opening a project first. Select a Novalist backup ZIP (including one in a synced folder), enter a new project name, and choose its parent folder. **Restore and open** creates a separate project and opens it. An existing folder is never overwritten.
+Choose **File → Restore backup as new project**, or open **More project actions** in the Project library and choose **Restore backup as new project**. Select a Novalist backup ZIP (including one in a synced folder), enter a new project name, and choose its parent folder. **Restore and open** creates a separate project and opens it. An existing folder is never overwritten.
 
 The same action is available in **Settings → Backups**, both above the list and beside each saved version. Using a version's action preselects that ZIP. The existing project remains unchanged, so you can switch between the original and the restored copy to compare them.
 
