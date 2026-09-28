@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.4.2] - 2026-09-28
+
 ### Added
 
 - **Project bookshelf** replaces the recent-project row with a full-window library of individual books. Arrange projects on named shelves, filter and search, adjust cover size, and choose a sort order. Select a book for details and links to related volumes, World Bible and Series, or double-click to open it. Shelves and their order are remembered on this device, and the library keeps projects beyond the previous ten-project limit.
@@ -1629,7 +1635,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.4.1...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.4.2...HEAD
+[3.4.2]: https://github.com/Drommedhar/novalist-official/compare/v3.4.1...v3.4.2
 [3.4.1]: https://github.com/Drommedhar/novalist-official/compare/v3.4...v3.4.1
 [3.4]: https://github.com/Drommedhar/novalist-official/compare/v3.3...v3.4
 [3.3]: https://github.com/Drommedhar/novalist-official/compare/v3.2.6...v3.3
