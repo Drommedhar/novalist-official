@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ScratchpadPanel } from './ScratchpadPanel'
 
 /** Quick access from the library; keep an unfinished note when the dialog closes. */
-export function LibraryScratchpad(): React.JSX.Element {
+export function LibraryScratchpad({ compact = false }: { compact?: boolean }): React.JSX.Element {
   const { t } = useTranslation()
   const titleId = useId()
   const dialog = useRef<HTMLDialogElement>(null)
@@ -18,9 +18,9 @@ export function LibraryScratchpad(): React.JSX.Element {
   }, [open])
 
   return <>
-    <button className="library-scratchpad-button" aria-haspopup="dialog" aria-expanded={open}
+    <button className="library-scratchpad-button" aria-haspopup="dialog" aria-expanded={open} aria-label={t('scratchpad.title')} title={t('scratchpad.title')}
       onClick={() => { setHasOpened(true); setOpen(true) }}>
-      <NotebookPen size={17} /> {t('scratchpad.title')}
+      <NotebookPen size={17} /> {!compact && t('scratchpad.title')}
     </button>
     <dialog ref={dialog} className="library-scratchpad-dialog" aria-labelledby={titleId}
       onClose={() => setOpen(false)} onKeyDown={(event) => event.stopPropagation()}>

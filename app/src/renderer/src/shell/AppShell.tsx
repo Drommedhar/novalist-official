@@ -460,7 +460,7 @@ export function AppShell(): React.JSX.Element {
                phone controls. */
             <MobileWelcome
               recentProjects={recentProjects}
-              onOpenPath={(path, bookId) => void openProject(path, bookId)}
+              onOpenPath={(path, bookId) => openProject(path, bookId)}
             />
           )
         ) : (
@@ -482,7 +482,7 @@ export function AppShell(): React.JSX.Element {
               ) : (
                 <StartScreen
                   recentProjects={recentProjects}
-                  onOpenPath={(path, bookId) => void openProject(path, bookId)}
+                  onOpenPath={(path, bookId) => openProject(path, bookId)}
                 />
               )}
               {editorOpen && !extView && notesDockVisible && !focused && <SceneNotesDock />}

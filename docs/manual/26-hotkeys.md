@@ -90,6 +90,10 @@ Every other view — Wiki, Maps, Languages, Gallery, Dialogue, Planning board, S
 | About Novalist | *(unbound — Help → About)* |
 | New Project, Browse for Project Folder, Import from Obsidian Plugin, Import a manuscript | *(unbound — the File menu)* |
 
+## Bookshelf
+
+While browsing **Your bookshelf**, press `/` to focus search. This shortcut leaves text fields and open dialogs alone. Focus a cover and press `Enter` or `Space` to select it and focus **Open book** in its details panel; press `Enter` again to open the book. `Escape` closes the details panel and returns focus to the cover. Shelf movement, ordering and removal are also available as buttons in that panel.
+
 ## Notes
 
 - **Reopen the main window** is in the Window menu, named after the app, and carries no gesture. On macOS, closing the last window leaves Novalist running; use the menu item, or click the dock icon, to bring the project back.

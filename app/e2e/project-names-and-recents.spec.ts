@@ -10,7 +10,7 @@ test('new and deleted projects update the welcome screen without restarting', as
     await dismissTour(h.page)
     const { projectPath } = await h.rpc<{ projectPath: string }>('project/getState')
     await h.page.evaluate(() => window.novalistStores.project.getState().closeProject())
-    await expect(h.page.locator('.start-recent-name')).toHaveText('Recent Novel')
+    await expect(h.page.getByRole('button', { name: 'Select Book One — Recent Novel' })).toBeVisible()
 
     rmSync(projectPath, { recursive: true, force: true })
     // Returning from the file manager refreshes both the welcome screen and menu.
@@ -35,7 +35,7 @@ test('project renaming updates the mounted dashboard and recent project name', a
     await dialog.getByRole('button', { name: 'OK', exact: true }).click()
     await expect(h.page.locator('.dashboard-title')).toHaveText('New Project')
     await h.page.evaluate(() => window.novalistStores.project.getState().closeProject())
-    await expect(h.page.locator('.start-recent-name')).toHaveText('New Project')
+    await expect(h.page.getByRole('button', { name: 'Select Book One — New Project' })).toBeVisible()
   } finally {
     await h.close()
   }

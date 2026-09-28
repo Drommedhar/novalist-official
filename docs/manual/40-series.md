@@ -4,6 +4,8 @@ The Series view is the project above the book. Everything else in Novalist reads
 
 **Series** is its own mode, at the bottom of the mode rail. It sits above the single book, so folding it into Plan meant a mode that was otherwise about one book carrying one view that was not.
 
+From **Your bookshelf**, select a cover and choose **Series overview** in the details panel to open that project's Series view. The bookshelf keeps a project's volumes adjacent and lists its visible books together in the panel; removing a book from the bookshelf only hides its library entry, so it remains part of the project and its Series view.
+
 ## Books
 
 Every book in the project with its size and shape: chapters, scenes, words, and how many scenes have a [stage](04-chapters-and-scenes.md#scene-stages) set. Each row also carries an **author** field, for an anthology whose volumes are by different people: what you type here prints under that volume's heading when the book is part of a [box set](20-export.md). Leave it empty and the book goes out under the project's author, which is what every book of a series wants. A project with one book says so — a series view starts to mean something once there are two.

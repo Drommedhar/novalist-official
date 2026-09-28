@@ -1,4 +1,4 @@
-/* In-app user-manual help viewer. A large two-pane modal: a searchable page
+/* In-app user-manual help viewer. A full-window two-pane modal: a searchable page
  * list on the left, the rendered Markdown page on the right. Theme-aware via
  * design tokens only. */
 
@@ -10,17 +10,17 @@
   justify-content: center;
   background: var(--nl-surface-overlay);
   z-index: 210;
-  padding: var(--nl-space-xl);
+  padding: 0;
 }
 
 .help-card {
   display: flex;
-  width: min(1040px, 94vw);
-  height: min(760px, 92vh);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
   background: var(--nl-surface-card);
-  border: 1px solid var(--nl-border);
-  border-radius: var(--nl-radius-xl);
-  box-shadow: var(--nl-elevation-high);
+  border: 0;
   overflow: hidden;
 }
 
@@ -29,11 +29,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--nl-space-md);
-  width: 260px;
+  width: var(--nl-panel-width-sm);
+  min-height: 0;
   flex-shrink: 0;
   padding: var(--nl-space-lg);
   background: var(--nl-surface-sidebar);
-  border-right: 1px solid var(--nl-border);
+  border-right: var(--nl-rule-width) solid var(--nl-border);
 }
 
 .help-sidebar-head {
@@ -114,6 +115,7 @@
   flex: 1;
   min-width: 0;
   display: flex;
+  min-height: 0;
 }
 
 .help-close {
@@ -139,10 +141,10 @@
   min-width: 0;
   overflow-y: auto;
   padding: var(--nl-space-xxl);
+  padding-right: calc(var(--nl-space-xxl) + var(--nl-space-xl));
   color: var(--nl-text);
   font-size: var(--nl-font-body-lg);
   line-height: var(--nl-leading-body);
-  max-width: var(--nl-measure-text);
 }
 
 /* A manual page is a long passage, so it opens with a drop cap in the display
@@ -164,7 +166,7 @@
   max-width: 100%;
   height: auto;
   margin: var(--nl-space-lg) 0;
-  border: 1px solid var(--nl-border);
+  border: var(--nl-rule-width) solid var(--nl-border);
   border-radius: var(--nl-radius-md);
 }
 
@@ -187,7 +189,7 @@
 .help-content h2 {
   font-size: var(--nl-font-title);
   padding-bottom: var(--nl-space-tighter);
-  border-bottom: 1px solid var(--nl-border-subtle);
+  border-bottom: var(--nl-rule-width) solid var(--nl-border-subtle);
 }
 
 .help-content h3 {
@@ -225,7 +227,7 @@
 .help-content blockquote {
   margin: var(--nl-space-md) 0;
   padding: var(--nl-space-sm) var(--nl-space-lg);
-  border-left: 3px solid var(--nl-border);
+  border-left: var(--nl-rule-width-emphasis) solid var(--nl-border);
   color: var(--nl-text-dim);
 }
 
@@ -233,7 +235,7 @@
   font-family: var(--nl-font-mono);
   font-size: var(--nl-font-body);
   background: var(--nl-surface-input);
-  border: 1px solid var(--nl-border-subtle);
+  border: var(--nl-rule-width) solid var(--nl-border-subtle);
   border-radius: var(--nl-radius-sm);
   padding: 0 var(--nl-space-tighter);
 }
@@ -243,7 +245,7 @@
   padding: var(--nl-space-lg);
   overflow-x: auto;
   background: var(--nl-surface-input);
-  border: 1px solid var(--nl-border);
+  border: var(--nl-rule-width) solid var(--nl-border);
   border-radius: var(--nl-radius-md);
 }
 
@@ -266,7 +268,7 @@
 .help-content th,
 .help-content td {
   padding: var(--nl-space-sm) var(--nl-space-md);
-  border: 1px solid var(--nl-border);
+  border: var(--nl-rule-width) solid var(--nl-border);
   text-align: left;
   vertical-align: top;
 }
@@ -278,7 +280,7 @@
 
 .help-content hr {
   border: none;
-  border-top: 1px solid var(--nl-border-subtle);
+  border-top: var(--nl-rule-width) solid var(--nl-border-subtle);
   margin: var(--nl-space-xl) 0;
 }
 

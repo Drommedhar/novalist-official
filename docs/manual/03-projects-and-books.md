@@ -39,22 +39,30 @@ The **World Bible** is a shared entity pool across books. Characters, locations,
 
 From the welcome content Novalist shows [before a project is open](01-getting-started.md#before-a-project-is-open), or from the **File** menu at any time:
 
-- Click a project in **Recent Projects** — each recent project shows its portrait **book cover** (set on the [Dashboard](11-dashboard.md#banner-and-book-cover)), or a placeholder when none is set, or
-- Click **Browse for Project Folder...** and point the folder picker at the project folder (any folder containing a `.novalist/` subdirectory).
+- Double-click a cover on **Your bookshelf**, or select it and choose **Open book** in the details panel. **File → Recent Projects** opens a project's last active book.
+- Click **Open folder** on the bookshelf, or **File → Browse for Project Folder...**, and point the folder picker at the project folder (any folder containing a `.novalist/` subdirectory).
 
 This also covers projects copied from another machine, restored from backup, or cloned from Git — there is no separate "import" step for native projects. For projects from the legacy Obsidian plugin, use **Import from Obsidian Plugin...** instead.
 
 ## Project shelves
 
-The **Project library** appears when no project is open. Every book has its own cover and title, grouped under its project name and shared World Bible. Click a book cover to open that book directly, or the project name to resume its last active book. Each book uses its own cover art; books without artwork get a title cover. Book details come from the project manifest without opening books or loading their drafts.
+**Your bookshelf** fills the main area when no project is open. Each book stands on a shelf as a cover, with the books from a project kept next to one another in their project order. Select a cover to see its title, project, related books and actions in the details panel. **Open book** or a double-click opens that volume. **World Bible** opens the project's Codex; **Series overview** opens the Series view for a project with several visible books. Close the panel or press `Escape` to return to browsing.
+
+Each book uses its own cover art, set on the [Dashboard](11-dashboard.md#banner-and-book-cover). Books without artwork get a generated title cover with a colour and geometric illustration. Books in the same project share a palette, with artwork chosen for each book. These designs stay consistent after renaming or restarting, and your own cover replaces them when set. Generated and uploaded covers both have spine shading and highlighted edges. On hover or keyboard focus, the front cover opens slightly at the spine to reveal decorative page edges. A selected book stays open after the pointer moves away; it closes once it is no longer selected, hovered or focused. The book stays in place, and reduced-motion preferences keep its cover still. This animation loads no manuscript data. Book details come from the project manifest without opening books or loading their drafts.
+
+The top toolbar stays visible while the shelves scroll. Use **All** or a shelf's name to filter the view, search by project or book name, adjust **Cover size**, or choose **Shelf order**, **Recently opened** or **Title A–Z**. Sorting keeps each project's books together; title sorting uses its first visible book. Cover size and sorting are remembered on this device. Press `/` while browsing to focus search. Searching by project name shows all its visible books.
 
 **File → Close project** saves pending edits and prepares the library before showing it. A brief **Closing project…** message appears while covers and global appearance settings are read. The library uses your global interface language, even if the project you closed has its own language override.
 
-Choose **Add shelf** to create a named shelf, then drag a project's heading or any of its book covers onto it, or use the shelf selector beside the project name. A project's books move together. Drop onto another project to place it before that project. The arrow buttons beside the shelf selector provide the same ordering with the keyboard. Search by book name shows matching books; search by project name shows all its books.
+Choose the **Add shelf** plus button to create a named shelf, then drag any book cover onto the shelf or its filter button. You can also select a book and change **Project shelf** in the details panel. A project's books move together. Drop onto another project's cover to place it before that project. **Earlier** and **Later** in the details panel provide the same ordering with the keyboard. Moving a project switches sorting back to **Shelf order**.
 
-Edit a shelf name directly. The shelf header's arrows reorder all shelves, including **My projects**, so custom shelves can sit above it. **My projects** can move but cannot be removed. **Remove shelf** returns a custom shelf's projects to **My projects**. Shelf organization is saved on this device and does not move project folders or travel with a project backup. Copied projects have separate library entries. Temporarily unavailable projects retain their place, with book details shown again when available.
+Open the shelf header's **…** menu to rename it, move it up or down, or remove it. **My projects** can move but cannot be renamed or removed. **Remove shelf** returns a custom shelf's projects to **My projects**. Shelf organization is saved on this device and does not move project folders or travel with a project backup. Copied projects have separate library entries. Temporarily unavailable projects retain their place, with book details shown again when available.
 
-The library keeps projects beyond the former ten-entry recent-project limit. Projects dropped by an older version can be added again with **Browse for Project Folder**. **File → Recent Projects** still offers the recent-open order independently of your shelf arrangement.
+The library keeps projects beyond the former ten-entry recent-project limit. Projects dropped by an older version can be added again with **Open folder**. **File → Recent Projects** still offers the recent-open order independently of your shelf arrangement.
+
+To stop showing a project or book, select its cover and choose **Remove project … from bookshelf** or **Remove book … from bookshelf** at the bottom of the details panel. A project removal hides all its books; an individual book removal leaves its siblings visible. Removed items disappear from the shelves, search and library counts, including after restarting. If every book in a project is removed, that project also disappears from the bookshelf. This is a preference on this device: the project files and the separate **File → Recent Projects** menu are kept.
+
+Use **Undo** immediately after removal, or open the library toolbar's **… → Removed from bookshelf** to restore an item later. Restoring a project returns it to its saved shelf; books you had removed individually stay removed until you restore them too. Opening a project from its folder does not reset these bookshelf preferences.
 
 ### When a recent project disappears from the list
 

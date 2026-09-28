@@ -140,7 +140,7 @@ The panel toggles, the pane split and close buttons, the layouts dropdown and th
 
 ## Before a project is open
 
-With nothing open, the main area holds the **Project library**: book covers grouped under their project and shared World Bible, arranged on shelves you name. **New Project** and **Browse for Project Folder** are at the top. Search, **Scratchpad** and **Add shelf** stay visible as you scroll. The scratchpad opens over the library so you can capture a thought and return to the same place. The **More project actions** menu holds import, backup restore, Settings and the manual. The menu bar and mode rail remain available, with commands that need a project disabled.
+With nothing open, **Your bookshelf** fills the main area with book covers on shelves you name. **New Project**, **Open folder** and the **Scratchpad** note icon are at the top. Shelf filters, **Add shelf**, search, cover sizing and sorting stay visible as the shelves scroll. Select a book to open its details panel with related volumes, World Bible, Series, shelf and removal actions; double-click a cover or choose **Open book** to open it. The scratchpad opens over the library so you can capture a thought and return to the same place. The **More project actions** menu holds import, backup restore, Settings, the manual and **Removed from bookshelf** for restoring hidden entries. The menu bar and mode rail remain available, with commands that need a project disabled.
 
 Projects are also in **File → Recent Projects**. Entries whose folders are confirmed missing are removed; temporarily unreachable projects remain available. See [Project shelves](03-projects-and-books.md#project-shelves) for arranging your library.
 

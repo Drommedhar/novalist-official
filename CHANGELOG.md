@@ -16,7 +16,19 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Remove from bookshelf** hides an individual book or a whole project from the library, search and counts, and remembers the choice after restarting. Project files are kept. Use Undo or the library's **Removed from bookshelf** menu to restore items to their saved shelves.
+
+### Changed
+
+- **Your bookshelf** now fills the workspace with open shelves, a compact action bar, shelf filters, search, cover sizing and sorting. Select a book for details, related volumes, World Bible and Series actions, or double-click to open it. A project's books stay together, and the selected-book panel holds shelf and removal controls.
+- Books without cover art now receive coloured, illustrated title covers. Related books share a palette, and designs stay recognizable after renaming or restarting. Generated and uploaded covers both have spine shading and highlighted edges. Hovering or focusing a book gently opens its front cover to reveal the page edges, and a selected book stays open after the pointer moves away. This respects reduced-motion preferences and loads no manuscript data.
+
+### Fixed
+
+- Selecting a book shows its details immediately, removing the noticeable wait before selection while preserving double-click opening when the shelves rearrange.
+- The in-app manual now fills the window, giving its navigation and pages the available width and height.
 
 ---
 

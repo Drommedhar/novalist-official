@@ -10,7 +10,7 @@ for (const mobile of [false, true]) {
       for (let i = 2; i <= 10; i++) await h.rpc('project/createBook', [`Book ${i}`])
       await h.page.evaluate(() => window.novalistStores.project.getState().closeProject())
       await resizeWindow(h, mobile ? 393 : 1200, 800)
-      const library = h.page.locator('.project-library')
+      const library = h.page.locator('.library-shelves')
       const trigger = h.page.getByRole('button', { name: 'Scratchpad', exact: true })
       await expect(trigger).toBeInViewport()
       await library.evaluate((element) => { element.scrollTop = element.scrollHeight })

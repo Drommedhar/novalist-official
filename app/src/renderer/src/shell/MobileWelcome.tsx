@@ -30,7 +30,7 @@ export function MobileWelcome({
   onOpenPath
 }: {
   recentProjects: RecentProjectDto[]
-  onOpenPath: (path: string, bookId?: string) => void
+  onOpenPath: (path: string, bookId?: string) => Promise<void>
 }): React.JSX.Element {
   const mainView = useShellStore((s) => s.mainView)
   // The views that do not need a project. Everything else here would have

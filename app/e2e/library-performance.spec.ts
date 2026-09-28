@@ -71,6 +71,40 @@ test('library refreshes keep cover payloads out of the writing workspace', async
       } finally { release(); client.request = original }
     })
     await expect(h.page.locator('.project-library .start-recent-cover-img')).toBeVisible()
+    const selectionTiming = await h.page.evaluateHandle(() => {
+      let finish!: (value: { selectionMs: number; longestFrameMs: number; requests: string[] }) => void
+      const result = new Promise<{ selectionMs: number; longestFrameMs: number; requests: string[] }>(resolve => { finish = resolve })
+      document.addEventListener('click', () => {
+        const started = performance.now()
+        let lastFrame = started, longestFrameMs = 0
+        const requests: string[] = []
+        const client = window.novalistRpc
+        const original = client.request.bind(client)
+        client.request = <T>(method: string, params?: unknown): Promise<T> => {
+          requests.push(method)
+          return original<T>(method, params)
+        }
+        const frame = (): void => {
+          const now = performance.now()
+          longestFrameMs = Math.max(longestFrameMs, now - lastFrame)
+          lastFrame = now
+          if (document.querySelector('.library-inspector') || now - started > 2000) {
+            client.request = original
+            finish({ selectionMs: Math.round(now - started), longestFrameMs: Math.round(longestFrameMs), requests })
+          } else requestAnimationFrame(frame)
+        }
+        requestAnimationFrame(frame)
+      }, { capture: true, once: true })
+      return { result }
+    })
+    await h.page.locator('.start-recent-card').click()
     await expect(h.page.getByText('1 book · World Bible')).toBeVisible()
+    const timing = await h.page.evaluate(async measurement => await measurement.result, selectionTiming)
+    await selectionTiming.dispose()
+    console.log('Book selection workload:', timing)
+    expect(timing.selectionMs).toBeLessThan(200)
+    // Returning focus to the app may refresh recents and extension chrome;
+    // selecting a book must not open it or read any manuscript content.
+    expect(timing.requests.filter(method => !['project/recent', 'extensions/statusBarItems'].includes(method))).toEqual([])
   } finally { await h.close() }
 })
