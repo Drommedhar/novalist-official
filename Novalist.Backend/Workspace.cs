@@ -51,6 +51,24 @@ public sealed partial class Workspace : IDisposable
     public ProjectService Projects { get; }
     public SettingsService Settings { get; }
 
+    internal async Task<BackupService> GetBackupServiceAsync()
+    {
+        // A saved iOS path does not carry permission across launches. Resolve
+        // its bookmark before even checking existence, and persist a moved
+        // folder because resolving it also re-keys the platform's bookmark.
+        var configured = Settings.Settings.BackupFolder;
+        if (_storedPaths != null && !string.IsNullOrWhiteSpace(configured))
+        {
+            var current = _storedPaths.Resolve(configured);
+            if (!string.IsNullOrWhiteSpace(current) && current != configured)
+            {
+                Settings.Settings.BackupFolder = current;
+                await Settings.SaveAsync();
+            }
+        }
+        return new BackupService(Projects, FileService, ArchiveService, Settings);
+    }
+
     /// <summary>
     /// What the editor has open, so an extension writing prose does not race
     /// the writer. Reported by the renderer, which is the only thing that knows.
