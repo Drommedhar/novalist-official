@@ -1,5 +1,7 @@
 using Novalist.Backend;
 using Novalist.Backend.Rpc;
+using Novalist.Core.Services;
+using NSubstitute;
 using Xunit;
 
 namespace Novalist.Backend.Tests;
@@ -29,6 +31,49 @@ public sealed class BackupRpcTests : IDisposable
     public void Dispose()
     {
         try { Directory.Delete(_root, true); } catch (IOException) { }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task List_AfterRestart_ResumesBackupFolderAccessBeforeLookingForArchives(bool moved)
+    {
+        var backup = await _rpc.CreateMilestoneAsync("Version 1");
+        var configured = _workspace.Settings.Settings.BackupFolder;
+        var current = Path.Combine(_root, "cloud-backups");
+        Directory.Move(configured, current);
+        var resolver = Substitute.For<IStoredPathResolver>();
+        resolver.Resolve(configured).Returns(_ =>
+        {
+            // An unchanged external path is invisible until its grant resumes.
+            if (!moved && !Directory.Exists(configured)) Directory.Move(current, configured);
+            return moved ? current : configured;
+        });
+        using var restarted = new Workspace(Path.Combine(_root, "settings"), resolver);
+        await restarted.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        var rpc = new BackupRpc(restarted);
+
+        var backups = await rpc.ListAsync();
+
+        Assert.Equal(backup!.Id, Assert.Single(backups).Id);
+        resolver.Received().Resolve(configured);
+        Assert.Equal(Path.Combine(moved ? current : configured, "BackupNovel"), await rpc.FolderAsync());
+        await restarted.Settings.LoadAsync();
+        Assert.Equal(moved ? current : configured, restarted.Settings.Settings.BackupFolder);
+        Assert.NotNull(await rpc.CreateMilestoneAsync("Version 2"));
+        Assert.True(await rpc.DeleteAsync(backup.Id));
+    }
+
+    [Fact]
+    public async Task List_WithoutAResolvableBookmark_KeepsTheConfiguredLocalFolder()
+    {
+        var backup = await _rpc.CreateMilestoneAsync("Version 1");
+        var resolver = Substitute.For<IStoredPathResolver>();
+        using var restarted = new Workspace(Path.Combine(_root, "settings"), resolver);
+        await restarted.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+
+        Assert.Equal(backup!.Id, Assert.Single(await new BackupRpc(restarted).ListAsync()).Id);
+        Assert.Equal(_workspace.Settings.Settings.BackupFolder, restarted.Settings.Settings.BackupFolder);
     }
 
     [Fact]
@@ -84,8 +129,10 @@ public sealed class BackupRpcTests : IDisposable
         Assert.Equal("20260103-100000-manual", remaining[0].Id);
     }
 
-    [Fact]
-    public async Task Restore_BringsBackDeletedContentAndReopensProject()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Restore_BringsBackDeletedContentAndReopensProject(bool hiddenMetadata)
     {
         var chapter = await _workspace.Projects.CreateChapterAsync("C");
         var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
@@ -95,6 +142,16 @@ public sealed class BackupRpcTests : IDisposable
         Assert.NotNull(backup);
 
         await _workspace.WriteSceneAsync(chapter.Guid, scene.Id, "<p>clobbered</p>", "clobbered");
+
+        if (hiddenMetadata)
+        {
+            // iCloud can bring the dotfile's hidden attribute across to Windows.
+            // Reopening after restore must also be able to rewrite the index.
+            var indexes = Directory.GetFiles(_workspace.Projects.ProjectRoot!, ".nvindex.json", SearchOption.AllDirectories);
+            Assert.NotEmpty(indexes);
+            foreach (var index in indexes)
+                File.SetAttributes(index, File.GetAttributes(index) | FileAttributes.Hidden);
+        }
 
         Assert.True(await _rpc.RestoreAsync(backup!.Id));
 

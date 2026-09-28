@@ -318,4 +318,59 @@ public class ArchiveServiceTests
         Assert.Equal("ref", File.ReadAllText(Path.Combine(destination, "Book", ".git", "HEAD")));
         Assert.False(Directory.Exists(Path.Combine(destination, "Later")));
     }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RestoreProjectAsync_RetriesLockedFilesBeforeRemovingLaterScenes(bool releaseLock)
+    {
+        using var temp = new TempDir();
+        var archive = ProjectArchive(temp);
+        var destination = temp.Combine("out");
+        var scene = Path.Combine(destination, "Book", "scene.txt");
+        var later = Path.Combine(destination, "Book", "later.txt");
+        Write(scene, "Current scene that is longer than the archived scene");
+        Write(later, "Keep until restore succeeds");
+        using var holder = new FileStream(scene, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        var restore = new ArchiveService().RestoreProjectAsync(archive, destination, replaceExisting: true);
+        // Give the copy time to reach the locked file. Merely observing the
+        // first async yield could pass even if a subsequent lock error is fatal.
+        await Task.Delay(50);
+        Assert.False(restore.IsCompleted);
+        Assert.True(File.Exists(later));
+        if (releaseLock)
+        {
+            holder.Dispose();
+            await restore;
+            Assert.Equal("Archived scene", File.ReadAllText(scene));
+            Assert.False(File.Exists(later));
+        }
+        else
+        {
+            await Assert.ThrowsAsync<IOException>(() => restore);
+            holder.Dispose();
+            Assert.Equal("Current scene that is longer than the archived scene", File.ReadAllText(scene));
+            Assert.True(File.Exists(later));
+        }
+    }
+
+    [Fact]
+    public async Task RestoreProjectAsync_OverwritesHiddenIndexWithoutClearingItsAttributes()
+    {
+        using var temp = new TempDir();
+        var archive = ProjectArchive(temp);
+        using (var zip = ZipFile.Open(archive, ZipArchiveMode.Update))
+        using (var writer = new StreamWriter(zip.CreateEntry("Book/.nvindex.json").Open()))
+            writer.Write("{}");
+        var destination = temp.Combine("out");
+        var index = Path.Combine(destination, "Book", ".nvindex.json");
+        Write(index, "{\"old\":true}");
+        File.SetAttributes(index, File.GetAttributes(index) | FileAttributes.Hidden);
+
+        await new ArchiveService().RestoreProjectAsync(archive, destination, replaceExisting: true);
+
+        Assert.Equal("{}", File.ReadAllText(index));
+        Assert.True(File.GetAttributes(index).HasFlag(FileAttributes.Hidden));
+    }
 }

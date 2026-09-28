@@ -8,6 +8,23 @@ public class FileServiceTests
 {
     private readonly FileService _sut = new();
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Writes_ReplaceHiddenMetadataAndTruncateOldContent(bool binary)
+    {
+        using var dir = new TempDir();
+        var path = dir.Combine(".nvindex.json");
+        File.WriteAllText(path, "{\"obsolete\":true}");
+        File.SetAttributes(path, File.GetAttributes(path) | FileAttributes.Hidden);
+
+        if (binary) await _sut.WriteBytesAsync(path, [123, 125]);
+        else await _sut.WriteTextAsync(path, "{}");
+
+        Assert.Equal("{}", await _sut.ReadTextAsync(path));
+        Assert.True(File.GetAttributes(path).HasFlag(FileAttributes.Hidden));
+    }
+
     [Fact]
     public async Task MissingFilesAndDirectories_DoNotWaitThroughSharingViolationRetries()
     {

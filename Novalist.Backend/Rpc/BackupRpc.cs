@@ -1,4 +1,3 @@
-using Novalist.Core.Services;
 using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
@@ -13,16 +12,10 @@ public sealed class BackupRpc
         _workspace = workspace;
     }
 
-    private BackupService Service => new(
-        _workspace.Projects,
-        _workspace.FileService,
-        _workspace.ArchiveService,
-        _workspace.Settings);
-
     [JsonRpcMethod("backup/create")]
     public async Task<BackupDto?> CreateAsync(string trigger)
     {
-        var info = await Service.CreateAsync(trigger);
+        var info = await (await _workspace.GetBackupServiceAsync()).CreateAsync(trigger);
         return info == null ? null : ToDto(info);
     }
 
@@ -33,17 +26,18 @@ public sealed class BackupRpc
     [JsonRpcMethod("backup/createMilestone")]
     public async Task<BackupDto?> CreateMilestoneAsync(string name)
     {
-        var info = await Service.CreateAsync("milestone", name);
+        var info = await (await _workspace.GetBackupServiceAsync()).CreateAsync("milestone", name);
         return info == null ? null : ToDto(info);
     }
 
     [JsonRpcMethod("backup/delete")]
-    public Task<bool> DeleteAsync(string backupId) => Service.DeleteAsync(backupId);
+    public async Task<bool> DeleteAsync(string backupId) =>
+        await (await _workspace.GetBackupServiceAsync()).DeleteAsync(backupId);
 
     [JsonRpcMethod("backup/list")]
     public async Task<BackupDto[]> ListAsync()
     {
-        var backups = await Service.ListAsync();
+        var backups = await (await _workspace.GetBackupServiceAsync()).ListAsync();
         return backups.Select(ToDto).ToArray();
     }
 
@@ -58,7 +52,7 @@ public sealed class BackupRpc
         if (string.IsNullOrWhiteSpace(root))
             return false;
 
-        if (!await Service.RestoreAsync(backupId))
+        if (!await (await _workspace.GetBackupServiceAsync()).RestoreAsync(backupId))
             return false;
 
         await _workspace.OpenProjectAsync(root);
@@ -68,14 +62,15 @@ public sealed class BackupRpc
     [JsonRpcMethod("backup/prune")]
     public async Task<BackupDto[]> PruneAsync()
     {
-        await Service.PruneAsync();
+        await (await _workspace.GetBackupServiceAsync()).PruneAsync();
         return await ListAsync();
     }
 
     [JsonRpcMethod("backup/restoreAsNewProject")]
     public async Task<ProjectStateDto> RestoreAsNewProjectAsync(string archivePath, string parentDirectory, string projectName)
     {
-        var root = await Service.RestoreAsNewProjectAsync(archivePath, parentDirectory, projectName);
+        var root = await (await _workspace.GetBackupServiceAsync())
+            .RestoreAsNewProjectAsync(archivePath, parentDirectory, projectName);
         return await _workspace.OpenProjectAsync(root);
     }
 
@@ -85,11 +80,12 @@ public sealed class BackupRpc
     /// background with no project open.
     /// </summary>
     [JsonRpcMethod("backup/isDue")]
-    public Task<bool> IsDueAsync() => Service.IsDueAsync(DateTime.UtcNow);
+    public async Task<bool> IsDueAsync() =>
+        await (await _workspace.GetBackupServiceAsync()).IsDueAsync(DateTime.UtcNow);
 
     [JsonRpcMethod("backup/folder")]
-    public Task<string> FolderAsync() =>
-        Task.FromResult(Service.GetBackupFolder() ?? string.Empty);
+    public async Task<string> FolderAsync() =>
+        (await _workspace.GetBackupServiceAsync()).GetBackupFolder() ?? string.Empty;
 
     private static BackupDto ToDto(Core.Models.BackupInfo b) =>
         new(b.Id, b.Path, b.CreatedAt.ToString("o"), b.SizeBytes, b.Trigger, b.IsMilestone, b.Name);
