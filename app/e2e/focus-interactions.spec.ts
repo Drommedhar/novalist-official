@@ -216,11 +216,17 @@ test('context is prepared before reveal, retained between hovers, and follows sc
 })
 
 test('focus restores window chrome and preserves a pre-existing full screen session', async () => {
+  test.skip(process.platform === 'linux' && !!process.env.CI,
+    'Linux CI uses Xvfb without a window manager; native window state runs in Windows CI')
   const h = await launchApp('nl-focus-window-')
   try {
     const book = await seedBook(h, { Chapter: ['Scene'] })
     await dismissTour(h.page)
-    await resizeWindow(h, 1200, 800)
+    const size = await h.app.evaluate(({ screen }) => {
+      const area = screen.getPrimaryDisplay().workAreaSize
+      return { width: Math.min(1200, area.width), height: Math.min(800, area.height) }
+    })
+    await resizeWindow(h, size.width, size.height)
     await h.page.evaluate((chapter) => window.novalistStores.project.getState().openScene(chapter.guid, chapter.scenes[0].id), book.chapters[0])
     const windowState = () => h.app.evaluate(({ BrowserWindow }) => {
       const win = BrowserWindow.getAllWindows()[0]
@@ -241,7 +247,7 @@ test('focus restores window chrome and preserves a pre-existing full screen sess
     await expect(h.page.locator('.shell-focus')).toHaveCount(0)
     expect((await windowState()).fullScreen).toBe(true)
 
-    await resizeWindow(h, 1200, 800)
+    await resizeWindow(h, size.width, size.height)
     await h.page.keyboard.press('F11')
     await expect.poll(async () => (await windowState()).fullScreen).toBe(true)
     await h.page.evaluate(() => window.novalistStores.project.getState().closeProject())

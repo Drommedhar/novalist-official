@@ -108,6 +108,34 @@ jobs:
           path: artifacts/coverage/**/coverage.cobertura.xml
           if-no-files-found: warn
 
+      # Native maximize/fullscreen state needs a desktop window manager. Run
+      # this contract on the Windows desktop already used by the backend suite.
+      - name: Setup Node for native window E2E
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install app dependencies for native window E2E
+        working-directory: app
+        run: npm ci
+
+      - name: Build renderer for native window E2E
+        working-directory: app
+        run: npm run build
+
+      - name: Native window E2E
+        working-directory: app
+        run: npx playwright test e2e/focus-interactions.spec.ts --grep "focus restores window chrome"
+
+      - name: Upload failed native window traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-native-window-failures
+          path: app/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
   web:
     name: Electron app (typecheck, build, e2e)
     runs-on: ubuntu-latest
@@ -143,9 +171,6 @@ jobs:
         working-directory: app
         run: npx playwright install --with-deps --only-shell chromium
 
-      - name: Install E2E window manager
-        run: sudo apt-get install --no-install-recommends -y openbox wmctrl
-
       - name: Typecheck
         working-directory: app
         run: npm run typecheck
@@ -164,7 +189,7 @@ jobs:
 
       - name: E2E (Playwright against the real app)
         working-directory: app
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1600x24" bash scripts/test-e2e-linux.sh
+        run: xvfb-run --auto-servernum npx playwright test
 
       - name: Upload failed E2E traces
         if: failure()
