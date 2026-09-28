@@ -5,7 +5,6 @@ import { Binder } from './Binder'
 import { MainArea } from './MainArea'
 import { MobileInspectorSheet } from './MobileInspectorSheet'
 import { useShellStore } from '../stores/shellStore'
-import { useProjectStore } from '../stores/projectStore'
 
 /**
  * iPad (regular horizontal size class) layout: a persistent binder beside the
@@ -54,7 +53,6 @@ function tabletBinderWidth(windowWidth: number): number {
 export function TabletShell(): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
-  const openSceneId = useProjectStore((s) => s.openSceneId)
   const [inspectorOpen, setInspectorOpen] = useState(false)
   // null = follow the window width; true/false = the user's explicit choice,
   // which survives rotation until they change it again.
@@ -99,14 +97,13 @@ export function TabletShell(): React.JSX.Element {
     }
   }, [])
 
-  // The inspector only has content for a scene, so close it when the user
-  // navigates away rather than leaving an empty slide-over up.
+  // Keep the writing hub with Write / Manuscript. Its project to-dos are also
+  // available before a scene is opened.
   useEffect(() => {
     if (mainView !== 'write' && mainView !== 'manuscript') setInspectorOpen(false)
   }, [mainView])
 
-  const inspectorAvailable =
-    (mainView === 'write' && !!openSceneId) || mainView === 'manuscript'
+  const inspectorAvailable = mainView === 'write' || mainView === 'manuscript'
 
   return (
     <div className="tablet-shell">

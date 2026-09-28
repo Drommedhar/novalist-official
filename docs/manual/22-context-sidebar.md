@@ -126,6 +126,8 @@ Sending drafts out to readers and collecting their notes back is not built: this
 
 Under the Inbox tab, alongside the open notes and the prose you cut, is a **To do** list.
 
+On **iPad and iPhone**, open **Write**, tap **Inspector**, then choose **To do**. This uses the same project to-dos as the desktop Inbox, including existing items and named lists. You can also open it from the chapter list before opening or creating a scene; the Inspector starts on **To do** when no scene is open. **Scene Notes** remains a separate tab for the current scene's synopsis and notes.
+
 A [todo comment](#footnotes-and-comments-footnotes-tab) is anchored to a passage and belongs to the scene it sits in. "Check the dates in act two", "read the whole thing aloud", "decide whether Tomas survives" belong to no passage and to no scene, so they used to be kept on paper or in a scene called Notes.
 
 - Type what needs doing and press Enter. The second box puts it in a **named list** — leave it empty and it lands in **Loose ends**.

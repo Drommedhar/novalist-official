@@ -341,7 +341,7 @@
   }
 }
 
-/* ── Mobile bottom sheet (writing hub: Context / Footnotes / Notes) ── */
+/* ── Mobile bottom sheet (writing hub: Context / Footnotes / Notes / To do) ── */
 .mobile-sheet-overlay {
   position: fixed;
   inset: 0;
@@ -435,12 +435,15 @@
 
 .mobile-sheet-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--nl-space-sm);
   padding: 0 var(--nl-space-lg) var(--nl-space-sm);
 }
 
 .mobile-sheet-tab {
-  flex: 1;
+  flex: 1 1 calc(50% - var(--nl-space-sm));
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: var(--nl-space-sm) var(--nl-space-md);
   background: var(--nl-surface-window);
   color: var(--nl-text-dim);
@@ -467,6 +470,50 @@
 
 .mobile-sheet-tabbody {
   padding: 0 var(--nl-space-lg) var(--nl-space-lg);
+}
+
+/* The desktop task entry is a single row. In a sheet the text gets its own
+   line, with the optional list and add button below it. */
+.mobile-sheet .tasks-panel {
+  margin-top: 0;
+}
+
+.mobile-sheet .tasks-add {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--nl-space-sm);
+}
+
+.mobile-sheet .tasks-add > .dialog-input {
+  grid-column: 1 / -1;
+  min-width: 0;
+  width: 100%;
+}
+
+.mobile-sheet .tasks-list-name {
+  width: 100%;
+}
+
+.mobile-sheet .tasks-add > button,
+.mobile-sheet .task .relationships-toggle,
+.mobile-sheet .tasks-panel .binder-row-action {
+  min-height: var(--nl-control-h);
+}
+
+.mobile-sheet .tasks-add > button,
+.mobile-sheet .tasks-panel .binder-row-action {
+  min-width: var(--nl-control-h);
+}
+
+.mobile-sheet .task .relationships-toggle {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-sheet .task-text,
+.mobile-sheet .task-list-name {
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 
 /* In the sheet, stack synopsis + notes vertically (desktop docks them side by side)
