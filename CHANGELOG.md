@@ -18,17 +18,20 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
-- **Remove from bookshelf** hides an individual book or a whole project from the library, search and counts, and remembers the choice after restarting. Project files are kept. Use Undo or the library's **Removed from bookshelf** menu to restore items to their saved shelves.
+- **Project bookshelf** replaces the recent-project row with a full-window library of individual books. Arrange projects on named shelves, filter and search, adjust cover size, and choose a sort order. Select a book for details and links to related volumes, World Bible and Series, or double-click to open it. Shelves and their order are remembered on this device, and the library keeps projects beyond the previous ten-project limit.
+- **Generated book covers** give books without artwork a stable colour and illustration, with a shared palette for books in the same project. Generated and uploaded covers have spine shading and open slightly on hover, keyboard focus or selection, respecting reduced-motion preferences.
+- **Remove from bookshelf** hides individual books or whole projects without deleting their files. Use Undo or **Removed from bookshelf** to restore them later.
 
 ### Changed
 
-- **Your bookshelf** now fills the workspace with open shelves, a compact action bar, shelf filters, search, cover sizing and sorting. Select a book for details, related volumes, World Bible and Series actions, or double-click to open it. A project's books stay together, and the selected-book panel holds shelf and removal controls.
-- Books without cover art now receive coloured, illustrated title covers. Related books share a palette, and designs stay recognizable after renaming or restarting. Generated and uploaded covers both have spine shading and highlighted edges. Hovering or focusing a book gently opens its front cover to reveal the page edges, and a selected book stays open after the pointer moves away. This respects reduced-motion preferences and loads no manuscript data.
+- **Focus Mode** now uses **F11** and fills the screen with a centered writing page. Hover near the edges to reveal chapters, scene context and writing tools; notes and panels open over the page. Leaving focus restores your window and split layout while preserving your place in the text.
+- **Scratchpad** opens from the bookshelf header, stays accessible while scrolling, and keeps unfinished notes when closed and reopened.
+- The in-app manual fills the window, giving its navigation and pages the available width and height.
 
 ### Fixed
 
-- Selecting a book shows its details immediately, removing the noticeable wait before selection while preserving double-click opening when the shelves rearrange.
-- The in-app manual now fills the window, giving its navigation and pages the available width and height.
+- Backups refresh immediately after choosing their folder. Restoring a backup handles hidden project files on Windows and waits briefly for temporary file locks from sync tools.
+- Map image previews now load correctly, and newly placed images keep their original proportions instead of becoming squares.
 
 ---
 
@@ -36,26 +39,11 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
-- **Project bookshelf** — every book has its own cover and opens directly, grouped with the other books and shared World Bible in its project. Arrange projects on named shelves, drag them into order or use keyboard-accessible controls, and search by project or book name. Shelf organization stays on this device; your project folders stay where they are.
 - **Settings** is now pinned to the bottom of the desktop's left sidebar for quick access, including before a project is opened.
 - **Restore backup as new project** opens a backup as a separate project from the welcome screen, File menu, or Settings → Backups, so the original and restored copy can be compared.
 
-### Changed
-
-- **Scratchpad** is now beside the library search and stays visible while scrolling. It opens with the note field focused, preserves unfinished text when closed and reopened, and returns you to the same place on the shelves.
-- **Focus Mode** uses **F11** and fills the screen with a centered page that widens as you zoom, hiding the native title and menu bars along with tabs, pane headers and formatting tools. Hover areas expand into the spare space beside the page; the binder and scene context slide in from their own side, respecting reduced motion. Scene context is prepared while hidden and retained between reveals. Tools and notes remain available from the top and existing shortcuts. The Codex and other workspaces offer **Return to the page**; leaving focus restores your previous window state and split layout, preserving the editor and caret.
-- The project library retains projects beyond the previous ten-project limit.
-
 ### Fixed
 
-- Backups refresh immediately after choosing their folder. Restoring a backup handles hidden project files on Windows and waits briefly for temporary file locks from sync tools.
-
-- Map image previews now load correctly, and newly placed images keep their original proportions instead of becoming squares.
-- Unavailable projects no longer add repeated file-read delays to library startup and closing a project. They remain in the library for when their folders become available again. Startup also initializes the library and settings only once.
-- Delayed editor notifications no longer hide Focus Mode tools after you have opened them.
-- Closing a project prepares its bookshelf covers and restores the global interface language before showing the library, avoiding the empty-cover and project-language flash. Late responses from the closed project no longer replace the restored settings.
-- Custom shelves can move above **My projects**, and the complete shelf order is remembered after restarting.
-- Background project-list refreshes no longer load every cover and book manifest while a project is open. Overlapping refreshes are combined, and an unchanged list no longer rebuilds the interface and menus.
 - The Narration view no longer opens with a blank reading when the book loads before its display is ready.
 - Restoring a backup replaces the project with the selected version, so chapters and files added later no longer return after reopening. Pending edits are saved into a safety backup before restoring, and the archive is checked before changing the project.
 - The backup restore dialog and error messages are translated into Simplified Chinese.
