@@ -13,7 +13,7 @@ The scene's **synopsis** and freeform **notes** live in the [scene-notes dock](0
 - The Inspector toggle at the far right of the toolbar, or
 - `Ctrl+Alt+I` (`Cmd+Alt+I` on macOS).
 
-**Focus mode** (`Alt+F`) hides the Inspector together with the binder, leaving only the editor.
+**Focus mode** (`F11`) tucks the Inspector and binder away. Hover at the right edge for scene context or the left edge for the binder; the panel retreats when you move back to the page. `Ctrl+Alt+I` keeps scene context open over the page until dismissed; `Escape` returns you to writing without changing the page width.
 
 When no scene is open, the Inspector shows a placeholder; open a scene from the binder and its details appear.
 
@@ -125,6 +125,8 @@ Sending drafts out to readers and collecting their notes back is not built: this
 ## To do
 
 Under the Inbox tab, alongside the open notes and the prose you cut, is a **To do** list.
+
+On **iPad and iPhone**, open **Write**, tap **Inspector**, then choose **To do**. This uses the same project to-dos as the desktop Inbox, including existing items and named lists. You can also open it from the chapter list before opening or creating a scene; the Inspector starts on **To do** when no scene is open. **Scene Notes** remains a separate tab for the current scene's synopsis and notes.
 
 A [todo comment](#footnotes-and-comments-footnotes-tab) is anchored to a passage and belongs to the scene it sits in. "Check the dates in act two", "read the whole thing aloud", "decide whether Tomas survives" belong to no passage and to no scene, so they used to be kept on paper or in a scene called Notes.
 

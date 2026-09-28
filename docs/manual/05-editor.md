@@ -313,7 +313,13 @@ The highlight is painted without touching the document, so listening to a chapte
 
 ## Focus mode
 
-`Alt+F` gives the whole window to the page: the mode rail, the mode panel, both side panes, the toolbar and the status bar all go, leaving the scene tabs, the writing bar and your prose. Press `Alt+F` again to bring everything back. The command palette (`Ctrl+Shift+P`) keeps working, so every command stays reachable while focused — nothing is lost, only hidden.
+`F11` fills the screen with the active page and hides the title and menu bars, navigation, scene tabs, pane headers and formatting tools. Other split panes keep their state. Reveal **Writing tools** at the top when needed; typing tucks the tools away again. Active writing-mode indicators remain visible. Zooming with `Ctrl` and the mouse wheel widens the page with the text, up to the available window width.
+
+The hover areas expand to fill the spare space beside the page on wider screens, and shrink as you zoom in. Side panels slide gently from their own edge; your system's reduced-motion preference disables the animation. Scene context is prepared while hidden and kept ready between reveals, including after saved edits, so opening it does not rebuild its contents.
+
+Move the mouse to the left edge to reveal the binder, or to the right edge for the inspector. They open over the page without taking the caret away. Move back to the page and the panel retreats; a field you are editing stays open until you leave it. The binder (`Ctrl+Alt+B`), inspector (`Ctrl+Alt+I`) and scene notes (`Ctrl+Shift+N`) can also be opened with their shortcuts or toolbar buttons. Those panels stay open until you close them with `Escape`, the same shortcut, **Return to writing**, or a click outside. Panels never reduce the page width. Inline selection tools, linked entities and Focus Peek remain available.
+
+The command palette (`Ctrl+Shift+P`) still reaches every workspace. A visit to the Codex or another view offers **Return to the page**, keeping the editor mounted while you look something up. **Leave focus** or `F11` restores the normal split layout and your previous window state. If the window was already full screen, it stays full screen. The operating system may still reveal its menu or controls at the screen edge.
 
 **Dim other paragraphs while writing** (Settings → Editor) fades every paragraph but the one your caret is in. It works everywhere, but it is what turns focus mode into a composition mode rather than a wider editor. The dimming follows the caret as you move, and fades rather than cutting, because a hard change between paragraphs is more distracting than the dimming solves.
 

@@ -8,6 +8,36 @@ public class FileServiceTests
 {
     private readonly FileService _sut = new();
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Writes_ReplaceHiddenMetadataAndTruncateOldContent(bool binary)
+    {
+        using var dir = new TempDir();
+        var path = dir.Combine(".nvindex.json");
+        File.WriteAllText(path, "{\"obsolete\":true}");
+        File.SetAttributes(path, File.GetAttributes(path) | FileAttributes.Hidden);
+
+        if (binary) await _sut.WriteBytesAsync(path, [123, 125]);
+        else await _sut.WriteTextAsync(path, "{}");
+
+        Assert.Equal("{}", await _sut.ReadTextAsync(path));
+        Assert.True(File.GetAttributes(path).HasFlag(FileAttributes.Hidden));
+    }
+
+    [Fact]
+    public async Task MissingFilesAndDirectories_DoNotWaitThroughSharingViolationRetries()
+    {
+        using var dir = new TempDir();
+        var missingFile = _sut.ReadTextAsync(dir.Combine("missing.json"));
+        Assert.True(missingFile.IsCompleted, "A missing file must fail without retry delays.");
+        await Assert.ThrowsAsync<FileNotFoundException>(() => missingFile);
+
+        var missingDirectory = _sut.ReadBytesAsync(dir.Combine("unavailable", "cover.png"));
+        Assert.True(missingDirectory.IsCompleted, "An unavailable directory must fail without retry delays.");
+        await Assert.ThrowsAsync<DirectoryNotFoundException>(() => missingDirectory);
+    }
+
     [Fact]
     public async Task WriteThenRead_RoundTrips()
     {

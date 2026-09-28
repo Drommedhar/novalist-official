@@ -16,7 +16,22 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Project bookshelf** replaces the recent-project row with a full-window library of individual books. Arrange projects on named shelves, filter and search, adjust cover size, and choose a sort order. Select a book for details and links to related volumes, World Bible and Series, or double-click to open it. Shelves and their order are remembered on this device, and the library keeps projects beyond the previous ten-project limit.
+- **Generated book covers** give books without artwork a stable colour and illustration, with a shared palette for books in the same project. Generated and uploaded covers have spine shading and open slightly on hover, keyboard focus or selection, respecting reduced-motion preferences.
+- **Remove from bookshelf** hides individual books or whole projects without deleting their files. Use Undo or **Removed from bookshelf** to restore them later.
+
+### Changed
+
+- **Focus Mode** now uses **F11** and fills the screen with a centered writing page. Hover near the edges to reveal chapters, scene context and writing tools; notes and panels open over the page. Leaving focus restores your window and split layout while preserving your place in the text.
+- **Scratchpad** opens from the bookshelf header, stays accessible while scrolling, and keeps unfinished notes when closed and reopened.
+- The in-app manual fills the window, giving its navigation and pages the available width and height.
+
+### Fixed
+
+- Backups refresh immediately after choosing their folder. Restoring a backup handles hidden project files on Windows and waits briefly for temporary file locks from sync tools.
+- Map image previews now load correctly, and newly placed images keep their original proportions instead of becoming squares.
 
 ---
 

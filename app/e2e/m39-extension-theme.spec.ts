@@ -104,8 +104,8 @@ test('an extension panel resolves the design tokens and follows a theme change',
     .poll(async () => (await read()).token, { timeout: 15_000 })
     .toBe('#181825')
 
-  const afterSwitch = await read()
-  expect(afterSwitch.background).not.toBe(themed.background)
+  // Tokens arrive before the CSS color transition has finished repainting.
+  await expect(panel.locator('body')).toHaveCSS('background-color', 'rgb(24, 24, 37)')
 
   await app.close()
 })

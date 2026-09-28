@@ -81,7 +81,7 @@ public sealed class ArchiveService : IArchiveService
         return restored;
     }
 
-    public Task RestoreProjectAsync(string zipPath, string destinationDirectory, bool replaceExisting)
+    public async Task RestoreProjectAsync(string zipPath, string destinationDirectory, bool replaceExisting)
     {
         var destination = Path.GetFullPath(destinationDirectory);
         if (!replaceExisting && (Directory.Exists(destination) || File.Exists(destination)))
@@ -108,7 +108,7 @@ public sealed class ArchiveService : IArchiveService
                 // Same-volume rename is exclusive: even a folder created while
                 // the ZIP was being staged must never be merged or overwritten.
                 Directory.Move(staging, destination);
-                return Task.CompletedTask;
+                return;
             }
 
             if (Directory.Exists(destination)) Scan(destination);
@@ -120,7 +120,7 @@ public sealed class ArchiveService : IArchiveService
             {
                 var target = Path.Combine(destination, relative);
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-                File.Copy(Path.Combine(staging, relative), target, overwrite: replaceExisting);
+                await FileService.CopyFileAsync(Path.Combine(staging, relative), target);
             }
             // Reconciliation treats surviving scene files as new external edits.
             // Remove them only once every archived file has been written successfully.
@@ -133,7 +133,6 @@ public sealed class ArchiveService : IArchiveService
         {
             if (Directory.Exists(staging)) Directory.Delete(staging, recursive: true);
         }
-        return Task.CompletedTask;
 
         void Scan(string directory)
         {

@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   paneLeaves,
+  findPane,
   useShellStore,
   type MainView,
   type PaneNode
@@ -82,6 +83,7 @@ function PaneTree({
   const only = useShellStore((s) => paneLeaves(s.panes).length < 2)
   const leafRef = useRef<HTMLDivElement>(null)
   const extView = useShellStore((s) => s.extView)
+  const focused = useShellStore((s) => s.focusMode && s.mainView === 'write' && !s.extView)
 
   // A new view starts at the top. The .main-area scroller belongs to the pane,
   // not to the view inside it, so switching views left it wherever the last one
@@ -107,7 +109,7 @@ function PaneTree({
                 the boundary it moves rather than to either neighbour. */}
             {i > 0 && <PaneDivider split={node} index={i} />}
             <div
-              className="pane-slot"
+              className={`pane-slot${focused && !findPane(child, activePaneId) ? ' focus-hidden' : ''}`}
               style={{ flexBasis: `${node.sizes[i] ?? 100 / node.children.length}%` }}
             >
               <PaneTree node={child} headers={headers} />
@@ -199,13 +201,27 @@ function PaneDivider({
 
 function MainAreaContent({ view, paneId }: { view: MainView; paneId: string }): React.JSX.Element {
   const { t } = useTranslation()
+  const extView = useShellStore((s) => s.extView)
+  const keepEditor = useShellStore((s) => s.focusMode && s.focusPaneId === paneId)
+  const openSceneId = useProjectStore((s) => editorPane(s, paneId).sceneId)
+  const isLoaded = useProjectStore((s) => s.isLoaded)
+  const writing = view === 'write' && !extView
+  return <>
+    {(writing || keepEditor) && <main className="main-area" style={writing ? undefined : { display: 'none' }}>
+      {openSceneId ? <EditorFrame paneId={paneId} /> : <div className="main-placeholder">
+        <h1>{t('shell.view.write')}</h1>
+        <p>{t(isLoaded ? 'shell.paneAwaitingScene' : 'shell.binderEmpty')}</p>
+      </div>}
+    </main>}
+    {!writing && <NonWritingContent view={view} />}
+  </>
+}
+
+function NonWritingContent({ view }: { view: MainView }): React.JSX.Element {
+  const { t } = useTranslation()
   const mainView = view
   const extView = useShellStore((s) => s.extView)
   const extViews = useExtensionsStore((s) => s.views)
-  // This pane's own scene: two editors side by side are two scenes, not one
-  // scene drawn twice.
-  const openSceneId = useProjectStore((s) => editorPane(s, paneId).sceneId)
-  const isLoaded = useProjectStore((s) => s.isLoaded)
 
   if (extView) {
     const view = extViews.find(
@@ -218,24 +234,6 @@ function MainAreaContent({ view, paneId }: { view: MainView; paneId: string }): 
         </main>
       )
     }
-  }
-
-  if (mainView === 'write') {
-    return (
-      <main className="main-area">
-        {openSceneId ? (
-          <EditorFrame paneId={paneId} />
-        ) : (
-          <div className="main-placeholder">
-            <h1>{t('shell.view.write')}</h1>
-            {/* A pane split off to hold a second scene starts empty, which is
-                the point - it is waiting for a different scene rather than
-                showing another copy of the one next to it. */}
-            <p>{t(isLoaded ? 'shell.paneAwaitingScene' : 'shell.binderEmpty')}</p>
-          </div>
-        )}
-      </main>
-    )
   }
 
   if (mainView === 'codex') {

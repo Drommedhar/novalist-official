@@ -23,22 +23,30 @@ interface ScratchpadNote {
  */
 export function ScratchpadPanel({
   canFile,
-  onFiled
+  onFiled,
+  active = true,
+  showTitle = true
 }: {
   /** Whether a project is open to file a note into. */
   canFile: boolean
   onFiled?(): void
+  /** Refresh when a retained panel becomes visible again. */
+  active?: boolean
+  showTitle?: boolean
 }): React.JSX.Element {
   const { t } = useTranslation()
   const [notes, setNotes] = useState<ScratchpadNote[]>([])
   const [text, setText] = useState('')
 
   useEffect(() => {
+    if (!active) return
+    let current = true
     void rpc
       .request<ScratchpadNote[]>('scratchpad/list')
-      .then(setNotes)
-      .catch(() => setNotes([]))
-  }, [])
+      .then((next) => { if (current) setNotes(next) })
+      .catch(() => { if (current) setNotes([]) })
+    return () => { current = false }
+  }, [active])
 
   const add = async (): Promise<void> => {
     if (text.trim().length === 0) return
@@ -48,13 +56,14 @@ export function ScratchpadPanel({
 
   return (
     <div className="start-recents">
-      <div className="start-recents-label">{t('scratchpad.title')}</div>
+      {showTitle && <div className="start-recents-label">{t('scratchpad.title')}</div>}
       <p className="scratchpad-empty">{t('scratchpad.intro')}</p>
 
       <textarea
         className="dialog-input quick-capture-input"
         rows={3}
         value={text}
+        aria-label={t('scratchpad.placeholder')}
         placeholder={t('scratchpad.placeholder')}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {

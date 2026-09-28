@@ -93,70 +93,52 @@ interface SettingsState {
   resetAllHotkeys(): Promise<void>
 }
 
-function applySideEffects(view: SettingsView): void {
+let loadRevision = 0
+let appearanceRevision = 0
+
+async function applySideEffects(view: SettingsView): Promise<void> {
+  const revision = ++appearanceRevision
   if (i18next.language !== view.effective.language) {
-    void i18next.changeLanguage(view.effective.language)
+    await i18next.changeLanguage(view.effective.language)
   }
+  if (revision !== appearanceRevision) return
   // Built-in, folder, and extension themes all resolve through the catalog; an
   // unknown name falls back to the default palette.
   applyTheme(view.effective.theme, view.effective.accentColor)
   // After the theme, because the overrides sit on top of whatever it set.
-  void rpc
+  await rpc
     .request<Record<string, string>>('appearance/tokens')
-    .then((tokens) => tokens && applyThemeTokens(tokens))
+    .then((tokens) => tokens && revision === appearanceRevision && applyThemeTokens(tokens))
     .catch(() => {})
+  if (revision !== appearanceRevision) return
   applyCustomGestures((view.global.hotkeyBindings as Record<string, string>) ?? {})
 }
 
-export const useSettingsStore = create<SettingsState>((set) => ({
-  view: null,
-
-  load: async () => {
-    const view = await rpc.request<SettingsView>('settings/get')
-    applySideEffects(view)
-    set({ view })
-  },
-
-  update: async (scope, patch) => {
-    const method = scope === 'project' ? 'settings/updateProject' : 'settings/updateGlobal'
-    const view = await rpc.request<SettingsView>(method, [patch])
-    applySideEffects(view)
-    set({ view })
-  },
-
-  pinSection: async (section) => {
-    const view = await rpc.request<SettingsView>('settings/pinSection', [section])
-    applySideEffects(view)
-    set({ view })
-  },
-
-  clearSection: async (section) => {
-    const view = await rpc.request<SettingsView>('settings/clearSection', [section])
-    applySideEffects(view)
-    set({ view })
-  },
-
-  updateProjectMeta: async (patch) => {
-    const view = await rpc.request<SettingsView>('settings/updateProjectMeta', [patch])
-    applySideEffects(view)
-    set({ view })
-  },
-
-  setHotkeyBinding: async (actionId, gesture) => {
-    const view = await rpc.request<SettingsView>('settings/setHotkeyBinding', [actionId, gesture])
-    applySideEffects(view)
-    set({ view })
-  },
-
-  resetHotkeyBinding: async (actionId) => {
-    const view = await rpc.request<SettingsView>('settings/resetHotkeyBinding', [actionId])
-    applySideEffects(view)
-    set({ view })
-  },
-
-  resetAllHotkeys: async () => {
-    const view = await rpc.request<SettingsView>('settings/resetAllHotkeys')
-    applySideEffects(view)
-    set({ view })
+export const useSettingsStore = create<SettingsState>((set) => {
+  // Reads and edits share one revision: no response from the project being
+  // left may overwrite a newer global settings response.
+  const applyResponse = async (response: Promise<SettingsView>): Promise<void> => {
+    const revision = ++loadRevision
+    const view = await response
+    if (revision !== loadRevision) return
+    await applySideEffects(view)
+    if (revision === loadRevision) set({ view })
   }
-}))
+
+  return {
+    view: null,
+    load: () => applyResponse(rpc.request<SettingsView>('settings/get')),
+
+    update: (scope, patch) => {
+      const method = scope === 'project' ? 'settings/updateProject' : 'settings/updateGlobal'
+      return applyResponse(rpc.request<SettingsView>(method, [patch]))
+    },
+
+    pinSection: (section) => applyResponse(rpc.request<SettingsView>('settings/pinSection', [section])),
+    clearSection: (section) => applyResponse(rpc.request<SettingsView>('settings/clearSection', [section])),
+    updateProjectMeta: (patch) => applyResponse(rpc.request<SettingsView>('settings/updateProjectMeta', [patch])),
+    setHotkeyBinding: (actionId, gesture) => applyResponse(rpc.request<SettingsView>('settings/setHotkeyBinding', [actionId, gesture])),
+    resetHotkeyBinding: (actionId) => applyResponse(rpc.request<SettingsView>('settings/resetHotkeyBinding', [actionId])),
+    resetAllHotkeys: () => applyResponse(rpc.request<SettingsView>('settings/resetAllHotkeys'))
+  }
+})

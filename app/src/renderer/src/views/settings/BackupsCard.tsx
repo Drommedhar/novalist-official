@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Archive, FolderOpen, Flag, RotateCcw, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -35,7 +35,8 @@ function formatSize(bytes: number): string {
 
 export function BackupsCard(): React.JSX.Element {
   const { t } = useTranslation()
-  const hasProject = useProjectStore((s) => Boolean(s.projectName))
+  const projectPath = useProjectStore((s) => s.projectPath)
+  const hasProject = Boolean(projectPath)
   const global = useSettingsStore((s) => s.view?.global) ?? {}
   const update = useSettingsStore((s) => s.update)
 
@@ -45,6 +46,7 @@ export function BackupsCard(): React.JSX.Element {
   const [milestoneName, setMilestoneName] = useState('')
   const [restoreCopy, setRestoreCopy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const refreshId = useRef(0)
 
   const flushEdits = async (): Promise<void> => {
     await flushPendingWrites()
@@ -53,17 +55,32 @@ export function BackupsCard(): React.JSX.Element {
   }
 
   const refresh = useCallback(async () => {
-    if (!hasProject) {
+    const id = ++refreshId.current
+    setError(null)
+    if (!projectPath) {
       setBackups([])
       setFolder('')
       return
     }
-    setBackups(await rpc.request<BackupDto[]>('backup/list'))
-    setFolder(await rpc.request<string>('backup/folder'))
-  }, [hasProject])
+    try {
+      const [backups, folder] = await Promise.all([
+        rpc.request<BackupDto[]>('backup/list'),
+        rpc.request<string>('backup/folder')
+      ])
+      if (id !== refreshId.current) return
+      setBackups(backups)
+      setFolder(folder)
+    } catch (e) {
+      if (id !== refreshId.current) return
+      setBackups([])
+      setFolder('')
+      setError(String(e))
+    }
+  }, [projectPath, global.backupFolder])
 
   useEffect(() => {
     void refresh()
+    return () => { ++refreshId.current }
   }, [refresh])
 
   const backUpNow = async (): Promise<void> => {
@@ -217,8 +234,17 @@ export function BackupsCard(): React.JSX.Element {
           className="dialog-button"
           onClick={() => {
             void (async () => {
-              const picked = await window.novalist.pickFolder('Backups')
-              if (picked) await update('global', { backupFolder: picked })
+              try {
+                const picked = await window.novalist.pickFolder('Backups')
+                if (picked) {
+                  await update('global', { backupFolder: picked })
+                  // Picking the same path can renew a grant without changing
+                  // the setting, so it must refresh explicitly as well.
+                  await refresh()
+                }
+              } catch (e) {
+                setError(String(e))
+              }
             })()
           }}
         >
@@ -272,7 +298,7 @@ export function BackupsCard(): React.JSX.Element {
       {hasProject && (
         <div className="backup-list">
           {backups.length === 0 ? (
-            <div className="settings-hint">{t('backup.none')}</div>
+            !error && <div className="settings-hint">{t('backup.none')}</div>
           ) : (
             backups.map((b) => (
               <div key={b.id} className={`backup-row${b.isMilestone ? ' backup-row-milestone' : ''}`}>

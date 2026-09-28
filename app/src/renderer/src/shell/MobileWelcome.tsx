@@ -1,6 +1,7 @@
 import { MainArea } from './MainArea'
-import { StartScreen } from './StartScreen'
+import { StartScreen } from './ProjectLibrary'
 import { useShellStore } from '../stores/shellStore'
+import type { RecentProjectDto } from '../stores/projectStore'
 import './mobile.css'
 
 /**
@@ -28,8 +29,8 @@ export function MobileWelcome({
   recentProjects,
   onOpenPath
 }: {
-  recentProjects: { name: string; path: string; cover?: string | null }[]
-  onOpenPath: (path: string) => void
+  recentProjects: RecentProjectDto[]
+  onOpenPath: (path: string, bookId?: string) => Promise<void>
 }): React.JSX.Element {
   const mainView = useShellStore((s) => s.mainView)
   // The views that do not need a project. Everything else here would have

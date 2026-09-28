@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Novalist — Bookshelf directions</title>
+<style>
+/* Self-contained design study; these tokens belong only to this preview. */
+:root {
+  color-scheme: dark;
+  --bg:#111519; --panel:#171c20; --raised:#20262b; --text:#ede8db; --muted:#a5aba9; --quiet:#788480;
+  --line:#30383b; --gold:#ddbb79; --gold-wash:#ddbb7914; --ink:#1b211f; --green:#94af9e; --shelf:#555046;
+  --shadow:#0008; --cover:#284452; --cover-ink:#e6dcc2; --ui:'Segoe UI',system-ui,sans-serif; --serif:Georgia,'Times New Roman',serif;
+  --xs:11px; --sm:12px; --body:14px; --lg:16px; --h2:24px; --h1:34px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px;
+  --r1:4px; --r2:8px; --r3:12px; --cover-w:166px; --ratio:1.48; --drawer:304px; --rail:68px; --touch:36px; --rule:1px;
+}
+* { box-sizing:border-box }
+body { margin:0; background:var(--bg); color:var(--text); font:var(--body)/1.5 var(--ui) }
+button,input,select,textarea { font:inherit }
+button,select { cursor:pointer }
+button { color:inherit; background:none; border:0 }
+button:disabled { cursor:default; opacity:.45 }
+button,input,select { border-radius:var(--r1) }
+:focus-visible { outline:2px solid var(--gold); outline-offset:4px }
+button:hover { color:var(--gold) }
+svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; flex:none }
+h1,h2,h3,p { margin:0 }
+[hidden] { display:none!important }
+.study { height:100vh; height:100dvh; display:grid; grid-template-rows:auto minmax(0,1fr) auto }
+.review-bar { display:flex; align-items:center; gap:var(--s5); padding:var(--s3) var(--s5); background:var(--panel); border-bottom:var(--rule) solid var(--line) }
+.study-label { display:flex; align-items:center; gap:var(--s3); white-space:nowrap; font-size:var(--xs); letter-spacing:.11em; text-transform:uppercase; color:var(--muted) }
+.study-label b { color:var(--gold); font-weight:500 }
+.tabs { display:flex; gap:var(--s1) }
+.tabs button { display:flex; gap:var(--s2); align-items:center; padding:var(--s2) var(--s3); font-size:var(--sm); white-space:nowrap; border:var(--rule) solid transparent }
+.tabs button span { color:var(--quiet); font-size:var(--xs) }
+.tabs button[aria-pressed="true"] { background:var(--gold-wash); border-color:var(--gold); color:var(--gold) }
+.tabs button[aria-pressed="true"] span { color:inherit }
+.review-tools { margin-left:auto; display:flex; align-items:center; gap:var(--s4) }
+.fixture { display:flex; align-items:center; gap:var(--s2); font-size:var(--xs); color:var(--muted); white-space:nowrap }
+select { color:var(--text); background:var(--panel); padding:var(--s2); border:var(--rule) solid var(--line) }
+.notes-button { font-size:var(--sm); white-space:nowrap }
+.app { display:grid; grid-template-columns:var(--rail) minmax(0,1fr); min-height:0 }
+.rail { display:flex; flex-direction:column; align-items:center; padding:var(--s5) var(--s2); gap:var(--s4); border-right:var(--rule) solid var(--line) }
+.wordmark { font:italic var(--h2) var(--serif); color:var(--gold); margin-bottom:var(--s6) }
+.rail-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--s2); width:100%; min-height:var(--s7); font-size:var(--xs); color:var(--muted); border-radius:var(--r2) }
+.rail-item.active { background:var(--gold-wash); color:var(--gold) }
+.rail-item:last-child { margin-top:auto }
+.workspace { display:grid; grid-template-rows:auto auto minmax(0,1fr); min-width:0; min-height:0 }
+.library-header { display:flex; gap:var(--s5); align-items:center; padding:var(--s5) var(--s6) var(--s4) }
+.library-title { display:flex; align-items:baseline; gap:var(--s4) }
+h1 { font:normal var(--h1)/1.15 var(--serif); letter-spacing:-.025em }
+.library-count { font-size:var(--sm); color:var(--muted) }
+.header-actions { display:flex; gap:var(--s3); align-items:center; margin-left:auto }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--s2); min-height:var(--touch); padding:var(--s2) var(--s3); border:var(--rule) solid var(--line); border-radius:var(--r2); font-size:var(--sm) }
+.btn:hover { background:var(--raised) }
+.btn.primary { background:var(--gold); color:var(--ink); border-color:var(--gold) }
+.btn.primary:hover { filter:brightness(1.08) }
+.icon-btn { display:inline-flex; align-items:center; justify-content:center; width:var(--touch); height:var(--touch); border-radius:var(--r1); flex:none }
+.icon-btn:hover { background:var(--raised) }
+.toolbar { display:flex; align-items:center; gap:var(--s4); margin:0 var(--s6); padding:0 0 var(--s4); border-bottom:var(--rule) solid var(--line) }
+.collections { display:flex; align-items:center; gap:var(--s1) }
+.collection { padding:var(--s2) var(--s3); color:var(--muted); white-space:nowrap; font-size:var(--sm); border-radius:var(--r2) }
+.collection[aria-pressed="true"] { background:var(--raised); color:var(--text) }
+.collection small { margin-left:var(--s2); opacity:.55 }
+.search { margin-left:auto; display:flex; align-items:center; gap:var(--s2); color:var(--muted); border:var(--rule) solid var(--line); padding:var(--s2) var(--s3); border-radius:var(--r2); max-width:240px }
+.search svg { width:15px; height:15px }
+.search input { min-width:0; width:100%; color:var(--text); background:none; border:0; outline:0; font-size:var(--sm) }
+.search:focus-within { border-color:var(--gold) }
+input::placeholder { color:var(--muted); opacity:.85 }
+.density { display:flex; gap:var(--s2); color:var(--muted); align-items:center }
+.density input { width:65px; accent-color:var(--gold) }
+.density svg { width:16px }
+.sort { font-size:var(--sm); max-width:140px; border-color:transparent }
+.canvas { display:flex; min-width:0; min-height:0; position:relative }
+.library { flex:1; min-width:0; overflow-y:auto; scrollbar-color:var(--line) transparent; padding:var(--s5) var(--s6) var(--s7) }
+.shelf-section + .shelf-section { margin-top:var(--s6) }
+.shelf-heading { display:flex; align-items:baseline; gap:var(--s3); margin-bottom:var(--s5) }
+.shelf-heading h2 { font:normal 19px var(--serif) }
+.shelf-heading span { font-size:var(--xs); color:var(--quiet) }
+.shelf-menu { margin-left:auto; opacity:.4 }
+.shelf-section:hover .shelf-menu,.shelf-menu:focus-visible { opacity:1 }
+.shelf-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(calc(var(--cover-w) + var(--s7)),1fr)); row-gap:var(--s6); overflow:hidden; background:linear-gradient(var(--shelf),var(--panel)) left bottom / 100% 7px no-repeat }
+.book-slot { display:flex; justify-content:center; position:relative; padding:var(--s2) var(--s5) var(--s4) }
+.book-slot::after { content:''; position:absolute; bottom:0; left:0; right:0; height:7px; background:linear-gradient(var(--shelf),var(--panel)); border-top:var(--rule) solid var(--shelf); box-shadow:0 6px 10px var(--shadow) }
+.book-button { padding:0; position:relative; width:var(--cover-w); flex:none; text-align:left; border-radius:var(--r1) }
+.book-button:hover { color:inherit }
+.cover { height:calc(var(--cover-w) * var(--ratio)); position:relative; overflow:hidden; isolation:isolate; border-radius:2px 6px 6px 2px; background:var(--cover); color:var(--cover-ink); box-shadow:7px 9px 18px var(--shadow),inset 1px 0 1px #ffffff35; transition:transform .2s,box-shadow .2s }
+.cover::before { content:''; position:absolute; inset:0; z-index:4; background:linear-gradient(90deg,#0005,transparent 3%,#ffffff13 4%,#0004 6%,transparent 9%,transparent 97%,#ffffff22); pointer-events:none }
+.cover::after { content:''; position:absolute; inset:8%; border:var(--rule) solid currentColor; opacity:.24; z-index:1; pointer-events:none }
+.book-button:hover .cover,.book-button:focus-visible .cover { transform:translateY(-6px) rotate(-1deg); box-shadow:9px 16px 24px var(--shadow) }
+.book-button[aria-pressed="true"] .cover { outline:2px solid var(--gold); outline-offset:4px }
+.cover-type { height:100%; display:flex; flex-direction:column; align-items:center; padding:14% 13% 12%; text-align:center; position:relative; z-index:2 }
+.cover-kicker { font:9px var(--ui); text-transform:uppercase; letter-spacing:.15em; opacity:.85 }
+.cover-title { font:normal calc(var(--cover-w) * var(--title-scale,.17))/1.12 var(--serif); margin-top:13%; overflow-wrap:anywhere; text-wrap:balance }
+.cover-subtitle { font-size:9px; margin-top:auto; letter-spacing:.1em; text-transform:uppercase; opacity:.8 }
+.cover-art { position:absolute; inset:0; width:100%; height:100%; stroke-width:.7; z-index:0 }
+.cover.moon .cover-title { margin-top:18% }
+.cover.botanical .cover-title { margin-top:auto; margin-bottom:auto; font-style:italic }
+.cover.orbit .cover-title { margin-top:auto; margin-bottom:14% }
+.book-meta { display:none; margin-top:var(--s3); color:var(--muted); font-size:var(--xs); line-height:1.5 }
+.book-meta span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.book-meta .stage { display:flex; align-items:center; gap:var(--s2); color:var(--quiet); margin-top:var(--s1) }
+.dot { width:5px; height:5px; border-radius:50%; background:var(--green); display:inline-block }
+.gallery-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(calc(var(--cover-w) + var(--s6)),1fr)); gap:var(--s6) var(--s5) }
+.gallery-grid .book-slot { padding:var(--s2) 0 0 }
+.gallery-grid .book-slot::after { display:none }
+.gallery-grid .book-meta { display:block }
+.gallery-grid .book-button { align-self:start }
+.spine-row { display:flex; align-items:end; flex-wrap:wrap; gap:var(--s2); padding:var(--s3) var(--s5) 0; border-bottom:9px ridge var(--shelf); background:linear-gradient(0deg,#0003,transparent 30%); box-shadow:0 9px 12px #0003 }
+.spine-row + .spine-row { margin-top:var(--s6) }
+.spine { width:calc(var(--cover-w) * .34); height:calc(var(--cover-w) * var(--ratio)); padding:var(--s4) var(--s2); display:flex; flex-direction:column; align-items:center; gap:var(--s4); background:var(--cover); color:var(--cover-ink); border-radius:3px 3px 0 0; box-shadow:inset 3px 0 3px #ffffff18,inset -4px 0 4px #0004,4px 0 6px #0003; position:relative; transition:transform .2s }
+.spine:hover { transform:translateY(-8px); color:var(--cover-ink) }
+.spine::before,.spine::after { content:''; position:absolute; left:10%; right:10%; height:3px; border-block:1px solid currentColor; opacity:.5 }
+.spine::before { top:7px } .spine::after { bottom:8px }
+.spine-title { writing-mode:vertical-rl; text-orientation:mixed; flex:1; font:normal calc(var(--cover-w) * .105) var(--serif); letter-spacing:.025em }
+.spine small { font-size:var(--xs) }
+.spine-row .book-button { margin-inline:var(--s3) }
+.spine-row .book-button .cover { transform:none; outline:none }
+.spine-row .book-button::after { content:''; position:absolute; bottom:-9px; height:3px; left:0; right:0; background:var(--gold); z-index:4 }
+.spine-row::after { content:''; flex:none; width:var(--s3); height:calc(var(--cover-w) * .65); border-left:2px solid var(--muted); border-bottom:2px solid var(--muted); opacity:.3 }
+.inspector { width:var(--drawer); flex:none; border-left:var(--rule) solid var(--line); padding:var(--s5); overflow-y:auto; background:var(--panel); scrollbar-color:var(--line) transparent }
+.inspector-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--s4); color:var(--muted); font-size:var(--xs); text-transform:uppercase; letter-spacing:.08em }
+.inspector .detail-cover { --cover-w:128px; width:var(--cover-w); margin:var(--s2) auto var(--s5) }
+.inspector h2 { font:normal var(--h2)/1.2 var(--serif); margin-bottom:var(--s2) }
+.detail-project { color:var(--muted); font-size:var(--sm) }
+.detail-badge { display:inline-flex; align-items:center; gap:var(--s2); color:var(--green); font-size:var(--xs); margin:var(--s4) 0 var(--s5) }
+.inspector .primary { width:100% }
+.facts { display:grid; grid-template-columns:1fr 1fr; gap:var(--s4); margin:var(--s5) 0; padding:var(--s5) 0; border-block:var(--rule) solid var(--line) }
+.facts dt { color:var(--muted); font-size:var(--xs); margin-bottom:var(--s1) }
+.facts dd { margin:0; font-size:var(--body) }
+.detail-label { font-size:var(--xs); color:var(--muted); margin-bottom:var(--s2); display:block }
+.related { display:flex; flex-direction:column; gap:var(--s2); margin-bottom:var(--s5) }
+.related button { display:flex; align-items:center; gap:var(--s2); text-align:left; padding:var(--s2) 0; font-size:var(--sm) }
+.related button[aria-current="true"] { color:var(--gold) }
+.project-action { width:100%; margin-bottom:var(--s3) }
+.move-select { width:100%; font-size:var(--sm) }
+.concept-caption { display:flex; align-items:center; gap:var(--s5); border-top:var(--rule) solid var(--line); padding:var(--s3) var(--s5); background:var(--panel); min-height:58px }
+.caption-number { font:italic var(--h2) var(--serif); color:var(--gold) }
+.caption-copy { font-size:var(--sm); color:var(--muted) }
+.caption-copy strong { color:var(--text); font-weight:500; margin-right:var(--s2) }
+.caption-hint { margin-left:auto; color:var(--quiet); font-size:var(--xs); white-space:nowrap }
+.empty { height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:var(--s4); text-align:center; color:var(--muted) }
+.empty > svg { width:56px; height:56px; color:var(--gold); stroke-width:.8 }
+.empty h2 { font:normal var(--h2) var(--serif); color:var(--text) }
+.empty p { max-width:36ch }
+dialog { color:var(--text); background:var(--panel); border:var(--rule) solid var(--line); border-radius:var(--r3); padding:var(--s6); width:min(880px,calc(100% - 32px)); max-height:calc(100dvh - 40px); box-shadow:0 24px 80px var(--shadow) }
+dialog::backdrop { background:#080d11bb; backdrop-filter:blur(5px) }
+.dialog-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--s4) }
+.dialog-head h2 { font:normal var(--h2) var(--serif) }
+.notes-intro { color:var(--muted); max-width:70ch; margin-bottom:var(--s5) }
+.notes-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--s4) }
+.note-card { border:var(--rule) solid var(--line); padding:var(--s4); border-radius:var(--r2) }
+.note-card.recommended { border-color:var(--gold) }
+.eyebrow { color:var(--gold); font-size:var(--xs); letter-spacing:.07em; text-transform:uppercase }
+.note-card h3 { font:normal 21px var(--serif); margin:var(--s3) 0 }
+.note-card p { color:var(--muted); font-size:var(--sm); margin-bottom:var(--s3) }
+.note-card strong { color:var(--text); font-weight:500 }
+.note-card button { width:100%; margin-top:var(--s2) }
+.principles { margin-top:var(--s5); border-top:var(--rule) solid var(--line); padding-top:var(--s5) }
+.principles h3 { font-size:var(--body); font-weight:500; margin-bottom:var(--s2) }
+.principles p { color:var(--muted); font-size:var(--sm); margin-bottom:var(--s3) }
+.notes-foot { color:var(--quiet); font-size:var(--xs); padding-top:var(--s4) }
+.toast { position:fixed; bottom:78px; left:50%; transform:translateX(-50%); z-index:20; max-width:min(520px,90vw); padding:var(--s3) var(--s4); background:var(--raised); color:var(--text); border:var(--rule) solid var(--line); border-radius:var(--r2); box-shadow:0 10px 30px var(--shadow); font-size:var(--sm); text-align:center }
+.demo-dialog { width:min(460px,calc(100% - 32px)) }
+.demo-dialog p { color:var(--muted); margin-bottom:var(--s5) }
+.demo-dialog label { display:block; margin-bottom:var(--s4); color:var(--muted); font-size:var(--sm) }
+.demo-dialog input,.demo-dialog textarea { display:block; width:100%; background:var(--bg); border:var(--rule) solid var(--line); color:var(--text); padding:var(--s3); margin-top:var(--s2); border-radius:var(--r1) }
+.demo-dialog textarea { min-height:180px; resize:vertical }
+.demo-actions { display:flex; justify-content:flex-end; gap:var(--s3) }
+.tone-blue { --cover:#234251; --cover-ink:#dce3df } .tone-rust { --cover:#743e32; --cover-ink:#f0d5ac }
+.tone-cream { --cover:#d9ceae; --cover-ink:#354849 } .tone-green { --cover:#2d4d43; --cover-ink:#ded3a9 }
+.tone-purple { --cover:#4e4054; --cover-ink:#ddc8bb } .tone-ochre { --cover:#a37b41; --cover-ink:#f7e7ba }
+.tone-slate { --cover:#303f50; --cover-ink:#d0c6b9 } .tone-rose { --cover:#a16f65; --cover-ink:#f6e6ce }
+@media(min-width:1900px) { :root { --cover-w:190px } .library-header { padding-top:var(--s6) } }
+@media(max-width:1200px) { .study-label { display:none } .toolbar { flex-wrap:wrap; gap:var(--s3) } .collections { flex:1 } .search { max-width:190px } .density,.library-count { display:none } }
+@media(max-width:900px) { .review-bar { flex-wrap:wrap; gap:var(--s2); padding:var(--s2) var(--s3) } .review-tools { gap:var(--s2) } .fixture > span { display:none } .library-header { padding:var(--s5) } .toolbar { margin-inline:var(--s5) } .library { padding-inline:var(--s5) } .open-label,.caption-hint { display:none } .inspector { position:absolute; right:0; top:0; bottom:0; z-index:8; width:min(var(--drawer),100%); box-shadow:-20px 0 60px var(--shadow) } .notes-grid { grid-template-columns:1fr } }
+@media(max-width:620px) { :root { --cover-w:126px; --rail:0px } .rail { display:none } .review-bar { justify-content:center } .tabs { width:100%; justify-content:center } .tabs button { padding-inline:var(--s2) } .review-tools { margin:0; width:100%; justify-content:space-between } .fixture > span { display:inline } .library-title h1 { font-size:var(--h2) } .library-header { padding:var(--s4); gap:var(--s2) } .header-actions { gap:var(--s1) } .folder-button { display:none } .toolbar { margin-inline:var(--s4) } .collections { order:0; flex-basis:100%; justify-content:space-between } .collection { padding-inline:var(--s2) } .collection small { display:none } .search { margin:0; flex:1; max-width:none } .sort { max-width:125px } .library { padding:var(--s4) var(--s3) var(--s6) } .shelf-row { grid-template-columns:repeat(auto-fill,minmax(calc(var(--cover-w) + var(--s5)),1fr)) } .book-slot { padding-inline:var(--s3) } .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(var(--cover-w),1fr)); gap:var(--s5) var(--s3) } .concept-caption { gap:var(--s3); padding-inline:var(--s4) } .caption-copy { font-size:var(--xs) } .caption-number { display:none } dialog { padding:var(--s5) } }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none!important; scroll-behavior:auto!important } }
+@media(max-width:620px) { .app { grid-template-columns:minmax(0,1fr) } }
+</style>
+</head>
+<body>
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><defs>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5c-3-2-7-2-10-1v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1Zm0 0v15"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="m16 3 5 5L8 21H3v-5ZM14 5l5 5M3 21l6-2"/></symbol>
+  <symbol id="i-plan" viewBox="0 0 24 24"><path d="M4 5h16M4 12h10M4 19h13"/><circle cx="18" cy="12" r="1"/></symbol>
+  <symbol id="i-world" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="m3 10 18-7-7 18-3-8Zm8 3L21 3"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7V4h6l3 3h9v13H3Zm0 3h18"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 1 1 5 2c-2 1-2 2-2 3M12 17h.01"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+</defs></svg>
+<div class="study">
+  <header class="review-bar">
+    <div class="study-label"><b>Novalist</b> / Design study</div>
+    <nav class="tabs" aria-label="Bookshelf directions">
+      <button data-mode="shelves" aria-pressed="true"><span>01</span> Open shelves</button>
+      <button data-mode="gallery" aria-pressed="false"><span>02</span> Cover gallery</button>
+      <button data-mode="bookcase" aria-pressed="false"><span>03</span> Collected volumes</button>
+    </nav>
+    <div class="review-tools">
+      <label class="fixture"><span>Sample library</span><select id="fixture" aria-label="Sample library size"><option value="12">12 volumes</option><option value="48">48 volumes</option><option value="1">1 book</option><option value="0">Empty</option></select></label>
+      <button class="notes-button" id="show-notes">Design notes</button>
+    </div>
+  </header>
+  <div class="app">
+    <nav class="rail" aria-label="App preview navigation">
+      <div class="wordmark" aria-label="Novalist">N</div>
+      <button class="rail-item active" id="home" aria-label="Show all books"><svg><use href="#i-grid"/></svg>Library</button>
+      <button class="rail-item" data-demo="Write"><svg><use href="#i-pen"/></svg>Write</button>
+      <button class="rail-item" data-demo="Plan"><svg><use href="#i-plan"/></svg>Plan</button>
+      <button class="rail-item" data-demo="World"><svg><use href="#i-world"/></svg>World</button>
+      <button class="rail-item" data-demo="Publish"><svg><use href="#i-export"/></svg>Publish</button>
+      <button class="rail-item" id="rail-notes"><svg><use href="#i-help"/></svg>Notes</button>
+    </nav>
+    <section class="workspace" aria-label="Interactive bookshelf preview">
+      <header class="library-header">
+        <div class="library-title"><h1>Your bookshelf</h1><span class="library-count" id="total"></span></div>
+        <div class="header-actions">
+          <button class="icon-btn" id="scratchpad-button" aria-label="Scratchpad" title="Scratchpad"><svg><use href="#i-pen"/></svg></button>
+          <button class="btn folder-button" data-demo="Open folder"><svg><use href="#i-folder"/></svg><span class="open-label">Open folder</span></button>
+          <button class="btn primary" id="new-project"><svg><use href="#i-plus"/></svg>New project</button>
+        </div>
+      </header>
+      <div class="toolbar">
+        <nav class="collections" id="collections" aria-label="Shelves"></nav>
+        <label class="search"><svg><use href="#i-search"/></svg><input type="search" id="search" aria-label="Find a book or project" placeholder="Find a book or project…" autocomplete="off"></label>
+        <label class="density" title="Cover size"><svg><use href="#i-grid"/></svg><input type="range" id="density" min="126" max="210" value="166" aria-label="Cover size"></label>
+        <select class="sort" id="sort" aria-label="Sort books"><option value="recent">Recently opened</option><option value="title">Title A–Z</option><option value="project">By project</option></select>
+      </div>
+      <div class="canvas">
+        <main class="library" id="library" aria-label="Books"></main>
+        <aside class="inspector" id="inspector" aria-label="Selected book details" hidden></aside>
+      </div>
+    </section>
+  </div>
+  <footer class="concept-caption">
+    <span class="caption-number" id="caption-number">01</span>
+    <div class="caption-copy" id="caption-copy"></div>
+    <span class="caption-hint">Select a book to explore · Double-click to open · / to search</span>
+  </footer>
+</div>
+<dialog id="notes" aria-labelledby="notes-title">
+  <div class="dialog-head"><h2 id="notes-title">A place for the books.</h2><button class="icon-btn" data-close="notes" aria-label="Close design notes"><svg><use href="#i-close"/></svg></button></div>
+  <p class="notes-intro">The current screen repeats shelf, project and book names, gives each project its own row, and confines the library to a narrow column. These three directions share the same sample library. Switch between them and resize the window to compare.</p>
+  <div class="notes-grid">
+    <article class="note-card recommended"><div class="eyebrow">01 / Recommended</div><h3>Open shelves</h3><p>Book covers rest on continuous, understated shelves. A short shelf label is the only text above each group. The full window becomes the library.</p><p><strong>Best for:</strong> making Novalist feel like a personal writing room.</p><p><strong>Tradeoff:</strong> covers take space. Larger libraries need filtering or smaller covers.</p><button class="btn" data-try="shelves">Explore the shelves</button></article>
+    <article class="note-card"><div class="eyebrow">02 / Most practical</div><h3>Cover gallery</h3><p>A responsive, continuous grid. The project name and draft stage sit below each cover. Shelves become filters instead of separate rows.</p><p><strong>Best for:</strong> seeing more books at once and scanning across projects.</p><p><strong>Tradeoff:</strong> efficient, but feels more like a library app than a physical shelf.</p><button class="btn" data-try="gallery">Explore the gallery</button></article>
+    <article class="note-card"><div class="eyebrow">03 / Most bookish</div><h3>Collected volumes</h3><p>Books stand spine-out. Selecting a volume turns its cover toward you and reveals the project beside it. Quiet bookends complete the shelf.</p><p><strong>Best for:</strong> a growing collection with a distinctive, tactile identity.</p><p><strong>Tradeoff:</strong> rotated titles are slower to scan. Less suitable for long titles.</p><button class="btn" data-try="bookcase">Explore the bookcase</button></article>
+  </div>
+  <div class="principles">
+    <h3>Keep the hierarchy; lose the repetition.</h3>
+    <p>A shelf contains projects; a project contains books and a shared world. Show the books directly. Selecting one reveals its project, sibling books and World Bible. Moving a project moves all of its books. Unstarted projects get one typographic cover.</p>
+    <h3>Show actions where they belong.</h3>
+    <p>Keep New project, Open folder, search and Scratchpad in the toolbar. Put project organization in the selected-book panel; put shelf actions on the shelf. Single-click selects, double-click opens, and a visible Open book button supports keyboard and touch.</p>
+    <h3>Use the space, without filling it with explanations.</h3>
+    <p>No welcome slogan, oversized hero, repeated book title or permanent rearrangement arrows. All three directions fill the available window, keep controls visible, and scroll only the books. At wide sizes, more covers fit across; narrow windows reflow.</p>
+    <h3>My recommendation</h3>
+    <p>Start with Open shelves, using the gallery’s clean toolbar and shared detail panel. Keep project grouping visible through related books in that panel. Save spine-only presentation as a possible optional view once cover browsing feels right.</p>
+  </div>
+  <p class="notes-foot">Interactive proposal only. Fictional sample titles, cover artwork and metadata; Frotschwur / The Silent Shadows reflects the supplied screenshot. All changes stay in this tab and reset on reload. Book opening and app navigation are demonstrations.</p>
+</dialog>
+<dialog class="demo-dialog" id="create" aria-labelledby="create-title">
+  <form id="create-form">
+    <div class="dialog-head"><h2 id="create-title">A new project</h2><button type="button" class="icon-btn" data-close="create" aria-label="Close new project"><svg><use href="#i-close"/></svg></button></div>
+    <p>Add a sample project to see how a book without a cover would look. This changes only the preview.</p>
+    <label>Project name<input id="project-name" required maxlength="60" placeholder="An untold story" autocomplete="off"></label>
+    <div class="demo-actions"><button type="button" class="btn" data-close="create">Cancel</button><button class="btn primary" type="submit">Create sample project</button></div>
+  </form>
+</dialog>
+<dialog class="demo-dialog" id="scratchpad" aria-labelledby="scratch-title">
+  <div class="dialog-head"><h2 id="scratch-title">Scratchpad</h2><button class="icon-btn" data-close="scratchpad" aria-label="Close scratchpad"><svg><use href="#i-close"/></svg></button></div>
+  <p>A quick thought, without leaving the library. Kept until you reload this preview.</p>
+  <textarea aria-label="Scratchpad note" placeholder="A thought for later…"></textarea>
+</dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const icon = name => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
+const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shelfNames = ['Writing', 'Ideas', 'Finished'];
+const source = [
+  ['Frotschwur','The Silent Shadows','Writing','blue','moon','Book I','Drafting','42,680','Today'],
+  ['Winter’s End','The Silent Shadows','Writing','cream','mountain','Book II','Planning','8,420','Yesterday'],
+  ['The Glass Orchard','The Glass Orchard','Writing','green','botanical','A novel','Revising','68,210','2 days ago'],
+  ['A House of Salt','The Tidal House','Writing','rust','arch','Book I','Drafting','31,950','3 days ago'],
+  ['Low Water','The Tidal House','Writing','slate','waves','Book II','Planning','2,400','4 days ago'],
+  ['The Last Astronomer','The Last Astronomer','Writing','purple','orbit','A novel','Drafting','19,820','5 days ago'],
+  ['Letters from June','Letters from June','Ideas','rose','botanical','A novella','Planning','1,260','Last week'],
+  ['The Atlas of Elsewhere','Elsewhere','Ideas','ochre','orbit','Book I','Planning','3,680','Last week'],
+  ['Small Hours','Small Hours','Ideas','slate','moon','Stories','Drafting','6,800','Last week'],
+  ['Untitled Project','Untitled Project','Ideas','green','plain','Project','No books yet','0','Last week'],
+  ['The Quiet Coast','The Quiet Coast','Finished','cream','waves','A novel','Complete','74,200','September 12'],
+  ['A Map of Returning','A Map of Returning','Finished','rust','mountain','A novella','Complete','36,440','August 28']
+];
+let books = [], mode = 'shelves', currentShelf = 'All', selected = null, toastTimer, returnFocusId = null;
+const descriptions = {
+  shelves:['01','Open shelves.','Covers first, a quiet shelf beneath. Project details appear when you select a book.'],
+  gallery:['02','Cover gallery.','A full-width grid for faster scanning. Shelf filters keep large collections manageable.'],
+  bookcase:['03','Collected volumes.','A physical bookcase: compact spines, with the selected volume turned toward you.']
+};
+function makeBooks(count) {
+  return Array.from({length:count}, (_,i) => {
+    const [title,project,shelf,tone,art,volume,stage,words,opened] = source[i % source.length], batch = Math.floor(i/source.length);
+    return {id:`book-${i}`,title:title+(batch?` ${['','II','III','IV'][batch]}`:''),project:project+(batch?` · Collection ${batch+1}`:''),shelf,tone,art,volume,stage,words,opened,order:i,placeholder:art==='plain'};
+  });
+}
+function artSvg(art) {
+  const pieces = {
+    moon:'<circle cx="108" cy="146" r="40" fill="currentColor" opacity=".14" stroke="none"/><circle cx="94" cy="135" r="32" opacity=".55"/><path d="m0 270 46-90 35 34 38-60 81 116M30 245l18-34 33 18 31-42 62 65" opacity=".6"/><path d="M31 61h2m129 28h2M140 122h2M41 139h2"/>',
+    mountain:'<path d="m-20 300 93-154 56 101 29-53 69 106Z" fill="currentColor" opacity=".12"/><path d="m-20 300 93-154 56 101 29-53 69 106M49 186l24-40 32 57-24-13-9-19-13 22Z" opacity=".65"/><circle cx="143" cy="131" r="22" opacity=".5"/>',
+    botanical:'<path d="M29 288c-18-92 7-174 15-222m130 214c22-77-3-158-7-200M34 230C-4 217 7 190 7 190c23 4 28 16 27 40Zm-1-49C0 161 18 136 18 136c25 9 18 31 15 45Zm3-45c-24-30-6-52-6-52 16 13 14 38 6 52Zm0 79c39-11 41-43 41-43-30-1-41 28-41 43Zm139 22c35-17 17-47 17-47-27 8-27 27-17 47Zm-1-63c-36-1-41-30-41-30 27-8 40 7 41 30Z" fill="currentColor" fill-opacity=".08" opacity=".6"/>',
+    arch:'<path d="M42 285V178a58 58 0 0 1 116 0v107M54 285V181a46 46 0 0 1 92 0v104M65 285V184a35 35 0 0 1 70 0v101" opacity=".65"/><path d="M17 284h166M27 275h146M43 265h114" opacity=".4"/>',
+    waves:'<circle cx="146" cy="176" r="24" fill="currentColor" opacity=".13" stroke="none"/>'+Array.from({length:9},(_,i)=>`<path d="M-20 ${209+i*8}q30-18 60 0t60 0 60 0 60 0" opacity="${.25+i*.035}"/>`).join(''),
+    orbit:'<circle cx="100" cy="108" r="50" opacity=".25"/><ellipse cx="100" cy="108" rx="78" ry="23" transform="rotate(-40 100 108)" opacity=".7"/><ellipse cx="100" cy="108" rx="68" ry="20" transform="rotate(40 100 108)" opacity=".3"/><circle cx="100" cy="108" r="7" fill="currentColor" opacity=".7"/><circle cx="153" cy="58" r="4" fill="currentColor"/><path d="M27 45h8m-4-4v8m127 107h8m-4-4v8"/>',
+    plain:'<path d="M85 185h30m-15-15v30" opacity=".5"/><rect x="24" y="26" width="152" height="244" rx="65" opacity=".3"/>'
+  };
+  return `<svg class="cover-art" viewBox="0 0 200 296" preserveAspectRatio="none" aria-hidden="true">${pieces[art]||pieces.plain}</svg>`;
+}
+function cover(book) {
+  const longest = Math.max(...book.title.split(/\s+/).map(word=>word.length));
+  const titleScale = Math.min(.17,.74/(longest*.61));
+  return `<div class="cover tone-${book.tone} ${book.art}" style="--title-scale:${titleScale}">${artSvg(book.art)}<div class="cover-type"><span class="cover-kicker">${book.placeholder?'A new beginning':'Novalist editions'}</span><span class="cover-title">${escapeHtml(book.title)}</span><span class="cover-subtitle">${escapeHtml(book.volume)}</span></div></div>`;
+}
+function bookButton(book,meta=false) {
+  return `<button class="book-button" data-book="${book.id}" aria-label="Select ${escapeHtml(book.title)}${book.placeholder?', project without books':''}" aria-pressed="${selected===book.id}" title="${escapeHtml(book.title)} · ${escapeHtml(book.project)}">${cover(book)}${meta?`<span class="book-meta"><span>${escapeHtml(book.project)}</span><span class="stage"><i class="dot"></i>${escapeHtml(book.stage)}</span></span>`:''}</button>`;
+}
+function filteredBooks() {
+  const needle = $('search').value.trim().toLocaleLowerCase();
+  return books.filter(b=>(currentShelf==='All'||b.shelf===currentShelf)&&`${b.title} ${b.project}`.toLocaleLowerCase().includes(needle)).sort((a,b)=>$('sort').value==='title'?a.title.localeCompare(b.title):$('sort').value==='project'?a.project.localeCompare(b.project)||a.order-b.order:a.order-b.order);
+}
+function renderCollections() {
+  $('collections').innerHTML = ['All',...shelfNames].map(shelf=>`<button class="collection" data-shelf="${shelf}" aria-pressed="${currentShelf===shelf}">${shelf}<small>${shelf==='All'?books.length:books.filter(b=>b.shelf===shelf).length}</small></button>`).join('');
+}
+function spineRows(items) {
+  const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cover-w'));
+  const libraryStyle = getComputedStyle($('library'));
+  const available = $('library').clientWidth - parseFloat(libraryStyle.paddingLeft) - parseFloat(libraryStyle.paddingRight) - 72;
+  const rows = []; let row = [], used = 0;
+  for (const book of items) {
+    const width = book.id === selected ? scale + 24 : scale * .34;
+    if (row.length && used + width + 8 > available) { rows.push(row); row = []; used = 0; }
+    row.push(book); used += width + (row.length > 1 ? 8 : 0);
+  }
+  if (row.length) rows.push(row);
+  return rows.map(group=>`<div class="spine-row">${group.map(b=>selected===b.id?bookButton(b):`<button class="spine tone-${b.tone}" data-book="${b.id}" aria-label="Select ${escapeHtml(b.title)}" aria-pressed="false" title="${escapeHtml(b.title)} · ${escapeHtml(b.project)}"><span class="spine-title">${escapeHtml(b.title)}</span><small>${String(b.order+1).padStart(2,'0')}</small></button>`).join('')}</div>`).join('');
+}
+function renderLibrary() {
+  const list = filteredBooks();
+  if (!list.length) {
+    $('library').innerHTML = `<div class="empty">${icon(books.length?'search':'book')}<h2>${books.length?'No books found':'Room for your first story.'}</h2><p>${books.length?'Try another title, project name or shelf.':'Create a project or bring an existing one onto your shelf.'}</p><button class="btn primary" id="empty-action">${books.length?'Clear filters':'Create a project'}</button></div>`;
+    return;
+  }
+  if (mode==='gallery') {
+    $('library').innerHTML = `<div class="gallery-grid">${list.map(b=>`<div class="book-slot">${bookButton(b,true)}</div>`).join('')}</div>`;
+    return;
+  }
+  $('library').innerHTML = shelfNames.map(shelf=> {
+    const items=list.filter(b=>b.shelf===shelf); if (!items.length) return '';
+    const row=mode==='bookcase'
+      ? spineRows(items)
+      : `<div class="shelf-row">${items.map(b=>`<div class="book-slot">${bookButton(b)}</div>`).join('')}</div>`;
+    return `<section class="shelf-section" aria-label="${shelf}"><div class="shelf-heading"><h2>${shelf}</h2><span>${items.length} ${items.length===1?'volume':'volumes'}</span><button class="icon-btn shelf-menu" data-shelf-info="${shelf}" aria-label="About the ${shelf} shelf">${icon('more')}</button></div>${row}</section>`;
+  }).join('');
+}
+function renderInspector() {
+  const book=books.find(b=>b.id===selected); $('inspector').hidden=!book;
+  if (!book) { $('inspector').innerHTML=''; return; }
+  const siblings=books.filter(b=>b.project===book.project);
+  $('inspector').innerHTML=`<div class="inspector-top"><span>${book.placeholder?'Project':'Selected book'}</span><button class="icon-btn" id="close-detail" aria-label="Close book details">${icon('close')}</button></div>
+    <div class="detail-cover">${cover(book)}</div><h2>${escapeHtml(book.title)}</h2><p class="detail-project">${escapeHtml(book.project)}</p>
+    <span class="detail-badge"><i class="dot"></i>${escapeHtml(book.stage)}</span><button class="btn primary" id="open-book">Open ${book.placeholder?'project':'book'}${icon('arrow')}</button>
+    <dl class="facts"><div><dt>Words</dt><dd>${book.words}</dd></div><div><dt>Last opened</dt><dd>${book.opened}</dd></div></dl>
+    ${!book.placeholder?`<span class="detail-label">In this project</span><div class="related">${siblings.map(b=>`<button data-related="${b.id}" aria-current="${b.id===selected}">${icon('book')}${escapeHtml(b.title)}</button>`).join('')}</div><button class="btn project-action" id="world-bible">${icon('world')}Shared World Bible</button>`:''}
+    <label class="detail-label" for="move-project">Project shelf${siblings.length>1?` · moves all ${siblings.length} books`:''}</label><select class="move-select" id="move-project">${shelfNames.map(s=>`<option${s===book.shelf?' selected':''}>${s}</option>`).join('')}</select>`;
+}
+function render() {
+  $('total').textContent=`${new Set(books.map(b=>b.project)).size} projects · ${books.filter(b=>!b.placeholder).length} books`;
+  renderCollections(); renderLibrary(); renderInspector();
+}
+function setMode(next) {
+  lastPointerBook=null;
+  mode=next;
+  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+  const [number,title,desc]=descriptions[mode]; $('caption-number').textContent=number;
+  $('caption-copy').innerHTML=`<strong>${title}</strong>${desc}`; renderLibrary();
+}
+function toast(message) {
+  clearTimeout(toastTimer); $('toast').textContent=message; $('toast').hidden=false;
+  toastTimer=setTimeout(()=>{ $('toast').hidden=true; },5000);
+}
+function selectBook(id,keyboard) {
+  selected=id; returnFocusId=id; renderLibrary(); renderInspector();
+  if (keyboard) $('open-book').focus();
+}
+function closeDetails() {
+  selected=null; renderLibrary(); renderInspector();
+  document.querySelector(`[data-book="${returnFocusId}"]`)?.focus();
+}
+function openDemo(book) { if (book) toast(`Preview: “${book.title}” would open ${book.placeholder?'its project':'directly in the writing workspace'}.`); }
+function resetFilters() { currentShelf='All'; $('search').value=''; render(); }
+function showCreate() { $('create').showModal(); }
+document.addEventListener('click',event=> {
+  const target=event.target.closest('button'); if (!target) return;
+  if (target.dataset.mode) setMode(target.dataset.mode);
+  if (target.dataset.try) { setMode(target.dataset.try); $('notes').close(); }
+  if (target.dataset.close) $(target.dataset.close).close();
+  if (target.dataset.shelf) { currentShelf=target.dataset.shelf; selected=null; render(); }
+  if (target.dataset.book) selectBook(target.dataset.book,event.detail===0);
+  if (target.dataset.related) selectBook(target.dataset.related,event.detail===0);
+  if (target.dataset.shelfInfo) toast(`${target.dataset.shelf}: shelf rename and ordering would live here. To try moving a project, select a book and change its Project shelf.`);
+  if (target.dataset.demo) toast(`Preview: ${target.dataset.demo} opens the app’s existing ${target.dataset.demo==='Open folder'?'folder picker':`${target.dataset.demo.toLowerCase()} workspace`}.`);
+  if (target.id==='close-detail') closeDetails();
+  if (target.id==='show-notes'||target.id==='rail-notes') $('notes').showModal();
+  if (target.id==='new-project') showCreate();
+  if (target.id==='scratchpad-button') { $('scratchpad').showModal(); $('scratchpad').querySelector('textarea').focus(); }
+  if (target.id==='home') { selected=null; resetFilters(); }
+  if (target.id==='empty-action') books.length?resetFilters():showCreate();
+  if (target.id==='open-book') openDemo(books.find(b=>b.id===selected));
+  if (target.id==='world-bible') toast(`Preview: opens the shared world for “${books.find(b=>b.id===selected).project}”.`);
+});
+// Delegation survives the cover turning between clicks.
+let lastPointerBook=null,lastPointerTime=0;
+$('library').addEventListener('pointerdown',event=> {
+  const target=event.target.closest('[data-book]'); if (!target) return;
+  const now=performance.now();
+  if (lastPointerBook===target.dataset.book&&now-lastPointerTime<450) { openDemo(books.find(b=>b.id===target.dataset.book)); lastPointerBook=null; }
+  else { lastPointerBook=target.dataset.book; lastPointerTime=now; }
+});
+document.addEventListener('keydown',event=> {
+  if (document.querySelector('dialog[open]')) return;
+  if (event.key==='Escape'&&selected) { closeDetails(); event.preventDefault(); return; }
+  if (event.key==='/'&&!event.ctrlKey&&!event.altKey&&!event.metaKey&&!['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)) { event.preventDefault(); $('search').focus(); }
+});
+$('search').addEventListener('input',()=>{ selected=null; renderLibrary(); renderInspector(); });
+$('sort').addEventListener('change',renderLibrary);
+$('density').value=window.innerWidth>=1900?'190':window.innerWidth<=620?'126':'166';
+$('density').addEventListener('input',event=>{ document.documentElement.style.setProperty('--cover-w',`${event.target.value}px`); if (mode==='bookcase') renderLibrary(); });
+$('fixture').addEventListener('change',event=>{ books=makeBooks(Number(event.target.value)); selected=null; resetFilters(); });
+$('inspector').addEventListener('change',event=> {
+  if (event.target.id!=='move-project') return;
+  const book=books.find(b=>b.id===selected),shelf=event.target.value;
+  books.filter(b=>b.project===book.project).forEach(b=>{ b.shelf=shelf; });
+  if (currentShelf!=='All') currentShelf=shelf;
+  render(); $('move-project').focus(); toast(`“${book.project}” moved to ${shelf} in this preview.`);
+});
+$('create-form').addEventListener('submit',event=> {
+  event.preventDefault(); const title=$('project-name').value.trim(); if (!title) { $('project-name').focus(); return; }
+  const id=`sample-${Date.now()}`;
+  books.push({id,title,project:title,shelf:'Ideas',tone:'green',art:'plain',volume:'Project',stage:'No books yet',words:'0',opened:'Just now',order:-1,placeholder:true});
+  $('create').close(); $('create-form').reset(); currentShelf='Ideas'; $('search').value=''; selected=id; returnFocusId=id; render(); $('open-book').focus();
+});
+let previousLibraryWidth = 0;
+new ResizeObserver(entries=>{
+  const width = entries[0].contentRect.width;
+  if (width !== previousLibraryWidth) { previousLibraryWidth = width; if (mode === 'bookcase') renderLibrary(); }
+}).observe($('library'));
+books=makeBooks(12); render(); setMode('shelves');
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '../stores/projectStore'
 import {
@@ -30,7 +30,10 @@ interface SceneMeta {
  * Right-hand context sidebar, mirroring the desktop Context / Footnotes tabs.
  * Scene notes + synopsis live in the bottom dock; snapshots live in a dialog.
  */
-export function Inspector(): React.JSX.Element {
+export function Inspector({ onReadyChange, prepareHidden = false }: {
+  onReadyChange?(ready: boolean): void
+  prepareHidden?: boolean
+}): React.JSX.Element {
   const { t, i18n } = useTranslation()
   const chapters = useProjectStore((s) => s.chapters)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
@@ -53,8 +56,20 @@ export function Inspector(): React.JSX.Element {
 
   const [storyDate, setStoryDate] = useState('')
   const [isoDate, setIsoDate] = useState<string | null>(null)
+  const [metaReady, setMetaReady] = useState(false)
+  const [contextReady, setContextReady] = useState(false)
+  const [linksReady, setLinksReady] = useState(false)
+  const linksLoaded = useCallback(() => setLinksReady(true), [])
 
   useEffect(() => {
+    onReadyChange?.(!scene || (metaReady && (inspectorTab !== 'context' || (contextReady && linksReady))))
+  }, [scene, metaReady, contextReady, linksReady, inspectorTab, onReadyChange])
+
+  useEffect(() => {
+    let cancelled = false
+    setMetaReady(false)
+    setContextReady(false)
+    setLinksReady(false)
     setStoryDate('')
     setIsoDate(null)
     if (openChapterGuid && openSceneId) {
@@ -62,11 +77,14 @@ export function Inspector(): React.JSX.Element {
       void rpc
         .request<SceneMeta>('scenes/getMeta', [openChapterGuid, openSceneId])
         .then((meta) => {
+          if (cancelled) return
           setStoryDate(meta.storyDate ?? '')
           setIsoDate(meta.isoDate ?? null)
         })
         .catch(() => {})
+        .finally(() => { if (!cancelled) setMetaReady(true) })
     }
+    return () => { cancelled = true }
   }, [openChapterGuid, openSceneId])
 
   if (!openSceneId || !openChapterGuid || !scene) {
@@ -140,8 +158,8 @@ export function Inspector(): React.JSX.Element {
             <div className="inspector-meta">
               {scene.wordCount.toLocaleString()} {t('shell.words')}
             </div>
-            <ContextPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
-            <LinksPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
+            <ContextPanel chapterGuid={openChapterGuid} sceneId={openSceneId} onReadyChange={setContextReady} prepareHidden={prepareHidden} />
+            <LinksPanel chapterGuid={openChapterGuid} sceneId={openSceneId} onReady={linksLoaded} />
             {/* Descriptive analysis says what a scene is. This asks whether it
                 works, and says what to try when the answer is no. */}
             <details className="codex-match">

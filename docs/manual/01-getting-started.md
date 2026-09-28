@@ -57,16 +57,17 @@ Launch Novalist with no project open and you get the app itself — the same win
 
 
 - **New Project** — creates one and opens it.
-- **Recent Projects** — projects you have opened before, newest first. Each entry shows the project's portrait **book cover** (set on the [Dashboard](11-dashboard.md#banner-and-book-cover)) — or a placeholder when none is set — above the project name and its folder path; click one to open it. The same list is in **File → Recent Projects**. A project you have since deleted, moved, or emptied of its `.novalist/` folder drops off the list on its own rather than sitting there failing when clicked — the list only offers projects that are still where it says they are.
-- **Browse for Project Folder...** — opens a folder picker. Point it at any folder that contains a `.novalist/` subdirectory (a Novalist project). Projects created with earlier versions of Novalist open unchanged — the on-disk format is the same.
-- **Import from Obsidian Plugin...** — converts a project produced by the legacy "Obsidian Novalist Plugin" into a native Novalist project: pick the vault folder, Novalist detects the plugin projects inside it, choose the output folder and names, and run the import. The new project opens when the import finishes and an `import-log.txt` is written into it. See [Troubleshooting](28-troubleshooting.md) for details.
-- **Settings** and the **user manual** — both readable before you have opened anything, along with the scratchpad for a thought that does not belong to the project in front of you.
+- **Your bookshelf** — covers fill the available workspace on named shelves. Select a cover for details, related volumes, World Bible and Series actions; double-click or choose **Open book** to open that volume. The toolbar has shelf filters, search, cover sizing, sorting and **Add shelf**. Drag covers to arrange a project's books together, or use the details panel. **File → Recent Projects** also lists projects in recent-open order. Confirmed missing projects leave the library; temporarily unreachable ones remain available. See [Project shelves](03-projects-and-books.md#project-shelves).
+- **Open folder** — opens a folder picker. Point it at any folder that contains a `.novalist/` subdirectory (a Novalist project). Projects created with earlier versions of Novalist open unchanged — the on-disk format is the same. This is also available as **File → Browse for Project Folder...**.
+- **More project actions → Import from Obsidian Plugin...** — converts a project produced by the legacy "Obsidian Novalist Plugin" into a native Novalist project: pick the vault folder, Novalist detects the plugin projects inside it, choose the output folder and names, and run the import. The new project opens when the import finishes and an `import-log.txt` is written into it. See [Troubleshooting](28-troubleshooting.md) for details.
+- **Scratchpad** is the note icon in the bookshelf header and stays visible as you scroll. Open it to jot down a thought or read saved notes without leaving your place on the shelves.
+- **Settings**, the **user manual** and **Restore backup as new project** are in **More project actions**.
 
-Everything here is also in the **File** menu, which is where you would look for it in any other application.
+Project creation, opening and import are also available from the **File** menu.
 
 ## Opening your first project
 
-Pick a project from the recents list, or use **Browse for Project Folder...** and select your project folder. The welcome content is replaced by the **Dashboard**, and the rest of the window comes to life.
+Double-click a book on the bookshelf, or use **Open folder** and select your project folder. The welcome content is replaced by the **Dashboard**, and the rest of the window comes to life.
 
 ## Finding your way around
 

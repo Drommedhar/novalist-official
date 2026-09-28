@@ -140,9 +140,9 @@ The panel toggles, the pane split and close buttons, the layouts dropdown and th
 
 ## Before a project is open
 
-There is no separate start screen. With nothing open, the window is the same window — same menu bar, same rail, same toolbar — and the main area holds the welcome content: **New Project**, **Browse for Project Folder**, **Import from Obsidian Plugin**, links to Settings and the manual, your recent projects with their covers, and the scratchpad. Anything that needs a project is visibly disabled rather than missing.
+With nothing open, **Your bookshelf** fills the main area with book covers on shelves you name. **New Project**, **Open folder** and the **Scratchpad** note icon are at the top. Shelf filters, **Add shelf**, search, cover sizing and sorting stay visible as the shelves scroll. Select a book to open its details panel with related volumes, World Bible, Series, shelf and removal actions; double-click a cover or choose **Open book** to open it. The scratchpad opens over the library so you can capture a thought and return to the same place. The **More project actions** menu holds import, backup restore, Settings, the manual and **Removed from bookshelf** for restoring hidden entries. The menu bar and mode rail remain available, with commands that need a project disabled.
 
-Recent projects are also in **File → Recent Projects**, which is where a reader of any other application would look for them. Both lists show only projects that are still on disk: one you have deleted or moved is dropped rather than offered.
+Projects are also in **File → Recent Projects**. Entries whose folders are confirmed missing are removed; temporarily unreachable projects remain available. See [Project shelves](03-projects-and-books.md#project-shelves) for arranging your library.
 
 ## The binder
 
@@ -264,7 +264,13 @@ The page list down the left side holds the whole manual, and the search box abov
 
 ## Focus mode
 
-`Alt+F` toggles **focus mode**, which gives the window to the main area: the mode rail, the mode panel, both side panes, the toolbar and the status bar are all hidden. Press `Alt+F` again to bring them back. Pair it with **Dim other paragraphs while writing** in [Settings](23-settings.md) → Editor for a full composition mode.
+`F11` toggles **focus mode** while writing. The window fills the screen, hiding its title and menu bars. The active scene becomes a centered page that widens as you zoom in; navigation, tabs, pane headers and formatting tools tuck away. Other split panes keep their state and return when you leave focus, along with the previous window state.
+
+Hover areas grow with the spare space beside the page. Side panels slide in gently (unless reduced motion is enabled), with scene context prepared before it appears and retained between reveals.
+
+Move to the top of the window or activate **Writing tools** to reveal formatting and **Leave focus**. Hover at the left edge for the binder or the right edge for the inspector; move back to the page to let them retreat. Fields you are editing stay open. The binder (`Ctrl+Alt+B`), inspector (`Ctrl+Alt+I`) and scene notes (`Ctrl+Shift+N`) also open over the page through their shortcuts and buttons. Close those panels with **Return to writing**, `Escape`, the shortcut, or a click outside. Inline tools and entity peeks still work, and active writing modes retain their indicator.
+
+Use the command palette to visit the Codex or another workspace, then choose **Return to the page** to continue in the same editor. Press `F11` again to restore the normal layout. Pair focus with **Dim other paragraphs while writing** in [Settings](23-settings.md) → Editor if you prefer.
 
 ## Dialogs and overlays
 

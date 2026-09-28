@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ArrowRight, Plus, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
@@ -45,6 +45,7 @@ const ENTITY_KINDS = ['character', 'location', 'item', 'lore']
 export function LinksPanel(props: {
   chapterGuid: string
   sceneId: string
+  onReady?(): void
 }): React.JSX.Element {
   const { t } = useTranslation()
   const chapters = useProjectStore((s) => s.chapters)
@@ -56,19 +57,25 @@ export function LinksPanel(props: {
   const [target, setTarget] = useState('')
   const [research, setResearch] = useState<ResearchItem[]>([])
   const [entities, setEntities] = useState<EntityOption[]>([])
+  const loadRequest = useRef(0)
 
   const load = useCallback(() => {
-    void rpc
-      .request<SceneLink[]>('links/list', [props.chapterGuid, props.sceneId])
-      .then(setLinks)
-      .catch(() => setLinks([]))
-    void rpc
-      .request<Backlink[]>('links/backlinks', ['scene', props.sceneId])
-      .then(setBacklinks)
-      .catch(() => setBacklinks([]))
-  }, [props.chapterGuid, props.sceneId])
+    const request = ++loadRequest.current
+    void Promise.all([
+      rpc.request<SceneLink[]>('links/list', [props.chapterGuid, props.sceneId]).catch(() => []),
+      rpc.request<Backlink[]>('links/backlinks', ['scene', props.sceneId]).catch(() => [])
+    ]).then(([nextLinks, nextBacklinks]) => {
+      if (request !== loadRequest.current) return
+      setLinks(nextLinks)
+      setBacklinks(nextBacklinks)
+      props.onReady?.()
+    })
+  }, [props.chapterGuid, props.sceneId, props.onReady])
 
-  useEffect(load, [load])
+  useEffect(() => {
+    load()
+    return () => { ++loadRequest.current }
+  }, [load])
 
   // Loaded once rather than per open: the lists a picker offers do not change
   // while somebody is deciding what to point at.

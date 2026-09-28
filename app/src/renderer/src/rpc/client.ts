@@ -59,6 +59,7 @@ export class RpcClient {
   }
 
   attach(port: MessagePort): void {
+    const reconnecting = this.port !== null
     if (this.port) {
       for (const [, pending] of this.pending) {
         pending.reject(new Error('backend connection changed'))
@@ -69,7 +70,9 @@ export class RpcClient {
     this.port = port
     this.buffer = new Uint8Array(0)
     port.onmessage = (event) => this.onPortMessage(event.data)
-    for (const listener of this.connectListeners) listener()
+    // connect().then(hydrate) owns initial startup. Calling reconnect listeners
+    // on the first port duplicated settings, assets and library initialization.
+    if (reconnecting) for (const listener of this.connectListeners) listener()
   }
 
   onReconnected(listener: () => void): void {

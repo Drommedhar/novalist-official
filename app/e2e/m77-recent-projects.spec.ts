@@ -45,7 +45,7 @@ test('a project whose folder is gone drops off the recents list', async () => {
   // And the welcome screen shows what the list says.
   await h.page.evaluate(() => window.novalistStores.project.getState().loadRecents())
   await expect(h.page.locator('.start-recent-card')).toHaveCount(1)
-  await expect(h.page.locator('.start-recent-name')).toHaveText('Still Here')
+  await expect(h.page.locator('.start-recent-card')).toHaveAttribute('aria-label', / — Still Here$/)
   await expect(h.page.getByText('Deleted Later')).toHaveCount(0)
 
   await h.close()

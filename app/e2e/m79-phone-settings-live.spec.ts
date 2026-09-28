@@ -98,7 +98,8 @@ test('phone: the welcome screen is a phone screen', async () => {
 
   // Settings is the one screen reachable from here, and with no rail and no tab
   // bar it needs its own way back or the welcome screen is a one-way door.
-  await page.locator('.start-open', { hasText: 'Settings' }).first().dispatchEvent('click')
+  await page.getByLabel('More project actions', { exact: true }).click()
+  await page.locator('.library-more-menu').getByRole('button', { name: 'Settings', exact: true }).click()
   await expect(page.locator('.settings-phone')).toBeVisible()
   await page.locator('.settings-phone-back').dispatchEvent('click')
   await expect(page.locator('.start-screen')).toBeVisible()

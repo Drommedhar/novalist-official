@@ -91,7 +91,7 @@ export function MobileShell(): React.JSX.Element {
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const closeTab = useProjectStore((s) => s.closeTab)
-  // Writing-hub sheet (Context / Footnotes / Notes) raised from the editor.
+  // Writing-hub sheet (Context / Footnotes / Notes / To do) raised from Write.
   const [inspectorOpen, setInspectorOpen] = useState(false)
   // Plan tab: which planning mode is showing, and whether the picker drawer is up.
   const [planningView, setPlanningView] = useState<MainView>('timeline')
@@ -333,20 +333,22 @@ export function MobileShell(): React.JSX.Element {
           </button>
         </div>
       )}
-      {inEditor && (
+      {tab === 'manuscript' && (
         <div className="mobile-editor-bar">
-          <button
-            type="button"
-            className="mobile-back"
-            aria-label={t('shell.view.manuscript')}
-            onClick={() => {
-              const pane = useProjectStore.getState().activeEditorPaneId
-              if (pane && openChapterGuid && openSceneId) void closeTab(pane, openSceneId)
-            }}
-          >
-            <ChevronLeft size={20} strokeWidth={2} />
-            <span>{t('shell.chapters')}</span>
-          </button>
+          {inEditor && (
+            <button
+              type="button"
+              className="mobile-back"
+              aria-label={t('shell.view.manuscript')}
+              onClick={() => {
+                const pane = useProjectStore.getState().activeEditorPaneId
+                if (pane && openChapterGuid && openSceneId) void closeTab(pane, openSceneId)
+              }}
+            >
+              <ChevronLeft size={20} strokeWidth={2} />
+              <span>{t('shell.chapters')}</span>
+            </button>
+          )}
           <button
             type="button"
             className="mobile-editor-inspector"
@@ -360,7 +362,7 @@ export function MobileShell(): React.JSX.Element {
       <div className="mobile-content" ref={contentRef}>
         {content}
       </div>
-      {inEditor && inspectorOpen && (
+      {tab === 'manuscript' && inspectorOpen && (
         <MobileInspectorSheet onClose={() => setInspectorOpen(false)} />
       )}
     </div>

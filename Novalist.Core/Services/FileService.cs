@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text;
 
 namespace Novalist.Core.Services;
 
@@ -40,7 +41,8 @@ public class FileService : IFileService
                 {
                     return await work();
                 }
-                catch (IOException) when (attempt < Attempts)
+                catch (IOException ex) when (attempt < Attempts &&
+                    ex is not (FileNotFoundException or DirectoryNotFoundException))
                 {
                     await Task.Delay(RetryDelayMs * attempt);
                 }
@@ -56,16 +58,7 @@ public class FileService : IFileService
         => WithFileAsync(path, () => File.ReadAllTextAsync(path));
 
     public Task WriteTextAsync(string path, string content)
-    {
-        var dir = Path.GetDirectoryName(path);
-        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-            Directory.CreateDirectory(dir);
-        return WithFileAsync(path, async () =>
-        {
-            await File.WriteAllTextAsync(path, content);
-            return true;
-        });
-    }
+        => WriteBytesAsync(path, new UTF8Encoding(false, true).GetBytes(content));
 
     public Task<byte[]> ReadBytesAsync(string path)
         => WithFileAsync(path, () => File.ReadAllBytesAsync(path));
@@ -77,10 +70,27 @@ public class FileService : IFileService
             Directory.CreateDirectory(dir);
         return WithFileAsync(path, async () =>
         {
-            await File.WriteAllBytesAsync(path, bytes);
+            // FileMode.Create rejects existing Hidden files on Windows. Cloud
+            // providers can mark dotfiles such as .nvindex.json as Hidden.
+            using var output = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+            await output.WriteAsync(bytes);
+            output.SetLength(bytes.Length);
             return true;
         });
     }
+
+    internal static Task CopyFileAsync(string source, string destination)
+        => WithFileAsync(destination, async () =>
+        {
+            // Stream into the existing file to preserve its attributes. File.Copy
+            // rejects a Hidden destination when the staged source is not Hidden.
+            // Share the save gate and bounded retries for sync/scanner locks.
+            using var input = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var output = new FileStream(destination, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+            await input.CopyToAsync(output);
+            output.SetLength(input.Length);
+            return true;
+        });
 
     public Task<bool> ExistsAsync(string path)
     {

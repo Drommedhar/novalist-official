@@ -113,6 +113,39 @@
   /* Desktop shell geometry. Central tokens keep the renderer, responsive
      policies and screenshot assertions on the same dimensions. */
   --nl-toolbar-height: 38px;
+  --nl-focus-bar-height: 52px;
+  --nl-focus-page-width: 800px;
+  --nl-focus-page-scale: 1;
+  --nl-focus-edge-width: 24px;
+  --nl-focus-hover-left: var(--nl-focus-edge-width);
+  --nl-focus-hover-right: var(--nl-focus-edge-width);
+  --nl-focus-slide-duration: 220ms;
+  --nl-shelf-cover-width: 180px;
+  --nl-shelf-cover-height: 240px;
+  /* Printed-cover palettes retain their identity across app themes. Related
+     volumes use the same cloth colour. High contrast uses the theme's ink. */
+  --nl-book-cover-blue: #234251;
+  --nl-book-cover-rust: #743e32;
+  --nl-book-cover-green: #2d4d43;
+  --nl-book-cover-cream: #d9ceae;
+  --nl-book-cover-purple: #4e4054;
+  --nl-book-cover-ochre: #735526;
+  --nl-book-cover-slate: #303f50;
+  --nl-book-cover-rose: #754b44;
+  --nl-book-cover-ink: var(--nv-text);
+  --nl-book-cover-dark-ink: var(--nv-ground);
+  --nl-book-cover-shading: linear-gradient(90deg, rgb(0 0 0 / 0.3), transparent 3%, rgb(255 255 255 / 0.12) 4%, rgb(0 0 0 / 0.24) 6%, transparent 10%, transparent 96%, rgb(255 255 255 / 0.16));
+  --nl-book-cover-edge: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  --nl-book-page-paper: var(--nv-text);
+  --nl-book-page-edge: color-mix(in srgb, var(--nv-text) 78%, var(--nv-muted));
+  --nl-book-page-shading: linear-gradient(90deg, rgb(0 0 0 / 0.25), transparent 18%, transparent 90%, rgb(0 0 0 / 0.12));
+  --nl-book-cover-opening: -28deg;
+  --nl-book-cover-duration: 360ms;
+  --nl-library-shelf-edge: color-mix(in srgb, var(--nl-text) 30%, var(--nl-surface-card));
+  --nl-library-shelf-face: var(--nl-surface-card);
+  --nl-library-inspector-width: 320px;
+  --nl-library-detail-cover-width: 140px;
+  --nl-library-mobile-cover-width: 110px;
   --nl-status-height: 24px;
   /* The mode rail carries a word under each icon, because a rail you have to
      hover to read is a rail you cannot find anything in. Sized for two lines of

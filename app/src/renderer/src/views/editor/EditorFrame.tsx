@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import {
@@ -326,7 +326,9 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   const pane = paneId ?? fallbackPaneId ?? ''
   const openSceneId = useProjectStore((s) => editorPane(s, pane).sceneId)
   const sceneHtml = useProjectStore((s) => editorPane(s, pane).html)
-  const isActiveEditor = useProjectStore((s) => s.activeEditorPaneId === pane)
+  const activeEditorPane = useProjectStore((s) => s.activeEditorPaneId === pane)
+  const writingHere = useShellStore((s) => s.mainView === 'write' && !s.extView)
+  const isActiveEditor = activeEditorPane && writingHere
   const chapters = useProjectStore((s) => s.chapters)
   const loadingRef = useRef(false)
   // The HTML the editor last reported to the store. The store round-trips every
@@ -337,6 +339,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   const [formatting, setFormatting] = useState<FormattingState>(DEFAULT_FORMATTING)
   const [speaking, setSpeaking] = useState(false)
   const suggestionMode = useShellStore((s) => s.suggestionMode)
+  const editorFontSize = useSettingsStore((s) => s.view?.effective.editorFontSize ?? 17)
   // A suggested edit somebody asked to be shown, waiting for its scene.
   const pendingSuggestion = useShellStore((s) => s.pendingSuggestion)
   // Bumped by whoever writes the scene's footnotes or comments, this pane
@@ -830,6 +833,10 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           break
         }
         case 'contentChanged': {
+          // A debounced edit can arrive after the writer has opened the tools.
+          // Hide them only while keyboard focus is still in this editor.
+          if (useShellStore.getState().focusMode && document.activeElement === iframe)
+            useShellStore.getState().setFocusToolsVisible(false)
           if (loadingRef.current || !editor) return
           // Record what the editor authored so the push effect treats the
           // store's echo of this same HTML as a no-op (keeps caret + undo).
@@ -1272,7 +1279,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   }, [pane, openSceneId])
 
   return (
-    <div className="editor-pane">
+    <div className="editor-pane" style={{ '--nl-focus-page-scale': editorFontSize / 17 } as CSSProperties}>
       <SceneTabStrip paneId={pane} />
       <EditorToolbar formatting={formatting} speaking={speaking} />
       {isActiveEditor && formatting.entityAtCaret && showFocusPeekTip && (

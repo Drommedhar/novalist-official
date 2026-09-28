@@ -547,12 +547,15 @@ export function SettingsView(): React.JSX.Element {
   // A project-only destination can outlive the project it came from. Fall back
   // to the first available global section instead of leaving an empty surface.
   useEffect(() => {
+    // Opening a project refreshes settings asynchronously. The previous global
+    // model (or no model yet) cannot decide whether its section is available.
+    if (!view || view.hasProject !== projectLoaded) return
     if (availableMetadata.some((section) => section.key === selectedSection)) return
     const fallback = availableMetadata[0]?.key
     if (!fallback) return
     setSelectedSection(fallback)
     setSettingsDestination({ section: fallback, origin: destination.origin })
-  }, [availableMetadata, destination.origin, selectedSection])
+  }, [availableMetadata, destination.origin, projectLoaded, selectedSection, view])
 
   // Focus the exact control after its one section has mounted. For older
   // self-contained cards without stable ids, controlTarget falls back to the

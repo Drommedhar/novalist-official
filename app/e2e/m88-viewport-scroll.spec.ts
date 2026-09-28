@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { launchApp, resizeWindow, seedBook } from './harness'
+import { dismissTour, launchApp, resizeWindow, seedBook } from './harness'
 
 /**
  * A 1080p display at 150% scaling leaves roughly 720 device-independent
@@ -50,31 +50,41 @@ test('a long dialog scrolls to its actions in a short desktop window', async () 
   await h.close()
 })
 
-test('the welcome screen becomes a vertical scroller when it is taller than the window', async () => {
+test('bookshelves scroll in a short window while the scratchpad stays reachable', async () => {
   const h = await launchApp('nl-welcome-scroll-')
-  await resizeWindow(h, 1080, 520)
+  try {
+    await h.rpc('project/create', [h.workDir, 'Library', 'Book 1'])
+    for (let i = 2; i <= 12; i++) await h.rpc('project/createBook', [`Book ${i}`])
+    await h.page.evaluate(() => window.novalistStores.project.getState().closeProject())
+    await dismissTour(h.page)
+    await resizeWindow(h, 1080, 520)
 
-  const welcome = h.page.locator('.start-screen')
-  await expect(welcome).toBeVisible()
-  const before = await welcome.evaluate((element) => ({
-    overflowY: getComputedStyle(element).overflowY,
-    clientHeight: element.clientHeight,
-    scrollHeight: element.scrollHeight,
-    scrollTop: element.scrollTop
-  }))
-  expect(before.overflowY).toBe('auto')
-  expect(before.scrollHeight).toBeGreaterThan(before.clientHeight)
-  expect(before.scrollTop).toBe(0)
+    const shelves = h.page.locator('.library-shelves')
+    await expect(shelves.locator('.library-book')).toHaveCount(12)
+    const scratchpad = h.page.getByRole('button', { name: 'Scratchpad', exact: true })
+    await expect(scratchpad).toBeInViewport()
+    const before = await shelves.evaluate((element) => ({
+      overflowY: getComputedStyle(element).overflowY,
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+      scrollTop: element.scrollTop
+    }))
+    expect(before.overflowY).toBe('auto')
+    expect(before.scrollHeight).toBeGreaterThan(before.clientHeight)
+    expect(before.scrollTop).toBe(0)
 
-  await welcome.evaluate((element) => {
-    element.scrollTop = element.scrollHeight
-  })
-  await expect
-    .poll(() => welcome.evaluate((element) => element.scrollTop))
-    .toBeGreaterThan(0)
+    await shelves.evaluate((element) => {
+      element.scrollTop = element.scrollHeight
+    })
+    await expect
+      .poll(() => shelves.evaluate((element) => element.scrollTop))
+      .toBeGreaterThan(0)
 
-  const addNote = h.page.getByRole('button', { name: 'Jot it down' })
-  await expect(addNote).toBeInViewport()
-
-  await h.close()
+    await expect(shelves.locator('.library-book').last()).toBeInViewport()
+    await expect(scratchpad).toBeInViewport()
+    await scratchpad.click()
+    const notes = h.page.getByRole('dialog', { name: 'Scratchpad', exact: true })
+    await expect(notes).toBeVisible()
+    await expect(notes.getByRole('button', { name: 'Jot it down' })).toBeInViewport()
+  } finally { await h.close() }
 })

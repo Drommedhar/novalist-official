@@ -2,6 +2,76 @@ import { expect, test } from '@playwright/test'
 import { join } from 'node:path'
 import { dismissTour, launchApp, resizeWindow, seedBook, type Book } from './harness'
 
+test('selecting a backup folder refreshes existing versions without restarting', async () => {
+  const h = await launchApp('nl-backup-folder-')
+  try {
+    const populated = join(h.workDir, 'cloud-backups')
+    const empty = join(h.workDir, 'empty-backups')
+    await h.rpc('settings/updateGlobal', [{ backupFolder: populated, backupEnabled: false }])
+    await seedBook(h, { Chapter: ['Scene'] })
+    await dismissTour(h.page)
+    await h.rpc('backup/createMilestone', ['Version 1'])
+    await h.page.evaluate(async (folder) => {
+      await window.novalistStores.settings.getState().update('global', { backupFolder: folder })
+      window.novalistStores.shell.getState().openSettings()
+    }, empty)
+    await h.page.locator('.settings-nav-item', { hasText: 'Backups' }).click()
+    await expect(h.page.locator('#set-backup-folder')).toHaveValue(empty)
+    await expect(h.page.locator('.backup-row')).toHaveCount(0)
+    await h.app.evaluate(({ dialog }, folder) => {
+      dialog.showOpenDialog = (async () => ({ canceled: false, filePaths: [folder] })) as typeof dialog.showOpenDialog
+    }, populated)
+
+    await h.page.locator('#set-backup-folder').locator('..').getByRole('button').click()
+
+    await expect(h.page.locator('#set-backup-folder')).toHaveValue(populated)
+    await expect(h.page.locator('.backup-row', { hasText: 'Version 1' })).toBeVisible()
+
+    await h.page.locator('#set-backup-folder').fill(empty)
+    await expect(h.page.locator('.backup-row')).toHaveCount(0)
+    await h.page.locator('#set-backup-folder').fill(populated)
+    await expect(h.page.locator('.backup-row', { hasText: 'Version 1' })).toBeVisible()
+  } finally {
+    await h.close()
+  }
+})
+
+test('an inaccessible backup folder shows its error and reselecting the same folder reloads it', async () => {
+  const h = await launchApp('nl-backup-access-')
+  try {
+    const folder = join(h.workDir, 'cloud-backups')
+    await h.rpc('settings/updateGlobal', [{ backupFolder: folder, backupEnabled: false }])
+    await seedBook(h, { Chapter: ['Scene'] })
+    await dismissTour(h.page)
+    await h.rpc('backup/createMilestone', ['Version 1'])
+    await h.page.evaluate(() => {
+      const rpc = window.novalistRpc
+      const original = rpc.request.bind(rpc)
+      rpc.request = async (method, params) => {
+        if (method === 'backup/list') {
+          rpc.request = original
+          throw new Error('File provider access failed')
+        }
+        return original(method, params)
+      }
+      window.novalistStores.shell.getState().openSettings()
+    })
+    await h.page.locator('.settings-nav-item', { hasText: 'Backups' }).click()
+    await expect(h.page.getByRole('alert')).toContainText('File provider access failed')
+    await expect(h.page.getByText('No backups yet.', { exact: true })).toHaveCount(0)
+    await h.app.evaluate(({ dialog }, path) => {
+      dialog.showOpenDialog = (async () => ({ canceled: false, filePaths: [path] })) as typeof dialog.showOpenDialog
+    }, folder)
+
+    await h.page.locator('#set-backup-folder').locator('..').getByRole('button').click()
+
+    await expect(h.page.locator('.backup-row', { hasText: 'Version 1' })).toBeVisible()
+    await expect(h.page.getByRole('alert')).toHaveCount(0)
+  } finally {
+    await h.close()
+  }
+})
+
 test('File menu opens Restore backup as new project without an open project', async () => {
   const h = await launchApp('nl-restore-menu-')
   try {
@@ -89,6 +159,7 @@ for (const mobile of [false, true]) {
         return path
       })
       await expect(h.page.locator('.start-screen')).toBeVisible()
+      await h.page.getByLabel('More project actions', { exact: true }).click()
       await h.page.getByRole('button', { name: 'Restore backup as new project', exact: true }).click()
       const dialog = h.page.getByRole('dialog', { name: 'Restore backup as new project' })
       await h.app.evaluate(({ dialog }, paths) => {
