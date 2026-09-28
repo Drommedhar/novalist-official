@@ -13,7 +13,7 @@ public sealed class ProjectRpc
     }
 
     [JsonRpcMethod("project/open")]
-    public Task<ProjectStateDto> OpenAsync(string path) => _workspace.OpenProjectAsync(path);
+    public Task<ProjectStateDto> OpenAsync(string path, string? bookId = null) => _workspace.OpenProjectAsync(path, bookId);
 
     [JsonRpcMethod("project/getState")]
     public ProjectStateDto GetState() => _workspace.BuildState();
@@ -22,7 +22,8 @@ public sealed class ProjectRpc
     public ProjectStateDto Close() => _workspace.CloseProject();
 
     [JsonRpcMethod("project/recent")]
-    public Task<RecentProjectDto[]> GetRecentAsync() => _workspace.GetRecentProjectsAsync();
+    public Task<RecentProjectDto[]> GetRecentAsync(bool includeLibraryDetails = true) =>
+        _workspace.GetRecentProjectsAsync(includeLibraryDetails);
 
     private static readonly Novalist.Core.Services.ProjectTemplateService ProjectTemplates = new();
 

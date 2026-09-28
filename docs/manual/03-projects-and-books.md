@@ -44,6 +44,18 @@ From the welcome content Novalist shows [before a project is open](01-getting-st
 
 This also covers projects copied from another machine, restored from backup, or cloned from Git — there is no separate "import" step for native projects. For projects from the legacy Obsidian plugin, use **Import from Obsidian Plugin...** instead.
 
+## Project shelves
+
+The **Project library** appears when no project is open. Every book has its own cover and title, grouped under its project name and shared World Bible. Click a book cover to open that book directly, or the project name to resume its last active book. Each book uses its own cover art; books without artwork get a title cover. Book details come from the project manifest without opening books or loading their drafts.
+
+**File → Close project** saves pending edits and prepares the library before showing it. A brief **Closing project…** message appears while covers and global appearance settings are read. The library uses your global interface language, even if the project you closed has its own language override.
+
+Choose **Add shelf** to create a named shelf, then drag a project's heading or any of its book covers onto it, or use the shelf selector beside the project name. A project's books move together. Drop onto another project to place it before that project. The arrow buttons beside the shelf selector provide the same ordering with the keyboard. Search by book name shows matching books; search by project name shows all its books.
+
+Edit a shelf name directly. The shelf header's arrows reorder all shelves, including **My projects**, so custom shelves can sit above it. **My projects** can move but cannot be removed. **Remove shelf** returns a custom shelf's projects to **My projects**. Shelf organization is saved on this device and does not move project folders or travel with a project backup. Copied projects have separate library entries. Temporarily unavailable projects retain their place, with book details shown again when available.
+
+The library keeps projects beyond the former ten-entry recent-project limit. Projects dropped by an older version can be added again with **Browse for Project Folder**. **File → Recent Projects** still offers the recent-open order independently of your shelf arrangement.
+
 ### When a recent project disappears from the list
 
 Recent Projects refreshes when you create, open, or close a project and when you return to the app. Closing a new project therefore makes it available on the welcome screen immediately.

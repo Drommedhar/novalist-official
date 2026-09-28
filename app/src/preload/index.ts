@@ -53,6 +53,9 @@ contextBridge.exposeInMainWorld('novalist', {
   requestBackendPort(): void {
     ipcRenderer.send('novalist:request-backend-port')
   },
+  setFocusWindow(enabled: boolean): Promise<void> {
+    return ipcRenderer.invoke('novalist:set-focus-window', enabled)
+  },
   pickFolder(title: string): Promise<string | null> {
     return ipcRenderer.invoke('novalist:pick-folder', title)
   },

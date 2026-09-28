@@ -76,7 +76,7 @@ If the app misbehaves at startup because of an extension, close Novalist and del
 
 ## A hotkey isn't working
 
-- **Focus is in a text field.** While typing, only gestures that include `Ctrl` (or `Cmd` on macOS) fire — `Alt+F` for Focus Mode needs focus outside a text field.
+- **Focus is in a text field.** Plain typing and `Alt` combinations stay with the field. Shortcuts with `Ctrl` (or `Cmd` on macOS) and function keys remain available, including `F11` for Focus Mode.
 - **The gesture doesn't exist.** The list of shortcuts a fresh install ships with is short; see [Hotkeys](26-hotkeys.md). Anything not listed there is still reachable through the [Command Palette](25-command-palette.md), the menu bar or the mode panel — and you can give it a gesture of your own in Settings → Keyboard shortcuts.
 
 ## Grammar check isn't working

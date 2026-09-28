@@ -671,7 +671,7 @@ export const COMMANDS: CommandDef[] = [
     labelKey: 'menu.focusMode',
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
-    defaultGesture: 'Alt+F',
+    defaultGesture: 'F11',
     available: projectOpen,
     run: () => shell().toggleFocusMode()
   },
@@ -855,5 +855,6 @@ export function commandById(id: string): CommandDef | undefined {
 
 /** Runs a command by id. Used by the surfaces that render from the registry. */
 export function runCommand(id: string): void {
+  if (project().closingProject) return
   BY_ID.get(id)?.run()
 }

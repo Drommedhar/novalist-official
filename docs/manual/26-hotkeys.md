@@ -38,7 +38,7 @@ Every other view — Wiki, Maps, Languages, Gallery, Dialogue, Planning board, S
 | Toggle inspector (right pane) | `Ctrl+Alt+I` |
 | Toggle scene notes (bottom dock) | `Ctrl+Shift+N` |
 | Show the mode panel | *(unbound)* |
-| Focus Mode | `Alt+F` |
+| Focus Mode | `F11` |
 | Split pane right | `Ctrl+Alt+Right` |
 | Split pane down | `Ctrl+Alt+Down` |
 | Close pane | `Ctrl+Alt+W` |
@@ -94,7 +94,7 @@ Every other view — Wiki, Maps, Languages, Gallery, Dialogue, Planning board, S
 
 - **Reopen the main window** is in the Window menu, named after the app, and carries no gesture. On macOS, closing the last window leaves Novalist running; use the menu item, or click the dock icon, to bring the project back.
 - Shortcuts shown beside a menu item are **displayed, not registered by the menu**: the app itself listens for every gesture, including inside the editor, so a shortcut you rebind takes effect everywhere at once.
-- While the cursor is in a text field or the editor, only gestures that include `Ctrl` (or `Cmd`) fire, so plain typing and `Alt` shortcuts never interrupt your writing. `Alt+F` works whenever focus is outside a text field.
+- In text fields, gestures with `Ctrl` (or `Cmd`) and function keys such as `F11` remain available. Plain typing and `Alt` combinations stay with the field. The scene editor also forwards application shortcuts while preserving its normal text-editing keys.
 - Standard text-editing shortcuts — copy, cut, paste, select all, undo, redo (`Ctrl+C/X/V/A/Z/Y`, `Ctrl+Shift+Z`) — are handled natively by the writing surface, and are also in the **Edit** menu.
 - On Apple keyboards `Cmd+B`, `Cmd+I` and `Cmd+U` stay with the writing surface as bold, italic and underline, and `Ctrl+B`, `Ctrl+I` and `Ctrl+U` do the same everywhere else, so the gesture means the same thing on every platform.
 - Every command is also available by name in the [Command Palette](25-command-palette.md), which shows the gesture you have bound to it, if any.

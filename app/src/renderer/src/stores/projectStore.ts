@@ -58,6 +58,24 @@ export interface RecentProjectDto {
   path: string
   /** Portrait book cover as a base64 data: URI, or null when none is set. */
   cover?: string | null
+  projectId?: string | null
+  books?: { id: string; name: string; cover: string | null }[] | null
+  hasWorldBible?: boolean | null
+}
+
+let recentRefresh: Promise<void> | null = null
+let recentRefreshRequested = false
+let recentRefreshVersion = 0
+
+function sameRecentProjects(left: RecentProjectDto[], right: RecentProjectDto[]): boolean {
+  return left.length === right.length && left.every((entry, index) => {
+    const other = right[index]
+    return entry.path === other.path && entry.name === other.name && entry.cover === other.cover &&
+      entry.projectId === other.projectId && entry.hasWorldBible === other.hasWorldBible &&
+      (entry.books === other.books || (entry.books != null && other.books != null &&
+        entry.books.length === other.books.length && entry.books.every((book, i) =>
+          book.id === other.books![i].id && book.name === other.books![i].name && book.cover === other.books![i].cover)))
+  })
 }
 
 /** One open scene in an editor pane's tab strip. Title is resolved from
@@ -111,6 +129,7 @@ const autosaveWrites = new Map<string, Promise<void>>()
 
 interface ProjectState {
   isLoaded: boolean
+  closingProject: boolean
   projectName: string | null
   projectPath: string | null
   activeBookId: string | null
@@ -153,9 +172,9 @@ interface ProjectState {
   /** Per-scene unsaved-edit flags, keyed by sceneId (drives the tab dirty dot). */
   dirtyMap: Record<string, boolean>
   isDirty: boolean
-  applyState(state: ProjectStateDto, resetEditors?: boolean): void
+  applyState(state: ProjectStateDto, resetEditors?: boolean, applicationStateReady?: boolean): void
   loadRecents(): Promise<void>
-  openProject(path: string): Promise<void>
+  openProject(path: string, bookId?: string): Promise<void>
   pickAndOpenProject(): Promise<void>
   /** Lets go of the open project, back to the screen the app starts on. */
   closeProject(): Promise<void>
@@ -211,6 +230,7 @@ interface ProjectState {
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
   isLoaded: false,
+  closingProject: false,
   projectName: null,
   projectPath: null,
   activeBookId: null,
@@ -236,12 +256,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   dirtyMap: {},
   isDirty: false,
 
-  applyState: (state, resetEditors = false) => {
+  applyState: (state, resetEditors = false, applicationStateReady = false) => {
     const prevPath = get().projectPath
     const prevBookId = get().activeBookId
     const prevName = get().projectName
     const projectChanged = state.projectPath !== prevPath
     if (projectChanged || resetEditors) {
+      useShellStore.setState({ focusMode: false, focusPaneId: null, focusPanel: null, focusPanelTransient: false, focusToolsVisible: false })
       // All create/open/close paths meet here. Pane state survives ordinary
       // view navigation, but must never survive a project change or restore.
       for (const timer of autosaveTimers.values()) clearTimeout(timer)
@@ -257,13 +278,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       chapters: state.chapters
     })
     window.novalist.setProjectRoot(state.projectPath)
-    if (projectChanged || resetEditors || state.projectName !== prevName) void get().loadRecents()
+    if (!applicationStateReady && (projectChanged || resetEditors || state.projectName !== prevName)) void get().loadRecents()
     if (state.isLoaded) void get().loadDrafts()
     // The effective language/theme can carry a per-project override, so re-apply
     // settings whenever the active project changes - otherwise a project opened
     // with a non-default language stays on the global language until Settings is
     // opened (which reloads settings as a side effect).
-    if (projectChanged || resetEditors) void useSettingsStore.getState().load()
+    if (!applicationStateReady && (projectChanged || resetEditors)) void useSettingsStore.getState().load()
     // The Codex is the active book's, and its entry count is shown outside the
     // Codex view, so it cannot wait for that view to be mounted again. Anything
     // selected belonged to the book being left, so the selection goes with it.
@@ -314,12 +335,32 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
   },
 
-  loadRecents: async () => {
-    const recents = await rpc.request<RecentProjectDto[]>('project/recent')
-    set({ recentProjects: recents })
+  loadRecents: () => {
+    if (get().closingProject) return Promise.resolve()
+    recentRefreshRequested = true
+    if (recentRefresh) return recentRefresh
+    recentRefresh = (async () => {
+      try {
+        do {
+          recentRefreshRequested = false
+          const version = recentRefreshVersion
+          const includeLibraryDetails = !get().isLoaded
+          const recents = await rpc.request<RecentProjectDto[]>('project/recent', [includeLibraryDetails])
+          if (version !== recentRefreshVersion) continue
+          // Opening/closing a project during a refresh changes which data is
+          // needed. Finish with a fresh response rather than applying stale data.
+          if (includeLibraryDetails !== !get().isLoaded) {
+            recentRefreshRequested = true
+            continue
+          }
+          if (!sameRecentProjects(get().recentProjects, recents)) set({ recentProjects: recents })
+        } while (recentRefreshRequested)
+      } finally { recentRefresh = null }
+    })()
+    return recentRefresh
   },
 
-  openProject: async (path) => {
+  openProject: async (path, bookId) => {
     // On the sandboxed Mac App Store build, a project reopened from a stored path
     // (e.g. a recent-project card) needs its security-scoped bookmark resolved
     // before the backend can touch the files. beginProjectAccess returns true
@@ -333,19 +374,35 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
     await flushPendingWrites()
     await get().flushPendingSave()
-    const state = await rpc.request<ProjectStateDto>('project/open', [target])
+    const state = await rpc.request<ProjectStateDto>('project/open', [target, bookId ?? null])
     get().applyState(state)
   },
 
   closeProject: async () => {
-    // There was no way back to no project short of restarting. That was
-    // survivable while the welcome screen was somewhere else; now that it is
-    // what this window holds until a project is open, there was somewhere to go
-    // back to and no way to get there.
-    await flushPendingWrites()
-    await get().flushPendingSave()
-    const state = await rpc.request<ProjectStateDto>('project/close')
-    get().applyState(state)
+    if (get().closingProject) return
+    set({ closingProject: true })
+    recentRefreshVersion++
+    recentRefreshRequested = false
+    let closed: ProjectStateDto | null = null
+    try {
+      await flushPendingWrites()
+      await get().flushPendingSave()
+      closed = await rpc.request<ProjectStateDto>('project/close')
+      // Keep the project inert until the library and global appearance are
+      // ready. Publishing unloaded state first flashes menu-only entries in
+      // the project's language and then rebuilds the visible bookshelf.
+      const [recents] = await Promise.all([
+        rpc.request<RecentProjectDto[]>('project/recent', [true]),
+        useSettingsStore.getState().load()
+      ])
+      set({ recentProjects: recents })
+      get().applyState(closed, false, true)
+    } catch (error) {
+      // The backend may already be closed: never leave an editable stale
+      // project behind if preparing the library fails.
+      if (closed) get().applyState(closed)
+      throw error
+    } finally { set({ closingProject: false }) }
   },
 
   pickAndOpenProject: async () => {

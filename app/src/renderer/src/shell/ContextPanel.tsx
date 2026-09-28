@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronRight, RotateCcw } from 'lucide-react'
 import { rpc } from '../rpc/client'
@@ -225,10 +225,14 @@ function EntitySection({
  * conflict and tags are editable and each carries a reset-to-auto affordance. */
 export function ContextPanel({
   chapterGuid,
-  sceneId
+  sceneId,
+  onReadyChange,
+  prepareHidden = false
 }: {
   chapterGuid: string
   sceneId: string
+  onReadyChange?(ready: boolean): void
+  prepareHidden?: boolean
 }): React.JSX.Element | null {
   const { t } = useTranslation()
   const [ctx, setCtx] = useState<SceneContext | null>(null)
@@ -242,6 +246,9 @@ export function ContextPanel({
   const [scanMessage, setScanMessage] = useState<string | null>(null)
   const [proposals, setProposals] = useState<EntityProposal[] | null>(null)
   const chapters = useProjectStore((s) => s.chapters)
+  const savedHash = useProjectStore((s) => s.sceneHashes[sceneId])
+  const analyzedHash = useRef(savedHash)
+  const analysisRequest = useRef(0)
 
   // The open chapter/scene, so a character peek raised from the sidebar resolves
   // its per-chapter/scene overrides for the scene in view — exactly as the editor
@@ -279,12 +286,15 @@ export function ContextPanel({
     onLeave: () => entityPeek.scheduleHide()
   }
 
-  const analyze = (): void => {
+  const analyze = useCallback((preparing = false): void => {
+    const request = ++analysisRequest.current
+    if (preparing) onReadyChange?.(false)
     void rpc
       .request<SceneContext>('context/analyze', [chapterGuid, sceneId])
-      .then(setCtx)
-      .catch(() => setCtx(null))
-  }
+      .then((next) => { if (request === analysisRequest.current) setCtx(next) })
+      .catch(() => { if (request === analysisRequest.current) setCtx(null) })
+      .finally(() => { if (request === analysisRequest.current) onReadyChange?.(true) })
+  }, [chapterGuid, sceneId, onReadyChange])
 
   /** Asks the installed AI extension which people/places/things in this scene are
    *  missing from the Codex. Proposals only — creation happens on accept. */
@@ -319,9 +329,17 @@ export function ContextPanel({
   useEffect(() => {
     setCtx(null)
     setScanMessage(null)
-    analyze()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chapterGuid, sceneId])
+    analyze(true)
+    return () => { ++analysisRequest.current }
+  }, [analyze])
+
+  // A retained panel follows saved prose while tucked away. It does no work on
+  // hover, and never replaces a draft field while the writer is using it.
+  useEffect(() => {
+    if (!prepareHidden || analyzedHash.current === savedHash) return
+    analyzedHash.current = savedHash
+    analyze(true)
+  }, [prepareHidden, savedHash, analyze])
 
   // Whether any extension offers entity extraction; without one the scan button
   // never appears.
@@ -361,11 +379,11 @@ export function ContextPanel({
     conflict?: string
     tags?: string[]
   }): void => {
-    void rpc.request('scenes/setAnalysisOverride', [chapterGuid, sceneId, patch]).then(analyze)
+    void rpc.request('scenes/setAnalysisOverride', [chapterGuid, sceneId, patch]).then(() => analyze())
   }
 
   const resetOverride = (field: string): void => {
-    void rpc.request('scenes/resetAnalysisOverride', [chapterGuid, sceneId, field]).then(analyze)
+    void rpc.request('scenes/resetAnalysisOverride', [chapterGuid, sceneId, field]).then(() => analyze())
   }
 
   if (!ctx) return null
@@ -541,7 +559,7 @@ export function ContextPanel({
               value={a.pov}
               onChange={(e) => {
                 const pov = e.target.value
-                void rpc.request('scenes/setPov', [chapterGuid, sceneId, pov]).then(analyze)
+                void rpc.request('scenes/setPov', [chapterGuid, sceneId, pov]).then(() => analyze())
               }}
             >
               <option value="">{t('context.none')}</option>

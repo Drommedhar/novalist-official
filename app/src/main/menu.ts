@@ -69,7 +69,13 @@ let showMainWindowFn: () => void = () => {}
 function toItem(node: MenuNode): MenuItemConstructorOptions {
   if (node.kind === 'separator') return { type: 'separator' }
   if (node.kind === 'role') {
-    return { role: node.role as MenuItemConstructorOptions['role'], label: node.label }
+    return {
+      role: node.role as MenuItemConstructorOptions['role'], label: node.label,
+      // F11 belongs to Focus Mode. Keep fullscreen available from the menu,
+      // without Electron's Windows/Linux default taking the key first.
+      ...(node.role === 'togglefullscreen' && process.platform !== 'darwin'
+        ? { accelerator: '', registerAccelerator: false } : {})
+    }
   }
   if (node.kind === 'submenu') return { label: node.label, submenu: node.items.map(toItem) }
   return {

@@ -9,6 +9,19 @@ public class FileServiceTests
     private readonly FileService _sut = new();
 
     [Fact]
+    public async Task MissingFilesAndDirectories_DoNotWaitThroughSharingViolationRetries()
+    {
+        using var dir = new TempDir();
+        var missingFile = _sut.ReadTextAsync(dir.Combine("missing.json"));
+        Assert.True(missingFile.IsCompleted, "A missing file must fail without retry delays.");
+        await Assert.ThrowsAsync<FileNotFoundException>(() => missingFile);
+
+        var missingDirectory = _sut.ReadBytesAsync(dir.Combine("unavailable", "cover.png"));
+        Assert.True(missingDirectory.IsCompleted, "An unavailable directory must fail without retry delays.");
+        await Assert.ThrowsAsync<DirectoryNotFoundException>(() => missingDirectory);
+    }
+
+    [Fact]
     public async Task WriteThenRead_RoundTrips()
     {
         using var dir = new TempDir();

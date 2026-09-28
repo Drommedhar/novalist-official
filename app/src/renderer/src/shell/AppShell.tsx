@@ -22,7 +22,8 @@ import { MobileShell } from './MobileShell'
 import { MobileWelcome } from './MobileWelcome'
 import { SceneNotesDock } from './SceneNotesDock'
 import { ShellDialogs } from './ShellDialogs'
-import { StartScreen } from './StartScreen'
+import { StartScreen } from './ProjectLibrary'
+import { FocusMode } from './FocusMode'
 import { UpdateDialog } from './UpdateDialog'
 import {
   clearCloseBackupHandledForQuit,
@@ -95,16 +96,26 @@ export function AppShell(): React.JSX.Element {
   useEffect(() => {
     if (!backendVersion) return
     // Projects can be removed in the file manager while this window is open.
-    const refresh = (): void => { void useProjectStore.getState().loadRecents() }
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined
+    const refresh = (): void => {
+      // Browser focus and visibility commonly arrive together. Give the
+      // interaction priority and coalesce them into one background refresh.
+      clearTimeout(refreshTimer)
+      refreshTimer = setTimeout(() => {
+        void useProjectStore.getState().loadRecents().catch(() => {})
+      }, 250)
+    }
     const onVisible = (): void => { if (document.visibilityState === 'visible') refresh() }
     window.addEventListener('focus', refresh)
     document.addEventListener('visibilitychange', onVisible)
     return () => {
+      clearTimeout(refreshTimer)
       window.removeEventListener('focus', refresh)
       document.removeEventListener('visibilitychange', onVisible)
     }
   }, [backendVersion])
   const focusMode = useShellStore((s) => s.focusMode)
+  const focusToolsVisible = useShellStore((s) => s.focusToolsVisible)
   const inspectorVisible = useShellStore((s) => s.inspectorVisible)
   const inspectorOverlayOpen = useShellStore((s) => s.inspectorOverlayOpen)
   const shellCapacity = useShellStore((s) => s.shellCapacity)
@@ -118,6 +129,7 @@ export function AppShell(): React.JSX.Element {
   const sceneContextOpen = useShellStore((s) => anyPaneShows(s.panes, ['write', 'manuscript']))
   const extView = useShellStore((s) => s.extView)
   const isLoaded = useProjectStore((s) => s.isLoaded)
+  const closingProject = useProjectStore((s) => s.closingProject)
   const recentProjects = useProjectStore((s) => s.recentProjects)
   const openProject = useProjectStore((s) => s.openProject)
   const findReplaceOpen = useShellStore((s) => s.findReplaceOpen)
@@ -424,17 +436,20 @@ export function AppShell(): React.JSX.Element {
 
 
   const isMobile = window.novalist.isMobile === true
+  const focused = focusMode && isLoaded && mainView === 'write' && !extView && !isMobile
 
   return (
+    <>
     <div
       ref={shellRef}
-      className={`shell shell-capacity-${shellCapacity}${isMobile ? ' mobile' : ''}`}
+      inert={closingProject}
+      className={`shell shell-capacity-${shellCapacity}${isMobile ? ' mobile' : ''}${focused ? ' shell-focus' : ''}${focused && focusToolsVisible ? ' focus-tools-open' : ''}`}
       data-shell-capacity={shellCapacity}
     >
       {/* Composition mode is the whole screen. Leaving the toolbar and the
           status bar in place made it a wider editor rather than a place to
           write. Everything is a keystroke away again. */}
-      {!isMobile && !focusMode && <Toolbar />}
+      {!isMobile && !focused && <Toolbar />}
       <div className="shell-body">
         {isMobile ? (
           isLoaded ? (
@@ -445,37 +460,38 @@ export function AppShell(): React.JSX.Element {
                phone controls. */
             <MobileWelcome
               recentProjects={recentProjects}
-              onOpenPath={(path) => void openProject(path)}
+              onOpenPath={(path, bookId) => void openProject(path, bookId)}
             />
           )
         ) : (
           <>
-            {!focusMode && <ModeRail />}
+            {!focused && <ModeRail />}
             {/* The mode's own views. Docked beside the rail with room for it,
                 an overlay when there is not - the same rows either way. */}
-            {!focusMode && isLoaded && showModePanel && <ModePanel overlay={modePanelOverlay} />}
-            {!focusMode && isLoaded && modePanelOverlay && (
+            {!focused && isLoaded && showModePanel && <ModePanel overlay={modePanelOverlay} />}
+            {!focused && isLoaded && modePanelOverlay && (
               <div
                 className="mode-panel-scrim"
                 onPointerDown={() => useShellStore.getState().setModePanelOpen(false)}
               />
             )}
-            {showBinder && !focusMode && <Binder />}
+            {showBinder && !focused && <Binder />}
             <div className="shell-main">
               {isLoaded || appScopedView ? (
                 <MainArea />
               ) : (
                 <StartScreen
                   recentProjects={recentProjects}
-                  onOpenPath={(path) => void openProject(path)}
+                  onOpenPath={(path, bookId) => void openProject(path, bookId)}
                 />
               )}
-              {editorOpen && !extView && notesDockVisible && !focusMode && <SceneNotesDock />}
+              {editorOpen && !extView && notesDockVisible && !focused && <SceneNotesDock />}
             </div>
-            {showInspector && !focusMode && !extView && <Inspector />}
+            {showInspector && !focused && !extView && <Inspector />}
           </>
         )}
       </div>
+      {!isMobile && isLoaded && focusMode && <FocusMode />}
       {updateOpen && (
         <UpdateDialog
           appUpdate={appUpdate}
@@ -497,7 +513,7 @@ export function AppShell(): React.JSX.Element {
       {/* With no project open the status bar is still the only thing that says
           the bundled core process is alive, which is exactly when a writer most
           needs to know. Once one is open, the mode decides. */}
-      {!isMobile && !focusMode && (!isLoaded || chrome.status) && <StatusBar />}
+      {!isMobile && !focused && (!isLoaded || chrome.status) && <StatusBar />}
       {findReplaceOpen && (
         <FindReplaceDialog onClose={() => useShellStore.getState().setFindReplaceOpen(false)} />
       )}
@@ -539,5 +555,9 @@ export function AppShell(): React.JSX.Element {
           behind, wherever the writer set off from. */}
       <UnsavedLeaveDialog />
     </div>
+    {closingProject && <div className="dialog-overlay" role="status" aria-live="polite">
+      <div className="dialog-card"><p>{t('bookshelf.closingProject')}</p></div>
+    </div>}
+    </>
   )
 }

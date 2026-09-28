@@ -29,6 +29,7 @@ import {
 import { createSplashWindow, setSplashStatus } from './splash'
 import { registerProtocolSchemes, registerProtocolHandlers } from './protocols'
 import { SCHEME, parseDeepLink, deepLinkFromArgv, type DeepLink } from './deeplink'
+import { installFocusWindow } from './focus-window'
 
 // Name the app before anything reads it (menu/About/dock/window title) so the
 // UI never shows the default "Electron".
@@ -62,6 +63,7 @@ registerProtocolSchemes()
  * quit the app, and a pane window left open is not a substitute for it.
  */
 let mainWindow: BrowserWindow | null = null
+let setFocusWindow: ((enabled: boolean) => Promise<void>) | null = null
 
 /** A restore-down size expressed in Electron's display-independent pixels. */
 function initialWindowGeometry(): {
@@ -114,6 +116,7 @@ function createWindow(): BrowserWindow {
     }
   })
 
+  setFocusWindow = installFocusWindow(win)
   if (material === 'glass') {
     win.webContents.once('did-finish-load', () => attachLiquidGlass(win))
   }
@@ -251,6 +254,12 @@ ipcMain.on('novalist:spellcheck-menu-labels', (_event, labels: typeof spellingMe
 // The renderer asks for a fresh backend channel on boot (and after backend restarts).
 ipcMain.on('novalist:request-backend-port', (event) => {
   attachBackendPort(event.sender)
+})
+
+ipcMain.handle('novalist:set-focus-window', (event, enabled: boolean) => {
+  if (event.sender === mainWindow?.webContents && typeof enabled === 'boolean') {
+    return setFocusWindow?.(enabled)
+  }
 })
 
 // App self-update (GitHub release → download installer → open). Extension

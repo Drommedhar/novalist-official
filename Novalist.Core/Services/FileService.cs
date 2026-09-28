@@ -40,7 +40,8 @@ public class FileService : IFileService
                 {
                     return await work();
                 }
-                catch (IOException) when (attempt < Attempts)
+                catch (IOException ex) when (attempt < Attempts &&
+                    ex is not (FileNotFoundException or DirectoryNotFoundException))
                 {
                     await Task.Delay(RetryDelayMs * attempt);
                 }
