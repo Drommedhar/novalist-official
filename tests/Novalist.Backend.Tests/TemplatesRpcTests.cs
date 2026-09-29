@@ -173,6 +173,7 @@ public sealed class TemplatesRpcTests : IAsyncLifetime
         var entity = await _entities.CreateAsync("faction", "Nordwacht", templateId);
         Assert.Equal(templateId, entity.GetProperty("templateId").GetString());
         Assert.Equal("Strength", entity.GetProperty("fields").GetProperty("Motto").GetString());
+        Assert.Equal("", entity.GetProperty("fields").GetProperty("Banner").GetString());
         Assert.Equal("10", entity.GetProperty("customProperties").GetProperty("Size").GetString());
         Assert.Equal("History", entity.GetProperty("sections")[0].GetProperty("title").GetString());
 
@@ -185,5 +186,75 @@ public sealed class TemplatesRpcTests : IAsyncLifetime
         await _rpc.DeleteAsync("faction", templateId);
         Assert.Empty(_rpc.List("faction"));
         Assert.False(_workspace.Projects.ActiveBook!.ActiveCustomEntityTemplateIds.ContainsKey("faction"));
+    }
+
+    [Theory]
+    [InlineData("character", "Role", "role")]
+    [InlineData("location", "Type", "type")]
+    [InlineData("item", "Origin", "origin")]
+    [InlineData("lore", "Category", "category")]
+    public async Task TemplateCustomFields_PersistAlongsideKnownFieldsAndTypedProperties(
+        string type, string knownKey, string jsonKey)
+    {
+        var saved = await _rpc.SaveAsync(type, Spec(new
+        {
+            name = "Custom fields",
+            fields = new[]
+            {
+                new { key = knownKey, defaultValue = "Known value" },
+                new { key = "Motto", defaultValue = "We hold" },
+                new { key = "Secret", defaultValue = "" }
+            },
+            customPropertyDefs = new[] { new { key = "Rank", type = "Int", defaultValue = "3" } }
+        }));
+        var entity = await _entities.CreateAsync(type, "The Watch", saved.GetProperty("id").GetString());
+        var id = entity.GetProperty("id").GetString()!;
+        Assert.Equal("Known value", entity.GetProperty(jsonKey).GetString());
+        var props = await _entities.GetCustomPropsAsync(type, id);
+        Assert.Contains(props, p => p.Key == "Motto" && p.Value == "We hold" && p.PropType == "String");
+        Assert.Contains(props, p => p.Key == "Secret" && p.Value == "");
+        Assert.Contains(props, p => p.Key == "Rank" && p.Value == "3" && p.PropType == "Int");
+        await _entities.SetCustomPropAsync(type, id, "Secret", "The hidden gate");
+
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        var reloaded = await _entities.GetAsync(type, id);
+        Assert.Equal("The hidden gate", reloaded.GetProperty("customProperties").GetProperty("Secret").GetString());
+        Assert.Equal("We hold", reloaded.GetProperty("customProperties").GetProperty("Motto").GetString());
+    }
+
+    [Theory]
+    [InlineData("character")]
+    [InlineData("location")]
+    [InlineData("item")]
+    [InlineData("lore")]
+    [InlineData("faction")]
+    public async Task TemplateSections_EditsSurviveReopenAndReachWiki(string type)
+    {
+        if (type == "faction")
+            await new Novalist.Core.Services.EntityService(_workspace.Projects)
+                .SaveCustomEntityTypeAsync(new CustomEntityTypeDefinition
+                {
+                    TypeKey = type, DisplayName = "Faction", DisplayNamePlural = "Factions"
+                });
+        var template = await _rpc.SaveAsync(type, Spec(new
+        {
+            name = "History template",
+            sections = new[] { new { title = "History", defaultContent = "" } }
+        }));
+        var entity = await _entities.CreateAsync(type, "The Watch", template.GetProperty("id").GetString());
+        var id = entity.GetProperty("id").GetString()!;
+        const string content = "The watch began at the **hidden gate**.";
+        await _entities.UpdateListsAsync(type, id, ["Watchmen"], [new("History", content)], null);
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        var reloaded = await _entities.GetAsync(type, id);
+        Assert.Equal(content, reloaded.GetProperty("sections")[0].GetProperty("content").GetString());
+        Assert.Equal("Watchmen", reloaded.GetProperty("aliases")[0].GetString());
+        var article = await new WikiRpc(_workspace).ArticleAsync(type, id);
+        Assert.Contains(article.Sections, section => section.Title == "History" && section.Content == content);
+        await _entities.SetLockedAsync(type, id, true);
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _entities.UpdateListsAsync(type, id, null, [new("History", "Changed")], null));
+        Assert.Equal(content, (await _entities.GetAsync(type, id))
+            .GetProperty("sections")[0].GetProperty("content").GetString());
     }
 }

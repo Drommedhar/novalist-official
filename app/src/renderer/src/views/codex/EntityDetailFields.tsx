@@ -282,7 +282,11 @@ export function EntityDetailFields({
               key: f.key,
               labelKey: '',
               control: customControl(f.type).control
-            }))
+            })),
+            // Templates can add fields beyond the type's shared schema.
+            ...Object.keys(customFields ?? {})
+              .filter((key) => key !== 'name' && !customDef?.defaultFields.some((f) => f.key === key))
+              .map((key): FieldSpec => ({ key, labelKey: '', control: 'text' }))
           ]
         }
       ]

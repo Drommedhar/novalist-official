@@ -85,7 +85,9 @@ const PHONE_ENTITY_GROUPS: { headerKey: string; rows: PhoneEntityRow[] }[] = [
         id: 'relationships',
         labelKey: 'mobile.entity.relationships',
         applies: () => true,
-        render: (_entityType, _entityId, customDef) => <EntityListsEditor customDef={customDef} />
+        render: (entityType, entityId, customDef) => (
+          <EntityListsEditor key={`${entityType}:${entityId}`} customDef={customDef} />
+        )
       },
       {
         id: 'customProperties',
@@ -518,7 +520,10 @@ export function CodexView(): React.JSX.Element {
                 </details>
               )}
               <OverridesEditor />
-              <EntityListsEditor customDef={customTypes.find((d) => d.typeKey === entityType)} />
+              <EntityListsEditor
+                key={`${entityType}:${selectedId}`}
+                customDef={customTypes.find((d) => d.typeKey === entityType)}
+              />
                 </>
               )}
             </>

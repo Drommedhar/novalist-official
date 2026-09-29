@@ -401,14 +401,8 @@ public sealed class EntitiesRpc
         EntitySectionDto[]? sections,
         RelationshipRowDto[]? relationships)
     {
-        object entity = type switch
-        {
-            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
-            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
-            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
-            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
-            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
-        } ?? throw Unknown(id);
+        var entity = await FindEntityAsync(type, id) ?? throw Unknown(id);
+        RefuseIfLocked(entity);
 
         if (aliases != null)
         {
@@ -432,21 +426,7 @@ public sealed class EntitiesRpc
             entity.GetType().GetProperty("Relationships")!.SetValue(entity, rows);
         }
 
-        switch (entity)
-        {
-            case CharacterData c:
-                await _entities.SaveCharacterAsync(c);
-                break;
-            case LocationData l:
-                await _entities.SaveLocationAsync(l);
-                break;
-            case ItemData i:
-                await _entities.SaveItemAsync(i);
-                break;
-            default:
-                await _entities.SaveLoreAsync((LoreData)entity);
-                break;
-        }
+        await SaveEntityAsync(entity);
         return WithResolvedImages(entity);
     }
 
@@ -1990,6 +1970,8 @@ public sealed class EntitiesRpc
         {
             if (!string.IsNullOrWhiteSpace(field.DefaultValue))
                 entity.Fields[field.Key] = field.DefaultValue;
+            else
+                entity.Fields.TryAdd(field.Key, field.DefaultValue);
         }
         foreach (var def in template.CustomPropertyDefs)
         {
@@ -2023,6 +2005,8 @@ public sealed class EntitiesRpc
             _ => Pick(book.LoreTemplates.FirstOrDefault(t => t.Id == templateId))
         };
 
+        var props = (Dictionary<string, string>)entity.GetType()
+            .GetProperty("CustomProperties")!.GetValue(entity)!;
         foreach (var field in parts.Fields)
         {
             var property = entity.GetType().GetProperty(
@@ -2030,6 +2014,12 @@ public sealed class EntitiesRpc
             if (property?.CanWrite == true && property.PropertyType == typeof(string))
             {
                 property.SetValue(entity, field.DefaultValue);
+            }
+            else if (property == null)
+            {
+                // Template-authored fields use the same editable property bag
+                // as fields added on the entry, including empty defaults.
+                props.TryAdd(field.Key, field.DefaultValue);
             }
         }
 
@@ -2042,8 +2032,6 @@ public sealed class EntitiesRpc
             character.Age = string.Empty;
         }
 
-        var props = (Dictionary<string, string>)entity.GetType()
-            .GetProperty("CustomProperties")!.GetValue(entity)!;
         foreach (var def in defs)
         {
             props.TryAdd(def.Key, def.DefaultValue);

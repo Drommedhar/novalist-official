@@ -6,11 +6,7 @@ import { useCodexStore } from '../../stores/codexStore'
 import { persistPendingWrite, registerPendingWrite } from '../../stores/pendingWrites'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import type { CustomTypeDefinition } from './CustomTypeManager'
-
-interface SectionRow {
-  title: string
-  content: string
-}
+import { useEntitySections } from './useEntitySections'
 
 interface RelationshipRow {
   role: string
@@ -48,7 +44,7 @@ export function EntityListsEditor({
   const includeRelationships = RELATIONSHIP_TYPES.includes(entityType) || !!customDef?.features.includeRelationships
   const [aliases, setAliases] = useState<string[]>([])
   const [aliasDraft, setAliasDraft] = useState('')
-  const [sections, setSections] = useState<SectionRow[]>([])
+  const { sections, setSections, flushSections } = useEntitySections(entityType, selectedId, record)
   const [relationships, setRelationshipsState] = useState<RelationshipRow[]>([])
   // Whether any extension offers a generator at all. Without one the buttons
   // below would be a row of controls that do nothing, on an entry the writer is
@@ -94,9 +90,6 @@ export function EntityListsEditor({
     if (loadedFor.current === selectedId) return
     loadedFor.current = selectedId
     setAliases(Array.isArray(record.aliases) ? (record.aliases as string[]) : [])
-    setSections(
-      Array.isArray(record.sections) ? (record.sections as SectionRow[]).map((s) => ({ ...s })) : []
-    )
     setRelationships(
       Array.isArray(record.relationships)
         ? (record.relationships as RelationshipRow[]).map((r) => ({ ...r }))
@@ -215,10 +208,7 @@ export function EntityListsEditor({
   /**
    * Writes one section with the model, and leaves it in the editor.
    *
-   * Not saved on arrival: generated prose is wrong a fair amount of the time,
-   * and the writer should be able to read it, change it, or click away from it
-   * before it is what the entry says. It persists on blur like anything else
-   * they typed.
+   * The result remains editable and saves through the same queue as typed prose.
    */
   const generateSection = async (index: number): Promise<void> => {
     if (!selectedId || generating !== null) return
@@ -229,7 +219,7 @@ export function EntityListsEditor({
         [entityType, selectedId, sections[index].title, sections[index].content]
       )
       if (result?.summary) {
-        setSections(sections.map((s, i) => (i === index ? { ...s, content: result.summary! } : s)))
+        setSections((current) => current.map((s, i) => (i === index ? { ...s, content: result.summary! } : s)))
       }
     } catch {
       // The notification surface belongs to whoever failed; a silent no-op here
@@ -239,20 +229,20 @@ export function EntityListsEditor({
     }
   }
 
-  const persist = (
-    nextAliases: string[] | null,
-    nextSections: SectionRow[] | null,
-    nextRelationships: RelationshipRow[] | null
-  ): void => {
+  const persistAliases = (nextAliases: string[]): void => {
     void rpc
       .request<Record<string, unknown>>('entities/updateLists', [
         entityType,
         selectedId,
         nextAliases,
-        nextSections,
-        nextRelationships
+        null,
+        null
       ])
-      .then((updated) => useCodexStore.setState({ selectedRecord: updated }))
+      .then((updated) => {
+        const codex = useCodexStore.getState()
+        if (codex.entityType === entityType && codex.selectedId === selectedId)
+          useCodexStore.setState({ selectedRecord: updated })
+      })
   }
 
   const addAlias = (): void => {
@@ -261,7 +251,7 @@ export function EntityListsEditor({
     const next = [...aliases, value]
     setAliases(next)
     setAliasDraft('')
-    persist(next, null, null)
+    persistAliases(next)
   }
 
   return (
@@ -276,7 +266,7 @@ export function EntityListsEditor({
               onClick={() => {
                 const next = aliases.filter((a) => a !== alias)
                 setAliases(next)
-                persist(next, null, null)
+                persistAliases(next)
               }}
             >
               <X size={11} strokeWidth={2} />
@@ -403,10 +393,10 @@ export function EntityListsEditor({
               value={section.title}
               onChange={(e) =>
                 setSections(
-                  sections.map((s, i) => (i === index ? { ...s, title: e.target.value } : s))
+                  (current) => current.map((s, i) => (i === index ? { ...s, title: e.target.value } : s))
                 )
               }
-              onBlur={() => persist(null, sections, null)}
+              onBlur={() => void flushSections().catch(() => {})}
             />
             {canGenerate && (
               <button
@@ -435,9 +425,8 @@ export function EntityListsEditor({
               className="binder-expand"
               aria-label={t('explorer.contextDelete')}
               onClick={() => {
-                const next = sections.filter((_, i) => i !== index)
-                setSections(next)
-                persist(null, next, null)
+                setSections((current) => current.filter((_, i) => i !== index))
+                void flushSections().catch(() => {})
               }}
             >
               <X size={12} strokeWidth={2} />
@@ -447,15 +436,15 @@ export function EntityListsEditor({
             value={section.content}
             ariaLabel={section.title}
             onChange={(next) =>
-              setSections(sections.map((s, i) => (i === index ? { ...s, content: next } : s)))
+              setSections((current) => current.map((s, i) => (i === index ? { ...s, content: next } : s)))
             }
-            onBlur={() => persist(null, sections, null)}
+            onBlur={() => void flushSections().catch(() => {})}
           />
         </div>
       ))}
       <button
         className="binder-rail-item"
-        onClick={() => setSections([...sections, { title: t('section.newSection'), content: '' }])}
+        onClick={() => setSections((current) => [...current, { title: t('section.newSection'), content: '' }])}
       >
         <Plus size={13} strokeWidth={2} />
         {t('entityEditor.addSection')}
