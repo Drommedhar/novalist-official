@@ -86,7 +86,7 @@ Report concrete build results, hardware/OS tested, English/German outcomes, rema
 
 ## Apple validation — 2026-09-30
 
-The user requested **automated checks only; live microphone testing later**. No microphone was activated. These results do not constitute full device acceptance.
+The user initially requested **automated checks only; live microphone testing later**. No microphone was activated by the automated checks. The user's subsequent iPhone test is recorded below; these results do not constitute full device acceptance.
 
 ### Initial environment and toolchain blocker
 
@@ -146,7 +146,11 @@ dotnet build Novalist.Mobile/Novalist.Mobile.csproj -c Release -f net10.0-ios27.
   -p:RuntimeIdentifier=ios-arm64 -p:ApplicationVersion=2 -p:MtouchUseLlvm=false
 ```
 
-The available phone build is development-signed for the paired device, not a TestFlight/App Store distribution build. The user can now perform the deferred microphone checks under **Settings → Writing assistance → System dictation**.
+The available phone build is development-signed for the paired device, not a TestFlight/App Store distribution build. The remaining microphone checks are available under **Settings → Writing assistance → System dictation**.
+
+### User-reported iPhone test
+
+After deployment, the user confirmed dictation worked on the iPhone, while recognition was flaky. This records a successful user-reported live dictation check for build 2, not an independently observed accuracy test. The user attributed the variability to the model; that cause has not been isolated. Tested language, session duration, and network conditions were not specified.
 
 ### Still required
 
