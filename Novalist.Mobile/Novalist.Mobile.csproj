@@ -13,10 +13,11 @@
 
   <PropertyGroup>
     <!-- iOS first for the spike. Add net10.0-android here in Phase 0's Android half. -->
-    <TargetFramework>net10.0-ios</TargetFramework>
+    <TargetFramework>net10.0-ios27.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <UseMaui>true</UseMaui>
     <SingleProject>true</SingleProject>
+    <MauiVersion>10.0.110</MauiVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Novalist.Mobile</RootNamespace>
@@ -33,7 +34,7 @@
     <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 
-    <SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion>27.0</SupportedOSPlatformVersion>
 
     <!--
       Novalist.Backend is OutputType=Exe (the desktop stdio host). We reference it
@@ -54,7 +55,7 @@
   <ItemGroup>
     <!-- The C# core and RPC facades ship unchanged (the reuse win). -->
     <ProjectReference Include="..\Novalist.Core\Novalist.Core.csproj" />
-    <ProjectReference Include="..\Novalist.Backend\Novalist.Backend.csproj" />
+    <ProjectReference Include="..\Novalist.Backend\Novalist.Backend.csproj" AdditionalProperties="BuildAppleDesktopSpeech=false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -89,4 +90,5 @@
     <MauiAsset Include="Resources\Raw\app\**\*" LogicalName="app\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
+  <Import Project="../native/AppleSpeech/AppleSpeech.iOS.targets" />
 </Project>

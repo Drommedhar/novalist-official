@@ -5495,6 +5495,15 @@ window.captureDictationAnchor = function (id) {
     dictationAnchor = { id, range };
     return true;
 };
+window.focusDictationCaret = function () {
+    // Focus preserves the editor's DOM selection while controls outside the
+    // iframe are used. Collapse a selection after it, as local dictation does.
+    editor.focus({ preventScroll: true });
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !editor.contains(sel.getRangeAt(0).startContainer)) return false;
+    sel.collapseToEnd();
+    return true;
+};
 window.insertDictationText = function (id, text, paragraph, mergeClose, mergeOpen, tag) {
     if (!dictationAnchor || dictationAnchor.id !== id || isComposing) return false;
     const range = dictationAnchor.range;

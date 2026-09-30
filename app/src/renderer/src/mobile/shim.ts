@@ -108,6 +108,11 @@ function manuscriptExtensions(options?: { extensions?: string[] }): string[] {
 // --- window.novalist -----------------------------------------------------
 
 const novalist: Window['novalist'] = {
+  systemMicrophone: {
+    start: () => hostCall<void>('microphoneStart', []),
+    read: () => hostCall<{ clips: string[]; ended: boolean }>('microphoneRead', []),
+    stop: () => hostCall<{ clips: string[]; ended: boolean }>('microphoneStop', [])
+  },
   material: 'opaque',
   // iOS is Darwin-based; gives the renderer Mac-like key/gesture behavior.
   platform: 'darwin',

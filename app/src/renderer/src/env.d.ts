@@ -42,6 +42,12 @@ interface Window {
     reload: () => Promise<void>
   }
   novalist: {
+    /** iOS captures outside the app:// web view using the system microphone. */
+    systemMicrophone?: {
+      start(): Promise<void>
+      read(): Promise<{ clips: string[]; ended: boolean }>
+      stop(): Promise<{ clips: string[]; ended: boolean }>
+    }
     material: 'glass' | 'vibrancy' | 'opaque'
     platform: NodeJS.Platform
     // True on the mobile (MAUI) build. Undefined on desktop. Gates capabilities

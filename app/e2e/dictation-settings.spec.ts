@@ -1,11 +1,46 @@
 import { expect, test } from '@playwright/test'
-import { copyFileSync, cpSync, mkdirSync, mkdtempSync } from 'node:fs'
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { launchApp } from './harness'
 
+test('system language preparation is available without any extension', async () => {
+  const h = await launchApp('nl-system-dictation-settings-', {
+    NOVALIST_BACKEND_PATH: resolve('../Novalist.Backend/bin/Debug/net8.0/Novalist.Backend' + (process.platform === 'win32' ? '.exe' : ''))
+  })
+  try {
+    await h.page.evaluate(() => {
+      let installed = false
+      const original = window.novalistRpc.request.bind(window.novalistRpc)
+      window.novalistRpc.request = async <T,>(method: string, params?: unknown): Promise<T> => {
+        if (method === 'dictation/systemStatus') return { engine: 'apple', available: true, online: false,
+          usesSystemPanel: false, languages: [{ language: 'en', supported: true, installed: true },
+            { language: 'de', supported: true, installed }] } as T
+        if (method === 'dictation/prepareSystem') {
+          const args = params as { requestId: string; language: string }
+          if (args.language !== 'de' || !args.requestId) throw new Error('Invalid preparation request')
+          installed = true
+          return undefined as T
+        }
+        return original<T>(method, params)
+      }
+      window.novalistStores.shell.getState().openSettings('writingAssistance')
+    })
+    const card = h.page.locator('#set-system-dictation')
+    const prepare = card.getByRole('button', { name: 'Prepare system language', exact: true })
+    await expect(prepare).toBeDisabled()
+    await card.getByRole('combobox').selectOption('de')
+    await expect(prepare).toBeEnabled()
+    await prepare.click()
+    await expect(card).toContainText('This language is ready for on-device dictation.')
+    await expect(prepare).toBeDisabled()
+    await expect(card.getByRole('alert')).toHaveCount(0)
+  } finally { await h.close() }
+})
+
 test('real AI Assistant exposes local dictation first, independently of chat configuration', async () => {
   const build = process.env.NOVALIST_AIASSISTANT_BUILD ?? resolve('../../novalist-aiassistant/bin/Debug/net8.0')
+  test.skip(!existsSync(join(build, 'Novalist.Extensions.AiAssistant.dll')), 'Requires the separately built AI Assistant repository')
   const settings = mkdtempSync(join(tmpdir(), 'nl-dictation-settings-'))
   const extension = join(settings, 'Extensions', 'AiAssistant')
   mkdirSync(extension, { recursive: true })
@@ -15,7 +50,7 @@ test('real AI Assistant exposes local dictation first, independently of chat con
   cpSync(join(build, 'Locales'), join(extension, 'Locales'), { recursive: true })
   const h = await launchApp('nl-dictation-settings-ui-', {
     NOVALIST_SETTINGS_DIR: settings,
-    NOVALIST_BACKEND_PATH: resolve('../Novalist.Backend/bin/Debug/net8.0/Novalist.Backend.exe')
+    NOVALIST_BACKEND_PATH: resolve('../Novalist.Backend/bin/Debug/net8.0/Novalist.Backend' + (process.platform === 'win32' ? '.exe' : ''))
   })
   try {
     expect(await h.rpc('extensions/load')).toEqual(expect.arrayContaining([

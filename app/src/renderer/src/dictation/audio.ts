@@ -52,6 +52,7 @@ export interface Microphone { stop(): Promise<void> }
 
 export async function openMicrophone(onClip: (audio: Uint8Array) => void,
   onEnded: () => void, signal: AbortSignal): Promise<Microphone> {
+  if (window.novalist.systemMicrophone) return openSystemMicrophone(window.novalist.systemMicrophone, onClip, onEnded, signal)
   const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } })
   if (signal.aborted) { stream.getTracks().forEach((t) => t.stop()); throw new DOMException('Aborted', 'AbortError') }
   const context = new AudioContext({ sampleRate: 16000 })
@@ -92,6 +93,42 @@ export async function openMicrophone(onClip: (audio: Uint8Array) => void,
     await stop()
     throw error
   }
+}
+
+export async function openSystemMicrophone(capture: NonNullable<Window['novalist']['systemMicrophone']>, onClip: (audio: Uint8Array) => void,
+  onEnded: () => void, signal: AbortSignal): Promise<Microphone> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let stopped = false
+  let reading: Promise<void> | undefined
+  let stopping: Promise<void> | undefined
+  const emit = (clips: string[]): void => {
+    for (const clip of clips) onClip(Uint8Array.from(atob(clip), (char) => char.charCodeAt(0)))
+  }
+  await capture.start()
+  const stop = (): Promise<void> => {
+    if (stopping) return stopping
+    stopped = true
+    if (timer) clearTimeout(timer)
+    stopping = (async () => {
+      await reading
+      emit((await capture.stop()).clips)
+    })()
+    return stopping
+  }
+  if (signal.aborted) { await stop(); throw new DOMException('Aborted', 'AbortError') }
+  signal.addEventListener('abort', () => { void stop() }, { once: true })
+  const poll = (): void => {
+    if (stopped) return
+    reading = capture.read().then((result) => {
+      emit(result.clips)
+      if (result.ended) onEnded()
+    }).catch(() => { onEnded() }).finally(() => {
+      reading = undefined
+      if (!stopped) timer = setTimeout(poll, 200)
+    })
+  }
+  poll()
+  return { stop }
 }
 
 export function audioBase64(bytes: Uint8Array): string {

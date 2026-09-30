@@ -37,7 +37,7 @@ The highlight is painted without touching the document, so listening to a chapte
 
 For a reading with more than one voice in it, the [Narration](46-narration.md) view shows the whole book as prose with a voice cast per character, keeps the dialogue tags with the narrator, and takes a direction for each line from what you already wrote. It uses the same voices and keeps the same promise: nothing is sent anywhere.
 
-Dictation is not implemented. Use your operating system's own dictation into the editor in the meantime.
+[Dictation](05-editor.md#dictation) writes directly at the caret in English or German. Built-in Windows voice typing uses Microsoft's online service; supported Apple devices use on-device system recognition. Optional AI Assistant dictation adds automatic dialogue formatting. Find system language preparation in **Settings → Writing assistance → System dictation**.
 
 ## Motion
 
@@ -79,7 +79,6 @@ The declaration is built from the file rather than asserted, because claiming al
 Stated so nobody has to discover it the hard way:
 
 - No screen-reader support statement beyond the section above, and no accessibility conformance report.
-- No dictation.
 - No EPUBCheck or DAISY Ace validation of an exported file, and no tagged PDF/UA output.
 
 ## Settings → Accessibility

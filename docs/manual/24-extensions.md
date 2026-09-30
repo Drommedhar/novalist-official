@@ -2,7 +2,7 @@
 
 Novalist is extensible. An extension is a small .NET assembly that runs inside the Novalist core process and contributes new panels, export formats, entity types, AI integrations, grammar checkers, or property types. Anyone can install one; anyone can write one.
 
-AI Assistant also supplies [continuous local dictation](05-editor.md#dictation): English and German speech goes straight into the editor, with automatic dialogue recognition and your quotation style. Download the models under Settings → Extensions → AI Assistant → Dictation. Both models run directly on your computer, independently of the chat provider. Keep Novalist and AI Assistant updated together; dictation uses the SDK's new `IDictationContributor` interface.
+AI Assistant also supplies [continuous local dictation](05-editor.md#dictation): English and German speech goes straight into the editor, with automatic dialogue recognition and your quotation style. Download the models under Settings → Extensions → AI Assistant → Dictation. Both models run directly on your computer, independently of the chat provider. Keep Novalist and AI Assistant updated together; dictation uses the SDK's new `IDictationContributor` interface. Novalist also offers built-in Windows and Apple system dictation without this extension; its settings are under Writing assistance → System dictation, and it inserts recognized text without character dialogue inference.
 
 This page covers using extensions. For writing them, see the [Extension Guide](https://github.com/Drommedhar/novalist-official/blob/main/docs/extension-guide.md).
 

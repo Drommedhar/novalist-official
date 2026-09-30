@@ -380,18 +380,14 @@ jobs:
           set -euo pipefail
           # actool compiles the asset catalog (the app icon) into Assets.car; Apple
           # requires asset-catalog icons for App Store builds, so it cannot be skipped.
-          # The MAUI targets invoke it as `xcodebuild -sdk <Xcode>/.../MacOSX.sdk -find
-          # actool` inside the selected Xcode. On this runner image that exact call
-          # fails inside Xcode_26.6.0.app ("SDK cannot be located"), while a previous
-          # run's own output proved Xcode_26.6.app's actool and macOS SDK work fine.
-          # Earlier attempts to auto-detect the bad install kept disagreeing with the
-          # real build, so: prefer known-good Xcodes explicitly, gate each candidate on
-          # the EXACT command the build runs, and take the first that passes. 26.6.0 is
-          # only ever reached last, and only if it actually passes.
+          # The app now targets iOS 27. Keep the actool probe, and reject older
+          # SDKs rather than silently selecting an incompatible Xcode installation.
           best=""
-          for cand in /Applications/Xcode_26.6.app /Applications/Xcode_26.5.app /Applications/Xcode.app $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -rV); do
+          for cand in /Applications/Xcode_27.0.app /Applications/Xcode.app $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -rV); do
             [ -d "$cand" ] || continue
             dev="$cand/Contents/Developer"
+            sdk_version="$(DEVELOPER_DIR="$dev" xcrun --sdk iphoneos --show-sdk-version 2>/dev/null || true)"
+            [ "${sdk_version%%.*}" = "27" ] || continue
             if ! ls -d "$dev"/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS*.sdk >/dev/null 2>&1; then
               echo "skip $cand (no iOS SDK)"; continue
             fi
@@ -412,7 +408,7 @@ jobs:
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 10.0.401
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -420,7 +416,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Restore MAUI iOS workload
-        run: dotnet workload restore Novalist.Mobile/Novalist.Mobile.csproj
+        run: dotnet workload install maui-ios --version 10.0.401.1
 
       - name: Derive version from tag
         id: version
@@ -493,7 +489,7 @@ jobs:
         run: |
           set -euo pipefail
           dotnet publish Novalist.Mobile/Novalist.Mobile.csproj \
-            -f net10.0-ios -c Release \
+            -f net10.0-ios27.0 -c Release \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:CodesignKey="$identity" \
             -p:CodesignProvision="$profile" \

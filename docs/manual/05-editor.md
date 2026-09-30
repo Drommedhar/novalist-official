@@ -34,22 +34,36 @@ Novalist saves automatically **two seconds** after the last keystroke. Pending c
 
 ## Dictation
 
-With the **AI Assistant** extension enabled, press **Dictate** (the microphone on the writing bar), choose **English** or **Deutsch**, and press **Start dictation**. The same Dictate command is available in the command palette. Speech appears directly at the insertion point as you talk, with no preview or acceptance step. Correct it in the normal editor and use Undo as usual. A selected passage is kept; dictation starts after it.
+Press **Dictate** (the microphone on the writing bar) or use the Dictate command in the command palette. Speech appears directly at the caret, with no preview or acceptance step. Correct it in the normal editor and use Undo as usual. A selected passage is kept; dictation starts after it. When several speech providers are available, choose one in the dictation bar.
+
+### Built-in system dictation
+
+System dictation works without AI Assistant or Novalist-managed speech models. Find its information and language preparation under **Settings → Writing assistance → System dictation**. **Dictation settings** on the dictation bar opens this section when the system provider is selected.
+
+- **Windows:** choose **Open Windows voice typing**. Novalist restores the editor caret and opens the Windows+H panel. Windows captures speech and inserts its text using Microsoft's online speech service, so an internet connection and enabled Windows speech permissions are required. English and German are supported. Windows owns the input language: switch with Windows+Space or in Windows language settings. Stop using the panel's microphone button or Windows+H before moving to another scene or app. Novalist's recording queue and Stop button do not control this panel.
+- **macOS 26 or newer:** on supported hardware, Apple SpeechAnalyzer recognizes speech on the device. In System dictation settings, choose English or Deutsch and use **Prepare system language** if needed. Apple manages the language download; once installed, recognition works offline. Return to the editor, choose that language, and press **Start dictation**. Allow microphone access when prompted.
+- **iPhone and iPad:** the app requires iOS/iPadOS 27 or newer and uses the same Apple language preparation and on-device recognition. Capture stops when the app goes into the background or the audio session is interrupted. Availability depends on Apple's support for the device and language.
+
+System dictation inserts the recognized text. Automatic inference of character dialogue and quotation styling belongs to the optional AI Assistant provider. Linux and older Macs can use an extension provider where supported.
+
+### AI Assistant dialogue formatting
 
 AI Assistant infers character dialogue, uses your **Quote Style** and custom quotation replacement pair, and starts each new dialogue turn on a new paragraph. Speech tags such as “she said” or “sagte sie” remain outside the quotation marks. Narration stays unquoted. Dialogue detection can make mistakes, particularly when a phrase is ambiguous or a speaker changes without an attribution.
 
-Before the first recording, open **Settings → Extensions → AI Assistant → Dictation** (or **Dictation settings** on the dictation bar):
+Before the first AI Assistant recording, open **Settings → Extensions → AI Assistant → Dictation** (or **Dictation settings** on the dictation bar with AI Assistant selected):
 
 1. Enable **local dictation** and choose a multilingual **Whisper** speech model (Base, Small, Medium, or **Large v3**) and a **Qwen3** dialogue model. Large v3 is about a 3.1 GB download. Larger models require more memory and processing time.
 2. Choose **Acceleration**. **Automatic** selects NVIDIA CUDA, supported AMD ROCm hardware, or MLX on native Apple Silicon; otherwise it uses CPU. You can select a backend yourself. Apple Silicon requires macOS 14 or newer and the ARM64 Novalist build. CUDA and ROCm require a compatible GPU and graphics driver; smaller models need less GPU memory.
 3. Press **Download / repair dictation models**. Novalist prepares its own runtime and downloads the selected models, with progress and cancellation. Repeat this after changing the accelerator. Internet is needed for setup; transcription and dialogue detection then run offline on the selected hardware. No Python installation, server, API key, Ollama or LM Studio configuration is needed. Download sizes vary by backend.
 4. Return to the editor, refresh dictation availability, and allow microphone access when your operating system asks. Both recognition and dialogue detection happen on your computer. Chat-provider settings are independent of dictation.
 
+### Continuous recording with Apple speech or AI Assistant
+
 Recording continues across pauses. Short clips are transcribed and inserted in order; **Stop dictation** releases the microphone and finishes the remaining clips, including the last phrase. The pending count shows the backlog. If the computer cannot keep up, recording stops after twelve pending clips so memory use stays bounded; captured speech still finishes processing.
 
 Leaving the scene stops recording and holds pending speech for that scene. Return, place the caret, and choose **Resume pending speech at the caret**. Failed transcription also retains its audio for retry. If dialogue formatting fails, the original transcript is inserted instead. **Discard pending recordings** drops only speech that has not yet been inserted. Pending audio lives in memory, so finish or discard it before closing the application; it does not survive a crash.
 
-Dictation requires the matching current versions of Novalist and AI Assistant. It is unavailable in editions that cannot load extensions, including the Mac App Store edition.
+The AI Assistant provider requires matching current versions of Novalist and AI Assistant and an edition that can load extensions. Built-in Apple dictation is independent of extension support, including in the Mac App Store edition.
 
 ## The writing bar
 

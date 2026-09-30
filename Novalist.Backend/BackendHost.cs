@@ -82,7 +82,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new DialogueRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new NarrationRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new VoiceEngineRpc(_workspace), targetOptions);
-        rpc.AddLocalRpcTarget(new DictationRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new DictationRpc(_workspace, Dictation.SystemDictation.Create()), targetOptions);
         rpc.AddLocalRpcTarget(new AudiobookRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new DashboardRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ManuscriptRpc(_workspace), targetOptions);

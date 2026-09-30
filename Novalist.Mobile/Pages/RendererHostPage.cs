@@ -35,6 +35,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
     private readonly BackendHost _host;
     private readonly IFileService _files = new CoordinatedFileService(new IosFileAccessCoordinator());
     private readonly ExportFiles _exports = new(FileSystem.Current.CacheDirectory);
+    private readonly SystemMicrophone _microphone = new();
     private readonly Stream _bridge;
     private readonly CancellationTokenSource _cts = new();
 
@@ -985,6 +986,9 @@ public sealed class RendererHostPage : ContentPage, IDisposable
     {
         switch (method)
         {
+            case "microphoneStart": return await _microphone.StartAsync(_cts.Token);
+            case "microphoneRead": return await _microphone.ReadAsync(_cts.Token);
+            case "microphoneStop": return await _microphone.StopAsync();
             case "pickFolder":
             {
                 // Real external-folder picker: the iOS document picker returns a
@@ -1257,6 +1261,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
 
     public void Dispose()
     {
+        _ = _microphone.StopOnDisposeAsync();
         _cts.Cancel();
 #if IOS
         // The probe outlives the page otherwise and would keep calling back.

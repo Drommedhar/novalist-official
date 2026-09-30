@@ -1,20 +1,50 @@
 using System.Collections.Concurrent;
 using Novalist.Sdk.Hooks;
+using Novalist.Backend.Dictation;
 using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
 
 /// <summary>Speech conversion only. The editor owns insertion and undo.</summary>
-public sealed class DictationRpc(Workspace workspace)
+public sealed class DictationRpc(Workspace workspace, ISystemDictation? system = null)
 {
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _requests = new();
     public const int MaxAudioBytes = 8 * 1024 * 1024;
     public const int MaxTranscriptLength = 16000;
 
     [JsonRpcMethod("dictation/providers")]
-    public DictationProviderDto[] Providers() => workspace.ExtensionsHost.DictationContributors
-        .Select(p => new DictationProviderDto(p.DictationId, p.DictationName,
-            p.IsDictationAvailable, p.AudioDestination, p.FormattingDestination)).ToArray();
+    public async Task<DictationProviderDto[]> Providers(CancellationToken cancellationToken = default)
+    {
+        var providers = workspace.ExtensionsHost.DictationContributors
+            .Select(p => new DictationProviderDto(p.DictationId, p.DictationName,
+                p.IsDictationAvailable, p.AudioDestination, p.FormattingDestination)).ToList();
+        if (system != null)
+        {
+            var status = await system.StatusAsync(cancellationToken);
+            providers.Add(new(SystemDictation.ProviderId, status.Engine == "windows" ? "Windows voice typing" : "System dictation",
+                status.Available, status.Engine == "windows" ? "Microsoft online speech" : "Apple SpeechAnalyzer",
+                "", AutomaticDialogue: false, UsesSystemPanel: status.UsesSystemPanel,
+                Languages: status.Languages));
+        }
+        return providers.ToArray();
+    }
+
+    [JsonRpcMethod("dictation/systemStatus")]
+    public Task<SystemDictationStatus> SystemStatusAsync(CancellationToken cancellationToken)
+        => System().StatusAsync(cancellationToken);
+
+    [JsonRpcMethod("dictation/prepareSystem")]
+    public Task PrepareSystemAsync(string requestId, string language, CancellationToken cancellationToken)
+    {
+        ValidateLanguage(language);
+        return RunAsync(requestId, async ct => { await System().PrepareAsync(language, ct); return true; }, cancellationToken,
+            TimeSpan.FromMinutes(30));
+    }
+
+    [JsonRpcMethod("dictation/openSystemPanel")]
+    public void OpenSystemPanel() => System().OpenSystemPanel();
+
+    private ISystemDictation System() => system ?? throw new InvalidOperationException("System dictation is unavailable.");
 
     [JsonRpcMethod("dictation/transcribe")]
     public async Task<string> TranscribeAsync(string requestId, string providerId,
@@ -30,7 +60,11 @@ public sealed class DictationRpc(Workspace workspace)
             throw new ArgumentException("Unsupported recording format.");
         return await RunAsync(requestId, async ct =>
         {
-            var text = await Provider(providerId).TranscribeAsync(audio, mimeType, language, ct);
+            if (providerId == SystemDictation.ProviderId && mimeType != "audio/wav")
+                throw new ArgumentException("System dictation requires WAV audio.");
+            var text = providerId == SystemDictation.ProviderId
+                ? await System().TranscribeAsync(audio, language, ct)
+                : await Provider(providerId).TranscribeAsync(audio, mimeType, language, ct);
             if (text.Length > MaxTranscriptLength) throw new InvalidOperationException("Transcript is too long.");
             return text;
         }, cancellationToken);
@@ -44,31 +78,35 @@ public sealed class DictationRpc(Workspace workspace)
         if (string.IsNullOrWhiteSpace(transcript) || transcript.Length > MaxTranscriptLength)
             throw new ArgumentException("Transcript is empty or too long.");
         if (precedingText.Length > 2000) throw new ArgumentException("Dictation context is too long.");
-        return RunAsync(requestId, ct => Provider(providerId).DetectDialogueAsync(transcript, language, precedingText, ct), cancellationToken);
+        return RunAsync(requestId, ct => providerId == SystemDictation.ProviderId
+            ? Task.FromResult<IReadOnlyList<DictationSegment>>([new(transcript, "narration")])
+            : Provider(providerId).DetectDialogueAsync(transcript, language, precedingText, ct), cancellationToken);
     }
 
     [JsonRpcMethod("dictation/cancel")]
     public void Cancel(string requestId)
     {
-        if (_requests.TryGetValue(requestId, out var request))
+        // Serialize cancellation with removal so a completing request cannot
+        // dispose its source while Cancel is using it.
+        lock (_requests)
         {
-            try { request.Cancel(); }
-            catch (ObjectDisposedException) { }
+            if (_requests.TryGetValue(requestId, out var request)) request.Cancel();
         }
     }
 
     private IDictationContributor Provider(string id) => workspace.ExtensionsHost.DictationContributors
         .FirstOrDefault(p => p.DictationId == id && p.IsDictationAvailable)
-        ?? throw new InvalidOperationException("Configure dictation in AI Assistant settings first.");
+        ?? throw new InvalidOperationException("The selected dictation provider is unavailable.");
 
-    private async Task<T> RunAsync<T>(string id, Func<CancellationToken, Task<T>> run, CancellationToken cancellationToken)
+    private async Task<T> RunAsync<T>(string id, Func<CancellationToken, Task<T>> run, CancellationToken cancellationToken,
+        TimeSpan? timeout = null)
     {
         if (!Guid.TryParse(id, out _)) throw new ArgumentException("Invalid request id.");
         using var request = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        request.CancelAfter(TimeSpan.FromMinutes(3));
+        request.CancelAfter(timeout ?? TimeSpan.FromMinutes(3));
         if (!_requests.TryAdd(id, request)) throw new InvalidOperationException("Request already running.");
         try { return await run(request.Token); }
-        finally { _requests.TryRemove(id, out _); }
+        finally { lock (_requests) _requests.TryRemove(id, out _); }
     }
 
     private static void ValidateLanguage(string language)
@@ -78,4 +116,5 @@ public sealed class DictationRpc(Workspace workspace)
 }
 
 public sealed record DictationProviderDto(string Id, string Name, bool Available,
-    string AudioDestination, string FormattingDestination);
+    string AudioDestination, string FormattingDestination, bool AutomaticDialogue = true,
+    bool UsesSystemPanel = false, SystemDictationLanguage[]? Languages = null);

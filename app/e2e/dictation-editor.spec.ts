@@ -6,9 +6,79 @@ import type { EditorWindow } from '../src/renderer/src/views/editor/editorBridge
 type Fake = { gain: GainNode; context: AudioContext; calls: number; fail: boolean; formatFail?: boolean; hold: boolean;
   release?: () => void; stopped: boolean; languages: string[] }
 
+test('Windows voice typing restores the caret and preserves a selected passage', async () => {
+  const h = await setup()
+  try {
+    const editor = h.page.frameLocator('.editor-frame').locator('#editor')
+    await editor.evaluate((element) => {
+      const w = element.ownerDocument.defaultView as unknown as EditorWindow
+      w.setContent('<p>Before selected after.</p>')
+      element.focus()
+      const range = element.ownerDocument.createRange()
+      range.setStart(element.querySelector('p')!.firstChild!, 7)
+      range.setEnd(element.querySelector('p')!.firstChild!, 15)
+      w.getSelection()!.removeAllRanges(); w.getSelection()!.addRange(range)
+    })
+    await h.page.evaluate(() => {
+      const original = window.novalistRpc.request.bind(window.novalistRpc)
+      navigator.mediaDevices.getUserMedia = async () => { throw new Error('Windows owns capture') }
+      window.novalistRpc.request = async <T,>(method: string, params?: unknown): Promise<T> => {
+        if (method === 'dictation/providers') return [{ id: 'novalist.system', name: 'System', available: true,
+          automaticDialogue: false, usesSystemPanel: true }] as T
+        if (method === 'dictation/openSystemPanel') {
+          const doc = document.querySelector<HTMLIFrameElement>('.editor-frame')!.contentDocument!
+          if (doc.activeElement?.id !== 'editor') throw new Error('Editor did not regain focus')
+          // Simulate OS text delivery without opening the actual microphone panel.
+          doc.execCommand('insertText', false, ' spoken')
+          return undefined as T
+        }
+        return original<T>(method, params)
+      }
+    })
+    await h.page.getByRole('button', { name: 'Dictate', exact: true }).click()
+    await h.page.getByRole('button', { name: 'Open Windows voice typing', exact: true }).click()
+    await expect(editor).toHaveText('Before selected spoken after.')
+    await expect(h.page.locator('.dictation-bar')).toHaveCount(0)
+  } finally { await h.close() }
+})
+
+test('Apple system dictation inserts German text at the caret without dialogue inference', async () => {
+  const h = await setup()
+  try {
+    const editor = h.page.frameLocator('.editor-frame').locator('#editor')
+    await editor.click()
+    await h.page.keyboard.type('Before. After.')
+    await h.page.keyboard.press('Home')
+    for (let i = 0; i < 7; i++) await h.page.keyboard.press('ArrowRight')
+    await h.page.evaluate(() => {
+      const original = window.novalistRpc.request.bind(window.novalistRpc)
+      window.novalistRpc.request = async <T,>(method: string, params?: unknown): Promise<T> => {
+        if (method === 'dictation/providers') return [{ id: 'novalist.system', name: 'System', available: true,
+          automaticDialogue: false, languages: [{ language: 'de', supported: true, installed: true }] }] as T
+        if (method === 'dictation/transcribe') {
+          const args = params as { language: string; audioBase64: string }
+          if (args.language !== 'de' || !atob(args.audioBase64).startsWith('RIFF')) throw new Error('Invalid clip')
+          return 'Hallo, sagte sie.' as T
+        }
+        if (method === 'dictation/format') throw new Error('Native dictation must not request dialogue inference')
+        return original<T>(method, params)
+      }
+    })
+    await h.page.getByRole('button', { name: 'Dictate', exact: true }).click()
+    await expect(h.page.getByRole('button', { name: 'Start dictation', exact: true })).toBeDisabled()
+    await h.page.locator('.dictation-bar select').selectOption('de')
+    await h.page.getByRole('button', { name: 'Start dictation', exact: true }).click()
+    await voice(h.page, true)
+    await h.page.waitForTimeout(400)
+    await h.page.getByRole('button', { name: 'Stop dictation', exact: true }).click()
+    await expect(editor).toHaveText('Before. Hallo, sagte sie. After.')
+    await expect(h.page.getByText('Dialogue formatting failed for a clip.', { exact: false })).toHaveCount(0)
+  } finally { await h.close() }
+})
+
 async function setup(): Promise<Harness> {
   const h = await launchApp('nl-dictation-', {
-    NOVALIST_BACKEND_PATH: resolve('../Novalist.Backend/bin/Debug/net8.0/Novalist.Backend.exe')
+    NOVALIST_BACKEND_PATH: resolve('../Novalist.Backend/bin/Debug/net8.0/Novalist.Backend' + (process.platform === 'win32' ? '.exe' : ''))
   })
   const book = await seedBook(h, { Chapter: ['First', 'Second'] })
   await h.page.evaluate(async (chapter) => {

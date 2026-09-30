@@ -202,8 +202,9 @@ export const SETTINGS_REGISTRY: readonly SettingsSectionMetadata[] = [
     category: 'writing',
     titleKey: 'settings.writingAssistance',
     scope: 'overridable',
-    keywords: ['writing', 'replacement', 'quote', 'dialogue', 'grammar', 'spelling'],
+    keywords: ['writing', 'replacement', 'quote', 'dialogue', 'grammar', 'spelling', 'dictation', 'speech'],
     controls: [
+      control('system-dictation', 'dictation.systemName', 'set-system-dictation', ['dictation.appleHelp', 'dictation.windowsHelp']),
       control('automatic-replacements', 'settings.autoReplacement', 'set-auto-replacement', [
         'settings.autoReplacementDesc'
       ]),

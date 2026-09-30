@@ -1,0 +1,65 @@
+name: Apple speech build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'native/AppleSpeech/**'
+      - 'Novalist.Backend/**'
+      - 'Novalist.Mobile/**'
+      - '.github/workflows/apple-speech.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 27
+        shell: bash
+        run: |
+          set -euo pipefail
+          selected=""
+          for candidate in /Applications/Xcode_27.0.app /Applications/Xcode.app /Applications/Xcode*.app; do
+            [ -d "$candidate" ] || continue
+            dev="$candidate/Contents/Developer"
+            version="$(DEVELOPER_DIR="$dev" xcrun --sdk iphoneos --show-sdk-version 2>/dev/null || true)"
+            [ "$version" = "27.0" ] || continue
+            selected="$dev"
+            break
+          done
+          [ -n "$selected" ] || { echo "Xcode 27.0 is required on this runner" >&2; exit 1; }
+          sudo xcode-select -s "$selected"
+          echo "DEVELOPER_DIR=$selected" >> "$GITHUB_ENV"
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.401
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Compile both Mac architectures
+        run: |
+          bash native/AppleSpeech/build.sh macos arm64 artifacts/apple-speech/arm64/libNovalistSpeech.dylib
+          bash native/AppleSpeech/build.sh macos x86_64 artifacts/apple-speech/x64/libNovalistSpeech.dylib
+      - name: Build desktop backend with bundled speech library
+        run: dotnet build Novalist.Backend/Novalist.Backend.csproj
+      - name: Install iOS workload
+        run: dotnet workload install maui-ios --version 10.0.401.1
+      - name: Build mobile renderer
+        working-directory: app
+        run: |
+          npm ci
+          npm run build:mobile
+      - name: Build iOS simulator and compile device archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          rid=iossimulator-arm64
+          [ "$(uname -m)" != x86_64 ] || rid=iossimulator-x64
+          dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios27.0 -p:RuntimeIdentifier="$rid" -p:EnableCodeSigning=false
+          bash native/AppleSpeech/build.sh ios arm64 artifacts/apple-speech/ios/libNovalistSpeech.a

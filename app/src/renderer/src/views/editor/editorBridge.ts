@@ -12,6 +12,7 @@ export interface EditorWindow extends Window {
   getContent(): string
   getPlainText(): string
   captureDictationAnchor(id: string): boolean
+  focusDictationCaret(): boolean
   insertDictationText(id: string, text: string, paragraph: boolean, mergeClose: string, mergeOpen: string,
     tag?: { close: string; language: string }): boolean
   /** Sends any edit still inside the iframe's short change debounce. */

@@ -12,6 +12,8 @@ import { dictationQuotes, formatDictation, type DictationSegment, type Dictation
 
 export interface DictationProvider {
   id: string; name: string; available: boolean; audioDestination: string; formattingDestination: string
+  automaticDialogue?: boolean; usesSystemPanel?: boolean
+  languages?: { language: string; supported: boolean; installed: boolean }[]
 }
 interface State {
   open: boolean
@@ -35,6 +37,7 @@ type Session = {
   id: string; target: string; editor: EditorWindow; providerId: string; language: string
   quotes: QuotePair; queue: Clip[]; context: string; lastKind?: DictationSegment['kind']
   microphone?: Microphone; abort: AbortController; requestId?: string; processing?: Promise<void>; stopping?: Promise<void>
+  automaticDialogue: boolean
 }
 let session: Session | null = null
 
@@ -66,12 +69,25 @@ export async function startDictation(): Promise<void> {
   if (session || useDictation.getState().starting) return
   const state = useDictation.getState()
   const editor = useEditorBridge.getState().editor
-  if (!editor || !state.providers.find((p) => p.id === state.providerId)?.available) return
+  const provider = state.providers.find((p) => p.id === state.providerId)
+  if (!editor || !canDictate(provider, state.language)) return
+  if (provider?.usesSystemPanel) {
+    set({ starting: true, error: null, warning: null })
+    try {
+      // The OS types into the focused contenteditable. Reestablish the saved
+      // caret after the writer used the provider selector or command palette.
+      if (!editor.focusDictationCaret()) throw new Error('No editor caret')
+      await rpc.request('dictation/openSystemPanel')
+      set({ open: false })
+    } catch { set({ error: 'dictation.systemPanelFailed' }) }
+    finally { set({ starting: false }) }
+    return
+  }
   const settings = useSettingsStore.getState().view
   const rules = (settings?.overrides?.autoReplacements ?? settings?.global.autoReplacements ?? []) as ReplacementRule[]
   const s: Session = { id: crypto.randomUUID(), target: target(), editor, providerId: state.providerId,
     language: state.language, quotes: dictationQuotes(settings?.effective.autoReplacementLanguage ?? 'en', rules),
-    queue: [], context: '', abort: new AbortController() }
+    queue: [], context: '', abort: new AbortController(), automaticDialogue: provider?.automaticDialogue !== false }
   if (!editor.captureDictationAnchor(s.id)) return
   session = s
   set({ starting: true, error: null, warning: null, paused: false })
@@ -139,15 +155,19 @@ async function drain(s: Session): Promise<void> {
         if (session !== s) break
         if (!clip.transcript.trim()) { s.queue.shift(); set({ pending: s.queue.length }); continue }
         if (!clip.insertion) {
-          try {
-            s.requestId = crypto.randomUUID()
-            const segments = await rpc.request<DictationSegment[]>('dictation/format', { requestId: s.requestId,
-              providerId: s.providerId, transcript: clip.transcript, language: s.language, precedingText: s.context.slice(-2000) })
-            clip.insertion = formatDictation(segments, s.quotes, s.language, s.lastKind)
-            if (!clip.insertion.text.trim()) throw new Error('Empty formatting result')
-          } catch {
+          if (!s.automaticDialogue) {
             clip.insertion = { text: clip.transcript, paragraph: false, mergeClose: '', lastKind: 'narration' }
-            if (session === s) set({ warning: 'dictation.formatFailed' })
+          } else {
+            try {
+              s.requestId = crypto.randomUUID()
+              const segments = await rpc.request<DictationSegment[]>('dictation/format', { requestId: s.requestId,
+                providerId: s.providerId, transcript: clip.transcript, language: s.language, precedingText: s.context.slice(-2000) })
+              clip.insertion = formatDictation(segments, s.quotes, s.language, s.lastKind)
+              if (!clip.insertion.text.trim()) throw new Error('Empty formatting result')
+            } catch {
+              clip.insertion = { text: clip.transcript, paragraph: false, mergeClose: '', lastKind: 'narration' }
+              if (session === s) set({ warning: 'dictation.formatFailed' })
+            }
           }
         }
         if (session !== s) break
@@ -173,6 +193,12 @@ async function drain(s: Session): Promise<void> {
     }
   })()
   try { await s.processing } finally { s.processing = undefined; finish(s) }
+}
+
+export function canDictate(provider: DictationProvider | undefined, language: string): boolean {
+  if (!provider?.available) return false
+  if (provider.usesSystemPanel || !provider.languages) return true
+  return provider.languages.some((entry) => entry.language === language && entry.supported && entry.installed)
 }
 
 export async function resumeDictation(): Promise<void> {

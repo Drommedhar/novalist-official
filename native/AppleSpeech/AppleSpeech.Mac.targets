@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) and '$(TargetFramework)' == 'net8.0' and '$(BuildAppleDesktopSpeech)' != 'false'">
+    <_SpeechArch>arm64</_SpeechArch>
+    <_SpeechArch Condition="'$(RuntimeIdentifier)' == 'osx-x64' or ('$(RuntimeIdentifier)' == '' and '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X64')">x86_64</_SpeechArch>
+    <_SpeechLibrary>$(IntermediateOutputPath)apple-speech/$(_SpeechArch)/libNovalistSpeech.dylib</_SpeechLibrary>
+  </PropertyGroup>
+  <Target Name="BuildMacSpeech" BeforeTargets="CopyFilesToOutputDirectory" Condition="'$(_SpeechLibrary)' != ''"
+          Inputs="$(MSBuildThisFileDirectory)NovalistSpeech.swift;$(MSBuildThisFileDirectory)AppleMicrophone.swift;$(MSBuildThisFileDirectory)build.sh" Outputs="$(_SpeechLibrary)">
+    <Exec Command="bash &quot;$(MSBuildThisFileDirectory)build.sh&quot; macos $(_SpeechArch) &quot;$(_SpeechLibrary)&quot;" />
+  </Target>
+  <Target Name="CopyMacSpeech" AfterTargets="CopyFilesToOutputDirectory" DependsOnTargets="BuildMacSpeech" Condition="'$(_SpeechLibrary)' != ''">
+    <Copy SourceFiles="$(_SpeechLibrary)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="PublishMacSpeech" AfterTargets="Publish" DependsOnTargets="BuildMacSpeech" Condition="'$(_SpeechLibrary)' != ''">
+    <Copy SourceFiles="$(_SpeechLibrary)" DestinationFolder="$(PublishDir)" />
+  </Target>
+</Project>

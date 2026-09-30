@@ -52,6 +52,7 @@ mac:
   extendInfo:
     ITSAppUsesNonExemptEncryption: false
     NSMicrophoneUsageDescription: Novalist uses the microphone to write the words you dictate.
+    NSSpeechRecognitionUsageDescription: Novalist uses on-device speech recognition for dictation.
   # Notarization uses the App Store Connect API key from the environment
   # (APPLE_API_KEY / APPLE_API_KEY_ID / APPLE_API_ISSUER). Left as `true` so it
   # only runs when those are present (CI); skipped for unsigned local builds.

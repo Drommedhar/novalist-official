@@ -24,7 +24,7 @@ jobs:
             project: novalist-official.sln
           - target: ios
             os: macos-latest
-            dotnet: 10.0.x
+            dotnet: 10.0.401
             project: Novalist.Mobile/Novalist.Mobile.csproj
 
     steps:
@@ -38,7 +38,7 @@ jobs:
       # it on macOS with its workloads, never through an all-csproj Linux scan.
       - name: Install iOS workloads
         if: matrix.target == 'ios'
-        run: dotnet workload restore Novalist.Mobile/Novalist.Mobile.csproj
+        run: dotnet workload install maui-ios --version 10.0.401.1
 
       - name: Restore dependencies
         run: dotnet restore "${{ matrix.project }}"

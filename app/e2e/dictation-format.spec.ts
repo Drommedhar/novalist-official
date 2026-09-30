@@ -1,10 +1,39 @@
 import { test, expect } from '@playwright/test'
 import { dictationQuotes, formatDictation, type DictationSegment } from '../src/renderer/src/dictation/formatDictation'
-import { SpeechChunks, wav } from '../src/renderer/src/dictation/audio'
+import { SpeechChunks, wav, openSystemMicrophone } from '../src/renderer/src/dictation/audio'
 
 const speech = (text: string, newParagraph = true): DictationSegment => ({ text, kind: 'dialogue', newParagraph })
 const narration = (text: string): DictationSegment => ({ text, kind: 'narration', newParagraph: false })
 const tag = (text: string): DictationSegment => ({ text, kind: 'attribution', newParagraph: false })
+
+test('native microphone stop drains an in-flight read before its final clip, exactly once', async () => {
+  const emitted: number[] = []
+  let release!: (value: { clips: string[]; ended: boolean }) => void
+  let stops = 0
+  const microphone = await openSystemMicrophone({
+    start: async () => {},
+    read: () => new Promise((resolve) => { release = resolve }),
+    stop: async () => { stops++; return { clips: [btoa(String.fromCharCode(2))], ended: true } }
+  }, (clip) => emitted.push(clip[0]), () => {}, new AbortController().signal)
+  const stopping = microphone.stop()
+  const repeated = microphone.stop()
+  expect(stops).toBe(0)
+  release({ clips: [btoa(String.fromCharCode(1))], ended: false })
+  await Promise.all([stopping, repeated])
+  expect(emitted).toEqual([1, 2])
+  expect(stops).toBe(1)
+})
+
+test('cancellation while native microphone permission opens releases capture without polling', async () => {
+  const abort = new AbortController()
+  let stops = 0
+  await expect(openSystemMicrophone({
+    start: async () => { abort.abort() },
+    read: async () => { throw new Error('Cancelled capture must not poll') },
+    stop: async () => { stops++; return { clips: [], ended: true } }
+  }, () => {}, () => {}, abort.signal)).rejects.toThrow('Aborted')
+  expect(stops).toBe(1)
+})
 
 test('English dialogue starts a paragraph; its tag stays on that paragraph', () => {
   expect(formatDictation([narration('He waited.'), speech('Hello.'), tag('she said.'), speech('Goodbye.')],

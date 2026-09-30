@@ -205,6 +205,8 @@ Each interface's XML documentation on the SDK type is the contract; read it befo
 
 ### Dictation into the editor
 
+The host also offers a built-in `novalist.system` provider independently of extensions. It uses the Windows voice typing panel or Apple's SpeechAnalyzer and does not infer character dialogue. It is configured under Writing assistance → System dictation. Extension contributors keep their own settings and remain available alongside it; the `IDictationContributor` contract is unchanged by the native provider.
+
 `IDictationContributor` supplies `TranscribeAsync` and `DetectDialogueAsync`. The host captures microphone audio only after the writer presses Start, sends independent WAV clips with an explicit `en` or `de` language, and inserts results directly through the editor's normal input/undo path. There is no preview. The extension never writes a scene file.
 
 `DictationSegment` carries `Text`, `Kind` (`narration`, `dialogue`, or `attribution`) and `NewParagraph`. Return every spoken word in order, with punctuation and capitalization corrections only. Omit outer dialogue quotation marks: the host uses the writer's replacement rules. Start a new paragraph for a new speaker; an attribution and a continuation by the same speaker stay together. `precedingText` contains at most 2,000 characters of earlier dictation for continuity, never manuscript context to repeat or rewrite.

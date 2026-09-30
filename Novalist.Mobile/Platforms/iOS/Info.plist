@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Novalist uses the microphone to write the words you dictate.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Novalist uses on-device speech recognition for dictation.</string>
 	<!-- Export-compliance declaration, so App Store Connect / TestFlight never
 	     prompts per build. false = only exempt encryption (standard HTTPS and
 	     OS-provided crypto); no custom cryptography. Mirrors the desktop app's

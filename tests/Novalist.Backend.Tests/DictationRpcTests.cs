@@ -26,7 +26,7 @@ public sealed class DictationRpcTests : IDisposable
     public async Task DisabledProviderNeverReceivesAudio()
     {
         _engine.IsDictationAvailable = false;
-        Assert.False(Assert.Single(_rpc.Providers()).Available);
+        Assert.False(Assert.Single(await _rpc.Providers()).Available);
         await Assert.ThrowsAsync<InvalidOperationException>(() => Transcribe(Guid.NewGuid().ToString()));
         Assert.Equal(0, _engine.Calls);
     }

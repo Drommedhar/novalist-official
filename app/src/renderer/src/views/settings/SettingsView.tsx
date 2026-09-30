@@ -35,6 +35,7 @@ import { ThemeTokensCard } from './ThemeTokensCard'
 import { SceneTemplatesCard } from './SceneTemplatesCard'
 import { TagsCard } from './TagsCard'
 import { AutoReplacementsCard } from './AutoReplacementsCard'
+import { SystemDictationCard } from '../../dictation/SystemDictationCard'
 import {
   SETTINGS_CATEGORIES,
   searchSettings,
@@ -1216,6 +1217,7 @@ export function SettingsView(): React.JSX.Element {
       key: 'writingAssistance',
       body: (
         <>
+          <SystemDictationCard />
           {scopeToggle('writing')}
           {/* The master switch comes before the style it governs. Off, nothing
               is substituted as you type - the quote style below still names the

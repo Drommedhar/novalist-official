@@ -5,7 +5,7 @@
 # app, then relaunches. Use this after any renderer / TypeScript change.
 #
 # A change to the C# bridge (Novalist.Mobile/*.cs) still needs a real
-# `dotnet build ... -f net10.0-ios` + reinstall - this script only refreshes the
+# `dotnet build ... -f net10.0-ios27.0` + reinstall - this script only refreshes the
 # web layer.
 #
 # Prereq: the app has been installed on a BOOTED simulator at least once via the
