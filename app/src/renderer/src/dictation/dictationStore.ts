@@ -13,6 +13,7 @@ import { dictationQuotes, formatDictation, type DictationSegment, type Dictation
 export interface DictationProvider {
   id: string; name: string; available: boolean; audioDestination: string; formattingDestination: string
   automaticDialogue?: boolean; usesSystemPanel?: boolean
+  supportsWarmup?: boolean
   languages?: { language: string; supported: boolean; installed: boolean }[]
 }
 interface State {
@@ -22,6 +23,7 @@ interface State {
   language: 'en' | 'de'
   recording: boolean
   starting: boolean
+  warming: boolean
   pending: number
   paused: boolean
   error: string | null
@@ -29,7 +31,7 @@ interface State {
 }
 export const useDictation = create<State>(() => ({
   open: false, providers: [], providerId: '', language: 'en', recording: false,
-  starting: false, pending: 0, paused: false, error: null, warning: null
+  starting: false, warming: false, pending: 0, paused: false, error: null, warning: null
 }))
 const set = useDictation.setState
 type Clip = { audio: Uint8Array; transcript?: string; insertion?: DictationInsertion }
@@ -38,6 +40,7 @@ type Session = {
   quotes: QuotePair; queue: Clip[]; context: string; lastKind?: DictationSegment['kind']
   microphone?: Microphone; abort: AbortController; requestId?: string; processing?: Promise<void>; stopping?: Promise<void>
   automaticDialogue: boolean
+  warmup?: Promise<void>; warmupId?: string
 }
 let session: Session | null = null
 
@@ -91,6 +94,23 @@ export async function startDictation(): Promise<void> {
   if (!editor.captureDictationAnchor(s.id)) return
   session = s
   set({ starting: true, error: null, warning: null, paused: false })
+  if (provider?.supportsWarmup) {
+    s.warmupId = crypto.randomUUID()
+    set({ warming: true })
+    s.abort.signal.addEventListener('abort', () => cancelWarmup(s), { once: true })
+    s.warmup = rpc.request('dictation/warmUp', { requestId: s.warmupId, providerId: s.providerId })
+      .then(() => {})
+      .catch(() => {
+        if (session === s && s.warmupId) {
+          set({ error: 'dictation.warmupFailed' })
+          void stopDictation()
+        }
+      }).finally(() => {
+        s.warmupId = undefined; s.warmup = undefined
+        if (session === s) set({ warming: false })
+        finish(s)
+      })
+  }
   try {
     s.microphone = await openMicrophone((audio) => {
       if (session !== s) return
@@ -107,13 +127,20 @@ export async function startDictation(): Promise<void> {
     }
     set({ recording: true })
   } catch (error) {
+    cancelWarmup(s)
     if (session === s && !s.abort.signal.aborted) set({ error: error instanceof DOMException && error.name === 'NotAllowedError'
       ? 'dictation.permission' : 'dictation.microphoneError' })
-    if (!s.queue.length && session === s) { session = null; set({ starting: false }) }
+    if (!s.queue.length && session === s) { session = null; set({ starting: false, warming: false }) }
   } finally {
     if (session === s) set({ starting: false })
     finish(s)
   }
+}
+
+function cancelWarmup(s: Session): void {
+  const requestId = s.warmupId
+  s.warmupId = undefined
+  if (requestId) void rpc.request('dictation/cancel', { requestId }).catch(() => {})
 }
 
 export async function stopDictation(): Promise<void> {
@@ -127,13 +154,14 @@ export async function stopDictation(): Promise<void> {
     s.microphone = undefined
     if (microphone) await microphone.stop()
     else s.abort.abort()
+    if (!s.queue.length) cancelWarmup(s)
     await drain(s)
   })
   try { await s.stopping } finally { s.stopping = undefined; finish(s) }
 }
 
 function finish(s: Session): void {
-  if (session === s && !s.microphone && !s.stopping && !useDictation.getState().starting && !s.queue.length && !s.processing) {
+  if (session === s && !s.microphone && !s.stopping && !s.warmup && !useDictation.getState().starting && !s.queue.length && !s.processing) {
     session = null
     set({ pending: 0, paused: false })
   }
@@ -143,7 +171,8 @@ async function drain(s: Session): Promise<void> {
   if (s.processing) return s.processing
   if (session !== s || useDictation.getState().paused || useDictation.getState().error) return
   s.processing = (async () => {
-    while (session === s && s.queue.length && !useDictation.getState().paused) {
+    await s.warmup
+    while (session === s && s.queue.length && !useDictation.getState().paused && !useDictation.getState().error) {
       if (!atTarget(s)) { set({ paused: true, warning: 'dictation.sceneChanged' }); break }
       const clip = s.queue[0]
       try {
@@ -227,7 +256,7 @@ export async function discardDictation(): Promise<void> {
     if (s.requestId) void rpc.request('dictation/cancel', { requestId: s.requestId }).catch(() => {})
     await s.microphone?.stop()
   }
-  set({ recording: false, starting: false, pending: 0, paused: false, error: null, warning: null })
+  set({ recording: false, starting: false, warming: false, pending: 0, paused: false, error: null, warning: null })
 }
 
 function checkTarget(): void {

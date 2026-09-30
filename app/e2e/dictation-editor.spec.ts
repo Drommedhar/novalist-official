@@ -4,7 +4,9 @@ import { launchApp, seedBook, type Harness } from './harness'
 import type { EditorWindow } from '../src/renderer/src/views/editor/editorBridge'
 
 type Fake = { gain: GainNode; context: AudioContext; calls: number; fail: boolean; formatFail?: boolean; hold: boolean;
-  release?: () => void; stopped: boolean; languages: string[] }
+  release?: () => void; stopped: boolean; languages: string[];
+  warmup?: boolean; warmupCalls?: number; warmReady?: boolean; warmupId?: string;
+  releaseWarmup?: () => void; rejectWarmup?: () => void }
 
 test('Windows voice typing restores the caret and preserves a selected passage', async () => {
   const h = await setup()
@@ -108,8 +110,23 @@ async function setup(): Promise<Harness> {
     const original = window.novalistRpc.request.bind(window.novalistRpc)
     window.novalistRpc.request = async <T,>(method: string, params?: unknown): Promise<T> => {
       if (method === 'dictation/providers') return [{ id: 'fake', name: 'Test speech', available: true,
-        audioDestination: 'local test', formattingDestination: 'local test' }] as T
+        supportsWarmup: fake.warmup, audioDestination: 'local test', formattingDestination: 'local test' }] as T
+      if (method === 'dictation/warmUp') {
+        fake.warmupCalls = (fake.warmupCalls ?? 0) + 1
+        fake.warmupId = (params as { requestId: string }).requestId
+        await new Promise<void>((resolve, reject) => {
+          fake.releaseWarmup = resolve
+          fake.rejectWarmup = () => reject(new Error('Model loading failed or cancelled'))
+        })
+        fake.warmReady = true
+        return undefined as T
+      }
+      if (method === 'dictation/cancel' && (params as { requestId: string }).requestId === fake.warmupId) {
+        fake.rejectWarmup?.()
+        return undefined as T
+      }
       if (method === 'dictation/transcribe') {
+        if (fake.warmup && !fake.warmReady) throw new Error('Audio arrived before warmup completed')
         const args = params as { audioBase64: string; language: string }
         if (!atob(args.audioBase64).startsWith('RIFF')) throw new Error('Missing standalone WAV header')
         fake.languages.push(args.language)
@@ -133,8 +150,58 @@ async function voice(page: Page, on: boolean): Promise<void> {
 async function start(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Dictate', exact: true }).click()
   await page.getByRole('button', { name: 'Start dictation', exact: true }).click()
-  await expect(page.getByText('Listening…', { exact: true })).toBeVisible()
+  await expect(page.getByText('Listening…', { exact: false })).toBeVisible()
 }
+
+test('model loading starts before any audio and capture continues while both models load', async () => {
+  const h = await setup()
+  try {
+    await h.page.evaluate(() => { (window as unknown as { dictationFake: Fake }).dictationFake.warmup = true })
+    await start(h.page)
+    await expect(h.page.getByText('Loading dictation models…', { exact: false })).toBeVisible()
+    expect(await h.page.evaluate(() => {
+      const fake = (window as unknown as { dictationFake: Fake }).dictationFake
+      return [fake.warmupCalls, fake.calls]
+    })).toEqual([1, 0])
+    await voice(h.page, true)
+    await h.page.waitForTimeout(400)
+    await h.page.getByRole('button', { name: 'Stop dictation', exact: true }).click()
+    await expect(h.page.getByText('Pending clips: 1', { exact: false })).toBeVisible()
+    expect(await h.page.evaluate(() => (window as unknown as { dictationFake: Fake }).dictationFake.stopped)).toBe(true)
+    await h.page.evaluate(() => (window as unknown as { dictationFake: Fake }).dictationFake.releaseWarmup?.())
+    await expect(h.page.frameLocator('.editor-frame').locator('#editor')).toContainText('“Hello,” she said.')
+    await expect(h.page.getByText('Loading dictation models…', { exact: false })).toHaveCount(0)
+  } finally { await h.close() }
+})
+
+test('stopping before speech cancels model loading without showing a failure', async () => {
+  const h = await setup()
+  try {
+    await h.page.evaluate(() => { (window as unknown as { dictationFake: Fake }).dictationFake.warmup = true })
+    await start(h.page)
+    await h.page.getByRole('button', { name: 'Stop dictation', exact: true }).click()
+    await expect(h.page.getByText('Loading dictation models…', { exact: false })).toHaveCount(0)
+    await expect(h.page.getByRole('alert')).toHaveCount(0)
+    await expect(h.page.getByRole('button', { name: 'Start dictation', exact: true })).toBeEnabled()
+    expect(await h.page.evaluate(() => (window as unknown as { dictationFake: Fake }).dictationFake.calls)).toBe(0)
+  } finally { await h.close() }
+})
+
+test('a model loading failure retains already captured speech for retry', async () => {
+  const h = await setup()
+  try {
+    await h.page.evaluate(() => { (window as unknown as { dictationFake: Fake }).dictationFake.warmup = true })
+    await start(h.page)
+    await voice(h.page, true)
+    await h.page.waitForTimeout(400)
+    await h.page.evaluate(() => (window as unknown as { dictationFake: Fake }).dictationFake.rejectWarmup?.())
+    await expect(h.page.getByRole('alert')).toContainText('Dictation models could not be loaded')
+    await expect(h.page.getByText('Pending clips: 1', { exact: false })).toBeVisible()
+    await h.page.evaluate(() => { (window as unknown as { dictationFake: Fake }).dictationFake.warmReady = true })
+    await h.page.getByRole('button', { name: 'Resume pending speech at the caret' }).click()
+    await expect(h.page.frameLocator('.editor-frame').locator('#editor')).toContainText('“Hello,” she said.')
+  } finally { await h.close() }
+})
 
 test('speech lands directly in the editor; stopping flushes the last clip without a preview', async () => {
   const h = await setup()

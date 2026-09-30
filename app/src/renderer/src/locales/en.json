@@ -1,5 +1,7 @@
 {
   "dictation": {
+    "warming": "Loading dictation models…",
+    "warmupFailed": "Dictation models could not be loaded. Captured speech is kept for retry. Check dictation settings, then retry.",
     "title": "Dictate",
     "language": "Spoken language",
     "provider": "Speech recognition",

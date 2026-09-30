@@ -25,6 +25,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- AI Assistant starts loading its speech and dialogue models when recording begins, reducing the delay before the first dictated text. You can speak while they load; captured speech waits safely for processing.
+
 - Mac builds keep the native dictation library matched to the build architecture and can be signed when renewed certificates share the same name.
 - Dictation keeps inserting where recording began when the page layout or grammar highlights refresh, instead of moving speech to the end of the scene.
 

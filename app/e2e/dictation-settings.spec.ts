@@ -82,7 +82,7 @@ test('real AI Assistant exposes local dictation first, independently of chat con
     expect(keys).not.toContain('dictationEndpoint')
     expect(keys).not.toContain('dictationApiKey')
     expect(await h.rpc('dictation/providers')).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: 'com.novalist.ai', available: false, audioDestination: 'Whisper large-v3' })
+      expect.objectContaining({ id: 'com.novalist.ai', available: false, audioDestination: 'Whisper large-v3', supportsWarmup: true })
     ]))
     // The model setting persists after leaving and reopening the settings UI.
     await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('appearance'))

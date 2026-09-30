@@ -1,5 +1,7 @@
 {
   "dictation": {
+    "warming": "正在加载听写模型…",
+    "warmupFailed": "无法加载听写模型。已录制的语音会保留以便重试。请检查听写设置后重试。",
     "title": "听写",
     "language": "口述语言",
     "provider": "语音识别",

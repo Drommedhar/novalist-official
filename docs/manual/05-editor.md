@@ -50,6 +50,8 @@ System dictation inserts the recognized text. Automatic inference of character d
 
 AI Assistant infers character dialogue, uses your **Quote Style** and custom quotation replacement pair, and starts each new dialogue turn on a new paragraph. Speech tags such as “she said” or “sagte sie” remain outside the quotation marks. Narration stays unquoted. Dialogue detection can make mistakes, particularly when a phrase is ambiguous or a speaker changes without an attribution.
 
+Pressing Start begins loading both installed models immediately while the microphone opens. You can speak during **Loading dictation models…**; captured clips wait until loading finishes. Stopping before you speak cancels loading. If loading fails after speech was captured, the recording is kept for retry.
+
 Before the first AI Assistant recording, open **Settings → Extensions → AI Assistant → Dictation** (or **Dictation settings** on the dictation bar with AI Assistant selected):
 
 1. Enable **local dictation** and choose a multilingual **Whisper** speech model (Base, Small, Medium, or **Large v3**) and a **Qwen3** dialogue model. Large v3 is about a 3.1 GB download. Larger models require more memory and processing time.

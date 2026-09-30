@@ -23,6 +23,12 @@ public interface IDictationContributor
         CancellationToken cancellationToken = default);
 }
 
+/// <summary>Optional eager model loading when recording starts. No audio or downloads.</summary>
+public interface IDictationWarmupContributor
+{
+    Task WarmUpAsync(CancellationToken cancellationToken = default);
+}
+
 /// <summary>
 /// Text in spoken order. Kind is narration, dialogue, or attribution (a speech
 /// tag attached to dialogue). NewParagraph separates speakers or paragraphs;

@@ -34,6 +34,7 @@ export function DictationBar(): React.JSX.Element | null {
       {state.pending > 0 && !state.recording && <button onClick={() => void discardDictation()}>{t('dictation.discard')}</button>}
       {!busy && <button onClick={() => useDictation.setState({ open: false })}>{t('dialog.close')}</button>}
       <span role="status" aria-live="polite">{state.starting ? t('dictation.starting') : state.recording ? t('dictation.listening') : ''}
+        {state.warming && ` ${t('dictation.warming')}`}
         {state.pending > 0 && ` ${t('dictation.pending', { count: state.pending })}`}</span>
     </div>
     {!ready && <p>{t(system ? 'dictation.systemNeedsSetup' : 'dictation.setup')}</p>}

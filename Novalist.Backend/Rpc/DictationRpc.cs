@@ -17,7 +17,8 @@ public sealed class DictationRpc(Workspace workspace, ISystemDictation? system =
     {
         var providers = workspace.ExtensionsHost.DictationContributors
             .Select(p => new DictationProviderDto(p.DictationId, p.DictationName,
-                p.IsDictationAvailable, p.AudioDestination, p.FormattingDestination)).ToList();
+                p.IsDictationAvailable, p.AudioDestination, p.FormattingDestination,
+                SupportsWarmup: p is IDictationWarmupContributor)).ToList();
         if (system != null)
         {
             var status = await system.StatusAsync(cancellationToken);
@@ -45,6 +46,14 @@ public sealed class DictationRpc(Workspace workspace, ISystemDictation? system =
     public void OpenSystemPanel() => System().OpenSystemPanel();
 
     private ISystemDictation System() => system ?? throw new InvalidOperationException("System dictation is unavailable.");
+
+    [JsonRpcMethod("dictation/warmUp")]
+    public Task WarmUpAsync(string requestId, string providerId, CancellationToken cancellationToken)
+        => RunAsync(requestId, async ct =>
+        {
+            if (Provider(providerId) is IDictationWarmupContributor warmup) await warmup.WarmUpAsync(ct);
+            return true;
+        }, cancellationToken, TimeSpan.FromMinutes(10));
 
     [JsonRpcMethod("dictation/transcribe")]
     public async Task<string> TranscribeAsync(string requestId, string providerId,
@@ -117,4 +126,4 @@ public sealed class DictationRpc(Workspace workspace, ISystemDictation? system =
 
 public sealed record DictationProviderDto(string Id, string Name, bool Available,
     string AudioDestination, string FormattingDestination, bool AutomaticDialogue = true,
-    bool UsesSystemPanel = false, SystemDictationLanguage[]? Languages = null);
+    bool UsesSystemPanel = false, SystemDictationLanguage[]? Languages = null, bool SupportsWarmup = false);

@@ -30,10 +30,33 @@ public sealed class DictationRpcTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(() => Transcribe(Guid.NewGuid().ToString()));
         Assert.Equal(0, _engine.Calls);
     }
+    [Fact]
+    public async Task WarmupIsOptionalAndDoesNotSendAudio()
+    {
+        Assert.False(Assert.Single(await _rpc.Providers()).SupportsWarmup);
+        await _rpc.WarmUpAsync(Guid.NewGuid().ToString(), "test", default);
+        Assert.Equal(0, _engine.Calls);
+        var warm = new WarmEngine();
+        _workspace.ExtensionsHost.DictationContributors.Clear();
+        _workspace.ExtensionsHost.DictationContributors.Add(warm);
+        Assert.True(Assert.Single(await _rpc.Providers()).SupportsWarmup);
+        await _rpc.WarmUpAsync(Guid.NewGuid().ToString(), "test", default);
+        Assert.Equal(1, warm.Warmups);
+        Assert.Equal(0, warm.Calls);
+        warm.Wait = true;
+        var id = Guid.NewGuid().ToString();
+        var pending = _rpc.WarmUpAsync(id, "test", default);
+        _rpc.Cancel(id);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => pending);
+        warm.IsDictationAvailable = false;
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.WarmUpAsync(Guid.NewGuid().ToString(), "test", default));
+        Assert.Equal(2, warm.Warmups);
+    }
     [Theory]
     [InlineData("dictation/transcribe")]
     [InlineData("dictation/format")]
     [InlineData("dictation/cancel")]
+    [InlineData("dictation/warmUp")]
     public void SpeechDoesNotBlockSceneSavesOrItsOwnCancellation(string method)
         => Assert.True(SerialDispatchJsonRpc.IsReentrant(method));
     [Fact]
@@ -57,7 +80,17 @@ public sealed class DictationRpcTests : IDisposable
         Assert.Equal(0, _engine.Calls);
     }
     private Task<string> Transcribe(string id) => _rpc.TranscribeAsync(id, "test", "AQ==", "audio/wav", "de", default);
-    private sealed class Engine : IDictationContributor
+    private sealed class WarmEngine : Engine, IDictationWarmupContributor
+    {
+        public int Warmups;
+        public bool Wait;
+        public async Task WarmUpAsync(CancellationToken cancellationToken = default)
+        {
+            Warmups++;
+            if (Wait) await Task.Delay(Timeout.Infinite, cancellationToken);
+        }
+    }
+    private class Engine : IDictationContributor
     {
         public int Calls;
         public string DictationId => "test";

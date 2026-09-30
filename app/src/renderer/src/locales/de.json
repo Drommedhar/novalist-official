@@ -1,5 +1,7 @@
 {
   "dictation": {
+    "warming": "Diktiermodelle werden geladen…",
+    "warmupFailed": "Die Diktiermodelle konnten nicht geladen werden. Aufgenommene Sprache bleibt für einen erneuten Versuch erhalten. Prüfe die Diktiereinstellungen und versuche es erneut.",
     "title": "Diktieren",
     "language": "Gesprochene Sprache",
     "provider": "Spracherkennung",
