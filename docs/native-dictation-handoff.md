@@ -54,10 +54,10 @@ bash native/AppleSpeech/build.sh macos x86_64 artifacts/apple-speech/x64/libNova
 bash native/AppleSpeech/build.sh simulator arm64 artifacts/apple-speech/simulator/libNovalistSpeech.a
 bash native/AppleSpeech/build.sh ios arm64 artifacts/apple-speech/ios/libNovalistSpeech.a
 dotnet build Novalist.Backend/Novalist.Backend.csproj
-dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios27.0 -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false
+dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios27.0 -p:RuntimeIdentifier=iossimulator-arm64
 ```
 
-On an Intel Mac use `x86_64` for the simulator archive and `iossimulator-x64` for its runtime identifier. Use the existing iOS signing/provisioning setup for a physical-device build; the unsigned simulator command does not validate device AOT linkage.
+On an Intel Mac use `x86_64` for the simulator archive and `iossimulator-x64` for its runtime identifier. Keep the default ad-hoc simulator signing when testing launch; `-p:EnableCodeSigning=false` is suitable only for a compile check. Use the existing iOS signing/provisioning setup for a physical-device build; simulator compilation does not validate device AOT linkage.
 
 Build the desktop app with `npm run package` from `app/`, then verify `libNovalistSpeech.dylib` is present beside the backend in the app's resources and is signed. Check `nm`, `otool -L`, and `codesign --verify --deep --strict` on the resulting native files/app as appropriate. A missing library must report unavailable rather than preventing startup on older Macs.
 
@@ -88,7 +88,7 @@ Report concrete build results, hardware/OS tested, English/German outcomes, rema
 
 The user requested **automated checks only; live microphone testing later**. No microphone was activated. These results do not constitute full device acceptance.
 
-### Environment and toolchain blocker
+### Initial environment and toolchain blocker
 
 - MacBook Pro `Mac17,8`, Apple M5 Pro, 48 GB, native ARM64; macOS 27.0.1 (`26A434`).
 - Installed: Xcode 26.6 (`17F113`) with Apple SDKs 26.5; .NET 10.0.300, workload set 10.0.302, MAUI workload manifest 10.0.20; .NET 8.0.419 / runtime 8.0.25; Node 26.0.0.
@@ -122,9 +122,34 @@ python3 -m unittest discover -s tools -p test_apple_speech_build.py
 
 Local run logs are under ignored `artifacts/apple-speech/`, including `package.log`, `codesign-verify.log`, `packaged-speech.log`, `packaged-ui.log`, `playwright.log`, and `ios-device-build.log`.
 
+### Toolchain update later on 2026-09-30
+
+The user subsequently authorized updating the tooling and deploying a test build to the paired iPhone.
+
+- Updated the App Store Xcode installation to **27.0 (`27A266a`)**, selected `/Applications/Xcode.app/Contents/Developer`, accepted its license, and completed first-launch component installation. `iphoneos` and `iphonesimulator` now report SDK 27.0.
+- Installed the checksum-verified, Microsoft-signed **.NET SDK 10.0.401 ARM64**, **workload set 10.0.401.1**, and **MAUI 10.0.110**. The older SDKs remain installed. Restoring the actual `net10.0-ios27.0` project now succeeds.
+- Installed the **iOS 27.0 ARM64 simulator runtime (`24A434`)**. All four standalone Swift builds were repeated successfully with Xcode 27 (Mac ARM64/x86_64, iOS device/simulator ARM64).
+- The existing development signing identity and wildcard iOS team provisioning profile are valid. After unlocking the iPhone, the new developer disk image mounted successfully and the device reported no existing `com.novalist.app` installation.
+- Simulator validation found and fixed an actual iOS 27 startup crash (`UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`). Added a registered MAUI scene delegate and a single-window scene manifest, following [Apple's scene lifecycle requirement](https://developer.apple.com/documentation/uikit/transitioning-to-the-uikit-scene-based-life-cycle). The native microphone already observes the application background notification, which remains valid with scenes.
+- Matched the mobile project's Core and Backend reference properties to prevent concurrent builds of the shared Core/Sdk projects writing to the same output directories. A full parallel simulator rebuild now passes.
+- The default ad-hoc signed ARM64 simulator app freshly installed, displayed the bookshelf, and stayed running on **iPhone 18 Pro** and **iPad Pro 13-inch (M5)** simulators with runtime 27.0. An unsigned compile succeeded but its app could not launch because of an invalid code signature. Simulator speech recognition was not tested.
+- With this Apple SDK, an incremental build retained the old generated manifest after editing `Platforms/iOS/Info.plist`; use `-t:Rebuild` after manifest changes and inspect the final app's `Info.plist`. A clean simulator build included the scene manifest and fixed the launch failure.
+- Signed ARM64 **Release** builds passed with full AOT and default LLVM optimization (approximately 14 minutes each). The final device test build uses `-p:MtouchUseLlvm=false` to avoid repeating that optional optimization during iteration; it still uses Release trimming and full AOT, without the interpreter. The final manifest was regenerated from the updated source.
+- `codesign --verify --deep --strict` passed for the final device app. Its executable exports `nl_speech_request` and `nl_speech_cancel`; the matching dSYM retains `AppleSpeechBridge.Reply` and its native-to-managed AOT wrapper. Both privacy usage descriptions, the scene manifest, and the mobile renderer are present.
+- Installed **Novalist 0.1.0 (build 2)**, bundle ID `com.novalist.app`, on the paired **iPhone 17 Pro Max / iOS 27.0 (`24A437`)** using the existing Apple Development identity. Device queries confirm the version and a running process after launch; the startup console reported no errors. No microphone was activated and phone recognition accuracy/readiness was not asserted.
+- Final local evidence: `ios27-device-test-build.log`, `iphone-install.json`, `iphone-installed-app.json`, `iphone-launch.json`, `iphone-processes-final.json`, `iphone-console.log`, and `iphone-speech-symbols.txt` under `artifacts/apple-speech/`. Simulator screenshots record the empty bookshelf; no phone document screenshot is retained.
+
+Rebuild this device test variant with the installed toolchain:
+
+```sh
+dotnet build Novalist.Mobile/Novalist.Mobile.csproj -c Release -f net10.0-ios27.0 \
+  -p:RuntimeIdentifier=ios-arm64 -p:ApplicationVersion=2 -p:MtouchUseLlvm=false
+```
+
+The available phone build is development-signed for the paired device, not a TestFlight/App Store distribution build. The user can now perform the deferred microphone checks under **Settings → Writing assistance → System dictation**.
+
 ### Still required
 
-- Xcode 27 / .NET 10.0.401 / workload 10.0.401.1 simulator build, signed iOS/iPadOS build, device AOT linkage, install, and launch.
 - Live English/German microphone accuracy and several-minute sessions; microphone denial/regrant/disconnection; background, lock, and audio-session interruptions on a physical iPhone/iPad.
 - Network-disconnected recognition, cancellation/retry during a genuinely missing-asset download, and DictationTranscriber fallback on suitable hardware. Synthetic recognition while networking is available is not an offline test.
 - Distribution signing/notarization and Mac App Store sandbox acceptance. The available local identities are Apple Development certificates, not Developer ID or Apple Distribution certificates.
