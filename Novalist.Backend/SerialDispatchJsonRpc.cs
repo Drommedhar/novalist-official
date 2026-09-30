@@ -145,6 +145,8 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         // round trip. The screen a writer was waiting for was waiting on the
         // sentence they had just stopped typing.
         "grammar/",
+        // Local model inference must not block scene saves or cancellation.
+        "dictation/",
         // Estimating a render compiles the whole book, the same way an export
         // does - and "export/" is on this list for exactly that reason.
         "audiobook/estimate"

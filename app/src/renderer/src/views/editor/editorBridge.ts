@@ -11,6 +11,9 @@ export interface EditorWindow extends Window {
   /** Clean stored HTML and plain text currently in the live contenteditable. */
   getContent(): string
   getPlainText(): string
+  captureDictationAnchor(id: string): boolean
+  insertDictationText(id: string, text: string, paragraph: boolean, mergeClose: string, mergeOpen: string,
+    tag?: { close: string; language: string }): boolean
   /** Sends any edit still inside the iframe's short change debounce. */
   flushPendingContentChange(): void
   setTheme(

@@ -7,6 +7,7 @@ import {
   History,
   List,
   ListOrdered,
+  Mic,
   PenLine,
   Settings2,
   Square,
@@ -17,6 +18,8 @@ import { useTranslation } from 'react-i18next'
 import { runCommand } from '../../shell/commands'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useShellStore } from '../../stores/shellStore'
+import { DictationBar } from '../../dictation/DictationBar'
+import { useDictation } from '../../dictation/dictationStore'
 
 export interface FormattingState {
   bold: boolean
@@ -39,6 +42,7 @@ interface EditorToolbarProps {
   formatting: FormattingState
   /** True while the scene is being read back, so the bar offers Stop. */
   speaking: boolean
+  active: boolean
 }
 
 /**
@@ -59,9 +63,10 @@ interface EditorToolbarProps {
 // placement-container: viewBar
 const PARAGRAPH_STYLES = ['', 'heading', 'subheading', 'blockquote', 'poetry'] as const
 
-export function EditorToolbar({ formatting, speaking }: EditorToolbarProps): React.JSX.Element {
+export function EditorToolbar({ formatting, speaking, active }: EditorToolbarProps): React.JSX.Element {
   const { t } = useTranslation()
   const [optionsOpen, setOptionsOpen] = useState(false)
+  const recording = useDictation((s) => s.recording || s.starting)
   const suggesting = useShellStore((s) => s.suggestionMode)
   const effective = useSettingsStore((s) => s.view?.effective)
 
@@ -162,6 +167,12 @@ export function EditorToolbar({ formatting, speaking }: EditorToolbarProps): Rea
         ))}
 
         <span className="toolbar-spacer" />
+        <button type="button" data-command="write.dictate"
+          className={`editor-toolbar-button${recording ? ' active' : ''}`}
+          title={t('dictation.title')} aria-label={t('dictation.title')} aria-pressed={recording}
+          onMouseDown={(e) => e.preventDefault()} onClick={() => runCommand('write.dictate')}>
+          <Mic size={15} strokeWidth={1.75} />
+        </button>
         {/* The scene's own history. It was a button on the main toolbar, which
             is the project's bar - a snapshot is of the scene in front of you. */}
         <button
@@ -212,6 +223,7 @@ export function EditorToolbar({ formatting, speaking }: EditorToolbarProps): Rea
           </button>
         </div>
       )}
+      {active && <DictationBar />}
 
       {optionsOpen && (
         <div

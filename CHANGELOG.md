@@ -16,7 +16,15 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Dictation acceleration** — both speech recognition and dialogue detection can use NVIDIA CUDA, supported AMD ROCm GPUs, or MLX on native Apple Silicon. Automatic selects available hardware; CPU remains selectable. Each accelerator has its own local runtime.
+- **Whisper Large v3** is available as a local dictation speech model in AI Assistant settings (~3.1 GB download).
+- **Local dictation** — download speech and dialogue models in AI Assistant settings, then write continuously in English or German offline, directly in the editor. Dialogue follows your quotation style and starts on a new paragraph; speech tags stay with their dialogue. Pending speech can be retried after a processing failure and stays attached to its original scene. Extension settings now display their section headings.
+
+### Fixed
+
+- Dictation keeps inserting where recording began when the page layout or grammar highlights refresh, instead of moving speech to the end of the scene.
 
 ---
 

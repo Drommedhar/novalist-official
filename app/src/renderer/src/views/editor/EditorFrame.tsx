@@ -800,6 +800,9 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           const live = editorWindow(iframe)
           if (!live) return
           editorRef.current = live
+          if (useProjectStore.getState().activeEditorPaneId === pane) {
+            useEditorBridge.getState().register(live, editorPane(useProjectStore.getState(), pane).sceneId)
+          }
           pushEditorTheme(live)
           live.setLanguage(i18n.language.startsWith('de') ? 'de' : 'en')
           // Mobile: full-width text (no 18em comment gutter) + touch-sized toolbar.
@@ -1238,7 +1241,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
     if (!isActiveEditor) return
     useEditorBridge.getState().register(editorRef.current, openSceneId)
     return () => useEditorBridge.getState().register(null, null)
-  }, [isActiveEditor, openSceneId, sceneHtml])
+  }, [isActiveEditor, openSceneId])
 
   // Suggestion mode belongs to the writing view rather than to the button that
   // used to hold it in local state, so the editor is told whenever the shell's
@@ -1281,7 +1284,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   return (
     <div className="editor-pane" style={{ '--nl-focus-page-scale': editorFontSize / 17 } as CSSProperties}>
       <SceneTabStrip paneId={pane} />
-      <EditorToolbar formatting={formatting} speaking={speaking} />
+      <EditorToolbar formatting={formatting} speaking={speaking} active={isActiveEditor} />
       {isActiveEditor && formatting.entityAtCaret && showFocusPeekTip && (
         <section
           className="editor-onboarding-tip"

@@ -7,6 +7,19 @@ public class AiSettings
     [JsonPropertyName("enabled")]
     public bool Enabled { get; set; }
 
+    [JsonPropertyName("dictationEnabled")]
+    public bool DictationEnabled { get; set; } = true;
+
+    [JsonPropertyName("dictationModel")]
+    public string DictationModel { get; set; } = "small";
+
+    [JsonPropertyName("dictationDialogueModel")]
+    public string DictationDialogueModel { get; set; } = "4B";
+
+    /// <summary>auto, cpu, cuda, rocm, or mlx. Separate from the chat provider.</summary>
+    [JsonPropertyName("dictationAcceleration")]
+    public string DictationAcceleration { get; set; } = "auto";
+
     [JsonPropertyName("provider")]
     public string Provider { get; set; } = "lmstudio";
 

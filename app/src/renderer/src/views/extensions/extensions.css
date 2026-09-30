@@ -161,6 +161,16 @@
   min-width: 0;
 }
 
+.ext-schema-group {
+  grid-column: 1 / -1;
+  margin: var(--nl-space-md) 0 0;
+  padding-bottom: var(--nl-space-sm);
+  border-bottom: 1px solid var(--nl-border-subtle);
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+  font-weight: var(--nl-weight-label);
+}
+
 /* Free-text and multi-line fields want the full row; a short value does not. */
 .ext-schema-field:has(.ext-schema-textarea) {
   grid-column: 1 / -1;

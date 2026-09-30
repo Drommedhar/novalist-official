@@ -192,6 +192,7 @@ Implement any of these alongside `IExtension`; the host finds them by type.
 | `IPropertyTypeContributor` | A custom property type for entity templates |
 | `IEntityExtractionContributor` | Proposes Codex entries found in prose |
 | `IVoiceEngineContributor` | Supply the voices a book is read aloud in, and the speech that reads it |
+| `IDictationContributor` | Transcribe recorded speech and identify narration, dialogue, and speech tags |
 | `IArticleGeneratorContributor` | Generates Wiki article prose, and one Codex section at a time |
 | `IGrammarCheckContributor` | A grammar/style checker |
 | `IThemeContributor` | Colour themes for the Settings theme picker |
@@ -201,6 +202,14 @@ Implement any of these alongside `IExtension`; the host finds them by type.
 | `IExportPostProcessor` | Checks a written export and reports what is wrong |
 
 Each interface's XML documentation on the SDK type is the contract; read it before implementing.
+
+### Dictation into the editor
+
+`IDictationContributor` supplies `TranscribeAsync` and `DetectDialogueAsync`. The host captures microphone audio only after the writer presses Start, sends independent WAV clips with an explicit `en` or `de` language, and inserts results directly through the editor's normal input/undo path. There is no preview. The extension never writes a scene file.
+
+`DictationSegment` carries `Text`, `Kind` (`narration`, `dialogue`, or `attribution`) and `NewParagraph`. Return every spoken word in order, with punctuation and capitalization corrections only. Omit outer dialogue quotation marks: the host uses the writer's replacement rules. Start a new paragraph for a new speaker; an attribution and a continuation by the same speaker stay together. `precedingText` contains at most 2,000 characters of earlier dictation for continuity, never manuscript context to repeat or rewrite.
+
+Expose configuration readiness through `IsDictationAvailable` and user-visible engine/model labels through `AudioDestination` and `FormattingDestination`. Respect cancellation. A transcription failure retains its audio for retry; a formatting failure inserts the original transcript. AI Assistant runs Whisper and Qwen3 directly in an offline stdio worker, validates word preservation, and manages model setup from its settings schema. Runtime assets are embedded in its DLL; downloads are stored separately from extension files under the settings root's `Models/com.novalist.ai/dictation` directory. This interface is additive, but an extension implementing it requires a host carrying the matching SDK.
 
 ### One Codex section, not the whole summary
 

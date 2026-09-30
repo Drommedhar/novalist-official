@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Play, SlidersHorizontal } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { persistPendingWrite, registerPendingWrite } from '../../stores/pendingWrites'
+import { useHostBridgeStore } from '../../stores/hostBridgeStore'
 import '../../shell/hostBridge.css'
 
 interface SettingsPageDto {
@@ -69,6 +70,11 @@ export function ExtensionSettings(): React.JSX.Element | null {
 
   useEffect(() => {
     refresh()
+    // Model setup continues in the background while the writer works. Refresh
+    // status/help when its progress panel closes (including cancellation).
+    return useHostBridgeStore.subscribe((next, previous) => {
+      if (next.progress.length < previous.progress.length) refresh()
+    })
   }, [])
 
   const runWizard = async (w: WizardDescriptorDto): Promise<void> => {
@@ -132,6 +138,7 @@ function ExtensionSchemaForm({
   // The rendered schema can be replaced by an action (e.g. "Refresh models"
   // populates a field's suggestions); user edits in `values` survive the swap.
   const [active, setActive] = useState<SettingsSchemaDto>(schema)
+  useEffect(() => { setActive(schema) }, [schema])
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(schema.fields.map((f) => [f.key, f.value]))
   )
@@ -250,25 +257,29 @@ function ExtensionSchemaForm({
               !field.visibleWhenKey ||
               (field.visibleWhenValues ?? []).includes(values[field.visibleWhenKey] ?? '')
           )
-          .map((field) =>
-            field.type === 'action' ? (
-              <button
-                key={field.key}
-                type="button"
-                className="export-inline-btn ext-schema-action"
-                disabled={runningAction !== null}
-                onClick={() => void runAction(field.key)}
-              >
-                {runningAction === field.key ? t('extensions.settingsWorking') : field.label}
-              </button>
+          .map((field, index, fields) => <Fragment key={field.key}>
+            {field.group && field.group !== fields[index - 1]?.group &&
+              <h3 className="ext-schema-group">{field.group}</h3>}
+            {field.type === 'action' ? (
+              <div className="ext-schema-field">
+                <button
+                  type="button"
+                  className="export-inline-btn ext-schema-action"
+                  disabled={runningAction !== null}
+                  onClick={() => void runAction(field.key)}
+                >
+                  {runningAction === field.key ? t('extensions.settingsWorking') : field.label}
+                </button>
+                {field.help && <span className="ext-schema-help" role="status">{field.help}</span>}
+              </div>
             ) : (
               <label key={field.key} className="ext-schema-field">
                 <span className="ext-schema-label">{field.label}</span>
                 <SchemaInput field={field} value={values[field.key] ?? ''} onChange={(v) => set(field.key, v)} />
                 {field.help && <span className="ext-schema-help">{field.help}</span>}
               </label>
-            )
-          )}
+            )}
+          </Fragment>)}
       </div>
       <div className="ext-schema-actions">
         <span className="ext-schema-autosave">{t('extensions.settingsAutoSaved')}</span>

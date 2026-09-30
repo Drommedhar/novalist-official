@@ -1228,6 +1228,7 @@ function sendMessage(msg) {
 // ── Content Management ──────────────────────────────────────────
 
 function setContent(html) {
+    dictationAnchor = null;
     if (compositionEndTimer) clearTimeout(compositionEndTimer);
     compositionEndTimer = null;
     isComposing = false;
@@ -1715,7 +1716,9 @@ function setPageView(enabled) {
         if (pageViewMutationObserver) {
             pageViewMutationObserver.disconnect();
         }
+        const savedDictation = captureDictationPosition();
         unwrapPages();
+        restoreDictationPosition(savedDictation);
     }
 }
 
@@ -1774,6 +1777,7 @@ function repaginatePageView() {
     if (!pageViewEnabled || isComposing) return;
     pageViewRepaginating = true;
     if (pageViewMutationObserver) pageViewMutationObserver.disconnect();
+    const savedDictation = captureDictationPosition();
     try {
         const savedSelection = captureSelectionForRepaginate();
 
@@ -1819,6 +1823,7 @@ function repaginatePageView() {
 
         restoreSelectionForRepaginate(savedSelection);
     } finally {
+        restoreDictationPosition(savedDictation);
         pageViewRepaginating = false;
         if (pageViewMutationObserver && pageViewEnabled) {
             pageViewMutationObserver.observe(editor, { childList: true, characterData: true, subtree: true });
@@ -4241,8 +4246,10 @@ function applyGrammarHighlights() {
     // Keep both endpoints and selection direction within their own blocks;
     // offsets across the whole editor cannot distinguish empty paragraphs.
     const savedSelection = captureProofingSelection();
+    const savedDictation = captureDictationPosition();
     const scrollTop = wrapper.scrollTop;
     const restoreCaret = () => {
+        restoreDictationPosition(savedDictation, true);
         restoreProofingSelection(savedSelection);
         wrapper.scrollTop = scrollTop;
     };
@@ -5447,6 +5454,103 @@ window.setExtensionContextMenuItems = function (json) {
     } catch (e) {
         extensionMenuItems = [];
     }
+};
+
+// A live Range follows ordinary edits, but is invalidated when the host loads
+// another scene. Layout and proofing must preserve it separately from the
+// visible selection: moving a paragraph collapses its live Ranges to the parent.
+let dictationAnchor = null;
+function captureDictationPosition() {
+    if (!dictationAnchor) return null;
+    const range = dictationAnchor.range;
+    const node = range.startContainer;
+    if (!editor.contains(node)) return null;
+    const block = getContainingBlock(node) || editor;
+    const before = document.createRange();
+    before.selectNodeContents(block);
+    before.setEnd(node, range.startOffset);
+    return { anchor: dictationAnchor, node, offset: range.startOffset,
+        block, textOffset: before.toString().length };
+}
+function restoreDictationPosition(saved, textNodesChanged = false) {
+    if (!saved || dictationAnchor !== saved.anchor) return;
+    // Pagination moves intact nodes; proofing splits and merges text nodes.
+    // A block-relative text offset also distinguishes empty paragraphs.
+    const point = textNodesChanged && editor.contains(saved.block)
+        ? textPointInElement(saved.block, saved.textOffset) : saved;
+    if (!editor.contains(point.node)) { dictationAnchor = null; return; }
+    try {
+        dictationAnchor.range.setStart(point.node, point.offset);
+        dictationAnchor.range.collapse(true);
+    } catch (_) { dictationAnchor = null; }
+}
+window.captureDictationAnchor = function (id) {
+    const sel = window.getSelection();
+    let range = sel && sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+    if (!range || !editor.contains(range.startContainer)) {
+        range = document.createRange();
+        range.selectNodeContents(editor);
+    }
+    range.collapse(false);
+    dictationAnchor = { id, range };
+    return true;
+};
+window.insertDictationText = function (id, text, paragraph, mergeClose, mergeOpen, tag) {
+    if (!dictationAnchor || dictationAnchor.id !== id || isComposing) return false;
+    const range = dictationAnchor.range;
+    if (!editor.contains(range.startContainer)) return false;
+    const sel = window.getSelection();
+    const saved = sel && sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+    const following = saved && saved.collapsed && saved.startContainer === range.startContainer
+        && saved.startOffset === range.startOffset;
+    const active = document.activeElement;
+    const node = range.startContainer;
+    let attachPunctuation = false;
+    // A pause can separate dialogue from its speech tag. Repair only the
+    // generated closing punctuation, without asking the model to rewrite it.
+    if (tag && node.nodeType === 3) {
+        const preceding = node.textContent.slice(0, range.startOffset);
+        if (preceding.endsWith(tag.close)) {
+            const speech = preceding.slice(0, -tag.close.length);
+            const removePeriod = speech.endsWith('.');
+            const removeComma = tag.language === 'de' && speech.endsWith(',');
+            const count = tag.close.length + (removePeriod || removeComma ? 1 : 0);
+            range.setStart(node, range.startOffset - count);
+            text = (tag.language === 'de' ? tag.close + ',' : (removePeriod ? ',' : '') + tag.close) + ' ' + text;
+            attachPunctuation = true;
+        }
+    }
+    // Only remove a quote we just generated, still immediately at the anchor.
+    if (mergeClose) {
+        if (node.nodeType === 3 && node.textContent.slice(0, range.startOffset).endsWith(mergeClose)) {
+            range.setStart(node, range.startOffset - mergeClose.length);
+        } else {
+            text = mergeOpen + text;
+        }
+    }
+    const element = node.nodeType === 3 ? node.parentElement : node;
+    const block = element.closest('p,div,li,h1,h2,h3,blockquote') || editor;
+    const before = document.createRange();
+    before.selectNodeContents(block);
+    before.setEnd(range.startContainer, range.startOffset);
+    const prefix = before.toString();
+    if (prefix.trim()) {
+        text = (paragraph ? '\n' : attachPunctuation || /\s$/.test(prefix) || /^[,.;:!?]/.test(text) ? '' : ' ') + text;
+    }
+    editor.focus();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    if (suggestionMode) insertSuggested(text);
+    else if (!document.execCommand('insertText', false, text)) return false;
+    dictationAnchor.range = sel.getRangeAt(0).cloneRange();
+    dictationAnchor.range.collapse(false);
+    if (saved && !following && editor.contains(saved.startContainer)) {
+        sel.removeAllRanges();
+        sel.addRange(saved);
+    }
+    if (active && active !== editor && active.focus) active.focus();
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+    return true;
 };
 
 window.applyInlineActionResult = function (json) {

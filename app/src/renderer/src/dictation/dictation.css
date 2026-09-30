@@ -1,0 +1,27 @@
+.dictation-bar {
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  background: var(--nl-surface-card);
+  color: var(--nl-text);
+  font-size: var(--nl-font-caption);
+}
+.dictation-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--nl-space-sm);
+}
+.dictation-controls label {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+}
+.dictation-controls button, .dictation-controls select {
+  font: inherit;
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text);
+  background: var(--nl-surface-input);
+  border: thin solid var(--nl-border);
+}
+.dictation-controls button:disabled { opacity: 0.5; }
+.dictation-bar p { margin: var(--nl-space-sm) var(--nl-space-none) var(--nl-space-none); }

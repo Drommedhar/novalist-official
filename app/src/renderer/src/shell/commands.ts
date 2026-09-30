@@ -6,6 +6,7 @@ import { useUiScaleStore } from '../stores/uiScaleStore'
 import type { EditorWindow } from '../views/editor/editorBridge'
 import { popOut } from './PaneHeader'
 import { printCurrentView } from './printView'
+import { showDictation } from '../dictation/dictationStore'
 
 /**
  * Every command Novalist has, and the one surface each of them lives in.
@@ -441,6 +442,14 @@ export const COMMANDS: CommandDef[] = [
   },
 
   /* ── The writing view itself ────────────────────────────────────────── */
+  {
+    id: 'write.dictate',
+    labelKey: 'dictation.title',
+    categoryKey: 'hotkeys.category.editor',
+    scope: 'view',
+    available: editorOpen,
+    run: () => { void showDictation() }
+  },
   {
     id: 'write.snapshots',
     labelKey: 'shell.snapshots',
