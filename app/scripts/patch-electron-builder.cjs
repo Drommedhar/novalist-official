@@ -31,17 +31,34 @@ function patchMacCodeSign(source) {
   return replacements.reduce((patched, [before, after]) => patched.replace(before, after), source)
 }
 
+// buildSignOptions already selected a unique certificate hash. doSign replaces
+// it with the display name, making renewed certificates with the same name
+// ambiguous to codesign. Preserve the options (including ad-hoc identities).
+function patchMacPackager(source) {
+  const before = '(0, macCodeSign_1.sign)({ ...opts, identity: identity ? identity.name : undefined })'
+  const after = '(0, macCodeSign_1.sign)(opts)'
+  if (!source.includes(before) && source.split(after).length === 2) return source
+  if (source.split(before).length !== 2 || source.includes(after)) {
+    throw new Error('Unexpected electron-builder signing code; review the certificate identity patch before packaging.')
+  }
+  return source.replace(before, after)
+}
+
 function applyPatch() {
   const { version } = require('app-builder-lib/package.json')
   if (version !== '26.15.3') {
-    throw new Error(`Review the keychain password workaround for app-builder-lib ${version}; expected 26.15.3.`)
+    throw new Error(`Review the signing workarounds for app-builder-lib ${version}; expected 26.15.3.`)
   }
   const file = require.resolve('app-builder-lib/out/codeSign/macCodeSign.js')
   const source = readFileSync(file, 'utf8')
   const patched = patchMacCodeSign(source)
+  const packagerFile = require.resolve('app-builder-lib/out/macPackager.js')
+  const packagerSource = readFileSync(packagerFile, 'utf8')
+  const patchedPackager = patchMacPackager(packagerSource)
   if (patched !== source) writeFileSync(file, patched)
-  console.log('[electron-builder] temporary keychain password fix applied (26.15.3)')
+  if (patchedPackager !== packagerSource) writeFileSync(packagerFile, patchedPackager)
+  console.log('[electron-builder] keychain password and certificate identity fixes applied (26.15.3)')
 }
 
-module.exports = { patchMacCodeSign }
+module.exports = { patchMacCodeSign, patchMacPackager }
 if (require.main === module) applyPatch()

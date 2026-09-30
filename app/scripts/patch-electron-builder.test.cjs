@@ -4,7 +4,7 @@ const { createRequire } = require('node:module')
 const { dirname } = require('node:path')
 const test = require('node:test')
 const { runInNewContext } = require('node:vm')
-const { patchMacCodeSign } = require('./patch-electron-builder.cjs')
+const { patchMacCodeSign, patchMacPackager } = require('./patch-electron-builder.cjs')
 
 const signerFile = require.resolve('app-builder-lib/out/codeSign/macCodeSign.js')
 const installedSource = readFileSync(signerFile, 'utf8')
@@ -95,4 +95,41 @@ test('changed or partially patched upstream code fails before writing', () => {
     '"-s", "-k", keychainPassword, keychainFile]',
     '"-s", "-k", password, keychainFile]'
   )), /Unexpected electron-builder signing code/)
+})
+
+const packagerSource = patchMacPackager(readFileSync(require.resolve('app-builder-lib/out/macPackager.js'), 'utf8'))
+
+async function signWithSelectedIdentity(source, identity, customSign) {
+  // Execute the installed doSign method: certificates may share a display name,
+  // but the actual signing call must keep the hash chosen by buildSignOptions.
+  const start = source.indexOf('async doSign(')
+  const end = source.indexOf('//noinspection JSMethodCanBeStatic', start)
+  assert.ok(start > 0 && end > start)
+  const packager = runInNewContext(`new class { ${source.slice(start, end)} }`, {
+    resolve_1: { resolveFunction: async () => customSign },
+    builder_util_1: { log: { info() {}, filePath: (p) => p } },
+    macCodeSign_1: { sign: async (options) => options }
+  })
+  packager.appInfo = { type: 'commonjs' }
+  packager.info = { getWorkspaceRoot: async () => '/novalist/app' }
+  return packager.doSign({ app: '/novalist/Novalist.app', identity: identity.hash || identity.name }, {}, identity)
+}
+
+test('signing preserves the selected hash when certificate names are identical', async () => {
+  for (const hash of ['a'.repeat(40), 'b'.repeat(40)]) {
+    const result = await signWithSelectedIdentity(packagerSource, { name: 'Apple Development: Same Name', hash })
+    assert.equal(result.identity, hash)
+  }
+})
+
+test('identity patch preserves ad-hoc signing and custom sign hooks', async () => {
+  assert.equal((await signWithSelectedIdentity(packagerSource, { name: '-', hash: '' })).identity, '-')
+  const result = await signWithSelectedIdentity(packagerSource, { name: 'Certificate', hash: 'chosen' },
+    async (options) => ({ custom: true, identity: options.identity }))
+  assert.deepEqual(result, { custom: true, identity: 'chosen' })
+})
+
+test('identity patch is idempotent and rejects unexpected upstream code', () => {
+  assert.equal(patchMacPackager(packagerSource), packagerSource)
+  assert.throws(() => patchMacPackager(''), /certificate identity patch/)
 })

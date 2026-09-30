@@ -48,8 +48,9 @@ test('Apple system dictation inserts German text at the caret without dialogue i
     const editor = h.page.frameLocator('.editor-frame').locator('#editor')
     await editor.click()
     await h.page.keyboard.type('Before. After.')
-    await h.page.keyboard.press('Home')
+    await h.page.keyboard.press(process.platform === 'darwin' ? 'Meta+ArrowLeft' : 'Home')
     for (let i = 0; i < 7; i++) await h.page.keyboard.press('ArrowRight')
+    expect(await editor.evaluate((element) => element.ownerDocument.getSelection()?.anchorOffset)).toBe(7)
     await h.page.evaluate(() => {
       const original = window.novalistRpc.request.bind(window.novalistRpc)
       window.novalistRpc.request = async <T,>(method: string, params?: unknown): Promise<T> => {
@@ -166,7 +167,7 @@ test('dictation starts at the caret between existing paragraphs and continues th
     await h.page.keyboard.press('Enter')
     await h.page.keyboard.press('Enter')
     await h.page.keyboard.type('After.')
-    await h.page.keyboard.press('Home')
+    await h.page.keyboard.press(process.platform === 'darwin' ? 'Meta+ArrowLeft' : 'Home')
     await h.page.keyboard.press('ArrowUp')
     await start(h.page)
     await voice(h.page, true)

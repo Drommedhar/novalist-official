@@ -25,6 +25,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- Mac builds keep the native dictation library matched to the build architecture and can be signed when renewed certificates share the same name.
 - Dictation keeps inserting where recording began when the page layout or grammar highlights refresh, instead of moving speech to the end of the scene.
 
 ---

@@ -2,21 +2,26 @@
   <PropertyGroup>
     <LinkWithSwiftSystemLibraries>true</LinkWithSwiftSystemLibraries>
     <MaciOSPrepareForBuildDependsOn>$(MaciOSPrepareForBuildDependsOn);BuildIosSpeech</MaciOSPrepareForBuildDependsOn>
-    <_SpeechPlatform>ios</_SpeechPlatform>
-    <_SpeechPlatform Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">simulator</_SpeechPlatform>
-    <_SpeechArch>arm64</_SpeechArch>
-    <_SpeechArch Condition="$(RuntimeIdentifier.EndsWith('-x64'))">x86_64</_SpeechArch>
-    <_SpeechArchive>$(IntermediateOutputPath)apple-speech/$(RuntimeIdentifier)/libNovalistSpeech.a</_SpeechArchive>
   </PropertyGroup>
-  <ItemGroup>
-    <NativeReference Include="$(_SpeechArchive)">
-      <Kind>Static</Kind>
-      <ForceLoad>true</ForceLoad>
-      <SmartLink>false</SmartLink>
-      <Frameworks>Foundation Speech AVFoundation</Frameworks>
-    </NativeReference>
-  </ItemGroup>
-  <Target Name="BuildIosSpeech" BeforeTargets="ResolveNativeReferences;_ResolveNativeReferences" Condition="'$(RuntimeIdentifier)' != ''"
+  <!-- RuntimeIdentifier and IntermediateOutputPath are not final at import time. -->
+  <Target Name="ConfigureIosSpeech">
+    <PropertyGroup>
+      <_SpeechPlatform>ios</_SpeechPlatform>
+      <_SpeechPlatform Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">simulator</_SpeechPlatform>
+      <_SpeechArch>arm64</_SpeechArch>
+      <_SpeechArch Condition="$(RuntimeIdentifier.EndsWith('-x64'))">x86_64</_SpeechArch>
+      <_SpeechArchive>$(IntermediateOutputPath)apple-speech/$(RuntimeIdentifier)/libNovalistSpeech.a</_SpeechArchive>
+    </PropertyGroup>
+    <ItemGroup>
+      <NativeReference Include="$(_SpeechArchive)">
+        <Kind>Static</Kind>
+        <ForceLoad>true</ForceLoad>
+        <SmartLink>false</SmartLink>
+        <Frameworks>Foundation Speech AVFoundation</Frameworks>
+      </NativeReference>
+    </ItemGroup>
+  </Target>
+  <Target Name="BuildIosSpeech" BeforeTargets="ResolveNativeReferences;_ResolveNativeReferences" DependsOnTargets="ConfigureIosSpeech" Condition="'$(RuntimeIdentifier)' != ''"
           Inputs="$(MSBuildThisFileDirectory)NovalistSpeech.swift;$(MSBuildThisFileDirectory)AppleMicrophone.swift;$(MSBuildThisFileDirectory)build.sh" Outputs="$(_SpeechArchive)">
     <Exec Command="bash &quot;$(MSBuildThisFileDirectory)build.sh&quot; $(_SpeechPlatform) $(_SpeechArch) &quot;$(_SpeechArchive)&quot;" />
   </Target>

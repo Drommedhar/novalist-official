@@ -9,6 +9,7 @@ on:
       - 'Novalist.Backend/**'
       - 'Novalist.Mobile/**'
       - '.github/workflows/apple-speech.yml'
+      - 'tools/test_apple_speech_build.py'
 
 permissions:
   contents: read
@@ -46,6 +47,8 @@ jobs:
         run: |
           bash native/AppleSpeech/build.sh macos arm64 artifacts/apple-speech/arm64/libNovalistSpeech.dylib
           bash native/AppleSpeech/build.sh macos x86_64 artifacts/apple-speech/x64/libNovalistSpeech.dylib
+      - name: Check native output and reference isolation
+        run: python3 -m unittest discover -s tools -p test_apple_speech_build.py
       - name: Build desktop backend with bundled speech library
         run: dotnet build Novalist.Backend/Novalist.Backend.csproj
       - name: Install iOS workload
