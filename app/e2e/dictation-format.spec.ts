@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { dictationQuotes, formatDictation, type DictationSegment } from '../src/renderer/src/dictation/formatDictation'
+import { appendDictationContext, dictationQuotes, formatDictation, type DictationSegment } from '../src/renderer/src/dictation/formatDictation'
 import { SpeechChunks, wav, openSystemMicrophone } from '../src/renderer/src/dictation/audio'
 
 const speech = (text: string, newParagraph = true): DictationSegment => ({ text, kind: 'dialogue', newParagraph })
@@ -63,6 +63,35 @@ test('indirect speech stays narration and a new speaker never merges with the la
   expect(formatDictation([narration('She said that she was tired.')], dictationQuotes('en', []), 'en').text)
     .toBe('She said that she was tired.')
   expect(formatDictation([speech('No.')], dictationQuotes('en', []), 'en', 'dialogue').mergeClose).toBe('')
+})
+
+test('same-speaker sentences and actions stay together; another actor starts a paragraph', () => {
+  const result = formatDictation([speech('Wait.'), speech('I will get my coat.', false),
+    narration('Anna opened the cupboard.'), speech('It is cold.', false),
+    { ...narration('Ben walked to the door.'), newParagraph: true }, speech('Hurry up.', false), tag('he said.')],
+  dictationQuotes('en', []), 'en')
+  expect(result.text).toBe('“Wait. I will get my coat.” Anna opened the cupboard. “It is cold.”\nBen walked to the door. “Hurry up,” he said.')
+})
+
+test('paragraph decisions also apply at the start of a new recording chunk', () => {
+  const quotes = dictationQuotes('en', [])
+  expect(formatDictation([narration('She opened the cupboard.')], quotes, 'en', 'dialogue').paragraph).toBe(false)
+  expect(formatDictation([{ ...narration('Ben left.'), newParagraph: true }], quotes, 'en', 'dialogue').paragraph).toBe(true)
+  expect(formatDictation([speech('Come in.', false)], quotes, 'en', 'narration').paragraph).toBe(false)
+  expect(formatDictation([speech('No.')], quotes, 'en', 'dialogue').paragraph).toBe(true)
+})
+
+test('model context preserves merged speech, speech tags and actual paragraph boundaries across chunks', () => {
+  const quotes = dictationQuotes('en', [])
+  let context = appendDictationContext('“Wait.”', formatDictation([speech('I will get my coat.', false)], quotes, 'en', 'dialogue'))
+  expect(context).toBe('“Wait. I will get my coat.”')
+  context = appendDictationContext(context, formatDictation([tag('Anna said.')], quotes, 'en', 'dialogue'))
+  expect(context).toBe('“Wait. I will get my coat,” Anna said.')
+  context = appendDictationContext(context, formatDictation([narration('She opened the cupboard.')], quotes, 'en', 'attribution'))
+  context = appendDictationContext(context, formatDictation([speech('Hurry up.')], quotes, 'en', 'narration'))
+  expect(context).toBe('“Wait. I will get my coat,” Anna said. She opened the cupboard.\n“Hurry up.”')
+  expect(appendDictationContext('„Warte.“', formatDictation([tag('sagte sie.')], dictationQuotes('de-low', []), 'de', 'dialogue')))
+    .toBe('„Warte“, sagte sie.')
 })
 
 test('WAV contains a valid header and clipped little-endian PCM', () => {

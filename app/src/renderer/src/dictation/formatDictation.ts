@@ -29,9 +29,18 @@ export interface DictationInsertion {
 
 export function formatDictation(segments: DictationSegment[], quotes: QuotePair, language: string,
   previousKind?: DictationSegment['kind']): DictationInsertion {
+  // Consecutive sentences by one speaker share a single pair of quotes.
+  const runs: DictationSegment[] = []
+  for (const segment of segments) {
+    const last = runs.at(-1)
+    if (segment.kind === 'dialogue' && last?.kind === 'dialogue' && !segment.newParagraph) {
+      last.text += ' ' + unquote(segment.text)
+    } else runs.push({ ...segment, text: segment.kind === 'dialogue' ? unquote(segment.text) : segment.text })
+  }
+  segments = runs
   const first = segments[0]
   const paragraph = !!first && (first.newParagraph || (first.kind === 'dialogue'
-    && previousKind !== 'dialogue' && previousKind !== 'attribution'))
+    && previousKind === undefined))
   const mergeClose = first?.kind === 'dialogue' && previousKind === 'dialogue'
     && !first.newParagraph ? quotes.close : ''
   let text = ''
@@ -52,13 +61,31 @@ export function formatDictation(segments: DictationSegment[], quotes: QuotePair,
       }
       part = (index === 0 && mergeClose ? '' : quotes.open) + part + quotes.close + after
     }
-    const breakLine = index > 0 && (segment.newParagraph
-      || (segment.kind === 'dialogue' && previous === 'narration')
-      || (segment.kind === 'narration' && previous !== 'narration'))
+    const breakLine = index > 0 && segment.newParagraph
     text += (text ? breakLine ? '\n' : /^[,.;:!?]/.test(part) ? '' : ' ' : '') + part
     previous = segment.kind
   })
   return { text, paragraph, mergeClose, lastKind: previous ?? 'narration',
     ...(first?.kind === 'attribution' && previousKind === 'dialogue' && !first.newParagraph
       ? { tag: { close: quotes.close, language } } : {}) }
+}
+
+function unquote(text: string): string {
+  return text.trim().replace(/^["„“”»«]+\s*/, '').replace(/\s*["„“”»«]+$/, '')
+}
+
+/** Keep model context aligned with the paragraphs and quotes inserted in the editor. */
+export function appendDictationContext(context: string, insertion: DictationInsertion): string {
+  if (!context) return insertion.text.slice(-2000)
+  if (insertion.mergeClose && context.endsWith(insertion.mergeClose)) {
+    context = context.slice(0, -insertion.mergeClose.length)
+  }
+  if (insertion.tag && context.endsWith(insertion.tag.close)) {
+    const { close, language } = insertion.tag
+    const speech = context.slice(0, -close.length)
+    if (language === 'de') context = speech.replace(/[.,]$/, '') + close + ','
+    else context = speech.replace(/\.$/, ',') + close
+  }
+  const separator = insertion.paragraph ? '\n' : /\s$/.test(context) || /^[,.;:!?]/.test(insertion.text) ? '' : ' '
+  return (context + separator + insertion.text).slice(-2000)
 }

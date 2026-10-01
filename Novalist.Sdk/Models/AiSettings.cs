@@ -7,6 +7,10 @@ public class AiSettings
     [JsonPropertyName("enabled")]
     public bool Enabled { get; set; }
 
+    /// <summary>The user completed setup, including choosing "Not now".</summary>
+    [JsonPropertyName("setupCompleted")]
+    public bool SetupCompleted { get; set; }
+
     [JsonPropertyName("dictationEnabled")]
     public bool DictationEnabled { get; set; } = true;
 

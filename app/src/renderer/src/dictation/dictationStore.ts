@@ -8,7 +8,7 @@ import { registerPendingWrite } from '../stores/pendingWrites'
 import type { EditorWindow } from '../views/editor/editorBridge'
 import type { ReplacementRule } from '../views/settings/AutoReplacementsCard'
 import { audioBase64, openMicrophone, type Microphone } from './audio'
-import { dictationQuotes, formatDictation, type DictationSegment, type DictationInsertion, type QuotePair } from './formatDictation'
+import { appendDictationContext, dictationQuotes, formatDictation, type DictationSegment, type DictationInsertion, type QuotePair } from './formatDictation'
 
 export interface DictationProvider {
   id: string; name: string; available: boolean; audioDestination: string; formattingDestination: string
@@ -208,7 +208,7 @@ async function drain(s: Session): Promise<void> {
           set({ paused: true, warning: 'dictation.anchorLost' }); void stopDictation(); break
         }
         s.editor.flushPendingContentChange()
-        s.context = (s.context + '\n' + insert.text).slice(-2000)
+        s.context = appendDictationContext(s.context, insert)
         s.lastKind = insert.lastKind
         s.queue.shift()
         set({ pending: s.queue.length })
@@ -240,6 +240,7 @@ export async function resumeDictation(): Promise<void> {
     editor.captureDictationAnchor(s.id)
     // A new anchor need not follow the text inserted before the pause.
     s.lastKind = undefined
+    s.context = ''
     const first = s.queue[0]?.insertion
     if (first?.mergeClose) { first.text = s.quotes.open + first.text; first.mergeClose = ''; first.paragraph = true }
     if (first) first.tag = undefined
