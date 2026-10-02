@@ -1,0 +1,14 @@
+{
+  "novalistImport": 1,
+  "target": "location",
+  "data": {
+    "name": "Harbour",
+    "type": "Port",
+    "parent": "Coast",
+    "isWorld": false,
+    "description": "An old harbour with a **stone quay**.",
+    "aliases": ["Old Port"],
+    "customProperties": { "Population": "1200" },
+    "sections": [{ "title": "History", "content": "Its founding story." }]
+  }
+}

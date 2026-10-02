@@ -152,10 +152,13 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         "audiobook/estimate"
     ];
 
-    private readonly SemaphoreSlim _gate = new(1, 1);
+    private readonly SemaphoreSlim _gate;
+    private readonly Func<Task>? _afterRequest;
 
-    public SerialDispatchJsonRpc(IJsonRpcMessageHandler handler) : base(handler)
+    public SerialDispatchJsonRpc(IJsonRpcMessageHandler handler, SemaphoreSlim? gate = null, Func<Task>? afterRequest = null) : base(handler)
     {
+        _gate = gate ?? new SemaphoreSlim(1, 1);
+        _afterRequest = afterRequest;
     }
 
     /// <summary>Whether this method skips the queue. Exposed for the tests that
@@ -190,7 +193,11 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         }
         finally
         {
-            _gate.Release();
+            try
+            {
+                if (_afterRequest != null) await _afterRequest().ConfigureAwait(false);
+            }
+            finally { _gate.Release(); }
         }
     }
 

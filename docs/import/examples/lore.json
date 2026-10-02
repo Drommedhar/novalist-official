@@ -1,0 +1,12 @@
+{
+  "novalistImport": 1,
+  "target": "lore",
+  "data": {
+    "name": "Harbour founding",
+    "category": "History",
+    "group": "Sailors",
+    "description": "The story of the first ships.",
+    "tags": ["history"],
+    "sections": [{ "title": "Sources", "content": "Preserved source notes." }]
+  }
+}

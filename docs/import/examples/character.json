@@ -1,0 +1,16 @@
+{
+  "novalistImport": 1,
+  "target": "character",
+  "data": {
+    "name": "Ada",
+    "surname": "Lovelace",
+    "age": "32",
+    "eyeColor": "brown",
+    "role": "Mathematician",
+    "aliases": ["Enchantress"],
+    "tags": ["lead"],
+    "customProperties": { "Expertise": "Mathematics" },
+    "sections": [{ "title": "Biography", "content": "Original **biography**." }],
+    "relationships": [{ "role": "collaborator", "target": "Charles Babbage", "category": "ally" }]
+  }
+}

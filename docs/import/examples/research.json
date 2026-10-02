@@ -1,0 +1,12 @@
+{
+  "novalistImport": 1,
+  "target": "research",
+  "data": {
+    "title": "Harbour maps",
+    "status": "Resolved",
+    "rating": 4,
+    "tags": ["harbour", "maps"],
+    "properties": { "Source": "Museum archive" }
+  },
+  "content": "# Map notes\n\nThe original quay had three docks."
+}

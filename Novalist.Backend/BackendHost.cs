@@ -15,6 +15,8 @@ public sealed class BackendHost : IDisposable
     private readonly TaskCompletionSource _shutdownRequested =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly Workspace _workspace;
+    private readonly SemaphoreSlim _workspaceGate = new(1, 1);
+    private readonly ImportApi.LocalImportApi _importApi;
     private readonly IProcessRunner? _processRunner;
     private JsonRpc? _rpc;
     private Core.Services.AssetWatchService? _assetWatch;
@@ -41,6 +43,7 @@ public sealed class BackendHost : IDisposable
         IFileService? fileService = null)
     {
         _workspace = new Workspace(settingsDirectory, storedPaths, fileService);
+        _importApi = new ImportApi.LocalImportApi(_workspace, _workspaceGate);
         _processRunner = processRunner;
     }
 
@@ -59,7 +62,7 @@ public sealed class BackendHost : IDisposable
         // One request at a time. Every facade below shares one Workspace and
         // none of the services behind it locks anything - see
         // SerialDispatchJsonRpc for what that cost and what this costs instead.
-        var rpc = new SerialDispatchJsonRpc(handler);
+        var rpc = new SerialDispatchJsonRpc(handler, _workspaceGate, _importApi.StopIfScopeChangedAsync);
         var targetOptions = new JsonRpcTargetOptions { DisposeOnDisconnect = false };
         rpc.AddLocalRpcTarget(new SystemRpc(RequestShutdown), targetOptions);
         rpc.AddLocalRpcTarget(new ProjectRpc(_workspace), targetOptions);
@@ -124,6 +127,8 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new GrammarRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new TemplatesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ImportRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new FolderImportRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new ImportApiRpc(_importApi), targetOptions);
         rpc.AddLocalRpcTarget(new ManuscriptImportRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ManuscriptPropertyRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new PremiseRpc(_workspace), targetOptions);
@@ -211,6 +216,7 @@ public sealed class BackendHost : IDisposable
     public void Dispose()
     {
         _assetWatch?.Dispose();
+        _importApi.Dispose();
         _rpc?.Dispose();
         _workspace.Dispose();
     }

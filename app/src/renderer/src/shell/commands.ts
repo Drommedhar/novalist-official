@@ -836,6 +836,14 @@ export const COMMANDS: CommandDef[] = [
     run: () => shell().openDialog('importManuscript')
   },
   {
+    id: 'app.importFolder',
+    labelKey: 'folderImport.action',
+    categoryKey: 'hotkeys.category.general',
+    scope: 'application',
+    available: projectOpen,
+    run: () => shell().openDialog('importFolder')
+  },
+  {
     id: 'app.about',
     labelKey: 'command.about',
     categoryKey: 'hotkeys.category.general',

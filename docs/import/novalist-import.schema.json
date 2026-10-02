@@ -1,0 +1,972 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Novalist structured import, version 1",
+  "description": "Give this schema to an external AI agent together with your source material. Produce one JSON document per entry. Keep names, facts and prose faithful to the source; omit unknown values. Use the examples and exact property keys. Put extra scalar facts in customProperties (entities) or properties (scenes/research), and prose in content or sections. Do not invent IDs or templates. Save one UTF-8 .json file per entry, grouped in folders by target, and choose File \u003E Import a folder in Novalist. Alternatively send each document to the local import API inside a record with a stable sourceId; GET /v1 describes the batch envelope and endpoints. To include Codex images, upload their raw bytes to POST /v1/images first and put the returned imageId, a source name and optional alt text in data.images. Image references must already exist in the destination book. No Novalist AI connection is needed.",
+  "$comment": "One object per document, never a dataset array. content is Markdown. Examples illustrate the format only; never copy their values as facts. For folder imports the selected folder target must equal target. API imports take the target from each document. Novalist generates IDs, storage paths and order. This export contains field definitions and active template IDs, never existing entries or their values. Fetch or export again after changing the active template or custom type definitions.",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "novalistImport": {
+          "type": "integer",
+          "const": 1
+        },
+        "target": {
+          "type": "string",
+          "const": "character"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "surname": {
+              "type": "string"
+            },
+            "aliases": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "gender": {
+              "type": "string"
+            },
+            "age": {
+              "type": "string"
+            },
+            "birthDate": {
+              "type": "string"
+            },
+            "ageMode": {
+              "type": "string",
+              "enum": [
+                "number",
+                "date"
+              ]
+            },
+            "ageIntervalUnit": {
+              "type": "string",
+              "enum": [
+                "Years",
+                "Months",
+                "Days"
+              ]
+            },
+            "role": {
+              "type": "string"
+            },
+            "group": {
+              "type": "string"
+            },
+            "eyeColor": {
+              "type": "string"
+            },
+            "hairColor": {
+              "type": "string"
+            },
+            "hairLength": {
+              "type": "string"
+            },
+            "height": {
+              "type": "string"
+            },
+            "build": {
+              "type": "string"
+            },
+            "skinTone": {
+              "type": "string"
+            },
+            "distinguishingFeatures": {
+              "type": "string"
+            },
+            "ai": {
+              "type": "string",
+              "enum": [
+                "WhenMentioned",
+                "Always",
+                "Never"
+              ]
+            },
+            "readerHidden": {
+              "type": "boolean"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "aiHidden": {
+                    "type": "boolean"
+                  },
+                  "readerHidden": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "title",
+                  "content"
+                ]
+              }
+            },
+            "relationships": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string"
+                  },
+                  "target": {
+                    "type": "string",
+                    "description": "Entity name, not an ID."
+                  },
+                  "category": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "role",
+                  "target"
+                ]
+              }
+            },
+            "images": {
+              "type": "array",
+              "maxItems": 100,
+              "description": "Upload image bytes to POST /v1/images first. Use its returned imageId; Novalist keeps a portable copy in the book. Omit images for text-only imports.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "imageId": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "pattern": "^[0-9a-f]{64}$",
+                    "description": "The imageId returned by POST /v1/images, not a filename or filesystem path."
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "description": "Image label from the source, or its filename."
+                  },
+                  "alt": {
+                    "type": "string",
+                    "description": "Optional alternative text from the source. Omit if unknown."
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "imageId",
+                  "name"
+                ]
+              }
+            },
+            "customProperties": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "not": {
+                  "enum": [
+                    "importedFrom",
+                    "importedMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "description": "Markdown: scene manuscript, research note, or additional entity writing."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "novalistImport",
+        "target",
+        "data"
+      ],
+      "title": "character",
+      "examples": [
+        {
+          "novalistImport": 1,
+          "target": "character",
+          "data": {
+            "name": "Example character",
+            "surname": "Example surname",
+            "age": "32",
+            "eyeColor": "brown"
+          },
+          "content": "Preserved writing in **Markdown**."
+        }
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "novalistImport": {
+          "type": "integer",
+          "const": 1
+        },
+        "target": {
+          "type": "string",
+          "const": "location"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "aliases": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "type": {
+              "type": "string"
+            },
+            "parent": {
+              "type": "string"
+            },
+            "isWorld": {
+              "type": "boolean"
+            },
+            "description": {
+              "type": "string"
+            },
+            "group": {
+              "type": "string"
+            },
+            "ai": {
+              "type": "string",
+              "enum": [
+                "WhenMentioned",
+                "Always",
+                "Never"
+              ]
+            },
+            "readerHidden": {
+              "type": "boolean"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "aiHidden": {
+                    "type": "boolean"
+                  },
+                  "readerHidden": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "title",
+                  "content"
+                ]
+              }
+            },
+            "relationships": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string"
+                  },
+                  "target": {
+                    "type": "string",
+                    "description": "Entity name, not an ID."
+                  },
+                  "category": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "role",
+                  "target"
+                ]
+              }
+            },
+            "images": {
+              "type": "array",
+              "maxItems": 100,
+              "description": "Upload image bytes to POST /v1/images first. Use its returned imageId; Novalist keeps a portable copy in the book. Omit images for text-only imports.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "imageId": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "pattern": "^[0-9a-f]{64}$",
+                    "description": "The imageId returned by POST /v1/images, not a filename or filesystem path."
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "description": "Image label from the source, or its filename."
+                  },
+                  "alt": {
+                    "type": "string",
+                    "description": "Optional alternative text from the source. Omit if unknown."
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "imageId",
+                  "name"
+                ]
+              }
+            },
+            "customProperties": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "not": {
+                  "enum": [
+                    "importedFrom",
+                    "importedMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "description": "Markdown: scene manuscript, research note, or additional entity writing."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "novalistImport",
+        "target",
+        "data"
+      ],
+      "title": "location",
+      "examples": [
+        {
+          "novalistImport": 1,
+          "target": "location",
+          "data": {
+            "name": "Example location"
+          },
+          "content": "Preserved writing in **Markdown**."
+        }
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "novalistImport": {
+          "type": "integer",
+          "const": 1
+        },
+        "target": {
+          "type": "string",
+          "const": "item"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "aliases": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "type": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "origin": {
+              "type": "string"
+            },
+            "group": {
+              "type": "string"
+            },
+            "ai": {
+              "type": "string",
+              "enum": [
+                "WhenMentioned",
+                "Always",
+                "Never"
+              ]
+            },
+            "readerHidden": {
+              "type": "boolean"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "aiHidden": {
+                    "type": "boolean"
+                  },
+                  "readerHidden": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "title",
+                  "content"
+                ]
+              }
+            },
+            "relationships": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string"
+                  },
+                  "target": {
+                    "type": "string",
+                    "description": "Entity name, not an ID."
+                  },
+                  "category": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "role",
+                  "target"
+                ]
+              }
+            },
+            "images": {
+              "type": "array",
+              "maxItems": 100,
+              "description": "Upload image bytes to POST /v1/images first. Use its returned imageId; Novalist keeps a portable copy in the book. Omit images for text-only imports.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "imageId": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "pattern": "^[0-9a-f]{64}$",
+                    "description": "The imageId returned by POST /v1/images, not a filename or filesystem path."
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "description": "Image label from the source, or its filename."
+                  },
+                  "alt": {
+                    "type": "string",
+                    "description": "Optional alternative text from the source. Omit if unknown."
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "imageId",
+                  "name"
+                ]
+              }
+            },
+            "customProperties": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "not": {
+                  "enum": [
+                    "importedFrom",
+                    "importedMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "description": "Markdown: scene manuscript, research note, or additional entity writing."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "novalistImport",
+        "target",
+        "data"
+      ],
+      "title": "item",
+      "examples": [
+        {
+          "novalistImport": 1,
+          "target": "item",
+          "data": {
+            "name": "Example item"
+          },
+          "content": "Preserved writing in **Markdown**."
+        }
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "novalistImport": {
+          "type": "integer",
+          "const": 1
+        },
+        "target": {
+          "type": "string",
+          "const": "lore"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "aliases": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "category": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "group": {
+              "type": "string"
+            },
+            "ai": {
+              "type": "string",
+              "enum": [
+                "WhenMentioned",
+                "Always",
+                "Never"
+              ]
+            },
+            "readerHidden": {
+              "type": "boolean"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "aiHidden": {
+                    "type": "boolean"
+                  },
+                  "readerHidden": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "title",
+                  "content"
+                ]
+              }
+            },
+            "relationships": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string"
+                  },
+                  "target": {
+                    "type": "string",
+                    "description": "Entity name, not an ID."
+                  },
+                  "category": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "role",
+                  "target"
+                ]
+              }
+            },
+            "images": {
+              "type": "array",
+              "maxItems": 100,
+              "description": "Upload image bytes to POST /v1/images first. Use its returned imageId; Novalist keeps a portable copy in the book. Omit images for text-only imports.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "imageId": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "pattern": "^[0-9a-f]{64}$",
+                    "description": "The imageId returned by POST /v1/images, not a filename or filesystem path."
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "description": "Image label from the source, or its filename."
+                  },
+                  "alt": {
+                    "type": "string",
+                    "description": "Optional alternative text from the source. Omit if unknown."
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "imageId",
+                  "name"
+                ]
+              }
+            },
+            "customProperties": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "not": {
+                  "enum": [
+                    "importedFrom",
+                    "importedMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "description": "Markdown: scene manuscript, research note, or additional entity writing."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "novalistImport",
+        "target",
+        "data"
+      ],
+      "title": "lore",
+      "examples": [
+        {
+          "novalistImport": 1,
+          "target": "lore",
+          "data": {
+            "name": "Example lore"
+          },
+          "content": "Preserved writing in **Markdown**."
+        }
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "novalistImport": {
+          "type": "integer",
+          "const": 1
+        },
+        "target": {
+          "type": "string",
+          "const": "scene"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "date": {
+              "type": "string"
+            },
+            "isFavorite": {
+              "type": "boolean"
+            },
+            "notes": {
+              "type": "string"
+            },
+            "synopsis": {
+              "type": "string"
+            },
+            "goal": {
+              "type": "string"
+            },
+            "outcome": {
+              "type": "string"
+            },
+            "inactive": {
+              "type": "boolean"
+            },
+            "wordTarget": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "beat": {
+              "type": "string"
+            },
+            "stage": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "excludeFromExport": {
+              "type": "boolean"
+            },
+            "narrativeMode": {
+              "type": "string"
+            },
+            "strand": {
+              "type": "string"
+            },
+            "pov": {
+              "type": "string"
+            },
+            "emotion": {
+              "type": "string"
+            },
+            "intensity": {
+              "type": "integer",
+              "minimum": -10,
+              "maximum": 10
+            },
+            "conflict": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "properties": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "not": {
+                  "enum": [
+                    "importedFrom",
+                    "importedMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "title"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "description": "Markdown: scene manuscript, research note, or additional entity writing."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "novalistImport",
+        "target",
+        "data",
+        "content"
+      ],
+      "title": "scene",
+      "examples": [
+        {
+          "novalistImport": 1,
+          "target": "scene",
+          "data": {
+            "title": "Example scene"
+          },
+          "content": "Preserved writing in **Markdown**."
+        }
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "novalistImport": {
+          "type": "integer",
+          "const": 1
+        },
+        "target": {
+          "type": "string",
+          "const": "research"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "None",
+                "Open",
+                "InProgress",
+                "Resolved"
+              ]
+            },
+            "rating": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "properties": {
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "not": {
+                  "enum": [
+                    "importedFrom",
+                    "importedMetadata"
+                  ]
+                }
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "title"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "description": "Markdown: scene manuscript, research note, or additional entity writing."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "novalistImport",
+        "target",
+        "data",
+        "content"
+      ],
+      "title": "research",
+      "examples": [
+        {
+          "novalistImport": 1,
+          "target": "research",
+          "data": {
+            "title": "Example research"
+          },
+          "content": "Preserved writing in **Markdown**."
+        }
+      ]
+    }
+  ]
+}

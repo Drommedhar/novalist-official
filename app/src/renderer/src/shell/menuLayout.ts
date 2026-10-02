@@ -78,6 +78,7 @@ const FILE = [
   'app.importProject',
   'app.restoreBackup',
   'app.importManuscript',
+  'app.importFolder',
   '-',
   'project.quickCapture',
   'app.print'

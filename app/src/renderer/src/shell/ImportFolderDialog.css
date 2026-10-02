@@ -1,0 +1,278 @@
+.dialog-card.folder-import-card {
+  width: var(--nl-dialog-width-wide);
+  max-width: calc(100vw - var(--nl-space-xxl));
+  max-height: 90dvh;
+  overflow: hidden;
+  padding: var(--nl-space-xl);
+  gap: var(--nl-space-lg);
+}
+
+.folder-import-card p,
+.folder-import-card h2,
+.folder-import-card h3 {
+  margin: var(--nl-space-none);
+  padding: var(--nl-space-none);
+}
+
+.folder-import-card > .dialog-title,
+.folder-import-footer {
+  flex-shrink: 0;
+}
+
+.folder-import-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  min-height: var(--nl-space-none);
+  overflow-y: auto;
+  padding: var(--nl-space-tightest);
+}
+
+.folder-import-section {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-md);
+  border: var(--nl-rule-width) solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+}
+
+.folder-import-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.folder-import-section-header h3 {
+  font-size: var(--nl-font-body);
+  font-weight: var(--nl-weight-title);
+  color: var(--nl-text);
+}
+
+.folder-import-help {
+  font-size: var(--nl-font-ui);
+  color: var(--nl-text-dim);
+}
+
+.folder-import-card .export-field-label {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-ui);
+  font-weight: var(--nl-weight-label);
+}
+
+.folder-import-card .dialog-input {
+  min-width: var(--nl-space-none);
+  font-size: var(--nl-font-ui);
+}
+
+.folder-import-card .dialog-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nl-space-sm);
+  border-width: var(--nl-rule-width);
+  border-color: var(--nl-border-firm);
+  background: var(--nl-surface-input);
+  color: var(--nl-text);
+  font-size: var(--nl-font-ui);
+  font-weight: var(--nl-weight-label);
+}
+
+.folder-import-card .dialog-button:hover:not(:disabled):not(.primary) {
+  background: var(--nl-surface-hover);
+  border-color: var(--nl-accent);
+}
+
+.folder-import-card .dialog-button.primary {
+  background: var(--nl-foil);
+  border-color: transparent;
+  color: var(--nl-accent-ink);
+  font-weight: var(--nl-weight-title);
+}
+
+.folder-import-card .dialog-button:focus-visible,
+.folder-import-card summary:focus-visible,
+.folder-import-switch:focus-visible {
+  outline: var(--nl-space-hairline) solid var(--nl-focus-ring);
+  outline-offset: var(--nl-space-hairline);
+}
+
+.folder-import-card .dialog-button:disabled,
+.folder-import-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.folder-import-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nl-space-sm);
+}
+
+.folder-import-control-row > input {
+  flex: 1 1 var(--nl-field-width-sm);
+}
+
+.folder-import-control-row > button {
+  flex-shrink: 0;
+}
+
+.folder-import-targets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  min-width: var(--nl-space-none);
+  margin: var(--nl-space-none);
+  padding: var(--nl-space-md) var(--nl-space-none) var(--nl-space-none);
+  border: none;
+  border-top: var(--nl-rule-width) solid var(--nl-border);
+}
+
+.folder-import-targets legend {
+  padding-inline: var(--nl-space-none) var(--nl-space-sm);
+  font-size: var(--nl-font-ui);
+  font-weight: var(--nl-weight-title);
+}
+
+.folder-import-run,
+.folder-import-section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-sm);
+}
+
+.folder-import-run {
+  justify-content: flex-end;
+}
+
+.folder-import-api-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nl-space-md);
+  cursor: pointer;
+}
+
+.folder-import-api-toggle-label {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 var(--nl-field-width-sm);
+  gap: var(--nl-space-tightest);
+  font-size: var(--nl-font-ui);
+  font-weight: var(--nl-weight-label);
+}
+
+.folder-import-api-toggle-label .folder-import-help {
+  font-weight: normal;
+}
+
+.folder-import-api-toggle-control {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+}
+
+.folder-import-api-state {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-ui);
+}
+
+.folder-import-switch {
+  appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: calc(var(--nl-space-xl) + var(--nl-space-lg));
+  height: var(--nl-space-xl);
+  margin: var(--nl-space-none);
+  background: var(--nl-surface-input);
+  border: var(--nl-rule-width) solid var(--nl-border-firm);
+  border-radius: var(--nl-radius-pill);
+  cursor: pointer;
+}
+
+.folder-import-switch::after {
+  content: '';
+  position: absolute;
+  top: var(--nl-space-hairline);
+  inset-inline-start: var(--nl-space-hairline);
+  width: var(--nl-space-lg);
+  height: var(--nl-space-lg);
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-text);
+}
+
+.folder-import-switch:checked {
+  background: var(--nl-accent);
+  border-color: var(--nl-accent);
+}
+
+.folder-import-switch:checked::after {
+  inset-inline-start: calc(100% - var(--nl-space-lg) - var(--nl-space-hairline));
+  background: var(--nl-accent-ink);
+}
+
+.folder-import-details summary {
+  width: fit-content;
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-ui);
+  cursor: pointer;
+}
+
+.folder-import-details[open] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+}
+
+.folder-import-footer {
+  padding-top: var(--nl-space-md);
+  border-top: var(--nl-rule-width) solid var(--nl-border);
+}
+
+.folder-import-folders {
+  max-height: 35dvh;
+  overflow-y: auto;
+  margin-block: var(--nl-space-none);
+}
+
+.folder-import-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding-block: var(--nl-space-sm);
+  border-bottom: var(--nl-rule-width) solid var(--nl-border);
+}
+
+.folder-import-path {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: var(--nl-field-width-sm);
+  overflow-wrap: anywhere;
+}
+
+.folder-import-row select {
+  flex: 1;
+  min-width: var(--nl-field-width-sm);
+}
+
+.folder-import-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-sm);
+}
+
+.folder-import-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+}
+
+.folder-import-progress progress {
+  width: 100%;
+  accent-color: var(--nl-accent);
+}

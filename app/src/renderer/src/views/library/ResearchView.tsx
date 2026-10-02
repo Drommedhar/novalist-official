@@ -4,9 +4,10 @@ import { RevisionsPanel } from '../../shell/RevisionsPanel'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { ExternalLink, FolderOpen, Inbox, Link2, Star, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
-import { ImportVaultDialog } from '../../shell/ImportVaultDialog'
+import { ImportFolderDialog } from '../../shell/ImportFolderDialog'
 import { ScratchpadPanel } from '../../shell/ScratchpadPanel'
 import { useShellStore } from '../../stores/shellStore'
+import { useHostBridgeStore } from '../../stores/hostBridgeStore'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { CustomFieldsPanel } from '../../shell/CustomFieldsPanel'
 import { EntityTypeDialog } from '../../shell/EntityTypeDialog'
@@ -50,6 +51,8 @@ export function ResearchView(): React.JSX.Element {
   const { t } = useTranslation()
   const pendingResearchId = useShellStore((s) => s.pendingResearchId)
   const clearPendingResearch = useShellStore((s) => s.clearPendingResearch)
+  const folderImportOpen = useShellStore((s) => s.dialog === 'importFolder')
+  const importRevision = useHostBridgeStore((s) => s.importRevision)
   const [items, setItems] = useState<ResearchItemDto[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
@@ -65,8 +68,17 @@ export function ResearchView(): React.JSX.Element {
   const [filing, setFiling] = useState<'create' | 'append' | null>(null)
 
   useEffect(() => {
-    void rpc.request<ResearchItemDto[]>('research/list').then(setItems)
-  }, [])
+    if (folderImportOpen || vaultOpen) return
+    let cancelled = false
+    void rpc.request<ResearchItemDto[]>('research/list').then(updated => {
+      if (!cancelled) setItems(previous => {
+        // API imports add entries; keep local edits to existing notes while merging new ones.
+        const existing = new Map(previous.map(item => [item.id, item]))
+        return updated.map(item => existing.get(item.id) ?? item)
+      })
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [folderImportOpen, vaultOpen, importRevision])
 
   // Quick-open (and other deep links) can ask for a specific item; select it once
   // the list has loaded, then clear the request so it fires only once.
@@ -80,8 +92,9 @@ export function ResearchView(): React.JSX.Element {
 
   const selected = items.find((i) => i.id === selectedId) ?? null
 
-  // Load the Codex once per visit so links can be picked and shown by name.
+  // Refresh after either folder-import entry point so new entries can be linked.
   useEffect(() => {
+    if (folderImportOpen || vaultOpen) return
     let cancelled = false
     const load = async (): Promise<void> => {
       const types = ['character', 'location', 'item', 'lore']
@@ -107,7 +120,7 @@ export function ResearchView(): React.JSX.Element {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [folderImportOpen, vaultOpen, importRevision])
 
   const entityNames = new Map(allEntities.map((e) => [e.id, e.name]))
 
@@ -345,9 +358,7 @@ export function ResearchView(): React.JSX.Element {
             <button className="research-action-btn" onClick={() => void importFile()}>
               {t('research.importFile')}
             </button>
-            {/* A folder of ordinary Markdown notes - which is what a vault is
-                once the plugin that made it is gone, and what every other tool
-                exports. */}
+            {/* The generic folder importer starts with research selected here. */}
             <button className="research-action-btn" onClick={() => setVaultOpen(true)}>
               {t('research.importVault')}
             </button>
@@ -736,15 +747,9 @@ export function ResearchView(): React.JSX.Element {
         />
       )}
       {vaultOpen && (
-        <ImportVaultDialog
-          onClose={() => {
-            setVaultOpen(false)
-            // Whatever came in should be on screen without a navigation.
-            void rpc
-              .request<ResearchItemDto[]>('research/list')
-              .then(setItems)
-              .catch(() => {})
-          }}
+        <ImportFolderDialog
+          initialTarget="research"
+          onClose={() => setVaultOpen(false)}
         />
       )}
     </div>

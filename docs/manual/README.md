@@ -16,7 +16,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 
 1. [Getting Started](01-getting-started.md) — install Novalist, create your first project, write your first scene.
 2. [Interface Overview](02-interface-overview.md) — the five modes, the mode rail and mode panel, the menu bar, toolbar, binder, main area, inspector, status bar, and where every kind of command lives.
-3. [Importing a manuscript](38-manuscript-import.md) — bring an existing book in from Word, OpenDocument, EPUB, Markdown, plain text or RTF.
+3. [Importing a manuscript or folder](38-manuscript-import.md) — bring in an existing book, or assign folders of Markdown, text, and structured JSON to scenes, Codex entries, and research; export a schema or start a local API for an external agent.
 4. [Projects & Books](03-projects-and-books.md) — what a project is, the multi-book model, project folder layout, recent-projects list.
 
 ### Writing

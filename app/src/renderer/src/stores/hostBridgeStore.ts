@@ -97,6 +97,7 @@ export interface WizardSession {
 }
 
 interface HostBridgeState {
+  importRevision: number
   toasts: HostToast[]
   progress: HostProgress[]
   wizard: WizardSession | null
@@ -116,6 +117,7 @@ let nextToastId = 1
 const TOAST_TIMEOUT_MS = 5000
 
 export const useHostBridgeStore = create<HostBridgeState>((set, get) => ({
+  importRevision: 0,
   toasts: [],
   progress: [],
   wizard: null,
@@ -174,6 +176,19 @@ export function registerHostBridge(): void {
     void rpc
       .request<ProjectStateDto>('project/getState')
       .then((state) => useProjectStore.getState().applyState(state))
+  })
+
+  rpc.onNotification('importApi/changed', (params) => {
+    useHostBridgeStore.setState(state => ({ importRevision: state.importRevision + 1 }))
+    const change = firstParam<{ target?: string; id?: string } | null>(params)
+    const codex = useCodexStore.getState()
+    if (!change?.id || change.target !== codex.entityType || change.id !== codex.selectedId) return
+    // A photo attachment updates the open gallery without replacing local text drafts.
+    void rpc.request<Record<string, unknown>>('entities/get', [change.target, change.id])
+      .then(record => {
+        useCodexStore.setState(state => state.entityType === change.target && state.selectedId === change.id && state.selectedRecord
+          ? { selectedRecord: { ...state.selectedRecord, images: record.images } } : {})
+      }).catch(() => {})
   })
 
   rpc.onNotification('ui/showNotification', (params) => {

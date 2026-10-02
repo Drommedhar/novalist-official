@@ -6,7 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableImportApi Condition="'$(EnableImportApi)' == ''">true</EnableImportApi>
+    <DefineConstants Condition="'$(EnableImportApi)' == 'true'">$(DefineConstants);NOVALIST_IMPORT_API</DefineConstants>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(EnableImportApi)' == 'true'">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Novalist.Backend.Tests" />

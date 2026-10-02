@@ -53,6 +53,10 @@ public sealed class UiBridge
     /// </summary>
     public void ProjectStructureChanged() => Send("project/structureChanged", null);
 
+    /// <summary>New imported records let open library views merge them into their lists.</summary>
+    public void ImportChanged(string? target = null, string? id = null)
+        => Send("importApi/changed", id == null ? null : new { target, id });
+
     // ── Busy progress ───────────────────────────────────────────────
 
     /// <summary>Opens an RPC-backed busy-progress dialog and returns the handle

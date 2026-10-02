@@ -1,0 +1,15 @@
+{
+  "novalistImport": 1,
+  "target": "scene",
+  "data": {
+    "title": "Arrival",
+    "synopsis": "Ada reaches the harbour.",
+    "pov": "Ada Lovelace",
+    "goal": "Reach land before the storm.",
+    "outcome": "The ship docks safely.",
+    "wordTarget": 1000,
+    "tags": ["harbour"],
+    "properties": { "Research needed": "Harbour maps" }
+  },
+  "content": "She **arrived** at the harbour.\n\nThe storm followed."
+}

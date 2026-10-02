@@ -1,0 +1,12 @@
+{
+  "novalistImport": 1,
+  "target": "item",
+  "data": {
+    "name": "Silver key",
+    "type": "Tool",
+    "origin": "Harbour forge",
+    "description": "Opens the north gate.",
+    "customProperties": { "Material": "Silver" },
+    "relationships": [{ "role": "owner", "target": "Ada Lovelace", "category": "owner" }]
+  }
+}

@@ -71,6 +71,7 @@ export type ShellDialog =
   | 'restoreBackup'
   | 'importPlugin'
   | 'importManuscript'
+  | 'importFolder'
 
 export type BinderTab = 'chapters' | 'smartLists' | 'collections' | 'bookmarks'
 

@@ -91,22 +91,15 @@ Every item carries three things beyond its content, all optional and all set fro
 
 Links are written **both ways**. A one-way link is discoverable only from the item that carries it, and the end worth finding is usually the other one: the question a source answers is what you are reading when you need the source. Deleting an item removes the links pointing at it, so nothing is left referring to something that is gone.
 
-## Importing a folder of Markdown notes
+## Importing a folder of notes
 
-Novalist could import exactly one thing: a vault made by the old Obsidian Novalist plugin, with its own metadata files alongside the notes. A folder of *ordinary* notes — which is what that vault becomes once the plugin is gone, and what most other tools export — had no way in at all.
+**Import a folder** in the Research toolbar reads `.md`, `.markdown`, `.txt`, and Novalist import `.json` files from a folder and its subfolders. It starts with **Research notes** as the default target. You can choose another target for individual subfolders, including scenes, characters, locations, items, lore, and custom Codex types. Nested folders inherit their parent's target unless you override them; **Skip** excludes a folder. Explicit metadata and labels fill matching fields. **Export import schema…** provides a schema with examples and your book's custom fields for transforming files with an external AI agent; see the [schema guide](https://github.com/Drommedhar/novalist-official/blob/main/docs/import/README.md).
 
-**Import a folder** in the Research toolbar takes any folder of `.md` files.
+The scan shows file and folder counts before importing. Search the folder list or browse its pages to assign targets in a large dataset. Markdown titles and tags are read from front matter, with the first heading or file name as a fallback. Folder names become tags, and an optional tag can identify the whole import. Tool state folders are left out.
 
-- It **scans first** and tells you how many notes it found, names the first of them, and lists the tags and folder names it saw. Importing four hundred notes is not something to find out about afterwards.
-- **Front matter is read.** A `title:` wins over everything; `tags:` are read whether they are written as a list, comma-separated, or with hashes. The front matter block itself does not land in the note you read.
-- With no front matter the **first heading** is the title; with neither, the **file name** is. A note is never nameless — an untitled row in a list of four hundred is a note nobody will open.
-- **The folders a note was filed in become tags.** They are the only classification you actually made, so they survive the trip.
-- A tool's own state — `.obsidian`, `.git`, `.trash` — is skipped. Importing a plugin's config as a research note fills the list with things nobody wrote.
-- You can **tag everything** from one import with a name of your choosing, so a vault's worth of notes can be found together later.
+Progress updates after each batch. You can stop and continue without losing saved entries. Importing the same source folder again skips existing imports and brings in new files.
 
-Everything lands as **research**, not sorted into the Codex. A note about a character and a note about a battle look identical, and an import that files half of them wrongly is worse than one that files all of them somewhere you can move them from.
-
-Importing the same folder twice **does not duplicate anything** — each note remembers where it came from — so you can re-run it after adding notes and only the new ones come in.
+See [Importing a folder of files](38-manuscript-import.md#importing-a-folder-of-files) for the full workflow and how each target stores its content.
 
 ## Linking research to the Codex
 

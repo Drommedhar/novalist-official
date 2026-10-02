@@ -347,14 +347,19 @@ public partial class ProjectService : IProjectService
         }
 
         var metadataPath = _fileService.CombinePath(ProjectRoot, ".novalist", "project.json");
-        var json = JsonSerializer.Serialize(CurrentProject, JsonOptions);
-        await _fileService.WriteTextAsync(metadataPath, json);
-
-        // Restore in-memory state.
-        foreach (var (book, chs, acts) in snapshot)
+        try
         {
-            book.Chapters = chs;
-            book.Acts = acts;
+            var json = JsonSerializer.Serialize(CurrentProject, JsonOptions);
+            await _fileService.WriteTextAsync(metadataPath, json);
+        }
+        finally
+        {
+            // A failed write must restore the live draft as well.
+            foreach (var (book, chs, acts) in snapshot)
+            {
+                book.Chapters = chs;
+                book.Acts = acts;
+            }
         }
     }
 

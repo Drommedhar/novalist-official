@@ -5,6 +5,7 @@ import { CreateProjectDialog } from './CreateProjectDialog'
 import { RestoreBackupDialog } from './RestoreBackupDialog'
 import { DraftCompareDialog } from './DraftCompareDialog'
 import { ImportManuscriptDialog } from './ImportManuscriptDialog'
+import { ImportFolderDialog } from './ImportFolderDialog'
 import { ImportPluginDialog } from './ImportPluginDialog'
 import { InputDialog } from './InputDialog'
 import { PaneLayoutsDialog } from './PaneLayoutsDialog'
@@ -144,6 +145,7 @@ export function ShellDialogs(): React.JSX.Element | null {
   if (dialog === 'restoreBackup') return <RestoreBackupDialog onClose={close} />
 
   if (dialog === 'importManuscript') return <ImportManuscriptDialog onClose={close} />
+  if (dialog === 'importFolder') return <ImportFolderDialog onClose={close} />
 
   if (dialog === 'importPlugin') {
     return (
