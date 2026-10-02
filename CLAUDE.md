@@ -136,29 +136,33 @@ The canonical user-facing documentation lives in `docs/manual/` (entry point `do
 *   Keep the same no-emoji rule that applies to the rest of the project. Use plain text labels and Markdown formatting. SVG / emoji glyphs do not belong in docs prose either.
 *   If you're unsure whether a change is user-visible enough to warrant a docs edit: **err on the side of editing.** A one-line addition that turns out unnecessary costs nothing; a missed docs update means the manual is wrong on the very next read.
 
-## Every commit MUST update CHANGELOG.md
+## Keep CHANGELOG.md focused on changes since the last release
 
-`CHANGELOG.md` at the repo root is the user-facing release history for the desktop app. It is written for writers using Novalist, not for developers reading diffs. Every commit that changes anything a user could notice MUST add its entry to the **Unreleased** section in the same commit — never as a follow-up.
+`CHANGELOG.md` at the repo root is the user-facing release history for the desktop app. It is written for writers using Novalist, not for developers reading diffs. Every commit that changes anything a user could notice MUST keep the relevant entry in **Unreleased** accurate in the same commit — never as a follow-up. Update an existing entry when appropriate instead of adding a bullet for every commit. **Unreleased describes the final changes users will receive since the last desktop release, not the development history of those changes.**
 
 **Format:** [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) with semantic versioning. Newest release first. Inside a release, entries are grouped under these headings, in this order, omitting the empty ones:
 
 *   **Added** — new feature, view, dialog, setting, format, hotkey, provider, language.
-*   **Changed** — existing behavior that now works differently, including UI reorganizations and defaults.
-*   **Fixed** — bugs. Describe the symptom the user saw, not the internal cause.
+*   **Changed** — previously released behavior that now works differently, including UI reorganizations and defaults.
+*   **Fixed** — bugs users could encounter in a previously released desktop version. Describe the symptom the user saw, not the internal cause.
 *   **Removed** — features, formats, settings, or SDK surface that are gone.
 *   **Security** — anything with a security or privacy impact.
 
 **How to apply:**
 
+*   Check the relevant desktop release tags and published changelog sections before adding, copying, or moving an entry. Include only changes reaching desktop users in the upcoming release that have not already shipped. A new commit or different wording does not make released behavior new; another change to the same feature must describe a distinct new outcome.
+*   **Do not list fixes to a feature making its first release.** Users never received its broken development state. Remove those standalone fix notes; update the feature's **Added** description only when its final capabilities need explaining. The same applies to **Changed** or **Removed** notes that only describe revisions to an unreleased feature.
+*   Consolidate iterations on an unreleased feature into its final description. Keep a separate entry only for a distinct user-visible change, including fixes to previously released behavior discovered while developing a new feature.
 *   Work in progress lands under the topmost `## [Unreleased]` heading. **Never invent a version number for it** — the release workflow stamps the real one from the pushed tag. If the section is missing, add it back as a bare `## [Unreleased]`.
 *   Releasing is automatic and you do not do it by hand. On a stable tag, `.github/workflows/release.yml` reads the Unreleased section, publishes it as the GitHub release notes, then runs `tools/changelog.py release` to rename the heading to `## [X.Y.Z] - <tag date>`, add the compare link, open a fresh Unreleased section, and push that back to the default branch as `docs(changelog): release X.Y.Z [skip ci]`. Prerelease tags (any tag containing `-`) publish the notes but deliberately leave the Unreleased section intact.
 *   Use `python tools/changelog.py extract --version 2.1.1` to read a past section, and `--unreleased` for the pending one.
 *   One bullet per user-visible change, in plain language. Say what the user can now do or what stopped going wrong — not which class or RPC method changed. Bold the feature name when a bullet introduces one (`**Wiki view** — ...`).
 *   Do not name files, classes, RPC namespaces, or commit hashes. Do not reference internal milestone or plan names (M3, "parity wave 2"). Do not paste commit subjects verbatim.
 *   iOS / mobile-only work does not belong in this file — the mobile app releases under its own `ios-*` tags. If a change touches both, write the desktop half only.
+*   Before finishing, read **Unreleased** as the next release's notes: remove already released changes, internal work, development fixes to new features, duplicate bullets, and empty category headings. Leave published release sections unchanged unless explicitly correcting release history.
 *   The same no-emoji rule applies here.
 
-**What does NOT need an entry:** pure refactors, internal renames, dependency bumps, test-only changes, CI/build changes that do not alter what ships, and documentation-only edits. If a "refactor" changed behavior at all, it needs an entry.
+**What does NOT need an entry:** pure refactors, internal renames, dependency bumps without a user-visible or security impact, test-only changes, CI/build/signing work without a user-visible outcome, documentation-only edits, changes already released, and fixes or revisions to features making their first release. If a "refactor" changed previously released behavior at all, it needs an entry.
 
 **Why:** the changelog is what users read to decide whether to update and to understand what changed after they do. Reconstructing it from terse commit subjects after the fact is guesswork — the early 1.x history had to be rebuilt from diffs because the messages said "More" and "Fixes". Writing the entry while the change is fresh is the only point at which it is cheap and accurate.
 

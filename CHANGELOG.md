@@ -12,6 +12,11 @@ own `ios-*` tags and is not tracked here.
 Changes land under **Unreleased**. When a tag is pushed, the release workflow uses that section as
 the GitHub release notes and stamps it with the tag's version and date.
 
+**Unreleased** describes the final user-facing changes since the last desktop release. Omit
+changes already released, internal development work, and fixes or revisions to features making
+their first release; describe those features once under **Added**. **Fixed** covers bugs users
+could encounter in a previously released version.
+
 ---
 
 ## [Unreleased]
@@ -21,23 +26,17 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **Folder import** — choose a folder of Markdown, text, or structured JSON files and assign each subfolder to scenes, characters, locations, items, lore, research, or a custom Codex type. Explicit metadata, labels, tables, and headings populate built-in and custom fields while preserving source text. Export a schema with your book's custom fields and examples to transform files using your own external AI agent. Nested folders inherit your choices; searchable pages, batch progress, stop and continue, and repeat-import protection keep large datasets manageable.
 - **Local import API** — let your own external agent discover types and custom fields, upload Codex images, validate structured records, and import them directly from a source folder. Images are stored in the book, repeated uploads reuse them, and missing photos can be added to previous imports without replacing edited text or fields. Start the API and copy its connection instructions from the folder import dialog. Batches show progress, retries skip existing entries, and the API stops when you change project, book, or draft or close Novalist.
 - **System dictation** — dictate in English or German without an extension or Novalist-managed models. Windows opens its built-in online voice typing; supported Macs on macOS 26 or newer use on-device Apple speech recognition with system language packs. Find language preparation under Settings → Writing assistance → System dictation. Automatic character dialogue formatting remains available through AI Assistant.
-- **Dictation acceleration** — both speech recognition and dialogue detection can use NVIDIA CUDA, supported AMD ROCm GPUs, or MLX on native Apple Silicon. Automatic selects available hardware; CPU remains selectable. Each accelerator has its own local runtime.
-- **Whisper Large v3** is available as a local dictation speech model in AI Assistant settings (~3.1 GB download).
-- **Local dictation** — download speech and dialogue models in AI Assistant settings, then write continuously in English or German offline, directly in the editor. Dialogue follows your quotation style and starts on a new paragraph; speech tags stay with their dialogue. Pending speech can be retried after a processing failure and stays attached to its original scene. Extension settings now display their section headings.
+- **Local dictation** — download speech and dialogue models in AI Assistant settings, then write continuously in English or German offline, directly in the editor. Dialogue follows your quotation style and starts on a new paragraph; speech tags stay with their dialogue. Whisper Large v3 is available as a speech model (~3.1 GB download). Speech recognition and dialogue detection can use NVIDIA CUDA, supported AMD ROCm GPUs, or MLX on native Apple Silicon, with automatic hardware selection and a CPU option.
 
 ### Changed
 
-- The folder import dialog groups file import, schema preparation and direct agent import into clearly labelled sections. Actions have visible button borders, the local API uses an on/off switch, and Close remains visible while scrolling through large folder lists.
+- Extension settings display section headings to group related options.
 
 ### Fixed
 
-- Finished folder imports show **Close** as the main action; **Continue import** appears only while files remain to process.
-- Codex folder imports keep numeric ages visible, parse clearly labelled appearance phrases, copy linked images, and store extra labelled facts as editable custom properties. Character-sheet chapter values stay separate from general fields, and metadata blocks no longer become duplicate text sections.
-- A failed project save now preserves chapters and acts in memory, so retrying an import after a disk or permission error keeps the existing draft intact.
-- AI Assistant starts loading its speech and dialogue models when recording begins, reducing the delay before the first dictated text. You can speak while they load; captured speech waits safely for processing.
-
-- Mac builds keep the native dictation library matched to the build architecture and can be signed when renewed certificates share the same name.
-- Dictation keeps inserting where recording began when the page layout or grammar highlights refresh, instead of moving speech to the end of the scene.
+- A failed project save preserves chapters and acts in memory, so a disk or permission error no longer leaves the current draft empty when retrying.
+- Custom fields added by Codex templates appear on new entries and remain editable, including fields with empty defaults and fields on custom entity types.
+- Codex section edits are saved when switching entries or opening the Wiki, and custom entity sections save correctly.
 
 ---
 
