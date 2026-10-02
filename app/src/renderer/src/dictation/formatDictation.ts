@@ -51,7 +51,7 @@ export function formatDictation(segments: DictationSegment[], quotes: QuotePair,
     const next = segments[index + 1]
     if (segment.kind === 'dialogue') {
       // Providers occasionally include the outer quotes despite the contract.
-      part = part.replace(/^["„“”»«]+\s*/, '').replace(/\s*["„“”»«]+$/, '')
+      part = unquote(part)
       let after = ''
       if (next?.kind === 'attribution' && !next.newParagraph) {
         if (language === 'de') {
@@ -71,7 +71,9 @@ export function formatDictation(segments: DictationSegment[], quotes: QuotePair,
 }
 
 function unquote(text: string): string {
-  return text.trim().replace(/^["„“”»«]+\s*/, '').replace(/\s*["„“”»«]+$/, '')
+  // A provider may copy the previous clip's closing quote and speech-tag comma.
+  // The host restores that comma in the position required by the chosen language.
+  return text.trim().replace(/^["„“”»«]+\s*/, '').replace(/\s*["„“”»«]+,?$/, '')
 }
 
 /** Keep model context aligned with the paragraphs and quotes inserted in the editor. */

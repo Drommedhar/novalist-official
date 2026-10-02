@@ -25,3 +25,8 @@
 }
 .dictation-controls button:disabled { opacity: 0.5; }
 .dictation-bar p { margin: var(--nl-space-sm) var(--nl-space-none) var(--nl-space-none); }
+.dictation-options { margin-top: var(--nl-space-sm); }
+.dictation-options summary { cursor: pointer; margin-bottom: var(--nl-space-sm); }
+.dictation-level meter { width: var(--nl-inline-editor-width); height: var(--nl-space-md); }
+.dictation-level meter::-webkit-meter-bar { background: var(--nl-surface-input); border: thin solid var(--nl-border); }
+.dictation-level meter::-webkit-meter-optimum-value { background: var(--nl-accent); }

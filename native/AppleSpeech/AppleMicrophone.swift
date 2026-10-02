@@ -34,6 +34,7 @@ private final class SystemMicrophone {
     private var silence = 0
     private var clips: [String] = []
     private var ended = false
+    private var level: Float = 0
     private var tapped = false
     private var interruption: NSObjectProtocol?
     private var background: NSObjectProtocol?
@@ -81,6 +82,7 @@ private final class SystemMicrophone {
         queue.sync {
             if !ended { flush() }
             ended = true
+            level = 0
         }
         if let interruption { NotificationCenter.default.removeObserver(interruption); self.interruption = nil }
         if let background { NotificationCenter.default.removeObserver(background); self.background = nil }
@@ -89,7 +91,7 @@ private final class SystemMicrophone {
 
     func read() -> [String: Any] {
         queue.sync {
-            let result: [String: Any] = ["clips": clips, "ended": ended]
+            let result: [String: Any] = ["clips": clips, "ended": ended, "level": level]
             clips.removeAll(keepingCapacity: true)
             return result
         }
@@ -99,6 +101,7 @@ private final class SystemMicrophone {
         guard !ended, !samples.isEmpty else { return }
         frames.append(contentsOf: samples)
         let rms = sqrt(samples.reduce(Float(0)) { $0 + $1 * $1 } / Float(samples.count))
+        level = max(0, min(1, (20 * log10(max(rms, 0.000001)) + 60) / 60))
         if rms > 0.008 { voiced += samples.count; silence = 0 } else { silence += samples.count }
         if voiced == 0, frames.count > 4800 { frames.removeFirst(frames.count - 4800) }
         if voiced > 0, (silence >= 12800 && frames.count >= 24000) || frames.count >= 400000 { flush() }

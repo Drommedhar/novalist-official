@@ -7,7 +7,8 @@ namespace Novalist.Sdk.Hooks;
 /// <summary>
 /// Speech input and dialogue detection supplied by an extension. The host owns
 /// microphone permission, capture, quotation style and insertion. No
-/// manuscript context is sent: only the recording and its transcript.
+/// manuscript prose is sent: only the recording and its transcript. Optional
+/// Codex spelling hints require IDictationOptionsContributor.
 /// </summary>
 public interface IDictationContributor
 {
@@ -27,6 +28,16 @@ public interface IDictationContributor
 public interface IDictationWarmupContributor
 {
     Task WarmUpAsync(CancellationToken cancellationToken = default);
+}
+
+/// <summary>Optional Codex spelling hints and speech-only model loading. Vocabulary
+/// contains current Codex names and aliases, never manuscript prose or descriptions.
+/// Treat these as recognition hints, not words to add to the transcript.</summary>
+public interface IDictationOptionsContributor
+{
+    Task WarmUpAsync(bool automaticDialogue, CancellationToken cancellationToken = default);
+    Task<string> TranscribeAsync(byte[] audio, string mimeType, string language,
+        IReadOnlyList<string> vocabulary, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

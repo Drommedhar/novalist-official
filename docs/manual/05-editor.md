@@ -44,13 +44,15 @@ System dictation works without AI Assistant or Novalist-managed speech models. F
 - **macOS 26 or newer:** on supported hardware, Apple SpeechAnalyzer recognizes speech on the device. In System dictation settings, choose English or Deutsch and use **Prepare system language** if needed. Apple manages the language download; once installed, recognition works offline. Return to the editor, choose that language, and press **Start dictation**. Allow microphone access when prompted.
 - **iPhone and iPad:** the app requires iOS/iPadOS 27 or newer and uses the same Apple language preparation and on-device recognition. Capture stops when the app goes into the background or the audio session is interrupted. Availability depends on Apple's support for the device and language.
 
-System dictation inserts the recognized text. Automatic inference of character dialogue and quotation styling belongs to the optional AI Assistant provider. Linux and older Macs can use an extension provider where supported.
+System dictation inserts the recognized text. Automatic inference of character dialogue and quotation styling belongs to the optional AI Assistant provider; Apple's managed recordings also support explicit spoken speaker commands described below. Linux and older Macs can use an extension provider where supported.
 
 ### AI Assistant dialogue formatting
 
-AI Assistant infers character dialogue, uses your **Quote Style** and custom quotation replacement pair, and starts each new dialogue turn on a new paragraph. Speech tags such as “she said” or “sagte sie” remain outside the quotation marks. Narration stays unquoted. Dialogue detection can make mistakes, particularly when a phrase is ambiguous or a speaker changes without an attribution.
+AI Assistant infers character dialogue, uses your **Quote Style** and custom quotation replacement pair, and starts each new dialogue turn on a new paragraph. Speech tags such as “she said”, “sagte sie”, or “hörte man eine Stimme rufen” remain outside the quotation marks. Continued speech after a tag stays with the same speaker; a different character's subsequent action starts a new narration paragraph. Narration and indirect speech stay unquoted. Dialogue detection can make mistakes, particularly when a phrase is ambiguous or a speaker changes without an attribution.
 
-Pressing Start begins loading both installed models immediately while the microphone opens. You can speak during **Loading dictation models…**; captured clips wait until loading finishes. Stopping before you speak cancels loading. If loading fails after speech was captured, the recording is kept for retry.
+Choose **Formatting → Plain transcription** to insert the recognized words without inferred dialogue, added quotation marks, or dialogue paragraph decisions. With the updated AI Assistant, this mode loads only the speech model and releases a previously loaded dialogue model. **Automatic dialogue** remains the default. Model setup still prepares both installed models; the selected recording mode controls which ones run.
+
+Pressing Start begins loading the models needed for the selected mode immediately while the microphone opens. You can speak during **Loading dictation models…**; captured clips wait until loading finishes. Stopping before you speak cancels loading. If loading fails after speech was captured, the recording is kept for retry.
 
 Before the first AI Assistant recording, open **Settings → Extensions → AI Assistant → Dictation** (or **Dictation settings** on the dictation bar with AI Assistant selected):
 
@@ -58,6 +60,17 @@ Before the first AI Assistant recording, open **Settings → Extensions → AI A
 2. Choose **Acceleration**. **Automatic** selects NVIDIA CUDA, supported AMD ROCm hardware, or MLX on native Apple Silicon; otherwise it uses CPU. You can select a backend yourself. Apple Silicon requires macOS 14 or newer and the ARM64 Novalist build. CUDA and ROCm require a compatible GPU and graphics driver; smaller models need less GPU memory.
 3. Press **Download / repair dictation models**. Novalist prepares its own runtime and downloads the selected models, with progress and cancellation. Repeat this after changing the accelerator. Internet is needed for setup; transcription and dialogue detection then run offline on the selected hardware. No Python installation, server, API key, Ollama or LM Studio configuration is needed. Download sizes vary by backend.
 4. Return to the editor, refresh dictation availability, and allow microphone access when your operating system asks. Both recognition and dialogue detection happen on your computer. Chat-provider settings are independent of dictation.
+
+### Vocabulary, spoken commands, and microphone feedback
+
+With the updated AI Assistant, recognition automatically uses names and aliases from the book's Codex and World Bible, including custom Codex types. The hints refresh at the start of each recording, so edit names in Codex as usual. Only names and aliases go to recognition; manuscript prose and entity descriptions are never included. The hint list is bounded to 128 terms, 80 characters per term, and 2,000 characters including separators, so very large Codexes may not fit in full. Hints may improve spelling but do not guarantee it. Other providers do not receive them. If Codex names cannot be loaded, recording continues with ordinary recognition and shows a warning.
+
+Expand **Recording options** in the dictation bar before starting:
+
+- **Spoken paragraph and speaker commands** is off by default. Enable it to say **“new speaker”** or **“neuer Sprecher”** (also **“neue Sprecherin”**) as a standalone phrase to begin a new paragraph of quoted dialogue. **“new paragraph”** or **“neuer Absatz”** starts a new paragraph of narration. The command itself is omitted; the chosen dialogue/narration mode continues across clips until another command or a new recording. These commands work in plain transcription too. They must occupy a whole sentence or clip: a sentence such as “He wanted a new paragraph” stays prose. A command without subsequent speech creates no empty paragraph.
+- **Microphone** selects an input device on desktop; **System default** follows the operating system's choice. **Refresh microphones** briefly requests microphone access and updates device names without recording dictation. The chosen device is remembered on this device. If it is disconnected, choose another device or System default; Novalist reports the unavailable selection rather than switching inputs silently. iPhone and iPad use the system audio route.
+
+**Input level** stays visible in the dictation bar. It rests at zero when idle and responds to captured sound as soon as the microphone opens, including while dictation models are still loading. The pending count reports transcription progress. Windows voice typing owns its microphone, commands, and controls in the Windows panel; these Novalist recording options do not apply to that panel.
 
 ### Continuous recording with Apple speech or AI Assistant
 

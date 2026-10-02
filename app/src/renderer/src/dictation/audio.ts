@@ -26,9 +26,10 @@ export class SpeechChunks {
   private count = 0
   private voiced = 0
   private silence = 0
-  constructor(private rate: number, private emit: (audio: Uint8Array) => void) {}
+  constructor(private rate: number, private emit: (audio: Uint8Array) => void, private onLevel?: (level: number) => void) {}
   push(frame: Float32Array): void {
     const rms = Math.sqrt(frame.reduce((sum, v) => sum + v * v, 0) / frame.length)
+    this.onLevel?.(Math.max(0, Math.min(1, (20 * Math.log10(Math.max(rms, 0.000001)) + 60) / 60)))
     this.frames.push(frame)
     this.count += frame.length
     if (rms > 0.008) { this.voiced += frame.length; this.silence = 0 }
@@ -51,14 +52,15 @@ export class SpeechChunks {
 export interface Microphone { stop(): Promise<void> }
 
 export async function openMicrophone(onClip: (audio: Uint8Array) => void,
-  onEnded: () => void, signal: AbortSignal): Promise<Microphone> {
-  if (window.novalist.systemMicrophone) return openSystemMicrophone(window.novalist.systemMicrophone, onClip, onEnded, signal)
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } })
+  onEnded: () => void, signal: AbortSignal, options: { deviceId?: string; onLevel?: (level: number) => void } = {}): Promise<Microphone> {
+  if (window.novalist.systemMicrophone) return openSystemMicrophone(window.novalist.systemMicrophone, onClip, onEnded, signal, options.onLevel)
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true,
+    ...(options.deviceId ? { deviceId: { exact: options.deviceId } } : {}) } })
   if (signal.aborted) { stream.getTracks().forEach((t) => t.stop()); throw new DOMException('Aborted', 'AbortError') }
   const context = new AudioContext({ sampleRate: 16000 })
   let node: AudioWorkletNode | undefined
   let stopped = false
-  const chunks = new SpeechChunks(context.sampleRate, onClip)
+  const chunks = new SpeechChunks(context.sampleRate, onClip, options.onLevel)
   const stop = async (): Promise<void> => {
     if (stopped) return
     stopped = true
@@ -77,6 +79,7 @@ export async function openMicrophone(onClip: (audio: Uint8Array) => void,
     }
     chunks.flush()
     await context.close()
+    options.onLevel?.(0)
   }
   signal.addEventListener('abort', () => { void stop() }, { once: true })
   try {
@@ -96,7 +99,7 @@ export async function openMicrophone(onClip: (audio: Uint8Array) => void,
 }
 
 export async function openSystemMicrophone(capture: NonNullable<Window['novalist']['systemMicrophone']>, onClip: (audio: Uint8Array) => void,
-  onEnded: () => void, signal: AbortSignal): Promise<Microphone> {
+  onEnded: () => void, signal: AbortSignal, onLevel?: (level: number) => void): Promise<Microphone> {
   let timer: ReturnType<typeof setTimeout> | undefined
   let stopped = false
   let reading: Promise<void> | undefined
@@ -112,6 +115,7 @@ export async function openSystemMicrophone(capture: NonNullable<Window['novalist
     stopping = (async () => {
       await reading
       emit((await capture.stop()).clips)
+      onLevel?.(0)
     })()
     return stopping
   }
@@ -120,6 +124,7 @@ export async function openSystemMicrophone(capture: NonNullable<Window['novalist
   const poll = (): void => {
     if (stopped) return
     reading = capture.read().then((result) => {
+      onLevel?.(result.level ?? 0)
       emit(result.clips)
       if (result.ended) onEnded()
     }).catch(() => { onEnded() }).finally(() => {
@@ -129,6 +134,15 @@ export async function openSystemMicrophone(capture: NonNullable<Window['novalist
   }
   poll()
   return { stop }
+}
+
+export async function microphoneDevices(requestAccess = false): Promise<{ id: string; label: string }[]> {
+  if (requestAccess) {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    stream.getTracks().forEach(track => track.stop())
+  }
+  return (await navigator.mediaDevices.enumerateDevices()).filter(device => device.kind === 'audioinput' && device.deviceId
+    && device.deviceId !== 'default').map(device => ({ id: device.deviceId, label: device.label }))
 }
 
 export function audioBase64(bytes: Uint8Array): string {

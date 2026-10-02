@@ -18,7 +18,8 @@ public sealed class DictationRpc(Workspace workspace, ISystemDictation? system =
         var providers = workspace.ExtensionsHost.DictationContributors
             .Select(p => new DictationProviderDto(p.DictationId, p.DictationName,
                 p.IsDictationAvailable, p.AudioDestination, p.FormattingDestination,
-                SupportsWarmup: p is IDictationWarmupContributor)).ToList();
+                SupportsWarmup: p is IDictationWarmupContributor or IDictationOptionsContributor,
+                SupportsVocabulary: p is IDictationOptionsContributor)).ToList();
         if (system != null)
         {
             var status = await system.StatusAsync(cancellationToken);
@@ -48,18 +49,24 @@ public sealed class DictationRpc(Workspace workspace, ISystemDictation? system =
     private ISystemDictation System() => system ?? throw new InvalidOperationException("System dictation is unavailable.");
 
     [JsonRpcMethod("dictation/warmUp")]
-    public Task WarmUpAsync(string requestId, string providerId, CancellationToken cancellationToken)
+    public Task WarmUpAsync(string requestId, string providerId, bool automaticDialogue = true, CancellationToken cancellationToken = default)
         => RunAsync(requestId, async ct =>
         {
-            if (Provider(providerId) is IDictationWarmupContributor warmup) await warmup.WarmUpAsync(ct);
+            var provider = Provider(providerId);
+            if (provider is IDictationOptionsContributor options) await options.WarmUpAsync(automaticDialogue, ct);
+            else if (automaticDialogue && provider is IDictationWarmupContributor warmup) await warmup.WarmUpAsync(ct);
             return true;
         }, cancellationToken, TimeSpan.FromMinutes(10));
 
     [JsonRpcMethod("dictation/transcribe")]
     public async Task<string> TranscribeAsync(string requestId, string providerId,
-        string audioBase64, string mimeType, string language, CancellationToken cancellationToken)
+        string audioBase64, string mimeType, string language, string[]? vocabulary = null, CancellationToken cancellationToken = default)
     {
         ValidateLanguage(language);
+        vocabulary ??= [];
+        if (vocabulary.Length > 128 || vocabulary.Any(term => string.IsNullOrWhiteSpace(term)
+                || term.Length > 80 || term.Any(char.IsControl)) || vocabulary.Sum(term => term.Length + 2) > 2000)
+            throw new ArgumentException("Vocabulary may contain at most 128 terms of 80 characters, within 2000 characters total.");
         if (audioBase64.Length > (MaxAudioBytes + 2) / 3 * 4)
             throw new ArgumentException("Recording is too large.");
         var audio = Convert.FromBase64String(audioBase64);
@@ -71,9 +78,23 @@ public sealed class DictationRpc(Workspace workspace, ISystemDictation? system =
         {
             if (providerId == SystemDictation.ProviderId && mimeType != "audio/wav")
                 throw new ArgumentException("System dictation requires WAV audio.");
-            var text = providerId == SystemDictation.ProviderId
-                ? await System().TranscribeAsync(audio, language, ct)
-                : await Provider(providerId).TranscribeAsync(audio, mimeType, language, ct);
+            string text;
+            if (providerId == SystemDictation.ProviderId)
+            {
+                if (vocabulary.Length > 0) throw new ArgumentException("This provider does not support vocabulary hints.");
+                text = await System().TranscribeAsync(audio, language, ct);
+            }
+            else
+            {
+                var provider = Provider(providerId);
+                if (provider is IDictationOptionsContributor options)
+                    text = await options.TranscribeAsync(audio, mimeType, language, vocabulary, ct);
+                else
+                {
+                    if (vocabulary.Length > 0) throw new ArgumentException("This provider does not support vocabulary hints.");
+                    text = await provider.TranscribeAsync(audio, mimeType, language, ct);
+                }
+            }
             if (text.Length > MaxTranscriptLength) throw new InvalidOperationException("Transcript is too long.");
             return text;
         }, cancellationToken);
@@ -126,4 +147,5 @@ public sealed class DictationRpc(Workspace workspace, ISystemDictation? system =
 
 public sealed record DictationProviderDto(string Id, string Name, bool Available,
     string AudioDestination, string FormattingDestination, bool AutomaticDialogue = true,
-    bool UsesSystemPanel = false, SystemDictationLanguage[]? Languages = null, bool SupportsWarmup = false);
+    bool UsesSystemPanel = false, SystemDictationLanguage[]? Languages = null, bool SupportsWarmup = false,
+    bool SupportsVocabulary = false);

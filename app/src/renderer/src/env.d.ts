@@ -45,8 +45,8 @@ interface Window {
     /** iOS captures outside the app:// web view using the system microphone. */
     systemMicrophone?: {
       start(): Promise<void>
-      read(): Promise<{ clips: string[]; ended: boolean }>
-      stop(): Promise<{ clips: string[]; ended: boolean }>
+      read(): Promise<{ clips: string[]; ended: boolean; level?: number }>
+      stop(): Promise<{ clips: string[]; ended: boolean; level?: number }>
     }
     material: 'glass' | 'vibrancy' | 'opaque'
     platform: NodeJS.Platform

@@ -65,6 +65,31 @@ test('indirect speech stays narration and a new speaker never merges with the la
   expect(formatDictation([speech('No.')], dictationQuotes('en', []), 'en', 'dialogue').mergeClose).toBe('')
 })
 
+test('a heard voice tag stays outside German quotes; continued speech and the next actor are separate', () => {
+  const segments: DictationSegment[] = [
+    narration('Langsam öffnete sich das Tor vor den Mauern.'),
+    speech('Tretet hinein, werte neue Schüler'),
+    tag('hörte man eine Stimme laut durch die Hallen rufen.'),
+    speech('Wir haben euch alle bereits erwartet.', false),
+    { ...narration('Langsam und vorsichtig begann Liam seinen Weg durch das große, hölzerne Tor.'), newParagraph: true }
+  ]
+  const quotes = dictationQuotes('de-guillemet', [])
+  const expected = 'Langsam öffnete sich das Tor vor den Mauern.\n'
+    + '»Tretet hinein, werte neue Schüler«, hörte man eine Stimme laut durch die Hallen rufen. '
+    + '»Wir haben euch alle bereits erwartet.«\n'
+    + 'Langsam und vorsichtig begann Liam seinen Weg durch das große, hölzerne Tor.'
+  expect(formatDictation(segments, quotes, 'de').text).toBe(expected)
+  expect(formatDictation([segments[0], speech('»Tretet hinein, werte neue Schüler«,'),
+    segments[2], speech('»Wir haben euch alle bereits erwartet.«', false), segments[4]], quotes, 'de').text)
+    .toBe(expected)
+  // A pause after the opening speech or its tag must produce the same prose.
+  for (const boundary of [2, 3]) {
+    const first = formatDictation(segments.slice(0, boundary), quotes, 'de')
+    const second = formatDictation(segments.slice(boundary), quotes, 'de', first.lastKind)
+    expect(appendDictationContext(first.text, second)).toBe(expected)
+  }
+})
+
 test('same-speaker sentences and actions stay together; another actor starts a paragraph', () => {
   const result = formatDictation([speech('Wait.'), speech('I will get my coat.', false),
     narration('Anna opened the cupboard.'), speech('It is cold.', false),

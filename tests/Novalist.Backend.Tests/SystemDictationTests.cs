@@ -30,6 +30,9 @@ public sealed class SystemDictationTests : IDisposable
         rpc.OpenSystemPanel();
         Assert.Equal(1, opens);
         Assert.Empty(bridge.Requests);
+        await Assert.ThrowsAsync<ArgumentException>(() => rpc.TranscribeAsync(Guid.NewGuid().ToString(), SystemDictation.ProviderId,
+            "AQ==", "audio/wav", "en", ["Aeloria"]));
+        Assert.Empty(bridge.Requests);
         await Assert.ThrowsAsync<InvalidOperationException>(() => system.TranscribeAsync([1], "en", default));
         await Assert.ThrowsAsync<InvalidOperationException>(() => system.PrepareAsync("de", default));
     }
