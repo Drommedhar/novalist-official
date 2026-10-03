@@ -14,6 +14,32 @@ ROOT = Path(__file__).resolve().parent.parent
 
 @unittest.skipUnless(shutil.which("dotnet"), ".NET SDK required")
 class AppleSpeechBuildTests(unittest.TestCase):
+    def test_ios_restore_graph_excludes_desktop_web_runtime(self):
+        # NuGet restore does not use ProjectReference.AdditionalProperties.
+        # Exercise the graph (not just MSBuild evaluation) without an Apple SDK.
+        with tempfile.TemporaryDirectory(prefix="novalist-ios-restore-") as directory:
+            project = Path(directory) / "Probe.csproj"
+            graph_path = Path(directory) / "restore.json"
+            backend = ROOT / "Novalist.Backend" / "Novalist.Backend.csproj"
+            project.write_text(f'''<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="{escape(str(backend))}"
+      AdditionalProperties="BuildAppleDesktopSpeech=false;EnableImportApi=false" />
+  </ItemGroup>
+</Project>''')
+            for rid in ("ios-arm64", "iossimulator-arm64", "iossimulator-x64", "win-x64", "osx-arm64", "linux-x64"):
+                with self.subTest(rid=rid):
+                    subprocess.run([
+                        "dotnet", "msbuild", str(project), "-t:GenerateRestoreGraphFile",
+                        f"-p:RuntimeIdentifier={rid}", f"-p:RestoreGraphOutputPath={graph_path}",
+                    ], capture_output=True, text=True, timeout=60, check=True)
+                    graph = json.loads(graph_path.read_text())
+                    entry = next(value for key, value in graph["projects"].items()
+                                 if Path(key).resolve() == backend.resolve())
+                    references = entry["frameworks"]["net8.0"]["frameworkReferences"]
+                    self.assertEqual("Microsoft.AspNetCore.App" in references, not rid.startswith("ios"))
+
     def evaluate(self, platform, configuration, rid="", enabled=True):
         # No Apple workload/restore required: reproduce the real SDK import
         # ordering while only running the native configuration target.

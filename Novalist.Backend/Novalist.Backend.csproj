@@ -6,6 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- NuGet restore ignores ProjectReference.AdditionalProperties. Use the
+         requested RID too, so iOS restore never imports the desktop web runtime. -->
+    <EnableImportApi Condition="'$(EnableImportApi)' == '' and $([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('ios'))">false</EnableImportApi>
     <EnableImportApi Condition="'$(EnableImportApi)' == ''">true</EnableImportApi>
     <DefineConstants Condition="'$(EnableImportApi)' == 'true'">$(DefineConstants);NOVALIST_IMPORT_API</DefineConstants>
   </PropertyGroup>

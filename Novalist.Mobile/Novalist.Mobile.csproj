@@ -62,6 +62,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
     <!-- In-process transport: the same seam the backend tests drive. -->
     <PackageReference Include="Nerdbank.Streams" Version="2.13.16" />
     <PackageReference Include="StreamJsonRpc" Version="2.25.29" />
