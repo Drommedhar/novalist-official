@@ -497,7 +497,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # MAUI publish changes inherited properties while traversing references.
+          # Serialize project builds so separate instances cannot write the same
+          # intermediate DLL or deps.json concurrently.
           dotnet publish Novalist.Mobile/Novalist.Mobile.csproj \
+            -maxcpucount:1 \
             -f net10.0-ios27.0 -c Release \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:CodesignKey="$identity" \

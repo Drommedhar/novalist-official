@@ -21,8 +21,9 @@
     <InternalsVisibleTo Include="Novalist.Backend.Tests" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Sdk is provided transitively by Core. A second direct edge can build
+         it with different inherited properties during MAUI publish. -->
     <ProjectReference Include="..\Novalist.Core\Novalist.Core.csproj" />
-    <ProjectReference Include="..\Novalist.Sdk\Novalist.Sdk.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" Version="2.25.29" />
