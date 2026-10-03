@@ -79,14 +79,18 @@ test('AI services are providers, update their address, and discover models at th
     await provider.selectOption({ label: 'Ollama' })
     await expect(baseUrl).toHaveValue('http://localhost:11434/v1')
 
-    // Exercise the extension's real first-run wizard, including its model
+    // Exercise the extension's real setup wizard, including its model
     // validator and dynamic choices, rather than a hand-built definition.
+    // Provider settings above are already saved, so launch setup explicitly.
     await h.page.evaluate(() => window.novalistStores.onboarding.getState().skipTour())
     await seedBook(h, {})
+    await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('extensions'))
+    await h.page.locator('.ext-settings-card').filter({ hasText: 'AI Assistant — setup' })
+      .getByRole('button', { name: 'Run', exact: true }).click()
     const wizard = h.page.getByRole('dialog', { name: 'AI Assistant — setup' })
     await wizard.getByRole('radio', { name: 'AI assistance only', exact: true }).check()
     await wizard.locator('.dialog-button.primary').click()
-    await expect(wizard.getByRole('radio', { name: 'Ollama', exact: true })).toBeChecked()
+    await wizard.getByRole('radio', { name: 'Ollama', exact: true }).check()
     await wizard.locator('.dialog-button.primary').click()
     await expect(wizard.locator('.wizard-host-label')).toHaveText('Base URL')
     await wizard.getByRole('textbox').fill(url)

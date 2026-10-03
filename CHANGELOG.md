@@ -38,6 +38,7 @@ could encounter in a previously released version.
 
 ### Fixed
 
+- Editor context-menu submenus stay inside the writing area when opened near the bottom edge.
 - Closing a Focus Mode panel no longer pulls you back to the manuscript after switching to another view.
 - Dismissing a Focus Mode panel with Escape keeps it closed until the pointer leaves and returns to its edge.
 - Calendar scene buttons open the scene with Enter or Space instead of switching to Week view.

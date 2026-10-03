@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
 import { REAL_PROJECT } from './realProject'
+import { dismissTour } from './harness'
 
 /**
  * One filter model, shared live. The Manuscript status filter and the
@@ -25,15 +26,17 @@ test('a filter set in one view is still set in the next', async () => {
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
   env.NOVALIST_NO_SPLASH = '1'
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`], env })
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
   await evaluateWhenReady(page, async (root) => {
     const state = await window.novalistRpc.request('project/open', [root])
     window.novalistStores.project.getState().applyState(state as never)
   }, projectCopy)
+  await dismissTour(page)
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('manuscript'))
+  await page.locator('.filter-bar-toggle').click()
   await expect(page.locator('.filter-bar')).toBeVisible({ timeout: 20_000 })
 
   // Narrow by status in the Manuscript, the way a writer would.

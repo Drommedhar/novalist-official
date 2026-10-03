@@ -62,12 +62,13 @@ test('a character is given a designed voice from their Codex entry', async () =>
       const rpc = window.novalistRpc
       let state = await rpc.request('project/create', [parent, 'Voices', 'Book One'])
       const mira = (await rpc.request('entities/create', ['character', 'Mira'])) as { id: string }
-      // The fields a brief is built from: fixed facts about how she sounds.
+      // A brief uses audible traits and excludes visual appearance.
       await rpc.request('entities/update', [
         'character',
         mira.id,
         { age: '34', build: 'wiry' }
       ])
+      await rpc.request('entities/appendToSection', ['character', mira.id, 'Voice', 'A resonant voice.'])
 
       state = await rpc.request('project/createChapter', ['One'])
       const chapters = (state as { chapters: { guid: string }[] }).chapters
@@ -140,7 +141,8 @@ test('a character is given a designed voice from their Codex entry', async () =>
   await expect(dialog.locator('.narration-panel-where')).toContainText('Mira')
   const brief = dialog.locator('textarea')
   await expect(brief).toHaveValue(/Age: 34/)
-  await expect(brief).toHaveValue(/wiry/)
+  await expect(brief).toHaveValue(/resonant/)
+  await expect(brief).not.toHaveValue(/wiry/)
   // Her own line came along, because how somebody talks describes their voice
   // better than any adjective.
   await expect(dialog.locator('.narration-design-samples li')).toContainText('You are late,')
@@ -148,7 +150,7 @@ test('a character is given a designed voice from their Codex entry', async () =>
   // An emotion typed into the brief must not survive: it would be baked into the
   // timbre for the whole book, which is what the per-line direction exists to
   // prevent.
-  await brief.fill('Age: 34. Wiry and angry and joyful.')
+  await brief.fill('Age: 34. Resonant and angry and joyful.')
   await dialog.locator('.narration-play').click()
 
   // Offered, not imposed. Design is not reliable per attempt - the same
@@ -179,7 +181,7 @@ test('a character is given a designed voice from their Codex entry', async () =>
   const voice = designed[0]
   expect(designed).toHaveLength(1)
   expect(voice.displayName).toBe('Mira')
-  expect(voice.description.toLowerCase()).toContain('wiry')
+  expect(voice.description.toLowerCase()).toContain('resonant')
   expect(voice.description.toLowerCase()).not.toContain('angry')
   expect(voice.description.toLowerCase()).not.toContain('joyful')
 

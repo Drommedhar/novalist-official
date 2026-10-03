@@ -16,7 +16,7 @@ import { enterWriting } from './harness'
  * keeps a menu the same shape from one open to the next - but a group with
  * nothing live in it is dropped.
  */
-test('a group with no usable row is not offered, and returns with a selection', async () => {
+test('context-menu groups require a selection and stay within the editor', async () => {
   test.setTimeout(120_000)
 
   const workDir = mkdtempSync(join(tmpdir(), 'nl-ctxgroup-'))
@@ -69,6 +69,22 @@ test('a group with no usable row is not offered, and returns with a selection', 
   await expect(
     frame.locator('#context-menu .cm-parent', { hasText: 'Codex' }).locator('.cm-item.disabled')
   ).toHaveCount(0)
+
+  // Flyouts near the bottom must remain inside the iframe, where they can be clicked.
+  await page.keyboard.press('Escape')
+  await editor.evaluate((element) => element.dispatchEvent(new MouseEvent('contextmenu', {
+    bubbles: true, clientX: window.innerWidth - 8, clientY: window.innerHeight - 8
+  })))
+  const codex = frame.locator('#context-menu .cm-parent', { hasText: 'Codex' })
+  await codex.hover()
+  const bounds = await codex.locator('.cm-submenu').evaluate((element) => {
+    const rect = element.getBoundingClientRect()
+    return { top: rect.top, bottom: rect.bottom, height: window.innerHeight }
+  })
+  expect(bounds.top).toBeGreaterThanOrEqual(0)
+  expect(bounds.bottom).toBeLessThanOrEqual(bounds.height)
+  await codex.locator('[data-action="appendToEntitySection"]').click()
+  await expect(page.locator('.capture-excerpt')).toContainText('Liam Calder walked to the window.')
 
   await app.close()
 })
