@@ -23,6 +23,7 @@ could encounter in a previously released version.
 
 ### Added
 
+- **Scene Notes tab** — edit synopsis, notes, goals and outcomes, timing, narrative mode, cast and custom scene fields directly in the inspector. The optional bottom notes dock remains available.
 - **Folder import** — choose a folder of Markdown, text, or structured JSON files and assign each subfolder to scenes, characters, locations, items, lore, research, or a custom Codex type. Explicit metadata, labels, tables, and headings populate built-in and custom fields while preserving source text. Export a schema with your book's custom fields and examples to transform files using your own external AI agent. Nested folders inherit your choices; searchable pages, batch progress, stop and continue, and repeat-import protection keep large datasets manageable.
 - **Local import API** — let your own external agent discover types and custom fields, upload Codex images, validate structured records, and import them directly from a source folder. Images are stored in the book, repeated uploads reuse them, and missing photos can be added to previous imports without replacing edited text or fields. Start the API and copy its connection instructions from the folder import dialog. Batches show progress, retries skip existing entries, and the API stops when you change project, book, or draft or close Novalist.
 - **System dictation** — dictate in English or German without an extension or Novalist-managed models. Windows opens its built-in online voice typing; supported Macs on macOS 26 or newer use on-device Apple speech recognition with system language packs. Apple recordings support a microphone chooser, live input-level feedback, and optional spoken commands for new paragraphs and quoted speaker turns. Find language preparation under Settings → Writing assistance → System dictation. Automatic character dialogue formatting remains available through AI Assistant.
@@ -30,10 +31,20 @@ could encounter in a previously released version.
 
 ### Changed
 
+- Desktop navigation runs across the top, with Library, Extensions and Settings directly accessible. Writing views share one left column with the binder. System sans-serif controls, flatter surfaces, clearer secondary text and bounded forms improve windowed and maximized layouts while retaining the bookshelf and manuscript font settings.
+- Main views share clear headings and actions. Narration fills the available width with compact cast controls and an expanding reading card; selecting a scene in Chapters, Smart Lists, Collections or Bookmarks jumps to it within the reading and sets the playback start. Codex groups its complete fields into tabs; Research keeps project sources and Scratchpad accessible; Gallery adds labeled thumbnail cards; Languages has a direct Add word action. The Dashboard keeps its banner and book cover at the top, followed by Continue writing and recent activity. Exposé places limits beside the text, Export uses the workspace width with a selection summary and a readable grid of Codex entries, and the complete scene sidebar has clearer sections and an expand/collapse action. The desktop Plot Grid uses scene rows with plotline columns and readable notes; Calendar opens in Month view with room for busy days; Relationships shows the selected entry beside the graph. Wiki profiles reflow in smaller panes, and Settings keeps its heading visible while categories and content scroll independently, including compact split panes.
+- Application updates appear in a dismissible banner. Download while working, then choose Install and restart separately when ready; pending-save, conflict and backup checks still protect installation.
 - Extension settings display section headings to group related options.
 
 ### Fixed
 
+- Calendar scene buttons open the scene with Enter or Space instead of switching to Week view.
+- Keyboard focus in split panes now directs commands to the focused pane.
+- Naming and confirmation dialogs keep keyboard focus inside, close with Escape, and return focus to the control that opened them.
+- Outliner fields stay separate and scroll horizontally in narrow panes.
+- Codex tables fill their workspace with aligned fields and a fixed heading row.
+- Scene notes wait for their saved metadata before accepting edits, so a slow load cannot replace newly typed notes.
+- Failed update checks show an error instead of reporting that the app is up to date, and keyboard focus stays inside the update review until it is closed.
 - A failed project save preserves chapters and acts in memory, so a disk or permission error no longer leaves the current draft empty when retrying.
 - Custom fields added by Codex templates appear on new entries and remain editable, including fields with empty defaults and fields on custom entity types.
 - Codex section edits are saved when switching entries or opening the Wiki, and custom entity sections save correctly.

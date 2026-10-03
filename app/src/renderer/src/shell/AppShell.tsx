@@ -34,7 +34,7 @@ import {
 import { useSpellCheck } from './useSpellCheck'
 import { SceneConflictDialog } from './SceneConflictDialog'
 import { UnsavedLeaveDialog } from './UnsavedLeaveDialog'
-import { anyPaneShows, useShellStore } from '../stores/shellStore'
+import { BINDER_MIN, BINDER_MAX, panelWidthForShell, anyPaneShows, useShellStore } from '../stores/shellStore'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { useExtensionsStore, type StoreUpdate } from '../stores/extensionsStore'
@@ -49,6 +49,8 @@ import { useEditorBridge } from '../stores/editorBridgeStore'
 import { flushPendingWrites } from '../stores/pendingWrites'
 import { useManuscriptStore } from '../stores/manuscriptStore'
 import './shell.css'
+import '../styles/desktop.css'
+import '../styles/desktop-views.css'
 
 
 async function hydrate(): Promise<void> {
@@ -90,6 +92,7 @@ export function AppShell(): React.JSX.Element {
   useSpellCheck()
   const binderVisible = useShellStore((s) => s.binderVisible)
   const binderOverlayOpen = useShellStore((s) => s.binderOverlayOpen)
+  const binderWidth = useShellStore((s) => panelWidthForShell(s.binderWidth, s.shellWidth, BINDER_MIN, BINDER_MAX))
   const modePanelOpen = useShellStore((s) => s.modePanelOpen)
   const modePanelDocked = useShellStore((s) => s.modePanelDocked)
   const backendVersion = useShellStore((s) => s.backendVersion)
@@ -180,6 +183,7 @@ export function AppShell(): React.JSX.Element {
   const canDock = shellCapacity !== 'compact' && modePanelDocked
   const showModePanel = inAMode && (canDock || modePanelOpen)
   const modePanelOverlay = showModePanel && !canDock
+  const combinedSidebar = showModePanel && !modePanelOverlay && showBinder
   const showInspector =
     isLoaded &&
     chrome.inspector &&
@@ -191,43 +195,61 @@ export function AppShell(): React.JSX.Element {
   const [extUpdates, setExtUpdates] = useState<StoreUpdate[]>([])
   const [updatingExtId, setUpdatingExtId] = useState<string | null>(null)
   const [updateOpen, setUpdateOpen] = useState(false)
+  const updateOpenRef = useRef(false)
+  useEffect(() => { updateOpenRef.current = updateOpen }, [updateOpen])
   const [updateProgress, setUpdateProgress] = useState<number | null>(null)
   const [downloading, setDownloading] = useState(false)
-  const downloadingRef = useRef(false)
+  const installingRef = useRef(false)
+  const transferRef = useRef(false)
+  const launchTokenRef = useRef<string | null>(null)
+  const checkingRef = useRef(false)
+  const [installing, setInstalling] = useState(false)
+  const [ready, setReady] = useState(false)
+  const [manualInstall, setManualInstall] = useState(false)
+  const [checking, setChecking] = useState(false)
+  const [updateNotice, setUpdateNotice] = useState(false)
+  const [appVersion, setAppVersion] = useState<string | null>(null)
+  useEffect(() => { void window.novalist.appVersion?.().then(setAppVersion).catch(() => {}) }, [])
   const [updateError, setUpdateError] = useState<string | null>(null)
 
   useEffect(() => {
-    downloadingRef.current = downloading
-  }, [downloading])
+    installingRef.current = installing
+  }, [installing])
 
   const runUpdateCheck = async (manual: boolean): Promise<void> => {
+    if (manual) setUpdateOpen(true)
+    if (checkingRef.current || transferRef.current || launchTokenRef.current || installingRef.current) return
+    checkingRef.current = true
+    setManualInstall(false)
+    setChecking(true)
     setUpdateError(null)
+    const errors: string[] = []
     let app: AppUpdate | null = null
     let ext: StoreUpdate[] = []
-    try {
-      app = (await window.novalist.checkAppUpdate()) as AppUpdate | null
-    } catch {
-      /* offline / no release metadata — leave app update absent */
-    }
+    try { app = await window.novalist.checkAppUpdate() }
+    catch { errors.push(t('desktopRefresh.checkAppFailed')) }
     try {
       await useExtensionsStore.getState().checkStoreUpdates()
       ext = useExtensionsStore.getState().storeUpdates
-    } catch {
-      /* offline — leave extension updates empty */
-    }
+    } catch { errors.push(t('desktopRefresh.checkExtensionsFailed')) }
     setAppUpdate(app)
     setExtUpdates(ext)
-    if (app || ext.length > 0 || manual) setUpdateOpen(true)
+    setUpdateError(errors.length ? errors.join(' ') : null)
+    setChecking(false)
+    checkingRef.current = false
+    if (app || ext.length) setUpdateNotice(true)
   }
 
   const updateExtension = async (u: StoreUpdate): Promise<void> => {
+    setUpdateError(null)
     setUpdatingExtId(u.extensionId)
     try {
-      await useExtensionsStore.getState().installFromStore(u.extensionId, u.repo, true)
+      const result = await useExtensionsStore.getState().installFromStore(u.extensionId, u.repo, true)
+      if (!result.success) throw new Error(t('desktopRefresh.extensionFailed'))
       // installFromStore drops the entry from storeUpdates on success.
       setExtUpdates(useExtensionsStore.getState().storeUpdates)
     } catch {
-      /* leave the row so the user can retry */
+      setUpdateError(t('desktopRefresh.extensionFailed'))
     } finally {
       setUpdatingExtId(null)
     }
@@ -295,7 +317,7 @@ export function AppShell(): React.JSX.Element {
       chapter?: string
       scene?: string
     }): Promise<void> => {
-      if (downloadingRef.current) return
+      if (installingRef.current) return
       try {
         await useProjectStore.getState().openProject(link.project)
         // A scene id means nothing without the chapter that holds it, so the
@@ -324,9 +346,9 @@ export function AppShell(): React.JSX.Element {
   }, [isLoaded])
 
   useEffect(() => {
-    setHotkeysEnabled(!downloading)
-    if (!downloading) return installHotkeys(hotkeys)
-  }, [hotkeys, downloading])
+    setHotkeysEnabled(!installing && !updateOpen)
+    if (!installing && !updateOpen) return installHotkeys(hotkeys)
+  }, [hotkeys, installing, updateOpen])
 
   // The menu bar is generated from the command registry, so it has to be
   // rebuilt whenever any of its three inputs move: the language its labels are
@@ -353,7 +375,7 @@ export function AppShell(): React.JSX.Element {
       if (data?.novalist === 'menu-command' && data.command) {
         // The update dialog is deliberately non-dismissible during handoff;
         // native menu commands must respect the same lock.
-        if (downloadingRef.current) return
+        if (installingRef.current || (updateOpenRef.current && data.command !== 'help:checkUpdates')) return
         // Every menu item but the updater is a registry command, so the menu
         // bar cannot offer anything the palette does not also have.
         if (data.command === 'help:checkUpdates') void runUpdateCheck(true)
@@ -367,10 +389,30 @@ export function AppShell(): React.JSX.Element {
   }, [])
 
   const downloadAppUpdate = async (): Promise<void> => {
-    if (!appUpdate || downloadingRef.current) return
-    downloadingRef.current = true
+    if (!appUpdate || transferRef.current || launchTokenRef.current) return
+    transferRef.current = true
     setDownloading(true)
     setUpdateProgress(0)
+    setUpdateError(null)
+    setUpdateNotice(true)
+    try {
+      const result = await window.novalist.downloadAppUpdate(appUpdate)
+      launchTokenRef.current = result.launchToken ?? null
+      setReady(Boolean(result.launchToken))
+      setManualInstall(!result.launchToken)
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : String(error))
+    } finally {
+      transferRef.current = false
+      setDownloading(false)
+    }
+  }
+
+  const installAppUpdate = async (): Promise<void> => {
+    const token = launchTokenRef.current
+    if (!token || installingRef.current) return
+    installingRef.current = true
+    setInstalling(true)
     setUpdateError(null)
     try {
       const prepareToQuit = (): Promise<void> =>
@@ -404,33 +446,30 @@ export function AppShell(): React.JSX.Element {
           t('update.workspaceBusy')
         )
 
+      // Writing continues during download. Flush again after the explicit
+      // install action, and once more after the close backup.
       await prepareToQuit()
-      const result = await window.novalist.downloadAppUpdate(appUpdate)
-      if (result.launchToken) {
-        // Downloads can take minutes. Even with the dialog locked, native
-        // commands and background work may have changed project data, so take
-        // one final persistence acknowledgement before the installer can run.
-        await prepareToQuit()
-        await createCloseBackup()
-        await prepareToQuit()
-        markCloseBackupHandledForQuit()
-        try {
-          // The token-authenticated main-process call launches and quits as one
-          // operation, so a Linux helper cannot be left waiting on a renderer
-          // that never managed to send a separate quit acknowledgement.
-          await window.novalist.launchAppUpdate(result.launchToken)
-        } catch (error) {
-          clearCloseBackupHandledForQuit()
-          throw error
-        }
+      await createCloseBackup()
+      await prepareToQuit()
+      markCloseBackupHandledForQuit()
+      try {
+        // The token-authenticated main-process call launches and quits as one
+        // operation, so a Linux helper cannot be left waiting on a renderer
+        // that never managed to send a separate quit acknowledgement.
+        await window.novalist.launchAppUpdate(token)
+      } catch (error) {
+        launchTokenRef.current = null
+        setReady(false)
+        clearCloseBackupHandledForQuit()
+        throw error
       }
+
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      console.error(`[update] download or installer handoff failed: ${message}`)
       setUpdateError(message)
     } finally {
-      downloadingRef.current = false
-      setDownloading(false)
+      installingRef.current = false
+      setInstalling(false)
     }
   }
 
@@ -450,7 +489,13 @@ export function AppShell(): React.JSX.Element {
           status bar in place made it a wider editor rather than a place to
           write. Everything is a keystroke away again. */}
       {!isMobile && !focused && <Toolbar />}
-      <div className="shell-body">
+      {!isMobile && !focused && <ModeRail />}
+      {!isMobile && !focused && updateNotice && (appUpdate || extUpdates.length > 0) && <div className="update-banner" role="status">
+        <span>{downloading ? t('desktopRefresh.backgroundDownload', { percent: updateProgress ?? 0 }) : ready ? t('desktopRefresh.ready') : t('desktopRefresh.available')}</span>
+        <button className="dialog-button" onClick={() => setUpdateOpen(true)}>{t('desktopRefresh.reviewUpdate')}</button>
+        <button className="dialog-button" onClick={() => setUpdateNotice(false)}>{t('desktopRefresh.dismiss')}</button>
+      </div>}
+      <div className="shell-body" inert={installing}>
         {isMobile ? (
           isLoaded ? (
             <MobileShell />
@@ -465,17 +510,18 @@ export function AppShell(): React.JSX.Element {
           )
         ) : (
           <>
-            {!focused && <ModeRail />}
-            {/* The mode's own views. Docked beside the rail with room for it,
+            {/* The mode's views share a column with the binder when docked,
                 an overlay when there is not - the same rows either way. */}
-            {!focused && isLoaded && showModePanel && <ModePanel overlay={modePanelOverlay} />}
+            <div className={combinedSidebar ? 'workspace-sidebar' : 'workspace-navigation'} style={combinedSidebar ? { width: binderWidth } : undefined}>
+              {!focused && isLoaded && showModePanel && <ModePanel overlay={modePanelOverlay} />}
+              {showBinder && !focused && <Binder />}
+            </div>
             {!focused && isLoaded && modePanelOverlay && (
               <div
                 className="mode-panel-scrim"
                 onPointerDown={() => useShellStore.getState().setModePanelOpen(false)}
               />
             )}
-            {showBinder && !focused && <Binder />}
             <div className="shell-main">
               {isLoaded || appScopedView ? (
                 <MainArea />
@@ -485,7 +531,7 @@ export function AppShell(): React.JSX.Element {
                   onOpenPath={(path, bookId) => openProject(path, bookId)}
                 />
               )}
-              {editorOpen && !extView && notesDockVisible && !focused && <SceneNotesDock />}
+              {editorOpen && !extView && notesDockVisible && !(showInspector && inspectorTab === 'notes') && !focused && <SceneNotesDock />}
             </div>
             {showInspector && !focused && !extView && <Inspector />}
           </>
@@ -495,18 +541,22 @@ export function AppShell(): React.JSX.Element {
       {updateOpen && (
         <UpdateDialog
           appUpdate={appUpdate}
-          currentVersion={backendVersion}
+          currentVersion={appVersion}
           extUpdates={extUpdates}
           updatingExtId={updatingExtId}
           progress={updateProgress}
           downloading={downloading}
+          installing={installing}
+          ready={ready}
+          manualInstall={manualInstall}
+          checking={checking}
+          onCheck={() => void runUpdateCheck(true)}
+          onInstall={() => void installAppUpdate()}
           error={updateError}
           onDownload={() => void downloadAppUpdate()}
           onUpdateExt={(u) => void updateExtension(u)}
           onClose={() => {
             setUpdateOpen(false)
-            setUpdateProgress(null)
-            setUpdateError(null)
           }}
         />
       )}

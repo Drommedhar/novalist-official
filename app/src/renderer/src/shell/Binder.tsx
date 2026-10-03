@@ -23,6 +23,8 @@ import {
 } from '../stores/shellStore'
 import { handleSceneClick, useSelectionStore } from '../stores/selectionStore'
 import { useStageStore } from '../stores/stageStore'
+import { useNarrationStore } from '../stores/narrationStore'
+import { openBinderScene } from './binderNavigation'
 import { useTargetStore } from '../stores/targetStore'
 import { SceneBulkBar } from './SceneBulkBar'
 import { PanelResizer } from './PanelResizer'
@@ -167,8 +169,13 @@ export function Binder(): React.JSX.Element {
       .prune(chapters.flatMap((chapter) => chapter.scenes.map((scene) => scene.id)))
   }, [chapters])
 
-  const openSceneId = useProjectStore((s) => s.openSceneId)
-  const openScene = useProjectStore((s) => s.openScene)
+  const editorSceneId = useProjectStore((s) => s.openSceneId)
+  const mainView = useShellStore((s) => s.mainView)
+  const narrationSceneId = useNarrationStore(
+    (s) => s.selected?.sceneId ?? s.sceneNavigation?.sceneId ?? null
+  )
+  const openSceneId = mainView === 'narration' ? narrationSceneId : editorSceneId
+  const openScene = openBinderScene
   const store = useProjectStore
   // Touch has no right-click/hover, so mobile surfaces add + row-menu buttons
   // (which reuse the same dialogs and context menu as the desktop).

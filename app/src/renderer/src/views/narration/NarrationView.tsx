@@ -17,7 +17,9 @@ import {
 import { DirectionEditor } from './DirectionEditor'
 import { useProjectStore } from '../../stores/projectStore'
 import { useSettingsStore } from '../../stores/settingsStore'
+import { useShellStore } from '../../stores/shellStore'
 import { autoColour } from '../manuscript/sceneColour'
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import './narration.css'
 
 /* Explicit maps rather than an interpolated key, so every string this view can
@@ -68,8 +70,8 @@ interface NarrationWindow extends Window {
  * column of extracted fragments has no paragraphs, no emphasis and no place in
  * the book — so the writer could not tell where they were in their own scene.
  * The whole book is on one strip, marked up where it stands, and scrolling is
- * how you move: the earlier cut followed whatever the editor had open and the
- * only way to change it was the binder, which puts the editor back in the pane.
+ * how you move. The binder can also reveal a scene within this reading without
+ * changing the scene open in the writing editor.
  */
 export function NarrationView(): React.JSX.Element {
   const { t } = useTranslation()
@@ -84,6 +86,7 @@ export function NarrationView(): React.JSX.Element {
   const loading = useNarrationStore((s) => s.loading)
   const speaking = useNarrationStore((s) => s.speaking)
   const selected = useNarrationStore((s) => s.selected)
+  const sceneNavigation = useNarrationStore((s) => s.sceneNavigation)
   const rate = useNarrationStore((s) => s.rate)
   const loadCast = useNarrationStore((s) => s.loadCast)
   const loadBook = useNarrationStore((s) => s.loadBook)
@@ -234,6 +237,7 @@ export function NarrationView(): React.JSX.Element {
       if (message.type === 'ready') {
         readyRef.current = true
         pushBookRef.current()
+        revealSceneRef.current()
       } else if (message.type === 'segmentClicked') {
         // The frame marks up utterances and knows them by their own key. The
         // line an utterance belongs to is the store's business, because that is
@@ -266,6 +270,18 @@ export function NarrationView(): React.JSX.Element {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(pushBook, [book, colours])
+
+  const revealRequestedScene = (): void => {
+    const frame = frameRef.current?.contentWindow as NarrationWindow | null
+    if (readyRef.current && frame && sceneNavigation) {
+      frame.revealScene(sceneNavigation.sceneId)
+    }
+  }
+  const revealSceneRef = useRef(revealRequestedScene)
+  revealSceneRef.current = revealRequestedScene
+  // Book arrival must replay a request made while the reading was loading.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(revealRequestedScene, [sceneNavigation, book])
 
   useEffect(() => {
     const frame = frameRef.current?.contentWindow as NarrationWindow | null
@@ -307,7 +323,8 @@ export function NarrationView(): React.JSX.Element {
 
   const playFrom = (): void => {
     if (!selected) {
-      void play(0)
+      const at = reading.findIndex((step) => step.sceneId === sceneNavigation?.sceneId)
+      void play(Math.max(0, at))
       return
     }
     const at = reading.findIndex(
@@ -318,198 +335,226 @@ export function NarrationView(): React.JSX.Element {
 
   return (
     <div className="narration-view">
-      <aside className="narration-cast" aria-label={t('narration.cast')}>
-        <div className="narration-cast-title">{t('shell.view.narration')}</div>
-        <div className="narration-cast-head">
-          {t('narration.castCount', { cast, total: members.length })}
+      <DesktopViewActions>
+        <button
+          className="dialog-button"
+          onClick={() => useShellStore.getState().openSettings('narration')}
+        >
+          {t('desktopRefresh.voiceSettings')}
+        </button>
+      </DesktopViewActions>
+      {!narratorVoiceId && (
+        <div className="narration-setup" role="status">
+          <div>
+            <strong>{t('desktopRefresh.narratorPrompt')}</strong>
+            <p>{t('desktopRefresh.narratorHint')}</p>
+          </div>
+          <button
+            className="dialog-button primary"
+            onClick={(event) =>
+              event.currentTarget
+                .closest('.narration-view')
+                ?.querySelector<HTMLSelectElement>('.narration-cast select')
+                ?.focus()
+            }
+          >
+            {t('desktopRefresh.chooseVoice')}
+          </button>
         </div>
+      )}
+      <div className="narration-workspace">
+        <aside className="narration-cast" aria-label={t('narration.cast')}>
+          <div className="narration-cast-title">{t('narration.cast')}</div>
+          <div className="narration-cast-head">
+            {t('narration.castCount', { cast, total: members.length })}
+          </div>
 
-        <ul className="narration-cast-list">
-          <li className="narration-cast-row narrator">
-            <span className="narration-cast-swatch narration-cast-swatch-narrator" />
-            <span className="narration-cast-name">{t('narration.narrator')}</span>
-            <VoicePicker
-              voices={voices}
-              designed={designed}
-              value={narratorVoiceId}
-              label={t('narration.voiceFor', { name: t('narration.narrator') })}
-              onChange={(id) => void setVoice(null, id)}
-            />
-            {designer !== null && <NarratorDesignActions voiceId={narratorVoiceId} />}
-            <span className="narration-cast-marks">
-              <RegisterButton characterId={NARRATOR} name={t('narration.narrator')} />
-              <VoiceScopeButton characterId={NARRATOR} name={t('narration.narrator')} />
-            </span>
-          </li>
-          {members.map((member) => (
-            <li key={member.characterId} className="narration-cast-row">
-              <span
-                className="narration-cast-swatch"
-                style={{ background: colours[member.characterId] }}
-              />
-              <span className="narration-cast-name" title={member.name}>
-                {member.name}
-              </span>
-              <span className="narration-cast-count">{member.lineCount}</span>
+          <ul className="narration-cast-list">
+            <li className="narration-cast-row narrator">
+              <span className="narration-cast-swatch narration-cast-swatch-narrator" />
+              <span className="narration-cast-name">{t('narration.narrator')}</span>
               <VoicePicker
                 voices={voices}
                 designed={designed}
-                value={member.voiceId}
-                label={t('narration.voiceFor', { name: member.name })}
-                onChange={(id) => void setVoice(member.characterId, id)}
+                value={narratorVoiceId}
+                label={t('narration.voiceFor', { name: t('narration.narrator') })}
+                onChange={(id) => void setVoice(null, id)}
               />
-              {designer !== null && (
-                <DesignActions characterId={member.characterId} voiceId={member.voiceId} />
-              )}
-              {/* Together in one cell. Left as separate children of the row's
-                  grid they landed in its first and last columns, with the
-                  stretchy middle one holding them a rail's width apart. */}
+              {designer !== null && <NarratorDesignActions voiceId={narratorVoiceId} />}
               <span className="narration-cast-marks">
-                <RegisterButton characterId={member.characterId} name={member.name} />
-                <VoiceScopeButton characterId={member.characterId} name={member.name} />
+                <RegisterButton characterId={NARRATOR} name={t('narration.narrator')} />
+                <VoiceScopeButton characterId={NARRATOR} name={t('narration.narrator')} />
               </span>
             </li>
-          ))}
-        </ul>
+            {members.map((member) => (
+              <li key={member.characterId} className="narration-cast-row">
+                <span
+                  className="narration-cast-swatch"
+                  style={{ background: colours[member.characterId] }}
+                />
+                <span className="narration-cast-name" title={member.name}>
+                  {member.name}
+                </span>
+                <span className="narration-cast-count">{member.lineCount}</span>
+                <VoicePicker
+                  voices={voices}
+                  designed={designed}
+                  value={member.voiceId}
+                  label={t('narration.voiceFor', { name: member.name })}
+                  onChange={(id) => void setVoice(member.characterId, id)}
+                />
+                {designer !== null && (
+                  <DesignActions characterId={member.characterId} voiceId={member.voiceId} />
+                )}
+                {/* Together in one cell. Left as separate children of the row's
+                  grid they landed in its first and last columns, with the
+                  stretchy middle one holding them a rail's width apart. */}
+                <span className="narration-cast-marks">
+                  <RegisterButton characterId={member.characterId} name={member.name} />
+                  <VoiceScopeButton characterId={member.characterId} name={member.name} />
+                </span>
+              </li>
+            ))}
+          </ul>
 
-        {unassignedCount > 0 && (
-          <div className="narration-cast-note">
-            {t('narration.unassigned', { count: unassignedCount })}
-          </div>
-        )}
-        {noVoices && <div className="narration-cast-note warn">{t('narration.noVoices')}</div>}
+          {unassignedCount > 0 && (
+            <div className="narration-cast-note">
+              {t('narration.unassigned', { count: unassignedCount })}
+            </div>
+          )}
+          {noVoices && <div className="narration-cast-note warn">{t('narration.noVoices')}</div>}
 
-        {/* Every engine, not the first one. Showing only one meant a writer
+          {/* Every engine, not the first one. Showing only one meant a writer
             who had installed a second could not see it, let alone prepare it -
             and the one they were shown was whichever happened to load first. */}
-        {engines.map((engine) => (
-          <div key={engine.engineId} className="narration-engine">
-            <span className="narration-engine-name">{engine.engineName}</span>
-            <span className="narration-engine-state">
-              {/* An engine that reports an empty reason has not given one:
+          {engines.map((engine) => (
+            <div key={engine.engineId} className="narration-engine">
+              <span className="narration-engine-name">{engine.engineName}</span>
+              <span className="narration-engine-state">
+                {/* An engine that reports an empty reason has not given one:
                   treating "" as a message printed nothing where the state
                   should have been. */}
-              {engine.isReady
-                ? engine.detail.length > 0
-                  ? engine.detail
-                  : t('narration.engineReady')
-                : engine.error !== null && engine.error.trim().length > 0
-                  ? engine.error
-                  : t('narration.engineNotReady')}
-            </span>
-            {!engine.isReady && (
-              <button
-                type="button"
-                className="narration-prepare"
-                disabled={busy}
-                onClick={() => void prepareEngine(engine.engineId)}
-              >
-                {engine.downloadBytes !== null && engine.downloadBytes > 0
-                  ? t('narration.prepareWithSize', {
-                      size: Math.round(engine.downloadBytes / (1024 * 1024 * 1024))
-                    })
-                  : t('narration.prepare')}
-              </button>
-            )}
-          </div>
-        ))}
-      </aside>
+                {engine.isReady
+                  ? engine.detail.length > 0
+                    ? engine.detail
+                    : t('narration.engineReady')
+                  : engine.error !== null && engine.error.trim().length > 0
+                    ? engine.error
+                    : t('narration.engineNotReady')}
+              </span>
+              {!engine.isReady && (
+                <button
+                  type="button"
+                  className="narration-prepare"
+                  disabled={busy}
+                  onClick={() => void prepareEngine(engine.engineId)}
+                >
+                  {engine.downloadBytes !== null && engine.downloadBytes > 0
+                    ? t('narration.prepareWithSize', {
+                        size: Math.round(engine.downloadBytes / (1024 * 1024 * 1024))
+                      })
+                    : t('narration.prepare')}
+                </button>
+              )}
+            </div>
+          ))}
+        </aside>
 
-      <section className="narration-stage" aria-label={t('narration.script')}>
-        <iframe
-          ref={frameRef}
-          className="narration-frame"
-          src="./editor/narration-editor.html"
-          title={t('narration.script')}
-          sandbox="allow-scripts allow-same-origin"
-        />
-        {loading && !book && <div className="narration-status">{t('narration.loading')}</div>}
+        <section className="narration-stage" aria-label={t('narration.script')}>
+          <iframe
+            ref={frameRef}
+            className="narration-frame"
+            src="./editor/narration-editor.html"
+            title={t('narration.script')}
+            sandbox="allow-scripts allow-same-origin"
+          />
+          {loading && !book && <div className="narration-status">{t('narration.loading')}</div>}
 
-        {selectedStep && <SegmentPanel step={selectedStep} />}
+          {selectedStep && <SegmentPanel step={selectedStep} />}
 
-        {brief !== null && designer !== null && <DesignDialog />}
-
-        <footer className="narration-transport">
-          {/* One button, and it says what it does. The platform engine speaks a
+          {brief !== null && designer !== null && <DesignDialog />}
+        </section>
+      </div>
+      <footer className="narration-transport">
+        {/* One button, and it says what it does. The platform engine speaks a
               passage whole, so there is nothing to resume from: stopping ends
               the reading, and starting again starts where you are. */}
-          <button
-            type="button"
-            className="narration-play"
-            disabled={!canPlay}
-            onClick={() => (speaking === null && !preparing ? playFrom() : stop())}
-          >
-            {speaking === null && !preparing ? (
-              <Play size={13} strokeWidth={1.75} aria-hidden="true" />
-            ) : (
-              <Square size={13} strokeWidth={1.75} aria-hidden="true" />
-            )}
-            {/* Making speech takes seconds, and a transport that says nothing
+        <button
+          type="button"
+          className="narration-play"
+          disabled={!canPlay}
+          onClick={() => (speaking === null && !preparing ? playFrom() : stop())}
+        >
+          {speaking === null && !preparing ? (
+            <Play size={13} strokeWidth={1.75} aria-hidden="true" />
+          ) : (
+            <Square size={13} strokeWidth={1.75} aria-hidden="true" />
+          )}
+          {/* Making speech takes seconds, and a transport that says nothing
                 for that long reads as a button that did not work. */}
-            {preparing
-              ? t('narration.preparingReading')
-              : speaking === null
-                ? selected
-                  ? t('narration.playFromHere')
-                  : t('narration.play')
-                : t('narration.stop')}
-          </button>
+          {preparing
+            ? t('narration.preparingReading')
+            : speaking === null
+              ? selected || sceneNavigation
+                ? t('narration.playFromHere')
+                : t('narration.play')
+              : t('narration.stop')}
+        </button>
 
-          {/* Delivery is not reproducible: the same line asked for twice comes
+        {/* Delivery is not reproducible: the same line asked for twice comes
               back differently. Reuse is what makes a second listen instant, and
               this is what stops it also making the reading fixed. */}
-          <button
-            type="button"
-            className="narration-again"
-            disabled={!canPlay || speaking !== null || preparing}
-            title={t('narration.readAgainHint')}
-            onClick={() => void readAgain()}
-          >
-            {t('narration.readAgain')}
-          </button>
+        <button
+          type="button"
+          className="narration-again"
+          disabled={!canPlay || speaking !== null || preparing}
+          title={t('narration.readAgainHint')}
+          onClick={() => void readAgain()}
+        >
+          {t('narration.readAgain')}
+        </button>
 
-          <button
-            type="button"
-            className="narration-locate"
-            disabled={!openSceneId}
-            onClick={() => {
-              const frame = frameRef.current?.contentWindow as NarrationWindow | null
-              if (frame && openSceneId) frame.revealScene(openSceneId)
-            }}
-          >
-            <Crosshair size={13} strokeWidth={1.75} aria-hidden="true" />
-            {t('narration.goToOpenScene')}
-          </button>
+        <button
+          type="button"
+          className="narration-locate"
+          disabled={!openSceneId}
+          onClick={() => {
+            const frame = frameRef.current?.contentWindow as NarrationWindow | null
+            if (frame && openSceneId) frame.revealScene(openSceneId)
+          }}
+        >
+          <Crosshair size={13} strokeWidth={1.75} aria-hidden="true" />
+          {t('narration.goToOpenScene')}
+        </button>
 
-          <label className="narration-rate">
-            {t('narration.speed')}
-            <input
-              type="range"
-              min={0.5}
-              max={2}
-              step={0.1}
-              value={rate}
-              onChange={(e) => setRate(Number(e.target.value))}
-            />
-            <span className="narration-rate-value">{rate.toFixed(1)}&times;</span>
-          </label>
+        <label className="narration-rate">
+          {t('narration.speed')}
+          <input
+            type="range"
+            min={0.5}
+            max={2}
+            step={0.1}
+            value={rate}
+            onChange={(e) => setRate(Number(e.target.value))}
+          />
+          <span className="narration-rate-value">{rate.toFixed(1)}&times;</span>
+        </label>
 
-          {/* A reading that ends without a word about it looks exactly like one
+        {/* A reading that ends without a word about it looks exactly like one
               still thinking, which is the state a writer has no way to tell it
               apart from. */}
-          {readingError !== null && (
-            <span className="narration-transport-note warn">
-              {t('narration.readingStopped', { reason: readingError })}
-            </span>
-          )}
-          {!canPlay && reading.length > 0 && (
-            <span className="narration-transport-note">{t('narration.nothingCast')}</span>
-          )}
-          {reading.length === 0 && !loading && (
-            <span className="narration-transport-note">{t('narration.emptyBook')}</span>
-          )}
-        </footer>
-      </section>
+        {readingError !== null && (
+          <span className="narration-transport-note warn">
+            {t('narration.readingStopped', { reason: readingError })}
+          </span>
+        )}
+        {!canPlay && reading.length > 0 && (
+          <span className="narration-transport-note">{t('narration.nothingCast')}</span>
+        )}
+        {reading.length === 0 && !loading && (
+          <span className="narration-transport-note">{t('narration.emptyBook')}</span>
+        )}
+      </footer>
     </div>
   )
 }
@@ -545,8 +590,7 @@ function SegmentPanel({ step }: { step: ReadingStep }): React.JSX.Element {
   const narration = segment.kind === 'Narration'
   const owner = designed.find((voice) => voice.voiceId === segment.voiceId)?.engineId
   const inferred =
-    (engines.find((engine) => engine.engineId === owner)?.features ?? 0) &
-    FEATURE_EMOTION_INFERRED
+    (engines.find((engine) => engine.engineId === owner)?.features ?? 0) & FEATURE_EMOTION_INFERRED
   const ref: SegmentRef = {
     chapterGuid: step.chapterGuid,
     sceneId: step.sceneId,
@@ -947,8 +991,7 @@ function DesignDialog(): React.JSX.Element {
     ? narratorVoiceId
     : (members.find((m) => m.characterId === brief.characterId)?.voiceId ?? null)
   const kept = designed.find((d) => d.voiceId === castTo) ?? null
-  const keptFeatures =
-    engines.find((engine) => engine.engineId === kept?.engineId)?.features ?? 0
+  const keptFeatures = engines.find((engine) => engine.engineId === kept?.engineId)?.features ?? 0
   const auditionIsAutomatic = (keptFeatures & FEATURE_EMOTION_INFERRED) !== 0
   // Their own words where there are any. A voice auditioned on a line the
   // character actually speaks tells you something; one auditioned on a stock
@@ -1069,7 +1112,9 @@ function DesignDialog(): React.JSX.Element {
                   : t(auditionIsAutomatic ? 'narration.auditionAutomatic' : 'narration.audition')}
               </button>
               <p className="narration-design-note">
-                {t(auditionIsAutomatic ? 'narration.auditionAutomaticNote' : 'narration.auditionNote')}
+                {t(
+                  auditionIsAutomatic ? 'narration.auditionAutomaticNote' : 'narration.auditionNote'
+                )}
               </p>
             </div>
           )}
@@ -1128,7 +1173,6 @@ function DesignDialog(): React.JSX.Element {
     </div>
   )
 }
-
 
 /**
  * Voices for one stretch of the book.
@@ -1360,8 +1404,7 @@ function RegisterButton({
   const standing = registers[characterId] ?? {}
   const [draft, setDraft] = useState<Record<string, number>>(standing)
 
-  const set = (dimension: string, value: number): void =>
-    setDraft({ ...draft, [dimension]: value })
+  const set = (dimension: string, value: number): void => setDraft({ ...draft, [dimension]: value })
 
   return (
     <>

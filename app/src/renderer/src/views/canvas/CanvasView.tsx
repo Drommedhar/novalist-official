@@ -1,3 +1,4 @@
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FileUp, GripHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
@@ -250,7 +251,9 @@ export function CanvasView(): React.JSX.Element {
           if (pendingTitles.current.get(id) === title) pendingTitles.current.delete(id)
         }
         if (Object.keys(titles).length > 0) {
-          useProjectStore.getState().applyState(await rpc.request<ProjectStateDto>('project/getState'))
+          useProjectStore
+            .getState()
+            .applyState(await rpc.request<ProjectStateDto>('project/getState'))
         }
       })
       inFlightSave.current = request
@@ -276,24 +279,27 @@ export function CanvasView(): React.JSX.Element {
   )
 
   /** Commit the live inline value before another control unmounts its editor. */
-  const commitActiveConnectorEdit = useCallback((restore = false): void => {
-    const editing = editingOriginalLabel.current
-    const current = canvasRef.current
-    if (!editing || !current) return
-    const connector = current.connectors.find((item) => item.id === editing.id)
-    if (connector) {
-      const label = restore ? editing.label : connector.label.trim()
-      if (label !== connector.label) {
-        queueSave({
-          ...current,
-          connectors: current.connectors.map((item) =>
-            item.id === editing.id ? { ...item, label } : item
-          )
-        })
+  const commitActiveConnectorEdit = useCallback(
+    (restore = false): void => {
+      const editing = editingOriginalLabel.current
+      const current = canvasRef.current
+      if (!editing || !current) return
+      const connector = current.connectors.find((item) => item.id === editing.id)
+      if (connector) {
+        const label = restore ? editing.label : connector.label.trim()
+        if (label !== connector.label) {
+          queueSave({
+            ...current,
+            connectors: current.connectors.map((item) =>
+              item.id === editing.id ? { ...item, label } : item
+            )
+          })
+        }
       }
-    }
-    editingOriginalLabel.current = null
-  }, [queueSave])
+      editingOriginalLabel.current = null
+    },
+    [queueSave]
+  )
 
   useEffect(
     () =>
@@ -561,9 +567,7 @@ export function CanvasView(): React.JSX.Element {
     if (updated) replaceCanvas(updated)
     // The new scene has to reach the binder, or the writer sees the card change
     // colour with nothing to show for it.
-    useProjectStore
-      .getState()
-      .applyState(await rpc.request<ProjectStateDto>('project/getState'))
+    useProjectStore.getState().applyState(await rpc.request<ProjectStateDto>('project/getState'))
   }
 
   const toBoardPoint = (clientX: number, clientY: number): BoardPoint => {
@@ -630,10 +634,8 @@ export function CanvasView(): React.JSX.Element {
     if (!gesture || gesture.pointerId !== event.pointerId) return
     if (
       !gesture.moved &&
-      Math.hypot(
-        event.clientX - gesture.startClientX,
-        event.clientY - gesture.startClientY
-      ) < DRAG_THRESHOLD_PX
+      Math.hypot(event.clientX - gesture.startClientX, event.clientY - gesture.startClientY) <
+        DRAG_THRESHOLD_PX
     ) {
       return
     }
@@ -753,7 +755,9 @@ export function CanvasView(): React.JSX.Element {
     setConnectorPreview({
       fromCardId: gesture.fromCardId,
       fromSide: gesture.fromSide,
-      end: target ? pointOnCard(target.card, target.side) : toBoardPoint(event.clientX, event.clientY),
+      end: target
+        ? pointOnCard(target.card, target.side)
+        : toBoardPoint(event.clientX, event.clientY),
       targetCardId: target?.card.id ?? null,
       targetSide: target?.side ?? null
     })
@@ -823,12 +827,10 @@ export function CanvasView(): React.JSX.Element {
     }
   }
 
-  const selected = selectedId ? cardById(selectedId) ?? null : null
+  const selected = selectedId ? (cardById(selectedId) ?? null) : null
   const previewFrom = connectorPreview ? cardById(connectorPreview.fromCardId) : undefined
   const previewStart =
-    connectorPreview && previewFrom
-      ? pointOnCard(previewFrom, connectorPreview.fromSide)
-      : null
+    connectorPreview && previewFrom ? pointOnCard(previewFrom, connectorPreview.fromSide) : null
 
   return (
     <div className="canvas-view">
@@ -854,9 +856,12 @@ export function CanvasView(): React.JSX.Element {
         <button className="dialog-button" disabled={!canvas} onClick={() => void deleteBoard()}>
           <Trash2 size={14} /> {t('canvas.deleteBoard')}
         </button>
-        <button className="dialog-button" disabled={!canvas} onClick={addCard}>
-          <Plus size={14} /> {t('canvas.addCard')}
-        </button>
+        <DesktopViewActions>
+          {' '}
+          <button className="dialog-button primary" disabled={!canvas} onClick={addCard}>
+            <Plus size={14} /> {t('canvas.addCard')}
+          </button>
+        </DesktopViewActions>
         {canvas && canvas.cards.length > 0 && (
           <span className="settings-hint" role="status" aria-live="polite">
             {keyboardConnectFrom
@@ -1077,8 +1082,7 @@ export function CanvasView(): React.JSX.Element {
                     className={`canvas-connector-handle ${side}`}
                     aria-label={connectorHandleLabel(side, card)}
                     aria-pressed={
-                      keyboardConnectFrom?.cardId === card.id &&
-                      keyboardConnectFrom.side === side
+                      keyboardConnectFrom?.cardId === card.id && keyboardConnectFrom.side === side
                     }
                     title={connectorHandleLabel(side, card)}
                     onPointerDown={(event) => startConnectorDrag(event, card, side)}

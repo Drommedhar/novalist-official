@@ -1,3 +1,4 @@
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FileDown } from 'lucide-react'
@@ -173,7 +174,11 @@ export function ExposeView(): React.JSX.Element {
           measureTimer.current = setTimeout(() => {
             measureTimer.current = null
             void rpc.request<ExposeState>('expose/measure', [html]).then((measured) => {
-              setState((prev) => ({ ...measured, charLimit: prev.charLimit, pageLimit: prev.pageLimit }))
+              setState((prev) => ({
+                ...measured,
+                charLimit: prev.charLimit,
+                pageLimit: prev.pageLimit
+              }))
             })
           }, MEASURE_DELAY_MS)
           if (saveTimer.current) clearTimeout(saveTimer.current)
@@ -195,7 +200,10 @@ export function ExposeView(): React.JSX.Element {
     const observer = new MutationObserver(() => {
       if (editorRef.current) pushEditorTheme(editorRef.current)
     })
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    })
 
     const existing = editorWindow(iframe)
     if (existing && typeof existing.setContent === 'function') {
@@ -275,56 +283,68 @@ export function ExposeView(): React.JSX.Element {
             </button>
           ))}
         </div>
-        <div className="expose-counters">
-          <span className={`expose-counter${budgetClass(state.characters, state.charLimit)}`}>
-            {charText}
-          </span>
-          <span className={`expose-counter${budgetClass(state.pages, state.pageLimit)}`}>
-            {pageText}
-          </span>
-        </div>
-        <div className="expose-limits">
-          <label className="expose-limit" htmlFor="expose-char-limit">
-            {t('expose.charLimit')}
-            <input
-              id="expose-char-limit"
-              className="dialog-input expose-limit-input"
-              type="number"
-              min={0}
-              value={charLimitText}
-              placeholder={t('expose.noLimit')}
-              onChange={(e) => setCharLimitText(e.target.value)}
-              onBlur={commitLimits}
-            />
-          </label>
-          <label className="expose-limit" htmlFor="expose-page-limit">
-            {t('expose.pageLimit')}
-            <input
-              id="expose-page-limit"
-              className="dialog-input expose-limit-input"
-              type="number"
-              min={0}
-              value={pageLimitText}
-              placeholder={t('expose.noLimit')}
-              onChange={(e) => setPageLimitText(e.target.value)}
-              onBlur={commitLimits}
-            />
-          </label>
-        </div>
-        <button className="start-open expose-export" disabled={busy} onClick={() => void runExport()}>
-          <FileDown size={15} strokeWidth={2} />
-          {busy ? t('export.exporting') : t('expose.exportAction')}
-        </button>
+        <DesktopViewActions>
+          {' '}
+          <button
+            className="dialog-button primary expose-export"
+            disabled={busy}
+            onClick={() => void runExport()}
+          >
+            <FileDown size={15} strokeWidth={2} />
+            {busy ? t('export.exporting') : t('expose.exportAction')}
+          </button>
+        </DesktopViewActions>
       </div>
       {result && <p className="inspector-meta expose-result">{result}</p>}
-      <div className="editor-pane expose-editor">
-        <iframe
-          ref={iframeRef}
-          className="editor-frame"
-          src="./editor/editor.html"
-          title="expose-editor"
-          sandbox="allow-scripts allow-same-origin"
-        />
+      <div className="expose-workspace">
+        <div className="editor-pane expose-editor">
+          <iframe
+            ref={iframeRef}
+            className="editor-frame"
+            src="./editor/editor.html"
+            title="expose-editor"
+            sandbox="allow-scripts allow-same-origin"
+          />
+        </div>
+        <aside className="expose-target">
+          <h2>{t('desktopRefresh.submissionTarget')}</h2>{' '}
+          <div className="expose-counters">
+            <span className={`expose-counter${budgetClass(state.characters, state.charLimit)}`}>
+              {charText}
+            </span>
+            <span className={`expose-counter${budgetClass(state.pages, state.pageLimit)}`}>
+              {pageText}
+            </span>
+          </div>
+          <div className="expose-limits">
+            <label className="expose-limit" htmlFor="expose-char-limit">
+              {t('expose.charLimit')}
+              <input
+                id="expose-char-limit"
+                className="dialog-input expose-limit-input"
+                type="number"
+                min={0}
+                value={charLimitText}
+                placeholder={t('expose.noLimit')}
+                onChange={(e) => setCharLimitText(e.target.value)}
+                onBlur={commitLimits}
+              />
+            </label>
+            <label className="expose-limit" htmlFor="expose-page-limit">
+              {t('expose.pageLimit')}
+              <input
+                id="expose-page-limit"
+                className="dialog-input expose-limit-input"
+                type="number"
+                min={0}
+                value={pageLimitText}
+                placeholder={t('expose.noLimit')}
+                onChange={(e) => setPageLimitText(e.target.value)}
+                onBlur={commitLimits}
+              />
+            </label>
+          </div>
+        </aside>
       </div>
     </div>
   )

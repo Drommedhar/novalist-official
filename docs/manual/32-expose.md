@@ -8,6 +8,8 @@ Each book in a project has its own exposé.
 
 Pick the **Publish** mode in the rail, then **Exposé** under **Prepare** in the mode panel.
 
+On desktop, the writing surface sits beside a **Submission target** card containing the live counts and limits. On narrower windows the target card moves below the editor. The export action sits beside the view heading.
+
 ## Writing
 
 The writing surface is the same editor you use for scenes: the same font, theme, and spell checking. Your text saves automatically two seconds after you stop typing, and again when you leave the view.

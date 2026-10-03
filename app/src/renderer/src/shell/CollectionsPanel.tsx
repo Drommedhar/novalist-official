@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, Check, ChevronRight, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
-import { useBookScope, useProjectStore } from '../stores/projectStore'
+import { useBookScope } from '../stores/projectStore'
 import { useSelectionStore } from '../stores/selectionStore'
+import { openBinderScene } from './binderNavigation'
 
 interface CollectionSceneDto {
   sceneId: string
@@ -103,9 +104,7 @@ export function CollectionsPanel(): React.JSX.Element {
             <button
               className="binder-expand"
               aria-label={collection.name}
-              onClick={() =>
-                setCollapsed((c) => ({ ...c, [collection.id]: !c[collection.id] }))
-              }
+              onClick={() => setCollapsed((c) => ({ ...c, [collection.id]: !c[collection.id] }))}
             >
               <ChevronRight
                 size={13}
@@ -184,9 +183,7 @@ export function CollectionsPanel(): React.JSX.Element {
               <div key={scene.sceneId} className="collections-row">
                 <button
                   className="binder-scene-row"
-                  onClick={() =>
-                    void useProjectStore.getState().openScene(scene.chapterGuid, scene.sceneId)
-                  }
+                  onClick={() => openBinderScene(scene.chapterGuid, scene.sceneId)}
                 >
                   <span className="binder-scene-title">{scene.title}</span>
                 </button>

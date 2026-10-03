@@ -10,30 +10,13 @@ Keyboard shortcuts below are written with `Ctrl`; on macOS use `Cmd` instead.
 
 Novalist is organised around **five modes** — Write, Plan, World, Publish and Series — plus a Dashboard you can always return to. A mode is a workspace: picking one decides what the window looks like and which views are one click away.
 
-```
-┌───────────────────────────────────────────────────────────────────────────┐
-│  File   Edit   Go   View   Window   Help                                  │
-├───────────────────────────────────────────────────────────────────────────┤
-│  Project name  [Book v] [Draft v]   + Chapter  + Scene        Find   More │
-├──────┬────────────┬─────────────┬───────────────────────────┬─────────────┤
-│ Mode │ Mode panel │   Binder    │         Main area         │  Inspector  │
-│ rail │            │             │                           │             │
-│ Dash │ Write   2  │  Chapters / │  Writing bar              │  Context /  │
-│ Writ │  Drafting  │  Smart      │ ------------------------- │  Footnotes  │
-│ Plan │   Editor   │  Lists      │  (the editor, or whatever │             │
-│ Worl │   Manusc.  │  + tree     │   view you picked)        │             │
-│ Publ │            │             │ ------------------------- │             │
-│ Seri │            │             │  Scene notes (optional)   │             │
-├──────┴────────────┴─────────────┴───────────────────────────┴─────────────┤
-│  scene words  │  Project status  │  goals   git   Core                    │
-└───────────────────────────────────────────────────────────────────────────┘
-```
+The **toolbar** sits below the native menu, followed by the horizontal **mode rail**: Library, Dashboard, Write, Plan, World, Publish, Series, Extensions and Settings. Below it, the left column holds the mode's views; in Write, these share one column with the binder. The main area sits alongside the scene inspector. The status bar runs along the bottom.
 
-From the outside in: the **menu bar**, the **toolbar**, then a row of panels — the **mode rail**, the **mode panel**, the **binder**, the **main area** and the **inspector** — over the **status bar**. Not all of them are present at once; which ones you get is decided by the mode you are in.
+Desktop controls use the system sans-serif font and flat surfaces. Book covers keep their literary type, and your manuscript font remains controlled by your editor settings. Forms have a bounded width in a maximized window; tables, galleries and canvases use the available space.
 
 ## Where things live
 
-Every command in Novalist has exactly **one** permanent home, and its scope decides which. Nothing sits in two places at once, so once you have learned where a kind of command lives you have learned where all of them live.
+Commands are grouped by their scope. The table below gives their main locations; frequently used destinations are also available from navigation and the command palette.
 
 | The command acts on | You find it in |
 | --- | --- |
@@ -63,7 +46,7 @@ Menu items are greyed out rather than hidden when they cannot do anything — wi
 
 ## The mode rail
 
-The narrow labelled rail on the far left. Each entry has an icon **and its name**, so nothing has to be hovered to be identified:
+The horizontal labelled navigation row below the project toolbar. Each entry has an icon **and its name**, so nothing has to be hovered to be identified:
 
 - **Dashboard** — home. Not part of any mode: it is where you are before you have decided what to do today, and where a project lands when you open it.
 - **Write** — the Editor and the Manuscript view.
@@ -71,15 +54,16 @@ The narrow labelled rail on the far left. Each entry has an icon **and its name*
 - **World** — Codex, Wiki, Maps, Research, Gallery, Languages.
 - **Publish** — Exposé, Style report, Export, Git.
 - **Series** — the Series view, which is the one that sits above a single book.
-- **Settings** — pinned to the bottom for quick access to preferences, even before you open a project. In short windows, the workspace list scrolls while Settings stays in place.
+- **Library** — closes the current project through the normal save flow and returns to your bookshelf.
+- **Extensions** and **Settings** — at the right of the row, including before you open a project. In narrow windows the navigation row scrolls horizontally.
 
 With no project open the modes are shown disabled rather than absent, so the shape of the window is the same before and after you open one.
 
-Settings is also in the menu bar and the [command palette](25-command-palette.md). Extensions and About are reached from the menu bar or from links elsewhere in the app.
+Settings is also in the menu bar and the [command palette](25-command-palette.md). Extensions also has its own navigation button; About remains in the Help menu.
 
 ## The mode panel
 
-Beside the rail, the mode panel lists the views of the mode you are in. It is the same switcher in every mode: having found how to move between Timeline and Calendar, you already know how to move between Codex and Maps.
+Below the navigation row, the mode panel lists the views of the mode you are in. It is the same switcher in every mode: having found how to move between Timeline and Calendar, you already know how to move between Codex and Maps.
 
 - The head names the mode and shows **how many views** it holds.
 - Views are listed in **labelled groups** — Write has "Drafting"; Plan has "Shape" and "Cast and time"; World has "In this book" and "Reference"; Publish has "Prepare" and "Produce"; Series has "Across books". A mode with a single group shows no label, because a heading over the whole list says nothing the panel's title has not.
@@ -115,7 +99,7 @@ Nothing is taken away, only put away: every command is still in the [command pal
 
 The layout also responds to how much room it actually has, measured from the window rather than guessed from the monitor — so a narrow window on a wide screen reflows properly, and moving the window between monitors of different scaling reflows it again without a restart.
 
-- **Wide** — mode panel, binder, main area and inspector side by side, as above.
+- **Wide** — the mode panel and binder share a left column, with the main area and inspector alongside it.
 - **Medium** — the inspector becomes a drawer you open when you want it, and secondary toolbar commands collect under the **More** menu.
 - **Compact** — the mode panel and the binder become overlays over the main area rather than columns beside it, so the editor keeps a usable width instead of being squeezed out.
 

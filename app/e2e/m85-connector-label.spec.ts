@@ -37,8 +37,8 @@ test('a planning-board connector can be labelled, reopened, cleared and deleted'
   await dialog.locator('.dialog-input').fill('Causal chain')
   await dialog.getByRole('button', { name: 'OK' }).click()
 
-  await toolbar.getByRole('button', { name: 'Add card' }).click()
-  await toolbar.getByRole('button', { name: 'Add card' }).click()
+  await h.page.getByRole('button', { name: 'Add card', exact: true }).click()
+  await h.page.getByRole('button', { name: 'Add card', exact: true }).click()
   const cards = h.page.locator('.canvas-card')
   await expect(cards).toHaveCount(2)
   await cards.nth(0).locator('.canvas-card-title').fill('Cause')
@@ -230,7 +230,7 @@ test('a planning-board connector can be labelled, reopened, cleared and deleted'
   // card, but an opened editor must rise above it so the field remains usable.
   const labelBounds = await labelButton.boundingBox()
   expect(labelBounds).not.toBeNull()
-  await toolbar.getByRole('button', { name: 'Add card' }).click()
+  await h.page.getByRole('button', { name: 'Add card', exact: true }).click()
   await expect(cards).toHaveCount(3)
   await cards.nth(2).locator('.canvas-card-title').fill('Overlap')
   const overlapGrip = cards.nth(2).locator('.canvas-card-move-handle')
@@ -440,7 +440,7 @@ test('a planning-board connector can be labelled, reopened, cleared and deleted'
 
   // Labels at the board origin clamp by their own rendered size. They stay
   // fully reachable even when both chosen connector sides sit on x=0 or y=0.
-  await toolbar.getByRole('button', { name: 'Add card' }).click()
+  await h.page.getByRole('button', { name: 'Add card', exact: true }).click()
   await expect(cards).toHaveCount(2)
   await cards.nth(1).locator('.canvas-card-title').fill('Edge')
   const surface = h.page.locator('.canvas-surface')

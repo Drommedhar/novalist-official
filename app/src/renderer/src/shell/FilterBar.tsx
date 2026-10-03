@@ -5,6 +5,7 @@ import { rpc } from '../rpc/client'
 import { useBookScope, useProjectStore } from '../stores/projectStore'
 import { useStageStore } from '../stores/stageStore'
 import { useIsPhone } from './useIsPhone'
+import { DesktopViewActions } from './DesktopViewFrame'
 import {
   activeCount,
   isEmptyFilter,
@@ -33,7 +34,8 @@ export function FilterBar(): React.JSX.Element {
   const bookScope = useBookScope()
   const stages = useStageStore((s) => s.stages)
   const isPhone = useIsPhone()
-  /** Phone only: whether the bar is unfolded. */
+  const collapsible = isPhone || !window.novalist.isMobile
+  /** Desktop and phone: whether the filter controls are unfolded. */
   const [open, setOpen] = useState(false)
 
   // Something narrowing the view is not allowed to sit behind a closed row: if
@@ -97,9 +99,9 @@ export function FilterBar(): React.JSX.Element {
   // many filters are on, because a folded bar that is quietly narrowing the view
   // is worse than no bar - and it opens itself when something is active, so a
   // filter can never be hiding behind a closed row.
-  if (isPhone && !open) {
+  if (collapsible && !open) {
     return (
-      <button
+      <DesktopViewActions><button
         type="button"
         className="filter-bar-toggle"
         aria-expanded={false}
@@ -109,13 +111,13 @@ export function FilterBar(): React.JSX.Element {
         {isEmptyFilter(filter)
           ? t('filters.title')
           : t('filters.clear', { count: activeCount(filter) })}
-      </button>
+      </button></DesktopViewActions>
     )
   }
 
   return (
     <div className="filter-bar">
-      {isPhone && (
+      {collapsible && (
         <button
           type="button"
           className="filter-bar-toggle"

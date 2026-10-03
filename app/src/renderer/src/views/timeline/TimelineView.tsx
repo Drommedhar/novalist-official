@@ -1,3 +1,4 @@
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -109,10 +110,7 @@ type Pending =
  * Never itself - an event waiting on itself is a dependency that can never
  * resolve, and it is the easiest one to pick by accident.
  */
-function anchors(
-  data: TimelineDto,
-  selfId: string | null
-): { id: string; title: string }[] {
+function anchors(data: TimelineDto, selfId: string | null): { id: string; title: string }[] {
   return data.groups
     .flatMap((g) => g.events)
     .filter((e) => e.isManual)
@@ -252,9 +250,7 @@ export function TimelineView(): React.JSX.Element {
    * and two bars only mean something next to each other if they share a scale.
    * Returns null for anything instantaneous or undated.
    */
-  const spanOf = (
-    event: TimelineEventDto
-  ): { offset: number; width: number } | null => {
+  const spanOf = (event: TimelineEventDto): { offset: number; width: number } | null => {
     if (!event.sortDate || !event.sortEndDate || !bookSpan) return null
     const start = Date.parse(event.sortDate)
     const end = Date.parse(event.sortEndDate)
@@ -383,10 +379,13 @@ export function TimelineView(): React.JSX.Element {
     <div className="timeline">
       <FilterBar />
       <div className="timeline-toolbar">
-        <button className="toolbar-button toolbar-action" onClick={() => setPending({ kind: 'create' })}>
-          <Plus size={14} strokeWidth={2} />
-          {t('timeline.addEvent')}
-        </button>
+        <DesktopViewActions>
+          {' '}
+          <button className="dialog-button primary" onClick={() => setPending({ kind: 'create' })}>
+            <Plus size={14} strokeWidth={2} />
+            {t('timeline.addEvent')}
+          </button>
+        </DesktopViewActions>
         {/* Adding an event is what the toolbar is for; the other dozen controls
             are how the timeline is set up, and on a phone they wrapped into five
             rows above the events themselves. They fold behind one row, with the
@@ -408,201 +407,204 @@ export function TimelineView(): React.JSX.Element {
         )}
         {(!isPhone || toolbarOpen) && (
           <>
-        <button
-          className="toolbar-button toolbar-action"
-          onClick={() =>
-            void (async () => {
-              const output = await window.novalist.saveFile('outline.md')
-              if (output) await rpc.request('export/timelineOutline', [output])
-            })()
-          }
-        >
-          <FileDown size={14} strokeWidth={2} />
-          {t('timeline.exportOutline')}
-        </button>
-        <select
-          className="dialog-input findreplace-scope"
-          value=""
-          aria-label={t('timeline.applyStructure')}
-          onChange={(e) => {
-            const id = e.target.value
-            if (!id) return
-            void rpc.request<TimelineDto>('timeline/applyStructureTemplate', [id]).then(setData)
-          }}
-        >
-          <option value="">{t('timeline.applyStructure')}</option>
-          {structures.map((s) => (
-            <option key={s.id} value={s.id} title={s.description}>
-              {s.displayName}
-            </option>
-          ))}
-        </select>
-        <button
-          className={`toolbar-button toolbar-action${structureOpen ? ' active' : ''}`}
-          onClick={() => setStructureOpen(!structureOpen)}
-        >
-          <Milestone size={14} strokeWidth={2} />
-          {t('structure.title')}
-        </button>
-        <div className="toolbar-spacer" />
-        {availableCharacters.length > 0 && (
-          <select
-            className="dialog-input findreplace-scope"
-            value={characterFilter}
-            onChange={(e) => useFilterStore.getState().set({ character: e.target.value })}
-          >
-            <option value="">{t('timeline.filterCharacter')}</option>
-            {availableCharacters.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        )}
-        {availableLocations.length > 0 && (
-          <select
-            className="dialog-input findreplace-scope"
-            value={locationFilter}
-            onChange={(e) => useFilterStore.getState().set({ location: e.target.value })}
-          >
-            <option value="">{t('timeline.filterLocation')}</option>
-            {availableLocations.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        )}
-        <button
-          className={`toolbar-button toolbar-action${readingOrder ? ' active' : ''}`}
-          onClick={() => setReadingOrder(!readingOrder)}
-        >
-          {t(readingOrder ? 'timeline.orderReading' : 'timeline.orderChronological')}
-        </button>
-        <select
-          className="dialog-input findreplace-scope"
-          aria-label={t('timeline.lanes')}
-          value={laneBy}
-          onChange={(e) => setLaneBy(e.target.value)}
-        >
-          {['none', 'character', 'location', 'pov', 'plotline'].map((key) => (
-            <option key={key} value={key}>
-              {t(`timeline.lane_${key}`)}
-            </option>
-          ))}
-        </select>
-        <select
-          className="dialog-input findreplace-scope"
-          value={sourceFilter}
-          onChange={(e) => setSourceFilter(e.target.value)}
-        >
-          {['all', 'act', 'chapter', 'scene', 'manual'].map((s) => (
-            <option key={s} value={s}>
-              {s === 'all' ? t('timeline.filterSource') : t(`timeline.source${s.charAt(0).toUpperCase()}${s.slice(1)}`)}
-            </option>
-          ))}
-        </select>
-        {/* Only worth showing once there is more than one. A lone select
+            <button
+              className="toolbar-button toolbar-action"
+              onClick={() =>
+                void (async () => {
+                  const output = await window.novalist.saveFile('outline.md')
+                  if (output) await rpc.request('export/timelineOutline', [output])
+                })()
+              }
+            >
+              <FileDown size={14} strokeWidth={2} />
+              {t('timeline.exportOutline')}
+            </button>
+            <select
+              className="dialog-input findreplace-scope"
+              value=""
+              aria-label={t('timeline.applyStructure')}
+              onChange={(e) => {
+                const id = e.target.value
+                if (!id) return
+                void rpc.request<TimelineDto>('timeline/applyStructureTemplate', [id]).then(setData)
+              }}
+            >
+              <option value="">{t('timeline.applyStructure')}</option>
+              {structures.map((s) => (
+                <option key={s.id} value={s.id} title={s.description}>
+                  {s.displayName}
+                </option>
+              ))}
+            </select>
+            <button
+              className={`toolbar-button toolbar-action${structureOpen ? ' active' : ''}`}
+              onClick={() => setStructureOpen(!structureOpen)}
+            >
+              <Milestone size={14} strokeWidth={2} />
+              {t('structure.title')}
+            </button>
+            <div className="toolbar-spacer" />
+            {availableCharacters.length > 0 && (
+              <select
+                className="dialog-input findreplace-scope"
+                value={characterFilter}
+                onChange={(e) => useFilterStore.getState().set({ character: e.target.value })}
+              >
+                <option value="">{t('timeline.filterCharacter')}</option>
+                {availableCharacters.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {availableLocations.length > 0 && (
+              <select
+                className="dialog-input findreplace-scope"
+                value={locationFilter}
+                onChange={(e) => useFilterStore.getState().set({ location: e.target.value })}
+              >
+                <option value="">{t('timeline.filterLocation')}</option>
+                {availableLocations.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            )}
+            <button
+              className={`toolbar-button toolbar-action${readingOrder ? ' active' : ''}`}
+              onClick={() => setReadingOrder(!readingOrder)}
+            >
+              {t(readingOrder ? 'timeline.orderReading' : 'timeline.orderChronological')}
+            </button>
+            <select
+              className="dialog-input findreplace-scope"
+              aria-label={t('timeline.lanes')}
+              value={laneBy}
+              onChange={(e) => setLaneBy(e.target.value)}
+            >
+              {['none', 'character', 'location', 'pov', 'plotline'].map((key) => (
+                <option key={key} value={key}>
+                  {t(`timeline.lane_${key}`)}
+                </option>
+              ))}
+            </select>
+            <select
+              className="dialog-input findreplace-scope"
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+            >
+              {['all', 'act', 'chapter', 'scene', 'manual'].map((s) => (
+                <option key={s} value={s}>
+                  {s === 'all'
+                    ? t('timeline.filterSource')
+                    : t(`timeline.source${s.charAt(0).toUpperCase()}${s.slice(1)}`)}
+                </option>
+              ))}
+            </select>
+            {/* Only worth showing once there is more than one. A lone select
             with a single option is a control that does nothing. */}
-        {(data.timelines.length > 1 || data.activeTimelineId !== '') && (
-          <select
-            className="dialog-input findreplace-scope"
-            value={data.activeTimelineId}
-            aria-label={t('timeline.timelines')}
-            onChange={(e) => void chooseTimeline(e.target.value)}
-          >
-            <option value="">{t('timeline.allTimelines')}</option>
-            {data.timelines.map((line) => (
-              <option key={line.id} value={line.id}>
-                {line.name}
-              </option>
-            ))}
-            <option value="__add">{t('timeline.addTimeline')}</option>
-          </select>
-        )}
-        {data.activeTimelineId !== '' && data.timelines[0]?.id !== data.activeTimelineId && (
-          <>
+            {(data.timelines.length > 1 || data.activeTimelineId !== '') && (
+              <select
+                className="dialog-input findreplace-scope"
+                value={data.activeTimelineId}
+                aria-label={t('timeline.timelines')}
+                onChange={(e) => void chooseTimeline(e.target.value)}
+              >
+                <option value="">{t('timeline.allTimelines')}</option>
+                {data.timelines.map((line) => (
+                  <option key={line.id} value={line.id}>
+                    {line.name}
+                  </option>
+                ))}
+                <option value="__add">{t('timeline.addTimeline')}</option>
+              </select>
+            )}
+            {data.activeTimelineId !== '' && data.timelines[0]?.id !== data.activeTimelineId && (
+              <>
+                <button className="toolbar-button" onClick={() => setRenamingTimeline(true)}>
+                  {t('explorer.contextRename')}
+                </button>
+                <button className="toolbar-button" onClick={() => setRemovingTimeline(true)}>
+                  {t('explorer.contextDelete')}
+                </button>
+              </>
+            )}
+            {data.timelines.length === 1 && data.activeTimelineId === '' && (
+              <button
+                className="toolbar-button toolbar-action"
+                onClick={() => setAddingTimeline(true)}
+              >
+                <Plus size={14} strokeWidth={2} />
+                {t('timeline.addTimeline')}
+              </button>
+            )}
             <button
-              className="toolbar-button"
-              onClick={() => setRenamingTimeline(true)}
+              className="toolbar-button toolbar-action"
+              onClick={() =>
+                void setView(
+                  data.viewMode === 'vertical' ? 'horizontal' : 'vertical',
+                  data.zoomLevel
+                )
+              }
             >
-              {t('explorer.contextRename')}
+              <ArrowLeftRight size={14} strokeWidth={2} />
+              {data.viewMode === 'vertical'
+                ? t('timeline.viewVertical')
+                : t('timeline.viewHorizontal')}
             </button>
             <button
-              className="toolbar-button"
-              onClick={() => setRemovingTimeline(true)}
+              className="toolbar-button toolbar-action"
+              onClick={() =>
+                void setView(
+                  data.viewMode,
+                  ZOOMS[(ZOOMS.indexOf(data.zoomLevel) + 1) % ZOOMS.length]
+                )
+              }
             >
-              {t('explorer.contextDelete')}
+              <ZoomIn size={14} strokeWidth={2} />
+              {t(
+                `timeline.zoom${data.zoomLevel.charAt(0).toUpperCase() + data.zoomLevel.slice(1)}`
+              )}
             </button>
-          </>
-        )}
-        {data.timelines.length === 1 && data.activeTimelineId === '' && (
-          <button
-            className="toolbar-button toolbar-action"
-            onClick={() => setAddingTimeline(true)}
-          >
-            <Plus size={14} strokeWidth={2} />
-            {t('timeline.addTimeline')}
-          </button>
-        )}
-        <button
-          className="toolbar-button toolbar-action"
-          onClick={() =>
-            void setView(data.viewMode === 'vertical' ? 'horizontal' : 'vertical', data.zoomLevel)
-          }
-        >
-          <ArrowLeftRight size={14} strokeWidth={2} />
-          {data.viewMode === 'vertical' ? t('timeline.viewVertical') : t('timeline.viewHorizontal')}
-        </button>
-        <button
-          className="toolbar-button toolbar-action"
-          onClick={() =>
-            void setView(
-              data.viewMode,
-              ZOOMS[(ZOOMS.indexOf(data.zoomLevel) + 1) % ZOOMS.length]
-            )
-          }
-        >
-          <ZoomIn size={14} strokeWidth={2} />
-          {t(`timeline.zoom${data.zoomLevel.charAt(0).toUpperCase() + data.zoomLevel.slice(1)}`)}
-        </button>
-        <div className="timeline-nav">
-          <button
-            className="toolbar-button timeline-nav-arrow"
-            aria-label={t('timeline.prev')}
-            title={t('timeline.prev')}
-            onClick={() => pan(-1)}
-          >
-            <ChevronLeft size={14} strokeWidth={2} />
-          </button>
-          <button
-            className="toolbar-button timeline-nav-arrow"
-            aria-label={t('timeline.next')}
-            title={t('timeline.next')}
-            onClick={() => pan(1)}
-          >
-            <ChevronRight size={14} strokeWidth={2} />
-          </button>
-          <button
-            className="toolbar-button toolbar-action"
-            onClick={() => scrollToDate(new Date())}
-          >
-            {t('timeline.today')}
-          </button>
-          <input
-            type="date"
-            className="dialog-input timeline-jump-input"
-            aria-label={t('timeline.jumpTo')}
-            title={t('timeline.jumpTo')}
-            value={anchorDate ? toInputValue(anchorDate) : ''}
-            onChange={(e) => {
-              const v = e.target.value
-              if (!v) return
-              const [y, m, d] = v.split('-').map(Number)
-              scrollToDate(new Date(y, m - 1, d))
-            }}
-          />
-        </div>
+            <div className="timeline-nav">
+              <button
+                className="toolbar-button timeline-nav-arrow"
+                aria-label={t('timeline.prev')}
+                title={t('timeline.prev')}
+                onClick={() => pan(-1)}
+              >
+                <ChevronLeft size={14} strokeWidth={2} />
+              </button>
+              <button
+                className="toolbar-button timeline-nav-arrow"
+                aria-label={t('timeline.next')}
+                title={t('timeline.next')}
+                onClick={() => pan(1)}
+              >
+                <ChevronRight size={14} strokeWidth={2} />
+              </button>
+              <button
+                className="toolbar-button toolbar-action"
+                onClick={() => scrollToDate(new Date())}
+              >
+                {t('timeline.today')}
+              </button>
+              <input
+                type="date"
+                className="dialog-input timeline-jump-input"
+                aria-label={t('timeline.jumpTo')}
+                title={t('timeline.jumpTo')}
+                value={anchorDate ? toInputValue(anchorDate) : ''}
+                onChange={(e) => {
+                  const v = e.target.value
+                  if (!v) return
+                  const [y, m, d] = v.split('-').map(Number)
+                  scrollToDate(new Date(y, m - 1, d))
+                }}
+              />
+            </div>
           </>
         )}
       </div>
@@ -627,9 +629,7 @@ export function TimelineView(): React.JSX.Element {
                     onClick={() => {
                       if (event.isManual) setPending({ kind: 'edit', event })
                       else if (event.chapterGuid && event.sceneId)
-                        void useProjectStore
-                          .getState()
-                          .openScene(event.chapterGuid, event.sceneId)
+                        void useProjectStore.getState().openScene(event.chapterGuid, event.sceneId)
                       else if (event.chapterGuid) openLinkedChapter(event.chapterGuid)
                     }}
                   >
@@ -673,10 +673,7 @@ export function TimelineView(): React.JSX.Element {
             ))}
         </div>
       )}
-      <div
-        className={`timeline-body ${data.viewMode}`}
-        hidden={laneBy !== 'none' || readingOrder}
-      >
+      <div className={`timeline-body ${data.viewMode}`} hidden={laneBy !== 'none' || readingOrder}>
         {data.groups.map((group) => (
           <div
             key={group.key}
@@ -692,6 +689,13 @@ export function TimelineView(): React.JSX.Element {
                 key={event.id}
                 className={`timeline-event source-${event.source}`}
                 role={event.sceneId || event.isManual || event.chapterGuid ? 'button' : undefined}
+                tabIndex={event.sceneId || event.isManual || event.chapterGuid ? 0 : undefined}
+                onKeyDown={(e) => {
+                  if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault()
+                    e.currentTarget.click()
+                  }
+                }}
                 onClick={() => {
                   if (event.isManual) setPending({ kind: 'edit', event })
                   else if (event.chapterGuid && event.sceneId)
@@ -719,9 +723,7 @@ export function TimelineView(): React.JSX.Element {
                   </div>
                   {event.dateStr && (
                     <div className="timeline-event-date">
-                      {event.endDateStr
-                        ? `${event.dateStr} - ${event.endDateStr}`
-                        : event.dateStr}
+                      {event.endDateStr ? `${event.dateStr} - ${event.endDateStr}` : event.dateStr}
                     </div>
                   )}
                   {/* A span drawn rather than described. Duration was computed
@@ -769,8 +771,7 @@ export function TimelineView(): React.JSX.Element {
         {data.groups.length === 0 && (
           <p className="codex-empty">
             {t(
-              data.activeTimelineId !== '' &&
-                data.timelines[0]?.id !== data.activeTimelineId
+              data.activeTimelineId !== '' && data.timelines[0]?.id !== data.activeTimelineId
                 ? 'timeline.noEventsOnTimeline'
                 : 'timeline.noEvents'
             )}
@@ -790,9 +791,7 @@ export function TimelineView(): React.JSX.Element {
       {renamingTimeline && (
         <InputDialog
           title={t('explorer.contextRename')}
-          placeholder={
-            data.timelines.find((l) => l.id === data.activeTimelineId)?.name ?? ''
-          }
+          placeholder={data.timelines.find((l) => l.id === data.activeTimelineId)?.name ?? ''}
           onCancel={() => setRenamingTimeline(false)}
           onSubmit={(name) => {
             setRenamingTimeline(false)

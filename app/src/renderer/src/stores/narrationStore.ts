@@ -303,6 +303,9 @@ interface NarrationState {
   preparing: boolean
   /** The segment the writer has picked, whose controls the panel shows. */
   selected: SegmentRef | null
+  /** A fresh request also lets clicking the same binder scene reveal it again. */
+  sceneNavigation: { sceneId: string } | null
+  navigateToScene(sceneId: string): void
   rate: number
 
   loadCast(): Promise<void>
@@ -524,6 +527,7 @@ export const useNarrationStore = create<NarrationState>((set, get) => ({
   speaking: null,
   preparing: false,
   selected: null,
+  sceneNavigation: null,
   rate: 1,
 
   loadCast: async () => {
@@ -812,6 +816,11 @@ export const useNarrationStore = create<NarrationState>((set, get) => ({
 
   select: (ref) => set({ selected: ref }),
 
+  navigateToScene: (sceneId) => {
+    get().stop()
+    set({ sceneNavigation: { sceneId }, selected: null })
+  },
+
   setRate: (rate) => set({ rate: Math.min(2, Math.max(0.5, rate)) }),
 
   /**
@@ -904,7 +913,8 @@ export const useNarrationStore = create<NarrationState>((set, get) => ({
       reading: [],
       speaking: null,
       preparing: false,
-      selected: null
+      selected: null,
+      sceneNavigation: null
     })
   }
 }))

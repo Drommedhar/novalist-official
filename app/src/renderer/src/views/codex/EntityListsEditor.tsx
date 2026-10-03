@@ -36,12 +36,15 @@ const RELATIONSHIP_TYPES = ['character', 'location', 'item', 'lore']
 /** Aliases, sections, and relationships of the selected entity. */
 export function EntityListsEditor({
   customDef
-}: { customDef?: CustomTypeDefinition }): React.JSX.Element | null {
+}: {
+  customDef?: CustomTypeDefinition
+}): React.JSX.Element | null {
   const { t } = useTranslation()
   const entityType = useCodexStore((s) => s.entityType)
   const selectedId = useCodexStore((s) => s.selectedId)
   const record = useCodexStore((s) => s.selectedRecord)
-  const includeRelationships = RELATIONSHIP_TYPES.includes(entityType) || !!customDef?.features.includeRelationships
+  const includeRelationships =
+    RELATIONSHIP_TYPES.includes(entityType) || !!customDef?.features.includeRelationships
   const [aliases, setAliases] = useState<string[]>([])
   const [aliasDraft, setAliasDraft] = useState('')
   const { sections, setSections, flushSections } = useEntitySections(entityType, selectedId, record)
@@ -122,7 +125,7 @@ export function EntityListsEditor({
    *
    * Waiting for the typing to stop is both simpler and correct: whatever the
    * row finally says is what gets written, once.
-  */
+   */
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingRelationshipSave = useRef<{
     selectedId: string
@@ -147,10 +150,7 @@ export function EntityListsEditor({
             pending.entityType
           ])
           const codex = useCodexStore.getState()
-          if (
-            codex.selectedId === pending.selectedId &&
-            codex.entityType === pending.entityType
-          ) {
+          if (codex.selectedId === pending.selectedId && codex.entityType === pending.entityType) {
             useCodexStore.setState({ selectedRecord: updated })
           }
         }
@@ -182,10 +182,7 @@ export function EntityListsEditor({
       }))
     }
     if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(
-      () => void flushRelationships().catch(() => {}),
-      SAVE_SETTLE_MS
-    )
+    saveTimer.current = setTimeout(() => void flushRelationships().catch(() => {}), SAVE_SETTLE_MS)
   }
 
   // Leaving the entry writes what was still settling rather than dropping it.
@@ -197,11 +194,7 @@ export function EntityListsEditor({
     }
   }, [selectedId, flushRelationships])
 
-  useEffect(
-    () =>
-      registerPendingWrite(flushRelationships),
-    [flushRelationships]
-  )
+  useEffect(() => registerPendingWrite(flushRelationships), [flushRelationships])
 
   if (!record || !selectedId) return null
 
@@ -219,7 +212,9 @@ export function EntityListsEditor({
         [entityType, selectedId, sections[index].title, sections[index].content]
       )
       if (result?.summary) {
-        setSections((current) => current.map((s, i) => (i === index ? { ...s, content: result.summary! } : s)))
+        setSections((current) =>
+          current.map((s, i) => (i === index ? { ...s, content: result.summary! } : s))
+        )
       }
     } catch {
       // The notification surface belongs to whoever failed; a silent no-op here
@@ -256,35 +251,36 @@ export function EntityListsEditor({
 
   return (
     <div className="entity-lists">
-      <div className="inspector-label">{t('entityEditor.aliases')}</div>
-      <div className="entity-chips">
-        {aliases.map((alias) => (
-          <span key={alias} className="entity-chip">
-            {alias}
-            <button
-              aria-label={`${t('explorer.contextDelete')} ${alias}`}
-              onClick={() => {
-                const next = aliases.filter((a) => a !== alias)
-                setAliases(next)
-                persistAliases(next)
-              }}
-            >
-              <X size={11} strokeWidth={2} />
-            </button>
-          </span>
-        ))}
-        <input
-          className="entity-chip-input"
-          value={aliasDraft}
-          placeholder={t('entityEditor.addAlias')}
-          onChange={(e) => setAliasDraft(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addAlias()}
-          onBlur={addAlias}
-        />
-      </div>
-
+      <section data-entity-tab="overview" className="codex-entry-section">
+        <div className="inspector-label">{t('entityEditor.aliases')}</div>
+        <div className="entity-chips">
+          {aliases.map((alias) => (
+            <span key={alias} className="entity-chip">
+              {alias}
+              <button
+                aria-label={`${t('explorer.contextDelete')} ${alias}`}
+                onClick={() => {
+                  const next = aliases.filter((a) => a !== alias)
+                  setAliases(next)
+                  persistAliases(next)
+                }}
+              >
+                <X size={11} strokeWidth={2} />
+              </button>
+            </span>
+          ))}
+          <input
+            className="entity-chip-input"
+            value={aliasDraft}
+            placeholder={t('entityEditor.addAlias')}
+            onChange={(e) => setAliasDraft(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addAlias()}
+            onBlur={addAlias}
+          />
+        </div>
+      </section>
       {includeRelationships && (
-        <>
+        <section data-entity-tab="relationships" className="codex-entry-section">
           <div className="inspector-label">{t('entityEditor.relationships')}</div>
           <datalist id="codex-rel-names">
             {nameSuggestions.map((n) => (
@@ -381,74 +377,80 @@ export function EntityListsEditor({
             <Plus size={13} strokeWidth={2} />
             {t('entityEditor.addRelationship')}
           </button>
-        </>
+        </section>
       )}
 
-      <div className="inspector-label">{t('entityEditor.sections')}</div>
-      {sections.map((section, index) => (
-        <div key={index} className="entity-section">
-          <div className="entity-section-head">
-            <input
-              className="outliner-input entity-section-title"
-              value={section.title}
-              onChange={(e) =>
-                setSections(
-                  (current) => current.map((s, i) => (i === index ? { ...s, title: e.target.value } : s))
+      <section data-entity-tab="overview" className="codex-entry-section">
+        <div className="inspector-label">{t('entityEditor.sections')}</div>
+        {sections.map((section, index) => (
+          <div key={index} className="entity-section">
+            <div className="entity-section-head">
+              <input
+                className="outliner-input entity-section-title"
+                value={section.title}
+                onChange={(e) =>
+                  setSections((current) =>
+                    current.map((s, i) => (i === index ? { ...s, title: e.target.value } : s))
+                  )
+                }
+                onBlur={() => void flushSections().catch(() => {})}
+              />
+              {canGenerate && (
+                <button
+                  className="binder-expand"
+                  title={
+                    section.content.trim().length > 0
+                      ? t('entityEditor.rerollSection')
+                      : t('entityEditor.generateSection')
+                  }
+                  aria-label={
+                    section.content.trim().length > 0
+                      ? t('entityEditor.rerollSection')
+                      : t('entityEditor.generateSection')
+                  }
+                  disabled={generating !== null || section.title.trim().length === 0}
+                  onClick={() => void generateSection(index)}
+                >
+                  {generating === index ? (
+                    <Loader2 size={12} strokeWidth={2} className="wiki-spin" />
+                  ) : (
+                    <Sparkles size={12} strokeWidth={2} />
+                  )}
+                </button>
+              )}
+              <button
+                className="binder-expand"
+                aria-label={t('explorer.contextDelete')}
+                onClick={() => {
+                  setSections((current) => current.filter((_, i) => i !== index))
+                  void flushSections().catch(() => {})
+                }}
+              >
+                <X size={12} strokeWidth={2} />
+              </button>
+            </div>
+            <MarkdownEditor
+              value={section.content}
+              ariaLabel={section.title}
+              onChange={(next) =>
+                setSections((current) =>
+                  current.map((s, i) => (i === index ? { ...s, content: next } : s))
                 )
               }
               onBlur={() => void flushSections().catch(() => {})}
             />
-            {canGenerate && (
-              <button
-                className="binder-expand"
-                title={
-                  section.content.trim().length > 0
-                    ? t('entityEditor.rerollSection')
-                    : t('entityEditor.generateSection')
-                }
-                aria-label={
-                  section.content.trim().length > 0
-                    ? t('entityEditor.rerollSection')
-                    : t('entityEditor.generateSection')
-                }
-                disabled={generating !== null || section.title.trim().length === 0}
-                onClick={() => void generateSection(index)}
-              >
-                {generating === index ? (
-                  <Loader2 size={12} strokeWidth={2} className="wiki-spin" />
-                ) : (
-                  <Sparkles size={12} strokeWidth={2} />
-                )}
-              </button>
-            )}
-            <button
-              className="binder-expand"
-              aria-label={t('explorer.contextDelete')}
-              onClick={() => {
-                setSections((current) => current.filter((_, i) => i !== index))
-                void flushSections().catch(() => {})
-              }}
-            >
-              <X size={12} strokeWidth={2} />
-            </button>
           </div>
-          <MarkdownEditor
-            value={section.content}
-            ariaLabel={section.title}
-            onChange={(next) =>
-              setSections((current) => current.map((s, i) => (i === index ? { ...s, content: next } : s)))
-            }
-            onBlur={() => void flushSections().catch(() => {})}
-          />
-        </div>
-      ))}
-      <button
-        className="binder-rail-item"
-        onClick={() => setSections((current) => [...current, { title: t('section.newSection'), content: '' }])}
-      >
-        <Plus size={13} strokeWidth={2} />
-        {t('entityEditor.addSection')}
-      </button>
+        ))}
+        <button
+          className="binder-rail-item"
+          onClick={() =>
+            setSections((current) => [...current, { title: t('section.newSection'), content: '' }])
+          }
+        >
+          <Plus size={13} strokeWidth={2} />
+          {t('entityEditor.addSection')}
+        </button>
+      </section>
     </div>
   )
 }

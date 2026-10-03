@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useDialogKeyboard } from './useDialogKeyboard'
 
 interface InputDialogProps {
   title: string
   placeholder?: string
   /** Prefills the field - for renaming something that already has a name. */
   initialValue?: string
+  allowEmpty?: boolean
   onSubmit(value: string): void
   onCancel(): void
 }
@@ -15,32 +17,36 @@ export function InputDialog({
   title,
   placeholder,
   initialValue,
+  allowEmpty = false,
   onSubmit,
   onCancel
 }: InputDialogProps): React.JSX.Element {
   const { t } = useTranslation()
   const [value, setValue] = useState(initialValue ?? '')
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => inputRef.current?.focus(), [])
+  const keyboard = useDialogKeyboard(onCancel)
 
   const submit = (): void => {
-    if (value.trim().length > 0) onSubmit(value.trim())
+    if (allowEmpty || value.trim().length > 0) onSubmit(value.trim())
   }
 
   return (
-    <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onCancel()}>
-      <div className="dialog-card" role="dialog" aria-label={title}>
+    <div
+      className="dialog-overlay"
+      onPointerDown={(e) => e.target === e.currentTarget && onCancel()}
+    >
+      <div className="dialog-card" role="dialog" aria-modal="true" aria-label={title} {...keyboard}>
         <div className="dialog-title">{title}</div>
         <input
-          ref={inputRef}
           className="dialog-input"
           value={value}
           placeholder={placeholder}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') submit()
-            if (e.key === 'Escape') onCancel()
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              e.stopPropagation()
+              submit()
+            }
           }}
         />
         <div className="dialog-actions">

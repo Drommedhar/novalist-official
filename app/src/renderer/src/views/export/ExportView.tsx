@@ -37,13 +37,28 @@ const FORMATS: { format: string; extension: string; labelKey: string; content: C
   { format: 'Epub', extension: '.epub', labelKey: 'export.formatEpub', content: 'manuscript' },
   { format: 'Docx', extension: '.docx', labelKey: 'export.formatDocx', content: 'manuscript' },
   { format: 'Pdf', extension: '.pdf', labelKey: 'export.formatPdf', content: 'manuscript' },
-  { format: 'Markdown', extension: '.md', labelKey: 'export.formatMarkdown', content: 'manuscript' },
-  { format: 'FinalDraft', extension: '.fdx', labelKey: 'export.formatFinalDraft', content: 'manuscript' },
+  {
+    format: 'Markdown',
+    extension: '.md',
+    labelKey: 'export.formatMarkdown',
+    content: 'manuscript'
+  },
+  {
+    format: 'FinalDraft',
+    extension: '.fdx',
+    labelKey: 'export.formatFinalDraft',
+    content: 'manuscript'
+  },
   { format: 'LaTeX', extension: '.tex', labelKey: 'export.formatLatex', content: 'manuscript' },
   // An edition of the book like any other, compiled from the same selection -
   // it simply takes hours and comes out as sound, so it runs its own panel
   // rather than the one-shot Export button.
-  { format: 'Audiobook', extension: '.m4b', labelKey: 'export.formatAudiobook', content: 'manuscript' },
+  {
+    format: 'Audiobook',
+    extension: '.m4b',
+    labelKey: 'export.formatAudiobook',
+    content: 'manuscript'
+  },
   { format: 'Codex', extension: '.md', labelKey: 'export.formatMarkdown', content: 'codex' },
   { format: 'CodexPdf', extension: '.pdf', labelKey: 'export.formatPdf', content: 'codex' },
   { format: 'Csv', extension: '.csv', labelKey: 'export.formatCsv', content: 'data' },
@@ -186,8 +201,11 @@ export function ExportView(): React.JSX.Element {
       return
     }
     if (initializedScope !== bookScope && chapters.length > 0) {
-      const remembered = window.novalist.isMobile ? useShellStore.getState().mobileExportSelection : null
-      const selection = remembered?.scope === bookScope ? remembered.chapters : chapters.map((c) => c.guid)
+      const remembered = window.novalist.isMobile
+        ? useShellStore.getState().mobileExportSelection
+        : null
+      const selection =
+        remembered?.scope === bookScope ? remembered.chapters : chapters.map((c) => c.guid)
       setSelected(new Set(selection.filter((id) => chapters.some((c) => c.guid === id))))
       setInitializedScope(bookScope)
     }
@@ -195,7 +213,9 @@ export function ExportView(): React.JSX.Element {
 
   useEffect(() => {
     if (window.novalist.isMobile && initializedScope === bookScope && !pendingChapter) {
-      useShellStore.setState({ mobileExportSelection: { scope: bookScope, chapters: [...selected] } })
+      useShellStore.setState({
+        mobileExportSelection: { scope: bookScope, chapters: [...selected] }
+      })
     }
   }, [selected, initializedScope, pendingChapter, bookScope])
 
@@ -332,7 +352,8 @@ export function ExportView(): React.JSX.Element {
     setBusy(true)
     setResult(null)
     try {
-      const extension = extFormat?.fileExtension ?? FORMATS.find((f) => f.format === format)?.extension ?? ''
+      const extension =
+        extFormat?.fileExtension ?? FORMATS.find((f) => f.format === format)?.extension ?? ''
       output = await window.novalist.saveFile(`${title || 'manuscript'}${extension}`)
       if (!output) return
       await flushPendingWrites()
@@ -392,505 +413,536 @@ export function ExportView(): React.JSX.Element {
   return (
     <div className="dashboard export-view">
       <h1 className="dashboard-title">{t('shell.view.export')}</h1>
-      {window.novalist.isMobile && <p className="export-mobile-hint">{t('export.mobileShareHint')}</p>}
-      <div className="dashboard-card export-card">
-        <div className="export-field">
-          <label className="inspector-label" htmlFor="export-content">
-            {t('export.content')}
-          </label>
-          <select
-            id="export-content"
-            className="dialog-input"
-            value={content}
-            onChange={(e) => setContent(e.target.value as Content)}
-          >
-            {CONTENTS.map((c) => (
-              <option key={c.key} value={c.key}>
-                {t(c.labelKey)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="export-field">
-          <label className="inspector-label" htmlFor="export-format">
-            {t('export.format')}
-          </label>
-          <select
-            id="export-format"
-            className="dialog-input"
-            value={format}
-            onChange={(e) => setFormat(e.target.value)}
-          >
-            {FORMATS.filter((f) => f.content === content).map((f) => (
-              <option key={f.format} value={f.format}>
-                {t(f.labelKey)}
-              </option>
-            ))}
-            {/* An extension writes the manuscript out; nothing contributes a
-                codex writer, so those belong under the manuscript only. */}
-            {content === 'manuscript' &&
-              extFormats.map((f) => (
-                <option key={f.formatKey} value={f.formatKey}>
-                  {f.displayName}
-                </option>
-              ))}
-          </select>
-        </div>
-
-        {/* A layout is page geometry and typography; a metadata file has
-            neither, so offering one would be a control that changes nothing. */}
-        {!isData && (
-        <div className="export-field">
-          <label className="inspector-label" htmlFor="export-preset">
-            {t('export.preset')}
-          </label>
-          <select
-            id="export-preset"
-            className="dialog-input"
-            value={presetId}
-            onChange={(e) => setPresetId(e.target.value)}
-          >
-            {presets.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.displayName}
-                {p.isCustom ? '' : ` (${t('layout.builtIn')})`}
-              </option>
-            ))}
-          </select>
-          {activePreset?.description && (
-            <span className="export-preset-desc">{activePreset.description}</span>
-          )}
-        </div>
-        )}
-
-        <div className="export-field">
-          <label className="inspector-label" htmlFor="export-title">
-            {t('export.title')}
-          </label>
-          <input
-            id="export-title"
-            className="dialog-input"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-
-        <div className="export-field">
-          <label className="inspector-label" htmlFor="export-author">
-            {t('export.author')}
-          </label>
-          <input
-            id="export-author"
-            className="dialog-input"
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-          />
-        </div>
-
-        {!isData && (
-          <label className="relationships-toggle export-toggle">
-            <input
-              type="checkbox"
-              checked={includeTitlePage}
-              onChange={(e) => setIncludeTitlePage(e.target.checked)}
-            />
-            {t('export.includeTitlePage')}
-          </label>
-        )}
-
-        {/* Shown only where a cover actually lands in the file. A control that
-            changes nothing is worse than no control, so a contributed format has
-            to say it can hold one. */}
-        {(format === 'Epub' ||
-          format === 'Pdf' ||
-          extFormats.some((f) => f.formatKey === format && f.supportsCover)) && (
-          <label className="relationships-toggle export-toggle">
-            <input
-              type="checkbox"
-              checked={includeCover}
-              onChange={(e) => setIncludeCover(e.target.checked)}
-            />
-            {t('export.includeCover')}
-          </label>
-        )}
-
-        {/* Only on the formats that carry the world out of the app. On a
-            manuscript export there is nothing for it to hide. */}
-        {(format === 'WorldHtml' || format === 'WorldJson' || format === 'Json'
-          || format === 'Codex' || format === 'CodexPdf' || format === 'CodexCsv') && (
-          <label className="relationships-toggle export-toggle">
-            <input
-              type="checkbox"
-              checked={forReaders}
-              onChange={(e) => setForReaders(e.target.checked)}
-            />
-            {t('export.forReaders')}
-          </label>
-        )}
-
-        {/* How deep the contents list goes, and what it is called. A flat
-            chapter list is right for a novel and wrong for a collection, and
-            "Table of Contents" is wrong in every language but English. */}
-        {format === 'Epub' && (
-          <div className="export-field-row">
-            <label className="export-field">
-              <span className="export-field-label">{t('export.tocDepth')}</span>
-              <select
-                className="inspector-input"
-                value={tocDepth}
-                onChange={(e) => setTocDepth(Number(e.target.value))}
-              >
-                <option value={1}>{t('export.tocDepthChapters')}</option>
-                <option value={2}>{t('export.tocDepthScenes')}</option>
-              </select>
+      {window.novalist.isMobile && (
+        <p className="export-mobile-hint">{t('export.mobileShareHint')}</p>
+      )}
+      <div className="export-workspace">
+        <div className="dashboard-card export-card">
+          <div className="export-field">
+            <label className="inspector-label" htmlFor="export-content">
+              {t('export.content')}
             </label>
-            <label className="export-field">
-              <span className="export-field-label">{t('export.tocTitle')}</span>
-              <input
-                className="inspector-input"
-                value={tocTitle}
-                placeholder={t('export.tocTitlePlaceholder')}
-                onChange={(e) => setTocTitle(e.target.value)}
-              />
-            </label>
-          </div>
-        )}
-
-        {/* A house style arrives as a styled Word file, not as a list of
-            settings. Point at it once and the export comes out in it. */}
-        {format === 'Docx' && (
-          <div className="export-field-row">
-            <label className="export-field export-field-grow">
-              <span className="export-field-label">{t('export.referenceDoc')}</span>
-              <input
-                className="inspector-input"
-                value={referenceDoc}
-                placeholder={t('export.referenceDocPlaceholder')}
-                onChange={(e) => setReferenceDoc(e.target.value)}
-              />
-            </label>
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => {
-                void window.novalist
-                  .pickFile(t('export.referenceDoc'), 'all')
-                  .then((chosen) => chosen && setReferenceDoc(chosen))
-              }}
-            >
-              {t('export.referenceDocChoose')}
-            </button>
-            {referenceDoc && (
-              <button type="button" className="btn-secondary" onClick={() => setReferenceDoc('')}>
-                {t('export.referenceDocClear')}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Which parts of an entry leave the project. A series bible that has
-            to leave the portraits out, or a packet that wants the names and
-            nothing else, was an all-or-nothing choice per entry before this. */}
-        {isCodex && (
-          <div className="export-field-row">
-            {(['images', 'fields', 'relationships', 'sections'] as const).map((part) => (
-              <label key={part} className="relationships-toggle export-toggle">
-                <input
-                  type="checkbox"
-                  checked={codexParts.has(part)}
-                  onChange={(e) =>
-                    setCodexParts((prev) => {
-                      const next = new Set(prev)
-                      if (e.target.checked) next.add(part)
-                      else next.delete(part)
-                      return next
-                    })
-                  }
-                />
-                {t(`export.codexPart_${part}`)}
-              </label>
-            ))}
-          </div>
-        )}
-        {isCodex && codexParts.has('sections') && sectionTitles.length > 0 && (
-          <div className="export-field-row">
-            <span className="export-field-label">{t('export.codexSections')}</span>
-            {sectionTitles.map((title) => (
-              <label key={title} className="relationships-toggle export-toggle">
-                <input
-                  type="checkbox"
-                  checked={pickedSections.has(title)}
-                  onChange={(e) =>
-                    setPickedSections((prev) => {
-                      const next = new Set(prev)
-                      if (e.target.checked) next.add(title)
-                      else next.delete(title)
-                      return next
-                    })
-                  }
-                />
-                {title}
-              </label>
-            ))}
-          </div>
-        )}
-
-        {/* A build for one shop. Back matter written with <$storename> and
-            <$storelink> resolves to that shop, so a reader is sent back where
-            they bought it rather than to a competitor. */}
-        {retailers.length > 0 && !isCodex && !isData && (
-          <label className="export-field">
-            <span className="export-field-label">{t('export.buildFor')}</span>
             <select
-              className="inspector-input"
-              value={retailerKey}
-              onChange={(e) => setRetailerKey(e.target.value)}
+              id="export-content"
+              className="dialog-input"
+              value={content}
+              onChange={(e) => setContent(e.target.value as Content)}
             >
-              <option value="">{t('export.buildForNone')}</option>
-              {retailers.map((r) => (
-                <option key={r.key} value={r.key}>
-                  {r.name || r.key}
+              {CONTENTS.map((c) => (
+                <option key={c.key} value={c.key}>
+                  {t(c.labelKey)}
                 </option>
               ))}
             </select>
-          </label>
-        )}
+          </div>
 
-        {preview && (
-          <p className="export-preview" aria-live="polite">
-            {t('export.previewCounts', {
-              chapters: preview.chapters,
-              scenes: preview.scenes,
-              words: preview.words.toLocaleString()
-            })}{' '}
-            {t(preview.pagesAreExact ? 'export.previewPagesExact' : 'export.previewPages', {
-              pages: preview.pages
-            })}
-            {preview.undescribedImages > 0 && (
-              <>
-                {' '}
-                <span className="export-warning">
-                  {t('export.previewUndescribed', { count: preview.undescribedImages })}
-                </span>
-              </>
-            )}
-          </p>
-        )}
+          <div className="export-field">
+            <label className="inspector-label" htmlFor="export-format">
+              {t('export.format')}
+            </label>
+            <select
+              id="export-format"
+              className="dialog-input"
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
+            >
+              {FORMATS.filter((f) => f.content === content).map((f) => (
+                <option key={f.format} value={f.format}>
+                  {t(f.labelKey)}
+                </option>
+              ))}
+              {/* An extension writes the manuscript out; nothing contributes a
+                codex writer, so those belong under the manuscript only. */}
+              {content === 'manuscript' &&
+                extFormats.map((f) => (
+                  <option key={f.formatKey} value={f.formatKey}>
+                    {f.displayName}
+                  </option>
+                ))}
+            </select>
+          </div>
 
-        {chaptersVisible && stages.length > 0 && (
-          <>
-            <div className="inspector-label">{t('export.stageFilter')}</div>
-            <div className="export-stage-filter">
-              <label className="relationships-toggle">
-                <input
-                  type="checkbox"
-                  checked={stageFilter.size === 0}
-                  onChange={() => setStageFilter(new Set())}
-                />
-                {t('export.stageFilterAll')}
+          {/* A layout is page geometry and typography; a metadata file has
+            neither, so offering one would be a control that changes nothing. */}
+          {!isData && (
+            <div className="export-field">
+              <label className="inspector-label" htmlFor="export-preset">
+                {t('export.preset')}
               </label>
-              {stages.map((stage) => (
-                <label key={stage.key} className="relationships-toggle">
-                  <input
-                    type="checkbox"
-                    checked={stageFilter.has(stage.key)}
-                    onChange={(e) => {
-                      const next = new Set(stageFilter)
-                      if (e.target.checked) next.add(stage.key)
-                      else next.delete(stage.key)
-                      setStageFilter(next)
-                    }}
-                  />
-                  {stage.label}
-                </label>
-              ))}
-            </div>
-            <div className="settings-hint">{t('export.excludedNote')}</div>
-          </>
-        )}
-
-        {/* A series in one file. The chapter list belongs to the open book, so
-            a further volume comes in whole rather than chapter by chapter. */}
-        {chaptersVisible && otherBooks.length > 0 && (
-          <>
-            <div className="export-chapters-header">
-              <span className="export-field-label">{t('export.alsoInclude')}</span>
-            </div>
-            <div className="export-stage-filter">
-              {otherBooks.map((book) => (
-                <label key={book.id} className="relationships-toggle">
-                  <input
-                    type="checkbox"
-                    checked={extraBooks.has(book.id)}
-                    onChange={(e) => {
-                      const next = new Set(extraBooks)
-                      if (e.target.checked) next.add(book.id)
-                      else next.delete(book.id)
-                      setExtraBooks(next)
-                    }}
-                  />
-                  {book.name}
-                </label>
-              ))}
-            </div>
-          </>
-        )}
-
-        {chaptersVisible && (
-          <>
-            <div className="export-chapters-header">
-              <div className="inspector-label">{t('export.selectChapters')}</div>
-              <div className="export-select-buttons">
-                <button
-                  className="export-inline-btn"
-                  onClick={() => setSelected(new Set(chapters.map((c) => c.guid)))}
-                >
-                  {t('export.selectAll')}
-                </button>
-                <button className="export-inline-btn" onClick={() => setSelected(new Set())}>
-                  {t('export.selectNone')}
-                </button>
-              </div>
-            </div>
-            <div className="export-chapters">
-              {chapters.map((chapter) => (
-                <label key={chapter.guid} className="relationships-toggle">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(chapter.guid)}
-                    onChange={(e) => toggle(chapter.guid, e.target.checked)}
-                  />
-                  {chapter.title}
-                </label>
-              ))}
-            </div>
-            <span className="export-count">
-              {t('export.selectedOfTotal', { selected: selected.size, total: chapters.length })}
-            </span>
-          </>
-        )}
-
-        {entitiesVisible && allEntities.length > 0 && (
-          <>
-            <div className="export-chapters-header">
-              <div className="inspector-label">{t('export.selectEntities')}</div>
-              <div className="export-select-buttons">
-                <button
-                  className="export-inline-btn"
-                  onClick={() => setSelectedEntities((prev) => new Set([...prev, ...visibleKeys]))}
-                >
-                  {t('export.selectAll')}
-                </button>
-                <button
-                  className="export-inline-btn"
-                  onClick={() =>
-                    setSelectedEntities((prev) => {
-                      const next = new Set(prev)
-                      for (const key of visibleKeys) next.delete(key)
-                      return next
-                    })
-                  }
-                >
-                  {t('export.selectNone')}
-                </button>
-              </div>
-            </div>
-            <input
-              className="dialog-input export-entity-search"
-              type="search"
-              value={entityQuery}
-              placeholder={t('export.searchEntities')}
-              onChange={(e) => setEntityQuery(e.target.value)}
-            />
-            <div className="export-chapters">
-              {visibleEntities.map(({ kind, labelKey, list }) => (
-                <div key={kind} className="export-entity-group">
-                  <div className="export-entity-group-title">{t(labelKey)}</div>
-                  {list.map((entity) => (
-                    <label key={entity.key} className="relationships-toggle">
-                      <input
-                        type="checkbox"
-                        checked={selectedEntities.has(entity.key)}
-                        onChange={(e) => toggleEntity(entity.key, e.target.checked)}
-                      />
-                      {entity.name}
-                    </label>
-                  ))}
-                </div>
-              ))}
-              {visibleEntities.length === 0 && (
-                <span className="export-count">{t('export.noEntityMatches')}</span>
+              <select
+                id="export-preset"
+                className="dialog-input"
+                value={presetId}
+                onChange={(e) => setPresetId(e.target.value)}
+              >
+                {presets.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.displayName}
+                    {p.isCustom ? '' : ` (${t('layout.builtIn')})`}
+                  </option>
+                ))}
+              </select>
+              {activePreset?.description && (
+                <span className="export-preset-desc">{activePreset.description}</span>
               )}
             </div>
-            <span className="export-count">
-              {t('export.selectedOfTotal', {
-                selected: selectedEntities.size,
-                total: allEntities.length
-              })}
-            </span>
-          </>
-        )}
+          )}
 
-        {isAudiobook ? (
-          <AudiobookPanel selectedChapterGuids={[...selected]} title={title} />
-        ) : (
-          <>
-            <button
-              className="start-open export-run"
-              disabled={exportDisabled}
-              onClick={() => void run()}
-            >
-              <FileDown size={15} strokeWidth={2} />
-              {busy ? t('export.exporting') : t('export.exportAction')}
-            </button>
-            {result && <p className="inspector-meta export-result">{result}</p>}
-          </>
-        )}
+          <div className="export-field">
+            <label className="inspector-label" htmlFor="export-title">
+              {t('export.title')}
+            </label>
+            <input
+              id="export-title"
+              className="dialog-input"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
 
-        {/* The pages around the story. Typed, so each is set its own way. */}
-        {!isData && (
-        <details className="export-matter">
-          <summary>{t('matter.title')}</summary>
-          <BookMatterPanel />
-        </details>
-        )}
+          <div className="export-field">
+            <label className="inspector-label" htmlFor="export-author">
+              {t('export.author')}
+            </label>
+            <input
+              id="export-author"
+              className="dialog-input"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+            />
+          </div>
 
-        {/* What a shop and a distributor need, beyond title and author. */}
-        {!isData && (
-        <details className="export-matter">
-          <summary>{t('publishing.title')}</summary>
-          <PublishingPanel />
-          {/* Applied to the output only, so a rule can be turned off without
+          {!isData && (
+            <label className="relationships-toggle export-toggle">
+              <input
+                type="checkbox"
+                checked={includeTitlePage}
+                onChange={(e) => setIncludeTitlePage(e.target.checked)}
+              />
+              {t('export.includeTitlePage')}
+            </label>
+          )}
+
+          {/* Shown only where a cover actually lands in the file. A control that
+            changes nothing is worse than no control, so a contributed format has
+            to say it can hold one. */}
+          {(format === 'Epub' ||
+            format === 'Pdf' ||
+            extFormats.some((f) => f.formatKey === format && f.supportsCover)) && (
+            <label className="relationships-toggle export-toggle">
+              <input
+                type="checkbox"
+                checked={includeCover}
+                onChange={(e) => setIncludeCover(e.target.checked)}
+              />
+              {t('export.includeCover')}
+            </label>
+          )}
+
+          {/* Only on the formats that carry the world out of the app. On a
+            manuscript export there is nothing for it to hide. */}
+          {(format === 'WorldHtml' ||
+            format === 'WorldJson' ||
+            format === 'Json' ||
+            format === 'Codex' ||
+            format === 'CodexPdf' ||
+            format === 'CodexCsv') && (
+            <label className="relationships-toggle export-toggle">
+              <input
+                type="checkbox"
+                checked={forReaders}
+                onChange={(e) => setForReaders(e.target.checked)}
+              />
+              {t('export.forReaders')}
+            </label>
+          )}
+
+          {/* How deep the contents list goes, and what it is called. A flat
+            chapter list is right for a novel and wrong for a collection, and
+            "Table of Contents" is wrong in every language but English. */}
+          {format === 'Epub' && (
+            <div className="export-field-row">
+              <label className="export-field">
+                <span className="export-field-label">{t('export.tocDepth')}</span>
+                <select
+                  className="inspector-input"
+                  value={tocDepth}
+                  onChange={(e) => setTocDepth(Number(e.target.value))}
+                >
+                  <option value={1}>{t('export.tocDepthChapters')}</option>
+                  <option value={2}>{t('export.tocDepthScenes')}</option>
+                </select>
+              </label>
+              <label className="export-field">
+                <span className="export-field-label">{t('export.tocTitle')}</span>
+                <input
+                  className="inspector-input"
+                  value={tocTitle}
+                  placeholder={t('export.tocTitlePlaceholder')}
+                  onChange={(e) => setTocTitle(e.target.value)}
+                />
+              </label>
+            </div>
+          )}
+
+          {/* A house style arrives as a styled Word file, not as a list of
+            settings. Point at it once and the export comes out in it. */}
+          {format === 'Docx' && (
+            <div className="export-field-row">
+              <label className="export-field export-field-grow">
+                <span className="export-field-label">{t('export.referenceDoc')}</span>
+                <input
+                  className="inspector-input"
+                  value={referenceDoc}
+                  placeholder={t('export.referenceDocPlaceholder')}
+                  onChange={(e) => setReferenceDoc(e.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  void window.novalist
+                    .pickFile(t('export.referenceDoc'), 'all')
+                    .then((chosen) => chosen && setReferenceDoc(chosen))
+                }}
+              >
+                {t('export.referenceDocChoose')}
+              </button>
+              {referenceDoc && (
+                <button type="button" className="btn-secondary" onClick={() => setReferenceDoc('')}>
+                  {t('export.referenceDocClear')}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Which parts of an entry leave the project. A series bible that has
+            to leave the portraits out, or a packet that wants the names and
+            nothing else, was an all-or-nothing choice per entry before this. */}
+          {isCodex && (
+            <div className="export-field-row">
+              {(['images', 'fields', 'relationships', 'sections'] as const).map((part) => (
+                <label key={part} className="relationships-toggle export-toggle">
+                  <input
+                    type="checkbox"
+                    checked={codexParts.has(part)}
+                    onChange={(e) =>
+                      setCodexParts((prev) => {
+                        const next = new Set(prev)
+                        if (e.target.checked) next.add(part)
+                        else next.delete(part)
+                        return next
+                      })
+                    }
+                  />
+                  {t(`export.codexPart_${part}`)}
+                </label>
+              ))}
+            </div>
+          )}
+          {isCodex && codexParts.has('sections') && sectionTitles.length > 0 && (
+            <div className="export-field-row">
+              <span className="export-field-label">{t('export.codexSections')}</span>
+              {sectionTitles.map((title) => (
+                <label key={title} className="relationships-toggle export-toggle">
+                  <input
+                    type="checkbox"
+                    checked={pickedSections.has(title)}
+                    onChange={(e) =>
+                      setPickedSections((prev) => {
+                        const next = new Set(prev)
+                        if (e.target.checked) next.add(title)
+                        else next.delete(title)
+                        return next
+                      })
+                    }
+                  />
+                  {title}
+                </label>
+              ))}
+            </div>
+          )}
+
+          {/* A build for one shop. Back matter written with <$storename> and
+            <$storelink> resolves to that shop, so a reader is sent back where
+            they bought it rather than to a competitor. */}
+          {retailers.length > 0 && !isCodex && !isData && (
+            <label className="export-field">
+              <span className="export-field-label">{t('export.buildFor')}</span>
+              <select
+                className="inspector-input"
+                value={retailerKey}
+                onChange={(e) => setRetailerKey(e.target.value)}
+              >
+                <option value="">{t('export.buildForNone')}</option>
+                {retailers.map((r) => (
+                  <option key={r.key} value={r.key}>
+                    {r.name || r.key}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {chaptersVisible && stages.length > 0 && (
+            <>
+              <div className="inspector-label">{t('export.stageFilter')}</div>
+              <div className="export-stage-filter">
+                <label className="relationships-toggle">
+                  <input
+                    type="checkbox"
+                    checked={stageFilter.size === 0}
+                    onChange={() => setStageFilter(new Set())}
+                  />
+                  {t('export.stageFilterAll')}
+                </label>
+                {stages.map((stage) => (
+                  <label key={stage.key} className="relationships-toggle">
+                    <input
+                      type="checkbox"
+                      checked={stageFilter.has(stage.key)}
+                      onChange={(e) => {
+                        const next = new Set(stageFilter)
+                        if (e.target.checked) next.add(stage.key)
+                        else next.delete(stage.key)
+                        setStageFilter(next)
+                      }}
+                    />
+                    {stage.label}
+                  </label>
+                ))}
+              </div>
+              <div className="settings-hint">{t('export.excludedNote')}</div>
+            </>
+          )}
+
+          {/* A series in one file. The chapter list belongs to the open book, so
+            a further volume comes in whole rather than chapter by chapter. */}
+          {chaptersVisible && otherBooks.length > 0 && (
+            <>
+              <div className="export-chapters-header">
+                <span className="export-field-label">{t('export.alsoInclude')}</span>
+              </div>
+              <div className="export-stage-filter">
+                {otherBooks.map((book) => (
+                  <label key={book.id} className="relationships-toggle">
+                    <input
+                      type="checkbox"
+                      checked={extraBooks.has(book.id)}
+                      onChange={(e) => {
+                        const next = new Set(extraBooks)
+                        if (e.target.checked) next.add(book.id)
+                        else next.delete(book.id)
+                        setExtraBooks(next)
+                      }}
+                    />
+                    {book.name}
+                  </label>
+                ))}
+              </div>
+            </>
+          )}
+
+          {chaptersVisible && (
+            <>
+              <div className="export-chapters-header">
+                <div className="inspector-label">{t('export.selectChapters')}</div>
+                <div className="export-select-buttons">
+                  <button
+                    className="export-inline-btn"
+                    onClick={() => setSelected(new Set(chapters.map((c) => c.guid)))}
+                  >
+                    {t('export.selectAll')}
+                  </button>
+                  <button className="export-inline-btn" onClick={() => setSelected(new Set())}>
+                    {t('export.selectNone')}
+                  </button>
+                </div>
+              </div>
+              <div className="export-chapters">
+                {chapters.map((chapter) => (
+                  <label key={chapter.guid} className="relationships-toggle">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(chapter.guid)}
+                      onChange={(e) => toggle(chapter.guid, e.target.checked)}
+                    />
+                    {chapter.title}
+                  </label>
+                ))}
+              </div>
+              <span className="export-count">
+                {t('export.selectedOfTotal', { selected: selected.size, total: chapters.length })}
+              </span>
+            </>
+          )}
+
+          {entitiesVisible && allEntities.length > 0 && (
+            <>
+              <div className="export-chapters-header">
+                <div className="inspector-label">{t('export.selectEntities')}</div>
+                <div className="export-select-buttons">
+                  <button
+                    className="export-inline-btn"
+                    onClick={() =>
+                      setSelectedEntities((prev) => new Set([...prev, ...visibleKeys]))
+                    }
+                  >
+                    {t('export.selectAll')}
+                  </button>
+                  <button
+                    className="export-inline-btn"
+                    onClick={() =>
+                      setSelectedEntities((prev) => {
+                        const next = new Set(prev)
+                        for (const key of visibleKeys) next.delete(key)
+                        return next
+                      })
+                    }
+                  >
+                    {t('export.selectNone')}
+                  </button>
+                </div>
+              </div>
+              <input
+                className="dialog-input export-entity-search"
+                type="search"
+                value={entityQuery}
+                placeholder={t('export.searchEntities')}
+                onChange={(e) => setEntityQuery(e.target.value)}
+              />
+              <div className="export-chapters">
+                {visibleEntities.map(({ kind, labelKey, list }) => (
+                  <div key={kind} className="export-entity-group">
+                    <div className="export-entity-group-title">{t(labelKey)}</div>
+                    {list.map((entity) => (
+                      <label key={entity.key} className="relationships-toggle">
+                        <input
+                          type="checkbox"
+                          checked={selectedEntities.has(entity.key)}
+                          onChange={(e) => toggleEntity(entity.key, e.target.checked)}
+                        />
+                        {entity.name}
+                      </label>
+                    ))}
+                  </div>
+                ))}
+                {visibleEntities.length === 0 && (
+                  <span className="export-count">{t('export.noEntityMatches')}</span>
+                )}
+              </div>
+              <span className="export-count">
+                {t('export.selectedOfTotal', {
+                  selected: selectedEntities.size,
+                  total: allEntities.length
+                })}
+              </span>
+            </>
+          )}
+
+          {/* The pages around the story. Typed, so each is set its own way. */}
+          {!isData && (
+            <details className="export-matter">
+              <summary>{t('matter.title')}</summary>
+              <BookMatterPanel />
+            </details>
+          )}
+
+          {/* What a shop and a distributor need, beyond title and author. */}
+          {!isData && (
+            <details className="export-matter">
+              <summary>{t('publishing.title')}</summary>
+              <PublishingPanel />
+              {/* Applied to the output only, so a rule can be turned off without
               anything to undo - unlike Find and Replace, which rewrites the
               scenes themselves. */}
-          <ReplacementsPanel />
-        </details>
-        )}
+              <ReplacementsPanel />
+            </details>
+          )}
 
-        {/* Page geometry, separators and ebook CSS for whichever layout is
+          {/* Page geometry, separators and ebook CSS for whichever layout is
             picked above, rather than a second dropdown listing the same ones. */}
-        {!isData && (
-        <details className="export-matter">
-          <summary>{t('layout.title')}</summary>
-          <ExportLayoutPanel
-            selectedId={presetId}
-            onLayouts={(all, select) => {
-              setPresets(all)
-              if (select !== undefined) setPresetId(select)
-            }}
-          />
-        </details>
-        )}
+          {!isData && (
+            <details className="export-matter">
+              <summary>{t('layout.title')}</summary>
+              <ExportLayoutPanel
+                selectedId={presetId}
+                onLayouts={(all, select) => {
+                  setPresets(all)
+                  if (select !== undefined) setPresetId(select)
+                }}
+              />
+            </details>
+          )}
 
-        {/* The other half of the round trip: a DOCX goes out to an editor and
+          {/* The other half of the round trip: a DOCX goes out to an editor and
             their marked-up copy comes back here. */}
-        <div className="settings-button-row export-review-row">
-          <button className="dialog-button" onClick={() => setReviewOpen(true)}>
-            {t('review.openAction')}
-          </button>
-          <span className="settings-hint">{t('review.openHint')}</span>
+          <div className="settings-button-row export-review-row">
+            <button className="dialog-button" onClick={() => setReviewOpen(true)}>
+              {t('review.openAction')}
+            </button>
+            <span className="settings-hint">{t('review.openHint')}</span>
+          </div>
+
+          {isAudiobook ? (
+            <AudiobookPanel selectedChapterGuids={[...selected]} title={title} />
+          ) : (
+            <div className="export-action-bar">
+              <button
+                className="start-open export-run"
+                disabled={exportDisabled}
+                onClick={() => void run()}
+              >
+                <FileDown size={15} strokeWidth={2} />
+                {busy ? t('export.exporting') : t('export.exportAction')}
+              </button>
+              {result && <p className="inspector-meta export-result">{result}</p>}
+            </div>
+          )}
         </div>
+
+        <aside className="export-summary">
+          <h2>{t('desktopRefresh.exportSummary')}</h2>
+          <div className="export-title-preview">
+            <h3>{title || projectName}</h3>
+            <p>{author}</p>
+            <small>
+              {extFormats.find((f) => f.formatKey === format)?.displayName ??
+                t(FORMATS.find((f) => f.format === format)?.labelKey ?? 'export.format')}
+            </small>
+          </div>
+          {preview && (
+            <p className="export-preview" aria-live="polite">
+              {t('export.previewCounts', {
+                chapters: preview.chapters,
+                scenes: preview.scenes,
+                words: preview.words.toLocaleString()
+              })}{' '}
+              {t(preview.pagesAreExact ? 'export.previewPagesExact' : 'export.previewPages', {
+                pages: preview.pages
+              })}
+              {preview.undescribedImages > 0 && (
+                <>
+                  {' '}
+                  <span className="export-warning">
+                    {t('export.previewUndescribed', { count: preview.undescribedImages })}
+                  </span>
+                </>
+              )}
+            </p>
+          )}
+          <div className="export-summary-contents">
+            {chaptersVisible
+              ? chapters
+                  .filter((c) => selected.has(c.guid))
+                  .map((c) => <div key={c.guid}>{c.title}</div>)
+              : visibleEntities
+                  .flatMap((g) => g.list)
+                  .filter((e) => selectedEntities.has(e.key))
+                  .map((e) => <div key={e.key}>{e.name}</div>)}
+          </div>
+        </aside>
       </div>
 
       {reviewOpen && <ReviewImportDialog onClose={() => setReviewOpen(false)} />}

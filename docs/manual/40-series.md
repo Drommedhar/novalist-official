@@ -2,7 +2,7 @@
 
 The Series view is the project above the book. Everything else in Novalist reads the book you have open; this one reads all of them.
 
-**Series** is its own mode, at the bottom of the mode rail. It sits above the single book, so folding it into Plan meant a mode that was otherwise about one book carrying one view that was not.
+**Series** is its own mode, in the horizontal mode navigation. It sits above the single book, so folding it into Plan meant a mode that was otherwise about one book carrying one view that was not.
 
 From **Your bookshelf**, select a cover and choose **Series overview** in the details panel to open that project's Series view. The bookshelf keeps a project's volumes adjacent and lists its visible books together in the panel; removing a book from the bookshelf only hides its library entry, so it remains part of the project and its Series view.
 

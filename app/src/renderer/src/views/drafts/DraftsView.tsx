@@ -1,3 +1,4 @@
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, Check, Copy, GripVertical, Plus, Trash2 } from 'lucide-react'
@@ -204,13 +205,13 @@ export function DraftsView(): React.JSX.Element {
     <div className="drafts">
       <div className="drafts-toolbar">
         <span className="drafts-title">{t('drafts.title')}</span>
-        <button
-          className="toolbar-button toolbar-action"
-          onClick={() => setPending({ kind: 'new' })}
-        >
-          <Plus size={14} strokeWidth={2} />
-          {t('drafts.new')}
-        </button>
+        <DesktopViewActions>
+          {' '}
+          <button className="dialog-button primary" onClick={() => setPending({ kind: 'new' })}>
+            <Plus size={14} strokeWidth={2} />
+            {t('drafts.new')}
+          </button>
+        </DesktopViewActions>
       </div>
 
       {/* What the view is for is said once, by the guidance strip above it. */}
@@ -258,7 +259,9 @@ export function DraftsView(): React.JSX.Element {
                   defaultValue={draft.notes}
                   placeholder={t('drafts.notesPlaceholder')}
                   aria-label={t('drafts.notes')}
-                  onBlur={(e) => e.target.value !== draft.notes && setNotes(draft.id, e.target.value)}
+                  onBlur={(e) =>
+                    e.target.value !== draft.notes && setNotes(draft.id, e.target.value)
+                  }
                   onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
                 />
               </div>
@@ -349,58 +352,66 @@ export function DraftsView(): React.JSX.Element {
 
           <div className="drafts-panes">
             <div className="drafts-pane">
-              <div className="drafts-pane-head">{t('drafts.paneSource', { name: from?.name ?? '' })}</div>
+              <div className="drafts-pane-head">
+                {t('drafts.paneSource', { name: from?.name ?? '' })}
+              </div>
               <div className="drafts-tree">
-            {from?.chapters.map((chapter) => {
-              const whole = chapterPicks.includes(chapter.guid)
-              return (
-                <div key={chapter.guid} className="drafts-chapter">
-                  <label className="drafts-pick">
-                    <input
-                      type="checkbox"
-                      checked={whole}
-                      onChange={(e) =>
-                        setChapterPicks(
-                          e.target.checked
-                            ? [...chapterPicks, chapter.guid]
-                            : chapterPicks.filter((g) => g !== chapter.guid)
-                        )
-                      }
-                    />
-                    <span className="drafts-chapter-title">{chapter.title}</span>
-                  </label>
-                  {chapter.scenes.map((scene) => (
-                    <label key={scene.id} className="drafts-pick drafts-scene">
-                      <input
-                        type="checkbox"
-                        // A ticked chapter carries its scenes, so their own
-                        // ticks are shown and not asked for again.
-                        checked={whole || scenePicks.includes(scene.id)}
-                        disabled={whole}
-                        onChange={(e) =>
-                          setScenePicks(
-                            e.target.checked
-                              ? [...scenePicks, scene.id]
-                              : scenePicks.filter((id) => id !== scene.id)
-                          )
-                        }
-                      />
-                      <span>{scene.title}</span>
-                    </label>
-                  ))}
-                </div>
-              )
-            })}
+                {from?.chapters.map((chapter) => {
+                  const whole = chapterPicks.includes(chapter.guid)
+                  return (
+                    <div key={chapter.guid} className="drafts-chapter">
+                      <label className="drafts-pick">
+                        <input
+                          type="checkbox"
+                          checked={whole}
+                          onChange={(e) =>
+                            setChapterPicks(
+                              e.target.checked
+                                ? [...chapterPicks, chapter.guid]
+                                : chapterPicks.filter((g) => g !== chapter.guid)
+                            )
+                          }
+                        />
+                        <span className="drafts-chapter-title">{chapter.title}</span>
+                      </label>
+                      {chapter.scenes.map((scene) => (
+                        <label key={scene.id} className="drafts-pick drafts-scene">
+                          <input
+                            type="checkbox"
+                            // A ticked chapter carries its scenes, so their own
+                            // ticks are shown and not asked for again.
+                            checked={whole || scenePicks.includes(scene.id)}
+                            disabled={whole}
+                            onChange={(e) =>
+                              setScenePicks(
+                                e.target.checked
+                                  ? [...scenePicks, scene.id]
+                                  : scenePicks.filter((id) => id !== scene.id)
+                              )
+                            }
+                          />
+                          <span>{scene.title}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )
+                })}
               </div>
             </div>
 
             <div className="drafts-pane">
-              <div className="drafts-pane-head">{t('drafts.paneTarget', { name: to?.name ?? '' })}</div>
+              <div className="drafts-pane-head">
+                {t('drafts.paneTarget', { name: to?.name ?? '' })}
+              </div>
               <div className="drafts-tree">
-                {preview.length === 0 && <p className="inspector-meta">{t('drafts.targetEmpty')}</p>}
+                {preview.length === 0 && (
+                  <p className="inspector-meta">{t('drafts.targetEmpty')}</p>
+                )}
                 {preview.map((chapter) => (
                   <div key={chapter.guid} className="drafts-chapter">
-                    <div className={`drafts-preview-row${chapter.state === 'new' ? ' arriving' : ''}`}>
+                    <div
+                      className={`drafts-preview-row${chapter.state === 'new' ? ' arriving' : ''}`}
+                    >
                       <span className="drafts-chapter-title">{chapter.title}</span>
                       {chapter.state === 'new' && (
                         <span className="drafts-mark new">{t('drafts.markNew')}</span>

@@ -14,6 +14,8 @@ Across the top is a **tab strip**: **Characters**, **Locations**, **Items**, **L
 
 Below it, the view is split in two: the **navigation column** on the left and the **detail pane** on the right.
 
+On desktop, the selected entry has four tabs. **Overview** contains basic fields, aliases and prose sections; **Story** contains chapter overrides and arc/state changes; **Relationships** contains its links; **Details** contains further field sections, images, attachments, custom properties, matching, history and sharing policies. All existing fields remain editable. **New entry** is also available beside the view heading.
+
 ### The navigation column
 
 The left column lists every entity of the active type. At the top is a **search box** — filter the list by name as you type — next to a **count** of how many entries currently match. **New entry** at the bottom creates a new entity.

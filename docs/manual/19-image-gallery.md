@@ -14,9 +14,9 @@ Thumbnails are loaded lazily — large galleries fill in as you scroll.
 
 ## Grid and list views
 
-A toggle in the toolbar switches between two layouts:
+**Import images** sits beside the desktop view heading. Labeled buttons in the toolbar switch between two layouts:
 
-- **Grid** (default) — a wall of thumbnail cards captioned with each filename.
+- **Grid** (default) — spaced thumbnail cards with the filename and collection or path beneath each image. The whole card is keyboard accessible.
 - **List** — one row per image with a small thumbnail, the image's name, and its full path.
 
 ## Filtering
@@ -40,7 +40,7 @@ Two collections differing only in capitals are one collection, and the same tag 
 
 ## Previewing an image
 
-Click any thumbnail to open it in a full-screen **lightbox** with its filename. Click anywhere to close.
+Click any thumbnail to open it in a full-screen **lightbox** with its filename. Press Escape, click Close, or click the background to close and return to the selected image.
 
 ## Image actions
 

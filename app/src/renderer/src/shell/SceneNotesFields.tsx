@@ -37,7 +37,7 @@ const NARRATIVE_MODES = [
  * store and commits on blur. Layout (side-by-side vs stacked) is left to the parent
  * via the .notes-dock-body container styling.
  */
-export function SceneNotesFields(): React.JSX.Element {
+export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): React.JSX.Element {
   const { t } = useTranslation()
   const chapters = useProjectStore((s) => s.chapters)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
@@ -45,6 +45,10 @@ export function SceneNotesFields(): React.JSX.Element {
   const chapter = chapters.find((c) => c.guid === openChapterGuid)
   const scene = chapter?.scenes.find((sc) => sc.id === openSceneId)
 
+  const sceneKey = `${openChapterGuid}/${openSceneId}`
+  const [loadedSceneKey, setLoadedSceneKey] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const [synopsis, setSynopsis] = useState('')
   const [notes, setNotes] = useState('')
   const [cast, setCast] = useState<string[]>([])
@@ -63,13 +67,17 @@ export function SceneNotesFields(): React.JSX.Element {
     void useManuscriptPropsStore.getState().load()
   }, [])
 
+  useEffect(() => { setSynopsis(scene?.synopsis ?? '') }, [openChapterGuid, openSceneId, scene?.synopsis])
+
   useEffect(() => {
-    setSynopsis(scene?.synopsis ?? '')
-    setNotes('')
+    let cancelled = false
+    setLoadedSceneKey(null)
+    setLoadError(false)
     if (openChapterGuid && openSceneId) {
       void rpc
         .request<SceneMeta>('scenes/getMeta', [openChapterGuid, openSceneId])
         .then((meta) => {
+          if (cancelled) return
           setNotes(meta.notes ?? '')
           setCast(meta.cast ?? [])
           setFocus(meta.focusEntityId ?? null)
@@ -79,23 +87,29 @@ export function SceneNotesFields(): React.JSX.Element {
           setOutcome(meta.outcome ?? '')
           setRelAmount(meta.relativeAmount ?? 0)
           setRelUnit(meta.relativeUnit || 'Hours')
+          setLoadedSceneKey(sceneKey)
         })
-        .catch(() => setNotes(''))
+        .catch(() => { if (!cancelled) setLoadError(true) })
     }
-  }, [openChapterGuid, openSceneId, scene?.synopsis])
+    return () => { cancelled = true }
+  }, [openChapterGuid, openSceneId, sceneKey, attempt])
 
   if (!(openChapterGuid && openSceneId && scene)) {
     return <div className="notes-dock-empty">{t('sceneNotes.empty')}</div>
   }
 
+  if (loadedSceneKey !== sceneKey) return <div className="notes-dock-empty" role="status">
+    {loadError ? <button className="dialog-button" onClick={() => setAttempt((value) => value + 1)}>{t('shell.retry')}</button> : t('context.loading')}
+  </div>
+
   return (
     <div className="notes-dock-body">
       <div className="notes-dock-col">
-        <label className="notes-dock-label" htmlFor="dock-synopsis">
+        <label className="notes-dock-label" htmlFor={`${idPrefix}-synopsis`}>
           {t('sceneNotes.synopsisTitle')}
         </label>
         <textarea
-          id="dock-synopsis"
+          id={`${idPrefix}-synopsis`}
           className="notes-dock-textarea notes-dock-synopsis"
           placeholder={t('sceneNotes.synopsisPlaceholder')}
           value={synopsis}
@@ -106,11 +120,11 @@ export function SceneNotesFields(): React.JSX.Element {
         />
       </div>
       <div className="notes-dock-col notes-dock-col-grow">
-        <label className="notes-dock-label" htmlFor="dock-notes">
+        <label className="notes-dock-label" htmlFor={`${idPrefix}-notes`}>
           {t('sceneNotes.title')}
         </label>
         <textarea
-          id="dock-notes"
+          id={`${idPrefix}-notes`}
           className="notes-dock-textarea"
           placeholder={t('sceneNotes.placeholder')}
           value={notes}
@@ -123,11 +137,11 @@ export function SceneNotesFields(): React.JSX.Element {
           because a goal nobody stated and an outcome nobody wrote down are
           precisely what a draft is missing. */}
       <div className="notes-dock-col notes-dock-props">
-        <label className="notes-dock-label" htmlFor="dock-goal">
+        <label className="notes-dock-label" htmlFor={`${idPrefix}-goal`}>
           {t('sceneNotes.goal')}
         </label>
         <textarea
-          id="dock-goal"
+          id={`${idPrefix}-goal`}
           className="notes-dock-textarea notes-dock-short"
           placeholder={t('sceneNotes.goalPlaceholder')}
           value={goal}
@@ -141,11 +155,11 @@ export function SceneNotesFields(): React.JSX.Element {
             ])
           }
         />
-        <label className="notes-dock-label" htmlFor="dock-outcome">
+        <label className="notes-dock-label" htmlFor={`${idPrefix}-outcome`}>
           {t('sceneNotes.outcome')}
         </label>
         <textarea
-          id="dock-outcome"
+          id={`${idPrefix}-outcome`}
           className="notes-dock-textarea notes-dock-short"
           placeholder={t('sceneNotes.outcomePlaceholder')}
           value={outcome}
@@ -166,12 +180,12 @@ export function SceneNotesFields(): React.JSX.Element {
           to invent a date or leave it blank - and blank dropped the scene out
           of the Calendar and the Timeline entirely. */}
       <div className="notes-dock-col notes-dock-props">
-        <label className="notes-dock-label" htmlFor="dock-rel-amount">
+        <label className="notes-dock-label" htmlFor={`${idPrefix}-rel-amount`}>
           {t('narrative.relativeTime')}
         </label>
         <div className="notes-dock-relative">
           <input
-            id="dock-rel-amount"
+            id={`${idPrefix}-rel-amount`}
             className="inspector-input"
             type="number"
             value={relAmount}
@@ -212,11 +226,11 @@ export function SceneNotesFields(): React.JSX.Element {
       {/* A flashback sorts by its date like everything else unless the scene
           says what it is. */}
       <div className="notes-dock-col notes-dock-props">
-        <label className="notes-dock-label" htmlFor="dock-mode">
+        <label className="notes-dock-label" htmlFor={`${idPrefix}-mode`}>
           {t('narrative.title')}
         </label>
         <select
-          id="dock-mode"
+          id={`${idPrefix}-mode`}
           className="inspector-input"
           value={mode}
           onChange={(e) => {

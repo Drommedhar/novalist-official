@@ -1,3 +1,4 @@
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RevisionsPanel } from '../../shell/RevisionsPanel'
@@ -41,11 +42,7 @@ const TYPES = ['Note', 'Link', 'File', 'Image', 'Pdf', 'Audio', 'Video']
 const STATUSES = ['None', 'Open', 'InProgress', 'Resolved']
 
 const isFileType = (type: string): boolean =>
-  type === 'File' ||
-  type === 'Image' ||
-  type === 'Pdf' ||
-  type === 'Audio' ||
-  type === 'Video'
+  type === 'File' || type === 'Image' || type === 'Pdf' || type === 'Audio' || type === 'Video'
 
 export function ResearchView(): React.JSX.Element {
   const { t } = useTranslation()
@@ -56,6 +53,7 @@ export function ResearchView(): React.JSX.Element {
   const [items, setItems] = useState<ResearchItemDto[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [researchTab, setResearchTab] = useState<'project' | 'scratchpad'>('project')
   const [vaultOpen, setVaultOpen] = useState(false)
   const [newTag, setNewTag] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -70,14 +68,20 @@ export function ResearchView(): React.JSX.Element {
   useEffect(() => {
     if (folderImportOpen || vaultOpen) return
     let cancelled = false
-    void rpc.request<ResearchItemDto[]>('research/list').then(updated => {
-      if (!cancelled) setItems(previous => {
-        // API imports add entries; keep local edits to existing notes while merging new ones.
-        const existing = new Map(previous.map(item => [item.id, item]))
-        return updated.map(item => existing.get(item.id) ?? item)
+    void rpc
+      .request<ResearchItemDto[]>('research/list')
+      .then((updated) => {
+        if (!cancelled)
+          setItems((previous) => {
+            // API imports add entries; keep local edits to existing notes while merging new ones.
+            const existing = new Map(previous.map((item) => [item.id, item]))
+            return updated.map((item) => existing.get(item.id) ?? item)
+          })
       })
-    }).catch(() => {})
-    return () => { cancelled = true }
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
   }, [folderImportOpen, vaultOpen, importRevision])
 
   // Quick-open (and other deep links) can ask for a specific item; select it once
@@ -86,6 +90,7 @@ export function ResearchView(): React.JSX.Element {
     if (!pendingResearchId) return
     if (!items.some((i) => i.id === pendingResearchId)) return
     setSelectedId(pendingResearchId)
+    setResearchTab('project')
     setSearch('')
     clearPendingResearch()
   }, [pendingResearchId, items, clearPendingResearch])
@@ -157,6 +162,7 @@ export function ResearchView(): React.JSX.Element {
   }
 
   const create = (type: string, content: string): void => {
+    setResearchTab('project')
     void rpc
       .request<ResearchItemDto[]>('research/save', [
         null,
@@ -178,6 +184,7 @@ export function ResearchView(): React.JSX.Element {
     const updated = await rpc.request<ResearchItemDto[]>('research/import', [path])
     setItems(updated)
     setSelectedId(updated[updated.length - 1]?.id ?? null)
+    setResearchTab('project')
   }
 
   /** Files dropped onto the list are imported exactly like picked ones; dropped
@@ -261,9 +268,7 @@ export function ResearchView(): React.JSX.Element {
    */
   const toggleRelated = async (otherId: string, linked: boolean): Promise<void> => {
     if (!selected) return
-    setItems(
-      await rpc.request<ResearchItemDto[]>('research/link', [selected.id, otherId, linked])
-    )
+    setItems(await rpc.request<ResearchItemDto[]>('research/link', [selected.id, otherId, linked]))
   }
 
   const linkEntity = async (entityId: string): Promise<void> => {
@@ -335,8 +340,34 @@ export function ResearchView(): React.JSX.Element {
   }
 
   return (
-    <div className="codex">
-      <div className="codex-body">
+    <div className="codex research-view">
+      <nav className="codex-tabs" aria-label={t('shell.view.research')}>
+        <button
+          className={`codex-tab${researchTab === 'project' ? ' active' : ''}`}
+          aria-pressed={researchTab === 'project'}
+          onClick={() => setResearchTab('project')}
+        >
+          {t('desktopRefresh.projectResearch')}
+        </button>
+        <button
+          className={`codex-tab${researchTab === 'scratchpad' ? ' active' : ''}`}
+          aria-pressed={researchTab === 'scratchpad'}
+          onClick={() => setResearchTab('scratchpad')}
+        >
+          {t('scratchpad.title')}
+        </button>
+      </nav>
+      <div className="research-scratchpad" hidden={researchTab !== 'scratchpad'}>
+        <ScratchpadPanel
+          canFile
+          active={researchTab === 'scratchpad'}
+          onFiled={() => {
+            void rpc.request<ResearchItemDto[]>('research/list').then(setItems)
+            setResearchTab('project')
+          }}
+        />
+      </div>
+      <div className="codex-body" hidden={researchTab !== 'project'}>
         <div
           className={`codex-list${dragging ? ' research-dropping' : ''}`}
           onDragOver={(e) => {
@@ -348,21 +379,23 @@ export function ResearchView(): React.JSX.Element {
           }}
           onDrop={(e) => void handleDrop(e)}
         >
-          <div className="research-actions">
-            <button className="research-action-btn" onClick={() => create('Note', '')}>
-              {t('research.addNote')}
-            </button>
-            <button className="research-action-btn" onClick={() => create('Link', 'https://')}>
-              {t('research.addLink')}
-            </button>
-            <button className="research-action-btn" onClick={() => void importFile()}>
-              {t('research.importFile')}
-            </button>
-            {/* The generic folder importer starts with research selected here. */}
-            <button className="research-action-btn" onClick={() => setVaultOpen(true)}>
-              {t('research.importVault')}
-            </button>
-          </div>
+          <DesktopViewActions>
+            <div className="research-actions">
+              <button className="research-action-btn" onClick={() => create('Note', '')}>
+                {t('research.addNote')}
+              </button>
+              <button className="research-action-btn" onClick={() => create('Link', 'https://')}>
+                {t('research.addLink')}
+              </button>
+              <button className="research-action-btn" onClick={() => void importFile()}>
+                {t('research.importFile')}
+              </button>
+              {/* The generic folder importer starts with research selected here. */}
+              <button className="research-action-btn" onClick={() => setVaultOpen(true)}>
+                {t('research.importVault')}
+              </button>
+            </div>
+          </DesktopViewActions>
           <input
             className="dialog-input research-search"
             placeholder={t('research.search')}
@@ -448,69 +481,14 @@ export function ResearchView(): React.JSX.Element {
                 </div>
               )}
               <input
-                className="dialog-input"
+                className="dialog-input research-title"
+                aria-label={t('research.titleWatermark')}
                 placeholder={t('research.titleWatermark')}
                 value={selected.title}
                 onChange={(e) => patchSelected({ title: e.target.value })}
                 onBlur={() => void save(selected)}
               />
 
-              {/* Where it stands and what it is worth. A shelf of forty
-                  sources has three that matter and, until now, nothing said
-                  which - or which questions were still open. */}
-              <div className="research-lifecycle">
-                <select
-                  className="dialog-input"
-                  aria-label={t('research.status')}
-                  value={selected.status}
-                  onChange={(e) => void setLifecycle(selected.id, e.target.value, null)}
-                >
-                  {STATUSES.map((status) => (
-                    <option key={status} value={status}>
-                      {t(`research.status${status}`)}
-                    </option>
-                  ))}
-                </select>
-                <div
-                  className="research-rating"
-                  role="group"
-                  aria-label={t('research.rating')}
-                >
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      className={`research-star${selected.rating >= star ? ' on' : ''}`}
-                      aria-label={t('research.rateStars', { count: star })}
-                      aria-pressed={selected.rating >= star}
-                      // Clicking the star already set clears the rating, so an
-                      // accidental one is one click to undo.
-                      onClick={() =>
-                        void setLifecycle(
-                          selected.id,
-                          null,
-                          selected.rating === star ? 0 : star
-                        )
-                      }
-                    >
-                      <Star size={14} strokeWidth={2} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <select
-                className="dialog-input"
-                value={selected.type}
-                onChange={(e) => {
-                  patchSelected({ type: e.target.value })
-                  void save({ ...selected, type: e.target.value })
-                }}
-              >
-                {TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {t(`research.type${type}`, { defaultValue: type })}
-                  </option>
-                ))}
-              </select>
               {selected.type === 'Image' && selected.content.length > 0 && (
                 <div className="research-preview">
                   <img
@@ -552,7 +530,9 @@ export function ResearchView(): React.JSX.Element {
                   <dd className="research-meta-path">{selected.content}</dd>
                   {(selected.fileSize.length > 0 || selected.modified.length > 0) && (
                     <dd className="research-meta-stats">
-                      {[selected.fileSize, selected.modified].filter((s) => s.length > 0).join(' · ')}
+                      {[selected.fileSize, selected.modified]
+                        .filter((s) => s.length > 0)
+                        .join(' · ')}
                     </dd>
                   )}
                 </dl>
@@ -566,154 +546,193 @@ export function ResearchView(): React.JSX.Element {
                 onChange={(next) => patchSelected({ content: next })}
                 onBlur={() => void save(selected)}
               />
-              <div className="research-tags">
-                <span className="research-tags-label">{t('research.tags')}</span>
-                <div className="research-tag-list">
-                  {selected.tags.map((tag) => (
-                    <span key={tag} className="research-tag">
-                      {tag}
-                      <button
-                        className="research-tag-remove"
-                        aria-label={`${t('explorer.contextDelete')} ${tag}`}
-                        onClick={() => removeTag(tag)}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <div className="research-tag-add">
-                  <input
-                    className="dialog-input"
-                    placeholder={t('research.addTag')}
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') addTag()
-                    }}
-                  />
-                  <button className="dialog-button" onClick={addTag}>
-                    +
-                  </button>
-                </div>
-              </div>
-              <div className="research-tags">
-                <span className="research-tags-label">{t('research.linkedEntities')}</span>
-                <div className="research-tag-list">
-                  {selected.entityRefs.map((refId) => (
-                    <span key={refId} className="research-tag">
-                      {entityNames.get(refId) ?? refId}
-                      <button
-                        className="research-tag-remove"
-                        aria-label={`${t('explorer.contextDelete')} ${entityNames.get(refId) ?? refId}`}
-                        onClick={() => void unlinkEntity(refId)}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                  {selected.entityRefs.length === 0 && (
-                    <span className="research-tags-hint">{t('research.linkedEntitiesHint')}</span>
-                  )}
-                </div>
-                <div className="research-tag-add">
+              <details className="research-metadata">
+                <summary>{t('desktopRefresh.researchMetadata')}</summary>
+                {/* Where it stands and what it is worth. A shelf of forty
+                  sources has three that matter and, until now, nothing said
+                  which - or which questions were still open. */}
+                <div className="research-lifecycle">
                   <select
                     className="dialog-input"
-                    value=""
-                    onChange={(e) => {
-                      if (e.target.value) void linkEntity(e.target.value)
-                    }}
+                    aria-label={t('research.status')}
+                    value={selected.status}
+                    onChange={(e) => void setLifecycle(selected.id, e.target.value, null)}
                   >
-                    <option value="">{t('research.linkEntity')}</option>
-                    {allEntities
-                      .filter((e) => !selected.entityRefs.includes(e.id))
-                      .map((e) => (
-                        <option key={e.id} value={e.id}>
-                          {e.name}
-                        </option>
-                      ))}
+                    {STATUSES.map((status) => (
+                      <option key={status} value={status}>
+                        {t(`research.status${status}`)}
+                      </option>
+                    ))}
                   </select>
+                  <div className="research-rating" role="group" aria-label={t('research.rating')}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        className={`research-star${selected.rating >= star ? ' on' : ''}`}
+                        aria-label={t('research.rateStars', { count: star })}
+                        aria-pressed={selected.rating >= star}
+                        // Clicking the star already set clears the rating, so an
+                        // accidental one is one click to undo.
+                        onClick={() =>
+                          void setLifecycle(selected.id, null, selected.rating === star ? 0 : star)
+                        }
+                      >
+                        <Star size={14} strokeWidth={2} />
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              {/* Other research this one refers to. Written both ways, because
-                  the end worth finding is usually the other one: the question
-                  a source answers is what somebody is reading when they need
-                  the source. */}
-              <div className="research-tags">
-                <span className="research-tags-label">{t('research.related')}</span>
-                <div className="research-tag-list">
-                  {selected.relatedIds.map((relatedId) => {
-                    const other = items.find((i) => i.id === relatedId)
-                    return (
-                      <span key={relatedId} className="research-tag">
-                        <button
-                          className="research-related-open"
-                          onClick={() => setSelectedId(relatedId)}
-                        >
-                          <Link2 size={12} strokeWidth={2} /> {other?.title ?? relatedId}
-                        </button>
+                <select
+                  className="dialog-input"
+                  value={selected.type}
+                  onChange={(e) => {
+                    patchSelected({ type: e.target.value })
+                    void save({ ...selected, type: e.target.value })
+                  }}
+                >
+                  {TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {t(`research.type${type}`, { defaultValue: type })}
+                    </option>
+                  ))}
+                </select>
+                <div className="research-tags">
+                  <span className="research-tags-label">{t('research.tags')}</span>
+                  <div className="research-tag-list">
+                    {selected.tags.map((tag) => (
+                      <span key={tag} className="research-tag">
+                        {tag}
                         <button
                           className="research-tag-remove"
-                          aria-label={`${t('explorer.contextDelete')} ${other?.title ?? relatedId}`}
-                          onClick={() => void toggleRelated(relatedId, false)}
+                          aria-label={`${t('explorer.contextDelete')} ${tag}`}
+                          onClick={() => removeTag(tag)}
                         >
                           ×
                         </button>
                       </span>
-                    )
-                  })}
-                  {selected.relatedIds.length === 0 && (
-                    <span className="research-tags-hint">{t('research.relatedHint')}</span>
-                  )}
+                    ))}
+                  </div>
+                  <div className="research-tag-add">
+                    <input
+                      className="dialog-input"
+                      placeholder={t('research.addTag')}
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') addTag()
+                      }}
+                    />
+                    <button className="dialog-button" onClick={addTag}>
+                      +
+                    </button>
+                  </div>
                 </div>
-                <div className="research-tag-add">
-                  <select
-                    className="dialog-input"
-                    value=""
-                    onChange={(e) => {
-                      if (e.target.value) void toggleRelated(e.target.value, true)
-                    }}
-                  >
-                    <option value="">{t('research.linkResearch')}</option>
-                    {items
-                      .filter(
-                        (i) => i.id !== selected.id && !selected.relatedIds.includes(i.id)
+                <div className="research-tags">
+                  <span className="research-tags-label">{t('research.linkedEntities')}</span>
+                  <div className="research-tag-list">
+                    {selected.entityRefs.map((refId) => (
+                      <span key={refId} className="research-tag">
+                        {entityNames.get(refId) ?? refId}
+                        <button
+                          className="research-tag-remove"
+                          aria-label={`${t('explorer.contextDelete')} ${entityNames.get(refId) ?? refId}`}
+                          onClick={() => void unlinkEntity(refId)}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    {selected.entityRefs.length === 0 && (
+                      <span className="research-tags-hint">{t('research.linkedEntitiesHint')}</span>
+                    )}
+                  </div>
+                  <div className="research-tag-add">
+                    <select
+                      className="dialog-input"
+                      value=""
+                      onChange={(e) => {
+                        if (e.target.value) void linkEntity(e.target.value)
+                      }}
+                    >
+                      <option value="">{t('research.linkEntity')}</option>
+                      {allEntities
+                        .filter((e) => !selected.entityRefs.includes(e.id))
+                        .map((e) => (
+                          <option key={e.id} value={e.id}>
+                            {e.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+                {/* Other research this one refers to. Written both ways, because
+                  the end worth finding is usually the other one: the question
+                  a source answers is what somebody is reading when they need
+                  the source. */}
+                <div className="research-tags">
+                  <span className="research-tags-label">{t('research.related')}</span>
+                  <div className="research-tag-list">
+                    {selected.relatedIds.map((relatedId) => {
+                      const other = items.find((i) => i.id === relatedId)
+                      return (
+                        <span key={relatedId} className="research-tag">
+                          <button
+                            className="research-related-open"
+                            onClick={() => setSelectedId(relatedId)}
+                          >
+                            <Link2 size={12} strokeWidth={2} /> {other?.title ?? relatedId}
+                          </button>
+                          <button
+                            className="research-tag-remove"
+                            aria-label={`${t('explorer.contextDelete')} ${other?.title ?? relatedId}`}
+                            onClick={() => void toggleRelated(relatedId, false)}
+                          >
+                            ×
+                          </button>
+                        </span>
                       )
-                      .map((i) => (
-                        <option key={i.id} value={i.id}>
-                          {i.title}
-                        </option>
-                      ))}
-                  </select>
+                    })}
+                    {selected.relatedIds.length === 0 && (
+                      <span className="research-tags-hint">{t('research.relatedHint')}</span>
+                    )}
+                  </div>
+                  <div className="research-tag-add">
+                    <select
+                      className="dialog-input"
+                      value=""
+                      onChange={(e) => {
+                        if (e.target.value) void toggleRelated(e.target.value, true)
+                      }}
+                    >
+                      <option value="">{t('research.linkResearch')}</option>
+                      {items
+                        .filter((i) => i.id !== selected.id && !selected.relatedIds.includes(i.id))
+                        .map((i) => (
+                          <option key={i.id} value={i.id}>
+                            {i.title}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <CustomFieldsPanel scope="Research" id={selected.id} />
+                <CustomFieldsPanel scope="Research" id={selected.id} />
 
-              {/* A note pasted over is as lost as a character sheet typed
+                {/* A note pasted over is as lost as a character sheet typed
                   over, and research is where a writer keeps the things they
                   cannot rewrite from memory. */}
-              <div className="inspector-label">{t('entityHistory.title')}</div>
-              <RevisionsPanel
-                historyMethod="research/history"
-                restoreMethod="research/restoreRevision"
-                targetId={selected.id}
-                restoreArgs={[selected.id]}
-                onRestored={(updated) => setItems(updated as ResearchItemDto[])}
-              />
+                <div className="inspector-label">{t('entityHistory.title')}</div>
+                <RevisionsPanel
+                  historyMethod="research/history"
+                  restoreMethod="research/restoreRevision"
+                  targetId={selected.id}
+                  restoreArgs={[selected.id]}
+                  onRestored={(updated) => setItems(updated as ResearchItemDto[])}
+                />
+              </details>
             </div>
           ) : (
             <>
               <p className="codex-empty">{t('research.empty')}</p>
-              {/* Notes captured while no project was open. Filing one moves it
-                  into this project's inbox, which is where it was going to end
-                  up anyway. */}
-              <ScratchpadPanel
-                canFile
-                onFiled={() =>
-                  void rpc.request<ResearchItemDto[]>('research/list').then(setItems)
-                }
-              />
-
             </>
           )}
         </div>
@@ -725,10 +744,12 @@ export function ResearchView(): React.JSX.Element {
           onCancel={() => setConfirmDelete(false)}
           onConfirm={() => {
             setConfirmDelete(false)
-            void rpc.request<ResearchItemDto[]>('research/delete', [selected.id]).then((updated) => {
-              setItems(updated)
-              setSelectedId(null)
-            })
+            void rpc
+              .request<ResearchItemDto[]>('research/delete', [selected.id])
+              .then((updated) => {
+                setItems(updated)
+                setSelectedId(null)
+              })
           }}
         />
       )}
@@ -747,10 +768,7 @@ export function ResearchView(): React.JSX.Element {
         />
       )}
       {vaultOpen && (
-        <ImportFolderDialog
-          initialTarget="research"
-          onClose={() => setVaultOpen(false)}
-        />
+        <ImportFolderDialog initialTarget="research" onClose={() => setVaultOpen(false)} />
       )}
     </div>
   )

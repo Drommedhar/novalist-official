@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next'
-import { BookCopy, ChartNoAxesGantt, Globe, LayoutDashboard, PenLine, Send, Settings } from 'lucide-react'
+import { Library, Blocks, BookCopy, ChartNoAxesGantt, Globe, LayoutDashboard, PenLine, Send, Settings } from 'lucide-react'
+import { runCommand } from './commands'
 import { HOME_VIEW, MODES, modeOf, type Mode } from './modes'
 import { useProjectStore } from '../stores/projectStore'
 import { useShellStore } from '../stores/shellStore'
 
 /**
- * Home and the five workspaces, with Settings pinned below them. Every entry
- * carries its name; the workspaces scroll in short windows so Settings stays
- * within reach.
+ * Library, Dashboard and five workspaces across the top, with Extensions and
+ * Settings at the trailing edge. The row scrolls when labels exceed the window.
  */
 
 type IconComponent = React.ComponentType<{ size?: number; strokeWidth?: number }>
@@ -71,6 +71,9 @@ export function ModeRail(): React.JSX.Element {
   return (
     <nav className="mode-rail" aria-label={t('shell.activityBar')}>
       <div className="mode-rail-workspaces">
+        {isLoaded && <button type="button" className="mode-rail-item" onClick={() => runCommand('app.closeProject')}>
+          <Library size={19} strokeWidth={1.75} /><span>{t('desktopRefresh.library')}</span>
+        </button>}
         <button
           type="button"
           className={`mode-rail-item${atHome ? ' active' : ''}`}
@@ -114,6 +117,11 @@ export function ModeRail(): React.JSX.Element {
           )
         })}
       </div>
+      <button type="button" className={`mode-rail-item mode-rail-extensions${mainView === 'extensions' ? ' active' : ''}`}
+        aria-current={mainView === 'extensions' ? 'page' : undefined}
+        onClick={() => useShellStore.getState().setMainView('extensions')}>
+        <Blocks size={19} strokeWidth={1.75} /><span>{t('shell.view.extensions')}</span>
+      </button>
       <button
         type="button"
         className={`mode-rail-item mode-rail-settings${atSettings ? ' active' : ''}`}

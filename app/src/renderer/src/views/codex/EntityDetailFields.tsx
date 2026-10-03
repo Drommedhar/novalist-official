@@ -162,7 +162,13 @@ export function EntityDetailFields({
     let cancelled = false
     setRefNames({})
     const types = custom
-      ? [...new Set((customDef?.defaultFields ?? []).filter((f) => f.type === 'EntityRef').map(refTargetType))]
+      ? [
+          ...new Set(
+            (customDef?.defaultFields ?? [])
+              .filter((f) => f.type === 'EntityRef')
+              .map(refTargetType)
+          )
+        ]
       : []
     void Promise.all(
       types.map(async (type) => {
@@ -172,7 +178,9 @@ export function EntityDetailFields({
     ).then((lists) => {
       if (!cancelled) setRefNames(Object.fromEntries(lists))
     })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [custom, customDef, record.id])
 
   const readValue = (key: string, isCustom: boolean): string => {
@@ -285,7 +293,9 @@ export function EntityDetailFields({
             })),
             // Templates can add fields beyond the type's shared schema.
             ...Object.keys(customFields ?? {})
-              .filter((key) => key !== 'name' && !customDef?.defaultFields.some((f) => f.key === key))
+              .filter(
+                (key) => key !== 'name' && !customDef?.defaultFields.some((f) => f.key === key)
+              )
               .map((key): FieldSpec => ({ key, labelKey: '', control: 'text' }))
           ]
         }
@@ -314,10 +324,12 @@ export function EntityDetailFields({
   return (
     <div className="codex-fields">
       {arranged.map((section, si) => (
-        <div key={si} className="codex-field-section">
-          {section.titleKey && (
-            <div className="inspector-label">{t(section.titleKey)}</div>
-          )}
+        <div
+          key={si}
+          className="codex-field-section"
+          data-entity-tab={si === 0 ? 'overview' : 'details'}
+        >
+          {section.titleKey && <div className="inspector-label">{t(section.titleKey)}</div>}
           {section.fields.map((field) => {
             const def = custom
               ? customDef?.defaultFields.find((f) => f.key === field.key)
@@ -329,10 +341,13 @@ export function EntityDetailFields({
                   ? ['true', 'false']
                   : undefined
               : undefined
-            const birthday = entityType === 'character' && field.key === 'age' && record.ageMode === 'date'
+            const birthday =
+              entityType === 'character' && field.key === 'age' && record.ageMode === 'date'
             const label = birthday
               ? t('entityEditor.birthDate')
-              : field.labelKey ? t(field.labelKey) : (def?.displayName ?? field.key)
+              : field.labelKey
+                ? t(field.labelKey)
+                : (def?.displayName ?? field.key)
             return (
               <div key={field.key} className="codex-field">
                 <dt>{label}</dt>
@@ -340,7 +355,10 @@ export function EntityDetailFields({
                   {renderControl(
                     birthday ? 'birthDate' : field.key,
                     birthday ? 'date' : field.control,
-                    custom, options, label, def && refTargetType(def)
+                    custom,
+                    options,
+                    label,
+                    def && refTargetType(def)
                   )}
                   {/* The question that made the field worth having, kept where
                       the field is. The wizards carry it during creation and

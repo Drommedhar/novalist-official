@@ -10,14 +10,16 @@ Open **Narration** from the **Write** mode, under **Hear it**, or press `Ctrl+Al
 
 ## The view at a glance
 
+Desktop fills the available width beneath the view heading, with a compact cast card and an expanding reading card. **Voice settings** opens the narration settings. If no narrator is assigned, **Choose voice** focuses the narrator picker.
+
 Two panes:
 
 - The **cast** down the left: the narrator, then every character with lines in the book, most talkative first, with their line count. Each row has a colour swatch and a voice picker.
 - The **book** on the right: your chapters and scenes as continuous prose, in reading order, in your own editor font and leading.
 
-Under it sits the transport — play, speed, and a button that jumps to the scene you have open in the editor.
+Across the bottom sits the transport — play, speed, and a button that jumps to the scene you have open in the editor.
 
-The whole book is on one strip, so **scrolling is how you move around**. There is no scene to pick: the reading is not scene-sized, and a chapter you can only hear one scene at a time is not a reading of the chapter.
+The whole book is on one strip. Scroll through it or **click a scene in the binder** to jump to that scene inside Narration. This stops any current playback and sets the next playback start to that scene; it leaves the writing editor's scene unchanged. Playback continues through subsequent scenes in reading order. Clicking the same binder scene again brings it back into view. This also works for scenes in Smart Lists and Collections, and scene or chapter Bookmarks.
 
 ## Reading the page
 

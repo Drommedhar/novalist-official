@@ -110,6 +110,9 @@ export function DashboardView(): React.JSX.Element {
 function BookDashboard(): React.JSX.Element {
   const { t } = useTranslation()
   const projectName = useProjectStore((s) => s.projectName) ?? ''
+  const chapters = useProjectStore((s) => s.chapters)
+  const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
+  const openSceneId = useProjectStore((s) => s.openSceneId)
   const [stageBreakdown, setStageBreakdown] = useState<StageTally[]>([])
   const [data, setData] = useState<DashboardDto | null>(null)
   const [range, setRange] = useState(30)
@@ -212,7 +215,10 @@ function BookDashboard(): React.JSX.Element {
   if (!data) return <div className="main-placeholder">{t('shell.viewLoading')}</div>
 
   const maxBar = Math.max(1, ...data.wordHistory.map((b) => b.words))
-  const statusTotal = Math.max(1, data.statusBreakdown.reduce((s, b) => s + b.count, 0))
+  const statusTotal = Math.max(
+    1,
+    data.statusBreakdown.reduce((s, b) => s + b.count, 0)
+  )
 
   const metrics: { key: string; value: string }[] = [
     { key: 'dashboard.words', value: data.totalWords.toLocaleString() },
@@ -223,64 +229,123 @@ function BookDashboard(): React.JSX.Element {
     { key: 'codexHub.locations', value: String(data.locationCount) }
   ]
 
+  const chapter = chapters.find((c) => c.guid === openChapterGuid)
+  const scene = chapter?.scenes.find((sc) => sc.id === openSceneId)
+  const first = chapters.find((c) => c.scenes.length > 0)
+  const resume =
+    scene && chapter
+      ? {
+          chapterGuid: chapter.guid,
+          sceneId: scene.id,
+          sceneTitle: scene.title,
+          chapterTitle: chapter.title
+        }
+      : (data.recentActivity[0] ??
+        (first
+          ? {
+              chapterGuid: first.guid,
+              sceneId: first.scenes[0].id,
+              sceneTitle: first.scenes[0].title,
+              chapterTitle: first.title
+            }
+          : null))
+
   return (
     <div className="dashboard">
-      <div className="dashboard-cover">
-        {banner ? (
-          <img
-            className="dashboard-cover-img"
-            src={`novalist-project://nl/${encodeURI(banner)}`}
-            alt={projectName}
-          />
-        ) : (
-          <div className="dashboard-cover-empty">{t('dashboard.noBanner')}</div>
-        )}
-        <div className="dashboard-cover-actions">
-          <span className="dashboard-cover-tag">{t('dashboard.bannerLabel')}</span>
-          <button className="dashboard-cover-btn" onClick={() => void changeBanner()}>
-            {banner ? t('dashboard.changeBanner') : t('dashboard.addBanner')}
-          </button>
-          {banner && (
-            <button className="dashboard-cover-btn" onClick={() => void removeBanner()}>
-              {t('dashboard.removeBanner')}
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="dashboard-bookcover">
-        <div className="dashboard-bookcover-preview">
-          {cover ? (
+      <div className="dashboard-book-hero">
+        <div className="dashboard-cover">
+          {banner ? (
             <img
-              className="dashboard-bookcover-img"
-              src={`novalist-project://nl/${encodeURI(cover)}`}
+              className="dashboard-cover-img"
+              src={`novalist-project://nl/${encodeURI(banner)}`}
               alt={projectName}
             />
           ) : (
-            <div className="dashboard-bookcover-empty">{t('dashboard.noCover')}</div>
+            <div className="dashboard-cover-empty">{t('dashboard.noBanner')}</div>
           )}
-        </div>
-        <div className="dashboard-bookcover-body">
-          <div className="dashboard-bookcover-label">{t('dashboard.bookCoverLabel')}</div>
-          <div className="dashboard-bookcover-hint">{t('dashboard.bookCoverHint')}</div>
-          <div className="dashboard-cover-actions dashboard-bookcover-actions">
-            <button className="dashboard-cover-btn" onClick={() => void changeCover()}>
-              {cover ? t('dashboard.changeCover') : t('dashboard.addCover')}
+          <div className="dashboard-cover-actions">
+            <span className="dashboard-cover-tag">{t('dashboard.bannerLabel')}</span>
+            <button className="dashboard-cover-btn" onClick={() => void changeBanner()}>
+              {banner ? t('dashboard.changeBanner') : t('dashboard.addBanner')}
             </button>
-            {cover && (
-              <button className="dashboard-cover-btn" onClick={() => void removeCover()}>
-                {t('dashboard.removeCover')}
+            {banner && (
+              <button className="dashboard-cover-btn" onClick={() => void removeBanner()}>
+                {t('dashboard.removeBanner')}
               </button>
             )}
           </div>
         </div>
+
+        <div className="dashboard-bookcover">
+          <div className="dashboard-bookcover-preview">
+            {cover ? (
+              <img
+                className="dashboard-bookcover-img"
+                src={`novalist-project://nl/${encodeURI(cover)}`}
+                alt={projectName}
+              />
+            ) : (
+              <div className="dashboard-bookcover-empty">{t('dashboard.noCover')}</div>
+            )}
+          </div>
+          <div className="dashboard-bookcover-body">
+            <div className="dashboard-header">
+              <h1 className="dashboard-title">{projectName}</h1>
+              {data.author && <div className="dashboard-author">{data.author}</div>}
+              <div className="dashboard-subtitle">{t('dashboard.subtitle')}</div>
+            </div>
+
+            <div className="dashboard-bookcover-hint">{t('dashboard.bookCoverHint')}</div>
+            <div className="dashboard-cover-actions dashboard-bookcover-actions">
+              <button className="dashboard-cover-btn" onClick={() => void changeCover()}>
+                {cover ? t('dashboard.changeCover') : t('dashboard.addCover')}
+              </button>
+              {cover && (
+                <button className="dashboard-cover-btn" onClick={() => void removeCover()}>
+                  {t('dashboard.removeCover')}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="dashboard-header">
-        <h1 className="dashboard-title">{projectName}</h1>
-        {data.author && <div className="dashboard-author">{data.author}</div>}
-        <div className="dashboard-subtitle">{t('dashboard.subtitle')}</div>
-      </div>
+      {resume && (
+        <div className="dashboard-card dashboard-resume">
+          <div className="dashboard-resume-copy">
+            <div className="dashboard-card-title">{t('desktopRefresh.continueWriting')}</div>
+            <h2>{resume.sceneTitle}</h2>
+            <div className="dashboard-author">{resume.chapterTitle}</div>
+          </div>
+          <button
+            className="dialog-button primary"
+            onClick={() =>
+              void useProjectStore.getState().openScene(resume.chapterGuid, resume.sceneId)
+            }
+          >
+            {t('desktopRefresh.continueWriting')}
+          </button>
+        </div>
+      )}
+      {data.recentActivity.length > 0 && (
+        <div className="dashboard-card dashboard-recent">
+          <div className="dashboard-card-title">{t('dashboard.recentActivity')}</div>
+          {data.recentActivity.map((a, i) => (
+            <button
+              key={i}
+              type="button"
+              className="dashboard-activity-row dashboard-activity-link"
+              onClick={() => void useProjectStore.getState().openScene(a.chapterGuid, a.sceneId)}
+            >
+              <div className="dashboard-activity-main">
+                <div className="dashboard-activity-scene">{a.sceneTitle}</div>
+                <div className="dashboard-activity-chapter">{a.chapterTitle}</div>
+              </div>
+              <div className="dashboard-activity-time">{a.timestamp}</div>
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="dashboard-metrics">
         {metrics.map((m) => (
@@ -325,8 +390,7 @@ function BookDashboard(): React.JSX.Element {
                 <div className="dashboard-goal-row">
                   <span>{t(row.label)}</span>
                   <span>
-                    {row.horizon.current.toLocaleString()} /{' '}
-                    {row.horizon.goal.toLocaleString()}
+                    {row.horizon.current.toLocaleString()} / {row.horizon.goal.toLocaleString()}
                   </span>
                 </div>
                 <div className="dashboard-bar-track">
@@ -408,9 +472,7 @@ function BookDashboard(): React.JSX.Element {
                       data.history.writingDays.length === 0
                         ? [0, 1, 2, 3, 4, 5, 6]
                         : data.history.writingDays
-                    const next = on
-                      ? current.filter((d) => d !== day)
-                      : [...current, day].sort()
+                    const next = on ? current.filter((d) => d !== day) : [...current, day].sort()
                     void setPacing(data.history.adaptive, next)
                   }}
                 >
@@ -546,9 +608,7 @@ function BookDashboard(): React.JSX.Element {
           {stageBreakdown.map((row) => (
             <div key={row.key || 'unset'} className="dashboard-status-row">
               <span className="dashboard-status-dot" style={{ background: row.color }} />
-              <span className="dashboard-status-name">
-                {row.label || t('stages.untriaged')}
-              </span>
+              <span className="dashboard-status-name">{row.label || t('stages.untriaged')}</span>
               <div className="dashboard-bar-track dashboard-status-track">
                 <div
                   className="dashboard-bar-fill"
@@ -620,29 +680,14 @@ function BookDashboard(): React.JSX.Element {
         </div>
       )}
 
-      {data.recentActivity.length > 0 && (
-        <div className="dashboard-card">
-          <div className="dashboard-card-title">{t('dashboard.recentActivity')}</div>
-          {data.recentActivity.map((a, i) => (
-            <button
-              key={i}
-              type="button"
-              className="dashboard-activity-row dashboard-activity-link"
-              onClick={() => void useProjectStore.getState().openScene(a.chapterGuid, a.sceneId)}
-            >
-              <div className="dashboard-activity-main">
-                <div className="dashboard-activity-scene">{a.sceneTitle}</div>
-                <div className="dashboard-activity-chapter">{a.chapterTitle}</div>
-              </div>
-              <div className="dashboard-activity-time">{a.timestamp}</div>
-            </button>
-          ))}
-        </div>
-      )}
       {editingGoal && (
         <InputDialog
-          title={editingGoal === 'daily' ? t('settings.dailyWordGoal') : t('settings.projectWordGoal')}
-          placeholder={String(editingGoal === 'daily' ? data.dailyGoalTarget : data.projectGoalTarget)}
+          title={
+            editingGoal === 'daily' ? t('settings.dailyWordGoal') : t('settings.projectWordGoal')
+          }
+          placeholder={String(
+            editingGoal === 'daily' ? data.dailyGoalTarget : data.projectGoalTarget
+          )}
           onCancel={() => setEditingGoal(null)}
           onSubmit={(value) => {
             const parsed = Number(value)

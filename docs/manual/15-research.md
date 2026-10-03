@@ -10,10 +10,10 @@ Open it from the **World** mode (**Research**, first under **Reference** in the 
 
 ## Layout
 
-The view is a two-pane list-and-editor:
+On desktop, **Project research** and **Scratchpad** are permanent tabs. Note, link and import actions sit beside the view heading. Project research uses a two-pane list-and-editor:
 
-- **Left** — the action buttons, a search box, and the list of research items, each showing its title and type. Click an item to open it.
-- **Right** — the editor for the selected item.
+- **Left** — a search box, and the list of research items, each showing its title and type. Click an item to open it.
+- **Right** — the title and source editor, followed by **Status, rating, tags & linked entries**. Expand that section for all metadata, links, custom fields and history. Switching to Scratchpad keeps an unfinished scratchpad note and the selected research item.
 
 The **search box** filters the list by title, content, or tag (substring match).
 

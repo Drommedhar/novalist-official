@@ -4,13 +4,13 @@ Settings is where you configure Novalist's appearance, the editor, writing goals
 
 ## Opening Settings
 
-Click **Settings** at the bottom of the left sidebar on desktop. You can also use **Go → Settings** in the menu bar, or the command palette (`Ctrl+Shift+P`, `Cmd` on macOS). Settings opens in the main area like any other view.
+Click **Settings** at the right of the top navigation row on desktop. You can also use **Go → Settings** in the menu bar, or the command palette (`Ctrl+Shift+P`, `Cmd` on macOS). Settings opens in the main area like any other view.
 
-The sidebar button stays at the bottom even when the workspace list needs to scroll, and is available before you open a project. Controls elsewhere in the app can also take you directly to the settings section they belong to.
+Settings is also available before you open a project. Controls elsewhere in the app can also take you directly to the settings section they belong to.
 
 ## Finding a setting
 
-Settings shows **one section at a time**. The rail down the left side groups every section under four headings, and the header carries a search box.
+Settings shows **one section at a time**. The rail down the left side groups every section under four headings, and the header carries a search box. On desktop, the category list and section content scroll independently, keeping the heading and search visible. Selecting another section starts at its top. In a narrow split pane, the category list becomes a short scrollable area above the section.
 
 | Category | What lives there |
 | --- | --- |
@@ -229,7 +229,9 @@ The default bindings are listed in [Hotkeys](26-hotkeys.md).
 - **Check for extension updates** — when on, Novalist checks installed extensions for newer versions.
 - **GitHub token** — a personal access token (masked) used for GitHub operations such as extension updates and authenticated Git remotes.
 
-When you choose **Download & Install**, the update window stays open while the file downloads. Novalist finishes pending editor, manuscript, map, planning-board, book-matter, and extension-settings saves, creates the normal close backup, starts the operating system's installer, and then closes itself. Resolve any save conflict first. Detached panes must also be closed before updating; after the last one closes, the main window reconnects automatically. If the installer cannot be started, Novalist remains open and shows the reason so you can retry.
+Startup update availability appears in a dismissible banner. Choose **Review update** to read release notes; **Help → Check for Updates** opens the same review. Failed checks show an error and **Check again**, without claiming the application is current.
+
+Choose **Download update** to download in the background. **Continue writing** or Escape closes the review while the download continues. Once ready, choose **Install and restart** separately. Novalist finishes pending editor, manuscript, map, planning-board, book-matter and extension-settings saves, creates the normal close backup, starts the operating system's installer, then closes itself. Resolve save conflicts and close detached panes before installing. If a save or installer handoff fails, Novalist stays open and explains why. Platforms requiring manual installation open the downloaded file's folder instead.
 
 ## Narration
 

@@ -1,15 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Children,
+  Fragment,
+  isValidElement,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import { ArrowLeft, ChevronLeft, ExternalLink, FolderOpen, Search, X } from 'lucide-react'
 import { availableLanguages } from '../../i18n'
 import { rpc } from '../../rpc/client'
 import { useSettingsStore, type SettingsSection } from '../../stores/settingsStore'
-import {
-  DEFAULT_UI_SCALE,
-  UI_SCALE_STEPS,
-  useUiScaleStore
-} from '../../stores/uiScaleStore'
+import { DEFAULT_UI_SCALE, UI_SCALE_STEPS, useUiScaleStore } from '../../stores/uiScaleStore'
 import { useOnboardingStore } from '../../stores/onboardingStore'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
@@ -77,8 +82,21 @@ import './settings.css'
  * worse than not offering it.
  */
 const QUOTE_LANGUAGES = [
-  'en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk', 'nl',
-  'zh-CN', 'ja', 'ko'
+  'en',
+  'de-low',
+  'de-guillemet',
+  'fr',
+  'es',
+  'it',
+  'pt',
+  'ru',
+  'pl',
+  'cs',
+  'sk',
+  'nl',
+  'zh-CN',
+  'ja',
+  'ko'
 ]
 
 /**
@@ -350,12 +368,7 @@ function SettingsPhoneRow({ section }: { section: ResolvedSection }): React.JSX.
   const { t } = useTranslation()
   const nav = useMobileNav()
   const title = t(section.titleKey)
-  return (
-    <MobileRow
-      label={title}
-      onClick={() => nav.push({ id: section.key, title })}
-    />
-  )
+  return <MobileRow label={title} onClick={() => nav.push({ id: section.key, title })} />
 }
 
 function controlTarget(
@@ -379,14 +392,13 @@ function controlTarget(
   return labelled.querySelector<HTMLElement>('input, select, textarea, button') ?? labelled
 }
 
-function scopeLabelKey(
-  scope: SettingsScopeKind,
-  projectOverride: boolean
-): string {
+function scopeLabelKey(scope: SettingsScopeKind, projectOverride: boolean): string {
   if (scope === 'project') return 'settings.scopeProjectBadge'
   if (scope === 'mixed') return 'settings.scopeMixedBadge'
   if (scope === 'overridable') {
-    return projectOverride ? 'settings.scopeOverrideProjectBadge' : 'settings.scopeOverrideGlobalBadge'
+    return projectOverride
+      ? 'settings.scopeOverrideProjectBadge'
+      : 'settings.scopeOverrideGlobalBadge'
   }
   return 'settings.scopeGlobalBadge'
 }
@@ -434,6 +446,53 @@ function useSpeechVoices(): SpeechSynthesisVoice[] {
   return voices
 }
 
+/** Pair existing labels and controls without replacing their state or handlers. */
+function SettingsFields({ children }: { children: ReactNode }): React.JSX.Element {
+  const flatten = (nodes: ReactNode): ReactNode[] => {
+    const result: ReactNode[] = []
+    // Assign keys only after flattening. Independent toArray calls on nested
+    // fragments reuse keys and can leave controls from the previous section.
+    Children.forEach(nodes, (node) => {
+      if (isValidElement<{ children?: ReactNode }>(node) && node.type === Fragment) {
+        result.push(...flatten(node.props.children))
+      } else if (node != null) result.push(node)
+    })
+    return result
+  }
+  const nodes = flatten(children)
+  const rows: ReactNode[] = []
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i]
+    const control = nodes[i + 1]
+    if (
+      isValidElement<{ htmlFor?: string }>(node) &&
+      node.type === 'label' &&
+      node.props.htmlFor &&
+      isValidElement(control) &&
+      control.type !== 'label'
+    ) {
+      const fields: ReactNode[] = [control]
+      i++
+      const hint = nodes[i + 1]
+      if (
+        isValidElement<{ className?: string }>(hint) &&
+        hint.type === 'p' &&
+        hint.props.className === 'settings-hint'
+      ) {
+        fields.push(hint)
+        i++
+      }
+      rows.push(
+        <div className="settings-field-row" key={node.props.htmlFor}>
+          {node}
+          <div>{Children.toArray(fields)}</div>
+        </div>
+      )
+    } else rows.push(node)
+  }
+  return <>{Children.toArray(rows)}</>
+}
+
 export function SettingsView(): React.JSX.Element {
   const { t } = useTranslation()
   const view = useSettingsStore((s) => s.view)
@@ -471,6 +530,7 @@ export function SettingsView(): React.JSX.Element {
   const [displayInfo, setDisplayInfo] = useState<DisplayDiagnostics | null>(null)
   const [displayInfoBusy, setDisplayInfoBusy] = useState(false)
   const sectionSurfaceRef = useRef<HTMLDivElement>(null)
+  const sectionsRef = useRef<HTMLDivElement>(null)
   const voices = useSpeechVoices()
   const systemVoices = useSystemVoices(view !== null)
   // Above the "still loading" return below, with the rest of the hooks. It was
@@ -557,6 +617,10 @@ export function SettingsView(): React.JSX.Element {
     setSelectedSection(fallback)
     setSettingsDestination({ section: fallback, origin: destination.origin })
   }, [availableMetadata, destination.origin, projectLoaded, selectedSection, view])
+
+  useEffect(() => {
+    sectionsRef.current?.scrollTo({ top: 0 })
+  }, [selectedSection, search])
 
   // Focus the exact control after its one section has mounted. For older
   // self-contained cards without stable ids, controlTarget falls back to the
@@ -737,9 +801,7 @@ export function SettingsView(): React.JSX.Element {
               className="dialog-input settings-color"
               type="color"
               value={eff.accentColor ?? '#0e8bdf'}
-              onChange={(e) =>
-                void update(scopeFor('appearance'), { accentColor: e.target.value })
-              }
+              onChange={(e) => void update(scopeFor('appearance'), { accentColor: e.target.value })}
             />
             <button
               className="dialog-button"
@@ -965,82 +1027,82 @@ export function SettingsView(): React.JSX.Element {
               phone's narrow column, so hide it on mobile. */}
           {!isMobile && (
             <>
-          <label className="relationships-toggle">
-            <input
-              id="set-book-width"
-              type="checkbox"
-              checked={eff.enableBookWidth}
-              onChange={(e) =>
-                void update(scopeFor('editor'), { enableBookWidth: e.target.checked })
-              }
-            />
-            {t('settings.bookWidth')}
-          </label>
-          {eff.enableBookWidth && (
-            <div className="settings-subgroup">
-              <label className="inspector-label" htmlFor="set-pageformat">
-                {t('settings.bookWidthPageFormat')}
+              <label className="relationships-toggle">
+                <input
+                  id="set-book-width"
+                  type="checkbox"
+                  checked={eff.enableBookWidth}
+                  onChange={(e) =>
+                    void update(scopeFor('editor'), { enableBookWidth: e.target.checked })
+                  }
+                />
+                {t('settings.bookWidth')}
               </label>
-              <select
-                id="set-pageformat"
-                className="dialog-input"
-                value={eff.bookPageFormat}
-                onChange={(e) =>
-                  void update(scopeFor('editor'), { bookPageFormat: e.target.value })
-                }
-              >
-                {PAGE_FORMATS.map((f) => (
-                  <option key={f.code} value={f.code}>
-                    {f.name}
-                  </option>
-                ))}
-              </select>
-              {eff.bookPageFormat === 'Custom' && (
-                <>
-                  <label className="inspector-label" htmlFor="set-customwidth">
-                    {t('settings.bookWidthCustom')}
+              {eff.enableBookWidth && (
+                <div className="settings-subgroup">
+                  <label className="inspector-label" htmlFor="set-pageformat">
+                    {t('settings.bookWidthPageFormat')}
+                  </label>
+                  <select
+                    id="set-pageformat"
+                    className="dialog-input"
+                    value={eff.bookPageFormat}
+                    onChange={(e) =>
+                      void update(scopeFor('editor'), { bookPageFormat: e.target.value })
+                    }
+                  >
+                    {PAGE_FORMATS.map((f) => (
+                      <option key={f.code} value={f.code}>
+                        {f.name}
+                      </option>
+                    ))}
+                  </select>
+                  {eff.bookPageFormat === 'Custom' && (
+                    <>
+                      <label className="inspector-label" htmlFor="set-customwidth">
+                        {t('settings.bookWidthCustom')}
+                      </label>
+                      <SettingNumber
+                        id="set-customwidth"
+                        min={1}
+                        max={12}
+                        step={0.05}
+                        value={eff.bookTextBlockWidth ?? 4.75}
+                        onCommit={(v) => void update(scopeFor('editor'), { bookTextBlockWidth: v })}
+                      />
+                    </>
+                  )}
+                  <label className="inspector-label" htmlFor="set-bookfont">
+                    {t('settings.bookWidthFont')}
+                  </label>
+                  <SettingInput
+                    id="set-bookfont"
+                    list="settings-fonts"
+                    value={eff.bookFontFamily}
+                    onCommit={(v) => void update(scopeFor('editor'), { bookFontFamily: v })}
+                  />
+                  <label className="inspector-label" htmlFor="set-bookfontsize">
+                    {t('settings.bookWidthFontSize')}
                   </label>
                   <SettingNumber
-                    id="set-customwidth"
-                    min={1}
-                    max={12}
-                    step={0.05}
-                    value={eff.bookTextBlockWidth ?? 4.75}
-                    onCommit={(v) => void update(scopeFor('editor'), { bookTextBlockWidth: v })}
+                    id="set-bookfontsize"
+                    min={6}
+                    max={24}
+                    value={eff.bookFontSize}
+                    onCommit={(v) => void update(scopeFor('editor'), { bookFontSize: v })}
                   />
-                </>
+                  <div className="settings-preview">
+                    {t('settings.bookWidthCharsPerLine', {
+                      count: estimateCharsPerLine(
+                        eff.bookPageFormat,
+                        eff.bookTextBlockWidth,
+                        eff.bookFontFamily,
+                        eff.bookFontSize
+                      )
+                    })}
+                  </div>
+                </div>
               )}
-              <label className="inspector-label" htmlFor="set-bookfont">
-                {t('settings.bookWidthFont')}
-              </label>
-              <SettingInput
-                id="set-bookfont"
-                list="settings-fonts"
-                value={eff.bookFontFamily}
-                onCommit={(v) => void update(scopeFor('editor'), { bookFontFamily: v })}
-              />
-              <label className="inspector-label" htmlFor="set-bookfontsize">
-                {t('settings.bookWidthFontSize')}
-              </label>
-              <SettingNumber
-                id="set-bookfontsize"
-                min={6}
-                max={24}
-                value={eff.bookFontSize}
-                onCommit={(v) => void update(scopeFor('editor'), { bookFontSize: v })}
-              />
-              <div className="settings-preview">
-                {t('settings.bookWidthCharsPerLine', {
-                  count: estimateCharsPerLine(
-                    eff.bookPageFormat,
-                    eff.bookTextBlockWidth,
-                    eff.bookFontFamily,
-                    eff.bookFontSize
-                  )
-                })}
-              </div>
-            </div>
-          )}
             </>
           )}
         </>
@@ -1299,7 +1361,11 @@ export function SettingsView(): React.JSX.Element {
           <div className="settings-hint">{t('settings.spellCheckHint')}</div>
           <SpellCheckCard
             enabled={eff.spellCheckEnabled}
-            languages={(view.overrides?.spellCheckLanguages ?? view.global.spellCheckLanguages ?? []) as string[]}
+            languages={
+              (view.overrides?.spellCheckLanguages ??
+                view.global.spellCheckLanguages ??
+                []) as string[]
+            }
             onLanguagesChange={(languages) =>
               void update(scopeFor('writing'), { spellCheckLanguages: languages })
             }
@@ -1335,88 +1401,98 @@ export function SettingsView(): React.JSX.Element {
                 <option value="harper">{t('settings.grammarCheckHarper')}</option>
               </select>
               <div className="settings-hint">
-                {t(eff.grammarCheckProvider === 'harper'
-                  ? 'settings.grammarCheckHarperDesc' : 'settings.grammarCheckDesc')}
+                {t(
+                  eff.grammarCheckProvider === 'harper'
+                    ? 'settings.grammarCheckHarperDesc'
+                    : 'settings.grammarCheckDesc'
+                )}
               </div>
-              {eff.grammarCheckProvider === 'harper' && !/^en(?:-|$)/i.test(eff.grammarCheckLanguage) && (
-                <div className="settings-hint">{t('settings.grammarCheckHarperEnglishOnly')}</div>
-              )}
-              {eff.grammarCheckProvider !== 'harper' && <>
-                <label className="inspector-label" htmlFor="set-gc-url">
-                  {t('settings.grammarCheckApiUrl')}
-                </label>
-                <SettingInput
-                  id="set-gc-url"
-                  value={eff.grammarCheckApiUrl ?? ''}
-                  placeholder="https://api.languagetool.org/v2/check"
-                  onCommit={(v) =>
-                    void update(scopeFor('writing'), { grammarCheckApiUrl: v.trim() || null })
-                  }
-                />
-                <label className="inspector-label" htmlFor="set-gc-user">
-                  {t('settings.grammarCheckUsername')}
-                </label>
-                <SettingInput
-                  id="set-gc-user"
-                  value={eff.grammarCheckUsername ?? ''}
-                  placeholder={t('settings.grammarCheckUsernamePlaceholder')}
-                  onCommit={(v) =>
-                    void update(scopeFor('writing'), { grammarCheckUsername: v.trim() || null })
-                  }
-                />
-                <label className="inspector-label" htmlFor="set-gc-key">
-                  {t('settings.grammarCheckApiKey')}
-                </label>
-                <SettingInput
-                  id="set-gc-key"
-                  type="password"
-                  value={eff.grammarCheckApiKey ?? ''}
-                  onCommit={(v) =>
-                    void update(scopeFor('writing'), { grammarCheckApiKey: v.trim() || null })
-                  }
-                />
-                <button
-                  className="dialog-button settings-link"
-                  onClick={() =>
-                    void window.novalist.openExternal(
-                      'https://languagetool.org/editor/settings/access-tokens'
-                    )
-                  }
-                >
-                  <ExternalLink size={13} strokeWidth={2} /> {t('settings.grammarCheckGetApiKey')}
-                </button>
-                <label className="relationships-toggle">
-                  <input
-                    id="set-gc-picky"
-                    type="checkbox"
-                    checked={eff.grammarCheckPickyMode}
-                    onChange={(e) =>
-                      void update(scopeFor('writing'), { grammarCheckPickyMode: e.target.checked })
+              {eff.grammarCheckProvider === 'harper' &&
+                !/^en(?:-|$)/i.test(eff.grammarCheckLanguage) && (
+                  <div className="settings-hint">{t('settings.grammarCheckHarperEnglishOnly')}</div>
+                )}
+              {eff.grammarCheckProvider !== 'harper' && (
+                <>
+                  <label className="inspector-label" htmlFor="set-gc-url">
+                    {t('settings.grammarCheckApiUrl')}
+                  </label>
+                  <SettingInput
+                    id="set-gc-url"
+                    value={eff.grammarCheckApiUrl ?? ''}
+                    placeholder="https://api.languagetool.org/v2/check"
+                    onCommit={(v) =>
+                      void update(scopeFor('writing'), { grammarCheckApiUrl: v.trim() || null })
                     }
                   />
-                  {t('settings.grammarCheckPickyMode')}
-                </label>
-                <label className="inspector-label" htmlFor="set-gc-mother">
-                  {t('settings.grammarCheckMotherTongue')}
-                </label>
-                <select
-                  id="set-gc-mother"
-                  className="dialog-input"
-                  value={eff.grammarCheckMotherTongue ?? ''}
-                  onChange={(e) =>
-                    void update(scopeFor('writing'), {
-                      grammarCheckMotherTongue: e.target.value || null
-                    })
-                  }
-                >
-                  <option value="">{t('settings.grammarCheckMotherTongueNone')}</option>
-                  {['en', 'de', 'fr', 'es', 'it', 'pt', 'nl', 'pl', 'ru', 'zh', 'ja'].map((code) => (
-                    <option key={code} value={code}>
-                      {code}
-                    </option>
-                  ))}
-                </select>
-              </>}
+                  <label className="inspector-label" htmlFor="set-gc-user">
+                    {t('settings.grammarCheckUsername')}
+                  </label>
+                  <SettingInput
+                    id="set-gc-user"
+                    value={eff.grammarCheckUsername ?? ''}
+                    placeholder={t('settings.grammarCheckUsernamePlaceholder')}
+                    onCommit={(v) =>
+                      void update(scopeFor('writing'), { grammarCheckUsername: v.trim() || null })
+                    }
+                  />
+                  <label className="inspector-label" htmlFor="set-gc-key">
+                    {t('settings.grammarCheckApiKey')}
+                  </label>
+                  <SettingInput
+                    id="set-gc-key"
+                    type="password"
+                    value={eff.grammarCheckApiKey ?? ''}
+                    onCommit={(v) =>
+                      void update(scopeFor('writing'), { grammarCheckApiKey: v.trim() || null })
+                    }
+                  />
+                  <button
+                    className="dialog-button settings-link"
+                    onClick={() =>
+                      void window.novalist.openExternal(
+                        'https://languagetool.org/editor/settings/access-tokens'
+                      )
+                    }
+                  >
+                    <ExternalLink size={13} strokeWidth={2} /> {t('settings.grammarCheckGetApiKey')}
+                  </button>
+                  <label className="relationships-toggle">
+                    <input
+                      id="set-gc-picky"
+                      type="checkbox"
+                      checked={eff.grammarCheckPickyMode}
+                      onChange={(e) =>
+                        void update(scopeFor('writing'), {
+                          grammarCheckPickyMode: e.target.checked
+                        })
+                      }
+                    />
+                    {t('settings.grammarCheckPickyMode')}
+                  </label>
+                  <label className="inspector-label" htmlFor="set-gc-mother">
+                    {t('settings.grammarCheckMotherTongue')}
+                  </label>
+                  <select
+                    id="set-gc-mother"
+                    className="dialog-input"
+                    value={eff.grammarCheckMotherTongue ?? ''}
+                    onChange={(e) =>
+                      void update(scopeFor('writing'), {
+                        grammarCheckMotherTongue: e.target.value || null
+                      })
+                    }
+                  >
+                    <option value="">{t('settings.grammarCheckMotherTongueNone')}</option>
+                    {['en', 'de', 'fr', 'es', 'it', 'pt', 'nl', 'pl', 'ru', 'zh', 'ja'].map(
+                      (code) => (
+                        <option key={code} value={code}>
+                          {code}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </>
+              )}
             </div>
           )}
         </>
@@ -1549,15 +1625,21 @@ export function SettingsView(): React.JSX.Element {
                   </div>
                   <div>
                     <dt>{t('settings.windowSize')}</dt>
-                    <dd>{displayInfo.windowBounds.width} × {displayInfo.windowBounds.height}</dd>
+                    <dd>
+                      {displayInfo.windowBounds.width} × {displayInfo.windowBounds.height}
+                    </dd>
                   </div>
                   <div>
                     <dt>{t('settings.contentSize')}</dt>
-                    <dd>{displayInfo.contentBounds.width} × {displayInfo.contentBounds.height}</dd>
+                    <dd>
+                      {displayInfo.contentBounds.width} × {displayInfo.contentBounds.height}
+                    </dd>
                   </div>
                   <div>
                     <dt>{t('settings.workAreaSize')}</dt>
-                    <dd>{displayInfo.workArea.width} × {displayInfo.workArea.height}</dd>
+                    <dd>
+                      {displayInfo.workArea.width} × {displayInfo.workArea.height}
+                    </dd>
                   </div>
                 </dl>
               )}
@@ -1636,7 +1718,9 @@ export function SettingsView(): React.JSX.Element {
   const bodiesByKey = new Map(sectionBodies.map((section) => [section.key, section]))
   const visibleSections: ResolvedSection[] = availableMetadata.flatMap((metadata) => {
     const body = bodiesByKey.get(metadata.key)
-    return body ? [{ ...metadata, ...body, standalone: metadata.standalone ?? body.standalone }] : []
+    return body
+      ? [{ ...metadata, ...body, standalone: metadata.standalone ?? body.standalone }]
+      : []
   })
   const activeSection =
     visibleSections.find((section) => section.key === selectedSection) ?? visibleSections[0]
@@ -1814,7 +1898,7 @@ export function SettingsView(): React.JSX.Element {
           })}
         </nav>
 
-        <div className="settings-sections">
+        <div className="settings-sections" ref={sectionsRef}>
           {query ? (
             <section className="settings-results" aria-live="polite">
               <h2 className="settings-results-title">
@@ -1848,6 +1932,7 @@ export function SettingsView(): React.JSX.Element {
             </section>
           ) : activeSection ? (
             <section
+              key={activeSection.key}
               ref={sectionSurfaceRef}
               className="settings-section-surface"
               data-settings-section={activeSection.key}
@@ -1867,7 +1952,9 @@ export function SettingsView(): React.JSX.Element {
               {activeSection.standalone ? (
                 <div className="settings-standalone">{activeSection.body}</div>
               ) : (
-                <div className="dashboard-card export-card">{activeSection.body}</div>
+                <div className="dashboard-card export-card">
+                  <SettingsFields>{activeSection.body}</SettingsFields>
+                </div>
               )}
             </section>
           ) : null}

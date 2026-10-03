@@ -133,7 +133,11 @@ function CollapsibleSection({
   const { t } = useTranslation()
   return (
     <div className="ctx-section">
-      <button className="ctx-section-head" onClick={() => onToggle(sectionKey)}>
+      <button
+        className="ctx-section-head"
+        aria-expanded={!collapsed}
+        onClick={() => onToggle(sectionKey)}
+      >
         {collapsed ? (
           <ChevronRight className="ctx-section-chevron" size={12} strokeWidth={2} />
         ) : (
@@ -286,15 +290,24 @@ export function ContextPanel({
     onLeave: () => entityPeek.scheduleHide()
   }
 
-  const analyze = useCallback((preparing = false): void => {
-    const request = ++analysisRequest.current
-    if (preparing) onReadyChange?.(false)
-    void rpc
-      .request<SceneContext>('context/analyze', [chapterGuid, sceneId])
-      .then((next) => { if (request === analysisRequest.current) setCtx(next) })
-      .catch(() => { if (request === analysisRequest.current) setCtx(null) })
-      .finally(() => { if (request === analysisRequest.current) onReadyChange?.(true) })
-  }, [chapterGuid, sceneId, onReadyChange])
+  const analyze = useCallback(
+    (preparing = false): void => {
+      const request = ++analysisRequest.current
+      if (preparing) onReadyChange?.(false)
+      void rpc
+        .request<SceneContext>('context/analyze', [chapterGuid, sceneId])
+        .then((next) => {
+          if (request === analysisRequest.current) setCtx(next)
+        })
+        .catch(() => {
+          if (request === analysisRequest.current) setCtx(null)
+        })
+        .finally(() => {
+          if (request === analysisRequest.current) onReadyChange?.(true)
+        })
+    },
+    [chapterGuid, sceneId, onReadyChange]
+  )
 
   /** Asks the installed AI extension which people/places/things in this scene are
    *  missing from the Codex. Proposals only — creation happens on accept. */
@@ -330,7 +343,9 @@ export function ContextPanel({
     setCtx(null)
     setScanMessage(null)
     analyze(true)
-    return () => { ++analysisRequest.current }
+    return () => {
+      ++analysisRequest.current
+    }
   }, [analyze])
 
   // A retained panel follows saved prose while tucked away. It does no work on
@@ -379,11 +394,15 @@ export function ContextPanel({
     conflict?: string
     tags?: string[]
   }): void => {
-    void rpc.request('scenes/setAnalysisOverride', [chapterGuid, sceneId, patch]).then(() => analyze())
+    void rpc
+      .request('scenes/setAnalysisOverride', [chapterGuid, sceneId, patch])
+      .then(() => analyze())
   }
 
   const resetOverride = (field: string): void => {
-    void rpc.request('scenes/resetAnalysisOverride', [chapterGuid, sceneId, field]).then(() => analyze())
+    void rpc
+      .request('scenes/resetAnalysisOverride', [chapterGuid, sceneId, field])
+      .then(() => analyze())
   }
 
   if (!ctx) return null
@@ -410,6 +429,39 @@ export function ContextPanel({
 
   return (
     <div className="ctx-panel">
+      <div className="ctx-section-tools">
+        <button
+          className="dialog-button"
+          onClick={() => {
+            const keys = [
+              'characters',
+              'research',
+              'mentions',
+              'locations',
+              'items',
+              'lore',
+              'analysis'
+            ]
+            const next = Object.fromEntries(
+              keys.map((key) => [key, !keys.every((k) => collapsed[k])])
+            )
+            setCollapsed(next)
+            try {
+              localStorage.setItem(SECTION_STORAGE_KEY, JSON.stringify(next))
+            } catch {
+              /* session preference still applies */
+            }
+          }}
+        >
+          {t(
+            ['characters', 'research', 'mentions', 'locations', 'items', 'lore', 'analysis'].every(
+              (key) => collapsed[key]
+            )
+              ? 'desktopRefresh.expandContext'
+              : 'desktopRefresh.collapseContext'
+          )}
+        </button>
+      </div>
       {extractorAvailable && (
         <div className="ctx-extract">
           <button className="ctx-extract-btn" disabled={scanning} onClick={() => void scanScene()}>
@@ -532,23 +584,22 @@ export function ContextPanel({
             saying nothing. */}
         {a.voiceDrift && (a.voiceDrift.personDrifts || a.voiceDrift.tenseDrifts) && (
           <div className="ctx-analysis-note ctx-voice-drift">
-            {t(
-              a.voiceDrift.confidence >= 40 ? 'context.voiceDrifts' : 'context.voiceMaybeDrifts',
-              {
-                declared: [
-                  a.voiceDrift.personDrifts ? t(`premise.person_${a.voiceDrift.declaredPerson.replace('-', '_')}`) : '',
-                  a.voiceDrift.tenseDrifts ? t(`premise.tense_${a.voiceDrift.declaredTense}`) : ''
-                ]
-                  .filter(Boolean)
-                  .join(', '),
-                reads: [
-                  a.voiceDrift.personDrifts ? t(`context.reads_${a.voiceDrift.personReading}`) : '',
-                  a.voiceDrift.tenseDrifts ? t(`context.reads_${a.voiceDrift.tenseReading}`) : ''
-                ]
-                  .filter(Boolean)
-                  .join(', ')
-              }
-            )}
+            {t(a.voiceDrift.confidence >= 40 ? 'context.voiceDrifts' : 'context.voiceMaybeDrifts', {
+              declared: [
+                a.voiceDrift.personDrifts
+                  ? t(`premise.person_${a.voiceDrift.declaredPerson.replace('-', '_')}`)
+                  : '',
+                a.voiceDrift.tenseDrifts ? t(`premise.tense_${a.voiceDrift.declaredTense}`) : ''
+              ]
+                .filter(Boolean)
+                .join(', '),
+              reads: [
+                a.voiceDrift.personDrifts ? t(`context.reads_${a.voiceDrift.personReading}`) : '',
+                a.voiceDrift.tenseDrifts ? t(`context.reads_${a.voiceDrift.tenseReading}`) : ''
+              ]
+                .filter(Boolean)
+                .join(', ')
+            })}
           </div>
         )}
         <div className="ctx-analysis-row">

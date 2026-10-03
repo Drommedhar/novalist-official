@@ -41,10 +41,10 @@ test('a plot thread carries importance and resolution steps, from the grid', asy
   await page.evaluate(() => window.novalistRpc.request('plot/createPlotline', ['The debt']))
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('plotGrid'))
-  const row = page.locator('.plotgrid-rowlabel', { hasText: 'The debt' })
+  const row = page.locator('.plotgrid-table thead th', { hasText: 'The debt' })
   await expect(row).toBeVisible({ timeout: 15_000 })
 
-  // The detail lives behind the row's own context menu.
+  // The detail remains available from the plotline header's context menu.
   await row.click({ button: 'right' })
   await page.locator('.context-menu-item', { hasText: /Thread detail|Strang-Details/ }).click()
 

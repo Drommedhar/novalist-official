@@ -1,0 +1,331 @@
+/* Desktop presentation shared by real feature views, including detached panes.
+   Keep canvases and tables fluid; only prose and forms have a reading measure. */
+:root[data-shell='desktop'] .toolbar {
+  flex-shrink: 0;
+}
+:root[data-shell='desktop'] .mode-rail {
+  width: 100%;
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: var(--nl-mode-header-height);
+  border-right: none;
+  border-bottom: var(--nl-rule-width) solid var(--nl-border);
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+  gap: var(--nl-space-sm);
+  overflow-x: auto;
+}
+:root[data-shell='desktop'] .mode-rail-workspaces {
+  flex-direction: row;
+  flex: 1 0 auto;
+  overflow: visible;
+  align-items: stretch;
+}
+:root[data-shell='desktop'] .mode-rail-item {
+  position: relative;
+  flex-direction: row;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-radius: var(--nl-radius-sm);
+}
+:root[data-shell='desktop'] .mode-rail-item span {
+  font-size: var(--nl-font-ui);
+  white-space: nowrap;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+:root[data-shell='desktop'] .mode-rail-item::after {
+  position: absolute;
+  bottom: 0;
+  left: var(--nl-space-md);
+  right: var(--nl-space-md);
+  width: auto;
+}
+:root[data-shell='desktop'] .mode-rail-settings {
+  margin-top: 0;
+}
+:root[data-shell='desktop'] .mode-rail-sep {
+  width: var(--nl-rule-width);
+  height: auto;
+  margin: var(--nl-space-sm) var(--nl-space-tightest);
+}
+:root[data-shell='desktop'] .mode-panel.overlay,
+:root[data-shell='desktop'] .shell-capacity-compact .binder {
+  left: 0;
+}
+.workspace-navigation {
+  display: contents;
+}
+.workspace-sidebar {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--nl-surface-sidebar);
+}
+.workspace-sidebar .mode-panel {
+  width: 100%;
+  flex: 0 1 auto;
+  max-height: min(40%, var(--nl-local-nav-max-height));
+  border-bottom: var(--nl-rule-width) solid var(--nl-border);
+}
+.workspace-sidebar .mode-panel-head {
+  display: none;
+}
+.workspace-sidebar .mode-panel-list {
+  padding-bottom: var(--nl-space-sm);
+}
+.workspace-sidebar .binder {
+  width: 100% !important;
+  flex: 1;
+  min-height: 0;
+}
+:root[data-shell='desktop'] .inspector-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+:root[data-shell='desktop'] .inspector-tab {
+  flex: 1;
+  padding: var(--nl-space-sm);
+}
+.inspector .notes-dock-body {
+  flex-direction: column;
+  overflow: visible;
+  padding: 0;
+}
+.inspector .notes-dock-col {
+  flex: none;
+  min-width: 0;
+}
+.inspector .notes-dock-textarea {
+  min-height: var(--nl-inline-editor-width);
+  resize: vertical;
+}
+.inspector .notes-dock-short {
+  min-height: var(--nl-calendar-hour-height);
+}
+:root[data-shell='desktop']
+  :is(.dialog-input, .inspector-input, .notes-dock-textarea, .settings-search-box) {
+  border-color: var(--nl-border-control);
+}
+:root[data-shell='desktop'] :is(.dialog-input, .inspector-input, .notes-dock-textarea):focus {
+  border-color: var(--nl-accent);
+}
+:root[data-shell='desktop'] :is(.dashboard-card, .codex-field-section, .start-card) {
+  box-shadow: none;
+}
+:root[data-shell='desktop'] .dialog-button.danger {
+  background: transparent;
+  color: var(--nl-danger);
+  border-color: var(--nl-border-control);
+}
+:root[data-shell='desktop'] .dialog-button.danger:hover {
+  background: var(--nl-surface-hover);
+}
+:root[data-shell='desktop'] :is(.binder-scene-row, .binder-chapter-row, .codex-row-name) {
+  font-size: var(--nl-font-ui);
+}
+:root[data-shell='desktop'] .codex-detail > * {
+  max-width: var(--nl-form-width);
+  margin-inline: auto;
+}
+:root[data-shell='desktop'] .codex-field-section {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--nl-form-column-width)), 1fr));
+  max-width: var(--nl-dialog-width-wide);
+}
+:root[data-shell='desktop'] .codex-field dt {
+  font-size: var(--nl-font-ui);
+  letter-spacing: normal;
+  text-transform: none;
+}
+:root[data-shell='desktop'] .codex-detail-actions {
+  gap: var(--nl-space-sm);
+  flex-wrap: wrap;
+}
+:root[data-shell='desktop'] .dashboard {
+  width: 100%;
+  max-width: var(--nl-view-width);
+  margin-inline: auto;
+}
+:root[data-shell='desktop'] .dashboard-title {
+  font-size: var(--nl-font-title);
+}
+:root[data-shell='desktop'] .dashboard-header .dashboard-title {
+  font-family: var(--nl-font-book-face);
+}
+.dashboard-resume {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-lg);
+  align-items: center;
+}
+.dashboard-resume-copy {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.dashboard-resume-copy h2 {
+  font-size: var(--nl-font-title-sm);
+  margin: var(--nl-space-tightest) 0;
+}
+.dashboard-book-details {
+  border: var(--nl-rule-width) solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+}
+.dashboard-book-details > summary {
+  cursor: pointer;
+  padding: var(--nl-space-md) var(--nl-space-lg);
+  color: var(--nl-text-dim);
+}
+.dashboard-book-details[open] > summary {
+  border-bottom: var(--nl-rule-width) solid var(--nl-border);
+}
+.dashboard-book-details > :not(summary) {
+  margin: var(--nl-space-md);
+}
+:root[data-shell='desktop'] .dashboard.export-view {
+  max-width: var(--nl-form-width);
+}
+:root[data-shell='desktop'] .dashboard.export-view :is(.dashboard-title, .export-card) {
+  max-width: 100%;
+}
+.export-action-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-md);
+  background: var(--nl-surface-card);
+  border-top: var(--nl-rule-width) solid var(--nl-border);
+}
+.export-action-bar .export-run {
+  margin-top: 0;
+  width: auto;
+}
+:root[data-shell='desktop'] .settings-view {
+  max-width: var(--nl-view-width);
+}
+:root[data-shell='desktop'] .timeline-toolbar {
+  justify-content: flex-start;
+  gap: var(--nl-space-sm);
+}
+:root[data-shell='desktop'] .timeline-toolbar > .toolbar-spacer {
+  flex: 0;
+}
+:root[data-shell='desktop'] :is(.wiki-prose, .research-content, .expose-editor) {
+  font-family: var(--nl-font-prose-face);
+}
+.update-banner {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-sm) var(--nl-space-lg);
+  background: var(--nl-surface-selected);
+  color: var(--nl-text);
+  border-bottom: var(--nl-rule-width) solid var(--nl-border);
+  font-size: var(--nl-font-ui);
+}
+.update-banner > span {
+  flex: 1;
+}
+.update-dialog {
+  width: min(var(--nl-dialog-width-wide), calc(100vw - var(--nl-space-xl)));
+  max-width: none;
+  max-height: calc(100vh - var(--nl-space-xxl));
+  margin: auto;
+  color: var(--nl-text);
+  overflow-y: auto;
+  border: var(--nl-rule-width) solid var(--nl-border-control);
+}
+.update-dialog::backdrop {
+  background: var(--nl-scrim);
+}
+.update-dialog .dialog-actions {
+  flex-wrap: wrap;
+}
+.update-dialog .update-notes {
+  max-height: min(40vh, var(--nl-local-nav-max-height));
+}
+
+:root[data-shell='desktop'] .dashboard-metrics {
+  grid-template-columns: repeat(auto-fit, minmax(var(--nl-inline-editor-width), 1fr));
+}
+.dashboard-recent {
+  max-height: var(--nl-local-nav-max-height);
+  overflow-y: auto;
+}
+:root[data-shell='desktop'] .timeline-body.vertical {
+  max-width: var(--nl-view-width);
+  width: 100%;
+  margin-inline: auto;
+}
+:root[data-shell='desktop'] .volume-title {
+  font-family: var(--nl-font-book-face);
+}
+:root[data-shell='desktop'] .volume-imprint {
+  font-family: var(--nl-font-prose-face);
+}
+
+:root[data-shell='desktop'] .scratchpad-panel {
+  max-width: var(--nl-dialog-width-wide);
+}
+:root[data-shell='desktop'] .scratchpad-panel > textarea {
+  width: 100%;
+  min-height: var(--nl-inline-editor-width);
+}
+:root[data-shell='desktop'] .scratchpad-panel > .dialog-actions {
+  justify-content: flex-start;
+  margin-top: var(--nl-space-sm);
+}
+
+.inspector-scene-summary {
+  padding: var(--nl-space-sm);
+  border-bottom: var(--nl-rule-width) solid var(--nl-border);
+}
+.inspector-scene-summary .inspector-header {
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: var(--nl-font-ui);
+}
+.inspector-scene-summary .inspector-date {
+  padding-bottom: var(--nl-space-tightest);
+}
+:root[data-shell='desktop'] .dialogue-main > * {
+  max-width: var(--nl-view-width);
+  margin-inline: auto;
+}
+
+:root[data-shell='desktop'] .expose-view {
+  width: 100%;
+  max-width: var(--nl-view-width);
+  margin-inline: auto;
+}
+:root[data-shell='desktop'] .expose-editor {
+  width: 100%;
+  max-width: var(--nl-form-width);
+  margin-inline: auto;
+}
+:root[data-shell='desktop'] .style-view {
+  width: 100%;
+  max-width: var(--nl-view-width);
+  margin-inline: auto;
+}
+:root[data-shell='desktop'] .about-view {
+  width: 100%;
+  max-width: var(--nl-dialog-width-wide);
+  margin-inline: auto;
+}
+:root[data-shell='desktop'] .drafts-scroll {
+  width: 100%;
+  max-width: var(--nl-view-width);
+  margin-inline: auto;
+}
+:root[data-shell='desktop'] .mode-panel-group {
+  font-family: var(--nl-font-family);
+  letter-spacing: normal;
+}

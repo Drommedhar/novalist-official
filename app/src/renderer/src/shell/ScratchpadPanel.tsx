@@ -55,7 +55,7 @@ export function ScratchpadPanel({
   }
 
   return (
-    <div className="start-recents">
+    <div className="start-recents scratchpad-panel">
       {showTitle && <div className="start-recents-label">{t('scratchpad.title')}</div>}
       <p className="scratchpad-empty">{t('scratchpad.intro')}</p>
 

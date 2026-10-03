@@ -4,6 +4,8 @@ The Relationships view draws your characters as nodes and the relationships betw
 
 ![The Relationships graph](images/relationships.png)
 
+On desktop, the graph sits beside a selected-entry card. Select a node to see its role, group and relationships, follow a linked entry, or open its article. **Fit graph** in the heading refits the network to the available space.
+
 ## Opening the Relationships view
 
 Open it from the **Plan** mode (**Relationships**, first under **Cast and time** in the mode panel), from the **Go** menu or command palette, or with `Ctrl+7` (macOS uses Cmd).

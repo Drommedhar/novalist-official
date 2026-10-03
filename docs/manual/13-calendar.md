@@ -16,7 +16,7 @@ Open it from the **Plan** mode (**Calendar**, under **Cast and time** in the mod
 
 ## View modes
 
-Buttons at the top-left switch between three modes:
+Desktop opens in **Month** view. Buttons at the top-left switch between three modes:
 
 ### Week
 

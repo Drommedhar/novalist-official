@@ -69,7 +69,15 @@ const layoutTimed = (events: CalendarEventDto[]): TimedLayout[] => {
       if (end <= start) end = start + 60
       const topPx = (start / 60) * HOUR_PX
       const heightPx = Math.max(20, ((end - start) / 60) * HOUR_PX)
-      return { event, topPx, heightPx, start: topPx, end: topPx + heightPx, leftPct: 0, widthPct: 100 }
+      return {
+        event,
+        topPx,
+        heightPx,
+        start: topPx,
+        end: topPx + heightPx,
+        leftPct: 0,
+        widthPct: 100
+      }
     })
     .sort((a, b) => a.start - b.start)
 
@@ -128,14 +136,17 @@ export function CalendarView(): React.JSX.Element {
 
 function BookCalendarView(): React.JSX.Element {
   const { t, i18n } = useTranslation()
-  const [mode, setMode] = useState<CalendarMode>('week')
+  const [mode, setMode] = useState<CalendarMode>(window.novalist.isMobile ? 'week' : 'month')
   const [configOpen, setConfigOpen] = useState(false)
   const [goToOpen, setGoToOpen] = useState(false)
   const [goToValue, setGoToValue] = useState('')
   const [goToError, setGoToError] = useState(false)
   const goToButton = useRef<HTMLButtonElement>(null)
   const [config, setConfig] = useState<CalendarConfig | null>(null)
-  const dates = useMemo(() => config ? new CalendarDates(config, i18n.language) : null, [config, i18n.language])
+  const dates = useMemo(
+    () => (config ? new CalendarDates(config, i18n.language) : null),
+    [config, i18n.language]
+  )
   const [anchor, setAnchor] = useState<CalendarDate | null>(null)
   const [storyStart, setStoryStart] = useState<CalendarDate | null>(null)
   const [events, setEvents] = useState<CalendarEventDto[]>([])
@@ -152,7 +163,11 @@ function BookCalendarView(): React.JSX.Element {
     setAnchor((current) => {
       if (!current || typeChanged) return calendar.today()
       const month = Math.min(current.month, calendar.months.length)
-      return { ...current, month, day: Math.min(current.day, calendar.daysInMonth({ ...current, month })) }
+      return {
+        ...current,
+        month,
+        day: Math.min(current.day, calendar.daysInMonth({ ...current, month }))
+      }
     })
     const [start, saved] = await Promise.all([
       rpc.request<string | null>('calendar/getStoryStart'),
@@ -177,7 +192,9 @@ function BookCalendarView(): React.JSX.Element {
       setStoryStart(calendar.parse(start))
       setAnchor(calendar.parse(start) ?? calendar.parse(saved) ?? calendar.today())
     })
-    return () => { disposed = true }
+    return () => {
+      disposed = true
+    }
   }, [])
 
   const reschedule = async (target: string): Promise<void> => {
@@ -206,7 +223,10 @@ function BookCalendarView(): React.JSX.Element {
       to = dates.addDays(from, dates.weekdays.length - 1)
     } else if (mode === 'month') {
       from = dates.startOfWeek({ ...anchor, day: 1 })
-      const cells = Math.ceil((dates.weekday({ ...anchor, day: 1 }) + dates.daysInMonth(anchor)) / dates.weekdays.length) * dates.weekdays.length
+      const cells =
+        Math.ceil(
+          (dates.weekday({ ...anchor, day: 1 }) + dates.daysInMonth(anchor)) / dates.weekdays.length
+        ) * dates.weekdays.length
       to = dates.addDays(from, cells - 1)
     } else {
       from = { year: anchor.year, month: 1, day: 1 }
@@ -219,8 +239,12 @@ function BookCalendarView(): React.JSX.Element {
   useEffect(() => {
     let disposed = false
     setEvents([])
-    void load().then((loaded) => { if (!disposed) setEvents(loaded) })
-    return () => { disposed = true }
+    void load().then((loaded) => {
+      if (!disposed) setEvents(loaded)
+    })
+    return () => {
+      disposed = true
+    }
   }, [load])
 
   const jumpTo = (date: CalendarDate, newMode?: CalendarMode): void => {
@@ -276,13 +300,20 @@ function BookCalendarView(): React.JSX.Element {
   if (!dates || !anchor) return <p className="settings-hint">{t('calendarConfig.loading')}</p>
   const monthName = (m: number): string => dates.months[m - 1]
   const weekStart = dates.startOfWeek(anchor)
-  const weekDays = Array.from({ length: dates.weekdays.length }, (_, i) => dates.addDays(weekStart, i))
+  const weekDays = Array.from({ length: dates.weekdays.length }, (_, i) =>
+    dates.addDays(weekStart, i)
+  )
   const monthStart = { ...anchor, day: 1 }
   const monthGridStart = dates.startOfWeek(monthStart)
-  const monthCells = Math.ceil((dates.weekday(monthStart) + dates.daysInMonth(anchor)) / dates.weekdays.length) * dates.weekdays.length
-  const headerLabel = mode === 'week'
-    ? `${dates.label(weekStart)} - ${dates.label(weekDays[weekDays.length - 1])}`
-    : mode === 'month' ? `${monthName(anchor.month)} ${dates.formatYear(anchor.year)}` : dates.formatYear(anchor.year)
+  const monthCells =
+    Math.ceil((dates.weekday(monthStart) + dates.daysInMonth(anchor)) / dates.weekdays.length) *
+    dates.weekdays.length
+  const headerLabel =
+    mode === 'week'
+      ? `${dates.label(weekStart)} - ${dates.label(weekDays[weekDays.length - 1])}`
+      : mode === 'month'
+        ? `${monthName(anchor.month)} ${dates.formatYear(anchor.year)}`
+        : dates.formatYear(anchor.year)
 
   return (
     <div className="calendar" style={{ '--cal-weekdays': dates.weekdays.length } as CSSProperties}>
@@ -314,7 +345,9 @@ function BookCalendarView(): React.JSX.Element {
           className="dashboard-range"
           disabled={!storyStart}
           title={t(storyStart ? 'calendar.storyStartHint' : 'calendar.noStoryDates')}
-          onClick={() => { if (storyStart) jumpTo(storyStart) }}
+          onClick={() => {
+            if (storyStart) jumpTo(storyStart)
+          }}
         >
           {t('calendar.storyStart')}
         </button>
@@ -377,7 +410,9 @@ function BookCalendarView(): React.JSX.Element {
             aria-invalid={goToError}
             aria-describedby={`calendar-go-to-hint${goToError ? ' calendar-go-to-error' : ''}`}
           />
-          <button className="dashboard-range" type="submit">{t('calendar.go')}</button>
+          <button className="dashboard-range" type="submit">
+            {t('calendar.go')}
+          </button>
           <span id="calendar-go-to-hint" className="settings-hint">
             {t(dates.custom ? 'calendar.goToCustomHint' : 'calendar.goToGregorianHint')}
           </span>
@@ -413,7 +448,12 @@ function BookCalendarView(): React.JSX.Element {
                     {dates.weekdays[dates.weekday(day)]} {day.day}
                   </div>
                   {allDay.map((event) => (
-                    <EventChip key={`${event.sceneId}-${key}`} event={event} compact onDragStart={setDragging} />
+                    <EventChip
+                      key={`${event.sceneId}-${key}`}
+                      event={event}
+                      compact
+                      onDragStart={setDragging}
+                    />
                   ))}
                 </div>
               )
@@ -498,6 +538,7 @@ function BookCalendarView(): React.JSX.Element {
                   onDrop={() => void reschedule(key)}
                   onClick={() => jumpTo(day, 'week')}
                   onKeyDown={(e) => {
+                    if (e.target !== e.currentTarget) return
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault()
                       jumpTo(day, 'week')
@@ -506,7 +547,12 @@ function BookCalendarView(): React.JSX.Element {
                 >
                   <div className="calendar-cell-date">{day.day}</div>
                   {dayEvents.slice(0, 3).map((event) => (
-                    <EventChip key={`${event.sceneId}-${key}`} event={event} compact onDragStart={setDragging} />
+                    <EventChip
+                      key={`${event.sceneId}-${key}`}
+                      event={event}
+                      compact
+                      onDragStart={setDragging}
+                    />
                   ))}
                   {dayEvents.length > 3 && (
                     <div className="calendar-overflow">+{dayEvents.length - 3}</div>
@@ -569,9 +615,7 @@ function EventChip({
   const time = event.allDay ? '' : `${eventTime(event)} `
   return (
     <button
-      className={`calendar-event${compact ? ' compact' : ''}${
-        selected ? ' selected' : ''
-      }`}
+      className={`calendar-event${compact ? ' compact' : ''}${selected ? ' selected' : ''}`}
       draggable={Boolean(onDragStart)}
       onDragStart={() => onDragStart?.(event)}
       title={eventTooltip(event)}

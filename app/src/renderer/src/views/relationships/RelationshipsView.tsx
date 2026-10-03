@@ -4,13 +4,10 @@ import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
 import { useWikiStore } from '../../stores/wikiStore'
 import { useProjectStore } from '../../stores/projectStore'
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { layoutGraph, parentMap, siblingMap, NODE_SIZE, type GraphCharacter } from './layout'
 import { kinshipLabel, type KinshipRow } from './kinshipLabel'
-import {
-  layoutFamilyTree,
-  TREE_NODE_WIDTH,
-  TREE_NODE_HEIGHT
-} from './familyTree'
+import { layoutFamilyTree, TREE_NODE_WIDTH, TREE_NODE_HEIGHT } from './familyTree'
 import './relationships.css'
 
 // Distinct per-family box colors (cycles when there are more families than
@@ -97,7 +94,9 @@ export function RelationshipsView(): React.JSX.Element {
   const [withScenes, setWithScenes] = useState(false)
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
-  const dragRef = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null)
+  const dragRef = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(
+    null
+  )
   const movedRef = useRef(false)
   const viewportRef = useRef<HTMLDivElement>(null)
   const fitPendingRef = useRef(false)
@@ -295,8 +294,15 @@ export function RelationshipsView(): React.JSX.Element {
     return () => observer.disconnect()
   }, [fitToGraph])
 
+  const selected = allNodes.find((node) => node.id === rootId)
+
   return (
     <div className="relationships">
+      <DesktopViewActions>
+        <button className="dialog-button" onClick={fitToGraph}>
+          {t('desktopRefresh.fitGraph')}
+        </button>
+      </DesktopViewActions>
       <div className="relationships-header">
         <span className="relationships-title">{t('relationships.title')}</span>
         <span className="relationships-hint">{t('relationships.hint')}</span>
@@ -340,9 +346,7 @@ export function RelationshipsView(): React.JSX.Element {
                 type="checkbox"
                 checked={types.includes(kind)}
                 onChange={(e) =>
-                  setTypes(
-                    e.target.checked ? [...types, kind] : types.filter((k) => k !== kind)
-                  )
+                  setTypes(e.target.checked ? [...types, kind] : types.filter((k) => k !== kind))
                 }
               />
               {t(`relationships.kind${kind}`)}
@@ -439,10 +443,7 @@ export function RelationshipsView(): React.JSX.Element {
                 ))}
               </select>
             </label>
-            <button
-              className="dialog-button"
-              onClick={() => setTreeHorizontal(!treeHorizontal)}
-            >
+            <button className="dialog-button" onClick={() => setTreeHorizontal(!treeHorizontal)}>
               {t(treeHorizontal ? 'relationships.treeVertical' : 'relationships.treeHorizontal')}
             </button>
           </>
@@ -469,208 +470,247 @@ export function RelationshipsView(): React.JSX.Element {
         <div className="toolbar-spacer" />
         <span className="calendar-header-label">{Math.round(zoom * 100)}%</span>
       </div>
-      <div
-        ref={viewportRef}
-        className="relationships-viewport"
-        onWheel={(e) => {
-          e.preventDefault()
-          const vp = viewportRef.current
-          if (!vp) return
-          const rect = vp.getBoundingClientRect()
-          const cursorX = e.clientX - rect.left
-          const cursorY = e.clientY - rect.top
-          const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1
-          const newZoom = Math.min(4, Math.max(0.2, zoom * factor))
-          if (Math.abs(newZoom - zoom) < 1e-6) return
-          const gx = (cursorX - pan.x) / zoom
-          const gy = (cursorY - pan.y) / zoom
-          setZoom(newZoom)
-          setPan({ x: cursorX - gx * newZoom, y: cursorY - gy * newZoom })
-        }}
-        onPointerDown={(e) => {
-          dragRef.current = { startX: e.clientX, startY: e.clientY, panX: pan.x, panY: pan.y }
-          movedRef.current = false
-        }}
-        onPointerMove={(e) => {
-          const drag = dragRef.current
-          if (!drag) return
-          if (Math.abs(e.clientX - drag.startX) + Math.abs(e.clientY - drag.startY) > 4)
-            movedRef.current = true
-          setPan({ x: drag.panX + e.clientX - drag.startX, y: drag.panY + e.clientY - drag.startY })
-        }}
-        onPointerUp={() => {
-          dragRef.current = null
-        }}
-      >
-        {tree ? (
-          tree.nodes.length === 0 ? (
-            <p className="codex-empty">{t('relationships.treeEmpty')}</p>
+      <div className="relationships-workspace">
+        <div
+          ref={viewportRef}
+          className="relationships-viewport"
+          onWheel={(e) => {
+            e.preventDefault()
+            const vp = viewportRef.current
+            if (!vp) return
+            const rect = vp.getBoundingClientRect()
+            const cursorX = e.clientX - rect.left
+            const cursorY = e.clientY - rect.top
+            const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1
+            const newZoom = Math.min(4, Math.max(0.2, zoom * factor))
+            if (Math.abs(newZoom - zoom) < 1e-6) return
+            const gx = (cursorX - pan.x) / zoom
+            const gy = (cursorY - pan.y) / zoom
+            setZoom(newZoom)
+            setPan({ x: cursorX - gx * newZoom, y: cursorY - gy * newZoom })
+          }}
+          onPointerDown={(e) => {
+            dragRef.current = { startX: e.clientX, startY: e.clientY, panX: pan.x, panY: pan.y }
+            movedRef.current = false
+          }}
+          onPointerMove={(e) => {
+            const drag = dragRef.current
+            if (!drag) return
+            if (Math.abs(e.clientX - drag.startX) + Math.abs(e.clientY - drag.startY) > 4)
+              movedRef.current = true
+            setPan({
+              x: drag.panX + e.clientX - drag.startX,
+              y: drag.panY + e.clientY - drag.startY
+            })
+          }}
+          onPointerUp={() => {
+            dragRef.current = null
+          }}
+        >
+          {tree ? (
+            tree.nodes.length === 0 ? (
+              <p className="codex-empty">{t('relationships.treeEmpty')}</p>
+            ) : (
+              <svg
+                className="relationships-canvas"
+                width={tree.width * zoom}
+                height={tree.height * zoom}
+                viewBox={`0 0 ${tree.width} ${tree.height}`}
+                style={{ transform: `translate(${pan.x}px, ${pan.y}px)` }}
+              >
+                {/* Parent to child, drawn under the boxes so a line never crosses
+                  a name. */}
+                {tree.edges.map((edge, i) => {
+                  const from = tree.nodes.find((n) => n.id === edge.parentId)
+                  const to = tree.nodes.find((n) => n.id === edge.childId)
+                  if (!from || !to) return null
+                  return (
+                    <line
+                      key={`${edge.parentId}-${edge.childId}-${i}`}
+                      className="tree-edge"
+                      x1={from.x + TREE_NODE_WIDTH / 2}
+                      y1={from.y + TREE_NODE_HEIGHT / 2}
+                      x2={to.x + TREE_NODE_WIDTH / 2}
+                      y2={to.y + TREE_NODE_HEIGHT / 2}
+                    />
+                  )
+                })}
+                {tree.nodes.map((node) => (
+                  <g
+                    key={node.id}
+                    className="tree-node"
+                    onClick={(e) => (e.altKey ? openEntity(node.id) : recentre(node.id))}
+                  >
+                    <rect
+                      x={node.x}
+                      y={node.y}
+                      width={TREE_NODE_WIDTH}
+                      height={TREE_NODE_HEIGHT}
+                      rx={6}
+                      className={`tree-box${node.generation === 0 ? ' root' : ''}`}
+                    />
+                    <text
+                      x={node.x + TREE_NODE_WIDTH / 2}
+                      y={node.y + TREE_NODE_HEIGHT / 2 + 4}
+                      className="tree-name"
+                    >
+                      {fitLabel(node.name)}
+                    </text>
+                    {/* The whole name, and what they are to the root - the same
+                      answer the graph gives, kept when the shape changes. */}
+                    <title>
+                      {kinship[node.id] ? `${node.name} - ${kinship[node.id]}` : node.name}
+                    </title>
+                  </g>
+                ))}
+              </svg>
+            )
+          ) : layout.nodes.length === 0 ? (
+            <p className="codex-empty">{t('relationships.emptyHint')}</p>
           ) : (
             <svg
               className="relationships-canvas"
-              width={tree.width * zoom}
-              height={tree.height * zoom}
-              viewBox={`0 0 ${tree.width} ${tree.height}`}
+              width={layout.width * zoom}
+              height={layout.height * zoom}
+              viewBox={`0 0 ${layout.width} ${layout.height}`}
               style={{ transform: `translate(${pan.x}px, ${pan.y}px)` }}
             >
-              {/* Parent to child, drawn under the boxes so a line never crosses
-                  a name. */}
-              {tree.edges.map((edge, i) => {
-                const from = tree.nodes.find((n) => n.id === edge.parentId)
-                const to = tree.nodes.find((n) => n.id === edge.childId)
-                if (!from || !to) return null
+              {layout.boxes.map((box, i) => {
+                const color = BOX_PALETTE[i % BOX_PALETTE.length]
+                const isRole = box.kind === 'role'
                 return (
-                  <line
-                    key={`${edge.parentId}-${edge.childId}-${i}`}
-                    className="tree-edge"
-                    x1={from.x + TREE_NODE_WIDTH / 2}
-                    y1={from.y + TREE_NODE_HEIGHT / 2}
-                    x2={to.x + TREE_NODE_WIDTH / 2}
-                    y2={to.y + TREE_NODE_HEIGHT / 2}
-                  />
+                  <g key={i}>
+                    <rect
+                      x={box.x}
+                      y={box.y}
+                      width={box.width}
+                      height={box.height}
+                      className="relationships-familybox"
+                      style={{
+                        stroke: color,
+                        fill: `${color}22`,
+                        ...(isRole ? { strokeDasharray: '6 4' } : {})
+                      }}
+                      rx={8}
+                    />
+                    {(isRole || box.label) && (
+                      <text
+                        x={box.x + 8}
+                        y={box.y + 16}
+                        className="relationships-familylabel"
+                        style={{ fill: color }}
+                      >
+                        {isRole ? box.label : t('relationships.familyPrefix', { name: box.label })}
+                      </text>
+                    )}
+                  </g>
                 )
               })}
-              {tree.nodes.map((node) => (
-                <g
-                  key={node.id}
-                  className="tree-node"
-                  onClick={(e) => (e.altKey ? openEntity(node.id) : recentre(node.id))}
-                >
-                  <rect
-                    x={node.x}
-                    y={node.y}
-                    width={TREE_NODE_WIDTH}
-                    height={TREE_NODE_HEIGHT}
-                    rx={6}
-                    className={`tree-box${node.generation === 0 ? ' root' : ''}`}
-                  />
-                  <text
-                    x={node.x + TREE_NODE_WIDTH / 2}
-                    y={node.y + TREE_NODE_HEIGHT / 2 + 4}
-                    className="tree-name"
-                  >
-                    {fitLabel(node.name)}
-                  </text>
-                  {/* The whole name, and what they are to the root - the same
-                      answer the graph gives, kept when the shape changes. */}
-                  <title>
-                    {kinship[node.id] ? `${node.name} - ${kinship[node.id]}` : node.name}
-                  </title>
-                </g>
-              ))}
-            </svg>
-          )
-        ) : layout.nodes.length === 0 ? (
-          <p className="codex-empty">{t('relationships.emptyHint')}</p>
-        ) : (
-          <svg
-            className="relationships-canvas"
-            width={layout.width * zoom}
-            height={layout.height * zoom}
-            viewBox={`0 0 ${layout.width} ${layout.height}`}
-            style={{ transform: `translate(${pan.x}px, ${pan.y}px)` }}
-          >
-            {layout.boxes.map((box, i) => {
-              const color = BOX_PALETTE[i % BOX_PALETTE.length]
-              const isRole = box.kind === 'role'
-              return (
+              {layout.edges.map((edge, i) => (
                 <g key={i}>
-                  <rect
-                    x={box.x}
-                    y={box.y}
-                    width={box.width}
-                    height={box.height}
-                    className="relationships-familybox"
-                    style={{
-                      stroke: color,
-                      fill: `${color}22`,
-                      ...(isRole ? { strokeDasharray: '6 4' } : {})
-                    }}
-                    rx={8}
+                  <line
+                    x1={edge.x1}
+                    y1={edge.y1}
+                    x2={edge.x2}
+                    y2={edge.y2}
+                    className="relationships-edge"
+                    data-category={edge.category || undefined}
                   />
-                  {(isRole || box.label) && (
-                    <text
-                      x={box.x + 8}
-                      y={box.y + 16}
-                      className="relationships-familylabel"
-                      style={{ fill: color }}
-                    >
-                      {isRole ? box.label : t('relationships.familyPrefix', { name: box.label })}
+                  {edge.label && (
+                    <text x={edge.labelX} y={edge.labelY} className="relationships-edgelabel">
+                      {edge.label}
                     </text>
                   )}
                 </g>
-              )
-            })}
-            {layout.edges.map((edge, i) => (
-              <g key={i}>
-                <line
-                  x1={edge.x1}
-                  y1={edge.y1}
-                  x2={edge.x2}
-                  y2={edge.y2}
-                  className="relationships-edge"
-                  data-category={edge.category || undefined}
-                />
-                {edge.label && (
-                  <text x={edge.labelX} y={edge.labelY} className="relationships-edgelabel">
-                    {edge.label}
-                  </text>
-                )}
-              </g>
-            ))}
-            {layout.nodes.map((node) => (
-              <g
-                key={node.id}
-                className="relationships-node-group"
-                role="button"
-                tabIndex={0}
-                // Click follows the thread without leaving the view; the
-                // article is a deliberate second gesture, because opening one
-                // loses the shape you were reading.
-                onClick={(e) => (e.altKey ? openEntity(node.id) : recentre(node.id))}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    if (e.altKey) openEntity(node.id)
-                    else recentre(node.id)
-                  }
-                }}
-              >
-                <title>{t('relationships.recentreOn', { name: node.name })}</title>
-                {/* Shape and colour together, because five classes on one
+              ))}
+              {layout.nodes.map((node) => (
+                <g
+                  key={node.id}
+                  className="relationships-node-group"
+                  role="button"
+                  tabIndex={0}
+                  // Click follows the thread without leaving the view; the
+                  // article is a deliberate second gesture, because opening one
+                  // loses the shape you were reading.
+                  onClick={(e) => (e.altKey ? openEntity(node.id) : recentre(node.id))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      if (e.altKey) openEntity(node.id)
+                      else recentre(node.id)
+                    }
+                  }}
+                >
+                  <title>{t('relationships.recentreOn', { name: node.name })}</title>
+                  {/* Shape and colour together, because five classes on one
                     canvas are unreadable by either alone: a place is square, a
                     thing is a pill, a scene is a cut corner, people stay the
                     rounded box the graph has always drawn. */}
-                <rect
-                  x={node.x}
-                  y={node.y}
-                  width={NODE_SIZE.width}
-                  height={NODE_SIZE.height}
-                  className={`relationships-node type-${node.entityType}`}
-                  rx={NODE_RADIUS[node.entityType] ?? 6}
-                />
-                <text
-                  x={node.x + NODE_SIZE.width / 2}
-                  y={node.y + NODE_SIZE.height / 2 + 4}
-                  className="relationships-nodelabel"
-                >
-                  {fitLabel(node.name)}
-                </text>
-                {/* What this person is to the one the graph is centred on.
-                    Under the name rather than in a tooltip: the whole reason to
-                    centre on somebody is to read this off every node at once. */}
-                {kinship[node.id] && (
+                  <rect
+                    x={node.x}
+                    y={node.y}
+                    width={NODE_SIZE.width}
+                    height={NODE_SIZE.height}
+                    className={`relationships-node type-${node.entityType}`}
+                    rx={NODE_RADIUS[node.entityType] ?? 6}
+                  />
                   <text
                     x={node.x + NODE_SIZE.width / 2}
-                    y={node.y + NODE_SIZE.height - 4}
-                    className="relationships-kinship"
+                    y={node.y + NODE_SIZE.height / 2 + 4}
+                    className="relationships-nodelabel"
                   >
-                    {kinship[node.id]}
+                    {fitLabel(node.name)}
                   </text>
-                )}
-              </g>
-            ))}
-          </svg>
+                  {/* What this person is to the one the graph is centred on.
+                    Under the name rather than in a tooltip: the whole reason to
+                    centre on somebody is to read this off every node at once. */}
+                  {kinship[node.id] && (
+                    <text
+                      x={node.x + NODE_SIZE.width / 2}
+                      y={node.y + NODE_SIZE.height + 14}
+                      className="relationships-kinship"
+                    >
+                      {kinship[node.id]}
+                    </text>
+                  )}
+                </g>
+              ))}
+            </svg>
+          )}
+        </div>
+        {!window.novalist.isMobile && (
+          <aside className="relationships-details">
+            <h2>{selected?.displayName || t('desktopRefresh.relationshipSelection')}</h2>
+            {selected ? (
+              <>
+                <p>{[selected.role, selected.group].filter(Boolean).join(' · ')}</p>
+                <button className="dialog-button" onClick={() => openEntity(selected.id)}>
+                  {t('relationships.openArticle', { name: selected.displayName })}
+                </button>
+                <h3>{t('desktopRefresh.relationships')}</h3>
+                {selected.relationships.map((link, index) => {
+                  const target = allNodes.find(
+                    (node) =>
+                      node.id === link.target ||
+                      node.name === link.target ||
+                      node.displayName === link.target
+                  )
+                  return (
+                    <div className="relationships-detail-link" key={index}>
+                      <span>{link.role}</span>
+                      {target ? (
+                        <button onClick={() => setRootId(target.id)}>{target.displayName}</button>
+                      ) : (
+                        <strong>{link.target}</strong>
+                      )}
+                    </div>
+                  )
+                })}
+              </>
+            ) : (
+              <p>{t('desktopRefresh.relationshipSelectionHint')}</p>
+            )}
+          </aside>
         )}
       </div>
     </div>

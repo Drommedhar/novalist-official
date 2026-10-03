@@ -1,3 +1,4 @@
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
@@ -113,6 +114,7 @@ interface PlotGridDto {
     sceneId: string
     sceneTitle: string
     plotlineIds: string[]
+    notes: Record<string, string>
   }[]
 }
 
@@ -157,7 +159,11 @@ export function PlotGridView(): React.JSX.Element {
 
   const byCodex = rowSource !== 'plotline'
 
-  const toggle = async (chapterGuid: string, sceneId: string, plotlineId: string): Promise<void> => {
+  const toggle = async (
+    chapterGuid: string,
+    sceneId: string,
+    plotlineId: string
+  ): Promise<void> => {
     // A Codex row says who is in the scene, so ticking one writes the cast
     // rather than plotline membership.
     setGrid(
@@ -260,12 +266,15 @@ export function PlotGridView(): React.JSX.Element {
           {t(asLanes ? 'plotGrid.asGrid' : 'plotGrid.asLanes')}
         </button>
         {!byCodex && (
-          <button
-            className="toolbar-button toolbar-action"
-            onClick={() => setPending({ kind: 'create' })}
-          >
-            {t('plotGrid.addPlotline')}
-          </button>
+          <DesktopViewActions>
+            {' '}
+            <button
+              className="dialog-button primary"
+              onClick={() => setPending({ kind: 'create' })}
+            >
+              {t('plotGrid.addPlotline')}
+            </button>
+          </DesktopViewActions>
         )}
       </div>
       {/* Threads and promises are the same kind of thinking, so the promises
@@ -287,14 +296,40 @@ export function PlotGridView(): React.JSX.Element {
         />
       ) : (
         <div className="plotgrid-scroll">
-          <table className="plotgrid-table">
+          <table className="plotgrid-table plotgrid-scenes-as-rows">
             <thead>
               <tr>
-                <th className="plotgrid-corner" />
-                {grid.columns.map((col) => (
-                  <th key={col.sceneId} className="plotgrid-scene" title={`${col.chapterTitle} - ${col.sceneTitle}`}>
+                <th>{t('shell.view.manuscript')}</th>
+                {grid.plotlines.map((plotline) => (
+                  <th
+                    key={plotline.id}
+                    onContextMenu={(e) => {
+                      if (byCodex) return
+                      e.preventDefault()
+                      setMenu({ x: e.clientX, y: e.clientY, id: plotline.id, name: plotline.name })
+                    }}
+                  >
+                    <span className="plotgrid-color" style={{ background: plotline.color }} />
+                    <button disabled={byCodex} onClick={() => setEditingId(plotline.id)}>
+                      {plotline.name}
+                    </button>
+                    {!byCodex && plotline.importance === 'Main' && (
+                      <span className="plotgrid-importance">{t('plotGrid.importanceMain')}</span>
+                    )}
+                    {!byCodex && plotline.unresolvedSteps > 0 && (
+                      <span className="plotgrid-unresolved">
+                        {t('plotGrid.unresolvedBadge', { count: plotline.unresolvedSteps })}
+                      </span>
+                    )}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {grid.columns.map((col) => (
+                <tr key={col.sceneId}>
+                  <th className="plotgrid-rowlabel">
                     <button
-                      type="button"
                       className="plotgrid-scene-link"
                       onClick={() =>
                         void useProjectStore.getState().openScene(col.chapterGuid, col.sceneId)
@@ -302,50 +337,40 @@ export function PlotGridView(): React.JSX.Element {
                     >
                       {col.sceneTitle}
                     </button>
+                    <small>{col.chapterTitle}</small>
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {grid.plotlines.map((plotline) => (
-                <tr key={plotline.id}>
-                  <th
-                    className="plotgrid-rowlabel"
-                    onContextMenu={(e) => {
-                      // Renaming and deleting belong to plotlines. A Codex row
-                      // is an entry, and it is renamed where it lives.
-                      if (byCodex) return
-                      e.preventDefault()
-                      setMenu({ x: e.clientX, y: e.clientY, id: plotline.id, name: plotline.name })
-                    }}
-                  >
-                    <span className="plotgrid-color" style={{ background: plotline.color }} />
-                    {plotline.name}
-                    {/* A grid of equal rows says the spine and a running joke
-                        are the same kind of thing. Both marks are readable
-                        without opening anything. */}
-                    {!byCodex && plotline.importance === 'Main' && (
-                      <span className="plotgrid-importance">{t('plotGrid.importanceMain')}</span>
-                    )}
-                    {!byCodex && plotline.unresolvedSteps > 0 && (
-                      <span
-                        className="plotgrid-unresolved"
-                        title={t('plotGrid.unresolvedCount', { count: plotline.unresolvedSteps })}
-                      >
-                        {t('plotGrid.unresolvedBadge', { count: plotline.unresolvedSteps })}
-                      </span>
-                    )}
-                  </th>
-                  {grid.columns.map((col) => {
+                  {grid.plotlines.map((plotline) => {
                     const assigned = col.plotlineIds.includes(plotline.id)
+                    const note = col.notes?.[plotline.id] ?? ''
+                    const steps =
+                      plotline.steps?.filter((step) => step.sceneId === col.sceneId) ?? []
                     return (
-                      <td key={col.sceneId}>
+                      <td key={plotline.id}>
                         <button
                           className={`plotgrid-cell${assigned ? ' assigned' : ''}`}
-                          style={assigned ? { background: plotline.color } : undefined}
-                          title={`${col.chapterTitle} - ${col.sceneTitle}`}
+                          style={assigned ? { borderLeftColor: plotline.color } : undefined}
+                          aria-pressed={assigned}
+                          aria-label={`${col.sceneTitle} · ${plotline.name}`}
+                          onContextMenu={(event) => {
+                            if (byCodex || !assigned) return
+                            event.preventDefault()
+                            setPending({
+                              kind: 'note',
+                              chapterGuid: col.chapterGuid,
+                              sceneId: col.sceneId,
+                              plotlineId: plotline.id,
+                              sceneTitle: col.sceneTitle,
+                              current: note
+                            })
+                          }}
                           onClick={() => void toggle(col.chapterGuid, col.sceneId, plotline.id)}
-                        />
+                        >
+                          {assigned
+                            ? note ||
+                              steps.map((step) => step.text).join(' · ') ||
+                              t('desktopRefresh.assigned')
+                            : t('desktopRefresh.assign')}
+                        </button>
                       </td>
                     )
                   })}
@@ -384,6 +409,8 @@ export function PlotGridView(): React.JSX.Element {
       {pending?.kind === 'note' && (
         <InputDialog
           title={t('plotGrid.cellNoteTitle', { scene: pending.sceneTitle })}
+          initialValue={pending.current}
+          allowEmpty
           placeholder={pending.current || t('plotGrid.cellNotePlaceholder')}
           onCancel={() => setPending(null)}
           onSubmit={(note) => {

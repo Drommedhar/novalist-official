@@ -287,7 +287,8 @@ test('update button flushes live prose before acknowledging quit', async () => {
 
     await installUpdateProbe(h, assetName)
     await openUpdateDialog(h)
-    await h.page.getByRole('button', { name: 'Download & Install' }).click()
+    await h.page.getByRole('button', { name: 'Download update' }).click()
+    await h.page.getByRole('button', { name: 'Install and restart' }).click()
 
     await expect
       .poll(() =>
@@ -305,7 +306,7 @@ test('update button flushes live prose before acknowledging quit', async () => {
   }
 })
 
-test('update stays locked and flushes edits made while the download is running', async () => {
+test('download allows writing, then installation locks and flushes pending edits', async () => {
   test.skip(process.platform === 'linux', 'Linux uses the detached AppImage handoff tested below')
   const h = await launchApp('novalist-app-update-download-save-')
   const assetName = `novalist-update-download-save-${Date.now()}.exe`
@@ -320,7 +321,7 @@ test('update stays locked and flushes edits made while the download is running',
 
     await installUpdateProbe(h, assetName, '', true)
     await openUpdateDialog(h)
-    await h.page.getByRole('button', { name: 'Download & Install' }).click()
+    await h.page.getByRole('button', { name: 'Download update' }).click()
     await expect
       .poll(() =>
         h.app.evaluate(() => {
@@ -331,11 +332,11 @@ test('update stays locked and flushes edits made while the download is running',
       .toBe(true)
 
     const dialog = h.page.getByRole('dialog', { name: 'Update Available' })
-    await expect(dialog.getByRole('button', { name: 'Later' })).toBeDisabled()
-    await expect(dialog.getByRole('button', { name: 'View release' })).toBeDisabled()
+    await expect(dialog.getByRole('button', { name: 'Continue writing' })).toBeEnabled()
     await dialog.press('Escape')
-    await h.page.locator('.dialog-overlay').dispatchEvent('pointerdown')
-    await expect(dialog).toBeVisible()
+    await expect(dialog).not.toBeVisible()
+    await expect(editor).toBeEditable()
+    await h.page.getByRole('button', { name: 'Review update' }).click()
 
     // Hold the mounted editor's post-download flush itself. The installer must
     // remain unopened until this final save acknowledgement is released.
@@ -383,6 +384,7 @@ test('update stays locked and flushes edits made while the download is running',
       const root = globalThis as typeof globalThis & { __updateProbe: UpdateProbe }
       root.__updateProbe.releaseDownload?.()
     })
+    await h.page.getByRole('button', { name: 'Install and restart' }).click()
     await expect
       .poll(() =>
         h.page.evaluate(() => {
@@ -428,7 +430,7 @@ test('update preflight times out when a save flush never settles', async () => {
   try {
     await installUpdateProbe(h, assetName, '', true)
     await openUpdateDialog(h)
-    const download = h.page.getByRole('button', { name: 'Download & Install' })
+    const download = h.page.getByRole('button', { name: 'Download update' })
     await download.click()
     await expect
       .poll(() =>
@@ -460,12 +462,13 @@ test('update preflight times out when a save flush never settles', async () => {
       const root = globalThis as typeof globalThis & { __updateProbe: UpdateProbe }
       root.__updateProbe.releaseDownload?.()
     })
+    await h.page.getByRole('button', { name: 'Install and restart' }).click()
 
     await expect(h.page.getByRole('alert')).toContainText(
       'Another project operation is still running',
       { timeout: 15_000 }
     )
-    await expect(download).toBeEnabled()
+    await expect(h.page.getByRole('button', { name: 'Install and restart' })).toBeEnabled()
     const probe = await h.app.evaluate(() => {
       const root = globalThis as typeof globalThis & { __updateProbe: UpdateProbe }
       return {
@@ -518,11 +521,12 @@ test('update stays open when the final scene save finds a conflict', async () =>
 
     await installUpdateProbe(h, assetName)
     await openUpdateDialog(h)
-    const download = h.page.getByRole('button', { name: 'Download & Install' })
+    const download = h.page.getByRole('button', { name: 'Download update' })
     await download.click()
+    await h.page.getByRole('button', { name: 'Install and restart' }).click()
 
     await expect(h.page.getByRole('alert')).toContainText('unresolved save conflict')
-    await expect(download).toBeEnabled()
+    await expect(h.page.getByRole('button', { name: 'Install and restart' })).toBeEnabled()
     const probe = await h.app.evaluate(() => {
       const root = globalThis as typeof globalThis & { __updateProbe: UpdateProbe }
       return {
@@ -548,8 +552,9 @@ test('installer launch failure stays visible and leaves the app running', async 
   try {
     await installUpdateProbe(h, assetName, 'installer launch was blocked')
     await openUpdateDialog(h)
-    const download = h.page.getByRole('button', { name: 'Download & Install' })
+    const download = h.page.getByRole('button', { name: 'Download update' })
     await download.click()
+    await h.page.getByRole('button', { name: 'Install and restart' }).click()
 
     await expect(h.page.getByRole('alert')).toContainText('installer launch was blocked')
     await expect(download).toBeEnabled()

@@ -1,3 +1,4 @@
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FolderOpen, FolderPlus, RefreshCw } from 'lucide-react'
@@ -90,36 +91,38 @@ export function ExtensionsView(): React.JSX.Element {
       <div className="extensions-header">
         <h1 className="dashboard-title">{t('extensions.title')}</h1>
         {tab === 'installed' && (
-        <div className="extensions-actions">
-          <button
-            type="button"
-            className="export-inline-btn"
-            onClick={() => void doInstall()}
-            disabled={busy}
-          >
-            <FolderPlus size={13} strokeWidth={2} /> {t('extensions.installFromFolder')}
-          </button>
-          <button
-            type="button"
-            className="export-inline-btn"
-            onClick={() =>
-              void rpc
-                .request<string>('extensions/directory')
-                .then((dir) => window.novalist.revealPath(dir))
-            }
-            title={t('extensions.openFolder')}
-          >
-            <FolderOpen size={13} strokeWidth={2} /> {t('extensions.openFolder')}
-          </button>
-          <button
-            type="button"
-            className="export-inline-btn"
-            onClick={() => void useExtensionsStore.getState().refreshViews()}
-            title={t('extensions.reload')}
-          >
-            <RefreshCw size={13} strokeWidth={2} /> {t('extensions.reload')}
-          </button>
-        </div>
+          <DesktopViewActions>
+            <div className="extensions-actions">
+              <button
+                type="button"
+                className="export-inline-btn"
+                onClick={() => void doInstall()}
+                disabled={busy}
+              >
+                <FolderPlus size={13} strokeWidth={2} /> {t('extensions.installFromFolder')}
+              </button>
+              <button
+                type="button"
+                className="export-inline-btn"
+                onClick={() =>
+                  void rpc
+                    .request<string>('extensions/directory')
+                    .then((dir) => window.novalist.revealPath(dir))
+                }
+                title={t('extensions.openFolder')}
+              >
+                <FolderOpen size={13} strokeWidth={2} /> {t('extensions.openFolder')}
+              </button>
+              <button
+                type="button"
+                className="export-inline-btn"
+                onClick={() => void useExtensionsStore.getState().refreshViews()}
+                title={t('extensions.reload')}
+              >
+                <RefreshCw size={13} strokeWidth={2} /> {t('extensions.reload')}
+              </button>
+            </div>
+          </DesktopViewActions>
         )}
       </div>
 
@@ -148,94 +151,90 @@ export function ExtensionsView(): React.JSX.Element {
         <ExtensionStore />
       ) : (
         <>
-      {error && <p className="extensions-error">{error}</p>}
+          {error && <p className="extensions-error">{error}</p>}
 
-      {extensions.length === 0 ? (
-        <p className="codex-empty">{t('extensions.noExtensions')}</p>
-      ) : (
-        <div className="extensions-list">
-          {extensions.map((ext) => (
-            <section key={ext.id} className="dashboard-card extension-card">
-              <div className="extension-card-main">
-                <div className="extension-card-head">
-                  <span className="extension-card-name">{ext.name}</span>
-                  <span className="extension-card-version">{ext.version}</span>
-                  <span
-                    className={`extension-card-state${ext.isEnabled ? ' on' : ''}`}
-                  >
-                    {ext.isEnabled ? t('extensions.enabled') : t('extensions.disabled')}
-                  </span>
-                </div>
-                {ext.author && (
-                  <div className="extension-card-author">
-                    {t('extensions.author')} {ext.author}
+          {extensions.length === 0 ? (
+            <p className="codex-empty">{t('extensions.noExtensions')}</p>
+          ) : (
+            <div className="extensions-list">
+              {extensions.map((ext) => (
+                <section key={ext.id} className="dashboard-card extension-card">
+                  <div className="extension-card-main">
+                    <div className="extension-card-head">
+                      <span className="extension-card-name">{ext.name}</span>
+                      <span className="extension-card-version">{ext.version}</span>
+                      <span className={`extension-card-state${ext.isEnabled ? ' on' : ''}`}>
+                        {ext.isEnabled ? t('extensions.enabled') : t('extensions.disabled')}
+                      </span>
+                    </div>
+                    {ext.author && (
+                      <div className="extension-card-author">
+                        {t('extensions.author')} {ext.author}
+                      </div>
+                    )}
+                    {ext.description && <p className="extension-card-desc">{ext.description}</p>}
+                    {ext.loadError && (
+                      <p className="extension-card-loaderr">
+                        {t('extensions.loadError')}: {ext.loadError}
+                      </p>
+                    )}
                   </div>
-                )}
-                {ext.description && (
-                  <p className="extension-card-desc">{ext.description}</p>
-                )}
-                {ext.loadError && (
-                  <p className="extension-card-loaderr">
-                    {t('extensions.loadError')}: {ext.loadError}
-                  </p>
-                )}
-              </div>
-              <div className="extension-card-buttons">
-                {(() => {
-                  const upd = storeUpdates.find((u) => u.extensionId === ext.id)
-                  return upd ? (
+                  <div className="extension-card-buttons">
+                    {(() => {
+                      const upd = storeUpdates.find((u) => u.extensionId === ext.id)
+                      return upd ? (
+                        <button
+                          type="button"
+                          className="export-inline-btn primary"
+                          disabled={busy}
+                          onClick={() => void doUpdate(ext.id, upd.repo)}
+                        >
+                          {t('extensions.updateTo').replace('{0}', upd.availableVersion)}
+                        </button>
+                      ) : null
+                    })()}
                     <button
                       type="button"
-                      className="export-inline-btn primary"
+                      className="export-inline-btn"
                       disabled={busy}
-                      onClick={() => void doUpdate(ext.id, upd.repo)}
+                      onClick={() => void doToggle(ext.id, !ext.isEnabled)}
                     >
-                      {t('extensions.updateTo').replace('{0}', upd.availableVersion)}
+                      {ext.isEnabled ? t('extensions.disable') : t('extensions.enable')}
                     </button>
-                  ) : null
-                })()}
-                <button
-                  type="button"
-                  className="export-inline-btn"
-                  disabled={busy}
-                  onClick={() => void doToggle(ext.id, !ext.isEnabled)}
-                >
-                  {ext.isEnabled ? t('extensions.disable') : t('extensions.enable')}
-                </button>
-                <button
-                  type="button"
-                  className="export-inline-btn danger"
-                  disabled={busy}
-                  onClick={() => setConfirmId(ext.id)}
-                >
-                  {t('extensions.uninstall')}
-                </button>
-              </div>
-            </section>
-          ))}
-        </div>
-      )}
+                    <button
+                      type="button"
+                      className="export-inline-btn danger"
+                      disabled={busy}
+                      onClick={() => setConfirmId(ext.id)}
+                    >
+                      {t('extensions.uninstall')}
+                    </button>
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
 
-      {themes.length > 0 && (
-        <div className="ext-settings-section">
-          <h2 className="dashboard-title">{t('extensions.themesTitle')}</h2>
-          <p className="ext-theme-hint">
-            {t('extensions.themesMovedHint', {
-              names: themes.map((theme) => theme.name).join(', ')
-            })}
-          </p>
-        </div>
-      )}
+          {themes.length > 0 && (
+            <div className="ext-settings-section">
+              <h2 className="dashboard-title">{t('extensions.themesTitle')}</h2>
+              <p className="ext-theme-hint">
+                {t('extensions.themesMovedHint', {
+                  names: themes.map((theme) => theme.name).join(', ')
+                })}
+              </p>
+            </div>
+          )}
 
-      {/* What an extension can be configured to do is a setting, and settings
+          {/* What an extension can be configured to do is a setting, and settings
           live in Settings. This view is for installing, enabling and removing
           them - see Settings, Extensions for the rest. */}
-      <button
-        className="btn-secondary"
-        onClick={() => useShellStore.getState().openSettings('extensions')}
-      >
-        {t('extensions.openSettings')}
-      </button>
+          <button
+            className="btn-secondary"
+            onClick={() => useShellStore.getState().openSettings('extensions')}
+          >
+            {t('extensions.openSettings')}
+          </button>
         </>
       )}
 

@@ -19,6 +19,7 @@ import { AnnotationsPanel } from './AnnotationsPanel'
 import { SuggestionsPanel } from './SuggestionsPanel'
 import { InboxPanel } from './InboxPanel'
 import { PanelResizer } from './PanelResizer'
+import { SceneNotesFields } from './SceneNotesFields'
 import './inspector.css'
 
 interface SceneMeta {
@@ -28,7 +29,7 @@ interface SceneMeta {
 
 /**
  * Right-hand context sidebar, mirroring the desktop Context / Footnotes tabs.
- * Scene notes + synopsis live in the bottom dock; snapshots live in a dialog.
+ * Notes are available here and in the optional bottom dock; snapshots stay in their dialog.
  */
 export function Inspector({ onReadyChange, prepareHidden = false }: {
   onReadyChange?(ready: boolean): void
@@ -43,7 +44,7 @@ export function Inspector({ onReadyChange, prepareHidden = false }: {
   const preferredInspectorWidth = useShellStore((s) => s.inspectorWidth)
   const shellWidth = useShellStore((s) => s.shellWidth)
   const inspectorWidth = panelWidthForShell(
-    preferredInspectorWidth,
+    Math.max(preferredInspectorWidth, shellWidth >= 1800 ? 368 : 344),
     shellWidth,
     INSPECTOR_MIN,
     INSPECTOR_MAX
@@ -124,18 +125,27 @@ export function Inspector({ onReadyChange, prepareHidden = false }: {
           onResize={setInspectorWidth}
           onResizeEnd={(px) => savePanelSize({ inspectorWidth: px })}
         />
+      <div className="inspector-scene-summary">
+        <h2 className="inspector-title">{t('desktopRefresh.sceneDetails')}</h2>
+        <div className="inspector-header">{scene.title}</div>
+        {positionText && <div className="inspector-subtitle">{positionText}</div>}
+        {dateDisplay && <div className="inspector-date">{dateDisplay}</div>}
+        <div className="inspector-meta">
+          {scene.wordCount.toLocaleString()} {t('shell.words')}
+        </div>
+      </div>
       <div className="inspector-tabs">
         <button
           type="button"
           className={`inspector-tab${inspectorTab === 'context' ? ' active' : ''}`}
-          onClick={() => setInspectorTab('context')}
+          aria-pressed={inspectorTab === 'context'} onClick={() => setInspectorTab('context')}
         >
           {t('context.tab')}
         </button>
         <button
           type="button"
           className={`inspector-tab${inspectorTab === 'footnotes' ? ' active' : ''}`}
-          onClick={() => setInspectorTab('footnotes')}
+          aria-pressed={inspectorTab === 'footnotes'} onClick={() => setInspectorTab('footnotes')}
         >
           {t('footnotes.tab')}
         </button>
@@ -144,20 +154,17 @@ export function Inspector({ onReadyChange, prepareHidden = false }: {
         <button
           type="button"
           className={`inspector-tab${inspectorTab === 'inbox' ? ' active' : ''}`}
-          onClick={() => setInspectorTab('inbox')}
+          aria-pressed={inspectorTab === 'inbox'} onClick={() => setInspectorTab('inbox')}
         >
           {t('inbox.tab')}
         </button>
+        <button type="button" className={`inspector-tab${inspectorTab === 'notes' ? ' active' : ''}`}
+          aria-pressed={inspectorTab === 'notes'} onClick={() => setInspectorTab('notes')}>{t('desktopRefresh.notes')}</button>
       </div>
       <div className="inspector-body">
+        {inspectorTab === 'notes' && <SceneNotesFields idPrefix="inspector" />}
         {inspectorTab === 'context' && (
           <>
-            <div className="inspector-header">{scene.title}</div>
-            {positionText && <div className="inspector-subtitle">{positionText}</div>}
-            {dateDisplay && <div className="inspector-date">{dateDisplay}</div>}
-            <div className="inspector-meta">
-              {scene.wordCount.toLocaleString()} {t('shell.words')}
-            </div>
             <ContextPanel chapterGuid={openChapterGuid} sceneId={openSceneId} onReadyChange={setContextReady} prepareHidden={prepareHidden} />
             <LinksPanel chapterGuid={openChapterGuid} sceneId={openSceneId} onReady={linksLoaded} />
             {/* Descriptive analysis says what a scene is. This asks whether it

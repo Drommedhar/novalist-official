@@ -47,6 +47,7 @@ void import('./shell/pluginHost').then((host) => {
 })
 
 const root = document.documentElement
+root.dataset.shell = window.novalist.isMobile ? 'mobile' : 'desktop'
 root.dataset.material = window.novalist.material
 // The light theme was removed; Default is dark. Named themes pin data-theme via
 // settings (applyThemeTokens). Set a dark baseline so there is no light flash

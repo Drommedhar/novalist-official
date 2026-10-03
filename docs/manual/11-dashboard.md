@@ -4,9 +4,11 @@ The Dashboard is your project's numbers page. It shows totals, goals, streaks, s
 
 ![The project Dashboard](images/dashboard.png)
 
+The banner and book cover head the Dashboard, with the project title and artwork controls immediately visible. **Continue writing** returns to the open scene, the most recently edited scene, or the first scene in a new book. Recent activity follows in a scrollable card; goals, planning, analytics and submission cards remain below.
+
 ## Opening the Dashboard
 
-The **Dashboard** button sits at the top of the mode rail, above the five modes — it is where a project opens and the way back from any of them. It is also in the **Go** menu and the command palette, and on `Ctrl+2` (macOS uses Cmd).
+The **Dashboard** button sits in the horizontal navigation row, beside the five modes — it is where a project opens and the way back from any of them. It is also in the **Go** menu and the command palette, and on `Ctrl+2` (macOS uses Cmd).
 
 The Dashboard belongs to no mode on purpose: it is where you are before you have decided what to do today, and the one screen allowed to talk about all five at once.
 
@@ -16,7 +18,7 @@ The Dashboard belongs to no mode on purpose: it is where you are before you have
 
 Novalist keeps two distinct images for a project:
 
-- The **banner** — a wide image shown across the top of the Dashboard. Use **Add banner** / **Change banner** / **Remove banner** in the banner's action row. When no banner is set, the Dashboard falls back to the book cover so projects made before this split keep showing their existing image.
+- The **banner** — a wide image at the top of the Dashboard. Use **Add banner** / **Change banner** / **Remove banner** in the banner's action row. When no banner is set, the Dashboard falls back to the book cover so projects made before this split keep showing their existing image.
 - The **book cover** — a portrait image shown for the project on the welcome screen and in the recent-projects list. Set it in the **Book cover** panel just below the banner with **Add cover** / **Change cover** / **Remove cover**.
 
 Both images are stored with the project. Setting only a cover on a fresh project also gives you a Dashboard banner automatically (via the fallback); set a banner explicitly when you want a different wide image from the portrait cover.

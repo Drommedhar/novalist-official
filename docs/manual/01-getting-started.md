@@ -71,7 +71,7 @@ Double-click a book on the bookshelf, or use **Open folder** and select your pro
 
 ## Finding your way around
 
-Navigation is five **modes** on the rail down the left, plus a **Dashboard** button above them:
+Navigation is five **modes** in the horizontal navigation row, alongside **Library** and **Dashboard**:
 
 - **Write** — the editor and the Manuscript view.
 - **Plan** — Timeline, Plot Grid, Planning board, Relationships, Calendar, Dialogue.
@@ -79,7 +79,7 @@ Navigation is five **modes** on the rail down the left, plus a **Dashboard** but
 - **Publish** — Exposé, Style report, Export, Git.
 - **Series** — everything above the single book.
 
-Picking a mode lists its views in the panel beside the rail, and changes the window to suit: **Write** is the only mode with the binder and the inspector, because the chapter tree and the scene's context are about the scene you are writing.
+Picking a mode lists its views in the left panel below the navigation row, and changes the window to suit: **Write** is the only mode with the binder and the inspector, because the chapter tree and the scene's context are about the scene you are writing.
 
 Everything is also in the **Go** menu and in the command palette (`Ctrl+Shift+P`), and `Ctrl+1` to `Ctrl+9` jump to the nine most-used views. The status bar at the bottom shows the core-connection dot, green once the bundled core process is up. See [Interface Overview](02-interface-overview.md) for the full map.
 
@@ -97,7 +97,7 @@ Type into the editor. As you write:
 
 - The **status bar** (bottom-left) shows the live word count of the open scene; the center shows project totals (words, chapters, scenes).
 - The editor **saves automatically two seconds** after you stop typing. Pending changes are also flushed when you switch scenes or close the app.
-- The **scene-notes dock** at the bottom (**View → Toggle scene notes**, or `Ctrl+Shift+N`) holds the scene's synopsis and notes, and the **inspector** on the right shows the scene's context and footnotes.
+- The **scene-notes dock** at the bottom (**View → Toggle scene notes**, or `Ctrl+Shift+N`) holds the scene's synopsis and notes, and the **inspector** on the right has Context, Footnotes, Inbox and Notes tabs. Notes offers the same scene fields as the dock.
 - Take a **snapshot** from the writing bar above the editor before a risky edit and restore it later. See [Snapshots](17-snapshots.md).
 
 ## Where things live

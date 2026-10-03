@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Novalist — desktop UI proposal</title>
+  <link rel="stylesheet" href="mockup.css">
+  <script src="review-data.js" defer></script>
+  <script src="depth-data.js" defer></script>
+  <script src="depth-ui.js" defer></script>
+  <script src="mockup.js" defer></script>
+</head>
+<body>
+  <div class="review-bar" aria-label="Prototype review controls">
+    <strong>DESIGN REVIEW <span class="version">02</span></strong>
+    <label>Screen <select id="screen-picker"></select></label>
+    <label>State <select id="state-picker"><option value="populated">Populated</option><option value="empty">Empty</option></select></label>
+    <label>UI type <select id="font-picker"><option value="sans">System sans · chosen</option><option value="serif">Literary serif</option></select></label>
+    <span class="grow"></span><span id="viewport-size" class="muted"></span>
+    <button id="coverage-button">Feature coverage</button><button id="notes-button">Design notes</button><a href="audit.html">Audit &amp; plan</a>
+  </div>
+  <div id="app" class="app">
+    <header class="app-top">
+      <button class="brand quiet" data-view="library" aria-label="Novalist library"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4h4l9 16h3V4M4 4l13 16M4 20h5M15 4h5"/></svg><span>Novalist</span></button>
+      <span class="top-rule"></span><button class="quiet project-picker" data-action="project">The Cartographer’s Daughter <span class="muted">⌄</span></button>
+      <span class="grow"></span><button class="search-command quiet" data-action="search">Search scenes, people, commands… <kbd>Ctrl K</kbd></button>
+      <button class="quiet" data-view="settings" aria-label="Settings" title="Settings" id="settings-shortcut"></button>
+    </header>
+    <nav id="modes" class="modes" aria-label="Workspace"></nav>
+    <div id="update-banner" class="update-banner" role="status"></div>
+    <div class="workspace"><aside id="sidebar" class="sidebar" aria-label="Views and manuscript"></aside><main id="main" tabindex="-1"></main></div>
+    <footer class="status"><span id="save-state">Saved in this preview</span><span class="divider"></span><span id="scene-count">1,248 words</span><span class="grow"></span><button class="quiet" data-action="update">Updates</button><button class="quiet" data-action="sprint">Writing sprint</button><span class="muted">English · Draft 1</span></footer>
+  </div>
+  <dialog id="dialog" aria-labelledby="dialog-title"></dialog>
+  <div id="toast" role="status" class="toast" hidden></div>
+</body>
+</html>

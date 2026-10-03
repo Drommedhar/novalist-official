@@ -10,7 +10,7 @@ test('a promoted card and its manuscript scene share a live title', async () => 
     const chapterGuid = book.chapters[0].guid
     const board = await h.rpc<{ id: string }>('canvas/create', ['Ideas'])
     await h.page.evaluate(() => window.novalistStores.shell.getState().setMainView('canvas'))
-    await h.page.locator('.canvas-toolbar').getByRole('button', { name: 'Add card' }).click()
+    await h.page.getByRole('button', { name: 'Add card', exact: true }).click()
     const title = h.page.locator('.canvas-card-title')
     await title.fill('Original idea')
     await h.page.getByRole('button', { name: 'Make this a scene' }).click()

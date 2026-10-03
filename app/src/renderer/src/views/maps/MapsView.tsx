@@ -1,3 +1,4 @@
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -153,10 +154,7 @@ export function MapsView(): React.JSX.Element {
     await persist(win.getMapData())
   }, [getWin, persist])
 
-  useEffect(
-    () => registerPendingWrite(flushPendingMapSave),
-    [flushPendingMapSave]
-  )
+  useEffect(() => registerPendingWrite(flushPendingMapSave), [flushPendingMapSave])
 
   useEffect(
     () => () => {
@@ -210,7 +208,11 @@ export function MapsView(): React.JSX.Element {
   const pushStringsAndOptions = useCallback((): void => {
     const win = getWin()
     if (!win) return
-    win.setContextMenuLabels(t('map.imageMenuMove'), t('map.imageMenuClip'), t('map.imageMenuDelete'))
+    win.setContextMenuLabels(
+      t('map.imageMenuMove'),
+      t('map.imageMenuClip'),
+      t('map.imageMenuDelete')
+    )
     win.setMapStrings(buildMapStrings(t))
     win.setEntityOptions(JSON.stringify(entityOptionsRef.current))
   }, [getWin, t])
@@ -346,22 +348,25 @@ export function MapsView(): React.JSX.Element {
     setLoading3D({ status, progress })
   }, [])
 
-  const selectImageOwner = useCallback((imageId: string): void => {
-    const data = mapModelRef.current
-    if (!data) return
-    let ownerId: string | null = null
-    const walk = (nodes: MapDataT['layers']): void => {
-      for (const n of nodes) {
-        if (!ownerId && (n.images ?? []).some((i) => i.id === imageId)) ownerId = n.id
-        if (n.children?.length) walk(n.children)
+  const selectImageOwner = useCallback(
+    (imageId: string): void => {
+      const data = mapModelRef.current
+      if (!data) return
+      let ownerId: string | null = null
+      const walk = (nodes: MapDataT['layers']): void => {
+        for (const n of nodes) {
+          if (!ownerId && (n.images ?? []).some((i) => i.id === imageId)) ownerId = n.id
+          if (n.children?.length) walk(n.children)
+        }
       }
-    }
-    walk(data.layers)
-    if (ownerId) {
-      setSelectedNodeId(ownerId)
-      getWin()?.setActiveLayer(ownerId)
-    }
-  }, [getWin])
+      walk(data.layers)
+      if (ownerId) {
+        setSelectedNodeId(ownerId)
+        getWin()?.setActiveLayer(ownerId)
+      }
+    },
+    [getWin]
+  )
 
   const handleMessage = useCallback(
     (msg: MapMessage): void => {
@@ -493,7 +498,16 @@ export function MapsView(): React.JSX.Element {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [getWin, pushMap, pushStringsAndOptions, refreshModelFromView, retain, showPinPeek, start3DLoading, t]
+    [
+      getWin,
+      pushMap,
+      pushStringsAndOptions,
+      refreshModelFromView,
+      retain,
+      showPinPeek,
+      start3DLoading,
+      t
+    ]
   )
 
   apiRef.current.onMapMessage = handleMessage
@@ -579,14 +593,16 @@ export function MapsView(): React.JSX.Element {
   )
 
   const onAddImage = useCallback((): void => {
-    void rpc
-      .request<{ path: string; url: string }[]>('gallery/list')
-      .then((imgs) => setImagePicker(imgs.map((img) => ({
-        ...img,
-        // The RPC's url is project-relative. Both the preview and the size
-        // probe need the project protocol; path stays book-relative for saving.
-        url: IMAGE_BASE_URL + img.url.split('/').map(encodeURIComponent).join('/')
-      }))))
+    void rpc.request<{ path: string; url: string }[]>('gallery/list').then((imgs) =>
+      setImagePicker(
+        imgs.map((img) => ({
+          ...img,
+          // The RPC's url is project-relative. Both the preview and the size
+          // probe need the project protocol; path stays book-relative for saving.
+          url: IMAGE_BASE_URL + img.url.split('/').map(encodeURIComponent).join('/')
+        }))
+      )
+    )
   }, [])
 
   const placeImage = useCallback(
@@ -894,10 +910,13 @@ export function MapsView(): React.JSX.Element {
   return (
     <div className="mapsview">
       <div className="map-toolbar">
-        <button className="map-tb-btn" onClick={() => setCreating(true)}>
-          <Plus size={14} strokeWidth={2} />
-          {t('map.menuNewMap')}
-        </button>
+        <DesktopViewActions>
+          {' '}
+          <button className="dialog-button primary" onClick={() => setCreating(true)}>
+            <Plus size={14} strokeWidth={2} />
+            {t('map.menuNewMap')}
+          </button>
+        </DesktopViewActions>
         {/* Every coastline used to be drawn by hand from a blank canvas, which
             is the part of mapmaking that stops a writer who is not an
             illustrator. What comes out is ordinary shapes on a layer of their
@@ -1107,7 +1126,11 @@ export function MapsView(): React.JSX.Element {
             )}
             {peek && (
               <div className="map-peek" role="dialog">
-                <button className="map-peek-close" onClick={() => setPeek(null)} title={t('dialog.cancel')}>
+                <button
+                  className="map-peek-close"
+                  onClick={() => setPeek(null)}
+                  title={t('dialog.cancel')}
+                >
                   <X size={13} />
                 </button>
                 {peek.imageUrl && (

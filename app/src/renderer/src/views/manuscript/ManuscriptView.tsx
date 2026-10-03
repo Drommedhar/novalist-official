@@ -108,14 +108,17 @@ export function ManuscriptView(): React.JSX.Element {
 
   // Only single-valued things a scene actually carries: dropping a card has to
   // be able to write the answer, which a chapter's status or act is not.
-  const groupings = useMemo(() => [
-    { key: 'stage', label: t('stages.title') },
-    { key: 'chapter', label: t('shell.chapters') },
-    { key: 'pov', label: t('common.povWatermark') },
-    ...definitions
-      .filter((d) => d.scope === 'Scene' && d.type !== 'Date')
-      .map((d) => ({ key: `prop:${d.key}`, label: d.label }))
-  ], [definitions, t])
+  const groupings = useMemo(
+    () => [
+      { key: 'stage', label: t('stages.title') },
+      { key: 'chapter', label: t('shell.chapters') },
+      { key: 'pov', label: t('common.povWatermark') },
+      ...definitions
+        .filter((d) => d.scope === 'Scene' && d.type !== 'Date')
+        .map((d) => ({ key: `prop:${d.key}`, label: d.label }))
+    ],
+    [definitions, t]
+  )
 
   return (
     <div className="manuscript">
@@ -436,8 +439,7 @@ function Corkboard(): React.JSX.Element {
   const labelColors = useMemo(() => {
     const map = new Map<string, string>()
     for (const chapter of chapters)
-      for (const scene of chapter.scenes)
-        if (scene.labelColor) map.set(scene.id, scene.labelColor)
+      for (const scene of chapter.scenes) if (scene.labelColor) map.set(scene.id, scene.labelColor)
     return map
   }, [chapters])
   /** Chapter status and act, so a card can be coloured by either. */
@@ -601,7 +603,9 @@ function FreeformCorkboard({
             void rpcClient
               .request<CardPlacement[]>('corkboard/reset')
               .then((placements) =>
-                setPlaces(Object.fromEntries(placements.map((p) => [p.sceneId, { x: p.x, y: p.y }])))
+                setPlaces(
+                  Object.fromEntries(placements.map((p) => [p.sceneId, { x: p.x, y: p.y }]))
+                )
               )
           }}
         >
@@ -678,16 +682,11 @@ function Outliner(): React.JSX.Element {
   // The writer picks which of their fields is worth a column; a dozen fields
   // is not a dozen columns anybody wants to read.
   const columns = definitions.filter((d) => d.scope === 'Scene' && d.showInOutliner)
-  // Every row is its own grid, so a bare `1fr` - which is minmax(auto, 1fr) -
-  // sizes against that row's own content. The header's long uppercase labels
-  // are wider than an input's minimum, so the heading row set columns nobody
-  // else used and the headings stopped standing over their own values. A floor
-  // of zero makes every row resolve the same way.
+  // Every row uses the same readable column floors. A narrow pane scrolls the
+  // whole grid instead of collapsing synopsis, goal and outcome to zero width.
   const grid = {
-    gridTemplateColumns:
-      `180px 160px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 100px 70px 80px${
-        ' 120px'.repeat(columns.length)
-      }`
+    gridTemplateColumns: `repeat(5, minmax(var(--nl-outliner-text-width), 1fr)) repeat(${3 + columns.length}, var(--nl-outliner-short-width))`,
+    minWidth: `calc(5 * var(--nl-outliner-text-width) + ${3 + columns.length} * var(--nl-outliner-short-width) + ${7 + columns.length} * var(--nl-space-md))`
   }
 
   return (

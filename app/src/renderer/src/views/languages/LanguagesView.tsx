@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -51,6 +52,7 @@ const BLANK: Word = {
  */
 export function LanguagesView(): React.JSX.Element {
   const { t } = useTranslation()
+  const rootRef = useRef<HTMLDivElement>(null)
   const [languages, setLanguages] = useState<Language[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
@@ -117,14 +119,26 @@ export function LanguagesView(): React.JSX.Element {
   const shown = (selected?.words ?? []).filter((w) => {
     const text = query.trim().toLowerCase()
     if (text.length === 0) return true
-    return (
-      w.word.toLowerCase().includes(text) ||
-      w.meaning.toLowerCase().includes(text)
-    )
+    return w.word.toLowerCase().includes(text) || w.meaning.toLowerCase().includes(text)
   })
 
   return (
-    <div className="dashboard languages">
+    <div className="dashboard languages" ref={rootRef}>
+      <DesktopViewActions>
+        <button
+          className="dialog-button primary"
+          onClick={() => {
+            if (!selected) {
+              setAdding(true)
+              return
+            }
+            setDraft(BLANK)
+            rootRef.current?.querySelector<HTMLInputElement>('.languages-draft input')?.focus()
+          }}
+        >
+          {t(selected ? 'desktopRefresh.addWord' : 'languages.add')}
+        </button>
+      </DesktopViewActions>
       <h1 className="dashboard-title">{t('languages.title')}</h1>
       <p className="settings-hint">{t('languages.intro')}</p>
 

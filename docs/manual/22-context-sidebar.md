@@ -1,16 +1,18 @@
 # Inspector
 
-The **Inspector** is the right-hand context sidebar of the Novalist window. For the scene open in the editor it has two tabs:
+The **Inspector** is the right-hand context sidebar of the Novalist window. For the scene open in the editor it has four tabs:
 
 - **Context** — scene context and analysis (entities, mention matrix, editable POV/emotion/intensity/conflict/tags).
 - **Footnotes** — the footnotes and comments anchored in the open scene.
 - **Inbox** — the suggested edits waiting in the open scene, every open note in the book, and your to-dos.
 
-The scene's **synopsis** and freeform **notes** live in the [scene-notes dock](02-interface-overview.md) beneath the editor (`Ctrl+Shift+N`), and the scene's **snapshot history** is opened from the **Scene snapshots** button on the writing bar above the editor. (This pane was called the context sidebar in earlier versions.)
+The **Notes** tab holds synopsis, freeform notes, goals and outcomes, relative timing, narrative mode and strand, cast and focus, and typed custom scene fields. These are also available in the [scene-notes dock](02-interface-overview.md) beneath the editor (`Ctrl+Shift+N`), and the scene's **snapshot history** is opened from the **Scene snapshots** button on the writing bar above the editor. (This pane was called the context sidebar in earlier versions.)
+
+The desktop sidebar is headed **Scene details**. It retains scene identity above the Context, Footnotes, Inbox and Notes tabs. **Expand all / Collapse all** opens or folds the context sections together; entity information, mention frequencies, scene analysis and overrides remain available.
 
 ## Toggling the Inspector
 
-- The Inspector toggle at the far right of the toolbar, or
+- **View → Toggle Inspector**, or
 - `Ctrl+Alt+I` (`Cmd+Alt+I` on macOS).
 
 **Focus mode** (`F11`) tucks the Inspector and binder away. Hover at the right edge for scene context or the left edge for the binder; the panel retreats when you move back to the page. `Ctrl+Alt+I` keeps scene context open over the page until dismissed; `Escape` returns you to writing without changing the page width.
@@ -149,9 +151,11 @@ You create footnotes and comments inside the editor (see [Editor](05-editor.md))
 
 A scene with no footnotes says so rather than showing an empty panel.
 
-## Synopsis and notes (bottom dock)
+## Notes tab
 
-The scene's **synopsis** (a short summary) and freeform **notes** are no longer in the Inspector — they live in the **scene-notes dock** beneath the editor, toggled from **View → Toggle scene notes** or `Ctrl+Shift+N`. Both save when you click away. The synopsis also appears on Manuscript corkboard cards and in the outliner table; notes are never exported.
+The **Notes** tab contains the scene's synopsis, notes, goal, outcome, relative timing, narrative mode and strand, cast and focus, and custom scene properties. Text fields save when you click away. The synopsis also appears on Manuscript cards and in the outliner.
+
+The **scene-notes dock** beneath the editor remains available through **View → Toggle scene notes** or `Ctrl+Shift+N`. While the inspector's Notes tab is visible, the dock is temporarily hidden so there is one editable copy of these fields. Switching back to another inspector tab restores the dock if you had it open.
 
 ## Scene snapshots (toolbar dialog)
 

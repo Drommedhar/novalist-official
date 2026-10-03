@@ -18,7 +18,7 @@ Languages belong to the **project**, not to a book. A language outlives the volu
 
 Each word carries what it is, what it means, its part of speech and how it sounds. All four are free text: an invented language need not have the parts of speech English does, and how you write a pronunciation — IPA, a rhyme, a note to yourself — is your business.
 
-Words are added from the row of fields under the table rather than through a dialog. Coining words happens in runs, and a dialog per word turns ten into thirty clicks. **Edit** puts an existing word back into that row.
+**Add word** beside the desktop heading clears and focuses the entry fields under the dictionary table. Words are added from those fields. Coining words happens in runs, and a dialog per word turns ten into thirty clicks. **Edit** puts an existing word back into that row.
 
 ## Finding a word
 

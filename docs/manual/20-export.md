@@ -2,6 +2,8 @@
 
 The Export view turns your book into a file you can send to a beta reader, an editor, or a publisher. Eight formats are built in: EPUB, DOCX, PDF, Markdown, Final Draft, LaTeX, Codex Markdown, and Codex PDF.
 
+On desktop, the form and **Export summary** use the available workspace width, including when maximized. The summary shows the actual title, author, format, selected contents and computed counts. The generated file determines pagination and final layout.
+
 ## Opening Export
 
 Pick the **Publish** mode in the rail, then **Export** under **Produce** in the mode panel.
@@ -32,7 +34,7 @@ On **iPhone**, open **Write** and tap **Export** above the chapter list. On **iP
   - **Select All** and **Select None** apply to the entries currently shown, so you can search for a group of entries and tick or untick them in one click without disturbing the rest of your selection.
   - The "*n* of *m*" count below the list always reports your whole selection, not just the filtered part.
 
-Click **Export**. The system file save dialog asks where to save; pick a location and filename (the extension is pre-filled to match the format). The button shows "Exporting…" while the job runs and a result line reports success or failure.
+The **Export** action stays at the bottom of the visible form while you scroll through its settings. Click **Export**. The system file save dialog asks where to save; pick a location and filename (the extension is pre-filled to match the format). The button shows "Exporting…" while the job runs and a result line reports success or failure.
 
 On **iPhone and iPad**, Novalist first creates the file, then opens the iOS share sheet. Choose **Save to Files**, AirDrop, or another app. Exports with companion files, such as Markdown with images, are shared as a **ZIP archive** containing the document and its assets. Cancelling the share sheet returns to Export without saving a copy; you can retry. Pending edits are saved before the export runs.
 

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { useDialogKeyboard } from './useDialogKeyboard'
 
 interface ConfirmDialogProps {
   title: string
@@ -18,9 +19,13 @@ export function ConfirmDialog({
   onCancel
 }: ConfirmDialogProps): React.JSX.Element {
   const { t } = useTranslation()
+  const keyboard = useDialogKeyboard(onCancel)
   return (
-    <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onCancel()}>
-      <div className="dialog-card" role="dialog" aria-label={title}>
+    <div
+      className="dialog-overlay"
+      onPointerDown={(e) => e.target === e.currentTarget && onCancel()}
+    >
+      <div className="dialog-card" role="dialog" aria-modal="true" aria-label={title} {...keyboard}>
         <div className="dialog-title">{title}</div>
         <p className="dialog-message">{message}</p>
         <div className="dialog-actions">

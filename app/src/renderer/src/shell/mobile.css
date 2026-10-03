@@ -575,9 +575,8 @@
 
 /* ── Codex on a phone ──
    The entry's editors sit behind rows (PhoneEntitySections in CodexView); this
-   is the room around them. It lives here rather than in the Codex stylesheet
-   because views/codex/codex.css is imported by nothing - anything put there
-   simply does not load. */
+   is the phone-specific room around them. Shared Codex styles load through
+   CodexView, while these rules apply only to the compact mobile shell. */
 @media (max-width: 700px) {
   .shell.mobile .codex-phone-sections {
     margin-top: var(--nl-space-xl);

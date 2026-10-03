@@ -50,7 +50,7 @@ export function DialogueView(): React.JSX.Element {
   return (
     <div className="dialogue-view">
       <aside className="dialogue-roster" aria-label={t('dialogue.roster')}>
-        <div className="dialogue-roster-title">{t('shell.view.dialogue')}</div>
+        <div className="dialogue-roster-title">{t('dialogue.roster')}</div>
         {speakers.length > 0 && (
           <div className="dialogue-roster-search">
             <Search size={13} strokeWidth={1.75} aria-hidden="true" />
@@ -132,9 +132,7 @@ export function DialogueView(): React.JSX.Element {
 
         {groups.map((group, index) => (
           <section className="dialogue-group" key={`${group.storyDate}-${index}`}>
-            <h2 className="dialogue-group-date">
-              {group.storyDate || t('dialogue.undated')}
-            </h2>
+            <h2 className="dialogue-group-date">{group.storyDate || t('dialogue.undated')}</h2>
             {group.scenes.map((scene) => (
               <DialogueSceneBlock
                 key={`${scene.chapterGuid}-${scene.sceneId}`}
@@ -187,7 +185,7 @@ function DialogueSceneBlock({
           aria-label={t('dialogue.openScene')}
           onClick={() => void goToScene()}
         >
-          <ExternalLink size={13} strokeWidth={1.75} />
+          <ExternalLink size={13} strokeWidth={1.75} /> {t('dialogue.openScene')}
         </button>
       </div>
       <ul className="dialogue-lines">
@@ -236,8 +234,7 @@ function DialogueLineRow({
   const [draft, setDraft] = useState(line.text)
   const [saving, setSaving] = useState(false)
 
-  const nameOf = (id: string): string =>
-    characters.find((c) => c.id === id)?.name ?? id
+  const nameOf = (id: string): string => characters.find((c) => c.id === id)?.name ?? id
   const suggestions = line.candidates.filter((c) => c.characterId !== speakerId)
 
   const beginEdit = (): void => {

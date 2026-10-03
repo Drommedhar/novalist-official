@@ -85,7 +85,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 ## Conventions used in this manual
 
 - **Mode** is one of the five workspaces — Write, Plan, World, Publish, Series — picked from the mode rail. A mode decides which views are one click away and what chrome the window carries.
-- **Mode rail** is the labelled rail on the far left: Dashboard, then the five modes.
+- **Mode rail** is the horizontal navigation row below the toolbar: Library, Dashboard, the five modes, Extensions and Settings.
 - **Mode panel** is the list beside the rail holding the views of the mode you are in, in labelled groups, with extension views in their own group last.
 - **Menu bar** is File / Edit / Go / View / Window / Help, always visible on Windows and Linux and in the system bar on macOS. It carries every command that acts on the application as a whole.
 - **Binder** is the left pane in Write: the chapter/scene tree, with Smart Lists, Collections and Bookmarks tabs.

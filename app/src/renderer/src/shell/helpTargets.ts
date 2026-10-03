@@ -50,6 +50,7 @@ export const INSPECTOR_HELP_TARGETS: Record<InspectorTab, ManualTarget> = {
     file: '22-context-sidebar.md',
     anchor: 'footnotes-and-comments-footnotes-tab'
   },
+  notes: { file: '22-context-sidebar.md', anchor: 'notes-tab' },
   inbox: { file: '22-context-sidebar.md', anchor: 'inbox-tab' }
 }
 

@@ -13,7 +13,12 @@ import {
 import { EditorToolbar, type FormattingState } from './EditorToolbar'
 import { useEditorBridge } from '../../stores/editorBridgeStore'
 import { useOnboardingStore } from '../../stores/onboardingStore'
-import { editorPane, useProjectStore, type ProjectStateDto, type SceneTabRef } from '../../stores/projectStore'
+import {
+  editorPane,
+  useProjectStore,
+  type ProjectStateDto,
+  type SceneTabRef
+} from '../../stores/projectStore'
 import { useShellStore } from '../../stores/shellStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useWikiStore } from '../../stores/wikiStore'
@@ -96,18 +101,83 @@ function pushEditorSettings(editor: EditorWindow, initial = false): void {
 // Speech verbs mirror DialogueCorrectionExtension.GetLanguageConfig so the
 // in-editor dialogue-punctuation pass matches the desktop build exactly.
 const DIALOGUE_VERBS_DE = [
-  'sagte', 'fragte', 'rief', 'schrie', 'flüsterte', 'erwiderte', 'antwortete', 'murmelte',
-  'brummte', 'zischte', 'seufzte', 'stöhnte', 'meinte', 'entgegnete', 'sprach', 'erklärte',
-  'bemerkte', 'bat', 'flehte', 'knurrte', 'hauchte', 'jammerte', 'klagte', 'stotterte',
-  'stammelte', 'schluchzte', 'keuchte', 'wimmerte', 'drängte', 'forderte', 'befahl', 'warnte',
-  'mahnte', 'tröstete', 'beruhigte'
+  'sagte',
+  'fragte',
+  'rief',
+  'schrie',
+  'flüsterte',
+  'erwiderte',
+  'antwortete',
+  'murmelte',
+  'brummte',
+  'zischte',
+  'seufzte',
+  'stöhnte',
+  'meinte',
+  'entgegnete',
+  'sprach',
+  'erklärte',
+  'bemerkte',
+  'bat',
+  'flehte',
+  'knurrte',
+  'hauchte',
+  'jammerte',
+  'klagte',
+  'stotterte',
+  'stammelte',
+  'schluchzte',
+  'keuchte',
+  'wimmerte',
+  'drängte',
+  'forderte',
+  'befahl',
+  'warnte',
+  'mahnte',
+  'tröstete',
+  'beruhigte'
 ]
 const DIALOGUE_VERBS_EN = [
-  'said', 'asked', 'whispered', 'shouted', 'cried', 'replied', 'answered', 'murmured',
-  'exclaimed', 'muttered', 'yelled', 'screamed', 'called', 'remarked', 'responded', 'explained',
-  'stated', 'declared', 'added', 'continued', 'insisted', 'suggested', 'wondered', 'demanded',
-  'pleaded', 'begged', 'stammered', 'stuttered', 'sobbed', 'groaned', 'sighed', 'breathed',
-  'hissed', 'snapped', 'barked', 'growled', 'urged', 'warned', 'cautioned', 'consoled'
+  'said',
+  'asked',
+  'whispered',
+  'shouted',
+  'cried',
+  'replied',
+  'answered',
+  'murmured',
+  'exclaimed',
+  'muttered',
+  'yelled',
+  'screamed',
+  'called',
+  'remarked',
+  'responded',
+  'explained',
+  'stated',
+  'declared',
+  'added',
+  'continued',
+  'insisted',
+  'suggested',
+  'wondered',
+  'demanded',
+  'pleaded',
+  'begged',
+  'stammered',
+  'stuttered',
+  'sobbed',
+  'groaned',
+  'sighed',
+  'breathed',
+  'hissed',
+  'snapped',
+  'barked',
+  'growled',
+  'urged',
+  'warned',
+  'cautioned',
+  'consoled'
 ]
 
 /** Ports DialogueCorrectionExtension.SerializeConfigJson to the client. */
@@ -404,7 +474,10 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
     [pane, openSceneId]
   )
   const entityIndexRef = useRef<
-    Map<string, { id: string; name: string; detail: string; imagePath: string | null; type: string }>
+    Map<
+      string,
+      { id: string; name: string; detail: string; imagePath: string | null; type: string }
+    >
   >(new Map())
   const openHoveredEntity = (entityType: string, entityId: string): void => {
     // A coined word has no Wiki article; it has a dictionary entry.
@@ -459,7 +532,8 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   const cancelPendingEntity = (): void => {
     const request = pendingEntity
     setPendingEntity(null)
-    if (request) editorRef.current?.resolvePendingMention(request.pendingId, null, null, request.name)
+    if (request)
+      editorRef.current?.resolvePendingMention(request.pendingId, null, null, request.name)
   }
 
   // The pane's open chapter/scene, resolved from the live chapter list so a peek
@@ -801,7 +875,9 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           if (!live) return
           editorRef.current = live
           if (useProjectStore.getState().activeEditorPaneId === pane) {
-            useEditorBridge.getState().register(live, editorPane(useProjectStore.getState(), pane).sceneId)
+            useEditorBridge
+              .getState()
+              .register(live, editorPane(useProjectStore.getState(), pane).sceneId)
           }
           pushEditorTheme(live)
           live.setLanguage(i18n.language.startsWith('de') ? 'de' : 'en')
@@ -858,7 +934,8 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           const requestId = Number(message.requestId)
           void checkGrammar(String(message.plainText ?? ''))
             .then((issues) => {
-              if (editorRef.current === editor) editor.setGrammarIssues(JSON.stringify(issues), requestId)
+              if (editorRef.current === editor)
+                editor.setGrammarIssues(JSON.stringify(issues), requestId)
             })
             .catch(() => {
               // Offline or endpoint unavailable: clear underlines quietly.
@@ -1135,25 +1212,25 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           break
         }
         case 'auditionLine': {
-            // One line, cast and directed, played where it was written. The
-            // clip goes to the same cache the reading uses and is fetched over
-            // the same protocol, so nothing about the audio path is new.
-            const { chapterGuid, sceneId } = paneIds()
-            if (!chapterGuid || !sceneId) break
-            void rpc
-              .request<{ clip: string | null }>('narration/auditionLine', [
-                chapterGuid,
-                sceneId,
-                String(message.text ?? '')
-              ])
-              .then((result) => {
-                if (result.clip === null) return
-                const audio = new Audio(`novalist-audio://clip/${result.clip}`)
-                void audio.play().catch(() => {})
-              })
-              .catch(() => {})
-            break
-          }
+          // One line, cast and directed, played where it was written. The
+          // clip goes to the same cache the reading uses and is fetched over
+          // the same protocol, so nothing about the audio path is new.
+          const { chapterGuid, sceneId } = paneIds()
+          if (!chapterGuid || !sceneId) break
+          void rpc
+            .request<{ clip: string | null }>('narration/auditionLine', [
+              chapterGuid,
+              sceneId,
+              String(message.text ?? '')
+            ])
+            .then((result) => {
+              if (result.clip === null) return
+              const audio = new Audio(`novalist-audio://clip/${result.clip}`)
+              void audio.play().catch(() => {})
+            })
+            .catch(() => {})
+          break
+        }
         case 'stopSystemSpeech': {
           void rpc.request('voices/stop').catch(() => {})
           break
@@ -1195,7 +1272,10 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
     const observer = new MutationObserver(() => {
       if (editorRef.current) pushEditorTheme(editorRef.current)
     })
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    })
 
     // Live-apply settings changes (font, typewriter, page view, config) to the editor.
     const unsubscribeSettings = useSettingsStore.subscribe(() => {
@@ -1282,7 +1362,30 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   }, [pane, openSceneId])
 
   return (
-    <div className="editor-pane" style={{ '--nl-focus-page-scale': editorFontSize / 17 } as CSSProperties}>
+    <div
+      className="editor-pane"
+      style={{ '--nl-focus-page-scale': editorFontSize / 17 } as CSSProperties}
+    >
+      {!window.novalist.isMobile && (
+        <div className="editor-scene-heading">
+          <div>
+            <strong>{peekScope.sceneTitle}</strong>
+            <small>{peekScope.chapterTitle}</small>
+          </div>
+          <button
+            className="dialog-button"
+            onClick={() => useShellStore.getState().toggleFocusMode()}
+          >
+            {t('menu.focusMode')}
+          </button>
+          <button
+            className="dialog-button"
+            onClick={() => useShellStore.getState().toggleInspector()}
+          >
+            {t('desktopRefresh.sceneDetails')}
+          </button>
+        </div>
+      )}
       <SceneTabStrip paneId={pane} />
       <EditorToolbar formatting={formatting} speaking={speaking} active={isActiveEditor} />
       {isActiveEditor && formatting.entityAtCaret && showFocusPeekTip && (
@@ -1304,10 +1407,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
             >
               {t('focusPeek.tipTry')}
             </button>
-            <button
-              className="btn-secondary"
-              onClick={() => dismissFocusPeekTip('focus-peek')}
-            >
+            <button className="btn-secondary" onClick={() => dismissFocusPeekTip('focus-peek')}>
               {t('focusPeek.tipDismiss')}
             </button>
           </div>

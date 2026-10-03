@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -18,6 +19,12 @@ interface UpdateDialogProps {
   /** App-installer download progress percent, else null. */
   progress: number | null
   downloading: boolean
+  installing: boolean
+  ready: boolean
+  manualInstall: boolean
+  checking: boolean
+  onCheck(): void
+  onInstall(): void
   /** Exact handoff failure, kept visible so a retry is informed. */
   error: string | null
   onDownload(): void
@@ -26,9 +33,9 @@ interface UpdateDialogProps {
 }
 
 /**
- * Combined update dialog. The app self-update downloads + runs the platform
- * installer; each extension update is applied inline via the store (no tab
- * switch needed, so it works from the welcome screen too).
+ * Release review with an explicit download, then install action. Downloads
+ * can continue after dismissal; installation retains the workspace save guard.
+ * Extension updates are applied inline, including from the bookshelf.
  */
 export function UpdateDialog({
   appUpdate,
@@ -37,34 +44,52 @@ export function UpdateDialog({
   updatingExtId,
   progress,
   downloading,
+  installing,
+  ready,
+  manualInstall,
+  checking,
+  onCheck,
+  onInstall,
   error,
   onDownload,
   onUpdateExt,
   onClose
 }: UpdateDialogProps): React.JSX.Element {
   const { t } = useTranslation()
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    const dialog = dialogRef.current!
+    dialog.showModal()
+    return () => { dialog.close(); previous?.focus() }
+  }, [])
   const nothing = !appUpdate && extUpdates.length === 0
+  const heading = checking ? t('desktopRefresh.checking') : error && nothing ? t('desktopRefresh.checkFailed') : nothing ? t('update.upToDate') : t('update.available')
 
   const versionLine = appUpdate
     ? t('update.versionInfo').replace('{0}', currentVersion ?? '').replace('{1}', appUpdate.version)
     : ''
 
   return (
-    <div
-      className="dialog-overlay"
-      onPointerDown={(e) => e.target === e.currentTarget && !downloading && onClose()}
-    >
-      <div
-        className="dialog-card"
-        role="dialog"
-        aria-label={t('update.available')}
-        onKeyDown={(e) => e.key === 'Escape' && !downloading && onClose()}
-      >
-        <div className="dialog-title">
-          {nothing ? t('update.upToDate') : t('update.available')}
-        </div>
-
-        {nothing && <p className="dialog-message">{t('update.upToDateDetail')}</p>}
+    <dialog ref={dialogRef} className="dialog-card update-dialog" tabIndex={-1} aria-labelledby="update-heading"
+      onCancel={(event) => { event.preventDefault(); if (!installing) onClose() }}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); if (!installing) onClose(); return }
+        if (event.key !== 'Tab') return
+        const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], [tabindex="0"]'))
+          .filter((element) => element.getClientRects().length > 0)
+        const first = controls[0], last = controls[controls.length - 1]
+        if (!first) { event.preventDefault(); event.currentTarget.focus(); return }
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === event.currentTarget)) {
+          event.preventDefault(); last?.focus()
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault(); first?.focus()
+        }
+      }}>
+        <div className="dialog-title" id="update-heading">{heading}</div>
+        {nothing && !checking && !error && <p className="dialog-message">{t('update.upToDateDetail')}</p>}
+        {error && <p className="update-error" role="alert">{error}</p>}
+        {checking && <p role="status">{t('desktopRefresh.checking')}</p>}
 
         {appUpdate && (
           <>
@@ -118,23 +143,7 @@ export function UpdateDialog({
                 </span>
               </div>
             )}
-            {error && (
-              <p className="update-error" role="alert">
-                {t('update.error').replace('{0}', error)}
-              </p>
-            )}
-            <div className="dialog-actions">
-              <button
-                className="dialog-button"
-                disabled={downloading}
-                onClick={() => void window.novalist.openExternal(RELEASES_URL)}
-              >
-                {t('update.viewRelease')}
-              </button>
-              <button className="dialog-button primary" disabled={downloading} onClick={onDownload}>
-                {t('update.downloadInstall')}
-              </button>
-            </div>
+            <p className="dialog-message" role="status">{installing ? t('desktopRefresh.installing') : ready ? t('desktopRefresh.ready') : manualInstall ? t('desktopRefresh.manualInstall') : t('desktopRefresh.downloadHint')}</p>
           </>
         )}
 
@@ -148,7 +157,7 @@ export function UpdateDialog({
                 </span>
                 <button
                   className="dialog-button"
-                  disabled={downloading || updatingExtId !== null}
+                  disabled={installing || updatingExtId !== null}
                   onClick={() => onUpdateExt(u)}
                 >
                   {updatingExtId === u.extensionId ? t('update.updating') : t('update.updateAction')}
@@ -159,11 +168,15 @@ export function UpdateDialog({
         )}
 
         <div className="dialog-actions">
-          <button className="dialog-button" disabled={downloading} onClick={onClose}>
-            {nothing ? t('dialog.close') : t('update.later')}
+          {appUpdate && <button className="dialog-button" disabled={installing} onClick={() => void window.novalist.openExternal(RELEASES_URL)}>{t('update.viewRelease')}</button>}
+          {!appUpdate && <button className="dialog-button" disabled={checking || installing} onClick={onCheck}>{t('desktopRefresh.retryCheck')}</button>}
+          {appUpdate && !manualInstall && <button className="dialog-button primary" disabled={downloading || installing || checking || updatingExtId !== null} onClick={ready ? onInstall : onDownload}>
+            {ready ? t('desktopRefresh.install') : t('desktopRefresh.download')}
+          </button>}
+          <button className="dialog-button" disabled={installing} onClick={onClose}>
+            {downloading ? t('desktopRefresh.continueWriting') : nothing ? t('dialog.close') : t('update.later')}
           </button>
         </div>
-      </div>
-    </div>
+    </dialog>
   )
 }

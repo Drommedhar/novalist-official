@@ -37,10 +37,12 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ### Interface
 
+- **Desktop workspace layout** — horizontal navigation, system sans-serif controls and flat surfaces; a bookshelf library and dashboard artwork; consistent view headings and actions, tabbed Codex and Research, a cast-and-reading layout for Narration, and complete scene context beside the editor.
+
 - **Five workspaces** — Write, Plan, World, Publish and Series, each with the views it holds listed beside it, plus a Dashboard to come back to. Picking a workspace decides what the window looks like: the binder, the inspector and the scene-notes dock belong to Write, where there are chapters and scenes to act on.
 - **One command, one place** — where a command lives follows from what it acts on. Selected text, the thing under the pointer, the paragraph, the project, the application: each has one home, everywhere in the app, and the build refuses a change that gives a command two.
 - **A menu bar that is an index of the application** — File, Edit, Go, View, Window and Help, generated from Novalist's own list of commands so it cannot drift out of step with the palette, and always visible on Windows and Linux.
-- **Scene context & analysis inspector** — the right sidebar's **Context** tab shows the entities present in the current scene, a cross-chapter mention matrix, and an auto-computed scene analysis (POV, emotion, intensity, conflict, tags) with manual overrides; the **Footnotes** tab lists footnotes and comments. Synopsis and notes live in the bottom scene-notes dock.
+- **Scene context & analysis inspector** — the right sidebar's **Context** tab shows the entities present in the current scene, a cross-chapter mention matrix, and an auto-computed scene analysis (POV, emotion, intensity, conflict, tags) with manual overrides; the **Footnotes** tab lists footnotes and comments. The **Inbox** tab gathers suggestions, tasks and saved fragments; **Notes** provides synopsis, notes, goal/outcome, timing, cast and custom fields, also available in the optional bottom dock.
 - **Project to-dos** — keep loose tasks and named checklists in the desktop Inspector's **Inbox** tab or **Write → Inspector → To do** on iPad and iPhone. The same tasks travel with the project, separately from Scene Notes.
 - **Command palette** (`Ctrl+Shift+P`) that lists every command in the app, offers only the ones that can run right now, and shows the gesture bound to each — and any of them can be given one.
 - **A layout that follows the window** — measured from the window itself rather than the monitor, so a narrow window on a wide screen reflows properly and moving between displays of different scaling reflows again without a restart.

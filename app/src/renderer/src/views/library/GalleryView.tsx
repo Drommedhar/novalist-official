@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FolderPlus, ImagePlus, LayoutGrid, List, Tag } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -40,6 +41,7 @@ export function GalleryView(): React.JSX.Element {
   const [tag, setTag] = useState('')
   const [listView, setListView] = useState(false)
   const [lightbox, setLightbox] = useState<GalleryImage | null>(null)
+  const lightboxRef = useRef<HTMLDialogElement>(null)
   const [menu, setMenu] = useState<{ x: number; y: number; img: GalleryImage } | null>(null)
 
   const load = (): void => {
@@ -49,6 +51,15 @@ export function GalleryView(): React.JSX.Element {
   useEffect(() => {
     load()
   }, [])
+
+  useEffect(() => {
+    if (lightbox) lightboxRef.current?.showModal()
+  }, [lightbox])
+
+  const closeLightbox = (): void => {
+    lightboxRef.current?.close()
+    setLightbox(null)
+  }
 
   const query = search.trim().toLowerCase()
   const filtered = images.filter(
@@ -93,8 +104,14 @@ export function GalleryView(): React.JSX.Element {
       label: t('imageGallery.copyMarkdown'),
       run: () => window.novalist.copyText(`![${stem(menu.img.path)}](${menu.img.path})`)
     },
-    { label: t('imageGallery.openExternally'), run: () => void window.novalist.openExternal(menu.img.url) },
-    { label: t('imageGallery.openInExplorer'), run: () => void window.novalist.revealPath(menu.img.url) },
+    {
+      label: t('imageGallery.openExternally'),
+      run: () => void window.novalist.openExternal(menu.img.url)
+    },
+    {
+      label: t('imageGallery.openInExplorer'),
+      run: () => void window.novalist.revealPath(menu.img.url)
+    },
     { label: t('imageGallery.fileInto'), run: () => fileInto(menu.img) },
     { label: t('imageGallery.retag'), run: () => retag(menu.img) }
   ]
@@ -140,9 +157,12 @@ export function GalleryView(): React.JSX.Element {
             ))}
           </select>
         )}
-        <button className="btn-secondary" onClick={importImages}>
-          <ImagePlus size={14} strokeWidth={2} /> {t('imageGallery.import')}
-        </button>
+        <DesktopViewActions>
+          {' '}
+          <button className="dialog-button primary" onClick={importImages}>
+            <ImagePlus size={14} strokeWidth={2} /> {t('imageGallery.import')}
+          </button>
+        </DesktopViewActions>
         <div className="toolbar-spacer" />
         <div className="gallery-viewtoggle">
           <button
@@ -151,7 +171,7 @@ export function GalleryView(): React.JSX.Element {
             aria-label={t('imageGallery.gridView')}
             onClick={() => setListView(false)}
           >
-            <LayoutGrid size={16} strokeWidth={2} />
+            <LayoutGrid size={16} strokeWidth={2} /> {t('imageGallery.gridView')}
           </button>
           <button
             className={`gallery-viewtoggle-btn${listView ? ' active' : ''}`}
@@ -159,7 +179,7 @@ export function GalleryView(): React.JSX.Element {
             aria-label={t('imageGallery.listView')}
             onClick={() => setListView(true)}
           >
-            <List size={16} strokeWidth={2} />
+            <List size={16} strokeWidth={2} /> {t('imageGallery.listView')}
           </button>
         </div>
         <span className="inspector-meta">
@@ -183,7 +203,12 @@ export function GalleryView(): React.JSX.Element {
               onClick={() => setLightbox(img)}
               onContextMenu={(e) => openMenu(e, img)}
             >
-              <img className="gallery-list-thumb" src={src(img.url)} alt={img.path} loading="lazy" />
+              <img
+                className="gallery-list-thumb"
+                src={src(img.url)}
+                alt={img.path}
+                loading="lazy"
+              />
               <span className="gallery-list-text">
                 <span className="gallery-list-name">{stem(img.path)}</span>
                 <span className="gallery-list-path">{img.path}</span>
@@ -208,23 +233,38 @@ export function GalleryView(): React.JSX.Element {
       ) : (
         <div className="gallery-grid">
           {filtered.map((img) => (
-            <figure
+            <button
+              type="button"
               key={img.path}
               className="gallery-item"
               onClick={() => setLightbox(img)}
               onContextMenu={(e) => openMenu(e, img)}
             >
               <img src={src(img.url)} alt={img.path} loading="lazy" />
-              <figcaption title={img.path}>{baseName(img.path)}</figcaption>
-            </figure>
+              <span className="gallery-caption" title={img.path}>
+                <strong>{stem(img.path)}</strong>
+                <small>{img.collection || img.path}</small>
+              </span>
+            </button>
           ))}
         </div>
       )}
       {lightbox && (
-        <div className="gallery-lightbox" onClick={() => setLightbox(null)}>
+        <dialog
+          ref={lightboxRef}
+          className="gallery-lightbox"
+          aria-label={baseName(lightbox.path)}
+          onCancel={(event) => { event.preventDefault(); closeLightbox() }}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) closeLightbox()
+          }}
+        >
           <img src={src(lightbox.url)} alt={lightbox.path} />
           <span className="gallery-lightbox-name">{baseName(lightbox.path)}</span>
-        </div>
+          <button className="dialog-button" onClick={closeLightbox}>
+            {t('dialog.close')}
+          </button>
+        </dialog>
       )}
       {menu && menuActions && (
         <>

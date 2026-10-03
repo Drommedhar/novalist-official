@@ -1,3 +1,4 @@
+import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
@@ -120,11 +121,7 @@ export function StyleView(): React.JSX.Element {
     try {
       if (scope === 'scene' && openChapterGuid && openSceneId) {
         setReport(
-          await rpc.request<StyleReport>('style/scene', [
-            openChapterGuid,
-            openSceneId,
-            textScope
-          ])
+          await rpc.request<StyleReport>('style/scene', [openChapterGuid, openSceneId, textScope])
         )
         // Only for one scene: a POV belongs to a scene, and running this over
         // a whole book would compare every scene against the last POV read.
@@ -167,36 +164,38 @@ export function StyleView(): React.JSX.Element {
     <div className="style-view">
       <div className="style-header">
         <h2>{t('style.title')}</h2>
-        <div className="style-scopes">
-          {(['book', 'chapter', 'scene'] as Scope[]).map((s) => (
-            <button
-              key={s}
-              className={`dialog-button${scope === s ? ' active' : ''}`}
-              disabled={scopeDisabled(s)}
-              onClick={() => setScope(s)}
-            >
-              {t(`style.scope.${s}`)}
-            </button>
-          ))}
-          {/* Narration and dialogue are different writing and read differently.
+        <DesktopViewActions>
+          <div className="style-scopes">
+            {(['book', 'chapter', 'scene'] as Scope[]).map((s) => (
+              <button
+                key={s}
+                className={`dialog-button${scope === s ? ' active' : ''}`}
+                disabled={scopeDisabled(s)}
+                onClick={() => setScope(s)}
+              >
+                {t(`style.scope.${s}`)}
+              </button>
+            ))}
+            {/* Narration and dialogue are different writing and read differently.
               Measuring them together is what makes a report tell somebody their
               character speaks badly. */}
-          <select
-            className="dialog-input style-text-scope"
-            aria-label={t('style.textScope')}
-            value={textScope}
-            onChange={(e) => setTextScope(e.target.value as TextScope)}
-          >
-            {TEXT_SCOPES.map((ts) => (
-              <option key={ts} value={ts}>
-                {t(`style.textScope${ts}`)}
-              </option>
-            ))}
-          </select>
-          <button className="dialog-button" disabled={busy} onClick={() => void run()}>
-            {t('style.refresh')}
-          </button>
-        </div>
+            <select
+              className="dialog-input style-text-scope"
+              aria-label={t('style.textScope')}
+              value={textScope}
+              onChange={(e) => setTextScope(e.target.value as TextScope)}
+            >
+              {TEXT_SCOPES.map((ts) => (
+                <option key={ts} value={ts}>
+                  {t(`style.textScope${ts}`)}
+                </option>
+              ))}
+            </select>
+            <button className="dialog-button" disabled={busy} onClick={() => void run()}>
+              {t('style.refresh')}
+            </button>
+          </div>
+        </DesktopViewActions>
       </div>
 
       <p className="settings-hint">{t('style.description')}</p>
@@ -213,14 +212,8 @@ export function StyleView(): React.JSX.Element {
               hint={t('style.variationHint')}
             />
             <Stat label={t('style.longest')} value={String(report.longestSentenceWords)} />
-            <Stat
-              label={t('style.paragraphs')}
-              value={report.paragraphCount.toLocaleString()}
-            />
-            <Stat
-              label={t('style.meanParagraph')}
-              value={String(report.meanParagraphWords)}
-            />
+            <Stat label={t('style.paragraphs')} value={report.paragraphCount.toLocaleString()} />
+            <Stat label={t('style.meanParagraph')} value={String(report.meanParagraphWords)} />
             {/* The well-known one is sentence variation; a chapter of
                 identically-sized paragraphs reads as flat for the same reason
                 and is just as invisible while writing it. */}
@@ -353,9 +346,7 @@ export function StyleView(): React.JSX.Element {
                     <button
                       className="style-continuity-jump"
                       onClick={() =>
-                        void useProjectStore
-                          .getState()
-                          .openScene(scene.chapterGuid, scene.sceneId)
+                        void useProjectStore.getState().openScene(scene.chapterGuid, scene.sceneId)
                       }
                     >
                       {scene.chapterTitle} - {scene.sceneTitle}
@@ -392,7 +383,9 @@ export function StyleView(): React.JSX.Element {
                   )}
                 </button>
 
-                {f.supported && <div className="settings-hint">{t(`style.reportDesc.${f.key}`)}</div>}
+                {f.supported && (
+                  <div className="settings-hint">{t(`style.reportDesc.${f.key}`)}</div>
+                )}
 
                 {expanded === f.key && (
                   <ul className="style-examples">

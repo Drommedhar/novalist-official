@@ -95,6 +95,8 @@
   /* Calendar time tracks keep the same hour scale at every density. */
   --nl-calendar-hour-height: 48px;
   --nl-calendar-time-gutter: 56px;
+  --nl-outliner-text-width: 160px;
+  --nl-outliner-short-width: 100px;
 
   /* Content measure: the brand column and the 66ch prose limit. */
   --nl-measure: var(--nv-measure);
@@ -581,4 +583,39 @@
   --nl-scrollbar-thumb: #45475a;
   --nl-scrollbar-thumb-hover: #585b70;
   --nl-scrollbar-thumb-active: #6c7086;
+}
+
+/* Desktop controls use the operating system's UI face. Manuscripts, book
+   covers and user-selected editor fonts retain their literary typography. */
+:root[data-shell='desktop'] {
+  --nl-font-prose-face: 'Newsreader', Georgia, 'Songti SC', 'SimSun', serif;
+  --nl-font-book-face: 'Fraunces', Georgia, 'Songti SC', 'SimSun', serif;
+  --nl-font-family: system-ui, -apple-system, 'Segoe UI', 'Noto Sans', sans-serif;
+  --nl-font-display-face: var(--nl-font-family);
+  --nl-text-subtle: var(--nl-text-dim);
+  --nl-radius-sm: 4px;
+  --nl-radius-md: 6px;
+  --nl-radius-lg: 8px;
+  --nl-radius-xl: 10px;
+  --nl-foil: var(--nl-accent);
+  --nl-elevation-low: none;
+  --nl-elevation-md: none;
+  --nl-mode-panel-width: 256px;
+  --nl-mode-header-height: 44px;
+  --nl-local-nav-max-height: 280px;
+  --nl-compact-nav-height: 160px;
+  --nl-form-width: 960px;
+  --nl-form-column-width: 300px;
+  --nl-border-control: color-mix(in srgb, var(--nl-text) 45%, var(--nl-surface-input));
+  --nl-detail-width: 1100px;
+  --nl-workspace-width: 1440px;
+  --nl-master-width: 264px;
+  --nl-cast-width: 400px;
+  --nl-gallery-card-width: 200px;
+  --nl-entity-avatar-size: 64px;
+  --nl-context-avatar-size: 32px;
+  --nl-book-cover-width: 140px;
+  --nl-book-banner-height: 200px;
+  --nl-view-control-height: 36px;
+  --nl-timeline-date-width: 112px;
 }

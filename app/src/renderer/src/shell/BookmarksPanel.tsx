@@ -5,6 +5,7 @@ import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
 import { useShellStore } from '../stores/shellStore'
 import { useWikiStore } from '../stores/wikiStore'
+import { openBinderScene } from './binderNavigation'
 
 export interface BookmarkDto {
   id: string
@@ -47,7 +48,7 @@ export function BookmarksPanel(): React.JSX.Element {
     switch (bookmark.kind) {
       case 'Scene':
         if (bookmark.chapterGuid && bookmark.targetId) {
-          void useProjectStore.getState().openScene(bookmark.chapterGuid, bookmark.targetId)
+          openBinderScene(bookmark.chapterGuid, bookmark.targetId)
         }
         break
       case 'Chapter':
@@ -58,7 +59,7 @@ export function BookmarksPanel(): React.JSX.Element {
             .getState()
             .chapters.find((c) => c.guid === bookmark.chapterGuid)
           const first = chapter?.scenes[0]
-          if (chapter && first) void useProjectStore.getState().openScene(chapter.guid, first.id)
+          if (chapter && first) openBinderScene(chapter.guid, first.id)
         }
         break
       case 'Entity':
@@ -119,40 +120,40 @@ export function BookmarksPanel(): React.JSX.Element {
             .filter((b) => (b.group ?? '') === group)
             .map((bookmark) => (
               <div key={bookmark.id} className="bookmarks-entry">
-              <div className="bookmarks-row">
-                {/* A bookmark that only navigates makes you go and look to
+                <div className="bookmarks-row">
+                  {/* A bookmark that only navigates makes you go and look to
                     remember why you kept it - thirty trips for thirty marks. */}
-                <button
-                  className="binder-expand"
-                  aria-label={t('bookmarks.preview')}
-                  title={t('bookmarks.preview')}
-                  onClick={() => toggle(bookmark.id)}
-                >
-                  <ChevronRight
-                    size={13}
-                    strokeWidth={2}
-                    className={`binder-chevron${open.has(bookmark.id) ? ' open' : ''}`}
-                  />
-                </button>
-                <button className="binder-scene-row" onClick={() => go(bookmark)}>
-                  <BookmarkIcon size={13} strokeWidth={2} />
-                  <span className="binder-scene-title">{bookmark.label}</span>
-                </button>
-                <button
-                  className="binder-expand"
-                  aria-label={t('bookmarks.remove')}
-                  onClick={() => remove(bookmark.id)}
-                >
-                  <Trash2 size={13} strokeWidth={2} />
-                </button>
-              </div>
-              {open.has(bookmark.id) && (
-                <div className="bookmarks-preview">
-                  {previews[bookmark.id] === undefined
-                    ? t('bookmarks.previewLoading')
-                    : previews[bookmark.id] || t('bookmarks.previewNone')}
+                  <button
+                    className="binder-expand"
+                    aria-label={t('bookmarks.preview')}
+                    title={t('bookmarks.preview')}
+                    onClick={() => toggle(bookmark.id)}
+                  >
+                    <ChevronRight
+                      size={13}
+                      strokeWidth={2}
+                      className={`binder-chevron${open.has(bookmark.id) ? ' open' : ''}`}
+                    />
+                  </button>
+                  <button className="binder-scene-row" onClick={() => go(bookmark)}>
+                    <BookmarkIcon size={13} strokeWidth={2} />
+                    <span className="binder-scene-title">{bookmark.label}</span>
+                  </button>
+                  <button
+                    className="binder-expand"
+                    aria-label={t('bookmarks.remove')}
+                    onClick={() => remove(bookmark.id)}
+                  >
+                    <Trash2 size={13} strokeWidth={2} />
+                  </button>
                 </div>
-              )}
+                {open.has(bookmark.id) && (
+                  <div className="bookmarks-preview">
+                    {previews[bookmark.id] === undefined
+                      ? t('bookmarks.previewLoading')
+                      : previews[bookmark.id] || t('bookmarks.previewNone')}
+                  </div>
+                )}
               </div>
             ))}
         </div>

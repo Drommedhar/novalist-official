@@ -10,6 +10,7 @@ import {
 import { editorPane, useProjectStore } from '../stores/projectStore'
 import { PaneHeader } from './PaneHeader'
 import { ViewIntro } from './ViewIntro'
+import { DesktopViewFrame } from './DesktopViewFrame'
 import { EditorFrame } from '../views/editor/EditorFrame'
 import { CodexView } from '../views/codex/CodexView'
 import { WikiView } from '../views/wiki/WikiView'
@@ -123,17 +124,21 @@ function PaneTree({
   return (
     <div
       ref={leafRef}
+      data-view={node.view}
       className={`pane-leaf${!only && node.id === activePaneId ? ' active' : ''}`}
       // Capture, so clicking anything inside a pane makes it the active one
       // without every view having to know panes exist.
       onPointerDownCapture={() => setActivePane(node.id)}
+      onFocusCapture={() => setActivePane(node.id)}
     >
       {(headers === 'always' || !only) && <PaneHeader paneId={node.id} view={node.view} />}
       {/* What this view is for, the first time it is opened. Above the content
           rather than over it: a screen you are being told about is a screen you
           should be able to see. */}
       <ViewIntro view={node.view} />
-      <MainAreaContent view={node.view} paneId={node.id} />
+      <DesktopViewFrame view={node.view}>
+        <MainAreaContent view={node.view} paneId={node.id} />
+      </DesktopViewFrame>
     </div>
   )
 }
@@ -170,7 +175,7 @@ function PaneDivider({
     handle.setPointerCapture(event.pointerId)
 
     const move = (e: PointerEvent): void => {
-      const delta = ((row ? e.clientX : e.clientY) - start) / total * 100
+      const delta = (((row ? e.clientX : e.clientY) - start) / total) * 100
       // A pane can be made small but never nothing: a slot dragged to zero is
       // one the writer can no longer grab to bring back.
       const shift = Math.max(-before + 10, Math.min(after - 10, delta))
@@ -206,15 +211,23 @@ function MainAreaContent({ view, paneId }: { view: MainView; paneId: string }): 
   const openSceneId = useProjectStore((s) => editorPane(s, paneId).sceneId)
   const isLoaded = useProjectStore((s) => s.isLoaded)
   const writing = view === 'write' && !extView
-  return <>
-    {(writing || keepEditor) && <main className="main-area" style={writing ? undefined : { display: 'none' }}>
-      {openSceneId ? <EditorFrame paneId={paneId} /> : <div className="main-placeholder">
-        <h1>{t('shell.view.write')}</h1>
-        <p>{t(isLoaded ? 'shell.paneAwaitingScene' : 'shell.binderEmpty')}</p>
-      </div>}
-    </main>}
-    {!writing && <NonWritingContent view={view} />}
-  </>
+  return (
+    <>
+      {(writing || keepEditor) && (
+        <main className="main-area" style={writing ? undefined : { display: 'none' }}>
+          {openSceneId ? (
+            <EditorFrame paneId={paneId} />
+          ) : (
+            <div className="main-placeholder">
+              <h1>{t('shell.view.write')}</h1>
+              <p>{t(isLoaded ? 'shell.paneAwaitingScene' : 'shell.binderEmpty')}</p>
+            </div>
+          )}
+        </main>
+      )}
+      {!writing && <NonWritingContent view={view} />}
+    </>
+  )
 }
 
 function NonWritingContent({ view }: { view: MainView }): React.JSX.Element {

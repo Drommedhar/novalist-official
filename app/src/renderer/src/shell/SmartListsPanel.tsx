@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronRight, Plus, RefreshCw } from 'lucide-react'
 import { rpc } from '../rpc/client'
-import { useBookScope, useProjectStore } from '../stores/projectStore'
+import { useBookScope } from '../stores/projectStore'
 import { ContextMenu } from './ContextMenu'
 import { ConfirmDialog } from './ConfirmDialog'
 import { SmartListEditor, type SmartListDraft } from './SmartListEditor'
+import { openBinderScene } from './binderNavigation'
 
 /** One condition in a saved list. */
 export interface SmartListRule {
@@ -29,9 +30,7 @@ interface SmartListMatch {
 }
 
 type Pending =
-  | { kind: 'create' }
-  | { kind: 'edit'; list: SmartListDto }
-  | { kind: 'delete'; list: SmartListDto }
+  { kind: 'create' } | { kind: 'edit'; list: SmartListDto } | { kind: 'delete'; list: SmartListDto }
 
 export function SmartListsPanel(): React.JSX.Element {
   const { t } = useTranslation()
@@ -89,7 +88,11 @@ export function SmartListsPanel(): React.JSX.Element {
               setMenu({ x: e.clientX, y: e.clientY, list })
             }}
           >
-            <button className="binder-expand" aria-label={list.name} onClick={() => toggle(list.id)}>
+            <button
+              className="binder-expand"
+              aria-label={list.name}
+              onClick={() => toggle(list.id)}
+            >
               <ChevronRight
                 size={13}
                 strokeWidth={2}
@@ -112,9 +115,7 @@ export function SmartListsPanel(): React.JSX.Element {
               <button
                 key={match.sceneId}
                 className="binder-scene-row"
-                onClick={() =>
-                  void useProjectStore.getState().openScene(match.chapterGuid, match.sceneId)
-                }
+                onClick={() => openBinderScene(match.chapterGuid, match.sceneId)}
               >
                 <span className="binder-scene-title">
                   {match.chapterTitle} - {match.sceneTitle}

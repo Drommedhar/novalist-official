@@ -38,6 +38,7 @@ for (const type of ['character', 'faction']) {
       const template = templates.find((t) => t.name === 'Custom field template')!
       const entity = await h.rpc<{ id: string }>('entities/create', [type, 'The Watch', template.id])
       await openEntry(h, type, entity.id)
+      if (type === 'character') await h.page.locator('.codex-entry-tabs').getByRole('button', { name: 'Details', exact: true }).click()
       const field = (key: string) => type === 'character'
         ? h.page.locator('.entity-rel-row').filter({ hasText: key }).getByRole('textbox')
         : h.page.getByRole('textbox', { name: key, exact: true })
@@ -51,6 +52,7 @@ for (const type of ['character', 'faction']) {
       }).toBe('The hidden gate')
       await h.page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
       await openEntry(h, type, entity.id)
+      if (type === 'character') await h.page.locator('.codex-entry-tabs').getByRole('button', { name: 'Details', exact: true }).click()
       await expect(field('Secret')).toHaveValue('The hidden gate')
     } finally {
       await h.close()
