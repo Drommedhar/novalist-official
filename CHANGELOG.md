@@ -21,6 +21,12 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.5.1] - 2026-10-03
+
 ### Fixed
 
 - Starting a new paragraph after a commented word no longer carries the yellow highlight into subsequent text. Deleting a comment removes its highlights, and reopening a scene clears highlights left by previously deleted comments.
@@ -1677,7 +1683,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.5...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.5.1...HEAD
+[3.5.1]: https://github.com/Drommedhar/novalist-official/compare/v3.5...v3.5.1
 [3.5]: https://github.com/Drommedhar/novalist-official/compare/v3.4.2...v3.5
 [3.4.2]: https://github.com/Drommedhar/novalist-official/compare/v3.4.1...v3.4.2
 [3.4.1]: https://github.com/Drommedhar/novalist-official/compare/v3.4...v3.4.1
