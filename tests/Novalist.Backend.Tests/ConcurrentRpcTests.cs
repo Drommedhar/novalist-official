@@ -1,4 +1,5 @@
 using Novalist.Backend;
+using Novalist.Backend.Extensions;
 using Novalist.Backend.Rpc;
 using Xunit;
 
@@ -81,18 +82,19 @@ public sealed class ConcurrentRpcTests : IDisposable
         // Enough extension folders that discovery takes long enough to overlap.
         var extensions = Path.Combine(_root, "settings", "Extensions");
         Directory.CreateDirectory(extensions);
+        _workspace.ExtensionsLoaderOverride = new ExtensionLoader(extensions, bundledDir: "", disabled: false);
         for (var i = 0; i < 20; i++)
         {
             var folder = Path.Combine(extensions, "spec.ext" + i);
             Directory.CreateDirectory(folder);
-            File.WriteAllText(Path.Combine(folder, "manifest.json"),
+            File.WriteAllText(Path.Combine(folder, "extension.json"),
                 "{\"id\":\"spec.ext" + i + "\",\"name\":\"Spec " + i
                 + "\",\"version\":\"1.0.0\",\"description\":\"d\",\"author\":\"a\"}");
         }
 
         var rpc = new ExtensionsRpc(_workspace);
         var expected = (await rpc.LoadAsync()).Length;
-        Assert.True(expected > 0, "the fixture should install something to find");
+        Assert.Equal(20, expected);
 
         // Every screen that shows extensions asks on mount, and Settings shows
         // them alongside the contributed settings pages - so two or three of

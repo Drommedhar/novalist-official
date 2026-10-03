@@ -199,6 +199,38 @@ public class ExtensionManagerTests
 
     private const string ThrowingId = "test.throwing";
 
+    [Fact]
+    public async Task DictationContributor_FollowsExtensionLoadDisableEnableAndShutdown()
+    {
+        using var ext = new TempDir();
+        DeployThrowing(ext.Path);
+        var (mgr, _) = Build(ext.Path);
+
+        await mgr.LoadAllAsync();
+        var info = Assert.Single(mgr.Extensions);
+        Assert.True(info.IsLoaded, info.LoadError);
+        var first = Assert.Single(mgr.DictationContributors);
+        Assert.Same(info.Instance, first);
+        Assert.Equal("test.dictation", first.DictationId);
+
+        await mgr.LoadAllAsync();
+        Assert.Same(first, Assert.Single(mgr.DictationContributors));
+
+        await mgr.DisableExtensionAsync(ThrowingId);
+        Assert.False(info.IsLoaded);
+        Assert.Empty(mgr.DictationContributors);
+
+        await mgr.EnableExtensionAsync(ThrowingId);
+        Assert.True(info.IsLoaded, info.LoadError);
+        var reloaded = Assert.Single(mgr.DictationContributors);
+        Assert.Same(info.Instance, reloaded);
+        Assert.NotSame(first, reloaded);
+
+        mgr.ShutdownAll();
+        Assert.False(info.IsLoaded);
+        Assert.Empty(mgr.DictationContributors);
+    }
+
     private static void DeployThrowing(string extRoot)
     {
         var folder = Path.Combine(extRoot, "Throwing");

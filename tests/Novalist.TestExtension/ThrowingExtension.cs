@@ -12,13 +12,24 @@ namespace Novalist.TestExtension;
 /// env-var-controlled grammar contributor. Used to exercise the host's
 /// error-handling paths for misbehaving extensions. Not a usable extension.
 /// </summary>
-public sealed class ThrowingExtension : IExtension, IGrammarCheckContributor
+public sealed class ThrowingExtension : IExtension, IGrammarCheckContributor, IDictationContributor
 {
     public string Id => "test.throwing";
     public string DisplayName => "Throwing Test Extension";
     public string Description => "Throws on demand for host error-path tests.";
     public string Version => "1.0.0";
     public string Author => "Tests";
+
+    // Deterministic provider for extension registration and removal tests.
+    public string DictationId => "test.dictation";
+    public string DictationName => "Test Dictation";
+    public bool IsDictationAvailable => true;
+    public string AudioDestination => "Test fixture";
+    public string FormattingDestination => "Test fixture";
+    public Task<string> TranscribeAsync(byte[] audio, string mimeType, string language,
+        CancellationToken cancellationToken = default) => Task.FromResult("Test transcript");
+    public Task<IReadOnlyList<DictationSegment>> DetectDialogueAsync(string transcript, string language, string precedingText,
+        CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<DictationSegment>>([new(transcript, "narration")]);
 
     public void Initialize(IHostServices host)
     {
