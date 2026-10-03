@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape
 
 
@@ -14,6 +15,32 @@ ROOT = Path(__file__).resolve().parent.parent
 
 @unittest.skipUnless(shutil.which("dotnet"), ".NET SDK required")
 class AppleSpeechBuildTests(unittest.TestCase):
+    def test_mobile_project_graph_has_no_duplicate_build_outputs(self):
+        with tempfile.TemporaryDirectory(prefix="novalist-ios-graph-") as directory:
+            project = Path(directory) / "Probe.csproj"
+            targets = Path(directory) / "Inspect.targets"
+            mobile = ROOT / "Novalist.Mobile" / "Novalist.Mobile.csproj"
+            references = ET.parse(mobile).findall(".//ProjectReference")
+            for reference in references:
+                reference.set("Include", str((mobile.parent / reference.get("Include").replace("\\", "/")).resolve()))
+            project.write_text('''<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+  <ItemGroup>''' + "".join(ET.tostring(reference, encoding="unicode") for reference in references)
+                + "</ItemGroup></Project>")
+            targets.write_text('''<Project>
+<ItemGroup><ProjectReferenceTargets Include="InspectBuildOutput" Targets="InspectBuildOutput" /></ItemGroup>
+<Target Name="InspectBuildOutput">
+  <Message Importance="high" Text="BUILD_OUTPUT|$(TargetPath)" />
+</Target></Project>''')
+            result = subprocess.run([
+                "dotnet", "msbuild", str(project), "-graphBuild", "-t:InspectBuildOutput",
+                "-p:RuntimeIdentifier=ios-arm64", f"-p:CustomAfterMicrosoftCommonTargets={targets}",
+            ], capture_output=True, text=True, timeout=60, check=True)
+            outputs = [line.split("BUILD_OUTPUT|", 1)[1] for line in result.stdout.splitlines()
+                       if "BUILD_OUTPUT|" in line]
+            self.assertGreaterEqual(len(outputs), 4)
+            self.assertEqual(len(outputs), len(set(outputs)), result.stdout)
+
     def test_ios_restore_graph_excludes_desktop_web_runtime(self):
         # NuGet restore does not use ProjectReference.AdditionalProperties.
         # Exercise the graph (not just MSBuild evaluation) without an Apple SDK.

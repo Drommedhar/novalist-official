@@ -56,7 +56,7 @@
     <!-- The C# core and RPC facades ship unchanged (the reuse win). -->
     <!-- Match the backend's global properties so its shared dependencies are
          built once, rather than racing to write the same Core/Sdk outputs. -->
-    <ProjectReference Include="..\Novalist.Core\Novalist.Core.csproj" AdditionalProperties="BuildAppleDesktopSpeech=false" />
+    <ProjectReference Include="..\Novalist.Core\Novalist.Core.csproj" AdditionalProperties="BuildAppleDesktopSpeech=false;EnableImportApi=false" />
     <!-- The local import server uses the desktop ASP.NET Core runtime. -->
     <ProjectReference Include="..\Novalist.Backend\Novalist.Backend.csproj" AdditionalProperties="BuildAppleDesktopSpeech=false;EnableImportApi=false" />
   </ItemGroup>
