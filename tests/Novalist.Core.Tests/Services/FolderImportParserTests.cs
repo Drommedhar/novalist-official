@@ -7,6 +7,27 @@ namespace Novalist.Core.Tests.Services;
 
 public sealed class FolderImportParserTests
 {
+    [Theory]
+    [InlineData("md", "\n", "\n")]
+    [InlineData("md", "\r\n", "\r\n")]
+    [InlineData("md", "\r\n", "\n")]
+    [InlineData("txt", "\n", "\n")]
+    [InlineData("txt", "\r\n", "\r\n")]
+    [InlineData("txt", "\r\n", "\n")]
+    public void Source_PreservesWritingWithLfLineEndings(string extension, string headerNewline, string bodyNewline)
+    {
+        var source = $"---{headerNewline}name: Ada{headerNewline}---{headerNewline}Age: 32{bodyNewline}Unmapped **writing**.";
+        const string expectedSource = "---\nname: Ada\n---\nAge: 32\nUnmapped **writing**.";
+        var parsed = new FolderImportParser(new FolderImportSchema()).Parse($"one.{extension}", source, "character");
+        var character = new CharacterData();
+        parsed.Apply(character, "Source");
+
+        Assert.Equal("Ada", character.Name);
+        Assert.Equal("32", character.Age);
+        Assert.Equal(expectedSource, parsed.Source);
+        Assert.Equal(expectedSource, Assert.Single(character.Sections).Content);
+    }
+
     private static BookData Book() => new()
     {
         ActiveCharacterTemplateId = "people",
@@ -125,7 +146,7 @@ public sealed class FolderImportParserTests
         Assert.True(character.Sections[0].AiHidden);
         Assert.True(character.Sections[0].ReaderHidden);
         Assert.Contains(character.Sections, section => section.Title == "Biography" && section.Content.Contains("**biography**"));
-        Assert.Equal(source, character.Sections.Last().Content);
+        Assert.Equal(source.ReplaceLineEndings("\n"), character.Sections.Last().Content);
         Assert.True(character.Sections.Last().AiHidden);
         Assert.True(character.Sections.Last().ReaderHidden);
     }
@@ -190,7 +211,7 @@ public sealed class FolderImportParserTests
         Assert.DoesNotContain("Anniversary", character.CustomProperties.Keys);
         Assert.DoesNotContain("Rank", character.CustomProperties.Keys);
         Assert.DoesNotContain("Invalid object", character.CustomProperties.Keys);
-        Assert.Equal(source, character.Sections.Last().Content);
+        Assert.Equal(source.ReplaceLineEndings("\n"), character.Sections.Last().Content);
     }
 
     [Fact]

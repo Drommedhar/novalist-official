@@ -62,7 +62,7 @@ public sealed class FolderImportMarkdownTests
         Assert.Equal("Images/Characters/Full Body/portrait.png", character.Images[0].Path);
         Assert.Equal(["first", "return"], character.ChapterOverrides.Select(scope => scope.Chapter));
         Assert.Equal(["6", "10"], character.ChapterOverrides.Select(scope => scope.Age));
-        Assert.Equal(source, Assert.Single(character.Sections).Content);
+        Assert.Equal(source.ReplaceLineEndings("\n"), Assert.Single(character.Sections).Content);
     }
 
     [Fact]
@@ -177,7 +177,7 @@ public sealed class FolderImportMarkdownTests
         Assert.Equal(["Portrait", "other", "third"], character.Images.Select(image => image.Name));
         Assert.Equal("A portrait", character.Images[0].Alt);
         Assert.Equal("Images/a portrait.png", character.Images[0].Path);
-        Assert.Equal(source, Assert.Single(character.Sections).Content);
+        Assert.Equal(source.ReplaceLineEndings("\n"), Assert.Single(character.Sections).Content);
     }
 
     [Fact]
