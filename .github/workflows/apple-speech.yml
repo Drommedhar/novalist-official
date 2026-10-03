@@ -16,7 +16,8 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-latest
+    # macos-latest still carries Xcode 26; iOS 27 needs the dedicated image.
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode 27

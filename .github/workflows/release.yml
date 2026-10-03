@@ -365,7 +365,8 @@ jobs:
     # desktop builds off the same tag, so the versions cannot drift. ios-v* still
     # works and still skips the desktop jobs, for a mobile-only ship.
     if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
-    runs-on: macos-latest
+    # macos-latest still carries Xcode 26; iOS 27 needs the dedicated image.
+    runs-on: xcode-27
     permissions:
       contents: read
     steps:
@@ -374,20 +375,23 @@ jobs:
         with:
           submodules: true
 
-      - name: Select an Xcode where actool works
+      - name: Select Xcode 27.0 and verify actool
         shell: bash
         run: |
           set -euo pipefail
           # actool compiles the asset catalog (the app icon) into Assets.car; Apple
           # requires asset-catalog icons for App Store builds, so it cannot be skipped.
-          # The app now targets iOS 27. Keep the actool probe, and reject older
-          # SDKs rather than silently selecting an incompatible Xcode installation.
+          # Match the iOS 27.0 SDK required by workload set 10.0.401.1.
+          # This image also carries newer Xcodes, so do not accept any 27.x SDK.
           best=""
           for cand in /Applications/Xcode_27.0.app /Applications/Xcode.app $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -rV); do
             [ -d "$cand" ] || continue
             dev="$cand/Contents/Developer"
             sdk_version="$(DEVELOPER_DIR="$dev" xcrun --sdk iphoneos --show-sdk-version 2>/dev/null || true)"
-            [ "${sdk_version%%.*}" = "27" ] || continue
+            if [ "$sdk_version" != "27.0" ]; then
+              echo "skip $cand (iOS SDK ${sdk_version:-unavailable}; requires 27.0)"
+              continue
+            fi
             if ! ls -d "$dev"/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS*.sdk >/dev/null 2>&1; then
               echo "skip $cand (no iOS SDK)"; continue
             fi
@@ -397,7 +401,7 @@ jobs:
             echo "skip $cand (actool via its own MacOSX.sdk fails)"
           done
           if [ -z "$best" ]; then
-            echo "No Xcode on the runner passes the actool check" >&2
+            echo "No Xcode with iOS SDK 27.0 and working actool found; use the xcode-27 runner image" >&2
             exit 1
           fi
           echo "Selected (actool verified): $best"
