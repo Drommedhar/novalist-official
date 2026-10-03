@@ -21,6 +21,12 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.5] - 2026-10-03
+
 ### Added
 
 - **Scene Notes tab** — edit synopsis, notes, goals and outcomes, timing, narrative mode, cast and custom scene fields directly in the inspector. The optional bottom notes dock remains available.
@@ -1669,7 +1675,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.4.2...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.5...HEAD
+[3.5]: https://github.com/Drommedhar/novalist-official/compare/v3.4.2...v3.5
 [3.4.2]: https://github.com/Drommedhar/novalist-official/compare/v3.4.1...v3.4.2
 [3.4.1]: https://github.com/Drommedhar/novalist-official/compare/v3.4...v3.4.1
 [3.4]: https://github.com/Drommedhar/novalist-official/compare/v3.3...v3.4
