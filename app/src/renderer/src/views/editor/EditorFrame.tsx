@@ -452,6 +452,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   // The last announcement this pane made itself, so it does not answer its own
   // news by re-reading what it has just written.
   const ownAnnotationsRef = useRef(0)
+  const annotationsLoadRef = useRef(0)
 
   // The iframe normally reports an edit after 50 ms and the project store
   // writes it after two seconds. An update may already be cached, so capture
@@ -721,15 +722,24 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
     return { chapterGuid: editor.chapterGuid, sceneId: editor.sceneId }
   }
 
-  const loadAnnotations = async (editor: EditorWindow | null): Promise<void> => {
+  const loadAnnotations = async (editor: EditorWindow | null): Promise<boolean> => {
     const { chapterGuid, sceneId } = paneIds()
-    if (!chapterGuid || !sceneId) return
+    if (!chapterGuid || !sceneId) return false
+    const request = ++annotationsLoadRef.current
     const annotations = await rpc.request<{ comments: SceneComment[]; footnotes: SceneFootnote[] }>(
       'scenes/getAnnotations',
       [chapterGuid, sceneId]
     )
+    // A stale list must not remove anchors from a new scene or from a comment
+    // just added while this read was in flight.
+    const current = paneIds()
+    if (
+      request !== annotationsLoadRef.current || current.chapterGuid !== chapterGuid ||
+      current.sceneId !== sceneId || editor !== editorRef.current
+    ) return false
     annotationsRef.current = annotations
     if (editor) pushAnnotations(editor)
+    return true
   }
 
   /**
@@ -740,6 +750,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
    * exactly like the bug it is there to fix.
    */
   const persistAnnotations = (): Promise<void> => {
+    annotationsLoadRef.current++
     const { chapterGuid, sceneId } = paneIds()
     if (!chapterGuid || !sceneId) return Promise.resolve()
     return rpc
@@ -791,7 +802,8 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
     editor.setContent(sceneHtml)
     loadingRef.current = false
     lastReportedHtmlRef.current = sceneHtml
-    void loadAnnotations(editor).then(() => {
+    void loadAnnotations(editor).then((loaded) => {
+      if (!loaded) return
       // The prose is on screen now, so it can say what the numbers are. A scene
       // whose numbers were written by the old rule is repaired here, the first
       // time it is opened.
@@ -892,7 +904,8 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
             loadingRef.current = false
             lastReportedHtmlRef.current = initialHtml
           }
-          void loadAnnotations(live).then(() => {
+          void loadAnnotations(live).then((loaded) => {
+            if (!loaded) return
             const ids = live.footnoteOrder()
             if (ids.length > 0) applyFootnoteOrder(ids)
           })
@@ -1000,6 +1013,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           annotationsRef.current.comments = annotationsRef.current.comments.filter(
             (c) => c.id !== String(message.commentId)
           )
+          editorRef.current?.removeCommentById(String(message.commentId))
           void persistAnnotations()
           break
         }
@@ -1034,7 +1048,9 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           // A marker was taken out of the prose, and the panel that asked for
           // that has already written its own list. Reading it back first is what
           // stops this pane's older copy from being written over the top of it.
-          void loadAnnotations(editorRef.current).then(() => applyFootnoteOrder(ids))
+          void loadAnnotations(editorRef.current).then((loaded) => {
+            if (loaded) applyFootnoteOrder(ids)
+          })
           break
         }
         case 'splitSceneRequested': {

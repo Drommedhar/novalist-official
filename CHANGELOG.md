@@ -21,7 +21,9 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Starting a new paragraph after a commented word no longer carries the yellow highlight into subsequent text. Deleting a comment removes its highlights, and reopening a scene clears highlights left by previously deleted comments.
 
 ---
 

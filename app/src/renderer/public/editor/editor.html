@@ -3059,6 +3059,15 @@ editor.addEventListener('compositionend', () => {
 
 function handleEditorInput(event) {
     if (isSettingContent || isCompositionInput(event)) return;
+    if (event && event.inputType === 'insertParagraph') {
+        // Chromium clones inline spans into the empty paragraph after Enter.
+        // A comment belongs to its words, not to the new paragraph. Keep the
+        // nodes (and any bold/italic children) so native undo/redo and the caret
+        // still point to the browser's own nodes.
+        editor.querySelectorAll('span.nv-comment[data-comment-id]').forEach(span => {
+            if (!span.textContent) clearCommentMark(span);
+        });
+    }
     scheduleTypewriterRecenter();
     // Typing over a passage being read back is the writer taking over.
     if (readAloudActive) stopReadAloud();
@@ -3263,6 +3272,16 @@ window.setCommentsData = function (data) {
                 text: c.text || ''
             });
         });
+        // Older margin deletions saved the shortened annotation list but left
+        // its yellow spans in the prose. Repair those orphaned marks as well.
+        let changed = false;
+        editor.querySelectorAll('span.nv-comment[data-comment-id]').forEach(span => {
+            if (!commentsState.has(span.getAttribute('data-comment-id'))) {
+                clearCommentMark(span);
+                changed = true;
+            }
+        });
+        if (changed) editor.dispatchEvent(new Event('input', { bubbles: true }));
         scheduleCommentRender();
     } catch (_) { /* ignore */ }
 };
@@ -4723,15 +4742,16 @@ function wrapSelectionAsComment(commentId) {
     return anchorText;
 }
 
+function clearCommentMark(span) {
+    span.classList.remove('nv-comment', 'nv-comment-active');
+    if (!span.className) span.removeAttribute('class');
+    span.removeAttribute('data-comment-id');
+}
+
 function removeCommentSpan(commentId) {
-    var nodes = document.querySelectorAll('span.nv-comment[data-comment-id="' + commentId + '"]');
-    for (var i = 0; i < nodes.length; i++) {
-        var node = nodes[i];
-        var parent = node.parentNode;
-        while (node.firstChild) parent.insertBefore(node.firstChild, node);
-        parent.removeChild(node);
-        parent.normalize();
-    }
+    editor.querySelectorAll('span.nv-comment[data-comment-id]').forEach(span => {
+        if (span.getAttribute('data-comment-id') === commentId) clearCommentMark(span);
+    });
     commentsState.delete(commentId);
     try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
     scheduleCommentRender();
