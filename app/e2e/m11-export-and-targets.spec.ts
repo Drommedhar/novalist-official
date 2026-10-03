@@ -3,6 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
+import { dismissTour } from './harness'
 
 /**
  * Three controls that were wrong in ways only running the app showed.
@@ -22,7 +23,7 @@ test('export separates what from how, and targets are reachable from Settings', 
   env.NOVALIST_NO_SPLASH = '1'
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`], env })
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
@@ -32,6 +33,7 @@ test('export separates what from how, and targets are reachable from Settings', 
     const withChapter = await window.novalistRpc.request('project/createChapter', ['Chapter One'])
     window.novalistStores.project.getState().applyState(withChapter as never)
   }, workDir)
+  await dismissTour(page)
 
   // ── Export: content and format are separate questions ──
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('export'))

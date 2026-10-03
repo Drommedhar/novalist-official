@@ -64,8 +64,8 @@ test('each book has its own cover and opens directly, including on a narrow shel
     expect(treatments[0].edge).not.toBe('none')
     expect(treatments[0].shading).toEqual(treatments[2].shading)
     expect(treatments[0].edge).toEqual(treatments[2].edge)
-    expect(treatments[0].shadow).not.toBe('none')
-    expect(treatments[2].shadow).not.toBe('none')
+    // Elevation follows the theme; the desktop theme deliberately uses none.
+    expect(treatments[0].shadow).toEqual(treatments[2].shadow)
     for (const index of [0, 2]) {
       const book = books.nth(index)
       const restingBox = await book.locator('.volume-cover').boundingBox()

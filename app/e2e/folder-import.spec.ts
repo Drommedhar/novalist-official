@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { dismissTour, launchApp, seedBook, shapeOf, state, type Harness } from './harness'
+import { dismissTour, launchApp, seedBook, selectCodexTab, shapeOf, state, type Harness } from './harness'
 
 function write(root: string, relative: string, text: string): void {
   const path = join(root, relative)
@@ -262,6 +262,7 @@ test('exported book schema prepares JSON imports with typed custom fields visibl
     await expect(h.page.getByLabel('Surname', { exact: true })).toHaveValue('Lovelace')
     await expect(h.page.getByLabel('Age', { exact: true })).toHaveValue('32')
     await expect(h.page.getByLabel('Eye Color', { exact: true })).toHaveValue('brown')
+    await selectCodexTab(h.page, 'details')
     await expect(h.page.locator('.entity-rel-row').filter({ hasText: 'Skill' }).locator('input')).toHaveValue('Mathematics')
     await expect(h.page.locator('.entity-rel-row').filter({ hasText: 'Alive' }).getByRole('checkbox')).toBeChecked()
     const factions = await h.rpc<{ id: string }[]>('entities/list', ['faction'])
@@ -327,10 +328,12 @@ test('Markdown character sheets show parsed fields, numeric age, image and chapt
     await expect(h.page.getByLabel('Age', { exact: true })).toHaveValue('10')
     await expect(h.page.getByLabel('Eye Color', { exact: true })).toHaveValue('blau')
     await expect(h.page.getByLabel('Hair Color', { exact: true })).toHaveValue('braun')
+    await selectCodexTab(h.page, 'details')
     await expect(h.page.locator('.entity-rel-row').filter({ hasText: 'Schuljahr' }).locator('input')).toHaveValue('4. Klasse')
     const portrait = h.page.locator('.entity-images').getByRole('img', { name: 'Portrait', exact: true })
     await expect(portrait).toBeVisible()
     await expect.poll(() => portrait.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBe(1)
+    await selectCodexTab(h.page, 'story')
     await expect(h.page.locator('.overrides-list').getByText('The beginning', { exact: true })).toBeVisible()
   } finally {
     await h.close()

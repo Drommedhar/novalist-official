@@ -57,6 +57,7 @@ test('Settings shows one categorized section and finds translated controls', asy
   test.setTimeout(180_000)
   const h = await launchApp('nl-settings-nav-')
   await seedBook(h, { One: ['A'] })
+  await dismissTour(h.page)
 
   await h.page.locator('.mode-rail').getByRole('button', { name: 'Settings', exact: true }).click()
   const surface = h.page.locator('.settings-section-surface')

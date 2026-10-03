@@ -42,8 +42,9 @@ test('F11 works in prose and panel fields, and focus width follows editor zoom',
     await expect.poll(() => h.page.evaluate(() => window.novalistStores.settings.getState().view?.effective.editorFontSize)).toBe(18)
     await expect.poll(async () => (await frame.boundingBox())!.width).toBeGreaterThan(initialWidth)
     await expect.poll(async () => (await paper.boundingBox())!.width).toBeGreaterThan(initialPaperWidth)
+    const zoomedWidth = (await frame.boundingBox())!.width
     await h.page.evaluate(() => window.novalistStores.settings.getState().update('global', { editorFontSize: 30 }))
-    await expect.poll(async () => (await frame.boundingBox())!.width).toBeGreaterThan(1300)
+    await expect.poll(async () => (await frame.boundingBox())!.width).toBeGreaterThan(zoomedWidth)
     await expect.poll(async () => (await h.page.locator('.focus-edge-left').boundingBox())!.width).toBeLessThan(initialHoverWidth)
     expect(await frame.evaluate((element) => element.getBoundingClientRect().right <= window.innerWidth)).toBe(true)
     await expect(editor).toHaveAttribute('data-focus-probe', 'retained')
@@ -174,6 +175,10 @@ test('context is prepared before reveal, retained between hovers, and follows sc
     const calls = await h.page.locator('body').getAttribute('data-analysis-calls')
     await h.page.keyboard.press('Escape')
     await expect(retained).toHaveAttribute('inert', '')
+    // Closing exposes the same edge under the stationary pointer. It must not
+    // reopen after its hover delay; a deliberate leave/re-enter below still works.
+    await h.page.locator('.focus-edge-right').dispatchEvent('pointerover', { pointerType: 'mouse' })
+    await h.page.waitForTimeout(450)
     await expect(retained).toBeHidden()
     await editor.hover()
     await h.page.locator('.focus-edge-right').hover()
@@ -181,6 +186,12 @@ test('context is prepared before reveal, retained between hovers, and follows sc
     await expect(inspector).toHaveAttribute('data-retained', 'yes')
     await expect(h.page.locator('body')).toHaveAttribute('data-analysis-calls', calls!)
     expect(await retained.evaluate((element) => getComputedStyle(element).transitionProperty)).toContain('transform')
+
+    // Closing with the pointer already over the manuscript must allow the next hover.
+    await editor.hover()
+    await h.page.keyboard.press('Escape')
+    await h.page.locator('.focus-edge-right').hover()
+    await expect(inspector).toBeVisible()
 
     await h.page.keyboard.press('Escape')
     await editor.hover()

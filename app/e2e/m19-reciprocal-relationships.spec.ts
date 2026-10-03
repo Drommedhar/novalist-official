@@ -3,7 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
-import { dismissTour } from './harness'
+import { dismissTour, selectCodexTab } from './harness'
 
 /**
  * A tie authored on a place is authored on the other end too.
@@ -78,6 +78,7 @@ test('a relationship saved on a location writes the inverse on the character', a
   // A new entry has no rows yet; the editor adds one. Matched by class, because
   // the real project runs in German and the label is a translated string.
   const add = page.locator('.codex-add-relationship')
+  await selectCodexTab(page, 'relationships')
   await expect(add).toBeVisible({ timeout: 15_000 })
   await add.click()
 

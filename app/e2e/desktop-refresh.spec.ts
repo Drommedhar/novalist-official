@@ -67,6 +67,7 @@ test('research retains notes across tabs and keeps its metadata editable', async
   const h = await launchApp('nl-refresh-research-')
   try {
     await seedBook(h, { Opening: ['Arrival'] })
+    await dismissTour(h.page)
     await h.rpc('research/save', [
       null,
       'Archive source',
@@ -203,10 +204,15 @@ test('dashboard resumes the real scene and export stays reachable in a maximized
   const h = await launchApp('nl-refresh-layout-')
   try {
     await seedBook(h, { Opening: ['Arrival'] })
-    await h.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].maximize())
-    expect(
-      await h.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isMaximized())
-    ).toBe(true)
+    await dismissTour(h.page)
+    if (process.platform === 'linux' && process.env.CI) {
+      // Xvfb has no window manager; exercise the large layout with real bounds.
+      await resizeWindow(h, 1440, 900)
+    } else {
+      await h.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].maximize())
+      await expect.poll(() => h.app.evaluate(({ BrowserWindow }) =>
+        BrowserWindow.getAllWindows()[0].isMaximized())).toBe(true)
+    }
     await h.page.getByRole('button', { name: 'Dashboard', exact: true }).click()
     await expect(h.page.locator('.dashboard-resume')).toContainText('Arrival')
     await h.page.getByRole('button', { name: 'Continue writing', exact: true }).click()

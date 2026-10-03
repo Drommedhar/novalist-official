@@ -84,7 +84,7 @@ test('AI services are providers, update their address, and discover models at th
     await h.page.evaluate(() => window.novalistStores.onboarding.getState().skipTour())
     await seedBook(h, {})
     const wizard = h.page.getByRole('dialog', { name: 'AI Assistant — setup' })
-    await wizard.getByRole('radio', { name: 'Yes — set it up now', exact: true }).check()
+    await wizard.getByRole('radio', { name: 'AI assistance only', exact: true }).check()
     await wizard.locator('.dialog-button.primary').click()
     await expect(wizard.getByRole('radio', { name: 'Ollama', exact: true })).toBeChecked()
     await wizard.locator('.dialog-button.primary').click()

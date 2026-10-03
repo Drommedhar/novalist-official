@@ -38,6 +38,8 @@ could encounter in a previously released version.
 
 ### Fixed
 
+- Closing a Focus Mode panel no longer pulls you back to the manuscript after switching to another view.
+- Dismissing a Focus Mode panel with Escape keeps it closed until the pointer leaves and returns to its edge.
 - Calendar scene buttons open the scene with Enter or Space instead of switching to Week view.
 - Keyboard focus in split panes now directs commands to the focused pane.
 - Naming and confirmation dialogs keep keyboard focus inside, close with Escape, and return focus to the control that opened them.

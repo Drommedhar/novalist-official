@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { dismissTour, launchApp, resizeWindow, seedBook, type Harness } from './harness'
+import { dismissTour, launchApp, resizeWindow, seedBook, selectCodexTab, type Harness } from './harness'
 
 interface ApiStatus { running: boolean; url: string; token: string }
 
@@ -192,6 +192,7 @@ test('agent uploads show real pictures and missing photos can be added to an edi
       await window.novalistStores.codex.getState().setType('character')
       await window.novalistStores.codex.getState().select(id)
     }, adaId)
+    await selectCodexTab(h.page, 'details')
     const portrait = h.page.locator('.entity-images').getByRole('img', { name: 'A source portrait', exact: true })
     await expect(portrait).toBeVisible()
     await expect.poll(() => portrait.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBe(1)
@@ -200,6 +201,7 @@ test('agent uploads show real pictures and missing photos can be added to an edi
       await window.novalistStores.codex.getState().updateField('surname', 'Edited')
     }, benId)
     await expect(h.page.getByLabel('Surname', { exact: true })).toHaveValue('Edited')
+    await selectCodexTab(h.page, 'details')
     await expect(portrait).toHaveCount(0)
     const retryEntries = [{ ...entries[1], document: { ...entries[1].document, data: { ...entries[1].document.data, images: [reference] } } }]
     const skipped = await (await request.post(`${api.url}/import`, { headers, data: { entries: retryEntries } })).json()
@@ -211,6 +213,7 @@ test('agent uploads show real pictures and missing photos can be added to an edi
     // The currently selected entry receives its gallery update without navigation.
     await expect(portrait).toBeVisible()
     await expect.poll(() => portrait.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBe(1)
+    await selectCodexTab(h.page, 'overview')
     await expect(h.page.getByLabel('Surname', { exact: true })).toHaveValue('Edited')
     expect(await h.rpc('entities/get', ['character', benId])).toMatchObject({
       surname: 'Edited', sections: [{ content: 'Original biography.' }], images: [{ name: 'Portrait', alt: 'A source portrait' }]

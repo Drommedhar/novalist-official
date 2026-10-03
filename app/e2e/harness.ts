@@ -151,6 +151,17 @@ export async function dismissTour(page: Page): Promise<void> {
   }
 }
 
+/** Follow the desktop entry navigation without depending on its UI language. */
+export async function selectCodexTab(
+  page: Page,
+  tab: 'overview' | 'story' | 'relationships' | 'details'
+): Promise<void> {
+  const index = ['overview', 'story', 'relationships', 'details'].indexOf(tab)
+  const button = page.locator('.codex-entry-tabs').getByRole('button').nth(index)
+  await button.click()
+  await expect(button).toHaveAttribute('aria-pressed', 'true')
+}
+
 /**
  * Into the writing workspace.
  *

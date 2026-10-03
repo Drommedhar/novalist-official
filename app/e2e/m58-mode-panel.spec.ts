@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { dismissTour } from './harness'
 
 /**
  * Nothing a mode holds is ever hidden.
@@ -28,7 +29,7 @@ test('a mode lists every view it holds, at any window size', async () => {
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
   env.NOVALIST_NO_SPLASH = '1'
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`], env })
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
   await page.evaluate(async (parent) => {
@@ -36,6 +37,7 @@ test('a mode lists every view it holds, at any window size', async () => {
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
   await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 20_000 })
+  await dismissTour(page)
 
   const rows = page.locator('.mode-panel-row')
   const filter = page.locator('.mode-panel-filter input')

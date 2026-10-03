@@ -13,6 +13,10 @@ import './focus-mode.css'
 /** Return keyboard focus without rebuilding the editor or changing its selection. */
 export function focusManuscript(): void {
   requestAnimationFrame(() => {
+    // Closing a panel schedules this for the next frame. Navigation may have
+    // happened meanwhile; focusing the editor would reactivate its pane.
+    const shell = useShellStore.getState()
+    if (shell.mainView !== 'write' || shell.extView) return
     const frames = [...document.querySelectorAll<HTMLIFrameElement>('iframe.editor-frame')]
     frames.find((frame) => frame.getBoundingClientRect().width > 0)?.focus()
     useEditorBridge.getState().editor?.focusEditor()
@@ -38,6 +42,7 @@ export function FocusMode(): React.JSX.Element {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const retreatTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const dismissedEdge = useRef<'binder' | 'inspector' | null>(null)
   const cancelReveal = (): void => {
     if (revealTimer.current) clearTimeout(revealTimer.current)
   }
@@ -60,6 +65,7 @@ export function FocusMode(): React.JSX.Element {
   const revealSoon = (side: 'binder' | 'inspector'): void => {
     cancelReveal()
     cancelRetreat()
+    if (dismissedEdge.current === side) return
     revealTimer.current = setTimeout(() => {
       if (!editingPanel()) useShellStore.getState().revealFocusPanel(side)
     }, 160)
@@ -67,6 +73,13 @@ export function FocusMode(): React.JSX.Element {
   const close = (): void => {
     cancelReveal()
     cancelRetreat()
+    const current = useShellStore.getState().focusPanel
+    // The closing panel exposes the edge underneath a stationary pointer.
+    // Escape must stay dismissed until the pointer leaves and returns.
+    if (current === 'binder' || current === 'inspector') {
+      const edge = document.querySelector(`.focus-edge-${current === 'binder' ? 'left' : 'right'}`)
+      dismissedEdge.current = overlay.current?.matches(':hover') || edge?.matches(':hover') ? current : null
+    }
     useShellStore.getState().closeFocusPanel()
     focusManuscript()
   }
@@ -157,8 +170,12 @@ export function FocusMode(): React.JSX.Element {
       aria-label={t(`focus.${side}`)} aria-expanded={shownPanel === side}
       aria-busy={side === 'inspector' && panel === side && !shownPanel}
       onPointerEnter={(event) => { if (event.pointerType === 'mouse') revealSoon(side) }}
-      onPointerLeave={() => { cancelReveal(); retreatSoon() }}
+      onPointerLeave={() => {
+        if (dismissedEdge.current === side) dismissedEdge.current = null
+        cancelReveal(); retreatSoon()
+      }}
       onClick={() => {
+        dismissedEdge.current = null
         cancelReveal(); cancelRetreat()
         if (panel === side && transient) useShellStore.setState({ focusPanelTransient: false })
         else runCommand(side === 'binder' ? 'app.toggleBinder' : 'app.toggleInspector')
@@ -196,7 +213,14 @@ export function FocusMode(): React.JSX.Element {
         className={`focus-panel focus-panel-${side}${shownPanel === side ? ' focus-panel-open' : ''}`} role="dialog"
         inert={shownPanel !== side} aria-hidden={shownPanel !== side}
         aria-modal={shownPanel === side && !transient} aria-label={t(`focus.${side}`)} tabIndex={-1}
-        onPointerEnter={cancelRetreat} onPointerLeave={retreatSoon}
+        onPointerEnter={cancelRetreat} onPointerLeave={(event) => {
+          const target = event.relatedTarget
+          const edge = `.focus-edge-${side === 'binder' ? 'left' : 'right'}`
+          if (dismissedEdge.current === side && !(target instanceof Element && target.closest(edge))) {
+            dismissedEdge.current = null
+          }
+          retreatSoon()
+        }}
         onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) retreatSoon() }}
         onKeyDown={(event) => {
           if (event.key !== 'Tab' || transient) return

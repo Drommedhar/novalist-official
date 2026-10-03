@@ -3,6 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
+import { dismissTour, selectCodexTab } from './harness'
 
 /**
  * What a Codex entry said before it was overwritten.
@@ -44,11 +45,13 @@ test('an overwritten codex entry can be put back from the detail pane', async ()
     return mira.id
   }, workDir)
   await expect(page.locator('.mode-rail')).toBeVisible({ timeout: 30_000 })
+  await dismissTour(page)
 
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('codex'))
   await page.locator('.codex-row', { hasText: 'Mira' }).click()
 
-  const panel = page.locator('.codex-match', { hasText: /Earlier versions|Fruehere|历史版本/ })
+  await selectCodexTab(page, 'details')
+  const panel = page.locator('.codex-match', { hasText: /Earlier versions|Frühere|历史版本/ })
   await expect(panel).toBeVisible({ timeout: 15_000 })
   await panel.locator('summary').click()
 

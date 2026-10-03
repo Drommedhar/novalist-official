@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { dismissTour, launchApp, seedBook } from './harness'
+import { dismissTour, launchApp, seedBook, selectCodexTab } from './harness'
 
 for (const source of ['manual', 'faction pack']) {
   test(`custom entity fields, relationships and properties work from ${source}`, async () => {
@@ -52,6 +52,7 @@ for (const source of ['manual', 'faction pack']) {
         await field.press('Tab')
       }
 
+      await selectCodexTab(h.page, 'relationships')
       await h.page.locator('.codex-add-relationship').click()
       const relationship = h.page.locator('.entity-rel-row').filter({ has: h.page.locator('.codex-rel-inverse') }).first()
       await relationship.locator('input').nth(0).fill('led by')
@@ -66,6 +67,7 @@ for (const source of ['manual', 'faction pack']) {
         'entities/get', ['character', character.id]
       )).relationships).toContainEqual(expect.objectContaining({ role: 'leads', target: 'The Watch' }))
 
+      await selectCodexTab(h.page, 'details')
       await h.page.getByRole('button', { name: /Add Property/ }).click()
       const dialog = h.page.getByRole('dialog', { name: /Add Property/ })
       await dialog.getByRole('textbox').fill('Motto')
@@ -88,10 +90,13 @@ for (const source of ['manual', 'faction pack']) {
         await window.novalistStores.codex.getState().setType(type)
         await window.novalistStores.codex.getState().select(id)
       }, { type, id: entry.id })
+      await selectCodexTab(h.page, 'details')
       await expect(motto).toHaveValue('We hold')
+      await selectCodexTab(h.page, 'overview')
       await expect(h.page.getByRole('combobox', { name: 'Seat', exact: true })).toHaveValue('Location Test')
       await expect(h.page.getByRole('combobox', { name: 'Leader', exact: true })).toHaveValue('Character Test')
       await expect(h.page.getByRole('combobox', { name: 'Domain', exact: true })).toHaveValue('Realm Test')
+      await selectCodexTab(h.page, 'details')
       await h.page.getByRole('button', { name: /Delete Motto/ }).click()
       await expect(motto).toHaveCount(0)
       expect(await h.rpc('entities/customProps', [type, entry.id])).toEqual([])

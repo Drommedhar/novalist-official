@@ -280,7 +280,7 @@ test('spoken commands continue across clips without inserting an empty paragraph
     await voice(h.page, true)
     await h.page.waitForTimeout(400)
     await bar.getByRole('button', { name: 'Stop dictation', exact: true }).click()
-    expect(await editor.innerText()).toMatch(/^“Hello\. Again\.”\n+She left\.$/)
+    await expect.poll(() => editor.innerText()).toMatch(/^“Hello\. Again\.”\n+She left\.$/)
   } finally { await h.close() }
 })
 

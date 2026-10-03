@@ -20,18 +20,8 @@ test('Help opens at the current context and preserves heading navigation', async
   })
   const page = await app.firstWindow()
   await expect(page.locator('.start-screen')).toBeVisible({ timeout: 30_000 })
-  await expect
-    .poll(async () =>
-      page.evaluate(async () => {
-        try {
-          await window.novalistRpc.request('system/ping')
-          return true
-        } catch {
-          return false
-        }
-      })
-    )
-    .toBe(true)
+  await page.waitForFunction(() => Boolean(window.novalistStores?.shell.getState().backendVersion),
+    undefined, { timeout: 30_000 })
 
   // Keep this test about Help: a completed local onboarding record prevents a
   // first-run card from changing views underneath it.
@@ -43,18 +33,8 @@ test('Help opens at the current context and preserves heading navigation', async
   })
   await page.reload()
   await expect(page.locator('.start-screen')).toBeVisible({ timeout: 30_000 })
-  await expect
-    .poll(async () =>
-      page.evaluate(async () => {
-        try {
-          await window.novalistRpc.request('system/ping')
-          return true
-        } catch {
-          return false
-        }
-      })
-    )
-    .toBe(true)
+  await page.waitForFunction(() => Boolean(window.novalistStores?.shell.getState().backendVersion),
+    undefined, { timeout: 30_000 })
 
   await page.evaluate(async (parent) => {
     const state = await window.novalistRpc.request('project/create', [parent, 'Help', 'Book One'])
