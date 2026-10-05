@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, Check, ChevronRight, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
-import { useBookScope } from '../stores/projectStore'
+import { useBookScope, useProjectStore } from '../stores/projectStore'
+import { loadBookScoped } from '../stores/bookScopedLoad'
 import { useSelectionStore } from '../stores/selectionStore'
 import { openBinderScene } from './binderNavigation'
+import { useWorkspaceDialogGuard } from './useWorkspaceDialogGuard'
 
 interface CollectionSceneDto {
   sceneId: string
@@ -34,36 +36,40 @@ interface CollectionDto {
 export function CollectionsPanel(): React.JSX.Element {
   const { t } = useTranslation()
   const bookScope = useBookScope()
+  const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
   const selectedIds = useSelectionStore((s) => s.sceneIds)
   const [collections, setCollections] = useState<CollectionDto[]>([])
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const [name, setName] = useState('')
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
+  useWorkspaceDialogGuard(name.trim().length > 0 || renamingId !== null)
 
   useEffect(() => {
-    void rpc
-      .request<CollectionDto[]>('collections/list')
-      .then(setCollections)
-      .catch(() => setCollections([]))
+    let active = true
+    void loadBookScoped(useProjectStore.getState,
+      () => rpc.request<CollectionDto[]>('collections/list'),
+      (items) => { if (active) setCollections(items) })
+      .catch(() => { if (active) setCollections([]) })
     // Collections belong to the active book, so switching books has to refetch.
-  }, [bookScope])
+    return () => { active = false }
+  }, [bookScope, workspaceBusy])
+
+  const update = (method: string, params: unknown[]): Promise<void> =>
+    loadBookScoped(useProjectStore.getState,
+      () => rpc.request<CollectionDto[]>(method, params), setCollections)
 
   const create = (): void => {
     if (name.trim().length === 0) return
     // Whatever is selected goes straight in. Making a collection and then
     // adding the scenes you already had picked is two steps for one intent.
-    void rpc
-      .request<CollectionDto[]>('collections/create', [name, selectedIds])
-      .then(setCollections)
+    void update('collections/create', [name, selectedIds])
     setName('')
   }
 
   const rename = (): void => {
     if (renamingId === null || renameValue.trim().length === 0) return
-    void rpc
-      .request<CollectionDto[]>('collections/rename', [renamingId, renameValue])
-      .then(setCollections)
+    void update('collections/rename', [renamingId, renameValue])
     setRenamingId(null)
     setRenameValue('')
   }
@@ -157,9 +163,7 @@ export function CollectionsPanel(): React.JSX.Element {
                 aria-label={t('collections.addSelected')}
                 title={t('collections.addSelected')}
                 onClick={() =>
-                  void rpc
-                    .request<CollectionDto[]>('collections/add', [collection.id, selectedIds])
-                    .then(setCollections)
+                  void update('collections/add', [collection.id, selectedIds])
                 }
               >
                 <Plus size={14} strokeWidth={2} />
@@ -170,9 +174,7 @@ export function CollectionsPanel(): React.JSX.Element {
               aria-label={t('collections.delete')}
               title={t('collections.delete')}
               onClick={() =>
-                void rpc
-                  .request<CollectionDto[]>('collections/delete', [collection.id])
-                  .then(setCollections)
+                void update('collections/delete', [collection.id])
               }
             >
               <Trash2 size={14} strokeWidth={2} />
@@ -193,13 +195,11 @@ export function CollectionsPanel(): React.JSX.Element {
                   title={t('collections.moveUp')}
                   disabled={index === 0}
                   onClick={() =>
-                    void rpc
-                      .request<CollectionDto[]>('collections/move', [
+                    void update('collections/move', [
                         collection.id,
                         scene.sceneId,
                         index - 1
                       ])
-                      .then(setCollections)
                   }
                 >
                   <ArrowUp size={13} strokeWidth={2} />
@@ -210,13 +210,11 @@ export function CollectionsPanel(): React.JSX.Element {
                   title={t('collections.moveDown')}
                   disabled={index === collection.scenes.length - 1}
                   onClick={() =>
-                    void rpc
-                      .request<CollectionDto[]>('collections/move', [
+                    void update('collections/move', [
                         collection.id,
                         scene.sceneId,
                         index + 1
                       ])
-                      .then(setCollections)
                   }
                 >
                   <ArrowDown size={13} strokeWidth={2} />
@@ -226,12 +224,10 @@ export function CollectionsPanel(): React.JSX.Element {
                   aria-label={t('collections.remove')}
                   title={t('collections.remove')}
                   onClick={() =>
-                    void rpc
-                      .request<CollectionDto[]>('collections/remove', [
+                    void update('collections/remove', [
                         collection.id,
                         scene.sceneId
                       ])
-                      .then(setCollections)
                   }
                 >
                   <X size={13} strokeWidth={2} />

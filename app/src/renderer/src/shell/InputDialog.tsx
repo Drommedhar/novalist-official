@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialogKeyboard } from './useDialogKeyboard'
+import { useWorkspaceDialogGuard } from './useWorkspaceDialogGuard'
 
 interface InputDialogProps {
   title: string
@@ -21,6 +22,7 @@ export function InputDialog({
   onSubmit,
   onCancel
 }: InputDialogProps): React.JSX.Element {
+  useWorkspaceDialogGuard()
   const { t } = useTranslation()
   const [value, setValue] = useState(initialValue ?? '')
   const keyboard = useDialogKeyboard(onCancel)

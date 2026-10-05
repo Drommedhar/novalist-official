@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronRight, Plus, RefreshCw } from 'lucide-react'
 import { rpc } from '../rpc/client'
-import { useBookScope } from '../stores/projectStore'
+import { useBookScope, useProjectStore } from '../stores/projectStore'
+import { loadBookScoped } from '../stores/bookScopedLoad'
 import { ContextMenu } from './ContextMenu'
 import { ConfirmDialog } from './ConfirmDialog'
 import { SmartListEditor, type SmartListDraft } from './SmartListEditor'
@@ -40,20 +41,25 @@ export function SmartListsPanel(): React.JSX.Element {
   const [menu, setMenu] = useState<{ x: number; y: number; list: SmartListDto } | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
   const bookScope = useBookScope()
+  const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
 
   useEffect(() => {
     // Saved lists belong to the active book. Loading them once on mount left
     // the panel showing the previous book's lists after a book switch.
-    void rpc
-      .request<SmartListDto[]>('smartLists/list')
-      .then(setLists)
-      .catch(() => setLists([]))
+    let active = true
+    void loadBookScoped(useProjectStore.getState,
+      () => rpc.request<SmartListDto[]>('smartLists/list'),
+      (items) => { if (active) setLists(items) })
+      .catch(() => { if (active) setLists([]) })
     setMatches({})
-  }, [bookScope])
+    setExpanded({})
+    return () => { active = false }
+  }, [bookScope, workspaceBusy])
 
   const evaluate = async (id: string): Promise<void> => {
-    const result = await rpc.request<SmartListMatch[]>('smartLists/evaluate', [id])
-    setMatches((m) => ({ ...m, [id]: result }))
+    await loadBookScoped(useProjectStore.getState,
+      () => rpc.request<SmartListMatch[]>('smartLists/evaluate', [id]),
+      (result) => setMatches((m) => ({ ...m, [id]: result })))
   }
 
   const toggle = (id: string): void => {
@@ -63,14 +69,13 @@ export function SmartListsPanel(): React.JSX.Element {
   }
 
   const save = async (draft: SmartListDraft, id: string | null): Promise<void> => {
-    const updated = await rpc.request<SmartListDto[]>('smartLists/save', [
+    await loadBookScoped(useProjectStore.getState,
+      () => rpc.request<SmartListDto[]>('smartLists/save', [
       id,
       draft.name,
       draft.match,
       draft.rules
-    ])
-    setLists(updated)
-    setMatches({})
+      ]), (updated) => { setLists(updated); setMatches({}) })
   }
 
   return (
@@ -174,7 +179,8 @@ export function SmartListsPanel(): React.JSX.Element {
           onConfirm={() => {
             const id = pending.list.id
             setPending(null)
-            void rpc.request<SmartListDto[]>('smartLists/delete', [id]).then(setLists)
+            void loadBookScoped(useProjectStore.getState,
+              () => rpc.request<SmartListDto[]>('smartLists/delete', [id]), setLists)
           }}
         />
       )}

@@ -117,6 +117,11 @@ public sealed class ExtensionManager
         catch (Exception ex)
         {
             info.LoadError = $"Initialize failed: {ex.Message}";
+            RemoveHooks(info);
+            try { info.Instance?.Shutdown(); } catch { /* Preserve the initialization error. */ }
+            info.Instance = null;
+            info.LoadContext?.Unload();
+            info.LoadContext = null;
             info.IsLoaded = false;
             HostNotifications.Error?.Invoke($"Extension init failed: {info.Manifest.Name}: {ex.Message}");
         }
@@ -131,6 +136,7 @@ public sealed class ExtensionManager
         var instance = info.Instance!;
 
         var undo = new List<Action>();
+        _hookUndo[info] = undo;
 
         // Helper: add the collected items to a target list and record the matching
         // removal of those exact references.
@@ -223,8 +229,6 @@ public sealed class ExtensionManager
 
         if (instance is IPropertyTypeContributor propertyType)
             AddList(PropertyTypes, propertyType.GetPropertyTypes());
-
-        _hookUndo[info] = undo;
     }
 
     /// <summary>
@@ -329,20 +333,31 @@ public sealed class ExtensionManager
             throw new InvalidOperationException($"extension.json could not be parsed: {ex.Message}");
         }
 
-        if (manifest == null || string.IsNullOrWhiteSpace(manifest.Id))
+        if (manifest == null || string.IsNullOrWhiteSpace(manifest.Id?.TrimEnd('.', ' ')))
             throw new InvalidOperationException("extension.json is missing a valid \"id\".");
 
         var id = manifest.Id;
         Log.Info($"Extension install from folder: id={id}.");
 
-        // Replace any previous install of the same id (unload + delete files first).
-        await RemoveInstalledAsync(id);
+        // Stage the source before removing an existing installation: the selected
+        // folder may be that installation or one of its subdirectories.
+        var staged = Path.Combine(Path.GetTempPath(), "novalist-extension-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(staged);
+        try
+        {
+            CopyDirectory(sourceFolder, staged);
+            await RemoveInstalledAsync(id);
 
-        var target = Path.Combine(_loader.ExtensionsDirectory, SanitizeFolderName(id));
-        CopyDirectory(sourceFolder, target);
+            var target = Path.Combine(_loader.ExtensionsDirectory, SanitizeFolderName(id));
+            CopyDirectory(staged, target);
 
-        await DiscoverAndEnableAsync(id);
-        return id;
+            await DiscoverAndEnableAsync(id);
+            return id;
+        }
+        finally
+        {
+            Directory.Delete(staged, recursive: true);
+        }
     }
 
     /// <summary>

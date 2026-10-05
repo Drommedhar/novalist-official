@@ -56,7 +56,9 @@ public sealed partial class HostServices
         // would autosave over the restore, so it would not survive anyway.
         if (_editing.IsBusy(chapterGuid, sceneId)) return false;
 
-        var restored = await Snapshots.RestoreAsync(chapter, scene, snapshotId);
+        var restored = false;
+        await ChangeWorkspaceAsync("snapshots/restore", async () =>
+            restored = await Snapshots.RestoreAsync(chapter, scene, snapshotId));
         if (restored) ProjectStructureChanged?.Invoke();
         return restored;
     }
@@ -156,7 +158,8 @@ public sealed partial class HostServices
         var root = _projectService.ProjectRoot;
         if (root == null || string.IsNullOrWhiteSpace(relativePath)) return null;
         var full = Path.GetFullPath(Path.Combine(root, relativePath));
-        return full.StartsWith(Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase)
+        return full.StartsWith(Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
+            OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)
             ? full
             : null;
     }

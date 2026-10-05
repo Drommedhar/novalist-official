@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
+import { useProjectStore } from './projectStore'
 
 export type EntityType = string
 
@@ -32,6 +33,14 @@ interface CodexState {
   moveWorldBible(id: string, toWorldBible: boolean): Promise<void>
 }
 
+let listRevision = 0
+let selectionRevision = 0
+
+function bookScope(): string {
+  const { projectPath, activeBookId } = useProjectStore.getState()
+  return `${projectPath ?? ''}|${activeBookId ?? ''}`
+}
+
 export const useCodexStore = create<CodexState>((set, get) => ({
   entityType: 'character',
   entities: [],
@@ -39,43 +48,62 @@ export const useCodexStore = create<CodexState>((set, get) => ({
   selectedRecord: null,
 
   setType: async (entityType) => {
+    selectionRevision++
     set({ entityType, selectedId: null, selectedRecord: null })
     await get().refresh()
   },
 
   refresh: async () => {
-    const entities = await rpc.request<EntitySummary[]>('entities/list', [get().entityType])
-    set({ entities })
+    const revision = ++listRevision
+    const entityType = get().entityType
+    const scope = bookScope()
+    const entities = await rpc.request<EntitySummary[]>('entities/list', [entityType])
+    if (revision === listRevision && get().entityType === entityType && bookScope() === scope) {
+      set({ entities })
+    }
   },
 
   select: async (id) => {
+    const revision = ++selectionRevision
+    const entityType = get().entityType
+    const scope = bookScope()
     const record = await rpc.request<Record<string, unknown>>('entities/get', [
-      get().entityType,
+      entityType,
       id
     ])
-    set({ selectedId: id, selectedRecord: record })
+    if (revision === selectionRevision && get().entityType === entityType && bookScope() === scope) {
+      set({ selectedId: id, selectedRecord: record })
+    }
   },
 
   updateField: async (key, value) => {
     const { entityType, selectedId } = get()
     if (!selectedId) return
+    const scope = bookScope()
     const record = await rpc.request<Record<string, unknown>>('entities/update', [
       entityType,
       selectedId,
       { [key]: value }
     ])
-    set({ selectedRecord: record })
+    if (get().entityType === entityType && get().selectedId === selectedId && bookScope() === scope) {
+      set({ selectedRecord: record })
+    }
     await get().refresh()
   },
 
   create: async (name, templateId = null) => {
+    const revision = ++selectionRevision
+    const entityType = get().entityType
+    const scope = bookScope()
     const record = await rpc.request<Record<string, unknown>>('entities/create', [
-      get().entityType,
+      entityType,
       name,
       templateId
     ])
     await get().refresh()
-    set({ selectedId: String(record.id), selectedRecord: record })
+    if (revision === selectionRevision && get().entityType === entityType && bookScope() === scope) {
+      set({ selectedId: String(record.id), selectedRecord: record })
+    }
   },
 
   remove: async (id, isWorldBible) => {

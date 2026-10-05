@@ -30,6 +30,7 @@ public sealed class BackupService : IBackupService
     private readonly IArchiveService _archiveService;
     private readonly ISettingsService _settingsService;
     private readonly string _defaultRoot;
+    private readonly BackupStorage _storage;
 
     public BackupService(
         IProjectService projectService,
@@ -42,6 +43,7 @@ public sealed class BackupService : IBackupService
         _fileService = fileService;
         _archiveService = archiveService;
         _settingsService = settingsService;
+        _storage = new BackupStorage(fileService);
         _defaultRoot = defaultBackupRoot ?? _fileService.CombinePath(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "Novalist",
@@ -61,7 +63,16 @@ public sealed class BackupService : IBackupService
     public string? GetBackupFolder()
     {
         var root = _projectService.ProjectRoot;
-        return string.IsNullOrWhiteSpace(root) ? null : ResolveBackupFolder(root);
+        if (string.IsNullOrWhiteSpace(root))
+            return null;
+        var preferred = PreferredBackupFolder(root);
+        // Discovery may display an invalid configured location, but must not
+        // create anything there. Every archive operation validates it first.
+        if (BackupStorage.IsWithinProject(root, preferred))
+            return preferred;
+        // This synchronous public surface predates ownership reservation. Run
+        // its filesystem work without capturing the caller's UI context.
+        return Task.Run(() => _storage.ResolveAsync(root, preferred)).GetAwaiter().GetResult();
     }
 
     /// <summary>
@@ -69,22 +80,25 @@ public sealed class BackupService : IBackupService
     /// callers that have validated the root do not need a second null branch
     /// that can never be taken.
     /// </summary>
-    private string ResolveBackupFolder(string projectRoot)
+    private string PreferredBackupFolder(string projectRoot)
     {
         var configured = Settings.BackupFolder;
         var baseDir = string.IsNullOrWhiteSpace(configured) ? _defaultRoot : configured;
-        return _fileService.CombinePath(baseDir, SafeFolderName(_fileService.GetFileName(projectRoot)));
+        return _fileService.CombinePath(baseDir, SafeFolderName(_fileService.GetFileName(
+            Path.TrimEndingDirectorySeparator(Path.GetFullPath(projectRoot)))));
     }
+
+    private Task<string> ResolveBackupFolderAsync(string projectRoot) =>
+        _storage.ResolveAsync(projectRoot, PreferredBackupFolder(projectRoot));
 
     public Task<BackupInfo?> CreateAsync(string trigger) => CreateAsync(trigger, null);
 
     public async Task<BackupInfo?> CreateAsync(string trigger, string? milestoneName)
-        => await CreateArchiveAsync(trigger, milestoneName, force: false, prune: true);
+        => await CreateArchiveAsync(_projectService.ProjectRoot, trigger, milestoneName, force: false, prune: true);
 
-    private async Task<BackupInfo?> CreateArchiveAsync(string trigger, string? milestoneName, bool force, bool prune)
+    private async Task<BackupInfo?> CreateArchiveAsync(string? projectRoot, string trigger, string? milestoneName,
+        bool force, bool prune, string? backupFolder = null)
     {
-        var projectRoot = _projectService.ProjectRoot;
-
         // A milestone is deliberate, so it is taken even when the automatic
         // backups behind it are switched off. Refusing "keep this version"
         // because a rotating schedule is disabled would be the wrong reading of
@@ -93,11 +107,7 @@ public sealed class BackupService : IBackupService
         if (string.IsNullOrWhiteSpace(projectRoot) || (!Settings.BackupEnabled && !milestone && !force))
             return null;
 
-        var folder = ResolveBackupFolder(projectRoot);
-        var relative = Path.GetRelativePath(Path.GetFullPath(projectRoot), Path.GetFullPath(folder));
-        if (relative == "." || (!Path.IsPathRooted(relative) && relative != ".." &&
-            !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)))
-            throw new InvalidOperationException("Choose a backup folder outside the project folder.");
+        var folder = backupFolder ?? await ResolveBackupFolderAsync(projectRoot);
         await _fileService.CreateDirectoryAsync(folder);
 
         var safeTrigger = milestone
@@ -123,20 +133,32 @@ public sealed class BackupService : IBackupService
             Trigger = safeTrigger
         };
 
-        if (prune) await PruneAsync();
+        if (prune) await PruneFolderAsync(folder);
         return info;
     }
 
     public async Task<IReadOnlyList<BackupInfo>> ListAsync()
     {
-        var folder = GetBackupFolder();
-        if (folder == null || !await _fileService.DirectoryExistsAsync(folder))
+        var root = _projectService.ProjectRoot;
+        if (string.IsNullOrWhiteSpace(root))
+            return Array.Empty<BackupInfo>();
+        return await ListFolderAsync(await ResolveBackupFolderAsync(root));
+    }
+
+    private async Task<IReadOnlyList<BackupInfo>> ListFolderAsync(string folder)
+    {
+        if (!await _fileService.DirectoryExistsAsync(folder))
             return Array.Empty<BackupInfo>();
 
         var files = await _fileService.GetFilesAsync(folder, "*.zip");
         var result = new List<BackupInfo>(files.Count);
         foreach (var file in files)
         {
+            // A provider may return recursive or unfiltered results. Ownership
+            // applies only to ZIPs directly inside this reserved directory.
+            if (!string.Equals(_fileService.GetDirectoryName(file), folder, StringComparison.Ordinal) ||
+                !string.Equals(Path.GetExtension(file), ".zip", StringComparison.OrdinalIgnoreCase))
+                continue;
             var id = _fileService.GetFileNameWithoutExtension(file);
             var created = ParseStamp(id);
             if (created == null)
@@ -161,7 +183,8 @@ public sealed class BackupService : IBackupService
         if (string.IsNullOrWhiteSpace(projectRoot))
             return false;
 
-        var backups = await ListAsync();
+        var folder = await ResolveBackupFolderAsync(projectRoot);
+        var backups = await ListFolderAsync(folder);
         var target = backups.FirstOrDefault(
             b => string.Equals(b.Id, backupId, StringComparison.OrdinalIgnoreCase));
         if (target == null)
@@ -171,10 +194,10 @@ public sealed class BackupService : IBackupService
         // when the user restores the wrong archive.
         // Mandatory even with scheduled backups disabled. Delay retention so a
         // quota of one cannot delete the archive we are about to restore.
-        await CreateArchiveAsync("prerestore", null, force: true, prune: false);
+        await CreateArchiveAsync(projectRoot, "prerestore", null, force: true, prune: false, folder);
 
         await _archiveService.RestoreProjectAsync(target.Path, projectRoot, replaceExisting: true);
-        await PruneAsync();
+        await PruneFolderAsync(folder);
         return true;
     }
 
@@ -193,9 +216,7 @@ public sealed class BackupService : IBackupService
         // that project's next backup and cannot serve as an independent copy.
         if (_projectService.ProjectRoot is { } root)
         {
-            var relative = Path.GetRelativePath(Path.GetFullPath(root), destination);
-            if (relative == "." || (!Path.IsPathRooted(relative) && relative != ".." &&
-                !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)))
+            if (BackupStorage.IsWithinProject(root, destination))
                 throw new InvalidOperationException("Choose a location outside the open project.");
         }
         await _archiveService.RestoreProjectAsync(archivePath, destination, replaceExisting: false);
@@ -209,10 +230,17 @@ public sealed class BackupService : IBackupService
 
     public async Task PruneAsync()
     {
+        var root = _projectService.ProjectRoot;
+        if (!string.IsNullOrWhiteSpace(root))
+            await PruneFolderAsync(await ResolveBackupFolderAsync(root));
+    }
+
+    private async Task PruneFolderAsync(string folder)
+    {
         // Milestones are outside retention entirely - they neither fill the
         // quota nor get rotated out. A named version that quietly disappeared
         // after ten more saves would be worse than never offering to keep it.
-        var backups = (await ListAsync()).Where(b => !b.IsMilestone).ToList();
+        var backups = (await ListFolderAsync(folder)).Where(b => !b.IsMilestone).ToList();
         var keep = EffectiveRetention;
         if (backups.Count <= keep)
             return;

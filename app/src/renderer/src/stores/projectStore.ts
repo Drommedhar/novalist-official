@@ -4,6 +4,8 @@ import { paneLeaves, useShellStore } from './shellStore'
 import { useSettingsStore } from './settingsStore'
 import { useCodexStore } from './codexStore'
 import { flushPendingWrites } from './pendingWrites'
+import i18n from '../i18n'
+import type { WorkspaceSnapshot } from '../../../shared/workspaceProtocol'
 
 export interface SceneDto {
   id: string
@@ -67,6 +69,18 @@ let recentRefresh: Promise<void> | null = null
 let recentRefreshRequested = false
 let recentRefreshVersion = 0
 
+/** Fresh library data must be ready before an unloaded workspace is shown.
+ * This must not join a pre-transition read held behind the resume barrier. */
+export async function prepareProjectLibrary(): Promise<void> {
+  const version = ++recentRefreshVersion
+  recentRefreshRequested = false
+  const [recents] = await Promise.all([
+    rpc.request<RecentProjectDto[]>('project/recent', [true]),
+    useSettingsStore.getState().load()
+  ])
+  if (version === recentRefreshVersion) useProjectStore.setState({ recentProjects: recents })
+}
+
 function sameRecentProjects(left: RecentProjectDto[], right: RecentProjectDto[]): boolean {
   return left.length === right.length && left.every((entry, index) => {
     const other = right[index]
@@ -127,9 +141,27 @@ const autosaveTimers = new Map<string, ReturnType<typeof setTimeout>>()
  *  instead of issuing the same scene write again with the same disk hash. */
 const autosaveWrites = new Map<string, Promise<void>>()
 
+export type SceneStructureMethod =
+  | 'sceneBulk/archive'
+  | 'sceneBulk/delete'
+  | 'sceneBulk/moveToChapter'
+  | 'project/deleteChapter'
+  | 'project/deleteScene'
+  | 'project/moveScenes'
+
 interface ProjectState {
   isLoaded: boolean
   closingProject: boolean
+  changingSceneStructure: boolean
+  workspaceBusy: boolean
+  workspaceSuspended: boolean
+  workspaceEpoch: number
+  workspaceRecovering: boolean
+  workspaceRecoveryError: string | null
+  workspaceTransitionToken: string | null
+  activeDraftId: string | null
+  applyWorkspaceSnapshot(snapshot: WorkspaceSnapshot, resetEditors?: boolean): void
+  refreshWorkspaceEditors(preserveDirty?: boolean): Promise<void>
   projectName: string | null
   projectPath: string | null
   activeBookId: string | null
@@ -172,7 +204,7 @@ interface ProjectState {
   /** Per-scene unsaved-edit flags, keyed by sceneId (drives the tab dirty dot). */
   dirtyMap: Record<string, boolean>
   isDirty: boolean
-  applyState(state: ProjectStateDto, resetEditors?: boolean, applicationStateReady?: boolean): void
+  applyState(state: ProjectStateDto, resetEditors?: boolean, applicationStateReady?: boolean, deferHydration?: boolean): void
   loadRecents(): Promise<void>
   openProject(path: string, bookId?: string): Promise<void>
   pickAndOpenProject(): Promise<void>
@@ -221,6 +253,7 @@ interface ProjectState {
   reorderChapter(chapterGuid: string, newOrder: number): Promise<void>
   reorderScene(chapterGuid: string, sceneId: string, newOrder: number): Promise<void>
   moveScenes(sceneIds: string[], targetChapterGuid: string, targetIndex: number): Promise<void>
+  mutateSceneStructure(method: SceneStructureMethod, args: unknown[]): Promise<void>
   /** Writes the writer's chosen text and clears the conflict. */
   resolveSceneConflict(html: string): Promise<void>
   /** Leaves the file alone and keeps the writer's text in the editor, still
@@ -231,6 +264,14 @@ interface ProjectState {
 export const useProjectStore = create<ProjectState>((set, get) => ({
   isLoaded: false,
   closingProject: false,
+  changingSceneStructure: false,
+  workspaceBusy: false,
+  workspaceSuspended: false,
+  workspaceEpoch: 0,
+  workspaceRecovering: false,
+  workspaceRecoveryError: null,
+  workspaceTransitionToken: null,
+  activeDraftId: null,
   projectName: null,
   projectPath: null,
   activeBookId: null,
@@ -256,7 +297,43 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   dirtyMap: {},
   isDirty: false,
 
-  applyState: (state, resetEditors = false, applicationStateReady = false) => {
+  applyWorkspaceSnapshot: (snapshot, resetEditors = false) => {
+    const state = snapshot.state as ProjectStateDto
+    const current = get()
+    const changed = resetEditors || current.projectPath !== state.projectPath || current.activeBookId !== state.activeBookId || current.activeDraftId !== snapshot.draftId
+    get().applyState(state, changed, true, true)
+    set((current) => ({
+      workspaceEpoch: snapshot.epoch,
+      activeDraftId: snapshot.draftId,
+      ...(!changed ? reconcileSceneEditors(current, state.chapters) : {})
+    }))
+  },
+
+  refreshWorkspaceEditors: async (preserveDirty = false) => {
+    const epoch = get().workspaceEpoch
+    const isDirty = (state: ProjectState, id: string): boolean => !!state.dirtyMap[id] || Object.values(state.editors).some((editor) => editor.sceneId === id && editor.isDirty)
+    const scenes = new Map(Object.values(get().editors).filter((editor) => !preserveDirty || !editor.sceneId || !isDirty(get(), editor.sceneId)).flatMap((editor) =>
+      editor.chapterGuid && editor.sceneId ? [[editor.sceneId, { chapterGuid: editor.chapterGuid, sceneId: editor.sceneId }] as const] : []))
+    // These are deliberately fresh reads. A coalesced pre-change read could
+    // be waiting behind the original RPC's all-window resume barrier.
+    const contents = new Map(await Promise.all([...scenes.values()].map(async (scene) => {
+      const content = await rpc.request<{ html: string; hash: string }>('scenes/read', [scene.chapterGuid, scene.sceneId])
+      return [scene.sceneId, content] as const
+    })))
+    if (get().workspaceEpoch !== epoch) return
+    set((state) => {
+      const editors = mapEditors(state.editors, (editor) => {
+        const content = editor.sceneId ? contents.get(editor.sceneId) : null
+        return content && (!preserveDirty || !isDirty(state, editor.sceneId!)) ? { ...editor, html: content.html, plainText: stripHtml(content.html), isDirty: false } : editor
+      })
+      return { editors, ...mirror(editors, state.activeEditorPaneId), sceneHashes: {
+        ...state.sceneHashes, ...Object.fromEntries([...contents].filter(([id]) => !preserveDirty || !isDirty(state, id)).map(([id, content]) => [id, content.hash]))
+      } }
+    })
+  },
+
+  applyState: (state, resetEditors = false, applicationStateReady = false, deferHydration = false) => {
+    deferHydration ||= get().workspaceBusy
     const prevPath = get().projectPath
     const prevBookId = get().activeBookId
     const prevName = get().projectName
@@ -278,49 +355,62 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       chapters: state.chapters
     })
     window.novalist.setProjectRoot(state.projectPath)
-    if (!applicationStateReady && (projectChanged || resetEditors || state.projectName !== prevName)) void get().loadRecents()
-    if (state.isLoaded) void get().loadDrafts()
+    if (!deferHydration && !applicationStateReady && (projectChanged || resetEditors || state.projectName !== prevName)) void get().loadRecents().catch(() => {})
+    if (!deferHydration && state.isLoaded) void get().loadDrafts().catch(() => {})
     // The effective language/theme can carry a per-project override, so re-apply
     // settings whenever the active project changes - otherwise a project opened
     // with a non-default language stays on the global language until Settings is
     // opened (which reloads settings as a side effect).
-    if (!applicationStateReady && (projectChanged || resetEditors)) void useSettingsStore.getState().load()
+    if (!deferHydration && !applicationStateReady && (projectChanged || resetEditors)) void useSettingsStore.getState().load().catch(() => {})
     // The Codex is the active book's, and its entry count is shown outside the
     // Codex view, so it cannot wait for that view to be mounted again. Anything
     // selected belonged to the book being left, so the selection goes with it.
     if (state.activeBookId !== prevBookId || resetEditors) {
       useCodexStore.setState({ selectedId: null, selectedRecord: null })
-      if (state.isLoaded) void useCodexStore.getState().refresh()
+      if (!deferHydration && state.isLoaded) void useCodexStore.getState().refresh().catch(() => {})
     }
   },
 
-  switchBook: async (bookId) => {
+  switchBook: (bookId) => runSceneContext(async () => {
+    await flushPendingWrites()
     await get().flushPendingSave()
-    set({ ...clearedEditorState() })
     get().applyState(await rpc.request<ProjectStateDto>('project/switchBook', [bookId]))
-  },
+  }),
 
-  createBook: async (name) => {
+  createBook: (name) => runSceneContext(async () => {
     get().applyState(await rpc.request<ProjectStateDto>('project/createBook', [name]))
-  },
+  }),
 
   loadDrafts: async () => {
     set({ drafts: await rpc.request<{ id: string; name: string; isActive: boolean }[]>('project/drafts') })
   },
 
-  createDraft: async (name) => {
+  createDraft: (name) => runSceneContext(async () => {
+    // The backend clones the draft's files, so include prose still held in
+    // mounted editors or their save queues before taking that snapshot.
+    await flushPendingWrites()
+    await get().flushPendingSave()
+    const { useManuscriptStore } = await import('./manuscriptStore')
+    await useManuscriptStore.getState().flushPendingSave()
+    if (get().sceneConflict || Object.values(get().dirtyMap).some(Boolean)) {
+      throw new Error(i18n.t('update.sceneWriteConflict'))
+    }
     const active = get().drafts.find((d) => d.isActive)
     set({ drafts: await rpc.request<{ id: string; name: string; isActive: boolean }[]>('project/createDraft', [name, active?.id ?? null]) })
-  },
+  }),
 
-  switchDraft: async (draftId) => {
+  switchDraft: (draftId) => runSceneContext(async () => {
+    await flushPendingWrites()
     await get().flushPendingSave()
-    set({ ...clearedEditorState() })
     get().applyState(await rpc.request<ProjectStateDto>('project/switchDraft', [draftId]))
-  },
+  }),
 
-  deleteDraft: async (draftId) => {
+  deleteDraft: (draftId) => runSceneContext(async () => {
     const wasActive = get().drafts.find((d) => d.id === draftId)?.isActive ?? false
+    if (wasActive) {
+      await flushPendingWrites()
+      await get().flushPendingSave()
+    }
     const drafts = await rpc.request<{ id: string; name: string; isActive: boolean }[]>(
       'project/deleteDraft',
       [draftId]
@@ -329,11 +419,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     // Deleting the active draft makes the backend switch to another draft and
     // reload its chapters/scenes, so refresh project state and reset the editor.
     if (wasActive) {
-      await get().flushPendingSave()
       set({ ...clearedEditorState() })
       get().applyState(await rpc.request<ProjectStateDto>('project/getState'))
     }
-  },
+  }),
 
   loadRecents: () => {
     if (get().closingProject) return Promise.resolve()
@@ -360,7 +449,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     return recentRefresh
   },
 
-  openProject: async (path, bookId) => {
+  openProject: (path, bookId) => runSceneContext(async () => {
     // On the sandboxed Mac App Store build, a project reopened from a stored path
     // (e.g. a recent-project card) needs its security-scoped bookmark resolved
     // before the backend can touch the files. beginProjectAccess returns true
@@ -376,9 +465,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     await get().flushPendingSave()
     const state = await rpc.request<ProjectStateDto>('project/open', [target, bookId ?? null])
     get().applyState(state)
-  },
+  }),
 
-  closeProject: async () => {
+  closeProject: () => runSceneContext(async () => {
     if (get().closingProject) return
     set({ closingProject: true })
     recentRefreshVersion++
@@ -391,11 +480,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       // Keep the project inert until the library and global appearance are
       // ready. Publishing unloaded state first flashes menu-only entries in
       // the project's language and then rebuilds the visible bookshelf.
-      const [recents] = await Promise.all([
-        rpc.request<RecentProjectDto[]>('project/recent', [true]),
-        useSettingsStore.getState().load()
-      ])
-      set({ recentProjects: recents })
+      await prepareProjectLibrary()
       get().applyState(closed, false, true)
     } catch (error) {
       // The backend may already be closed: never leave an editable stale
@@ -403,7 +488,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       if (closed) get().applyState(closed)
       throw error
     } finally { set({ closingProject: false }) }
-  },
+  }),
 
   pickAndOpenProject: async () => {
     const path = await window.novalist.pickFolder('Novalist')
@@ -414,7 +499,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     await get().openSceneIn(targetEditorPane(), chapterGuid, sceneId)
   },
 
-  openSceneIn: async (paneId, chapterGuid, sceneId) => {
+  openSceneIn: (paneId, chapterGuid, sceneId) => runSceneContext(async () => {
+    const epoch = get().workspaceEpoch
     const shell = useShellStore.getState()
     // A scene opening is a screen closing. The binder, a search hit and a link
     // all come through here, so a screen holding unsaved edits gets its say
@@ -433,6 +519,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       'scenes/read',
       [chapterGuid, sceneId]
     )
+    if (get().workspaceEpoch !== epoch) return
     set((s) => {
       const previous = editorPane(s, paneId)
       const editors = {
@@ -455,7 +542,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         ...mirror(editors, paneId)
       }
     })
-  },
+  }),
 
   openSceneInSplit: async (chapterGuid, sceneId) => {
     // "Open in split" now means a real second pane rather than the editor's own
@@ -508,7 +595,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   dismissSceneConflict: () => set({ sceneConflict: null }),
 
-  closeTab: async (paneId, sceneId) => {
+  closeTab: (paneId, sceneId) => runSceneContext(async () => {
     const editor = editorPane(get(), paneId)
     const idx = editor.tabs.findIndex((t) => t.sceneId === sceneId)
     if (idx < 0) return
@@ -533,7 +620,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const next = remaining[Math.min(idx, remaining.length - 1)]
     set((s) => patchEditor(s, paneId, { tabs: remaining }))
     await get().openSceneIn(paneId, next.chapterGuid, next.sceneId)
-  },
+  }),
 
   moveTabToOtherPane: async (paneId, sceneId) => {
     const tab = editorPane(get(), paneId).tabs.find((t) => t.sceneId === sceneId)
@@ -687,15 +774,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   deleteChapter: async (chapterGuid) => {
-    set((s) => forgetScenes(s, (tab) => tab.chapterGuid !== chapterGuid))
-    get().applyState(await rpc.request<ProjectStateDto>('project/deleteChapter', [chapterGuid]))
+    await get().mutateSceneStructure('project/deleteChapter', [chapterGuid])
   },
 
   deleteScene: async (chapterGuid, sceneId) => {
-    set((s) => forgetScenes(s, (tab) => tab.sceneId !== sceneId))
-    get().applyState(
-      await rpc.request<ProjectStateDto>('project/deleteScene', [chapterGuid, sceneId])
-    )
+    await get().mutateSceneStructure('project/deleteScene', [chapterGuid, sceneId])
   },
 
   setChapterStatus: async (chapterGuid, status) => {
@@ -723,15 +806,58 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   moveScenes: async (sceneIds, targetChapterGuid, targetIndex) => {
-    get().applyState(
-      await rpc.request<ProjectStateDto>('project/moveScenes', [
-        sceneIds,
-        targetChapterGuid,
-        targetIndex
-      ])
-    )
+    await get().mutateSceneStructure('project/moveScenes', [sceneIds, targetChapterGuid, targetIndex])
+  },
+
+  mutateSceneStructure: async (method, args) => {
+    ensureSceneStructureReady()
+    if (pendingSceneContexts > 0) throw new Error(i18n.t('update.workspaceBusy'))
+    set({ changingSceneStructure: true })
+    try {
+      // Archive/delete must capture the live prose before moving its file;
+      // a moved scene must finish writes that still address its old chapter.
+      await flushPendingWrites()
+      await get().flushPendingSave()
+      const { useManuscriptStore } = await import('./manuscriptStore')
+      await useManuscriptStore.getState().flushPendingSave()
+      if (get().sceneConflict || Object.values(get().dirtyMap).some(Boolean)) {
+        throw new Error(i18n.t('update.sceneWriteConflict'))
+      }
+      const result = await rpc.request<ProjectStateDto | { state: ProjectStateDto }>(method, args)
+      const state = 'state' in result ? result.state : result
+      // Only retire ownership after the backend accepted the operation. A
+      // failed archive leaves every tab and its prose available for retry.
+      get().applyState(state)
+      set((current) => reconcileSceneEditors(current, state.chapters))
+      useManuscriptStore.getState().reconcileSceneStructure(state.chapters)
+    } catch (error) {
+      const { useHostBridgeStore } = await import('./hostBridgeStore')
+      const message = error instanceof Error ? error.message : String(error)
+      useHostBridgeStore.getState().pushToast(i18n.t('toast.saveFailed').replace('{0}', message))
+      throw error
+    } finally {
+      set({ changingSceneStructure: false })
+    }
   }
 }))
+
+let pendingSceneContexts = 0
+
+async function runSceneContext(action: () => Promise<void>): Promise<void> {
+  ensureSceneStructureReady()
+  pendingSceneContexts++
+  try {
+    await action()
+  } finally {
+    pendingSceneContexts--
+  }
+}
+
+function ensureSceneStructureReady(): void {
+  if (useProjectStore.getState().changingSceneStructure || useProjectStore.getState().workspaceBusy) {
+    throw new Error(i18n.t('update.workspaceBusy'))
+  }
+}
 
 /**
  * A key that changes whenever the data a book-scoped panel shows could have
@@ -749,7 +875,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
  * request is answered from the active book.
  */
 export function useBookScope(): string {
-  return useProjectStore((s) => `${s.projectPath ?? ''}|${s.activeBookId ?? ''}`)
+  return useProjectStore((s) => `${s.projectPath ?? ''}|${s.activeBookId ?? ''}|${s.activeDraftId ?? ''}`)
 }
 
 /** Full editor reset used when the project, active book or draft changes. */
@@ -816,19 +942,28 @@ function patchEditor(
 }
 
 /** Drops scenes that no longer exist from every pane's tabs and content. */
-function forgetScenes(
+function reconcileSceneEditors(
   state: ProjectState,
-  keep: (tab: SceneTabRef) => boolean
+  chapters: ChapterDto[]
 ): Partial<ProjectState> {
+  const chapterByScene = new Map(chapters.flatMap((chapter) =>
+    chapter.scenes.map((scene) => [scene.id, chapter.guid] as const)))
   const editors = mapEditors(state.editors, (editor) => {
-    const tabs = editor.tabs.filter(keep)
-    const gone =
-      editor.chapterGuid !== null &&
-      editor.sceneId !== null &&
-      !keep({ chapterGuid: editor.chapterGuid, sceneId: editor.sceneId })
-    return gone ? { ...EMPTY_EDITOR, tabs } : { ...editor, tabs }
+    const tabs = editor.tabs.flatMap((tab) => {
+      const chapterGuid = chapterByScene.get(tab.sceneId)
+      return chapterGuid ? [{ ...tab, chapterGuid }] : []
+    })
+    const chapterGuid = editor.sceneId ? chapterByScene.get(editor.sceneId) : null
+    return editor.sceneId && !chapterGuid
+      ? { ...EMPTY_EDITOR, tabs }
+      : { ...editor, chapterGuid: chapterGuid ?? null, tabs }
   })
-  return { editors, ...mirror(editors, state.activeEditorPaneId) }
+  return {
+    editors,
+    ...mirror(editors, state.activeEditorPaneId),
+    dirtyMap: Object.fromEntries(Object.entries(state.dirtyMap).filter(([id]) => chapterByScene.has(id))),
+    sceneHashes: Object.fromEntries(Object.entries(state.sceneHashes).filter(([id]) => chapterByScene.has(id)))
+  }
 }
 
 /** Every pane currently holding the editor, in the order they appear. */
@@ -991,13 +1126,35 @@ async function saveScene(
  * One subscription rather than a call at each transition: dirty is set in half
  * a dozen places and a missed one is a silent hole in the guard.
  */
+export interface EditingSceneClaim { chapterGuid: string; sceneId: string; dirty: boolean }
+let manuscriptClaims: EditingSceneClaim[] = []
 let reported = ''
-useProjectStore.subscribe((state) => {
-  const { openChapterGuid, openSceneId, isDirty } = state
-  const next = `${openChapterGuid ?? ''}|${openSceneId ?? ''}|${isDirty}`
-  if (next === reported) return
+
+export function reportManuscriptEditing(claims: EditingSceneClaim[]): void {
+  manuscriptClaims = claims
+  reportEditingScenes()
+}
+
+export function reportEditingScenes(force = false): void {
+  const state = useProjectStore.getState()
+  if (state.workspaceSuspended && !force) return
+  const claims = new Map<string, EditingSceneClaim>()
+  for (const editor of Object.values(state.editors)) {
+    if (!editor.sceneId || !editor.chapterGuid) continue
+    const prior = claims.get(editor.sceneId)
+    claims.set(editor.sceneId, { chapterGuid: editor.chapterGuid, sceneId: editor.sceneId, dirty: editor.isDirty || !!prior?.dirty })
+  }
+  for (const claim of manuscriptClaims) {
+    const prior = claims.get(claim.sceneId)
+    claims.set(claim.sceneId, { ...claim, dirty: claim.dirty || !!prior?.dirty })
+  }
+  const scenes = [...claims.values()].sort((left, right) => left.sceneId.localeCompare(right.sceneId))
+  const next = JSON.stringify(scenes)
+  if (!force && next === reported) return
   reported = next
-  // A failure here is not worth surfacing: the guard degrades to the old
-  // behaviour, and everything else the editor does still works.
-  void rpc.request('scenes/setEditing', [openChapterGuid, openSceneId, isDirty]).catch(() => {})
-})
+  const request = scenes.length > 1
+    ? rpc.request('scenes/setEditingMany', [scenes])
+    : rpc.request('scenes/setEditing', [scenes[0]?.chapterGuid ?? null, scenes[0]?.sceneId ?? null, scenes[0]?.dirty ?? false])
+  void request.catch(() => { if (reported === next) reported = '' })
+}
+useProjectStore.subscribe(() => reportEditingScenes())

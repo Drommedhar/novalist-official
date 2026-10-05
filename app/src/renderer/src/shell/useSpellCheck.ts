@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useSettingsStore } from '../stores/settingsStore'
+import { useProjectStore } from '../stores/projectStore'
 
 /**
  * Keeps the platform spell checker in step with the writer's settings.
@@ -50,22 +51,28 @@ export function useSpellCheck(): void {
   const { t } = useTranslation()
   const view = useSettingsStore((s) => s.view)
   const enabled = view?.effective.spellCheckEnabled ?? true
+  const workspaceBusy = useProjectStore((state) => state.workspaceBusy)
+  const workspaceEpoch = useProjectStore((state) => state.workspaceEpoch)
   // Joined because the array identity changes on every settings fetch, which
   // would otherwise reload dictionaries on every unrelated settings write.
   const languages = (view?.effective.spellCheckLanguages ?? []).join(',')
 
   useEffect(() => {
+    if (workspaceBusy) return
+    let active = true
     void (async () => {
       // Every name the Codex holds as well as the writer's own words: a
       // secondary-world manuscript is a wall of underlines otherwise.
       const words = await rpc.request<string[]>('spell/dictionary')
+      if (!active) return
       await window.novalist.applySpellCheck(
         enabled,
         languages.length > 0 ? languages.split(',') : [],
         words
       )
-    })()
-  }, [enabled, languages])
+    })().catch(() => { /* Scope changes cancel old background dictionary reads. */ })
+    return () => { active = false }
+  }, [enabled, languages, workspaceBusy, workspaceEpoch])
 
   // The spelling menu is built natively, so its labels have to be pushed across
   // rather than translated where it is shown.

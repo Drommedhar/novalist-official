@@ -393,7 +393,8 @@ public class EntityService : IEntityService
             throw new InvalidOperationException("No project loaded.");
 
         // WB images use the project root, book images use the book root
-        if (relativePath.StartsWith(Project.WorldBibleFolder, StringComparison.OrdinalIgnoreCase))
+        if (relativePath.Replace('\\', '/').StartsWith(Project.WorldBibleFolder.Replace('\\', '/').TrimEnd('/') + "/",
+                StringComparison.OrdinalIgnoreCase))
             return Path.Combine(_projectService.ProjectRoot, relativePath);
 
         return Path.Combine(BookRoot, relativePath);

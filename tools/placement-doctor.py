@@ -48,6 +48,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from html_sources import classic_script_paths
 
 ROOT = Path(__file__).resolve().parent.parent
 APP = ROOT / "app"
@@ -202,7 +203,7 @@ def main() -> int:
         by_id[command.id] = command
 
     files = [p for pattern in SCAN_GLOBS for p in APP.glob(pattern)]
-    files += [APP / name for name in SCAN_FILES]
+    files += [path for name in SCAN_FILES for path in classic_script_paths(APP / name)]
 
     for path in sorted(set(files)):
         rendered, loose = scan(path)

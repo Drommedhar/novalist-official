@@ -1,11 +1,19 @@
+import { useDetachedCommands } from './useDetachedCommands'
+import { ShellDialogs } from './ShellDialogs'
+import { WorkspaceRecoveryDialog } from './WorkspaceRecoveryDialog'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { MainArea } from './MainArea'
 import { StatusBar } from './StatusBar'
-import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
+import { useProjectStore } from '../stores/projectStore'
 import { newLeaf, useShellStore, type MainView } from '../stores/shellStore'
 import { useUiScaleStore } from '../stores/uiScaleStore'
+import { hydrateWindow } from './bootstrap'
+import { useWorkspaceWindow } from './useWorkspaceWindow'
+import { SceneConflictDialog } from './SceneConflictDialog'
+import { UnsavedLeaveDialog } from './UnsavedLeaveDialog'
+import { useHostBridgeStore } from '../stores/hostBridgeStore'
 
 /** What the window was torn off to show. */
 export interface DetachedRequest {
@@ -32,6 +40,9 @@ export interface DetachedRequest {
  */
 export function DetachedPane({ request }: { request: DetachedRequest }): React.JSX.Element {
   const { t } = useTranslation()
+  useWorkspaceWindow()
+  useDetachedCommands()
+  const workspaceBusy = useProjectStore((state) => state.workspaceBusy)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -39,45 +50,35 @@ export function DetachedPane({ request }: { request: DetachedRequest }): React.J
     const reportWidth = (): void => useShellStore.getState().setShellMetrics(window.innerWidth)
     reportWidth()
     window.addEventListener('resize', reportWidth)
-    // Its own connection and its own copy of the project state. Sharing the
-    // main window's would mean one window's navigation moving the other's.
-    void rpc
-      .connect()
-      .then(async () => {
-        // The project the parent window is in. Falling back to the most recent
-        // one is only for a window restored without it - opening a different
-        // project than the one torn off is the bug this replaced.
-        let path = request.projectPath
-        if (!path) {
-          const recent = await rpc.request<{ path: string }[]>('project/recent').catch(() => [])
-          path = recent[0]?.path ?? null
-        }
-        // One pane, holding the view this window was opened for. Set before the
-        // project loads so opening the scene below lands in it.
-        const leaf = newLeaf(request.view)
-        useShellStore.setState({ panes: leaf, activePaneId: leaf.id, mainView: request.view })
-        if (!path) return
-        const state = await rpc.request<ProjectStateDto>('project/open', [path])
-        useProjectStore.getState().applyState(state)
-        // The editor torn off its scene is a window with an editor in it, not a
-        // window telling the writer to open a project they already have open.
-        if (request.chapterGuid && request.sceneId) {
-          await useProjectStore
-            .getState()
-            .openSceneIn(leaf.id, request.chapterGuid, request.sceneId)
-        }
-      })
-      .catch(() => {})
-      .finally(() => setReady(true))
-    return () => window.removeEventListener('resize', reportWidth)
+    const leaf = newLeaf(request.view)
+    useShellStore.setState({ panes: leaf, activePaneId: leaf.id, mainView: request.view })
+    let disposed = false
+    const stopReconnect = rpc.onReconnected(() => void hydrateWindow().catch(() => {}))
+    void rpc.connect().then(hydrateWindow).then(async () => {
+      if (disposed) return
+      const project = useProjectStore.getState()
+      // A detached view joins the current shared workspace; opening a second
+      // project here would replace the workspace behind every other window.
+      const chapter = project.chapters.find((item) => item.guid === request.chapterGuid)
+      if (request.sceneId && chapter?.scenes.some((scene) => scene.id === request.sceneId)) {
+        await project.openSceneIn(leaf.id, chapter.guid, request.sceneId)
+      }
+    }).catch((error) => {
+      useHostBridgeStore.getState().pushToast(String(error))
+    }).finally(() => { if (!disposed) setReady(true) })
+    return () => { disposed = true; stopReconnect(); window.removeEventListener('resize', reportWidth) }
   }, [request])
 
   if (!ready) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 
   return (
-    <div className="app-shell detached">
+    <div className="app-shell detached" inert={workspaceBusy}>
       <MainArea headers="always" />
       <StatusBar />
+      <WorkspaceRecoveryDialog />
+      <SceneConflictDialog />
+      <UnsavedLeaveDialog />
+      <ShellDialogs />
     </div>
   )
 }

@@ -58,7 +58,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Focus Mode** (`F11`) fills the screen with a centered page that widens as you zoom and hides the title and menu bars. Hover areas grow with the space beside the page; prepared binder and context panels slide in gently. Panels and notes overlay the page; your caret, split layout and previous window state survive the round trip.
 - **Project bookshelf** fills the workspace with covers on open shelves, shelf filters, search, adjustable cover size and sorting. Select a cover for its details, related books, World Bible and Series actions; double-click or choose **Open book** to open it. A project's books stay together when arranging shelves. Generated title covers and uploaded artwork share book shading, gently open at the spine on hover or keyboard focus, and stay open while selected. Remove individual books or whole projects without deleting files, and restore them from the library menu.
 - **Scratchpad** stays within reach in the bookshelf header, even while scrolling. Jot down ideas without opening a project and file saved notes into a project's Research inbox later.
-- **Split panes** — divide the main area as many times as you like, each pane showing any view, and tear one off into its own window.
+- **Split panes** — divide the main area as many times as you like, each pane showing any view, and tear one off into its own window. Windows share the active project, book and draft, and save pending edits together before switching context or quitting.
 - **Auto-replacements** for smart quotes, em-dashes, and ellipses with language presets (English, German, French, Spanish, Italian, Portuguese, Russian, Polish, Czech, Slovak) — or switched off entirely, so every character you type is the character that lands. The list is yours to edit: add your own rules, plain text or regular expressions with capture groups, and run them over prose you already wrote.
 - **Dialogue punctuation correction** as you type.
 - **Offline spell check** using the operating system's own checker — no server, no account, no network — with a personal dictionary that travels with your settings.
@@ -127,7 +127,7 @@ English and German **dictation** writes directly at the editor caret. Built-in s
 
 ### Version control
 
-- **Automatic backups** — the whole project folder archived to a rotating ZIP outside the project, on open, on close, and on a timer, with one-click restore from Settings. Restore a ZIP as a separate project from the File menu or welcome screen. The `.git` folder is skipped, and restoring archives the current state first so it can be undone.
+- **Automatic backups** — the whole project folder archived to a rotating ZIP outside the project, on open, on close, and on a timer, with one-click restore from Settings. Each project location has a separate history, including projects with the same folder name. Restore a ZIP as a separate project from the File menu or welcome screen, including older archives kept outside the current history. The `.git` folder is skipped, and restoring archives the current state first so it can be undone.
 - Built-in **Git** client — stage, commit, push, pull from the app; branch and changed-file count in the status bar.
 - Per-scene snapshot history is complementary to Git for fine-grained, per-file recovery.
 

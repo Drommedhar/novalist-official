@@ -154,11 +154,14 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
 
     private readonly SemaphoreSlim _gate;
     private readonly Func<Task>? _afterRequest;
+    private readonly WorkspaceCoordinator? _coordinator;
 
-    public SerialDispatchJsonRpc(IJsonRpcMessageHandler handler, SemaphoreSlim? gate = null, Func<Task>? afterRequest = null) : base(handler)
+    public SerialDispatchJsonRpc(IJsonRpcMessageHandler handler, SemaphoreSlim? gate = null, Func<Task>? afterRequest = null,
+        WorkspaceCoordinator? coordinator = null) : base(handler)
     {
         _gate = gate ?? new SemaphoreSlim(1, 1);
         _afterRequest = afterRequest;
+        _coordinator = coordinator;
     }
 
     /// <summary>Whether this method skips the queue. Exposed for the tests that
@@ -166,6 +169,7 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
     internal static bool IsReentrant(string? method)
     {
         if (method == null) return false;
+        if (method is "workspace/prepared" or "workspace/applied" or "workspace/clientClosed") return true;
         if (Reentrant.Contains(method)) return true;
         foreach (var family in Unsynchronised)
         {
@@ -179,17 +183,36 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         TargetMethod targetMethod,
         CancellationToken cancellationToken)
     {
+        WorkspaceRequestIdentity? identity;
+        try { identity = WorkspaceRequestIdentity.Parse(request.RequestId); }
+        catch (InvalidOperationException error) { return WorkspaceError(request, error); }
+
         if (IsReentrant(request.Method))
         {
-            return await base.DispatchRequestAsync(request, targetMethod, cancellationToken)
-                .ConfigureAwait(false);
+            using var context = WorkspaceRequestContext.Enter(identity, null);
+            try
+            {
+                _coordinator?.Validate(identity, request.Method);
+                return await base.DispatchRequestAsync(request, targetMethod, cancellationToken).ConfigureAwait(false);
+            }
+            catch (InvalidOperationException error) { return WorkspaceError(request, error); }
         }
 
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var lease = new WorkspaceGateLease(_gate);
+        using var scope = WorkspaceRequestContext.Enter(identity, lease);
         try
         {
+            _coordinator?.Validate(identity, request.Method);
+            if (_coordinator != null && WorkspaceCoordinator.ChangesWorkspace(request.Method))
+                return await _coordinator.RunAsync(request.Method!, async () =>
+                    await base.DispatchRequestAsync(request, targetMethod, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
             return await base.DispatchRequestAsync(request, targetMethod, cancellationToken)
                 .ConfigureAwait(false);
+        }
+        catch (Exception error) when (error is InvalidOperationException or TimeoutException)
+        {
+            return WorkspaceError(request, error);
         }
         finally
         {
@@ -197,9 +220,19 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
             {
                 if (_afterRequest != null) await _afterRequest().ConfigureAwait(false);
             }
-            finally { _gate.Release(); }
+            finally
+            {
+                lease.Active = false;
+                lease.Yield();
+            }
         }
     }
+
+    private static JsonRpcError WorkspaceError(JsonRpcRequest request, Exception error) => new()
+    {
+        RequestId = request.RequestId,
+        Error = new JsonRpcError.ErrorDetail { Code = (JsonRpcErrorCode)(-32010), Message = error.Message }
+    };
 
     /// <summary>
     /// Records RPC failures at the point StreamJsonRpc converts an exception

@@ -22,6 +22,10 @@ Deliberately **outside** the project folder. A backup kept inside the project is
 
 You can point backups somewhere else in **Settings → Backups → Backup folder**. Choosing a synced folder or an external drive means your work survives losing the machine itself, not just losing the project.
 
+Each backup history belongs to one project location. Projects with the same folder name use separate histories, so pruning or restoring one cannot affect the other. Novalist may create an additional subfolder to keep these histories separate; **Open backup folder** takes you to the current project's archives.
+
+Archives created by older versions remain where they are. If their folder has no ownership record, Novalist starts a separate history and leaves those archives out of automatic retention and the current backup list. Recover an older ZIP through **Restore backup as new project**. Moving or copying a project also starts a separate history at its new location.
+
 ## When a backup is taken
 
 | Trigger | When |
@@ -51,7 +55,7 @@ Milestones are listed above their date with a flag, so they stand apart from the
 
 All of these live in **Settings → Backups**.
 
-- **Back up the project automatically** — the master switch. Turning it off stops every automatic trigger; **Back up now** still works.
+- **Back up the project automatically** — the master switch for ordinary backups, including **Back up now**. Turning it off leaves named milestones and the safety archive taken before a restore available.
 - **Minutes between backups** — default 30. Set it to `0` to back up only on open and close. Values below 5 are treated as 5, and the maximum is 1440 (one day).
 - **Archives to keep** — default 5. Once more than this many exist, the oldest is deleted first. The minimum is 1, the maximum 100.
 - **Backup folder** — leave empty for the default location above.

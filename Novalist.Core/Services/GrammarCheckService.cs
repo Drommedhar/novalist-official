@@ -276,10 +276,21 @@ public sealed class GrammarCheckService
     /// </summary>
     private static readonly Dictionary<string, string> LanguageVariants = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["en-US"] = "en-US", ["en-GB"] = "en-GB", ["en-GB-oxendict"] = "en-GB",
-        ["en-AU"] = "en-AU", ["en-CA"] = "en-CA", ["en-NZ"] = "en-NZ", ["en-ZA"] = "en-ZA",
-        ["de-DE"] = "de-DE", ["de-AT"] = "de-AT", ["de-CH"] = "de-CH", ["de-LU"] = "de-LU",
-        ["pt-BR"] = "pt-BR", ["pt-PT"] = "pt-PT", ["pt-AO"] = "pt-AO", ["pt-MZ"] = "pt-MZ"
+        ["en-US"] = "en-US",
+        ["en-GB"] = "en-GB",
+        ["en-GB-oxendict"] = "en-GB",
+        ["en-AU"] = "en-AU",
+        ["en-CA"] = "en-CA",
+        ["en-NZ"] = "en-NZ",
+        ["en-ZA"] = "en-ZA",
+        ["de-DE"] = "de-DE",
+        ["de-AT"] = "de-AT",
+        ["de-CH"] = "de-CH",
+        ["de-LU"] = "de-LU",
+        ["pt-BR"] = "pt-BR",
+        ["pt-PT"] = "pt-PT",
+        ["pt-AO"] = "pt-AO",
+        ["pt-MZ"] = "pt-MZ"
     };
 
     /// <summary>

@@ -290,7 +290,7 @@ public sealed class NarrationRenderJob
         {
             try
             {
-                File.Delete(file);
+                NarrationFileCleanup.Delete(file);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {

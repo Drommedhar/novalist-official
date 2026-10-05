@@ -115,7 +115,7 @@ public sealed class NarrationClipCache
             try
             {
                 var length = file.Length;
-                file.Delete();
+                NarrationFileCleanup.Delete(file.FullName);
                 total -= length;
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -140,7 +140,7 @@ public sealed class NarrationClipCache
         {
             try
             {
-                File.Delete(file);
+                NarrationFileCleanup.Delete(file);
             }
             catch (IOException)
             {

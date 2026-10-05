@@ -34,7 +34,10 @@ export function EntityImages(): React.JSX.Element | null {
   const images = Array.isArray(record.images) ? (record.images as EntityImage[]) : []
 
   const applyResult = (updated: Record<string, unknown>): void => {
-    useCodexStore.setState({ selectedRecord: updated })
+    const current = useCodexStore.getState()
+    if (current.entityType === entityType && current.selectedId === selectedId) {
+      useCodexStore.setState({ selectedRecord: updated })
+    }
     void useCodexStore.getState().refresh()
   }
 

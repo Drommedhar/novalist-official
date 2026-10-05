@@ -23,6 +23,18 @@ export type Harness = {
   close(): Promise<void>
 }
 
+export async function closeTestApp(app: ElectronApplication): Promise<void> {
+  // A spec can deliberately leave a save failure or conflict unresolved.
+  // Dispose its temporary windows without invoking the writer's close guard;
+  // app.close still lets the main process shut down its backend normally.
+  await app.evaluate(({ BrowserWindow }) => {
+    for (const win of BrowserWindow.getAllWindows()) win.destroy()
+  }).catch(() => {
+    // Closing the last window can already quit the app on Windows/Linux.
+  })
+  await app.close()
+}
+
 export async function launchApp(
   prefix: string,
   /** Extra environment for the launch, e.g. NOVALIST_FORCE_MOBILE for the phone shell. */
@@ -78,7 +90,7 @@ export async function launchApp(
       { m: method, p: params }
     ) as Promise<T>
 
-  return { app, page, workDir, rpc, close: () => app.close() }
+  return { app, page, workDir, rpc, close: () => closeTestApp(app) }
 }
 
 /**

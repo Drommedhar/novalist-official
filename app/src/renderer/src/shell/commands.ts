@@ -872,6 +872,6 @@ export function commandById(id: string): CommandDef | undefined {
 
 /** Runs a command by id. Used by the surfaces that render from the registry. */
 export function runCommand(id: string): void {
-  if (project().closingProject) return
+  if (project().closingProject || project().changingSceneStructure || project().workspaceBusy) return
   BY_ID.get(id)?.run()
 }

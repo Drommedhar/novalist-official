@@ -1,6 +1,6 @@
 import { app, ipcMain, net, protocol, session } from 'electron'
 import { pathToFileURL } from 'node:url'
-import { join, normalize } from 'node:path'
+import { join, normalize, sep } from 'node:path'
 
 let projectRoot: string | null = null
 const extensionRoots = new Map<string, string>()
@@ -178,7 +178,7 @@ export function registerProtocolHandlers(): void {
     if (!root) return new Response('unknown extension', { status: 404 })
     const relative = decodeURIComponent(url.pathname)
     const resolved = normalize(join(root, relative))
-    if (!resolved.startsWith(normalize(root))) {
+    if (!resolved.startsWith(join(root, sep))) {
       return new Response('forbidden', { status: 403 })
     }
     return withRendererCors(request, await net.fetch(pathToFileURL(resolved).toString()))
@@ -196,7 +196,7 @@ export function registerProtocolHandlers(): void {
     const name = decodeURIComponent(new URL(request.url).pathname).replace(/^\/+/, '')
     if (!isClipName(name)) return new Response('forbidden', { status: 403 })
     const resolved = normalize(join(narrationCacheRoot(), name))
-    if (!resolved.startsWith(normalize(narrationCacheRoot()))) {
+    if (!resolved.startsWith(join(narrationCacheRoot(), sep))) {
       return new Response('forbidden', { status: 403 })
     }
     return withRendererCors(request, await net.fetch(pathToFileURL(resolved).toString()))
@@ -207,7 +207,7 @@ export function registerProtocolHandlers(): void {
     const url = new URL(request.url)
     const relative = decodeURIComponent(url.pathname)
     const resolved = normalize(join(projectRoot, relative))
-    if (!resolved.startsWith(normalize(projectRoot))) {
+    if (!resolved.startsWith(join(projectRoot, sep))) {
       return new Response('forbidden', { status: 403 })
     }
     return net.fetch(pathToFileURL(resolved).toString())

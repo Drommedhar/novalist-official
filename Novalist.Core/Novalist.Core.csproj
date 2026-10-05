@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Novalist.Core.Tests" />
+    <InternalsVisibleTo Include="Novalist.Backend" />
   </ItemGroup>
   <ItemGroup>
     <!-- Scene-analysis keyword lists, one JSON per writing language. Embedded so

@@ -19,6 +19,7 @@ public sealed class SceneEditingState
     private string? _chapterGuid;
     private string? _sceneId;
     private bool _dirty;
+    private readonly Dictionary<string, (string? ChapterGuid, string? SceneId, bool Dirty)[]> _owners = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Records what the editor is doing. A null scene means nothing is open.
@@ -42,15 +43,48 @@ public sealed class SceneEditingState
     {
         lock (_lock)
         {
-            return _dirty
+            return (_dirty
                 && string.Equals(_sceneId, sceneId, StringComparison.Ordinal)
-                && string.Equals(_chapterGuid, chapterGuid, StringComparison.Ordinal);
+                && string.Equals(_chapterGuid, chapterGuid, StringComparison.Ordinal))
+                || _owners.Values.SelectMany(scenes => scenes).Any(scene => scene.Dirty
+                    && string.Equals(scene.SceneId, sceneId, StringComparison.Ordinal)
+                    && string.Equals(scene.ChapterGuid, chapterGuid, StringComparison.Ordinal));
         }
     }
 
     /// <summary>The scene the editor has open, or null. For diagnostics.</summary>
     public (string? ChapterGuid, string? SceneId, bool Dirty) Current
     {
-        get { lock (_lock) { return (_chapterGuid, _sceneId, _dirty); } }
+        get
+        {
+            lock (_lock)
+            {
+                var busy = _owners.Values.SelectMany(scenes => scenes).FirstOrDefault(scene => scene.Dirty);
+                return busy.Dirty ? busy : (_chapterGuid, _sceneId, _dirty);
+            }
+        }
+    }
+
+    /// <summary>Replaces one window's claims without releasing another editor.</summary>
+    internal void SetOwner(string owner, IEnumerable<(string? ChapterGuid, string? SceneId, bool Dirty)> scenes)
+    {
+        lock (_lock)
+            _owners[owner] = scenes.Where(scene => !string.IsNullOrEmpty(scene.SceneId)).ToArray();
+    }
+
+    internal void RemoveOwner(string owner)
+    {
+        lock (_lock) _owners.Remove(owner);
+    }
+
+    internal void ClearOwners()
+    {
+        lock (_lock)
+        {
+            _owners.Clear();
+            _chapterGuid = null;
+            _sceneId = null;
+            _dirty = false;
+        }
     }
 }

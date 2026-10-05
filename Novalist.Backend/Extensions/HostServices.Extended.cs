@@ -58,7 +58,7 @@ public sealed partial class HostServices
                 .Any(s => s.Id == sceneId));
         if (owner == null) return false;
 
-        await _projectService.MoveScenesAsync([sceneId], targetChapterGuid, Math.Max(0, index));
+        await ChangeWorkspaceAsync("project/moveScenes", () => _projectService.MoveScenesAsync([sceneId], targetChapterGuid, Math.Max(0, index)));
         ProjectStructureChanged?.Invoke();
         return true;
     }
@@ -87,7 +87,7 @@ public sealed partial class HostServices
         if (!ChapterExists(chapterGuid)) return false;
         // The core delete is already a move to the trash, so an extension gets
         // the recoverable verb without a second implementation.
-        await _projectService.DeleteChapterAsync(chapterGuid);
+        await ChangeWorkspaceAsync("project/deleteChapter", () => _projectService.DeleteChapterAsync(chapterGuid));
         ProjectStructureChanged?.Invoke();
         return true;
     }
@@ -95,7 +95,7 @@ public sealed partial class HostServices
     async Task<bool> IExtensionProjectService.ArchiveSceneAsync(string chapterGuid, string sceneId)
     {
         if (!SceneExists(chapterGuid, sceneId)) return false;
-        await _projectService.ArchiveSceneAsync(chapterGuid, sceneId);
+        await ChangeWorkspaceAsync("sceneBulk/archive", () => _projectService.ArchiveSceneAsync(chapterGuid, sceneId));
         ProjectStructureChanged?.Invoke();
         return true;
     }
@@ -124,71 +124,71 @@ public sealed partial class HostServices
         switch ((typeKey ?? string.Empty).ToLowerInvariant())
         {
             case "character":
-            {
-                var entity = (await _entityService.LoadCharactersAsync())
-                    .FirstOrDefault(e => e.Id == entityId);
-                if (entity == null) return false;
-                if (!string.IsNullOrWhiteSpace(name)) ApplyPersonName(entity, name!);
-                // A character has no description field, so it becomes a Notes
-                // section - the same place CreateEntityAsync puts one, or the
-                // two calls would disagree about where a description lives.
-                entity.Sections = Merge(entity.Sections, WithDescription(sections, description));
-                await _entityService.SaveCharacterAsync(entity);
-                break;
-            }
+                {
+                    var entity = (await _entityService.LoadCharactersAsync())
+                        .FirstOrDefault(e => e.Id == entityId);
+                    if (entity == null) return false;
+                    if (!string.IsNullOrWhiteSpace(name)) ApplyPersonName(entity, name!);
+                    // A character has no description field, so it becomes a Notes
+                    // section - the same place CreateEntityAsync puts one, or the
+                    // two calls would disagree about where a description lives.
+                    entity.Sections = Merge(entity.Sections, WithDescription(sections, description));
+                    await _entityService.SaveCharacterAsync(entity);
+                    break;
+                }
             case "location":
-            {
-                var entity = (await _entityService.LoadLocationsAsync())
-                    .FirstOrDefault(e => e.Id == entityId);
-                if (entity == null) return false;
-                if (!string.IsNullOrWhiteSpace(name)) entity.Name = name!;
-                if (description != null) entity.Description = description;
-                entity.Sections = Merge(entity.Sections, sections);
-                await _entityService.SaveLocationAsync(entity);
-                break;
-            }
+                {
+                    var entity = (await _entityService.LoadLocationsAsync())
+                        .FirstOrDefault(e => e.Id == entityId);
+                    if (entity == null) return false;
+                    if (!string.IsNullOrWhiteSpace(name)) entity.Name = name!;
+                    if (description != null) entity.Description = description;
+                    entity.Sections = Merge(entity.Sections, sections);
+                    await _entityService.SaveLocationAsync(entity);
+                    break;
+                }
             case "item":
-            {
-                var entity = (await _entityService.LoadItemsAsync())
-                    .FirstOrDefault(e => e.Id == entityId);
-                if (entity == null) return false;
-                if (!string.IsNullOrWhiteSpace(name)) entity.Name = name!;
-                if (description != null) entity.Description = description;
-                entity.Sections = Merge(entity.Sections, sections);
-                await _entityService.SaveItemAsync(entity);
-                break;
-            }
+                {
+                    var entity = (await _entityService.LoadItemsAsync())
+                        .FirstOrDefault(e => e.Id == entityId);
+                    if (entity == null) return false;
+                    if (!string.IsNullOrWhiteSpace(name)) entity.Name = name!;
+                    if (description != null) entity.Description = description;
+                    entity.Sections = Merge(entity.Sections, sections);
+                    await _entityService.SaveItemAsync(entity);
+                    break;
+                }
             case "lore":
-            {
-                var entity = (await _entityService.LoadLoreAsync())
-                    .FirstOrDefault(e => e.Id == entityId);
-                if (entity == null) return false;
-                if (!string.IsNullOrWhiteSpace(name)) entity.Name = name!;
-                if (description != null) entity.Description = description;
-                entity.Sections = Merge(entity.Sections, sections);
-                await _entityService.SaveLoreAsync(entity);
-                break;
-            }
+                {
+                    var entity = (await _entityService.LoadLoreAsync())
+                        .FirstOrDefault(e => e.Id == entityId);
+                    if (entity == null) return false;
+                    if (!string.IsNullOrWhiteSpace(name)) entity.Name = name!;
+                    if (description != null) entity.Description = description;
+                    entity.Sections = Merge(entity.Sections, sections);
+                    await _entityService.SaveLoreAsync(entity);
+                    break;
+                }
             default:
-            {
-                // An unregistered type throws inside the entity service. That is
-                // right for core, where the type list is known, and wrong across
-                // the SDK boundary: an extension passing a stale key should be
-                // told no, not handed an exception.
-                if (!_entityService.GetCustomEntityTypes()
-                        .Any(t => string.Equals(t.TypeKey, typeKey, StringComparison.OrdinalIgnoreCase)))
-                    return false;
+                {
+                    // An unregistered type throws inside the entity service. That is
+                    // right for core, where the type list is known, and wrong across
+                    // the SDK boundary: an extension passing a stale key should be
+                    // told no, not handed an exception.
+                    if (!_entityService.GetCustomEntityTypes()
+                            .Any(t => string.Equals(t.TypeKey, typeKey, StringComparison.OrdinalIgnoreCase)))
+                        return false;
 
-                var entity = (await _entityService.LoadCustomEntitiesAsync(typeKey ?? string.Empty))
-                    .FirstOrDefault(e => e.Id == entityId);
-                if (entity == null) return false;
-                if (!string.IsNullOrWhiteSpace(name)) entity.Name = name!;
-                // Custom entities have no description field either; their shape
-                // is whatever the type that registered them defined.
-                entity.Sections = Merge(entity.Sections, WithDescription(sections, description));
-                await _entityService.SaveCustomEntityAsync(entity);
-                break;
-            }
+                    var entity = (await _entityService.LoadCustomEntitiesAsync(typeKey ?? string.Empty))
+                        .FirstOrDefault(e => e.Id == entityId);
+                    if (entity == null) return false;
+                    if (!string.IsNullOrWhiteSpace(name)) entity.Name = name!;
+                    // Custom entities have no description field either; their shape
+                    // is whatever the type that registered them defined.
+                    entity.Sections = Merge(entity.Sections, WithDescription(sections, description));
+                    await _entityService.SaveCustomEntityAsync(entity);
+                    break;
+                }
         }
 
         EntityRefreshRequested?.Invoke();
@@ -313,7 +313,7 @@ public sealed partial class HostServices
         // Switching out from under an unsaved scene loses it: the editor holds
         // text for a book that is no longer the one being written to.
         if (_editing.Current.Dirty) return false;
-        await _projectService.SwitchBookAsync(bookId);
+        await ChangeWorkspaceAsync("project/switchBook", () => _projectService.SwitchBookAsync(bookId));
         ProjectStructureChanged?.Invoke();
         return true;
     }
@@ -326,9 +326,10 @@ public sealed partial class HostServices
 
     async Task<string> IExtensionProjectService.CreateDraftAsync(string name, string? cloneFromDraftId)
     {
-        var draft = await _projectService.CreateDraftAsync(name, cloneFromDraftId);
+        Core.Models.BookDraftMetadata? draft = null;
+        await ChangeWorkspaceAsync("project/createDraft", async () => draft = await _projectService.CreateDraftAsync(name, cloneFromDraftId));
         ProjectStructureChanged?.Invoke();
-        return draft.Id;
+        return draft!.Id;
     }
 
     async Task<bool> IExtensionProjectService.RenameDraftAsync(string draftId, string name)
@@ -343,7 +344,7 @@ public sealed partial class HostServices
     {
         if (_projectService.ActiveBook?.Drafts.Any(d => d.Id == draftId) != true) return false;
         if (_editing.Current.Dirty) return false;
-        await _projectService.SwitchDraftAsync(draftId);
+        await ChangeWorkspaceAsync("project/switchDraft", () => _projectService.SwitchDraftAsync(draftId));
         ProjectStructureChanged?.Invoke();
         return true;
     }
@@ -490,7 +491,8 @@ public sealed partial class HostServices
         // A stored path that climbs out of the project would let an extension
         // read anything on the machine through a research item.
         var full = Path.GetFullPath(Path.Combine(root, relativePath));
-        return full.StartsWith(Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase)
+        return full.StartsWith(Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
+            OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)
             ? full
             : string.Empty;
     }

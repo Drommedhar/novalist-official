@@ -53,9 +53,10 @@ import { HostBridgeOverlays } from './HostBridgeOverlays'
  * change what that window is showing. */
 export function MainArea({ headers = 'auto' }: { headers?: 'auto' | 'always' }): React.JSX.Element {
   const panes = useShellStore((s) => s.panes)
+  const suspended = useProjectStore((s) => s.workspaceSuspended)
   return (
     <>
-      <PaneTree node={panes} headers={headers} />
+      {!suspended && <PaneTree node={panes} headers={headers} />}
       <HostBridgeOverlays />
     </>
   )

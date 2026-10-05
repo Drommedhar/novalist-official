@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from './projectStore'
+import { loadBookScoped } from './bookScopedLoad'
 
 export interface SceneStage {
   key: string
@@ -28,9 +29,9 @@ interface StageState {
 export const useStageStore = create<StageState>((set, get) => ({
   stages: [],
 
-  load: async () => {
-    set({ stages: await rpc.request<SceneStage[]>('stages/list') })
-  },
+  load: () => loadBookScoped(useProjectStore.getState,
+    () => rpc.request<SceneStage[]>('stages/list'),
+    (stages) => set({ stages })),
 
   save: async (stages) => {
     set({ stages: await rpc.request<SceneStage[]>('stages/set', [stages]) })

@@ -23,7 +23,8 @@ internal static class WindowsVoiceTyping
 
     private static Input Key(ushort code, bool up = false) => new()
     {
-        Type = 1, Data = new InputUnion { Keyboard = new KeyboardInput { VirtualKey = code, Flags = up ? 2u : 0u } }
+        Type = 1,
+        Data = new InputUnion { Keyboard = new KeyboardInput { VirtualKey = code, Flags = up ? 2u : 0u } }
     };
     [StructLayout(LayoutKind.Sequential)]
     private struct Input { public uint Type; public InputUnion Data; }

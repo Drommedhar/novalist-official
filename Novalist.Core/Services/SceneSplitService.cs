@@ -113,7 +113,7 @@ public sealed class SceneSplitService
         var trimmed = (title ?? string.Empty).Trim();
         if (trimmed.Length == 0) return "(2)";
 
-        if (trimmed.EndsWith(')') )
+        if (trimmed.EndsWith(')'))
         {
             var open = trimmed.LastIndexOf('(');
             if (open > 0 && int.TryParse(trimmed[(open + 1)..^1], out var n) && n > 0)

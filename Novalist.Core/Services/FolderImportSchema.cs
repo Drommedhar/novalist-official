@@ -134,8 +134,13 @@ public sealed class FolderImportSchema
             if (required.Length > 0) data["fields"]!["required"] = new JsonArray(required);
         }
         if (definition.Template != null)
-            data["templateId"] = new JsonObject { ["type"] = "string", ["const"] = definition.Template.Id,
-                ["default"] = definition.Template.Id, ["description"] = $"Active template: {definition.Template.Name}. Omit to use it automatically." };
+            data["templateId"] = new JsonObject
+            {
+                ["type"] = "string",
+                ["const"] = definition.Template.Id,
+                ["default"] = definition.Template.Id,
+                ["description"] = $"Active template: {definition.Template.Name}. Omit to use it automatically."
+            };
         var titleKey = definition.Target is "scene" or "research" ? "title" : "name";
         data[titleKey]!["minLength"] = 1;
         data[titleKey]!["pattern"] = @"\S";
@@ -161,8 +166,13 @@ public sealed class FolderImportSchema
             foreach (var field in group) sample[field.Key] = SampleValue(field);
             exampleData[group.Key] = sample;
         }
-        document["examples"] = new JsonArray(new JsonObject { ["novalistImport"] = 1, ["target"] = definition.Target,
-            ["data"] = exampleData, ["content"] = "Preserved writing in **Markdown**." });
+        document["examples"] = new JsonArray(new JsonObject
+        {
+            ["novalistImport"] = 1,
+            ["target"] = definition.Target,
+            ["data"] = exampleData,
+            ["content"] = "Preserved writing in **Markdown**."
+        });
         return document;
     }
 
@@ -196,19 +206,36 @@ public sealed class FolderImportSchema
             result["description"] = $"{field.Label ?? field.Key}: {definition.TypeKey ?? definition.Type.ToString()}. Store the value as text. {definition.Prompt}".Trim();
         }
         else if (valueType == typeof(List<EntitySection>))
-            result = new JsonObject { ["type"] = "array", ["items"] = ObjectSchema(new JsonObject
+            result = new JsonObject
             {
-                ["title"] = ScalarSchema(), ["content"] = ScalarSchema(), ["aiHidden"] = new JsonObject { ["type"] = "boolean" }, ["readerHidden"] = new JsonObject { ["type"] = "boolean" }
-            }) };
+                ["type"] = "array",
+                ["items"] = ObjectSchema(new JsonObject
+                {
+                    ["title"] = ScalarSchema(),
+                    ["content"] = ScalarSchema(),
+                    ["aiHidden"] = new JsonObject { ["type"] = "boolean" },
+                    ["readerHidden"] = new JsonObject { ["type"] = "boolean" }
+                })
+            };
         else if (valueType == typeof(List<EntityRelationship>))
-            result = new JsonObject { ["type"] = "array", ["items"] = ObjectSchema(new JsonObject
+            result = new JsonObject
             {
-                ["role"] = ScalarSchema(), ["target"] = new JsonObject { ["type"] = "string", ["description"] = "Entity name, not an ID." }, ["category"] = ScalarSchema()
-            }) };
+                ["type"] = "array",
+                ["items"] = ObjectSchema(new JsonObject
+                {
+                    ["role"] = ScalarSchema(),
+                    ["target"] = new JsonObject { ["type"] = "string", ["description"] = "Entity name, not an ID." },
+                    ["category"] = ScalarSchema()
+                })
+            };
         else if (valueType == typeof(List<ImportImageReference>))
-            result = new JsonObject { ["type"] = "array", ["maxItems"] = ImportImageStore.MaxImagesPerEntry,
+            result = new JsonObject
+            {
+                ["type"] = "array",
+                ["maxItems"] = ImportImageStore.MaxImagesPerEntry,
                 ["description"] = "Upload image bytes to POST /v1/images first. Use its returned imageId; Novalist keeps a portable copy in the book. Omit images for text-only imports.",
-                ["items"] = ImageReferenceSchema() };
+                ["items"] = ImageReferenceSchema()
+            };
         else if (valueType == typeof(List<string>)) result = new JsonObject { ["type"] = "array", ["items"] = ScalarSchema() };
         else if (valueType.IsEnum) result = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(Enum.GetNames(valueType).Select(name => (JsonNode)JsonValue.Create(name)!).ToArray()) };
         else result = new JsonObject { ["type"] = valueType == typeof(bool) ? "boolean" : valueType == typeof(int) ? "integer" : "string" };

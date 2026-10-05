@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../rpc/client'
+import { useWorkspaceDialogGuard } from './useWorkspaceDialogGuard'
 import type { SmartListDto, SmartListRule } from './SmartListsPanel'
 
 export interface SmartListDraft {
@@ -44,6 +45,7 @@ export function SmartListEditor({
   onSubmit,
   onCancel
 }: SmartListEditorProps): React.JSX.Element {
+  useWorkspaceDialogGuard()
   const { t } = useTranslation()
   const [name, setName] = useState(initial?.name ?? '')
   const [match, setMatch] = useState<'All' | 'Any'>(initial?.match ?? 'All')

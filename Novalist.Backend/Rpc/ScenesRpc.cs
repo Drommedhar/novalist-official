@@ -37,7 +37,16 @@ public sealed class ScenesRpc
     /// </summary>
     [JsonRpcMethod("scenes/setEditing")]
     public void SetEditing(string? chapterGuid, string? sceneId, bool dirty)
-        => _workspace.Editing.Set(chapterGuid, sceneId, dirty);
+    {
+        if (WorkspaceRequestContext.Identity is { } client)
+            _workspace.Editing.SetOwner(client.Owner, [(chapterGuid, sceneId, dirty)]);
+        else _workspace.Editing.Set(chapterGuid, sceneId, dirty);
+    }
+
+    [JsonRpcMethod("scenes/setEditingMany")]
+    public void SetEditingMany(EditingSceneDto[] scenes)
+        => _workspace.Editing.SetOwner(WorkspaceRequestContext.Identity?.Owner ?? "legacy",
+            scenes.Select(scene => ((string?)scene.ChapterGuid, (string?)scene.SceneId, scene.Dirty)));
 
     [JsonRpcMethod("scenes/getMeta")]
     public SceneMetaDto GetMeta(string chapterGuid, string sceneId)
@@ -390,6 +399,8 @@ public sealed record SceneAnnotationsDto(
 public sealed record SceneCommentDto(string Id, string AnchorText, string Text, bool Resolved);
 
 public sealed record SceneFootnoteDto(string Id, int Number, string Text);
+
+public sealed record EditingSceneDto(string ChapterGuid, string SceneId, bool Dirty);
 
 /// <summary>The result of a scene save. <c>Conflicted</c> means nothing was
 /// written because the file changed underneath, and <c>DiskHtml</c> carries what

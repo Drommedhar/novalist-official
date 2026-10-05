@@ -37,6 +37,8 @@ export function ShellDialogs(): React.JSX.Element | null {
   const drafts = useProjectStore((s) => s.drafts)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const openSceneId = useProjectStore((s) => s.openSceneId)
+  const workspaceSuspended = useProjectStore((s) => s.workspaceSuspended)
+  const workspaceEpoch = useProjectStore((s) => s.workspaceEpoch)
 
   if (dialog === null) return null
 
@@ -59,7 +61,7 @@ export function ShellDialogs(): React.JSX.Element | null {
     ) : null
   }
 
-  if (dialog === 'draftCompare') return <DraftCompareDialog onClose={close} />
+  if (dialog === 'draftCompare') return workspaceSuspended ? null : <DraftCompareDialog key={workspaceEpoch} onClose={close} />
 
   if (dialog === 'deleteDraft') {
     return activeDraft === null || drafts.length <= 1 ? null : (

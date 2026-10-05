@@ -39,6 +39,10 @@ public sealed partial class HostServices :
 
     /// <summary>Reference to the extension manager (set after construction).</summary>
     internal ExtensionManager? ExtensionManager { get; set; }
+    internal Func<string, Func<Task>, Task>? CoordinateWorkspace { get; set; }
+
+    private Task ChangeWorkspaceAsync(string reason, Func<Task> action)
+        => CoordinateWorkspace?.Invoke(reason, action) ?? action();
 
     /// <param name="uiPump">Shared backend UI pump. When null, an owned pump is
     /// created and disposed with this instance (used by unit tests that construct
@@ -211,7 +215,8 @@ public sealed partial class HostServices :
     /// reach the wizard dialog through <see cref="RunWizardAsync"/>.</summary>
     internal Func<Novalist.Sdk.Models.Wizards.WizardDefinition,
                   Novalist.Sdk.Models.Wizards.WizardResult?,
-                  Task<Novalist.Sdk.Models.Wizards.WizardResult?>>? WizardLauncher { get; set; }
+                  Task<Novalist.Sdk.Models.Wizards.WizardResult?>>? WizardLauncher
+    { get; set; }
 
     public async Task<Novalist.Sdk.Models.Wizards.WizardResult?> RunWizardAsync(
         Novalist.Sdk.Models.Wizards.WizardDefinition definition,
@@ -343,8 +348,11 @@ public sealed partial class HostServices :
     {
         var info = new Sdk.Services.SceneInfo
         {
-            Id = id, Title = title, ChapterGuid = chapterGuid,
-            ChapterTitle = chapterTitle, WordCount = wordCount
+            Id = id,
+            Title = title,
+            ChapterGuid = chapterGuid,
+            ChapterTitle = chapterTitle,
+            WordCount = wordCount
         };
         _currentScene = info;
         // Do not log the scene title — it is story content. id is a non-content identifier.
@@ -356,8 +364,11 @@ public sealed partial class HostServices :
     {
         SceneSaved?.Invoke(new Sdk.Services.SceneInfo
         {
-            Id = id, Title = title, ChapterGuid = chapterGuid,
-            ChapterTitle = chapterTitle, WordCount = wordCount
+            Id = id,
+            Title = title,
+            ChapterGuid = chapterGuid,
+            ChapterTitle = chapterTitle,
+            WordCount = wordCount
         });
     }
 
@@ -620,53 +631,53 @@ public sealed partial class HostServices :
         switch ((typeKey ?? string.Empty).Trim().ToLowerInvariant())
         {
             case "character":
-            {
-                // A character has no description field, so the text becomes a
-                // section — the same place the Codex editor would put it.
-                var parts = trimmed.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-                var data = new CharacterData
                 {
-                    Name = parts.Length > 0 ? parts[0] : trimmed,
-                    Surname = parts.Length > 1 ? parts[1] : string.Empty,
-                };
-                if (!string.IsNullOrWhiteSpace(description))
-                    data.Sections.Add(new EntitySection { Title = "Notes", Content = description });
-                await _entityService.SaveCharacterAsync(data);
-                return data.Id;
-            }
+                    // A character has no description field, so the text becomes a
+                    // section — the same place the Codex editor would put it.
+                    var parts = trimmed.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                    var data = new CharacterData
+                    {
+                        Name = parts.Length > 0 ? parts[0] : trimmed,
+                        Surname = parts.Length > 1 ? parts[1] : string.Empty,
+                    };
+                    if (!string.IsNullOrWhiteSpace(description))
+                        data.Sections.Add(new EntitySection { Title = "Notes", Content = description });
+                    await _entityService.SaveCharacterAsync(data);
+                    return data.Id;
+                }
             case "location":
-            {
-                var data = new LocationData { Name = trimmed, Description = description ?? string.Empty };
-                await _entityService.SaveLocationAsync(data);
-                return data.Id;
-            }
+                {
+                    var data = new LocationData { Name = trimmed, Description = description ?? string.Empty };
+                    await _entityService.SaveLocationAsync(data);
+                    return data.Id;
+                }
             case "item":
-            {
-                var data = new ItemData { Name = trimmed, Description = description ?? string.Empty };
-                await _entityService.SaveItemAsync(data);
-                return data.Id;
-            }
+                {
+                    var data = new ItemData { Name = trimmed, Description = description ?? string.Empty };
+                    await _entityService.SaveItemAsync(data);
+                    return data.Id;
+                }
             case "lore":
-            {
-                var data = new LoreData { Name = trimmed, Description = description ?? string.Empty };
-                await _entityService.SaveLoreAsync(data);
-                return data.Id;
-            }
+                {
+                    var data = new LoreData { Name = trimmed, Description = description ?? string.Empty };
+                    await _entityService.SaveLoreAsync(data);
+                    return data.Id;
+                }
             default:
-            {
-                // Fall through to a registered custom type; unknown keys return
-                // null rather than silently creating the wrong kind of entry.
-                var types = _entityService.GetCustomEntityTypes();
-                var match = types.FirstOrDefault(t =>
-                    string.Equals(t.TypeKey, typeKey, StringComparison.OrdinalIgnoreCase));
-                if (match == null) return null;
+                {
+                    // Fall through to a registered custom type; unknown keys return
+                    // null rather than silently creating the wrong kind of entry.
+                    var types = _entityService.GetCustomEntityTypes();
+                    var match = types.FirstOrDefault(t =>
+                        string.Equals(t.TypeKey, typeKey, StringComparison.OrdinalIgnoreCase));
+                    if (match == null) return null;
 
-                var data = new CustomEntityData { Name = trimmed, EntityTypeKey = match.TypeKey };
-                if (!string.IsNullOrWhiteSpace(description))
-                    data.Sections = [new EntitySection { Title = "Notes", Content = description }];
-                await _entityService.SaveCustomEntityAsync(data);
-                return data.Id;
-            }
+                    var data = new CustomEntityData { Name = trimmed, EntityTypeKey = match.TypeKey };
+                    if (!string.IsNullOrWhiteSpace(description))
+                        data.Sections = [new EntitySection { Title = "Notes", Content = description }];
+                    await _entityService.SaveCustomEntityAsync(data);
+                    return data.Id;
+                }
         }
     }
 

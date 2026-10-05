@@ -232,6 +232,7 @@ public sealed class ExtensionLoader
     /// </summary>
     public bool LoadExtension(ExtensionInfo info)
     {
+        ExtensionLoadContext? loadContext = null;
         try
         {
             if (!string.IsNullOrWhiteSpace(info.LoadError))
@@ -268,7 +269,7 @@ public sealed class ExtensionLoader
 
             // Load into a collectible AssemblyLoadContext so we can unload later.
             // Use stream-based loading to avoid holding file locks on the DLLs.
-            var loadContext = new ExtensionLoadContext(assemblyPath);
+            loadContext = new ExtensionLoadContext(assemblyPath);
             var assembly = loadContext.LoadFromFileStream(Path.GetFullPath(assemblyPath));
 
             // Find the IExtension implementation
@@ -285,6 +286,7 @@ public sealed class ExtensionLoader
             // the cast cannot fail; any construction failure throws and is caught below.
             info.Instance = (IExtension)Activator.CreateInstance(extensionType)!;
             info.LoadContext = loadContext;
+            loadContext = null; // Ownership transfers only after successful construction.
             info.IsLoaded = true;
             return true;
         }
@@ -292,6 +294,10 @@ public sealed class ExtensionLoader
         {
             info.LoadError = $"Load failed: {ex.Message}";
             return false;
+        }
+        finally
+        {
+            loadContext?.Unload();
         }
     }
 

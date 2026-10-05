@@ -8,11 +8,12 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "postinstall": "node scripts/patch-electron-builder.cjs && install-electron",
+    "postinstall": "node scripts/patch-electron-builder.cjs && node scripts/sync-editor-sanitizer.mjs && install-electron",
     "test:packaging": "node --test scripts/patch-electron-builder.test.cjs",
+    "test:transport": "node --experimental-strip-types --test scripts/*.test.mjs",
     "dev": "electron-vite dev",
-    "build": "electron-vite build",
-    "build:mobile": "vite build --config vite.mobile.config.ts",
+    "build": "node scripts/sync-editor-sanitizer.mjs && electron-vite build",
+    "build:mobile": "node scripts/sync-editor-sanitizer.mjs && vite build --config vite.mobile.config.ts",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.e2e.json",
     "package": "npm run build && npm run backend:publish && electron-builder --config electron-builder.yml",
@@ -24,6 +25,7 @@
     "@codemirror/language": "^6.12.4",
     "@codemirror/state": "^6.7.1",
     "@codemirror/view": "^6.43.7",
+    "dompurify": "3.4.16",
     "electron-updater": "^6.8.9",
     "harper.js": "2.7.0",
     "i18next": "^26.3.6",

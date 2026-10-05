@@ -62,8 +62,12 @@ public sealed class BackendHost : IDisposable
         // One request at a time. Every facade below shares one Workspace and
         // none of the services behind it locks anything - see
         // SerialDispatchJsonRpc for what that cost and what this costs instead.
-        var rpc = new SerialDispatchJsonRpc(handler, _workspaceGate, _importApi.StopIfScopeChangedAsync);
+        var coordinator = new WorkspaceCoordinator(_workspace, _workspaceGate);
+        _workspace.Coordinator = coordinator;
+        var rpc = new SerialDispatchJsonRpc(handler, _workspaceGate, _importApi.StopIfScopeChangedAsync, coordinator);
+        coordinator.Notify = (method, payload) => rpc.NotifyAsync(method, payload);
         var targetOptions = new JsonRpcTargetOptions { DisposeOnDisconnect = false };
+        rpc.AddLocalRpcTarget(new WorkspaceCoordinationRpc(coordinator), targetOptions);
         rpc.AddLocalRpcTarget(new SystemRpc(RequestShutdown), targetOptions);
         rpc.AddLocalRpcTarget(new ProjectRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ScenesRpc(_workspace), targetOptions);

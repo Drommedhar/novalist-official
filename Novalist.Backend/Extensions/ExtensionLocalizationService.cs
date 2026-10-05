@@ -73,7 +73,7 @@ public sealed class ExtensionLocalizationService : IExtensionLocalization
             return value;
         if (_fallback.TryGetValue(key, out var fallback))
             return fallback;
-        Log.Debug($"[ExtLoc] MISSING key: '{key}'");
+        Log.Debug("[ExtLoc] Missing localization key.");
         return key;
     }
 

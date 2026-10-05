@@ -236,6 +236,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         // The Plan popover belongs to the compact tab bar; the sidebar lists the
         // planning modes directly, so it must not survive a rotation into regular.
         if (regular) HidePlanMenu();
+        UpdateSidebarScrim();
 
         if (changed)
         {
@@ -434,9 +435,8 @@ public sealed class RendererHostPage : ContentPage, IDisposable
     /// constraint, so the pan maps straight onto it and the panel tracks the
     /// finger instead of snapping.
     ///
-    /// Deliberately a SCREEN EDGE recogniser: several views scroll horizontally
-    /// (codex tabs, timeline toolbar) and the editor is contenteditable where a
-    /// horizontal drag selects text - an edge gesture never sees any of those. The
+    /// The recogniser belongs to the sidebar so horizontal gestures in the
+    /// editor and planning views remain available to their own controls. The
     /// trailing edge is left alone because iPadOS uses it for Slide Over.
     /// </summary>
     private void AddSidebarPan(UIView parent)
@@ -607,11 +607,16 @@ public sealed class RendererHostPage : ContentPage, IDisposable
             }
         }
 
-        public bool Selected
+        public override bool Selected
         {
-            set => BackgroundColor = value
-                ? UIColor.Label.ColorWithAlpha(0.16f)
-                : UIColor.Clear;
+            get => base.Selected;
+            set
+            {
+                base.Selected = value;
+                BackgroundColor = value
+                    ? UIColor.Label.ColorWithAlpha(0.16f)
+                    : UIColor.Clear;
+            }
         }
     }
 
@@ -990,27 +995,27 @@ public sealed class RendererHostPage : ContentPage, IDisposable
             case "microphoneRead": return await _microphone.ReadAsync(_cts.Token);
             case "microphoneStop": return await _microphone.StopAsync();
             case "pickFolder":
-            {
-                // Real external-folder picker: the iOS document picker returns a
-                // security-scoped folder URL (e.g. an iCloud/Files/Working-Copy repo
-                // folder). SecurityScopedFolders persists a bookmark and keeps the
-                // scope open so the backend can read/write it. Null on cancel.
-                return await SecurityScopedFolders.PickFolderAsync().ConfigureAwait(false);
-            }
+                {
+                    // Real external-folder picker: the iOS document picker returns a
+                    // security-scoped folder URL (e.g. an iCloud/Files/Working-Copy repo
+                    // folder). SecurityScopedFolders persists a bookmark and keeps the
+                    // scope open so the backend can read/write it. Null on cancel.
+                    return await SecurityScopedFolders.PickFolderAsync().ConfigureAwait(false);
+                }
             case "releasePickedFile":
                 SecurityScopedFolders.ReleaseTemporaryManuscriptAccess(ArgString(args, 0));
                 return null;
             case "defaultProjectRoot":
-            {
-                // Where a new project goes when the writer does not say otherwise:
-                // Novalist's own folder in the Files app. Offering it means the
-                // common path never involves the picker at all, and a project made
-                // this way needs no grant to be read back on the next launch.
-                var documents = AppFolders.Documents;
-                if (string.IsNullOrEmpty(documents)) return null;
-                Directory.CreateDirectory(documents);
-                return documents;
-            }
+                {
+                    // Where a new project goes when the writer does not say otherwise:
+                    // Novalist's own folder in the Files app. Offering it means the
+                    // common path never involves the picker at all, and a project made
+                    // this way needs no grant to be read back on the next launch.
+                    var documents = AppFolders.Documents;
+                    if (string.IsNullOrEmpty(documents)) return null;
+                    Directory.CreateDirectory(documents);
+                    return documents;
+                }
             case "beginProjectAccess":
                 // Mirror the MAS contract: resolve the stored bookmark and start
                 // access; false lets the renderer re-prompt for the folder.
@@ -1029,59 +1034,59 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                 // <img> srcs are rewritten to call this (see mobile/projectImages).
                 return await ReadProjectImageAsync(ArgString(args, 0));
             case "pickFile":
-            {
-                // Images get the photo-library / Files choice (ImagePicking): the
-                // document picker alone cannot see the camera roll. args[2] carries
-                // the localized sheet labels (photos, files, cancel), in that order.
-                var mode = ArgString(args, 1);
-                if (mode == "images")
                 {
-                    var labels = ArgStrings(args, 2);
-                    return await ImagePicking.PickImageAsync(
-                        ArgString(args, 0),
-                        labels.ElementAtOrDefault(0) ?? "Photo Library",
-                        labels.ElementAtOrDefault(1) ?? "Browse Files",
-                        labels.ElementAtOrDefault(2) ?? "Cancel").ConfigureAwait(false);
+                    // Images get the photo-library / Files choice (ImagePicking): the
+                    // document picker alone cannot see the camera roll. args[2] carries
+                    // the localized sheet labels (photos, files, cancel), in that order.
+                    var mode = ArgString(args, 1);
+                    if (mode == "images")
+                    {
+                        var labels = ArgStrings(args, 2);
+                        return await ImagePicking.PickImageAsync(
+                            ArgString(args, 0),
+                            labels.ElementAtOrDefault(0) ?? "Photo Library",
+                            labels.ElementAtOrDefault(1) ?? "Browse Files",
+                            labels.ElementAtOrDefault(2) ?? "Cancel").ConfigureAwait(false);
+                    }
+                    var options = new PickOptions { PickerTitle = ArgString(args, 0) };
+                    if (mode == "manuscript")
+                    {
+                        var extensions = ManuscriptExtensions(args);
+                        options.FileTypes = ManuscriptFileTypes(extensions);
+                        // An absent/malformed backend list must never turn the
+                        // manuscript chooser into an unrestricted file picker.
+                        if (options.FileTypes == null) return null;
+                        return await SecurityScopedFolders.PickManuscriptAsync(
+                            options.PickerTitle ?? "",
+                            options.FileTypes.Value,
+                            extensions,
+                            ArgString(args, 3)).ConfigureAwait(false);
+                    }
+                    var result = await MainThread.InvokeOnMainThreadAsync(() => FilePicker.Default.PickAsync(options))
+                        .ConfigureAwait(false);
+                    return result?.FullPath;
                 }
-                var options = new PickOptions { PickerTitle = ArgString(args, 0) };
-                if (mode == "manuscript")
-                {
-                    var extensions = ManuscriptExtensions(args);
-                    options.FileTypes = ManuscriptFileTypes(extensions);
-                    // An absent/malformed backend list must never turn the
-                    // manuscript chooser into an unrestricted file picker.
-                    if (options.FileTypes == null) return null;
-                    return await SecurityScopedFolders.PickManuscriptAsync(
-                        options.PickerTitle ?? "",
-                        options.FileTypes.Value,
-                        extensions,
-                        ArgString(args, 3)).ConfigureAwait(false);
-                }
-                var result = await MainThread.InvokeOnMainThreadAsync(() => FilePicker.Default.PickAsync(options))
-                    .ConfigureAwait(false);
-                return result?.FullPath;
-            }
             case "saveFile":
                 return _exports.Create(ArgString(args, 0));
             case "shareExport":
-            {
-                var path = ArgString(args, 0);
-                var shared = await Task.Run(() => _exports.PrepareShare(path)).ConfigureAwait(false);
-                return await ExportSharing.ShareAsync(shared).ConfigureAwait(false);
-            }
+                {
+                    var path = ArgString(args, 0);
+                    var shared = await Task.Run(() => _exports.PrepareShare(path)).ConfigureAwait(false);
+                    return await ExportSharing.ShareAsync(shared).ConfigureAwait(false);
+                }
             case "releaseExport":
                 await Task.Run(() => _exports.Release(ArgString(args, 0))).ConfigureAwait(false);
                 return null;
             case "openExternal":
-            {
-                var target = ArgString(args, 0);
-                try
                 {
-                    await MainThread.InvokeOnMainThreadAsync(() => Launcher.Default.OpenAsync(target)).ConfigureAwait(false);
-                    return true;
+                    var target = ArgString(args, 0);
+                    try
+                    {
+                        await MainThread.InvokeOnMainThreadAsync(() => Launcher.Default.OpenAsync(target)).ConfigureAwait(false);
+                        return true;
+                    }
+                    catch { return false; }
                 }
-                catch { return false; }
-            }
             case "copyText":
                 await MainThread.InvokeOnMainThreadAsync(() => Clipboard.Default.SetTextAsync(ArgString(args, 0)))
                     .ConfigureAwait(false);
@@ -1091,14 +1096,14 @@ public sealed class RendererHostPage : ContentPage, IDisposable
             case "readClipboardImage":
                 return null;           // MAUI Clipboard is text-only
             case "setNavVisible":
-            {
-                // Show the native Liquid Glass navigation only inside a project
-                // (hidden on the welcome/start screen). Whichever chrome the
-                // current size class uses - bottom tab bar or leading sidebar -
-                // follows this flag, and the web's inset follows with it.
-                var visible = args.ValueKind == JsonValueKind.Array
-                    && args.GetArrayLength() > 0
-                    && args[0].ValueKind == JsonValueKind.True;
+                {
+                    // Show the native Liquid Glass navigation only inside a project
+                    // (hidden on the welcome/start screen). Whichever chrome the
+                    // current size class uses - bottom tab bar or leading sidebar -
+                    // follows this flag, and the web's inset follows with it.
+                    var visible = args.ValueKind == JsonValueKind.Array
+                        && args.GetArrayLength() > 0
+                        && args[0].ValueKind == JsonValueKind.True;
 #if IOS
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
@@ -1106,36 +1111,38 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                     var regular = _isRegularWidth == true;
                     if (_tabBar != null) _tabBar.Hidden = regular || !visible;
                     if (_sidebar != null) _sidebar.Hidden = !regular || !visible;
+                    if (!visible) HidePlanMenu();
+                    UpdateSidebarScrim();
                     PushChromeMetrics();
                 });
 #endif
-                return null;
-            }
-            case "setSidebarTitles":
-            {
-                // args[0] = localized titles in SidebarItems order. Same contract as
-                // setTabTitles, for the iPad sidebar.
-                var titles = new List<string>();
-                if (args.ValueKind == JsonValueKind.Array && args.GetArrayLength() > 0
-                    && args[0].ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var el in args[0].EnumerateArray())
-                        titles.Add(el.ValueKind == JsonValueKind.String ? el.GetString() ?? "" : "");
+                    return null;
                 }
+            case "setSidebarTitles":
+                {
+                    // args[0] = localized titles in SidebarItems order. Same contract as
+                    // setTabTitles, for the iPad sidebar.
+                    var titles = new List<string>();
+                    if (args.ValueKind == JsonValueKind.Array && args.GetArrayLength() > 0
+                        && args[0].ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var el in args[0].EnumerateArray())
+                            titles.Add(el.ValueKind == JsonValueKind.String ? el.GetString() ?? "" : "");
+                    }
 #if IOS
                 _sidebarTitles = titles.ToArray();
                 await MainThread.InvokeOnMainThreadAsync(ApplySidebarTitles);
 #endif
-                return null;
-            }
+                    return null;
+                }
             case "setSidebarCollapsed":
-            {
-                // Collapse the iPad sidebar to an icon-only rail (or expand it).
-                // Driven from the web so the toggle lives with the other pane
-                // controls in the tablet top bar.
-                var collapsed = args.ValueKind == JsonValueKind.Array
-                    && args.GetArrayLength() > 0
-                    && args[0].ValueKind == JsonValueKind.True;
+                {
+                    // Collapse the iPad sidebar to an icon-only rail (or expand it).
+                    // Driven from the web so the toggle lives with the other pane
+                    // controls in the tablet top bar.
+                    var collapsed = args.ValueKind == JsonValueKind.Array
+                        && args.GetArrayLength() > 0
+                        && args[0].ValueKind == JsonValueKind.True;
 #if IOS
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
@@ -1144,23 +1151,23 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                     ApplySidebarCollapsed();
                 });
 #endif
-                return null;
-            }
+                    return null;
+                }
             case "setSidebarSelection":
-            {
-                // Keep the sidebar highlight on the destination the web actually
-                // shows (e.g. opening a scene from the binder switches to Write).
-                var key = ArgString(args, 0);
+                {
+                    // Keep the sidebar highlight on the destination the web actually
+                    // shows (e.g. opening a scene from the binder switches to Write).
+                    var key = ArgString(args, 0);
 #if IOS
                 await MainThread.InvokeOnMainThreadAsync(() => SelectSidebarKey(key));
 #endif
-                return null;
-            }
+                    return null;
+                }
             case "requestLayout":
-            {
-                // The web asks which layout it is in on mount. The size-class pass
-                // may have run before the bundle finished loading, so re-push it
-                // unconditionally rather than only on change.
+                {
+                    // The web asks which layout it is in on mount. The size-class pass
+                    // may have run before the bundle finished loading, so re-push it
+                    // unconditionally rather than only on change.
 #if IOS
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
@@ -1168,21 +1175,21 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                     ApplySizeClass();
                 });
 #endif
-                return null;
-            }
+                    return null;
+                }
             case "setPlanningMenuOpen":
-            {
-                // args[0]=open (bool), args[1]=localized labels (in Plan-menu order).
-                // Rendered natively so it uses the same Liquid Glass as the tab bar
-                // and can anchor to the Plan tab item. Selection/dismissal come back
-                // via window.__novalistPlanSelect / __novalistPlanDismiss.
-                var open = args.ValueKind == JsonValueKind.Array
-                    && args.GetArrayLength() > 0
-                    && args[0].ValueKind == JsonValueKind.True;
-                var labels = new List<string>();
-                if (open && args.GetArrayLength() > 1 && args[1].ValueKind == JsonValueKind.Array)
-                    foreach (var el in args[1].EnumerateArray())
-                        labels.Add(el.ValueKind == JsonValueKind.String ? el.GetString() ?? "" : "");
+                {
+                    // args[0]=open (bool), args[1]=localized labels (in Plan-menu order).
+                    // Rendered natively so it uses the same Liquid Glass as the tab bar
+                    // and can anchor to the Plan tab item. Selection/dismissal come back
+                    // via window.__novalistPlanSelect / __novalistPlanDismiss.
+                    var open = args.ValueKind == JsonValueKind.Array
+                        && args.GetArrayLength() > 0
+                        && args[0].ValueKind == JsonValueKind.True;
+                    var labels = new List<string>();
+                    if (open && args.GetArrayLength() > 1 && args[1].ValueKind == JsonValueKind.Array)
+                        foreach (var el in args[1].EnumerateArray())
+                            labels.Add(el.ValueKind == JsonValueKind.String ? el.GetString() ?? "" : "");
 #if IOS
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
@@ -1190,19 +1197,19 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                     else HidePlanMenu();
                 });
 #endif
-                return null;
-            }
+                    return null;
+                }
             case "setSelectedTab":
-            {
-                // The bar highlights whatever was tapped. A tab the web switched
-                // to on its own (the first-run tour walks them) never was, so it
-                // has to be told, or the highlight names one tab while the screen
-                // shows another.
-                var index = args.ValueKind == JsonValueKind.Array
-                    && args.GetArrayLength() > 0
-                    && args[0].ValueKind == JsonValueKind.Number
-                    ? args[0].GetInt32()
-                    : -1;
+                {
+                    // The bar highlights whatever was tapped. A tab the web switched
+                    // to on its own (the first-run tour walks them) never was, so it
+                    // has to be told, or the highlight names one tab while the screen
+                    // shows another.
+                    var index = args.ValueKind == JsonValueKind.Array
+                        && args.GetArrayLength() > 0
+                        && args[0].ValueKind == JsonValueKind.Number
+                        ? args[0].GetInt32()
+                        : -1;
 #if IOS
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
@@ -1212,25 +1219,25 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                     _committedItem = items[index];
                 });
 #endif
-                return null;
-            }
-            case "setTabTitles":
-            {
-                // args[0] = localized titles in tab order (dashboard, manuscript,
-                // codex, search, more). Pushed by the web on mount + language change.
-                var titles = new List<string>();
-                if (args.ValueKind == JsonValueKind.Array && args.GetArrayLength() > 0
-                    && args[0].ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var el in args[0].EnumerateArray())
-                        titles.Add(el.ValueKind == JsonValueKind.String ? el.GetString() ?? "" : "");
+                    return null;
                 }
+            case "setTabTitles":
+                {
+                    // args[0] = localized titles in tab order (dashboard, manuscript,
+                    // codex, search, more). Pushed by the web on mount + language change.
+                    var titles = new List<string>();
+                    if (args.ValueKind == JsonValueKind.Array && args.GetArrayLength() > 0
+                        && args[0].ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var el in args[0].EnumerateArray())
+                            titles.Add(el.ValueKind == JsonValueKind.String ? el.GetString() ?? "" : "");
+                    }
 #if IOS
                 _tabTitles = titles.ToArray();
                 await MainThread.InvokeOnMainThreadAsync(ApplyTabTitles);
 #endif
-                return null;
-            }
+                    return null;
+                }
             default:
                 return null;           // unknown / JS-side no-ops
         }

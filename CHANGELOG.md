@@ -21,7 +21,33 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Find and replace preserves manuscript formatting, links and images, handles whole-word regular expressions correctly, and keeps the original scene notes and synopsis in the revision taken before replacement.
+- Pruning old scene revisions no longer removes Codex and research revision history.
+- Switching projects, books or drafts saves pending edits in every window first. Detached panes keep their backend connection, respond to menu and keyboard commands, and follow the shared active workspace. Creating drafts and deleting the active draft also preserve pending edits.
+- Collections, smart lists, bookmarks and archived scenes follow the active book after a switch. Open naming, chapter and scene dialogs keep their entered text and block workspace changes until completed or cancelled.
+- Archiving, deleting or moving scenes saves pending edits first and updates open editors after success. Failed operations keep their editor state for retry.
+- Closing a detached window saves its pending edits. Closing the main window, quitting or installing an update waits for edits in every window and the configured close-backup attempt. A failed save keeps the windows open so edits can be recovered.
+- After an unexpected backend restart, windows retain unsaved text while the active project, book and draft are restored. If the project is temporarily unavailable, retrying recovery preserves those edits.
+- Projects with the same folder name keep separate backup histories. Older archives with uncertain ownership remain untouched and can be recovered through Restore backup as new project.
+- Clearing the narration cache or resetting an audiobook render respects audio-file sharing locks on macOS and Linux.
+- Opening a scene no longer pulls the caret out of a footnote or another text field selected while the scene loads.
+- Enabling page view lays out the page immediately, preventing the initial jump of prose and its caret.
+- Changing Codex entries or types no longer lets a delayed load or save replace the currently selected entry.
+- Switching books reloads the correct Exposé and preserves each book's text. Exposé limits wait for the initial load before accepting edits.
+- Git actions follow the current project after switching projects. Audiobook exports retain the original book's title, author and language when another book is opened during rendering.
+- Reinstalling an extension from its own installed folder preserves its files. Failed extension startup removes partially registered features, and extension shutdown no longer leaves waiting calls hanging.
+- Oversized local import API uploads reliably return a size-limit error instead of abruptly closing the connection.
+- Images resolve correctly in book folders whose names begin with WorldBible, and recent-project entries and relocated covers follow filesystem path casing rules on Windows and macOS.
+- Update-check errors use the selected interface language after startup.
+
+### Security
+
+- Manuscript content is sanitized before display so scripts and active HTML in imported or shared projects cannot run inside the writing, manuscript or narration views.
+- Extension archives, installation folders, project-relative files and downloaded image names cannot escape their intended folders through similarly named paths or encoded filenames.
+- Embedded panels cannot impersonate the app's backend connection or native menu messages.
+- Diagnostic logs omit text from failed extension translation lookups.
 
 ---
 

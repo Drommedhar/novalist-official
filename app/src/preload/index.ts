@@ -1,3 +1,5 @@
+import type { WorkspaceEvent, WorkspaceSnapshot } from '../shared/workspaceProtocol'
+import type { CloseStage } from '../shared/workspaceProtocol'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
 const material =
@@ -202,6 +204,41 @@ contextBridge.exposeInMainWorld('novalist', {
   },
   launchAppUpdate(token: string): Promise<void> {
     return ipcRenderer.invoke('novalist:launch-app-update', token)
+  },
+  /** Main keeps the window and backend alive until persistence acknowledges. */
+  onBeforeClose(handler: (stage: CloseStage) => Promise<void>): () => void {
+    const listener = (_event: Electron.IpcRendererEvent, token: string, stage: CloseStage): void => {
+      void Promise.resolve().then(() => handler(stage)).then(
+        () => ipcRenderer.send('novalist:close-prepared', token, true),
+        () => ipcRenderer.send('novalist:close-prepared', token, false)
+      )
+    }
+    ipcRenderer.on('novalist:prepare-close', listener)
+    ipcRenderer.send('novalist:close-handler-ready', true)
+    return () => {
+      ipcRenderer.removeListener('novalist:prepare-close', listener)
+      ipcRenderer.send('novalist:close-handler-ready', false)
+    }
+  },
+  forwardMainCommand(command: string): void { ipcRenderer.send('novalist:main-command', command) },
+  retryWorkspaceRecovery(): Promise<void> { return ipcRenderer.invoke('novalist:workspace-retry') },
+  workspaceSnapshot(): Promise<WorkspaceSnapshot> {
+    return ipcRenderer.invoke('novalist:workspace-snapshot')
+  },
+  onWorkspaceEvent(handler: (event: WorkspaceEvent) => Promise<void> | void): () => void {
+    const listener = (_event: Electron.IpcRendererEvent, event: WorkspaceEvent): void => {
+      const token = event.phase === 'prepare' ? event.preparation.token : event.phase === 'changed' ? event.snapshot.token : event.token
+      void Promise.resolve().then(() => handler(event)).then(
+        () => ipcRenderer.send('novalist:workspace-ack', token, event.phase, true),
+        (error) => ipcRenderer.send('novalist:workspace-ack', token, event.phase, false, String(error))
+      )
+    }
+    ipcRenderer.on('novalist:workspace-event', listener)
+    ipcRenderer.send('novalist:workspace-ready', true)
+    return () => {
+      ipcRenderer.removeListener('novalist:workspace-event', listener)
+      ipcRenderer.send('novalist:workspace-ready', false)
+    }
   },
   // Tells main the startup update check finished, so it can close the splash.
   updatesChecked(): void {

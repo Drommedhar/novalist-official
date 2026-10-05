@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.RegularExpressions;
 using Novalist.Core.Models;
 
@@ -126,29 +127,34 @@ public sealed class FindReplaceService : IFindReplaceService
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                var html = await _projectService.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
+                // Only prose is searchable: formatting and link/image attributes
+                // must survive a replacement unchanged.
+                var (newHtml, count) = ReplaceHtmlWithCount(regex, html, options.Replacement);
+
                 // A synopsis and a note are plain text the writer owns, so a
                 // replace can reach them. A comment is a conversation and a
                 // Codex entry has a rename of its own that carries references
                 // with it; neither is rewritten from here.
+                var synopsis = scene.Synopsis ?? string.Empty;
+                var notes = scene.Notes ?? string.Empty;
+                var synopsisCount = 0;
+                var notesCount = 0;
                 if (options.IncludeSceneNotes)
                 {
-                    var (synopsis, synopsisCount) =
-                        ReplaceWithCount(regex, scene.Synopsis ?? string.Empty, options.Replacement);
-                    if (synopsisCount > 0) scene.Synopsis = synopsis;
-                    var (notes, notesCount) =
-                        ReplaceWithCount(regex, scene.Notes ?? string.Empty, options.Replacement);
-                    if (notesCount > 0) scene.Notes = notes;
-                    replacedHere += synopsisCount + notesCount;
+                    (synopsis, synopsisCount) = ReplaceWithCount(regex, synopsis, options.Replacement);
+                    (notes, notesCount) = ReplaceWithCount(regex, notes, options.Replacement);
                 }
-
-                var html = await _projectService.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
-                // Replace inside the raw HTML — patterns may inadvertently span tags
-                // but for typical word-level edits this is safe enough.
-                var (newHtml, count) = ReplaceWithCount(regex, html, options.Replacement);
-                if (count == 0) continue;
+                if (count + synopsisCount + notesCount == 0) continue;
 
                 if (snapshotService != null)
                     await snapshotService.TakeAsync(chapter, scene, batchLabel).ConfigureAwait(false);
+
+                // Capture the old metadata as well, including notes-only changes.
+                if (synopsisCount > 0) scene.Synopsis = synopsis;
+                if (notesCount > 0) scene.Notes = notes;
+                replacedHere += synopsisCount + notesCount;
+                if (count == 0) continue;
 
                 await _projectService.WriteSceneContentAsync(chapter, scene, newHtml).ConfigureAwait(false);
                 scene.WordCount = CountWords(StripHtml(newHtml));
@@ -228,37 +234,37 @@ public sealed class FindReplaceService : IFindReplaceService
         switch (options.Scope)
         {
             case FindScope.CurrentScene:
-            {
-                if (string.IsNullOrEmpty(options.AnchorChapterGuid) || string.IsNullOrEmpty(options.AnchorSceneId))
-                    yield break;
-                var chapter = chapters.FirstOrDefault(c => c.Guid == options.AnchorChapterGuid);
-                if (chapter == null) yield break;
-                var scene = _projectService.GetScenesForChapter(chapter.Guid)
-                    .FirstOrDefault(s => s.Id == options.AnchorSceneId);
-                if (scene != null) yield return (chapter, scene);
-                break;
-            }
+                {
+                    if (string.IsNullOrEmpty(options.AnchorChapterGuid) || string.IsNullOrEmpty(options.AnchorSceneId))
+                        yield break;
+                    var chapter = chapters.FirstOrDefault(c => c.Guid == options.AnchorChapterGuid);
+                    if (chapter == null) yield break;
+                    var scene = _projectService.GetScenesForChapter(chapter.Guid)
+                        .FirstOrDefault(s => s.Id == options.AnchorSceneId);
+                    if (scene != null) yield return (chapter, scene);
+                    break;
+                }
             case FindScope.CurrentChapter:
-            {
-                if (string.IsNullOrEmpty(options.AnchorChapterGuid)) yield break;
-                var chapter = chapters.FirstOrDefault(c => c.Guid == options.AnchorChapterGuid);
-                if (chapter == null) yield break;
-                foreach (var scene in _projectService.GetScenesForChapter(chapter.Guid))
-                    yield return (chapter, scene);
-                break;
-            }
+                {
+                    if (string.IsNullOrEmpty(options.AnchorChapterGuid)) yield break;
+                    var chapter = chapters.FirstOrDefault(c => c.Guid == options.AnchorChapterGuid);
+                    if (chapter == null) yield break;
+                    foreach (var scene in _projectService.GetScenesForChapter(chapter.Guid))
+                        yield return (chapter, scene);
+                    break;
+                }
             case FindScope.ActiveBook:
             // Project scope is handled a book at a time by the caller, so from
             // in here it is the same walk over whichever book is open.
             case FindScope.Project:
-            {
-                foreach (var chapter in chapters)
                 {
-                    foreach (var scene in _projectService.GetScenesForChapter(chapter.Guid))
-                        yield return (chapter, scene);
+                    foreach (var chapter in chapters)
+                    {
+                        foreach (var scene in _projectService.GetScenesForChapter(chapter.Guid))
+                            yield return (chapter, scene);
+                    }
+                    break;
                 }
-                break;
-            }
         }
     }
 
@@ -278,10 +284,25 @@ public sealed class FindReplaceService : IFindReplaceService
     {
         var pattern = options.UseRegex ? options.Pattern : Regex.Escape(options.Pattern);
         if (options.WholeWord)
-            pattern = $@"(?<![\p{{L}}\p{{N}}_]){pattern}(?![\p{{L}}\p{{N}}_])";
+            pattern = $@"(?<![\p{{L}}\p{{N}}_])(?:{pattern})(?![\p{{L}}\p{{N}}_])";
         var opts = RegexOptions.CultureInvariant;
         if (!options.MatchCase) opts |= RegexOptions.IgnoreCase;
-        return new Regex(pattern, opts);
+        return new Regex(pattern, opts, TimeSpan.FromSeconds(2));
+    }
+
+    private static (string Replaced, int Count) ReplaceHtmlWithCount(Regex regex, string html, string replacement)
+    {
+        var count = 0;
+        // Quoted attributes may contain '>'; keep the entire tag together.
+        // The fixed grammar must stay linear even when tags are incomplete.
+        var replaced = Regex.Replace(html, """<(?:"[^"]*"|'[^']*'|[^'">])*>|[^<]+""", token =>
+        {
+            if (token.Value.StartsWith('<')) return token.Value;
+            var (text, matches) = ReplaceWithCount(regex, WebUtility.HtmlDecode(token.Value), replacement);
+            count += matches;
+            return matches == 0 ? token.Value : WebUtility.HtmlEncode(text);
+        }, RegexOptions.NonBacktracking, TimeSpan.FromSeconds(2));
+        return (replaced, count);
     }
 
     private static (string Replaced, int Count) ReplaceWithCount(Regex regex, string input, string replacement)
@@ -294,8 +315,10 @@ public sealed class FindReplaceService : IFindReplaceService
     private static string StripHtml(string html)
     {
         if (string.IsNullOrEmpty(html)) return string.Empty;
-        var withBreaks = Regex.Replace(html, "</p>|<br ?/?>", "\n", RegexOptions.IgnoreCase);
-        return Regex.Replace(withBreaks, "<[^>]+>", string.Empty);
+        var withBreaks = Regex.Replace(html, "</p>|<br ?/?>", "\n",
+            RegexOptions.IgnoreCase | RegexOptions.NonBacktracking, TimeSpan.FromSeconds(2));
+        return WebUtility.HtmlDecode(Regex.Replace(withBreaks, "<[^>]+>", string.Empty,
+            RegexOptions.NonBacktracking, TimeSpan.FromSeconds(2)));
     }
 
     private static int CountWords(string text)

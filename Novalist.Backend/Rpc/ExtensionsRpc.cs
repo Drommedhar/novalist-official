@@ -172,7 +172,9 @@ public sealed class ExtensionsRpc
                 var root = Path.GetFullPath(extension.FolderPath);
                 var entry = plugin.Entry ?? string.Empty;
                 var full = Path.GetFullPath(Path.Combine(root, entry));
-                if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase) || !File.Exists(full))
+                if (!full.StartsWith(root.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
+                        OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)
+                    || !File.Exists(full))
                 {
                     plugins.Add(new RendererPluginDto(
                         extension.Manifest.Id, extension.Manifest.Name, plugin.ApiVersion,

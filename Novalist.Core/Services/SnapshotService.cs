@@ -222,6 +222,8 @@ public sealed class SnapshotService : ISnapshotService
         foreach (var dir in await _fileService.GetDirectoriesAsync(root))
         {
             var sceneId = _fileService.GetFileName(dir);
+            // Codex and research revisions share this root but are not scene snapshots.
+            if (string.Equals(sceneId, "Entities", StringComparison.OrdinalIgnoreCase)) continue;
             if (!live.TryGetValue(sceneId, out var scene))
             {
                 // A folder whose scene is gone: nothing can ever reach these

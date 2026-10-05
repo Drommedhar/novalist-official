@@ -457,23 +457,22 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   // The iframe normally reports an edit after 50 ms and the project store
   // writes it after two seconds. An update may already be cached, so capture
   // the live DOM and drain both delays before the installer is allowed to run.
-  useEffect(
-    () =>
-      registerPendingWrite(async () => {
-        const live = editorRef.current
-        const store = useProjectStore.getState()
-        const current = editorPane(store, pane)
-        if (live && current.sceneId) {
-          const html = live.getContent()
-          const plainText = live.getPlainText()
-          if (html !== current.html || plainText !== current.plainText) {
-            store.onEditorContentChanged(pane, html, plainText)
-          }
-        }
-        await useProjectStore.getState().flushPane(pane)
-      }),
-    [pane, openSceneId]
-  )
+  useEffect(() => {
+    const capture = (): void => {
+      const live = editorRef.current
+      const store = useProjectStore.getState()
+      const current = editorPane(store, pane)
+      if (live && current.sceneId) {
+        const html = live.getContent()
+        const plainText = live.getPlainText()
+        if (html !== current.html || plainText !== current.plainText) store.onEditorContentChanged(pane, html, plainText)
+      }
+    }
+    return registerPendingWrite(async () => {
+      capture()
+      await useProjectStore.getState().flushPane(pane)
+    }, capture)
+  }, [pane, openSceneId])
   const entityIndexRef = useRef<
     Map<
       string,
@@ -1367,6 +1366,11 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   useEffect(() => {
     if (!isActiveEditor || !openSceneId) return
     const at = window.setTimeout(() => {
+      // A footnote or another text field may have taken the caret while the
+      // scene loaded. Its later editing gesture owns focus now.
+      const active = document.activeElement
+      if (active instanceof HTMLElement &&
+        (active.isContentEditable || active.matches('input, textarea, select'))) return
       // The iframe first. Focusing an element inside a frame does nothing for
       // the keyboard while the frame itself is not focused - the caret appears
       // and the typing still goes to whatever the host had focused, which is

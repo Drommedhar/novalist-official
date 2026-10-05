@@ -20,7 +20,7 @@ public sealed class UiPump : IDisposable
 {
     private readonly BlockingCollection<Action> _queue = new();
     private readonly Thread _thread;
-    private volatile bool _disposed;
+    private int _disposed;
 
     public UiPump()
     {
@@ -38,8 +38,15 @@ public sealed class UiPump : IDisposable
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private void RunLoop()
     {
-        foreach (var action in _queue.GetConsumingEnumerable())
-            RunOne(action);
+        try
+        {
+            foreach (var action in _queue.GetConsumingEnumerable())
+                RunOne(action);
+        }
+        finally
+        {
+            _queue.Dispose();
+        }
     }
 
     /// <summary>Runs one queued action, swallowing (but logging the shape of) faults
@@ -86,7 +93,7 @@ public sealed class UiPump : IDisposable
         }
 
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        Post(() =>
+        _queue.Add(() =>
         {
             try { action(); tcs.SetResult(); }
             catch (Exception ex) { tcs.SetException(ex); }
@@ -104,7 +111,7 @@ public sealed class UiPump : IDisposable
             return func();
 
         var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        Post(() =>
+        _queue.Add(() =>
         {
             try { tcs.SetResult(func()); }
             catch (Exception ex) { tcs.SetException(ex); }
@@ -114,12 +121,10 @@ public sealed class UiPump : IDisposable
 
     public void Dispose()
     {
-        if (_disposed)
+        if (Interlocked.Exchange(ref _disposed, 1) == 1)
             return;
-        _disposed = true;
         _queue.CompleteAdding();
         if (!CheckAccess())
             _thread.Join();
-        _queue.Dispose();
     }
 }

@@ -169,13 +169,17 @@ export function registerHostBridge(): void {
   // already showing. Without these two the writer saw their old values until
   // they clicked away and back, which reads as the extension having failed.
   rpc.onNotification('entities/changed', () => {
-    void useCodexStore.getState().refresh()
+    if (useProjectStore.getState().workspaceBusy) return
+    void useCodexStore.getState().refresh().catch(() => {})
   })
 
   rpc.onNotification('project/structureChanged', () => {
+    if (useProjectStore.getState().workspaceBusy) return
+    const epoch = useProjectStore.getState().workspaceEpoch
     void rpc
       .request<ProjectStateDto>('project/getState')
-      .then((state) => useProjectStore.getState().applyState(state))
+      .then((state) => { if (useProjectStore.getState().workspaceEpoch === epoch) useProjectStore.getState().applyState(state) })
+      .catch(() => {})
   })
 
   rpc.onNotification('importApi/changed', (params) => {

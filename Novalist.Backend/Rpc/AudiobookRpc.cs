@@ -156,10 +156,12 @@ public sealed class AudiobookRpc : IDisposable
         if (fromScratch)
             job.Reset();
 
+        var language = WritingLanguage();
+        var metadata = MetadataFor();
         _ = Task.Run(
             () => RunAsync(
                 job, chapters, sheet, audio, referenceTexts, references, engine, wanted, outputPath, rate,
-                cancellation),
+                language, metadata, cancellation),
             CancellationToken.None);
 
         Log.Info(
@@ -219,6 +221,8 @@ public sealed class AudiobookRpc : IDisposable
         AudiobookFormat format,
         string outputPath,
         double rate,
+        string language,
+        AudiobookMetadata metadata,
         CancellationTokenSource cancellation)
     {
         try
@@ -228,7 +232,7 @@ public sealed class AudiobookRpc : IDisposable
                 sheet,
                 voices,
                 engine.Features,
-                WritingLanguage(),
+                language,
                 new NarrationRenderSettings { Rate = rate },
                 new Inline(report =>
                 {
@@ -267,7 +271,7 @@ public sealed class AudiobookRpc : IDisposable
             }
 
             var result = await _packager.PackageAsync(
-                job.Folder, outcome.Chapters, format, outputPath, MetadataFor(), CancellationToken.None);
+                job.Folder, outcome.Chapters, format, outputPath, metadata, CancellationToken.None);
 
             lock (_gate)
             {

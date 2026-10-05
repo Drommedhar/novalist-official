@@ -85,7 +85,10 @@ const matchesScope = (over: CharacterOverride, scope: Scope): boolean =>
   over.chapter === scope.chapter && (over.scene ?? null) === scope.scene
 
 const apply = (updated: Record<string, unknown>): void => {
-  useCodexStore.setState({ selectedRecord: updated })
+  const current = useCodexStore.getState()
+  if (current.entityType === 'character' && current.selectedId === updated.id) {
+    useCodexStore.setState({ selectedRecord: updated })
+  }
 }
 
 /** Header row for one of the per-scope media override editors: a label plus a

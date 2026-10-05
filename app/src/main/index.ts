@@ -12,6 +12,9 @@ import { join } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { BackendProcess } from './backend-process'
+import { WorkspaceWindows } from './workspace-windows'
+import { WindowCloseCoordinator } from './window-close'
+import type { WorkspaceEvent } from '../shared/workspaceProtocol'
 import {
   attachLiquidGlass,
   detectMaterial,
@@ -37,10 +40,16 @@ app.setName('Novalist')
 
 const material = detectMaterial(process.platform, process.getSystemVersion())
 const backend = new BackendProcess()
+const workspaceWindows = new WorkspaceWindows(backend.router, 15_000, (error) => backend.requireResync(error))
+const windowCloses = new WindowCloseCoordinator()
+backend.onNotification((message) => workspaceWindows.receive(message))
+backend.onRestart(() => workspaceWindows.recover())
+backend.onResync(() => workspaceWindows.resync())
 
 function attachBackendPort(sender: WebContents): void {
   const { port1, port2 } = new MessageChannelMain()
-  backend.attachPort(port1)
+  backend.attachPort(sender.id, port1)
+  if (sender === mainWindow?.webContents) backend.router.setDialogOwner(sender.id)
   sender.postMessage('novalist:backend-port', null, [port2])
 }
 
@@ -57,13 +66,83 @@ function resolveIconPath(): string | null {
 registerProtocolSchemes()
 
 /**
- * The window that holds the project, as opposed to a torn-off pane.
- *
- * Tracked so there is something to bring back: closing it on macOS does not
- * quit the app, and a pane window left open is not a substitute for it.
+ * The main shell owns application dialogs. Its close drains and closes every
+ * workspace window; macOS can reopen the shell against the retained backend.
  */
 let mainWindow: BrowserWindow | null = null
 let setFocusWindow: ((enabled: boolean) => Promise<void>) | null = null
+const approvedCloses = new Set<number>()
+let closeRequest: Promise<void> | null = null
+let quitRequested = false
+
+function workspaceOwners(): number[] {
+  return BrowserWindow.getAllWindows().filter((win) => !win.isDestroyed()).map((win) => win.webContents.id)
+}
+
+function prepareWindowClose(win: BrowserWindow, quit: boolean): void {
+  quitRequested ||= quit
+  if (closeRequest) return
+  const all = quit || win === mainWindow
+  const targets = all ? BrowserWindow.getAllWindows() : [win]
+  const owners = targets.map((target) => target.webContents.id)
+  const backupOwner = all ? mainWindow?.webContents.id : undefined
+  const operation = windowCloses.prepare(owners, backupOwner).then(() => {
+    if (quitRequested && !all && mainWindow && !mainWindow.isDestroyed()) {
+      // The current operation only prepared one detached pane. Escalating to
+      // quit needs a fresh global transaction, including the main window.
+      closeRequest = null
+      prepareWindowClose(mainWindow, true)
+      return
+    }
+    for (const target of targets) if (!target.isDestroyed()) approvedCloses.add(target.id)
+    if (quitRequested) app.quit()
+    else for (const target of targets) if (!target.isDestroyed()) target.close()
+  }).catch(() => {}).finally(() => { if (closeRequest === operation) { closeRequest = null; quitRequested = false } })
+  closeRequest = operation
+}
+
+ipcMain.on('novalist:close-handler-ready', (event, ready: boolean) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win) return
+  if (!ready) { windowCloses.remove(event.sender.id); return }
+  windowCloses.register(event.sender.id, {
+    send: (token, stage) => event.sender.send('novalist:prepare-close', token, stage),
+    focus: () => { if (win.isMinimized()) win.restore(); win.show(); win.focus() }
+  })
+})
+ipcMain.on('novalist:close-prepared', (event, token: string, saved: boolean) => {
+  windowCloses.acknowledge(event.sender.id, token, saved)
+})
+ipcMain.on('novalist:workspace-ready', (event, ready: boolean) => {
+  if (ready) workspaceWindows.register(event.sender.id, { send: (change) => event.sender.send('novalist:workspace-event', change) })
+  else workspaceWindows.remove(event.sender.id)
+})
+ipcMain.on('novalist:workspace-ack', (event, token: string, phase: WorkspaceEvent['phase'], saved: boolean, error?: string) => {
+  workspaceWindows.acknowledge(event.sender.id, token, phase, saved, error)
+})
+ipcMain.handle('novalist:workspace-snapshot', (event) => workspaceWindows.snapshot(event.sender.id))
+ipcMain.handle('novalist:workspace-retry', () => backend.retryRecovery())
+
+function attachWindowLifecycle(win: BrowserWindow): void {
+  const owner = win.webContents.id
+  win.on('close', (event) => {
+    if (approvedCloses.has(win.id)) return
+    if (!windowCloses.has(owner) && win !== mainWindow) return
+    event.preventDefault()
+    prepareWindowClose(win, false)
+  })
+  const release = (): void => {
+    windowCloses.remove(owner)
+    workspaceWindows.remove(owner)
+    backend.detachClient(owner)
+  }
+  win.webContents.on('render-process-gone', release)
+  win.on('closed', () => {
+    release()
+    approvedCloses.delete(win.id)
+    if (mainWindow === win) mainWindow = null
+  })
+}
 
 /** A restore-down size expressed in Electron's display-independent pixels. */
 function initialWindowGeometry(): {
@@ -136,9 +215,7 @@ function createWindow(): BrowserWindow {
   }
   mainWindow = win
   win.on('unmaximize', () => clampWindowToDisplay(win))
-  win.on('closed', () => {
-    if (mainWindow === win) mainWindow = null
-  })
+  attachWindowLifecycle(win)
   return win
 }
 
@@ -174,9 +251,8 @@ function showMainWindow(): void {
  * A second window showing one view.
  *
  * The Codex on another monitor while the manuscript stays where it is. It runs
- * the same renderer with the same preload, so it gets its own backend channel
- * from the handler below and needs nothing else: two windows talking to one
- * backend is what the port-per-sender design already allowed.
+ * the same renderer with the same preload. Its independent RPC channel joins
+ * the shared project/book/draft; the workspace coordinator owns transitions.
  *
  * Smaller and without a minimum width, because a torn-off pane is usually
  * narrow on purpose - a column of notes beside a full-screen editor.
@@ -216,17 +292,7 @@ ipcMain.handle(
       }
     })
     win.once('ready-to-show', () => win.show())
-    win.on('closed', () => {
-      const anotherDetachedPane = BrowserWindow.getAllWindows().some(
-        (candidate) => candidate !== mainWindow && !candidate.isDestroyed()
-      )
-      if (!anotherDetachedPane && mainWindow && !mainWindow.isDestroyed()) {
-        // The backend transport currently has one renderer-facing channel.
-        // A detached pane owns it while open; give it back to the main window
-        // as soon as the last detached pane closes.
-        attachBackendPort(mainWindow.webContents)
-      }
-    })
+    attachWindowLifecycle(win)
     attachSpellingMenu(win, () => spellingMenuLabels)
 
     const query: Record<string, string> = { pane: request.view }
@@ -297,7 +363,13 @@ ipcMain.handle('novalist:launch-app-update', async (event, token: string) => {
   // A launch token is one-shot. A failed OS handoff leaves Novalist open, and
   // retrying through the dialog obtains a fresh token for the cached download.
   pendingAppUpdates.delete(event.sender.id)
-  await launchAppUpdate(pending.update)
+  const owners = workspaceOwners()
+  await windowCloses.prepare(owners, mainWindow?.webContents.id)
+  try { await launchAppUpdate(pending.update) }
+  catch (error) { windowCloses.abort(owners); throw error }
+  // This authenticated handoff already awaited the renderer's save and backup
+  // preflight while editing was locked. Do not start that work a second time.
+  for (const target of BrowserWindow.getAllWindows()) approvedCloses.add(target.id)
   // Launch acknowledgement and shutdown are one main-process operation. In
   // particular, a spawned Linux helper must never be left waiting because its
   // renderer disappeared before it could send a second, unauthenticated IPC.
@@ -308,7 +380,13 @@ ipcMain.handle('novalist:launch-app-update', async (event, token: string) => {
 // that registry is what decides an application-scoped command exists at all. A
 // template written here beside it would be a second list, and second lists
 // drift.
-ipcMain.on('novalist:set-menu', (_event, nodes: MenuNode[], labels: MenuLabels) => {
+ipcMain.on('novalist:main-command', (event, command: string) => {
+  if (!BrowserWindow.fromWebContents(event.sender) || typeof command !== 'string') return
+  showMainWindow()
+  mainWindow?.webContents.send('novalist:menu-command', command)
+})
+ipcMain.on('novalist:set-menu', (event, nodes: MenuNode[], labels: MenuLabels) => {
+  if (event.sender !== mainWindow?.webContents) return
   try {
     applyMenuTemplate(nodes, labels)
   } catch (error) {
@@ -477,6 +555,13 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
 
-app.on('before-quit', () => {
+app.on('before-quit', (event) => {
+  const win = mainWindow ?? BrowserWindow.getAllWindows().find((candidate) => windowCloses.has(candidate.webContents.id))
+  if (!win || win.isDestroyed() || approvedCloses.has(win.id)) return
+  event.preventDefault()
+  prepareWindowClose(win, true)
+})
+
+app.on('will-quit', () => {
   backend.dispose()
 })

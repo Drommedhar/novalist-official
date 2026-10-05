@@ -35,10 +35,12 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from pathlib import Path
+from html_sources import extracted_script_lines
 
 # Text that is code or content. A .json locale can legitimately be {} in a new
 # extension, so data files are checked for emptiness only.
-SOURCE_SUFFIXES = (".cs", ".ts", ".tsx", ".css", ".html", ".py", ".md", ".axaml")
+SOURCE_SUFFIXES = (".cs", ".ts", ".tsx", ".js", ".mjs", ".cjs", ".jsx", ".css", ".html", ".py", ".md", ".axaml")
 
 # A file that keeps less than this share of its lines has almost certainly been
 # truncated rather than edited. Ordinary work does not remove nine tenths of a
@@ -80,6 +82,8 @@ def main() -> int:
 
         before = was.count("\n")
         after = now.count("\n")
+        if path.endswith(".html") and before >= MIN_LINES and after < before * KEPT_THRESHOLD:
+            after += extracted_script_lines(was, Path(path))
         if before >= MIN_LINES and after < before * KEPT_THRESHOLD:
             gutted.append((path, before, after))
 

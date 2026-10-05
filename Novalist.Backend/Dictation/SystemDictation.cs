@@ -39,8 +39,12 @@ public sealed class SystemDictation(string platform, IAppleSpeechBridge apple, A
     {
         ValidateLanguage(language);
         if (platform != "apple") throw new InvalidOperationException("Use the system voice typing panel.");
-        var result = await apple.RequestAsync(new { operation = "transcribe", language,
-            audio = Convert.ToBase64String(audio) }, token);
+        var result = await apple.RequestAsync(new
+        {
+            operation = "transcribe",
+            language,
+            audio = Convert.ToBase64String(audio)
+        }, token);
         return JsonSerializer.Deserialize<string>(result) ?? string.Empty;
     }
 

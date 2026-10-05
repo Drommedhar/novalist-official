@@ -1,3 +1,5 @@
+import { encodeRpcFrame, RpcFrameDecoder, type RpcMessage } from '../../../shared/rpcFraming'
+
 /**
  * JSON-RPC 2.0 client over the backend MessagePort. Frames are LSP-style
  * (Content-Length header + UTF-8 JSON body), matching StreamJsonRpc's
@@ -8,24 +10,23 @@ type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void }
 
 export type NotificationHandler = (params: unknown) => void
 
-const encoder = new TextEncoder()
-const decoder = new TextDecoder()
 
 export class RpcClient {
   private port: MessagePort | null = null
   private nextId = 1
   private readonly pending = new Map<number, Pending>()
   private readonly notificationHandlers = new Map<string, NotificationHandler>()
-  private buffer = new Uint8Array(0)
+  private frames = new RpcFrameDecoder()
   private readonly connectListeners = new Set<() => void>()
+  private readonly recoveryListeners = new Set<(error?: string) => void>()
   private connecting: Promise<void> | null = null
   private resolveConnect: (() => void) | null = null
 
   constructor() {
-    // Main may replace a renderer's channel after a detached pane closes. Keep
-    // accepting ports after the initial connect instead of leaving the main
-    // window permanently attached to a closed MessagePort.
+    // Reconnects replace only this window's channel. Ports from another frame
+    // cannot replace the renderer's authenticated desktop connection.
     window.addEventListener('message', (event) => {
+      if (event.source !== window) return
       if ((event.data as { novalist?: string })?.novalist !== 'backend-port') return
       const port = event.ports[0]
       if (!port) return
@@ -37,11 +38,8 @@ export class RpcClient {
 
   /**
    * Requests a backend port from main and resolves once frames can flow.
-   * Idempotent: concurrent or repeat calls share one in-flight request so a
-   * second port channel is never opened (React StrictMode invokes the boot
-   * effect twice in dev, and main closes the prior backend port whenever a new
-   * one is attached — a second request would orphan the first port). Genuine
-   * reconnects reset the guard via reconnect().
+   * Idempotent: concurrent boot effects share one request. A backend restart
+   * explicitly resets the guard before asking for a replacement channel.
    */
   connect(): Promise<void> {
     if (this.connecting) return this.connecting
@@ -68,15 +66,21 @@ export class RpcClient {
       this.port.close()
     }
     this.port = port
-    this.buffer = new Uint8Array(0)
+    this.frames = new RpcFrameDecoder()
     port.onmessage = (event) => this.onPortMessage(event.data)
     // connect().then(hydrate) owns initial startup. Calling reconnect listeners
     // on the first port duplicated settings, assets and library initialization.
     if (reconnecting) for (const listener of this.connectListeners) listener()
   }
 
-  onReconnected(listener: () => void): void {
+  onReconnected(listener: () => void): () => void {
     this.connectListeners.add(listener)
+    return () => this.connectListeners.delete(listener)
+  }
+
+  onRecovery(listener: (error?: string) => void): () => void {
+    this.recoveryListeners.add(listener)
+    return () => this.recoveryListeners.delete(listener)
   }
 
   onNotification(method: string, handler: NotificationHandler): void {
@@ -84,6 +88,7 @@ export class RpcClient {
   }
 
   request<T>(method: string, params?: unknown): Promise<T> {
+    if (!this.port) return this.connect().then(() => this.request<T>(method, params))
     const id = this.nextId++
     const promise = new Promise<T>((resolve, reject) => {
       this.pending.set(id, { resolve: resolve as (v: unknown) => void, reject })
@@ -96,62 +101,35 @@ export class RpcClient {
     this.send({ jsonrpc: '2.0', method, params })
   }
 
-  private send(message: object): void {
-    const body = encoder.encode(JSON.stringify(message))
-    const header = encoder.encode(`Content-Length: ${body.length}\r\n\r\n`)
-    const frame = new Uint8Array(header.length + body.length)
-    frame.set(header)
-    frame.set(body, header.length)
-    this.port?.postMessage(frame)
+  private send(message: RpcMessage): void {
+    this.port?.postMessage(encodeRpcFrame(message))
   }
 
   private onPortMessage(data: unknown): void {
     const control = (data as { novalistControl?: string })?.novalistControl
-    if (control === 'backend-restarted') {
-      // Main restarted the backend; ask for a fresh port and let stores re-hydrate.
-      for (const [, p] of this.pending) p.reject(new Error('backend restarted'))
+    if (control === 'backend-recovering' || control === 'backend-recovery-failed') {
+      for (const pending of this.pending.values()) pending.reject(new Error('Backend restarted.'))
+      this.pending.clear()
+      for (const listener of this.recoveryListeners) listener((data as { error?: string }).error)
+      return
+    }
+    if (control === 'backend-restarted' || control === 'backend-protocol-error') {
+      for (const pending of this.pending.values()) pending.reject(new Error('Backend connection changed.'))
       this.pending.clear()
       void this.reconnect()
       return
     }
-    this.append(data as Uint8Array)
-    this.drain()
-  }
-
-  private append(chunk: Uint8Array): void {
-    const merged = new Uint8Array(this.buffer.length + chunk.length)
-    merged.set(this.buffer)
-    merged.set(chunk, this.buffer.length)
-    this.buffer = merged
-  }
-
-  private drain(): void {
-    for (;;) {
-      const headerEnd = findSequence(this.buffer, [13, 10, 13, 10])
-      if (headerEnd < 0) return
-      const header = decoder.decode(this.buffer.subarray(0, headerEnd))
-      const match = /Content-Length: *(\d+)/i.exec(header)
-      if (!match) {
-        this.buffer = this.buffer.subarray(headerEnd + 4)
-        continue
-      }
-      const length = Number.parseInt(match[1], 10)
-      const bodyStart = headerEnd + 4
-      if (this.buffer.length < bodyStart + length) return
-      const body = decoder.decode(this.buffer.subarray(bodyStart, bodyStart + length))
-      this.buffer = this.buffer.subarray(bodyStart + length)
-      this.dispatch(JSON.parse(body))
+    try {
+      for (const message of this.frames.push(data as Uint8Array)) this.dispatch(message)
+    } catch {
+      for (const pending of this.pending.values()) pending.reject(new Error('Invalid backend response.'))
+      this.pending.clear()
+      void this.reconnect()
     }
   }
 
-  private dispatch(message: {
-    id?: number
-    method?: string
-    result?: unknown
-    error?: { code: number; message: string }
-    params?: unknown
-  }): void {
-    if (message.id !== undefined && message.method === undefined) {
+  private dispatch(message: RpcMessage): void {
+    if (typeof message.id === 'number' && message.method === undefined) {
       const pending = this.pending.get(message.id)
       if (!pending) return
       this.pending.delete(message.id)
@@ -167,16 +145,6 @@ export class RpcClient {
     }
   }
 
-}
-
-function findSequence(haystack: Uint8Array, needle: number[]): number {
-  outer: for (let i = 0; i <= haystack.length - needle.length; i++) {
-    for (let j = 0; j < needle.length; j++) {
-      if (haystack[i + j] !== needle[j]) continue outer
-    }
-    return i
-  }
-  return -1
 }
 
 export const rpc = new RpcClient()

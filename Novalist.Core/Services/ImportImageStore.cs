@@ -20,8 +20,12 @@ internal sealed class ImportImageStore(IProjectService projects, IFileService fi
     public const int MaxImagesPerEntry = 100;
     private static readonly Dictionary<string, string> Formats = new(StringComparer.Ordinal)
     {
-        ["image/png"] = ".png", ["image/jpeg"] = ".jpg", ["image/gif"] = ".gif",
-        ["image/webp"] = ".webp", ["image/bmp"] = ".bmp", ["image/svg+xml"] = ".svg"
+        ["image/png"] = ".png",
+        ["image/jpeg"] = ".jpg",
+        ["image/gif"] = ".gif",
+        ["image/webp"] = ".webp",
+        ["image/bmp"] = ".bmp",
+        ["image/svg+xml"] = ".svg"
     };
     public static IReadOnlyCollection<string> ContentTypes => Formats.Keys;
 

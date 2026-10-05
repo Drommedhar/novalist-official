@@ -7,6 +7,7 @@ export type PendingWriteFlusher = () => void | Promise<void>
 export type PendingWriteKey = string
 
 const flushers = new Set<PendingWriteFlusher>()
+const captures = new Set<() => void>()
 type RetainedWrite = {
   key: PendingWriteKey
   version: number
@@ -22,9 +23,16 @@ const writeVersions = new Map<PendingWriteKey, number>()
  */
 const writeTails = new Map<PendingWriteKey, Promise<void>>()
 
-export function registerPendingWrite(flusher: PendingWriteFlusher): () => void {
+export function registerPendingWrite(flusher: PendingWriteFlusher, capture?: () => void): () => void {
   flushers.add(flusher)
-  return () => flushers.delete(flusher)
+  if (capture) captures.add(capture)
+  return () => { flushers.delete(flusher); if (capture) captures.delete(capture) }
+}
+
+/** Copies live prose into its existing dirty buffer while transport is paused.
+ * Capturing never starts persistence or consumes a retryable write. */
+export function capturePendingWrites(): void {
+  for (const capture of captures) capture()
 }
 
 async function runRetainedWrite(write: RetainedWrite): Promise<void> {

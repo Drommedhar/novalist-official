@@ -78,31 +78,7 @@ public class SettingsService : ISettingsService
     /// "D:\git\x\" for the same folder, and a stray separator in front of the
     /// drive letter has turned up as well.
     /// </summary>
-    internal static string NormalizePath(string path)
-    {
-        if (string.IsNullOrWhiteSpace(path)) return string.Empty;
-
-        // On Linux the alt separator is the separator, so this is a no-op there
-        // and a backslash stays a legal filename character.
-        var text = path.Trim().Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-
-        // "\D:\git\x" - a separator before a drive letter is never meaningful.
-        if (text.Length > 2 && text[0] == Path.DirectorySeparatorChar && char.IsLetter(text[1]) && text[2] == ':')
-            text = text[1..];
-
-        try
-        {
-            text = Path.GetFullPath(text);
-        }
-        catch (ArgumentException)
-        {
-            // Not a path we can resolve. Compare what we were given rather than
-            // drop the entry.
-        }
-
-        text = text.TrimEnd(Path.DirectorySeparatorChar);
-        return OperatingSystem.IsWindows() ? text.ToLowerInvariant() : text;
-    }
+    internal static string NormalizePath(string path) => RecentProjectPath.Normalize(path);
 
     public void AddRecentProject(string name, string path, string coverImagePath = "")
     {
@@ -160,7 +136,7 @@ public class SettingsService : ISettingsService
     {
         if (string.IsNullOrEmpty(path)) return path;
         var prefix = oldRoot.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        if (!path.StartsWith(prefix, StringComparison.Ordinal)) return path;
+        if (!path.StartsWith(prefix, RecentProjectPath.IsCaseInsensitive(oldRoot) ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)) return path;
         return newRoot.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar + path[prefix.Length..];
     }
 }

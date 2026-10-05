@@ -9,7 +9,7 @@ public sealed class GitRpc
     private readonly Workspace _workspace;
     private readonly GitService _git;
     private readonly IProcessRunner _process;
-    private bool _initialized;
+    private string? _initializedRoot;
     private string? _repoRoot;
 
     public GitRpc(Workspace workspace, IProcessRunner? processRunner = null)
@@ -26,10 +26,11 @@ public sealed class GitRpc
     {
         var root = _workspace.Projects.ProjectRoot
             ?? throw new InvalidOperationException("No project open.");
-        if (!_initialized)
+        if (_initializedRoot != root)
         {
             await _git.InitializeAsync(root);
-            _initialized = true;
+            _repoRoot = null;
+            _initializedRoot = root;
         }
     }
 

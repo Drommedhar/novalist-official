@@ -164,6 +164,13 @@ jobs:
         working-directory: app
         run: npm run test:packaging
 
+      - name: Test window transport and coordination
+        working-directory: app
+        run: npm run test:transport
+
+      - name: Test HTML source inspection
+        run: python3 -m unittest tools/test_html_sources.py tools/test_file_doctor.py
+
       - name: Install Playwright Chromium
         working-directory: app
         run: npx playwright install --with-deps --only-shell chromium

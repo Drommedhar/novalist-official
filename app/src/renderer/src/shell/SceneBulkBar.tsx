@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Archive, BookOpen, CalendarClock, Tag, Trash2, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
-import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
+import { useProjectStore, type ProjectStateDto, type SceneStructureMethod } from '../stores/projectStore'
 import { useSelectionStore } from '../stores/selectionStore'
 import { useManuscriptStore } from '../stores/manuscriptStore'
 import { useShellStore } from '../stores/shellStore'
@@ -34,7 +34,12 @@ export function SceneBulkBar(): React.JSX.Element | null {
   // One selected scene is just an open scene; the bar is for acting on several.
   if (selected.length < 2) return null
 
-  const apply = async (method: string, args: unknown[]): Promise<void> => {
+  const apply = async (method: 'sceneBulk/setTags' | SceneStructureMethod, args: unknown[]): Promise<void> => {
+    if (method !== 'sceneBulk/setTags') {
+      await useProjectStore.getState().mutateSceneStructure(method, args)
+      clear()
+      return
+    }
     const result = await rpc.request<BulkResult>(method, args)
     useProjectStore.getState().applyState(result.state)
     clear()

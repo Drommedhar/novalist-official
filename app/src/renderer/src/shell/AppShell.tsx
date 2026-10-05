@@ -1,3 +1,4 @@
+import { WorkspaceRecoveryDialog } from './WorkspaceRecoveryDialog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ModePanel } from './ModePanel'
@@ -35,59 +36,25 @@ import { useSpellCheck } from './useSpellCheck'
 import { SceneConflictDialog } from './SceneConflictDialog'
 import { UnsavedLeaveDialog } from './UnsavedLeaveDialog'
 import { BINDER_MIN, BINDER_MAX, panelWidthForShell, anyPaneShows, useShellStore } from '../stores/shellStore'
-import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
+import { useProjectStore } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { useExtensionsStore, type StoreUpdate } from '../stores/extensionsStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useUiScaleStore } from '../stores/uiScaleStore'
-import { loadUserAssets, watchUserAssets } from '../stores/userAssets'
-import type { PingResult } from '../rpc/contract'
 import { chromeForView, modeOf } from './modes'
 import { helpTargetForContext, type ManualTarget } from './helpTargets'
 import { useSettingsNavigation } from '../views/settings/settingsNavigation'
 import { useEditorBridge } from '../stores/editorBridgeStore'
-import { flushPendingWrites } from '../stores/pendingWrites'
-import { useManuscriptStore } from '../stores/manuscriptStore'
+import { flushWindowWrites, useWorkspaceWindow } from './useWorkspaceWindow'
+import { hydrateWindow } from './bootstrap'
 import './shell.css'
 import '../styles/desktop.css'
 import '../styles/desktop-views.css'
 
 
-async function hydrate(): Promise<void> {
-  const ping = await rpc.request<PingResult>('system/ping')
-  useShellStore.getState().setBackendVersion(ping.version)
-  // User themes and locales first: settings may name one of them, and a theme
-  // or language that registers afterwards would apply a frame too late.
-  // Registered before the first load so an edit landing during startup is
-  // still picked up.
-  watchUserAssets()
-  await loadUserAssets()
-  // Apply the user's settings (language, theme, gestures) at startup - not just
-  // when the Settings view is first opened - so the app isn't stuck on the OS
-  // language / default theme until then.
-  await useSettingsStore.getState().load()
-  const state = await rpc.request<ProjectStateDto>('project/getState')
-  useProjectStore.getState().applyState(state)
-  await useProjectStore.getState().loadRecents()
-  await useExtensionsStore.getState().load()
-}
-
-async function within<T>(promise: Promise<T>, milliseconds: number, timeoutMessage: string): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | null = null
-  try {
-    return await Promise.race([
-      promise,
-      new Promise<never>((_resolve, reject) => {
-        timer = setTimeout(() => reject(new Error(timeoutMessage)), milliseconds)
-      })
-    ])
-  } finally {
-    if (timer) clearTimeout(timer)
-  }
-}
-
 export function AppShell(): React.JSX.Element {
   const { t } = useTranslation()
+  useWorkspaceWindow()
   useBackupScheduler()
   useSpellCheck()
   const binderVisible = useShellStore((s) => s.binderVisible)
@@ -133,6 +100,9 @@ export function AppShell(): React.JSX.Element {
   const extView = useShellStore((s) => s.extView)
   const isLoaded = useProjectStore((s) => s.isLoaded)
   const closingProject = useProjectStore((s) => s.closingProject)
+  const changingSceneStructure = useProjectStore((s) => s.changingSceneStructure)
+  const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
+  const workspaceSuspended = useProjectStore((s) => s.workspaceSuspended)
   const recentProjects = useProjectStore((s) => s.recentProjects)
   const openProject = useProjectStore((s) => s.openProject)
   const findReplaceOpen = useShellStore((s) => s.findReplaceOpen)
@@ -210,7 +180,10 @@ export function AppShell(): React.JSX.Element {
   const [updateNotice, setUpdateNotice] = useState(false)
   const [appVersion, setAppVersion] = useState<string | null>(null)
   useEffect(() => { void window.novalist.appVersion?.().then(setAppVersion).catch(() => {}) }, [])
-  const [updateError, setUpdateError] = useState<string | null>(null)
+  const [updateError, setUpdateError] = useState<{ keys: string[] } | { message: string } | null>(null)
+  const updateErrorMessage = updateError && ('keys' in updateError
+    ? updateError.keys.map((key) => t(key)).join(' ')
+    : updateError.message)
 
   useEffect(() => {
     installingRef.current = installing
@@ -227,14 +200,14 @@ export function AppShell(): React.JSX.Element {
     let app: AppUpdate | null = null
     let ext: StoreUpdate[] = []
     try { app = await window.novalist.checkAppUpdate() }
-    catch { errors.push(t('desktopRefresh.checkAppFailed')) }
+    catch { errors.push('desktopRefresh.checkAppFailed') }
     try {
       await useExtensionsStore.getState().checkStoreUpdates()
       ext = useExtensionsStore.getState().storeUpdates
-    } catch { errors.push(t('desktopRefresh.checkExtensionsFailed')) }
+    } catch { errors.push('desktopRefresh.checkExtensionsFailed') }
     setAppUpdate(app)
     setExtUpdates(ext)
-    setUpdateError(errors.length ? errors.join(' ') : null)
+    setUpdateError(errors.length ? { keys: errors } : null)
     setChecking(false)
     checkingRef.current = false
     if (app || ext.length) setUpdateNotice(true)
@@ -249,19 +222,19 @@ export function AppShell(): React.JSX.Element {
       // installFromStore drops the entry from storeUpdates on success.
       setExtUpdates(useExtensionsStore.getState().storeUpdates)
     } catch {
-      setUpdateError(t('desktopRefresh.extensionFailed'))
+      setUpdateError({ keys: ['desktopRefresh.extensionFailed'] })
     } finally {
       setUpdatingExtId(null)
     }
   }
 
   useEffect(() => {
-    rpc.onReconnected(() => void hydrate())
+    rpc.onReconnected(() => void hydrateWindow().catch(() => {}))
     // Boot: connect, hydrate, run the combined update check, then tell main the
     // check finished so it can close the splash (updatesChecked always fires).
     void rpc
       .connect()
-      .then(hydrate)
+      .then(hydrateWindow)
       // Extension scripts that run inside the interface. After connecting, not
       // at module load: this makes the first request of the session, and at
       // import time there is no connection for it to make it on.
@@ -317,7 +290,7 @@ export function AppShell(): React.JSX.Element {
       chapter?: string
       scene?: string
     }): Promise<void> => {
-      if (installingRef.current) return
+      if (installingRef.current || useProjectStore.getState().workspaceBusy || useProjectStore.getState().changingSceneStructure) return
       try {
         await useProjectStore.getState().openProject(link.project)
         // A scene id means nothing without the chapter that holds it, so the
@@ -346,9 +319,9 @@ export function AppShell(): React.JSX.Element {
   }, [isLoaded])
 
   useEffect(() => {
-    setHotkeysEnabled(!installing && !updateOpen)
-    if (!installing && !updateOpen) return installHotkeys(hotkeys)
-  }, [hotkeys, installing, updateOpen])
+    setHotkeysEnabled(!installing && !workspaceBusy && !updateOpen && !changingSceneStructure)
+    if (!installing && !workspaceBusy && !updateOpen && !changingSceneStructure) return installHotkeys(hotkeys)
+  }, [hotkeys, installing, workspaceBusy, updateOpen, changingSceneStructure])
 
   // The menu bar is generated from the command registry, so it has to be
   // rebuilt whenever any of its three inputs move: the language its labels are
@@ -369,13 +342,14 @@ export function AppShell(): React.JSX.Element {
 
   useEffect(() => {
     const onMessage = (event: MessageEvent): void => {
+      if (event.source !== window) return
       const data = event.data as { novalist?: string; command?: string; percent?: number }
       if (data?.novalist === 'update-progress' && typeof data.percent === 'number')
         setUpdateProgress(data.percent)
       if (data?.novalist === 'menu-command' && data.command) {
         // The update dialog is deliberately non-dismissible during handoff;
         // native menu commands must respect the same lock.
-        if (installingRef.current || (updateOpenRef.current && data.command !== 'help:checkUpdates')) return
+        if (installingRef.current || useProjectStore.getState().workspaceBusy || useProjectStore.getState().changingSceneStructure || (updateOpenRef.current && data.command !== 'help:checkUpdates')) return
         // Every menu item but the updater is a registry command, so the menu
         // bar cannot offer anything the palette does not also have.
         if (data.command === 'help:checkUpdates') void runUpdateCheck(true)
@@ -401,7 +375,7 @@ export function AppShell(): React.JSX.Element {
       setReady(Boolean(result.launchToken))
       setManualInstall(!result.launchToken)
     } catch (error) {
-      setUpdateError(error instanceof Error ? error.message : String(error))
+      setUpdateError({ message: error instanceof Error ? error.message : String(error) })
     } finally {
       transferRef.current = false
       setDownloading(false)
@@ -415,42 +389,11 @@ export function AppShell(): React.JSX.Element {
     setInstalling(true)
     setUpdateError(null)
     try {
-      const prepareToQuit = (): Promise<void> =>
-        within(
-          (async () => {
-            if (await window.novalist.hasDetachedPanes()) {
-              throw new Error(t('update.closeDetachedPanes'))
-            }
-            // Mounted editors own short debounces before their stores do. Drain
-            // those and await each surface's own persistence request.
-            await flushPendingWrites()
-            // A view may have unmounted after queueing its store-level save, so
-            // drain the global queues as well as the currently mounted surfaces.
-            await useProjectStore.getState().flushPendingSave()
-            await useManuscriptStore.getState().flushPendingSave()
-            // Every ordinary workspace mutation uses one backend queue. This
-            // no-op sits behind all requests already sent to that queue, covering
-            // immediate settings/toggle writes that have no local debounce while
-            // excluding long-running voice, export, and Git work.
-            await rpc.request('system/barrier')
-            const project = useProjectStore.getState()
-            if (
-              project.sceneConflict ||
-              project.isDirty ||
-              Object.values(project.dirtyMap).some(Boolean)
-            ) {
-              throw new Error(t('update.unsavedConflict'))
-            }
-          })(),
-          10_000,
-          t('update.workspaceBusy')
-        )
-
       // Writing continues during download. Flush again after the explicit
       // install action, and once more after the close backup.
-      await prepareToQuit()
+      await flushWindowWrites()
       await createCloseBackup()
-      await prepareToQuit()
+      await flushWindowWrites()
       markCloseBackupHandledForQuit()
       try {
         // The token-authenticated main-process call launches and quits as one
@@ -466,7 +409,7 @@ export function AppShell(): React.JSX.Element {
 
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      setUpdateError(message)
+      setUpdateError({ message })
     } finally {
       installingRef.current = false
       setInstalling(false)
@@ -481,7 +424,7 @@ export function AppShell(): React.JSX.Element {
     <>
     <div
       ref={shellRef}
-      inert={closingProject}
+      inert={closingProject || workspaceBusy || changingSceneStructure}
       className={`shell shell-capacity-${shellCapacity}${isMobile ? ' mobile' : ''}${focused ? ' shell-focus' : ''}${focused && focusToolsVisible ? ' focus-tools-open' : ''}`}
       data-shell-capacity={shellCapacity}
     >
@@ -499,7 +442,7 @@ export function AppShell(): React.JSX.Element {
         {isMobile ? (
           isLoaded ? (
             <MobileShell />
-          ) : (
+          ) : !workspaceSuspended && !closingProject ? (
             /* No project yet. The desktop shell's welcome content, in the
                mobile frame - the rail and the panes it sits beside are not
                phone controls. */
@@ -507,7 +450,7 @@ export function AppShell(): React.JSX.Element {
               recentProjects={recentProjects}
               onOpenPath={(path, bookId) => openProject(path, bookId)}
             />
-          )
+          ) : null
         ) : (
           <>
             {/* The mode's views share a column with the binder when docked,
@@ -525,19 +468,19 @@ export function AppShell(): React.JSX.Element {
             <div className="shell-main">
               {isLoaded || appScopedView ? (
                 <MainArea />
-              ) : (
+              ) : !workspaceSuspended && !closingProject ? (
                 <StartScreen
                   recentProjects={recentProjects}
                   onOpenPath={(path, bookId) => openProject(path, bookId)}
                 />
-              )}
-              {editorOpen && !extView && notesDockVisible && !(showInspector && inspectorTab === 'notes') && !focused && <SceneNotesDock />}
+              ) : null}
+              {!workspaceSuspended && editorOpen && !extView && notesDockVisible && !(showInspector && inspectorTab === 'notes') && !focused && <SceneNotesDock />}
             </div>
-            {showInspector && !focused && !extView && <Inspector />}
+            {!workspaceSuspended && showInspector && !focused && !extView && <Inspector />}
           </>
         )}
       </div>
-      {!isMobile && isLoaded && focusMode && <FocusMode />}
+      {!workspaceSuspended && !isMobile && isLoaded && focusMode && <FocusMode />}
       {updateOpen && (
         <UpdateDialog
           appUpdate={appUpdate}
@@ -552,7 +495,7 @@ export function AppShell(): React.JSX.Element {
           checking={checking}
           onCheck={() => void runUpdateCheck(true)}
           onInstall={() => void installAppUpdate()}
-          error={updateError}
+          error={updateErrorMessage}
           onDownload={() => void downloadAppUpdate()}
           onUpdateExt={(u) => void updateExtension(u)}
           onClose={() => {
@@ -600,6 +543,7 @@ export function AppShell(): React.JSX.Element {
       <ShellDialogs />
       {/* Raised by the store when a save was refused because the scene changed
           on disk. Renders nothing until there is something to resolve. */}
+      <WorkspaceRecoveryDialog />
       <SceneConflictDialog />
       {/* Raised by the store when a navigation would leave unsaved edits
           behind, wherever the writer set off from. */}

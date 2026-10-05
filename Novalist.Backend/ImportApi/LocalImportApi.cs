@@ -39,7 +39,9 @@ public sealed class LocalImportApi : IDisposable
     public const int MaxBodyBytes = 8 * 1024 * 1024;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
-        PropertyNameCaseInsensitive = false, UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, MaxDepth = 32
+        PropertyNameCaseInsensitive = false,
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+        MaxDepth = 32
     };
     private Session? _session;
     internal Func<WebApplication, Task> StartServer { get; set; } = static app => app.StartAsync();
@@ -51,7 +53,9 @@ public sealed class LocalImportApi : IDisposable
         var service = new StructuredImportService(workspace.Projects, workspace.FileService, sectionTitle);
         var builder = WebApplication.CreateSlimBuilder(new WebApplicationOptions
         {
-            Args = [], ApplicationName = typeof(LocalImportApi).Assembly.GetName().Name, ContentRootPath = AppContext.BaseDirectory
+            Args = [],
+            ApplicationName = typeof(LocalImportApi).Assembly.GetName().Name,
+            ContentRootPath = AppContext.BaseDirectory
         });
         builder.Configuration.Sources.Clear();
         // This process's stdout carries framed RPC, and request logs could contain source IDs.
@@ -147,6 +151,12 @@ public sealed class LocalImportApi : IDisposable
                 }
                 if (context.Request.ContentLength > limit)
                 {
+                    // This body is rejected without parsing or buffering it. Let
+                    // Kestrel discard the advertised bytes after sending 413;
+                    // its five-second drain timeout bounds that work. Keeping the
+                    // import limit here instead aborts the drain immediately and
+                    // resets the connection while the client is still uploading.
+                    context.Features.Get<IHttpMaxRequestBodySizeFeature>()!.MaxRequestBodySize = context.Request.ContentLength;
                     await ErrorAsync(context, 413, "request_too_large", $"Limit this request to {limit} bytes.");
                     return;
                 }
@@ -216,24 +226,48 @@ public sealed class LocalImportApi : IDisposable
             case "/v1/":
                 return new(200, new
                 {
-                    name = "Novalist import API", version = 1,
+                    name = "Novalist import API",
+                    version = 1,
                     instructions = "Read types and schemas, preserve source facts and writing. Upload local images first and use their returned imageId in data.images. Validate documents, then import bounded batches. Never invent IDs or unknown facts. Reuse each sourceId on retries; existing entries are skipped without overwriting edits. To add pictures to a skipped entry, POST /v1/images/attach with its target, result id and image references.",
-                    limits = new { maxEntries = StructuredImportService.MaxEntries, maxBodyBytes = MaxBodyBytes,
-                        maxImageBytes = StructuredImportService.MaxImageBytes, maxImagesPerEntry = StructuredImportService.MaxImagesPerEntry },
+                    limits = new
+                    {
+                        maxEntries = StructuredImportService.MaxEntries,
+                        maxBodyBytes = MaxBodyBytes,
+                        maxImageBytes = StructuredImportService.MaxImageBytes,
+                        maxImagesPerEntry = StructuredImportService.MaxImagesPerEntry
+                    },
                     endpoints = new { types = "/v1/types", schema = "/v1/schema", typeSchema = "/v1/types/{key}/schema", validate = "/v1/import/validate", import = "/v1/import", status = "/v1/status", images = "/v1/images", attachImages = "/v1/images/attach" },
                     request = new { entries = new[] { new { sourceId = "stable full source path, plus #entry-name when splitting a file", folder = "Optional scene chapter or tag group", document = "An object matching the target import schema" } } },
-                    imageUpload = new { method = "POST", endpoint = "/v1/images", body = "Raw image bytes, one file per request; never JSON or base64", contentTypes = StructuredImportService.ImageContentTypes,
-                        response = new { imageId = "64 lowercase hexadecimal characters identifying the uploaded bytes", contentType = "Verified image MIME type", bytes = "Image size", reused = "true when the same bytes were already stored" } },
-                    imageAttachment = new { method = "POST", endpoint = "/v1/images/attach", target = "Codex target whose schema includes data.images", id = "The imported or skipped result id", images = new[] { new { imageId = "The upload response imageId", name = "Source image label or filename", alt = "Optional alternative text from the source" } },
-                        instructions = "Adds missing pictures only; preserves text, fields and existing images. Repeat safely. Locked entries must be unlocked in Novalist first." },
+                    imageUpload = new
+                    {
+                        method = "POST",
+                        endpoint = "/v1/images",
+                        body = "Raw image bytes, one file per request; never JSON or base64",
+                        contentTypes = StructuredImportService.ImageContentTypes,
+                        response = new { imageId = "64 lowercase hexadecimal characters identifying the uploaded bytes", contentType = "Verified image MIME type", bytes = "Image size", reused = "true when the same bytes were already stored" }
+                    },
+                    imageAttachment = new
+                    {
+                        method = "POST",
+                        endpoint = "/v1/images/attach",
+                        target = "Codex target whose schema includes data.images",
+                        id = "The imported or skipped result id",
+                        images = new[] { new { imageId = "The upload response imageId", name = "Source image label or filename", alt = "Optional alternative text from the source" } },
+                        instructions = "Adds missing pictures only; preserves text, fields and existing images. Repeat safely. Locked entries must be unlocked in Novalist first."
+                    },
                     destination = new { book = workspace.Projects.ActiveBook!.Name, draft = workspace.Projects.ActiveBook!.ActiveDraft!.Name }
                 });
             case "/v1/types":
                 var types = new EntityService(workspace.Projects).GetCustomEntityTypes().ToDictionary(type => type.TypeKey);
-                return new(200, new { types = session.Service.Schema().Targets.Select(key => new
+                return new(200, new
                 {
-                    key, name = types.GetValueOrDefault(key)?.DisplayName ?? key, schema = "/v1/types/" + Uri.EscapeDataString(key) + "/schema"
-                }).ToArray() });
+                    types = session.Service.Schema().Targets.Select(key => new
+                    {
+                        key,
+                        name = types.GetValueOrDefault(key)?.DisplayName ?? key,
+                        schema = "/v1/types/" + Uri.EscapeDataString(key) + "/schema"
+                    }).ToArray()
+                });
             case "/v1/schema":
                 return new(200, null, session.Service.Schema().Export());
             case "/v1/status":

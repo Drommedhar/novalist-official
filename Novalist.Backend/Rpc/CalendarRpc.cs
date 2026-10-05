@@ -194,31 +194,31 @@ public sealed class CalendarRpc
         long? earliest = null;
         string? result = null;
         foreach (var chapter in book.Chapters)
-        foreach (var scene in (_workspace.Projects.ScenesManifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [])
-                     .Where(s => s.ArchivedAt == null))
-        {
-            var raw = StoryDateResolver.Resolve(scene, chapter, book.Acts)?.Start;
-            long? ordinal;
-            string? date;
-            if (custom)
+            foreach (var scene in (_workspace.Projects.ScenesManifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [])
+                         .Where(s => s.ArchivedAt == null))
             {
-                // Ignore malformed imported dates just as undated scenes are ignored.
-                try { ordinal = calendar.Parse(raw!, book.Calendar); }
-                catch (OverflowException) { continue; }
-                date = raw?.Trim();
+                var raw = StoryDateResolver.Resolve(scene, chapter, book.Acts)?.Start;
+                long? ordinal;
+                string? date;
+                if (custom)
+                {
+                    // Ignore malformed imported dates just as undated scenes are ignored.
+                    try { ordinal = calendar.Parse(raw!, book.Calendar); }
+                    catch (OverflowException) { continue; }
+                    date = raw?.Trim();
+                }
+                else
+                {
+                    if (!TryParseDate(raw, out var parsed)) continue;
+                    ordinal = parsed.Date.Ticks / TimeSpan.TicksPerDay;
+                    date = parsed.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                }
+                if (ordinal is { } day && (earliest == null || day < earliest))
+                {
+                    earliest = day;
+                    result = date;
+                }
             }
-            else
-            {
-                if (!TryParseDate(raw, out var parsed)) continue;
-                ordinal = parsed.Date.Ticks / TimeSpan.TicksPerDay;
-                date = parsed.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-            }
-            if (ordinal is { } day && (earliest == null || day < earliest))
-            {
-                earliest = day;
-                result = date;
-            }
-        }
         return result;
     }
 

@@ -108,7 +108,7 @@ public static class ImagePicking
                 PickerTitle = title,
                 FileTypes = FilePickerFileType.Images,
             }).ConfigureAwait(false);
-            tcs.TrySetResult(result?.FullPath);
+            tcs.TrySetResult(result == null ? null : Stage(result.FullPath));
         }
         catch
         {

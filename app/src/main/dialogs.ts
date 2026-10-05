@@ -7,7 +7,7 @@ import {
   type OpenDialogOptions
 } from 'electron'
 import { writeFile } from 'node:fs/promises'
-import { dirname, extname, join, normalize, isAbsolute } from 'node:path'
+import { dirname, extname, join, normalize, isAbsolute, sep } from 'node:path'
 import { currentProjectRoot } from './protocols'
 import { saveBookmark, beginAccess, endAccess } from './mac-bookmarks'
 import {
@@ -81,7 +81,7 @@ function resolveProjectPath(target: string): string | null {
   const root = currentProjectRoot()
   if (!root) return null
   const resolved = normalize(join(root, target))
-  return resolved.startsWith(normalize(root)) ? resolved : null
+  return resolved === normalize(root) || resolved.startsWith(join(root, sep)) ? resolved : null
 }
 
 /** Native file/folder pickers, exposed to the renderer through the preload bridge. */

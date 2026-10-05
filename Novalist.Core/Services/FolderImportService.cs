@@ -225,8 +225,13 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
             case "research":
                 var research = new ResearchItem
                 {
-                    Id = id, Title = note.Title, Content = note.Body, Tags = tags, Properties = source,
-                    Order = projects.CurrentProject!.ResearchItems.Count, Type = ResearchItemType.Note
+                    Id = id,
+                    Title = note.Title,
+                    Content = note.Body,
+                    Tags = tags,
+                    Properties = source,
+                    Order = projects.CurrentProject!.ResearchItems.Count,
+                    Type = ResearchItemType.Note
                 };
                 document.Apply(research, _sectionTitle);
                 projects.CurrentProject.ResearchItems.Add(research);
@@ -235,33 +240,40 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
             case "character":
                 var character = new CharacterData
                 {
-                    Id = id, Name = note.Title, Tags = tags, CustomProperties = source
+                    Id = id,
+                    Name = note.Title,
+                    Tags = tags,
+                    CustomProperties = source
                 };
                 document.Apply(character, _sectionTitle);
                 await _entities.SaveCharacterAsync(character);
                 break;
             case "location":
                 var location = new LocationData
-                    { Id = id, Name = note.Title, Description = note.Body, Tags = tags, CustomProperties = source };
+                { Id = id, Name = note.Title, Description = note.Body, Tags = tags, CustomProperties = source };
                 document.Apply(location, _sectionTitle);
                 await _entities.SaveLocationAsync(location);
                 break;
             case "item":
                 var item = new ItemData
-                    { Id = id, Name = note.Title, Description = note.Body, Tags = tags, CustomProperties = source };
+                { Id = id, Name = note.Title, Description = note.Body, Tags = tags, CustomProperties = source };
                 document.Apply(item, _sectionTitle);
                 await _entities.SaveItemAsync(item);
                 break;
             case "lore":
                 var lore = new LoreData
-                    { Id = id, Name = note.Title, Description = note.Body, Tags = tags, CustomProperties = source };
+                { Id = id, Name = note.Title, Description = note.Body, Tags = tags, CustomProperties = source };
                 document.Apply(lore, _sectionTitle);
                 await _entities.SaveLoreAsync(lore);
                 break;
             default:
                 var custom = new CustomEntityData
                 {
-                    Id = id, EntityTypeKey = target, Name = note.Title, Tags = tags, CustomProperties = source
+                    Id = id,
+                    EntityTypeKey = target,
+                    Name = note.Title,
+                    Tags = tags,
+                    CustomProperties = source
                 };
                 document.Apply(custom, _sectionTitle);
                 await _entities.SaveCustomEntityAsync(custom);
@@ -338,7 +350,9 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
             var safeTitle = new string(title.Where(character => !Path.GetInvalidFileNameChars().Contains(character)).ToArray());
             chapter = new ChapterData
             {
-                Guid = chapterId, Title = title, Order = _nextChapterOrder + 1,
+                Guid = chapterId,
+                Title = title,
+                Order = _nextChapterOrder + 1,
                 FolderName = $"{_nextChapterOrder + 1:D2} - {safeTitle[..Math.Min(safeTitle.Length, 60)]} - {chapterId[..8]}"
             };
         }
@@ -346,9 +360,14 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
             : "<p>" + WebUtility.HtmlEncode(note.Body).Replace("\r\n", "\n").Replace("\n", "<br>") + "</p>";
         var scene = new SceneData
         {
-            Id = id, Title = note.Title, ChapterGuid = chapterId, Order = _orders.GetValueOrDefault(chapterId) + 1,
-            FileName = $"{id}.novalist", WordCount = TextStatistics.Calculate(html, "en").WordCount,
-            Properties = source, AnalysisOverrides = new SceneAnalysisOverrides { Tags = tags }
+            Id = id,
+            Title = note.Title,
+            ChapterGuid = chapterId,
+            Order = _orders.GetValueOrDefault(chapterId) + 1,
+            FileName = $"{id}.novalist",
+            WordCount = TextStatistics.Calculate(html, "en").WordCount,
+            Properties = source,
+            AnalysisOverrides = new SceneAnalysisOverrides { Tags = tags }
         };
         document.Apply(scene, _sectionTitle);
         await files.CreateDirectoryAsync(projects.GetChapterFolderPath(chapter!));

@@ -68,15 +68,23 @@
   </ItemGroup>
 
   <!--
-    Editor spike asset. The contenteditable editor is a single self-contained
-    HTML file; include it directly from the renderer (single source of truth) at
-    the HybridWebView root path so we can load it on a real device and validate
-    typing, caret, and selection. LogicalName places it under the "editor" root
-    that EditorSpikePage's HybridWebView loads from.
+    Editor spike assets. Include the editor and its local sanitizer directly
+    from the renderer so the spike uses the same content handling as the app.
+    LogicalName places them under the "editor" root that EditorSpikePage's
+    HybridWebView loads from when validating typing, caret, and selection.
   -->
   <ItemGroup>
     <MauiAsset Include="..\app\src\renderer\public\editor\editor.html">
       <LogicalName>editor\editor.html</LogicalName>
+    </MauiAsset>
+    <MauiAsset Include="..\app\src\renderer\public\editor\editor.js">
+      <LogicalName>editor\editor.js</LogicalName>
+    </MauiAsset>
+    <MauiAsset Include="..\app\src\renderer\public\editor\purify.min.js">
+      <LogicalName>editor\purify.min.js</LogicalName>
+    </MauiAsset>
+    <MauiAsset Include="..\app\src\renderer\public\editor\scene-html.js">
+      <LogicalName>editor\scene-html.js</LogicalName>
     </MauiAsset>
   </ItemGroup>
 

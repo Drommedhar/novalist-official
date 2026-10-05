@@ -1,0 +1,4833 @@
+'use strict';
+
+const editor = document.getElementById('editor');
+const wrapper = document.getElementById('editor-wrapper');
+
+// ── State ────────────────────────────────────────────────────────
+let isSettingContent = false;
+let isComposing = false;
+let compositionEndTimer = null;
+let lastHtml = '';
+let entityRegex = null;
+let entityNames = [];
+let entityIndex = new Map(); // lowercase name → {entityId, entityType, isAlias}
+let entityMatchRules = new Map(); // lowercase name → {caseSensitive, exact, exclusions[]}
+let autoReplacements = [];
+let lastHoveredAlias = null;
+let lastHoveredMentionId = null;
+let entityExitTimer = null;
+let dialogueCorrectionConfig = null;
+let dialogueCorrectionTimer = null;
+
+// Mention picker state
+let mentionState = null;          // {startNode, startOffset, queryNode, query} when picker is active
+let mentionCandidates = [];       // full list pushed by host
+let mentionFiltered = [];
+let mentionSelectedIndex = 0;
+let mentionCreateVisible = false; // "Create <name>" row shown as the last entry
+let mentionPendingSeq = 0;        // ids for spans awaiting a host-created entity
+let mentionLabels = { create: 'Create "{name}"', noMatches: 'No matches' };
+
+/** Host pushes localized picker labels. */
+function setMentionLabels(labelsJson) {
+    try { mentionLabels = Object.assign(mentionLabels, JSON.parse(labelsJson) || {}); }
+    catch (_) { /* keep defaults */ }
+}
+
+// Focus scroll prevention state
+let savedScrollTop = 0;
+let isFocusing = false;
+
+// Typewriter scroll state
+let typewriterEnabled = false;
+let typewriterAnchor = 'middle';  // 'top' | 'middle' | 'bottom'
+let typewriterFrame = 0;
+let typewriterLastY = -9999;
+let typewriterMouseDown = false;
+let typewriterSuspendUntil = 0;   // ms epoch — suppress recenter until then
+// ms epoch — a scroll the editor issued itself (caret recentring), which must
+// not be mistaken for the user scrolling away from an open context menu.
+let programmaticScrollUntil = 0;
+
+// ── C#→JS Bridge ────────────────────────────────────────────────
+
+// ── Readability marking ─────────────────────────────────────────
+// A sentence at a time, tinted by how hard it is to read. Painted with the
+// Custom Highlight API for the same reason read-aloud is: a report about the
+// prose must never edit the prose.
+
+let readabilityEnabled = false;
+let readabilityTimer = null;
+/** The sentences the host last graded, so a DOM rebuild can be repainted. */
+let lastReadabilityGrading = null;
+const READABILITY_BANDS = ['VeryEasy', 'Easy', 'Moderate', 'Difficult', 'VeryDifficult'];
+const readabilityHighlights = {};
+if (typeof Highlight === 'function' && typeof CSS !== 'undefined' && CSS.highlights) {
+    READABILITY_BANDS.forEach(function (band) {
+        readabilityHighlights[band] = new Highlight();
+        CSS.highlights.set('nv-read-' + band, readabilityHighlights[band]);
+    });
+}
+
+function setReadabilityEnabled(enabled) {
+    readabilityEnabled = !!enabled;
+    if (!readabilityEnabled) {
+        lastReadabilityGrading = null;
+        clearReadability();
+        return;
+    }
+    requestReadability(0);
+}
+
+function clearReadability() {
+    READABILITY_BANDS.forEach(function (band) {
+        if (readabilityHighlights[band]) readabilityHighlights[band].clear();
+    });
+}
+
+/**
+ * Repaints the last grading against the prose as it stands now.
+ *
+ * The marks are live Ranges, and the DOM under them is rebuilt constantly:
+ * page view moves every paragraph into a fresh .nv-page wrapper, and the
+ * grammar pass wraps flagged words in spans and normalises what is left.
+ * Moving a node out of its parent collapses every Range inside it, so the
+ * highlight stayed registered while covering nothing - which is why turning
+ * the marking on showed it for an instant and then wiped it.
+ *
+ * The grading itself survives all of that: none of those rebuilds change a
+ * character of the text, so the offsets still point where they did. Repainting
+ * from the grading we already have keeps the marks on screen without another
+ * round-trip, and without the gap one would leave.
+ */
+function reapplyReadability() {
+    if (!readabilityEnabled || !lastReadabilityGrading) return;
+    paintReadability(lastReadabilityGrading);
+}
+
+/**
+ * Asks the host to grade the text. Debounced, because the grading walks every
+ * sentence and the writer is usually still typing the one they are on.
+ */
+function requestReadability(delay) {
+    if (!readabilityEnabled || isComposing) return;
+    if (readabilityTimer) clearTimeout(readabilityTimer);
+    readabilityTimer = setTimeout(function () {
+        const map = buildGrammarPlainTextMap();
+        sendMessage({ type: 'readabilityRequest', plainText: map.plainText });
+    }, delay === 0 ? 0 : 700);
+}
+
+/**
+ * Paints the graded sentences. The payload carries the band colours too: this
+ * document has no access to the shell's design tokens, and hardcoding five
+ * colours here would put them outside the token scale.
+ */
+function setReadability(json) {
+    clearReadability();
+    lastReadabilityGrading = null;
+    if (!readabilityEnabled) return;
+    let payload;
+    try { payload = JSON.parse(json); } catch (_) { return; }
+    if (!payload || !payload.sentences) return;
+
+    if (payload.colors) {
+        const rules = READABILITY_BANDS
+            .filter(function (band) { return payload.colors[band]; })
+            .map(function (band) {
+                return '::highlight(nv-read-' + band + ') { background-color: '
+                    + payload.colors[band] + '; }';
+            })
+            .join('\n');
+        let sheet = document.getElementById('novalist-readability-colors');
+        if (!sheet) {
+            sheet = document.createElement('style');
+            sheet.id = 'novalist-readability-colors';
+            document.head.appendChild(sheet);
+        }
+        sheet.textContent = rules;
+    }
+
+    // Kept so a later rebuild of the prose DOM can be repainted from it rather
+    // than leaving the writer with marks that cover nothing.
+    lastReadabilityGrading = payload.sentences;
+    paintReadability(payload.sentences);
+}
+
+/** Turns graded sentences into ranges over the prose as it stands now. */
+function paintReadability(sentences) {
+    clearReadability();
+    const map = buildGrammarPlainTextMap();
+    sentences.forEach(function (sentence) {
+        const highlight = readabilityHighlights[sentence.level];
+        if (!highlight) return;
+        const range = rangeForPlainTextSpan(map.textNodes, sentence.offset, sentence.length);
+        if (range) highlight.add(range);
+    });
+}
+
+/** A DOM range covering [offset, offset+length) of the flattened plain text. */
+function rangeForPlainTextSpan(textNodes, offset, length) {
+    const end = offset + length;
+    let from = null;
+    let to = null;
+    for (let i = 0; i < textNodes.length; i++) {
+        const entry = textNodes[i];
+        if (!from && offset >= entry.start && offset < entry.end) {
+            from = { node: entry.node, offset: offset - entry.start };
+        }
+        if (end > entry.start && end <= entry.end) {
+            to = { node: entry.node, offset: end - entry.start };
+        }
+    }
+    if (!from || !to) return null;
+    const range = document.createRange();
+    try {
+        range.setStart(from.node, from.offset);
+        range.setEnd(to.node, to.offset);
+    } catch (_) {
+        return null;
+    }
+    return range;
+}
+
+// ── Read aloud ──────────────────────────────────────────────────
+// Sentence by sentence, so the highlight has something to sit on and so
+// stopping lands between sentences rather than mid-word.
+
+let readAloudActive = false;
+let readAloudQueue = [];
+let readAloudAt = 0;
+let readAloudRate = 1;
+let readAloudVoiceUri = null;
+const speakingHighlight = typeof Highlight === 'function' ? new Highlight() : null;
+if (speakingHighlight && typeof CSS !== 'undefined' && CSS.highlights) {
+    CSS.highlights.set('nv-speaking', speakingHighlight);
+}
+
+/** Sentence ranges inside one block, in reading order. */
+function sentenceRangesIn(block) {
+    const ranges = [];
+    const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    let flat = '';
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        nodes.push({ node: n, start: flat.length });
+        flat += n.nodeValue;
+    }
+    if (flat.trim().length === 0) return ranges;
+
+    // A sentence runs to its terminator; the tail with no terminator is one too.
+    const matcher = /[^.!?…]*[.!?…]+["'”’»]*\s*|[^.!?…]+$/g;
+    let m;
+    while ((m = matcher.exec(flat)) !== null) {
+        const text = m[0];
+        if (text.trim().length === 0) continue;
+        const range = document.createRange();
+        const from = locate(nodes, m.index);
+        const to = locate(nodes, m.index + text.replace(/\s+$/, '').length);
+        if (!from || !to) continue;
+        range.setStart(from.node, from.offset);
+        range.setEnd(to.node, to.offset);
+        ranges.push({ range: range, text: text.trim() });
+    }
+    return ranges;
+}
+
+/** Maps an offset in a block's flattened text back to (node, offset). */
+function locate(nodes, offset) {
+    for (let i = nodes.length - 1; i >= 0; i--) {
+        if (offset >= nodes[i].start) {
+            return { node: nodes[i].node, offset: Math.min(offset - nodes[i].start, nodes[i].node.nodeValue.length) };
+        }
+    }
+    return null;
+}
+
+/** The block the caret sits in, so reading can start where the writer is. */
+/**
+ * The paragraphs, wherever they are sitting.
+ *
+ * Page view moves every block inside a <div class="nv-page">, so the editor's
+ * own children are pages rather than prose. Everything that reasons about "the
+ * paragraph" - dimming, paragraph styles, read-aloud - has to look through
+ * them, and every one of those was quietly operating on page wrappers instead.
+ */
+function proseBlocks() {
+    const blocks = [];
+    for (const child of editor.children) {
+        if (child.classList && child.classList.contains('nv-page')) {
+            for (const inner of child.children) blocks.push(inner);
+        } else {
+            blocks.push(child);
+        }
+    }
+    return blocks;
+}
+
+/** The prose block a node sits in, looking through a page wrapper. */
+function blockOf(node) {
+    let current = node;
+    while (current && current !== editor) {
+        const parent = current.parentNode;
+        if (parent === editor) {
+            // A page wrapper is not a block. Its first paragraph is the nearest
+            // thing, but a caret directly in a wrapper means an empty page.
+            if (current.classList && current.classList.contains('nv-page'))
+                return current.firstElementChild;
+            return current;
+        }
+        if (parent && parent.classList && parent.classList.contains('nv-page')) return current;
+        current = parent;
+    }
+    return null;
+}
+
+function caretBlock() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    return blockOf(sel.getRangeAt(0).startContainer);
+}
+
+/**
+ * Speaks the scene. From the caret's paragraph when asked, otherwise from the
+ * top. Voice and rate come from settings; the language comes from the prose,
+ * so a German scene is read by a German voice without being told twice.
+ */
+function startReadAloud(fromCaret, rate, voiceUri) {
+    if (typeof speechSynthesis === 'undefined') return;
+    stopReadAloud();
+    readAloudRate = rate > 0 ? rate : 1;
+    readAloudVoiceUri = voiceUri || null;
+
+    const blocks = proseBlocks();
+    const from = fromCaret ? caretBlock() : null;
+    const startAt = from ? Math.max(0, blocks.indexOf(from)) : 0;
+    readAloudQueue = [];
+    for (let i = startAt; i < blocks.length; i++) {
+        readAloudQueue = readAloudQueue.concat(sentenceRangesIn(blocks[i]));
+    }
+    if (readAloudQueue.length === 0) return;
+
+    readAloudAt = 0;
+    readAloudActive = true;
+    sendMessage({ type: 'readAloudStateChanged', speaking: true });
+    speakNextSentence();
+}
+
+/**
+ * True when the chosen voice belongs to the system engine rather than the
+ * browser. A SAPI voice id is a token path; a browser one is a URI the browser
+ * itself minted, and it is always in getVoices().
+ */
+function usingSystemVoice() {
+    if (!readAloudVoiceUri) return false;
+    return !speechSynthesis.getVoices().some(function (v) {
+        return v.voiceURI === readAloudVoiceUri;
+    });
+}
+
+function speakNextSentence() {
+    if (!readAloudActive) return;
+    if (readAloudAt >= readAloudQueue.length) { stopReadAloud(); return; }
+    const item = readAloudQueue[readAloudAt++];
+
+    // The system engine, when the writer picked one of its voices. The browser
+    // reads one Windows voice store and everything installed to get more
+    // voices registers in the other, so this is the only way most of them can
+    // be heard at all. A sentence at a time, so the highlight still follows.
+    if (usingSystemVoice()) {
+        showSpeaking(item.range);
+        sendMessage({
+            type: 'speakSentence',
+            text: item.text,
+            voiceId: readAloudVoiceUri,
+            rate: readAloudRate
+        });
+        return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(item.text);
+    utterance.lang = editor.lang || document.documentElement.lang || 'en';
+    utterance.rate = readAloudRate;
+    if (readAloudVoiceUri) {
+        const voice = speechSynthesis.getVoices().find(function (v) { return v.voiceURI === readAloudVoiceUri; });
+        if (voice) utterance.voice = voice;
+    }
+    utterance.onstart = function () { showSpeaking(item.range); };
+    utterance.onend = function () { speakNextSentence(); };
+    utterance.onerror = function () { stopReadAloud(); };
+    speechSynthesis.speak(utterance);
+}
+
+function showSpeaking(range) {
+    if (!speakingHighlight) return;
+    speakingHighlight.clear();
+    speakingHighlight.add(range);
+
+    const rect = range.getBoundingClientRect();
+    const box = wrapper.getBoundingClientRect();
+    // Only when the sentence has actually left the comfortable band. Scrolling
+    // on every sentence makes the page twitch its way through a chapter.
+    if (rect.bottom > box.bottom - 40 || rect.top < box.top + 40) {
+        // Centre the sentence. The old line subtracted half the WRAPPER's
+        // height as though it were the sentence's, so reading a line near the
+        // top threw the page upward by half a screen - which is what looked
+        // like the editor scrolling itself back up.
+        wrapper.scrollTop += (rect.top - box.top) - (box.height - rect.height) / 2;
+    }
+
+    // Dimming follows the voice while it is reading. It marks the caret's
+    // paragraph, and the caret does not move when somebody is being read to -
+    // so the lit paragraph stayed wherever they last clicked while the voice
+    // worked its way down the page.
+    if (dimOthers) {
+        const block = blockOf(range.startContainer);
+        if (block) {
+            for (const other of proseBlocks()) other.classList.remove('nv-focus-block');
+            block.classList.add('nv-focus-block');
+        }
+    }
+}
+
+/** The host has finished speaking one sentence; move to the next. */
+function onSentenceSpoken(ok) {
+    if (!readAloudActive) return;
+    if (!ok) { stopReadAloud(); return; }
+    speakNextSentence();
+}
+
+function stopReadAloud() {
+    const wasActive = readAloudActive;
+    readAloudActive = false;
+    // Handing the dim back to the caret, which owns it whenever nothing is
+    // being read.
+    if (dimOthers) updateFocusBlock();
+    readAloudQueue = [];
+    if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
+    // The system engine has its own queue and does not hear speechSynthesis.
+    if (wasActive) sendMessage({ type: 'stopSystemSpeech' });
+    if (speakingHighlight) speakingHighlight.clear();
+    if (wasActive) sendMessage({ type: 'readAloudStateChanged', speaking: false });
+}
+
+function sendMessage(msg) {
+    try {
+        const json = JSON.stringify(msg);
+        if (typeof invokeCSharpAction === 'function') {
+            invokeCSharpAction(json);
+        } else if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage(json);
+        } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.webview) {
+            window.webkit.messageHandlers.webview.postMessage(json);
+        } else if (window.parent && window.parent !== window) {
+            // Electron shell: editor runs in a same-origin iframe; the parent
+            // page bridges these messages to the backend over JSON-RPC.
+            window.parent.postMessage({ novalistEditor: json }, '*');
+        }
+    } catch (_) { /* ignore if bridge not ready */ }
+}
+
+// ── Content Management ──────────────────────────────────────────
+
+function setContent(html) {
+    html = sanitizeSceneHtml(html);
+    dictationAnchor = null;
+    if (compositionEndTimer) clearTimeout(compositionEndTimer);
+    compositionEndTimer = null;
+    isComposing = false;
+    isSettingContent = true;
+    hideGrammarPopup();
+    hideContextMenu();
+    grammarIssues = [];
+    // Captured before the write and compared after it, so the browser has
+    // normalised both sides and the comparison is honest.
+    const previous = editor.innerHTML;
+    if (!html || html.trim() === '' || isEmptyHtml(html)) {
+        editor.innerHTML = '<p><br></p>';
+    } else {
+        const bodyContent = extractBody(html);
+        editor.innerHTML = bodyContent;
+    }
+    refreshSceneBreakClasses(editor);
+    const changed = editor.innerHTML !== previous;
+    lastHtml = editor.innerHTML;
+    isSettingContent = false;
+
+    // Going to the top belongs to arriving at a different scene. The host also
+    // pushes the same scene back for reasons that have nothing to do with the
+    // writer - a settings change, a save round-trip, a re-render - and every
+    // one of those threw somebody reading chapter nine back to its first line.
+    if (changed) {
+        savedScrollTop = 0;
+        wrapper.scrollTop = 0;
+    } else {
+        wrapper.scrollTop = savedScrollTop;
+    }
+
+    // A stored path is not a URL this document can load; resolve before paint.
+    toDisplayImages(editor);
+
+    // Trigger grammar check for the new content
+    requestGrammarCheck();
+    // A different scene needs its own grading; the old marks belong to prose
+    // that is no longer on screen, so they must not be repainted either.
+    lastReadabilityGrading = null;
+    clearReadability();
+    requestReadability(0);
+
+    // If page view is on, paginate synchronously before paint so users never
+    // see the unpaginated layout flash.
+    if (pageViewEnabled) repaginatePageView();
+}
+
+function getContent() {
+    return getCleanContentHtml();
+}
+
+function getPlainText() {
+    return editor.innerText || '';
+}
+
+/** Marks ornament-only prose blocks so typography never treats them as prose. */
+function refreshSceneBreakClasses(root) {
+    root.querySelectorAll('p, div').forEach(function (block) {
+        // Page wrappers and structural containers are not paragraphs. Only a
+        // leaf block can be the ornament the writer typed between scenes.
+        if (block.classList.contains('nv-page') || block.querySelector('p, div, h1, h2, h3, h4, h5, h6, blockquote, li')) return;
+        const text = block.textContent || '';
+        // Match the ornament grammar used by Prose Cleanup. It is deliberately
+        // broader than one preferred glyph so imported/custom separators are
+        // presentation-neutral too.
+        const isBreak = /^[\s\u00a0]*[*\-#•_~](?:[\s\u00a0]*[*\-#•_~])*[\s\u00a0]*$/u.test(text);
+        block.classList.toggle('nv-scene-break', isBreak);
+    });
+}
+
+function extractBody(html) {
+    const match = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    return match ? match[1] : html;
+}
+
+function isEmptyHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = sanitizeSceneHtml(html);
+    return !tmp.textContent || tmp.textContent.trim() === '';
+}
+
+// ── Formatting Commands ─────────────────────────────────────────
+
+function toggleBold() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('bold', false, null);
+    notifyFormattingChanged();
+}
+
+function toggleItalic() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('italic', false, null);
+    notifyFormattingChanged();
+}
+
+function toggleUnderline() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('underline', false, null);
+    notifyFormattingChanged();
+}
+
+function toggleStrikethrough() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('strikeThrough', false, null);
+    notifyFormattingChanged();
+}
+
+/**
+ * Marks a passage to come back to.
+ *
+ * A class rather than an inline colour, so a theme can restyle it and an
+ * export can decide whether a highlight means anything in that format.
+ */
+function toggleHighlight() {
+    editor.focus({ preventScroll: true });
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+
+    const existing = highlightAncestor(sel.anchorNode);
+    if (existing) {
+        // Unwrap: the writer is done with that passage.
+        const parent = existing.parentNode;
+        while (existing.firstChild) parent.insertBefore(existing.firstChild, existing);
+        parent.removeChild(existing);
+        notifyFormattingChanged();
+        return;
+    }
+
+    const range = sel.getRangeAt(0);
+    const mark = document.createElement('span');
+    mark.className = 'nv-highlight';
+    try {
+        mark.appendChild(range.extractContents());
+        range.insertNode(mark);
+    } catch (e) {
+        // A selection spanning block boundaries cannot be wrapped in one span;
+        // leaving the prose untouched beats producing broken markup.
+        return;
+    }
+    notifyFormattingChanged();
+}
+
+function highlightAncestor(node) {
+    while (node && node !== editor) {
+        if (node.nodeType === 1 && node.classList && node.classList.contains('nv-highlight'))
+            return node;
+        node = node.parentNode;
+    }
+    return null;
+}
+
+/** Turns the selection into a link, or removes the link it already is. */
+function applyLink(href) {
+    editor.focus({ preventScroll: true });
+    if (!href) {
+        document.execCommand('unlink', false, null);
+    } else {
+        document.execCommand('createLink', false, href);
+    }
+    notifyFormattingChanged();
+}
+
+function alignLeft() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('justifyLeft', false, null);
+    notifyFormattingChanged();
+}
+
+function alignCenter() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('justifyCenter', false, null);
+    notifyFormattingChanged();
+}
+
+function alignRight() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('justifyRight', false, null);
+    notifyFormattingChanged();
+}
+
+function alignJustify() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('justifyFull', false, null);
+    notifyFormattingChanged();
+}
+
+// ── Paragraph Styles ────────────────────────────────────────────
+// Named paragraph styles live as an `nv-style-<id>` class on the block. The
+// exporters read that class to turn a paragraph into a heading; the editor
+// paints it so the writer can see which paragraphs carry one.
+
+const PARAGRAPH_STYLE_PREFIX = 'nv-style-';
+
+/** Block elements (top-level children of the editor) touched by the selection. */
+function selectedBlocks() {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return [];
+    const range = selection.getRangeAt(0);
+    const blocks = [];
+    for (const block of proseBlocks()) {
+        if (range.intersectsNode(block)) blocks.push(block);
+    }
+    // A collapsed caret inside a block still has to resolve to that block.
+    if (blocks.length === 0) {
+        const block = blockOf(range.startContainer);
+        if (block) blocks.push(block);
+    }
+    return blocks;
+}
+
+/** The style id shared by the selected blocks, or '' for plain body text. */
+function getParagraphStyle() {
+    const blocks = selectedBlocks();
+    if (blocks.length === 0) return '';
+    const styleOf = (block) => {
+        for (const cls of block.classList || []) {
+            if (cls.startsWith(PARAGRAPH_STYLE_PREFIX)) return cls.slice(PARAGRAPH_STYLE_PREFIX.length);
+        }
+        return '';
+    };
+    const first = styleOf(blocks[0]);
+    return blocks.every((b) => styleOf(b) === first) ? first : '';
+}
+
+/** Applies a named paragraph style to the selection; '' clears it. */
+function setParagraphStyle(style) {
+    editor.focus({ preventScroll: true });
+    const blocks = selectedBlocks();
+    if (blocks.length === 0) return;
+    for (const block of blocks) {
+        if (!block.classList) continue;
+        for (const cls of [...block.classList]) {
+            if (cls.startsWith(PARAGRAPH_STYLE_PREFIX)) block.classList.remove(cls);
+        }
+        if (style) block.classList.add(PARAGRAPH_STYLE_PREFIX + style);
+        if (block.classList.length === 0) block.removeAttribute('class');
+    }
+    notifyFormattingChanged();
+    // A class change is not typing, so no input event fires on its own — but
+    // the host still has to hear about it or the style would never be saved.
+    editor.dispatchEvent(new Event('input'));
+}
+
+// Lists are real ul/ol structure rather than a paragraph style, because that is
+// what every export format wants and what a pasted list already is.
+function toggleBulletList() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('insertUnorderedList');
+    notifyFormattingChanged();
+    editor.dispatchEvent(new Event('input'));
+}
+
+function toggleNumberList() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('insertOrderedList');
+    notifyFormattingChanged();
+    editor.dispatchEvent(new Event('input'));
+}
+
+// ── Formatting State ────────────────────────────────────────────
+
+function getFormattingState() {
+    const selection = window.getSelection();
+    const hasSelection = !!selection && !selection.isCollapsed && selection.toString().trim() !== '';
+    let linkActive = false;
+    let ancestor = selection && selection.anchorNode;
+    while (ancestor && ancestor !== editor) {
+        if (ancestor.nodeType === Node.ELEMENT_NODE && ancestor.tagName === 'A') {
+            linkActive = true;
+            break;
+        }
+        ancestor = ancestor.parentNode;
+    }
+    const bold = document.queryCommandState('bold');
+    const italic = document.queryCommandState('italic');
+    const underline = document.queryCommandState('underline');
+    let alignment = 'left';
+    if (document.queryCommandState('justifyCenter')) alignment = 'center';
+    else if (document.queryCommandState('justifyRight')) alignment = 'right';
+    else if (document.queryCommandState('justifyFull')) alignment = 'justify';
+    return {
+        bold,
+        italic,
+        underline,
+        hasSelection,
+        linkActive,
+        entityAtCaret: !hasSelection && !!findEntityAtCaret(),
+        strikethrough: document.queryCommandState('strikeThrough'),
+        highlight: !!highlightAncestor(window.getSelection() && window.getSelection().anchorNode),
+        alignment,
+        paragraphStyle: getParagraphStyle(),
+        bulletList: document.queryCommandState('insertUnorderedList'),
+        numberList: document.queryCommandState('insertOrderedList')
+    };
+}
+
+function notifyFormattingChanged() {
+    const state = getFormattingState();
+    sendMessage({ type: 'formattingChanged', ...state });
+}
+
+// ── Theme & Font ────────────────────────────────────────────────
+
+function setTheme(bg, fg, caretColor, selectionBg, pageBg, pageFg, scrollbarThumb, scrollbarThumbHover, scrollbarThumbActive) {
+    const root = document.documentElement;
+    root.style.setProperty('--bg', bg);
+    root.style.setProperty('--fg', fg);
+    root.style.setProperty('--caret', caretColor || fg);
+    if (selectionBg) root.style.setProperty('--selection-bg', selectionBg);
+    if (pageBg) root.style.setProperty('--page-bg', pageBg);
+    if (pageFg) root.style.setProperty('--page-fg', pageFg);
+    // Scrollbars are browser-painted, so the host hands us its resolved tokens.
+    if (scrollbarThumb) root.style.setProperty('--scrollbar-thumb', scrollbarThumb);
+    if (scrollbarThumbHover) root.style.setProperty('--scrollbar-thumb-hover', scrollbarThumbHover);
+    if (scrollbarThumbActive) root.style.setProperty('--scrollbar-thumb-active', scrollbarThumbActive);
+}
+
+function setFont(family, size) {
+    const root = document.documentElement;
+    if (family) {
+        const val = "'" + family + "', sans-serif";
+        root.style.setProperty('--font-family', val);
+    }
+    if (size) {
+        root.style.setProperty('--font-size', size + 'px');
+    }
+    // Force-override via a dynamic <style> to beat any inline styles
+    let s = document.getElementById('novalist-font-override');
+    if (!s) {
+        s = document.createElement('style');
+        s.id = 'novalist-font-override';
+        document.head.appendChild(s);
+    }
+    const f = family ? "'" + family + "', sans-serif" : 'var(--font-family)';
+    const sz = size ? size + 'px' : 'var(--font-size)';
+    s.textContent = '#editor, #editor * { font-family: ' + f + ' !important; font-size: ' + sz + ' !important; }';
+}
+
+function setBookWidth(enabled, widthPx) {
+    const root = document.documentElement;
+    root.style.setProperty('--book-width', enabled ? widthPx + 'px' : 'none');
+}
+
+function setPadding(horizontal, vertical) {
+    const root = document.documentElement;
+    if (horizontal != null) root.style.setProperty('--padding-h', horizontal + 'px');
+    if (vertical != null) root.style.setProperty('--padding-v', vertical + 'px');
+}
+
+/**
+ * Reading comfort. Leading, letter spacing, the gap between paragraphs and
+ * first-line indent, none of which a colour-only theme can reach.
+ */
+function setReadingComfort(lineHeight, letterSpacing, paragraphSpacing, firstLineIndent) {
+    const root = document.documentElement;
+    root.style.setProperty('--line-height', lineHeight > 0 ? String(lineHeight) : '1.7');
+    root.style.setProperty(
+        '--letter-spacing', letterSpacing ? letterSpacing + 'px' : 'normal');
+    root.style.setProperty(
+        '--paragraph-spacing', (paragraphSpacing >= 0 ? paragraphSpacing : 0.75) + 'em');
+    root.style.setProperty(
+        '--first-line-indent', (firstLineIndent >= 0 ? firstLineIndent : 0) + 'em');
+}
+
+function setBookParagraphSpacing(enabled) {
+    const editor = document.getElementById('editor');
+    if (enabled) editor.classList.add('book-spacing');
+    else editor.classList.remove('book-spacing');
+}
+
+function setLanguage(lang) {
+    document.documentElement.lang = lang || 'en';
+    // The prose surface carries its own lang so the platform spell checker picks
+    // the right dictionary for the writing language rather than the UI language.
+    editor.lang = lang || 'en';
+}
+
+// Red underlines from the platform's own checker. Off by default in the markup
+// so a writer who disabled it never sees a flash of underlines while the setting
+// is still loading.
+function setSpellCheck(enabled) {
+    editor.spellcheck = !!enabled;
+    // Chromium only re-runs the check when the attribute changes on a focused,
+    // live element; toggling contenteditable forces it to re-scan what is
+    // already on screen instead of waiting for the next keystroke.
+    if (document.activeElement === editor) {
+        editor.blur();
+        editor.focus();
+    }
+}
+
+// ── Entity Detection (Focus Peek) ───────────────────────────────
+
+function setEntityNames(namesJson) {
+    try {
+        const parsed = JSON.parse(namesJson);
+        entityIndex = new Map();
+        entityMatchRules = new Map();
+
+        if (parsed.length === 0) {
+            entityNames = [];
+            entityRegex = null;
+            return;
+        }
+
+        // Accept both legacy ["Name", ...] and richer [{name, entityId, entityType, isAlias}, ...]
+        if (typeof parsed[0] === 'string') {
+            entityNames = parsed;
+        } else {
+            entityNames = parsed.map(p => p.name);
+            for (const rec of parsed) {
+                if (!rec || !rec.name) continue;
+                const key = String(rec.name).toLowerCase();
+                if (!entityIndex.has(key)) {
+                    entityIndex.set(key, {
+                        entityId: rec.entityId || '',
+                        entityType: rec.entityType || '',
+                        isAlias: !!rec.isAlias
+                    });
+                }
+                // Only entries that actually customised something get a rule, so
+                // the common path stays a single map miss.
+                if (rec.caseSensitive || (rec.exclusions && rec.exclusions.length > 0)) {
+                    entityMatchRules.set(key, {
+                        caseSensitive: !!rec.caseSensitive,
+                        exact: String(rec.name),
+                        exclusions: (rec.exclusions || []).map(e => String(e).toLowerCase()).filter(e => e.length > 0)
+                    });
+                }
+            }
+        }
+
+        const escaped = entityNames
+            .slice()
+            .sort((a, b) => b.length - a.length)
+            .map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        entityRegex = new RegExp('(?<![\\p{L}\\p{N}])(' + escaped.join('|') + ')(?![\\p{L}\\p{N}])', 'iu');
+    } catch (_) {
+        entityRegex = null;
+    }
+}
+
+// The regex always searches case-insensitively so a hit can be found at all;
+// these are the per-entry rules that decide whether the hit counts. Anything
+// without a rule is allowed, which is exactly the old behaviour.
+function entityHitAllowed(matched, contextText) {
+    const rule = entityMatchRules.get(String(matched).toLowerCase());
+    if (!rule) return true;
+    if (rule.caseSensitive && matched !== rule.exact) return false;
+    if (rule.exclusions.length > 0 && contextText) {
+        const haystack = contextText.toLowerCase();
+        for (const phrase of rule.exclusions) {
+            if (haystack.indexOf(phrase) !== -1) return false;
+        }
+    }
+    return true;
+}
+
+// ── Typewriter scroll ───────────────────────────────────────────
+
+let pageViewEnabled = false;
+let pageViewRepaginateScheduled = false;
+let pageViewMutationObserver = null;
+let pageViewRepaginating = false;
+
+function setMobile(enabled) {
+    // Full-width text (drop the margin comment gutter) + touch-sized controls.
+    document.body.classList.toggle('mobile', !!enabled);
+}
+
+function setPageView(enabled) {
+    const wasEnabled = pageViewEnabled;
+    pageViewEnabled = !!enabled;
+    document.body.classList.toggle('page-view', pageViewEnabled);
+    if (pageViewEnabled) {
+        if (!pageViewMutationObserver) {
+            pageViewMutationObserver = new MutationObserver(() => {
+                if (pageViewRepaginating) return;
+                schedulePageViewRepaginate();
+            });
+        }
+        pageViewMutationObserver.observe(editor, { childList: true, characterData: true, subtree: true });
+        // Apply the paper and its padding together. Deferring the first wrap
+        // leaves already-visible prose jumping when the debounce later fires.
+        // Further edits/settings keep their debounce; active composition is
+        // still protected by repaginatePageView's composition guard.
+        if (wasEnabled) schedulePageViewRepaginate();
+        else repaginatePageView();
+    } else {
+        if (pageViewMutationObserver) {
+            pageViewMutationObserver.disconnect();
+        }
+        const savedDictation = captureDictationPosition();
+        unwrapPages();
+        restoreDictationPosition(savedDictation);
+    }
+}
+
+function schedulePageViewRepaginate() {
+    if (!pageViewEnabled || isComposing) return;
+    if (pageViewRepaginateScheduled) return;
+    pageViewRepaginateScheduled = true;
+    setTimeout(() => {
+        pageViewRepaginateScheduled = false;
+        repaginatePageView();
+    }, 150);
+}
+
+function captureSelectionForRepaginate() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    const r = sel.getRangeAt(0);
+    if (!editor.contains(r.startContainer)) return null;
+    // Snapshot the live (node, offset) pair. Unwrap/rewrap of .nv-page wrappers
+    // only moves these nodes around; the references stay valid, so restoring
+    // them preserves the caret exactly — including in empty paragraphs that a
+    // text-only walker would skip past.
+    return {
+        startContainer: r.startContainer,
+        startOffset: r.startOffset,
+        endContainer: r.endContainer,
+        endOffset: r.endOffset,
+    };
+}
+
+function restoreSelectionForRepaginate(saved) {
+    if (!saved) return;
+    if (!editor.contains(saved.startContainer) || !editor.contains(saved.endContainer)) return;
+    const r = document.createRange();
+    try {
+        r.setStart(saved.startContainer, saved.startOffset);
+        r.setEnd(saved.endContainer, saved.endOffset);
+    } catch (_) {
+        return;
+    }
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+}
+
+function unwrapPages() {
+    const pages = Array.from(editor.querySelectorAll(':scope > .nv-page'));
+    if (pages.length === 0) return;
+    pages.forEach(page => {
+        while (page.firstChild) editor.insertBefore(page.firstChild, page);
+        page.remove();
+    });
+}
+
+function repaginatePageView() {
+    if (!pageViewEnabled || isComposing) return;
+    pageViewRepaginating = true;
+    if (pageViewMutationObserver) pageViewMutationObserver.disconnect();
+    const savedDictation = captureDictationPosition();
+    try {
+        const savedSelection = captureSelectionForRepaginate();
+
+        // Unwrap any existing pages so we can re-measure flat content.
+        unwrapPages();
+
+        const children = Array.from(editor.children);
+        if (children.length === 0) return;
+
+        // Force layout, then snapshot heights so wrapping does not invalidate
+        // measurements mid-pass.
+        void editor.offsetHeight;
+        const heights = children.map(el => Math.max(1, el.offsetHeight));
+
+        // Content budget per page measured in current em so it scales with font / zoom.
+        const emPx = parseFloat(getComputedStyle(editor).fontSize) || 16;
+        const pageContentHeight = 48 * emPx;
+
+        // Compute groups by summing heights.
+        const groups = [];
+        let current = [];
+        let currentHeight = 0;
+        for (let i = 0; i < children.length; i++) {
+            const h = heights[i];
+            if (currentHeight + h > pageContentHeight && current.length > 0) {
+                groups.push(current);
+                current = [];
+                currentHeight = 0;
+            }
+            current.push(children[i]);
+            currentHeight += h;
+        }
+        if (current.length > 0) groups.push(current);
+
+        // Wrap each group in a .nv-page container.
+        groups.forEach(group => {
+            const page = document.createElement('div');
+            page.className = 'nv-page';
+            const first = group[0];
+            editor.insertBefore(page, first);
+            group.forEach(el => page.appendChild(el));
+        });
+
+        restoreSelectionForRepaginate(savedSelection);
+    } finally {
+        restoreDictationPosition(savedDictation);
+        pageViewRepaginating = false;
+        if (pageViewMutationObserver && pageViewEnabled) {
+            pageViewMutationObserver.observe(editor, { childList: true, characterData: true, subtree: true });
+        }
+        // Every paragraph just moved into a new page wrapper, which collapses
+        // the readability ranges that were inside them.
+        reapplyReadability();
+    }
+}
+
+window.addEventListener('resize', () => {
+    if (pageViewEnabled) schedulePageViewRepaginate();
+});
+
+/**
+ * Dims everything but the paragraph the caret is in.
+ *
+ * A class on an existing block rather than any rewriting of the prose: the
+ * editor is a live document with undo, mentions and grammar decorations in it,
+ * and none of them survive having their nodes replaced under them.
+ */
+let dimOthers = false;
+
+function setComposeDimming(enabled) {
+    dimOthers = !!enabled;
+    document.body.classList.toggle('dim-others', dimOthers);
+    updateFocusBlock();
+}
+
+function updateFocusBlock() {
+    for (const block of proseBlocks()) block.classList.remove('nv-focus-block');
+    if (!dimOthers) return;
+    for (const block of selectedBlocks()) block.classList.add('nv-focus-block');
+}
+
+function setTypewriterScroll(enabled, anchor) {
+    const nextAnchor = (anchor === 'top' || anchor === 'bottom') ? anchor : 'middle';
+    if (typewriterEnabled === !!enabled && typewriterAnchor === nextAnchor) return;
+    typewriterEnabled = !!enabled;
+    typewriterAnchor = nextAnchor;
+    document.body.classList.toggle('typewriter-on', typewriterEnabled);
+    typewriterLastY = -9999;
+    scheduleTypewriterRecenter();
+}
+
+function scheduleTypewriterRecenter() {
+    if (typewriterMouseDown) return;                       // user drag-selecting
+    if (Date.now() < typewriterSuspendUntil) return;       // recently wheel-scrolled
+    if (typewriterFrame) return;
+    typewriterFrame = requestAnimationFrame(() => {
+        typewriterFrame = 0;
+        recenterCaret();
+    });
+}
+
+// Mouse interaction pauses typewriter so drag-select works.
+document.addEventListener('mousedown', (e) => {
+    if (e.button === 0) typewriterMouseDown = true;
+    // A right- or middle-click opens a menu over the text. Recentring the caret
+    // underneath it would scroll the page out from under the menu, so suspend
+    // the same way a wheel scroll does.
+    else typewriterSuspendUntil = Date.now() + 1200;
+}, true);
+document.addEventListener('mouseup', () => {
+    if (typewriterMouseDown) {
+        typewriterMouseDown = false;
+        // Keep suppressing for a moment so the trailing selectionchange does
+        // not snap the caret line away from where the user pointed.
+        typewriterSuspendUntil = Date.now() + 400;
+    }
+}, true);
+
+// Mouse-wheel / trackpad scroll: respect user's chosen position briefly.
+wrapper.addEventListener('wheel', () => {
+    typewriterSuspendUntil = Date.now() + 1200;
+}, { passive: true });
+
+function recenterCaret() {
+    if (typewriterMouseDown || Date.now() < typewriterSuspendUntil) return;
+    const sel = window.getSelection();
+    if (!isCaretInEditor(sel)) return;
+    const range = sel.getRangeAt(0);
+
+    // Measure caret without mutating the DOM — any insertNode/removeChild here
+    // would split text nodes around the user's selection and interfere with input.
+    let rect = range.getBoundingClientRect();
+    let top = rect.top;
+    let bottom = rect.bottom;
+    if (top === 0 && bottom === 0) {
+        // Empty block: fall back to the nearest element's rect.
+        const node = range.startContainer;
+        const el = node && node.nodeType === Node.ELEMENT_NODE ? node : (node && node.parentElement);
+        if (!el) return;
+        const elRect = el.getBoundingClientRect();
+        if (elRect.height === 0 && elRect.width === 0) return;
+        top = elRect.top;
+        bottom = elRect.bottom;
+    }
+
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const viewportH = wrapper.clientHeight;
+
+    if (typewriterEnabled) {
+        if (Math.abs(top - typewriterLastY) < 4) return;
+        typewriterLastY = top;
+
+        let frac = 0.5;
+        if (typewriterAnchor === 'top') frac = 0.33;
+        else if (typewriterAnchor === 'bottom') frac = 0.66;
+        const targetY = viewportH * frac;
+        const caretRelative = top - wrapperRect.top;
+        const delta = caretRelative - targetY;
+        if (Math.abs(delta) < 2) return;
+        programmaticScrollUntil = Date.now() + 150;
+        wrapper.scrollTop = wrapper.scrollTop + delta;
+    } else {
+        // Typewriter is disabled: just keep caret in view (standard scroll-into-view)
+        const caretRelativeTop = top - wrapperRect.top;
+        const caretRelativeBottom = bottom - wrapperRect.top;
+        const padding = 40; // px margin
+
+        let delta = 0;
+        if (caretRelativeTop < padding) {
+            delta = caretRelativeTop - padding;
+        } else if (caretRelativeBottom > viewportH - padding) {
+            delta = caretRelativeBottom - (viewportH - padding);
+        }
+
+        if (Math.abs(delta) > 1) {
+            programmaticScrollUntil = Date.now() + 150;
+            wrapper.scrollTop = wrapper.scrollTop + delta;
+        }
+    }
+}
+
+// ── Mention picker (@) ──────────────────────────────────────────
+
+const mentionPicker = document.getElementById('mention-picker');
+
+function setMentionCandidates(candidatesJson) {
+    try { mentionCandidates = JSON.parse(candidatesJson) || []; }
+    catch (_) { mentionCandidates = []; }
+}
+
+function isWordChar(ch) {
+    return /[\p{L}\p{N}_]/u.test(ch || '');
+}
+
+function detectMentionAtCaret() {
+    // Returns {node, atOffset} if caret is right after a `@` that started a
+    // mention sequence (i.e. preceded by start-of-text or a non-word char).
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return null;
+    const range = sel.getRangeAt(0);
+    if (range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+    const text = range.startContainer.textContent || '';
+    const offset = range.startOffset;
+    if (offset === 0) return null;
+    if (text.charAt(offset - 1) !== '@') return null;
+    if (offset >= 2 && isWordChar(text.charAt(offset - 2))) return null;
+    return { node: range.startContainer, atOffset: offset - 1 };
+}
+
+function openMentionPicker() {
+    const pos = detectMentionAtCaret();
+    if (!pos) return false;
+    mentionState = { node: pos.node, atOffset: pos.atOffset, query: '' };
+    renderMentionPicker();
+    return true;
+}
+
+function closeMentionPicker(_keepLiteral) {
+    mentionState = null;
+    mentionCreateVisible = false;
+    mentionPicker.classList.remove('visible');
+    mentionPicker.innerHTML = '';
+}
+
+function updateMentionQuery() {
+    if (!mentionState) return;
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) {
+        closeMentionPicker(true);
+        return;
+    }
+    const range = sel.getRangeAt(0);
+    if (range.startContainer !== mentionState.node) {
+        // Caret left the @-bearing text node — close.
+        closeMentionPicker(true);
+        return;
+    }
+    const txt = mentionState.node.textContent || '';
+    // Verify @ is still there at atOffset.
+    if (mentionState.atOffset >= txt.length || txt.charAt(mentionState.atOffset) !== '@') {
+        closeMentionPicker(true);
+        return;
+    }
+    const caret = range.startOffset;
+    if (caret <= mentionState.atOffset) {
+        closeMentionPicker(true);
+        return;
+    }
+    const query = txt.slice(mentionState.atOffset + 1, caret);
+    // Abort if query contains a space (mention names are single-word for the picker).
+    if (/\s/.test(query)) {
+        closeMentionPicker(true);
+        return;
+    }
+    mentionState.query = query;
+    renderMentionPicker();
+}
+
+function getMentionPositionRect() {
+    // Position the picker right below the `@` character.
+    if (!mentionState) return null;
+    try {
+        const r = document.createRange();
+        r.setStart(mentionState.node, mentionState.atOffset);
+        r.setEnd(mentionState.node, Math.min(mentionState.atOffset + 1, (mentionState.node.textContent || '').length));
+        return r.getBoundingClientRect();
+    } catch (_) { return null; }
+}
+
+function scoreCandidate(cand, query) {
+    if (!query) return 1;
+    const q = query.toLowerCase();
+    const name = (cand.matchedText || cand.primaryName || '').toLowerCase();
+    if (name === q) return 1000;
+    if (name.startsWith(q)) return 600 - (cand.isAlias ? 5 : 0);
+    if (name.includes(q)) return 300 - (cand.isAlias ? 5 : 0);
+    // Subsequence
+    let i = 0;
+    for (const ch of name) { if (ch === q[i]) i++; if (i === q.length) break; }
+    if (i === q.length) return 100 - name.length - (cand.isAlias ? 5 : 0);
+    return -1;
+}
+
+function renderMentionPicker() {
+    if (!mentionState) return;
+
+    mentionFiltered = mentionCandidates
+        .map(c => ({ c: c, score: scoreCandidate(c, mentionState.query) }))
+        .filter(p => p.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 20)
+        .map(p => p.c);
+
+    mentionSelectedIndex = 0;
+    mentionPicker.innerHTML = '';
+
+    // A non-empty query can always be turned into a brand-new entity, so the
+    // picker never dead-ends on an unknown name.
+    mentionCreateVisible = mentionState.query.trim().length > 0;
+
+    if (mentionFiltered.length === 0 && !mentionCreateVisible) {
+        const empty = document.createElement('div');
+        empty.className = 'nv-mp-empty';
+        empty.textContent = mentionLabels.noMatches || 'No matches';
+        mentionPicker.appendChild(empty);
+    } else {
+        mentionFiltered.forEach((c, idx) => {
+            const row = document.createElement('div');
+            row.className = 'nv-mp-row' + (idx === 0 ? ' selected' : '');
+            const name = document.createElement('div');
+            name.className = 'nv-mp-name';
+            name.textContent = c.primaryName;
+            if (c.isAlias) {
+                const hint = document.createElement('span');
+                hint.className = 'nv-mp-alias-hint';
+                hint.textContent = '(' + c.matchedText + ')';
+                name.appendChild(hint);
+            }
+            row.appendChild(name);
+            if (c.subtitle) {
+                const sub = document.createElement('div');
+                sub.className = 'nv-mp-subtitle';
+                sub.textContent = c.subtitle;
+                row.appendChild(sub);
+            }
+            row.addEventListener('mousedown', (ev) => {
+                ev.preventDefault();
+                confirmMentionAt(idx);
+            });
+            mentionPicker.appendChild(row);
+        });
+    }
+
+    if (mentionCreateVisible) {
+        const createRow = document.createElement('div');
+        createRow.className = 'nv-mp-create' + (mentionFiltered.length === 0 ? ' selected' : '');
+        const template = mentionLabels.create || 'Create "{name}"';
+        createRow.textContent = template.replace('{name}', mentionState.query.trim());
+        createRow.addEventListener('mousedown', (ev) => {
+            ev.preventDefault();
+            confirmMentionAt(mentionFiltered.length);
+        });
+        mentionPicker.appendChild(createRow);
+        if (mentionFiltered.length === 0) mentionSelectedIndex = 0;
+    }
+
+    // Position picker right below the `@` char.
+    const rect = getMentionPositionRect();
+    if (rect) {
+        mentionPicker.style.left = (rect.left + window.scrollX) + 'px';
+        mentionPicker.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+        mentionPicker.classList.add('visible');
+    }
+}
+
+function moveMentionSelection(delta) {
+    const total = mentionFiltered.length + (mentionCreateVisible ? 1 : 0);
+    if (total === 0) return;
+    mentionSelectedIndex = (mentionSelectedIndex + delta + total) % total;
+    Array.from(mentionPicker.children).forEach((row, idx) => {
+        row.classList.toggle('selected', idx === mentionSelectedIndex);
+    });
+    // Scroll into view
+    const sel = mentionPicker.children[mentionSelectedIndex];
+    if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
+}
+
+function confirmMentionAt(idx) {
+    if (!mentionState) return;
+    // The row past the last match is "Create <name>".
+    if (mentionCreateVisible && idx === mentionFiltered.length) { requestMentionCreate(); return; }
+    if (idx < 0 || idx >= mentionFiltered.length) return;
+    const cand = mentionFiltered[idx];
+    const displayText = cand.matchedText || cand.primaryName;
+
+    const html = '<span class="nv-entity-mention"'
+        + ' data-entity-id="' + escapeAttr(cand.entityId) + '"'
+        + ' data-entity-type="' + escapeAttr(cand.entityType) + '"'
+        + ' data-mention-source="' + (cand.isAlias ? 'alias' : 'name') + '">'
+        + escapeHtml(displayText)
+        + '</span>&nbsp;';
+
+    if (!replaceMentionTokenWith(html)) { closeMentionPicker(true); return; }
+
+    closeMentionPicker(false);
+    queueContentChangedSoon();
+}
+
+/**
+ * "Create <name>" was chosen. The typed `@name` token is swapped for a pending
+ * placeholder right away (so the writer keeps typing without waiting), and the
+ * host is asked to create the entity. It answers with resolvePendingMention().
+ */
+function requestMentionCreate() {
+    if (!mentionState) return;
+    const name = mentionState.query.trim();
+    if (name.length === 0) { closeMentionPicker(true); return; }
+
+    const pendingId = 'pm-' + (++mentionPendingSeq) + '-' + Date.now();
+    const html = '<span class="nv-mention-pending" data-pending-id="' + escapeAttr(pendingId) + '">'
+        + escapeHtml(name)
+        + '</span>';
+    if (!replaceMentionTokenWith(html)) { closeMentionPicker(true); return; }
+
+    closeMentionPicker(false);
+    queueContentChangedSoon();
+    sendMessage({ type: 'mentionCreateRequested', name: name, pendingId: pendingId });
+}
+
+/**
+ * Host answer to a create request. With an entityId the placeholder becomes a
+ * real mention span; without one (the writer cancelled, or creation failed) it
+ * collapses back to the plain typed text.
+ */
+function resolvePendingMention(pendingId, entityId, entityType, displayText) {
+    const span = document.querySelector('.nv-mention-pending[data-pending-id="' + cssEscape(pendingId) + '"]');
+    if (!span) return;
+    const text = displayText || span.textContent || '';
+
+    if (!entityId) {
+        span.replaceWith(document.createTextNode(text));
+    } else {
+        const mention = document.createElement('span');
+        mention.className = 'nv-entity-mention';
+        mention.setAttribute('data-entity-id', entityId);
+        mention.setAttribute('data-entity-type', entityType || '');
+        mention.setAttribute('data-mention-source', 'name');
+        mention.textContent = text;
+        span.replaceWith(mention);
+    }
+    queueContentChangedSoon();
+}
+
+/** Replaces the active `@query` token with html. Returns false when the caret
+ *  selection could not be resolved. */
+function replaceMentionTokenWith(html) {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return false;
+    const range = document.createRange();
+    range.setStart(mentionState.node, mentionState.atOffset);
+    const endRange = sel.getRangeAt(0);
+    range.setEnd(endRange.endContainer, endRange.endOffset);
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    let inserted = false;
+    try { inserted = document.execCommand('insertHTML', false, html); } catch (_) {}
+    if (!inserted) {
+        range.deleteContents();
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        const frag = document.createDocumentFragment();
+        while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+        range.insertNode(frag);
+    }
+    return true;
+}
+
+/** Minimal CSS attribute-value escape for the ids we generate. */
+function cssEscape(value) {
+    return String(value).replace(/["\\]/g, '\\$&');
+}
+
+function escapeAttr(s) {
+    return String(s).replace(/[&<>"']/g, c =>
+        ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+}
+
+function queueContentChangedSoon() {
+    // Lightweight nudge — dispatch input event so the input listener picks it up.
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+/** A DOM range over [start,end) of an element's text, for measuring a hit. */
+function rangeForTextOffsets(parentEl, start, end) {
+    const walker = document.createTreeWalker(parentEl, NodeFilter.SHOW_TEXT, null, false);
+    const range = document.createRange();
+    let node, pos = 0, started = false;
+    while ((node = walker.nextNode())) {
+        const len = (node.textContent || '').length;
+        if (!started && pos + len > start) {
+            range.setStart(node, Math.max(0, start - pos));
+            started = true;
+        }
+        if (started && pos + len >= end) {
+            range.setEnd(node, Math.max(0, end - pos));
+            return range;
+        }
+        pos += len;
+    }
+    return null;
+}
+
+function findEntityAtPoint(x, y) {
+    if (!entityRegex) return null;
+
+    let range;
+    if (document.caretRangeFromPoint) {
+        range = document.caretRangeFromPoint(x, y);
+    } else if (document.caretPositionFromPoint) {
+        const pos = document.caretPositionFromPoint(x, y);
+        if (pos) {
+            range = document.createRange();
+            range.setStart(pos.offsetNode, pos.offset);
+            range.collapse(true);
+        }
+    }
+    if (!range || !range.startContainer || range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+
+    const textNode = range.startContainer;
+    const text = textNode.textContent || '';
+    const offset = range.startOffset;
+
+    // Find the word boundaries around the offset, then check broader context
+    // We check the full line (parent element text) for entity matches
+    const parentEl = textNode.parentElement;
+    if (!parentEl) return null;
+    const lineText = parentEl.innerText || '';
+    if (!lineText) return null;
+
+    // Calculate offset within the parent element text
+    let charOffset = 0;
+    const walker = document.createTreeWalker(parentEl, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    while ((node = walker.nextNode())) {
+        if (node === textNode) {
+            charOffset += offset;
+            break;
+        }
+        charOffset += (node.textContent || '').length;
+    }
+
+    // Find entity alias at this position
+    const globalRegex = new RegExp(entityRegex.source, 'giu');
+    let match;
+    while ((match = globalRegex.exec(lineText)) !== null) {
+        if (charOffset >= match.index && charOffset <= match.index + match[0].length) {
+            if (!entityHitAllowed(match[0], lineText)) return null;
+            // The rect of the word itself, not the pointer. The host places the
+            // peek clear of the whole name, so drifting a few pixels inside it
+            // never moves the pointer onto the card.
+            const hitRange = rangeForTextOffsets(parentEl, match.index, match.index + match[0].length);
+            const box = hitRange ? hitRange.getBoundingClientRect() : null;
+            return {
+                alias: match[0],
+                rect: box && box.width > 0
+                    ? { left: box.left, top: box.top, right: box.right, bottom: box.bottom }
+                    : null
+            };
+        }
+    }
+    return null;
+}
+
+function findEntityAtCaret() {
+    if (!entityRegex) return null;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return null;
+
+    const range = sel.getRangeAt(0);
+    if (!range.startContainer || range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+
+    const textNode = range.startContainer;
+    const offset = range.startOffset;
+    const parentEl = textNode.parentElement;
+    if (!parentEl) return null;
+    const lineText = parentEl.innerText || '';
+    if (!lineText) return null;
+
+    let charOffset = 0;
+    const walker = document.createTreeWalker(parentEl, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    while ((node = walker.nextNode())) {
+        if (node === textNode) {
+            charOffset += offset;
+            break;
+        }
+        charOffset += (node.textContent || '').length;
+    }
+
+    const globalRegex = new RegExp(entityRegex.source, 'giu');
+    let match;
+    while ((match = globalRegex.exec(lineText)) !== null) {
+        if (charOffset >= match.index && charOffset <= match.index + match[0].length) {
+            return entityHitAllowed(match[0], lineText) ? match[0] : null;
+        }
+    }
+    return null;
+}
+
+function getCaretRect() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    const range = sel.getRangeAt(0).cloneRange();
+    range.collapse(true);
+    const rect = range.getBoundingClientRect();
+    if (!rect || (rect.x === 0 && rect.y === 0 && rect.width === 0 && rect.height === 0)) return null;
+    return rect;
+}
+
+/** Keyboard-accessible counterpart to hover/tap focus peek. */
+function peekEntityAtCaret() {
+    const alias = findEntityAtCaret();
+    const rect = getCaretRect();
+    if (!alias || !rect) return false;
+    sendMessage({
+        type: 'entityHover',
+        alias: alias,
+        x: rect.left + Math.max(1, rect.width / 2),
+        y: rect.bottom,
+        // The card is anchored to what it belongs to rather than to a point,
+        // the same as the hover path - so a peek raised from the keyboard or
+        // the menu sits clear of the caret instead of on top of it.
+        rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom }
+    });
+    return true;
+}
+
+// ── Auto Replacement ────────────────────────────────────────────
+
+// How much of the line before the caret a pattern is offered. A pattern that
+// backtracks badly costs time in proportion to what it is given, and this runs
+// on every keystroke - a bound here is the difference between a slow rule and
+// an editor that stops accepting typing.
+const REGEX_LOOKBEHIND = 120;
+// A rule that spends longer than this on one keystroke is set aside for the
+// rest of the session. Typing cannot wait for it, and a rule that is this slow
+// on one line will be slow on the next.
+const REGEX_BUDGET_MS = 15;
+
+function setAutoReplacements(pairsJson) {
+    let parsed;
+    try {
+        parsed = JSON.parse(pairsJson);
+    } catch (_) {
+        parsed = [];
+    }
+    autoReplacements = [];
+    for (const pair of (parsed || [])) {
+        if ((pair.kind || 'literal') !== 'regex') {
+            autoReplacements.push(pair);
+            continue;
+        }
+        // Anchored at the caret: a rule fires on what has just been finished,
+        // not on something further back that the writer already moved past.
+        try {
+            const regex = new RegExp('(?:' + pair.start + ')$');
+            // A pattern that matches the empty string matches before every
+            // keystroke, forever. The backend refuses these; this is the same
+            // guard for a settings file edited by hand.
+            if (regex.test('')) continue;
+            autoReplacements.push(Object.assign({}, pair, { regex: regex, tooSlow: false }));
+        } catch (_) {
+            // A pattern that will not compile is not a rule.
+        }
+    }
+}
+
+/** Puts the captured groups into a replacement: $1..$9, and $$ for a literal $. */
+function expandCaptures(template, match) {
+    return template.replace(/\$(\$|\d)/g, function (whole, token) {
+        if (token === '$') return '$';
+        const group = match[Number(token)];
+        return group === undefined ? '' : group;
+    });
+}
+
+function getContainingBlock(node) {
+    if (!node) return null;
+    let el = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+    const blockTags = ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'LI'];
+    while (el && el !== editor) {
+        if (blockTags.includes(el.tagName)) {
+            return el;
+        }
+        if (el.parentElement === editor) {
+            return el;
+        }
+        el = el.parentElement;
+    }
+    return null;
+}
+
+function tryAutoReplace(inputText) {
+    if (autoReplacements.length === 0 || !inputText) return null;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    const range = sel.getRangeAt(0);
+    if (!range.collapsed) return null;
+
+    const textNode = range.startContainer;
+
+    // Find the block element containing the caret
+    const paraEl = getContainingBlock(textNode) || editor;
+
+    // Get the text of the paragraph before the caret
+    let textBeforePara = '';
+    try {
+        const preRange = document.createRange();
+        preRange.selectNodeContents(paraEl);
+        preRange.setEnd(range.startContainer, range.startOffset);
+        textBeforePara = preRange.toString();
+    } catch (ex) {
+        // Fallback to text node if range calculation fails
+        if (textNode.nodeType === Node.TEXT_NODE) {
+            const text = textNode.textContent || '';
+            const offset = range.startOffset;
+            textBeforePara = text.slice(0, offset);
+        } else {
+            textBeforePara = '';
+        }
+    }
+
+    // Text as it will appear after insertion up to the caret
+    const lineText = textBeforePara + inputText;
+
+    for (const pair of autoReplacements) {
+        if (pair.regex) {
+            if (pair.tooSlow) continue;
+            // Only the tail is offered: the cost of a bad pattern grows with
+            // what it is given, and no rule needs the whole paragraph.
+            const tail = lineText.length > REGEX_LOOKBEHIND
+                ? lineText.slice(-REGEX_LOOKBEHIND)
+                : lineText;
+            const started = performance.now();
+            const match = pair.regex.exec(tail);
+            if (performance.now() - started > REGEX_BUDGET_MS) {
+                pair.tooSlow = true;
+                console.warn('[AutoReplace] rule set aside for this session, too slow:', pair.start);
+                continue;
+            }
+            // The match has to cover what was just typed, or the replacement
+            // would eat characters the writer did not type in this keystroke.
+            if (match && match[0].length >= inputText.length) {
+                return {
+                    replacement: expandCaptures(pair.startReplace, match),
+                    backtrack: match[0].length - inputText.length
+                };
+            }
+            continue;
+        }
+
+        // Paired quotes: same trigger, different open/close
+        if (pair.start === pair.end && pair.startReplace !== pair.endReplace) {
+            if (lineText.endsWith(pair.end)) {
+                // Count quotes excluding those surrounded by alphabet characters on both sides
+                // (e.g., apostrophes in "it's", "don't")
+                const opens = countOccurrences(lineText, pair.startReplace, true);
+                const closes = countOccurrences(lineText, pair.endReplace, true);
+                if (opens > closes) {
+                    return {
+                        replacement: pair.endReplace,
+                        backtrack: pair.end.length - inputText.length
+                    };
+                }
+            }
+        }
+
+        if (lineText.endsWith(pair.start)) {
+            return {
+                replacement: pair.startReplace,
+                backtrack: pair.start.length - inputText.length
+            };
+        }
+    }
+    return null;
+}
+
+function countOccurrences(text, token, skipIfSurroundedByAlpha = false) {
+    if (!token) return 0;
+    let count = 0, idx = 0;
+    while ((idx = text.indexOf(token, idx)) >= 0) {
+        const before = text[idx - 1];
+        const after = text[idx + token.length];
+        const surroundedByAlpha = skipIfSurroundedByAlpha && before && after && /[a-z]/i.test(before) && /[a-z]/i.test(after);
+        if (!surroundedByAlpha) count++;
+        idx += token.length;
+    }
+    return count;
+}
+
+// ── Dialogue Punctuation Correction ─────────────────────────────
+
+function setDialogueCorrectionConfig(configJson) {
+    try {
+        dialogueCorrectionConfig = JSON.parse(configJson);
+        if (!dialogueCorrectionConfig || !dialogueCorrectionConfig.enabled) {
+            dialogueCorrectionConfig = null;
+        }
+    } catch (_) {
+        dialogueCorrectionConfig = null;
+    }
+}
+
+function tryDialogueCorrection() {
+    if (!dialogueCorrectionConfig || isComposing) return;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return;
+
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+
+    // Find the paragraph/block element containing the caret
+    const paraEl = getContainingBlock(node);
+    if (!paraEl || paraEl === editor) return;
+
+    const text = paraEl.innerText || '';
+    if (!text || text.length < 3) return;
+
+    const cfg = dialogueCorrectionConfig;
+    const oq = cfg.openQuote;
+    const cq = cfg.closeQuote;
+    const verbs = cfg.speechVerbs;
+
+    const corrected = cfg.ruleFamily === 'de'
+        ? correctGermanDialogue(text, oq, cq, verbs)
+        : correctEnglishDialogue(text, oq, cq, verbs);
+
+    if (corrected && corrected !== text) {
+        applyParagraphCorrection(paraEl, text, corrected);
+    }
+}
+
+function correctGermanDialogue(text, oq, cq, verbs) {
+    let changed = false;
+    let result = text;
+
+    const verbPattern = verbs.map(v => escapeRegex(v)).join('|');
+    const cqE = escapeRegex(cq);
+    const oqE = escapeRegex(oq);
+
+    // Pass 1: Period inside closing quote before verb → remove period, comma outside
+    // „Text." sagte er → „Text", sagte er
+    const p1 = new RegExp(
+        oqE + '([^' + cqE + ']*?)\\.' + cqE + '\\s*,?\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p1, (m, inner, verb) => {
+        changed = true;
+        return oq + inner + cq + ', ' + verb.toLowerCase();
+    });
+
+    // Pass 2: Wrong period after closing quote → replace with comma
+    // „Text?". sagte er → „Text?", sagte er
+    const p2 = new RegExp(
+        cqE + '\\.\\s*,?\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p2, (m, verb) => {
+        changed = true;
+        return cq + ', ' + verb.toLowerCase();
+    });
+
+    // Pass 3: Missing comma after closing quote before verb
+    // „Text" sagte er → „Text", sagte er
+    // „Text?" sagte er → „Text?", sagte er
+    // But NOT if comma already present: „Text", sagte → skip
+    const p3 = new RegExp(
+        cqE + '(?!,)\\s+(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p3, (m, verb) => {
+        changed = true;
+        return cq + ', ' + verb.toLowerCase();
+    });
+
+    // Pass 4: Uppercase verb after comma
+    // „Text", Sagte → „Text", sagte
+    const p4 = new RegExp(
+        cqE + ',\\s+(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p4, (m, verb) => {
+        const lower = verb.charAt(0).toLowerCase() + verb.slice(1);
+        if (lower !== verb) {
+            changed = true;
+            return cq + ', ' + lower;
+        }
+        return m;
+    });
+
+    // Pass 5: Interrupted speech — add comma before continuation opening quote
+    // sagte Noah „und... → sagte Noah, „und...
+    // But NOT if period precedes opening quote (new sentence: sagte Liam. „Wir...)
+    const p5 = new RegExp(
+        '(' + verbPattern + ')(\\s+[^' + oqE + cqE + ']*?)\\s+(' + oqE + ')',
+        'giu'
+    );
+    result = result.replace(p5, (m, verb, middle, nextOq) => {
+        const trimmed = middle.trimEnd();
+        if (trimmed.endsWith('.') || trimmed.endsWith(',')) return m;
+        changed = true;
+        return verb + trimmed + ', ' + nextOq;
+    });
+
+    return changed ? result : null;
+}
+
+function correctEnglishDialogue(text, oq, cq, verbs) {
+    let changed = false;
+    let result = text;
+
+    const verbPattern = verbs.map(v => escapeRegex(v)).join('|');
+    const cqE = escapeRegex(cq);
+    const oqE = escapeRegex(oq);
+
+    // Pass 1: Period inside quotes before verb → comma inside quotes
+    // "Text." said he → "Text," said he
+    const p1 = new RegExp(
+        oqE + '([^' + cqE + ']*?)\\.' + cqE + '\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p1, (m, inner, verb) => {
+        changed = true;
+        return oq + inner + ',' + cq + ' ' + verb.toLowerCase();
+    });
+
+    // Pass 2: Comma outside quotes → move inside
+    // "Text", said he → "Text," said he
+    // But "Text?", asked → remove comma (handled in Pass 4)
+    const p2 = new RegExp(
+        oqE + '([^' + cqE + ']*?)' + cqE + ',\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p2, (m, inner, verb) => {
+        if (inner.endsWith(',')) return m;
+        if (/[?!]$/.test(inner)) {
+            changed = true;
+            return oq + inner + cq + ' ' + verb.toLowerCase();
+        }
+        changed = true;
+        return oq + inner + ',' + cq + ' ' + verb.toLowerCase();
+    });
+
+    // Pass 3: No comma at all → add comma inside quotes
+    // "Text" said he → "Text," said he
+    const p3 = new RegExp(
+        oqE + '([^' + cqE + ']*?)' + cqE + '\\s+(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p3, (m, inner, verb) => {
+        if (/[,?!]$/.test(inner)) return m;
+        changed = true;
+        return oq + inner + ',' + cq + ' ' + verb.toLowerCase();
+    });
+
+    // Pass 4: Remove comma after ? or !
+    // "Text?", asked → "Text?" asked
+    const p4 = new RegExp(
+        '([?!])' + cqE + ',\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p4, (m, punct, verb) => {
+        changed = true;
+        return punct + cq + ' ' + verb.toLowerCase();
+    });
+
+    // Pass 5: Uppercase verb → lowercase
+    // "Text," Said → "Text," said
+    const p5 = new RegExp(
+        cqE + '\\s+(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p5, (m, verb) => {
+        const lower = verb.charAt(0).toLowerCase() + verb.slice(1);
+        if (lower !== verb) {
+            changed = true;
+            return cq + ' ' + lower;
+        }
+        return m;
+    });
+
+    // Pass 6: Interrupted speech — add comma before continuation opening quote
+    // said Noah "and... → said Noah, "and...
+    // But NOT if period precedes (new sentence: said Liam. "We...)
+    const p6 = new RegExp(
+        '(' + verbPattern + ')(\\s+[^' + oqE + cqE + ']*?)\\s+(' + oqE + ')',
+        'giu'
+    );
+    result = result.replace(p6, (m, verb, middle, nextOq) => {
+        const trimmed = middle.trimEnd();
+        if (trimmed.endsWith('.') || trimmed.endsWith(',')) return m;
+        changed = true;
+        return verb + trimmed + ', ' + nextOq;
+    });
+
+    return changed ? result : null;
+}
+
+function applyParagraphCorrection(paraEl, oldText, newText) {
+    // 1. Compute caret text offset before correction
+    const sel = window.getSelection();
+    let caretTextOffset = 0;
+    if (sel && sel.rangeCount > 0) {
+        const r = sel.getRangeAt(0);
+        const preRange = document.createRange();
+        preRange.selectNodeContents(paraEl);
+        preRange.setEnd(r.startContainer, r.startOffset);
+        caretTextOffset = preRange.toString().length;
+    }
+
+    // 2. Find diff boundaries
+    let diffStart = 0;
+    const minLen = Math.min(oldText.length, newText.length);
+    while (diffStart < minLen && oldText[diffStart] === newText[diffStart]) diffStart++;
+
+    let oldEnd = oldText.length;
+    let newEnd = newText.length;
+    while (oldEnd > diffStart && newEnd > diffStart &&
+           oldText[oldEnd - 1] === newText[newEnd - 1]) {
+        oldEnd--;
+        newEnd--;
+    }
+
+    // 3. Calculate adjusted caret position
+    const delta = (newEnd - diffStart) - (oldEnd - diffStart);
+    let newCaretOffset;
+    if (caretTextOffset <= diffStart) {
+        newCaretOffset = caretTextOffset;
+    } else if (caretTextOffset >= oldEnd) {
+        newCaretOffset = caretTextOffset + delta;
+    } else {
+        newCaretOffset = newEnd;
+    }
+
+    // 4. Apply change to DOM text nodes
+    replaceInTextNodes(paraEl, oldText, diffStart, oldEnd, newText.slice(diffStart, newEnd));
+
+    // 5. Restore caret at adjusted position
+    const finalLen = (paraEl.innerText || '').length;
+    restoreCaretInElement(paraEl, Math.max(0, Math.min(newCaretOffset, finalLen)));
+}
+
+function replaceInTextNodes(element, oldText, diffStart, diffEnd, replacement) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = [];
+    let total = 0;
+    let nd;
+    while ((nd = walker.nextNode())) {
+        nodes.push({ node: nd, start: total, end: total + nd.textContent.length });
+        total += nd.textContent.length;
+    }
+    if (total !== oldText.length) return;
+
+    const isInsertion = diffStart === diffEnd;
+    let applied = false;
+    for (let i = 0; i < nodes.length; i++) {
+        const { node: tn, start: ns, end: ne } = nodes[i];
+
+        // Check overlap with changed region
+        if (isInsertion) {
+            if (diffStart < ns || diffStart > ne) continue;
+        } else {
+            if (ne <= diffStart || ns >= diffEnd) continue;
+        }
+
+        const localStart = Math.max(0, diffStart - ns);
+        const localEnd = Math.min(tn.textContent.length, diffEnd - ns);
+
+        if (!applied) {
+            tn.textContent = tn.textContent.slice(0, localStart) + replacement + tn.textContent.slice(localEnd);
+            applied = true;
+        } else {
+            tn.textContent = tn.textContent.slice(0, localStart) + tn.textContent.slice(localEnd);
+        }
+    }
+}
+
+function placeCaret(node, offset) {
+    const sel = window.getSelection();
+    if (!sel) return;
+    const range = document.createRange();
+    try {
+        range.setStart(node, offset);
+    } catch (_) {
+        return;
+    }
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
+function restoreCaretInElement(element, textOffset) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+    let accumulated = 0;
+    let node;
+    let lastNode = null;
+    while ((node = walker.nextNode())) {
+        const len = (node.textContent || '').length;
+        if (accumulated + len >= textOffset) {
+            placeCaret(node, textOffset - accumulated);
+            return;
+        }
+        accumulated += len;
+        lastNode = node;
+    }
+    // No text node reached the offset. An empty block (<p><br></p>) holds no
+    // text at all, so collapsing into the element itself is what keeps the caret
+    // on that line — returning here would strand it wherever the DOM surgery
+    // left it, which is typically the end of the preceding block.
+    placeCaret(lastNode || element, lastNode ? (lastNode.textContent || '').length : 0);
+}
+
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ── Caret Position ──────────────────────────────────────────────
+
+function getCaretPosition() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return { line: 1, column: 1 };
+
+    const range = sel.getRangeAt(0);
+    const preRange = range.cloneRange();
+    preRange.selectNodeContents(editor);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    const textBefore = preRange.toString();
+    const lines = textBefore.split('\n');
+    return { line: lines.length, column: lines[lines.length - 1].length + 1 };
+}
+
+// ── Event Handlers ──────────────────────────────────────────────
+
+let contentChangeTimer = null;
+
+// The base URL the display form of an image path hangs off. Scene HTML
+// stores a book-relative path so the project stays portable; the editor is a
+// document of its own and needs a real URL to show anything.
+let imageBaseUrl = '';
+
+function setImageBase(base) {
+    imageBaseUrl = base || '';
+    toDisplayImages(editor);
+}
+
+/** Rewrites stored paths to display URLs, keeping the stored one on the node. */
+function toDisplayImages(root) {
+    if (!imageBaseUrl) return;
+    root.querySelectorAll('img').forEach(function (img) {
+        const stored = img.getAttribute('data-nv-src') || img.getAttribute('src') || '';
+        if (!stored || stored.indexOf('://') >= 0) return;
+        img.setAttribute('data-nv-src', stored);
+        img.setAttribute('src', imageBaseUrl + stored.split('/').map(encodeURIComponent).join('/'));
+    });
+}
+
+/**
+ * The paragraph the writer asked for an image at, remembered from the moment of
+ * asking.
+ *
+ * The frame owns no file picker, so inserting means a round trip through the
+ * host: a native file dialog, then a dialog asking for alt text. Both take focus
+ * out of this frame and leave it with no selection at all, so by the time the
+ * path comes back the caret is long gone and reading it then put every image at
+ * the end of the scene.
+ */
+let imageTargetBlock = null;
+
+/**
+ * Inserts an image at the caret, on a line of its own. The alt text is what a
+ * reader who cannot see it gets, and it travels into every export.
+ */
+function insertImageAtCaret(storedPath, alt) {
+    const paragraph = document.createElement('p');
+    paragraph.className = 'nv-image';
+    const img = document.createElement('img');
+    img.setAttribute('data-nv-src', storedPath);
+    img.setAttribute('alt', alt || '');
+    img.setAttribute('src', imageBaseUrl + storedPath.split('/').map(encodeURIComponent).join('/'));
+    paragraph.appendChild(img);
+
+    // The remembered paragraph, unless the scene has been rebuilt under it -
+    // switching scene mid-dialog detaches it, and putting the picture into the
+    // scene that happens to be open now is worse than putting it at the end.
+    const remembered = imageTargetBlock;
+    imageTargetBlock = null;
+    const block = remembered && editor.contains(remembered) ? remembered : caretBlock();
+    // Into whatever holds the paragraph, which in page view is the .nv-page
+    // rather than the editor: testing for the editor put every image in page
+    // view at the end of the scene, and outside the paper surface at that.
+    if (block && block.parentNode && editor.contains(block)) {
+        block.parentNode.insertBefore(paragraph, block.nextSibling);
+    } else {
+        editor.appendChild(paragraph);
+    }
+    // Inserting is a content change the input listener never sees, because
+    // nothing was typed.
+    editor.dispatchEvent(new Event('input'));
+}
+
+function getCleanContentHtml() {
+    const clone = editor.cloneNode(true);
+    if (pageViewEnabled) {
+        clone.querySelectorAll('.nv-page').forEach(p => {
+            const parent = p.parentNode;
+            while (p.firstChild) parent.insertBefore(p.firstChild, p);
+            parent.removeChild(p);
+        });
+    }
+    // Images go back to the path the project stores. The display URL points at
+    // this machine's copy of the project and would be meaningless in anyone
+    // else's, including this writer's after a move.
+    clone.querySelectorAll('img[data-nv-src]').forEach(function (img) {
+        img.setAttribute('src', img.getAttribute('data-nv-src'));
+        img.removeAttribute('data-nv-src');
+    });
+    return clone.innerHTML;
+}
+
+function reportContentChanged() {
+    if (isComposing) return;
+    refreshSceneBreakClasses(editor);
+    const html = getCleanContentHtml();
+    if (html !== lastHtml) {
+        lastHtml = html;
+        sendMessage({
+            type: 'contentChanged',
+            html: html,
+            plainText: editor.innerText || ''
+        });
+    }
+}
+
+/** Flushes the iframe's short debounce before an application-level save. */
+function flushPendingContentChange() {
+    if (contentChangeTimer) clearTimeout(contentChangeTimer);
+    contentChangeTimer = null;
+    if (!isSettingContent) reportContentChanged();
+}
+
+// Chromium owns a live text range until composition ends. Moving paragraphs,
+// wrapping grammar spans or replacing text during that interval commits the
+// unfinished pinyin, leaving it beside the Chinese text chosen afterwards.
+function isCompositionInput(event) {
+    return isComposing || !!(event && (event.isComposing || event.keyCode === 229));
+}
+
+editor.addEventListener('compositionstart', () => {
+    isComposing = true;
+    if (compositionEndTimer) clearTimeout(compositionEndTimer);
+    compositionEndTimer = null;
+    if (contentChangeTimer) clearTimeout(contentChangeTimer);
+    contentChangeTimer = null;
+    if (dialogueCorrectionTimer) clearTimeout(dialogueCorrectionTimer);
+    dialogueCorrectionTimer = null;
+    if (readabilityTimer) clearTimeout(readabilityTimer);
+    readabilityTimer = null;
+    if (grammarCheckTimer) clearTimeout(grammarCheckTimer);
+    grammarCheckTimer = null;
+    grammarRequestId++;
+    pendingGrammarRequest = null;
+    grammarChecking = false;
+    updateGrammarStatusBar();
+    if (readAloudActive) stopReadAloud();
+});
+
+editor.addEventListener('compositionend', () => {
+    isComposing = false;
+    // Some engines send their final input after compositionend. Wait until
+    // that edit has landed before normalizing or moving any of its nodes.
+    compositionEndTimer = setTimeout(() => {
+        compositionEndTimer = null;
+        if (isComposing || isSettingContent) return;
+        grammarIssues = [];
+        applyGrammarHighlights();
+        updateGrammarStatusBar();
+        handleEditorInput();
+        schedulePageViewRepaginate();
+    }, 0);
+});
+
+function handleEditorInput(event) {
+    if (isSettingContent || isCompositionInput(event)) return;
+    if (event && event.inputType === 'insertParagraph') {
+        // Chromium clones inline spans into the empty paragraph after Enter.
+        // A comment belongs to its words, not to the new paragraph. Keep the
+        // nodes (and any bold/italic children) so native undo/redo and the caret
+        // still point to the browser's own nodes.
+        editor.querySelectorAll('span.nv-comment[data-comment-id]').forEach(span => {
+            if (!span.textContent) clearCommentMark(span);
+        });
+    }
+    scheduleTypewriterRecenter();
+    // Typing over a passage being read back is the writer taking over.
+    if (readAloudActive) stopReadAloud();
+    requestReadability();
+
+    // Debounced dialogue correction — runs after typing pauses
+    if (dialogueCorrectionConfig) {
+        if (dialogueCorrectionTimer) clearTimeout(dialogueCorrectionTimer);
+        dialogueCorrectionTimer = setTimeout(() => {
+            dialogueCorrectionTimer = null;
+            tryDialogueCorrection();
+        }, 600);
+    }
+
+    if (contentChangeTimer) clearTimeout(contentChangeTimer);
+    contentChangeTimer = setTimeout(() => {
+        contentChangeTimer = null;
+        reportContentChanged();
+    }, 50);
+
+    // Request grammar check after typing pause
+    requestGrammarCheck();
+}
+
+editor.addEventListener('input', handleEditorInput);
+
+editor.addEventListener('beforeinput', (e) => {
+    if (isSettingContent || isCompositionInput(e)) return;
+    if (e.inputType !== 'insertText' || !e.data) return;
+
+    const result = tryAutoReplace(e.data);
+    if (result && result.replacement !== e.data) {
+        e.preventDefault();
+
+        if (result.backtrack > 0) {
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+                for (let i = 0; i < result.backtrack; i++) {
+                    sel.modify('extend', 'backward', 'character');
+                }
+            }
+        }
+
+        document.execCommand('insertText', false, result.replacement);
+    }
+});
+
+// Capture-phase keydown for mention picker navigation — runs before main keydown.
+editor.addEventListener('keydown', (e) => {
+    if (isCompositionInput(e)) return;
+    if (slashState) {
+        if (e.key === 'Escape') { closeSlashMenu(); e.preventDefault(); e.stopPropagation(); return; }
+        if (e.key === 'ArrowDown') { moveSlashSelection(1); e.preventDefault(); e.stopPropagation(); return; }
+        if (e.key === 'ArrowUp') { moveSlashSelection(-1); e.preventDefault(); e.stopPropagation(); return; }
+        if (e.key === 'Enter' || e.key === 'Tab') {
+            confirmSlashAt(slashSelectedIndex);
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+    }
+    if (!mentionState) return;
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMentionPicker(true);
+        return;
+    }
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        e.stopPropagation();
+        moveMentionSelection(1);
+        return;
+    }
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        e.stopPropagation();
+        moveMentionSelection(-1);
+        return;
+    }
+    if (e.key === 'Enter' || e.key === 'Tab') {
+        // The "Create <name>" row counts as a confirmable entry too.
+        if (mentionFiltered.length > 0 || mentionCreateVisible) {
+            e.preventDefault();
+            e.stopPropagation();
+            confirmMentionAt(mentionSelectedIndex);
+            return;
+        }
+        // Nothing to confirm — Enter inserts a newline and closes the picker.
+        closeMentionPicker(true);
+        return;
+    }
+}, true);
+
+editor.addEventListener('input', (e) => {
+    if (isSettingContent || isCompositionInput(e)) return;
+
+    if (mentionState) {
+        updateMentionQuery();
+        return;
+    }
+    // After a normal input event, check if caret just landed right after a
+    // freshly-typed `@` that should open the picker.
+    if (detectMentionAtCaret()) {
+        openMentionPicker();
+        return;
+    }
+    // Slash commands follow the same hooks as the mention picker: detect on
+    // input, filter as the writer types, close when the caret leaves.
+    if (slashState) updateSlashQuery();
+    else if (detectSlashAtCaret()) openSlashMenu();
+    // The book's own completion list, on the same hook. Closed while a mention
+    // or a slash command is open: two popups over one caret is a fight.
+    if (!mentionState && !slashState) updateCompletion();
+    else closeCompletion();
+});
+
+editor.addEventListener('keydown', (e) => {
+    if (isCompositionInput(e)) return;
+    if (!completionState || completionMatches.length === 0) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeCompletion(); return; }
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        acceptCompletion(completionIndex);
+        return;
+    }
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        completionIndex = (completionIndex + 1) % completionMatches.length;
+        renderCompletion();
+        return;
+    }
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        completionIndex =
+            (completionIndex - 1 + completionMatches.length) % completionMatches.length;
+        renderCompletion();
+    }
+    // Enter is not handled on purpose: in prose it starts a paragraph, and a
+    // popup that swallows it is worse than having no completion at all.
+}, true);
+
+document.addEventListener('selectionchange', () => {
+    if (isComposing) return;
+    if (dimOthers) updateFocusBlock();
+    if (isSettingContent) return;
+    notifyFormattingChanged();
+    const pos = getCaretPosition();
+    sendMessage({ type: 'caretPosition', line: pos.line, column: pos.column });
+    // Close mention picker if caret leaves the pending span.
+    if (mentionState) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+            const r = sel.getRangeAt(0);
+            if (mentionState.node !== r.startContainer) {
+                closeMentionPicker(true);
+            }
+        }
+    }
+});
+
+// Follow deliberate keyboard movement, not selectionchange: decoration and
+// pagination also restore selections, including a caret the writer scrolled
+// away from while reading. Those background updates must leave the view alone.
+editor.addEventListener('keydown', (e) => {
+    if (isCompositionInput(e)) return;
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+        scheduleTypewriterRecenter();
+    }
+});
+
+// ── Margin Comment Gutter ───────────────────────────────────────
+const commentsState = new Map(); // id -> { anchorText, text }
+let commentGutterEl = null;
+let commentRenderScheduled = false;
+
+function ensureGutter() {
+    if (commentGutterEl) return commentGutterEl;
+    commentGutterEl = document.createElement('div');
+    commentGutterEl.id = 'commentGutter';
+    document.body.appendChild(commentGutterEl);
+    return commentGutterEl;
+}
+
+function scheduleCommentRender() {
+    if (commentRenderScheduled) return;
+    commentRenderScheduled = true;
+    requestAnimationFrame(() => {
+        commentRenderScheduled = false;
+        renderCommentGutter();
+    });
+}
+
+window.setCommentsData = function (data) {
+    try {
+        const arr = typeof data === 'string' ? JSON.parse(data) : (data || []);
+        commentsState.clear();
+        (arr || []).forEach(c => {
+            if (!c || !c.id) return;
+            commentsState.set(c.id, {
+                anchorText: c.anchorText || '',
+                text: c.text || ''
+            });
+        });
+        // Older margin deletions saved the shortened annotation list but left
+        // its yellow spans in the prose. Repair those orphaned marks as well.
+        let changed = false;
+        editor.querySelectorAll('span.nv-comment[data-comment-id]').forEach(span => {
+            if (!commentsState.has(span.getAttribute('data-comment-id'))) {
+                clearCommentMark(span);
+                changed = true;
+            }
+        });
+        if (changed) editor.dispatchEvent(new Event('input', { bubbles: true }));
+        scheduleCommentRender();
+    } catch (_) { /* ignore */ }
+};
+
+function createCommentCard(id, data) {
+    const card = document.createElement('div');
+    card.className = 'nv-cc-card';
+    card.dataset.commentId = id;
+
+    const anchor = document.createElement('div');
+    anchor.className = 'nv-cc-anchor';
+    anchor.textContent = data.anchorText || '';
+    card.appendChild(anchor);
+
+    const ta = document.createElement('textarea');
+    ta.className = 'nv-cc-text';
+    ta.value = data.text || '';
+    ta.spellcheck = true;
+    ta.addEventListener('input', () => {
+        const cur = commentsState.get(id);
+        if (cur) cur.text = ta.value;
+        sendMessage({ type: 'commentTextChanged', commentId: id, text: ta.value });
+        scheduleCommentRender();
+    });
+    ta.addEventListener('focus', () => {
+        scrollToComment(id, false);
+    });
+    card.appendChild(ta);
+
+    const del = document.createElement('button');
+    del.className = 'nv-cc-del';
+    del.type = 'button';
+    del.textContent = '×';
+    del.title = 'Delete comment';
+    del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sendMessage({ type: 'commentDeleted', commentId: id });
+    });
+    card.appendChild(del);
+
+    card.addEventListener('mousedown', (e) => {
+        if (e.target === ta || e.target === del) return;
+        e.preventDefault();
+    });
+    card.addEventListener('click', (e) => {
+        if (e.target === ta || e.target === del) return;
+        scrollToComment(id, true);
+        ta.focus();
+    });
+    return card;
+}
+
+function renderCommentGutter() {
+    const gutter = ensureGutter();
+    const liveIds = new Set();
+    const items = [];
+    const spans = editor.querySelectorAll('span.nv-comment[data-comment-id]');
+    spans.forEach(s => {
+        const id = s.getAttribute('data-comment-id');
+        if (!id || !commentsState.has(id) || liveIds.has(id)) return;
+        liveIds.add(id);
+        const r = s.getBoundingClientRect();
+        items.push({ id, top: r.top });
+    });
+    items.sort((a, b) => a.top - b.top);
+
+    const have = new Map();
+    Array.from(gutter.children).forEach(c => have.set(c.dataset.commentId, c));
+    have.forEach((card, id) => { if (!liveIds.has(id)) card.remove(); });
+
+    let prevBottom = 0;
+    const gap = 6;
+    items.forEach(item => {
+        const data = commentsState.get(item.id);
+        let card = have.get(item.id);
+        if (!card) {
+            card = createCommentCard(item.id, data);
+            gutter.appendChild(card);
+        } else {
+            const ta = card.querySelector('textarea');
+            if (ta && document.activeElement !== ta && ta.value !== data.text) {
+                ta.value = data.text;
+            }
+            const ae = card.querySelector('.nv-cc-anchor');
+            if (ae && ae.textContent !== data.anchorText) ae.textContent = data.anchorText;
+        }
+        const desired = Math.max(item.top, prevBottom + gap);
+        card.style.top = desired + 'px';
+        prevBottom = desired + card.offsetHeight;
+    });
+
+    document.body.classList.toggle('has-comments', liveIds.size > 0);
+}
+
+wrapper.addEventListener('scroll', scheduleCommentRender);
+window.addEventListener('resize', scheduleCommentRender);
+const commentObserver = new MutationObserver(scheduleCommentRender);
+commentObserver.observe(editor, { childList: true, characterData: true, subtree: true });
+
+editor.addEventListener('mousemove', (e) => {
+    // First, check if the cursor is over an `nv-entity-mention` span — preferred
+    // because it carries a stable entity ID immune to renames.
+    const target = e.target;
+    let mention = null;
+    if (target && target.closest) mention = target.closest('.nv-entity-mention');
+    if (mention) {
+        const id = mention.getAttribute('data-entity-id') || '';
+        if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
+        if (id && id !== lastHoveredMentionId) {
+            lastHoveredMentionId = id;
+            lastHoveredAlias = null;
+            // The span, not the pointer. An explicit mention was the one entity
+            // reference still anchored to a point: the card cleared the pixel
+            // under the cursor and covered the rest of the name, which is the
+            // condition the whole hide/show flicker loop grows out of.
+            const box = mention.getBoundingClientRect();
+            sendMessage({
+                type: 'entityMentionHover',
+                entityId: id,
+                x: e.clientX,
+                y: e.clientY,
+                rect: { left: box.left, top: box.top, right: box.right, bottom: box.bottom }
+            });
+        }
+        return;
+    }
+    if (lastHoveredMentionId) {
+        // Left a mention span — debounce exit
+        if (!entityExitTimer) {
+            entityExitTimer = setTimeout(() => {
+                entityExitTimer = null;
+                lastHoveredMentionId = null;
+                lastHoveredAlias = null;
+                sendMessage({ type: 'entityExit' });
+            }, 200);
+        }
+        return;
+    }
+
+    if (!entityRegex) return;
+    const hit = findEntityAtPoint(e.clientX, e.clientY);
+    if (hit) {
+        // Found an entity — cancel any pending exit and notify if alias changed
+        if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
+        if (hit.alias !== lastHoveredAlias) {
+            lastHoveredAlias = hit.alias;
+            sendMessage({
+                type: 'entityHover',
+                alias: hit.alias,
+                x: e.clientX,
+                y: e.clientY,
+                rect: hit.rect
+            });
+        }
+    } else if (lastHoveredAlias) {
+        // Lost entity match — debounce the exit so small pixel jitter doesn't kill the peek
+        if (!entityExitTimer) {
+            entityExitTimer = setTimeout(() => {
+                entityExitTimer = null;
+                lastHoveredAlias = null;
+                sendMessage({ type: 'entityExit' });
+            }, 200);
+        }
+    }
+});
+
+editor.addEventListener('mouseleave', () => {
+    if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
+    if (lastHoveredAlias || lastHoveredMentionId) {
+        lastHoveredAlias = null;
+        lastHoveredMentionId = null;
+        sendMessage({ type: 'entityExit' });
+    }
+});
+
+editor.addEventListener('mousedown', () => {
+    sendMessage({ type: 'pointerPressed' });
+    // The host hides the card on a click, so what we remember about the pointer
+    // is now wrong: these two exist only to keep from re-announcing a hover the
+    // host already knows about, and it no longer does. Left set, the next move
+    // inside the same name was read as "still the same name, nothing to say" -
+    // so clicking a name was a way of turning its card off until the pointer
+    // left the word entirely and came back.
+    if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
+    lastHoveredMentionId = null;
+    lastHoveredAlias = null;
+});
+
+editor.addEventListener('keydown', (e) => {
+    if (isCompositionInput(e)) return;
+    // Forward function keys (F1-F12) and Esc unconditionally so host hotkeys
+    // like F11 (focus mode) and Esc work even while focus is in the editor.
+    var isFunctionKey = /^F\d{1,2}$/.test(e.code);
+    if (isFunctionKey || e.key === 'Escape') {
+        e.preventDefault();
+        sendMessage({
+            type: 'hotkey',
+            key: e.key,
+            code: e.code,
+            ctrlKey: e.ctrlKey,
+            metaKey: e.metaKey,
+            shiftKey: e.shiftKey,
+            altKey: e.altKey
+        });
+        return;
+    }
+
+    // Forward modifier key combinations to the host app for hotkey dispatch.
+    // Exclude standard text-editing shortcuts handled natively by contenteditable.
+    // metaKey counts: the host treats Cmd as Ctrl, and on an iPad with a hardware
+    // keyboard (or macOS with the menu unavailable) Cmd is the only modifier a
+    // writer actually presses - without it every Cmd shortcut died in the editor.
+    if ((e.ctrlKey || e.metaKey || e.altKey) && !isTextEditingShortcut(e)) {
+        e.preventDefault();
+        sendMessage({
+            type: 'hotkey',
+            key: e.key,
+            code: e.code,
+            ctrlKey: e.ctrlKey,
+            metaKey: e.metaKey,
+            shiftKey: e.shiftKey,
+            altKey: e.altKey
+        });
+    }
+});
+
+function isTextEditingShortcut(e) {
+    // Cmd is the editing modifier on Apple platforms, so it must reserve the same
+    // native shortcuts (Cmd+C/V/X/Z/A) that Ctrl does elsewhere.
+    if (!e.ctrlKey && !e.metaKey) return false;
+    var k = e.key.toLowerCase();
+    // Navigation keys that should be handled natively by contenteditable:
+    // Ctrl+Arrow walks by word, Ctrl+Shift+Arrow selects by word, Ctrl+Home and
+    // Ctrl+End go to the ends. Alt is the exception - contenteditable does
+    // nothing with Ctrl+Alt+Arrow, and reserving it anyway meant the pane
+    // splitting gestures died the moment the caret was in the prose, which is
+    // the only place a writer ever presses them from.
+    var navKeys = ['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'home', 'end'];
+    if (navKeys.includes(k)) return !e.altKey;
+    // Ctrl+(no shift): select-all, copy, paste, cut, undo, redo. On Apple
+    // keyboards Cmd+B/I/U are the system bold/italic/underline gestures and
+    // contenteditable applies them natively, so they stay reserved: the result
+    // is the same mark the host would have applied, by the route a Mac writer
+    // expects. Ctrl+B/I/U elsewhere are forwarded and the host applies them.
+    if (!e.shiftKey && !e.altKey) {
+        return 'acvxzy'.includes(k) || (e.metaKey && !e.ctrlKey && 'biu'.includes(k));
+    }
+    // Ctrl+Shift+Z = redo
+    if (e.shiftKey && !e.altKey && k === 'z') return true;
+    return false;
+}
+
+// Handle paste: strip external formatting, keep only basic formatting
+editor.addEventListener('paste', (e) => {
+    const html = e.clipboardData?.getData('text/html');
+    if (html) {
+        e.preventDefault();
+        // Parse and sanitize the pasted HTML
+        const cleaned = sanitizePastedHtml(html);
+        document.execCommand('insertHTML', false, cleaned);
+    }
+});
+
+function sanitizePastedHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = sanitizeSceneHtml(html);
+
+    // Remove all style attributes except basic formatting
+    const allElements = tmp.querySelectorAll('*');
+    for (const el of allElements) {
+        // Keep b, i, u, strong, em, p, br, div, span
+        const tag = el.tagName.toLowerCase();
+        const allowedTags = ['b', 'i', 'u', 'strong', 'em', 'p', 'br', 'div', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+        if (!allowedTags.includes(tag)) {
+            // Replace with its text content
+            el.replaceWith(...el.childNodes);
+            continue;
+        }
+        // Remove all attributes except style with basic formatting
+        const style = el.getAttribute('style');
+        // Clear all attributes
+        while (el.attributes.length > 0) el.removeAttribute(el.attributes[0].name);
+        if (style) {
+            // Only keep font-weight, font-style, text-decoration, text-align
+            const allowed = {};
+            if (/font-weight\s*:\s*bold/i.test(style)) allowed['font-weight'] = 'bold';
+            if (/font-style\s*:\s*italic/i.test(style)) allowed['font-style'] = 'italic';
+            if (/text-decoration\s*:\s*underline/i.test(style)) allowed['text-decoration'] = 'underline';
+            const alignMatch = style.match(/text-align\s*:\s*(left|center|right|justify)/i);
+            if (alignMatch) allowed['text-align'] = alignMatch[1];
+            const parts = Object.entries(allowed).map(([k, v]) => k + ':' + v);
+            if (parts.length > 0) el.setAttribute('style', parts.join(';'));
+        }
+    }
+    return tmp.innerHTML;
+}
+
+// ── Scroll Zoom (Ctrl+Wheel) ───────────────────────────────────
+
+wrapper.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    sendMessage({ type: 'zoom', delta: delta });
+}, { passive: false });
+
+// ── Focus ───────────────────────────────────────────────────────
+
+function focusEditor() {
+    editor.focus({ preventScroll: true });
+}
+
+// Track scroll positions for focus-gain scroll jump prevention
+wrapper.addEventListener('scroll', () => {
+    if (!isFocusing) {
+        savedScrollTop = wrapper.scrollTop;
+    }
+});
+
+// Update saved scroll top on mousedown before focus changes
+document.addEventListener('mousedown', () => {
+    if (!isFocusing) {
+        savedScrollTop = wrapper.scrollTop;
+    }
+}, true);
+
+// Prevent default scroll-to-top behavior when editor gains focus natively
+editor.addEventListener('focus', () => {
+    isFocusing = true;
+    const restore = () => {
+        if (wrapper.scrollTop !== savedScrollTop) {
+            wrapper.scrollTop = savedScrollTop;
+        }
+    };
+    restore();
+    requestAnimationFrame(restore);
+    setTimeout(() => {
+        restore();
+        isFocusing = false;
+    }, 100);
+});
+
+// ── Custom Context Menu ─────────────────────────────────────────
+
+const contextMenu = document.getElementById('context-menu');
+let contextMenuTarget = null;
+// Selection captured when the menu opened (see the contextmenu handler).
+let contextMenuRange = null;
+let contextMenuText = '';
+let contextSpellingPoint = null;
+let contextSpellingTarget = null;
+
+// Same trick the floating toolbar uses: swallowing mousedown keeps focus — and
+// therefore the selection — inside the editor while a menu row is clicked.
+contextMenu.addEventListener('mousedown', (e) => e.preventDefault());
+
+/** Re-selects the range the menu was opened on. False when there was none. */
+function restoreContextMenuSelection() {
+    if (!contextMenuRange) {
+        // No captured range means the action was run from the command palette
+        // or a gesture rather than from the menu, and the live selection is the
+        // one the writer means.
+        const live = window.getSelection();
+        return !!(live && live.rangeCount > 0);
+    }
+    const sel = window.getSelection();
+    if (!sel) return false;
+    sel.removeAllRanges();
+    sel.addRange(contextMenuRange);
+    return true;
+}
+
+/** The passage an action works on: what the menu captured, else what is selected. */
+function contextActionText() {
+    if (contextMenuText) return contextMenuText;
+    const sel = window.getSelection();
+    return sel ? sel.toString() : '';
+}
+let contextMenuLabels = { cut: 'Cut', copy: 'Copy', paste: 'Paste', selectAll: 'Select All' };
+
+function setContextMenuLabels(labelsJson) {
+    try {
+        contextMenuLabels = JSON.parse(labelsJson);
+        const floatingLabels = {
+            'ft-bold': contextMenuLabels.bold,
+            'ft-italic': contextMenuLabels.italic,
+            'ft-underline': contextMenuLabels.underline,
+            'ft-strike': contextMenuLabels.strikethrough,
+            'ft-highlight': contextMenuLabels.highlight,
+            'ft-link': contextMenuLabels.link,
+            'ft-comment': contextMenuLabels.addComment,
+            'ft-footnote': contextMenuLabels.addFootnote
+        };
+        for (const id in floatingLabels) {
+            const button = document.getElementById(id);
+            const label = floatingLabels[id];
+            if (!button || !label) continue;
+            button.title = label;
+            button.setAttribute('aria-label', label);
+            if (id === 'ft-comment' || id === 'ft-footnote' || id === 'ft-link') {
+                button.textContent = label;
+            }
+        }
+    } catch (_) {}
+}
+
+/**
+ * One group of the context menu, drawn as a flyout.
+ *
+ * Rows that need a selection are disabled rather than hidden, so the menu keeps
+ * the same shape whether or not anything is selected - a menu that reshuffles
+ * itself is a menu nobody learns.
+ *
+ * A group in which every row is disabled is dropped entirely, though. Keeping
+ * it leaves a flyout that opens onto nothing usable, which reads as broken
+ * rather than as unavailable - the group name gives no hint that a selection
+ * is what it wants.
+ */
+function submenu(title, rows, hasSelection) {
+    if (!rows || rows.length === 0) return '';
+    const usable = rows.some((row) => !row.needsSelection || hasSelection);
+    if (!usable) return '';
+    let inner = '';
+    for (const row of rows) {
+        const off = row.needsSelection && !hasSelection ? ' disabled' : '';
+        const attr = row.inlineAction
+            ? ' data-inline-action="' + escapeAttr(row.inlineAction) + '"'
+            : ' data-action="' + escapeAttr(row.action) + '"'
+                // The registry id this row is the rendering of, so the
+                // placement doctor can see where a command actually lives.
+                + (row.command ? ' data-command="' + escapeAttr(row.command) + '"' : '');
+        inner += '<div class="cm-item' + off + '"' + attr + '><span>'
+            + escapeHtml(row.label) + '</span></div>';
+    }
+    return '<div class="cm-parent"><div class="cm-item"><span>'
+        + escapeHtml(title) + '</span></div>'
+        + '<div class="cm-submenu">' + inner + '</div></div>';
+}
+
+document.addEventListener('contextmenu', (e) => {
+    // Deliberately NOT preventDefault: Electron shows no menu of its own, and
+    // preventing the default stops the context-menu event ever reaching the
+    // main process - which is the only place Chromium's spelling suggestions
+    // exist. Suppressing it is what made a red underline unanswerable.
+    e.stopPropagation();
+    hideGrammarPopup();
+
+    contextMenuTarget = e.target;
+    const sel = window.getSelection();
+    const hasSelection = sel && !sel.isCollapsed;
+
+    // Snapshot the selection now. Clicking a menu row moves focus out of the
+    // contenteditable, which collapses the live selection before the click
+    // handler runs — so actions that act on the selection must use this copy.
+    // With nothing selected the caret itself is the anchor: an action that
+    // allows an empty selection still has to know where to write.
+    contextMenuRange = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
+    contextMenuText = hasSelection ? sel.toString() : '';
+    contextSpellingTarget = null;
+    contextSpellingPoint = null;
+    // A right-click need not move the selection (notably on Windows). Capture
+    // the point in the prose, independently of where the caret was parked.
+    const hit = document.caretRangeFromPoint(e.clientX, e.clientY);
+    if (hit && editor.contains(hit.startContainer)) {
+        const block = getContainingBlock(hit.startContainer) || editor;
+        const before = document.createRange();
+        before.selectNodeContents(block);
+        before.setEnd(hit.startContainer, hit.startOffset);
+        contextSpellingPoint = { block, offset: before.toString().length, text: block.textContent };
+    }
+
+    let html = '';
+
+    // Check if right-clicking on a grammar issue
+    const issueSpan = e.target.closest('.grammar-issue');
+    if (issueSpan && grammarEnabled) {
+        const index = parseInt(issueSpan.getAttribute('data-issue-index'), 10);
+        const issue = grammarIssues[index];
+        if (issue) {
+            html += '<div class="cm-grammar-msg">' + escapeHtml(issue.message) + '</div>';
+            if (issue.replacements && issue.replacements.length > 0) {
+                for (const rep of issue.replacements) {
+                    html += '<div class="cm-suggestion" data-issue-index="' + index + '" data-replacement="' + escapeHtml(rep) + '">' + escapeHtml(rep || contextMenuLabels.removeText || 'Delete') + '</div>';
+                }
+            }
+            if (issue.type === 'spelling') {
+                const word = issue.text || '';
+                if (word.trim().length > 0) {
+                    html += '<div class="cm-item" data-action="addToDictionary" data-word="' + escapeHtml(word.trim()) + '"><span>' + escapeHtml(contextMenuLabels.addToDictionary || 'Add to Dictionary') + '</span></div>';
+                }
+            }
+            html += '<div class="cm-separator"></div>';
+        }
+    }
+
+    // Standard editing items
+    const disabledAttr = hasSelection ? '' : ' disabled';
+    html += '<div class="cm-item' + disabledAttr + '" data-action="cut"><span>' + escapeHtml(contextMenuLabels.cut || 'Cut') + '</span><span class="cm-shortcut">Ctrl+X</span></div>';
+    html += '<div class="cm-item' + disabledAttr + '" data-action="copy"><span>' + escapeHtml(contextMenuLabels.copy || 'Copy') + '</span><span class="cm-shortcut">Ctrl+C</span></div>';
+    html += '<div class="cm-item" data-action="paste"><span>' + escapeHtml(contextMenuLabels.paste || 'Paste') + '</span><span class="cm-shortcut">Ctrl+V</span></div>';
+    html += '<div class="cm-separator"></div>';
+    html += '<div class="cm-item" data-action="selectAll"><span>' + escapeHtml(contextMenuLabels.selectAll || 'Select All') + '</span><span class="cm-shortcut">Ctrl+A</span></div>';
+
+    // Comment and footnote used to sit here as well as in the floating toolbar
+    // and on the editor toolbar - three homes for one command. They act on a
+    // selection, so the toolbar that appears over a selection is the one they
+    // kept.
+    //
+    // What the menu gains instead is the command that genuinely belongs to the
+    // thing under the pointer: the entry for the name you just right-clicked.
+    // It was a button on the editor toolbar, where it appeared and disappeared
+    // as the caret moved past names.
+    // placement-container: contextMenu
+    if (findEntityAtCaret()) {
+        html += '<div class="cm-separator"></div>';
+        html += '<div class="cm-item" data-command="caret.peekEntity" data-action="peekEntity"><span>' + escapeHtml(contextMenuLabels.peekEntity || 'Peek at entity under caret') + '</span><span class="cm-shortcut">Ctrl+Shift+E</span></div>';
+    }
+
+    // Everything below is grouped: these belong to families and go behind
+    // their names rather than lengthening the top level.
+    html += '<div class="cm-separator"></div>';
+    html += submenu(contextMenuLabels.groupScene || 'Scene', [
+        { action: 'splitAtCaret', command: 'caret.splitScene', label: contextMenuLabels.splitScene || 'Split scene here' },
+        { action: 'insertImage', command: 'caret.insertImage', label: contextMenuLabels.insertImage || 'Insert image' },
+        // Cutting prose used to mean it was recoverable only by reading a whole
+        // snapshot for the paragraph that used to be there.
+        { action: 'cutToDarlings', command: 'text.cutToDarlings', label: contextMenuLabels.cutToDarlings || 'Cut and keep', needsSelection: true },
+        // The question in the middle of writing a line is whether it sounds
+        // right in the mouth of the person saying it, and going to another view
+        // to find out answers it too late to be any use.
+        { action: 'auditionLine', command: 'text.auditionLine', label: contextMenuLabels.auditionLine || 'Hear this line', needsSelection: true }
+    ], hasSelection);
+    html += submenu(contextMenuLabels.groupCodex || 'Codex', [
+        { action: 'createEntityFromSelection', command: 'text.createEntity', label: contextMenuLabels.createEntity || 'Create entity from selection', needsSelection: true },
+        { action: 'appendToEntitySection', command: 'text.appendToEntity', label: contextMenuLabels.appendToEntity || 'Add selection to entity', needsSelection: true }
+    ], hasSelection);
+    // placement-container: end
+
+    console.log('[InlineActions] context menu open. hasSelection=', hasSelection, 'inlineActions.length=', (inlineActions || []).length);
+    // Inline actions (extension-contributed). Shown only when selection non-empty.
+    const offerableActions = (inlineActions || []).filter(function (a) {
+        return hasSelection || a.allowsEmptySelection;
+    });
+    if (offerableActions.length > 0) {
+        // Group the offerable ones, not every contributed action: grouping the
+        // full list put actions that need a selection into the menu with no
+        // selection and nothing marking them dead, so they looked clickable
+        // and did nothing.
+        const grouped = {};
+        for (const a of offerableActions) {
+            const g = a.group || '';
+            (grouped[g] = grouped[g] || []).push(a);
+        }
+        html += '<div class="cm-separator"></div>';
+        for (const groupName of Object.keys(grouped)) {
+            const rows = grouped[groupName].map(function (a) {
+                return {
+                    inlineAction: a.id,
+                    label: (a.icon ? a.icon + ' ' : '') + a.label
+                };
+            });
+            // A named group becomes a submenu; the unnamed ones stay inline,
+            // because a flyout called nothing is a flyout nobody opens.
+            if (groupName) {
+                html += submenu(groupName, rows, hasSelection);
+            } else {
+                for (const row of rows) {
+                    html += '<div class="cm-item" data-inline-action="' + escapeAttr(row.inlineAction) + '"><span>' + escapeHtml(row.label) + '</span></div>';
+                }
+            }
+        }
+    }
+
+    // Extension context-menu items (always shown; operate on the current scene).
+    if (extensionMenuItems && extensionMenuItems.length > 0) {
+        html += '<div class="cm-separator"></div>';
+        for (const it of extensionMenuItems) {
+            const icon = it.icon ? (escapeHtml(it.icon) + ' ') : '';
+            html += '<div class="cm-item" data-ext-ctx="' + escapeHtml(it.id) + '"><span>' + icon + escapeHtml(it.label) + '</span></div>';
+        }
+    }
+
+    contextMenu.innerHTML = html;
+
+    // Position
+    let x = e.clientX, y = e.clientY;
+    contextMenu.classList.add('visible');
+    const rect = contextMenu.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width - 4;
+    if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 4;
+    contextMenu.style.left = x + 'px';
+    contextMenu.style.top = y + 'px';
+
+    // A flyout opens rightwards unless there is no room, which there never is
+    // when the menu was raised near the right edge - and a submenu the writer
+    // cannot see is a group they cannot reach.
+    const room = window.innerWidth - (x + rect.width);
+    for (const parent of contextMenu.querySelectorAll('.cm-parent')) {
+        parent.classList.toggle('flip', room < 210);
+        parent.addEventListener('mouseenter', () => {
+            const submenu = parent.querySelector('.cm-submenu');
+            submenu.style.top = '';
+            const flyout = submenu.getBoundingClientRect();
+            const top = Math.max(4, Math.min(flyout.top, window.innerHeight - flyout.height - 4));
+            submenu.style.top = (top - parent.getBoundingClientRect().top) + 'px';
+        });
+    }
+});
+
+contextMenu.addEventListener('click', (e) => {
+    const suggestion = e.target.closest('.cm-suggestion');
+    if (suggestion && suggestion.hasAttribute('data-spelling')) {
+        const target = contextSpellingTarget;
+        if (target && editor.contains(target.block) && target.block.textContent === target.text) {
+            // Underline refreshes can split/merge the text nodes while the
+            // menu is open. Resolve the saved block offset against those nodes.
+            const from = textPointInElement(target.block, target.start);
+            const to = textPointInElement(target.block, target.start + target.word.length);
+            const range = document.createRange();
+            range.setStart(from.node, from.offset);
+            range.setEnd(to.node, to.offset);
+            replaceProofingRange(range, target.word, suggestion.getAttribute('data-spelling'));
+        }
+        hideContextMenu();
+        return;
+    }
+    if (suggestion) {
+        const index = parseInt(suggestion.getAttribute('data-issue-index'), 10);
+        const replacement = suggestion.getAttribute('data-replacement');
+        applyGrammarSuggestion(index, replacement);
+        hideContextMenu();
+        return;
+    }
+
+    const inlineItem = e.target.closest('[data-inline-action]');
+    if (inlineItem) {
+        const id = inlineItem.getAttribute('data-inline-action');
+        triggerInlineAction(id);
+        hideContextMenu();
+        return;
+    }
+
+    const extItem = e.target.closest('[data-ext-ctx]');
+    if (extItem) {
+        sendMessage({ type: 'extensionContextMenuRequested', itemId: extItem.getAttribute('data-ext-ctx') });
+        hideContextMenu();
+        return;
+    }
+
+    const item = e.target.closest('.cm-item');
+    if (!item || item.classList.contains('disabled')) return;
+
+    const action = item.getAttribute('data-action');
+    if (action === 'addToDictionary') {
+        sendMessage({ type: 'addToDictionary', word: item.getAttribute('data-word') });
+    } else {
+        applyContextAction(action);
+    }
+    hideContextMenu();
+});
+
+/**
+ * One of the editor's own actions on the passage in front of the writer.
+ *
+ * Extracted from the context menu's click handler, where every one of these
+ * bodies used to sit inline - which made right-clicking the only way to reach
+ * them. Named, they are also commands: the palette can offer them and a writer
+ * can bind a gesture to any of them.
+ */
+function applyContextAction(action) {
+    switch (action) {
+        case 'cut':
+            document.execCommand('cut');
+            break;
+        case 'copy':
+            document.execCommand('copy');
+            break;
+        case 'paste':
+            navigator.clipboard.readText().then(text => {
+                document.execCommand('insertText', false, text);
+            }).catch(() => {
+                document.execCommand('paste');
+            });
+            break;
+        case 'selectAll':
+            document.execCommand('selectAll');
+            break;
+        case 'peekEntity':
+            restoreContextMenuSelection();
+            peekEntityAtCaret();
+            break;
+        case 'insertImage': {
+            // The frame owns no file picker; the host asks and answers with a
+            // stored path, which insertImageAtCaret then places. Where it goes
+            // has to be settled now: the host's dialogs take focus, and the
+            // caret does not survive them.
+            restoreContextMenuSelection();
+            imageTargetBlock = caretBlock();
+            sendMessage({ type: 'insertImageRequested' });
+            break;
+        }
+        case 'splitAtCaret': {
+            // Acts on the caret captured when the menu opened, since opening it
+            // moved focus out of the editor.
+            restoreContextMenuSelection();
+            const halves = window.splitAtCaret();
+            if (!halves) break;
+            const parsed = JSON.parse(halves);
+            sendMessage({ type: 'splitSceneRequested', before: parsed.before, after: parsed.after });
+            break;
+        }
+        case 'cutToDarlings': {
+            // The prose leaves the scene and lands in the bin in one action.
+            // Cutting first and asking the writer to file it afterwards is how
+            // the paragraph gets lost between the two.
+            if (!restoreContextMenuSelection()) break;
+            const kept = contextActionText();
+            if (!kept || kept.trim().length === 0) break;
+            sendMessage({ type: 'keepDarling', text: kept });
+            document.execCommand('delete');
+            // execCommand fires input on its own, but the deletion is worth
+            // being explicit about: the prose has left the scene.
+            editor.dispatchEvent(new Event('input'));
+            break;
+        }
+        case 'auditionLine': {
+            // The host looks the line up in the scene rather than speaking the
+            // selection as raw text, so it arrives in the voice of whoever says
+            // it and directed the way the reading would have it.
+            const line = contextActionText();
+            if (!line || line.trim().length === 0) break;
+            sendMessage({ type: 'auditionLine', text: line });
+            break;
+        }
+        case 'createEntityFromSelection': {
+            // Same round-trip as the @-picker's "Create" row: drop a placeholder
+            // now, let the host create the entity, then upgrade it to a mention.
+            // Acts on the selection captured when the menu opened.
+            if (!restoreContextMenuSelection()) break;
+            const name = contextActionText().trim();
+            if (name.length === 0) break;
+            const pendingId = 'pm-' + (++mentionPendingSeq) + '-' + Date.now();
+            const html = '<span class="nv-mention-pending" data-pending-id="'
+                + escapeAttr(pendingId) + '">' + escapeHtml(name) + '</span>';
+            let inserted = false;
+            try { inserted = document.execCommand('insertHTML', false, html); } catch (_) {}
+            if (!inserted) break;
+            queueContentChangedSoon();
+            sendMessage({ type: 'mentionCreateRequested', name: name, pendingId: pendingId });
+            break;
+        }
+        case 'appendToEntitySection': {
+            // Copies the passage into a Codex section; the prose is left untouched.
+            const text = contextActionText().trim();
+            if (text.length === 0) break;
+            sendMessage({ type: 'appendToEntityRequested', text: text });
+            break;
+        }
+    }
+}
+
+/**
+ * Host entry point for the same actions. The palette takes focus on its way
+ * open, so the caret comes back to the editor before anything acts on it.
+ */
+window.runContextAction = function (action) {
+    editor.focus();
+    applyContextAction(action);
+};
+
+function hideContextMenu() {
+    contextMenu.classList.remove('visible');
+    // Drop the captured selection so a later action can never act on a stale range.
+    contextMenuRange = null;
+    contextMenuText = '';
+    contextSpellingPoint = null;
+    contextSpellingTarget = null;
+    // The selection usually survives the menu, so the format bar is due back.
+    updateFloatingToolbar();
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+document.addEventListener('click', (e) => {
+    if (!contextMenu.contains(e.target)) hideContextMenu();
+});
+document.addEventListener('keydown', (e) => {
+    if (isCompositionInput(e)) return;
+    if (e.key === 'Escape') {
+        hideContextMenu();
+        stopReadAloud();
+    }
+});
+// Only a scroll the *user* made dismisses the menu. Caret recentring scrolls
+// the wrapper too, and letting that through closed the menu in the same frame
+// it opened.
+wrapper.addEventListener('scroll', () => {
+    if (Date.now() < programmaticScrollUntil) return;
+    hideContextMenu();
+});
+
+// ── Grammar Check ───────────────────────────────────────────────
+
+function logToHost(msg) {
+    sendMessage({ type: 'jsLog', message: msg });
+}
+
+let grammarIssues = [];
+let grammarCheckTimer = null;
+let grammarEnabled = false;
+let grammarChecking = false;
+let grammarRequestId = 0;
+let pendingGrammarRequest = null;
+const grammarPopup = document.getElementById('grammar-popup');
+const grammarStatusBar = document.getElementById('grammar-status-bar');
+grammarPopup.addEventListener('mousedown', (e) => e.preventDefault());
+
+function setGrammarCheckEnabled(enabled) {
+    logToHost("setGrammarCheckEnabled: enabled=" + enabled);
+    grammarEnabled = enabled;
+    if (!enabled) {
+        grammarRequestId++;
+        pendingGrammarRequest = null;
+        if (grammarCheckTimer) clearTimeout(grammarCheckTimer);
+        grammarCheckTimer = null;
+        grammarChecking = false;
+        grammarIssues = [];
+        applyGrammarHighlights();
+        hideGrammarPopup();
+    } else {
+        // Trigger an initial check if there's content
+        requestGrammarCheck();
+    }
+    updateGrammarStatusBar();
+}
+
+function setGrammarIssues(issuesJson, requestId) {
+    if (isComposing) return;
+    if (requestId !== undefined) {
+        if (!grammarEnabled || !pendingGrammarRequest || requestId !== pendingGrammarRequest.id) return;
+        const expected = pendingGrammarRequest.text;
+        pendingGrammarRequest = null;
+        if (buildGrammarPlainTextMap().plainText !== expected) {
+            requestGrammarCheck();
+            return;
+        }
+    }
+    hideGrammarPopup();
+    if (contextMenu.querySelector('[data-replacement]')) hideContextMenu();
+    logToHost("setGrammarIssues called: raw issues length = " + (issuesJson ? issuesJson.length : 0));
+    try {
+        const raw = JSON.parse(issuesJson);
+        // Filter out issues that target known entity names. Must use the same
+        // plain-text builder that produced the offsets LanguageTool returned,
+        // otherwise substring() reads from the wrong position.
+        const { plainText } = buildGrammarPlainTextMap();
+        grammarIssues = raw.filter(issue => {
+            const flaggedText = plainText.substring(issue.offset, issue.offset + issue.length);
+            return !isKnownEntity(flaggedText);
+        });
+        logToHost("setGrammarIssues: filtered issues count = " + grammarIssues.length);
+    } catch (ex) {
+        logToHost("setGrammarIssues exception: " + ex);
+        grammarIssues = [];
+    }
+    grammarChecking = false;
+    applyGrammarHighlights();
+    updateGrammarStatusBar();
+}
+
+function isKnownEntity(text) {
+    if (!text || entityNames.length === 0) return false;
+    const lower = text.toLowerCase();
+    for (const name of entityNames) {
+        if (name.toLowerCase() === lower) return true;
+    }
+    return false;
+}
+
+function clearGrammarHighlights() {
+    const marks = editor.querySelectorAll('.grammar-issue');
+    for (const mark of marks) {
+        const parent = mark.parentNode;
+        while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+        parent.removeChild(mark);
+    }
+    // Normalize adjacent text nodes
+    editor.normalize();
+}
+
+function buildGrammarPlainTextMap() {
+    // Build the plain text we hand to LanguageTool together with a per-text-node
+    // offset map, in lock-step. We must not use editor.innerText for this: it
+    // collapses whitespace and trims block boundaries, which drifts the offsets
+    // returned by LanguageTool away from the actual text-node positions we need
+    // for highlighting and replacement. By concatenating textContent ourselves
+    // with explicit '\n' separators between blocks, the offsets LanguageTool
+    // returns map exactly onto positions in textNodes[].
+    const textNodes = [];
+    const parts = [];
+    let pos = 0;
+    let prevBlockEnd = null;
+
+    function walk(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const t = node.textContent;
+            textNodes.push({ node, start: pos, end: pos + t.length });
+            parts.push(t);
+            pos += t.length;
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const tag = node.tagName;
+            const isBlock = !node.classList.contains('nv-page') && (tag === 'P' || tag === 'DIV' || tag === 'BR'
+                         || tag === 'H1' || tag === 'H2' || tag === 'H3'
+                         || tag === 'H4' || tag === 'H5' || tag === 'H6');
+
+            if (isBlock && prevBlockEnd !== null && pos > 0) {
+                parts.push('\n');
+                pos++;
+            }
+
+            if (tag === 'BR') {
+                parts.push('\n');
+                pos++;
+                prevBlockEnd = pos;
+            } else {
+                const children = node.childNodes;
+                for (let i = 0; i < children.length; i++) {
+                    walk(children[i]);
+                }
+                if (isBlock) prevBlockEnd = pos;
+            }
+        }
+    }
+
+    for (let i = 0; i < editor.childNodes.length; i++) {
+        walk(editor.childNodes[i]);
+    }
+    return { plainText: parts.join(''), textNodes };
+}
+
+function isCaretInEditor(sel) {
+    // Only scroll for a collapsed caret inside the focused prose surface.
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return false;
+    const active = document.activeElement;
+    if (active !== editor && !editor.contains(active)) return false;
+    return editor.contains(sel.getRangeAt(0).startContainer);
+}
+
+function captureProofingSelection() {
+    // Setting a selection in contenteditable also focuses it in Chromium.
+    // A result arriving while the writer edits a comment must not take focus.
+    if (document.activeElement !== editor && !editor.contains(document.activeElement)) return null;
+    const sel = window.getSelection();
+    if (!sel || !editor.contains(sel.anchorNode) || !editor.contains(sel.focusNode)) return null;
+    const point = (node, offset) => {
+        const block = getContainingBlock(node) || editor;
+        const before = document.createRange();
+        before.selectNodeContents(block);
+        before.setEnd(node, offset);
+        return { block, offset: before.toString().length };
+    };
+    return { anchor: point(sel.anchorNode, sel.anchorOffset), focus: point(sel.focusNode, sel.focusOffset) };
+}
+
+function textPointInElement(element, offset) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    let node;
+    let last = null;
+    while ((node = walker.nextNode())) {
+        if (offset <= node.length) return { node, offset };
+        offset -= node.length;
+        last = node;
+    }
+    return { node: last || element, offset: last ? last.length : 0 };
+}
+
+function restoreProofingSelection(saved) {
+    if (!saved || !editor.contains(saved.anchor.block) || !editor.contains(saved.focus.block)) return;
+    const anchor = textPointInElement(saved.anchor.block, saved.anchor.offset);
+    const focus = textPointInElement(saved.focus.block, saved.focus.offset);
+    window.getSelection().setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset);
+}
+
+function applyGrammarHighlights() {
+    if (isComposing) return;
+    // Keep both endpoints and selection direction within their own blocks;
+    // offsets across the whole editor cannot distinguish empty paragraphs.
+    const savedSelection = captureProofingSelection();
+    const savedDictation = captureDictationPosition();
+    const scrollTop = wrapper.scrollTop;
+    const restoreCaret = () => {
+        restoreDictationPosition(savedDictation, true);
+        restoreProofingSelection(savedSelection);
+        wrapper.scrollTop = scrollTop;
+    };
+
+    // Remove existing highlights
+    clearGrammarHighlights();
+
+    // clearGrammarHighlights() normalizes the editor, merging adjacent text
+    // nodes, which invalidates the live caret even when there is nothing to
+    // highlight — so this path needs the restore too.
+    if (!grammarIssues || grammarIssues.length === 0) {
+        restoreCaret();
+        // Normalising merged the text nodes the readability ranges sat in.
+        reapplyReadability();
+        return;
+    }
+
+    // Use the same plain-text builder that fed LanguageTool so issue offsets
+    // align exactly with text-node positions.
+    const { textNodes } = buildGrammarPlainTextMap();
+
+    // Sort issues by offset descending so we can apply from the end
+    const sorted = [...grammarIssues].sort((a, b) => b.offset - a.offset);
+
+    for (const issue of sorted) {
+        const issueStart = issue.offset;
+        const issueEnd = issue.offset + issue.length;
+        const issueIdx = grammarIssues.indexOf(issue);
+
+        // Collect every text-node fragment overlapping the issue's range.
+        // An issue can straddle multiple text nodes when an inline highlight
+        // (entity mention, comment anchor, etc.) splits the underlying word;
+        // wrapping only the first fragment would leave the rest of the word
+        // outside the .grammar-issue span and survive a later replacement.
+        const fragments = [];
+        for (let i = 0; i < textNodes.length; i++) {
+            const tn = textNodes[i];
+            if (tn.end <= issueStart || tn.start >= issueEnd) continue;
+            const localStart = Math.max(0, issueStart - tn.start);
+            const localEnd = Math.min(tn.node.textContent.length, issueEnd - tn.start);
+            if (localStart < localEnd) {
+                fragments.push({ node: tn.node, start: localStart, end: localEnd });
+            }
+        }
+
+        // Wrap each fragment in its own span sharing the same data-issue-index.
+        // applyGrammarSuggestion replaces one range spanning all fragments.
+        for (const f of fragments) {
+            const range = document.createRange();
+            range.setStart(f.node, f.start);
+            range.setEnd(f.node, f.end);
+            const span = document.createElement('span');
+            span.className = 'grammar-issue';
+            span.setAttribute('data-issue-type', issue.type || 'grammar');
+            span.setAttribute('data-issue-index', issueIdx);
+            try {
+                range.surroundContents(span);
+            } catch (_) {
+                // surroundContents throws if the range crosses element boundaries
+                // mid-fragment; skip silently and let the recheck reconcile.
+            }
+        }
+        const target = grammarIssueRange(issueIdx);
+        issue.text = target ? target.toString() : '';
+    }
+
+    restoreCaret();
+    // Wrapping the flagged words split the text nodes the readability ranges
+    // were built over, so those ranges now cover nothing.
+    reapplyReadability();
+}
+
+function showGrammarPopup(issueIndex, x, y) {
+    const issue = grammarIssues[issueIndex];
+    if (!issue) return;
+
+    const msgEl = grammarPopup.querySelector('.gp-message');
+    const sugEl = grammarPopup.querySelector('.gp-suggestions');
+
+    msgEl.textContent = issue.message || 'Issue detected';
+    sugEl.innerHTML = '';
+
+    if (issue.replacements && issue.replacements.length > 0) {
+        for (const rep of issue.replacements) {
+            const btn = document.createElement('span');
+            btn.className = 'gp-suggestion';
+            btn.textContent = rep || contextMenuLabels.removeText || 'Delete';
+            btn.addEventListener('click', () => {
+                applyGrammarSuggestion(issueIndex, rep);
+                hideGrammarPopup();
+            });
+            sugEl.appendChild(btn);
+        }
+    }
+
+    if (issue.type === 'spelling') {
+        const spans = editor.querySelectorAll('[data-issue-index="' + issueIndex + '"]');
+        if (spans.length > 0) {
+            const word = issue.text || '';
+            if (word.trim().length > 0) {
+                const addBtn = document.createElement('span');
+                addBtn.className = 'gp-suggestion';
+                addBtn.textContent = contextMenuLabels.addToDictionary || 'Add to Dictionary';
+                addBtn.style.opacity = '0.7';
+                addBtn.addEventListener('click', () => {
+                    sendMessage({ type: 'addToDictionary', word: word.trim() });
+                    hideGrammarPopup();
+                });
+                sugEl.appendChild(addBtn);
+            }
+        }
+    }
+
+    // Position popup
+    grammarPopup.style.left = Math.max(4, Math.min(x, window.innerWidth - 340)) + 'px';
+    grammarPopup.style.top = (y + 20) + 'px';
+    grammarPopup.classList.add('visible');
+    // Flip above the word if it would overflow the bottom (e.g. a low line).
+    const ph = grammarPopup.offsetHeight;
+    if (y + 20 + ph > window.innerHeight) {
+        grammarPopup.style.top = Math.max(4, y - ph - 8) + 'px';
+    }
+}
+
+function hideGrammarPopup() {
+    grammarPopup.classList.remove('visible');
+}
+
+function applyGrammarSuggestion(issueIndex, replacement) {
+    const issue = grammarIssues[issueIndex];
+    const range = grammarIssueRange(issueIndex);
+    if (!issue || !range || range.toString() !== issue.text) {
+        requestGrammarCheck();
+        return;
+    }
+    const spans = editor.querySelectorAll('[data-issue-index="' + issueIndex + '"]');
+
+    // Strip grammar-issue classes and attributes first so the browser does not
+    // preserve the underline style when replacing the elements via insertText.
+    for (const span of spans) {
+        span.className = '';
+        span.removeAttribute('style');
+        span.removeAttribute('data-issue-type');
+        span.removeAttribute('data-issue-index');
+    }
+
+    // One range covers every fragment, including intervening inline markup.
+    // A sentence correction is one native undo step, just like typing over it.
+    if (!replaceProofingRange(range, issue.text, replacement)) return;
+
+    // Remove the issue from the list. The input event fired by execCommand
+    // takes care of the contentChanged notification and the grammar recheck.
+    grammarIssues.splice(issueIndex, 1);
+    for (const mark of editor.querySelectorAll('.grammar-issue')) {
+        const index = Number(mark.dataset.issueIndex);
+        if (index > issueIndex) mark.dataset.issueIndex = index - 1;
+    }
+    updateGrammarStatusBar();
+}
+
+function grammarIssueRange(issueIndex) {
+    const spans = editor.querySelectorAll('.grammar-issue[data-issue-index="' + issueIndex + '"]');
+    if (!spans.length) return null;
+    const range = document.createRange();
+    range.setStartBefore(spans[0]);
+    range.setEndAfter(spans[spans.length - 1]);
+    return range;
+}
+
+function replaceProofingRange(range, expectedText, replacement) {
+    if (!range || range.collapsed || !editor.contains(range.startContainer)
+        || !editor.contains(range.endContainer) || range.toString() !== expectedText) return false;
+    const scrollTop = wrapper.scrollTop;
+    editor.focus({ preventScroll: true });
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    const applied = document.execCommand(replacement === '' ? 'delete' : 'insertText', false, replacement);
+    // A correction restores focus, but must not move the line out from under
+    // the popup on the input handler's next animation frame.
+    if (typewriterFrame) cancelAnimationFrame(typewriterFrame);
+    typewriterFrame = 0;
+    wrapper.scrollTop = scrollTop;
+    return applied;
+}
+
+function requestGrammarCheck() {
+    if (isComposing) return;
+    logToHost("requestGrammarCheck called: grammarEnabled=" + grammarEnabled + ", grammarChecking=" + grammarChecking);
+    const requestId = ++grammarRequestId;
+    pendingGrammarRequest = null;
+    if (grammarCheckTimer) clearTimeout(grammarCheckTimer);
+    grammarCheckTimer = null;
+    if (!grammarEnabled) return;
+    if (grammarChecking) {
+        grammarChecking = false;
+        updateGrammarStatusBar();
+    }
+    grammarCheckTimer = setTimeout(() => {
+        grammarCheckTimer = null;
+        // Use buildGrammarPlainTextMap so the text we send and the offsets we
+        // get back stay aligned with our highlight-positioning logic.
+        const { plainText } = buildGrammarPlainTextMap();
+        pendingGrammarRequest = { id: requestId, text: plainText };
+        grammarChecking = true;
+        logToHost("requestGrammarCheck timer fired: grammarChecking set to true, sending request. Plain text len=" + plainText.length);
+        updateGrammarStatusBar();
+        sendMessage({
+            type: 'grammarCheckRequest',
+            requestId: requestId,
+            plainText: plainText
+        });
+    }, 1500);
+}
+
+function updateGrammarStatusBar() {
+    if (!grammarStatusBar) return;
+    logToHost("updateGrammarStatusBar: grammarEnabled=" + grammarEnabled + ", grammarChecking=" + grammarChecking + ", issues count=" + grammarIssues.length);
+
+    if (!grammarEnabled) {
+        grammarStatusBar.classList.remove('visible');
+        return;
+    }
+
+    grammarStatusBar.classList.add('visible');
+
+    const throbber = document.getElementById('status-throbber');
+    const doneIcon = document.getElementById('status-check-done');
+    const grammarItem = document.getElementById('status-grammar-count-container');
+    const punctuationItem = document.getElementById('status-punctuation-count-container');
+    const grammarCountSpan = document.getElementById('status-grammar-count');
+    const punctuationCountSpan = document.getElementById('status-punctuation-count');
+
+    // Throbber state
+    if (grammarChecking) {
+        throbber.classList.add('active');
+        doneIcon.classList.remove('active');
+    } else {
+        throbber.classList.remove('active');
+    }
+
+    // Compute counts
+    const grammarCount = grammarIssues.filter(i => i.type === 'grammar').length;
+    const punctuationCount = grammarIssues.filter(i => i.type === 'spelling' || i.type === 'style').length;
+
+    // Show checkmark done only when not checking and counts are 0
+    if (!grammarChecking && grammarCount === 0 && punctuationCount === 0) {
+        doneIcon.classList.add('active');
+    } else {
+        doneIcon.classList.remove('active');
+    }
+
+    // Update grammar count item
+    if (grammarCount > 0) {
+        grammarCountSpan.textContent = grammarCount;
+        grammarItem.classList.add('active');
+    } else {
+        grammarItem.classList.remove('active');
+    }
+
+    // Update punctuation/spelling count item
+    if (punctuationCount > 0) {
+        punctuationCountSpan.textContent = punctuationCount;
+        punctuationItem.classList.add('active');
+    } else {
+        punctuationItem.classList.remove('active');
+    }
+}
+
+function scrollToNextIssue(type) {
+    const selector = type === 'grammar'
+        ? '.grammar-issue[data-issue-type="grammar"]'
+        : '.grammar-issue[data-issue-type="spelling"], .grammar-issue[data-issue-type="style"]';
+    const firstIssue = editor.querySelector(selector);
+    if (firstIssue) {
+        firstIssue.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Wait briefly for scroll to finish, then open popup
+        setTimeout(() => {
+            const index = parseInt(firstIssue.getAttribute('data-issue-index'), 10);
+            const rect = firstIssue.getBoundingClientRect();
+            showGrammarPopup(index, rect.left, rect.bottom);
+        }, 150);
+    }
+}
+
+// Hook up status bar event listeners
+document.getElementById('status-grammar-count-container').addEventListener('click', (e) => {
+    scrollToNextIssue('grammar');
+    e.stopPropagation();
+});
+document.getElementById('status-punctuation-count-container').addEventListener('click', (e) => {
+    scrollToNextIssue('punctuation');
+    e.stopPropagation();
+});
+
+// Grammar issue click/hover handler
+editor.addEventListener('click', (e) => {
+    const issueSpan = e.target.closest('.grammar-issue');
+    if (issueSpan) {
+        const index = parseInt(issueSpan.getAttribute('data-issue-index'), 10);
+        const rect = issueSpan.getBoundingClientRect();
+        showGrammarPopup(index, rect.left, rect.bottom);
+        e.stopPropagation();
+    } else {
+        hideGrammarPopup();
+    }
+});
+
+// Dismiss button
+grammarPopup.querySelector('.gp-dismiss').addEventListener('click', hideGrammarPopup);
+
+// Hide popup on scroll or outside click
+wrapper.addEventListener('scroll', hideGrammarPopup);
+document.addEventListener('click', (e) => {
+    if (!grammarPopup.contains(e.target) && !e.target.closest('.grammar-issue')) {
+        hideGrammarPopup();
+    }
+});
+
+// Mobile: a plain tap on a grammar issue or an entity mention would place the
+// caret and raise the on-screen keyboard (native contenteditable). Intercept on
+// mousedown and preventDefault (the same trick the floating toolbar uses to keep
+// the selection) so the tap instead shows the grammar suggestions / entity peek
+// without moving the caret. Touch has no hover, so this is how peek is reachable.
+editor.addEventListener('mousedown', (e) => {
+    if (!document.body.classList.contains('mobile')) return;
+    const t = e.target;
+    if (!t || !t.closest) return;
+    const issue = t.closest('.grammar-issue');
+    if (issue) {
+        e.preventDefault();
+        const index = parseInt(issue.getAttribute('data-issue-index'), 10);
+        const rect = issue.getBoundingClientRect();
+        showGrammarPopup(index, rect.left, rect.bottom);
+        return;
+    }
+    const mention = t.closest('.nv-entity-mention');
+    if (mention) {
+        e.preventDefault();
+        const id = mention.getAttribute('data-entity-id') || '';
+        const rect = mention.getBoundingClientRect();
+        if (id) sendMessage({
+            type: 'entityMentionHover',
+            entityId: id,
+            x: rect.left,
+            y: rect.bottom,
+            rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom }
+        });
+        return;
+    }
+    // Most entity references in prose are plain text (auto-detected), not explicit
+    // mention spans, so resolve the entity at the tap point and peek that.
+    const tapped = (typeof findEntityAtPoint === 'function') ? findEntityAtPoint(e.clientX, e.clientY) : null;
+    if (tapped) {
+        e.preventDefault();
+        sendMessage({
+            type: 'entityHover',
+            alias: tapped.alias,
+            x: e.clientX,
+            y: e.clientY,
+            rect: tapped.rect
+        });
+        return;
+    }
+    // Tapping plain text with no entity dismisses any shown peek.
+    sendMessage({ type: 'entityExit' });
+});
+
+// ── Floating Selection Toolbar ───────────────────────────────────
+
+const floatingToolbar = document.getElementById('floating-toolbar');
+let floatingToolbarTimer = null;
+
+function updateFloatingToolbar() {
+    // Right-clicking a word selects it so the menu can offer spellings for it,
+    // and that selection used to raise the format bar on top of the very menu
+    // the click had just opened - the bar sits a layer above it. The menu is
+    // what was asked for, so the bar waits until it closes.
+    if (contextMenu.classList.contains('visible')) {
+        floatingToolbar.classList.remove('visible');
+        return;
+    }
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.toString().trim() === '') {
+        floatingToolbar.classList.remove('visible');
+        return;
+    }
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) {
+        floatingToolbar.classList.remove('visible');
+        return;
+    }
+
+    // Update active state for format buttons
+    document.getElementById('ft-bold').classList.toggle('active', document.queryCommandState('bold'));
+    document.getElementById('ft-italic').classList.toggle('active', document.queryCommandState('italic'));
+    document.getElementById('ft-underline').classList.toggle('active', document.queryCommandState('underline'));
+    document.getElementById('ft-strike').classList.toggle('active', document.queryCommandState('strikeThrough'));
+    document.getElementById('ft-highlight').classList.toggle('active',
+        !!highlightAncestor(window.getSelection() && window.getSelection().anchorNode));
+
+    floatingToolbar.classList.add('visible');
+    const tbWidth = floatingToolbar.offsetWidth || 220;
+    const tbHeight = floatingToolbar.offsetHeight || 34;
+    let x = rect.left + rect.width / 2 - tbWidth / 2;
+    let y = rect.top - tbHeight - 8;
+    if (x < 4) x = 4;
+    if (x + tbWidth > window.innerWidth - 4) x = window.innerWidth - tbWidth - 4;
+    if (y < 4) y = rect.bottom + 8;
+    floatingToolbar.style.left = x + 'px';
+    floatingToolbar.style.top = y + 'px';
+}
+
+document.addEventListener('selectionchange', () => {
+    if (floatingToolbarTimer) clearTimeout(floatingToolbarTimer);
+    floatingToolbarTimer = setTimeout(updateFloatingToolbar, 60);
+});
+
+floatingToolbar.addEventListener('mousedown', (e) => {
+    e.preventDefault(); // keep selection alive
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const id = btn.id;
+    if (id === 'ft-bold') document.execCommand('bold', false, null);
+    else if (id === 'ft-italic') document.execCommand('italic', false, null);
+    else if (id === 'ft-underline') document.execCommand('underline', false, null);
+    else if (id === 'ft-strike') document.execCommand('strikeThrough', false, null);
+    else if (id === 'ft-highlight') toggleHighlight();
+    // The host owns dialogs, so it asks for the address and calls back.
+    else if (id === 'ft-link') sendMessage({ type: 'requestLink' });
+    else if (id === 'ft-comment') sendMessage({ type: 'requestAddComment' });
+    else if (id === 'ft-footnote') sendMessage({ type: 'requestAddFootnote' });
+    updateFloatingToolbar();
+});
+
+// ── Inline Comments ─────────────────────────────────────────────
+
+function wrapSelectionAsComment(commentId) {
+    var sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    var range = sel.getRangeAt(0);
+    if (range.collapsed) return null;
+    var anchorText = sel.toString();
+    if (!anchorText) return null;
+
+    var span = document.createElement('span');
+    span.className = 'nv-comment';
+    span.setAttribute('data-comment-id', commentId);
+    try {
+        range.surroundContents(span);
+    } catch (e1) {
+        try {
+            var frag = range.extractContents();
+            span.appendChild(frag);
+            range.insertNode(span);
+        } catch (e2) {
+            return null;
+        }
+    }
+    sel.removeAllRanges();
+    // Notify host that the editor HTML changed so the comment span persists.
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    return anchorText;
+}
+
+function clearCommentMark(span) {
+    span.classList.remove('nv-comment', 'nv-comment-active');
+    if (!span.className) span.removeAttribute('class');
+    span.removeAttribute('data-comment-id');
+}
+
+function removeCommentSpan(commentId) {
+    editor.querySelectorAll('span.nv-comment[data-comment-id]').forEach(span => {
+        if (span.getAttribute('data-comment-id') === commentId) clearCommentMark(span);
+    });
+    commentsState.delete(commentId);
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    scheduleCommentRender();
+}
+
+function scrollToComment(commentId, doScroll) {
+    document.querySelectorAll('span.nv-comment.nv-comment-active').forEach(function (n) {
+        n.classList.remove('nv-comment-active');
+    });
+    if (commentGutterEl) {
+        Array.from(commentGutterEl.children).forEach(function (c) {
+            c.classList.toggle('active', c.dataset.commentId === commentId);
+        });
+    }
+    var node = document.querySelector('span.nv-comment[data-comment-id="' + commentId + '"]');
+    if (!node) return;
+    node.classList.add('nv-comment-active');
+    if (doScroll !== false) node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+editor.addEventListener('click', function (e) {
+    var target = e.target;
+    while (target && target !== editor && !target.classList?.contains('nv-comment')) {
+        target = target.parentNode;
+    }
+    if (target && target !== editor && target.classList?.contains('nv-comment')) {
+        var id = target.getAttribute('data-comment-id');
+        if (id) sendMessage({ type: 'commentClicked', commentId: id });
+    }
+});
+
+// Host bridge: addComment(id) wraps current selection. Returns anchor via message.
+window.addCommentToSelection = function (commentId) {
+    try {
+        var anchor = wrapSelectionAsComment(commentId);
+        sendMessage({
+            type: 'commentAdded',
+            commentId: commentId,
+            anchorText: anchor || ''
+        });
+    } catch (err) {
+        sendMessage({ type: 'commentAdded', commentId: commentId, anchorText: '' });
+    }
+};
+
+window.removeCommentById = removeCommentSpan;
+window.scrollToCommentById = scrollToComment;
+
+// ── Footnotes ──────────────────────────────────────────────────
+//
+// A footnote's number is not a property of the note: it is where its marker
+// stands in the prose. Every message that changes the markers therefore carries
+// the whole ordered list, because a note inserted ahead of an existing one
+// changes that one's number too. Reporting only the new note's number is what
+// put two footnotes on "1".
+function renumberFootnotes() {
+    var sups = editor.querySelectorAll('sup.nv-fn[data-fn-id]');
+    var i = 1;
+    sups.forEach(function (sup) { sup.textContent = i; i++; });
+    return Array.from(sups).map(function (s) { return s.getAttribute('data-fn-id'); });
+}
+
+/** The footnote markers in the scene, in the order they are read. */
+window.footnoteOrder = function () {
+    return Array.from(editor.querySelectorAll('sup.nv-fn[data-fn-id]'))
+        .map(function (s) { return s.getAttribute('data-fn-id'); });
+};
+
+window.insertFootnoteAtSelection = function (footnoteId) {
+    var sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    var range = sel.getRangeAt(0);
+    var sup = document.createElement('sup');
+    sup.className = 'nv-fn';
+    sup.setAttribute('data-fn-id', footnoteId);
+    sup.textContent = '0';
+    range.collapse(false);
+    range.insertNode(sup);
+    range.setStartAfter(sup);
+    range.setEndAfter(sup);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    var ids = renumberFootnotes();
+    var num = ids.indexOf(footnoteId) + 1;
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    sendMessage({ type: 'footnoteInserted', footnoteId: footnoteId, number: num, ids: ids });
+    return num;
+};
+
+window.setFootnotesData = function (data) {
+    try {
+        var arr = typeof data === 'string' ? JSON.parse(data) : (data || []);
+        var byId = {};
+        for (var i = 0; i < arr.length; i++) byId[arr[i].id] = arr[i].text || '';
+        var sups = editor.querySelectorAll('sup.nv-fn[data-fn-id]');
+        sups.forEach(function (s) {
+            var id = s.getAttribute('data-fn-id');
+            var t = byId[id];
+            if (t) s.setAttribute('title', t); else s.removeAttribute('title');
+        });
+    } catch (_) { /* ignore */ }
+};
+
+/**
+ * Chromium's spelling suggestions for the word the menu was opened on.
+ *
+ * They arrive just after the menu is drawn, because they come from the main
+ * process with the context-menu event. Folded into the top of the menu that is
+ * already on screen rather than opening a second one beside it.
+ */
+window.setSpellingSuggestions = function (word, suggestions) {
+    if (!contextMenu || !contextMenu.classList.contains('visible')) return;
+    if (!word) return;
+    contextSpellingTarget = null;
+    const point = contextSpellingPoint;
+    if (point && editor.contains(point.block) && point.block.textContent === point.text) {
+        // Match only the occurrence containing the original right-click, never
+        // the first matching word in the scene or the current caret position.
+        let start = point.text.indexOf(word);
+        while (start !== -1) {
+            if (start <= point.offset && point.offset <= start + word.length
+                && !isWordChar(point.text[start - 1]) && !isWordChar(point.text[start + word.length])) {
+                contextSpellingTarget = { block: point.block, start, text: point.text, word };
+                break;
+            }
+            start = point.text.indexOf(word, start + 1);
+        }
+    }
+
+    // Chromium can report the same menu more than once - a second listener, a
+    // re-send - and the block was being prepended each time, so the writer saw
+    // every suggestion twice. Whatever was injected before goes first.
+    for (const stale of contextMenu.querySelectorAll('.cm-spelling')) stale.remove();
+
+    const list = Array.isArray(suggestions) ? suggestions : [];
+    const rows = [];
+    rows.push('<div class="cm-grammar-msg cm-spelling">' + escapeHtml(word) + '</div>');
+    if (list.length === 0) {
+        rows.push('<div class="cm-item cm-spelling" disabled><span>'
+            + escapeHtml(contextMenuLabels.noSuggestions || 'No suggestions')
+            + '</span></div>');
+    } else {
+        for (const s of list) {
+            rows.push('<div class="cm-suggestion cm-spelling" data-spelling="'
+                + escapeAttr(s) + '">' + escapeHtml(s) + '</div>');
+        }
+    }
+    rows.push('<div class="cm-item cm-spelling" data-action="addToDictionary" data-word="'
+        + escapeAttr(word) + '"><span>'
+        + escapeHtml(contextMenuLabels.addToDictionary || 'Add to Dictionary')
+        + '</span></div>');
+    rows.push('<div class="cm-separator"></div>');
+
+    contextMenu.insertAdjacentHTML('afterbegin', rows.join(''));
+};
+
+window.scrollToFootnoteById = function (footnoteId) {
+    var node = editor.querySelector('sup.nv-fn[data-fn-id="' + footnoteId + '"]');
+    if (!node) return;
+    node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var prev = node.style.background;
+    node.style.background = 'rgba(137, 180, 250, 0.4)';
+    setTimeout(function () { node.style.background = prev || ''; }, 1200);
+};
+
+window.removeFootnoteById = function (footnoteId) {
+    var nodes = editor.querySelectorAll('sup.nv-fn[data-fn-id="' + footnoteId + '"]');
+    nodes.forEach(function (n) { n.parentNode && n.parentNode.removeChild(n); });
+    var ids = renumberFootnotes();
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    // Taking one out moves every marker after it up a number, so the list is
+    // reported again rather than only the removal.
+    sendMessage({ type: 'footnotesRenumbered', ids: ids });
+};
+
+editor.addEventListener('click', function (e) {
+    var target = e.target;
+    if (target && target.classList && target.classList.contains('nv-fn')) {
+        var id = target.getAttribute('data-fn-id');
+        if (id) sendMessage({ type: 'footnoteClicked', footnoteId: id });
+    }
+});
+
+
+// ── Split at the caret ──────────────────────────────────────────
+//
+// Returns the document either side of the caret so the host can turn one scene
+// into two. The split happens at block granularity: the block the caret sits in
+// is divided at the caret, and whole blocks fall to one side or the other. That
+// keeps both halves valid markup, which splitting the raw HTML string at a
+// character offset would not.
+
+window.splitAtCaret = function () {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+
+    const caret = sel.getRangeAt(0);
+    if (!editor.contains(caret.startContainer)) return null;
+
+    const before = document.createRange();
+    before.setStart(editor, 0);
+    before.setEnd(caret.startContainer, caret.startOffset);
+
+    const after = document.createRange();
+    after.setStart(caret.startContainer, caret.startOffset);
+    after.setEnd(editor, editor.childNodes.length);
+
+    const wrap = function (fragment) {
+        const holder = document.createElement('div');
+        holder.appendChild(fragment);
+        // A caret mid-paragraph leaves each side holding a partial block; the
+        // browser closes the tags for us when the fragment is cloned.
+        return holder.innerHTML;
+    };
+
+    const beforeHtml = wrap(before.cloneContents());
+    const afterHtml = wrap(after.cloneContents());
+
+    // Splitting at the very start or the very end would leave one scene empty,
+    // which is never what the writer meant.
+    if (beforeHtml.replace(/<[^>]*>/g, '').trim().length === 0) return null;
+    if (afterHtml.replace(/<[^>]*>/g, '').trim().length === 0) return null;
+
+    return JSON.stringify({ before: beforeHtml, after: afterHtml });
+};
+
+
+// ── Suggestion mode ─────────────────────────────────────────────
+//
+// With it on, typing does not change the prose - it proposes a change. New
+// words go in as <ins> and deleted ones are marked <del> rather than removed,
+// so the author can see what an editor is asking for and answer it a piece at
+// a time. The marks live in the prose itself, so they travel with the scene.
+
+let suggestionMode = false;
+let suggestionAuthor = '';
+
+window.setSuggestionMode = function (on, author) {
+    suggestionMode = !!on;
+    suggestionAuthor = author || '';
+    editor.classList.toggle('nv-suggesting', suggestionMode);
+};
+
+/**
+ * Takes the writer to a suggested edit and says which one.
+ *
+ * An empty id means the first one in the scene, which is what "there are two
+ * waiting in this scene" resolves to when it is followed. The marks are already
+ * drawn in the prose, but a scene is long: being told a scene has edits and
+ * being shown one of them are different things.
+ */
+window.scrollToSuggestionById = function (changeId) {
+    var node = changeId
+        ? editor.querySelector('[data-nl-change="' + changeId + '"]')
+        : editor.querySelector('ins[data-nl-change], del[data-nl-change]');
+    if (!node) return;
+    node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    node.classList.add('nv-change-flash');
+    setTimeout(function () { node.classList.remove('nv-change-flash'); }, 1400);
+};
+
+function newChangeId() {
+    // Unique within the scene, which is all an id has to be: it names one edit
+    // out of the ones in front of the author.
+    return 'c' + Math.random().toString(36).slice(2, 10);
+}
+
+function suggestionAttributes(el) {
+    el.setAttribute('data-nl-change', newChangeId());
+    el.setAttribute('data-nl-author', suggestionAuthor);
+    el.setAttribute('data-nl-at', new Date().toISOString());
+}
+
+/** The <ins> the caret is already inside, if it belongs to this author. */
+function currentInsertion() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    let node = sel.getRangeAt(0).startContainer;
+    if (node.nodeType === 3) node = node.parentNode;
+    const ins = node && node.closest ? node.closest('ins[data-nl-change]') : null;
+    if (!ins) return null;
+    return ins.getAttribute('data-nl-author') === suggestionAuthor ? ins : null;
+}
+
+/** Types text as a suggestion, continuing the current run where there is one. */
+function insertSuggested(text) {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+
+    // Typing over a selection is a replacement: the old words are proposed for
+    // deletion rather than thrown away.
+    if (!range.collapsed) markSelectionDeleted();
+
+    const open = currentInsertion();
+    if (open) {
+        document.execCommand('insertText', false, text);
+        return;
+    }
+
+    const ins = document.createElement('ins');
+    suggestionAttributes(ins);
+    ins.textContent = text;
+    const at = window.getSelection().getRangeAt(0);
+    at.insertNode(ins);
+
+    const after = document.createRange();
+    after.setStart(ins.firstChild, ins.firstChild.length);
+    after.collapse(true);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(after);
+}
+
+/**
+ * Marks whatever is selected as deleted, leaving the words in place.
+ *
+ * Text this author just suggested is taken back out instead of being marked:
+ * proposing to delete your own unaccepted insertion is a round trip nobody
+ * wants to read.
+ */
+function markSelectionDeleted() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.getRangeAt(0).collapsed) return false;
+
+    const range = sel.getRangeAt(0);
+    const contents = range.extractContents();
+    const del = document.createElement('del');
+    suggestionAttributes(del);
+
+    // Drop this author's own pending insertions rather than marking them.
+    contents.querySelectorAll('ins[data-nl-change]').forEach(function (ins) {
+        if (ins.getAttribute('data-nl-author') !== suggestionAuthor) return;
+        const parent = ins.parentNode;
+        while (ins.firstChild) parent.insertBefore(ins.firstChild, ins);
+        parent.removeChild(ins);
+    });
+
+    del.appendChild(contents);
+    if (del.textContent.length === 0) return false;
+
+    range.insertNode(del);
+    const after = document.createRange();
+    after.setStartAfter(del);
+    after.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(after);
+    return true;
+}
+
+/** Extends a collapsed caret over the character a delete key would remove. */
+function selectOneCharacter(backward) {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return false;
+    if (!sel.getRangeAt(0).collapsed) return true;
+    sel.modify('extend', backward ? 'backward' : 'forward', 'character');
+    return !sel.getRangeAt(0).collapsed;
+}
+
+editor.addEventListener('beforeinput', (e) => {
+    if (isSettingContent || isCompositionInput(e) || !suggestionMode) return;
+
+    if (e.inputType === 'insertText' && e.data) {
+        e.preventDefault();
+        insertSuggested(e.data);
+        return;
+    }
+
+    if (e.inputType === 'deleteContentBackward' || e.inputType === 'deleteContentForward') {
+        e.preventDefault();
+        if (selectOneCharacter(e.inputType === 'deleteContentBackward')) markSelectionDeleted();
+        return;
+    }
+
+    if (e.inputType === 'insertReplacementText' || e.inputType === 'insertFromPaste') {
+        // A paste is many words at once; the same rule applies to all of them.
+        const text = e.dataTransfer ? e.dataTransfer.getData('text/plain') : e.data;
+        if (!text) return;
+        e.preventDefault();
+        insertSuggested(text);
+    }
+}, true);
+
+// ── Inline actions (extension-contributed) ──────────────────────
+let inlineActions = [];
+let pendingInlineAction = null; // { id, range, originalText, disposition }
+
+window.setInlineActions = function (json) {
+    try {
+        inlineActions = typeof json === 'string' ? JSON.parse(json) : (json || []);
+        console.log('[InlineActions] setInlineActions received', inlineActions.length, 'items', inlineActions);
+    } catch (e) {
+        console.log('[InlineActions] setInlineActions parse error', e);
+        inlineActions = [];
+    }
+};
+
+function inlineActionById(id) {
+    for (const action of inlineActions || []) {
+        if (action.id === id) return action;
+    }
+    return null;
+}
+
+// The prose before a point, capped so a long scene does not push a whole
+// chapter through the RPC. This is what a continue-writing action continues
+// from, and at a bare caret it is the only context there is.
+const PRECEDING_TEXT_LIMIT = 4000;
+
+function precedingTextBefore(range) {
+    try {
+        const scope = document.createRange();
+        scope.selectNodeContents(editor);
+        scope.setEnd(range.startContainer, range.startOffset);
+        const text = scope.toString();
+        return text.length > PRECEDING_TEXT_LIMIT ? text.slice(-PRECEDING_TEXT_LIMIT) : text;
+    } catch (e) {
+        return '';
+    }
+}
+
+function triggerInlineAction(id, directive) {
+    const action = inlineActionById(id);
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    const collapsed = sel.isCollapsed;
+    // An action written before empty selections were a thing still needs one:
+    // it would receive an empty SelectedText it was never written to handle.
+    if (collapsed && !(action && action.allowsEmptySelection)) return;
+
+    const range = sel.getRangeAt(0).cloneRange();
+    const text = collapsed ? '' : sel.toString();
+    if (!collapsed && !text) return;
+
+    pendingInlineAction = { id: id, range: range };
+    sendMessage({
+        type: 'inlineActionRequested',
+        actionId: id,
+        selectedText: text,
+        precedingText: precedingTextBefore(range),
+        directive: directive || ''
+    });
+}
+
+
+// ── Slash commands ──────────────────────────────────────────────
+//
+// A slash at the start of a line opens a menu of the inline actions that work
+// with nothing selected. This is the surface a "continue writing" or a typed
+// beat directive needs: there is no selection to right-click, so the context
+// menu cannot reach them.
+//
+// Mirrors the @-mention picker's shape (detect at caret, filter as you type,
+// arrow/enter to commit) because the writer has already learned that gesture.
+
+/* ===== The book's own completion list =====
+ *
+ * The @-mention picker completes Codex names, in scene prose, and nothing else.
+ * That leaves out everything a secondary world is full of and the Codex is not:
+ * a settled spelling of a place, a rank, a coined verb, a phrase that has to
+ * read the same way every time. Those get retyped slightly differently, and the
+ * inconsistency turns up in copy-edit.
+ *
+ * Deliberately quieter than the mention picker: it never steals Enter, because
+ * Enter in prose means a new paragraph and a completion popup that swallows it
+ * is worse than no completion at all. Tab accepts.
+ */
+let completionWords = [];
+let completionTrigger = 3;
+let completionState = null;   // { node, start, query }
+let completionMatches = [];
+let completionIndex = 0;
+
+function setCompletionList(words, trigger) {
+    completionWords = Array.isArray(words) ? words.filter(function (w) { return !!w; }) : [];
+    completionTrigger = trigger > 0 ? trigger : 3;
+    closeCompletion();
+}
+
+/** The word being typed at the caret, or null when there is not one. */
+function wordAtCaret() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return null;
+    const range = sel.getRangeAt(0);
+    if (range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+    const text = range.startContainer.textContent || '';
+    const offset = range.startOffset;
+
+    let start = offset;
+    while (start > 0 && /[\p{L}\p{M}'\u2019-]/u.test(text.charAt(start - 1))) start--;
+    if (offset - start < completionTrigger) return null;
+    return { node: range.startContainer, start: start, query: text.slice(start, offset) };
+}
+
+function updateCompletion() {
+    if (completionWords.length === 0) { closeCompletion(); return; }
+    const found = wordAtCaret();
+    if (!found) { closeCompletion(); return; }
+
+    const typed = found.query;
+    const lower = typed.toLowerCase();
+    completionMatches = [];
+    for (let i = 0; i < completionWords.length && completionMatches.length < 8; i++) {
+        const word = completionWords[i];
+        if (word.length === typed.length) continue;      // completes nothing
+        if (word.toLowerCase().indexOf(lower) !== 0) continue;
+        completionMatches.push(word);
+    }
+    if (completionMatches.length === 0) { closeCompletion(); return; }
+
+    completionState = found;
+    completionIndex = 0;
+    renderCompletion();
+}
+
+function closeCompletion() {
+    completionState = null;
+    completionMatches = [];
+    const picker = document.getElementById('completion-picker');
+    if (picker) picker.style.display = 'none';
+}
+
+function renderCompletion() {
+    let picker = document.getElementById('completion-picker');
+    if (!picker) {
+        picker = document.createElement('div');
+        picker.id = 'completion-picker';
+        picker.className = 'mention-picker';
+        document.body.appendChild(picker);
+    }
+    picker.innerHTML = '';
+    completionMatches.forEach(function (word, i) {
+        const row = document.createElement('div');
+        row.className = 'mention-item' + (i === completionIndex ? ' selected' : '');
+        row.textContent = word;
+        row.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            acceptCompletion(i);
+        });
+        picker.appendChild(row);
+    });
+
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+        const rect = sel.getRangeAt(0).getBoundingClientRect();
+        picker.style.left = rect.left + 'px';
+        picker.style.top = (rect.bottom + 4) + 'px';
+    }
+    picker.style.display = 'block';
+}
+
+function acceptCompletion(index) {
+    if (!completionState) return;
+    const word = completionMatches[index];
+    if (!word) return;
+
+    const node = completionState.node;
+    const text = node.textContent || '';
+    const sel = window.getSelection();
+    const end = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).startOffset : completionState.start;
+    node.textContent = text.slice(0, completionState.start) + word + text.slice(end);
+
+    const range = document.createRange();
+    range.setStart(node, completionState.start + word.length);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    closeCompletion();
+    // Accepting a completion is an edit, and the editor only notices edits it
+    // sees as input events - this one replaces text directly.
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+let slashState = null;   // { node, atOffset, query }
+let slashFiltered = [];
+let slashSelectedIndex = 0;
+
+function slashActions() {
+    return (inlineActions || []).filter(function (a) { return a.allowsEmptySelection; });
+}
+
+/** The keyword typed after the slash; falls back to the id's last segment. */
+function slashKeywordOf(action) {
+    if (action.slashKeyword) return action.slashKeyword;
+    const dot = action.id.lastIndexOf('.');
+    return dot >= 0 ? action.id.slice(dot + 1) : action.id;
+}
+
+/**
+ * A slash that starts a command rather than one inside a word or a date. Only
+ * at the very start of a line, so "and/or" and "24/7" are left alone.
+ */
+function detectSlashAtCaret() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return null;
+    const range = sel.getRangeAt(0);
+    if (range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+    const text = range.startContainer.textContent || '';
+    const offset = range.startOffset;
+    if (offset === 0) return null;
+
+    // Walk back to the slash that opened this command, stopping at anything
+    // that means it was not a command after all.
+    let at = -1;
+    for (let i = offset - 1; i >= 0; i--) {
+        const ch = text.charAt(i);
+        if (ch === '/') { at = i; break; }
+        if (ch === '\n') return null;
+    }
+    if (at < 0) return null;
+    // Everything before the slash on this line has to be blank.
+    if (text.slice(0, at).trim().length > 0) return null;
+    return { node: range.startContainer, atOffset: at, query: text.slice(at + 1, offset) };
+}
+
+function openSlashMenu() {
+    slashState = detectSlashAtCaret();
+    if (!slashState || slashActions().length === 0) { slashState = null; return; }
+    slashSelectedIndex = 0;
+    renderSlashMenu();
+}
+
+function closeSlashMenu() {
+    slashState = null;
+    slashFiltered = [];
+    const picker = document.getElementById('slash-picker');
+    if (picker) picker.style.display = 'none';
+}
+
+function updateSlashQuery() {
+    const found = detectSlashAtCaret();
+    if (!found) { closeSlashMenu(); return; }
+    slashState = found;
+    renderSlashMenu();
+}
+
+function renderSlashMenu() {
+    let picker = document.getElementById('slash-picker');
+    if (!picker) {
+        picker = document.createElement('div');
+        picker.id = 'slash-picker';
+        picker.className = 'mention-picker';
+        document.body.appendChild(picker);
+    }
+
+    // The query is everything after the slash, but only its first word selects
+    // the command - the rest is the directive the action writes towards.
+    const raw = slashState.query || '';
+    const space = raw.indexOf(' ');
+    const keyword = (space < 0 ? raw : raw.slice(0, space)).toLowerCase();
+
+    slashFiltered = slashActions().filter(function (a) {
+        return keyword.length === 0 || slashKeywordOf(a).toLowerCase().indexOf(keyword) === 0;
+    });
+
+    if (slashFiltered.length === 0) { closeSlashMenu(); return; }
+    if (slashSelectedIndex >= slashFiltered.length) slashSelectedIndex = 0;
+
+    let html = '';
+    for (let i = 0; i < slashFiltered.length; i++) {
+        const action = slashFiltered[i];
+        html += '<div class="mention-item' + (i === slashSelectedIndex ? ' selected' : '') +
+            '" data-slash-index="' + i + '">' +
+            '<span class="mention-name">/' + slashKeywordOf(action) + '</span>' +
+            '<span class="mention-detail">' + action.label + '</span></div>';
+    }
+    picker.innerHTML = html;
+    picker.style.display = 'block';
+
+    const rect = getCaretRect();
+    if (rect) {
+        picker.style.left = rect.left + 'px';
+        picker.style.top = (rect.bottom + 4) + 'px';
+    }
+
+    picker.querySelectorAll('[data-slash-index]').forEach(function (row) {
+        row.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            confirmSlashAt(parseInt(row.getAttribute('data-slash-index'), 10));
+        });
+    });
+}
+
+function moveSlashSelection(delta) {
+    if (slashFiltered.length === 0) return;
+    slashSelectedIndex = (slashSelectedIndex + delta + slashFiltered.length) % slashFiltered.length;
+    renderSlashMenu();
+}
+
+/**
+ * Runs the chosen command. The typed text - slash, keyword and directive - is
+ * removed first, so the writer is left with the prose the action produces and
+ * not with the instruction they typed to get it.
+ */
+function confirmSlashAt(index) {
+    if (!slashState || index < 0 || index >= slashFiltered.length) return;
+    const action = slashFiltered[index];
+    const raw = slashState.query || '';
+    const space = raw.indexOf(' ');
+    const directive = space < 0 ? '' : raw.slice(space + 1).trim();
+
+    const node = slashState.node;
+    const atOffset = slashState.atOffset;
+    closeSlashMenu();
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const caret = sel.getRangeAt(0);
+    const range = document.createRange();
+    range.setStart(node, atOffset);
+    range.setEnd(caret.startContainer, caret.startOffset);
+    range.deleteContents();
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    editor.dispatchEvent(new Event('input'));
+    triggerInlineAction(action.id, directive);
+}
+
+// Extension context-menu items (IContextMenuContributor): not selection-gated;
+// the host runs the click handler against the currently open scene.
+let extensionMenuItems = [];
+window.setExtensionContextMenuItems = function (json) {
+    try {
+        extensionMenuItems = typeof json === 'string' ? JSON.parse(json) : (json || []);
+    } catch (e) {
+        extensionMenuItems = [];
+    }
+};
+
+// A live Range follows ordinary edits, but is invalidated when the host loads
+// another scene. Layout and proofing must preserve it separately from the
+// visible selection: moving a paragraph collapses its live Ranges to the parent.
+let dictationAnchor = null;
+function captureDictationPosition() {
+    if (!dictationAnchor) return null;
+    const range = dictationAnchor.range;
+    const node = range.startContainer;
+    if (!editor.contains(node)) return null;
+    const block = getContainingBlock(node) || editor;
+    const before = document.createRange();
+    before.selectNodeContents(block);
+    before.setEnd(node, range.startOffset);
+    return { anchor: dictationAnchor, node, offset: range.startOffset,
+        block, textOffset: before.toString().length };
+}
+function restoreDictationPosition(saved, textNodesChanged = false) {
+    if (!saved || dictationAnchor !== saved.anchor) return;
+    // Pagination moves intact nodes; proofing splits and merges text nodes.
+    // A block-relative text offset also distinguishes empty paragraphs.
+    const point = textNodesChanged && editor.contains(saved.block)
+        ? textPointInElement(saved.block, saved.textOffset) : saved;
+    if (!editor.contains(point.node)) { dictationAnchor = null; return; }
+    try {
+        dictationAnchor.range.setStart(point.node, point.offset);
+        dictationAnchor.range.collapse(true);
+    } catch (_) { dictationAnchor = null; }
+}
+window.captureDictationAnchor = function (id) {
+    const sel = window.getSelection();
+    let range = sel && sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+    if (!range || !editor.contains(range.startContainer)) {
+        range = document.createRange();
+        range.selectNodeContents(editor);
+    }
+    range.collapse(false);
+    dictationAnchor = { id, range };
+    return true;
+};
+window.focusDictationCaret = function () {
+    // Focus preserves the editor's DOM selection while controls outside the
+    // iframe are used. Collapse a selection after it, as local dictation does.
+    editor.focus({ preventScroll: true });
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !editor.contains(sel.getRangeAt(0).startContainer)) return false;
+    sel.collapseToEnd();
+    return true;
+};
+window.insertDictationText = function (id, text, paragraph, mergeClose, mergeOpen, tag) {
+    if (!dictationAnchor || dictationAnchor.id !== id || isComposing) return false;
+    const range = dictationAnchor.range;
+    if (!editor.contains(range.startContainer)) return false;
+    const sel = window.getSelection();
+    const saved = sel && sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+    const following = saved && saved.collapsed && saved.startContainer === range.startContainer
+        && saved.startOffset === range.startOffset;
+    const active = document.activeElement;
+    const node = range.startContainer;
+    let attachPunctuation = false;
+    // A pause can separate dialogue from its speech tag. Repair only the
+    // generated closing punctuation, without asking the model to rewrite it.
+    if (tag && node.nodeType === 3) {
+        const preceding = node.textContent.slice(0, range.startOffset);
+        if (preceding.endsWith(tag.close)) {
+            const speech = preceding.slice(0, -tag.close.length);
+            const removePeriod = speech.endsWith('.');
+            const removeComma = tag.language === 'de' && speech.endsWith(',');
+            const count = tag.close.length + (removePeriod || removeComma ? 1 : 0);
+            range.setStart(node, range.startOffset - count);
+            text = (tag.language === 'de' ? tag.close + ',' : (removePeriod ? ',' : '') + tag.close) + ' ' + text;
+            attachPunctuation = true;
+        }
+    }
+    // Only remove a quote we just generated, still immediately at the anchor.
+    if (mergeClose) {
+        if (node.nodeType === 3 && node.textContent.slice(0, range.startOffset).endsWith(mergeClose)) {
+            range.setStart(node, range.startOffset - mergeClose.length);
+        } else {
+            text = mergeOpen + text;
+        }
+    }
+    const element = node.nodeType === 3 ? node.parentElement : node;
+    const block = element.closest('p,div,li,h1,h2,h3,blockquote') || editor;
+    const before = document.createRange();
+    before.selectNodeContents(block);
+    before.setEnd(range.startContainer, range.startOffset);
+    const prefix = before.toString();
+    if (prefix.trim()) {
+        text = (paragraph ? '\n' : attachPunctuation || /\s$/.test(prefix) || /^[,.;:!?]/.test(text) ? '' : ' ') + text;
+    }
+    editor.focus();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    if (suggestionMode) insertSuggested(text);
+    else if (!document.execCommand('insertText', false, text)) return false;
+    dictationAnchor.range = sel.getRangeAt(0).cloneRange();
+    dictationAnchor.range.collapse(false);
+    if (saved && !following && editor.contains(saved.startContainer)) {
+        sel.removeAllRanges();
+        sel.addRange(saved);
+    }
+    if (active && active !== editor && active.focus) active.focus();
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+    return true;
+};
+
+window.applyInlineActionResult = function (json) {
+    try {
+        var payload = typeof json === 'string' ? JSON.parse(json) : json;
+        if (!payload || !pendingInlineAction) return;
+        if (payload.actionId !== pendingInlineAction.id) { pendingInlineAction = null; return; }
+        if (payload.error) { pendingInlineAction = null; return; }
+
+        const range = pendingInlineAction.range;
+        const disposition = payload.disposition || 'replace';
+        const text = payload.text || '';
+
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+
+        if (disposition === 'insertAtCaret') {
+            // Replaces nothing. With a selection this collapses to its end,
+            // which is what "carry on from here" means either way.
+            range.collapse(false);
+            document.execCommand('insertText', false, text);
+        } else if (disposition === 'insertAfter') {
+            range.collapse(false);
+            document.execCommand('insertText', false, '\n' + text);
+        } else {
+            document.execCommand('insertText', false, text);
+        }
+
+        pendingInlineAction = null;
+        try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    } catch (_) {
+        pendingInlineAction = null;
+    }
+};
+
+// ── Ready Signal ────────────────────────────────────────────────
+sendMessage({ type: 'ready' });

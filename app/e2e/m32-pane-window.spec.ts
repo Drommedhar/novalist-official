@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
 import { REAL_PROJECT } from './realProject'
+import { closeTestApp } from './harness'
 
 /**
  * A pane torn out into its own window, and two panes side by side.
@@ -71,7 +72,7 @@ test('a pane opens in its own window and shows the real view', async () => {
   // The window it came from is untouched.
   await expect(page.locator('.mode-rail')).toBeVisible()
 
-  await app.close()
+  await closeTestApp(app)
 })
 
 test('splitting the editor gives each pane its own scene', async () => {
@@ -168,5 +169,5 @@ test('splitting the editor gives each pane its own scene', async () => {
   )
   expect(new Set(reopened.filter(Boolean)).size).toBe(2)
 
-  await app.close()
+  await closeTestApp(app)
 })

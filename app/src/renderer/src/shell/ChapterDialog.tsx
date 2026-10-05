@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useWorkspaceDialogGuard } from './useWorkspaceDialogGuard'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ChapterDto, type ProjectStateDto } from '../stores/projectStore'
 import { useManuscriptPropsStore } from '../stores/manuscriptPropsStore'
@@ -34,6 +35,7 @@ interface ChapterDialogProps {
 /** Create or edit a chapter: title, status, and act in a single dialog,
  * replacing the plain title-only InputDialog. */
 export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.JSX.Element {
+  useWorkspaceDialogGuard()
   const { t } = useTranslation()
   const isEdit = !!chapter
   const [title, setTitle] = useState(chapter?.title ?? '')

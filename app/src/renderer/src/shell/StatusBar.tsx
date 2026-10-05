@@ -4,7 +4,8 @@ import { BarChart3, GitBranch, Headphones, Timer } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { ExtensionStatusItems } from './ExtensionStatusItems'
 import { useShellStore } from '../stores/shellStore'
-import { useProjectStore } from '../stores/projectStore'
+import { useBookScope, useProjectStore } from '../stores/projectStore'
+import { loadBookScoped } from '../stores/bookScopedLoad'
 import { elapsedSeconds, formatDuration, sprintWords, useSprintStore } from '../stores/sprintStore'
 import { SprintPanel } from './SprintPanel'
 import { useSettingsStore } from '../stores/settingsStore'
@@ -260,7 +261,9 @@ export function StatusBar(): React.JSX.Element {
   const backendVersion = useShellStore((s) => s.backendVersion)
   const setMainView = useShellStore((s) => s.setMainView)
   const isLoaded = useProjectStore((s) => s.isLoaded)
-  const projectPath = useProjectStore((s) => s.projectPath)
+  const bookScope = useBookScope()
+  const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
+  const workspaceEpoch = useProjectStore((s) => s.workspaceEpoch)
   const chapters = useProjectStore((s) => s.chapters)
   const plainText = useProjectStore((s) => s.openScenePlainText)
   const language = useSettingsStore((s) => s.view?.effective.autoReplacementLanguage ?? 'en')
@@ -286,24 +289,25 @@ export function StatusBar(): React.JSX.Element {
   // interval thereafter (dashboard/get is comparatively heavy). git/status
   // returns null outside a repository, which hides the git indicator.
   useEffect(() => {
+    if (workspaceBusy) return
+    setOverview(null)
+    setGit(undefined)
+    setOverviewOpen(false)
+    setBreakdown(null)
     if (!isLoaded) {
-      setOverview(null)
-      setGit(undefined)
-      setOverviewOpen(false)
-      setBreakdown(null)
       return
     }
     let active = true
     const load = (): void => {
-      void rpc
-        .request<ProjectOverview>('dashboard/get', [1])
-        .then((d) => {
+      void loadBookScoped(useProjectStore.getState,
+        () => rpc.request<ProjectOverview>('dashboard/get', [1]),
+        (d) => {
           if (active) setOverview(d)
         })
         .catch(() => {})
-      void rpc
-        .request<GitIndicator | null>('git/status')
-        .then((g) => {
+      void loadBookScoped(useProjectStore.getState,
+        () => rpc.request<GitIndicator | null>('git/status'),
+        (g) => {
           if (active) setGit(g)
         })
         .catch(() => {
@@ -316,7 +320,7 @@ export function StatusBar(): React.JSX.Element {
       active = false
       window.clearInterval(id)
     }
-  }, [isLoaded, projectPath])
+  }, [isLoaded, bookScope, workspaceEpoch, workspaceBusy])
 
   const totalWords = chapters.reduce(
     (sum, c) => sum + c.scenes.reduce((s2, sc) => s2 + sc.wordCount, 0),
@@ -335,13 +339,11 @@ export function StatusBar(): React.JSX.Element {
     const next = !overviewOpen
     setOverviewOpen(next)
     if (next) {
-      void rpc
-        .request<ProjectOverview>('dashboard/get', [1])
-        .then(setOverview)
+      void loadBookScoped(useProjectStore.getState,
+        () => rpc.request<ProjectOverview>('dashboard/get', [1]), setOverview)
         .catch(() => {})
-      void rpc
-        .request<ProjectBreakdown>('dashboard/overview')
-        .then(setBreakdown)
+      void loadBookScoped(useProjectStore.getState,
+        () => rpc.request<ProjectBreakdown>('dashboard/overview'), setBreakdown)
         .catch(() => {})
     }
   }
@@ -622,11 +624,13 @@ function AudiobookProgress(): React.JSX.Element | null {
   const { t } = useTranslation()
   const status = useAudiobookStore((s) => s.status)
   const refresh = useAudiobookStore((s) => s.refresh)
+  const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
+  const workspaceEpoch = useProjectStore((s) => s.workspaceEpoch)
 
   useEffect(() => {
     // A render begun before this window opened is still worth showing.
-    void refresh()
-  }, [refresh])
+    if (!workspaceBusy) void refresh()
+  }, [refresh, workspaceBusy, workspaceEpoch])
 
   if (status === null || (status.phase !== 'rendering' && status.phase !== 'packaging')) return null
 

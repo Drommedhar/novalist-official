@@ -195,6 +195,12 @@ The dialog marks the layout you are currently in. Split a pane, close one or dra
 
 The new window runs the real view against the same project, so edits made in it land in the book like any other. It opens on the project the pane came from, and on the same scene when the editor is what you tore out. It has no mode rail and no binder — a torn-off pane is one thing on purpose — but it keeps its pane header, so you can point it at a different view or split it further.
 
+All windows share the active project, book and draft. Switching any of these saves pending edits across the windows before they follow the change. Closing a detached window saves its edits; closing the main window or quitting saves all windows and waits for the configured close-backup attempt. A failed save keeps the windows open so you can resolve it.
+
+Finish or cancel open naming, chapter and scene dialogs before switching the shared workspace. A switch requested from another window is blocked while these dialogs are open, preserving the text you entered and the project or book it belongs to. Try the switch again after resolving the dialog.
+
+If the backend restarts unexpectedly, your open editors keep their unsaved text while Novalist reconnects to the same project, book and draft. If recovery cannot reopen the project, editing stays paused. Make the project folder available again and choose **Retry** in the recovery dialog.
+
 ### The scene-notes dock
 
 Below the editor sits an optional **scene-notes dock**, toggled from **View → Toggle scene notes** or `Ctrl+Shift+N`. It holds the open scene's **Synopsis** and freeform **Notes** side by side, saved when you click away. Drag its top edge to resize it — the height you set is remembered. The dock only appears in the editor.

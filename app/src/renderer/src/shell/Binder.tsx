@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronRight, FileDown, MoreHorizontal, Pin, Plus } from 'lucide-react'
 import { useBookScope, useProjectStore, type ProjectStateDto } from '../stores/projectStore'
@@ -26,6 +26,7 @@ import { useStageStore } from '../stores/stageStore'
 import { useNarrationStore } from '../stores/narrationStore'
 import { openBinderScene } from './binderNavigation'
 import { useTargetStore } from '../stores/targetStore'
+import { loadBookScoped } from '../stores/bookScopedLoad'
 import { SceneBulkBar } from './SceneBulkBar'
 import { PanelResizer } from './PanelResizer'
 
@@ -101,6 +102,8 @@ export function Binder(): React.JSX.Element {
   const setBinderWidth = useShellStore((s) => s.setBinderWidth)
   const projectPath = useProjectStore((s) => s.projectPath)
   const bookScope = useBookScope()
+  const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
+  const workspaceEpoch = useProjectStore((s) => s.workspaceEpoch)
   const [changedIds, setChangedIds] = useState<Set<string>>(new Set())
   const selectedIds = useSelectionStore((s) => s.sceneIds)
   const stages = useStageStore((s) => s.stages)
@@ -119,24 +122,27 @@ export function Binder(): React.JSX.Element {
   // Stages, targets, labels and plotlines all belong to the active book, so
   // this has to follow a book switch and not just a project change.
   useEffect(() => {
-    if (projectPath) {
-      void useStageStore.getState().load()
-      void useTargetStore.getState().load()
+    if (projectPath && !workspaceBusy) {
+      let active = true
+      void useStageStore.getState().load().catch(() => {})
+      void useTargetStore.getState().load().catch(() => {})
       void rpc
         .request<{ key: string; label: string; color: string }[]>('labels/list')
-        .then(setLabelList)
-        .catch(() => setLabelList([]))
+        .then((labels) => { if (active) setLabelList(labels) })
+        .catch(() => { if (active) setLabelList([]) })
       void rpc
         .request<BinderPlotline[]>('binder/plotlines')
-        .then(setPlotlines)
-        .catch(() => setPlotlines([]))
+        .then((lines) => { if (active) setPlotlines(lines) })
+        .catch(() => { if (active) setPlotlines([]) })
+      return () => { active = false }
     }
-  }, [bookScope])
+  }, [bookScope, workspaceBusy])
 
 
   // Poll which scenes have uncommitted Git changes so their rows can be marked
   // in the explorer (matches the desktop change markers). Quiet no-op outside a repo.
   useEffect(() => {
+    if (workspaceBusy) return
     let active = true
     const load = (): void => {
       void rpc
@@ -152,14 +158,14 @@ export function Binder(): React.JSX.Element {
       active = false
       window.clearInterval(id)
     }
-  }, [projectPath])
+  }, [projectPath, workspaceBusy])
   const chapters = useProjectStore((s) => s.chapters)
 
   // Word counts move on every save, so the bars follow the chapter list rather
   // than only refreshing when a target is edited.
   useEffect(() => {
-    if (projectPath) void useTargetStore.getState().load()
-  }, [chapters, projectPath])
+    if (projectPath && !workspaceBusy) void useTargetStore.getState().load().catch(() => {})
+  }, [chapters, projectPath, workspaceBusy])
 
   // A deleted, archived or moved-away scene must leave the selection with it,
   // otherwise the bulk bar keeps offering to act on something that is gone.
@@ -234,17 +240,31 @@ export function Binder(): React.JSX.Element {
     setDrag(null)
   }
   const [menu, setMenu] = useState<MenuState | null>(null)
-  const [archived, setArchived] = useState<ArchivedScene[] | null>(null)
+  const [archiveOpen, setArchiveOpen] = useState(false)
+  const [archived, setArchived] = useState<ArchivedScene[]>([])
   const [trashed, setTrashed] = useState<TrashedChapter[]>([])
   // Where a restored scene lands. Empty means the first chapter, which is what
   // it always used to be - except it was that whether the writer wanted it or
   // not, with no way to say otherwise.
   const [restoreInto, setRestoreInto] = useState('')
 
-  const loadArchived = async (): Promise<void> => {
-    setArchived(await rpc.request<ArchivedScene[]>('scenes/archived'))
-    setTrashed(await rpc.request<TrashedChapter[]>('project/trashedChapters'))
-  }
+  const loadArchived = useCallback((): Promise<void> => loadBookScoped(useProjectStore.getState,
+    () => Promise.all([
+      rpc.request<ArchivedScene[]>('scenes/archived'),
+      rpc.request<TrashedChapter[]>('project/trashedChapters')
+    ]),
+    ([scenes, chapters]) => {
+      setArchived(scenes)
+      setTrashed(chapters)
+    }), [])
+  useEffect(() => {
+    setArchived([])
+    setTrashed([])
+    setRestoreInto('')
+  }, [bookScope, workspaceEpoch])
+  useEffect(() => {
+    if (archiveOpen && !workspaceBusy) void loadArchived().catch(() => {})
+  }, [archiveOpen, bookScope, workspaceEpoch, workspaceBusy, loadArchived])
   const [pending, setPending] = useState<PendingAction | null>(null)
 
   const menuItems = (): ContextMenuItem[] => {
@@ -479,14 +499,10 @@ export function Binder(): React.JSX.Element {
         {
           label: scoped(t('explorer.contextArchive')),
           onClick: () => {
-            void rpc
-              .request('sceneBulk/archive', [targets.map((target) => target.sceneId)])
-              .then(async () => {
-                const state = await rpc.request<import('../stores/projectStore').ProjectStateDto>(
-                  'project/getState'
-                )
-                store.getState().applyState(state)
-                if (archived !== null) void loadArchived()
+            void store.getState()
+              .mutateSceneStructure('sceneBulk/archive', [targets.map((target) => target.sceneId)])
+              .then(() => {
+                if (archiveOpen) void loadArchived()
               })
           }
         },
@@ -1014,11 +1030,11 @@ export function Binder(): React.JSX.Element {
           <div className="binder-archived">
             <button
               className="binder-group-label binder-archived-toggle"
-              onClick={() => (archived === null ? void loadArchived() : setArchived(null))}
+              onClick={() => setArchiveOpen((open) => !open)}
             >
               {t('explorer.archive')}
             </button>
-            {archived !== null && trashed.length > 0 && (
+            {archiveOpen && trashed.length > 0 && (
               <div className="binder-trash-chapters">
                 {trashed.map((chapter) => (
                   <div key={chapter.guid} className="binder-scene-row">
@@ -1062,7 +1078,7 @@ export function Binder(): React.JSX.Element {
                 ))}
               </div>
             )}
-            {archived !== null && archived.length > 0 && chapters.length > 0 && (
+            {archiveOpen && archived.length > 0 && chapters.length > 0 && (
               <label className="binder-restore-target">
                 {t('explorer.restoreInto')}
                 <select
@@ -1082,7 +1098,7 @@ export function Binder(): React.JSX.Element {
                 </select>
               </label>
             )}
-            {archived?.map((scene) => (
+            {archiveOpen && archived.map((scene) => (
               <div key={scene.id} className="binder-scene-row">
                 <span className="binder-scene-title" title={scene.title}>{scene.title}</span>
                 {scene.originChapterTitle && (
@@ -1106,7 +1122,7 @@ export function Binder(): React.JSX.Element {
                 </button>
               </div>
             ))}
-            {archived !== null && archived.length === 0 && trashed.length === 0 && (
+            {archiveOpen && archived.length === 0 && trashed.length === 0 && (
               <div className="binder-placeholder">{t('explorer.archiveEmpty')}</div>
             )}
           </div>
@@ -1280,12 +1296,7 @@ export function Binder(): React.JSX.Element {
           onConfirm={() => {
             const ids = pending.targets.map((target) => target.sceneId)
             setPending(null)
-            void rpc
-              .request<{ state: import('../stores/projectStore').ProjectStateDto }>(
-                'sceneBulk/delete',
-                [ids]
-              )
-              .then((result) => store.getState().applyState(result.state))
+            void store.getState().mutateSceneStructure('sceneBulk/delete', [ids])
           }}
         />
       )}

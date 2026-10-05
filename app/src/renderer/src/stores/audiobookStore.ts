@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
+import { useProjectStore } from './projectStore'
 
 /** How the render is going, or how it ended. */
 export interface AudiobookStatus {
@@ -58,14 +59,21 @@ export const useAudiobookStore = create<AudiobookState>((set, get) => {
   }
 
   const ask = async (): Promise<void> => {
+    const initial = useProjectStore.getState()
+    if (initial.workspaceBusy) return
+    const isCurrent = (): boolean => {
+      const current = useProjectStore.getState()
+      return !current.workspaceBusy && current.workspaceEpoch === initial.workspaceEpoch
+    }
     try {
       const status = await rpc.request<AudiobookStatus>('audiobook/status')
+      if (!isCurrent()) return
       set({ status })
       if (status.phase !== 'rendering' && status.phase !== 'packaging') stopPolling()
     } catch {
-      // A backend that is not there yet, or is restarting. The next tick asks
-      // again; a failed poll is not a failed render.
-      stopPolling()
+      // A rejected poll is not a completed render. Keep an active watcher
+      // alive through transitions or reconnects; a successful terminal status
+      // is what stops it. Even an aborted transition can reject an old token.
     }
   }
 

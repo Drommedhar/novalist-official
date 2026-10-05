@@ -24,6 +24,7 @@ globals are not typed.
 import re
 import sys
 from pathlib import Path
+from html_sources import classic_script_paths
 
 ROOT = Path(__file__).resolve().parent.parent
 BRIDGE = ROOT / "app/src/renderer/src/views/editor/editorBridge.ts"
@@ -73,7 +74,7 @@ def main() -> int:
                 callers.setdefault(name, []).append(
                     str(path.relative_to(ROOT)).replace("\\", "/"))
 
-    html = EDITOR_HTML.read_text(encoding="utf-8", errors="ignore")
+    html = "\n".join(path.read_text(encoding="utf-8") for path in classic_script_paths(EDITOR_HTML))
     # `window.name = ...`, or a function declared at the top level of the
     # script - a classic script's top-level declarations become globals, so
     # both forms are callable from the host. A function nested inside another

@@ -50,6 +50,7 @@ public sealed partial class Workspace : IDisposable
     public IFileService FileService { get; }
     public ProjectService Projects { get; }
     public SettingsService Settings { get; }
+    internal WorkspaceCoordinator? Coordinator { get; set; }
 
     internal async Task<BackupService> GetBackupServiceAsync()
     {
@@ -119,6 +120,7 @@ public sealed partial class Workspace : IDisposable
                 _hostServices.BusyProgressFactory = UiBridge.CreateProgress;
                 _hostServices.WizardLauncher = UiBridge.RunWizardAsync;
                 _hostServices.Picker = UiBridge.PickAsync;
+                _hostServices.CoordinateWorkspace = (reason, action) => Coordinator?.RunAsync(reason, action) ?? action();
                 _extensions = new Extensions.ExtensionManager(Settings, _hostServices, ExtensionsLoaderOverride);
                 _hostServices.ExtensionManager = _extensions;
             }

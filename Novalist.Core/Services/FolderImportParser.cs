@@ -72,7 +72,8 @@ internal sealed class ParsedFolderImport
             var preserved = IsJson ? Content : Source;
             if (!string.IsNullOrWhiteSpace(preserved)) sections.Add(new EntitySection
             {
-                Title = sectionTitle, Content = preserved,
+                Title = sectionTitle,
+                Content = preserved,
                 AiHidden = !IsJson && sections.Any(section => section.AiHidden),
                 ReaderHidden = !IsJson && sections.Any(section => section.ReaderHidden)
             });
@@ -86,22 +87,66 @@ internal sealed partial class FolderImportParser(FolderImportSchema schema)
     private sealed record RawField(string Key, JsonNode? Value, string? Bucket = null, bool AllowExtra = true);
     private static readonly Dictionary<string, string> Aliases = new(StringComparer.Ordinal)
     {
-        ["firstname"] = "name", ["givenname"] = "name", ["vorname"] = "name", ["名字"] = "name", ["名称"] = "name",
-        ["lastname"] = "surname", ["familyname"] = "surname", ["nachname"] = "surname", ["姓氏"] = "surname",
-        ["alias"] = "aliases", ["aliase"] = "aliases", ["别名"] = "aliases",
-        ["geschlecht"] = "gender", ["性别"] = "gender", ["alter"] = "age", ["年龄"] = "age",
-        ["birthday"] = "birthDate", ["dateofbirth"] = "birthDate", ["geburtsdatum"] = "birthDate", ["出生日期"] = "birthDate",
-        ["rolle"] = "role", ["身份"] = "role", ["gruppe"] = "group", ["family"] = "group", ["familie"] = "group", ["团体"] = "group",
-        ["eyecolour"] = "eyeColor", ["augenfarbe"] = "eyeColor", ["瞳色"] = "eyeColor",
-        ["haircolour"] = "hairColor", ["haarfarbe"] = "hairColor", ["发色"] = "hairColor",
-        ["haarlange"] = "hairLength", ["发长"] = "hairLength", ["große"] = "height", ["身高"] = "height",
-        ["statur"] = "build", ["体型"] = "build", ["hautton"] = "skinTone", ["肤色"] = "skinTone",
-        ["besonderemerkmale"] = "distinguishingFeatures", ["显著特征"] = "distinguishingFeatures",
-        ["beschreibung"] = "description", ["描述"] = "description", ["typ"] = "type", ["类型"] = "type",
-        ["parentlocation"] = "parent", ["ubergeordneterort"] = "parent", ["上级地点"] = "parent",
-        ["herkunft"] = "origin", ["来源"] = "origin", ["kategorie"] = "category", ["类别"] = "category",
-        ["tag"] = "tags", ["pointofview"] = "pov", ["viewpoint"] = "pov", ["summary"] = "synopsis", ["zusammenfassung"] = "synopsis",
-        ["template"] = "templateId", ["vorlage"] = "templateId"
+        ["firstname"] = "name",
+        ["givenname"] = "name",
+        ["vorname"] = "name",
+        ["名字"] = "name",
+        ["名称"] = "name",
+        ["lastname"] = "surname",
+        ["familyname"] = "surname",
+        ["nachname"] = "surname",
+        ["姓氏"] = "surname",
+        ["alias"] = "aliases",
+        ["aliase"] = "aliases",
+        ["别名"] = "aliases",
+        ["geschlecht"] = "gender",
+        ["性别"] = "gender",
+        ["alter"] = "age",
+        ["年龄"] = "age",
+        ["birthday"] = "birthDate",
+        ["dateofbirth"] = "birthDate",
+        ["geburtsdatum"] = "birthDate",
+        ["出生日期"] = "birthDate",
+        ["rolle"] = "role",
+        ["身份"] = "role",
+        ["gruppe"] = "group",
+        ["family"] = "group",
+        ["familie"] = "group",
+        ["团体"] = "group",
+        ["eyecolour"] = "eyeColor",
+        ["augenfarbe"] = "eyeColor",
+        ["瞳色"] = "eyeColor",
+        ["haircolour"] = "hairColor",
+        ["haarfarbe"] = "hairColor",
+        ["发色"] = "hairColor",
+        ["haarlange"] = "hairLength",
+        ["发长"] = "hairLength",
+        ["große"] = "height",
+        ["身高"] = "height",
+        ["statur"] = "build",
+        ["体型"] = "build",
+        ["hautton"] = "skinTone",
+        ["肤色"] = "skinTone",
+        ["besonderemerkmale"] = "distinguishingFeatures",
+        ["显著特征"] = "distinguishingFeatures",
+        ["beschreibung"] = "description",
+        ["描述"] = "description",
+        ["typ"] = "type",
+        ["类型"] = "type",
+        ["parentlocation"] = "parent",
+        ["ubergeordneterort"] = "parent",
+        ["上级地点"] = "parent",
+        ["herkunft"] = "origin",
+        ["来源"] = "origin",
+        ["kategorie"] = "category",
+        ["类别"] = "category",
+        ["tag"] = "tags",
+        ["pointofview"] = "pov",
+        ["viewpoint"] = "pov",
+        ["summary"] = "synopsis",
+        ["zusammenfassung"] = "synopsis",
+        ["template"] = "templateId",
+        ["vorlage"] = "templateId"
     };
 
     [GeneratedRegex(@"\A---\n(.*?)\n(?:---|\.\.\.)\s*(?:\n|$)", RegexOptions.Singleline)]
@@ -161,9 +206,15 @@ internal sealed partial class FolderImportParser(FolderImportSchema schema)
                     sections.Add(new EntitySection { Title = heading.Title, Content = heading.Content });
         return new ParsedFolderImport
         {
-            Definition = definition, Title = Text(title) ?? fallback, Content = body, Source = source.Trim(), Values = values,
+            Definition = definition,
+            Title = Text(title) ?? fallback,
+            Content = body,
+            Source = source.Trim(),
+            Values = values,
             Metadata = matter.Success ? matter.Value.Trim() : string.Empty,
-            Tags = ReadTags(values), Headings = sections, Images = target is "scene" or "research" ? [] : images,
+            Tags = ReadTags(values),
+            Headings = sections,
+            Images = target is "scene" or "research" ? [] : images,
             ChapterOverrides = target == "character" ? ReadChapterOverrides(chapters, definition) : []
         };
     }
@@ -192,9 +243,14 @@ internal sealed partial class FolderImportParser(FolderImportSchema schema)
         var values = Bind(raw, definition, explicitKeys: true);
         return new ParsedFolderImport
         {
-            Definition = definition, Title = data[target is "scene" or "research" ? "title" : "name"]!.GetValue<string>(),
-            Content = document["content"]?.GetValue<string>() ?? string.Empty, Source = text, IsJson = true,
-            Values = values, Tags = ReadTags(values), ImageReferences = data["images"]?.Deserialize<List<ImportImageReference>>() ?? []
+            Definition = definition,
+            Title = data[target is "scene" or "research" ? "title" : "name"]!.GetValue<string>(),
+            Content = document["content"]?.GetValue<string>() ?? string.Empty,
+            Source = text,
+            IsJson = true,
+            Values = values,
+            Tags = ReadTags(values),
+            ImageReferences = data["images"]?.Deserialize<List<ImportImageReference>>() ?? []
         };
     }
 
@@ -402,8 +458,11 @@ internal sealed partial class FolderImportParser(FolderImportSchema schema)
             if (section is "relationships" or "beziehungen")
             {
                 if (Label().Match(line) is { Success: true } relationship)
-                    relationships.Add(new JsonObject { ["role"] = relationship.Groups["key"].Value.Trim(),
-                        ["target"] = relationship.Groups["value"].Value.Trim().Trim('[', ']') });
+                    relationships.Add(new JsonObject
+                    {
+                        ["role"] = relationship.Groups["key"].Value.Trim(),
+                        ["target"] = relationship.Groups["value"].Value.Trim().Trim('[', ']')
+                    });
                 continue;
             }
             if (line.StartsWith('|'))

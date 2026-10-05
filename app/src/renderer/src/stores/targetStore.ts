@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
+import { useProjectStore } from './projectStore'
+import { loadBookScoped } from './bookScopedLoad'
 
 export interface WordTarget {
   kind: 'scene' | 'chapter' | 'act'
@@ -31,9 +33,9 @@ interface TargetState {
 export const useTargetStore = create<TargetState>((set, get) => ({
   targets: [],
 
-  load: async () => {
-    set({ targets: await rpc.request<WordTarget[]>('targets/all') })
-  },
+  load: () => loadBookScoped(useProjectStore.getState,
+    () => rpc.request<WordTarget[]>('targets/all'),
+    (targets) => set({ targets })),
 
   setScene: async (chapterGuid, sceneId, target) => {
     set({ targets: await rpc.request<WordTarget[]>('targets/setScene', [chapterGuid, sceneId, target]) })

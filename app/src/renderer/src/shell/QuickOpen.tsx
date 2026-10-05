@@ -42,19 +42,21 @@ export function QuickOpen({ onClose }: { onClose(): void }): React.JSX.Element {
   const [index, setIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const requestSeq = useRef(0)
+  const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
+  const workspaceEpoch = useProjectStore((s) => s.workspaceEpoch)
 
   useEffect(() => inputRef.current?.focus(), [])
 
   // Debounced query: searching scans every scene file, so we wait for a pause.
   useEffect(() => {
+    const seq = ++requestSeq.current
     const needle = query.trim()
-    if (needle.length < 2) {
+    if (workspaceBusy || needle.length < 2) {
       setHits([])
       setLoading(false)
       return
     }
     setLoading(true)
-    const seq = ++requestSeq.current
     const handle = window.setTimeout(() => {
       void rpc
         .request<GlobalSearchHit[]>('search/global', [needle, 20])
@@ -69,8 +71,8 @@ export function QuickOpen({ onClose }: { onClose(): void }): React.JSX.Element {
           if (seq === requestSeq.current) setLoading(false)
         })
     }, 250)
-    return () => window.clearTimeout(handle)
-  }, [query])
+    return () => { window.clearTimeout(handle); requestSeq.current++ }
+  }, [query, workspaceBusy, workspaceEpoch])
 
   // Flatten into render order, keeping a flat index for keyboard navigation.
   const ordered = useMemo(() => {

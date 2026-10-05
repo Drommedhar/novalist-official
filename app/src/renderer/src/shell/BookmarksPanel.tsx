@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Bookmark as BookmarkIcon, ChevronRight, Trash2 } from 'lucide-react'
 import { rpc } from '../rpc/client'
-import { useProjectStore } from '../stores/projectStore'
+import { useBookScope, useProjectStore } from '../stores/projectStore'
+import { loadBookScoped } from '../stores/bookScopedLoad'
 import { useShellStore } from '../stores/shellStore'
 import { useWikiStore } from '../stores/wikiStore'
 import { openBinderScene } from './binderNavigation'
@@ -35,14 +36,19 @@ export function BookmarksPanel(): React.JSX.Element {
   // scenes to draw a list nobody has expanded is thirty file reads for nothing.
   const [previews, setPreviews] = useState<Record<string, string>>({})
   const [open, setOpen] = useState<Set<string>>(new Set())
-  const projectPath = useProjectStore((s) => s.projectPath)
+  const bookScope = useBookScope()
+  const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
 
   useEffect(() => {
-    void rpc
-      .request<BookmarkDto[]>('bookmarks/list')
-      .then(setBookmarks)
-      .catch(() => setBookmarks([]))
-  }, [projectPath])
+    let active = true
+    void loadBookScoped(useProjectStore.getState,
+      () => rpc.request<BookmarkDto[]>('bookmarks/list'),
+      (items) => { if (active) setBookmarks(items) })
+      .catch(() => { if (active) setBookmarks([]) })
+    setPreviews({})
+    setOpen(new Set())
+    return () => { active = false }
+  }, [bookScope, workspaceBusy])
 
   const go = (bookmark: BookmarkDto): void => {
     switch (bookmark.kind) {
@@ -89,9 +95,9 @@ export function BookmarksPanel(): React.JSX.Element {
       else {
         next.add(id)
         if (previews[id] === undefined) {
-          void rpc
-            .request<string>('bookmarks/preview', [id])
-            .then((text) => setPreviews((p) => ({ ...p, [id]: text })))
+          void loadBookScoped(useProjectStore.getState,
+            () => rpc.request<string>('bookmarks/preview', [id]),
+            (text) => setPreviews((p) => ({ ...p, [id]: text })))
             .catch(() => setPreviews((p) => ({ ...p, [id]: '' })))
         }
       }
@@ -100,7 +106,8 @@ export function BookmarksPanel(): React.JSX.Element {
   }
 
   const remove = (id: string): void => {
-    void rpc.request<BookmarkDto[]>('bookmarks/delete', [id]).then(setBookmarks)
+    void loadBookScoped(useProjectStore.getState,
+      () => rpc.request<BookmarkDto[]>('bookmarks/delete', [id]), setBookmarks)
   }
 
   if (bookmarks.length === 0) {

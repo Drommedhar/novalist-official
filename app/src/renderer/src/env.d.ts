@@ -145,6 +145,11 @@ interface Window {
     hasDetachedPanes(): Promise<boolean>
     downloadAppUpdate(info: AppUpdate): Promise<AppUpdateDownloadResult>
     launchAppUpdate(token: string): Promise<void>
+    onBeforeClose?(handler: (stage: import('../../shared/workspaceProtocol').CloseStage) => Promise<void>): () => void
+    forwardMainCommand?(command: string): void
+    retryWorkspaceRecovery?(): Promise<void>
+    workspaceSnapshot?(): Promise<import('../../shared/workspaceProtocol').WorkspaceSnapshot>
+    onWorkspaceEvent?(handler: (event: import('../../shared/workspaceProtocol').WorkspaceEvent) => Promise<void> | void): () => void
     updatesChecked(): void
     /** Repaints the system window controls to match the theme. Desktop only;
      *  a no-op on macOS and on the mobile build. */

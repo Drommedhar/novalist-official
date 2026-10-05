@@ -365,23 +365,19 @@ function ManuscriptFrame(): React.JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useEffect(
-    () =>
-      registerPendingWrite(async () => {
-        const win = iframeRef.current?.contentWindow as ManuscriptWindow | null
-        const store = useManuscriptStore.getState()
-        for (const change of win?.flushPendingChanges() ?? []) {
-          store.onSceneContentChanged(
-            change.sceneId,
-            change.html,
-            change.plainText,
-            change.wordCount
-          )
-        }
-        await store.flushPendingSave()
-      }),
-    []
-  )
+  useEffect(() => {
+    const capture = (): void => {
+      const win = iframeRef.current?.contentWindow as ManuscriptWindow | null
+      const store = useManuscriptStore.getState()
+      for (const change of win?.flushPendingChanges() ?? []) {
+        store.onSceneContentChanged(change.sceneId, change.html, change.plainText, change.wordCount)
+      }
+    }
+    return registerPendingWrite(async () => {
+      capture()
+      await useManuscriptStore.getState().flushPendingSave()
+    }, capture)
+  }, [])
 
   // The refs make the iframe's one-shot ready message use the newest snapshot
   // rather than the empty arrays captured on the component's first render.

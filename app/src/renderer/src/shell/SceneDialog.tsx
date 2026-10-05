@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useWorkspaceDialogGuard } from './useWorkspaceDialogGuard'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import type { SceneEditDto } from './sceneEdit'
@@ -34,6 +35,7 @@ export function SceneDialog({
   defaultChapterGuid,
   onClose
 }: SceneDialogProps): React.JSX.Element {
+  useWorkspaceDialogGuard()
   const { t } = useTranslation()
   const chapters = useProjectStore((s) => s.chapters)
   const isEdit = !!edit

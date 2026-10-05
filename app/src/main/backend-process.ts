@@ -4,18 +4,47 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Readable, Writable } from 'node:stream'
 import type { MessagePortMain } from 'electron'
+import { BackendRouter } from './backend-router'
+import type { RpcMessage } from '../shared/rpcFraming'
 
 type BackendChild = ChildProcessByStdio<Writable, Readable, Readable>
 
 /**
  * Spawns and supervises the Novalist.Backend process. stdout carries LSP-framed
- * JSON-RPC and is relayed byte-for-byte to the renderer's MessagePort; stderr is
- * mirrored to the main-process console for diagnostics.
+ * JSON-RPC, with complete messages routed to the window that owns them.
+ * stderr is mirrored to the main-process console for diagnostics.
  */
 export class BackendProcess {
   private child: BackendChild | null = null
-  private port: MessagePortMain | null = null
   private disposed = false
+  private notificationHandler: (message: RpcMessage) => boolean = () => false
+  private restartHandler: () => Promise<void> = async () => {}
+  private recovery: Promise<void> | null = null
+  private needsRecovery = false
+  private needsResync = false
+  private resyncHandler: () => Promise<void> = async () => {}
+  readonly router = new BackendRouter(
+    (frame) => {
+      if (!this.child || this.child.stdin.destroyed) throw new Error('Backend is not connected.')
+      this.child.stdin.write(Buffer.from(frame))
+    },
+    (message) => this.notificationHandler(message)
+  )
+
+  onNotification(handler: (message: RpcMessage) => boolean): void {
+    this.notificationHandler = handler
+  }
+
+  onRestart(handler: () => Promise<void>): void {
+    this.restartHandler = handler
+  }
+
+  onResync(handler: () => Promise<void>): void { this.resyncHandler = handler }
+
+  requireResync(error: string): void {
+    this.needsResync = true
+    this.router.pauseForResync(error)
+  }
 
   start(): void {
     const exe = resolveBackendPath()
@@ -62,37 +91,73 @@ export class BackendProcess {
     })
 
     child.stdout.on('data', (chunk: Buffer) => {
-      this.port?.postMessage(chunk)
+      if (this.child !== child) return
+      try {
+        this.router.receiveBackend(chunk)
+      } catch {
+        // A broken frame cannot be handed to a new client halfway through.
+        console.error('[backend] invalid RPC frame; restarting connection')
+        child.kill()
+      }
     })
     child.stderr.on('data', (chunk: Buffer) => {
       console.error('[backend]', chunk.toString().trimEnd())
     })
     child.on('exit', (code) => {
+      if (this.child !== child) return
       console.error(`[backend] exited with code ${code}`)
       this.child = null
       if (!this.disposed) {
         // Supervise: restart and tell the renderer to re-attach and re-hydrate.
+        this.router.beginRecovery()
+        this.needsRecovery = true
+        this.recovery = null
         this.start()
-        this.port?.postMessage({ novalistControl: 'backend-restarted' })
+        void this.recover().catch(() => {})
       }
     })
   }
 
   /** Attaches the renderer-facing MessagePort and begins relaying frames. */
-  attachPort(port: MessagePortMain): void {
-    this.port?.close()
-    this.port = port
+  attachPort(owner: number, port: MessagePortMain): void {
+    this.router.attach(owner, port)
     port.on('message', (event) => {
       const data = event.data as Uint8Array
-      this.child?.stdin.write(Buffer.from(data))
+      this.router.receive(owner, port, data)
     })
+    port.on('close', () => this.router.detach(owner, port))
     port.start()
+  }
+
+  detachClient(owner: number): void {
+    this.router.detach(owner)
+    void this.router.request('workspace/clientClosed', [String(owner)]).catch(() => {})
+  }
+
+  recover(): Promise<void> {
+    if (this.recovery) return this.recovery
+    if (!this.needsRecovery && !this.needsResync) return Promise.resolve()
+    const operation = (this.needsRecovery ? this.restartHandler() : this.resyncHandler()).then(() => {
+      if (this.recovery !== operation) return
+      this.needsRecovery = false
+      this.needsResync = false
+      this.router.finishRecovery()
+    }).catch((error) => {
+      if (this.recovery === operation) this.router.failRecovery(error instanceof Error ? error.message : String(error))
+      throw error
+    }).finally(() => { if (this.recovery === operation) this.recovery = null })
+    this.recovery = operation
+    return operation
+  }
+
+  retryRecovery(): Promise<void> {
+    if (!this.needsRecovery && !this.needsResync) this.requireResync('The workspace connection is being refreshed.')
+    return this.recover()
   }
 
   dispose(): void {
     this.disposed = true
-    this.port?.close()
-    this.port = null
+    this.router.dispose()
     this.child?.kill()
     this.child = null
   }

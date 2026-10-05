@@ -360,7 +360,8 @@ public sealed partial class ExtensionGalleryService : IExtensionGalleryService
                 var destinationPath = Path.GetFullPath(Path.Combine(targetDir, zipEntry.FullName));
 
                 // Prevent path traversal attacks
-                if (!destinationPath.StartsWith(Path.GetFullPath(targetDir), StringComparison.OrdinalIgnoreCase))
+                if (!destinationPath.StartsWith(Path.TrimEndingDirectorySeparator(Path.GetFullPath(targetDir)) + Path.DirectorySeparatorChar,
+                        OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
                     throw new InvalidOperationException($"ZIP entry attempts path traversal: {zipEntry.FullName}");
 
                 // Ensure subdirectory exists

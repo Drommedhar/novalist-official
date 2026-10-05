@@ -65,6 +65,15 @@ function budgetClass(value: number, limit: number): string {
  * writer is working against. Limits warn, they never block typing.
  */
 export function ExposeView(): React.JSX.Element {
+  const projectPath = useProjectStore((s) => s.projectPath)
+  const bookId = useProjectStore((s) => s.activeBookId)
+  return <ExposeEditor key={`${projectPath}:${bookId}`} projectPath={projectPath} bookId={bookId} />
+}
+
+function ExposeEditor({ projectPath, bookId }: {
+  projectPath: string | null
+  bookId: string | null
+}): React.JSX.Element {
   const { t, i18n } = useTranslation()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const editorRef = useRef<EditorWindow | null>(null)
@@ -78,6 +87,9 @@ export function ExposeView(): React.JSX.Element {
   const [pageLimitText, setPageLimitText] = useState('')
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<string | null>(null)
+  const [loaded, setLoaded] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const loadedRef = useRef(false)
   // Style of the paragraph the caret sits in, reported by the editor.
   const [paragraphStyle, setParagraphStyle] = useState('')
   // The HTML last pushed into (or reported by) the iframe. Guards against
@@ -85,6 +97,13 @@ export function ExposeView(): React.JSX.Element {
   const currentHtmlRef = useRef('')
   const measureTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const ownsBook = (): boolean => {
+    const project = useProjectStore.getState()
+    return project.projectPath === projectPath && project.activeBookId === bookId
+  }
+  const saveHtml = (html: string): Promise<void> =>
+    ownsBook() ? rpc.request('expose/save', [html]) : Promise.resolve()
 
   const applyLimits = (next: ExposeState): void => {
     setCharLimitText(next.charLimit > 0 ? String(next.charLimit) : '')
@@ -94,12 +113,19 @@ export function ExposeView(): React.JSX.Element {
   // Load once; the iframe picks the content up on its ready handshake, or here
   // when it booted first.
   useEffect(() => {
-    void rpc.request<ExposeState>('expose/get').then((loaded) => {
-      setState(loaded)
-      applyLimits(loaded)
-      currentHtmlRef.current = loaded.html
-      editorRef.current?.setContent(loaded.html)
+    let alive = true
+    void rpc.request<ExposeState>('expose/get').then((document) => {
+      if (!alive) return
+      setState(document)
+      applyLimits(document)
+      currentHtmlRef.current = document.html
+      editorRef.current?.setContent(document.html)
+      loadedRef.current = true
+      setLoaded(true)
+    }).catch((error) => {
+      if (alive) setLoadError(error instanceof Error ? error.message : String(error))
     })
+    return () => { alive = false }
   }, [])
 
   // Flush a pending save when the view is left mid-edit.
@@ -109,7 +135,7 @@ export function ExposeView(): React.JSX.Element {
       if (saveTimer.current) {
         clearTimeout(saveTimer.current)
         const html = currentHtmlRef.current
-        retainPendingWrite(EXPOSE_WRITE_KEY, () => rpc.request('expose/save', [html]))
+        retainPendingWrite(EXPOSE_WRITE_KEY, () => saveHtml(html))
       }
     }
   }, [])
@@ -117,6 +143,7 @@ export function ExposeView(): React.JSX.Element {
   useEffect(
     () =>
       registerPendingWrite(async () => {
+        if (!loadedRef.current || !ownsBook()) return
         const live = editorRef.current
         if (!live && !saveTimer.current) return
         live?.flushPendingContentChange()
@@ -124,7 +151,7 @@ export function ExposeView(): React.JSX.Element {
         if (saveTimer.current) clearTimeout(saveTimer.current)
         saveTimer.current = null
         const html = currentHtmlRef.current
-        await persistPendingWrite(EXPOSE_WRITE_KEY, () => rpc.request('expose/save', [html]))
+        await persistPendingWrite(EXPOSE_WRITE_KEY, () => saveHtml(html))
       }),
     []
   )
@@ -168,6 +195,7 @@ export function ExposeView(): React.JSX.Element {
           break
         }
         case 'contentChanged': {
+          if (!loadedRef.current || !ownsBook()) break
           const html = String(message.html ?? '')
           currentHtmlRef.current = html
           if (measureTimer.current) clearTimeout(measureTimer.current)
@@ -184,7 +212,7 @@ export function ExposeView(): React.JSX.Element {
           if (saveTimer.current) clearTimeout(saveTimer.current)
           saveTimer.current = setTimeout(() => {
             saveTimer.current = null
-            retainPendingWrite(EXPOSE_WRITE_KEY, () => rpc.request('expose/save', [html]))
+            retainPendingWrite(EXPOSE_WRITE_KEY, () => saveHtml(html))
           }, SAVE_DELAY_MS)
           break
         }
@@ -225,6 +253,7 @@ export function ExposeView(): React.JSX.Element {
   }, [i18n.language])
 
   const commitLimits = (): void => {
+    if (!loadedRef.current || !ownsBook()) return
     const chars = Math.max(0, Number.parseInt(charLimitText, 10) || 0)
     const pages = Math.max(0, Number.parseInt(pageLimitText, 10) || 0)
     if (chars === state.charLimit && pages === state.pageLimit) return
@@ -237,16 +266,21 @@ export function ExposeView(): React.JSX.Element {
   const runExport = async (): Promise<void> => {
     const name = bookTitle ? `${bookTitle} - Expose` : 'Expose'
     const output = await window.novalist.saveFile(`${name}.docx`)
-    if (!output) return
+    if (!output || !loadedRef.current || !ownsBook()) return
     setBusy(true)
     setResult(null)
     try {
       // Export reads the saved file, so land any pending edit first.
+      const live = editorRef.current
+      live?.flushPendingContentChange()
+      const html = live?.getContent() ?? currentHtmlRef.current
+      currentHtmlRef.current = html
       if (saveTimer.current) {
         clearTimeout(saveTimer.current)
         saveTimer.current = null
       }
-      await rpc.request('expose/save', [currentHtmlRef.current])
+      await persistPendingWrite(EXPOSE_WRITE_KEY, () => saveHtml(html))
+      if (!ownsBook()) return
       const exported = await rpc.request<{ success: boolean }>('expose/export', [output, bookTitle])
       setResult(exported.success ? t('export.exportSuccess') : t('expose.exportEmpty'))
     } catch {
@@ -265,8 +299,10 @@ export function ExposeView(): React.JSX.Element {
       ? t('expose.pagesOfLimit', { value: state.pages, limit: state.pageLimit })
       : t('expose.pages', { value: state.pages })
 
+  if (loadError) return <p role="alert" className="inspector-meta expose-result">{loadError}</p>
+
   return (
-    <div className="expose-view">
+    <div className="expose-view" inert={!loaded} aria-busy={!loaded}>
       <div className="expose-bar">
         <h1 className="expose-heading">{t('shell.view.expose')}</h1>
         <div className="expose-styles" role="group" aria-label={t('expose.styleGroup')}>
@@ -277,6 +313,7 @@ export function ExposeView(): React.JSX.Element {
               className={`expose-style-btn${paragraphStyle === style.id ? ' active' : ''}`}
               data-style={style.id || 'body'}
               aria-pressed={paragraphStyle === style.id}
+              disabled={!loaded}
               onClick={() => editorRef.current?.setParagraphStyle(style.id)}
             >
               {t(style.labelKey)}
@@ -287,7 +324,7 @@ export function ExposeView(): React.JSX.Element {
           {' '}
           <button
             className="dialog-button primary expose-export"
-            disabled={busy}
+            disabled={!loaded || busy}
             onClick={() => void runExport()}
           >
             <FileDown size={15} strokeWidth={2} />
@@ -324,6 +361,7 @@ export function ExposeView(): React.JSX.Element {
                 className="dialog-input expose-limit-input"
                 type="number"
                 min={0}
+                disabled={!loaded}
                 value={charLimitText}
                 placeholder={t('expose.noLimit')}
                 onChange={(e) => setCharLimitText(e.target.value)}
@@ -337,6 +375,7 @@ export function ExposeView(): React.JSX.Element {
                 className="dialog-input expose-limit-input"
                 type="number"
                 min={0}
+                disabled={!loaded}
                 value={pageLimitText}
                 placeholder={t('expose.noLimit')}
                 onChange={(e) => setPageLimitText(e.target.value)}
