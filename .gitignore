@@ -62,8 +62,15 @@ tests/DCov/
 tests/DCovHtml/
 tests/DCovTxt/
 .vs
-docs/plans
 .dual-graph/
+
+# Local planning, audits, and design artifacts
+/docs/plans/
+/docs/audits/
+/docs/design/
+/docs/images/
+/docs/native-dictation-handoff.md
+/ci.pdf
 
 # Electron app
 app/node_modules/
