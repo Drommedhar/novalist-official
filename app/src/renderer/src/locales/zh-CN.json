@@ -2584,6 +2584,9 @@
     "seedKeepIt": "使用此种子"
   },
   "shell": {
+    "closingWindow": "正在关闭窗口…",
+    "savingBeforeClose": "正在保存更改，完成后将关闭窗口…",
+    "backupBeforeClose": "正在创建备份，完成后将关闭窗口…",
     "toggleBinder": "切换项目栏",
     "toggleSidebar": "切换边栏",
     "toggleInspector": "切换检查器",

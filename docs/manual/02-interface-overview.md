@@ -177,7 +177,7 @@ The main area can be split into as many **panes** as you have room for, each sho
 - **Choose what a pane shows** from its **header**: the pane's name (top left of the pane) is a menu of every view, grouped the way the modes group them, with the **Editor** included. A pane appears with a header as soon as the window holds more than one; a single-pane window looks as it always did.
 - **Resize** by dragging the divider between two panes.
 - **Close** a pane from **View → Close pane** or `Ctrl+Alt+W`, or with the `×` in its header. The last pane always stays.
-- The **active pane** is outlined. Everything that changes a view — the mode panel, the **Go** menu, the command palette, a link in a panel — lands there, and clicking anywhere inside a pane makes it the active one.
+- The **active pane** is outlined. Everything that changes a view — the mode panel, the **Go** menu, the command palette, a link in a panel — lands there, and clicking anywhere inside a pane makes it the active one. The left navigation and scene list follow the focused pane; the scene list appears for writing views.
 
 A pane split off the editor starts empty and waits for a scene: click one in the binder and it opens there. Two editor panes are two independent scenes, each with its own [tab strip](05-editor.md#scene-tabs) and its own auto-save.
 
@@ -195,7 +195,7 @@ The dialog marks the layout you are currently in. Split a pane, close one or dra
 
 The new window runs the real view against the same project, so edits made in it land in the book like any other. It opens on the project the pane came from, and on the same scene when the editor is what you tore out. It has no mode rail and no binder — a torn-off pane is one thing on purpose — but it keeps its pane header, so you can point it at a different view or split it further.
 
-All windows share the active project, book and draft. Switching any of these saves pending edits across the windows before they follow the change. Closing a detached window saves its edits; closing the main window or quitting saves all windows and waits for the configured close-backup attempt. A failed save keeps the windows open so you can resolve it.
+All windows share the active project, book and draft. Switching any of these saves pending edits across the windows before they follow the change. Closing a detached window saves its edits; closing the main window or quitting saves all windows and waits for the configured close-backup attempt. A closing message appears while this runs, and the affected windows stop accepting clicks and typing. A failed save keeps the windows open and restores interaction so you can resolve it.
 
 Finish or cancel open naming, chapter and scene dialogs before switching the shared workspace. A switch requested from another window is blocked while these dialogs are open, preserving the text you entered and the project or book it belongs to. Try the switch again after resolving the dialog.
 

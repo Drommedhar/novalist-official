@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
 import i18n from '../i18n'
 import { rpc } from '../rpc/client'
@@ -11,6 +11,8 @@ import { useHostBridgeStore } from '../stores/hostBridgeStore'
 import { hasWorkspaceDialogDraft } from './useWorkspaceDialogGuard'
 import { clearCloseBackupHandledForQuit, createCloseBackup, markCloseBackupHandledForQuit } from './useBackupScheduler'
 import { setHotkeysEnabled } from './hotkeys'
+
+export type WindowCloseStage = 'flush' | 'backup'
 
 /** Every window drains its own surfaces; the main process owns the global
  * transaction and does not let one successful window stand in for another. */
@@ -66,21 +68,25 @@ export async function loadWorkspaceSnapshot(): Promise<void> {
   reportEditingScenes(true)
 }
 
-export function useWorkspaceWindow(): void {
+export function useWorkspaceWindow(): WindowCloseStage | null {
+  const [closeStage, setCloseStage] = useState<WindowCloseStage | null>(null)
   useEffect(() => {
     let workspaceToken: string | null = null
     let workspaceReason = ''
     let closing = false
-    const lock = (): void => {
+    const lock = (stage?: WindowCloseStage): void => {
       setHotkeysEnabled(false)
-      document.querySelector('.app-shell')?.setAttribute('inert', '')
-      flushSync(() => useProjectStore.setState({ workspaceBusy: true }))
+      document.querySelector('.shell, .app-shell')?.setAttribute('inert', '')
+      flushSync(() => {
+        if (stage) setCloseStage(stage)
+        useProjectStore.setState({ workspaceBusy: true })
+      })
     }
     const resume = (): void => {
       if (workspaceToken || closing || useProjectStore.getState().workspaceRecovering) return
       flushSync(() => useProjectStore.setState({ workspaceBusy: false, workspaceSuspended: false }))
       const state = useProjectStore.getState()
-      if (!state.changingSceneStructure && !state.closingProject) document.querySelector('.app-shell')?.removeAttribute('inert')
+      if (!state.changingSceneStructure && !state.closingProject) document.querySelector('.shell, .app-shell')?.removeAttribute('inert')
       reportEditingScenes(true)
     }
     const fail = (error: unknown): never => {
@@ -134,6 +140,7 @@ export function useWorkspaceWindow(): void {
     const stopClose = window.novalist.onBeforeClose?.(async (stage) => {
       if (stage === 'abort') {
         closing = false
+        flushSync(() => setCloseStage(null))
         clearCloseBackupHandledForQuit()
         resume()
         return
@@ -143,7 +150,7 @@ export function useWorkspaceWindow(): void {
           throw new Error(i18n.t('update.workspaceBusy'))
         }
         closing = true
-        lock()
+        lock(stage)
         if (stage === 'flush') await suspend()
         else {
           await createCloseBackup()
@@ -155,10 +162,12 @@ export function useWorkspaceWindow(): void {
     const stopRecovery = rpc.onRecovery((error) => {
       workspaceToken = null
       closing = false
+      setCloseStage(null)
       lock()
       useProjectStore.setState({ workspaceRecovering: true, workspaceRecoveryError: error ?? null, workspaceTransitionToken: null })
       capturePendingWrites()
     })
     return () => { stopWorkspace?.(); stopClose?.(); stopRecovery() }
   }, [])
+  return closeStage
 }

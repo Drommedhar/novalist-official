@@ -847,6 +847,17 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
     const iframe = iframeRef.current
     if (!iframe) return
 
+    const activatePane = (): void => {
+      // Iframe focus and pointer events never reach PaneTree's capture handlers.
+      // A queued message must not reclaim a pane after focus has moved elsewhere.
+      // Chromium can retain the previous iframe as the parent's activeElement;
+      // the child document reports which editor actually owns keyboard focus.
+      const shell = useShellStore.getState()
+      if (iframe.contentDocument?.hasFocus() && shell.activePaneId !== pane) {
+        shell.setActivePane(pane)
+      }
+    }
+
     const showHoverCard = (
       hit: { id: string; type: string },
       x: number,
@@ -1174,7 +1185,12 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           peekRef.current.scheduleHide()
           break
         }
+        case 'focused': {
+          activatePane()
+          break
+        }
         case 'pointerPressed': {
+          activatePane()
           // A click in the editor dismisses the card unless it is pinned.
           peekRef.current.hide()
           break

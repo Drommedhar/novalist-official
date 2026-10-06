@@ -557,6 +557,8 @@ test('installer launch failure stays visible and leaves the app running', async 
     await h.page.getByRole('button', { name: 'Install and restart' }).click()
 
     await expect(h.page.getByRole('alert')).toContainText('installer launch was blocked')
+    await expect(h.page.locator('.window-closing-dialog')).toHaveCount(0)
+    await expect(h.page.locator('.shell')).not.toHaveAttribute('inert')
     await expect(download).toBeEnabled()
     const probe = await h.app.evaluate(() => {
       const root = globalThis as typeof globalThis & { __updateProbe: UpdateProbe }
@@ -567,6 +569,9 @@ test('installer launch failure stays visible and leaves the app running', async 
     })
     expect(basename(probe.openedPath ?? '')).toBe(assetName)
     expect(probe.quitCalls).toBe(0)
+    await h.page.getByRole('button', { name: 'Later', exact: true }).click()
+    await h.page.locator('.mode-rail-settings').click()
+    expect(await h.page.evaluate(() => window.novalistStores.shell.getState().mainView)).toBe('settings')
   } finally {
     await restoreUpdateProbe(h)
     await h.close()

@@ -2557,6 +2557,9 @@
     "seedKeepIt": "Diesen Startwert verwenden"
   },
   "shell": {
+    "closingWindow": "Fenster wird geschlossen…",
+    "savingBeforeClose": "Änderungen werden vor dem Schließen gespeichert…",
+    "backupBeforeClose": "Sicherung wird vor dem Schließen erstellt…",
     "toggleBinder": "Binder umschalten",
     "toggleSidebar": "Seitenleiste umschalten",
     "toggleInspector": "Inspektor umschalten",

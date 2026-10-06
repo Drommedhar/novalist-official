@@ -1,0 +1,11 @@
+.window-closing-dialog {
+  margin: auto;
+  color: var(--nl-text);
+  border: var(--nl-rule-width) solid var(--nl-border-control);
+  cursor: progress;
+}
+
+.window-closing-dialog::backdrop {
+  background: var(--nl-scrim);
+  cursor: progress;
+}

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { modeOf } from '../shell/modes'
 import {
   BINDER_MAX,
   BINDER_MIN,
@@ -111,6 +112,7 @@ export const useLayoutStore = create<LayoutState>((set, get) => ({
     const shell = useShellStore.getState()
     useShellStore.setState({
       mainView: layout.mainView,
+      mode: modeOf(layout.mainView) ?? shell.mode,
       // The content area is a tree of panes and the main area renders that tree,
       // so setting mainView alone restored a label and left the screen showing
       // whatever it already was.

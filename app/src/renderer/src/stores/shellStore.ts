@@ -668,6 +668,16 @@ function persistLayouts(layouts: SavedLayout[]): void {
 const storedLayouts = readLayouts()
 const initialPanes = newLeaf('write')
 
+/** The active pane's view and the navigation beside it must change together. */
+function viewState(
+  state: Pick<ShellState, 'mode'>,
+  mainView: MainView
+): Pick<ShellState, 'mainView' | 'mode'> {
+  const mode = modeOf(mainView)
+  if (mode) lastInMode[mode] = mainView
+  return { mainView, mode: mode ?? state.mode }
+}
+
 /**
  * Put a view in front of the writer.
  *
@@ -685,12 +695,11 @@ function showView(
   'mainView' | 'mode' | 'extView' | 'panes' | 'binderOverlayOpen' | 'inspectorOverlayOpen'
 > {
   return {
-    mainView,
     // A view carries its mode with it, so a deep link, a hotkey or the palette
     // lands the writer in the workspace that view belongs to rather than
     // leaving the rail pointing somewhere they no longer are. Dashboard,
     // Settings and About belong to no mode and leave the last one standing.
-    mode: modeOf(mainView) ?? state.mode,
+    ...viewState(state, mainView),
     extView: null,
     panes: setPaneViewIn(state.panes, state.activePaneId, mainView),
     binderOverlayOpen: false,
@@ -822,11 +831,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
 
   setMainView: (mainView) =>
     get().guardLeave(() =>
-      set((s) => {
-        const mode = modeOf(mainView)
-        if (mode) lastInMode[mode] = mainView
-        return showView(s, mainView)
-      })
+      set((s) => showView(s, mainView))
     ),
 
   setMode: (mode) =>
@@ -855,8 +860,8 @@ export const useShellStore = create<ShellState>((set, get) => ({
     set((s) => {
       const pane = findPane(s.panes, activePaneId)
       return pane && pane.kind === 'leaf'
-        ? { activePaneId, mainView: pane.view }
-        : { activePaneId }
+        ? { activePaneId, ...viewState(s, pane.view) }
+        : {}
     }),
 
   setPaneView: (id, view) =>
@@ -867,7 +872,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
         panes: setPaneViewIn(s.panes, id, view),
         // The label the toolbar and the palette read follows the pane the writer
         // is in, so retargeting some other pane must not move it.
-        ...(id === s.activePaneId ? { mainView: view, extView: null } : {})
+        ...(id === s.activePaneId ? { ...viewState(s, view), extView: null } : {})
       }
     }),
 
@@ -878,8 +883,12 @@ export const useShellStore = create<ShellState>((set, get) => ({
     }),
 
   splitPaneById: (id, direction) => {
-    const { root, created } = splitPane(get().panes, id, direction)
-    if (created) set({ panes: root, activePaneId: created })
+    const state = get()
+    const { root, created } = splitPane(state.panes, id, direction)
+    const pane = created && findPane(root, created)
+    if (pane && pane.kind === 'leaf') {
+      set({ panes: root, activePaneId: pane.id, ...viewState(state, pane.view) })
+    }
     return created
   },
 
@@ -896,7 +905,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
       // one leaves you where you were.
       if (id !== s.activePaneId && findPane(root, s.activePaneId)) return { panes: root }
       const first = paneLeaves(root)[0]
-      return { panes: root, activePaneId: first.id, mainView: first.view }
+      return { panes: root, activePaneId: first.id, ...viewState(s, first.view) }
     }),
 
   setPaneSizes: (splitId, sizes) =>
@@ -911,7 +920,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
       const here = findPane(s.panes, s.activePaneId)
       const view = here && here.kind === 'leaf' ? here.view : s.mainView
       const root = newLeaf(view)
-      return { panes: root, activePaneId: root.id, mainView: view }
+      return { panes: root, activePaneId: root.id, ...viewState(s, view) }
     }),
 
   saveLayout: (name) =>
@@ -930,7 +939,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
       if (!layout) return {}
       const root = reidentify(layout.root)
       const first = paneLeaves(root)[0]
-      return { panes: root, activePaneId: first.id, mainView: first.view }
+      return { panes: root, activePaneId: first.id, ...viewState(s, first.view) }
     }),
 
   deleteLayout: (name) =>

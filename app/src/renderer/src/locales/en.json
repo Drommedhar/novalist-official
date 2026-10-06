@@ -2549,6 +2549,9 @@
     "seedKeepIt": "Use this seed"
   },
   "shell": {
+    "closingWindow": "Closing window…",
+    "savingBeforeClose": "Saving changes before closing…",
+    "backupBeforeClose": "Creating a backup before closing…",
     "toggleBinder": "Toggle binder",
     "toggleSidebar": "Toggle sidebar",
     "toggleInspector": "Toggle inspector",

@@ -51,7 +51,16 @@ export function PaneHeader({ paneId, view }: { paneId: string; view: MainView })
   }
 
   return (
-    <div className="pane-header">
+    <div
+      className="pane-header"
+      onPointerDown={(event) => {
+        // Activating this pane can show or hide the binder and move its header
+        // before mouseup. Keep the click on the button the writer pressed.
+        if (event.target instanceof Element) {
+          event.target.closest('button')?.setPointerCapture(event.pointerId)
+        }
+      }}
+    >
       <button
         className="pane-header-view"
         aria-haspopup="menu"

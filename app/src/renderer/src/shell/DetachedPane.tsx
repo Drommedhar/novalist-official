@@ -1,6 +1,7 @@
 import { useDetachedCommands } from './useDetachedCommands'
 import { ShellDialogs } from './ShellDialogs'
 import { WorkspaceRecoveryDialog } from './WorkspaceRecoveryDialog'
+import { WindowClosingDialog } from './WindowClosingDialog'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
@@ -40,7 +41,7 @@ export interface DetachedRequest {
  */
 export function DetachedPane({ request }: { request: DetachedRequest }): React.JSX.Element {
   const { t } = useTranslation()
-  useWorkspaceWindow()
+  const closeStage = useWorkspaceWindow()
   useDetachedCommands()
   const workspaceBusy = useProjectStore((state) => state.workspaceBusy)
   const [ready, setReady] = useState(false)
@@ -72,6 +73,7 @@ export function DetachedPane({ request }: { request: DetachedRequest }): React.J
   if (!ready) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 
   return (
+    <>
     <div className="app-shell detached" inert={workspaceBusy}>
       <MainArea headers="always" />
       <StatusBar />
@@ -80,5 +82,7 @@ export function DetachedPane({ request }: { request: DetachedRequest }): React.J
       <UnsavedLeaveDialog />
       <ShellDialogs />
     </div>
+    {closeStage && <WindowClosingDialog stage={closeStage} />}
+    </>
   )
 }

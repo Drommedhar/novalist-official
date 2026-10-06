@@ -1,4 +1,5 @@
 import { WorkspaceRecoveryDialog } from './WorkspaceRecoveryDialog'
+import { WindowClosingDialog } from './WindowClosingDialog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ModePanel } from './ModePanel'
@@ -54,7 +55,7 @@ import '../styles/desktop-views.css'
 
 export function AppShell(): React.JSX.Element {
   const { t } = useTranslation()
-  useWorkspaceWindow()
+  const closeStage = useWorkspaceWindow()
   useBackupScheduler()
   useSpellCheck()
   const binderVisible = useShellStore((s) => s.binderVisible)
@@ -549,6 +550,7 @@ export function AppShell(): React.JSX.Element {
           behind, wherever the writer set off from. */}
       <UnsavedLeaveDialog />
     </div>
+    {closeStage && <WindowClosingDialog stage={closeStage} />}
     {closingProject && <div className="dialog-overlay" role="status" aria-live="polite">
       <div className="dialog-card"><p>{t('bookshelf.closingProject')}</p></div>
     </div>}

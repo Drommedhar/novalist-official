@@ -819,7 +819,9 @@ function setSpellCheck(enabled) {
     // Chromium only re-runs the check when the attribute changes on a focused,
     // live element; toggling contenteditable forces it to re-scan what is
     // already on screen instead of waiting for the next keystroke.
-    if (document.activeElement === editor) {
+    // An inactive iframe remembers its last active element. Refreshing its
+    // spelling must not take focus back from another pane or a settings field.
+    if (document.hasFocus() && document.activeElement === editor) {
         editor.blur();
         editor.focus();
     }
@@ -2795,6 +2797,12 @@ wrapper.addEventListener('wheel', (e) => {
 }, { passive: false });
 
 // ── Focus ───────────────────────────────────────────────────────
+
+// Focus inside this document does not bubble to the host's pane. Report both
+// returning to the frame and focusing its prose or annotation fields.
+window.addEventListener('focus', () => {
+    sendMessage({ type: 'focused' });
+}, true);
 
 function focusEditor() {
     editor.focus({ preventScroll: true });
