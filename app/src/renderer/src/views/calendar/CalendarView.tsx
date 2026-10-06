@@ -10,6 +10,8 @@ import { type CalendarMode } from './calendarEvents'
 import { CalendarMonth, CalendarWeek, CalendarYear } from './CalendarGrids'
 import { CalendarGoTo } from './CalendarToolbar'
 import { useCalendarModel, type CalendarModel } from './useCalendarModel'
+import { useContentTransition } from '../../shell/useContentTransition'
+import { MotionPresence } from '../../shell/MotionPresence'
 
 export function CalendarView(): React.JSX.Element {
   const scope = useBookScope()
@@ -20,6 +22,8 @@ function BookCalendarView(): React.JSX.Element {
   const { t } = useTranslation()
   const model = useCalendarModel()
   const { dates, anchor, mode, configOpen, savedConfig, byDate, eventsByMonth, reschedule, setDragging, jumpTo } = model
+  const calendarRef = useRef<HTMLDivElement>(null)
+  useContentTransition(calendarRef, `${mode}:${anchor?.year}:${anchor?.month}:${anchor?.day}`)
   if (!dates || !anchor) return <p className="settings-hint">{t('calendarConfig.loading')}</p>
   const weekStart = dates.startOfWeek(anchor)
   const weekDays = Array.from({ length: dates.weekdays.length }, (_, i) => dates.addDays(weekStart, i))
@@ -29,13 +33,13 @@ function BookCalendarView(): React.JSX.Element {
       ? `${dates.months[anchor.month - 1]} ${dates.formatYear(anchor.year)}`
       : dates.formatYear(anchor.year)
   return (
-    <div className="calendar" style={{ '--cal-weekdays': dates.weekdays.length } as CSSProperties}>
+    <div className="calendar" ref={calendarRef} style={{ '--cal-weekdays': dates.weekdays.length } as CSSProperties}>
       <CalendarToolbar model={model} dates={dates} anchor={anchor} headerLabel={headerLabel} />
-      {configOpen && (
+      <MotionPresence collapse>{configOpen && (
         <div className="calendar-config-shell">
           <CalendarConfigPanel onSaved={(next) => void savedConfig(next)} />
         </div>
-      )}
+      )}</MotionPresence>
       {mode === 'week' && <CalendarWeek dates={dates} weekDays={weekDays} byDate={byDate} reschedule={reschedule} setDragging={setDragging} />}
       {mode === 'month' && <CalendarMonth dates={dates} anchor={anchor} byDate={byDate} reschedule={reschedule} setDragging={setDragging} jumpTo={jumpTo} />}
       {mode === 'year' && <CalendarYear dates={dates} anchor={anchor} eventsByMonth={eventsByMonth} jumpTo={jumpTo} />}
@@ -79,9 +83,9 @@ function CalendarToolbar({ model, dates, anchor, headerLabel }: ToolbarProps): R
       <button className={`dashboard-range${configOpen ? ' active' : ''}`}
         onClick={() => setConfigOpen((open) => !open)}>{t('calendarConfig.title')}</button>
     </div>
-    {goToOpen && <CalendarGoTo dates={dates} anchor={anchor} jumpTo={jumpTo} close={() => {
+    <MotionPresence collapse>{goToOpen && <CalendarGoTo dates={dates} anchor={anchor} jumpTo={jumpTo} close={() => {
       setGoToOpen(false)
       goToButton.current?.focus()
-    }} />}
+    }} />}</MotionPresence>
   </>
 }

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useWorkspaceDialogGuard } from './useWorkspaceDialogGuard'
+import { useDialogKeyboard } from './useDialogKeyboard'
 import type { SmartListDto, SmartListRule } from './SmartListsPanel'
 
 export interface SmartListDraft {
@@ -47,6 +48,7 @@ export function SmartListEditor({
 }: SmartListEditorProps): React.JSX.Element {
   useWorkspaceDialogGuard()
   const { t } = useTranslation()
+  const keyboard = useDialogKeyboard(onCancel)
   const [name, setName] = useState(initial?.name ?? '')
   const [match, setMatch] = useState<'All' | 'Any'>(initial?.match ?? 'All')
   const [rules, setRules] = useState<SmartListRule[]>(initial?.rules ?? [])
@@ -92,6 +94,7 @@ export function SmartListEditor({
         className="dialog-card smart-list-card"
         role="dialog"
         aria-label={t('smartList.editTitle')}
+        {...keyboard}
       >
         <div className="dialog-title">{t('smartList.editTitle')}</div>
 
@@ -103,7 +106,6 @@ export function SmartListEditor({
           className="dialog-input"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          autoFocus
         />
 
         <label className="inspector-label" htmlFor="sl-match">

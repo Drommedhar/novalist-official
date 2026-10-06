@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
+import { useProjectStore } from '../stores/projectStore'
+import { MotionPresence } from './MotionPresence'
+import { useContentTransition } from './useContentTransition'
 import {
   useHostBridgeStore,
   type WizardAnswer,
@@ -199,11 +202,15 @@ function useWizardState() {
 
 export function ExtensionWizardHost(): React.JSX.Element | null {
   const state = useWizardState()
-  if (!state) return null
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
+  const cardRef = useRef<HTMLDivElement>(null)
+  useContentTransition(cardRef, `${state?.wizard.token ?? ''}:${state?.step.id ?? ''}`)
+  if (!state) return <MotionPresence disabled={suspendMotion}>{null}</MotionPresence>
   const { t, wizard, error, busy, loadingChoices, step, setText, setNumber, toggleMulti, textValue, numberValue, multiValue, choices, isLast, canAdvance, cancel, advance, visibleSteps, position } = state
   return (
+    <MotionPresence disabled={suspendMotion}>
     <div className="dialog-overlay" role="presentation">
-      <div className="dialog-card wizard-host-card" role="dialog" aria-label={wizard.definition.displayName}>
+      <div ref={cardRef} className="dialog-card wizard-host-card" role="dialog" aria-label={wizard.definition.displayName}>
         <div className="wizard-host-title-row">
           <div className="dialog-title">{wizard.definition.displayName}</div>
           <span className="wizard-host-progress">
@@ -287,5 +294,6 @@ export function ExtensionWizardHost(): React.JSX.Element | null {
         </div>
       </div>
     </div>
+    </MotionPresence>
   )
 }

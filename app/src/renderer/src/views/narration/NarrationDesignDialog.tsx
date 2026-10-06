@@ -11,9 +11,8 @@ import { FEATURE_DESIGN, FEATURE_EMOTION_INFERRED, NARRATOR, useNarrationStore, 
  * The brief describes the instrument; how a line is felt is decided per line,
  * every time, against that one fixed identity.
  */
-export function DesignDialog(): React.JSX.Element {
+export function DesignDialog({ brief }: { brief: VoiceBrief }): React.JSX.Element {
   const { t } = useTranslation()
-  const brief = useNarrationStore((s) => s.brief)
   const error = useNarrationStore((s) => s.designError)
   const closeBrief = useNarrationStore((s) => s.closeBrief)
   const openBrief = useNarrationStore((s) => s.openBrief)
@@ -22,8 +21,8 @@ export function DesignDialog(): React.JSX.Element {
   const candidate = useNarrationStore((s) => s.candidate)
   const engines = useNarrationStore((s) => s.engines)
 
-  const [text, setText] = useState(brief?.description ?? '')
-  useEffect(() => setText(brief?.description ?? ''), [brief?.description])
+  const [text, setText] = useState(brief.description)
+  useEffect(() => setText(brief.description), [brief.description])
 
   // A blank seed requests a fresh voice even when the brief is unchanged.
   const [seed, setSeed] = useState('')
@@ -40,7 +39,6 @@ export function DesignDialog(): React.JSX.Element {
     ? engineId
     : (designers[0]?.engineId ?? '')
 
-  if (brief === null) return <></>
   const withheld = brief.refusal === 'WithheldFromAi'
   const isNarrator = brief.characterId === NARRATOR
   const submit = (): void => {

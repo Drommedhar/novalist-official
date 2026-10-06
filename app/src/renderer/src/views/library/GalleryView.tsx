@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FolderPlus, ImagePlus, LayoutGrid, List, Tag } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { useContentTransition } from '../../shell/useContentTransition'
+import { MotionPresence } from '../../shell/MotionPresence'
 import './library.css'
 
 interface GalleryImage {
@@ -105,9 +107,11 @@ function useGallery() {
 
 export function GalleryView(): React.JSX.Element {
   const { t, search, setSearch, catalog, collection, setCollection, tag, setTag, importImages, listView, setListView, filtered, images, query, setLightbox, openMenu, lightbox, lightboxRef, closeLightbox, menu, menuActions, setMenu } = useGallery()
+  const galleryRef = useRef<HTMLDivElement>(null)
+  useContentTransition(galleryRef, `${listView}:${collection}:${tag}`)
 
   return (
-    <div className="gallery">
+    <div className="gallery" ref={galleryRef}>
       <GalleryToolbar t={t} search={search} setSearch={setSearch} catalog={catalog} collection={collection} setCollection={setCollection} tag={tag} setTag={setTag} importImages={importImages} listView={listView} setListView={setListView} filtered={filtered} images={images} />
       {filtered.length === 0 ? (
         <p className="codex-empty">
@@ -168,7 +172,7 @@ export function GalleryView(): React.JSX.Element {
           ))}
         </div>
       )}
-      {lightbox && (
+      <MotionPresence>{lightbox && (
         <dialog
           ref={lightboxRef}
           className="gallery-lightbox"
@@ -184,8 +188,8 @@ export function GalleryView(): React.JSX.Element {
             {t('dialog.close')}
           </button>
         </dialog>
-      )}
-      {menu && menuActions && (
+      )}</MotionPresence>
+      <MotionPresence>{menu && menuActions && (
         <>
           <div
             className="gallery-menu-scrim"
@@ -209,7 +213,7 @@ export function GalleryView(): React.JSX.Element {
             ))}
           </div>
         </>
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

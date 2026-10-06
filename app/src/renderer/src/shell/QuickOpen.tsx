@@ -4,6 +4,7 @@ import { rpc } from '../rpc/client'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useWikiStore } from '../stores/wikiStore'
+import { useDialogAutoFocus } from './useDialogKeyboard'
 
 export interface GlobalSearchHit {
   kind: string
@@ -45,7 +46,7 @@ export function QuickOpen({ onClose }: { onClose(): void }): React.JSX.Element {
   const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
   const workspaceEpoch = useProjectStore((s) => s.workspaceEpoch)
 
-  useEffect(() => inputRef.current?.focus(), [])
+  useDialogAutoFocus(inputRef)
 
   // Debounced query: searching scans every scene file, so we wait for a pause.
   useEffect(() => {

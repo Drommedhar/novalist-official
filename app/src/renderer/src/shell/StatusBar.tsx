@@ -9,6 +9,7 @@ import { useBookScope, useProjectStore } from '../stores/projectStore'
 import { loadBookScoped } from '../stores/bookScopedLoad'
 import { elapsedSeconds, formatDuration, sprintWords, useSprintStore } from '../stores/sprintStore'
 import { SprintPanel } from './SprintPanel'
+import { MotionPresence } from './MotionPresence'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useAudiobookStore } from '../stores/audiobookStore'
 import { onPluginContributionsChanged, pluginStatusItems } from './pluginHost'
@@ -123,6 +124,7 @@ function useStatusBar() {
 
 export function StatusBar(): React.JSX.Element {
   const state = useStatusBar()
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   const { pluginItems, t, backendVersion, setMainView, isLoaded, openScene, sprintOpen, setSprintOpen, sprintRunning, sprintBanked, sprintTarget, git, totalWords, stats, toggleOverview } = state
   return (
     <footer className="status-bar">
@@ -250,7 +252,7 @@ export function StatusBar(): React.JSX.Element {
           {item.text}
         </span>
       ))}
-      {sprintOpen && <SprintPanel onClose={() => setSprintOpen(false)} />}
+      <MotionPresence disabled={suspendMotion}>{sprintOpen && <SprintPanel onClose={() => setSprintOpen(false)} />}</MotionPresence>
     </footer>
   )
 }
@@ -313,7 +315,8 @@ function GoalProgress({ label, target, percent }: {
 
 function StatusOverview({ state }: { state: ReturnType<typeof useStatusBar> }): React.JSX.Element {
   const { t, chapters, overview, overviewOpen, setOverviewOpen, breakdown, sceneCount, avgChapterWords, maxChapterWords } = state
-  return <>
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
+  return <MotionPresence disabled={suspendMotion}>
         {overviewOpen && (
           <>
             <div className="status-overview-backdrop" onClick={() => setOverviewOpen(false)} />
@@ -427,7 +430,7 @@ function StatusOverview({ state }: { state: ReturnType<typeof useStatusBar> }): 
             </div>
           </>
         )}
-  </>
+  </MotionPresence>
 }
 
 function useStatusOverview(isLoaded: boolean) {

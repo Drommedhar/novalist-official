@@ -54,6 +54,12 @@
   /* Toolbar overrides this with the current interface scale. */
   --nl-ui-scale: 1;
 
+  --nl-motion-fast: 120ms;
+  --nl-motion-normal: 160ms;
+  --nl-motion-panel: 180ms;
+  --nl-motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --nl-motion-distance: var(--nl-space-tightest);
+
   /* ===== 1. Scales, derived from the brand geometry =====
      Spacing steps out from the brand gutter (24px = --nl-space-xl) so panel
      padding lands inside the colophon's 26-34px card band at --nl-space-xxl.

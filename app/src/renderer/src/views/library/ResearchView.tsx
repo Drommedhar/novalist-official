@@ -1,5 +1,8 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useResearchModel, type ResearchItemDto } from './researchModel'
 import { ResearchEditor } from './ResearchEditor'
+import { useRef } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 
 import { Inbox } from 'lucide-react'
@@ -15,8 +18,12 @@ import './library.css'
 
 export function ResearchView(): React.JSX.Element {
   const { t, researchTab, setResearchTab, setItems, dragging, setDragging, handleDrop, create, importFile, setVaultOpen, search, setSearch, inboxCount, inboxOnly, setInboxOnly, filtered, selectedId, setSelectedId, isInbox, selected, fetchingTitle, fetchLinkTitle, setConfirmDelete, setFiling, markFiled, patchSelected, save, setLifecycle, removeTag, newTag, setNewTag, addTag, entityNames, unlinkEntity, linkEntity, allEntities, items, toggleRelated, confirmDelete, filing, fileAsNewEntity, fileIntoEntity, vaultOpen } = useResearchModel()
+  const contentRef = useRef<HTMLDivElement>(null)
+  const detailRef = useRef<HTMLDivElement>(null)
+  useContentTransition(contentRef, researchTab)
+  useContentTransition(detailRef, selectedId ?? '')
   return (
-    <div className="codex research-view">
+    <div className="codex research-view" ref={contentRef}>
       <nav className="codex-tabs" aria-label={t('shell.view.research')}>
         <button
           className={`codex-tab${researchTab === 'project' ? ' active' : ''}`}
@@ -109,7 +116,7 @@ export function ResearchView(): React.JSX.Element {
             {filtered.length === 0 && <p className="codex-empty">{t('research.empty')}</p>}
           </div>
         </div>
-        <div className="codex-detail">
+        <div className="codex-detail" ref={detailRef}>
           {selected ? (
             <ResearchEditor selected={selected} t={t} fetchingTitle={fetchingTitle} fetchLinkTitle={fetchLinkTitle} setConfirmDelete={setConfirmDelete} isInbox={isInbox} setFiling={setFiling} markFiled={markFiled} patchSelected={patchSelected} save={save} setLifecycle={setLifecycle} removeTag={removeTag} newTag={newTag} setNewTag={setNewTag} addTag={addTag} entityNames={entityNames} unlinkEntity={unlinkEntity} linkEntity={linkEntity} allEntities={allEntities} items={items} setSelectedId={setSelectedId} toggleRelated={toggleRelated} setItems={setItems} />
           ) : (
@@ -119,7 +126,7 @@ export function ResearchView(): React.JSX.Element {
           )}
         </div>
       </div>
-      {confirmDelete && selected && (
+      <MotionPresence>{confirmDelete && selected && (
         <ConfirmDialog
           title={t('research.confirmDeleteTitle')}
           message={selected.title}
@@ -134,24 +141,24 @@ export function ResearchView(): React.JSX.Element {
               })
           }}
         />
-      )}
-      {filing === 'create' && selected && (
+      )}</MotionPresence>
+      <MotionPresence>{filing === 'create' && selected && (
         <EntityTypeDialog
           name={selected.title}
           onPick={(typeKey) => void fileAsNewEntity(typeKey)}
           onCancel={() => setFiling(null)}
         />
-      )}
-      {filing === 'append' && selected && (
+      )}</MotionPresence>
+      <MotionPresence>{filing === 'append' && selected && (
         <AppendToEntityDialog
           text={selected.content}
           onConfirm={(target) => void fileIntoEntity(target)}
           onCancel={() => setFiling(null)}
         />
-      )}
-      {vaultOpen && (
+      )}</MotionPresence>
+      <MotionPresence>{vaultOpen && (
         <ImportFolderDialog initialTarget="research" onClose={() => setVaultOpen(false)} />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

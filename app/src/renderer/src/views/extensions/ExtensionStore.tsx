@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Check, Download, RefreshCw, Search } from 'lucide-react'
 import Markdown from 'react-markdown'
@@ -22,6 +23,8 @@ export function ExtensionStore(): React.JSX.Element {
 
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const browseRef = useRef<HTMLDivElement>(null)
+  useContentTransition(browseRef, selectedId ?? '')
   const [busyId, setBusyId] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
   const [banner, setBanner] = useState<string | null>(null)
@@ -111,7 +114,7 @@ export function ExtensionStore(): React.JSX.Element {
   }
 
   return (
-    <div className="store-browse">
+    <div className="store-browse" ref={browseRef}>
       <div className="store-toolbar">
         <div className="store-search">
           <Search size={14} strokeWidth={2} aria-hidden />
@@ -251,6 +254,8 @@ function StoreDetail({
   const [readme, setReadme] = useState<string | null>(null)
   const [releases, setReleases] = useState<StoreRelease[]>([])
   const [loading, setLoading] = useState(true)
+  const detailRef = useRef<HTMLDivElement>(null)
+  useContentTransition(detailRef, entry.id)
 
   useEffect(() => {
     let alive = true
@@ -273,7 +278,7 @@ function StoreDetail({
   const latest = releases[0]
 
   return (
-    <div className="store-detail">
+    <div className="store-detail" ref={detailRef}>
       <div className="store-detail-head">
         <button type="button" className="export-inline-btn" onClick={onBack}>
           <ArrowLeft size={13} strokeWidth={2} /> {t('extensions.store.back')}

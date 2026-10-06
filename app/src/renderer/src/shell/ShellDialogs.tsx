@@ -13,17 +13,27 @@ import { SceneDialog } from './SceneDialog'
 import { SnapshotsDialog } from './SnapshotsDialog'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
-import { useShellStore } from '../stores/shellStore'
+import { useShellStore, type ShellDialog } from '../stores/shellStore'
 import { flushPendingWrites } from '../stores/pendingWrites'
+import { MotionPresence } from './MotionPresence'
 
 /**
  * Every dialog the shell owns, raised by whichever surface asked for it.
  *
  * One host, one flag in the store, and any surface can name any of them.
  */
-export function ShellDialogs(): React.JSX.Element | null {
-  const { t } = useTranslation()
+export function ShellDialogs(): React.JSX.Element {
   const dialog = useShellStore((s) => s.dialog)
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
+  return (
+    <MotionPresence disabled={suspendMotion}>
+      {dialog !== null && <ShellDialogContent key={dialog} dialog={dialog} />}
+    </MotionPresence>
+  )
+}
+
+function ShellDialogContent({ dialog }: { dialog: ShellDialog }): React.JSX.Element | null {
+  const { t } = useTranslation()
   const close = useShellStore((s) => s.closeDialog)
   const projectName = useProjectStore((s) => s.projectName)
   const activeBook = useProjectStore((s) => s.books.find((b) => b.id === s.activeBookId))
@@ -33,8 +43,6 @@ export function ShellDialogs(): React.JSX.Element | null {
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const workspaceSuspended = useProjectStore((s) => s.workspaceSuspended)
   const workspaceEpoch = useProjectStore((s) => s.workspaceEpoch)
-
-  if (dialog === null) return null
 
   const targetChapter = openChapterGuid ?? chapters[chapters.length - 1]?.guid ?? null
   const activeDraft = drafts.find((d) => d.isActive) ?? null

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { useTranslation } from 'react-i18next'
 import { Search } from 'lucide-react'
 import { useWikiStore, type WikiScopeGroup } from '../../stores/wikiStore'
@@ -61,6 +62,8 @@ export function WikiView(): React.JSX.Element {
   }
 
   const openPageRecord = pages.find((p) => p.id === pageId) ?? null
+  const articleRef = useRef<HTMLDivElement>(null)
+  useContentTransition(articleRef, openPageRecord ? `page:${openPageRecord.id}` : `article:${article?.id ?? ''}`)
 
   // Filter the index by name, subtitle, or alias; groups and scopes that end up
   // empty drop out so the list stays tight while typing.
@@ -130,7 +133,7 @@ export function WikiView(): React.JSX.Element {
         ))}
       </aside>
 
-      <div className="wiki-main">
+      <div className="wiki-main" ref={articleRef}>
         {openPageRecord && (
           <WikiPageArticle
             page={openPageRecord}

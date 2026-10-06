@@ -1,5 +1,7 @@
 import { DesktopViewActions } from '../../shell/DesktopViewFrame'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { MotionPresence } from '../../shell/MotionPresence'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { useTranslation } from 'react-i18next'
 import { ArrowDownToLine, ArrowUpFromLine, Minus, Plus, RefreshCw, Undo2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -159,35 +161,9 @@ export function GitView(): React.JSX.Element {
 
         <GitHistory t={t} log={log} openCommitFiles={openCommitFiles} openCommit={openCommit} commitFiles={commitFiles} showDiff={showDiff} />
       </div>
-      {diff && (
-        <div className="dashboard-card">
-          <div className="git-section-header">
-            <span className="git-section-title">{diff.path}</span>
-            <button className="git-inline-btn" onClick={() => setDiff(null)}>
-              {t('dialog.close')}
-            </button>
-          </div>
-          <pre className="git-diff">
-            {diff.text.split('\n').map((line, index) => (
-              <span
-                key={index}
-                className={
-                  line.startsWith('+') && !line.startsWith('+++')
-                    ? 'git-diff-add'
-                    : line.startsWith('-') && !line.startsWith('---')
-                      ? 'git-diff-del'
-                      : undefined
-                }
-              >
-                {line}
-                {'\n'}
-              </span>
-            ))}
-          </pre>
-        </div>
-      )}
+      <MotionPresence collapse>{diff && <GitDiff diff={diff} close={() => setDiff(null)} />}</MotionPresence>
 
-      {newBranch && (
+      <MotionPresence>{newBranch && (
         <InputDialog
           title={t('git.newBranch')}
           placeholder={t('git.branchName')}
@@ -197,9 +173,9 @@ export function GitView(): React.JSX.Element {
             void mutate(() => rpc.request<string | null>('git/createBranch', [name]))
           }}
         />
-      )}
+      )}</MotionPresence>
 
-      {confirmDiscard && (
+      <MotionPresence>{confirmDiscard && (
         <ConfirmDialog
           title={t('git.discardUnstaged')}
           message={t('git.confirmDiscard', { count: unstagedPaths.length })}
@@ -209,7 +185,7 @@ export function GitView(): React.JSX.Element {
             void mutate(() => rpc.request<string | null>('git/discard', [unstagedPaths]))
           }}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }
@@ -425,6 +401,29 @@ function GitChanges({ status, t, staged, unstaged, busy, mutate, message, setMes
   )
 }
 
+function GitDiff({ diff, close }: { diff: NonNullable<GitViewState['diff']>; close(): void }): React.JSX.Element {
+  const { t } = useTranslation()
+  const diffRef = useRef<HTMLDivElement>(null)
+  useContentTransition(diffRef, diff.path)
+  return (
+    <div className="dashboard-card" ref={diffRef}>
+      <div className="git-section-header">
+        <span className="git-section-title">{diff.path}</span>
+        <button className="git-inline-btn" onClick={close}>{t('dialog.close')}</button>
+      </div>
+      <pre className="git-diff">
+        {diff.text.split('\n').map((line, index) => (
+          <span key={index} className={line.startsWith('+') && !line.startsWith('+++')
+            ? 'git-diff-add'
+            : line.startsWith('-') && !line.startsWith('---') ? 'git-diff-del' : undefined}>
+            {line}{'\n'}
+          </span>
+        ))}
+      </pre>
+    </div>
+  )
+}
+
 function GitHistory({ t, log, openCommitFiles, openCommit, commitFiles, showDiff }: { t: GitViewState['t']; log: GitViewState['log']; openCommitFiles: GitViewState['openCommitFiles']; openCommit: GitViewState['openCommit']; commitFiles: GitViewState['commitFiles']; showDiff: GitViewState['showDiff'] }): React.JSX.Element {
   return (
     <div className="dashboard-card git-history-card">
@@ -440,7 +439,7 @@ function GitHistory({ t, log, openCommitFiles, openCommit, commitFiles, showDiff
               {commit.shortSha} - {commit.author} - {new Date(commit.date).toLocaleDateString()}
             </span>
           </button>
-          {openCommit === commit.sha && (
+          <MotionPresence collapse>{openCommit === commit.sha && (
             <div className="git-commit-files">
               {commitFiles.length === 0 && (
                 <p className="codex-empty">{t('git.noFilesInCommit')}</p>
@@ -455,7 +454,7 @@ function GitHistory({ t, log, openCommitFiles, openCommit, commitFiles, showDiff
                 </button>
               ))}
             </div>
-          )}
+          )}</MotionPresence>
         </div>
       ))}
     </div>

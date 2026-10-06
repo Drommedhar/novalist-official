@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Search } from 'lucide-react'
 import { rpc } from '../rpc/client'
+import { useMotionPresent } from './MotionPresence'
 
 interface Candidate {
   id: string
@@ -32,6 +33,7 @@ export function AppendToEntityDialog({
   onCancel(): void
 }): React.JSX.Element {
   const { t } = useTranslation()
+  const present = useMotionPresent()
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [filter, setFilter] = useState('')
   const [selected, setSelected] = useState<Candidate | null>(null)
@@ -71,9 +73,10 @@ export function AppendToEntityDialog({
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') onCancel()
     }
+    if (!present) return
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onCancel])
+  }, [onCancel, present])
 
   const shown = useMemo(() => {
     const needle = filter.trim().toLowerCase()

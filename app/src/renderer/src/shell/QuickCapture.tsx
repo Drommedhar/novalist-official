@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
+import { useDialogAutoFocus } from './useDialogKeyboard'
 
 /**
  * Jot something down without deciding where it belongs. The note lands in the
@@ -22,7 +23,7 @@ export function QuickCapture({ onClose }: { onClose(): void }): React.JSX.Elemen
   const areaRef = useRef<HTMLTextAreaElement>(null)
   const hasProject = useProjectStore((s) => s.projectPath !== null)
 
-  useEffect(() => areaRef.current?.focus(), [])
+  useDialogAutoFocus(areaRef)
 
   const save = async (): Promise<void> => {
     const body = text.trim()

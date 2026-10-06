@@ -6,6 +6,7 @@ import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { useCodexStore } from '../stores/codexStore'
 import { flushPendingWrites } from '../stores/pendingWrites'
 import { ImportApiPanel } from './ImportApiPanel'
+import { useMotionPresent } from './MotionPresence'
 import './ImportFolderDialog.css'
 
 interface Scan {
@@ -58,6 +59,7 @@ export function ImportFolderDialog({ onClose, initialTarget = 'skip' }: {
   initialTarget?: string
 }): React.JSX.Element {
   const { t } = useTranslation()
+  const present = useMotionPresent()
   const titleId = useId()
   const filesTitleId = useId()
   const schemaTitleId = useId()
@@ -108,6 +110,7 @@ export function ImportFolderDialog({ onClose, initialTarget = 'skip' }: {
   }, [scan, query, offset])
 
   useEffect(() => {
+    if (!present) return
     const onKey = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape') return
       event.preventDefault()
@@ -117,7 +120,7 @@ export function ImportFolderDialog({ onClose, initialTarget = 'skip' }: {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [busy, exporting, onClose])
+  }, [busy, exporting, onClose, present])
 
   const options = [
     ...TARGETS.map(([value, key]) => ({ value, label: t(key) })),

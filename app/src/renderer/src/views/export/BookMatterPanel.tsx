@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -146,7 +147,7 @@ function BookMatterGroup({placement, labelKey, t, group, setOpenId, openId, move
             </button>
           </div>
 
-          {openId === m.id && (
+          <MotionPresence collapse>{openId === m.id && (
             <div className="matter-body">
               <label className="inspector-label" htmlFor={`matter-title-${m.id}`}>
                 {t('matter.heading')}
@@ -202,7 +203,7 @@ function BookMatterGroup({placement, labelKey, t, group, setOpenId, openId, move
                 {t('matter.moveToBack')}
               </label>
             </div>
-          )}
+          )}</MotionPresence>
         </div>
       ))}
     </>)

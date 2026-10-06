@@ -1,3 +1,4 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pencil, Plus, Trash2, X } from 'lucide-react'
@@ -433,7 +434,7 @@ export function CustomTypeManager({
           </>
         )}
 
-        {deleting && (
+        <MotionPresence>{deleting && (
           <ConfirmDialog
             title={t('entityPanel.deleteType')}
             message={t('entityPanel.deleteTypeConfirm').replace('{0}', deleting.displayName)}
@@ -446,7 +447,7 @@ export function CustomTypeManager({
                 .then(onChanged)
             }}
           />
-        )}
+        )}</MotionPresence>
       </div>
     </div>
   )

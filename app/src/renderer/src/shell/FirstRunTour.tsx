@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '../stores/projectStore'
 import { useShellStore, type MainView, type MobileTab } from '../stores/shellStore'
+import { useMotionPresent } from './MotionPresence'
 import {
   hasSeenOnboardingTour,
   useOnboardingStore
@@ -161,6 +162,17 @@ type TourShellSnapshot = Pick<
   'mainView' | 'mobileTab' | 'panes' | 'activePaneId' | 'extView'
 >
 
+function captureTourWorkspace(): TourShellSnapshot {
+  const shell = useShellStore.getState()
+  return {
+    mainView: shell.mainView,
+    mobileTab: shell.mobileTab,
+    panes: shell.panes,
+    activePaneId: shell.activePaneId,
+    extView: shell.extView
+  }
+}
+
 function unmetPrerequisite(
   step: TourStep,
   prerequisites: TourPrerequisites
@@ -184,6 +196,7 @@ export function FirstRunTour({
   restoreOnClose = true
 }: FirstRunTourProps): React.JSX.Element {
   const { t } = useTranslation()
+  const present = useMotionPresent()
   const isMobile = window.novalist.isMobile === true
   const liveHasOpenScene = useProjectStore((state) => state.openSceneId !== null)
   const completeTour = useOnboardingStore((state) => state.completeTour)
@@ -196,14 +209,7 @@ export function FirstRunTour({
   const restoreTimerRef = useRef<number | null>(null)
 
   if (snapshotRef.current === null) {
-    const shell = useShellStore.getState()
-    snapshotRef.current = {
-      mainView: shell.mainView,
-      mobileTab: shell.mobileTab,
-      panes: shell.panes,
-      activePaneId: shell.activePaneId,
-      extView: shell.extView
-    }
+    snapshotRef.current = captureTourWorkspace()
   }
 
   const available: TourPrerequisites = {
@@ -223,20 +229,29 @@ export function FirstRunTour({
     // Defer the fallback by one task so that setup can cancel that rehearsal;
     // a real parent-driven unmount still restores the workspace.
     if (restoreTimerRef.current !== null) window.clearTimeout(restoreTimerRef.current)
+    if (!present) {
+      restoreSnapshot()
+      return
+    }
+    if (restoredRef.current) {
+      snapshotRef.current = captureTourWorkspace()
+      restoredRef.current = false
+    }
     return () => {
       restoreTimerRef.current = window.setTimeout(restoreSnapshot, 0)
     }
-  }, [restoreSnapshot])
+  }, [present, restoreSnapshot])
 
   // Each stop actually goes there, so the tour is a walk rather than a
   // description of one. A phone switches the tab, which is what its shell
   // renders from; setting the view alone would be undone on the next frame.
   useEffect(() => {
+    if (!present) return
     onStepChange?.(stop)
     if (unmet) return
     if (stop.tab && isMobile) useShellStore.getState().setMobileTab(stop.tab)
     else useShellStore.getState().setMainView(stop.view)
-  }, [isMobile, onStepChange, stop, unmet])
+  }, [isMobile, onStepChange, stop, unmet, present])
 
   const close = useCallback(
     (completed: boolean): void => {
@@ -249,6 +264,7 @@ export function FirstRunTour({
   )
 
   useEffect(() => {
+    if (!present) return
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape') return
       event.preventDefault()
@@ -256,7 +272,7 @@ export function FirstRunTour({
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [close])
+  }, [close, present])
 
   const prerequisiteText =
     unmet === 'hasOpenScene'

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useManuscriptStore, type ManuscriptMode } from '../../stores/manuscriptStore'
 import { rpc } from '../../rpc/client'
@@ -11,6 +11,7 @@ import { Board } from './Board'
 import { ManuscriptFrame } from './ManuscriptFrame'
 import { Corkboard } from './Corkboard'
 import { Outliner } from './Outliner'
+import { useContentTransition } from '../../shell/useContentTransition'
 
 const MODES: ManuscriptMode[] = ['manuscript', 'corkboard', 'outliner', 'board']
 
@@ -86,9 +87,11 @@ function useManuscriptView() {
 
 export function ManuscriptView(): React.JSX.Element {
   const { mode, setMode, t, freeform, colourBy, groupBy, groupings, composed, savedLists, filterListId, filterStatus, setFilter, sections } = useManuscriptView()
+  const contentRef = useRef<HTMLDivElement>(null)
+  useContentTransition(contentRef, mode)
 
   return (
-    <div className="manuscript">
+    <div className="manuscript" ref={contentRef}>
       {/* One filter model, shared live with the Timeline. Above the toolbar
           because it narrows the book rather than changing how it is drawn. */}
       <FilterBar />

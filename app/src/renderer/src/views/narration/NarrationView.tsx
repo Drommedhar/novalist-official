@@ -10,6 +10,7 @@ import { VoicePicker } from './NarrationVoicePicker'
 import { NarratorDesignActions, DesignActions } from './NarrationDesignActions'
 import { VoiceScopeButton } from './NarrationVoiceScope'
 import { RegisterButton } from './NarrationRegisterButton'
+import { MotionPresence } from '../../shell/MotionPresence'
 
 export function NarrationView(): React.JSX.Element {
   const { t, narratorVoiceId, cast, members, voices, designed, setVoice, designer, colours, unassignedCount, noVoices, engines, busy, prepareEngine, frameRef, loading, book, selectedStep, brief, canPlay, speaking, preparing, playFrom, stop, selected, sceneNavigation, readAgain, openSceneId, rate, setRate, readingError, reading } = useNarrationView()
@@ -56,9 +57,9 @@ export function NarrationView(): React.JSX.Element {
           />
           {loading && !book && <div className="narration-status">{t('narration.loading')}</div>}
 
-          {selectedStep && <SegmentPanel step={selectedStep} />}
+          <MotionPresence>{selectedStep && <SegmentPanel step={selectedStep} />}</MotionPresence>
 
-          {brief !== null && designer !== null && <DesignDialog />}
+          <MotionPresence>{brief !== null && designer !== null && <DesignDialog brief={brief} />}</MotionPresence>
         </section>
       </div>
       <NarrationTransport canPlay={canPlay} speaking={speaking} preparing={preparing} playFrom={playFrom} stop={stop} t={t} selected={selected} sceneNavigation={sceneNavigation} readAgain={readAgain} openSceneId={openSceneId} frameRef={frameRef} rate={rate} setRate={setRate} readingError={readingError} reading={reading} loading={loading} />

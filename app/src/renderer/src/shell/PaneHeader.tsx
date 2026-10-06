@@ -4,6 +4,7 @@ import { ChevronDown, Columns2, ExternalLink, Rows2, X } from 'lucide-react'
 import { useShellStore, type MainView } from '../stores/shellStore'
 import { HOME_VIEW, MODES, MODE_VIEWS } from './modes'
 import { useProjectStore } from '../stores/projectStore'
+import { MotionPresence } from './MotionPresence'
 
 /**
  * Everything a pane can show, grouped by mode.
@@ -39,6 +40,7 @@ export function PaneHeader({ paneId, view }: { paneId: string; view: MainView })
   const splitPaneById = useShellStore((s) => s.splitPaneById)
   const closePaneById = useShellStore((s) => s.closePaneById)
   const canClose = useShellStore((s) => s.panes.kind === 'split')
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   // Positioned against the viewport rather than the header, because a pane
   // clips what overflows it - in a pane split top-and-bottom the menu would
   // have been cut off at the pane's own edge with no way to reach the rest.
@@ -125,7 +127,7 @@ export function PaneHeader({ paneId, view }: { paneId: string; view: MainView })
         )}
       </span>
 
-      {picking && (
+      <MotionPresence disabled={suspendMotion}>{picking && (
         <>
           <div className="pane-picker-scrim" onClick={() => setPicking(null)} />
           <div className="pane-picker" role="menu" style={{ left: picking.left, top: picking.top }}>
@@ -147,7 +149,7 @@ export function PaneHeader({ paneId, view }: { paneId: string; view: MainView })
             ))}
           </div>
         </>
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

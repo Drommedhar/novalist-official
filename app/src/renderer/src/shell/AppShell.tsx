@@ -5,11 +5,12 @@ import { useShellCommands } from './useShellCommands'
 import { useAppUpdateState } from './appUpdateState'
 
 import { WindowClosingDialog } from './WindowClosingDialog'
-import { useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ModePanel } from './ModePanel'
 import { ModeRail } from './ModeRail'
 import { Binder } from './Binder'
+import { MotionPresence } from './MotionPresence'
 
 import { Inspector } from './Inspector'
 import { Toolbar } from './Toolbar'
@@ -53,6 +54,9 @@ export function AppShell(): React.JSX.Element {
   const inspectorVisible = useShellStore((s) => s.inspectorVisible)
   const inspectorOverlayOpen = useShellStore((s) => s.inspectorOverlayOpen)
   const shellCapacity = useShellStore((s) => s.shellCapacity)
+  const previousCapacity = useRef(shellCapacity)
+  const capacityChanging = previousCapacity.current !== shellCapacity
+  useLayoutEffect(() => { previousCapacity.current = shellCapacity }, [shellCapacity])
   const mainView = useShellStore((s) => s.mainView)
   const inspectorTab = useShellStore((s) => s.inspectorTab)
   const notesDockVisible = useShellStore((s) => s.notesDockVisible)
@@ -118,6 +122,7 @@ export function AppShell(): React.JSX.Element {
 
   const isMobile = window.novalist.isMobile === true
   const focused = focusMode && isLoaded && mainView === 'write' && !extView && !isMobile
+  const disablePanelMotion = capacityChanging || focused || closingProject || workspaceSuspended || workspaceBusy || changingSceneStructure
 
   return (
     <>
@@ -154,16 +159,22 @@ export function AppShell(): React.JSX.Element {
           <>
             {/* The mode's views share a column with the binder when docked,
                 an overlay when there is not - the same rows either way. */}
-            <div className={combinedSidebar ? 'workspace-sidebar' : 'workspace-navigation'} style={combinedSidebar ? { width: binderWidth } : undefined}>
-              {!focused && isLoaded && showModePanel && <ModePanel overlay={modePanelOverlay} />}
-              {showBinder && !focused && <Binder />}
+            <div className={combinedSidebar ? 'workspace-sidebar' : 'workspace-navigation'} style={{ width: binderWidth }}>
+              <MotionPresence disabled={disablePanelMotion}>
+                {!focused && isLoaded && showModePanel && <ModePanel overlay={modePanelOverlay} />}
+              </MotionPresence>
+              <MotionPresence disabled={disablePanelMotion}>
+                {showBinder && !focused && <Binder />}
+              </MotionPresence>
             </div>
-            {!focused && isLoaded && modePanelOverlay && (
-              <div
-                className="mode-panel-scrim"
-                onPointerDown={() => useShellStore.getState().setModePanelOpen(false)}
-              />
-            )}
+            <MotionPresence disabled={disablePanelMotion}>
+              {!focused && isLoaded && modePanelOverlay && (
+                <div
+                  className="mode-panel-scrim"
+                  onPointerDown={() => useShellStore.getState().setModePanelOpen(false)}
+                />
+              )}
+            </MotionPresence>
             <div className="shell-main">
               {isLoaded || appScopedView ? (
                 <MainArea />
@@ -173,9 +184,13 @@ export function AppShell(): React.JSX.Element {
                   onOpenPath={(path, bookId) => openProject(path, bookId)}
                 />
               ) : null}
-              {!workspaceSuspended && editorOpen && !extView && notesDockVisible && !(showInspector && inspectorTab === 'notes') && !focused && <SceneNotesDock />}
+              <MotionPresence disabled={disablePanelMotion}>
+                {!workspaceSuspended && editorOpen && !extView && notesDockVisible && !(showInspector && inspectorTab === 'notes') && !focused && <SceneNotesDock />}
+              </MotionPresence>
             </div>
-            {!workspaceSuspended && showInspector && !focused && !extView && <Inspector />}
+            <MotionPresence disabled={disablePanelMotion}>
+              {!workspaceSuspended && showInspector && !focused && !extView && <Inspector />}
+            </MotionPresence>
           </>
         )}
       </div>

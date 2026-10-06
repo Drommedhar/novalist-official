@@ -4,6 +4,7 @@ import { COMMANDS } from './commands'
 import { buildDefaultHotkeys } from './hotkeys'
 import { onPluginContributionsChanged, pluginCommands } from './pluginHost'
 import { rpc } from '../rpc/client'
+import { useDialogAutoFocus } from './useDialogKeyboard'
 
 interface CommandPaletteProps {
   onClose(): void
@@ -54,7 +55,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps): React.JSX.Elem
   const [index, setIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => inputRef.current?.focus(), [])
+  useDialogAutoFocus(inputRef)
 
   /**
    * Novalist's own commands, read from the registry rather than from the

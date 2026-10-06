@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { MotionPresence } from '../../shell/MotionPresence'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { useTranslation } from 'react-i18next'
 import {
   ChevronDown,
@@ -46,6 +48,7 @@ interface LayerPanelProps {
 interface FlatRow {
   node: MapLayerNodeT
   depth: number
+  visible: boolean
 }
 
 function isExpanded(node: MapLayerNodeT, expanded: Record<string, boolean>): boolean {
@@ -63,13 +66,13 @@ function useLayerPanel(props: LayerPanelProps) {
   const rows = useMemo<FlatRow[]>(() => {
     if (!data) return []
     const out: FlatRow[] = []
-    const recurse = (nodes: MapLayerNodeT[], depth: number): void => {
+    const recurse = (nodes: MapLayerNodeT[], depth: number, visible: boolean): void => {
       for (const node of nodes) {
-        out.push({ node, depth })
-        if (node.children?.length && isExpanded(node, expanded)) recurse(node.children, depth + 1)
+        out.push({ node, depth, visible })
+        if (node.children?.length) recurse(node.children, depth + 1, visible && isExpanded(node, expanded))
       }
     }
-    recurse(data.layers, 0)
+    recurse(data.layers, 0, true)
     return out
   }, [data, expanded])
 
@@ -126,16 +129,16 @@ export function LayerPanel(props: LayerPanelProps): React.JSX.Element {
           setDrop(null)
         }}
       >
-        {rows.map(({ node, depth }) => {
+        {rows.map(({ node, depth, visible }) => {
           const hasChildren = (node.children?.length ?? 0) > 0
           const open = isExpanded(node, expanded)
           const dropHint =
             drop?.id === node.id ? ` drop-${drop.pos}` : ''
           return (
+            <MotionPresence key={node.id} collapse>{visible && <div>
             <div
-              key={node.id}
               className={`map-layer-row${node.id === selectedNodeId ? ' active' : ''}${dropHint}`}
-              style={{ paddingLeft: `${depth * 14 + 4}px` }}
+              style={{ paddingLeft: `calc(${depth} * var(--nl-space-md) + var(--nl-space-tightest))` }}
               draggable={renamingId !== node.id}
               onDragStart={(e) => {
                 setDragId(node.id)
@@ -235,14 +238,15 @@ export function LayerPanel(props: LayerPanelProps): React.JSX.Element {
                 </button>
               </span>
             </div>
+            </div>}</MotionPresence>
           )
         })}
         {rows.length === 0 && <div className="map-layer-empty">{t('map.layerPanel')}</div>}
       </div>
 
-      {selectedNode && (
+      <MotionPresence collapse>{selectedNode && data && (
         <NodeProperties
-          data={data as MapDataT}
+          data={data}
           node={selectedNode}
           isolated={props.isolated}
           onSetOpacity={props.onSetOpacity}
@@ -252,7 +256,7 @@ export function LayerPanel(props: LayerPanelProps): React.JSX.Element {
           onSetElementZoom={props.onSetElementZoom}
           onToggleIsolate={props.onToggleIsolate}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }
@@ -286,6 +290,8 @@ function NodeProperties(props: NodePropsProps): React.JSX.Element {
   const { t } = useTranslation()
   const { node, data, isolated } = props
   const hasChildren = (node.children?.length ?? 0) > 0
+  const propertiesRef = useRef<HTMLDivElement>(null)
+  useContentTransition(propertiesRef, node.id)
 
   const elementRows: ElementRow[] = useMemo(() => {
     const rows: ElementRow[] = []
@@ -321,7 +327,7 @@ function NodeProperties(props: NodePropsProps): React.JSX.Element {
   const memberChoices: MapLayerNodeT[] = node.children ?? []
 
   return (
-    <div className="map-properties">
+    <div className="map-properties" ref={propertiesRef}>
       <div className="map-panel-title">{t('map.properties')}</div>
 
       <label className="map-prop-row">

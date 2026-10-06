@@ -4,6 +4,8 @@ import { InputDialog } from '../../shell/InputDialog'
 import './canvas.css'
 import { useCanvasView, type CanvasViewState } from './canvasModel'
 import { CanvasLines, CanvasConnectorLabels, CanvasCards } from './CanvasSurface'
+import { useContentTransition } from '../../shell/useContentTransition'
+import { MotionPresence } from '../../shell/MotionPresence'
 
 export function CanvasView(): React.JSX.Element {
   const model = useCanvasView()
@@ -29,7 +31,7 @@ export function CanvasView(): React.JSX.Element {
         <CanvasSurface model={model} canvas={canvas} />
       )}
 
-      {selected && (
+      <MotionPresence>{selected && (
         <div className="canvas-inspector">
           <button
             className="dialog-button"
@@ -43,9 +45,9 @@ export function CanvasView(): React.JSX.Element {
             <Trash2 size={14} /> {t('canvas.deleteCard')}
           </button>
         </div>
-      )}
+      )}</MotionPresence>
 
-      {naming && (
+      <MotionPresence>{naming && (
         <InputDialog
           title={t(naming === 'create' ? 'canvas.nameBoard' : 'canvas.renameBoard')}
           placeholder={t('canvas.boardNamePlaceholder')}
@@ -56,7 +58,7 @@ export function CanvasView(): React.JSX.Element {
           }}
           onCancel={() => setNaming(null)}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }
@@ -116,6 +118,7 @@ function CanvasSurface({ model, canvas }: {
   canvas: NonNullable<CanvasViewState['canvas']>
 }): React.JSX.Element {
   const { surfaceRef, clearSelection, setKeyboardConnectFrom } = model
+  useContentTransition(surfaceRef, canvas.id)
   return (
     <div
       ref={surfaceRef}

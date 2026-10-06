@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { MapPin, Sparkles } from 'lucide-react'
 import { FEATURE_DESIGN, NARRATOR, useNarrationStore, type NarrationBook, type VoiceScope } from '../../stores/narrationStore'
 import { VoicePicker } from './NarrationVoicePicker'
+import { MotionPresence } from '../../shell/MotionPresence'
 
 /**
  * Voices for one stretch of the book.
@@ -52,7 +53,7 @@ export function VoiceScopeButton({
       >
         <MapPin size={13} aria-hidden="true" />
       </button>
-      {open && (
+      <MotionPresence>{open && (
         <div className="narration-scope-editor">
           <p className="narration-scope-blurb">{t('narration.scopeBlurb')}</p>
 
@@ -126,7 +127,7 @@ export function VoiceScopeButton({
             </div>
           )}
         </div>
-      )}
+      )}</MotionPresence>
     </>
   )
 }

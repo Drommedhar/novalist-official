@@ -17,6 +17,7 @@ import { settingsSectionBodies } from './settingsSectionBodies'
 import { ACCESSIBLE_FONTS, SYSTEM_FONTS } from './settingsTypography'
 import { ResolvedSection, Scope, SectionBodyDef } from './settingsViewTypes'
 import { useSettingsModel } from './useSettingsModel'
+import { useContentTransition } from '../../shell/useContentTransition'
 
 export function SettingsView(): React.JSX.Element {
   const {
@@ -159,6 +160,7 @@ function SettingsDesktop(props: SettingsLayoutProps): React.JSX.Element {
     goTo, sectionsRef, searchResults, sectionSurfaceRef,
     overrideActive
   } = props
+  useContentTransition(sectionsRef, `${activeSection?.key ?? ''}:${Boolean(query)}`)
   return (
     <div className="dashboard settings-view">
       <div className="settings-header">

@@ -9,6 +9,7 @@ import { useShellStore } from '../stores/shellStore'
 import { ConfirmDialog } from './ConfirmDialog'
 import { InputDialog } from './InputDialog'
 import { ShiftDatesDialog } from './ShiftDatesDialog'
+import { MotionPresence } from './MotionPresence'
 import './scene-bulk-bar.css'
 
 interface BulkResult {
@@ -24,15 +25,14 @@ type Pending = 'delete' | 'archive' | 'tags' | 'shift' | 'move' | null
  * Everything here is a single round trip that comes back with the new project
  * state, so a bulk change cannot leave the binder showing a stale half of it.
  */
-export function SceneBulkBar(): React.JSX.Element | null {
+export function SceneBulkBar(): React.JSX.Element {
   const { t } = useTranslation()
   const selected = useSelectionStore((s) => s.sceneIds)
   const clear = useSelectionStore((s) => s.clear)
   const chapters = useProjectStore((s) => s.chapters)
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   const [pending, setPending] = useState<Pending>(null)
-
-  // One selected scene is just an open scene; the bar is for acting on several.
-  if (selected.length < 2) return null
+  const active = selected.length >= 2
 
   const apply = async (method: 'sceneBulk/setTags' | SceneStructureMethod, args: unknown[]): Promise<void> => {
     if (method !== 'sceneBulk/setTags') {
@@ -64,7 +64,7 @@ export function SceneBulkBar(): React.JSX.Element | null {
 
   return (
     <>
-      <div className="scene-bulk-bar">
+      <MotionPresence disabled={suspendMotion}>{active && <div className="scene-bulk-bar">
         <span className="scene-bulk-count">{t('bulk.selected', { count: selected.length })}</span>
 
         <select
@@ -106,18 +106,18 @@ export function SceneBulkBar(): React.JSX.Element | null {
         <button className="dialog-button" onClick={clear} title={t('bulk.clear')}>
           <X size={14} />
         </button>
-      </div>
+      </div>}</MotionPresence>
 
-      {pending === 'tags' && (
+      <MotionPresence disabled={suspendMotion}>{active && pending === 'tags' && (
         <InputDialog
           title={t('bulk.addTagsPrompt', { count: selected.length })}
           placeholder={t('bulk.addTagsPlaceholder')}
           onCancel={() => setPending(null)}
           onSubmit={addTags}
         />
-      )}
+      )}</MotionPresence>
 
-      {pending === 'archive' && (
+      <MotionPresence disabled={suspendMotion}>{active && pending === 'archive' && (
         <ConfirmDialog
           title={t('explorer.contextArchive')}
           message={t('bulk.confirmArchive', { count: selected.length })}
@@ -128,9 +128,9 @@ export function SceneBulkBar(): React.JSX.Element | null {
             void apply('sceneBulk/archive', [selected])
           }}
         />
-      )}
+      )}</MotionPresence>
 
-      {pending === 'delete' && (
+      <MotionPresence disabled={suspendMotion}>{active && pending === 'delete' && (
         <ConfirmDialog
           title={t('explorer.deleteTitle')}
           message={t('bulk.confirmDelete', { count: selected.length })}
@@ -140,9 +140,9 @@ export function SceneBulkBar(): React.JSX.Element | null {
             void apply('sceneBulk/delete', [selected])
           }}
         />
-      )}
+      )}</MotionPresence>
 
-      {pending === 'shift' && (
+      <MotionPresence disabled={suspendMotion}>{active && pending === 'shift' && (
         <ShiftDatesDialog
           sceneIds={selected}
           onClose={() => setPending(null)}
@@ -152,7 +152,7 @@ export function SceneBulkBar(): React.JSX.Element | null {
             clear()
           }}
         />
-      )}
+      )}</MotionPresence>
     </>
   )
 }

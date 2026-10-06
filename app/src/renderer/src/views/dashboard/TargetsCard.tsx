@@ -1,3 +1,4 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTargetStore, type WordTarget } from '../../stores/targetStore'
@@ -152,14 +153,14 @@ export function TargetsPanel(): React.JSX.Element {
         </div>
       )}
 
-      {pending && (
+      <MotionPresence>{pending && (
         <InputDialog
           title={t('targets.prompt')}
           placeholder={pending.current}
           onCancel={() => setPending(null)}
           onSubmit={apply}
         />
-      )}
+      )}</MotionPresence>
     </>
   )
 }

@@ -1,3 +1,4 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Download, Pencil, Plus, Trash2, Upload, Wand2 } from 'lucide-react'
@@ -124,7 +125,7 @@ export function StructurePanel({ onTemplatesChanged }: {
 
   return (
     <div className="structure-panel">
-      {editing !== null && (
+      <MotionPresence>{editing !== null && (
         <StructureEditor
           templateId={editing}
           onDone={() => {
@@ -132,7 +133,7 @@ export function StructurePanel({ onTemplatesChanged }: {
             void load()
           }}
         />
-      )}
+      )}</MotionPresence>
       <div className="settings-button-row">
         <select
           className="inspector-input"

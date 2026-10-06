@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { useTranslation } from 'react-i18next'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { rpc } from '../../rpc/client'
@@ -27,6 +28,8 @@ export function WizardDialog({
   )
 
   const step = steps[index]
+  const stepRef = useRef<HTMLDivElement>(null)
+  useContentTransition(stepRef, step?.id ?? '')
   const value = answers[step?.id] ?? step?.defaultValue ?? ''
   const isLast = index === steps.length - 1
   const canAdvance = step?.skippable || value.trim().length > 0
@@ -57,7 +60,7 @@ export function WizardDialog({
 
   return (
     <div className="dialog-overlay">
-      <div className="dialog-card type-manager-card" role="dialog" aria-label={title}>
+      <div className="dialog-card type-manager-card" ref={stepRef} role="dialog" aria-label={title}>
         <div className="type-manager-title-row">
           <div className="dialog-title">{title}</div>
           <span className="codex-row-detail">

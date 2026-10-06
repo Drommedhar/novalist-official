@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShellStore } from '../stores/shellStore'
+import { useProjectStore } from '../stores/projectStore'
+import { MotionPresence } from './MotionPresence'
 
 /**
  * The one question asked whenever a screen with unsaved edits is left.
@@ -16,10 +18,11 @@ import { useShellStore } from '../stores/shellStore'
  */
 export function UnsavedLeaveDialog(): React.JSX.Element | null {
   const { t } = useTranslation()
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   const pending = useShellStore((s) => s.pendingLeave)
   const [saving, setSaving] = useState(false)
 
-  if (!pending) return null
+  if (!pending) return <MotionPresence disabled={suspendMotion}>{null}</MotionPresence>
 
   const resolve = async (action: 'cancel' | 'discard' | 'save'): Promise<void> => {
     setSaving(action === 'save')
@@ -33,6 +36,7 @@ export function UnsavedLeaveDialog(): React.JSX.Element | null {
   return (
     // No backdrop dismissal. This dialog exists because a stray click already
     // cost the writer an edit once.
+    <MotionPresence disabled={suspendMotion}>
     <div className="dialog-overlay">
       <div className="dialog-card" role="dialog" aria-label={t('unsavedLeave.title')}>
         <div className="dialog-title">{t('unsavedLeave.title')}</div>
@@ -54,5 +58,6 @@ export function UnsavedLeaveDialog(): React.JSX.Element | null {
         </div>
       </div>
     </div>
+    </MotionPresence>
   )
 }

@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useTranslation } from 'react-i18next'
 import {
   MousePointer2,
@@ -116,7 +117,7 @@ export function ToolRail({
         >
           <Spline size={16} strokeWidth={2} />
         </button>
-        {flyout === 'spline' && (
+        <MotionPresence>{flyout === 'spline' && (
           <div className="map-flyout" role="menu">
             {[
               { kind: 'road', label: 'map.splineRoadHeader' },
@@ -158,7 +159,7 @@ export function ToolRail({
               </>
             )}
           </div>
-        )}
+        )}</MotionPresence>
       </div>
 
       <div className="map-tool-group">
@@ -171,7 +172,7 @@ export function ToolRail({
         >
           <Trees size={16} strokeWidth={2} />
         </button>
-        {flyout === 'terrain' && (
+        <MotionPresence>{flyout === 'terrain' && (
           <div className="map-flyout" role="menu">
             {TERRAIN_TYPES.map((tt) => (
               <button
@@ -187,7 +188,7 @@ export function ToolRail({
               </button>
             ))}
           </div>
-        )}
+        )}</MotionPresence>
       </div>
 
       <div className="map-tool-group">
@@ -200,7 +201,7 @@ export function ToolRail({
         >
           <Building2 size={16} strokeWidth={2} />
         </button>
-        {flyout === 'building' && (
+        <MotionPresence>{flyout === 'building' && (
           <div className="map-flyout" role="menu">
             {BUILDING_TYPES.map((bt) => (
               <button
@@ -228,7 +229,7 @@ export function ToolRail({
               <span className="map-scale-value">{buildingScale.toFixed(2)}×</span>
             </div>
           </div>
-        )}
+        )}</MotionPresence>
       </div>
     </div>
   )

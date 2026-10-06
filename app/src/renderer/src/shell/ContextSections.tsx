@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useShellStore } from '../stores/shellStore'
 import { useWikiStore } from '../stores/wikiStore'
 import { type CardPeek, type EntityCard } from './contextTypes'
+import { MotionPresence } from './MotionPresence'
 
 /** A single set of section-collapse preferences (not scene-specific), persisted
  * to localStorage. Mirrors the desktop ProjectSettings.ViewState.Context* flags,
@@ -60,7 +61,9 @@ export function CollapsibleSection({
         )}
         <span className="ctx-section-title">{t(titleKey)}</span>
       </button>
-      {!collapsed && children}
+      <MotionPresence collapse>
+        {!collapsed && <div className="ctx-section-content">{children}</div>}
+      </MotionPresence>
     </div>
   )
 }

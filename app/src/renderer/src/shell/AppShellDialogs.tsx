@@ -21,9 +21,11 @@ import { useProjectStore } from '../stores/projectStore'
 import { helpTargetForContext, type ManualTarget } from './helpTargets'
 import { useSettingsNavigation } from '../views/settings/settingsNavigation'
 import { useEditorBridge } from '../stores/editorBridgeStore'
+import { MotionPresence } from './MotionPresence'
 
 export function AppShellDialogs(): React.JSX.Element {
   const isLoaded = useProjectStore((s) => s.isLoaded)
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   const mainView = useShellStore((s) => s.mainView)
   const inspectorTab = useShellStore((s) => s.inspectorTab)
   const findReplaceOpen = useShellStore((s) => s.findReplaceOpen)
@@ -46,37 +48,37 @@ export function AppShellDialogs(): React.JSX.Element {
       })
       : { file: '01-getting-started.md' }
   return <>
-      {findReplaceOpen && (
+      <MotionPresence disabled={suspendMotion}>{findReplaceOpen && (
         <FindReplaceDialog onClose={() => useShellStore.getState().setFindReplaceOpen(false)} />
-      )}
-      {cleanupOpen && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{cleanupOpen && (
         <CleanupDialog onClose={() => useShellStore.getState().setCleanupOpen(false)} />
-      )}
-      {commandPaletteOpen && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{commandPaletteOpen && (
         <CommandPalette onClose={() => useShellStore.getState().setCommandPaletteOpen(false)} />
-      )}
-      {quickOpenOpen && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{quickOpenOpen && (
         <QuickOpen onClose={() => useShellStore.getState().setQuickOpenOpen(false)} />
-      )}
-      {quickCaptureOpen && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{quickCaptureOpen && (
         <QuickCapture onClose={() => useShellStore.getState().setQuickCaptureOpen(false)} />
-      )}
-      {helpOpen && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{helpOpen && (
         <HelpOverlay
           initialTarget={contextualHelp}
           onClose={() => useShellStore.getState().setHelpOpen(false)}
         />
-      )}
-      {layoutsOpen && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{layoutsOpen && (
         <WorkspaceLayoutsDialog onClose={() => useShellStore.getState().setLayoutsOpen(false)} />
-      )}
-      {tourOpen && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{tourOpen && (
         <FirstRunTour
           prerequisites={{ focusPeekAvailable: editorEntityAtCaret }}
           onFocusPeekRequest={() => activeEditor?.peekEntityAtCaret()}
           onClose={() => useShellStore.getState().setTourOpen(false)}
         />
-      )}
+      )}</MotionPresence>
       {/* Every dialog a command can name, in one place, so the palette and the
           menu bar raise the same ones the toolbar does. */}
       <ShellDialogs />

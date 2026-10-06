@@ -5,17 +5,21 @@ import { useShellStore } from '../../stores/shellStore'
 import { EntityTypeDialog } from '../../shell/EntityTypeDialog'
 import { AppendToEntityDialog } from '../../shell/AppendToEntityDialog'
 import { InputDialog } from '../../shell/InputDialog'
+import { MotionPresence } from '../../shell/MotionPresence'
 import './editor.css'
 import { useEditorFrameModel } from './useEditorFrameModel'
 import { useEditorPersistence, useEditorScene, useEditorControls } from './useEditorSynchronization'
 import { useTranslation } from 'react-i18next'
 import { editorPane, useProjectStore, type SceneTabRef } from '../../stores/projectStore'
+import { useContentTransition } from '../../shell/useContentTransition'
 
 export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element {
   const model = useEditorFrameModel({ paneId })
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   const { editorFontSize, peekScope, t, pane, formatting, speaking, isActiveEditor, showFocusPeekTip, editorRef, completeFocusPeekTip, dismissFocusPeekTip, iframeRef, peek, pendingEntity, createPendingEntity, cancelPendingEntity, pendingAppend, appendSelectionToEntity, setPendingAppend, linkPrompt, setLinkPrompt, pendingImage, setPendingImage, lastReportedHtmlRef, loadingRef, loadAnnotations, applyFootnoteOrder, pushEntityNames, peekRef, i18n, sceneTitleRef, annotationsRef, persistAnnotations, pushAnnotations, paneIds, setPendingEntity, entityIndexRef, setSpeaking, setFormatting } = model
   useEditorPersistence(model)
   useEditorScene(model)
+  useContentTransition(model.iframeRef, model.openSceneId ?? '')
   useEditorMessages({
     iframeRef, pane, peekRef, editorRef, i18n, loadingRef, lastReportedHtmlRef, loadAnnotations, applyFootnoteOrder, pushEntityNames, t, setPendingImage, sceneTitleRef, setLinkPrompt, annotationsRef, persistAnnotations, pushAnnotations, paneIds, setPendingAppend, setPendingEntity, entityIndexRef, setSpeaking, setFormatting
   })
@@ -80,23 +84,23 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
         sandbox="allow-scripts allow-same-origin"
       />
       {peek.overlay}
-      {pendingEntity && (
+      <MotionPresence disabled={suspendMotion}>{pendingEntity && (
         <EntityTypeDialog
           name={pendingEntity.name}
           onPick={(typeKey) => void createPendingEntity(typeKey)}
           onCancel={cancelPendingEntity}
         />
-      )}
-      {pendingAppend != null && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{pendingAppend != null && (
         <AppendToEntityDialog
           text={pendingAppend}
           onConfirm={(target) => void appendSelectionToEntity(target)}
           onCancel={() => setPendingAppend(null)}
         />
-      )}
+      )}</MotionPresence>
       {/* The frame owns no dialogs, so it asks and the host answers. An empty
           address unlinks, which is how a link is taken off again. */}
-      {linkPrompt && (
+      <MotionPresence disabled={suspendMotion}>{linkPrompt && (
         <InputDialog
           title={t('editor.linkPrompt')}
           placeholder="https://"
@@ -106,11 +110,11 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
             editorRef.current?.applyLink(value.trim())
           }}
         />
-      )}
+      )}</MotionPresence>
 
       {/* Alt text, asked for at insert time. Asking later means never, and a
           picture nobody described is invisible to a reader who cannot see it. */}
-      {pendingImage && (
+      <MotionPresence disabled={suspendMotion}>{pendingImage && (
         <InputDialog
           title={t('editorImage.altTitle')}
           placeholder={t('editorImage.altPlaceholder')}
@@ -127,7 +131,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
             editorRef.current?.insertImageAtCaret(path, value.trim())
           }}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }
@@ -135,6 +139,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
 /** Ordered tab strip for the scenes open in one editor pane. */
 export function SceneTabStrip({ paneId }: { paneId: string }): React.JSX.Element | null {
   const { t } = useTranslation()
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   const tabs = useProjectStore((s) => editorPane(s, paneId).tabs)
   const activeId = useProjectStore((s) => editorPane(s, paneId).sceneId)
   const chapters = useProjectStore((s) => s.chapters)
@@ -203,7 +208,7 @@ export function SceneTabStrip({ paneId }: { paneId: string }): React.JSX.Element
           </button>
         </div>
       ))}
-      {menu && (
+      <MotionPresence disabled={suspendMotion}>{menu && (
         <>
           <div
             className="editor-tab-menu-scrim"
@@ -225,7 +230,7 @@ export function SceneTabStrip({ paneId }: { paneId: string }): React.JSX.Element
             <button onClick={() => moveOther(menu.sceneId)}>{t('editor.tabMoveOther')}</button>
           </div>
         </>
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

@@ -56,29 +56,31 @@
 .workspace-navigation {
   display: contents;
 }
-.workspace-sidebar {
+.shell:not(.shell-capacity-compact) .workspace-sidebar,
+.shell:not(.shell-capacity-compact) .workspace-navigation:has(> .motion-presence > .binder):has(> .motion-presence > .mode-panel:not(.overlay)) {
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
   min-height: 0;
   background: var(--nl-surface-sidebar);
-}
-.workspace-sidebar .mode-panel {
-  width: 100%;
-  flex: 0 1 auto;
-  max-height: min(40%, var(--nl-local-nav-max-height));
-  border-bottom: var(--nl-rule-width) solid var(--nl-border);
-}
-.workspace-sidebar .mode-panel-head {
-  display: none;
-}
-.workspace-sidebar .mode-panel-list {
-  padding-bottom: var(--nl-space-sm);
-}
-.workspace-sidebar .binder {
-  width: 100% !important;
-  flex: 1;
-  min-height: 0;
+
+  & .mode-panel {
+    width: 100%;
+    flex: 0 1 auto;
+    max-height: min(40%, var(--nl-local-nav-max-height));
+    border-bottom: var(--nl-rule-width) solid var(--nl-border);
+  }
+  & .mode-panel-head {
+    display: none;
+  }
+  & .mode-panel-list {
+    padding-bottom: var(--nl-space-sm);
+  }
+  & .binder {
+    width: 100% !important;
+    flex: 1;
+    min-height: 0;
+  }
 }
 :root[data-shell='desktop'] .inspector-tabs {
   display: grid;

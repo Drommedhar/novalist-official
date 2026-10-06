@@ -21,8 +21,13 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+### Added
+
+- **Subtle interface transitions** — brief fades and small slides soften navigation, book and entry details, panels, dialogs and menus, including popups in the writing editor. Expandable sections and bookshelf details open and close smoothly. Transitions respect your system's reduced-motion preference.
+
 ### Fixed
 
+- Map context menus respond to Escape immediately after opening.
 - Find and replace preserves manuscript formatting, links and images, handles whole-word regular expressions correctly, and keeps the original scene notes and synopsis in the revision taken before replacement.
 - Pruning old scene revisions no longer removes Codex and research revision history.
 - Switching projects, books or drafts saves pending edits in every window first. Detached panes keep their backend connection, respond to menu and keyboard commands, and follow the shared active workspace. Creating drafts and deleting the active draft also preserve pending edits.

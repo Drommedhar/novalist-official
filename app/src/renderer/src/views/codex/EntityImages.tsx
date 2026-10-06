@@ -1,3 +1,4 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ClipboardPaste, ImagePlus, Link, Replace, X } from 'lucide-react'
@@ -193,7 +194,7 @@ export function EntityImages(): React.JSX.Element | null {
           {t('entityEditor.fromUrl')}
         </button>
       </div>
-      {galleryOpen && (
+      <MotionPresence>{galleryOpen && (
         <div
           className="dialog-overlay"
           onPointerDown={(e) => {
@@ -227,8 +228,8 @@ export function EntityImages(): React.JSX.Element | null {
             </div>
           </div>
         </div>
-      )}
-      {urlOpen && (
+      )}</MotionPresence>
+      <MotionPresence>{urlOpen && (
         <div
           className="dialog-overlay"
           onPointerDown={(e) => e.target === e.currentTarget && setUrlOpen(false)}
@@ -259,7 +260,7 @@ export function EntityImages(): React.JSX.Element | null {
             </div>
           </div>
         </div>
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

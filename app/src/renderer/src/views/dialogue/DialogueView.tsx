@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { useTranslation } from 'react-i18next'
 import { ExternalLink, Search } from 'lucide-react'
 import {
@@ -30,6 +31,8 @@ export function DialogueView(): React.JSX.Element {
   const select = useDialogueStore((s) => s.select)
   const clearStaleError = useDialogueStore((s) => s.clearStaleError)
   const [filter, setFilter] = useState('')
+  const contentRef = useRef<HTMLDivElement>(null)
+  useContentTransition(contentRef, selectedId ?? '')
 
   useEffect(() => {
     void load()
@@ -101,7 +104,7 @@ export function DialogueView(): React.JSX.Element {
         </ul>
       </aside>
 
-      <div className="dialogue-main">
+      <div className="dialogue-main" ref={contentRef}>
         {staleError && (
           <div className="dialogue-banner" role="alert">
             <span>{t('dialogue.staleWarning')}</span>

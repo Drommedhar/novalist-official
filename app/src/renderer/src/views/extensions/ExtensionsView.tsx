@@ -1,5 +1,7 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { DesktopViewActions } from '../../shell/DesktopViewFrame'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { useTranslation } from 'react-i18next'
 import { FolderOpen, FolderPlus, RefreshCw } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -91,9 +93,11 @@ function useExtensionManagement() {
 
 export function ExtensionsView(): React.JSX.Element {
   const { t, tab, doInstall, busy, setTab, error, extensions, storeUpdates, doUpdate, doToggle, setConfirmId, themes, confirmTarget, doUninstall } = useExtensionManagement()
+  const contentRef = useRef<HTMLDivElement>(null)
+  useContentTransition(contentRef, tab)
 
   return (
-    <div className="dashboard extensions-view">
+    <div className="dashboard extensions-view" ref={contentRef}>
       <div className="extensions-header">
         <h1 className="dashboard-title">{t('extensions.title')}</h1>
         {tab === 'installed' && (
@@ -244,14 +248,14 @@ export function ExtensionsView(): React.JSX.Element {
         </>
       )}
 
-      {confirmTarget && (
+      <MotionPresence>{confirmTarget && (
         <ConfirmDialog
           title={t('extensions.uninstall')}
           message={t('extensions.uninstallConfirm', { name: confirmTarget.name })}
           onConfirm={() => void doUninstall(confirmTarget.id)}
           onCancel={() => setConfirmId(null)}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

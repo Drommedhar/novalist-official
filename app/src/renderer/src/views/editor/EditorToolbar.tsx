@@ -16,6 +16,7 @@ import {
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { runCommand } from '../../shell/commands'
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useShellStore } from '../../stores/shellStore'
 import { DictationBar } from '../../dictation/DictationBar'
@@ -214,7 +215,7 @@ export function EditorToolbar({ formatting, speaking, active }: EditorToolbarPro
         </button>
       </div>
 
-      {(speaking || suggesting) && (
+      <MotionPresence collapse>{(speaking || suggesting) && <div>
         <div className="editor-mode-bar" role="status">
           <span>{t(speaking ? 'blockStyle.readAloudActive' : 'blockStyle.suggestionActive')}</span>
           <button
@@ -228,10 +229,10 @@ export function EditorToolbar({ formatting, speaking, active }: EditorToolbarPro
             {t('blockStyle.exitMode')}
           </button>
         </div>
-      )}
+      </div>}</MotionPresence>
       {active && <DictationBar />}
 
-      {optionsOpen && (
+      <MotionPresence collapse>{optionsOpen && <div>
         <div
           className="editor-writing-options"
           role="dialog"
@@ -274,7 +275,7 @@ export function EditorToolbar({ formatting, speaking, active }: EditorToolbarPro
             {t('blockStyle.moreWritingSettings')}
           </button>
         </div>
-      )}
+      </div>}</MotionPresence>
       {/* placement-container: end */}
     </div>
   )

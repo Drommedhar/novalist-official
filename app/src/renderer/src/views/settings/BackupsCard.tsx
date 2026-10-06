@@ -7,6 +7,7 @@ import { useSettingsStore } from '../../stores/settingsStore'
 import { useManuscriptStore } from '../../stores/manuscriptStore'
 import { flushPendingWrites } from '../../stores/pendingWrites'
 import { RestoreBackupDialog } from '../../shell/RestoreBackupDialog'
+import { MotionPresence } from '../../shell/MotionPresence'
 
 export interface BackupDto {
   id: string
@@ -114,10 +115,10 @@ export function BackupsCard(): React.JSX.Element {
       <button className="dialog-button" disabled={busy} onClick={() => setRestoreCopy('')}>
         {t('backup.restoreAsNew')}
       </button>
-      {restoreCopy !== null && <RestoreBackupDialog archivePath={restoreCopy} onClose={() => {
+      <MotionPresence>{restoreCopy !== null && <RestoreBackupDialog archivePath={restoreCopy} onClose={() => {
         setRestoreCopy(null)
         void refresh()
-      }} />}
+      }} />}</MotionPresence>
       <label className="relationships-toggle">
         <input
           type="checkbox"

@@ -1,3 +1,4 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { Plus, Pencil, Trash2, Maximize, Crosshair, Box, Scissors, Spline as SplineIcon, ImageDown, Mountain, Eye } from 'lucide-react'
 import { InputDialog } from '../../shell/InputDialog'
@@ -19,31 +20,31 @@ export function MapsView(): React.JSX.Element {
         <MapCanvas is3D={is3D} activeTool={activeTool} hasMap={hasMap} editMode={editMode} buildingScale={buildingScale} mapModel={mapModel} selectTool={selectTool} onAddImage={onAddImage} onSplinePreset={onSplinePreset} onTerrain={onTerrain} onBuilding={onBuilding} onBuildingScale={onBuildingScale} setMeasured={setMeasured} t={t} setScaleOpen={setScaleOpen} measured={measured} iframeRef={iframeRef} loading3D={loading3D} peek={peek} setPeek={setPeek} selectedNodeId={selectedNodeId} expanded={expanded} isolated={isolated} onSelectNode={onSelectNode} onToggleExpand={onToggleExpand} onAddLayer={onAddLayer} onAddChild={onAddChild} onDeleteNode={onDeleteNode} onRenameNode={onRenameNode} onToggleHidden={onToggleHidden} onToggleLocked={onToggleLocked} onMoveNode={onMoveNode} onMoveToRoot={onMoveToRoot} onSetOpacity={onSetOpacity} onSetNodeZoom={onSetNodeZoom} onSetFloorMode={onSetFloorMode} onSetActiveFloor={onSetActiveFloor} onSetElementZoom={onSetElementZoom} onToggleIsolate={onToggleIsolate} />
       )}
 
-      {creating && (
+      <MotionPresence>{creating && (
         <InputDialog
           title={t('map.createTitle')}
           placeholder={t('map.createPrompt')}
           onCancel={() => setCreating(false)}
           onSubmit={onCreateMap}
         />
-      )}
-      {renaming && (
+      )}</MotionPresence>
+      <MotionPresence>{renaming && (
         <InputDialog
           title={t('map.renameTitle')}
           placeholder={t('map.renamePrompt')}
           onCancel={() => setRenaming(false)}
           onSubmit={onRenameMap}
         />
-      )}
-      {confirmingDelete && activeMap && (
+      )}</MotionPresence>
+      <MotionPresence>{confirmingDelete && activeMap && (
         <ConfirmDialog
           title={t('map.deleteTitle')}
           message={t('map.deleteMessage').replace('{0}', activeMap.name)}
           onCancel={() => setConfirmingDelete(false)}
           onConfirm={onDeleteMap}
         />
-      )}
-      {imagePicker && (
+      )}</MotionPresence>
+      <MotionPresence>{imagePicker && (
         <div
           className="dialog-overlay"
           onPointerDown={(e) => e.target === e.currentTarget && setImagePicker(null)}
@@ -72,8 +73,8 @@ export function MapsView(): React.JSX.Element {
             </div>
           </div>
         </div>
-      )}
-      {scaleOpen && (
+      )}</MotionPresence>
+      <MotionPresence>{scaleOpen && (
         <MapScaleDialog
           initial={getWin()?.getMapScale?.() ?? null}
           onCancel={() => setScaleOpen(false)}
@@ -82,7 +83,7 @@ export function MapsView(): React.JSX.Element {
             setScaleOpen(false)
           }}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

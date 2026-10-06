@@ -1,6 +1,7 @@
 import { rpc } from '../rpc/client'
 
 import type { BinderState } from './binderState'
+import { MotionPresence } from './MotionPresence'
 
 export function BinderArchive({ state }: { state: BinderState }): React.JSX.Element {
   const { t, binderTab, chapters, store, archiveOpen, setArchiveOpen, archived, trashed, restoreInto, setRestoreInto, loadArchived } = state
@@ -13,7 +14,9 @@ export function BinderArchive({ state }: { state: BinderState }): React.JSX.Elem
             >
               {t('explorer.archive')}
             </button>
-            {archiveOpen && trashed.length > 0 && (
+            <MotionPresence collapse>
+            {archiveOpen && <div>
+            {trashed.length > 0 && (
               <div className="binder-trash-chapters">
                 {trashed.map((chapter) => (
                   <div key={chapter.guid} className="binder-scene-row">
@@ -57,7 +60,7 @@ export function BinderArchive({ state }: { state: BinderState }): React.JSX.Elem
                 ))}
               </div>
             )}
-            {archiveOpen && archived.length > 0 && chapters.length > 0 && (
+            {archived.length > 0 && chapters.length > 0 && (
               <label className="binder-restore-target">
                 {t('explorer.restoreInto')}
                 <select
@@ -77,7 +80,7 @@ export function BinderArchive({ state }: { state: BinderState }): React.JSX.Elem
                 </select>
               </label>
             )}
-            {archiveOpen && archived.map((scene) => (
+            {archived.map((scene) => (
               <div key={scene.id} className="binder-scene-row">
                 <span className="binder-scene-title" title={scene.title}>{scene.title}</span>
                 {scene.originChapterTitle && (
@@ -101,9 +104,11 @@ export function BinderArchive({ state }: { state: BinderState }): React.JSX.Elem
                 </button>
               </div>
             ))}
-            {archiveOpen && archived.length === 0 && trashed.length === 0 && (
+            {archived.length === 0 && trashed.length === 0 && (
               <div className="binder-placeholder">{t('explorer.archiveEmpty')}</div>
             )}
+            </div>}
+            </MotionPresence>
           </div>
         )}
   </>

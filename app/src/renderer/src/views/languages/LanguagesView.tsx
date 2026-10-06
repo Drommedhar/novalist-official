@@ -1,3 +1,4 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -6,6 +7,7 @@ import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
 import { InputDialog } from '../../shell/InputDialog'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
+import { useContentTransition } from '../../shell/useContentTransition'
 import './languages.css'
 
 interface Word {
@@ -127,6 +129,7 @@ function useLanguages() {
 
 export function LanguagesView(): React.JSX.Element {
   const { rootRef, selected, setAdding, setDraft, t, setSelectedId, languages, setRemoving, setLanguages, query, setQuery, shown, apply, elsewhere, draft, saveWord, adding, removing } = useLanguages()
+  useContentTransition(rootRef, selected?.id ?? '')
 
   return (
     <div className="dashboard languages" ref={rootRef}>
@@ -194,7 +197,7 @@ export function LanguagesView(): React.JSX.Element {
         </>
       )}
 
-      {adding && (
+      <MotionPresence>{adding && (
         <InputDialog
           title={t('languages.add')}
           onCancel={() => setAdding(false)}
@@ -206,8 +209,8 @@ export function LanguagesView(): React.JSX.Element {
             })
           }}
         />
-      )}
-      {removing && selected && (
+      )}</MotionPresence>
+      <MotionPresence>{removing && selected && (
         <ConfirmDialog
           title={t('explorer.deleteTitle')}
           message={t('languages.deleteHint', { name: selected.name })}
@@ -220,7 +223,7 @@ export function LanguagesView(): React.JSX.Element {
             })
           }}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

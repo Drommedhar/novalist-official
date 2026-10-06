@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { useTranslation } from 'react-i18next'
 import { Copy, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -105,6 +106,8 @@ export function ExportLayoutPanel({
   }, [])
 
   const selected = layouts.find((l) => l.id === selectedId)
+  const layoutRef = useRef<HTMLDivElement>(null)
+  useContentTransition(layoutRef, selected?.id ?? '')
 
   const edit = (patch: Partial<ExportLayout>): void => {
     if (!selected) return
@@ -170,7 +173,7 @@ export function ExportLayoutPanel({
   )
 
   return (
-    <div className="settings-subgroup">
+    <div className="settings-subgroup" ref={layoutRef}>
       <div className="settings-button-row">
         <span className="settings-hint">{selected?.displayName ?? ''}</span>
         <button className="dialog-button" onClick={() => void duplicate()}>

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import './i18n'
 import './styles/tokens.css'
 import './styles/base.css'
+import './styles/motion.css'
 import { AppShell } from './shell/AppShell'
 import { DetachedPane, type DetachedRequest } from './shell/DetachedPane'
 import { useShellStore, type MainView } from "./stores/shellStore";

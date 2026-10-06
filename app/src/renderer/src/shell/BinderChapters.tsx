@@ -3,6 +3,7 @@ import { ChevronRight, MoreHorizontal, Plus } from 'lucide-react'
 import { handleSceneClick, useSelectionStore } from '../stores/selectionStore'
 
 import type { BinderState } from './binderState'
+import { MotionPresence } from './MotionPresence'
 
 export function BinderChapters({ state }: { state: BinderState }): React.JSX.Element {
   const { t, binderTab, sortMode, isMobile, setAddSceneChapter, collapsed, setCollapsed, setDrag,  setMenu, changedIds, selectedIds, stages, targets, chapters, openSceneId, openScene, onChapterDrop, onSceneDrop, scenesOf, cycleStatus } = state
@@ -70,8 +71,9 @@ export function BinderChapters({ state }: { state: BinderState }): React.JSX.Ele
                 </>
               )}
             </div>
-            {!collapsed[chapter.guid] &&
-              scenesOf(chapter).map((scene, sceneIndex) => (
+            <MotionPresence collapse>
+            {!collapsed[chapter.guid] && <div>
+              {scenesOf(chapter).map((scene, sceneIndex) => (
                 <div key={scene.id} className="binder-scene-wrap">
                 <button
                   className={`binder-scene-row${openSceneId === scene.id ? ' active' : ''}${
@@ -180,6 +182,8 @@ export function BinderChapters({ state }: { state: BinderState }): React.JSX.Ele
                 )}
                 </div>
               ))}
+            </div>}
+            </MotionPresence>
           </div>
         ))}
   </>

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FolderOpen } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { flushPendingWrites } from '../stores/pendingWrites'
 import { SnowflakeSetup } from './SnowflakeSetup'
+import { useDialogAutoFocus } from './useDialogKeyboard'
 
 /**
  * New-project dialog on the start screen: name, first book, parent folder,
@@ -12,6 +13,8 @@ import { SnowflakeSetup } from './SnowflakeSetup'
  */
 export function CreateProjectDialog({ onClose }: { onClose: () => void }): React.JSX.Element {
   const { t } = useTranslation()
+  const inputRef = useRef<HTMLInputElement>(null)
+  useDialogAutoFocus(inputRef)
   const [projectName, setProjectName] = useState('')
   const [bookName, setBookName] = useState('')
   const [location, setLocation] = useState('')
@@ -82,7 +85,7 @@ export function CreateProjectDialog({ onClose }: { onClose: () => void }): React
         <label className="inspector-label">{t('welcome.projectName')}</label>
         <input
           className="dialog-input"
-          autoFocus
+          ref={inputRef}
           placeholder={t('welcome.projectNamePlaceholder')}
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}

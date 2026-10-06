@@ -8,6 +8,8 @@ import { RemovedLibraryItems } from './RemovedLibraryItems'
 import { projectKey, useBookshelfStore, type LibrarySort, type RemovedLibraryItem } from '../stores/bookshelfStore'
 import { useProjectStore, type RecentProjectDto } from '../stores/projectStore'
 import { useShellStore } from '../stores/shellStore'
+import { MotionPresence } from './MotionPresence'
+import { useContentTransition } from './useContentTransition'
 import './bookshelf.css'
 
 const PROJECT_DRAG = 'application/x-novalist-project'
@@ -106,7 +108,7 @@ function useProjectLibrary({ recentProjects, onOpenPath }: StartScreenProps) {
       !first.target.isConnected || first.target.getAttribute('aria-pressed') !== 'true') return
     const bounds = first.target.getBoundingClientRect()
     if (event.clientX >= bounds.left && event.clientX <= bounds.right && event.clientY >= bounds.top && event.clientY <= bounds.bottom) return
-    // Show details immediately. If that reflow moves the book away from the
+    // If opening details moves the book away from the
     // pointer, a second click at its old position still opens the original book.
     // Clicks on a book that stayed under the pointer use native double-clicks.
     event.preventDefault()
@@ -127,7 +129,12 @@ function useProjectLibrary({ recentProjects, onOpenPath }: StartScreenProps) {
 
 export function StartScreen({ recentProjects, onOpenPath }: StartScreenProps): React.JSX.Element {
   const state = useProjectLibrary({ recentProjects, onOpenPath })
-  const { t, library, search, setSearch, activeShelf, setActiveShelf, newShelf, setNewShelf, renameShelf, setRenameShelf, selection, setSelection, dropShelf, setDropShelf, removedOpen, setRemovedOpen, lastRemoved, setLastRemoved, opening, openError, undoButton, searchInput, moreTrigger, openButton, selectedTrigger, selectionClick, instructionsId, needle, rows, availableProjects, shelfFor, selectedProject, selectedBook, selectedShelf, visibleShelves, selectedNeighbors, selectedIndex, remove, accept, open, finishSelectionClick, cover, closeMenu } = state
+  const { t, library, search, setSearch, activeShelf, setActiveShelf, newShelf, setNewShelf, renameShelf, setRenameShelf, selection, setSelection, dropShelf, setDropShelf, removedOpen, setRemovedOpen, lastRemoved, setLastRemoved, openError, undoButton, searchInput, moreTrigger, openButton, selectedTrigger, selectionClick, instructionsId, needle, rows, availableProjects, shelfFor, selectedProject, selectedBook, visibleShelves, accept, open, finishSelectionClick, cover, closeMenu } = state
+  const shelvesRef = useRef<HTMLElement>(null)
+  const shelfNameRef = useRef<HTMLInputElement>(null)
+  const addingShelf = newShelf !== null
+  useContentTransition(shelvesRef, JSON.stringify([activeShelf, library.sort]))
+  useEffect(() => { if (addingShelf) shelfNameRef.current?.focus() }, [addingShelf])
   return <div className="start-screen project-library" style={{ '--library-cover-scale': library.coverScale } as CSSProperties} onClickCapture={finishSelectionClick}>
     <div className="library-content">
       <header className="library-header">
@@ -161,16 +168,16 @@ export function StartScreen({ recentProjects, onOpenPath }: StartScreenProps): R
           <option value="shelf">{t('bookshelf.sortShelf')}</option><option value="recent">{t('bookshelf.sortRecent')}</option><option value="title">{t('bookshelf.sortTitle')}</option>
         </select>
       </div>
-      {newShelf !== null && <form className="library-shelf-form" onSubmit={event => { event.preventDefault(); if (!newShelf.trim()) return; library.addShelf(newShelf); setNewShelf(null) }}>
-        <input autoFocus aria-label={t('bookshelf.shelfName')} placeholder={t('bookshelf.shelfName')} value={newShelf} onChange={event => setNewShelf(event.target.value)} />
-        <button className="library-button" type="submit" disabled={!newShelf.trim()}>{t('bookshelf.createShelf')}</button><button className="library-button" type="button" onClick={() => setNewShelf(null)}>{t('bookshelf.cancel')}</button></form>}
-      {lastRemoved && <div className="library-removal-notice"><span role="status">{t('bookshelf.removedMessage', { name: lastRemoved.bookName ?? lastRemoved.projectName })}</span>
+      <MotionPresence collapse>{newShelf !== null && <form className="library-shelf-form" onSubmit={event => { event.preventDefault(); if (!newShelf.trim()) return; library.addShelf(newShelf); setNewShelf(null) }}>
+        <input ref={shelfNameRef} aria-label={t('bookshelf.shelfName')} placeholder={t('bookshelf.shelfName')} value={newShelf} onChange={event => setNewShelf(event.target.value)} />
+        <button className="library-button" type="submit" disabled={!newShelf.trim()}>{t('bookshelf.createShelf')}</button><button className="library-button" type="button" onClick={() => setNewShelf(null)}>{t('bookshelf.cancel')}</button></form>}</MotionPresence>
+      <MotionPresence collapse>{lastRemoved && <div className="library-removal-notice"><span role="status">{t('bookshelf.removedMessage', { name: lastRemoved.bookName ?? lastRemoved.projectName })}</span>
         <button ref={undoButton} onClick={() => { library.restoreItem(lastRemoved); setLastRemoved(null); searchInput.current?.focus() }}>{t('bookshelf.undoRemoval')}</button>
-        <button aria-label={t('dialog.close')} onClick={() => { setLastRemoved(null); searchInput.current?.focus() }}><X size={16} /></button></div>}
+        <button aria-label={t('dialog.close')} onClick={() => { setLastRemoved(null); searchInput.current?.focus() }}><X size={16} /></button></div>}</MotionPresence>
       {openError && <p className="library-open-error" role="alert">{openError}</p>}
       <p id={instructionsId} className="library-sr-only">{t('bookshelf.selectionHint')}</p>
       <div className="library-workspace">
-        <main className="library-shelves" aria-label={t('bookshelf.title')}>
+        <main ref={shelvesRef} className="library-shelves" aria-label={t('bookshelf.title')}>
           {availableProjects.length === 0 && <div className="library-empty"><LibraryBig size={48} strokeWidth={1} /><h2>{t('bookshelf.firstStory')}</h2><p>{t('bookshelf.empty')}</p><button className="library-button library-primary" onClick={() => runCommand('app.newProject')}><Plus size={17} />{t('welcome.newProject')}</button></div>}
           {availableProjects.length > 0 && needle && visibleShelves.length === 0 && <div className="library-empty"><Search size={32} /><p>{t('bookshelf.noResults')}</p><button className="library-button" onClick={() => setSearch('')}>{t('bookshelf.clearSearch')}</button></div>}
           {availableProjects.length > 0 && visibleShelves.map(shelf => {
@@ -210,7 +217,26 @@ export function StartScreen({ recentProjects, onOpenPath }: StartScreenProps): R
             </section>
           })}
         </main>
-        {selectedProject && selectedBook && <aside className="library-inspector" aria-label={t('bookshelf.bookDetails')}>
+        <MotionPresence>
+          {selectedProject && selectedBook && <div className="library-inspector-slot">
+            <LibraryInspector state={state} />
+          </div>}
+        </MotionPresence>
+      </div>
+      <RemovedLibraryItems open={removedOpen} onClose={() => { setRemovedOpen(false); moreTrigger.current?.focus() }} recentProjects={recentProjects} />
+    </div>
+  </div>
+}
+
+function LibraryInspector({ state }: { state: ReturnType<typeof useProjectLibrary> }): React.JSX.Element | null {
+  const { t, selectedProject, selectedBook, selectedShelf, opening, openButton, selectedTrigger,
+    setSelection, cover, open, library, activeShelf, setActiveShelf, rows, selectedIndex,
+    selectedNeighbors, remove } = state
+  const contentRef = useRef<HTMLElement>(null)
+  useContentTransition(contentRef, JSON.stringify([selectedProject?.path, selectedBook?.id]))
+  if (!selectedProject || !selectedBook) return null
+  return (
+    <aside ref={contentRef} className="library-inspector" aria-label={t('bookshelf.bookDetails')}>
           <div className="library-inspector-heading"><span>{t(selectedBook.id ? 'bookshelf.selectedBook' : 'bookshelf.project')}</span><button aria-label={t('bookshelf.closeDetails')} onClick={() => { setSelection(null); selectedTrigger.current?.focus() }}><X size={18} /></button></div>
           <div className="library-detail-cover">{cover(selectedProject, selectedBook)}</div><h2>{selectedBook.name}</h2><p className="library-detail-project">{selectedProject.name}</p>
           <button ref={openButton} className="library-button library-primary library-open-book" disabled={opening} aria-label={selectedBook.id ? t('bookshelf.openBook', { book: selectedBook.name, project: selectedProject.name }) : t('bookshelf.openProject', { name: selectedProject.name })}
@@ -227,9 +253,6 @@ export function StartScreen({ recentProjects, onOpenPath }: StartScreenProps): R
             <button className="library-button" disabled={selectedIndex === selectedNeighbors.length - 1} aria-label={t('bookshelf.later', { name: selectedProject.name })} onClick={() => library.moveProject(selectedProject.path, selectedShelf, selectedNeighbors[selectedIndex + 2]?.path)}><ArrowDown size={16} />{t('bookshelf.laterShort')}</button></div>
           <div className="library-remove-actions">{selectedBook.id && <button aria-label={t('bookshelf.removeBook', { name: selectedBook.name })} onClick={() => remove({ projectKey: selectedProject.path, projectName: selectedProject.name, bookId: selectedBook.id, bookName: selectedBook.name })}><EyeOff size={16} />{t('bookshelf.removeThisBook')}</button>}
             <button aria-label={t('bookshelf.removeProject', { name: selectedProject.name })} onClick={() => remove({ projectKey: selectedProject.path, projectName: selectedProject.name })}><EyeOff size={16} />{t('bookshelf.removeThisProject')}</button></div>
-        </aside>}
-      </div>
-      <RemovedLibraryItems open={removedOpen} onClose={() => { setRemovedOpen(false); moreTrigger.current?.focus() }} recentProjects={recentProjects} />
-    </div>
-  </div>
+        </aside>
+  )
 }

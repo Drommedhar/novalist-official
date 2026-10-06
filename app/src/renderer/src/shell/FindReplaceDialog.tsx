@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
+import { useDialogAutoFocus } from './useDialogKeyboard'
 
 interface FindMatchDto {
   chapterGuid: string
@@ -19,6 +20,8 @@ const SCOPES = ['CurrentScene', 'CurrentChapter', 'ActiveBook', 'Project']
 
 export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.Element {
   const { t } = useTranslation()
+  const inputRef = useRef<HTMLInputElement>(null)
+  useDialogAutoFocus(inputRef)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const [pattern, setPattern] = useState('')
@@ -90,7 +93,7 @@ export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.E
           className="dialog-input"
           placeholder={t('findReplace.find')}
           value={pattern}
-          autoFocus
+          ref={inputRef}
           onChange={(e) => setPattern(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') void find()

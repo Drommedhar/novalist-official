@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useMotionPresent } from './MotionPresence'
 
 export interface EntityProposal {
   typeKey: string
@@ -29,17 +30,19 @@ export function EntityProposalsDialog({
   onCancel(): void
 }): React.JSX.Element {
   const { t } = useTranslation()
+  const present = useMotionPresent()
   // Nothing is pre-selected: accepting is a deliberate act, not a default.
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [types, setTypes] = useState<Record<number, string>>({})
 
   useEffect(() => {
+    if (!present) return
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') onCancel()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onCancel])
+  }, [onCancel, present])
 
   const toggle = (index: number): void => {
     setSelected((prev) => {

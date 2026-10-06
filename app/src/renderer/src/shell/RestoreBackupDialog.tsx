@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { useManuscriptStore } from '../stores/manuscriptStore'
 import { flushPendingWrites } from '../stores/pendingWrites'
+import { useDialogAutoFocus } from './useDialogKeyboard'
 
 export function RestoreBackupDialog({ onClose, archivePath = '' }: {
   onClose: () => void
   archivePath?: string
 }): React.JSX.Element {
   const { t } = useTranslation()
+  const inputRef = useRef<HTMLInputElement>(null)
+  useDialogAutoFocus(inputRef)
   const [archive, setArchive] = useState(archivePath)
   const [location, setLocation] = useState('')
   const [name, setName] = useState('')
@@ -56,7 +59,7 @@ export function RestoreBackupDialog({ onClose, archivePath = '' }: {
         </div>
         <label className="inspector-label" htmlFor="restore-project-name">{t('welcome.projectName')}</label>
         <input id="restore-project-name" className="dialog-input" disabled={busy} value={name}
-          onChange={(e) => setName(e.target.value)} autoFocus />
+          onChange={(e) => setName(e.target.value)} ref={inputRef} />
         <label className="inspector-label" htmlFor="restore-project-location">{t('welcome.location')}</label>
         <div className="type-manager-field">
           <input id="restore-project-location" className="dialog-input" readOnly value={location} />

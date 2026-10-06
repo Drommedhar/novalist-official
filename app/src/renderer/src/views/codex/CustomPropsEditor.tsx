@@ -1,3 +1,4 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, X } from 'lucide-react'
@@ -110,7 +111,7 @@ export function CustomPropsEditor(): React.JSX.Element | null {
         <Plus size={13} strokeWidth={2} />
         {t('entityEditor.addProperty')}
       </button>
-      {adding && (
+      <MotionPresence>{adding && (
         <InputDialog
           title={t('entityEditor.addProperty')}
           onCancel={() => setAdding(false)}
@@ -119,7 +120,7 @@ export function CustomPropsEditor(): React.JSX.Element | null {
             save(key, '')
           }}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

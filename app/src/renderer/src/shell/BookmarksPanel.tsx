@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { MotionPresence } from './MotionPresence'
 import { useTranslation } from 'react-i18next'
 import { Bookmark as BookmarkIcon, ChevronRight, Trash2 } from 'lucide-react'
 import { rpc } from '../rpc/client'
@@ -154,13 +155,15 @@ export function BookmarksPanel(): React.JSX.Element {
                     <Trash2 size={13} strokeWidth={2} />
                   </button>
                 </div>
-                {open.has(bookmark.id) && (
+                <MotionPresence collapse>
+                {open.has(bookmark.id) && <div>
                   <div className="bookmarks-preview">
                     {previews[bookmark.id] === undefined
                       ? t('bookmarks.previewLoading')
                       : previews[bookmark.id] || t('bookmarks.previewNone')}
                   </div>
-                )}
+                </div>}
+                </MotionPresence>
               </div>
             ))}
         </div>

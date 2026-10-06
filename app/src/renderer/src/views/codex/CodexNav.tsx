@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
 import { useCodexStore, type EntitySummary } from "../../stores/codexStore";
 import { ContextMenu, type ContextMenuItem } from '../../shell/ContextMenu'
+import { MotionPresence } from '../../shell/MotionPresence'
+import { useProjectStore } from '../../stores/projectStore'
 import { rpc } from '../../rpc/client'
 
 /** Character grouping mode for the navigation column. */
@@ -87,6 +89,7 @@ export function CodexNav({
   onDelete
 }: CodexNavProps): React.JSX.Element {
   const { t } = useTranslation()
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   const [search, setSearch] = useState('')
   const dragged = useRef<string | null>(null)
   const [groupMode, setGroupMode] = useState<GroupMode>('role')
@@ -296,14 +299,14 @@ export function CodexNav({
         <Plus size={14} strokeWidth={2} />
         {t('codexHub.newEntry')}
       </button>
-      {menu && (
+      <MotionPresence disabled={suspendMotion}>{menu && (
         <ContextMenu
           x={menu.x}
           y={menu.y}
           items={menuItems(menu.entity)}
           onClose={() => setMenu(null)}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

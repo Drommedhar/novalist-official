@@ -5,6 +5,7 @@ import { useProjectStore } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { InputDialog } from './InputDialog'
 import { SnapshotCompareDialog } from './SnapshotCompareDialog'
+import { MotionPresence } from './MotionPresence'
 import './shellDialogs.css'
 
 interface SnapshotDto {
@@ -56,6 +57,7 @@ export function SnapshotsDialog({
   onClose(): void
 }): React.JSX.Element {
   const { t } = useTranslation()
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   const [snapshots, setSnapshots] = useState<SnapshotDto[]>([])
   const [labelPrompt, setLabelPrompt] = useState(false)
   const [compareBase, setCompareBase] = useState<string | null>(null)
@@ -302,7 +304,7 @@ export function SnapshotsDialog({
           </button>
         </div>
       </div>
-      {labelPrompt && (
+      <MotionPresence disabled={suspendMotion}>{labelPrompt && (
         <InputDialog
           title={t('snapshots.take')}
           placeholder={t('snapshots.labelWatermark')}
@@ -314,8 +316,8 @@ export function SnapshotsDialog({
               .then(setSnapshots)
           }}
         />
-      )}
-      {renaming && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{renaming && (
         <InputDialog
           title={t('snapshots.rename')}
           placeholder={t('snapshots.labelWatermark')}
@@ -334,8 +336,8 @@ export function SnapshotsDialog({
               .then(loadAll)
           }}
         />
-      )}
-      {compareView && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{compareView && (
         <SnapshotCompareDialog
           chapterGuid={chapterGuid}
           sceneId={sceneId}
@@ -345,7 +347,7 @@ export function SnapshotsDialog({
           labelB={compareView.labelB}
           onClose={() => setCompareView(null)}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

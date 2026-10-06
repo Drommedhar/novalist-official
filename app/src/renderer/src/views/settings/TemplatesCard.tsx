@@ -1,3 +1,4 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
@@ -214,7 +215,7 @@ export function TemplatesCard(): React.JSX.Element {
         </div>
       ))}
 
-      {editor && (
+      <MotionPresence>{editor && (
         <div className="dialog-overlay">
           <div className="dialog-card type-manager-card" role="dialog" aria-label={editor.record.name}>
             <div className="dialog-title">{editor.record.name}</div>
@@ -296,7 +297,7 @@ export function TemplatesCard(): React.JSX.Element {
             </div>
           </div>
         </div>
-      )}
+      )}</MotionPresence>
     </section>
   )
 }

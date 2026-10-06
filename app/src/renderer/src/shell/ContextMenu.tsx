@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useMotionPresent } from './MotionPresence'
 
 /** Breathing room kept between the menu and the edge of the window. */
 const VIEWPORT_MARGIN = 8
@@ -19,6 +20,7 @@ interface ContextMenuProps {
 /** Lightweight positioned context menu; closes on outside press or Escape. */
 export function ContextMenu({ x, y, items, onClose }: ContextMenuProps): React.JSX.Element {
   const ref = useRef<HTMLDivElement>(null)
+  const present = useMotionPresent()
   const [pos, setPos] = useState({ left: x, top: y })
 
   // Keep the menu inside the window, measured rather than estimated: a guess at
@@ -36,6 +38,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps): React.J
   }, [x, y, items.length])
 
   useEffect(() => {
+    if (!present) return
     const onPointerDown = (e: PointerEvent): void => {
       if (!ref.current?.contains(e.target as Node)) onClose()
     }
@@ -48,7 +51,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps): React.J
       window.removeEventListener('pointerdown', onPointerDown)
       window.removeEventListener('keydown', onKeyDown)
     }
-  }, [onClose])
+  }, [onClose, present])
 
   return (
     <div ref={ref} className="context-menu" style={pos} role="menu">

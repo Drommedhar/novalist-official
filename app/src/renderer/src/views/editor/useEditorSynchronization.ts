@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect } from 'react'
 import { useEditorBridge } from '../../stores/editorBridgeStore'
 import { editorPane, useProjectStore } from '../../stores/projectStore'
 import { useShellStore } from '../../stores/shellStore'
@@ -31,7 +31,7 @@ export function useEditorScene({ editorRef, sceneHtml, lastReportedHtmlRef, load
 // Push content on scene switch and on genuine external changes (snapshot
   // restore, live disk edits), but NOT when sceneHtml is merely the echo of the
   // edit the editor just reported - that would reset the caret and kill undo.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const editor = editorRef.current
     if (!editor || sceneHtml === null) return
     if (sceneHtml === lastReportedHtmlRef.current) return

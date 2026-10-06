@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useTranslation } from 'react-i18next'
 import { FEATURE_EMOTION_INFERRED, useNarrationStore, type NarrationSegment, type ReadingStep, type SegmentRef } from '../../stores/narrationStore'
 import { DirectionEditor } from './DirectionEditor'
@@ -111,9 +113,11 @@ function useSegmentEditing(step: ReadingStep) {
 export function SegmentPanel({ step }: { step: ReadingStep }): React.JSX.Element {
   const { t } = useTranslation()
   const { setSpeaker, setDirection, select, emotions, members, editing, setEditing, run, setRun, segment, narration, inferred, ref, candidates, runRefs, runMax } = useSegmentEditing(step)
+  const panelRef = useRef<HTMLDivElement>(null)
+  useContentTransition(panelRef, `${step.chapterGuid}:${step.sceneId}:${segment.key}`)
 
   return (
-    <div className="narration-panel">
+    <div className="narration-panel" ref={panelRef}>
       <div className="narration-panel-head">
         <span className="narration-panel-where">
           {step.chapterTitle}
@@ -199,7 +203,7 @@ export function SegmentPanel({ step }: { step: ReadingStep }): React.JSX.Element
           </label>
         )}
 
-        {inferred === 0 && editing && runMax > 1 && (
+        <MotionPresence>{inferred === 0 && editing && runMax > 1 && (
           <label className="narration-panel-field">
             <span>{t('narration.applyTo')}</span>
             <input
@@ -215,9 +219,9 @@ export function SegmentPanel({ step }: { step: ReadingStep }): React.JSX.Element
               {t('narration.linesOfScene', { count: runMax })}
             </span>
           </label>
-        )}
+        )}</MotionPresence>
 
-        {inferred === 0 && editing && (
+        <MotionPresence collapse>{inferred === 0 && editing && (
           <DirectionEditor
             refs={runRefs}
             vector={segment.directionVector}
@@ -226,7 +230,7 @@ export function SegmentPanel({ step }: { step: ReadingStep }): React.JSX.Element
             voiceId={segment.voiceId}
             onClose={() => setEditing(false)}
           />
-        )}
+        )}</MotionPresence>
 
         {!segment.voiceId && <span className="narration-chip warn">{t('narration.noVoice')}</span>}
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -6,6 +6,8 @@ import { EyeOff } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import { useShellStore } from '../../stores/shellStore'
 import { rpc } from '../../rpc/client'
+import { useMotionPresent } from '../../shell/MotionPresence'
+import { useContentTransition } from '../../shell/useContentTransition'
 import './editor.css'
 import { type PeekPill, type EntityPeek, type PeekScope } from './peekTypes'
 
@@ -54,10 +56,13 @@ export function PeekCard({
   onTogglePin: () => void
 }): React.JSX.Element | null {
   const { t } = useTranslation()
+  const present = useMotionPresent()
+  const cardRef = useRef<HTMLDivElement>(null)
   const [nav, setNav] = useState(target)
   const [data, setData] = useState<EntityPeek | null>(null)
   const [imageIndex, setImageIndex] = useState(0)
   const [sectionIndex, setSectionIndex] = useState(0)
+  useContentTransition(cardRef, `${data?.id ?? ''}:${imageIndex}:${sectionIndex}`)
   // What the entry is like at this point in the story, for the types that are
   // not characters - characters resolve their own richer overrides server-side.
   const [state, setState] = useState<{
@@ -88,6 +93,7 @@ export function PeekCard({
   }, [targetType, targetId])
 
   useEffect(() => {
+    if (!present) return
     let alive = true
     setData(null)
     setImageIndex(0)
@@ -133,7 +139,7 @@ export function PeekCard({
     // Depend on the scope primitives (not the object identity, which changes each
     // render) so the peek refetches only when the entity or the open scope changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nav, scope.chapterGuid, scope.chapterTitle, scope.sceneTitle])
+  }, [nav, scope.chapterGuid, scope.chapterTitle, scope.sceneTitle, present])
 
   if (!data) return null
 
@@ -171,7 +177,7 @@ export function PeekCard({
   }
 
   return (
-    <div className="peek-card" onClick={(e) => e.stopPropagation()}>
+    <div ref={cardRef} className="peek-card" onClick={(e) => e.stopPropagation()}>
       <div className="peek-header">
         <span className="peek-title" title={data.title}>
           {data.title}

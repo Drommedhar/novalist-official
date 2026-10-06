@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Shuffle } from 'lucide-react'
 import { rpc } from '../rpc/client'
+import { useContentTransition } from './useContentTransition'
 
 interface Prompt {
   id: string
@@ -53,6 +54,10 @@ export function CraftPanel(): React.JSX.Element {
 
   const [articles, setArticles] = useState<ArticleSummary[]>([])
   const [reading, setReading] = useState<Article | null>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const promptRef = useRef<HTMLParagraphElement>(null)
+  useContentTransition(contentRef, `${tab}:${reading?.id ?? ''}`)
+  useContentTransition(promptRef, prompt?.id ?? '')
 
   useEffect(() => {
     void rpc.request<string[]>('craft/promptKinds').then(setKinds).catch(() => setKinds([]))
@@ -96,7 +101,7 @@ export function CraftPanel(): React.JSX.Element {
   })
 
   return (
-    <div className="craft">
+    <div className="craft" ref={contentRef}>
       <div className="craft-tabs">
         {(['prompt', 'describe', 'read'] as Tab[]).map((key) => (
           <button
@@ -124,7 +129,7 @@ export function CraftPanel(): React.JSX.Element {
               </option>
             ))}
           </select>
-          <p className="craft-prompt">
+          <p className="craft-prompt" ref={promptRef}>
             {prompt
               ? t(`craft.prompt.${prompt.id}`, { defaultValue: prompt.text })
               : t('craft.noPrompt')}

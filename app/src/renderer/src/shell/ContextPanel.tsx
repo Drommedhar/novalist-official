@@ -7,6 +7,7 @@ import { useWikiStore } from '../stores/wikiStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useEntityPeek, type PeekScope } from '../views/editor/PeekCard'
 import { EntityProposalsDialog, type EntityProposal } from './EntityProposalsDialog'
+import { MotionPresence } from './MotionPresence'
 import { type CardPeek, type SceneContext } from './contextTypes'
 import { SECTION_STORAGE_KEY, readCollapsed, loc, CollapsibleSection, EntitySection } from './ContextSections'
 
@@ -25,6 +26,7 @@ export function ContextPanel({
   prepareHidden?: boolean
 }): React.JSX.Element | null {
   const { t } = useTranslation()
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   const [ctx, setCtx] = useState<SceneContext | null>(null)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(readCollapsed)
   const [conflictDraft, setConflictDraft] = useState('')
@@ -516,13 +518,13 @@ export function ContextPanel({
       </CollapsibleSection>
 
       {entityPeek.overlay}
-      {proposals && (
+      <MotionPresence disabled={suspendMotion}>{proposals && (
         <EntityProposalsDialog
           proposals={proposals}
           onCreate={(accepted) => void createAccepted(accepted)}
           onCancel={() => setProposals(null)}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

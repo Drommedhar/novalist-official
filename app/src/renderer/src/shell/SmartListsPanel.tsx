@@ -5,6 +5,7 @@ import { rpc } from '../rpc/client'
 import { useBookScope, useProjectStore } from '../stores/projectStore'
 import { loadBookScoped } from '../stores/bookScopedLoad'
 import { ContextMenu } from './ContextMenu'
+import { MotionPresence } from './MotionPresence'
 import { ConfirmDialog } from './ConfirmDialog'
 import { SmartListEditor, type SmartListDraft } from './SmartListEditor'
 import { openBinderScene } from './binderNavigation'
@@ -42,6 +43,7 @@ export function SmartListsPanel(): React.JSX.Element {
   const [pending, setPending] = useState<Pending | null>(null)
   const bookScope = useBookScope()
   const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
 
   useEffect(() => {
     // Saved lists belong to the active book. Loading them once on mount left
@@ -115,8 +117,8 @@ export function SmartListsPanel(): React.JSX.Element {
               </button>
             )}
           </div>
-          {expanded[list.id] &&
-            (matches[list.id] ?? []).map((match) => (
+          <MotionPresence collapse disabled={suspendMotion}>{expanded[list.id] && <div>
+            {(matches[list.id] ?? []).map((match) => (
               <button
                 key={match.sceneId}
                 className="binder-scene-row"
@@ -127,12 +129,13 @@ export function SmartListsPanel(): React.JSX.Element {
                 </span>
               </button>
             ))}
-          {expanded[list.id] && (matches[list.id]?.length ?? 0) === 0 && (
+          {(matches[list.id]?.length ?? 0) === 0 && (
             <div className="binder-placeholder">{t('smartList.noMatches')}</div>
           )}
+          </div>}</MotionPresence>
         </div>
       ))}
-      {menu && (
+      <MotionPresence disabled={suspendMotion}>{menu && (
         <ContextMenu
           x={menu.x}
           y={menu.y}
@@ -149,8 +152,8 @@ export function SmartListsPanel(): React.JSX.Element {
           ]}
           onClose={() => setMenu(null)}
         />
-      )}
-      {pending?.kind === 'create' && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{pending?.kind === 'create' && (
         <SmartListEditor
           initial={null}
           onCancel={() => setPending(null)}
@@ -159,8 +162,8 @@ export function SmartListsPanel(): React.JSX.Element {
             void save(draft, null)
           }}
         />
-      )}
-      {pending?.kind === 'edit' && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{pending?.kind === 'edit' && (
         <SmartListEditor
           initial={pending.list}
           onCancel={() => setPending(null)}
@@ -170,8 +173,8 @@ export function SmartListsPanel(): React.JSX.Element {
             void save(draft, id)
           }}
         />
-      )}
-      {pending?.kind === 'delete' && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{pending?.kind === 'delete' && (
         <ConfirmDialog
           title={t('explorer.deleteTitle')}
           message={pending.list.name}
@@ -183,7 +186,7 @@ export function SmartListsPanel(): React.JSX.Element {
               () => rpc.request<SmartListDto[]>('smartLists/delete', [id]), setLists)
           }}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

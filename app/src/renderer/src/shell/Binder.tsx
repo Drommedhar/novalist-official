@@ -1,4 +1,8 @@
+import { useRef } from 'react'
 import { ContextMenu } from './ContextMenu'
+import { MotionPresence } from './MotionPresence'
+import { useContentTransition } from './useContentTransition'
+import { useProjectStore } from '../stores/projectStore'
 import { SmartListsPanel } from './SmartListsPanel'
 import { CollectionsPanel } from './CollectionsPanel'
 import { BookmarksPanel } from './BookmarksPanel'
@@ -24,10 +28,13 @@ import { BinderDialogs } from './BinderDialogs'
 export function Binder(): React.JSX.Element {
   const state = useBinderState()
   const { binderWidth, binderTab, chapters, t, menu, setMenu } = state
+  const contentRef = useRef<HTMLDivElement>(null)
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
+  useContentTransition(contentRef, binderTab)
   return (
     <nav className="binder" style={{ width: binderWidth }}>
       <BinderHeader state={state} />
-      <div className="binder-tree">
+      <div ref={contentRef} className="binder-tree">
         {binderTab === 'smartLists' && <SmartListsPanel />}
         {binderTab === 'collections' && <CollectionsPanel />}
         {binderTab === 'bookmarks' && <BookmarksPanel />}
@@ -39,7 +46,9 @@ export function Binder(): React.JSX.Element {
         <BinderArchive state={state} />
       </div>
       <SceneBulkBar />
-      {menu && <ContextMenu x={menu.x} y={menu.y} items={binderMenuItems(state)} onClose={() => setMenu(null)} />}
+      <MotionPresence disabled={suspendMotion}>
+        {menu && <ContextMenu x={menu.x} y={menu.y} items={binderMenuItems(state)} onClose={() => setMenu(null)} />}
+      </MotionPresence>
       <BinderDialogs state={state} />
     </nav>
   )

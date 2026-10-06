@@ -1,6 +1,8 @@
 import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import './codex.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, MessageCircleQuestion, Settings2, SlidersHorizontal, Trash2 } from 'lucide-react'
 import { useCodexStore, type EntityType, type EntitySummary } from '../../stores/codexStore'
@@ -119,9 +121,11 @@ function useCodexView() {
 
 export function CodexView(): React.JSX.Element {
   const { openCreate, t, entityType, setType, customTypes, setUnlinkedOpen, unlinkedOpen, tableMode, setTableMode, setTypeManagerOpen, isMobile, selectedId, entities, select, moveWorldBible, setPending, detailTab, record, selected, setDetailTab, setWizard, setArrangeOpen, updateField, isPhone, pending, startCreate, templates, templateId, setTemplateId, useWizard, setUseWizard, arrangeOpen, wizard, typeManagerOpen, setCustomTypes, remove } = useCodexView()
+  const contentRef = useRef<HTMLDivElement>(null)
+  useContentTransition(contentRef, `${entityType}:${tableMode}`)
 
   const tree = (
-    <div className="codex">
+    <div className="codex" ref={contentRef}>
       <DesktopViewActions>
         <button className="dialog-button primary" onClick={openCreate}>
           {t('codexHub.newEntry')}
@@ -167,11 +171,11 @@ export function CodexView(): React.JSX.Element {
           <Settings2 size={13} strokeWidth={2} /> {t('codexHub.manageTypes')}
         </button>
       </div>
-      {unlinkedOpen && (
+      <MotionPresence collapse>{unlinkedOpen && (
         <div className="codex-unlinked">
           <UnlinkedMentionsPanel />
         </div>
-      )}
+      )}</MotionPresence>
       {tableMode && <EntityTable />}
       {!tableMode && (
         <div className={`codex-body${isMobile ? ' codex-body-mobile' : ''}`}>
@@ -193,10 +197,10 @@ export function CodexView(): React.JSX.Element {
           )}
         </div>
       )}
-      {pending?.kind === 'create' && (
+      <MotionPresence>{pending?.kind === 'create' && (
         <CodexCreateDialog setPending={setPending} t={t} startCreate={startCreate} templates={templates} templateId={templateId} setTemplateId={setTemplateId} useWizard={useWizard} setUseWizard={setUseWizard} />
-      )}
-      {arrangeOpen && (
+      )}</MotionPresence>
+      <MotionPresence>{arrangeOpen && (
         <ArrangeFieldsDialog
           entityType={entityType}
           fields={builtInFieldKeys(entityType)}
@@ -208,8 +212,8 @@ export function CodexView(): React.JSX.Element {
           )}
           onClose={() => setArrangeOpen(false)}
         />
-      )}
-      {wizard && (
+      )}</MotionPresence>
+      <MotionPresence>{wizard && (
         <WizardDialog
           title={wizard.title}
           steps={wizard.steps}
@@ -220,8 +224,8 @@ export function CodexView(): React.JSX.Element {
           }}
           onClose={() => setWizard(null)}
         />
-      )}
-      {typeManagerOpen && (
+      )}</MotionPresence>
+      <MotionPresence>{typeManagerOpen && (
         <CustomTypeManager
           types={customTypes}
           onChanged={(updated) => {
@@ -235,8 +239,8 @@ export function CodexView(): React.JSX.Element {
           }}
           onClose={() => setTypeManagerOpen(false)}
         />
-      )}
-      {pending?.kind === 'delete' && (
+      )}</MotionPresence>
+      <MotionPresence>{pending?.kind === 'delete' && (
         <ConfirmDialog
           title={t('explorer.deleteTitle')}
           message={pending.entity.name}
@@ -247,7 +251,7 @@ export function CodexView(): React.JSX.Element {
             void remove(entity.id, entity.isWorldBible)
           }}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 
@@ -315,8 +319,10 @@ async function applyInterview(answers: Record<string, string>): Promise<void> {
 
 
 function CodexDetail({ detailTab, isMobile, selectedId, t, record, selected, setDetailTab, entityType, setWizard, setArrangeOpen, setPending, customTypes, updateField, isPhone }: { detailTab: CodexViewState['detailTab']; isMobile: CodexViewState['isMobile']; selectedId: CodexViewState['selectedId']; t: CodexViewState['t']; record: CodexViewState['record']; selected: CodexViewState['selected']; setDetailTab: CodexViewState['setDetailTab']; entityType: CodexViewState['entityType']; setWizard: CodexViewState['setWizard']; setArrangeOpen: CodexViewState['setArrangeOpen']; setPending: CodexViewState['setPending']; customTypes: CodexViewState['customTypes']; updateField: CodexViewState['updateField']; isPhone: CodexViewState['isPhone'] }): React.JSX.Element {
+  const detailRef = useRef<HTMLDivElement>(null)
+  useContentTransition(detailRef, `${selectedId ?? ''}:${detailTab}`)
   return (
-    <div className="codex-detail" data-detail-tab={detailTab}>
+    <div className="codex-detail" data-detail-tab={detailTab} ref={detailRef}>
       {isMobile && selectedId && (
         <button
           type="button"

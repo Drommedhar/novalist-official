@@ -1,4 +1,5 @@
 import { useLayoutEffect } from 'react'
+import { useMotionPresent } from './MotionPresence'
 
 const drafts = new Set<symbol>()
 
@@ -8,10 +9,11 @@ export function hasWorkspaceDialogDraft(): boolean {
 }
 
 export function useWorkspaceDialogGuard(active = true): void {
+  const present = useMotionPresent()
   useLayoutEffect(() => {
-    if (!active) return
+    if (!active || !present) return
     const draft = Symbol('workspace dialog')
     drafts.add(draft)
     return () => { drafts.delete(draft) }
-  }, [active])
+  }, [active, present])
 }

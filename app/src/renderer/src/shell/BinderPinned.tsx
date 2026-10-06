@@ -1,6 +1,7 @@
 import { ChevronRight, Pin } from 'lucide-react'
 
 import type { BinderState } from './binderState'
+import { MotionPresence } from './MotionPresence'
 
 export function BinderPinned({ state }: { state: BinderState }): React.JSX.Element {
   const { t, binderTab, pinnedOpen, setPinnedOpen, openSceneId, openScene, pinned } = state
@@ -17,8 +18,9 @@ export function BinderPinned({ state }: { state: BinderState }): React.JSX.Eleme
               />
               {t('binder.pinned', { count: pinned.length })}
             </button>
-            {pinnedOpen &&
-              pinned.map(({ chapter, scene }) => (
+            <MotionPresence collapse>
+            {pinnedOpen && <div>
+              {pinned.map(({ chapter, scene }) => (
                 <div key={`pin-${scene.id}`} className="binder-scene-wrap">
                   <button
                     className={`binder-scene-row${openSceneId === scene.id ? ' active' : ''}`}
@@ -32,6 +34,8 @@ export function BinderPinned({ state }: { state: BinderState }): React.JSX.Eleme
                   </button>
                 </div>
               ))}
+            </div>}
+            </MotionPresence>
           </div>
         )}
   </>

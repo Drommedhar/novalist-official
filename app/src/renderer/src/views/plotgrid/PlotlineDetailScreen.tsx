@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { useTranslation } from 'react-i18next'
 import { RevisionsPanel } from '../../shell/RevisionsPanel'
 import { useUnsavedGuard } from '../../shell/useUnsavedGuard'
@@ -83,6 +84,8 @@ export function PlotlineDetailScreen(props: {
   const [query, setQuery] = useState('')
   const [saving, setSaving] = useState(false)
   const [tab, setTab] = useState<'details' | 'history'>('details')
+  const detailRef = useRef<HTMLDivElement>(null)
+  useContentTransition(detailRef, tab)
   // What the thread said when this screen was opened, or when it was last
   // saved. Anything else on screen is an edit that would be lost on the way out.
   const [baseline, setBaseline] = useState(() =>
@@ -147,7 +150,7 @@ export function PlotlineDetailScreen(props: {
   const leave = (): void => useShellStore.getState().guardLeave(() => props.onBack())
 
   return (
-    <div className="plotline-detail" role="region" aria-label={props.plotline.name}>
+    <div className="plotline-detail" ref={detailRef} role="region" aria-label={props.plotline.name}>
       <div className="plotline-detail-header">
         <button className="plotline-detail-back" onClick={leave}>
           <ArrowLeft size={14} strokeWidth={2} />

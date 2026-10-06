@@ -2,18 +2,20 @@ import { mapState } from './map-state.js';
 import { findLayer } from './map-layers.js';
 import { render } from './map-document.js';
 import { sendMessage } from './map-messages.js';
+import { removePopup, showPopup } from './popup-motion.js';
 
 export function openContextMenu(menuEl) {
     closeContextMenu();
     document.body.appendChild(menuEl);
+    showPopup(menuEl);
     mapState.activeContextMenu = menuEl;
+    window.addEventListener('wheel', closeContextMenu, { passive: true });
+    window.addEventListener('blur', closeContextMenu);
+    window.addEventListener('keydown', onCtxKeyDown, true);
     // Defer one tick so the right-click's own mousedown doesn't close us immediately.
     setTimeout(() => {
-        if (!mapState.activeContextMenu) return;
+        if (mapState.activeContextMenu !== menuEl) return;
         window.addEventListener('mousedown', onCtxMouseDown, true);
-        window.addEventListener('wheel', closeContextMenu, { passive: true });
-        window.addEventListener('blur', closeContextMenu);
-        window.addEventListener('keydown', onCtxKeyDown, true);
     }, 0);
 }
 
@@ -32,12 +34,11 @@ export function closeContextMenu() {
     window.removeEventListener('blur', closeContextMenu);
     window.removeEventListener('keydown', onCtxKeyDown, true);
     if (mapState.activeContextMenu) {
-        mapState.activeContextMenu.remove();
+        removePopup(mapState.activeContextMenu);
         mapState.activeContextMenu = null;
     }
     // Defensive: clean up any stray menu that bypassed openContextMenu.
-    const stray = document.querySelector('.nv-ctx-menu');
-    if (stray) stray.remove();
+    for (const stray of document.querySelectorAll('.nv-ctx-menu:not([inert])')) removePopup(stray);
 }
 
 export function deleteImage(layerId, imageId) {

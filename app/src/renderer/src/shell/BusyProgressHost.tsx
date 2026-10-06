@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useHostBridgeStore } from '../stores/hostBridgeStore'
+import { useProjectStore } from '../stores/projectStore'
+import { MotionPresence } from './MotionPresence'
 import './hostBridge.css'
 
 /**
@@ -10,15 +12,17 @@ import './hostBridge.css'
  */
 export function BusyProgressHost(): React.JSX.Element | null {
   const { t } = useTranslation()
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   const progress = useHostBridgeStore((s) => s.progress)
   const cancel = useHostBridgeStore((s) => s.cancelProgress)
 
   const active = progress[progress.length - 1]
-  if (!active) return null
+  if (!active) return <MotionPresence disabled={suspendMotion}>{null}</MotionPresence>
 
   const pct = Math.round(Math.max(0, Math.min(1, active.progress)) * 100)
 
   return (
+    <MotionPresence disabled={suspendMotion}>
     <div className="dialog-overlay" role="presentation">
       <div className="dialog-card busy-progress-card" role="dialog" aria-label={active.title} aria-live="polite">
         <div className="dialog-title">{active.title}</div>
@@ -53,5 +57,6 @@ export function BusyProgressHost(): React.JSX.Element | null {
         )}
       </div>
     </div>
+    </MotionPresence>
   )
 }

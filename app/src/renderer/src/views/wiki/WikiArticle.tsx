@@ -1,3 +1,4 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Markdown, { defaultUrlTransform } from 'react-markdown'
@@ -285,7 +286,7 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
         <WikiInfobox infobox={article.infobox} onImageClick={setLightbox} />
       </div>
 
-      {lightbox && (
+      <MotionPresence>{lightbox && (
         <div
           className="wiki-lightbox"
           role="dialog"
@@ -304,7 +305,7 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
           {/* Stop propagation so clicking the image itself does not close. */}
           <img src={lightbox} alt="" onClick={(e) => e.stopPropagation()} />
         </div>
-      )}
+      )}</MotionPresence>
     </article>
   )
 }

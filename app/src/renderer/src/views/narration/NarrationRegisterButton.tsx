@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sliders } from 'lucide-react'
 import { useNarrationStore } from '../../stores/narrationStore'
+import { MotionPresence } from '../../shell/MotionPresence'
 
 /**
  * A character's standing register - what is added to every line they speak.
@@ -42,7 +43,7 @@ export function RegisterButton({
       >
         <Sliders size={13} aria-hidden="true" />
       </button>
-      {open && (
+      <MotionPresence>{open && (
         <div className="narration-register-editor">
           <p className="narration-register-blurb">{t('narration.registerBlurb')}</p>
           {dimensions.map((dimension) => (
@@ -85,7 +86,7 @@ export function RegisterButton({
             </button>
           </div>
         </div>
-      )}
+      )}</MotionPresence>
     </>
   )
 }

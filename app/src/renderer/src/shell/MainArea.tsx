@@ -43,6 +43,7 @@ import {
 import { AboutView } from '../views/about/AboutView'
 import { useExtensionsStore } from '../stores/extensionsStore'
 import { HostBridgeOverlays } from './HostBridgeOverlays'
+import { useContentTransition } from './useContentTransition'
 
 /** Wraps the routed main-area content with the always-present extension-host UI
  * surfaces (toasts, busy-progress, wizard). The overlays read their state from
@@ -86,6 +87,7 @@ function PaneTree({
   const leafRef = useRef<HTMLDivElement>(null)
   const extView = useShellStore((s) => s.extView)
   const focused = useShellStore((s) => s.focusMode && s.mainView === 'write' && !s.extView)
+  useContentTransition(leafRef, `${node.kind === 'leaf' ? node.view : ''}:${extView?.extensionId ?? ''}:${extView?.key ?? ''}`)
 
   // A new view starts at the top. The .main-area scroller belongs to the pane,
   // not to the view inside it, so switching views left it wherever the last one

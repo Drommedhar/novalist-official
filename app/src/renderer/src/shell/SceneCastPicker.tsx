@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Star, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
+import { MotionPresence } from './MotionPresence'
 
 interface EntityOption {
   id: string
@@ -104,7 +105,7 @@ export function SceneCastPicker(props: {
         placeholder={t('cast.addPlaceholder')}
         onChange={(e) => setQuery(e.target.value)}
       />
-      {matches.length > 0 && (
+      <MotionPresence collapse>{matches.length > 0 && (
         <div className="scene-cast-matches">
           {matches.map((entity) => (
             <button
@@ -122,7 +123,7 @@ export function SceneCastPicker(props: {
             </button>
           ))}
         </div>
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

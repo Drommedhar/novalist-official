@@ -1,4 +1,6 @@
 import { DesktopViewActions } from '../../shell/DesktopViewFrame'
+import { useRef } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
 import './relationships.css'
 import { useRelationshipsView } from './relationshipsModel'
 import { RelationshipsToolbar } from './RelationshipsToolbar'
@@ -6,6 +8,9 @@ import { FamilyTreeCanvas, RelationshipsCanvas } from './RelationshipsCanvas'
 
 export function RelationshipsView(): React.JSX.Element {
   const { fitToGraph, t, search, setSearch, filterGroup, setFilterGroup, availableGroups, filterRole, setFilterRole, availableRoles, types, setTypes, hideWorldBible, setHideWorldBible, rootId, setRootId, allNodes, asTree, depth, setDepth, setAsTree, ancestorDepth, setAncestorDepth, descendantDepth, setDescendantDepth, setTreeHorizontal, treeHorizontal, withScenes, setWithScenes, hasActiveFilter, clearFilters, zoom, viewportRef, pan, setZoom, setPan, dragRef, movedRef, tree, openEntity, recentre, kinship, layout, selected } = useRelationshipsView()
+  const detailRef = useRef<HTMLElement>(null)
+  useContentTransition(viewportRef, `${asTree}:${treeHorizontal}`)
+  useContentTransition(detailRef, selected?.id ?? '')
 
   return (
     <div className="relationships">
@@ -69,7 +74,7 @@ export function RelationshipsView(): React.JSX.Element {
           )}
         </div>
         {!window.novalist.isMobile && (
-          <aside className="relationships-details">
+          <aside className="relationships-details" ref={detailRef}>
             <h2>{selected?.displayName || t('desktopRefresh.relationshipSelection')}</h2>
             {selected ? (
               <>

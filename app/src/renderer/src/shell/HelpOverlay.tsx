@@ -6,6 +6,8 @@ import remarkGfm from 'remark-gfm'
 import manualPages from 'virtual:novalist-manual'
 import manualImages from 'virtual:novalist-manual-images'
 import type { ManualTarget } from './helpTargets'
+import { useMotionPresent } from './MotionPresence'
+import { restoreDialogFocus } from './useDialogKeyboard'
 import './help.css'
 
 export interface ManualHeading {
@@ -214,6 +216,7 @@ export interface HelpOverlayProps {
 
 export function HelpOverlay({ onClose, initialTarget }: HelpOverlayProps): React.JSX.Element {
   const { t } = useTranslation()
+  const present = useMotionPresent()
   const pages = useMemo(() => buildManualPages(), [])
   const [query, setQuery] = useState(() => initialTarget?.query ?? '')
   const [location, setLocation] = useState<HelpLocation>(() => ({
@@ -251,6 +254,7 @@ export function HelpOverlay({ onClose, initialTarget }: HelpOverlayProps): React
   // focus to the destination heading; an initial contextual target keeps focus
   // in Search so the dialog remains immediately keyboard-operable.
   useEffect(() => {
+    if (!present) return
     const pane = contentRef.current
     if (!pane) return
     const frame = window.requestAnimationFrame(() => {
@@ -267,11 +271,13 @@ export function HelpOverlay({ onClose, initialTarget }: HelpOverlayProps): React
       }
     })
     return () => window.cancelAnimationFrame(frame)
-  }, [current?.file, location.anchor, location.focusDestination, location.serial])
+  }, [current?.file, location.anchor, location.focusDestination, location.serial, present])
 
   // Modal keyboard behavior: initial focus, Escape, a contained Tab cycle, and
   // return focus to the control that opened Help.
   useEffect(() => {
+    if (!present) return
+    const dialog = dialogRef.current
     if (previousFocusRef.current === null && document.activeElement instanceof HTMLElement)
       previousFocusRef.current = document.activeElement
     const frame = window.requestAnimationFrame(() => searchRef.current?.focus())
@@ -301,9 +307,10 @@ export function HelpOverlay({ onClose, initialTarget }: HelpOverlayProps): React
       window.cancelAnimationFrame(frame)
       document.removeEventListener('keydown', onKeyDown)
       const previous = previousFocusRef.current
-      if (previous?.isConnected) previous.focus()
+      restoreDialogFocus(dialog, previous)
+      previousFocusRef.current = null
     }
-  }, [])
+  }, [present])
 
   return (
     <div

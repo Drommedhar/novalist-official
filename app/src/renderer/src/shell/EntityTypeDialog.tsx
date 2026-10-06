@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
+import { useMotionPresent } from './MotionPresence'
 
 const BUILT_IN: { typeKey: string; labelKey: string }[] = [
   { typeKey: 'character', labelKey: 'codexHub.characters' },
@@ -19,6 +20,7 @@ export function EntityTypeDialog({
   onCancel(): void
 }): React.JSX.Element {
   const { t } = useTranslation()
+  const present = useMotionPresent()
   const [customTypes, setCustomTypes] = useState<{ typeKey: string; displayName: string }[]>([])
 
   useEffect(() => {
@@ -40,9 +42,10 @@ export function EntityTypeDialog({
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') onCancel()
     }
+    if (!present) return
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onCancel])
+  }, [onCancel, present])
 
   const title = t('capture.createEntityTitle', { name })
 

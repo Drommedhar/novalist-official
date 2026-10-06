@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useWorkspaceDialogGuard } from './useWorkspaceDialogGuard'
+import { useDialogAutoFocus } from './useDialogKeyboard'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import type { SceneEditDto } from './sceneEdit'
@@ -50,7 +51,7 @@ export function SceneDialog({
   const [templateId, setTemplateId] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => inputRef.current?.focus(), [])
+  useDialogAutoFocus(inputRef)
 
   useEffect(() => {
     if (!edit) return

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useWorkspaceDialogGuard } from './useWorkspaceDialogGuard'
+import { useDialogAutoFocus } from './useDialogKeyboard'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ChapterDto, type ProjectStateDto } from '../stores/projectStore'
 import { useManuscriptPropsStore } from '../stores/manuscriptPropsStore'
@@ -58,7 +59,7 @@ function useChapterDraft({ chapter, onClose }: ChapterDialogProps) {
   const chapterProps = definitions.filter((d) => d.scope === 'Chapter')
   const [values, setValues] = useState<Record<string, string>>({})
 
-  useEffect(() => inputRef.current?.focus(), [])
+  useDialogAutoFocus(inputRef)
 
   useEffect(() => {
     void useManuscriptPropsStore.getState().load()

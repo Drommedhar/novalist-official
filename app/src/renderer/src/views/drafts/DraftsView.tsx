@@ -1,5 +1,7 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { DesktopViewActions } from '../../shell/DesktopViewFrame'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, Check, Copy, GripVertical, Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -162,7 +164,7 @@ export function DraftsView(): React.JSX.Element {
         <DraftTransfer t={t} fromId={fromId} setFromId={setFromId} setChapterPicks={setChapterPicks} setScenePicks={setScenePicks} drafts={drafts} toId={toId} setToId={setToId} from={from} chapterPicks={chapterPicks} scenePicks={scenePicks} to={to} preview={preview} pickedScenes={pickedScenes} replaced={replaced} setPending={setPending} transfer={transfer} />
       </div>
 
-      {pending?.kind === 'new' && (
+      <MotionPresence>{pending?.kind === 'new' && (
         <InputDialog
           title={t('drafts.new')}
           placeholder={t('draft.newPrompt')}
@@ -175,8 +177,8 @@ export function DraftsView(): React.JSX.Element {
             })
           }}
         />
-      )}
-      {pending?.kind === 'duplicate' && (
+      )}</MotionPresence>
+      <MotionPresence>{pending?.kind === 'duplicate' && (
         <InputDialog
           title={t('drafts.duplicate')}
           placeholder={t('drafts.duplicateOf', { name: pending.name })}
@@ -190,8 +192,8 @@ export function DraftsView(): React.JSX.Element {
             })
           }}
         />
-      )}
-      {pending?.kind === 'delete' && (
+      )}</MotionPresence>
+      <MotionPresence>{pending?.kind === 'delete' && (
         <ConfirmDialog
           title={t('drafts.deleteTitle')}
           message={t('drafts.deleteMessage', { name: pending.name })}
@@ -205,8 +207,8 @@ export function DraftsView(): React.JSX.Element {
               .then(() => load())
           }}
         />
-      )}
-      {pending?.kind === 'transfer' && (
+      )}</MotionPresence>
+      <MotionPresence>{pending?.kind === 'transfer' && (
         <ConfirmDialog
           title={pending.move ? t('drafts.moveTitle') : t('drafts.copyTitle')}
           message={
@@ -222,7 +224,7 @@ export function DraftsView(): React.JSX.Element {
             void transfer(move)
           }}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }
@@ -399,6 +401,10 @@ function DraftList({ drafts, dropId, setDragId, setDropId, dragId, reorder, t, r
 }
 
 function DraftTransfer({ t, fromId, setFromId, setChapterPicks, setScenePicks, drafts, toId, setToId, from, chapterPicks, scenePicks, to, preview, pickedScenes, replaced, setPending, transfer }: { t: DraftsViewState['t']; fromId: DraftsViewState['fromId']; setFromId: DraftsViewState['setFromId']; setChapterPicks: DraftsViewState['setChapterPicks']; setScenePicks: DraftsViewState['setScenePicks']; drafts: DraftsViewState['drafts']; toId: DraftsViewState['toId']; setToId: DraftsViewState['setToId']; from: DraftsViewState['from']; chapterPicks: DraftsViewState['chapterPicks']; scenePicks: DraftsViewState['scenePicks']; to: DraftsViewState['to']; preview: DraftsViewState['preview']; pickedScenes: DraftsViewState['pickedScenes']; replaced: DraftsViewState['replaced']; setPending: DraftsViewState['setPending']; transfer: DraftsViewState['transfer'] }): React.JSX.Element {
+  const sourceRef = useRef<HTMLDivElement>(null)
+  const targetRef = useRef<HTMLDivElement>(null)
+  useContentTransition(sourceRef, from?.draftId ?? '')
+  useContentTransition(targetRef, `${from?.draftId ?? ''}:${to?.draftId ?? ''}`)
   return (
     <div className="drafts-transfer">
       <div className="inspector-label">{t('drafts.sendTitle')}</div>
@@ -447,7 +453,7 @@ function DraftTransfer({ t, fromId, setFromId, setChapterPicks, setScenePicks, d
       )}
 
       <div className="drafts-panes">
-        <div className="drafts-pane">
+        <div className="drafts-pane" ref={sourceRef}>
           <div className="drafts-pane-head">
             {t('drafts.paneSource', { name: from?.name ?? '' })}
           </div>
@@ -495,7 +501,7 @@ function DraftTransfer({ t, fromId, setFromId, setChapterPicks, setScenePicks, d
           </div>
         </div>
 
-        <div className="drafts-pane">
+        <div className="drafts-pane" ref={targetRef}>
           <div className="drafts-pane-head">
             {t('drafts.paneTarget', { name: to?.name ?? '' })}
           </div>

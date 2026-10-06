@@ -1,3 +1,4 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { rpc } from '../../rpc/client'
 import { TargetsCard } from './TargetsCard'
 import { PremiseCard } from './PremiseCard'
@@ -156,7 +157,7 @@ function BookDashboard(): React.JSX.Element {
 
           <DashboardStoryProgress stageBreakdown={stageBreakdown} t={t} stageTotal={stageTotal} data={data} />
 
-      {editingGoal && (
+      <MotionPresence>{editingGoal && (
         <InputDialog
           title={
             editingGoal === 'daily' ? t('settings.dailyWordGoal') : t('settings.projectWordGoal')
@@ -179,7 +180,7 @@ function BookDashboard(): React.JSX.Element {
               .then(() => rpc.request<DashboardDto>('dashboard/get', [range]).then(setData))
           }}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

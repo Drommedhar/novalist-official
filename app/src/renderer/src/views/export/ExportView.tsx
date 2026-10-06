@@ -1,4 +1,7 @@
 import { FileDown } from 'lucide-react'
+import { useRef } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
+import { MotionPresence } from '../../shell/MotionPresence'
 import { BookMatterPanel } from './BookMatterPanel'
 import { PublishingPanel } from './PublishingPanel'
 import { ReplacementsPanel } from './ReplacementsPanel'
@@ -17,13 +20,15 @@ import './mobile-export.css'
 export function ExportView(): React.JSX.Element {
   const { t } = useTranslation()
   const model = useExportModel()
+  const contentRef = useRef<HTMLDivElement>(null)
+  useContentTransition(contentRef, `${model.content}:${model.format}`)
   return (
     <div className="dashboard export-view">
       <h1 className="dashboard-title">{t('shell.view.export')}</h1>
       {window.novalist.isMobile && (
         <p className="export-mobile-hint">{t('export.mobileShareHint')}</p>
       )}
-      <div className="export-workspace">
+      <div className="export-workspace" ref={contentRef}>
         <div className="dashboard-card export-card">
           <ExportFormatFields model={model} />
           <ExportTitleFields model={model} />
@@ -36,7 +41,7 @@ export function ExportView(): React.JSX.Element {
         </div>
         <ExportSummary model={model} />
       </div>
-      {model.reviewOpen && <ReviewImportDialog onClose={() => model.setReviewOpen(false)} />}
+      <MotionPresence>{model.reviewOpen && <ReviewImportDialog onClose={() => model.setReviewOpen(false)} />}</MotionPresence>
     </div>
   )
 }

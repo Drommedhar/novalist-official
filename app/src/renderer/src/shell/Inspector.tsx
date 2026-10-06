@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '../stores/projectStore'
 import {
@@ -20,6 +20,7 @@ import { SuggestionsPanel } from './SuggestionsPanel'
 import { InboxPanel } from './InboxPanel'
 import { PanelResizer } from './PanelResizer'
 import { SceneNotesFields } from './SceneNotesFields'
+import { useContentTransition } from './useContentTransition'
 import './inspector.css'
 
 interface SceneMeta {
@@ -40,6 +41,8 @@ export function Inspector({ onReadyChange, prepareHidden = false }: {
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const inspectorTab = useShellStore((s) => s.inspectorTab)
+  const contentRef = useRef<HTMLDivElement>(null)
+  useContentTransition(contentRef, inspectorTab)
   const setInspectorTab = useShellStore((s) => s.setInspectorTab)
   const preferredInspectorWidth = useShellStore((s) => s.inspectorWidth)
   const shellWidth = useShellStore((s) => s.shellWidth)
@@ -161,7 +164,7 @@ export function Inspector({ onReadyChange, prepareHidden = false }: {
         <button type="button" className={`inspector-tab${inspectorTab === 'notes' ? ' active' : ''}`}
           aria-pressed={inspectorTab === 'notes'} onClick={() => setInspectorTab('notes')}>{t('desktopRefresh.notes')}</button>
       </div>
-      <div className="inspector-body">
+      <div className="inspector-body" ref={contentRef}>
         {inspectorTab === 'notes' && <SceneNotesFields idPrefix="inspector" />}
         {inspectorTab === 'context' && (
           <>

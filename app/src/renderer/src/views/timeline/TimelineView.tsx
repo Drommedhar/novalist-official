@@ -5,6 +5,8 @@ import { TimelineEventGroups, TimelineComparison } from './TimelineEvents'
 import { TimelineDialogs } from './TimelineDialogs'
 
 import { useEffect, useRef, useState } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useTranslation } from 'react-i18next'
 
 import { rpc } from '../../rpc/client'
@@ -75,17 +77,19 @@ export function useTimelineData() {
 
 export function TimelineView(): React.JSX.Element {
   const base = useTimelineData()
+  const timelineRef = useRef<HTMLDivElement>(null)
+  useContentTransition(timelineRef, `${base.data?.activeTimelineId}:${base.data?.viewMode}:${base.laneBy}:${base.readingOrder}`)
   if (!base.data) return <div className="main-placeholder">{base.t('shell.backendConnecting')}</div>
   const state = timelinePresentation({ ...base, data: base.data })
   const { setPending, t, isPhone, toolbarOpen, setToolbarOpen, setData, structures, structureOpen, setStructureOpen, availableCharacters, characterFilter, availableLocations, locationFilter, readingOrder, setReadingOrder, laneBy, setLaneBy, sourceFilter, setSourceFilter, data, chooseTimeline, setRenamingTimeline, setRemovingTimeline, setAddingTimeline, setView, pan, scrollToDate, anchorDate, setStructures, lanes, openLinkedChapter, matchesFilters, highlightedKey, groupRefs, spanOf, renderChip, addingTimeline, renamingTimeline, removingTimeline, pending, save, manualId } = state
   return (
-    <div className="timeline">
+    <div className="timeline" ref={timelineRef}>
       <FilterBar />
       <TimelineToolbar setPending={setPending} t={t} isPhone={isPhone} toolbarOpen={toolbarOpen} setToolbarOpen={setToolbarOpen} setData={setData} structures={structures} structureOpen={structureOpen} setStructureOpen={setStructureOpen} availableCharacters={availableCharacters} characterFilter={characterFilter} availableLocations={availableLocations} locationFilter={locationFilter} readingOrder={readingOrder} setReadingOrder={setReadingOrder} laneBy={laneBy} setLaneBy={setLaneBy} sourceFilter={sourceFilter} setSourceFilter={setSourceFilter} data={data} chooseTimeline={chooseTimeline} setRenamingTimeline={setRenamingTimeline} setRemovingTimeline={setRemovingTimeline} setAddingTimeline={setAddingTimeline} setView={setView} pan={pan} scrollToDate={scrollToDate} anchorDate={anchorDate} />
 
       {/* A sub-view of the Timeline rather than its own place: structure is
           what the timeline is about, and it has no meaning without one. */}
-      {structureOpen && <StructurePanel onTemplatesChanged={setStructures} />}
+      <MotionPresence collapse>{structureOpen && <StructurePanel onTemplatesChanged={setStructures} />}</MotionPresence>
           <TimelineComparison laneBy={laneBy} lanes={lanes} setPending={setPending} openLinkedChapter={openLinkedChapter} readingOrder={readingOrder} data={data} matchesFilters={matchesFilters} t={t} />
 
           <TimelineEventGroups data={data} laneBy={laneBy} readingOrder={readingOrder} highlightedKey={highlightedKey} groupRefs={groupRefs} matchesFilters={matchesFilters} setPending={setPending} openLinkedChapter={openLinkedChapter} t={t} spanOf={spanOf} renderChip={renderChip} />

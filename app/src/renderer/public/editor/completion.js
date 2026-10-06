@@ -46,7 +46,7 @@ function closeCompletion() {
     window.NovalistEditorState.completionState = null;
     window.NovalistEditorState.completionMatches = [];
     const picker = document.getElementById('completion-picker');
-    if (picker) picker.style.display = 'none';
+    if (picker) picker.classList.remove('visible');
 }
 
 function renderCompletion() {
@@ -75,7 +75,7 @@ function renderCompletion() {
         picker.style.left = rect.left + 'px';
         picker.style.top = (rect.bottom + 4) + 'px';
     }
-    picker.style.display = 'block';
+    picker.classList.add('visible');
 }
 
 function acceptCompletion(index) {

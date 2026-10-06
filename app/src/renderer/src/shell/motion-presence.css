@@ -1,0 +1,83 @@
+.motion-presence {
+  display: contents;
+  --presence-x: 0;
+  --presence-y: 0;
+}
+
+:root[data-shell='desktop'] .motion-presence > :is(.binder, .mode-panel) {
+  --presence-x: calc(-1 * var(--nl-motion-distance));
+}
+
+:root[data-shell='desktop'] .motion-presence > .inspector {
+  --presence-x: var(--nl-motion-distance);
+}
+
+:root[data-shell='desktop'] .motion-presence > .notes-dock {
+  --presence-y: var(--nl-motion-distance);
+}
+
+:root[data-shell='desktop'] .motion-presence > :is(.context-menu, .pane-picker) {
+  --presence-y: var(--nl-motion-distance);
+}
+
+:root[data-shell='desktop'] .motion-presence[data-motion-presence='open'] > * {
+  animation: surface-presence-enter var(--nl-motion-normal) var(--nl-motion-ease);
+}
+
+:root[data-shell='desktop'] .motion-presence[data-motion-presence='open'] > :is(.binder, .mode-panel, .inspector, .notes-dock, .mode-panel-scrim) {
+  animation: surface-presence-enter var(--nl-motion-panel) var(--nl-motion-ease);
+}
+
+:root[data-shell='desktop'] .motion-presence[data-motion-presence='closing'] > * {
+  pointer-events: none;
+  animation: surface-presence-exit var(--nl-motion-fast) var(--nl-motion-ease) both;
+}
+
+@supports (interpolate-size: allow-keywords) {
+  :root[data-shell='desktop'] .motion-presence[data-motion-collapse] > * {
+    interpolate-size: allow-keywords;
+    min-block-size: 0;
+    overflow: clip;
+  }
+
+  :root[data-shell='desktop'] .motion-presence[data-motion-collapse][data-motion-presence='open'] > * {
+    animation: surface-presence-enter var(--nl-motion-normal) var(--nl-motion-ease),
+      surface-expand-block var(--nl-motion-normal) var(--nl-motion-ease);
+  }
+
+  :root[data-shell='desktop'] .motion-presence[data-motion-collapse][data-motion-presence='closing'] > * {
+    animation: surface-presence-exit var(--nl-motion-fast) var(--nl-motion-ease) both,
+      surface-collapse-block var(--nl-motion-fast) var(--nl-motion-ease) both;
+  }
+}
+
+:root[data-shell='desktop'] .motion-presence[data-motion-presence][data-motion-disabled] > * {
+  animation: none;
+}
+
+@keyframes surface-expand-block {
+  from { block-size: 0; }
+  to { block-size: auto; }
+}
+
+@keyframes surface-collapse-block {
+  from { block-size: auto; }
+  to { block-size: 0; }
+}
+
+@keyframes surface-presence-enter {
+  from { opacity: 0; translate: var(--presence-x) var(--presence-y); }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes surface-presence-exit {
+  from { opacity: 1; translate: 0 0; }
+  to { opacity: 0; translate: var(--presence-x) var(--presence-y); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-shell='desktop'] .motion-presence[data-motion-presence][data-motion-collapse],
+  :root[data-shell='desktop'] .motion-presence[data-motion-presence] {
+    & > * { animation: none; }
+  }
+}

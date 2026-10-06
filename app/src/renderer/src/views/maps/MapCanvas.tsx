@@ -1,4 +1,7 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { X } from 'lucide-react'
+import { useRef } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { ToolRail } from './ToolRail'
 import { LayerPanel } from './LayerPanel'
 import { type MapProfileT } from './mapModel'
@@ -45,8 +48,10 @@ export function MapCanvas({
   onSetElementZoom,
   onToggleIsolate
 }: MapCanvasProps): React.JSX.Element {
+  const mapRef = useRef<HTMLDivElement>(null)
+  useContentTransition(mapRef, `${mapModel?.id ?? ''}:${is3D}`)
   return (
-    <div className="map-body">
+    <div className="map-body" ref={mapRef}>
       {/* The drawing tools and the ruler are drawn over the map, and in 3D
           the map is a world you fly through - so a rail of greyed-out 2D
           tools sat on top of it and the measure bar landed across the sky
@@ -120,7 +125,7 @@ export function MapCanvas({
             </div>
           </div>
         )}
-        {peek && (
+        <MotionPresence>{peek && (
           <div className="map-peek" role="dialog">
             <button
               className="map-peek-close"
@@ -142,7 +147,7 @@ export function MapCanvas({
             <div className="map-peek-name">{peek.name}</div>
             {peek.detail && <div className="map-peek-detail">{peek.detail}</div>}
           </div>
-        )}
+        )}</MotionPresence>
       </div>
       <LayerPanel
         data={mapModel}

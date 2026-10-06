@@ -49,7 +49,7 @@ function closeSlashMenu() {
     window.NovalistEditorState.slashState = null;
     window.NovalistEditorState.slashFiltered = [];
     const picker = document.getElementById('slash-picker');
-    if (picker) picker.style.display = 'none';
+    if (picker) picker.classList.remove('visible');
 }
 
 function updateSlashQuery() {
@@ -90,7 +90,7 @@ function renderSlashMenu() {
             '<span class="mention-detail">' + action.label + '</span></div>';
     }
     picker.replaceChildren(window.sanitizeSceneFragment(html));
-    picker.style.display = 'block';
+    picker.classList.add('visible');
 
     const rect = window.getCaretRect();
     if (rect) {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { MotionPresence } from './MotionPresence'
 import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, Check, ChevronRight, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
@@ -186,8 +187,9 @@ export function CollectionsPanel(): React.JSX.Element {
               <Trash2 size={14} strokeWidth={2} />
             </button>
           </div>
-          {!collapsed[collection.id] &&
-            collection.scenes.map((scene, index) => (
+          <MotionPresence collapse>
+          {!collapsed[collection.id] && <div>
+            {collection.scenes.map((scene, index) => (
               <div key={scene.sceneId} className="collections-row">
                 <button
                   className="binder-scene-row"
@@ -240,9 +242,11 @@ export function CollectionsPanel(): React.JSX.Element {
                 </button>
               </div>
             ))}
-          {!collapsed[collection.id] && collection.scenes.length === 0 && (
+          {collection.scenes.length === 0 && (
             <div className="binder-placeholder">{t('collections.groupEmpty')}</div>
           )}
+          </div>}
+          </MotionPresence>
         </div>
       ))}
     </div>

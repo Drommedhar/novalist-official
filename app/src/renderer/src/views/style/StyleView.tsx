@@ -1,5 +1,6 @@
 import { DesktopViewActions } from '../../shell/DesktopViewFrame'
 import { useCallback, useEffect, useState } from 'react'
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import { useProjectStore } from '../../stores/projectStore'
@@ -422,7 +423,7 @@ function StyleFindings({ report, setExpanded, expanded, t }: { report: NonNullab
             <div className="settings-hint">{t(`style.reportDesc.${f.key}`)}</div>
           )}
 
-          {expanded === f.key && (
+          <MotionPresence collapse>{expanded === f.key && (
             <ul className="style-examples">
               {f.examples.map((e, i) => (
                 <li key={`${e.offset}-${i}`}>
@@ -431,7 +432,7 @@ function StyleFindings({ report, setExpanded, expanded, t }: { report: NonNullab
                 </li>
               ))}
             </ul>
-          )}
+          )}</MotionPresence>
         </div>
       ))}
     </div>

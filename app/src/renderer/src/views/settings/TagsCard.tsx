@@ -1,3 +1,4 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Merge, Trash2 } from 'lucide-react'
@@ -81,7 +82,7 @@ export function TagsCard(): React.JSX.Element {
         </div>
       ))}
 
-      {renaming && (
+      <MotionPresence>{renaming && (
         <InputDialog
           title={t('tags.renameTitle', { name: renaming.name })}
           placeholder={t('tags.renamePlaceholder')}
@@ -93,7 +94,7 @@ export function TagsCard(): React.JSX.Element {
             void rpc.request<TagUsage[]>('tags/rename', [from, value]).then(setTags)
           }}
         />
-      )}
+      )}</MotionPresence>
     </div>
   )
 }

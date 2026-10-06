@@ -38,7 +38,7 @@
 .library-sort { max-width: var(--nl-field-width-sm); }
 .library-shelf-form { display: flex; gap: var(--nl-space-sm); flex-wrap: wrap; margin: var(--nl-space-lg) var(--nl-space-xxl); }
 .library-shelf-form input { min-width: 0; background: var(--nl-surface-input); border: var(--nl-rule-width) solid var(--nl-border); border-radius: var(--nl-radius-md); padding: var(--nl-space-sm) var(--nl-space-md); color: var(--nl-text); }
-.library-workspace { display: flex; flex: 1; min-width: 0; min-height: 0; position: relative; }
+.library-workspace { display: flex; flex: 1; min-width: 0; min-height: 0; position: relative; overflow: clip; }
 .library-shelves { flex: 1; min-width: 0; min-height: 0; overflow: auto; padding: var(--nl-space-xl) var(--nl-space-xxl) var(--nl-space-xxl); }
 .project-shelf + .project-shelf { margin-top: var(--nl-space-xxl); }
 .project-shelf.drag-over { background: var(--nl-surface-hover); outline: var(--nl-rule-width) dashed var(--nl-accent); }
@@ -81,7 +81,8 @@
 .library-empty h2 { margin: 0; font-family: var(--nl-font-display-face); font-size: var(--nl-font-title); color: var(--nl-text); }
 .library-empty p { margin: 0; max-width: var(--nl-measure-text); }
 .library-empty > svg { color: var(--nl-accent); }
-.library-inspector { flex: 0 0 var(--nl-library-inspector-width); width: var(--nl-library-inspector-width); min-height: 0; overflow: auto; padding: var(--nl-space-xl); border-left: var(--nl-rule-width) solid var(--nl-border); background: var(--nl-surface-sidebar); }
+.library-inspector-slot { flex: 0 0 auto; width: var(--nl-library-inspector-width); max-width: 100%; min-width: 0; min-height: 0; overflow: clip; }
+.library-inspector { width: var(--nl-library-inspector-width); height: 100%; min-height: 0; overflow: auto; padding: var(--nl-space-xl); border-left: var(--nl-rule-width) solid var(--nl-border); background: var(--nl-surface-sidebar); }
 .library-inspector-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--nl-space-sm); margin-bottom: var(--nl-space-lg); color: var(--nl-text-dim); font-size: var(--nl-font-caption); }
 .library-inspector-heading button { display: flex; padding: var(--nl-space-sm); }
 .library-detail-cover { --library-cover-w: var(--nl-library-detail-cover-width); --library-cover-h: calc(var(--library-cover-w) * 1.48); width: var(--library-cover-w); margin: 0 auto var(--nl-space-xl); }
@@ -122,7 +123,32 @@
 .library-restore-button { padding: var(--nl-space-sm) var(--nl-space-md); border: var(--nl-rule-width) solid var(--nl-border); border-radius: var(--nl-radius-md); color: var(--nl-accent); }
 .library-open-error { color: var(--nl-danger); margin: var(--nl-space-md) var(--nl-space-xxl); }
 @media (max-width: 1100px) { .library-filters { flex-basis: 100%; } .library-search { max-width: none; } .library-total { display: none; } }
-@media (max-width: 900px) { .library-inspector { position: absolute; z-index: 10; top: 0; right: 0; bottom: 0; width: min(var(--nl-library-inspector-width), 100%); box-shadow: var(--nl-elevation-side); } }
+@media (max-width: 900px) {
+  .library-inspector-slot { position: absolute; z-index: 10; top: 0; right: 0; bottom: 0; width: min(var(--nl-library-inspector-width), 100%); box-shadow: var(--nl-elevation-side); }
+  .library-inspector { width: min(var(--nl-library-inspector-width), 100vw); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-shell='desktop'] .motion-presence[data-motion-presence='open'] > .library-inspector-slot {
+    --presence-x: var(--nl-motion-distance);
+    animation: surface-presence-enter var(--nl-motion-panel) var(--nl-motion-ease),
+      library-details-expand var(--nl-motion-panel) var(--nl-motion-ease);
+  }
+  :root[data-shell='desktop'] .motion-presence[data-motion-presence='closing'] > .library-inspector-slot {
+    --presence-x: var(--nl-motion-distance);
+    animation: surface-presence-exit var(--nl-motion-fast) var(--nl-motion-ease) both,
+      library-details-collapse var(--nl-motion-fast) var(--nl-motion-ease) both;
+  }
+}
+
+@keyframes library-details-expand {
+  from { width: 0; }
+  to { width: var(--nl-library-inspector-width); }
+}
+@keyframes library-details-collapse {
+  from { width: var(--nl-library-inspector-width); }
+  to { width: 0; }
+}
 @media (max-width: 600px) {
   .start-screen.project-library { --library-cover-w: calc(var(--nl-library-mobile-cover-width) * var(--library-cover-scale)); }
   .library-header { padding: var(--nl-space-lg); gap: var(--nl-space-sm); }

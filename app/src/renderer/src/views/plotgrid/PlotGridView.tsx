@@ -1,9 +1,11 @@
 import { DesktopViewActions } from '../../shell/DesktopViewFrame'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useContentTransition } from '../../shell/useContentTransition'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import { useProjectStore } from '../../stores/projectStore'
 import { ContextMenu } from '../../shell/ContextMenu'
+import { MotionPresence } from '../../shell/MotionPresence'
 import { InputDialog } from '../../shell/InputDialog'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { CustomFieldsPanel } from '../../shell/CustomFieldsPanel'
@@ -129,6 +131,8 @@ const ROW_SOURCES = ['plotline', 'character', 'location', 'item', 'lore'] as con
 
 export function PlotGridView(): React.JSX.Element {
   const { t, grid, setGrid, menu, setMenu, pending, setPending, editingId, setEditingId, rowSource, setRowSource, asLanes, setAsLanes, isPhone, byCodex, toggle } = usePlotGrid()
+  const contentRef = useRef<HTMLDivElement>(null)
+  useContentTransition(contentRef, `${rowSource}:${asLanes}:${editingId}:${Boolean(grid)}`)
 
   if (!grid) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 
@@ -156,7 +160,7 @@ export function PlotGridView(): React.JSX.Element {
   }
 
   return (
-    <div className="plotgrid">
+    <div className="plotgrid" ref={contentRef}>
       <div className="plotgrid-toolbar">
         <PlotRowSource rowSource={rowSource} setRowSource={setRowSource} />
         <button
@@ -204,8 +208,9 @@ export function PlotGridView(): React.JSX.Element {
 }
 
 function PlotGridDialogs({ menu, t, setEditingId, setPending, setMenu, pending, setGrid }: { menu: PlotGridViewState['menu']; t: PlotGridViewState['t']; setEditingId: PlotGridViewState['setEditingId']; setPending: PlotGridViewState['setPending']; setMenu: PlotGridViewState['setMenu']; pending: PlotGridViewState['pending']; setGrid: PlotGridViewState['setGrid'] }): React.JSX.Element {
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   return <>
-      {menu && (
+      <MotionPresence disabled={suspendMotion}>{menu && (
         <ContextMenu
           x={menu.x}
           y={menu.y}
@@ -230,8 +235,8 @@ function PlotGridDialogs({ menu, t, setEditingId, setPending, setMenu, pending, 
           ]}
           onClose={() => setMenu(null)}
         />
-      )}
-      {pending?.kind === 'note' && (
+      )}</MotionPresence>
+      <MotionPresence>{pending?.kind === 'note' && (
         <InputDialog
           title={t('plotGrid.cellNoteTitle', { scene: pending.sceneTitle })}
           initialValue={pending.current}
@@ -251,8 +256,8 @@ function PlotGridDialogs({ menu, t, setEditingId, setPending, setMenu, pending, 
               .then(setGrid)
           }}
         />
-      )}
-      {pending?.kind === 'fields' && (
+      )}</MotionPresence>
+      <MotionPresence>{pending?.kind === 'fields' && (
         <div
           className="dialog-overlay"
           onPointerDown={(e) => e.target === e.currentTarget && setPending(null)}
@@ -267,9 +272,9 @@ function PlotGridDialogs({ menu, t, setEditingId, setPending, setMenu, pending, 
             </div>
           </div>
         </div>
-      )}
+      )}</MotionPresence>
       <PlotCreateDialog pending={pending} setPending={setPending} setGrid={setGrid} />
-      {pending?.kind === 'rename' && (
+      <MotionPresence>{pending?.kind === 'rename' && (
         <InputDialog
           title={t('explorer.contextRename')}
           placeholder={pending.current}
@@ -280,8 +285,8 @@ function PlotGridDialogs({ menu, t, setEditingId, setPending, setMenu, pending, 
             void rpc.request<PlotGridDto>('plot/renamePlotline', [id, name]).then(setGrid)
           }}
         />
-      )}
-      {pending?.kind === 'delete' && (
+      )}</MotionPresence>
+      <MotionPresence>{pending?.kind === 'delete' && (
         <ConfirmDialog
           title={t('explorer.deleteTitle')}
           message={pending.name}
@@ -292,7 +297,7 @@ function PlotGridDialogs({ menu, t, setEditingId, setPending, setMenu, pending, 
             void rpc.request<PlotGridDto>('plot/deletePlotline', [id]).then(setGrid)
           }}
         />
-      )}
+      )}</MotionPresence>
   </>
 }
 
@@ -349,13 +354,12 @@ function PlotRowSource({rowSource, setRowSource}: Pick<PlotGridViewState, 'rowSo
   </select>
 }
 
-function PlotCreateDialog({pending, setPending, setGrid}: Pick<PlotGridViewState, 'pending' | 'setPending' | 'setGrid'>): React.JSX.Element | null {
+function PlotCreateDialog({pending, setPending, setGrid}: Pick<PlotGridViewState, 'pending' | 'setPending' | 'setGrid'>): React.JSX.Element {
   const { t } = useTranslation()
-  if (pending?.kind !== 'create') return null
-  return <InputDialog title={t('plotGrid.addPlotline')} onCancel={() => setPending(null)} onSubmit={(name) => {
+  return <MotionPresence>{pending?.kind === 'create' && <InputDialog title={t('plotGrid.addPlotline')} onCancel={() => setPending(null)} onSubmit={(name) => {
     setPending(null)
     void rpc.request<PlotGridDto>('plot/createPlotline', [name]).then(setGrid)
-  }} />
+  }} />}</MotionPresence>
 }
 
 function PhonePlotGridView({ t, grid, toggle, rowSource, setRowSource, byCodex, setPending, pending, setGrid }: { t: PlotGridViewState['t']; grid: NonNullable<PlotGridViewState['grid']>; toggle: PlotGridViewState['toggle']; rowSource: PlotGridViewState['rowSource']; setRowSource: PlotGridViewState['setRowSource']; byCodex: PlotGridViewState['byCodex']; setPending: PlotGridViewState['setPending']; pending: PlotGridViewState['pending']; setGrid: PlotGridViewState['setGrid'] }): React.JSX.Element {

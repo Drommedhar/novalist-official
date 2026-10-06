@@ -1,3 +1,4 @@
+import { MotionPresence } from '../../shell/MotionPresence'
 import { rpc } from '../../rpc/client'
 
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
@@ -8,7 +9,7 @@ type TimelineViewState = ReturnType<typeof timelinePresentation>
 
 export function TimelineDialogs({ addingTimeline, t, setAddingTimeline, setData, renamingTimeline, data, setRenamingTimeline, removingTimeline, setRemovingTimeline, pending, setPending, save, manualId }: { addingTimeline: TimelineViewState['addingTimeline']; t: TimelineViewState['t']; setAddingTimeline: TimelineViewState['setAddingTimeline']; setData: TimelineViewState['setData']; renamingTimeline: TimelineViewState['renamingTimeline']; data: TimelineViewState['data']; setRenamingTimeline: TimelineViewState['setRenamingTimeline']; removingTimeline: TimelineViewState['removingTimeline']; setRemovingTimeline: TimelineViewState['setRemovingTimeline']; pending: TimelineViewState['pending']; setPending: TimelineViewState['setPending']; save: TimelineViewState['save']; manualId: TimelineViewState['manualId'] }): React.JSX.Element {
   return <>
-      {addingTimeline && (
+      <MotionPresence>{addingTimeline && (
         <InputDialog
           title={t('timeline.addTimeline')}
           onCancel={() => setAddingTimeline(false)}
@@ -17,8 +18,8 @@ export function TimelineDialogs({ addingTimeline, t, setAddingTimeline, setData,
             void rpc.request<TimelineDto>('timeline/addTimeline', [name]).then(setData)
           }}
         />
-      )}
-      {renamingTimeline && (
+      )}</MotionPresence>
+      <MotionPresence>{renamingTimeline && (
         <InputDialog
           title={t('explorer.contextRename')}
           placeholder={data.timelines.find((l) => l.id === data.activeTimelineId)?.name ?? ''}
@@ -30,8 +31,8 @@ export function TimelineDialogs({ addingTimeline, t, setAddingTimeline, setData,
               .then(setData)
           }}
         />
-      )}
-      {removingTimeline && (
+      )}</MotionPresence>
+      <MotionPresence>{removingTimeline && (
         <ConfirmDialog
           title={t('timeline.removeTimeline')}
           message={t('timeline.removeTimelineHint')}
@@ -43,8 +44,8 @@ export function TimelineDialogs({ addingTimeline, t, setAddingTimeline, setData,
               .then(setData)
           }}
         />
-      )}
-      {pending?.kind === 'create' && (
+      )}</MotionPresence>
+      <MotionPresence>{pending?.kind === 'create' && (
         <TimelineEventEditor
           initial={null}
           timelines={data.timelines}
@@ -56,8 +57,8 @@ export function TimelineDialogs({ addingTimeline, t, setAddingTimeline, setData,
             void save(draft, null)
           }}
         />
-      )}
-      {pending?.kind === 'edit' && (
+      )}</MotionPresence>
+      <MotionPresence>{pending?.kind === 'edit' && (
         <TimelineEventEditor
           initial={pending.event}
           timelines={data.timelines}
@@ -74,8 +75,8 @@ export function TimelineDialogs({ addingTimeline, t, setAddingTimeline, setData,
             void save(draft, id)
           }}
         />
-      )}
-      {pending?.kind === 'delete' && (
+      )}</MotionPresence>
+      <MotionPresence>{pending?.kind === 'delete' && (
         <ConfirmDialog
           title={t('explorer.deleteTitle')}
           message={pending.event.title}
@@ -86,6 +87,6 @@ export function TimelineDialogs({ addingTimeline, t, setAddingTimeline, setData,
             void rpc.request<TimelineDto>('timeline/deleteEvent', [id]).then(setData)
           }}
         />
-      )}
+      )}</MotionPresence>
   </>
 }

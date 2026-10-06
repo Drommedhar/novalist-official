@@ -1,4 +1,4 @@
-import { type ProjectStateDto } from '../stores/projectStore'
+import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 
 import { InputDialog } from './InputDialog'
@@ -6,6 +6,7 @@ import { ConfirmDialog } from './ConfirmDialog'
 import { ChapterDialog } from './ChapterDialog'
 import { SceneDialog } from './SceneDialog'
 import { StoryDateRangeDialog } from './StoryDateRangeDialog'
+import { MotionPresence } from './MotionPresence'
 
 import { useTargetStore } from '../stores/targetStore'
 
@@ -41,22 +42,23 @@ function applyChapterProperty(action: ChapterPropertyAction, value: string): Pro
 
 export function BinderDialogs({ state }: { state: BinderState }): React.JSX.Element {
   const { t, addChapterOpen, setAddChapterOpen, addSceneChapter, setAddSceneChapter, pending, setPending, chapters, store } = state
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   return <>
-      {addChapterOpen && <ChapterDialog onClose={() => setAddChapterOpen(false)} />}
-      {addSceneChapter && (
+      <MotionPresence disabled={suspendMotion}>{addChapterOpen && <ChapterDialog onClose={() => setAddChapterOpen(false)} />}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{addSceneChapter && (
         <SceneDialog
           defaultChapterGuid={addSceneChapter}
           onClose={() => setAddSceneChapter(null)}
         />
-      )}
-      {pending?.kind === 'editChapter' &&
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{pending?.kind === 'editChapter' &&
         chapters.some((c) => c.guid === pending.chapterGuid) && (
           <ChapterDialog
             chapter={chapters.find((c) => c.guid === pending.chapterGuid)}
             onClose={() => setPending(null)}
           />
-        )}
-      {pending?.kind === 'sceneTemplate' && (
+        )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{pending?.kind === 'sceneTemplate' && (
         <InputDialog
           title={t('explorer.templateNameTitle')}
           placeholder={t('explorer.templateNamePlaceholder')}
@@ -72,8 +74,8 @@ export function BinderDialogs({ state }: { state: BinderState }): React.JSX.Elem
             ])
           }}
         />
-      )}
-      {pending?.kind === 'editScene' && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{pending?.kind === 'editScene' && (
         <SceneDialog
           edit={{
             chapterGuid: pending.chapterGuid,
@@ -82,15 +84,15 @@ export function BinderDialogs({ state }: { state: BinderState }): React.JSX.Elem
           }}
           onClose={() => setPending(null)}
         />
-      )}
-      {pending?.kind === 'setDate' && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{pending?.kind === 'setDate' && (
         <StoryDateRangeDialog
           chapterGuid={pending.chapterGuid}
           sceneId={pending.sceneId}
           onClose={() => setPending(null)}
         />
-      )}
-      {(pending?.kind === 'sceneTarget' || pending?.kind === 'chapterTarget' || pending?.kind === 'actTarget') && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{(pending?.kind === 'sceneTarget' || pending?.kind === 'chapterTarget' || pending?.kind === 'actTarget') && (
         <InputDialog
           title={t('targets.prompt')}
           placeholder={pending.current}
@@ -101,8 +103,8 @@ export function BinderDialogs({ state }: { state: BinderState }): React.JSX.Elem
             void applyWritingTarget(action, value)
           }}
         />
-      )}
-      {pending?.kind === 'insertChapter' && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{pending?.kind === 'insertChapter' && (
         <InputDialog
           title={t('explorer.insertChapterTitle')}
           placeholder={t('shell.newChapter')}
@@ -113,8 +115,8 @@ export function BinderDialogs({ state }: { state: BinderState }): React.JSX.Elem
             if (title.trim().length > 0) void store.getState().createChapter(title.trim(), at)
           }}
         />
-      )}
-      {(pending?.kind === 'chapterDescription' || pending?.kind === 'setAct') && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{(pending?.kind === 'chapterDescription' || pending?.kind === 'setAct') && (
         <InputDialog
           title={t(pending.kind === 'chapterDescription' ? 'explorer.chapterDescription' : 'explorer.renameAct')}
           placeholder={pending.current}
@@ -125,8 +127,8 @@ export function BinderDialogs({ state }: { state: BinderState }): React.JSX.Elem
             void applyChapterProperty(action, value).then((project) => store.getState().applyState(project))
           }}
         />
-      )}
-      {(pending?.kind === 'deleteChapter' || pending?.kind === 'deleteScene') && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{(pending?.kind === 'deleteChapter' || pending?.kind === 'deleteScene') && (
         <ConfirmDialog
           title={t('explorer.deleteTitle')}
           message={t(pending.kind === 'deleteChapter' ? 'explorer.confirmDeleteChapter' : 'explorer.confirmDeleteScene', { name: pending.title })}
@@ -140,8 +142,8 @@ export function BinderDialogs({ state }: { state: BinderState }): React.JSX.Elem
             }
           }}
         />
-      )}
-      {pending?.kind === 'deleteScenes' && (
+      )}</MotionPresence>
+      <MotionPresence disabled={suspendMotion}>{pending?.kind === 'deleteScenes' && (
         <ConfirmDialog
           title={t('explorer.deleteTitle')}
           message={t('bulk.confirmDelete', { count: pending.targets.length })}
@@ -152,6 +154,6 @@ export function BinderDialogs({ state }: { state: BinderState }): React.JSX.Elem
             void store.getState().mutateSceneStructure('sceneBulk/delete', [ids])
           }}
         />
-      )}
+      )}</MotionPresence>
   </>
 }

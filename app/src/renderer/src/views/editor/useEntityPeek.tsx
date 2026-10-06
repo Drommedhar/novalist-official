@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { placePeekCard, type PeekAnchor } from './peekPlacement'
 import { type PeekScope, type HoverCard, type EntityPeekController } from './peekTypes'
 import { PeekCard } from './PeekCard'
+import { MotionPresence } from '../../shell/MotionPresence'
+import { useProjectStore } from '../../stores/projectStore'
 
 /** Rounded to the pixel: sub-pixel jitter from a reflow is not a new anchor. */
 function sameAnchor(a: PeekAnchor, b: PeekAnchor): boolean {
@@ -22,6 +24,7 @@ export function useEntityPeek(opts: {
   scope: PeekScope
   onOpen: (type: string, id: string) => void
 }): EntityPeekController {
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   const [hoverCard, setHoverCard] = useState<HoverCard | null>(null)
   // A pinned card ignores hover changes and stays until explicitly closed.
   const [pinned, setPinned] = useState(false)
@@ -201,7 +204,7 @@ export function useEntityPeek(opts: {
     pinned
   ])
 
-  const overlay = hoverCard ? (
+  const overlay = <MotionPresence disabled={suspendMotion}>{hoverCard && (
     <div
       ref={anchorRef}
       className={`peek-card-anchor${pinned ? ' pinned' : ''}${isMobilePeek ? ' mobile' : ''}`}
@@ -243,7 +246,7 @@ export function useEntityPeek(opts: {
         onTogglePin={() => setPinned((p) => !p)}
       />
     </div>
-  ) : null
+  )}</MotionPresence>
 
   return {
     showAt,

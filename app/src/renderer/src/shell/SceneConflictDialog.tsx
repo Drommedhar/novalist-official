@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
+import { MotionPresence } from './MotionPresence'
 import './scene-conflict.css'
 
 interface MergeRow {
@@ -24,6 +25,7 @@ interface MergeRow {
  */
 export function SceneConflictDialog(): React.JSX.Element | null {
   const { t } = useTranslation()
+  const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
   const conflict = useProjectStore((s) => s.sceneConflict)
   const resolve = useProjectStore((s) => s.resolveSceneConflict)
   const dismiss = useProjectStore((s) => s.dismissSceneConflict)
@@ -54,7 +56,7 @@ export function SceneConflictDialog(): React.JSX.Element | null {
       .catch(() => setRows([]))
   }, [conflict])
 
-  if (!conflict) return null
+  if (!conflict) return <MotionPresence disabled={suspendMotion}>{null}</MotionPresence>
 
   const merged = (): string => {
     const lines: string[] = []
@@ -91,6 +93,7 @@ export function SceneConflictDialog(): React.JSX.Element | null {
   const differing = rows.filter((r) => r.state !== 'equal').length
 
   return (
+    <MotionPresence disabled={suspendMotion}>
     <div className="dialog-overlay">
       <div className="dialog-card scene-conflict-card" role="dialog" aria-label={t('conflict.title')}>
         <div className="dialog-title">{t('conflict.title')}</div>
@@ -150,6 +153,7 @@ export function SceneConflictDialog(): React.JSX.Element | null {
         </div>
       </div>
     </div>
+    </MotionPresence>
   )
 }
 

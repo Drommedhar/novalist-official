@@ -1,5 +1,6 @@
 import { mapState } from './map-state.js';
 import { bbField } from './map-controls.js';
+import { removePopup, showPopup } from './popup-motion.js';
 
 export function bbEntityPicker(id, type, onChange, label) {
     // Native <datalist> doesn't reliably render inside WebView2's chrome-less
@@ -24,7 +25,7 @@ export function bbEntityPicker(id, type, onChange, label) {
     const picker = { pop: null, activeIndex: -1, filtered: [] };
 
     const closePop = () => {
-        if (picker.pop) { picker.pop.remove(); picker.pop = null; }
+        if (picker.pop) { removePopup(picker.pop); picker.pop = null; }
         picker.activeIndex = -1;
         window.removeEventListener('mousedown', onDocMouseDown, true);
         window.removeEventListener('wheel', closePop, true);
@@ -48,6 +49,7 @@ export function bbEntityPicker(id, type, onChange, label) {
 
     const renderPop = () => {
         const items = buildList();
+        const opening = !picker.pop;
         if (!picker.pop) {
             picker.pop = document.createElement('div');
             picker.pop.className = 'bb-entity-pop';
@@ -63,6 +65,7 @@ export function bbEntityPicker(id, type, onChange, label) {
         picker.pop.style.top = '0px';
         const ph = picker.pop.getBoundingClientRect().height;
         picker.pop.style.top = Math.max(8, r.top - ph - 4) + 'px';
+        if (opening) showPopup(picker.pop);
 
         window.addEventListener('mousedown', onDocMouseDown, true);
         window.addEventListener('wheel', closePop, true);
