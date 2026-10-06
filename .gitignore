@@ -40,6 +40,10 @@ ScaffoldingReadMe.txt
 ~$*
 *~
 CodeCoverage/
+.DS_Store
+*.csproj.lscache
+*.csproj.SdkResolver.*.proj.Backup.tmp
+.ruff_cache/
 
 # MSBuild Binary and Structured Log
 *.binlog
@@ -52,6 +56,11 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+tests/CResults/
+tests/SdkResults/
+tests/DCov/
+tests/DCovHtml/
+tests/DCovTxt/
 .vs
 docs/plans
 .dual-graph/
@@ -62,7 +71,6 @@ app/out/
 app/dist/
 
 app/dist-backend/
-app/dist/
 
 # macOS signing secrets (decoded at build time from CI secrets — never commit)
 app/build/embedded.provisionprofile
