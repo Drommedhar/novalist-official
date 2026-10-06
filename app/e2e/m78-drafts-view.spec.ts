@@ -111,22 +111,34 @@ test('drafts can be renamed, reordered, and fed chapters from each other', async
   await expect(target.locator('.drafts-mark.new')).toHaveCount(2, { timeout: 10_000 })
   await expect(target.locator('.drafts-mark.rewritten')).toHaveCount(0)
 
+  const beforeTransferEpoch = await page.evaluate(
+    () => window.novalistStores.project.getState().workspaceEpoch
+  )
   await page.locator('.drafts-send-actions .dialog-button.primary').click()
 
-  // It arrived, with the chapter and its scene, in the other draft.
+  // The transfer changes the workspace epoch; wait for the window to resume
+  // before issuing another RPC against the resulting draft.
   await expect
     .poll(
       async () =>
-        await page.evaluate(async () => {
-          const rows = (await window.novalistRpc.request('drafts/list', [])) as {
-            name: string
-            chapters: number
-          }[]
-          return rows.find((d) => d.name === 'Beta cut')?.chapters ?? 0
-        }),
+        await page.evaluate((epoch) => {
+          const state = window.novalistStores.project.getState()
+          return state.workspaceEpoch > epoch && !state.workspaceBusy
+        }, beforeTransferEpoch),
       { timeout: 15_000 }
     )
-    .toBe(1)
+    .toBe(true)
+
+  // It arrived, with the chapter and its scene, in the other draft.
+  const transferred = await page.evaluate(async () => {
+    const rows = (await window.novalistRpc.request('drafts/list', [])) as {
+      name: string
+      chapters: number
+      scenes: number
+    }[]
+    return rows.find((draft) => draft.name === 'Beta cut')
+  })
+  expect(transferred).toMatchObject({ chapters: 1, scenes: 1 })
 
   // Sending the same chapter a second time rewrites what is there rather than
   // leaving a second copy, and the preview says so before it happens.

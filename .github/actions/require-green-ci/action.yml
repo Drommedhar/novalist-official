@@ -1,0 +1,18 @@
+name: Require green CI
+description: Require the latest push CI run for this commit to pass before release work.
+runs:
+  using: composite
+  steps:
+    - name: Wait for tested commit
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        RELEASE_REPOSITORY: ${{ github.repository }}
+        RELEASE_SHA: ${{ github.sha }}
+        CI_BRANCH: ${{ github.ref_type == 'branch' && github.ref_name || github.event.repository.default_branch }}
+        RELEASE_GATE_PYTHON: ${{ runner.os == 'Windows' && 'python' || 'python3' }}
+      run: >-
+        "$RELEASE_GATE_PYTHON" tools/wait_for_release_ci.py
+        --repository "$RELEASE_REPOSITORY"
+        --sha "$RELEASE_SHA"
+        --branch "$CI_BRANCH"

@@ -37,7 +37,6 @@
   :root[data-shell='desktop'] .motion-presence[data-motion-collapse] > * {
     interpolate-size: allow-keywords;
     min-block-size: 0;
-    overflow: clip;
   }
 
   :root[data-shell='desktop'] .motion-presence[data-motion-collapse][data-motion-presence='open'] > * {
@@ -56,13 +55,13 @@
 }
 
 @keyframes surface-expand-block {
-  from { block-size: 0; }
-  to { block-size: auto; }
+  from { block-size: 0; overflow: clip; }
+  to { block-size: auto; overflow: clip; }
 }
 
 @keyframes surface-collapse-block {
-  from { block-size: auto; }
-  to { block-size: 0; }
+  from { block-size: auto; overflow: clip; }
+  to { block-size: 0; overflow: clip; }
 }
 
 @keyframes surface-presence-enter {

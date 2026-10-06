@@ -81,6 +81,7 @@ test.describe('comment anchors in the shipped editor', () => {
 test('deleting a margin comment removes its highlight and stays deleted after reopening', async () => {
   const h = await launchApp('nl-comment-delete-')
   try {
+    await h.page.setViewportSize({ width: 1440, height: 900 })
     const book = await seedBook(h, { One: ['A', 'B'] })
     const { guid, scenes } = book.chapters[0]
     await dismissTour(h.page)
@@ -99,7 +100,7 @@ test('deleting a margin comment removes its highlight and stays deleted after re
       el.ownerDocument.getSelection()!.setBaseAndExtent(text, 11, text, 19)
     })
     await frame.locator('#ft-comment').click()
-    await expect(frame.locator('.nv-cc-card')).toHaveCount(1)
+    await expect(frame.locator('.nv-cc-card')).toBeVisible()
     await expect(editor.locator('.nv-comment')).toHaveText('lastword')
     // A split inside the commented word leaves two legitimate fragments.
     // Enter at its end must not produce a third one.

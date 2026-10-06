@@ -33,7 +33,7 @@ const CAPACITIES = [
   { name: 'wide', width: 1420, height: 900 }
 ] as const
 
-/** What the window is showing, read once per cell. */
+/** What the window is showing after its panels settle. */
 interface Cell {
   rail: number
   modePanel: number
@@ -76,8 +76,6 @@ test('every mode owns its layout, at every width', async () => {
     projectActions: await page.locator('.toolbar > .toolbar-action').count()
   })
 
-  const wrong: string[] = []
-
   for (const capacity of CAPACITIES) {
     await page.setViewportSize({ width: capacity.width, height: capacity.height })
     await expect(page.locator('.shell')).toHaveAttribute('data-shell-capacity', capacity.name)
@@ -107,29 +105,19 @@ test('every mode owns its layout, at every width', async () => {
         await expect(page.locator('.mode-panel')).toBeVisible({ timeout: 10_000 })
       }
 
-      const cell = await read()
       const where = `${mode} @ ${capacity.name}`
-      const say = (claim: string, actual: unknown, expected: unknown): void => {
-        if (actual !== expected) wrong.push(`${where}: ${claim} was ${actual}, expected ${expected}`)
-      }
-
-      say('the mode rail', cell.rail, 1)
-      say('the mode panel', cell.modePanel, 1)
-      say('the panel as an overlay', cell.modePanelOverlay, capacity.name === 'compact' ? 1 : 0)
-      // Write's, and nobody else's. At compact the binder is a drawer that is
-      // shut, so it is not in the document at all.
-      say('the binder', cell.binder, mode === 'write' && capacity.name !== 'compact' ? 1 : 0)
-      // The inspector is a persistent column only where there is room for one.
-      say('the inspector', cell.inspector, mode === 'write' && capacity.name === 'wide' ? 1 : 0)
-      say('the status bar', cell.status, 1)
-      // "+ Scene" is there in every mode about the open book; "+ Chapter" moves
-      // into the overflow at compact, which is why this is one rather than two.
-      const chrome = mode === 'series' ? 0 : capacity.name === 'compact' ? 1 : 2
-      say('the project bar actions', cell.projectActions, chrome)
+      // Exiting panels remain inert in the DOM until their fade completes.
+      await expect.poll(read, { message: where }).toEqual({
+        rail: 1,
+        modePanel: 1,
+        modePanelOverlay: capacity.name === 'compact' ? 1 : 0,
+        binder: mode === 'write' && capacity.name !== 'compact' ? 1 : 0,
+        inspector: mode === 'write' && capacity.name === 'wide' ? 1 : 0,
+        status: 1,
+        projectActions: mode === 'series' ? 0 : capacity.name === 'compact' ? 1 : 2
+      } satisfies Cell)
     }
   }
-
-  expect(wrong, `${wrong.length} of the fifteen layouts are not what they should be`).toEqual([])
 
   await h.close()
 })

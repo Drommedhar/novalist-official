@@ -239,12 +239,15 @@ test('focus restores window chrome and preserves a pre-existing full screen sess
     })
     await resizeWindow(h, size.width, size.height)
     await h.page.evaluate((chapter) => window.novalistStores.project.getState().openScene(chapter.guid, chapter.scenes[0].id), book.chapters[0])
+    const editor = h.page.frameLocator('iframe.editor-frame').locator('#editor')
+    await editor.click()
     const windowState = () => h.app.evaluate(({ BrowserWindow }) => {
       const win = BrowserWindow.getAllWindows()[0]
       return { fullScreen: win.isFullScreen(), maximized: win.isMaximized(), bounds: win.getBounds(), menu: win.isMenuBarVisible(), autoHide: win.isMenuBarAutoHide() }
     })
     const previous = await windowState()
     await h.page.keyboard.press('F11')
+    await expect(h.page.locator('.shell-focus')).toBeVisible()
     await expect.poll(async () => (await windowState()).fullScreen).toBe(true)
     if (process.platform !== 'darwin') expect((await windowState()).menu).toBe(false)
     await h.page.keyboard.press('F11')
@@ -266,13 +269,15 @@ test('focus restores window chrome and preserves a pre-existing full screen sess
 
     await h.page.evaluate(() => window.novalistStores.project.getState().openProject(window.novalistStores.project.getState().recentProjects[0].path))
     await h.page.evaluate((chapter) => window.novalistStores.project.getState().openScene(chapter.guid, chapter.scenes[0].id), book.chapters[0])
+    await editor.click()
     await h.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].maximize())
     await expect.poll(async () => (await windowState()).maximized).toBe(true)
     const maximized = await windowState()
-    await h.page.evaluate(() => {
+    await h.page.evaluate(async () => {
       const shell = window.novalistStores.shell.getState()
       shell.toggleFocusMode()
-      setTimeout(() => shell.toggleFocusMode(), 20)
+      await new Promise<void>((resolve) => setTimeout(resolve, 20))
+      shell.toggleFocusMode()
     })
     await expect(h.page.locator('.shell-focus')).toHaveCount(0)
     await expect.poll(windowState).toEqual(maximized)

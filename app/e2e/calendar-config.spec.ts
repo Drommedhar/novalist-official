@@ -12,6 +12,8 @@ interface CalendarConfig {
 test('calendar rows remain editable through saves and named rows survive reopening', async () => {
   const h = await launchApp('novalist-calendar-rows-')
   try {
+    await h.page.emulateMedia({ reducedMotion: 'no-preference' })
+    await h.page.setViewportSize({ width: 1100, height: 720 })
     await seedBook(h, {})
     await dismissTour(h.page)
     await h.page.evaluate(() => window.novalistStores.shell.getState().setMainView('calendar'))
@@ -25,6 +27,11 @@ test('calendar rows remain editable through saves and named rows survive reopeni
     const weekdays = panel.locator('.calendar-config-row').filter({ hasNot: h.page.locator('input[type="number"]') })
     await expect(months).toHaveCount(3)
     await expect(weekdays).toHaveCount(5)
+    const scrollArea = h.page.locator('.calendar-config-shell')
+    await expect(scrollArea).toHaveCSS('overflow-y', 'auto')
+    await scrollArea.hover()
+    await h.page.mouse.wheel(0, 800)
+    await expect.poll(() => scrollArea.evaluate(element => element.scrollTop)).toBeGreaterThan(0)
 
     await panel.getByRole('button', { name: 'Add month', exact: true }).click()
     // The toggle is enabled only after the save reply has been handled. An
@@ -85,8 +92,13 @@ test('calendar rows remain editable through saves and named rows survive reopeni
       { name: 'Before the Fall', startYear: -100, countsDown: true },
       { name: 'After the Fall', startYear: 0, countsDown: false }
     ])
+    await h.page.emulateMedia({ reducedMotion: 'reduce' })
     await setup.click()
     await setup.click()
+    await expect(scrollArea).toHaveCSS('overflow-y', 'auto')
+    await scrollArea.hover()
+    await h.page.mouse.wheel(0, 800)
+    await expect.poll(() => scrollArea.evaluate(element => element.scrollTop)).toBeGreaterThan(0)
     await expect(months.nth(3).getByRole('textbox')).toHaveValue('Leaf fall')
     await expect(weekdays.nth(5).getByRole('textbox')).toHaveValue('Starday')
     await expect(eraNames.nth(0)).toHaveValue('Before the Fall')

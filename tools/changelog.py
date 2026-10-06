@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 """Read and stamp CHANGELOG.md.
 
-Two jobs, both used by .github/workflows/release.yml:
+Commands used by .github/workflows/release.yml:
 
   extract  print one release section's body - the release workflow feeds this to
            the GitHub release as its notes.
 
              python tools/changelog.py extract --version 2.1.1
              python tools/changelog.py extract --unreleased
+
+  previous-tag  print the preceding published release's tag from the changelog.
+                Withdrawn or unpublished Git tags are not release history.
+
+             python tools/changelog.py previous-tag --version 3.5.3
 
   release  turn the "Unreleased" heading into a real release heading for the tag
            that was just pushed, open a fresh empty Unreleased section above it,
@@ -103,6 +108,40 @@ def repo_url(lines: list[str]) -> str | None:
     return None
 
 
+def previous_release_tag(lines: list[str], version: str) -> str | None:
+    """Find the release before a stamped version, or before Unreleased."""
+    try:
+        _, end = find_section(lines, version)
+    except KeyError:
+        try:
+            _, end = find_section(lines, "Unreleased")
+        except KeyError:
+            sys.exit("changelog: no Unreleased section or requested release")
+    previous = next(
+        (HEADING.match(line) for line in lines[end:] if HEADING.match(line)), None
+    )
+    if previous is None:
+        return None
+    name = previous.group("name")
+    for line in lines:
+        link = LINK.match(line)
+        if not link or link.group("name") != name:
+            continue
+        url = link.group("url")
+        if "/compare/" in url and "..." in url:
+            return url.rsplit("...", 1)[1]
+        if "/releases/tag/" in url:
+            return url.split("/releases/tag/", 1)[1]
+    sys.exit(f"changelog: no release tag link for '{name}'")
+
+
+def cmd_previous_tag(args: argparse.Namespace) -> int:
+    tag = previous_release_tag(read(args.file), args.version)
+    if tag:
+        print(tag)
+    return 0
+
+
 def rewrite_links(
     lines: list[str], version: str, tag: str, previous_tag: str | None
 ) -> None:
@@ -144,9 +183,12 @@ def cmd_release(args: argparse.Namespace) -> int:
     if already_released:
         sys.exit(f"changelog: {args.version} is already released in {args.file}")
 
+    previous_tag = args.previous_tag
+    if previous_tag is None:
+        previous_tag = previous_release_tag(lines, args.version)
     lines[start] = f"## [{args.version}] - {args.date}\n"
     lines.insert(start, EMPTY_UNRELEASED)
-    rewrite_links(lines, args.version, args.tag, args.previous_tag)
+    rewrite_links(lines, args.version, args.tag, previous_tag)
 
     args.file.write_text("".join(lines), encoding="utf-8")
     print(f"changelog: stamped Unreleased as {args.version} ({args.date})")
@@ -175,13 +217,23 @@ def main(argv: list[str] | None = None) -> int:
     )
     ex.set_defaults(func=cmd_extract)
 
+    previous = sub.add_parser(
+        "previous-tag", help="print the previous published release's tag"
+    )
+    previous.add_argument(
+        "--version", required=True, help="version or tag being released"
+    )
+    previous.set_defaults(func=cmd_previous_tag)
+
     rel = sub.add_parser("release", help="stamp Unreleased with a version and date")
     rel.add_argument(
         "--version", required=True, help="version being released, e.g. 2.2.0"
     )
     rel.add_argument("--date", required=True, help="release date, YYYY-MM-DD")
     rel.add_argument("--tag", required=True, help="git tag being released, e.g. v2.2.0")
-    rel.add_argument("--previous-tag", help="previous tag, used for the compare link")
+    rel.add_argument(
+        "--previous-tag", help="override the previous published release's tag"
+    )
     rel.set_defaults(func=cmd_release)
 
     args = parser.parse_args(argv)

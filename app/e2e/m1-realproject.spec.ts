@@ -203,25 +203,29 @@ test('real project renders binder and scene content', async () => {
   // answer the surname step, skip the rest, and verify the answer persisted.
   await page.locator('.codex-tab').first().click()
   await page.locator('.codex-list .binder-rail-item').click()
-  await page.locator('#codex-create-name').fill('Wizardborn')
-  await page.locator('.dialog-card .type-manager-check input').check()
-  await page.locator('.dialog-card .dialog-actions .dialog-button.primary').click()
-  const wizardCard = page.locator('.dialog-card', { hasText: '1/6' })
+  const createDialog = page.getByRole('dialog').filter({ has: page.locator('#codex-create-name') })
+  await createDialog.locator('#codex-create-name').fill('Wizardborn')
+  await createDialog.locator('.type-manager-check input').check()
+  await createDialog.locator('.dialog-actions .dialog-button.primary').click()
+  const wizardCard = page.getByRole('dialog').filter({
+    has: page.locator('.type-manager-title-row > .codex-row-detail')
+  })
   await expect(wizardCard).toBeVisible({ timeout: 10_000 })
-  await page.locator('.dialog-card .dialog-input').fill('Frostmantel')
-  await page.locator('.dialog-card .dialog-button.primary').click()
+  await expect(wizardCard.locator('.codex-row-detail')).toHaveText('1/6')
+  await wizardCard.locator('.dialog-input').fill('Frostmantel')
+  await wizardCard.locator('.dialog-button.primary').click()
   for (let i = 0; i < 4; i += 1) {
-    await page.locator('.dialog-card .dialog-button', { hasText: /^(Skip|Überspringen)$/ }).click()
+    await wizardCard.getByRole('button', { name: /^(Skip|Überspringen)$/ }).click()
   }
   // The wizard's long-answer step is a live-styled Markdown editor now, so its
   // writing surface is a contenteditable rather than a textarea: type into it
   // instead of filling, and confirm the text actually landed.
-  const wizardAnswer = page.locator('.dialog-card .md-editor .cm-content')
+  const wizardAnswer = wizardCard.locator('.md-editor .cm-content')
   await expect(wizardAnswer).toBeVisible({ timeout: 10_000 })
   await wizardAnswer.click()
   await page.keyboard.type('Born in the e2e harness.')
   await expect(wizardAnswer).toContainText('Born in the e2e harness.')
-  await page.locator('.dialog-card .dialog-button.primary').click()
+  await wizardCard.locator('.dialog-button.primary').click()
   await page.locator('.codex-row', { hasText: 'Wizardborn' }).click()
   await expect
     .poll(async () => {

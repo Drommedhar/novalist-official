@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { launchApp, seedBook } from './harness'
+import { dismissTour, launchApp, seedBook } from './harness'
 
 interface ResearchNote {
   id: string
@@ -12,7 +12,9 @@ interface ResearchNote {
 test('research editing preserves title, tags and lifecycle when an inbox note is filed', async () => {
   const h = await launchApp('nl-research-editing-')
   try {
+    await h.page.setViewportSize({ width: 1280, height: 720 })
     await seedBook(h, { Chapter: ['Scene'] })
+    await dismissTour(h.page)
     const notes = await h.rpc<ResearchNote[]>('research/save', [
       null, 'Bridge source', 'Note', 'The bridge opened in 1755.', ['inbox'], []
     ])
