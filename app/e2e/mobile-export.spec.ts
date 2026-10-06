@@ -15,6 +15,7 @@ async function mobileHost(page: Page, layout: 'phone' | 'tablet') {
     env: { ...process.env, NOVALIST_SETTINGS_DIR: join(root, 'settings') },
     stdio: ['pipe', 'pipe', 'pipe']
   })
+  const backendClosed = new Promise<void>((done) => backend.once('close', () => done()))
   backend.stderr.resume()
   let deliveries = Promise.resolve()
   backend.stdout.on('data', (bytes: Buffer) => {
@@ -97,6 +98,7 @@ async function mobileHost(page: Page, layout: 'phone' | 'tablet') {
     async close() {
       await page.close()
       backend.kill()
+      await backendClosed
       server.closeAllConnections()
       await new Promise<void>((done) => server.close(() => done()))
       rmSync(root, { force: true, recursive: true })
