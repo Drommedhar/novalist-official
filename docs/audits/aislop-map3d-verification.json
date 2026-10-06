@@ -1,0 +1,99 @@
+{
+  "status": "implemented-and-scoped-verified",
+  "scope": {
+    "retiredEntry": "app/src/renderer/public/map/map3d.js",
+    "entry": "app/src/renderer/public/map/map3d-bootstrap.js",
+    "modules": "app/src/renderer/public/map/map3d/",
+    "moduleCountIncludingEntry": 29,
+    "largestModuleLines": 410,
+    "entryLines": 360,
+    "coordination": "The 2D map owner updates map.html to load map-bootstrap.js before map3d-bootstrap.js. Root owns the combined desktop build and real GPU integration test.",
+    "unchanged": [
+      "Vendored Three.js, water, sky, GLTF, Draco and KTX2 implementations",
+      "Map3DHost getters and the window.Map3D bridge",
+      "Shader constants, geometry formulas, random sampling order and density settings",
+      "Async tree loading, timeout, shared promise and PNG fallback behavior",
+      "Pool ownership, eviction, visibility and resource disposal order"
+    ]
+  },
+  "architecture": {
+    "stateOwners": ["scene-state.js", "sky-state.js", "water-state.js", "grass-state.js", "tree-state.js"],
+    "responsibilities": [
+      "Scene lifecycle, camera input, HUD and public bridge",
+      "Sky controls and shared sun direction",
+      "Water material, river and lake geometry, merged flow and color attributes",
+      "Terrain, layers, images and annotations",
+      "Shared polygon geometry and vegetation occluders",
+      "Grass polygon buckets, geometry, reusable tiles and visibility",
+      "Tree assets, geometry, static forests, pooled tiles and billboards",
+      "Building meshes, interiors and spline rendering"
+    ],
+    "longFunctionsFixed": [
+      "makeWater", "buildRiverWaterGeo", "buildGrass", "sampleGrassTile",
+      "updateGrassVisibility", "loadTreeAssets", "buildTrees", "updateTreeVisibility"
+    ],
+    "phaseHelpers": 12,
+    "sharedBounds": "The two identical, capture-free bboxOf functions now share vegetation-polygons.js.",
+    "imports": "New modules use direct relative URLs to the already bundled libraries. All 27 alias replacements resolve to exactly the original import-map URLs; no packages or rule configuration were added.",
+    "renderTarget": "Two lookups of unavailable THREE.WebGPURenderTarget now directly use THREE.RenderTarget, the constructor selected by the original fallback with the shipped bundle. The differential harness verifies the missing export."
+  },
+  "aislop": {
+    "command": "aislop scan . --include 'app/src/renderer/public/map/map3d-bootstrap.js,app/src/renderer/public/map/map3d/**' --json",
+    "score": 100,
+    "findings": 0,
+    "errors": 0,
+    "warnings": 0,
+    "rawReport": "%TEMP%/novalist-aislop-map3d-final.json",
+    "configurationChanged": false
+  },
+  "astEquivalence": {
+    "command": "node artifacts/aislop-map3d-tools/verify-relocation.cjs",
+    "baseline": "artifacts/aislop-approved-baseline/map3d.js",
+    "proof": "artifacts/aislop-map3d-tools/final-ast-proof.json",
+    "functionsMatched": 87,
+    "initializersMatched": 172,
+    "localModuleImportsResolved": 95,
+    "publicBridgeIdentical": true,
+    "method": "Restore explicit state-property references to their original lexical bindings and expand the 12 phase helper calls back into their unchanged statements; then compare complete token sequences. Normalize only the verified shared bboxOf declarations and unavailable render-target fallback. Initial relocation also matched all functions before phase extraction."
+  },
+  "differentialValidation": {
+    "command": "node --experimental-vm-modules artifacts/aislop-map3d-tools/differential.cjs",
+    "report": "artifacts/aislop-map3d-tools/differential-results.json",
+    "passed": 26,
+    "failed": 0,
+    "cases": {
+      "riverGeometry": 6,
+      "lakeGeometryIncludingNearAndFarLod": 6,
+      "grassSamplingVisibilityAndPoolReuse": 3,
+      "treeSamplingAndPairedInstanceMatrices": 1,
+      "proceduralBladeAndTreeGeometry": 2,
+      "resourceDisposalOrderAndStateReset": 1,
+      "pooledTreeNearBillboardAndOutOfRangeVisibility": 1,
+      "treeAssetSuccessFailureFallbackAndPromiseCaching": 6
+    },
+    "method": "Load baseline and refactored code in separate VM realms with the actual bundled Three.js. Compare exact geometry and instance-buffer hashes using seeded random inputs. Compare resource-disposal traces and reset state. Replace only asset loaders with controlled success/failure fixtures to exercise their asynchronous contracts.",
+    "additionalAssertions": [
+      "Grass eviction retains the same mesh and typed-array storage while removing the old cache entry.",
+      "Pooled tree visibility uses meshes nearby, populated billboards farther away, and neither beyond render range.",
+      "Concurrent tree asset requests share the same promise; later calls retain the prior success or failure behavior."
+    ],
+    "testOnlyAdjustments": [
+      "The optional pooled-tree case sets TREE_STATIC_MODE to false in both in-memory subjects; production retains true.",
+      "Exception messages and loader order are compared while expected relocated-file stack-frame lines are excluded."
+    ]
+  },
+  "integration": {
+    "productionSourceStable": true,
+    "appOutModifiedByThisAgent": false,
+    "report": "docs/audits/aislop-approved-integration-verification.json",
+    "combinedBrowserTests": { "passed": 13, "skipped": 1, "failed": 0, "skipReason": "Cmd hotkey case is not applicable on Windows." },
+    "gpuValidation": "The real GPU lifecycle test m73-map-3d-controls passed in 48.3 seconds with two actual WebGPU entry/exit cycles, a visible stage, and correct pointer-lock and control transitions.",
+    "gpuDeviceCountsAfterEachExit": [
+      { "created": 1, "destroyed": 1 },
+      { "created": 2, "destroyed": 2 }
+    ],
+    "screenshots": "artifacts/aislop-approved-integration/m73-map-3d-controls-3D-tak-76457-urces-across-repeated-entry/map-3d-cycle-{0,1}.png",
+    "builds": "Desktop and mobile web builds passed.",
+    "typechecks": "All three TypeScript checks passed."
+  }
+}

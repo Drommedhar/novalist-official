@@ -80,7 +80,7 @@ function stripCalloutMarker(children: React.ReactNode): React.ReactNode {
   })
 }
 
-export function WikiArticle({ article }: { article: Article }): React.JSX.Element {
+function useWikiArticle({ article }: { article: Article }) {
   const { t } = useTranslation()
   const openArticle = useWikiStore((s) => s.openArticle)
   const navigateToMapPin = useShellStore((s) => s.navigateToMapPin)
@@ -89,45 +89,7 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
   const regenerateError = useWikiStore((s) => s.regenerateError)
   const [lightbox, setLightbox] = useState<string | null>(null)
 
-  // Renders section-prose links: an `nventity:{type}/{id}` href (produced by the
-  // backend WikiProseLinker) becomes a click-through to that article; any other
-  // href stays an ordinary external link.
-  const proseComponents = {
-    /**
-     * A blockquote whose first line reads `[!note] Title` is a callout - the
-     * convention Obsidian uses, which stays a plain quote anywhere that does
-     * not know it, so a note is never turned into noise.
-     */
-    blockquote: ({ children }: { children?: React.ReactNode }): React.JSX.Element => {
-      const text = calloutText(children)
-      const match = text ? /^\[!(\w+)\]\s*(.*)$/.exec(text.trim()) : null
-      if (!match) return <blockquote>{children}</blockquote>
-      return (
-        <div className="wiki-callout" data-kind={match[1].toLowerCase()}>
-          {match[2].length > 0 && <div className="wiki-callout-title">{match[2]}</div>}
-          <div className="wiki-callout-body">{stripCalloutMarker(children)}</div>
-        </div>
-      )
-    },
-    a: ({ href, children }: { href?: string; children?: React.ReactNode }): React.JSX.Element => {
-      if (href && href.startsWith('nventity:')) {
-        const rest = href.slice('nventity:'.length)
-        const slash = rest.indexOf('/')
-        const type = rest.slice(0, slash)
-        const entityId = rest.slice(slash + 1)
-        return (
-          <button type="button" className="wiki-link wiki-prose-link" onClick={() => void openArticle(type, entityId)}>
-            {children}
-          </button>
-        )
-      }
-      return (
-        <a href={href} target="_blank" rel="noreferrer">
-          {children}
-        </a>
-      )
-    }
-  }
+  const proseComponents = createProseComponents(openArticle)
 
   // Close the image lightbox on Escape.
   useEffect(() => {
@@ -166,6 +128,12 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
   const lead = descriptor(article.lead, t)
   const isEmpty =
     toc.length === 0 && !article.description && !lead && article.stats == null
+
+  return { t, editInCodex, lead, regenerating, regenerate, regenerateError, toc, scrollTo, proseComponents, openArticle, navigateToMapPin, setLightbox, isEmpty, lightbox }
+}
+
+export function WikiArticle({ article }: { article: Article }): React.JSX.Element {
+  const { t, editInCodex, lead, regenerating, regenerate, regenerateError, toc, scrollTo, proseComponents, openArticle, navigateToMapPin, setLightbox, isEmpty, lightbox } = useWikiArticle({ article })
 
   return (
     <article className="wiki-article">
@@ -292,6 +260,109 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
             </section>
           ))}
 
+          <WikiConnections article={article} t={t} openArticle={openArticle} />
+
+          <WikiReferences article={article} t={t} navigateToMapPin={navigateToMapPin} />
+
+          <WikiOverrides article={article} t={t} setLightbox={setLightbox} openArticle={openArticle} />
+
+          <WikiAppearances
+            appearances={article.appearances}
+            id="appearances"
+            bookName={article.bookName}
+            multipleBooks={article.multipleBooks}
+          />
+
+          {/* An article with content but no appearances is easy to misread as
+              broken; say why the timeline is absent. */}
+          {!isEmpty && article.appearances.length === 0 && (
+            <p className="wiki-empty-body">{t('wiki.noAppearances')}</p>
+          )}
+
+          {isEmpty && <p className="wiki-empty-body">{t('wiki.emptyArticle')}</p>}
+        </div>
+
+        <WikiInfobox infobox={article.infobox} onImageClick={setLightbox} />
+      </div>
+
+      {lightbox && (
+        <div
+          className="wiki-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('wiki.viewImage')}
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            type="button"
+            className="wiki-lightbox-close"
+            aria-label={t('hostBridge.dismiss')}
+            onClick={() => setLightbox(null)}
+          >
+            <X size={20} strokeWidth={1.75} />
+          </button>
+          {/* Stop propagation so clicking the image itself does not close. */}
+          <img src={lightbox} alt="" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
+    </article>
+  )
+}
+
+function Stat({ label, value }: { label: string; value: string }): React.JSX.Element {
+  return (
+    <div className="wiki-stat">
+      <span className="wiki-stat-value">{value}</span>
+      <span className="wiki-stat-label">{label}</span>
+    </div>
+  )
+}
+
+function createProseComponents(openArticle: ReturnType<typeof useWikiStore.getState>['openArticle']) {
+  // Renders section-prose links: an `nventity:{type}/{id}` href (produced by the
+  // backend WikiProseLinker) becomes a click-through to that article; any other
+  // href stays an ordinary external link.
+  return {
+    /**
+     * A blockquote whose first line reads `[!note] Title` is a callout - the
+     * convention Obsidian uses, which stays a plain quote anywhere that does
+     * not know it, so a note is never turned into noise.
+     */
+    blockquote: ({ children }: { children?: React.ReactNode }): React.JSX.Element => {
+      const text = calloutText(children)
+      const match = text ? /^\[!(\w+)\]\s*(.*)$/.exec(text.trim()) : null
+      if (!match) return <blockquote>{children}</blockquote>
+      return (
+        <div className="wiki-callout" data-kind={match[1].toLowerCase()}>
+          {match[2].length > 0 && <div className="wiki-callout-title">{match[2]}</div>}
+          <div className="wiki-callout-body">{stripCalloutMarker(children)}</div>
+        </div>
+      )
+    },
+    a: ({ href, children }: { href?: string; children?: React.ReactNode }): React.JSX.Element => {
+      if (href && href.startsWith('nventity:')) {
+        const rest = href.slice('nventity:'.length)
+        const slash = rest.indexOf('/')
+        const type = rest.slice(0, slash)
+        const entityId = rest.slice(slash + 1)
+        return (
+          <button type="button" className="wiki-link wiki-prose-link" onClick={() => void openArticle(type, entityId)}>
+            {children}
+          </button>
+        )
+      }
+      return (
+        <a href={href} target="_blank" rel="noreferrer">
+          {children}
+        </a>
+      )
+    }
+  }
+
+}
+
+function WikiConnections({ article, t, openArticle }: { article: Article; t: WikiArticleState['t']; openArticle: WikiArticleState['openArticle'] }): React.JSX.Element {
+  return <>
           <WikiRelationships relationships={article.relationships} id="relationships" />
 
           {article.referencedBy.length > 0 && (
@@ -368,7 +439,13 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
               </div>
             </section>
           )}
+  </>
+}
 
+type WikiArticleState = ReturnType<typeof useWikiArticle>
+
+function WikiReferences({ article, t, navigateToMapPin }: { article: Article; t: WikiArticleState['t']; navigateToMapPin: WikiArticleState['navigateToMapPin'] }): React.JSX.Element {
+  return <>
           {article.mapPins.length > 0 && (
             <section className="wiki-section" id="maps">
               <h2>{t('wiki.maps')}</h2>
@@ -434,7 +511,11 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
               </ul>
             </section>
           )}
+  </>
+}
 
+function WikiOverrides({ article, t, setLightbox, openArticle }: { article: Article; t: WikiArticleState['t']; setLightbox: WikiArticleState['setLightbox']; openArticle: WikiArticleState['openArticle'] }): React.JSX.Element {
+  return <>
           {article.overrides.length > 0 && (
             <section className="wiki-section" id="overrides">
               <h2>{t('wiki.changesOverTime')}</h2>
@@ -516,55 +597,5 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
               </ul>
             </section>
           )}
-
-          <WikiAppearances
-            appearances={article.appearances}
-            id="appearances"
-            bookName={article.bookName}
-            multipleBooks={article.multipleBooks}
-          />
-
-          {/* An article with content but no appearances is easy to misread as
-              broken; say why the timeline is absent. */}
-          {!isEmpty && article.appearances.length === 0 && (
-            <p className="wiki-empty-body">{t('wiki.noAppearances')}</p>
-          )}
-
-          {isEmpty && <p className="wiki-empty-body">{t('wiki.emptyArticle')}</p>}
-        </div>
-
-        <WikiInfobox infobox={article.infobox} onImageClick={setLightbox} />
-      </div>
-
-      {lightbox && (
-        <div
-          className="wiki-lightbox"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('wiki.viewImage')}
-          onClick={() => setLightbox(null)}
-        >
-          <button
-            type="button"
-            className="wiki-lightbox-close"
-            aria-label={t('hostBridge.dismiss')}
-            onClick={() => setLightbox(null)}
-          >
-            <X size={20} strokeWidth={1.75} />
-          </button>
-          {/* Stop propagation so clicking the image itself does not close. */}
-          <img src={lightbox} alt="" onClick={(e) => e.stopPropagation()} />
-        </div>
-      )}
-    </article>
-  )
-}
-
-function Stat({ label, value }: { label: string; value: string }): React.JSX.Element {
-  return (
-    <div className="wiki-stat">
-      <span className="wiki-stat-value">{value}</span>
-      <span className="wiki-stat-label">{label}</span>
-    </div>
-  )
+  </>
 }

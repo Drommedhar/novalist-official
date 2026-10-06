@@ -100,10 +100,12 @@ public sealed class PremiseRpc
             Logline = (logline ?? string.Empty).Trim(),
             Paragraph = (paragraph ?? string.Empty).Trim(),
             Acts = (acts ?? [])
-                .Where(a => !string.IsNullOrWhiteSpace(a.Act)
-                            && !string.IsNullOrWhiteSpace(a.Summary))
-                .GroupBy(a => a.Act.Trim(), StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(g => g.Key, g => g.First().Summary!.Trim())
+                .SelectMany(a => !string.IsNullOrWhiteSpace(a.Act)
+                                && !string.IsNullOrWhiteSpace(a.Summary)
+                    ? new[] { KeyValuePair.Create(a.Act.Trim(), a.Summary.Trim()) }
+                    : [])
+                .GroupBy(a => a.Key, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First().Value)
         };
         await _workspace.Projects.SaveProjectAsync();
         return Get();

@@ -29,9 +29,10 @@ public sealed class StructuredImportService
     {
         _projects = projects;
         _files = files;
-        _images = new(projects, files);
         _writer = new FolderImportService(projects, files);
         _writer.ConfigureStructured(sectionTitle);
+        var scope = _writer.EnsureScope();
+        _images = new(scope.Book, scope.BookRoot, files);
     }
 
     public FolderImportSchema Schema() => new(_projects.ActiveBook, new EntityService(_projects).GetCustomEntityTypes());
@@ -45,11 +46,11 @@ public sealed class StructuredImportService
     /// <summary>Add missing pictures to a previous import without replacing any authored fields.</summary>
     public async Task<ImportImageAttachment> AttachImagesAsync(string target, string id, IReadOnlyList<ImportImageReference> images)
     {
-        _writer.EnsureScope();
+        var scope = _writer.EnsureScope();
         if (target is "scene" or "research" || !Schema().Targets.Contains(target, StringComparer.Ordinal))
             throw new ArgumentException("Choose a Codex target returned by GET /v1/types, whose schema includes data.images.");
         if (!Guid.TryParseExact(id, "D", out var guid)) throw new ArgumentException("Use the id returned by POST /v1/import for the entry receiving images.");
-        var book = _projects.ActiveBook!;
+        var book = scope.Book;
         var entities = new EntityService(_projects);
         var (model, folder) = target switch
         {
@@ -60,15 +61,14 @@ public sealed class StructuredImportService
             _ => (typeof(CustomEntityData), entities.GetCustomEntityTypes().Single(type => type.TypeKey == target).FolderName)
         };
         id = guid.ToString();
-        var path = Path.Combine(_projects.ActiveBookRoot!, folder, id + ".json");
+        var path = Path.Combine(scope.BookRoot, folder, id + ".json");
         if (!await _files.ExistsAsync(path)) throw new KeyNotFoundException("The Codex entry was not found in this book. Use its imported or skipped result id.");
         var entity = (IEntityData?)JsonSerializer.Deserialize(await _files.ReadTextAsync(path), model, EntityJsonOptions);
         if (entity == null || !entity.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("The saved Codex entry could not be read.");
         if (entity.Locked) throw new ImportEntryLockedException();
         var resolved = await _images.ResolveAsync(images);
-        var property = model.GetProperty("Images")!;
-        var existing = (List<EntityImage>)property.GetValue(entity)!;
+        var existing = entity.Images;
         var paths = existing.Select(image => image.Path.Replace('\\', '/')).ToHashSet(StringComparer.Ordinal);
         var added = resolved.Where(image => paths.Add(image.Path)).ToArray();
         if (added.Length > 0)
@@ -104,10 +104,11 @@ public sealed class StructuredImportService
             try
             {
                 if (entry.Document.ValueKind != JsonValueKind.Object || !entry.Document.TryGetProperty("target", out var node)
-                    || node.ValueKind != JsonValueKind.String || !schema.Targets.Contains(node.GetString()!, StringComparer.Ordinal))
+                    || node.ValueKind != JsonValueKind.String || node.GetString() is not { } parsedTarget
+                    || !schema.Targets.Contains(parsedTarget, StringComparer.Ordinal))
                     throw new FormatException("Choose a target returned by GET /v1/types.");
-                target = node.GetString();
-                var document = parser.Parse("entry.json", entry.Document.GetRawText(), target!);
+                target = parsedTarget;
+                var document = parser.Parse("entry.json", entry.Document.GetRawText(), target);
                 await _images.ResolveAsync(document.ImageReferences);
                 results.Add(validateOnly ? new(entry.SourceId, target, null, "valid", null)
                     : await _writer.ImportStructuredAsync(entry, document));

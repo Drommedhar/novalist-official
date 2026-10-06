@@ -342,7 +342,6 @@ public sealed class ScenesRpc
         return new SceneWriteResultDto(sceneId, wordCount, hash, false, null);
     }
 
-    /// <summary>The two versions lined up row by row for the merge dialog.</summary>
     [JsonRpcMethod("scenes/mergeRows")]
     public MergeRowDto[] MergeRows(string mineHtml, string theirsHtml)
         => [.. Core.Services.SceneConflictGuard.Rows(mineHtml, theirsHtml)

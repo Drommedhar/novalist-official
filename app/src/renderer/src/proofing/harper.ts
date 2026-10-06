@@ -2,8 +2,6 @@ import { Dialect, SuggestionKind, WorkerLinter } from 'harper.js'
 import { binaryInlined } from 'harper.js/binaryInlined'
 import type { GrammarIssue } from './grammar'
 
-// The binary is bundled, including on first use; no CDN or dictionary download.
-// This module is loaded only when the writer selects Harper.
 let linter: WorkerLinter | undefined
 let dictionary = ''
 let pending: Promise<unknown> = Promise.resolve()

@@ -116,10 +116,9 @@ public sealed class DialogueIndexService
                     spans, sceneText, candidates, language, scene.DialogueSpeakers);
 
                 var bySpeaker = new Dictionary<string, List<DialogueLine>>(StringComparer.Ordinal);
-                for (var i = 0; i < spans.Count; i++)
+                foreach (var (span, attribution) in spans.Zip(attributions))
                 {
-                    var span = spans[i];
-                    var speaker = attributions[i].CharacterId ?? UnassignedSpeakerId;
+                    var speaker = attribution.CharacterId ?? UnassignedSpeakerId;
                     if (speaker == UnassignedSpeakerId)
                         unassigned++;
                     else
@@ -131,9 +130,9 @@ public sealed class DialogueIndexService
                         bySpeaker[speaker] = lines;
                     }
                     lines.Add(new DialogueLine(
-                        span.LineKey, span.Text, attributions[i].Confidence, span.Editable,
+                        span.LineKey, span.Text, attribution.Confidence, span.Editable,
                         span.ContextBefore.Trim(), span.ContextAfter.Trim(),
-                        attributions[i].Candidates));
+                        attribution.Candidates));
                 }
 
                 scanned.Add((chapter, scene, SceneStoryDate.Resolve(chapter, scene), bySpeaker));
@@ -276,6 +275,7 @@ public sealed class DialogueIndexService
         // Non-null: the span came from this very scan, and the two conditions
         // ReplaceLine would decline on — markup in the range, text that no longer
         // matches — were both just checked above.
+        // aislop-ignore-next-line ai-slop/csharp-null-forgiving -- The preceding text and editability checks cover both conditions under which ReplaceLine returns null.
         var updated = DialogueScanner.ReplaceLine(html, span, newText)!;
 
         if (_snapshots != null)

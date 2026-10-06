@@ -3,7 +3,7 @@ using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
 
-/// <summary>An article about the world rather than about one entry in it.</summary>
+/// <summary>World article stored independently of Codex entries; ParentId places it in the article hierarchy.</summary>
 public sealed record WikiPageDto(
     string Id, string Title, string ParentId, string Body, int Order, DateTime UpdatedAt);
 

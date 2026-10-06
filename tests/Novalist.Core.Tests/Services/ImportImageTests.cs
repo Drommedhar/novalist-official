@@ -119,7 +119,7 @@ public sealed class ImportImageTests : IDisposable
         proxy.WriteBytesAsync(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(call => _files.WriteBytesAsync(call.ArgAt<string>(0), call.ArgAt<byte[]>(1)));
         proxy.DeleteFileAsync(Arg.Any<string>()).Returns(call => _files.DeleteFileAsync(call.Arg<string>()));
         proxy.MoveFileAsync(Arg.Any<string>(), Arg.Any<string>()).Returns(Task.FromException(new IOException()));
-        var store = new ImportImageStore(_projects, proxy);
+        var store = new ImportImageStore(_projects.ActiveBook!, _projects.ActiveBookRoot!, proxy);
         await Assert.ThrowsAsync<IOException>(() => store.UploadAsync(Png, "image/png"));
         await proxy.Received(1).DeleteFileAsync(Arg.Is<string>(path => path.EndsWith(".tmp")));
         Assert.Empty(Directory.GetFiles(Path.Combine(_projects.ActiveBookRoot!, _projects.ActiveBook!.ImageFolder), "*", SearchOption.AllDirectories));
@@ -137,7 +137,7 @@ public sealed class ImportImageTests : IDisposable
             Assert.Equal("invalid", result.Status);
             Assert.Contains("POST /v1/images", result.Error);
         }
-        var store = new ImportImageStore(_projects, _files);
+        var store = new ImportImageStore(_projects.ActiveBook!, _projects.ActiveBookRoot!, _files);
         await Assert.ThrowsAsync<ArgumentException>(() => store.ResolveAsync(Enumerable.Repeat(reference, 101).ToArray()));
         foreach (var invalid in new[] { null!, reference with { ImageId = "../../other.png" }, reference with { ImageId = new string('A', 64) }, reference with { ImageId = reference.ImageId + "\n" }, reference with { Name = " " }, reference with { Name = null! } })
         {

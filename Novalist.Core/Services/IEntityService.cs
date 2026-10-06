@@ -62,6 +62,5 @@ public interface IEntityService
     /// </summary>
     Task<string> ImportAttachmentAsync(string sourcePath);
 
-    /// <summary>The absolute path of a stored attachment.</summary>
     string GetAttachmentFullPath(string relativePath);
 }

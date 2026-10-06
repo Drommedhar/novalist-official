@@ -32,7 +32,6 @@ public interface ISceneBulkService
     Task<int> ShiftDatesAsync(IReadOnlyList<string> sceneIds, long days);
 }
 
-/// <summary>A scene together with the chapter that owns it.</summary>
 public sealed record ResolvedScene(string ChapterGuid, SceneData Scene);
 
 /// <summary>One row of a date-shift preview: what the scene reads now, and what

@@ -61,6 +61,7 @@ public class SubmissionsRpc(Workspace workspace)
 
     /// <summary>Records a submission, or updates one already recorded.</summary>
     [JsonRpcMethod("submissions/save")]
+    // aislop-ignore-next-line complexity/too-many-params -- Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.
     public async Task<SubmissionDto[]> SaveAsync(
         string? id, string recipient, string? material = null, string? sentOn = null,
         string? status = null, string? respondedOn = null, string? notes = null)

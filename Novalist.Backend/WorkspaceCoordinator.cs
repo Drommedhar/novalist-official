@@ -4,6 +4,7 @@ namespace Novalist.Backend;
 /// Owns the shared workspace transaction. Windows freeze and save before a
 /// mutation, then acknowledge the same snapshot before editing resumes.
 /// </summary>
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
 internal sealed class WorkspaceCoordinator(Workspace workspace, SemaphoreSlim gate)
 {
     private readonly object _sync = new();
@@ -93,13 +94,13 @@ internal sealed class WorkspaceCoordinator(Workspace workspace, SemaphoreSlim ga
 
         var lease = WorkspaceRequestContext.Lease;
         var ownsLease = lease == null;
-        if (ownsLease)
+        if (lease == null)
         {
             await gate.WaitAsync().ConfigureAwait(false);
             lease = new WorkspaceGateLease(gate);
         }
 
-        var transition = new Transition(Guid.NewGuid().ToString("N"), lease!);
+        var transition = new Transition(Guid.NewGuid().ToString("N"), lease);
         var previous = _ownedTransition.Value;
         using var context = WorkspaceRequestContext.Enter(WorkspaceRequestContext.Identity, lease);
         var installed = false;
@@ -116,7 +117,7 @@ internal sealed class WorkspaceCoordinator(Workspace workspace, SemaphoreSlim ga
                 installed = true;
             }
             _ownedTransition.Value = transition;
-            lease!.Yield();
+            lease.Yield();
             try
             {
                 await Notify("workspace/prepare", new { token = transition.Token, epoch = Epoch, reason }).ConfigureAwait(false);
@@ -160,7 +161,7 @@ internal sealed class WorkspaceCoordinator(Workspace workspace, SemaphoreSlim ga
             if (installed) lock (_sync) _transition = null;
             if (ownsLease)
             {
-                lease!.Active = false;
+                lease.Active = false;
                 lease.Yield();
             }
         }

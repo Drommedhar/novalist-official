@@ -206,7 +206,7 @@ public partial class ExportService
                 or ExportFormat.WorldJson or ExportFormat.WorldHtml
             && _entityService != null)
         {
-            var codex = await CompileCodexAsync(options);
+            var codex = await CompileCodexAsync(options, _entityService);
             // An entry the writer marked as not for readers does not appear at
             // all. Listing the name and withholding the fields would announce
             // that there is something to find, which is most of the spoiler.

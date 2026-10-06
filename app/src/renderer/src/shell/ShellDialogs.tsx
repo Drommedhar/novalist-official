@@ -19,12 +19,6 @@ import { flushPendingWrites } from '../stores/pendingWrites'
 /**
  * Every dialog the shell owns, raised by whichever surface asked for it.
  *
- * They used to be local state inside the toolbar button that opened them,
- * which meant a dialog existed only for as long as one button was on screen
- * and could be reached only by pressing it. "New chapter" could not be run
- * from the command palette or a menu, and the snapshot history disappeared
- * along with the toolbar it lived on whenever the window got narrow.
- *
  * One host, one flag in the store, and any surface can name any of them.
  */
 export function ShellDialogs(): React.JSX.Element | null {

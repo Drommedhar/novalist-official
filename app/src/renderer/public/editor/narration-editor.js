@@ -63,7 +63,7 @@ function setBook(json) {
             // The host's own markup, and the writer's own words. Read-only:
             // this is where the book is listened to, not a second place to
             // edit it.
-            prose.innerHTML = sanitizeSceneHtml(scene.html);
+            prose.replaceChildren(window.sanitizeSceneFragment(scene.html));
             block.appendChild(prose);
             section.appendChild(block);
 
@@ -127,24 +127,21 @@ function setProgress(readyJson, renderingJson) {
     for (const el of progressEls) el.classList.remove('nl-ready', 'nl-rendering');
     progressEls = [];
 
-    var paint = function (keys, name) {
-        for (var i = 0; i < keys.length; i++) {
-            // Across the whole book rather than within a scene: a segment key
-            // already carries where it came from, and progress is reported for
-            // a window of the reading that runs across scene breaks.
-            var found = wrap.querySelectorAll(
-                '[data-nl-seg="' + escapeValue(keys[i]) + '"]');
-            for (var j = 0; j < found.length; j++) {
-                found[j].classList.add(name);
-                progressEls.push(found[j]);
-            }
-        }
-    };
 
     // Ready first, so a line that is both - made, and inside the window being
     // worked on - reads as the more urgent of the two.
-    paint(JSON.parse(readyJson || '[]'), 'nl-ready');
-    paint(JSON.parse(renderingJson || '[]'), 'nl-rendering');
+    paintProgress(JSON.parse(readyJson || '[]'), 'nl-ready');
+    paintProgress(JSON.parse(renderingJson || '[]'), 'nl-rendering');
+}
+
+function paintProgress(keys, className) {
+    for (const key of keys) {
+        const found = wrap.querySelectorAll('[data-nl-seg="' + escapeValue(key) + '"]');
+        for (const marker of found) {
+            marker.classList.add(className);
+            progressEls.push(marker);
+        }
+    }
 }
 
 /** Marks the segment the writer is working on. */
@@ -188,16 +185,11 @@ function escapeValue(value) {
 
 // ── Theme, font, reading comfort: the manuscript frame's contract ──
 
-function setTheme(bg, fg, accent, subtle, divider, scrollbarThumb, scrollbarThumbHover, scrollbarThumbActive) {
-    const root = document.documentElement;
-    root.style.setProperty('--bg', bg);
-    root.style.setProperty('--fg', fg);
-    if (accent) root.style.setProperty('--accent', accent);
-    if (subtle) root.style.setProperty('--subtle', subtle);
-    if (divider) root.style.setProperty('--divider', divider);
-    if (scrollbarThumb) root.style.setProperty('--scrollbar-thumb', scrollbarThumb);
-    if (scrollbarThumbHover) root.style.setProperty('--scrollbar-thumb-hover', scrollbarThumbHover);
-    if (scrollbarThumbActive) root.style.setProperty('--scrollbar-thumb-active', scrollbarThumbActive);
+function setTheme(...colors) {
+    window.applyFrameTheme(colors, [
+        '--bg', '--fg', '--accent', '--subtle', '--divider',
+        '--scrollbar-thumb', '--scrollbar-thumb-hover', '--scrollbar-thumb-active'
+    ]);
 }
 
 function setFont(family, size) {
@@ -217,3 +209,15 @@ function setLanguage(lang) {
 }
 
 sendMessage({ type: 'ready' });
+
+Object.assign(window, {
+    setBook,
+    setSpeaking,
+    setProgress,
+    setSelected,
+    revealScene,
+    setTheme,
+    setFont,
+    setReadingComfort,
+    setLanguage
+});

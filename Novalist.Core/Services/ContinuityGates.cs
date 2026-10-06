@@ -18,7 +18,6 @@ public sealed record ContinuityFinding(
     string Subject,
     string Detail);
 
-/// <summary>A scene as the gates need to see it.</summary>
 /// <param name="ReadingIndex">Its place in reading order, from zero.</param>
 public sealed record GateScene(
     string ChapterGuid,
@@ -28,7 +27,6 @@ public sealed record GateScene(
     string? Date,
     string? NarrativeMode);
 
-/// <summary>An entry as the gates need to see it.</summary>
 /// <param name="GoneFromReadingIndex">
 /// Where the entry leaves the story, or null when it never does.
 /// </param>
@@ -52,7 +50,6 @@ public sealed record GateEntity(
 /// </summary>
 public static class ContinuityGates
 {
-    /// <summary>An entry appears after the point it left the story.</summary>
     public const string GoneThenPresent = "gone-then-present";
 
     /// <summary>A scene's cast names an entry the Codex no longer has.</summary>

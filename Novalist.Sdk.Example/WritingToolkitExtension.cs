@@ -12,7 +12,7 @@ namespace Novalist.Sdk.Example;
 /// Provides: Pomodoro timer, word frequency analysis, writing prompts,
 /// custom themes, and AI/editor/export hooks.
 /// </summary>
-public sealed class WritingToolkitExtension :
+public sealed partial class WritingToolkitExtension :
     IExtension,
     IRibbonContributor,
     IEditorExtension,
@@ -40,7 +40,9 @@ public sealed class WritingToolkitExtension :
     // demonstrates SettingsFieldType.Action + SettingsField.Suggestions.
     private List<string> _keywordSuggestions = [];
 
+    // aislop-ignore-next-line ai-slop/csharp-null-forgiving -- The extension host calls Initialize before exposing contributions that use host services.
     private IHostServices _host = null!;
+    // aislop-ignore-next-line ai-slop/csharp-null-forgiving -- Initialize assigns localization before any contribution callback is exposed.
     private IExtensionLocalization _loc = null!;
     private readonly PomodoroService _pomodoro = new();
     private readonly WordFrequencyService _wordFrequency = new();
@@ -216,128 +218,6 @@ public sealed class WritingToolkitExtension :
 
     public string OnResponseChunk(string chunk) => chunk; // pass through
 
-    // ── ISettingsContributor (page metadata; the form comes from the schema) ─
-
-    public IReadOnlyList<SettingsPage> GetSettingsPages() =>
-    [
-        new SettingsPage
-        {
-            Category = _loc.T("settings.category"),
-            IconPath = "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
-        }
-    ];
-
-    // ── IWizardContributor ──────────────────────────────────────────
-
-    public IReadOnlyList<Novalist.Sdk.Models.Wizards.WizardDefinition> GetWizards() =>
-    [
-        new Novalist.Sdk.Models.Wizards.WizardDefinition
-        {
-            Id = "com.novalist.writingtoolkit.pomodoro",
-            DisplayName = _loc.T("wizard.pomodoro.title"),
-            Description = _loc.T("wizard.pomodoro.description"),
-            Scope = Novalist.Sdk.Models.Wizards.WizardScope.Reference,
-            Steps =
-            {
-                new Novalist.Sdk.Models.Wizards.NumberStep
-                {
-                    Id = "duration",
-                    Title = _loc.T("wizard.pomodoro.duration"),
-                    Min = 5, Max = 90, DefaultValue = 25, Unit = "min",
-                    Skippable = false,
-                },
-                new Novalist.Sdk.Models.Wizards.ChoiceStep
-                {
-                    Id = "autostart",
-                    Title = _loc.T("wizard.pomodoro.autostart"),
-                    Choices =
-                    {
-                        new Novalist.Sdk.Models.Wizards.WizardChoice { Value = "true", Label = _loc.T("wizard.pomodoro.yes") },
-                        new Novalist.Sdk.Models.Wizards.WizardChoice { Value = "false", Label = _loc.T("wizard.pomodoro.no") },
-                    },
-                },
-            },
-        },
-    ];
-
-    // ── IExportFormatContributor ────────────────────────────────────
-
-    public IReadOnlyList<ExportFormatDescriptor> GetExportFormats() =>
-    [
-        new ExportFormatDescriptor
-        {
-            FormatKey = "plaintext_clean",
-            DisplayName = _loc.T("export.plainTextClean"),
-            FileExtension = ".txt",
-            IconPath = "M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5zM15 5l4 4",
-            Export = async context =>
-            {
-                var sb = new StringBuilder();
-                var chapters = _host.ProjectService.GetChaptersOrdered();
-                foreach (var chapter in chapters)
-                {
-                    sb.AppendLine($"# {chapter.Title}");
-                    sb.AppendLine();
-                    var scenes = _host.ProjectService.GetScenesForChapter(chapter.Guid);
-                    foreach (var scene in scenes)
-                    {
-                        var content = await _host.ProjectService.ReadSceneContentAsync(chapter.Guid, scene.Id);
-                        sb.AppendLine(content);
-                        sb.AppendLine();
-                    }
-                }
-                await _host.FileService.WriteTextAsync(context.OutputPath, sb.ToString());
-            }
-        }
-    ];
-
-    // ── IThemeContributor ───────────────────────────────────────────
-
-    public IReadOnlyList<ThemeOverride> GetThemeOverrides() =>
-    [
-        // A token map: the usual form. Every --nl-* left out keeps its default,
-        // so a theme can restate the whole palette or just a corner of it.
-        new ThemeOverride
-        {
-            Name = "Sepia",
-            AccentColor = "#8a6d3b",
-            Tokens = new Dictionary<string, string>
-            {
-                ["--nl-base"] = "244 236 216",
-                ["--nl-surface-window"] = "#f4ecd8",
-                ["--nl-surface-sidebar"] = "#ece0c8",
-                ["--nl-surface-toolbar"] = "#ece0c8",
-                ["--nl-surface-inspector"] = "#ece0c8",
-                ["--nl-surface-editor"] = "#faf4e6",
-                ["--nl-surface-card"] = "#ece0c8",
-                ["--nl-surface-input"] = "#faf4e6",
-                ["--nl-surface-overlay"] = "rgb(59 47 47 / 0.4)",
-                ["--nl-surface-hover"] = "rgb(59 47 47 / 0.06)",
-                ["--nl-surface-selected"] = "rgb(138 109 59 / 0.2)",
-                ["--nl-text"] = "#3b2f2f",
-                ["--nl-text-dim"] = "#6b5b4b",
-                ["--nl-text-subtle"] = "#8a7a68",
-                ["--nl-accent-hover"] = "#a8854a",
-                ["--nl-accent-ink"] = "#faf4e6",
-                ["--nl-focus-ring"] = "rgb(138 109 59 / 0.6)",
-                ["--nl-border"] = "#d8c8a8",
-                ["--nl-border-subtle"] = "#e4d8bd",
-                ["--nl-border-firm"] = "#c4b08a",
-                ["--nl-scrollbar-thumb"] = "rgb(59 47 47 / 0.2)",
-                ["--nl-scrollbar-thumb-hover"] = "rgb(59 47 47 / 0.32)",
-                ["--nl-scrollbar-thumb-active"] = "rgb(138 109 59 / 0.6)"
-            }
-        },
-        // A stylesheet: for themes that need rules a token map cannot hold. The
-        // path is relative to the extension folder.
-        new ThemeOverride
-        {
-            Name = "Dark Ocean",
-            AccentColor = "#1b6ca8",
-            ResourcePath = "Themes/dark-ocean.css"
-        }
-    ];
-
     // ── IStatusBarContributor ───────────────────────────────────────
 
     public IReadOnlyList<StatusBarItem> GetStatusBarItems() =>
@@ -373,6 +253,7 @@ public sealed class WritingToolkitExtension :
             Context = "Chapter",
             OnClick = _ =>
             {
+                // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Literal output demonstrates chapter callback delivery to extension developers.
                 System.Diagnostics.Debug.WriteLine("[ExtCtxMenu] Example extension: Chapter OnClick fired");
                 _host.ActivateContentView("ext.wordfreq");
             }
@@ -387,35 +268,9 @@ public sealed class WritingToolkitExtension :
             IsVisible = ctx => ctx != null,
             OnClick = _ =>
             {
+                // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Literal output demonstrates scene callback delivery to extension developers.
                 System.Diagnostics.Debug.WriteLine("[ExtCtxMenu] Example extension: Scene OnClick fired");
                 _host.ActivateContentView("ext.wordfreq");
-            }
-        }
-    ];
-
-    // ── IEntityTypeContributor ──────────────────────────────────────
-
-    public IReadOnlyList<EntityTypeDescriptor> GetEntityTypes() =>
-    [
-        new EntityTypeDescriptor
-        {
-            TypeKey = "ext.writingtoolkit.faction",
-            DisplayName = _loc.T("entityType.faction"),
-            DisplayNamePlural = _loc.T("entityType.factions"),
-            FolderName = "Factions",
-            DefaultFields =
-            [
-                new EntityFieldDescriptor { Key = "leader", DisplayName = _loc.T("entityType.faction.leader"), TypeKey = "EntityRef", EnumOptions = ["Character"] },
-                new EntityFieldDescriptor { Key = "type", DisplayName = _loc.T("entityType.faction.type"), TypeKey = "Enum", EnumOptions = ["Government", "Military", "Religious", "Criminal", "Guild", "Rebellion", "Other"] },
-                new EntityFieldDescriptor { Key = "motto", DisplayName = _loc.T("entityType.faction.motto"), TypeKey = "String" },
-                new EntityFieldDescriptor { Key = "founded", DisplayName = _loc.T("entityType.faction.founded"), TypeKey = "Date" },
-                new EntityFieldDescriptor { Key = "memberCount", DisplayName = _loc.T("entityType.faction.memberCount"), TypeKey = "Int" }
-            ],
-            Features = new EntityTypeFeatures
-            {
-                IncludeImages = true,
-                IncludeRelationships = true,
-                IncludeSections = true
             }
         }
     ];
@@ -426,57 +281,11 @@ public sealed class WritingToolkitExtension :
 
     public bool IsGrammarCheckEnabled => true;
 
-    public Task<GrammarCheckResult> CheckAsync(string plainText, string language, CancellationToken cancellationToken = default)
-    {
-        // Example: flags the cliché "very unique". A real contributor would do
-        // more; this keeps the sample dependency-free and deterministic.
-        var issues = new List<GrammarIssue>();
-        var idx = plainText.IndexOf("very unique", StringComparison.OrdinalIgnoreCase);
-        if (idx >= 0)
-        {
-            issues.Add(new GrammarIssue
-            {
-                Offset = idx,
-                Length = "very unique".Length,
-                Message = _loc.T("grammar.veryUnique"),
-                Type = GrammarIssueType.Style,
-                Replacements = ["unique"]
-            });
-        }
-        return Task.FromResult(new GrammarCheckResult { Issues = issues });
-    }
-
     // ── IArticleGeneratorContributor ────────────────────────────────
 
     public string ArticleGeneratorName => "Writing Toolkit Article Generator";
 
     public bool IsArticleGeneratorEnabled => true;
-
-    public Task<ArticleGenerationResult> GenerateAsync(
-        ArticleGenerationRequest request, CancellationToken cancellationToken = default)
-    {
-        // Deterministic stand-in for a real model. An entity named "GenFail"
-        // exercises the error path; everything else returns a one-line summary.
-        if (string.Equals(request.EntityName, "GenFail", StringComparison.OrdinalIgnoreCase))
-            return Task.FromResult(new ArticleGenerationResult { Error = "no model configured" });
-
-        // A section request answers about that section, and says whether it was
-        // told what the section already held - which is what a re-roll turns on.
-        if (request.SectionTitle.Length > 0)
-        {
-            var reroll = request.SectionContent.Length > 0 ? " (again)" : string.Empty;
-            return Task.FromResult(new ArticleGenerationResult
-            {
-                Summary = $"On {request.SectionTitle}{reroll}: {request.EntityName} is a notable "
-                    + $"{request.TypeKey} in this story."
-            });
-        }
-
-        return Task.FromResult(new ArticleGenerationResult
-        {
-            Summary = $"{request.EntityName} is a notable {request.TypeKey} in this story."
-        });
-    }
 
     // ── IVoiceEngineContributor ─────────────────────────────────────
 
@@ -489,69 +298,11 @@ public sealed class WritingToolkitExtension :
     public string EngineName => _voice.EngineName;
     public VoiceEngineFeatures Features => _voice.Features;
 
-    public Task<VoiceEngineStatus> GetStatusAsync(CancellationToken cancellationToken = default)
-        => _voice.GetStatusAsync(cancellationToken);
-
-    public Task PrepareAsync(
-        IProgress<VoiceEnginePrepare>? progress = null,
-        CancellationToken cancellationToken = default)
-        => _voice.PrepareAsync(progress, cancellationToken);
-
-    public Task<VoiceDesignResult> DesignVoiceAsync(
-        VoiceBrief brief, CancellationToken cancellationToken = default)
-        => _voice.DesignVoiceAsync(brief, cancellationToken);
-
-    public IAsyncEnumerable<NarrationClip> RenderAsync(
-        NarrationRequest request, CancellationToken cancellationToken = default)
-        => _voice.RenderAsync(request, cancellationToken);
-
-    public Task ForgetVoiceAsync(string voiceId, CancellationToken cancellationToken = default)
-        => _voice.ForgetVoiceAsync(voiceId, cancellationToken);
-
     // ── IEntityExtractionContributor ────────────────
 
     public string EntityExtractorName => "Writing Toolkit Entity Extractor";
 
     public bool IsEntityExtractorEnabled => true;
-
-    public Task<EntityExtractionResult> ExtractAsync(
-        EntityExtractionRequest request, CancellationToken cancellationToken = default)
-    {
-        // Deterministic stand-in for a real model: prose containing "ExtractFail"
-        // exercises the error path. Otherwise every capitalised word the project
-        // does not already know is proposed as a character — crude, but enough to
-        // drive the host's review flow end to end.
-        if (request.Context.Contains("ExtractFail", StringComparison.OrdinalIgnoreCase))
-            return Task.FromResult(new EntityExtractionResult { Error = "no model configured" });
-
-        var known = new HashSet<string>(request.KnownNames, StringComparer.OrdinalIgnoreCase);
-        var proposals = new List<EntityProposal>();
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var word in SplitWords(request.Context))
-        {
-            if (word.Length < 2 || !char.IsUpper(word[0])) continue;
-            if (known.Contains(word) || !seen.Add(word)) continue;
-            proposals.Add(new EntityProposal
-            {
-                TypeKey = "character",
-                Name = word,
-                Detail = "Mentioned in this scene."
-            });
-        }
-        return Task.FromResult(new EntityExtractionResult { Proposals = proposals });
-    }
-
-    /// <summary>Letter runs only, so no escaped separator literals are needed.</summary>
-    private static IEnumerable<string> SplitWords(string text)
-    {
-        var buffer = new System.Text.StringBuilder();
-        foreach (var ch in text)
-        {
-            if (char.IsLetter(ch)) { buffer.Append(ch); continue; }
-            if (buffer.Length > 0) { yield return buffer.ToString(); buffer.Clear(); }
-        }
-        if (buffer.Length > 0) yield return buffer.ToString();
-    }
 
     // ── IHotkeyContributor ──────────────────────────────────────────
 
@@ -566,147 +317,4 @@ public sealed class WritingToolkitExtension :
             OnExecute = () => _host.ActivateContentView("ext.wordfreq")
         }
     ];
-
-    // ── IPropertyTypeContributor ────────────────────────────────────
-
-    public IReadOnlyList<PropertyTypeDescriptor> GetPropertyTypes() =>
-    [
-        new PropertyTypeDescriptor
-        {
-            TypeKey = "ext.writingtoolkit.wordcount",
-            DisplayName = _loc.T("propertyType.wordCount"),
-            DefaultValue = "0"
-        }
-    ];
-
-    // ── IInlineActionContributor ────────────────────────────────────
-
-    public IReadOnlyList<InlineActionDescriptor> GetInlineActions() =>
-    [
-        new InlineActionDescriptor
-        {
-            Id = "ext.writingtoolkit.uppercase",
-            Label = _loc.T("inline.uppercase"),
-            Group = _loc.T("group.writingToolkit"),
-            Priority = 10
-        },
-        new InlineActionDescriptor
-        {
-            Id = "ext.writingtoolkit.wordcount",
-            Label = _loc.T("inline.wordCount"),
-            Group = _loc.T("group.writingToolkit"),
-            Priority = 20
-        }
-    ];
-
-    public Task<InlineActionResult> ExecuteAsync(string actionId, InlineActionRequest request, CancellationToken cancellationToken)
-    {
-        var text = request.SelectedText ?? string.Empty;
-        return actionId switch
-        {
-            "ext.writingtoolkit.uppercase" => Task.FromResult(new InlineActionResult
-            {
-                Text = text.ToUpperInvariant(),
-                Disposition = InlineActionDisposition.ReplaceSelection
-            }),
-            "ext.writingtoolkit.wordcount" => Task.FromResult(new InlineActionResult
-            {
-                Text = _loc.T("inline.wordCountResult",
-                    text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length),
-                Disposition = InlineActionDisposition.InsertAfterSelection
-            }),
-            _ => Task.FromResult(new InlineActionResult { Error = _loc.T("inline.unknownAction") })
-        };
-    }
-
-    // ── ISettingsSchemaContributor (declarative advanced settings) ───
-
-    public SettingsSchema GetSettingsSchema() => new()
-    {
-        Title = _loc.T("settingsSchema.title"),
-        Fields =
-        [
-            new SettingsField
-            {
-                Key = "duration",
-                Label = _loc.T("settingsSchema.duration"),
-                Type = SettingsFieldType.Number,
-                Value = _pomodoro.DurationMinutes.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                Min = 5,
-                Max = 90
-            },
-            new SettingsField
-            {
-                Key = "autoStartBreaks",
-                Label = _loc.T("settingsSchema.autoStart"),
-                Type = SettingsFieldType.Bool,
-                Value = _autoStartBreaks ? "true" : "false"
-            },
-            new SettingsField
-            {
-                Key = "promptCategory",
-                Label = _loc.T("settingsSchema.promptCategory"),
-                Type = SettingsFieldType.Select,
-                Value = _promptCategory,
-                Options = ["any", "character", "setting", "conflict"],
-                // Demonstrates conditional visibility: the host shows this field
-                // only while the "autoStartBreaks" field above is enabled.
-                VisibleWhenKey = "autoStartBreaks",
-                VisibleWhenValues = ["true"]
-            },
-            new SettingsField
-            {
-                Key = "promptKeyword",
-                Label = _loc.T("settingsSchema.promptKeyword"),
-                Type = SettingsFieldType.Text,
-                Value = _promptKeyword,
-                // Stays free-text, but offers the action-populated list as a datalist.
-                Suggestions = _keywordSuggestions
-            },
-            new SettingsField
-            {
-                Key = "suggestKeywords",
-                Label = _loc.T("settingsSchema.suggestKeywords"),
-                Type = SettingsFieldType.Action
-            }
-        ]
-    };
-
-    public Task<SettingsSchema?> ExecuteSchemaActionAsync(
-        string actionKey, IReadOnlyDictionary<string, string> values)
-    {
-        if (actionKey != "suggestKeywords") return Task.FromResult<SettingsSchema?>(null);
-        // A real extension might fetch these from a service; here we just supply a
-        // fixed set to show how an action refreshes a field's suggestions.
-        _keywordSuggestions = ["conflict", "mystery", "betrayal", "reunion"];
-        return Task.FromResult<SettingsSchema?>(GetSettingsSchema());
-    }
-
-    public Task ApplySettingsAsync(IReadOnlyDictionary<string, string> values)
-    {
-        if (values.TryGetValue("duration", out var d)
-            && int.TryParse(d, System.Globalization.CultureInfo.InvariantCulture, out var mins))
-        {
-            _pomodoro.DurationMinutes = Math.Clamp(mins, 5, 90);
-        }
-        if (values.TryGetValue("autoStartBreaks", out var a))
-        {
-            _autoStartBreaks = string.Equals(a, "true", StringComparison.OrdinalIgnoreCase);
-        }
-        if (values.TryGetValue("promptCategory", out var c) && !string.IsNullOrWhiteSpace(c))
-        {
-            _promptCategory = c;
-        }
-        if (values.TryGetValue("promptKeyword", out var kw))
-        {
-            _promptKeyword = kw;
-        }
-        return _host.WriteHostDataAsync("writingtoolkit", System.Text.Json.JsonSerializer.Serialize(new
-        {
-            duration = _pomodoro.DurationMinutes,
-            autoStartBreaks = _autoStartBreaks,
-            promptCategory = _promptCategory,
-            promptKeyword = _promptKeyword
-        }));
-    }
 }

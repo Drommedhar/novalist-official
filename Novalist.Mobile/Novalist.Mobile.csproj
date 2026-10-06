@@ -77,14 +77,8 @@
     <MauiAsset Include="..\app\src\renderer\public\editor\editor.html">
       <LogicalName>editor\editor.html</LogicalName>
     </MauiAsset>
-    <MauiAsset Include="..\app\src\renderer\public\editor\editor.js">
-      <LogicalName>editor\editor.js</LogicalName>
-    </MauiAsset>
-    <MauiAsset Include="..\app\src\renderer\public\editor\purify.min.js">
-      <LogicalName>editor\purify.min.js</LogicalName>
-    </MauiAsset>
-    <MauiAsset Include="..\app\src\renderer\public\editor\scene-html.js">
-      <LogicalName>editor\scene-html.js</LogicalName>
+    <MauiAsset Include="..\app\src\renderer\public\editor\*.js">
+      <LogicalName>editor\%(Filename)%(Extension)</LogicalName>
     </MauiAsset>
   </ItemGroup>
 

@@ -1,124 +1,13 @@
 import { create } from 'zustand'
-import { rpc } from '../rpc/client'
 import { paneLeaves, useShellStore } from './shellStore'
-import { useSettingsStore } from './settingsStore'
-import { useCodexStore } from './codexStore'
-import { flushPendingWrites } from './pendingWrites'
-import i18n from '../i18n'
-import type { WorkspaceSnapshot } from '../../../shared/workspaceProtocol'
+import { type ChapterDto, type EditorPaneState, type ProjectState } from './projectTypes'
+import { reportEditingScenes } from './projectPersistence'
+import { createProjectWorkspaceActions } from './projectWorkspaceActions'
+import { createProjectLibraryActions } from './projectLibraryActions'
+import { createProjectEditorActions } from './projectEditorActions'
+import { createProjectSceneActions } from './projectSceneActions'
 
-export interface SceneDto {
-  id: string
-  title: string
-  order: number
-  wordCount: number
-  labelColor: string | null
-  isFavorite: boolean
-  synopsis: string | null
-  /** Key of the scene's stage; null when the writer has not set one. */
-  stage: string | null
-  /** True while the writer is holding this scene back from exports. */
-  excludeFromExport: boolean
-  /** True when the scene is out of the book but still in the plan: it stays
-   *  here and in every planning view, and leaves word totals and exports. */
-  inactive: boolean
-  /** Colours of the threads this scene serves, in the book's plotline order. */
-  plotlineColors: string[]
-  /** The same threads by id, so the binder can narrow to one of them. */
-  plotlineIds: string[]
-}
-
-export interface ChapterDto {
-  /** A second line under the chapter title in the finished book. */
-  subtitle: string | null
-  /** True when the chapter opens straight into its prose. */
-  hideHeading: boolean
-  /** What the chapter is - a chapter, a prologue, a part. Empty is a chapter. */
-  sectionTypeKey: string
-  /** What the chapter is for, in your own words. Never printed. */
-  description: string | null
-  guid: string
-  title: string
-  order: number
-  status: string
-  act: string
-  isFavorite: boolean
-  scenes: SceneDto[]
-}
-
-export interface ProjectStateDto {
-  isLoaded: boolean
-  projectName: string | null
-  projectPath: string | null
-  activeBookId: string | null
-  books: { id: string; name: string }[]
-  chapters: ChapterDto[]
-}
-
-export interface RecentProjectDto {
-  name: string
-  path: string
-  /** Portrait book cover as a base64 data: URI, or null when none is set. */
-  cover?: string | null
-  projectId?: string | null
-  books?: { id: string; name: string; cover: string | null }[] | null
-  hasWorldBible?: boolean | null
-}
-
-let recentRefresh: Promise<void> | null = null
-let recentRefreshRequested = false
-let recentRefreshVersion = 0
-
-/** Fresh library data must be ready before an unloaded workspace is shown.
- * This must not join a pre-transition read held behind the resume barrier. */
-export async function prepareProjectLibrary(): Promise<void> {
-  const version = ++recentRefreshVersion
-  recentRefreshRequested = false
-  const [recents] = await Promise.all([
-    rpc.request<RecentProjectDto[]>('project/recent', [true]),
-    useSettingsStore.getState().load()
-  ])
-  if (version === recentRefreshVersion) useProjectStore.setState({ recentProjects: recents })
-}
-
-function sameRecentProjects(left: RecentProjectDto[], right: RecentProjectDto[]): boolean {
-  return left.length === right.length && left.every((entry, index) => {
-    const other = right[index]
-    return entry.path === other.path && entry.name === other.name && entry.cover === other.cover &&
-      entry.projectId === other.projectId && entry.hasWorldBible === other.hasWorldBible &&
-      (entry.books === other.books || (entry.books != null && other.books != null &&
-        entry.books.length === other.books.length && entry.books.every((book, i) =>
-          book.id === other.books![i].id && book.name === other.books![i].name && book.cover === other.books![i].cover)))
-  })
-}
-
-/** One open scene in an editor pane's tab strip. Title is resolved from
- * `chapters` at render time so renames stay live. */
-export interface SceneTabRef {
-  chapterGuid: string
-  sceneId: string
-}
-
-/**
- * One editor pane's own scene.
- *
- * The editor used to be a fixed pair of slots - a primary one and a "split" one
- * - which meant splitting the content area twice gave you two panes showing the
- * same scene, because the scene lived in the store rather than in the pane.
- * Keyed by the shell's pane id instead, so every pane holding the editor has its
- * own scene, its own tabs and its own unsaved state, and splitting a third time
- * costs nothing.
- */
-export interface EditorPaneState {
-  chapterGuid: string | null
-  sceneId: string | null
-  html: string | null
-  plainText: string | null
-  tabs: SceneTabRef[]
-  isDirty: boolean
-}
-
-const EMPTY_EDITOR: EditorPaneState = {
+export const EMPTY_EDITOR: EditorPaneState = {
   chapterGuid: null,
   sceneId: null,
   html: null,
@@ -130,135 +19,6 @@ const EMPTY_EDITOR: EditorPaneState = {
 /** An editor pane's state, or the empty one for a pane nothing is open in. */
 export function editorPane(state: ProjectState, paneId: string | null): EditorPaneState {
   return (paneId && state.editors[paneId]) || EMPTY_EDITOR
-}
-
-// Matches the Avalonia EditorViewModel.AutoSaveDelayMs default.
-const AUTOSAVE_DELAY_MS = 2000
-
-const autosaveTimers = new Map<string, ReturnType<typeof setTimeout>>()
-/** A timer disappears as soon as it starts its write, so keep the write itself
- *  visible until the backend has answered. A shutdown flush can then await it
- *  instead of issuing the same scene write again with the same disk hash. */
-const autosaveWrites = new Map<string, Promise<void>>()
-
-export type SceneStructureMethod =
-  | 'sceneBulk/archive'
-  | 'sceneBulk/delete'
-  | 'sceneBulk/moveToChapter'
-  | 'project/deleteChapter'
-  | 'project/deleteScene'
-  | 'project/moveScenes'
-
-interface ProjectState {
-  isLoaded: boolean
-  closingProject: boolean
-  changingSceneStructure: boolean
-  workspaceBusy: boolean
-  workspaceSuspended: boolean
-  workspaceEpoch: number
-  workspaceRecovering: boolean
-  workspaceRecoveryError: string | null
-  workspaceTransitionToken: string | null
-  activeDraftId: string | null
-  applyWorkspaceSnapshot(snapshot: WorkspaceSnapshot, resetEditors?: boolean): void
-  refreshWorkspaceEditors(preserveDirty?: boolean): Promise<void>
-  projectName: string | null
-  projectPath: string | null
-  activeBookId: string | null
-  books: { id: string; name: string }[]
-  drafts: { id: string; name: string; isActive: boolean }[]
-  chapters: ChapterDto[]
-  recentProjects: RecentProjectDto[]
-  openChapterGuid: string | null
-  openSceneId: string | null
-  /**
-   * Points the shell at a scene without loading it into an editor pane.
-   *
-   * The Manuscript view is its own editor over every scene at once, so the
-   * context sidebar has to follow the caret inside it. Going through
-   * openScene would pull the scene into the editor pane and take the focus
-   * away from the paragraph being typed in.
-   */
-  setContextScene(chapterGuid: string, sceneId: string): void
-  openSceneHtml: string | null
-  /** Fingerprint of what was read from disk, per scene id. A save carries it so
-   *  the backend can refuse to overwrite an edit that arrived meanwhile. */
-  sceneHashes: Record<string, string>
-  /** A save the backend refused because the file changed underneath. Drives the
-   *  merge dialog; null when there is nothing to resolve. */
-  sceneConflict: {
-    chapterGuid: string
-    sceneId: string
-    mine: string
-    theirs: string
-    plainText: string
-  } | null
-  openScenePlainText: string | null
-  openTabs: SceneTabRef[]
-  /** Every editor pane's own scene, keyed by the shell's pane id. The five
-   *  fields above mirror whichever of these the writer is working in, so the
-   *  inspector, the status bar and the dialogs keep following one scene. */
-  editors: Record<string, EditorPaneState>
-  /** The editor pane the rest of the shell follows. Null when none is open. */
-  activeEditorPaneId: string | null
-  /** Per-scene unsaved-edit flags, keyed by sceneId (drives the tab dirty dot). */
-  dirtyMap: Record<string, boolean>
-  isDirty: boolean
-  applyState(state: ProjectStateDto, resetEditors?: boolean, applicationStateReady?: boolean, deferHydration?: boolean): void
-  loadRecents(): Promise<void>
-  openProject(path: string, bookId?: string): Promise<void>
-  pickAndOpenProject(): Promise<void>
-  /** Lets go of the open project, back to the screen the app starts on. */
-  closeProject(): Promise<void>
-  openScene(chapterGuid: string, sceneId: string): Promise<void>
-  /** Opens a scene in one named pane, turning that pane into an editor. */
-  openSceneIn(paneId: string, chapterGuid: string, sceneId: string): Promise<void>
-  /** Splits the content area and opens the scene in the pane that appears. */
-  openSceneInSplit(chapterGuid: string, sceneId: string): Promise<void>
-  closeTab(paneId: string, sceneId: string): Promise<void>
-  /** Moves a tab to the next editor pane, wrapping round. */
-  moveTabToOtherPane(paneId: string, sceneId: string): Promise<void>
-  onEditorContentChanged(paneId: string, html: string, plainText: string): void
-  /** Drops editor state for panes that closed or stopped showing the editor,
-   *  and keeps the mirrored fields pointed at the pane the writer is in. */
-  syncEditorPanes(): void
-  /** Writes one pane's unsaved edit now, cancelling its autosave timer. */
-  flushPane(paneId: string): Promise<void>
-  flushPendingSave(): Promise<void>
-  /** Applies a manuscript-editor acknowledgement without blessing a divergent
-   *  dirty EditorFrame with the manuscript's newer disk hash. */
-  applyManuscriptSceneWrite(
-    chapterGuid: string,
-    sceneId: string,
-    html: string,
-    plainText: string,
-    wordCount: number,
-    hash: string
-  ): void
-  /** @param insertAtOrder where the chapter goes, one-based; omit to append. */
-  createChapter(title: string, insertAtOrder?: number): Promise<void>
-  createScene(chapterGuid: string, title: string): Promise<void>
-  switchBook(bookId: string): Promise<void>
-  createBook(name: string): Promise<void>
-  loadDrafts(): Promise<void>
-  createDraft(name: string): Promise<void>
-  switchDraft(draftId: string): Promise<void>
-  deleteDraft(draftId: string): Promise<void>
-  renameChapter(chapterGuid: string, title: string): Promise<void>
-  renameScene(chapterGuid: string, sceneId: string, title: string): Promise<void>
-  deleteChapter(chapterGuid: string): Promise<void>
-  deleteScene(chapterGuid: string, sceneId: string): Promise<void>
-  setChapterStatus(chapterGuid: string, status: string): Promise<void>
-  setChapterAct(chapterGuid: string, act: string): Promise<void>
-  reorderChapter(chapterGuid: string, newOrder: number): Promise<void>
-  reorderScene(chapterGuid: string, sceneId: string, newOrder: number): Promise<void>
-  moveScenes(sceneIds: string[], targetChapterGuid: string, targetIndex: number): Promise<void>
-  mutateSceneStructure(method: SceneStructureMethod, args: unknown[]): Promise<void>
-  /** Writes the writer's chosen text and clears the conflict. */
-  resolveSceneConflict(html: string): Promise<void>
-  /** Leaves the file alone and keeps the writer's text in the editor, still
-   *  unsaved, so dismissing the dialog never decides anything for them. */
-  dismissSceneConflict(): void
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -281,7 +41,6 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   recentProjects: [],
   openChapterGuid: null,
   openSceneId: null,
-
   setContextScene: (chapterGuid, sceneId) => {
     const state = get()
     if (state.openChapterGuid === chapterGuid && state.openSceneId === sceneId) return
@@ -296,568 +55,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   activeEditorPaneId: null,
   dirtyMap: {},
   isDirty: false,
-
-  applyWorkspaceSnapshot: (snapshot, resetEditors = false) => {
-    const state = snapshot.state as ProjectStateDto
-    const current = get()
-    const changed = resetEditors || current.projectPath !== state.projectPath || current.activeBookId !== state.activeBookId || current.activeDraftId !== snapshot.draftId
-    get().applyState(state, changed, true, true)
-    set((current) => ({
-      workspaceEpoch: snapshot.epoch,
-      activeDraftId: snapshot.draftId,
-      ...(!changed ? reconcileSceneEditors(current, state.chapters) : {})
-    }))
-  },
-
-  refreshWorkspaceEditors: async (preserveDirty = false) => {
-    const epoch = get().workspaceEpoch
-    const isDirty = (state: ProjectState, id: string): boolean => !!state.dirtyMap[id] || Object.values(state.editors).some((editor) => editor.sceneId === id && editor.isDirty)
-    const scenes = new Map(Object.values(get().editors).filter((editor) => !preserveDirty || !editor.sceneId || !isDirty(get(), editor.sceneId)).flatMap((editor) =>
-      editor.chapterGuid && editor.sceneId ? [[editor.sceneId, { chapterGuid: editor.chapterGuid, sceneId: editor.sceneId }] as const] : []))
-    // These are deliberately fresh reads. A coalesced pre-change read could
-    // be waiting behind the original RPC's all-window resume barrier.
-    const contents = new Map(await Promise.all([...scenes.values()].map(async (scene) => {
-      const content = await rpc.request<{ html: string; hash: string }>('scenes/read', [scene.chapterGuid, scene.sceneId])
-      return [scene.sceneId, content] as const
-    })))
-    if (get().workspaceEpoch !== epoch) return
-    set((state) => {
-      const editors = mapEditors(state.editors, (editor) => {
-        const content = editor.sceneId ? contents.get(editor.sceneId) : null
-        return content && (!preserveDirty || !isDirty(state, editor.sceneId!)) ? { ...editor, html: content.html, plainText: stripHtml(content.html), isDirty: false } : editor
-      })
-      return { editors, ...mirror(editors, state.activeEditorPaneId), sceneHashes: {
-        ...state.sceneHashes, ...Object.fromEntries([...contents].filter(([id]) => !preserveDirty || !isDirty(state, id)).map(([id, content]) => [id, content.hash]))
-      } }
-    })
-  },
-
-  applyState: (state, resetEditors = false, applicationStateReady = false, deferHydration = false) => {
-    deferHydration ||= get().workspaceBusy
-    const prevPath = get().projectPath
-    const prevBookId = get().activeBookId
-    const prevName = get().projectName
-    const projectChanged = state.projectPath !== prevPath
-    if (projectChanged || resetEditors) {
-      useShellStore.setState({ focusMode: false, focusPaneId: null, focusPanel: null, focusPanelTransient: false, focusToolsVisible: false })
-      // All create/open/close paths meet here. Pane state survives ordinary
-      // view navigation, but must never survive a project change or restore.
-      for (const timer of autosaveTimers.values()) clearTimeout(timer)
-      autosaveTimers.clear()
-    }
-    set({
-      ...(projectChanged || resetEditors ? { ...clearedEditorState(), drafts: [] } : {}),
-      isLoaded: state.isLoaded,
-      projectName: state.projectName,
-      projectPath: state.projectPath,
-      activeBookId: state.activeBookId,
-      books: state.books,
-      chapters: state.chapters
-    })
-    window.novalist.setProjectRoot(state.projectPath)
-    if (!deferHydration && !applicationStateReady && (projectChanged || resetEditors || state.projectName !== prevName)) void get().loadRecents().catch(() => {})
-    if (!deferHydration && state.isLoaded) void get().loadDrafts().catch(() => {})
-    // The effective language/theme can carry a per-project override, so re-apply
-    // settings whenever the active project changes - otherwise a project opened
-    // with a non-default language stays on the global language until Settings is
-    // opened (which reloads settings as a side effect).
-    if (!deferHydration && !applicationStateReady && (projectChanged || resetEditors)) void useSettingsStore.getState().load().catch(() => {})
-    // The Codex is the active book's, and its entry count is shown outside the
-    // Codex view, so it cannot wait for that view to be mounted again. Anything
-    // selected belonged to the book being left, so the selection goes with it.
-    if (state.activeBookId !== prevBookId || resetEditors) {
-      useCodexStore.setState({ selectedId: null, selectedRecord: null })
-      if (!deferHydration && state.isLoaded) void useCodexStore.getState().refresh().catch(() => {})
-    }
-  },
-
-  switchBook: (bookId) => runSceneContext(async () => {
-    await flushPendingWrites()
-    await get().flushPendingSave()
-    get().applyState(await rpc.request<ProjectStateDto>('project/switchBook', [bookId]))
-  }),
-
-  createBook: (name) => runSceneContext(async () => {
-    get().applyState(await rpc.request<ProjectStateDto>('project/createBook', [name]))
-  }),
-
-  loadDrafts: async () => {
-    set({ drafts: await rpc.request<{ id: string; name: string; isActive: boolean }[]>('project/drafts') })
-  },
-
-  createDraft: (name) => runSceneContext(async () => {
-    // The backend clones the draft's files, so include prose still held in
-    // mounted editors or their save queues before taking that snapshot.
-    await flushPendingWrites()
-    await get().flushPendingSave()
-    const { useManuscriptStore } = await import('./manuscriptStore')
-    await useManuscriptStore.getState().flushPendingSave()
-    if (get().sceneConflict || Object.values(get().dirtyMap).some(Boolean)) {
-      throw new Error(i18n.t('update.sceneWriteConflict'))
-    }
-    const active = get().drafts.find((d) => d.isActive)
-    set({ drafts: await rpc.request<{ id: string; name: string; isActive: boolean }[]>('project/createDraft', [name, active?.id ?? null]) })
-  }),
-
-  switchDraft: (draftId) => runSceneContext(async () => {
-    await flushPendingWrites()
-    await get().flushPendingSave()
-    get().applyState(await rpc.request<ProjectStateDto>('project/switchDraft', [draftId]))
-  }),
-
-  deleteDraft: (draftId) => runSceneContext(async () => {
-    const wasActive = get().drafts.find((d) => d.id === draftId)?.isActive ?? false
-    if (wasActive) {
-      await flushPendingWrites()
-      await get().flushPendingSave()
-    }
-    const drafts = await rpc.request<{ id: string; name: string; isActive: boolean }[]>(
-      'project/deleteDraft',
-      [draftId]
-    )
-    set({ drafts })
-    // Deleting the active draft makes the backend switch to another draft and
-    // reload its chapters/scenes, so refresh project state and reset the editor.
-    if (wasActive) {
-      set({ ...clearedEditorState() })
-      get().applyState(await rpc.request<ProjectStateDto>('project/getState'))
-    }
-  }),
-
-  loadRecents: () => {
-    if (get().closingProject) return Promise.resolve()
-    recentRefreshRequested = true
-    if (recentRefresh) return recentRefresh
-    recentRefresh = (async () => {
-      try {
-        do {
-          recentRefreshRequested = false
-          const version = recentRefreshVersion
-          const includeLibraryDetails = !get().isLoaded
-          const recents = await rpc.request<RecentProjectDto[]>('project/recent', [includeLibraryDetails])
-          if (version !== recentRefreshVersion) continue
-          // Opening/closing a project during a refresh changes which data is
-          // needed. Finish with a fresh response rather than applying stale data.
-          if (includeLibraryDetails !== !get().isLoaded) {
-            recentRefreshRequested = true
-            continue
-          }
-          if (!sameRecentProjects(get().recentProjects, recents)) set({ recentProjects: recents })
-        } while (recentRefreshRequested)
-      } finally { recentRefresh = null }
-    })()
-    return recentRefresh
-  },
-
-  openProject: (path, bookId) => runSceneContext(async () => {
-    // On the sandboxed Mac App Store build, a project reopened from a stored path
-    // (e.g. a recent-project card) needs its security-scoped bookmark resolved
-    // before the backend can touch the files. beginProjectAccess returns true
-    // immediately on every non-MAS build, so this is a no-op there. If it fails
-    // (no usable bookmark), re-prompt for the folder to regrant access.
-    let target = path
-    if (!(await window.novalist.beginProjectAccess(target))) {
-      const repicked = await window.novalist.pickFolder('Novalist')
-      if (!repicked) return
-      target = repicked
-    }
-    await flushPendingWrites()
-    await get().flushPendingSave()
-    const state = await rpc.request<ProjectStateDto>('project/open', [target, bookId ?? null])
-    get().applyState(state)
-  }),
-
-  closeProject: () => runSceneContext(async () => {
-    if (get().closingProject) return
-    set({ closingProject: true })
-    recentRefreshVersion++
-    recentRefreshRequested = false
-    let closed: ProjectStateDto | null = null
-    try {
-      await flushPendingWrites()
-      await get().flushPendingSave()
-      closed = await rpc.request<ProjectStateDto>('project/close')
-      // Keep the project inert until the library and global appearance are
-      // ready. Publishing unloaded state first flashes menu-only entries in
-      // the project's language and then rebuilds the visible bookshelf.
-      await prepareProjectLibrary()
-      get().applyState(closed, false, true)
-    } catch (error) {
-      // The backend may already be closed: never leave an editable stale
-      // project behind if preparing the library fails.
-      if (closed) get().applyState(closed)
-      throw error
-    } finally { set({ closingProject: false }) }
-  }),
-
-  pickAndOpenProject: async () => {
-    const path = await window.novalist.pickFolder('Novalist')
-    if (path) await get().openProject(path)
-  },
-
-  openScene: async (chapterGuid, sceneId) => {
-    await get().openSceneIn(targetEditorPane(), chapterGuid, sceneId)
-  },
-
-  openSceneIn: (paneId, chapterGuid, sceneId) => runSceneContext(async () => {
-    const epoch = get().workspaceEpoch
-    const shell = useShellStore.getState()
-    // A scene opening is a screen closing. The binder, a search hit and a link
-    // all come through here, so a screen holding unsaved edits gets its say
-    // before the editor takes the pane.
-    if (Object.values(shell.unsavedGuards).some((g) => g.isDirty())) {
-      shell.guardLeave(() => void get().openSceneIn(paneId, chapterGuid, sceneId))
-      return
-    }
-    // The pane holds the editor from here on, and it is the one the writer is
-    // now in: opening a scene somewhere the caret is not is how the old split
-    // pane lost people.
-    shell.setPaneView(paneId, 'write')
-    shell.setActivePane(paneId)
-    await get().flushPane(paneId)
-    const content = await rpc.request<{ sceneId: string; html: string; hash: string }>(
-      'scenes/read',
-      [chapterGuid, sceneId]
-    )
-    if (get().workspaceEpoch !== epoch) return
-    set((s) => {
-      const previous = editorPane(s, paneId)
-      const editors = {
-        ...s.editors,
-        [paneId]: {
-          chapterGuid,
-          sceneId,
-          html: content.html,
-          plainText: stripHtml(content.html),
-          tabs: previous.tabs.some((t) => t.sceneId === sceneId)
-            ? previous.tabs
-            : [...previous.tabs, { chapterGuid, sceneId }],
-          isDirty: false
-        }
-      }
-      return {
-        editors,
-        activeEditorPaneId: paneId,
-        sceneHashes: { ...s.sceneHashes, [sceneId]: content.hash },
-        ...mirror(editors, paneId)
-      }
-    })
-  }),
-
-  openSceneInSplit: async (chapterGuid, sceneId) => {
-    // "Open in split" now means a real second pane rather than the editor's own
-    // two-slot arrangement, so the scene can sit beside the Codex or a third
-    // scene just as easily as beside another editor.
-    const shell = useShellStore.getState()
-    const target = shell.splitPaneById(targetEditorPane(), 'row')
-    if (target) await get().openSceneIn(target, chapterGuid, sceneId)
-  },
-
-  resolveSceneConflict: async (html) => {
-    const conflict = get().sceneConflict
-    if (!conflict) return
-    const result = await rpc.request<{ wordCount: number; hash: string }>(
-      'scenes/resolveConflict',
-      [conflict.chapterGuid, conflict.sceneId, html, stripHtml(html)]
-    )
-    set((state) => {
-      // The resolved text belongs to every pane holding that scene, not just the
-      // one the writer resolved it from.
-      const editors = mapEditors(state.editors, (editor) =>
-        editor.sceneId === conflict.sceneId ? { ...editor, html, isDirty: false } : editor
-      )
-      return {
-        sceneConflict: null,
-        sceneHashes: { ...state.sceneHashes, [conflict.sceneId]: result.hash },
-        editors,
-        dirtyMap: { ...state.dirtyMap, [conflict.sceneId]: false },
-        ...mirror(editors, state.activeEditorPaneId),
-        chapters: state.chapters.map((c) =>
-          c.guid === conflict.chapterGuid
-            ? {
-                ...c,
-                scenes: c.scenes.map((sc) =>
-                  sc.id === conflict.sceneId ? { ...sc, wordCount: result.wordCount } : sc
-                )
-              }
-            : c
-        )
-      }
-    })
-    // manuscriptStore imports this store, so load it lazily here rather than
-    // creating an eager module cycle. A resolved manuscript payload must be
-    // retired or its old version would immediately conflict again on shutdown.
-    const { useManuscriptStore } = await import('./manuscriptStore')
-    useManuscriptStore
-      .getState()
-      .acceptResolvedScene(conflict.sceneId, html, result.wordCount, result.hash)
-  },
-
-  dismissSceneConflict: () => set({ sceneConflict: null }),
-
-  closeTab: (paneId, sceneId) => runSceneContext(async () => {
-    const editor = editorPane(get(), paneId)
-    const idx = editor.tabs.findIndex((t) => t.sceneId === sceneId)
-    if (idx < 0) return
-    const isActive = editor.sceneId === sceneId
-    if (isActive) await get().flushPane(paneId)
-    const remaining = editorPane(get(), paneId).tabs.filter((t) => t.sceneId !== sceneId)
-
-    if (!isActive) {
-      set((s) => patchEditor(s, paneId, { tabs: remaining }))
-      return
-    }
-    if (remaining.length === 0) {
-      set((s) => patchEditor(s, paneId, { ...EMPTY_EDITOR }))
-      // Nothing left in this pane. With another editor still open the writer is
-      // mid-work elsewhere, so only a shell with no scene open anywhere falls
-      // back to the dashboard.
-      if (!Object.values(get().editors).some((e) => e.sceneId)) {
-        useShellStore.getState().setMainView('dashboard')
-      }
-      return
-    }
-    const next = remaining[Math.min(idx, remaining.length - 1)]
-    set((s) => patchEditor(s, paneId, { tabs: remaining }))
-    await get().openSceneIn(paneId, next.chapterGuid, next.sceneId)
-  }),
-
-  moveTabToOtherPane: async (paneId, sceneId) => {
-    const tab = editorPane(get(), paneId).tabs.find((t) => t.sceneId === sceneId)
-    if (!tab) return
-    const others = writePaneIds().filter((id) => id !== paneId)
-    await get().closeTab(paneId, sceneId)
-    // With no second pane to move to, "the other pane" is one that has to exist
-    // first - which is what a writer asking for this means anyway.
-    if (others.length === 0) await get().openSceneInSplit(tab.chapterGuid, tab.sceneId)
-    else await get().openSceneIn(others[0], tab.chapterGuid, tab.sceneId)
-  },
-
-  onEditorContentChanged: (paneId, html, plainText) => {
-    const editor = editorPane(get(), paneId)
-    const { chapterGuid, sceneId } = editor
-    if (!chapterGuid || !sceneId) return
-    set((s) => ({
-      ...patchEditor(s, paneId, { html, plainText, isDirty: true }),
-      dirtyMap: { ...s.dirtyMap, [sceneId]: true }
-    }))
-    scheduleSave(paneId, chapterGuid, sceneId, html, plainText)
-  },
-
-  syncEditorPanes: () => {
-    const shell = useShellStore.getState()
-    // A pane that has gone away and a pane that is showing something else are
-    // two different things, and treating them as one is how a trip to the
-    // Timeline closed the scene the writer was in. Only the first forgets an
-    // editor; the second is a writer looking at their outline for a moment.
-    const leaves = paneLeaves(shell.panes)
-    const present = leaves.map((leaf) => leaf.id)
-    const showingEditor = leaves.filter((leaf) => leaf.view === 'write').map((leaf) => leaf.id)
-    const s = get()
-    let editors = s.editors
-    const stale = Object.keys(editors).filter((id) => !present.includes(id))
-    if (stale.length > 0) {
-      editors = { ...editors }
-      for (const id of stale) {
-        // A pane that goes away takes its editor with it, but not the writer's
-        // last keystrokes: closing a split must never be a way to lose words.
-        void flushEditor(editors[id])
-        delete editors[id]
-      }
-    }
-    // A pane that has turned into something else has no editor on screen to
-    // finish the pending save, so it is written out now rather than left to a
-    // timer nobody can see. The scene stays open behind it either way.
-    for (const id of Object.keys(editors)) {
-      if (!showingEditor.includes(id)) void get().flushPane(id)
-    }
-
-    // The shell follows the pane the writer is in when that pane is an editor,
-    // and otherwise stays on the editor they were last in - which, while every
-    // pane is showing something else, is what the inspector and the status bar
-    // go on describing.
-    const active = showingEditor.includes(shell.activePaneId)
-      ? shell.activePaneId
-      : s.activeEditorPaneId && present.includes(s.activeEditorPaneId)
-        ? s.activeEditorPaneId
-        : (showingEditor[0] ?? null)
-    if (editors === s.editors && active === s.activeEditorPaneId) return
-    set({ editors, activeEditorPaneId: active, ...mirror(editors, active) })
-  },
-
-  flushPane: async (paneId) => {
-    const timer = autosaveTimers.get(paneId)
-    if (timer) clearTimeout(timer)
-    autosaveTimers.delete(paneId)
-    const inFlight = autosaveWrites.get(paneId)
-    if (inFlight) await inFlight
-    await flushEditor(get().editors[paneId])
-  },
-
-  flushPendingSave: async () => {
-    const paneIds = new Set([
-      ...Object.keys(get().editors),
-      ...autosaveTimers.keys(),
-      ...autosaveWrites.keys()
-    ])
-    for (const paneId of paneIds) await get().flushPane(paneId)
-  },
-
-  applyManuscriptSceneWrite: (chapterGuid, sceneId, html, plainText, wordCount, hash) => {
-    set((state) => {
-      let hasDivergentDirtyEditor = false
-      const editors = mapEditors(state.editors, (editor) => {
-        if (editor.sceneId !== sceneId) return editor
-        const matches = editor.html === html && (editor.plainText ?? '') === plainText
-        if (editor.isDirty && !matches) {
-          hasDivergentDirtyEditor = true
-          return editor
-        }
-        // A clean frame must follow the version just written elsewhere. An
-        // exact dirty match is now acknowledged too; there is no conflict to
-        // ask the writer to resolve.
-        return { ...editor, html, plainText, isDirty: false }
-      })
-      const stillDirty = Object.values(editors).some(
-        (editor) => editor.sceneId === sceneId && editor.isDirty
-      )
-      return {
-        // A divergent editor still owns the hash it read. Keeping that base
-        // makes its later checked write conflict with this manuscript save;
-        // advancing it here would authorize a silent overwrite.
-        sceneHashes: hasDivergentDirtyEditor
-          ? state.sceneHashes
-          : { ...state.sceneHashes, [sceneId]: hash },
-        editors,
-        ...mirror(editors, state.activeEditorPaneId),
-        dirtyMap:
-          state.dirtyMap[sceneId] !== stillDirty
-            ? { ...state.dirtyMap, [sceneId]: stillDirty }
-            : state.dirtyMap,
-        chapters: state.chapters.map((chapter) =>
-          chapter.guid === chapterGuid
-            ? {
-                ...chapter,
-                scenes: chapter.scenes.map((scene) =>
-                  scene.id === sceneId ? { ...scene, wordCount } : scene
-                )
-              }
-            : chapter
-        )
-      }
-    })
-  },
-
-  createChapter: async (title, insertAtOrder) => {
-    const state = await rpc.request<ProjectStateDto>('project/createChapter', [
-      title,
-      insertAtOrder ?? null
-    ])
-    get().applyState(state)
-  },
-
-  createScene: async (chapterGuid, title) => {
-    const state = await rpc.request<ProjectStateDto>('project/createScene', [chapterGuid, title])
-    get().applyState(state)
-  },
-
-  renameChapter: async (chapterGuid, title) => {
-    get().applyState(
-      await rpc.request<ProjectStateDto>('project/renameChapter', [chapterGuid, title])
-    )
-  },
-
-  renameScene: async (chapterGuid, sceneId, title) => {
-    get().applyState(
-      await rpc.request<ProjectStateDto>('project/renameScene', [chapterGuid, sceneId, title])
-    )
-  },
-
-  deleteChapter: async (chapterGuid) => {
-    await get().mutateSceneStructure('project/deleteChapter', [chapterGuid])
-  },
-
-  deleteScene: async (chapterGuid, sceneId) => {
-    await get().mutateSceneStructure('project/deleteScene', [chapterGuid, sceneId])
-  },
-
-  setChapterStatus: async (chapterGuid, status) => {
-    get().applyState(
-      await rpc.request<ProjectStateDto>('project/setChapterStatus', [chapterGuid, status])
-    )
-  },
-
-  setChapterAct: async (chapterGuid, act) => {
-    get().applyState(
-      await rpc.request<ProjectStateDto>('project/setChapterAct', [chapterGuid, act])
-    )
-  },
-
-  reorderChapter: async (chapterGuid, newOrder) => {
-    get().applyState(
-      await rpc.request<ProjectStateDto>('project/reorderChapter', [chapterGuid, newOrder])
-    )
-  },
-
-  reorderScene: async (chapterGuid, sceneId, newOrder) => {
-    get().applyState(
-      await rpc.request<ProjectStateDto>('project/reorderScene', [chapterGuid, sceneId, newOrder])
-    )
-  },
-
-  moveScenes: async (sceneIds, targetChapterGuid, targetIndex) => {
-    await get().mutateSceneStructure('project/moveScenes', [sceneIds, targetChapterGuid, targetIndex])
-  },
-
-  mutateSceneStructure: async (method, args) => {
-    ensureSceneStructureReady()
-    if (pendingSceneContexts > 0) throw new Error(i18n.t('update.workspaceBusy'))
-    set({ changingSceneStructure: true })
-    try {
-      // Archive/delete must capture the live prose before moving its file;
-      // a moved scene must finish writes that still address its old chapter.
-      await flushPendingWrites()
-      await get().flushPendingSave()
-      const { useManuscriptStore } = await import('./manuscriptStore')
-      await useManuscriptStore.getState().flushPendingSave()
-      if (get().sceneConflict || Object.values(get().dirtyMap).some(Boolean)) {
-        throw new Error(i18n.t('update.sceneWriteConflict'))
-      }
-      const result = await rpc.request<ProjectStateDto | { state: ProjectStateDto }>(method, args)
-      const state = 'state' in result ? result.state : result
-      // Only retire ownership after the backend accepted the operation. A
-      // failed archive leaves every tab and its prose available for retry.
-      get().applyState(state)
-      set((current) => reconcileSceneEditors(current, state.chapters))
-      useManuscriptStore.getState().reconcileSceneStructure(state.chapters)
-    } catch (error) {
-      const { useHostBridgeStore } = await import('./hostBridgeStore')
-      const message = error instanceof Error ? error.message : String(error)
-      useHostBridgeStore.getState().pushToast(i18n.t('toast.saveFailed').replace('{0}', message))
-      throw error
-    } finally {
-      set({ changingSceneStructure: false })
-    }
-  }
+  ...createProjectWorkspaceActions(set, get),
+  ...createProjectLibraryActions(set, get),
+  ...createProjectEditorActions(set, get),
+  ...createProjectSceneActions(set, get)
 }))
-
-let pendingSceneContexts = 0
-
-async function runSceneContext(action: () => Promise<void>): Promise<void> {
-  ensureSceneStructureReady()
-  pendingSceneContexts++
-  try {
-    await action()
-  } finally {
-    pendingSceneContexts--
-  }
-}
-
-function ensureSceneStructureReady(): void {
-  if (useProjectStore.getState().changingSceneStructure || useProjectStore.getState().workspaceBusy) {
-    throw new Error(i18n.t('update.workspaceBusy'))
-  }
-}
 
 /**
  * A key that changes whenever the data a book-scoped panel shows could have
@@ -879,7 +81,7 @@ export function useBookScope(): string {
 }
 
 /** Full editor reset used when the project, active book or draft changes. */
-function clearedEditorState(): Partial<ProjectState> {
+export function clearedEditorState(): Partial<ProjectState> {
   return {
     openChapterGuid: null,
     openSceneId: null,
@@ -903,7 +105,7 @@ function clearedEditorState(): Partial<ProjectState> {
  * the one in the pane you are in. Mirroring it here is what let those surfaces
  * stay as they were when the editor stopped being a single slot.
  */
-function mirror(
+export function mirror(
   editors: Record<string, EditorPaneState>,
   activePaneId: string | null
 ): Pick<
@@ -921,7 +123,7 @@ function mirror(
   }
 }
 
-function mapEditors(
+export function mapEditors(
   editors: Record<string, EditorPaneState>,
   fn: (editor: EditorPaneState) => EditorPaneState
 ): Record<string, EditorPaneState> {
@@ -929,7 +131,7 @@ function mapEditors(
 }
 
 /** Changes one pane's editor state and re-mirrors if it is the active one. */
-function patchEditor(
+export function patchEditor(
   state: ProjectState,
   paneId: string,
   patch: Partial<EditorPaneState>
@@ -942,7 +144,7 @@ function patchEditor(
 }
 
 /** Drops scenes that no longer exist from every pane's tabs and content. */
-function reconcileSceneEditors(
+export function reconcileSceneEditors(
   state: ProjectState,
   chapters: ChapterDto[]
 ): Partial<ProjectState> {
@@ -967,7 +169,7 @@ function reconcileSceneEditors(
 }
 
 /** Every pane currently holding the editor, in the order they appear. */
-function writePaneIds(): string[] {
+export function writePaneIds(): string[] {
   return paneLeaves(useShellStore.getState().panes)
     .filter((leaf) => leaf.view === 'write')
     .map((leaf) => leaf.id)
@@ -981,19 +183,13 @@ function writePaneIds(): string[] {
  * editor they were last in; otherwise this pane becomes one, which is what a
  * single-pane window has always done.
  */
-function targetEditorPane(): string {
+export function targetEditorPane(): string {
   const shell = useShellStore.getState()
   const live = writePaneIds()
   if (live.includes(shell.activePaneId)) return shell.activePaneId
   const last = useProjectStore.getState().activeEditorPaneId
   if (last && live.includes(last)) return last
   return shell.activePaneId
-}
-
-/** Writes a pane's unsaved edit, if it has one. */
-async function flushEditor(editor: EditorPaneState | undefined): Promise<void> {
-  if (!editor?.isDirty || !editor.chapterGuid || !editor.sceneId || editor.html === null) return
-  await saveScene(editor.chapterGuid, editor.sceneId, editor.html, editor.plainText ?? '')
 }
 
 /* A pane that closes, or stops showing the editor, must not leave its scene
@@ -1005,156 +201,8 @@ useShellStore.subscribe((state, previous) => {
   useProjectStore.getState().syncEditorPanes()
 })
 
-/** Strips HTML tags and decodes entities to plain text for live statistics.
- * Mirrors the desktop EditorViewModel.StripHtmlForStats fast path. */
-function stripHtml(html: string): string {
-  if (!html) return ''
-  if (!html.trimStart().startsWith('<')) return html
-  const doc = new DOMParser().parseFromString(html, 'text/html')
-  return doc.body.textContent ?? ''
-}
-
-function scheduleSave(
-  pane: string,
-  chapterGuid: string,
-  sceneId: string,
-  html: string,
-  plainText: string
-): void {
-  const existing = autosaveTimers.get(pane)
-  if (existing) clearTimeout(existing)
-  autosaveTimers.set(
-    pane,
-    setTimeout(() => {
-      autosaveTimers.delete(pane)
-      const write = saveScene(chapterGuid, sceneId, html, plainText)
-      autosaveWrites.set(pane, write)
-      void write.then(
-        () => {
-          if (autosaveWrites.get(pane) === write) autosaveWrites.delete(pane)
-        },
-        () => {
-          if (autosaveWrites.get(pane) === write) autosaveWrites.delete(pane)
-        }
-      )
-    }, AUTOSAVE_DELAY_MS)
-  )
-}
-
-async function saveScene(
-  chapterGuid: string,
-  sceneId: string,
-  html: string,
-  plainText: string
-): Promise<void> {
-  const result = await rpc.request<{
-    sceneId: string
-    wordCount: number
-    hash: string
-    conflicted: boolean
-    diskHtml: string | null
-  }>('scenes/write', [
-    chapterGuid,
-    sceneId,
-    html,
-    plainText,
-    useProjectStore.getState().sceneHashes[sceneId] ?? null
-  ])
-
-  // Refused: the file changed under us and nothing was written. The scene stays
-  // dirty so the writer's text is still in the editor while they decide.
-  if (result.conflicted) {
-    useProjectStore.setState({
-      sceneConflict: {
-        chapterGuid,
-        sceneId,
-        mine: html,
-        theirs: result.diskHtml ?? '',
-        plainText
-      }
-    })
-    return
-  }
-
-  useProjectStore.setState((state) => {
-    // Only the exact content acknowledged by the backend is clean. The writer
-    // may have typed again while this request was in flight; clearing that newer
-    // edit here would make a shutdown flush believe there was nothing to save.
-    const editors = mapEditors(state.editors, (editor) =>
-      editor.sceneId === sceneId &&
-      editor.isDirty &&
-      editor.html === html &&
-      (editor.plainText ?? '') === plainText
-        ? { ...editor, isDirty: false }
-        : editor
-    )
-    const stillDirty = Object.values(editors).some(
-      (editor) => editor.sceneId === sceneId && editor.isDirty
-    )
-    return {
-      sceneHashes: { ...state.sceneHashes, [sceneId]: result.hash },
-      editors,
-      ...mirror(editors, state.activeEditorPaneId),
-      dirtyMap:
-        state.dirtyMap[sceneId] !== stillDirty
-          ? { ...state.dirtyMap, [sceneId]: stillDirty }
-          : state.dirtyMap,
-      chapters: state.chapters.map((c) =>
-        c.guid === chapterGuid
-          ? {
-              ...c,
-              scenes: c.scenes.map((s) =>
-                s.id === sceneId ? { ...s, wordCount: result.wordCount } : s
-              )
-            }
-          : c
-      )
-    }
-  })
-}
-
-/**
- * Tells the backend which scene the editor holds, so an extension writing
- * prose can refuse to land on it.
- *
- * A pass over the manuscript - a cleanup, an import, a generated draft - used
- * to write straight over whichever scene was open, and the editor's next
- * autosave wrote back over that. Whichever landed second won and the other
- * side's words were gone, with no error anywhere. Only the renderer knows what
- * is open, so it says so.
- *
- * One subscription rather than a call at each transition: dirty is set in half
- * a dozen places and a missed one is a silent hole in the guard.
- */
-export interface EditingSceneClaim { chapterGuid: string; sceneId: string; dirty: boolean }
-let manuscriptClaims: EditingSceneClaim[] = []
-let reported = ''
-
-export function reportManuscriptEditing(claims: EditingSceneClaim[]): void {
-  manuscriptClaims = claims
-  reportEditingScenes()
-}
-
-export function reportEditingScenes(force = false): void {
-  const state = useProjectStore.getState()
-  if (state.workspaceSuspended && !force) return
-  const claims = new Map<string, EditingSceneClaim>()
-  for (const editor of Object.values(state.editors)) {
-    if (!editor.sceneId || !editor.chapterGuid) continue
-    const prior = claims.get(editor.sceneId)
-    claims.set(editor.sceneId, { chapterGuid: editor.chapterGuid, sceneId: editor.sceneId, dirty: editor.isDirty || !!prior?.dirty })
-  }
-  for (const claim of manuscriptClaims) {
-    const prior = claims.get(claim.sceneId)
-    claims.set(claim.sceneId, { ...claim, dirty: claim.dirty || !!prior?.dirty })
-  }
-  const scenes = [...claims.values()].sort((left, right) => left.sceneId.localeCompare(right.sceneId))
-  const next = JSON.stringify(scenes)
-  if (!force && next === reported) return
-  reported = next
-  const request = scenes.length > 1
-    ? rpc.request('scenes/setEditingMany', [scenes])
-    : rpc.request('scenes/setEditing', [scenes[0]?.chapterGuid ?? null, scenes[0]?.sceneId ?? null, scenes[0]?.dirty ?? false])
-  void request.catch(() => { if (reported === next) reported = '' })
-}
 useProjectStore.subscribe(() => reportEditingScenes())
+
+export type { SceneDto, ChapterDto, ProjectStateDto, RecentProjectDto, SceneTabRef, EditorPaneState, SceneStructureMethod, EditingSceneClaim } from './projectTypes'
+export { prepareProjectLibrary } from './projectLibraryActions'
+export { reportManuscriptEditing, reportEditingScenes } from './projectPersistence'

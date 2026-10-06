@@ -16,7 +16,11 @@ class _ClassicScripts(HTMLParser):
         if tag != "script":
             return
         attributes = dict(attrs)
-        if attributes.get("type", "").lower() not in ("", "text/javascript", "application/javascript"):
+        if attributes.get("type", "").lower() not in (
+            "",
+            "text/javascript",
+            "application/javascript",
+        ):
             return
         source = attributes.get("src")
         if source:

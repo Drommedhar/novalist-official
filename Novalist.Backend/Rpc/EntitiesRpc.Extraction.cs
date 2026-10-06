@@ -39,15 +39,15 @@ public sealed partial class EntitiesRpc
         var typeKeys = new List<string> { "character", "location", "item", "lore" };
         typeKeys.AddRange(_entities.GetCustomEntityTypes().Select(t => t.TypeKey));
 
-        // Non-null: availability was just checked above.
-        var result = (await host.ExtractEntitiesAsync(
+        var result = await host.ExtractEntitiesAsync(
             new EntityExtractionRequest
             {
                 Context = prose,
                 KnownNames = known.ToArray(),
                 AvailableTypeKeys = typeKeys
             },
-            cancellationToken))!;
+            cancellationToken);
+        if (result == null) return new EntityProposalsDto([], null);
 
         if (!string.IsNullOrEmpty(result.Error))
             return new EntityProposalsDto([], result.Error);

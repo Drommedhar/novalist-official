@@ -29,8 +29,8 @@ internal sealed class ParsedFolderImport
 
     public void Apply(object model, string sectionTitle)
     {
-        if (Definition.Template != null)
-            Definition.Fields["templateId"].Property!.SetValue(model, Definition.Template.Id);
+        if (Definition.Template != null && model is IEntityData templated)
+            templated.TemplateId = Definition.Template.Id;
         if (model is CharacterData character)
         {
             character.AgeMode = Definition.Template?.AgeMode;
@@ -40,18 +40,14 @@ internal sealed class ParsedFolderImport
         {
             // The service merges source tags, folder tags and the optional batch tag.
             if (field.Key is "tags" or "images" && field.Bucket is "builtIn" or "analysis") continue;
-            if (field.Bucket is "builtIn" or "analysis")
+            if (field is ReflectedImportField reflected)
             {
                 var destination = field.Bucket == "analysis" ? ((SceneData)model).AnalysisOverrides ??= new() : model;
-                field.Property!.SetValue(destination, value.Deserialize(field.ValueType, JsonOptions));
+                reflected.Property.SetValue(destination, value.Deserialize(field.ValueType, JsonOptions));
             }
             else
             {
-                var propertyName = field.Bucket switch { "fields" => "Fields", "properties" => "Properties", _ => "CustomProperties" };
-                var property = model.GetType().GetProperty(propertyName)!;
-                var properties = (Dictionary<string, string>?)property.GetValue(model) ?? [];
-                properties[field.Key] = value.GetValue<string>();
-                property.SetValue(model, properties);
+                ApplyExtraField(model, field, value.GetValue<string>());
             }
         }
         if (model is CharacterData dated && !string.IsNullOrWhiteSpace(dated.BirthDate) && Values.Keys.Any(field => field.Key == "birthDate" && field.Bucket == "builtIn")
@@ -64,10 +60,10 @@ internal sealed class ParsedFolderImport
             && !Values.Keys.Any(field => field.Key == "ageMode" && field.Bucket == "builtIn"))
             numbered.AgeMode = "number";
         if (model is CharacterData scoped) scoped.ChapterOverrides.AddRange(ChapterOverrides);
-        if (Images.Count > 0) model.GetType().GetProperty("Images")!.SetValue(model, Images);
-        if (Definition.Fields.TryGetValue("sections", out var sectionsField))
+        if (model is IEntityData entity)
         {
-            var sections = (List<EntitySection>)sectionsField.Property!.GetValue(model)!;
+            if (Images.Count > 0) entity.Images = Images;
+            var sections = entity.Sections;
             sections.AddRange(Headings);
             var preserved = IsJson ? Content : Source;
             if (!string.IsNullOrWhiteSpace(preserved)) sections.Add(new EntitySection
@@ -79,9 +75,23 @@ internal sealed class ParsedFolderImport
             });
         }
     }
+
+    private static void ApplyExtraField(object model, ImportField field, string value)
+    {
+        var properties = model switch
+        {
+            CustomEntityData custom when field.Bucket == "fields" => custom.Fields ??= [],
+            SceneData scene => scene.Properties ??= [],
+            ResearchItem research => research.Properties ??= [],
+            IEntityData entity => entity.CustomProperties ??= [],
+            _ => throw new ArgumentException("Unsupported import model.", nameof(model))
+        };
+        properties[field.Key] = value;
+    }
 }
 
 /// <summary>Reads explicit metadata and bounded labelled phrases. No network access or free-prose inference.</summary>
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
 internal sealed partial class FolderImportParser(FolderImportSchema schema)
 {
     private sealed record RawField(string Key, JsonNode? Value, string? Bucket = null, bool AllowExtra = true);
@@ -195,8 +205,8 @@ internal sealed partial class FolderImportParser(FolderImportSchema schema)
             var parts = fallback.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 2 && !values.ContainsKey(definition.Fields["surname"]))
             {
-                values[definition.Fields["name"]] = JsonValue.Create(parts[0])!;
-                values[definition.Fields["surname"]] = JsonValue.Create(parts[1])!;
+                values[definition.Fields["name"]] = JsonValue.Create(parts[0]);
+                values[definition.Fields["surname"]] = JsonValue.Create(parts[1]);
             }
         }
         var sections = new List<EntitySection>();
@@ -235,16 +245,18 @@ internal sealed partial class FolderImportParser(FolderImportSchema schema)
             throw new FormatException("Invalid Novalist import JSON.");
         }
         var definition = schema.Definition(target);
-        if (!FolderImportSchema.Accepts(schema.DocumentSchema(definition), document))
+        if (!FolderImportSchema.Accepts(schema.DocumentSchema(definition), document)
+            || document["data"] is not JsonObject data
+            || data[target is "scene" or "research" ? "title" : "name"] is not JsonValue title
+            || !title.TryGetValue<string>(out var titleText))
             throw new FormatException("The JSON does not match this target's import schema.");
-        var data = (JsonObject)document["data"]!;
         var raw = new List<RawField>();
         Collect(new JsonObject(data.Where(pair => pair.Key != "images").Select(pair => KeyValuePair.Create(pair.Key, pair.Value?.DeepClone()))), raw);
         var values = Bind(raw, definition, explicitKeys: true);
         return new ParsedFolderImport
         {
             Definition = definition,
-            Title = data[target is "scene" or "research" ? "title" : "name"]!.GetValue<string>(),
+            Title = titleText,
             Content = document["content"]?.GetValue<string>() ?? string.Empty,
             Source = text,
             IsJson = true,
@@ -301,7 +313,7 @@ internal sealed partial class FolderImportParser(FolderImportSchema schema)
                 && !ProtectedKey(entry.Key) && Text(entry.Value) is { Length: > 0 })
                 field = new ImportField(entry.Key, definition.Target is "scene" or "research" ? "properties" : "customProperties", typeof(string));
             if (field == null) continue;
-            var value = field.Key == "templateId" && field.Bucket == "builtIn" ? JsonValue.Create(definition.Template!.Id) : ConvertValue(field, entry.Value);
+            var value = field is TemplateImportField template ? JsonValue.Create(template.TemplateId) : ConvertValue(field, entry.Value);
             if (value != null && FolderImportSchema.Accepts(FolderImportSchema.FieldSchema(field), value)) values.TryAdd(field, value);
         }
         return values;
@@ -325,83 +337,6 @@ internal sealed partial class FolderImportParser(FolderImportSchema schema)
 
     private static bool ProtectedKey(string key) => Normalize(key) is "id" or "importedfrom" or "importedmetadata"
         or "images" or "attachments" or "chapteroverrides" or "stateoverrides" or "match" or "arc";
-
-    private static JsonNode? ConvertValue(ImportField field, JsonNode? value)
-    {
-        if (value == null) return null;
-        var type = Nullable.GetUnderlyingType(field.ValueType) ?? field.ValueType;
-        if (type == typeof(List<string>))
-        {
-            var parts = value is JsonArray array ? array.Select(Text) : (Text(value) ?? string.Empty)
-                .Trim('[', ']').Split([',', ';', '\n'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-            return new JsonArray(parts.Where(part => !string.IsNullOrWhiteSpace(part)).Distinct(StringComparer.OrdinalIgnoreCase)
-                .Select(part => (JsonNode)JsonValue.Create(Regex.Replace(part!, @"^[-*+]\s+", "").Trim('"', '\''))!).ToArray());
-        }
-        if (type == typeof(List<EntitySection>) || type == typeof(List<EntityRelationship>))
-            return value is JsonArray ? NormalizeFlags(value) : null;
-        var text = Text(value);
-        if (text == null) return null;
-        if (type == typeof(bool)) return Boolean(text) is { } boolean ? JsonValue.Create(boolean) : null;
-        if (type == typeof(int)) return int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var integer) ? JsonValue.Create(integer) : null;
-        if (type.IsEnum)
-        {
-            var choice = Enum.GetNames(type).FirstOrDefault(choice => choice.Equals(text, StringComparison.OrdinalIgnoreCase));
-            return choice == null ? null : JsonValue.Create(choice);
-        }
-        if (field.Definition is { } definition && FolderImportSchema.BuiltInType(definition) is { } propertyType)
-        {
-            switch (propertyType)
-            {
-                case CustomPropertyType.Bool:
-                    if (Boolean(text) is not { } boolean) return null;
-                    text = boolean ? "true" : "false";
-                    break;
-                case CustomPropertyType.Int:
-                case CustomPropertyType.Timespan:
-                    if (!BigInteger.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var integer)) return null;
-                    text = integer.ToString(CultureInfo.InvariantCulture);
-                    break;
-                case CustomPropertyType.Enum:
-                    text = definition.EnumOptions?.FirstOrDefault(option => option.Equals(text, StringComparison.OrdinalIgnoreCase)) ?? text;
-                    break;
-            }
-        }
-        return JsonValue.Create(text);
-    }
-
-    private static JsonNode NormalizeFlags(JsonNode value)
-    {
-        var clone = value.DeepClone();
-        foreach (var map in ((JsonArray)clone).OfType<JsonObject>())
-            foreach (var key in new[] { "aiHidden", "readerHidden" })
-                if (Text(map[key]) is { } text && Boolean(text) is { } flag) map[key] = flag;
-        return clone;
-    }
-
-    private static bool? Boolean(string text) => Normalize(text) switch
-    {
-        "true" or "yes" or "1" or "ja" or "是" => true,
-        "false" or "no" or "0" or "nein" or "否" => false,
-        _ => null
-    };
-    private static string? Text(JsonNode? value) => value is JsonValue scalar ? scalar.ToString().Trim() : null;
-    private static List<string> ReadTags(Dictionary<ImportField, JsonNode> values)
-        => values.Where(pair => pair.Key.Key == "tags" && pair.Key.Bucket is "builtIn" or "analysis")
-            .SelectMany(pair => ((JsonArray)pair.Value).Select(node => node!.GetValue<string>())).ToList();
-    private static string Normalize(string text) => new(text.Normalize(NormalizationForm.FormD)
-        .Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
-    private static string Canonical(string key)
-    {
-        var normal = Normalize(key);
-        return Aliases.TryGetValue(normal, out var alias) ? Normalize(alias) : normal;
-    }
-    private static string? Bucket(string key) => Normalize(key) switch
-    {
-        "customproperties" or "customprops" or "eigeneeigenschaften" or "自定义属性" => "customProperties",
-        "fields" or "felder" or "字段" => "fields",
-        "properties" => "properties",
-        _ => null
-    };
 
     private sealed record BodyHeading(string Title, int Level, string Content, string? Bucket);
     private static List<BodyHeading> ReadBody(string body, List<RawField> raw, List<RawChapter> chapters, List<EntityImage> images, string target)
@@ -500,55 +435,6 @@ internal sealed partial class FolderImportParser(FolderImportSchema schema)
             result.Add(new BodyHeading(heading.Title, heading.Level, content, heading.Bucket));
         }
         if (relationships.Count > 0) raw.Add(new RawField("relationships", relationships));
-        return result;
-    }
-
-    private static JsonNode Inline(string text)
-    {
-        if (text.StartsWith('[') || text.StartsWith('"') || text.StartsWith('\''))
-        {
-            try { return ReadYaml(text) ?? JsonValue.Create(text)!; }
-            catch (Exception exception) when (exception is YamlException or FormatException) { }
-        }
-        return JsonValue.Create(text)!;
-    }
-
-    private static JsonNode? ReadYaml(string text)
-    {
-        var yaml = new YamlStream();
-        yaml.Load(new StringReader(text));
-        if (yaml.Documents.Count != 1) throw new FormatException("Expected one YAML document.");
-        var budget = 10000;
-        return YamlValue(yaml.Documents[0].RootNode, new HashSet<YamlNode>(ReferenceEqualityComparer.Instance), 0, ref budget);
-    }
-
-    private static JsonNode? YamlValue(YamlNode node, HashSet<YamlNode> ancestors, int depth, ref int budget)
-    {
-        if (depth > 32 || --budget < 0 || !ancestors.Add(node)) throw new FormatException("YAML is too deeply nested or cyclic.");
-        JsonNode? result;
-        switch (node)
-        {
-            case YamlScalarNode scalar:
-                result = scalar.Value == null || scalar.Style == ScalarStyle.Plain && (scalar.Value == "~" || scalar.Value.Equals("null", StringComparison.OrdinalIgnoreCase))
-                    ? null : JsonValue.Create(scalar.Value);
-                break;
-            case YamlSequenceNode sequence:
-                var array = new JsonArray();
-                foreach (var child in sequence.Children) array.Add(YamlValue(child, ancestors, depth + 1, ref budget));
-                result = array;
-                break;
-            default:
-                var mapping = (YamlMappingNode)node;
-                var map = new JsonObject();
-                foreach (var (key, value) in mapping.Children)
-                {
-                    if (key is not YamlScalarNode { Value: { } name } || map.ContainsKey(name)) throw new FormatException("Invalid YAML mapping key.");
-                    map.Add(name, YamlValue(value, ancestors, depth + 1, ref budget));
-                }
-                result = map;
-                break;
-        }
-        ancestors.Remove(node);
         return result;
     }
 }

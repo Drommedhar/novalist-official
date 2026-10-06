@@ -101,6 +101,5 @@ public sealed class SuggestionsRpc
 public sealed record SuggestionDto(
     string Id, string Kind, string Text, string Author, string At);
 
-/// <summary>A scene with suggestions waiting on it.</summary>
 public sealed record SuggestionSceneDto(
     string ChapterGuid, string ChapterTitle, string SceneId, string SceneTitle, int Count);

@@ -83,8 +83,8 @@ public sealed class ExtensionStoreRpc
             // Use the version actually on disk (extension.json), not the tag
             // store-meta recorded at install, so a stale-manifest release still
             // shows an available update instead of masking it.
-            var installedVersion = isInstalled
-                ? gallery.ReadInstalledManifestVersion(entry.Id) ?? meta!.InstalledVersion
+            var installedVersion = meta is { InstalledFromGallery: true }
+                ? gallery.ReadInstalledManifestVersion(entry.Id) ?? meta.InstalledVersion
                 : null;
             var hasUpdate = isInstalled && release != null
                 && !string.IsNullOrEmpty(installedVersion)
@@ -232,11 +232,7 @@ public sealed class ExtensionStoreRpc
     {
         var dash = version.IndexOf('-');
         if (dash >= 0) version = version[..dash];
-        var parts = version.Split('.');
-        var result = new int[parts.Length];
-        for (var i = 0; i < parts.Length; i++)
-            int.TryParse(parts[i], out result[i]);
-        return result;
+        return version.Split('.').Select(part => int.TryParse(part, out var value) ? value : 0).ToArray();
     }
 }
 
@@ -264,6 +260,5 @@ public sealed record StoreReleaseDto(string TagName, string Version, string Body
 /// release exists, else the failure message.</summary>
 public sealed record StoreInstallResultDto(string Id, bool Success, string? Error);
 
-/// <summary>An available update for an installed extension.</summary>
 public sealed record StoreUpdateDto(
     string ExtensionId, string Name, string Repo, string InstalledVersion, string AvailableVersion);

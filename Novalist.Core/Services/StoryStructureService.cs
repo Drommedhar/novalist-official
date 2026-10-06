@@ -9,6 +9,7 @@ namespace Novalist.Core.Services;
 /// the same as a beat at 0% — a hole in the structure and a beat right at the
 /// opening are very different things to tell a writer.
 /// </summary>
+// aislop-ignore-next-line complexity/too-many-params -- Positional result record models eight status fields; this declaration is not an algorithm with eight arguments.
 public sealed record StructureBeatStatus(
     string Key,
     string Title,

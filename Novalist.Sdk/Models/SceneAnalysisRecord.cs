@@ -32,7 +32,7 @@ public static class ScenePresence
 /// <summary>One entity the analysis found in a scene.</summary>
 public sealed class SceneEntityRef
 {
-    /// <summary>The name as it appears in the prose.</summary>
+    /// <summary>Spelling found in the prose, preserved independently of the canonical Codex entry identified by EntityId.</summary>
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 

@@ -6,7 +6,7 @@ public interface IInWorldCalendarService
 {
     /// <summary>Parse a date string against the given calendar. Returns the
     /// ordinal day-since-epoch as a long. Null if parsing fails.</summary>
-    long? Parse(string raw, InWorldCalendar? calendar);
+    long? Parse(string? raw, InWorldCalendar? calendar);
 
     /// <summary>Difference in days between two date strings, or null when
     /// either cannot be parsed.</summary>

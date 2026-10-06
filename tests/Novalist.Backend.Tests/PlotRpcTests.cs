@@ -90,7 +90,7 @@ public sealed class PlotRpcTests : IDisposable
             Id = "halden", Name = "Halden"
         });
 
-        var grid = _rpc.GetGrid("character");
+        var grid = await _rpc.GetGridAsync("character");
 
         // In name order, whatever order they were written in.
         Assert.Equal(["Halden", "Mira Vance"], grid.Plotlines.Select(p => p.Name));
@@ -104,7 +104,7 @@ public sealed class PlotRpcTests : IDisposable
         {
             Id = "mira", Name = "Mira"
         });
-        var column = _rpc.GetGrid("character").Columns[0];
+        var column = (await _rpc.GetGridAsync("character")).Columns[0];
 
         var grid = await _rpc.ToggleCastAsync(
             column.ChapterGuid, column.SceneId, "mira", "character");
@@ -122,16 +122,16 @@ public sealed class PlotRpcTests : IDisposable
     [Fact]
     public async Task ACodexGridReadsTheCastRatherThanThePlotlines()
     {
-        var column = _rpc.GetGrid().Columns[0];
+        var column = (await _rpc.GetGridAsync()).Columns[0];
         await _rpc.CreatePlotlineAsync("Thread");
-        var plotlineId = _rpc.GetGrid().Plotlines[0].Id;
+        var plotlineId = (await _rpc.GetGridAsync()).Plotlines[0].Id;
         await _rpc.ToggleAsync(column.ChapterGuid, column.SceneId, plotlineId);
 
-        var codex = _rpc.GetGrid("character");
+        var codex = await _rpc.GetGridAsync("character");
 
         // The plotline is on the scene, but a Codex grid is not asking that.
         Assert.Empty(codex.Columns[0].PlotlineIds);
-        Assert.NotEmpty(_rpc.GetGrid().Columns[0].PlotlineIds);
+        Assert.NotEmpty((await _rpc.GetGridAsync()).Columns[0].PlotlineIds);
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public sealed class PlotRpcTests : IDisposable
             Id = "guild", Name = "The Guild", EntityTypeKey = "faction"
         });
 
-        var grid = _rpc.GetGrid("faction");
+        var grid = await _rpc.GetGridAsync("faction");
 
         Assert.Equal(["The Guild"], grid.Plotlines.Select(p => p.Name));
     }
@@ -158,10 +158,10 @@ public sealed class PlotRpcTests : IDisposable
     [InlineData("item")]
     [InlineData("lore")]
     [InlineData("faction")]
-    public void EveryEntryKindCanBeRows(string typeKey)
+    public async Task EveryEntryKindCanBeRows(string typeKey)
         // No entries of these kinds yet: an empty row list rather than a throw,
         // which is what a book that has not written any should get.
-        => Assert.Empty(_rpc.GetGrid(typeKey).Plotlines);
+        => Assert.Empty((await _rpc.GetGridAsync(typeKey)).Plotlines);
 
     // ── A thread as more than a row of ticks ──
 
@@ -264,7 +264,7 @@ public sealed class PlotRpcTests : IDisposable
         // book holds, so a version taken inside the service would compare a
         // thread with itself and record nothing.
         await _rpc.CreatePlotlineAsync("The crossing");
-        var id = _rpc.GetGrid().Plotlines[0].Id;
+        var id = (await _rpc.GetGridAsync()).Plotlines[0].Id;
         await _rpc.SetPlotlineDetailAsync(id, description: "She has to get over the river.");
 
         await _rpc.SetPlotlineDetailAsync(id, description: "Replaced by mistake.");
@@ -282,7 +282,7 @@ public sealed class PlotRpcTests : IDisposable
     public async Task ARestoreOfAThreadRevisionThatIsGoneIsRefused()
     {
         await _rpc.CreatePlotlineAsync("The crossing");
-        var id = _rpc.GetGrid().Plotlines[0].Id;
+        var id = (await _rpc.GetGridAsync()).Plotlines[0].Id;
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => _rpc.RestorePlotlineRevisionAsync(id, "no-such-revision"));
@@ -292,7 +292,7 @@ public sealed class PlotRpcTests : IDisposable
     public async Task RenamingAThreadKeepsTheNameItHad()
     {
         await _rpc.CreatePlotlineAsync("The crossing");
-        var id = _rpc.GetGrid().Plotlines[0].Id;
+        var id = (await _rpc.GetGridAsync()).Plotlines[0].Id;
 
         await _rpc.RenamePlotlineAsync(id, "The river");
 
@@ -302,4 +302,3 @@ public sealed class PlotRpcTests : IDisposable
         Assert.Equal("The crossing", grid.Plotlines.First(p => p.Id == id).Name);
     }
 }
-

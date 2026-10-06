@@ -110,8 +110,8 @@ public sealed class BackupService : IBackupService
         var folder = backupFolder ?? await ResolveBackupFolderAsync(projectRoot);
         await _fileService.CreateDirectoryAsync(folder);
 
-        var safeTrigger = milestone
-            ? BackupInfo.MilestonePrefix + SafeLabel(milestoneName!)
+        var safeTrigger = !string.IsNullOrWhiteSpace(milestoneName)
+            ? BackupInfo.MilestonePrefix + SafeLabel(milestoneName)
             : SafeTrigger(trigger);
         var timestamp = DateTime.UtcNow;
         string id, path;
@@ -221,9 +221,9 @@ public sealed class BackupService : IBackupService
         }
         await _archiveService.RestoreProjectAsync(archivePath, destination, replaceExisting: false);
         var restored = new ProjectService(_fileService);
-        await restored.LoadProjectAsync(destination);
-        restored.CurrentProject!.Name = name;
-        restored.CurrentProject.Id = "project-" + Guid.NewGuid().ToString("N");
+        var metadata = await restored.LoadProjectAsync(destination);
+        metadata.Name = name;
+        metadata.Id = "project-" + Guid.NewGuid().ToString("N");
         await restored.SaveProjectAsync();
         return destination;
     }

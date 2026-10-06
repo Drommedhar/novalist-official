@@ -26,14 +26,6 @@ import { useIsPhone } from '../../shell/useIsPhone'
  * one lists every scene with its membership as a checkbox. Same data, same
  * toggle, one axis at a time.
  */
-/**
- * One thread's scenes, as the pushed page shows them.
- *
- * Built from the grid the view holds at the moment it renders, never from the
- * grid that was on screen when the thread was tapped - a toggle replaces the
- * whole grid, and a page built once kept every checkbox at the state it had
- * before the tap.
- */
 function PhoneThreadPage({
   grid,
   plotlineId,
@@ -136,96 +128,15 @@ type Pending =
 const ROW_SOURCES = ['plotline', 'character', 'location', 'item', 'lore'] as const
 
 export function PlotGridView(): React.JSX.Element {
-  const { t } = useTranslation()
-  const [grid, setGrid] = useState<PlotGridDto | null>(null)
-  const [menu, setMenu] = useState<{ x: number; y: number; id: string; name: string } | null>(null)
-  const [pending, setPending] = useState<Pending | null>(null)
-  // Which thread the grid has stepped aside for. Held as an id rather than the
-  // object so a save or a restore is read back from the refreshed grid.
-  const [editingId, setEditingId] = useState<string | null>(null)
-  // Which rows the grid is crossing the scenes with. Plotlines by default:
-  // that is what a plot grid means before it means anything else.
-  const [rowSource, setRowSource] = useState('plotline')
-  // A matrix says which scenes a thread touches. Lanes say where two threads
-  // meet, which is the question a revision actually asks.
-  const [asLanes, setAsLanes] = useState(false)
-  const isPhone = useIsPhone()
-
-  useEffect(() => {
-    void rpc.request<PlotGridDto>('plot/grid', [rowSource]).then(setGrid)
-  }, [rowSource])
+  const { t, grid, setGrid, menu, setMenu, pending, setPending, editingId, setEditingId, rowSource, setRowSource, asLanes, setAsLanes, isPhone, byCodex, toggle } = usePlotGrid()
 
   if (!grid) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
-
-  const byCodex = rowSource !== 'plotline'
-
-  const toggle = async (
-    chapterGuid: string,
-    sceneId: string,
-    plotlineId: string
-  ): Promise<void> => {
-    // A Codex row says who is in the scene, so ticking one writes the cast
-    // rather than plotline membership.
-    setGrid(
-      byCodex
-        ? await rpc.request<PlotGridDto>('plot/toggleCast', [
-            chapterGuid,
-            sceneId,
-            plotlineId,
-            rowSource
-          ])
-        : await rpc.request<PlotGridDto>('plot/toggle', [chapterGuid, sceneId, plotlineId])
-    )
-  }
 
   // On a phone the matrix is unreadable, so the same data is asked one thread
   // at a time. The lanes view is a second matrix and goes the same way.
   if (isPhone) {
     return (
-      <MobileNav
-        title={t('shell.view.plotGrid')}
-        renderPage={(plotlineId) =>
-          grid.plotlines.some((line) => line.id === plotlineId) ? (
-            <PhoneThreadPage grid={grid} plotlineId={plotlineId} toggle={toggle} />
-          ) : null
-        }
-      >
-        <div className="plotgrid">
-          <div className="plotgrid-toolbar">
-            <select
-              className="dialog-input plotgrid-rowsource"
-              value={rowSource}
-              aria-label={t('plotGrid.rowSource')}
-              onChange={(e) => setRowSource(e.target.value)}
-            >
-              {ROW_SOURCES.map((source) => (
-                <option key={source} value={source}>
-                  {t(`plotGrid.rows${source}`)}
-                </option>
-              ))}
-            </select>
-            {!byCodex && (
-              <button
-                className="toolbar-button toolbar-action"
-                onClick={() => setPending({ kind: 'create' })}
-              >
-                {t('plotGrid.addPlotline')}
-              </button>
-            )}
-          </div>
-          <PhonePlotGrid grid={grid} rowSource={rowSource} />
-        </div>
-        {pending?.kind === 'create' && (
-          <InputDialog
-            title={t('plotGrid.addPlotline')}
-            onCancel={() => setPending(null)}
-            onSubmit={(name) => {
-              setPending(null)
-              void rpc.request<PlotGridDto>('plot/createPlotline', [name]).then(setGrid)
-            }}
-          />
-        )}
-      </MobileNav>
+      <PhonePlotGridView t={t} grid={grid} toggle={toggle} rowSource={rowSource} setRowSource={setRowSource} byCodex={byCodex} setPending={setPending} pending={pending} setGrid={setGrid} />
     )
   }
 
@@ -247,18 +158,7 @@ export function PlotGridView(): React.JSX.Element {
   return (
     <div className="plotgrid">
       <div className="plotgrid-toolbar">
-        <select
-          className="dialog-input plotgrid-rowsource"
-          value={rowSource}
-          aria-label={t('plotGrid.rowSource')}
-          onChange={(e) => setRowSource(e.target.value)}
-        >
-          {ROW_SOURCES.map((source) => (
-            <option key={source} value={source}>
-              {t(`plotGrid.rows${source}`)}
-            </option>
-          ))}
-        </select>
+        <PlotRowSource rowSource={rowSource} setRowSource={setRowSource} />
         <button
           className={`dialog-button${asLanes ? ' primary' : ''}`}
           onClick={() => setAsLanes(!asLanes)}
@@ -295,91 +195,16 @@ export function PlotGridView(): React.JSX.Element {
           }
         />
       ) : (
-        <div className="plotgrid-scroll">
-          <table className="plotgrid-table plotgrid-scenes-as-rows">
-            <thead>
-              <tr>
-                <th>{t('shell.view.manuscript')}</th>
-                {grid.plotlines.map((plotline) => (
-                  <th
-                    key={plotline.id}
-                    onContextMenu={(e) => {
-                      if (byCodex) return
-                      e.preventDefault()
-                      setMenu({ x: e.clientX, y: e.clientY, id: plotline.id, name: plotline.name })
-                    }}
-                  >
-                    <span className="plotgrid-color" style={{ background: plotline.color }} />
-                    <button disabled={byCodex} onClick={() => setEditingId(plotline.id)}>
-                      {plotline.name}
-                    </button>
-                    {!byCodex && plotline.importance === 'Main' && (
-                      <span className="plotgrid-importance">{t('plotGrid.importanceMain')}</span>
-                    )}
-                    {!byCodex && plotline.unresolvedSteps > 0 && (
-                      <span className="plotgrid-unresolved">
-                        {t('plotGrid.unresolvedBadge', { count: plotline.unresolvedSteps })}
-                      </span>
-                    )}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {grid.columns.map((col) => (
-                <tr key={col.sceneId}>
-                  <th className="plotgrid-rowlabel">
-                    <button
-                      className="plotgrid-scene-link"
-                      onClick={() =>
-                        void useProjectStore.getState().openScene(col.chapterGuid, col.sceneId)
-                      }
-                    >
-                      {col.sceneTitle}
-                    </button>
-                    <small>{col.chapterTitle}</small>
-                  </th>
-                  {grid.plotlines.map((plotline) => {
-                    const assigned = col.plotlineIds.includes(plotline.id)
-                    const note = col.notes?.[plotline.id] ?? ''
-                    const steps =
-                      plotline.steps?.filter((step) => step.sceneId === col.sceneId) ?? []
-                    return (
-                      <td key={plotline.id}>
-                        <button
-                          className={`plotgrid-cell${assigned ? ' assigned' : ''}`}
-                          style={assigned ? { borderLeftColor: plotline.color } : undefined}
-                          aria-pressed={assigned}
-                          aria-label={`${col.sceneTitle} · ${plotline.name}`}
-                          onContextMenu={(event) => {
-                            if (byCodex || !assigned) return
-                            event.preventDefault()
-                            setPending({
-                              kind: 'note',
-                              chapterGuid: col.chapterGuid,
-                              sceneId: col.sceneId,
-                              plotlineId: plotline.id,
-                              sceneTitle: col.sceneTitle,
-                              current: note
-                            })
-                          }}
-                          onClick={() => void toggle(col.chapterGuid, col.sceneId, plotline.id)}
-                        >
-                          {assigned
-                            ? note ||
-                              steps.map((step) => step.text).join(' · ') ||
-                              t('desktopRefresh.assigned')
-                            : t('desktopRefresh.assign')}
-                        </button>
-                      </td>
-                    )
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <PlotGridTable t={t} grid={grid} byCodex={byCodex} setMenu={setMenu} setEditingId={setEditingId} setPending={setPending} toggle={toggle} />
       )}
+          <PlotGridDialogs menu={menu} t={t} setEditingId={setEditingId} setPending={setPending} setMenu={setMenu} pending={pending} setGrid={setGrid} />
+
+    </div>
+  )
+}
+
+function PlotGridDialogs({ menu, t, setEditingId, setPending, setMenu, pending, setGrid }: { menu: PlotGridViewState['menu']; t: PlotGridViewState['t']; setEditingId: PlotGridViewState['setEditingId']; setPending: PlotGridViewState['setPending']; setMenu: PlotGridViewState['setMenu']; pending: PlotGridViewState['pending']; setGrid: PlotGridViewState['setGrid'] }): React.JSX.Element {
+  return <>
       {menu && (
         <ContextMenu
           x={menu.x}
@@ -443,16 +268,7 @@ export function PlotGridView(): React.JSX.Element {
           </div>
         </div>
       )}
-      {pending?.kind === 'create' && (
-        <InputDialog
-          title={t('plotGrid.addPlotline')}
-          onCancel={() => setPending(null)}
-          onSubmit={(name) => {
-            setPending(null)
-            void rpc.request<PlotGridDto>('plot/createPlotline', [name]).then(setGrid)
-          }}
-        />
-      )}
+      <PlotCreateDialog pending={pending} setPending={setPending} setGrid={setGrid} />
       {pending?.kind === 'rename' && (
         <InputDialog
           title={t('explorer.contextRename')}
@@ -477,6 +293,185 @@ export function PlotGridView(): React.JSX.Element {
           }}
         />
       )}
+  </>
+}
+
+function usePlotGrid() {
+  const { t } = useTranslation()
+  const [grid, setGrid] = useState<PlotGridDto | null>(null)
+  const [menu, setMenu] = useState<{ x: number; y: number; id: string; name: string } | null>(null)
+  const [pending, setPending] = useState<Pending | null>(null)
+  // Which thread the grid has stepped aside for. Held as an id rather than the
+  // object so a save or a restore is read back from the refreshed grid.
+  const [editingId, setEditingId] = useState<string | null>(null)
+  // Which rows the grid is crossing the scenes with. Plotlines by default:
+  // that is what a plot grid means before it means anything else.
+  const [rowSource, setRowSource] = useState('plotline')
+  // A matrix says which scenes a thread touches. Lanes say where two threads
+  // meet, which is the question a revision actually asks.
+  const [asLanes, setAsLanes] = useState(false)
+  const isPhone = useIsPhone()
+
+  useEffect(() => {
+    void rpc.request<PlotGridDto>('plot/grid', [rowSource]).then(setGrid)
+  }, [rowSource])
+
+  const byCodex = rowSource !== 'plotline'
+
+  const toggle = async (
+    chapterGuid: string,
+    sceneId: string,
+    plotlineId: string
+  ): Promise<void> => {
+    // A Codex row says who is in the scene, so ticking one writes the cast
+    // rather than plotline membership.
+    setGrid(
+      byCodex
+        ? await rpc.request<PlotGridDto>('plot/toggleCast', [
+            chapterGuid,
+            sceneId,
+            plotlineId,
+            rowSource
+          ])
+        : await rpc.request<PlotGridDto>('plot/toggle', [chapterGuid, sceneId, plotlineId])
+    )
+  }
+
+  return { t, grid, setGrid, menu, setMenu, pending, setPending, editingId, setEditingId, rowSource, setRowSource, asLanes, setAsLanes, isPhone, byCodex, toggle }
+}
+
+type PlotGridViewState = ReturnType<typeof usePlotGrid>
+
+function PlotRowSource({rowSource, setRowSource}: Pick<PlotGridViewState, 'rowSource' | 'setRowSource'>): React.JSX.Element {
+  const { t } = useTranslation()
+  return <select className="dialog-input plotgrid-rowsource" value={rowSource} aria-label={t('plotGrid.rowSource')} onChange={(event) => setRowSource(event.target.value)}>
+    {ROW_SOURCES.map((source) => <option key={source} value={source}>{t(`plotGrid.rows${source}`)}</option>)}
+  </select>
+}
+
+function PlotCreateDialog({pending, setPending, setGrid}: Pick<PlotGridViewState, 'pending' | 'setPending' | 'setGrid'>): React.JSX.Element | null {
+  const { t } = useTranslation()
+  if (pending?.kind !== 'create') return null
+  return <InputDialog title={t('plotGrid.addPlotline')} onCancel={() => setPending(null)} onSubmit={(name) => {
+    setPending(null)
+    void rpc.request<PlotGridDto>('plot/createPlotline', [name]).then(setGrid)
+  }} />
+}
+
+function PhonePlotGridView({ t, grid, toggle, rowSource, setRowSource, byCodex, setPending, pending, setGrid }: { t: PlotGridViewState['t']; grid: NonNullable<PlotGridViewState['grid']>; toggle: PlotGridViewState['toggle']; rowSource: PlotGridViewState['rowSource']; setRowSource: PlotGridViewState['setRowSource']; byCodex: PlotGridViewState['byCodex']; setPending: PlotGridViewState['setPending']; pending: PlotGridViewState['pending']; setGrid: PlotGridViewState['setGrid'] }): React.JSX.Element {
+  return (
+    <MobileNav
+      title={t('shell.view.plotGrid')}
+      renderPage={(plotlineId) =>
+        grid.plotlines.some((line) => line.id === plotlineId) ? (
+          <PhoneThreadPage grid={grid} plotlineId={plotlineId} toggle={toggle} />
+        ) : null
+      }
+    >
+      <div className="plotgrid">
+        <div className="plotgrid-toolbar">
+          <PlotRowSource rowSource={rowSource} setRowSource={setRowSource} />
+          {!byCodex && (
+            <button
+              className="toolbar-button toolbar-action"
+              onClick={() => setPending({ kind: 'create' })}
+            >
+              {t('plotGrid.addPlotline')}
+            </button>
+          )}
+        </div>
+        <PhonePlotGrid grid={grid} rowSource={rowSource} />
+      </div>
+      <PlotCreateDialog pending={pending} setPending={setPending} setGrid={setGrid} />
+    </MobileNav>
+  )
+}
+
+function PlotGridTable({ t, grid, byCodex, setMenu, setEditingId, setPending, toggle }: { t: PlotGridViewState['t']; grid: NonNullable<PlotGridViewState['grid']>; byCodex: PlotGridViewState['byCodex']; setMenu: PlotGridViewState['setMenu']; setEditingId: PlotGridViewState['setEditingId']; setPending: PlotGridViewState['setPending']; toggle: PlotGridViewState['toggle'] }): React.JSX.Element {
+  return (
+    <div className="plotgrid-scroll">
+      <table className="plotgrid-table plotgrid-scenes-as-rows">
+        <thead>
+          <tr>
+            <th>{t('shell.view.manuscript')}</th>
+            {grid.plotlines.map((plotline) => (
+              <th
+                key={plotline.id}
+                onContextMenu={(e) => {
+                  if (byCodex) return
+                  e.preventDefault()
+                  setMenu({ x: e.clientX, y: e.clientY, id: plotline.id, name: plotline.name })
+                }}
+              >
+                <span className="plotgrid-color" style={{ background: plotline.color }} />
+                <button disabled={byCodex} onClick={() => setEditingId(plotline.id)}>
+                  {plotline.name}
+                </button>
+                {!byCodex && plotline.importance === 'Main' && (
+                  <span className="plotgrid-importance">{t('plotGrid.importanceMain')}</span>
+                )}
+                {!byCodex && plotline.unresolvedSteps > 0 && (
+                  <span className="plotgrid-unresolved">
+                    {t('plotGrid.unresolvedBadge', { count: plotline.unresolvedSteps })}
+                  </span>
+                )}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {grid.columns.map((col) => (
+            <tr key={col.sceneId}>
+              <th className="plotgrid-rowlabel">
+                <button
+                  className="plotgrid-scene-link"
+                  onClick={() =>
+                    void useProjectStore.getState().openScene(col.chapterGuid, col.sceneId)
+                  }
+                >
+                  {col.sceneTitle}
+                </button>
+                <small>{col.chapterTitle}</small>
+              </th>
+              {grid.plotlines.map((plotline) => {
+                const assigned = col.plotlineIds.includes(plotline.id)
+                const note = col.notes?.[plotline.id] ?? ''
+                const steps =
+                  plotline.steps?.filter((step) => step.sceneId === col.sceneId) ?? []
+                return (
+                  <td key={plotline.id}>
+                    <button
+                      className={`plotgrid-cell${assigned ? ' assigned' : ''}`}
+                      style={assigned ? { borderLeftColor: plotline.color } : undefined}
+                      aria-pressed={assigned}
+                      aria-label={`${col.sceneTitle} · ${plotline.name}`}
+                      onContextMenu={(event) => {
+                        if (byCodex || !assigned) return
+                        event.preventDefault()
+                        setPending({
+                          kind: 'note',
+                          chapterGuid: col.chapterGuid,
+                          sceneId: col.sceneId,
+                          plotlineId: plotline.id,
+                          sceneTitle: col.sceneTitle,
+                          current: note
+                        })
+                      }}
+                      onClick={() => void toggle(col.chapterGuid, col.sceneId, plotline.id)}
+                    >
+                      {assigned
+                        ? note ||
+                          steps.map((step) => step.text).join(' · ') ||
+                          t('desktopRefresh.assigned')
+                        : t('desktopRefresh.assign')}
+                    </button>
+                  </td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }

@@ -108,7 +108,7 @@ public sealed class BookmarksRpc
         {
             BookmarkKind.Scene => await ScenePreviewAsync(mark),
             BookmarkKind.Chapter => await ChapterPreviewAsync(mark),
-            BookmarkKind.Entity => EntityPreview(mark),
+            BookmarkKind.Entity => await EntityPreviewAsync(mark),
             _ => string.Empty
         };
     }
@@ -145,16 +145,16 @@ public sealed class BookmarksRpc
         return Core.Services.BookmarkPreview.Extract(text, null);
     }
 
-    private string EntityPreview(Bookmark mark)
+    private async Task<string> EntityPreviewAsync(Bookmark mark)
     {
         var entities = new Core.Services.EntityService(_workspace.Projects);
         var all = new List<IEntityData>();
-        all.AddRange(entities.LoadCharactersAsync().GetAwaiter().GetResult());
-        all.AddRange(entities.LoadLocationsAsync().GetAwaiter().GetResult());
-        all.AddRange(entities.LoadItemsAsync().GetAwaiter().GetResult());
-        all.AddRange(entities.LoadLoreAsync().GetAwaiter().GetResult());
+        all.AddRange(await entities.LoadCharactersAsync());
+        all.AddRange(await entities.LoadLocationsAsync());
+        all.AddRange(await entities.LoadItemsAsync());
+        all.AddRange(await entities.LoadLoreAsync());
         foreach (var typeDef in entities.GetCustomEntityTypes())
-            all.AddRange(entities.LoadCustomEntitiesAsync(typeDef.TypeKey).GetAwaiter().GetResult());
+            all.AddRange(await entities.LoadCustomEntitiesAsync(typeDef.TypeKey));
 
         var entity = all.FirstOrDefault(e => e.Id == mark.TargetId);
         // Description lives on each concrete type rather than on the interface,

@@ -136,43 +136,9 @@ public static class TerrainGenerator
             });
         }
 
-        // Settlements: on land, and not on top of each other. A generator that
-        // stacks two towns in one bay has made one town and a mistake.
-        var settlements = new List<(double, double, string)>();
-        var minGap = Math.Min(width, height) * 0.12;
-        for (var attempt = 0; attempt < 400 && settlements.Count < Math.Max(0, request.Settlements); attempt++)
-        {
-            var x = random.NextDouble() * width;
-            var y = random.NextDouble() * height;
-            if (!Inside(coast, x, y)) continue;
-            if (settlements.Any(s => Distance(s.Item1, s.Item2, x, y) < minGap)) continue;
+        var settlements = PlaceSettlements(random, request, coast, width, height);
 
-            var size = settlements.Count == 0 ? "city" : random.NextDouble() < 0.3 ? "town" : "village";
-            settlements.Add((x, y, size));
-        }
-
-        // Centred on the origin, because that is where a map opens. Generated
-        // land placed from (0,0) outward puts most of itself off screen, and a
-        // writer who pressed Generate sees a corner of a coastline.
-        var offsetX = -width / 2;
-        var offsetY = -height / 2;
-        foreach (var shape in shapes)
-            foreach (var point in shape.Points)
-            {
-                point.X += offsetX;
-                point.Y += offsetY;
-            }
-        foreach (var river in rivers)
-            foreach (var point in river.Points)
-            {
-                point.X += offsetX;
-                point.Y += offsetY;
-            }
-
-        return new TerrainResult(
-            shapes,
-            rivers,
-            [.. settlements.Select(s => (s.Item1 + offsetX, s.Item2 + offsetY, s.Item3))]);
+        return CentreTerrain(shapes, rivers, settlements, width, height);
     }
 
     /// <summary>
@@ -189,17 +155,20 @@ public static class TerrainGenerator
         var radius = Math.Min(width, height) / 2 * landmass;
 
         // Three waves at different rates, each starting somewhere of its own.
-        var phases = new[] { random.NextDouble() * Math.Tau, random.NextDouble() * Math.Tau, random.NextDouble() * Math.Tau };
-        var rates = new[] { 3.0, 7.0, 13.0 };
-        var depths = new[] { 0.18, 0.09, 0.05 };
+        var waves = new[]
+        {
+            (Rate: 3.0, Phase: random.NextDouble() * Math.Tau, Depth: 0.18),
+            (Rate: 7.0, Phase: random.NextDouble() * Math.Tau, Depth: 0.09),
+            (Rate: 13.0, Phase: random.NextDouble() * Math.Tau, Depth: 0.05)
+        };
 
         var points = new List<MapPoint>(CoastPoints);
         for (var i = 0; i < CoastPoints; i++)
         {
             var angle = Math.Tau * i / CoastPoints;
             var wobble = 1.0;
-            for (var w = 0; w < rates.Length; w++)
-                wobble += Math.Sin(angle * rates[w] + phases[w]) * depths[w];
+            foreach (var wave in waves)
+                wobble += Math.Sin(angle * wave.Rate + wave.Phase) * wave.Depth;
 
             points.Add(new MapPoint
             {
@@ -287,5 +256,51 @@ public static class TerrainGenerator
         Span<byte> bytes = stackalloc byte[8];
         random.NextBytes(bytes);
         return Convert.ToHexString(bytes).ToLowerInvariant();
+    }
+
+    private static List<(double, double, string)> PlaceSettlements(Random random, TerrainRequest request, List<MapPoint> coast, double width, double height)
+    {
+        // Settlements: on land, and not on top of each other. A generator that
+        // stacks two towns in one bay has made one town and a mistake.
+        var settlements = new List<(double, double, string)>();
+        var minGap = Math.Min(width, height) * 0.12;
+        for (var attempt = 0; attempt < 400 && settlements.Count < Math.Max(0, request.Settlements); attempt++)
+        {
+            var x = random.NextDouble() * width;
+            var y = random.NextDouble() * height;
+            if (!Inside(coast, x, y)) continue;
+            if (settlements.Any(s => Distance(s.Item1, s.Item2, x, y) < minGap)) continue;
+
+            var size = settlements.Count == 0 ? "city" : random.NextDouble() < 0.3 ? "town" : "village";
+            settlements.Add((x, y, size));
+        }
+
+        return settlements;
+    }
+
+    private static TerrainResult CentreTerrain(List<MapShape> shapes, List<MapSpline> rivers, List<(double, double, string)> settlements, double width, double height)
+    {
+        // Centred on the origin, because that is where a map opens. Generated
+        // land placed from (0,0) outward puts most of itself off screen, and a
+        // writer who pressed Generate sees a corner of a coastline.
+        var offsetX = -width / 2;
+        var offsetY = -height / 2;
+        foreach (var shape in shapes)
+            foreach (var point in shape.Points)
+            {
+                point.X += offsetX;
+                point.Y += offsetY;
+            }
+        foreach (var river in rivers)
+            foreach (var point in river.Points)
+            {
+                point.X += offsetX;
+                point.Y += offsetY;
+            }
+
+        return new TerrainResult(
+            shapes,
+            rivers,
+            [.. settlements.Select(s => (s.Item1 + offsetX, s.Item2 + offsetY, s.Item3))]);
     }
 }

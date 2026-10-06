@@ -120,7 +120,8 @@ public sealed class ExportPresetRpc
     public TrimDto[] Trims() =>
         [.. PrintSpec.TrimNames.Select(name =>
         {
-            var size = PrintSpec.NamedTrim(name)!.Value;
+            var size = PrintSpec.NamedTrim(name)
+                ?? throw new InvalidOperationException($"Unknown named trim: {name}");
             return new TrimDto(name, size.Width, size.Height);
         })];
 

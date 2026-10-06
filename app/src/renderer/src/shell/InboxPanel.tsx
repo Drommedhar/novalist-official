@@ -49,7 +49,7 @@ const VERDICTS = ['accepted', 'considering', 'declined'] as const
  * was no query across them at all - so a note to yourself was lost the moment
  * you closed the scene, and an editor's question had nowhere to be answered.
  */
-export function InboxPanel(): React.JSX.Element {
+function useInbox() {
   const { t } = useTranslation()
   const [items, setItems] = useState<InboxItem[]>([])
   const [showResolved, setShowResolved] = useState(false)
@@ -83,6 +83,12 @@ export function InboxPanel(): React.JSX.Element {
   }, [suggestionsRevision])
 
   const shown = todosOnly ? items.filter((i) => i.isTodo) : items
+
+  return { suggestionScenes, t, todosOnly, setTodosOnly, showResolved, setShowResolved, shown, load, setReplyTo, replyTo, setReplyText, replyText }
+}
+
+export function InboxPanel(): React.JSX.Element {
+  const { suggestionScenes, t, todosOnly, setTodosOnly, showResolved, setShowResolved, shown, load, setReplyTo, replyTo, setReplyText, replyText } = useInbox()
 
   return (
     <div className="inbox">

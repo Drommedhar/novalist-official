@@ -1,3 +1,5 @@
+import type { MenuNode, MenuLabels } from '../shared/menuProtocol'
+export type { MenuNode, MenuLabels } from '../shared/menuProtocol'
 import { app, BrowserWindow, Menu, shell, type MenuItemConstructorOptions } from 'electron'
 
 // Mac App Store build: the store delivers updates and self-update is disabled, so
@@ -8,42 +10,6 @@ const isMas = (process as NodeJS.Process & { mas?: boolean }).mas === true
 function sendCommand(command: string): void {
   const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
   win?.webContents.send('novalist:menu-command', command)
-}
-
-/**
- * A node in the menu the renderer describes. Mirrors `MenuNode` in
- * shell/menuLayout.ts; the two sit on opposite sides of an IPC boundary, so
- * they are two declarations of one contract rather than one shared type.
- */
-export type MenuNode =
-  | { kind: 'separator' }
-  | { kind: 'role'; role: string; label: string }
-  | { kind: 'command'; id: string; label: string; accelerator?: string; enabled: boolean }
-  | { kind: 'submenu'; label: string; items: MenuNode[] }
-
-/**
- * Labels for the menus this side builds. Mirrors `MenuLabels` in menuLayout.ts.
- *
- * The behaviour of Window, quitting, the updater and About is the platform's
- * rather than Novalist's, so it stays here - but the words are the interface's,
- * and an English "Window" beside a German "Datei" is the sort of thing that
- * reads as an unfinished app.
- */
-export interface MenuLabels {
-  window: string
-  mainWindow: string
-  minimize: string
-  zoom: string
-  closeWindow: string
-  front: string
-  windowList: string
-  quit: string
-  about: string
-  hide: string
-  hideOthers: string
-  unhide: string
-  checkUpdates: string
-  github: string
 }
 
 /** What the menu says before the renderer has told us the writer's language. */
@@ -64,7 +30,7 @@ const BOOTSTRAP: MenuLabels = {
   github: 'Novalist on GitHub'
 }
 
-let showMainWindowFn: () => void = () => {}
+let showMainWindowFn: (() => void) | undefined
 
 function toItem(node: MenuNode): MenuItemConstructorOptions {
   if (node.kind === 'separator') return { type: 'separator' }
@@ -121,7 +87,7 @@ function windowMenu(name: string, labels: MenuLabels): MenuItemConstructorOption
       // window list below only names windows that exist, and closing the last
       // one does not quit on macOS, so without this the app can be running
       // with nothing to show and no menu item that brings it back.
-      { label: `${name} ${labels.mainWindow}`, click: () => showMainWindowFn() },
+      { label: `${name} ${labels.mainWindow}`, click: () => showMainWindowFn?.() },
       { type: 'separator' },
       { role: 'minimize', label: labels.minimize },
       { role: 'zoom', label: labels.zoom },

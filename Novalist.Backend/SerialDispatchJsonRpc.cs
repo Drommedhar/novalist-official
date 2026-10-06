@@ -47,8 +47,8 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
             typeof(JsonRpcMethodAttribute), inherit: true)
             .Cast<JsonRpcMethodAttribute>())
         .Select(attribute => attribute.Name)
+        .OfType<string>()
         .Where(name => !string.IsNullOrEmpty(name))
-        .Select(name => name!)
         .ToHashSet(StringComparer.Ordinal);
 
     /// <summary>
@@ -124,14 +124,6 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         // it works in the extension's own folder - so there is nothing here for
         // the gate to protect.
         "voiceEngines/prepare",
-        // Designing a voice is the same wait wearing a different name. The
-        // first one loads a model the reading has not needed yet - gigabytes,
-        // fetched then - and every one after it is tens of seconds inside a
-        // model that cannot be interrupted. Only "prepare" was listed here, so
-        // the wait nobody had been warned about was the one that held
-        // everything: no scene saved and no view opened for the whole download.
-        // It writes only into the voice store, which nothing else touches while
-        // a design is in flight.
         "voiceEngines/design",
         "voiceEngines/audition",
         "narration/designNarrator",
@@ -204,8 +196,8 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         try
         {
             _coordinator?.Validate(identity, request.Method);
-            if (_coordinator != null && WorkspaceCoordinator.ChangesWorkspace(request.Method))
-                return await _coordinator.RunAsync(request.Method!, async () =>
+            if (_coordinator != null && request.Method is { } method && WorkspaceCoordinator.ChangesWorkspace(method))
+                return await _coordinator.RunAsync(method, async () =>
                     await base.DispatchRequestAsync(request, targetMethod, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
             return await base.DispatchRequestAsync(request, targetMethod, cancellationToken)
                 .ConfigureAwait(false);

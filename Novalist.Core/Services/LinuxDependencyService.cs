@@ -55,12 +55,20 @@ public static class LinuxDependencyService
 
     public static bool IsWebKitInstalled()
     {
+        // The existing synchronous API can be called with a UI context; run the process probe independently and bound how long ldconfig may hold it.
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        // aislop-ignore-next-line ai-slop/csharp-sync-over-async -- Retains the public synchronous detection contract; its cancellable probe runs without the caller's synchronization context.
+        return Task.Run(() => IsWebKitInstalledAsync(timeout.Token)).GetAwaiter().GetResult();
+    }
+
+    internal static async Task<bool> IsWebKitInstalledAsync(CancellationToken cancellationToken)
+    {
         // ldconfig answers "does the dynamic linker know about this SONAME"
         // which is exactly what dlopen would consult, so it's the most
         // reliable check across distros and arches.
         try
         {
-            var (_, output, _) = ProcessRunner.RunAsync("ldconfig", null, "-p").GetAwaiter().GetResult();
+            var (_, output, _) = await ProcessRunner.RunAsync("ldconfig", null, cancellationToken, "-p").ConfigureAwait(false);
             if (output.Contains(WebKitSoName, StringComparison.Ordinal))
                 return true;
         }

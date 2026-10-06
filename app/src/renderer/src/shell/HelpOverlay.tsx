@@ -367,6 +367,21 @@ export function HelpOverlay({ onClose, initialTarget }: HelpOverlayProps): React
           </button>
           <div className="help-content" ref={contentRef}>
             {current && (
+              <HelpArticle current={current} pages={pages} navigate={navigate} />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function HelpArticle({ current, pages, navigate }: {
+  current: ManualPage
+  pages: ManualPage[]
+  navigate: (target: ResolvedManualLink) => void
+}): React.JSX.Element {
+  return (
               <Markdown
                 remarkPlugins={[remarkGfm]}
                 components={{
@@ -448,10 +463,5 @@ export function HelpOverlay({ onClose, initialTarget }: HelpOverlayProps): React
               >
                 {current.content}
               </Markdown>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
   )
 }

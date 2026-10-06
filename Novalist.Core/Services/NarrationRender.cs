@@ -43,14 +43,9 @@ public static class NarrationRender
     /// Builds the request for a run of segments.
     /// </summary>
     /// <param name="segments">The reading, in order.</param>
-    /// <param name="sheet">Who is read in which voice.</param>
-    /// <param name="voices">Reference audio per voice id, for the voices this
-    /// machine actually has.</param>
-    /// <param name="features">What the engine says it can take.</param>
-    /// <param name="language">The book's language, BCP-47.</param>
+    /// <param name="context">Cast, available voice audio, engine capabilities,
+    /// book language, and optional voice or emotion references.</param>
     /// <param name="rate">Reading pace, 1 being the engine's own.</param>
-    /// <param name="clips">Emotion-reference clips by name, for the lines that
-    /// point at one. Empty on almost every render.</param>
     /// <param name="placeAt">Where in the book each segment is, by its index in
     /// <paramref name="segments"/>, so a voice the writer set for part of the
     /// book wins over the character's standing one. Null - and a null answer -
@@ -58,25 +53,20 @@ public static class NarrationRender
     /// character could sound like themselves at two different ages.</param>
     public static NarrationRequest Build(
         IReadOnlyList<NarrationSegment> segments,
-        VoiceCastSheet sheet,
-        IReadOnlyDictionary<string, byte[]> voices,
-        VoiceEngineFeatures features,
-        string language,
+        NarrationRenderContext context,
         double rate = 1.0,
-        IReadOnlyDictionary<string, byte[]>? clips = null,
-        Func<int, NarrationPlacement?>? placeAt = null,
-        IReadOnlyDictionary<string, string>? voiceReferenceTexts = null)
+        Func<int, NarrationPlacement?>? placeAt = null)
     {
         var sendable = new List<SdkSegment>(segments.Count);
         for (var index = 0; index < segments.Count; index++)
         {
             var segment = segments[index];
-            var voiceId = VoiceCast.Resolve(sheet, segment.SpeakerId, placeAt?.Invoke(index));
+            var voiceId = VoiceCast.Resolve(context.Cast, segment.SpeakerId, placeAt?.Invoke(index));
             // A segment with no voice, or one whose voice this machine does not
             // have, is left out rather than sent as something the engine will
             // refuse. The caller knows which keys it asked for and which came
             // back, so a gap is visible rather than silent.
-            if (voiceId == null || !voices.ContainsKey(voiceId))
+            if (voiceId == null || !context.Voices.ContainsKey(voiceId))
                 continue;
             if (string.IsNullOrWhiteSpace(segment.Text))
                 continue;
@@ -89,22 +79,22 @@ public static class NarrationRender
                 IsDialogue = segment.Kind == NarrationSegmentKind.Dialogue,
                 Direction = Direct(
                     segment.Direction,
-                    features,
-                    sheet.RegisterFor(segment.SpeakerId),
-                    Reference(segment.Direction, clips))
+                    context.Features,
+                    context.Cast.RegisterFor(segment.SpeakerId),
+                    Reference(segment.Direction, context.Clips))
             });
         }
 
         return new NarrationRequest
         {
             Segments = sendable,
-            Voices = voices,
-            VoiceReferenceTexts = voiceReferenceTexts == null
+            Voices = context.Voices,
+            VoiceReferenceTexts = context.VoiceReferenceTexts == null
                 ? new Dictionary<string, string>()
-                : voiceReferenceTexts
-                    .Where(pair => voices.ContainsKey(pair.Key))
+                : context.VoiceReferenceTexts
+                    .Where(pair => context.Voices.ContainsKey(pair.Key))
                     .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal),
-            Language = language,
+            Language = context.Language,
             Rate = rate
         };
     }
@@ -299,8 +289,8 @@ public static class NarrationRender
     public static IReadOnlyList<string> ClipsNeeded(IReadOnlyList<NarrationSegment> segments)
         => [.. segments
             .Select(s => s.Direction.ReferenceClip)
+            .OfType<string>()
             .Where(c => !string.IsNullOrWhiteSpace(c))
-            .Select(c => c!)
             .Distinct(StringComparer.Ordinal)];
 
     private static byte[]? Reference(
@@ -325,7 +315,7 @@ public static class NarrationRender
 
         return string.IsNullOrWhiteSpace(direction.Evidence)
             ? $"Read this {key}."
-            : $"Read this {key}, as though {direction.Evidence!.Trim()}.";
+            : $"Read this {key}, as though {direction.Evidence.Trim()}.";
     }
 
     /// <summary>

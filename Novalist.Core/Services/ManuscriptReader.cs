@@ -219,7 +219,7 @@ public static partial class ManuscriptReader
                 {
                     using var opfStream = opfEntry.Open();
                     var opf = XDocument.Load(opfStream);
-                    var baseDir = Path.GetDirectoryName(opfPath!)?.Replace('\\', '/') ?? string.Empty;
+                    var baseDir = Path.GetDirectoryName(opfPath)?.Replace('\\', '/') ?? string.Empty;
 
                     var manifest = opf.Descendants()
                         .Where(e => e.Name.LocalName == "item")

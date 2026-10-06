@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { rmSync } from 'node:fs'
+import { rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { launchApp, type Harness } from './harness'
 
@@ -29,39 +29,42 @@ const recents = (h: Harness): Promise<Recent[]> => h.rpc<Recent[]>('project/rece
 test('a project whose folder is gone drops off the recents list', async () => {
   test.setTimeout(180_000)
   const h = await launchApp('nl-recents-')
+  try {
+    await makeProject(h, 'Still Here')
+    const doomed = await makeProject(h, 'Deleted Later')
 
-  await makeProject(h, 'Still Here')
-  const doomed = await makeProject(h, 'Deleted Later')
+    expect((await recents(h)).map((r) => r.name).sort()).toEqual(['Deleted Later', 'Still Here'])
 
-  expect((await recents(h)).map((r) => r.name).sort()).toEqual(['Deleted Later', 'Still Here'])
+    // Closed first so nothing holds the folder open, then deleted the way a
+    // writer would: in the file manager, with Novalist none the wiser.
+    await h.page.evaluate(() => window.novalistStores.project.getState().closeProject())
+    // Windows can briefly retain a directory handle after the project closes.
+    await rm(doomed, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
 
-  // Closed first so nothing holds the folder open, then deleted the way a
-  // writer would: in the file manager, with Novalist none the wiser.
-  await h.page.evaluate(() => window.novalistStores.project.getState().closeProject())
-  rmSync(doomed, { recursive: true, force: true })
+    expect((await recents(h)).map((r) => r.name)).toEqual(['Still Here'])
 
-  expect((await recents(h)).map((r) => r.name)).toEqual(['Still Here'])
-
-  // And the welcome screen shows what the list says.
-  await h.page.evaluate(() => window.novalistStores.project.getState().loadRecents())
-  await expect(h.page.locator('.start-recent-card')).toHaveCount(1)
-  await expect(h.page.locator('.start-recent-card')).toHaveAttribute('aria-label', / — Still Here$/)
-  await expect(h.page.getByText('Deleted Later')).toHaveCount(0)
-
-  await h.close()
+    // And the welcome screen shows what the list says.
+    await h.page.evaluate(() => window.novalistStores.project.getState().loadRecents())
+    await expect(h.page.locator('.start-recent-card')).toHaveCount(1)
+    await expect(h.page.locator('.start-recent-card')).toHaveAttribute('aria-label', / — Still Here$/)
+    await expect(h.page.getByText('Deleted Later')).toHaveCount(0)
+  } finally {
+    await h.close()
+  }
 })
 
 test('a folder that is no longer a project drops off too', async () => {
   test.setTimeout(180_000)
   const h = await launchApp('nl-recents-gutted-')
+  try {
+    const root = await makeProject(h, 'Gutted')
+    await h.page.evaluate(() => window.novalistStores.project.getState().closeProject())
 
-  const root = await makeProject(h, 'Gutted')
-  await h.page.evaluate(() => window.novalistStores.project.getState().closeProject())
+    // The folder survives; what made it a project does not.
+    await rm(join(root, '.novalist'), { recursive: true, force: true })
 
-  // The folder survives; what made it a project does not.
-  rmSync(join(root, '.novalist'), { recursive: true, force: true })
-
-  expect(await recents(h)).toEqual([])
-
-  await h.close()
+    expect(await recents(h)).toEqual([])
+  } finally {
+    await h.close()
+  }
 })

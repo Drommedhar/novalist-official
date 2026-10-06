@@ -6,12 +6,6 @@ import { DEFAULT_LAYOUT, matchingLayout, useShellStore } from '../stores/shellSt
 /**
  * The arrangements of panes a writer named, and the way back to one pane.
  *
- * These used to be a dropdown on the main toolbar, beside the split and close
- * buttons - which put a control over the shape of the whole window on the bar
- * that belongs to the open project. Splitting the content area is the
- * application's business, so it moved to the View menu, and the named
- * arrangements came with it.
- *
  * Not the same thing as Workspace layouts, which remember panel widths and
  * which view you were in. This remembers how the content area was divided.
  */

@@ -504,6 +504,54 @@ public class HostServicesTests
         Assert.Equal("30", baseInfo.Age);
     }
 
+    [Theory]
+    [InlineData("g1", "s1", "scene")]
+    [InlineData("g1", null, "chapter")]
+    [InlineData("g2", null, "act")]
+    [InlineData(null, null, "base")]
+    public async Task GetCharacterDetailed_CollectionsFollowOverridePrecedence(
+        string? chapterGuid, string? sceneId, string expected)
+    {
+        var (host, _, projects, entities, _) = Build();
+        static CharacterOverride Override(string scope, string chapter = "", string scene = "") => new()
+        {
+            Act = "I", Chapter = chapter, Scene = scene,
+            CustomProperties = new() { ["origin"] = scope },
+            Relationships = [new() { Role = scope, Target = "Companion" }],
+            Sections = [new() { Title = scope, Content = "Details" }]
+        };
+        var character = new CharacterData
+        {
+            Id = "c1", Name = "Alice",
+            CustomProperties = new() { ["origin"] = "base" },
+            Relationships = [new() { Role = "base", Target = "Companion" }],
+            Sections = [new() { Title = "base", Content = "Details" }],
+            ChapterOverrides = [Override("scene", "Ch1", "Scene1"), Override("chapter", "Ch1"), Override("act")]
+        };
+        entities.LoadCharactersAsync().Returns(new List<CharacterData> { character });
+        projects.GetChaptersOrdered().Returns(new List<ChapterData>
+        {
+            new() { Guid = "g1", Title = "Ch1", Act = "I" },
+            new() { Guid = "g2", Title = "Ch2", Act = "I" }
+        });
+        projects.GetScenesForChapter("g1").Returns(new List<SceneData>
+        {
+            new() { Id = "s1", Title = "Scene1" }
+        });
+
+        var detail = Assert.IsType<CharacterDetailedInfo>(
+            await host.EntityService.GetCharacterDetailedAsync("c1", chapterGuid, sceneId));
+        Assert.Equal(expected, detail.CustomProperties["origin"]);
+        Assert.NotSame(character.CustomProperties, detail.CustomProperties);
+        var relationship = Assert.Single(detail.Relationships);
+        Assert.Equal(expected, relationship.Role);
+        Assert.Equal("Companion", relationship.TargetName);
+        Assert.Equal(string.Empty, relationship.Note);
+        var section = Assert.Single(detail.Sections);
+        Assert.Equal(expected, section.Title);
+        Assert.Equal("Details", section.Content);
+    }
+
     // -- scene analysis records --
 
     /// <summary>Real file/project services over a temp project, so the analysis

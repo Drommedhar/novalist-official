@@ -43,7 +43,8 @@ public sealed class ProjectRpc
         {
             await ProjectTemplates.ApplyAsync(_workspace.Projects, template);
         }
-        var root = _workspace.Projects.ProjectRoot!;
+        var root = _workspace.Projects.ProjectRoot
+            ?? throw new InvalidOperationException("The project was not created.");
         return await _workspace.OpenProjectAsync(root);
     }
 

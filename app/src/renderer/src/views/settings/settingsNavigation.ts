@@ -35,7 +35,6 @@ export const useSettingsNavigation = create<SettingsNavigationState>((set) => ({
     }))
 }))
 
-/** Settings-owned adapter used by shell navigation and contextual controls. */
 export function setSettingsDestination(destination: SettingsDestination): void {
   useSettingsNavigation.getState().setDestination(destination)
 }

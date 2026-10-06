@@ -22,7 +22,7 @@ public sealed class GitRpc
         _git = new GitService(_process);
     }
 
-    private async Task EnsureInitializedAsync()
+    private async Task<string> EnsureInitializedAsync()
     {
         var root = _workspace.Projects.ProjectRoot
             ?? throw new InvalidOperationException("No project open.");
@@ -32,6 +32,7 @@ public sealed class GitRpc
             _repoRoot = null;
             _initializedRoot = root;
         }
+        return root;
     }
 
     /// <summary>
@@ -40,11 +41,10 @@ public sealed class GitRpc
     /// </summary>
     private async Task<string?> EnsureRepoRootAsync()
     {
-        await EnsureInitializedAsync();
+        var root = await EnsureInitializedAsync();
         if (_repoRoot != null)
             return _repoRoot;
 
-        var root = _workspace.Projects.ProjectRoot!;
         var (exitCode, output, _) = await _process.RunAsync("git", root, "rev-parse", "--show-toplevel");
         if (exitCode == 0 && !string.IsNullOrWhiteSpace(output))
             _repoRoot = output.Trim().Replace('/', Path.DirectorySeparatorChar);
@@ -187,7 +187,6 @@ public sealed class GitRpc
             c.Sha, c.ShortSha, c.Author, c.Date.ToString("o"), c.Subject))];
     }
 
-    /// <summary>The paths one commit touched.</summary>
     [JsonRpcMethod("git/commitFiles")]
     public async Task<string[]> CommitFilesAsync(string sha)
     {
@@ -234,8 +233,7 @@ public sealed class GitRpc
     [JsonRpcMethod("git/init")]
     public async Task<string?> InitAsync()
     {
-        await EnsureInitializedAsync();
-        var root = _workspace.Projects.ProjectRoot!;
+        var root = await EnsureInitializedAsync();
         var error = await _git.InitRepositoryAsync(root);
         // The cached repo root was resolved before the repository existed.
         if (error == null) _repoRoot = null;

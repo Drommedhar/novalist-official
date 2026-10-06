@@ -19,6 +19,14 @@ declare module 'virtual:novalist-manual-images' {
 }
 
 interface Window {
+  HybridWebView?: { SendRawMessage?: (message: string) => void }
+  __novalistRecv?: (base64: string) => void
+  __novalistHostResult?: (base64: string) => void
+  __novalistLayout?: (mode: string) => void
+  __novalistTab?: (key: string) => void
+  __novalistPlanSelect?: (index: number) => void
+  __novalistPlanDismiss?: () => void
+  __novalistSidebarCollapsed?: (collapsed: boolean) => void
   novalistStores: {
     project: typeof import('./stores/projectStore').useProjectStore
     shell: typeof import('./stores/shellStore').useShellStore
@@ -154,8 +162,6 @@ interface Window {
     /** Repaints the system window controls to match the theme. Desktop only;
      *  a no-op on macOS and on the mobile build. */
     setTitleBarColors?(color: string, symbolColor: string): void
-    /** Replaces the application menu with the one the command registry
-     *  describes. Desktop only; the mobile build has no menu bar. */
     setMenu?(
       nodes: import('./shell/menuLayout').MenuNode[],
       labels: import('./shell/menuLayout').MenuLabels

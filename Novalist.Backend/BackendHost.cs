@@ -10,7 +10,7 @@ namespace Novalist.Backend;
 /// RPC facades. stdout framing is LSP-style (Content-Length headers) so the
 /// renderer can use vscode-jsonrpc unchanged.
 /// </summary>
-public sealed class BackendHost : IDisposable
+public sealed class BackendHost : IDisposable, IAsyncDisposable
 {
     private readonly TaskCompletionSource _shutdownRequested =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -69,6 +69,42 @@ public sealed class BackendHost : IDisposable
         var targetOptions = new JsonRpcTargetOptions { DisposeOnDisconnect = false };
         rpc.AddLocalRpcTarget(new WorkspaceCoordinationRpc(coordinator), targetOptions);
         rpc.AddLocalRpcTarget(new SystemRpc(RequestShutdown), targetOptions);
+        AttachProjectTargets(rpc, targetOptions);
+        AttachWritingTargets(rpc, targetOptions);
+        AttachToolTargets(rpc, targetOptions);
+        Extensions.HostNotifications.Error = message =>
+            _ = rpc.NotifyAsync("ui/showNotification", message);
+        // Route imperative host-service UI capabilities (toasts, busy-progress,
+        // wizards) out to the renderer as ui/* notifications.
+        _workspace.UiBridge.Notifier = (method, payload) => rpc.NotifyAsync(method, payload);
+        ExtensionsRpc.WebviewPosted = (extensionId, viewKey, json) =>
+            _ = rpc.NotifyAsync("extensions/webviewPosted", extensionId, viewKey, json);
+        // Which line the speech engine is on, pushed as it happens. A render
+        // window is one request and one answer, so the page would otherwise
+        // learn nothing until the whole window was done.
+        Rpc.VoiceEngineRpc.Making = making =>
+            _ = rpc.NotifyAsync("narration/making", making);
+        Rpc.VoiceEngineRpc.AudioChunk = chunk =>
+            _ = rpc.NotifyAsync("narration/audioChunk", chunk);
+        // Themes, Locales and Analysis were read once at startup and a restart
+        // was needed after any change - which is the wrong loop for something a
+        // writer iterates on. The renderer reloads the folders it is told about.
+        _workspace.UserAssets.EnsureDirectories();
+        _assetWatch = new Core.Services.AssetWatchService(
+            new Dictionary<Core.Services.UserAssetKind, string>
+            {
+                [Core.Services.UserAssetKind.Themes] = _workspace.UserAssets.ThemesDirectory,
+                [Core.Services.UserAssetKind.Locales] = _workspace.UserAssets.LocalesDirectory,
+                [Core.Services.UserAssetKind.Analysis] = _workspace.UserAssets.AnalysisDirectory
+            },
+            changed => rpc.NotifyAsync("appearance/assetsChanged", AssetsChanged(changed)));
+        rpc.StartListening();
+        _rpc = rpc;
+        return rpc;
+    }
+
+    private void AttachProjectTargets(JsonRpc rpc, JsonRpcTargetOptions targetOptions)
+    {
         rpc.AddLocalRpcTarget(new ProjectRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ScenesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new BinderRpc(_workspace), targetOptions);
@@ -86,6 +122,10 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new EntitiesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new WikiRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ContextRpc(_workspace), targetOptions);
+    }
+
+    private void AttachWritingTargets(JsonRpc rpc, JsonRpcTargetOptions targetOptions)
+    {
         rpc.AddLocalRpcTarget(new DialogueRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new NarrationRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new VoiceEngineRpc(_workspace), targetOptions);
@@ -112,6 +152,10 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new SuggestionsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new StyleRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ReviewRpc(_workspace), targetOptions);
+    }
+
+    private void AttachToolTargets(JsonRpc rpc, JsonRpcTargetOptions targetOptions)
+    {
         rpc.AddLocalRpcTarget(new CanvasRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SceneBulkRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SpellRpc(_workspace), targetOptions);
@@ -153,35 +197,6 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new ExtensionContribRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ExtensionStoreRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new UiBridgeRpc(_workspace), targetOptions);
-        Extensions.HostNotifications.Error = message =>
-            _ = rpc.NotifyAsync("ui/showNotification", message);
-        // Route imperative host-service UI capabilities (toasts, busy-progress,
-        // wizards) out to the renderer as ui/* notifications.
-        _workspace.UiBridge.Notifier = (method, payload) => rpc.NotifyAsync(method, payload);
-        ExtensionsRpc.WebviewPosted = (extensionId, viewKey, json) =>
-            _ = rpc.NotifyAsync("extensions/webviewPosted", extensionId, viewKey, json);
-        // Which line the speech engine is on, pushed as it happens. A render
-        // window is one request and one answer, so the page would otherwise
-        // learn nothing until the whole window was done.
-        Rpc.VoiceEngineRpc.Making = making =>
-            _ = rpc.NotifyAsync("narration/making", making);
-        Rpc.VoiceEngineRpc.AudioChunk = chunk =>
-            _ = rpc.NotifyAsync("narration/audioChunk", chunk);
-        // Themes, Locales and Analysis were read once at startup and a restart
-        // was needed after any change - which is the wrong loop for something a
-        // writer iterates on. The renderer reloads the folders it is told about.
-        _workspace.UserAssets.EnsureDirectories();
-        _assetWatch = new Core.Services.AssetWatchService(
-            new Dictionary<Core.Services.UserAssetKind, string>
-            {
-                [Core.Services.UserAssetKind.Themes] = _workspace.UserAssets.ThemesDirectory,
-                [Core.Services.UserAssetKind.Locales] = _workspace.UserAssets.LocalesDirectory,
-                [Core.Services.UserAssetKind.Analysis] = _workspace.UserAssets.AnalysisDirectory
-            },
-            changed => rpc.NotifyAsync("appearance/assetsChanged", AssetsChanged(changed)));
-        rpc.StartListening();
-        _rpc = rpc;
-        return rpc;
     }
 
     /// <summary>Runs until the peer disconnects or a shutdown request arrives.</summary>
@@ -221,6 +236,14 @@ public sealed class BackendHost : IDisposable
     {
         _assetWatch?.Dispose();
         _importApi.Dispose();
+        _rpc?.Dispose();
+        _workspace.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _assetWatch?.Dispose();
+        await _importApi.DisposeAsync().ConfigureAwait(false);
         _rpc?.Dispose();
         _workspace.Dispose();
     }

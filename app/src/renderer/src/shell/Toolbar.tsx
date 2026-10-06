@@ -21,7 +21,7 @@ import { chromeForView } from './modes'
  * them, and finding something in them.
  */
 // placement-container: projectBar
-export function Toolbar(): React.JSX.Element {
+function useToolbarState() {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
   const shellCapacity = useShellStore((s) => s.shellCapacity)
@@ -80,6 +80,12 @@ export function Toolbar(): React.JSX.Element {
       <option value="__new__">{t('draft.add')}</option>
     </select>
   )
+
+  return { isMac, uiScale, t, projectName, showSelectors, books, bookSelect, drafts, draftSelect, wide, activeDraft, isLoaded, chrome, compact, chapters }
+}
+
+export function Toolbar(): React.JSX.Element {
+  const { isMac, uiScale, t, projectName, showSelectors, books, bookSelect, drafts, draftSelect, wide, activeDraft, isLoaded, chrome, compact, chapters } = useToolbarState()
 
   return (
     <header

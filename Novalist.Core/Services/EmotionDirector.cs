@@ -3,6 +3,15 @@ using Novalist.Core.Models;
 
 namespace Novalist.Core.Services;
 
+/// <summary>Evidence surrounding a spoken line; the following tag takes precedence over the preceding tag, then the scene emotion.</summary>
+public sealed record EmotionDirectionContext
+{
+    public string? ContextAfter { get; init; }
+    public string? ContextBefore { get; init; }
+    public string? SceneEmotion { get; init; }
+    public int? SceneIntensity { get; init; }
+}
+
 /// <summary>
 /// What a segment's direction was worked out from. Ordered weakest to
 /// strongest, the same way <see cref="DialogueConfidence"/> is, so the view can
@@ -22,7 +31,6 @@ public enum DirectionSource
     /// statement about delivery the writer already made.</summary>
     Verb,
 
-    /// <summary>The writer directed this line by hand.</summary>
     Writer
 }
 
@@ -191,26 +199,20 @@ public static class EmotionDirector
     /// <param name="writerKey">A direction set by hand on this line. Wins
     /// outright; a blank string means the writer explicitly cleared the line and
     /// wants it read plainly, which is different from never having said.</param>
-    /// <param name="contextAfter">The prose after the quote - where a dialogue
-    /// tag usually sits, so it is read first.</param>
-    /// <param name="contextBefore">The prose before it, read second.</param>
-    /// <param name="sceneEmotion">The scene's emotion field, or null.</param>
-    /// <param name="sceneIntensity">The scene's -10..10 intensity, or null.</param>
+    /// <param name="context">Surrounding prose and scene-level emotion. The
+    /// following dialogue tag is considered before the preceding tag.</param>
     /// <param name="magnitude">Scales the whole vector. <see cref="NarrationMagnitude"/>
     /// for narration; 1 for a spoken line.</param>
     public static VoiceDirection Resolve(
         string? writerKey,
-        string? contextAfter,
-        string? contextBefore,
-        string? sceneEmotion,
-        int? sceneIntensity,
+        EmotionDirectionContext context,
         DirectionLanguage language,
         double magnitude = 1.0)
     {
         // The writer had the last word, including when the word was "plainly".
         if (writerKey != null)
         {
-            var code = DirectionCodec.Decode(writerKey)!;
+            var code = DirectionCodec.Decode(writerKey);
 
             // Sliders they pushed themselves are the numbers, untouched. Not
             // scaled by the scene's intensity and not reduced for narration:
@@ -231,25 +233,25 @@ public static class EmotionDirector
                     NeutralKey, Vector(NeutralKey, null, magnitude), DirectionSource.Writer,
                     null, code.ReferenceClip)
                 : new VoiceDirection(
-                    code.Key, Vector(code.Key, sceneIntensity, magnitude), DirectionSource.Writer,
+                    code.Key, Vector(code.Key, context.SceneIntensity, magnitude), DirectionSource.Writer,
                     null, code.ReferenceClip);
         }
 
         // The tag follows the quote far more often than it precedes it, and when
         // both carry a verb the following one is the one attached to this line.
-        var verb = MatchVerb(contextAfter, language) ?? MatchVerb(contextBefore, language);
+        var verb = MatchVerb(context.ContextAfter, language) ?? MatchVerb(context.ContextBefore, language);
         if (verb != null)
         {
             return new VoiceDirection(
                 verb.Value.Emotion,
-                Vector(verb.Value.Emotion, sceneIntensity, magnitude),
+                Vector(verb.Value.Emotion, context.SceneIntensity, magnitude),
                 DirectionSource.Verb,
                 verb.Value.Verb);
         }
 
-        var scene = sceneEmotion?.Trim();
+        var scene = context.SceneEmotion?.Trim();
         if (!string.IsNullOrEmpty(scene))
-            return new VoiceDirection(scene, Vector(scene, sceneIntensity, magnitude), DirectionSource.Scene);
+            return new VoiceDirection(scene, Vector(scene, context.SceneIntensity, magnitude), DirectionSource.Scene);
 
         return new VoiceDirection(NeutralKey, Vector(NeutralKey, null, magnitude), DirectionSource.None);
     }

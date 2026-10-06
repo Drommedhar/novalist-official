@@ -150,34 +150,20 @@ export function SnapshotsDialog({
           <>
             <p className="dialog-empty">{t('snapshots.pruneDesc')}</p>
             <div className="snapshot-scope">
-              <button
-                className="dialog-inline-button"
-                onClick={() =>
-                  void rpc
-                    .request<number>('snapshots/prune', [5, 0, true])
-                    .then((count) => {
-                      setPruned(count)
-                      loadAll()
-                    })
-                }
-              >
-                <Trash2 size={13} strokeWidth={2} />
-                {t('snapshots.pruneKeepFive')}
-              </button>
-              <button
-                className="dialog-inline-button"
-                onClick={() =>
-                  void rpc
-                    .request<number>('snapshots/prune', [0, 90, true])
-                    .then((count) => {
-                      setPruned(count)
-                      loadAll()
-                    })
-                }
-              >
-                <Trash2 size={13} strokeWidth={2} />
-                {t('snapshots.pruneOld')}
-              </button>
+              {[
+                { keep: 5, days: 0, label: 'snapshots.pruneKeepFive' },
+                { keep: 0, days: 90, label: 'snapshots.pruneOld' }
+              ].map(({ keep, days, label }) => (
+                <button
+                  key={label}
+                  className="dialog-inline-button"
+                  onClick={() => void rpc.request<number>('snapshots/prune', [keep, days, true])
+                    .then((count) => { setPruned(count); loadAll() })}
+                >
+                  <Trash2 size={13} strokeWidth={2} />
+                  {t(label)}
+                </button>
+              ))}
             </div>
             {/* One Replace All over a long book snapshots every scene it
                 touches, and those are the ones that pile up. Each run labels

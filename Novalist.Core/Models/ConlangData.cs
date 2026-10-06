@@ -8,7 +8,6 @@ public sealed class ConlangWord
     [JsonPropertyName("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
-    /// <summary>The word as it is written in the language.</summary>
     [JsonPropertyName("word")]
     public string Word { get; set; } = string.Empty;
 

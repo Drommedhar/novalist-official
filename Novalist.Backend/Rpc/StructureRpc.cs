@@ -102,16 +102,15 @@ public sealed class StructureRpc
             DisplayName = name,
             Description = (template.Description ?? string.Empty).Trim(),
             Beats = [.. (template.Beats ?? [])
-                .Where(b => !string.IsNullOrWhiteSpace(b.Title))
-                .Select(b => new StoryStructureBeat
+                .Select(b => string.IsNullOrWhiteSpace(b.Title) ? null : new StoryStructureBeat
                 {
                     Key = (b.Key ?? string.Empty).Trim(),
-                    Title = b.Title!.Trim(),
+                    Title = b.Title.Trim(),
                     Description = (b.Description ?? string.Empty).Trim(),
                     // A beat outside the manuscript cannot be drifted from.
                     TargetPercent = Math.Clamp(b.TargetPercent, 0, 100),
-                    CategoryId = string.IsNullOrWhiteSpace(b.CategoryId) ? "plot" : b.CategoryId!.Trim()
-                })]
+                    CategoryId = string.IsNullOrWhiteSpace(b.CategoryId) ? "plot" : b.CategoryId.Trim()
+                }).OfType<StoryStructureBeat>()]
         };
 
         var index = project.CustomStructures.FindIndex(

@@ -14,7 +14,6 @@ public sealed class SnapshotInfo
     public int WordCount { get; init; }
 }
 
-/// <summary>A file inside the project folder.</summary>
 public sealed class ProjectFileInfo
 {
     /// <summary>Path relative to the project root, with forward slashes.</summary>

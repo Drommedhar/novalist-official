@@ -163,7 +163,8 @@ public sealed class SystemVoices : ISystemVoices
         // is speaking from.
         _voice ??= Activator.CreateInstance(
             Type.GetTypeFromProgID("SAPI.SpVoice")
-            ?? throw new NotSupportedException("No SAPI on this machine."))!;
+            ?? throw new NotSupportedException("No SAPI on this machine."))
+            ?? throw new NotSupportedException("Could not create the SAPI voice.");
         return _voice;
     }
 }

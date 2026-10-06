@@ -84,86 +84,41 @@ function resolveProjectPath(target: string): string | null {
   return resolved === normalize(root) || resolved.startsWith(join(root, sep)) ? resolved : null
 }
 
-/** Native file/folder pickers, exposed to the renderer through the preload bridge. */
-export function registerDialogHandlers(): void {
-  if (isSandboxedMas) {
-    void initializeManuscriptStaging().catch((error: unknown) => {
-      const reason = stagingFailureReason(error)
-      console.error(`[manuscript-import] staging failed stage=prepare reason=${reason}.`)
-    })
-  }
-
-  ipcMain.handle('novalist:open-external', async (_event, target: string) => {
-    if (/^https?:\/\//i.test(target)) {
-      await shell.openExternal(target)
-      return true
-    }
-    const resolved = resolveProjectPath(target)
-    if (!resolved) return false
-    return (await shell.openPath(resolved)) === ''
-  })
-
-  ipcMain.handle('novalist:reveal-path', (_event, target: string) => {
-    const resolved = resolveProjectPath(target)
-    if (!resolved) return false
-    shell.showItemInFolder(resolved)
-    return true
-  })
-
-  /**
-   * The clipboard is not the app's to spend under test.
-   *
-   * An e2e spec drove About's "Copy system information" and read the clipboard
-   * back to check it, so every run of the suite silently threw away whatever
-   * the person at the keyboard had copied - once, a page of notes taken while
-   * the suite ran. Almost everything a test can damage is inside a temporary
-   * directory; the system clipboard is not, and no amount of care in the specs
-   * makes it so. So the refusal lives here, where a spec cannot forget it, and
-   * what would have been copied is kept for the test to read instead.
-   */
-  ipcMain.on('novalist:copy-text', (_event, text: string) => {
-    if (process.env.NOVALIST_NO_CLIPBOARD === '1') {
-      ;(globalThis as unknown as { __copied?: string }).__copied = text
-      return
-    }
-    clipboard.writeText(text)
-  })
-
-  ipcMain.handle('novalist:read-clipboard-image', async () => {
-    const image = clipboard.readImage()
-    if (image.isEmpty()) return null
-    const { tmpdir } = await import('node:os')
-    const { writeFile } = await import('node:fs/promises')
-    const file = join(tmpdir(), `novalist-clip-${process.hrtime.bigint()}.png`)
-    await writeFile(file, image.toPNG())
-    return file
-  })
-
-  ipcMain.handle('novalist:pick-folder', async (event, title: string) => {
-    const win = BrowserWindow.fromWebContents(event.sender)
-    const result = await dialog.showOpenDialog(win!, {
-      title,
-      properties: ['openDirectory', 'createDirectory'],
-      // Only has effect in the Mac App Store build; ignored elsewhere. Lets us
-      // reopen this folder on a later launch under the sandbox.
+async function stagePickedManuscript(picked: string, win: BrowserWindow | null, scrivenerAccessTitle: string): Promise<string | null> {
+  // A direct .scrivx choice grants only that XML file under App Sandbox,
+  // while importing it also needs its sibling payload. Ask for its exact
+  // parent as an access grant, but return the original file so the reader
+  // never guesses between manifests.
+  if (extname(picked).toLowerCase() === '.scrivx') {
+    const projectRoot = dirname(picked)
+    const access = await dialog.showOpenDialog(win!, {
+      title: scrivenerAccessTitle,
+      defaultPath: dirname(projectRoot),
+      properties: ['openDirectory', 'treatPackageAsDirectory'],
       securityScopedBookmarks: true
     })
-    if (result.canceled || result.filePaths.length === 0) return null
-    const picked = result.filePaths[0]
-    saveBookmark(picked, result.bookmarks?.[0])
-    return picked
-  })
+    if (
+      access.canceled ||
+      access.filePaths.length === 0 ||
+      normalize(access.filePaths[0]) !== normalize(projectRoot)
+    ) {
+      return null
+    }
+    try {
+      return await stageManuscriptSource(picked, projectRoot)
+    } catch (error) {
+      throw manuscriptStagingError('project', error)
+    }
+  }
 
-  // Begin/end security-scoped access to a previously-picked project folder.
-  // Off the Mac App Store build these are trivial (always granted); on MAS they
-  // resolve the stored bookmark so the backend can read/write a project reopened
-  // from a stored path. Returning false lets the renderer re-prompt for access.
-  ipcMain.handle('novalist:begin-project-access', (_event, path: string) => beginAccess(path))
-  ipcMain.on('novalist:end-project-access', (_event, path: string) => endAccess(path))
-  ipcMain.handle('novalist:release-picked-file', (_event, path: string) =>
-    typeof path === 'string' ? releaseStagedManuscript(path) : undefined
-  )
+  try {
+    return await stageManuscriptSource(picked)
+  } catch (error) {
+    throw manuscriptStagingError('source', error)
+  }
+}
 
+function registerFilePicker(): void {
   ipcMain.handle(
     'novalist:pick-file',
     async (
@@ -220,46 +175,45 @@ export function registerDialogHandlers(): void {
       const picked = result.filePaths[0]
       if (mode !== 'manuscript' || !isSandboxedMas) return picked
 
-      // A direct .scrivx choice grants only that XML file under App Sandbox,
-      // while importing it also needs its sibling payload. Ask for its exact
-      // parent as an access grant, but return the original file so the reader
-      // never guesses between manifests.
-      if (extname(picked).toLowerCase() === '.scrivx') {
-        const projectRoot = dirname(picked)
-        const access = await dialog.showOpenDialog(win!, {
-          title: scrivenerAccessTitle,
-          defaultPath: dirname(projectRoot),
-          properties: ['openDirectory', 'treatPackageAsDirectory'],
-          securityScopedBookmarks: true
-        })
-        if (
-          access.canceled ||
-          access.filePaths.length === 0 ||
-          normalize(access.filePaths[0]) !== normalize(projectRoot)
-        ) {
-          return null
-        }
-        try {
-          return await stageManuscriptSource(picked, projectRoot)
-        } catch (error) {
-          throw manuscriptStagingError('project', error)
-        }
-      }
-
-      try {
-        return await stageManuscriptSource(picked)
-      } catch (error) {
-        throw manuscriptStagingError('source', error)
-      }
+      return stagePickedManuscript(picked, win, scrivenerAccessTitle)
     }
   )
 
-  ipcMain.handle('novalist:save-file', async (event, defaultName: string) => {
-    const win = BrowserWindow.fromWebContents(event.sender)
-    const result = await dialog.showSaveDialog(win!, { defaultPath: defaultName })
-    return result.canceled ? null : result.filePath
+}
+
+function registerClipboardHandlers(): void {
+  /**
+   * The clipboard is not the app's to spend under test.
+   *
+   * An e2e spec drove About's "Copy system information" and read the clipboard
+   * back to check it, so every run of the suite silently threw away whatever
+   * the person at the keyboard had copied - once, a page of notes taken while
+   * the suite ran. Almost everything a test can damage is inside a temporary
+   * directory; the system clipboard is not, and no amount of care in the specs
+   * makes it so. So the refusal lives here, where a spec cannot forget it, and
+   * what would have been copied is kept for the test to read instead.
+   */
+  ipcMain.on('novalist:copy-text', (_event, text: string) => {
+    if (process.env.NOVALIST_NO_CLIPBOARD === '1') {
+      Object.assign(globalThis, { __copied: text })
+      return
+    }
+    clipboard.writeText(text)
   })
 
+  ipcMain.handle('novalist:read-clipboard-image', async () => {
+    const image = clipboard.readImage()
+    if (image.isEmpty()) return null
+    const { tmpdir } = await import('node:os')
+    const { writeFile } = await import('node:fs/promises')
+    const file = join(tmpdir(), `novalist-clip-${process.hrtime.bigint()}.png`)
+    await writeFile(file, image.toPNG())
+    return file
+  })
+
+}
+
+function registerCaptureHandler(): void {
   /**
    * Captures a rectangle of the window to a PNG.
    *
@@ -308,4 +262,68 @@ export function registerDialogHandlers(): void {
       }
     }
   )
+}
+
+/** Native file/folder pickers, exposed to the renderer through the preload bridge. */
+export function registerDialogHandlers(): void {
+  if (isSandboxedMas) {
+    void initializeManuscriptStaging().catch((error: unknown) => {
+      const reason = stagingFailureReason(error)
+      console.error(`[manuscript-import] staging failed stage=prepare reason=${reason}.`)
+    })
+  }
+
+  ipcMain.handle('novalist:open-external', async (_event, target: string) => {
+    if (/^https?:\/\//i.test(target)) {
+      await shell.openExternal(target)
+      return true
+    }
+    const resolved = resolveProjectPath(target)
+    if (!resolved) return false
+    return (await shell.openPath(resolved)) === ''
+  })
+
+  ipcMain.handle('novalist:reveal-path', (_event, target: string) => {
+    const resolved = resolveProjectPath(target)
+    if (!resolved) return false
+    shell.showItemInFolder(resolved)
+    return true
+  })
+
+  registerClipboardHandlers()
+
+  ipcMain.handle('novalist:pick-folder', async (event, title: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const result = await dialog.showOpenDialog(win!, {
+      title,
+      properties: ['openDirectory', 'createDirectory'],
+      // Only has effect in the Mac App Store build; ignored elsewhere. Lets us
+      // reopen this folder on a later launch under the sandbox.
+      securityScopedBookmarks: true
+    })
+    if (result.canceled || result.filePaths.length === 0) return null
+    const picked = result.filePaths[0]
+    saveBookmark(picked, result.bookmarks?.[0])
+    return picked
+  })
+
+  // Begin/end security-scoped access to a previously-picked project folder.
+  // Off the Mac App Store build these are trivial (always granted); on MAS they
+  // resolve the stored bookmark so the backend can read/write a project reopened
+  // from a stored path. Returning false lets the renderer re-prompt for access.
+  ipcMain.handle('novalist:begin-project-access', (_event, path: string) => beginAccess(path))
+  ipcMain.on('novalist:end-project-access', (_event, path: string) => endAccess(path))
+  ipcMain.handle('novalist:release-picked-file', (_event, path: string) =>
+    typeof path === 'string' ? releaseStagedManuscript(path) : undefined
+  )
+
+  registerFilePicker()
+
+  ipcMain.handle('novalist:save-file', async (event, defaultName: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const result = await dialog.showSaveDialog(win!, { defaultPath: defaultName })
+    return result.canceled ? null : result.filePath
+  })
+
+  registerCaptureHandler()
 }

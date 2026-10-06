@@ -18,6 +18,7 @@ public sealed class SystemMicrophone
     public async Task StopOnDisposeAsync()
     {
         try { await StopAsync(); }
+        // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Records shutdown failure type without exposing captured audio or transcript.
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[SystemMicrophone] stop failed: {ex.GetType().Name}"); }
     }
     private async Task<JsonElement> RequestAsync(string operation, CancellationToken token)

@@ -1,4 +1,5 @@
 using Novalist.Core.Services;
+using NSubstitute;
 using Novalist.Core.Tests.TestHelpers;
 using Xunit;
 
@@ -152,6 +153,41 @@ public class LinuxDependencyServiceTests : IDisposable
         LinuxDependencyService.ProcessRunner = new FakeProcessRunner(_ => (0, "", "")) { Throw = true };
         LinuxDependencyService.FileExists = _ => false;
         Assert.False(LinuxDependencyService.IsWebKitInstalled());
+    }
+
+    [Fact]
+    public void IsWebKitInstalled_ProbeHasCancellationAndDoesNotCaptureCallersContext()
+    {
+        var runner = Substitute.For<IProcessRunner>();
+        runner.RunAsync("ldconfig", null, Arg.Any<CancellationToken>(), "-p")
+            .Returns(call => ProbeAsync(call.Arg<CancellationToken>()));
+        LinuxDependencyService.ProcessRunner = runner;
+        var previous = SynchronizationContext.Current;
+        try
+        {
+            SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
+            Assert.True(LinuxDependencyService.IsWebKitInstalled());
+        }
+        finally { SynchronizationContext.SetSynchronizationContext(previous); }
+
+        static async Task<(int ExitCode, string Output, string Error)> ProbeAsync(CancellationToken token)
+        {
+            Assert.Null(SynchronizationContext.Current);
+            Assert.True(token.CanBeCanceled);
+            await Task.Yield();
+            return (0, "libwebkit2gtk-4.1.so.0", "");
+        }
+    }
+
+    [Fact]
+    public async Task IsWebKitInstalled_CancelledProbeUsesFilesystemResult()
+    {
+        var runner = Substitute.For<IProcessRunner>();
+        runner.RunAsync("ldconfig", null, Arg.Any<CancellationToken>(), "-p")
+            .Returns(call => Task.FromCanceled<(int, string, string)>(call.Arg<CancellationToken>()));
+        LinuxDependencyService.ProcessRunner = runner;
+        LinuxDependencyService.FileExists = _ => true;
+        Assert.True(await LinuxDependencyService.IsWebKitInstalledAsync(new CancellationToken(canceled: true)));
     }
 
     [Fact]

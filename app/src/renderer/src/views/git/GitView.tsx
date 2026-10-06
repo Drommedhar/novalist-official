@@ -52,38 +52,7 @@ function splitPath(relativePath: string): { dir: string; name: string } {
 }
 
 export function GitView(): React.JSX.Element {
-  const { t } = useTranslation()
-  const [status, setStatus] = useState<GitStatusDto | null | undefined>(undefined)
-  const [gitInstalled, setGitInstalled] = useState(true)
-  const [message, setMessage] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [feedback, setFeedback] = useState<string | null>(null)
-  const [confirmDiscard, setConfirmDiscard] = useState(false)
-  const [log, setLog] = useState<GitCommitDto[]>([])
-  const [openCommit, setOpenCommit] = useState<string | null>(null)
-  const [commitFiles, setCommitFiles] = useState<string[]>([])
-  const [diff, setDiff] = useState<{ path: string; text: string } | null>(null)
-  const [branches, setBranches] = useState<GitBranchDto[]>([])
-  const [newBranch, setNewBranch] = useState(false)
-
-  const refresh = useCallback(async (): Promise<void> => {
-    const result = await rpc.request<GitStatusDto | null>('git/status')
-    if (result === null) {
-      setGitInstalled(await rpc.request<boolean>('git/installed'))
-      setLog([])
-      setBranches([])
-    } else {
-      // The history is why a writer opens this view at all; loading it with
-      // the status means it is never a second click away.
-      setLog(await rpc.request<GitCommitDto[]>('git/log', [30]).catch(() => []))
-      setBranches(await rpc.request<GitBranchDto[]>('git/branches').catch(() => []))
-    }
-    setStatus(result)
-  }, [])
-
-  useEffect(() => {
-    void refresh()
-  }, [refresh])
+  const { t, status, gitInstalled, message, setMessage, busy, feedback, confirmDiscard, setConfirmDiscard, log, openCommit, commitFiles, diff, setDiff, branches, newBranch, setNewBranch, refresh, staged, unstaged, allPaths, unstagedPaths, mutate, act, openCommitFiles, showDiff, setBusy, setFeedback } = useGitRepository()
 
   if (status === undefined) {
     return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
@@ -115,96 +84,6 @@ export function GitView(): React.JSX.Element {
         {feedback && <p className="inspector-meta">{feedback}</p>}
       </div>
     )
-  }
-
-  const staged = status.changedFiles.filter((f) => f.isStaged)
-  const unstaged = status.changedFiles.filter((f) => !f.isStaged)
-  const allPaths = status.changedFiles.map((f) => f.relativePath)
-  const unstagedPaths = unstaged.map((f) => f.relativePath)
-
-  // Surfaces the backend error string only; refreshes on success.
-  const mutate = async (action: () => Promise<string | null>): Promise<void> => {
-    setBusy(true)
-    try {
-      const error = await action()
-      if (error) setFeedback(error)
-      await refresh()
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  // Shows a success message (or backend error) as feedback.
-  const act = async (
-    action: () => Promise<string | null>,
-    successMessage: string
-  ): Promise<void> => {
-    setBusy(true)
-    setFeedback(null)
-    try {
-      const error = await action()
-      setFeedback(error ?? successMessage)
-      await refresh()
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const renderFile = (file: GitFileDto): React.JSX.Element => {
-    const { dir, name } = splitPath(file.relativePath)
-    return (
-      <div key={file.relativePath} className="git-file-row">
-        <span className="git-file-status" data-status={file.status}>
-          {STATUS_LABEL[file.status] ?? file.status.slice(0, 1)}
-        </span>
-        <div className="git-file-main">
-          <span className="git-file-name">{name}</span>
-          {dir && <span className="git-file-dir">{dir}</span>}
-        </div>
-        {file.isStaged ? (
-          <button
-            className="git-file-action"
-            title={t('git.unstage')}
-            aria-label={t('git.unstage')}
-            disabled={busy}
-            onClick={() => void mutate(() => rpc.request('git/unstage', [[file.relativePath]]))}
-          >
-            <Minus size={14} strokeWidth={2} />
-          </button>
-        ) : (
-          <button
-            className="git-file-action"
-            title={t('git.stage')}
-            aria-label={t('git.stage')}
-            disabled={busy}
-            onClick={() => void mutate(() => rpc.request('git/stage', [[file.relativePath]]))}
-          >
-            <Plus size={14} strokeWidth={2} />
-          </button>
-        )}
-      </div>
-    )
-  }
-
-  const openCommitFiles = (sha: string): void => {
-    setDiff(null)
-    if (openCommit === sha) {
-      setOpenCommit(null)
-      setCommitFiles([])
-      return
-    }
-    setOpenCommit(sha)
-    void rpc
-      .request<string[]>('git/commitFiles', [sha])
-      .then(setCommitFiles)
-      .catch(() => setCommitFiles([]))
-  }
-
-  const showDiff = (sha: string | null, path: string): void => {
-    void rpc
-      .request<string>('git/diff', [sha, path])
-      .then((text) => setDiff({ path, text }))
-      .catch(() => setDiff({ path, text: '' }))
   }
 
   return (
@@ -254,86 +133,7 @@ export function GitView(): React.JSX.Element {
       </DesktopViewActions>
 
       <div className="git-workspace">
-        <div className="dashboard-card">
-          {status.changedFiles.length === 0 && <p className="codex-empty">{t('git.noChanges')}</p>}
-
-          {staged.length > 0 && (
-            <div className="git-section">
-              <div className="git-section-header">
-                <span className="git-section-title">{t('git.stagedChanges')}</span>
-                <button
-                  className="git-inline-btn"
-                  disabled={busy}
-                  onClick={() => void mutate(() => rpc.request('git/unstageAll'))}
-                >
-                  {t('git.unstageAll')}
-                </button>
-              </div>
-              {staged.map(renderFile)}
-            </div>
-          )}
-
-          {unstaged.length > 0 && (
-            <div className="git-section">
-              <div className="git-section-header">
-                <span className="git-section-title">{t('git.changedFiles')}</span>
-                <button
-                  className="git-inline-btn"
-                  disabled={busy}
-                  onClick={() => void mutate(() => rpc.request('git/stageAll'))}
-                >
-                  {t('git.stageAll')}
-                </button>
-              </div>
-              {unstaged.map(renderFile)}
-            </div>
-          )}
-
-          {status.changedFiles.length > 0 && (
-            <>
-              <textarea
-                className="dialog-input git-message-box"
-                placeholder={t('git.commitPlaceholder')}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
-              <div className="dialog-actions">
-                <button
-                  className="dialog-button danger"
-                  disabled={busy || unstagedPaths.length === 0}
-                  onClick={() => setConfirmDiscard(true)}
-                >
-                  <Undo2 size={13} strokeWidth={2} /> {t('git.discardUnstaged')}
-                </button>
-                <button
-                  className="dialog-button"
-                  disabled={busy || staged.length === 0 || message.trim().length === 0}
-                  onClick={() =>
-                    void act(
-                      () => rpc.request<string | null>('git/commitStaged', [message.trim()]),
-                      t('git.commitSuccess')
-                    ).then(() => setMessage(''))
-                  }
-                >
-                  {t('git.commitStaged')}
-                </button>
-                <button
-                  className="dialog-button primary"
-                  disabled={busy || message.trim().length === 0}
-                  onClick={() =>
-                    void act(
-                      () => rpc.request<string | null>('git/commit', [allPaths, message.trim()]),
-                      t('git.commitSuccess')
-                    ).then(() => setMessage(''))
-                  }
-                >
-                  {t('git.commitAll')}
-                </button>
-              </div>
-            </>
-          )}
-          {feedback && <p className="inspector-meta export-result">{feedback}</p>}
-        </div>
+        <GitChanges status={status} t={t} staged={staged} unstaged={unstaged} busy={busy} mutate={mutate} message={message} setMessage={setMessage} unstagedPaths={unstagedPaths} setConfirmDiscard={setConfirmDiscard} act={act} allPaths={allPaths} feedback={feedback} />
         <div className="dashboard-card">
           <div className="git-section-header">
             <span className="git-section-title">{t('git.branches')}</span>
@@ -357,38 +157,7 @@ export function GitView(): React.JSX.Element {
           </div>
         </div>
 
-        <div className="dashboard-card git-history-card">
-          <div className="git-section-header">
-            <span className="git-section-title">{t('git.history')}</span>
-          </div>
-          {log.length === 0 && <p className="codex-empty">{t('git.noHistory')}</p>}
-          {log.map((commit) => (
-            <div key={commit.sha}>
-              <button className="git-commit-row" onClick={() => openCommitFiles(commit.sha)}>
-                <span className="git-commit-subject">{commit.subject}</span>
-                <span className="git-commit-meta">
-                  {commit.shortSha} - {commit.author} - {new Date(commit.date).toLocaleDateString()}
-                </span>
-              </button>
-              {openCommit === commit.sha && (
-                <div className="git-commit-files">
-                  {commitFiles.length === 0 && (
-                    <p className="codex-empty">{t('git.noFilesInCommit')}</p>
-                  )}
-                  {commitFiles.map((path) => (
-                    <button
-                      key={path}
-                      className="git-commit-file"
-                      onClick={() => showDiff(commit.sha, path)}
-                    >
-                      {path}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+        <GitHistory t={t} log={log} openCommitFiles={openCommitFiles} openCommit={openCommit} commitFiles={commitFiles} showDiff={showDiff} />
       </div>
       {diff && (
         <div className="dashboard-card">
@@ -441,6 +210,254 @@ export function GitView(): React.JSX.Element {
           }}
         />
       )}
+    </div>
+  )
+}
+
+function useGitRepository() {
+  const { t } = useTranslation()
+  const [status, setStatus] = useState<GitStatusDto | null | undefined>(undefined)
+  const [gitInstalled, setGitInstalled] = useState(true)
+  const [message, setMessage] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [feedback, setFeedback] = useState<string | null>(null)
+  const [confirmDiscard, setConfirmDiscard] = useState(false)
+  const [log, setLog] = useState<GitCommitDto[]>([])
+  const [openCommit, setOpenCommit] = useState<string | null>(null)
+  const [commitFiles, setCommitFiles] = useState<string[]>([])
+  const [diff, setDiff] = useState<{ path: string; text: string } | null>(null)
+  const [branches, setBranches] = useState<GitBranchDto[]>([])
+  const [newBranch, setNewBranch] = useState(false)
+
+  const refresh = useCallback(async (): Promise<void> => {
+    const result = await rpc.request<GitStatusDto | null>('git/status')
+    if (result === null) {
+      setGitInstalled(await rpc.request<boolean>('git/installed'))
+      setLog([])
+      setBranches([])
+    } else {
+      // The history is why a writer opens this view at all; loading it with
+      // the status means it is never a second click away.
+      setLog(await rpc.request<GitCommitDto[]>('git/log', [30]).catch(() => []))
+      setBranches(await rpc.request<GitBranchDto[]>('git/branches').catch(() => []))
+    }
+    setStatus(result)
+  }, [])
+
+  useEffect(() => {
+    void refresh()
+  }, [refresh])
+
+  const staged = (status?.changedFiles ?? []).filter((f) => f.isStaged)
+  const unstaged = (status?.changedFiles ?? []).filter((f) => !f.isStaged)
+  const allPaths = (status?.changedFiles ?? []).map((f) => f.relativePath)
+  const unstagedPaths = unstaged.map((f) => f.relativePath)
+
+  const {mutate, act, openCommitFiles, showDiff} = createGitActions({setBusy, setFeedback, refresh, setDiff, openCommit, setOpenCommit, setCommitFiles})
+  return { t, status, gitInstalled, message, setMessage, busy, feedback, confirmDiscard, setConfirmDiscard, log, openCommit, commitFiles, diff, setDiff, branches, newBranch, setNewBranch, refresh, staged, unstaged, allPaths, unstagedPaths, mutate, act, openCommitFiles, showDiff, setBusy, setFeedback }
+}
+
+type GitViewState = ReturnType<typeof useGitRepository>
+
+interface GitActionContext {
+  setBusy(busy: boolean): void
+  setFeedback(feedback: string | null): void
+  refresh(): Promise<void>
+  setDiff(diff: { path: string; text: string } | null): void
+  openCommit: string | null
+  setOpenCommit(sha: string | null): void
+  setCommitFiles(files: string[]): void
+}
+
+function createGitActions({setBusy, setFeedback, refresh, setDiff, openCommit, setOpenCommit, setCommitFiles}: GitActionContext) {
+  // Surfaces the backend error string only; refreshes on success.
+  const mutate = async (action: () => Promise<string | null>): Promise<void> => {
+    setBusy(true)
+    try {
+      const error = await action()
+      if (error) setFeedback(error)
+      await refresh()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // Shows a success message (or backend error) as feedback.
+  const act = async (
+    action: () => Promise<string | null>,
+    successMessage: string
+  ): Promise<void> => {
+    setBusy(true)
+    setFeedback(null)
+    try {
+      const error = await action()
+      setFeedback(error ?? successMessage)
+      await refresh()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const openCommitFiles = (sha: string): void => {
+    setDiff(null)
+    if (openCommit === sha) {
+      setOpenCommit(null)
+      setCommitFiles([])
+      return
+    }
+    setOpenCommit(sha)
+    void rpc
+      .request<string[]>('git/commitFiles', [sha])
+      .then(setCommitFiles)
+      .catch(() => setCommitFiles([]))
+  }
+
+  const showDiff = (sha: string | null, path: string): void => {
+    void rpc
+      .request<string>('git/diff', [sha, path])
+      .then((text) => setDiff({ path, text }))
+      .catch(() => setDiff({ path, text: '' }))
+  }
+
+  return {mutate, act, openCommitFiles, showDiff}
+}
+
+function GitFileRow({ file, t, busy, mutate }: { file: GitFileDto; t: GitViewState['t']; busy: boolean; mutate: GitViewState['mutate'] }): React.JSX.Element {
+    const { dir, name } = splitPath(file.relativePath)
+    return (
+      <div key={file.relativePath} className="git-file-row">
+        <span className="git-file-status" data-status={file.status}>
+          {STATUS_LABEL[file.status] ?? file.status.slice(0, 1)}
+        </span>
+        <div className="git-file-main">
+          <span className="git-file-name">{name}</span>
+          {dir && <span className="git-file-dir">{dir}</span>}
+        </div>
+        {file.isStaged ? (
+          <button
+            className="git-file-action"
+            title={t('git.unstage')}
+            aria-label={t('git.unstage')}
+            disabled={busy}
+            onClick={() => void mutate(() => rpc.request('git/unstage', [[file.relativePath]]))}
+          >
+            <Minus size={14} strokeWidth={2} />
+          </button>
+        ) : (
+          <button
+            className="git-file-action"
+            title={t('git.stage')}
+            aria-label={t('git.stage')}
+            disabled={busy}
+            onClick={() => void mutate(() => rpc.request('git/stage', [[file.relativePath]]))}
+          >
+            <Plus size={14} strokeWidth={2} />
+          </button>
+        )}
+      </div>
+    )
+  }
+
+
+function GitChanges({ status, t, staged, unstaged, busy, mutate, message, setMessage, unstagedPaths, setConfirmDiscard, act, allPaths, feedback }: { status: NonNullable<GitViewState['status']>; t: GitViewState['t']; staged: GitViewState['staged']; unstaged: GitViewState['unstaged']; busy: GitViewState['busy']; mutate: GitViewState['mutate']; message: GitViewState['message']; setMessage: GitViewState['setMessage']; unstagedPaths: GitViewState['unstagedPaths']; setConfirmDiscard: GitViewState['setConfirmDiscard']; act: GitViewState['act']; allPaths: GitViewState['allPaths']; feedback: GitViewState['feedback'] }): React.JSX.Element {
+  return (
+    <div className="dashboard-card">
+      {status.changedFiles.length === 0 && <p className="codex-empty">{t('git.noChanges')}</p>}
+
+      {[
+        { files: staged, title: 'git.stagedChanges', action: 'git.unstageAll', method: 'git/unstageAll' },
+        { files: unstaged, title: 'git.changedFiles', action: 'git.stageAll', method: 'git/stageAll' }
+      ].map(({files, title, action, method}) => files.length > 0 && (
+        <div key={method} className="git-section">
+          <div className="git-section-header">
+            <span className="git-section-title">{t(title)}</span>
+            <button className="git-inline-btn" disabled={busy} onClick={() => void mutate(() => rpc.request(method))}>{t(action)}</button>
+          </div>
+          {files.map((file) => <GitFileRow key={file.relativePath} file={file} t={t} busy={busy} mutate={mutate} />)}
+        </div>
+      ))}
+
+      {status.changedFiles.length > 0 && (
+        <>
+          <textarea
+            className="dialog-input git-message-box"
+            placeholder={t('git.commitPlaceholder')}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+          <div className="dialog-actions">
+            <button
+              className="dialog-button danger"
+              disabled={busy || unstagedPaths.length === 0}
+              onClick={() => setConfirmDiscard(true)}
+            >
+              <Undo2 size={13} strokeWidth={2} /> {t('git.discardUnstaged')}
+            </button>
+            <button
+              className="dialog-button"
+              disabled={busy || staged.length === 0 || message.trim().length === 0}
+              onClick={() =>
+                void act(
+                  () => rpc.request<string | null>('git/commitStaged', [message.trim()]),
+                  t('git.commitSuccess')
+                ).then(() => setMessage(''))
+              }
+            >
+              {t('git.commitStaged')}
+            </button>
+            <button
+              className="dialog-button primary"
+              disabled={busy || message.trim().length === 0}
+              onClick={() =>
+                void act(
+                  () => rpc.request<string | null>('git/commit', [allPaths, message.trim()]),
+                  t('git.commitSuccess')
+                ).then(() => setMessage(''))
+              }
+            >
+              {t('git.commitAll')}
+            </button>
+          </div>
+        </>
+      )}
+      {feedback && <p className="inspector-meta export-result">{feedback}</p>}
+    </div>
+  )
+}
+
+function GitHistory({ t, log, openCommitFiles, openCommit, commitFiles, showDiff }: { t: GitViewState['t']; log: GitViewState['log']; openCommitFiles: GitViewState['openCommitFiles']; openCommit: GitViewState['openCommit']; commitFiles: GitViewState['commitFiles']; showDiff: GitViewState['showDiff'] }): React.JSX.Element {
+  return (
+    <div className="dashboard-card git-history-card">
+      <div className="git-section-header">
+        <span className="git-section-title">{t('git.history')}</span>
+      </div>
+      {log.length === 0 && <p className="codex-empty">{t('git.noHistory')}</p>}
+      {log.map((commit) => (
+        <div key={commit.sha}>
+          <button className="git-commit-row" onClick={() => openCommitFiles(commit.sha)}>
+            <span className="git-commit-subject">{commit.subject}</span>
+            <span className="git-commit-meta">
+              {commit.shortSha} - {commit.author} - {new Date(commit.date).toLocaleDateString()}
+            </span>
+          </button>
+          {openCommit === commit.sha && (
+            <div className="git-commit-files">
+              {commitFiles.length === 0 && (
+                <p className="codex-empty">{t('git.noFilesInCommit')}</p>
+              )}
+              {commitFiles.map((path) => (
+                <button
+                  key={path}
+                  className="git-commit-file"
+                  onClick={() => showDiff(commit.sha, path)}
+                >
+                  {path}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }

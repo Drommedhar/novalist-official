@@ -24,7 +24,7 @@ internal sealed class WorkspaceRequestIdentity(string owner, long epoch, string?
     }
 }
 
-/// <summary>A request may yield its serial lease while every window drains writes.</summary>
+/// <summary>Releases the serial gate during cross-window write draining; callers must reacquire it before resuming workspace mutations.</summary>
 internal sealed class WorkspaceGateLease(SemaphoreSlim gate)
 {
     internal bool Held { get; private set; } = true;

@@ -63,11 +63,11 @@ public sealed partial class ExposeService
     /// <summary>Writes the exposé and returns the counts for the saved text.</summary>
     public async Task<ExposeState> SaveAsync(string html)
     {
-        var path = GetExposePath();
-        if (path != null)
+        var root = _projectService.ActiveBookRoot;
+        if (!string.IsNullOrWhiteSpace(root))
         {
-            await _files.CreateDirectoryAsync(Path.GetDirectoryName(path)!);
-            await _files.WriteTextAsync(path, html ?? string.Empty);
+            await _files.CreateDirectoryAsync(root);
+            await _files.WriteTextAsync(Path.Combine(root, FileName), html ?? string.Empty);
         }
         return Describe(html ?? string.Empty);
     }

@@ -50,7 +50,7 @@ const BLANK: Word = {
  * writer either has the invented word and wants the meaning, or has the meaning
  * and wants to know whether there is already a word.
  */
-export function LanguagesView(): React.JSX.Element {
+function useLanguages() {
   const { t } = useTranslation()
   const rootRef = useRef<HTMLDivElement>(null)
   const [languages, setLanguages] = useState<Language[]>([])
@@ -122,6 +122,12 @@ export function LanguagesView(): React.JSX.Element {
     return w.word.toLowerCase().includes(text) || w.meaning.toLowerCase().includes(text)
   })
 
+  return { rootRef, selected, setAdding, setDraft, t, setSelectedId, languages, setRemoving, setLanguages, query, setQuery, shown, apply, elsewhere, draft, saveWord, adding, removing }
+}
+
+export function LanguagesView(): React.JSX.Element {
+  const { rootRef, selected, setAdding, setDraft, t, setSelectedId, languages, setRemoving, setLanguages, query, setQuery, shown, apply, elsewhere, draft, saveWord, adding, removing } = useLanguages()
+
   return (
     <div className="dashboard languages" ref={rootRef}>
       <DesktopViewActions>
@@ -184,120 +190,7 @@ export function LanguagesView(): React.JSX.Element {
             }}
           />
 
-          <div className="dashboard-card">
-            <div className="git-section-header">
-              <span className="git-section-title">
-                {t('languages.words', { count: selected.words.length })}
-              </span>
-            </div>
-
-            {/* Both directions: the word and the meaning. A search that only
-                read the word would be a glossary, not a dictionary. */}
-            <input
-              className="dialog-input"
-              placeholder={t('languages.searchPlaceholder')}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-
-            {shown.length === 0 ? (
-              <p className="codex-empty">
-                {t(query.trim() ? 'languages.noMatch' : 'languages.noWords')}
-              </p>
-            ) : (
-              <table className="plotgrid-table languages-table">
-                <thead>
-                  <tr>
-                    <th>{t('languages.word')}</th>
-                    <th>{t('languages.meaning')}</th>
-                    <th>{t('languages.partOfSpeech')}</th>
-                    <th>{t('languages.pronunciation')}</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {shown.map((word) => (
-                    <tr key={word.id}>
-                      <td>{word.word}</td>
-                      <td>{word.meaning}</td>
-                      <td>{word.partOfSpeech}</td>
-                      <td>{word.pronunciation}</td>
-                      <td className="languages-row-actions">
-                        <button className="dialog-button" onClick={() => setDraft(word)}>
-                          {t('dialog.edit')}
-                        </button>
-                        <button
-                          className="dialog-button"
-                          onClick={() =>
-                            void rpc
-                              .request<Language[]>('conlang/deleteWord', [selected.id, word.id])
-                              .then(apply)
-                          }
-                        >
-                          {t('explorer.contextDelete')}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-
-            {elsewhere.length > 0 && (
-              <div className="languages-elsewhere">
-                <span className="inspector-label">{t('languages.elsewhere')}</span>
-                {elsewhere.map((hit) => (
-                  <div key={`${hit.languageId}-${hit.word.id}`} className="languages-elsewhere-row">
-                    <button
-                      className="style-continuity-jump"
-                      onClick={() => setSelectedId(hit.languageId)}
-                    >
-                      {hit.languageName}
-                    </button>
-                    <span>
-                      {hit.word.word} - {hit.word.meaning}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* One row of fields rather than a dialog: coining words happens in
-                runs, and a dialog per word turns ten into thirty clicks. */}
-            <div className="languages-draft">
-              <input
-                className="dialog-input"
-                placeholder={t('languages.word')}
-                value={draft.word}
-                onChange={(e) => setDraft({ ...draft, word: e.target.value })}
-              />
-              <input
-                className="dialog-input"
-                placeholder={t('languages.meaning')}
-                value={draft.meaning}
-                onChange={(e) => setDraft({ ...draft, meaning: e.target.value })}
-              />
-              <input
-                className="dialog-input"
-                placeholder={t('languages.partOfSpeech')}
-                value={draft.partOfSpeech}
-                onChange={(e) => setDraft({ ...draft, partOfSpeech: e.target.value })}
-              />
-              <input
-                className="dialog-input"
-                placeholder={t('languages.pronunciation')}
-                value={draft.pronunciation}
-                onChange={(e) => setDraft({ ...draft, pronunciation: e.target.value })}
-              />
-              <button
-                className="dialog-button primary"
-                disabled={draft.word.trim().length === 0}
-                onClick={() => void saveWord()}
-              >
-                {draft.id ? t('dialog.save') : t('languages.addWord')}
-              </button>
-            </div>
-          </div>
+          <LanguageDictionary t={t} selected={selected} query={query} setQuery={setQuery} shown={shown} setDraft={setDraft} apply={apply} elsewhere={elsewhere} setSelectedId={setSelectedId} draft={draft} saveWord={saveWord} />
         </>
       )}
 
@@ -331,3 +224,124 @@ export function LanguagesView(): React.JSX.Element {
     </div>
   )
 }
+
+function LanguageDictionary({ t, selected, query, setQuery, shown, setDraft, apply, elsewhere, setSelectedId, draft, saveWord }: { t: LanguagesViewState['t']; selected: NonNullable<LanguagesViewState['selected']>; query: LanguagesViewState['query']; setQuery: LanguagesViewState['setQuery']; shown: LanguagesViewState['shown']; setDraft: LanguagesViewState['setDraft']; apply: LanguagesViewState['apply']; elsewhere: LanguagesViewState['elsewhere']; setSelectedId: LanguagesViewState['setSelectedId']; draft: LanguagesViewState['draft']; saveWord: LanguagesViewState['saveWord'] }): React.JSX.Element {
+  return (
+    <div className="dashboard-card">
+      <div className="git-section-header">
+        <span className="git-section-title">
+          {t('languages.words', { count: selected.words.length })}
+        </span>
+      </div>
+
+      {/* Both directions: the word and the meaning. A search that only
+          read the word would be a glossary, not a dictionary. */}
+      <input
+        className="dialog-input"
+        placeholder={t('languages.searchPlaceholder')}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+
+      {shown.length === 0 ? (
+        <p className="codex-empty">
+          {t(query.trim() ? 'languages.noMatch' : 'languages.noWords')}
+        </p>
+      ) : (
+        <table className="plotgrid-table languages-table">
+          <thead>
+            <tr>
+              <th>{t('languages.word')}</th>
+              <th>{t('languages.meaning')}</th>
+              <th>{t('languages.partOfSpeech')}</th>
+              <th>{t('languages.pronunciation')}</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {shown.map((word) => (
+              <tr key={word.id}>
+                <td>{word.word}</td>
+                <td>{word.meaning}</td>
+                <td>{word.partOfSpeech}</td>
+                <td>{word.pronunciation}</td>
+                <td className="languages-row-actions">
+                  <button className="dialog-button" onClick={() => setDraft(word)}>
+                    {t('dialog.edit')}
+                  </button>
+                  <button
+                    className="dialog-button"
+                    onClick={() =>
+                      void rpc
+                        .request<Language[]>('conlang/deleteWord', [selected.id, word.id])
+                        .then(apply)
+                    }
+                  >
+                    {t('explorer.contextDelete')}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {elsewhere.length > 0 && (
+        <div className="languages-elsewhere">
+          <span className="inspector-label">{t('languages.elsewhere')}</span>
+          {elsewhere.map((hit) => (
+            <div key={`${hit.languageId}-${hit.word.id}`} className="languages-elsewhere-row">
+              <button
+                className="style-continuity-jump"
+                onClick={() => setSelectedId(hit.languageId)}
+              >
+                {hit.languageName}
+              </button>
+              <span>
+                {hit.word.word} - {hit.word.meaning}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* One row of fields rather than a dialog: coining words happens in
+          runs, and a dialog per word turns ten into thirty clicks. */}
+      <div className="languages-draft">
+        <input
+          className="dialog-input"
+          placeholder={t('languages.word')}
+          value={draft.word}
+          onChange={(e) => setDraft({ ...draft, word: e.target.value })}
+        />
+        <input
+          className="dialog-input"
+          placeholder={t('languages.meaning')}
+          value={draft.meaning}
+          onChange={(e) => setDraft({ ...draft, meaning: e.target.value })}
+        />
+        <input
+          className="dialog-input"
+          placeholder={t('languages.partOfSpeech')}
+          value={draft.partOfSpeech}
+          onChange={(e) => setDraft({ ...draft, partOfSpeech: e.target.value })}
+        />
+        <input
+          className="dialog-input"
+          placeholder={t('languages.pronunciation')}
+          value={draft.pronunciation}
+          onChange={(e) => setDraft({ ...draft, pronunciation: e.target.value })}
+        />
+        <button
+          className="dialog-button primary"
+          disabled={draft.word.trim().length === 0}
+          onClick={() => void saveWord()}
+        >
+          {draft.id ? t('dialog.save') : t('languages.addWord')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+type LanguagesViewState = ReturnType<typeof useLanguages>

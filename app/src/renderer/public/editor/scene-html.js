@@ -10,7 +10,7 @@ for (let owner = window; owner; owner = Object.getPrototypeOf(owner)) {
 // these frames, so preserve only those IDs while retaining DOMPurify's document
 // clobbering protection and all name-attribute checks. The pristine objects and
 // window snapshot keep a second pass from rejecting IDs inserted by the first.
-DOMPurify.addHook('uponSanitizeAttribute', (node, attribute, config) => {
+window.DOMPurify.addHook('uponSanitizeAttribute', (node, attribute, config) => {
     if (node.namespaceURI === 'http://www.w3.org/1999/xhtml'
         && attribute.attrName === 'id'
         && attribute.attrValue in sceneHtmlForm
@@ -22,8 +22,8 @@ DOMPurify.addHook('uponSanitizeAttribute', (node, attribute, config) => {
     }
 });
 
-function sanitizeSceneHtml(html) {
-    return DOMPurify.sanitize(html || '', {
+function sceneSanitizerOptions() {
+    return {
         USE_PROFILES: { html: true },
         // Preserve formatting and Novalist's data-* annotations, while keeping
         // project content from adding controls or document-wide styles.
@@ -32,9 +32,30 @@ function sanitizeSceneHtml(html) {
         // DOMPurify's default safe schemes plus the app's read-only resources.
         // Unknown protocols remain blocked, including javascript: and data:
         // links (DOMPurify separately permits data images on image elements).
-        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix|novalist|novalist-project|novalist-asset|novalist-audio):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix|novalist|novalist-project|novalist-asset|novalist-audio):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i
+    };
+}
+
+function sanitizeSceneHtml(html) {
+    return window.DOMPurify.sanitize(html || '', sceneSanitizerOptions());
+}
+
+function sanitizeSceneFragment(html) {
+    return window.DOMPurify.sanitize(html || '', {
+        ...sceneSanitizerOptions(),
+        RETURN_DOM_FRAGMENT: true
     });
 }
+
+Object.assign(window, { sanitizeSceneHtml, sanitizeSceneFragment });
+
+window.applyFrameTheme = function (colors, properties) {
+    properties.forEach((property, index) => {
+        if (index < 2 || colors[index]) {
+            document.documentElement.style.setProperty(property, colors[index]);
+        }
+    });
+};
 
 // Native rich-text drops bypass the paste handler. Keep in-editor moves native
 // (including their undo history), but sanitize HTML arriving from other pages.

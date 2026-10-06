@@ -53,7 +53,6 @@ public sealed class VoiceOverride
     /// <summary>The scene's title, or blank for the whole chapter.</summary>
     public string? Scene { get; set; }
 
-    /// <summary>The voice to read them in over that stretch.</summary>
     public string VoiceId { get; set; } = string.Empty;
 }
 
@@ -76,11 +75,12 @@ public sealed record VoiceScope(string? Act, string? Chapter, string? Scene)
     /// it, so two writers of the same scope produce one override rather than
     /// two.</summary>
     public VoiceScope Trimmed() => new(
-        Blank(Act) ? null : Act!.Trim(),
-        Blank(Chapter) ? string.Empty : Chapter!.Trim(),
-        Blank(Scene) ? null : Scene!.Trim());
+        Blank(Act) ? null : Act.Trim(),
+        Blank(Chapter) ? string.Empty : Chapter.Trim(),
+        Blank(Scene) ? null : Scene.Trim());
 
-    private static bool Blank(string? value) => string.IsNullOrWhiteSpace(value);
+    private static bool Blank([System.Diagnostics.CodeAnalysis.NotNullWhen(false)] string? value)
+        => string.IsNullOrWhiteSpace(value);
 }
 
 public sealed class VoiceCastSheet

@@ -83,13 +83,11 @@ public static class SceneResearch
             var score = 0;
             if (entity != null) score += EntityMatch;
             if (tag != null) score += TagMatch;
-            if (score == 0) continue;
+            if (entity == null && tag == null) continue;
 
-            var reason = entity != null
-                ? names != null && names.TryGetValue(entity, out var name) && !string.IsNullOrWhiteSpace(name)
-                    ? name
-                    : tag ?? string.Empty
-                : tag!;
+            var reason = tag ?? string.Empty;
+            if (entity != null && names != null && names.TryGetValue(entity, out var name) && !string.IsNullOrWhiteSpace(name))
+                reason = name;
             suggestions.Add(new ResearchSuggestion(item, reason, score));
         }
 

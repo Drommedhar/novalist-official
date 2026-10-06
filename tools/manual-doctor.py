@@ -8,6 +8,7 @@ shows literal Markdown link syntax that is not itself a link.
 Run from the repository root:
     python tools/manual-doctor.py
 """
+
 from __future__ import annotations
 
 import argparse
@@ -88,7 +89,9 @@ def slugify_heading(value: str) -> str:
     value = re.sub(r"\[([^\]]+)]\([^)]+\)", r"\1", value.strip().lower())
     value = re.sub(r"<[^>]*>", "", value)
     value = re.sub(r"[\x60*_~]", "", value)
-    value = "".join(char for char in value if char.isalnum() or char.isspace() or char == "-")
+    value = "".join(
+        char for char in value if char.isalnum() or char.isspace() or char == "-"
+    )
     return re.sub(r"\s", "-", value)
 
 
@@ -153,7 +156,11 @@ def check_manual(manual_dir: Path) -> list[Problem]:
 
             if destination not in texts:
                 problems.append(
-                    Problem(page, link.line, f"missing manual page: {path_part or link.target}")
+                    Problem(
+                        page,
+                        link.line,
+                        f"missing manual page: {path_part or link.target}",
+                    )
                 )
                 continue
 
@@ -176,7 +183,7 @@ def check_manual(manual_dir: Path) -> list[Problem]:
                 continue
             path_part, _ = split_target(link.target)
             if path_part.lower().endswith(".md"):
-                indexed.add(((manual_dir / path_part).resolve()))
+                indexed.add((manual_dir / path_part).resolve())
         for page in pages:
             if page.resolve() != index and page.resolve() not in indexed:
                 problems.append(
@@ -208,7 +215,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  {problem.render(root)}")
         return 1
 
-    print(f"manual links, anchors, images, and TOC are valid ({len(list(manual_dir.glob('*.md')))} pages)")
+    print(
+        f"manual links, anchors, images, and TOC are valid ({len(list(manual_dir.glob('*.md')))} pages)"
+    )
     return 0
 
 

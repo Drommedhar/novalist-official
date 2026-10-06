@@ -49,6 +49,7 @@ public sealed class ExtensionContribRpc
     }
 
     [JsonRpcMethod("extensions/inlineAction/execute")]
+    // aislop-ignore-next-line complexity/too-many-params -- Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.
     public async Task<InlineActionResultDto?> ExecuteInlineActionAsync(
         string actionId, string selectedText, string? chapterGuid, string? sceneId,
         CancellationToken cancellationToken,

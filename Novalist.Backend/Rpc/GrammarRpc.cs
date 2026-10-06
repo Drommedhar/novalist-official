@@ -87,11 +87,7 @@ public sealed class GrammarRpc
                     i.Type.ToString().ToLowerInvariant(),
                     i.Replacements.Take(5).ToArray())));
             }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 // Log only the shape — never the message (could echo story content).
                 Novalist.Backend.Extensions.Log.Warn($"[Grammar] contributor {contributor.GetType().Name} threw {ex.GetType().Name}");

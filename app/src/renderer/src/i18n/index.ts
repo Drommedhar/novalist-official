@@ -77,9 +77,9 @@ export function registerUserLocales(locales: UserLocale[]): void {
     // off the file (which falls back to the code) so the entry is never blank.
     if (!flat['language.name']) flat['language.name'] = locale.name
     resources[locale.code] = {
-      translation: { ...(resources[locale.code]?.translation ?? {}), ...flat }
+      translation: { ...resources[locale.code]?.translation, ...flat }
     }
-    rawLocales[locale.code] = { ...(rawLocales[locale.code] ?? {}), ...locale.translation }
+    rawLocales[locale.code] = { ...rawLocales[locale.code], ...locale.translation }
     // deep=false, overwrite=true: the flattened keys are already leaf values.
     i18next.addResourceBundle(locale.code, 'translation', flat, false, true)
   }

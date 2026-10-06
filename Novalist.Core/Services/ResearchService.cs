@@ -77,6 +77,7 @@ public sealed class ResearchService : IResearchService
     private static ResearchItem Clone(ResearchItem item, DateTime updatedAt)
     {
         var json = System.Text.Json.JsonSerializer.Serialize(item);
+        // aislop-ignore-next-line ai-slop/csharp-null-forgiving -- The JSON was just serialized from the non-null ResearchItem being cloned.
         var copy = System.Text.Json.JsonSerializer.Deserialize<ResearchItem>(json)!;
         copy.UpdatedAt = updatedAt;
         return copy;

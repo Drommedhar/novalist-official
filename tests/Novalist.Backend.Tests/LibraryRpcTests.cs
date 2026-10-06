@@ -33,14 +33,13 @@ public sealed class LibraryRpcTests : IDisposable
     }
 
     [Fact]
-    public void Gallery_ListsImportedImages()
+    public async Task Gallery_ListsImportedImages()
     {
-        Assert.Empty(_rpc.ListImages());
+        Assert.Empty(await _rpc.ListImagesAsync());
         var source = Path.Combine(_root, "pic.png");
         File.WriteAllBytes(source, [137, 80, 78, 71]);
-        new Novalist.Core.Services.EntityService(_workspace.Projects)
-            .ImportImageAsync(source).GetAwaiter().GetResult();
-        var listed = _rpc.ListImages();
+        await new Novalist.Core.Services.EntityService(_workspace.Projects).ImportImageAsync(source);
+        var listed = await _rpc.ListImagesAsync();
         var image = Assert.Single(listed);
         // Stored path stays book-relative; url is project-root-relative for display.
         Assert.EndsWith(image.Path, image.Url);
@@ -413,4 +412,3 @@ public sealed class LibraryRpcTests : IDisposable
             () => _rpc.RestoreResearchRevisionAsync(created[0].Id, "no-such-revision"));
     }
 }
-

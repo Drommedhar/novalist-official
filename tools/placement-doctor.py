@@ -48,6 +48,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+
 from html_sources import classic_script_paths
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -66,7 +67,9 @@ SCAN_FILES = ("src/renderer/public/editor/editor.html",)
 # because ordinary source is full of dotted strings that are locale keys.
 REGION_START = re.compile(r"placement-container:\s*([A-Za-z]+)(\s+list)?")
 # `data-command="a b"` in markup, and `command: 'a'` in a descriptor object.
-RENDERED = re.compile(r"""data-command=["']([^"'{}]+)["']|(?<![\w-])command:\s*'([^']+)'""")
+RENDERED = re.compile(
+    r"""data-command=["']([^"'{}]+)["']|(?<![\w-])command:\s*'([^']+)'"""
+)
 LITERAL = re.compile(r"'([^']+)'")
 
 COMMAND_ID = re.compile(r"^[a-z][A-Za-z0-9]*(?:\.[A-Za-z0-9]+)+$")
@@ -88,19 +91,34 @@ def fail(problems: list[str]) -> int:
     return 1
 
 
+def registry_sources(path: Path) -> list[str]:
+    """Read the registry and its directly imported scope groups and type table."""
+    source = path.read_text(encoding="utf-8")
+    modules = re.findall(r"from ['\"](\./(?:\w+Commands|commandTypes))['\"]", source)
+    return [
+        source,
+        *(
+            path.with_name(module.removeprefix("./") + ".ts").read_text(
+                encoding="utf-8"
+            )
+            for module in dict.fromkeys(modules)
+        ),
+    ]
+
+
 def parse_default_home(source: str) -> dict[str, str]:
     """The scope -> container table, read from the registry rather than restated."""
     block = re.search(
         r"export const DEFAULT_HOME: Record<CommandScope, CommandContainer> = \{(.*?)\n\}",
         source,
-        re.S,
+        re.DOTALL,
     )
     if not block:
         raise SystemExit("placement-doctor: DEFAULT_HOME is not in commands.ts")
     return dict(re.findall(r"(\w+):\s*'(\w+)'", block.group(1)))
 
 
-def parse_registry(source: str, default_home: dict[str, str]) -> list[Command]:
+def parse_registry(sources: list[str], default_home: dict[str, str]) -> list[Command]:
     """Every command the registry declares, generated families included.
 
     Two families are built from a list rather than written out: the navigation
@@ -108,8 +126,26 @@ def parse_registry(source: str, default_home: dict[str, str]) -> list[Command]:
     by name, which is the price of not having 27 near-identical literals in the
     registry - and the reason both are marked in commands.ts.
     """
-    commands: list[Command] = []
+    commands = [
+        command
+        for source in sources
+        for command in parse_static_commands(source, default_home)
+    ]
+    source = "\n".join(sources)
+    for view in string_list(source, "NAV_VIEWS"):
+        commands.append(
+            Command(f"nav.{view}", "application", default_home["application"])
+        )
+    for style in string_list(source, "PARAGRAPH_STYLES"):
+        name = style or "body"
+        commands.append(
+            Command(f"paragraph.style.{name}", "paragraph", default_home["paragraph"])
+        )
+    return commands
 
+
+def parse_static_commands(source: str, default_home: dict[str, str]) -> list[Command]:
+    commands: list[Command] = []
     # Static entries: an `id:` line opens a record, and scope/home follow before
     # the next one.
     current: dict[str, str] | None = None
@@ -131,13 +167,6 @@ def parse_registry(source: str, default_home: dict[str, str]) -> list[Command]:
     if current:
         commands.append(build(current, default_home))
 
-    for view in string_list(source, "NAV_VIEWS"):
-        commands.append(Command(f"nav.{view}", "application", default_home["application"]))
-    for style in string_list(source, "PARAGRAPH_STYLES"):
-        name = style or "body"
-        commands.append(
-            Command(f"paragraph.style.{name}", "paragraph", default_home["paragraph"])
-        )
     return commands
 
 
@@ -146,12 +175,14 @@ def build(record: dict[str, str], default_home: dict[str, str]) -> Command:
     if scope not in default_home:
         raise SystemExit(f"placement-doctor: {record['id']} has no readable scope")
     declared = "home" in record
-    return Command(record["id"], scope, record.get("home", default_home[scope]), declared)
+    return Command(
+        record["id"], scope, record.get("home", default_home[scope]), declared
+    )
 
 
 def string_list(source: str, name: str) -> list[str]:
     """The string literals of a named const array."""
-    match = re.search(rf"const {name}[^=]*= \[(.*?)\]", source, re.S)
+    match = re.search(rf"const {name}[^=]*= \[(.*?)\]", source, re.DOTALL)
     if not match:
         raise SystemExit(f"placement-doctor: {name} is not in commands.ts")
     return re.findall(r"'([^']*)'", match.group(1))
@@ -182,17 +213,19 @@ def scan(path: Path) -> tuple[dict[str, set[str]], list[str]]:
                 if not COMMAND_ID.match(command):
                     continue
                 if container is None:
-                    loose.append(f"{path.relative_to(ROOT)}:{number} renders {command} "
-                                 "outside any placement-container region")
+                    loose.append(
+                        f"{path.relative_to(ROOT)}:{number} renders {command} "
+                        "outside any placement-container region"
+                    )
                 else:
                     rendered.setdefault(command, set()).add(container)
     return rendered, loose
 
 
 def main() -> int:
-    source = REGISTRY.read_text(encoding="utf-8")
-    default_home = parse_default_home(source)
-    commands = parse_registry(source, default_home)
+    sources = registry_sources(REGISTRY)
+    default_home = parse_default_home("\n".join(sources))
+    commands = parse_registry(sources, default_home)
 
     problems: list[str] = []
 

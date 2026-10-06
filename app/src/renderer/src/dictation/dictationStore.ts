@@ -200,6 +200,28 @@ function finish(s: Session): void {
   }
 }
 
+async function formatPart(s: Session, text: string): Promise<DictationInsertion> {
+  if (s.manualKind) {
+    return formatDictation([{ text, kind: s.manualKind, newParagraph: !!s.commandParagraph }],
+      s.quotes, s.language, s.lastKind)
+  }
+  const plain: DictationInsertion = { text, paragraph: false, mergeClose: '', lastKind: 'narration' }
+  if (!s.automaticDialogue) return plain
+  try {
+    s.requestId = crypto.randomUUID()
+    const segments = await rpc.request<DictationSegment[]>('dictation/format', {
+      requestId: s.requestId, providerId: s.providerId, transcript: text,
+      language: s.language, precedingText: s.context.slice(-2000)
+    })
+    const insertion = formatDictation(segments, s.quotes, s.language, s.lastKind)
+    if (!insertion.text.trim()) throw new Error('Empty formatting result')
+    return insertion
+  } catch {
+    if (session === s) set({ warning: 'dictation.formatFailed' })
+    return plain
+  }
+}
+
 async function drain(s: Session): Promise<void> {
   if (s.processing) return s.processing
   if (session !== s || useDictation.getState().paused || useDictation.getState().error) return
@@ -228,25 +250,7 @@ async function drain(s: Session): Promise<void> {
           clip.nextPart++
           continue
         }
-        if (!clip.insertion) {
-          if (s.manualKind) {
-            clip.insertion = formatDictation([{ text: part.text, kind: s.manualKind, newParagraph: !!s.commandParagraph }],
-              s.quotes, s.language, s.lastKind)
-          } else if (!s.automaticDialogue) {
-            clip.insertion = { text: part.text, paragraph: false, mergeClose: '', lastKind: 'narration' }
-          } else {
-            try {
-              s.requestId = crypto.randomUUID()
-              const segments = await rpc.request<DictationSegment[]>('dictation/format', { requestId: s.requestId,
-                providerId: s.providerId, transcript: part.text, language: s.language, precedingText: s.context.slice(-2000) })
-              clip.insertion = formatDictation(segments, s.quotes, s.language, s.lastKind)
-              if (!clip.insertion.text.trim()) throw new Error('Empty formatting result')
-            } catch {
-              clip.insertion = { text: part.text, paragraph: false, mergeClose: '', lastKind: 'narration' }
-              if (session === s) set({ warning: 'dictation.formatFailed' })
-            }
-          }
-        }
+        clip.insertion ??= await formatPart(s, part.text)
         if (session !== s) break
         if (!atTarget(s) || useDictation.getState().paused) {
           set({ paused: true, warning: 'dictation.sceneChanged' }); break

@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 
 namespace Novalist.Core.Services;
 
-/// <summary>A piece of prose the writer cut but did not want to lose.</summary>
 public sealed class Darling
 {
     [JsonPropertyName("id")]
@@ -40,6 +39,7 @@ public sealed class Darling
 /// The file is a project sidecar. Cut prose belongs to the project rather than
 /// to the machine, so it survives being zipped and travels with the book.
 /// </summary>
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
 public class DarlingsService(IProjectService projectService, IFileService fileService)
 {
     private const string FileName = "darlings.json";

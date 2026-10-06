@@ -155,30 +155,14 @@ public sealed class GlobalSearchService
                 if (notes.Count < limit && Contains(scene.Synopsis, needle))
                     notes.Add(new GlobalSearchHit(
                         GlobalSearchKinds.SceneNote, scene.Title, chapter.Title,
-                        Snippet(scene.Synopsis!, needle), chapter.Guid, scene.Id));
+                        Snippet(scene.Synopsis, needle), chapter.Guid, scene.Id));
 
                 if (notes.Count < limit && Contains(scene.Notes, needle))
                     notes.Add(new GlobalSearchHit(
                         GlobalSearchKinds.SceneNote, scene.Title, chapter.Title,
-                        Snippet(scene.Notes!, needle), chapter.Guid, scene.Id));
+                        Snippet(scene.Notes, needle), chapter.Guid, scene.Id));
 
-                foreach (var comment in scene.Comments ?? [])
-                {
-                    if (annotations.Count >= limit) break;
-                    if (Contains(comment.Text, needle) || Contains(comment.AnchorText, needle))
-                        annotations.Add(new GlobalSearchHit(
-                            GlobalSearchKinds.Annotation, scene.Title, chapter.Title,
-                            Snippet(comment.Text, needle), chapter.Guid, scene.Id));
-                }
-
-                foreach (var footnote in scene.Footnotes ?? [])
-                {
-                    if (annotations.Count >= limit) break;
-                    if (Contains(footnote.Text, needle))
-                        annotations.Add(new GlobalSearchHit(
-                            GlobalSearchKinds.Annotation, scene.Title, chapter.Title,
-                            Snippet(footnote.Text, needle), chapter.Guid, scene.Id));
-                }
+                AddAnnotationHits(annotations, chapter, scene, needle, limit);
 
                 if (texts.Count < limit && Contains(plainText, needle))
                 {
@@ -202,11 +186,11 @@ public sealed class GlobalSearchService
         var found = new List<GlobalSearchHit>();
 
         void Consider(
-            string typeKey, string id, string name, IReadOnlyList<string> aliases,
-            IReadOnlyList<EntitySection> sections, IReadOnlyDictionary<string, string> customProps,
+            string typeKey, IEntityData entity, string name,
             params string?[] fields)
         {
             if (found.Count >= limit) return;
+            var id = entity.Id;
 
             if (Contains(name, needle))
             {
@@ -214,7 +198,7 @@ public sealed class GlobalSearchService
                     GlobalSearchKinds.Entity, name, typeKey, null, null, null, typeKey, id));
                 return;
             }
-            var alias = aliases.FirstOrDefault(a => Contains(a, needle));
+            var alias = entity.Aliases.FirstOrDefault(a => Contains(a, needle));
             if (alias != null)
             {
                 found.Add(new GlobalSearchHit(
@@ -229,7 +213,7 @@ public sealed class GlobalSearchService
                     null, null, typeKey, id));
                 return;
             }
-            var prop = customProps.FirstOrDefault(p => Contains(p.Value, needle));
+            var prop = entity.CustomProperties.FirstOrDefault(p => Contains(p.Value, needle));
             if (prop.Value != null)
             {
                 found.Add(new GlobalSearchHit(
@@ -237,7 +221,7 @@ public sealed class GlobalSearchService
                     null, null, typeKey, id));
                 return;
             }
-            var section = sections.FirstOrDefault(s =>
+            var section = entity.Sections.FirstOrDefault(s =>
                 Contains(s.Content, needle) || Contains(s.Title, needle));
             if (section != null)
                 found.Add(new GlobalSearchHit(
@@ -246,27 +230,26 @@ public sealed class GlobalSearchService
         }
 
         foreach (var c in await _entities.LoadCharactersAsync().ConfigureAwait(false))
-            Consider("character", c.Id, EntityResolveIndex.Compose(c.Name, c.Surname), c.Aliases,
-                c.Sections, c.CustomProperties,
+            Consider("character", c, EntityResolveIndex.Compose(c.Name, c.Surname),
                 c.Role, c.Group, c.Gender, c.Age, c.DistinguishingFeatures);
 
         foreach (var l in await _entities.LoadLocationsAsync().ConfigureAwait(false))
-            Consider("location", l.Id, l.Name, l.Aliases, l.Sections, l.CustomProperties,
+            Consider("location", l, l.Name,
                 l.Type, l.Parent, l.Description);
 
         foreach (var i in await _entities.LoadItemsAsync().ConfigureAwait(false))
-            Consider("item", i.Id, i.Name, i.Aliases, i.Sections, i.CustomProperties,
+            Consider("item", i, i.Name,
                 i.Type, i.Origin, i.Description);
 
         foreach (var l in await _entities.LoadLoreAsync().ConfigureAwait(false))
-            Consider("lore", l.Id, l.Name, l.Aliases, l.Sections, l.CustomProperties,
+            Consider("lore", l, l.Name,
                 l.Category, l.Description);
 
         foreach (var typeDef in _entities.GetCustomEntityTypes())
         {
             var entities = await _entities.LoadCustomEntitiesAsync(typeDef.TypeKey).ConfigureAwait(false);
             foreach (var e in entities)
-                Consider(typeDef.TypeKey, e.Id, e.Name, e.Aliases, e.Sections, e.CustomProperties,
+                Consider(typeDef.TypeKey, e, e.Name,
                     [.. e.Fields.Values]);
         }
 
@@ -307,7 +290,7 @@ public sealed class GlobalSearchService
         }
     }
 
-    private static bool Contains(string? haystack, string needle)
+    private static bool Contains([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] string? haystack, string needle)
         => !string.IsNullOrEmpty(haystack)
            && haystack.Contains(needle, StringComparison.CurrentCultureIgnoreCase);
 
@@ -329,4 +312,26 @@ public sealed class GlobalSearchService
 
     private static string Truncate(string text)
         => text.Length <= SnippetPad * 2 ? text : text[..(SnippetPad * 2)] + "...";
+
+    private static void AddAnnotationHits(List<GlobalSearchHit> annotations, ChapterData chapter, SceneData scene, string needle, int limit)
+    {
+                foreach (var comment in scene.Comments ?? [])
+                {
+                    if (annotations.Count >= limit) break;
+                    if (Contains(comment.Text, needle) || Contains(comment.AnchorText, needle))
+                        annotations.Add(new GlobalSearchHit(
+                            GlobalSearchKinds.Annotation, scene.Title, chapter.Title,
+                            Snippet(comment.Text, needle), chapter.Guid, scene.Id));
+                }
+
+                foreach (var footnote in scene.Footnotes ?? [])
+                {
+                    if (annotations.Count >= limit) break;
+                    if (Contains(footnote.Text, needle))
+                        annotations.Add(new GlobalSearchHit(
+                            GlobalSearchKinds.Annotation, scene.Title, chapter.Title,
+                            Snippet(footnote.Text, needle), chapter.Guid, scene.Id));
+                }
+
+    }
 }

@@ -73,7 +73,10 @@ public sealed class SnapshotService : ISnapshotService
                 if (snap != null)
                     result.Add(snap);
             }
-            catch { }
+            catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
+            {
+                System.Diagnostics.Trace.TraceWarning($"Snapshot could not be read: {exception.GetType().Name}");
+            }
         }
 
         return result.OrderByDescending(s => s.CreatedAt).ToList();
@@ -229,6 +232,7 @@ public sealed class SnapshotService : ISnapshotService
                 // A folder whose scene is gone: nothing can ever reach these
                 // again, which is why they pile up unnoticed.
                 if (!dropOrphans) continue;
+                // aislop-ignore-next-line ai-slop/csharp-string-concat-in-loop -- The accumulator and file Count are integers, not strings.
                 removed += (await _fileService.GetFilesAsync(dir, "*.json")).Count;
                 await _fileService.DeleteDirectoryAsync(dir);
                 continue;

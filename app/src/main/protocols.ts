@@ -115,7 +115,7 @@ export function registerProtocolSchemes(): void {
   ])
 }
 
-export function registerProtocolHandlers(): void {
+function registerResourceAccess(): void {
   // Only the app may read narration clips or import renderer plugins. An
   // extension panel may load its own resources, including sandboxed panels
   // whose serialized Origin is null, but cannot read another extension's files.
@@ -156,6 +156,11 @@ export function registerProtocolHandlers(): void {
       for (const [id, root] of Object.entries(roots)) extensionRoots.set(id, root)
     }
   )
+
+}
+
+export function registerProtocolHandlers(): void {
+  registerResourceAccess()
 
   protocol.handle('novalist-ext', async (request) => {
     const url = new URL(request.url)

@@ -1,9 +1,8 @@
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
-import type { EntitySummary } from '../../stores/codexStore'
+import { useCodexStore, type EntitySummary } from "../../stores/codexStore";
 import { ContextMenu, type ContextMenuItem } from '../../shell/ContextMenu'
-import { useCodexStore } from '../../stores/codexStore'
 import { rpc } from '../../rpc/client'
 
 /** Character grouping mode for the navigation column. */

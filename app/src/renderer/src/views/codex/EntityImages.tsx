@@ -16,7 +16,7 @@ interface EntityImage {
 
 /** Image strip for the selected entity: gallery pick, import, clipboard paste,
  * download-from-URL, plus per-image rename and swap. */
-export function EntityImages(): React.JSX.Element | null {
+function useEntityImages() {
   const { t } = useTranslation()
   const entityType = useCodexStore((s) => s.entityType)
   const selectedId = useCodexStore((s) => s.selectedId)
@@ -25,13 +25,6 @@ export function EntityImages(): React.JSX.Element | null {
   const [galleryImages, setGalleryImages] = useState<{ path: string; url: string }[]>([])
   // When set, the gallery picker swaps this stored path instead of adding.
   const [swapTarget, setSwapTarget] = useState<string | null>(null)
-  const [urlOpen, setUrlOpen] = useState(false)
-  const [urlValue, setUrlValue] = useState('')
-  const [urlError, setUrlError] = useState(false)
-  const [urlBusy, setUrlBusy] = useState(false)
-
-  if (!record || !selectedId) return null
-  const images = Array.isArray(record.images) ? (record.images as EntityImage[]) : []
 
   const applyResult = (updated: Record<string, unknown>): void => {
     const current = useCodexStore.getState()
@@ -40,6 +33,11 @@ export function EntityImages(): React.JSX.Element | null {
     }
     void useCodexStore.getState().refresh()
   }
+
+  const {urlOpen, setUrlOpen, urlValue, setUrlValue, urlError, setUrlError, urlBusy, submitUrl} = useEntityImageUrl(entityType, selectedId, applyResult)
+
+  if (!record || !selectedId) return null
+  const images = Array.isArray(record.images) ? (record.images as EntityImage[]) : []
 
   const openGallery = async (target: string | null): Promise<void> => {
     setSwapTarget(target)
@@ -67,8 +65,7 @@ export function EntityImages(): React.JSX.Element | null {
     void request.then(applyResult)
   }
 
-  const importImage = async (): Promise<void> => {
-    const path = await window.novalist.pickFile(t('entityEditor.addImage'), 'images')
+  const addImportedImage = async (path: string | null): Promise<void> => {
     if (!path) return
     applyResult(
       await rpc.request<Record<string, unknown>>('entities/addImage', [
@@ -80,18 +77,11 @@ export function EntityImages(): React.JSX.Element | null {
     )
   }
 
-  const pasteImage = async (): Promise<void> => {
-    const path = await window.novalist.readClipboardImage()
-    if (!path) return
-    applyResult(
-      await rpc.request<Record<string, unknown>>('entities/addImage', [
-        entityType,
-        selectedId,
-        path,
-        true
-      ])
-    )
-  }
+  const importImage = async (): Promise<void> =>
+    addImportedImage(await window.novalist.pickFile(t('entityEditor.addImage'), 'images'))
+
+  const pasteImage = async (): Promise<void> =>
+    addImportedImage(await window.novalist.readClipboardImage())
 
   const renameImage = (path: string, currentName: string, nextName: string): void => {
     if (nextName === currentName) return
@@ -105,27 +95,14 @@ export function EntityImages(): React.JSX.Element | null {
       .then(applyResult)
   }
 
-  const submitUrl = async (): Promise<void> => {
-    const url = urlValue.trim()
-    if (!url) return
-    setUrlBusy(true)
-    setUrlError(false)
-    try {
-      const updated = await rpc.request<Record<string, unknown>>('entities/addImageFromUrl', [
-        entityType,
-        selectedId,
-        url
-      ])
-      applyResult(updated)
-      setUrlOpen(false)
-      setUrlValue('')
-    } catch {
-      setUrlError(true)
-    } finally {
-      setUrlBusy(false)
-    }
-  }
 
+  return { t, images, openGallery, entityType, selectedId, applyResult, renameImage, importImage, pasteImage, setUrlValue, setUrlOpen, galleryOpen, setGalleryOpen, setSwapTarget, swapTarget, galleryImages, pickFromGallery, urlOpen, urlValue, submitUrl, urlError, setUrlError, urlBusy }
+}
+
+export function EntityImages(): React.JSX.Element | null {
+  const model = useEntityImages()
+  if (!model) return null
+  const { t, images, openGallery, entityType, selectedId, applyResult, renameImage, importImage, pasteImage, setUrlValue, setUrlOpen, galleryOpen, setGalleryOpen, setSwapTarget, swapTarget, galleryImages, pickFromGallery, urlOpen, urlValue, submitUrl, urlError, setUrlError, urlBusy } = model
   return (
     <div className="entity-images">
       <div className="inspector-label">{t('entityEditor.images')}</div>
@@ -285,4 +262,34 @@ export function EntityImages(): React.JSX.Element | null {
       )}
     </div>
   )
+}
+
+function useEntityImageUrl(entityType: string, selectedId: string | null, applyResult: (record: Record<string, unknown>) => void) {
+  const [urlOpen, setUrlOpen] = useState(false)
+  const [urlValue, setUrlValue] = useState('')
+  const [urlError, setUrlError] = useState(false)
+  const [urlBusy, setUrlBusy] = useState(false)
+
+  const submitUrl = async (): Promise<void> => {
+    const url = urlValue.trim()
+    if (!url) return
+    setUrlBusy(true)
+    setUrlError(false)
+    try {
+      const updated = await rpc.request<Record<string, unknown>>('entities/addImageFromUrl', [
+        entityType,
+        selectedId,
+        url
+      ])
+      applyResult(updated)
+      setUrlOpen(false)
+      setUrlValue('')
+    } catch {
+      setUrlError(true)
+    } finally {
+      setUrlBusy(false)
+    }
+  }
+
+  return {urlOpen, setUrlOpen, urlValue, setUrlValue, urlError, setUrlError, urlBusy, submitUrl}
 }

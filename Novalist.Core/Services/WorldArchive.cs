@@ -225,112 +225,21 @@ public static class WorldArchive
             page.Append("<a href=\"#").Append(id).Append("\">").Append(label).Append("</a>");
         page.Append("</nav>\n");
 
-        Section(page, "scenes", "Scenes", archive.Scenes.Count, () =>
-        {
-            page.Append("<table><tr><th>Chapter</th><th>Scene</th><th>Words</th><th>Synopsis</th></tr>");
-            foreach (var scene in archive.Scenes)
-            {
-                page.Append("<tr><td>").Append(Escape(scene.Chapter))
-                    .Append("</td><td>").Append(Escape(scene.Scene))
-                    .Append("</td><td>").Append(scene.Words)
-                    .Append("</td><td>").Append(Escape(scene.Synopsis)).Append("</td></tr>");
-            }
-            page.Append("</table>");
-        });
+        AppendArchivedScenes(page, archive);
 
-        Section(page, "codex", "Codex", archive.Codex.Count, () =>
-        {
-            foreach (var entry in archive.Codex)
-            {
-                page.Append("<div class=\"entry\"><h3>").Append(Escape(entry.Name))
-                    .Append("</h3><div class=\"kind\">").Append(Escape(entry.Kind)).Append("</div>");
-                foreach (var pair in entry.Properties)
-                    page.Append("<div><b>").Append(Escape(pair.Key)).Append("</b>: ")
-                        .Append(Escape(pair.Value)).Append("</div>");
-                foreach (var pair in entry.Sections)
-                    page.Append("<div><b>").Append(Escape(pair.Key)).Append("</b><br>")
-                        .Append(Escape(pair.Value)).Append("</div>");
-                foreach (var tie in entry.Relationships)
-                    page.Append("<div>").Append(Escape(tie)).Append("</div>");
-                page.Append("</div>");
-            }
-        });
+        AppendArchivedCodex(page, archive);
 
-        Section(page, "plotlines", "Plot threads", archive.Plotlines.Count, () =>
-        {
-            foreach (var plotline in archive.Plotlines)
-            {
-                page.Append("<div class=\"entry\"><h3>").Append(Escape(plotline.Name))
-                    .Append("</h3><div class=\"kind\">").Append(Escape(plotline.Importance))
-                    .Append(", ").Append(plotline.Unresolved).Append(" open</div>")
-                    .Append("<div>").Append(Escape(plotline.Description)).Append("</div><ul>");
-                foreach (var step in plotline.Steps)
-                    page.Append("<li>").Append(Escape(step)).Append("</li>");
-                page.Append("</ul></div>");
-            }
-        });
+        AppendArchivedPlotlines(page, archive);
 
-        Section(page, "research", "Research", archive.Research.Count, () =>
-        {
-            foreach (var item in archive.Research)
-            {
-                page.Append("<div class=\"entry\"><h3>").Append(Escape(item.Title))
-                    .Append("</h3><div class=\"kind\">").Append(Escape(item.Kind));
-                if (item.Tags.Count > 0)
-                    page.Append(" - ").Append(Escape(string.Join(", ", item.Tags)));
-                page.Append("</div><div>").Append(Escape(item.Content)).Append("</div></div>");
-            }
-        });
+        AppendArchivedResearch(page, archive);
 
-        Section(page, "lists", "Saved lists", archive.SmartLists.Count, () =>
-        {
-            foreach (var list in archive.SmartLists)
-            {
-                page.Append("<div class=\"entry\"><h3>").Append(Escape(list.Name))
-                    .Append("</h3><div class=\"kind\">matches ").Append(Escape(list.Match))
-                    .Append("</div><ul>");
-                foreach (var rule in list.Rules)
-                    page.Append("<li>").Append(Escape(rule)).Append("</li>");
-                page.Append("</ul></div>");
-            }
-        });
+        AppendArchivedLists(page, archive);
 
-        Section(page, "collections", "Collections", archive.Collections.Count, () =>
-        {
-            page.Append("<ul>");
-            foreach (var collection in archive.Collections)
-                page.Append("<li>").Append(Escape(collection.Name))
-                    .Append(" - ").Append(collection.Scenes).Append(" scenes</li>");
-            page.Append("</ul>");
-        });
+        AppendArchivedCollections(page, archive);
 
-        Section(page, "maps", "Maps", archive.Maps.Count, () =>
-        {
-            page.Append("<ul>");
-            foreach (var map in archive.Maps)
-                page.Append("<li>").Append(Escape(map)).Append("</li>");
-            page.Append("</ul>");
-        });
+        AppendArchivedMaps(page, archive);
 
-        Section(page, "books", "Other books", archive.OtherBooks.Count, () =>
-        {
-            foreach (var volume in archive.OtherBooks)
-            {
-                page.Append("<div class=\"entry\"><h3>").Append(Escape(volume.Book))
-                    .Append("</h3><div class=\"kind\">").Append(volume.Scenes.Count)
-                    .Append(" scenes, ").Append(volume.Plotlines.Count)
-                    .Append(" threads</div><table><tr><th>Chapter</th><th>Scene</th>")
-                    .Append("<th>Words</th><th>Synopsis</th></tr>");
-                foreach (var scene in volume.Scenes)
-                {
-                    page.Append("<tr><td>").Append(Escape(scene.Chapter))
-                        .Append("</td><td>").Append(Escape(scene.Scene))
-                        .Append("</td><td>").Append(scene.Words)
-                        .Append("</td><td>").Append(Escape(scene.Synopsis)).Append("</td></tr>");
-                }
-                page.Append("</table></div>");
-            }
-        });
+        AppendArchivedBooks(page, archive);
 
         page.Append("</body>\n</html>\n");
         return page.ToString();
@@ -362,4 +271,135 @@ public static class WorldArchive
             .Replace("&", "&amp;")
             .Replace("<", "&lt;")
             .Replace(">", "&gt;");
+
+    private static void AppendArchivedScenes(StringBuilder page, WorldArchiveDocument archive)
+    {
+        Section(page, "scenes", "Scenes", archive.Scenes.Count, () =>
+        {
+            page.Append("<table><tr><th>Chapter</th><th>Scene</th><th>Words</th><th>Synopsis</th></tr>");
+            foreach (var scene in archive.Scenes)
+            {
+                page.Append("<tr><td>").Append(Escape(scene.Chapter))
+                    .Append("</td><td>").Append(Escape(scene.Scene))
+                    .Append("</td><td>").Append(scene.Words)
+                    .Append("</td><td>").Append(Escape(scene.Synopsis)).Append("</td></tr>");
+            }
+            page.Append("</table>");
+        });
+    }
+
+    private static void AppendArchivedCodex(StringBuilder page, WorldArchiveDocument archive)
+    {
+        Section(page, "codex", "Codex", archive.Codex.Count, () =>
+        {
+            foreach (var entry in archive.Codex)
+            {
+                page.Append("<div class=\"entry\"><h3>").Append(Escape(entry.Name))
+                    .Append("</h3><div class=\"kind\">").Append(Escape(entry.Kind)).Append("</div>");
+                foreach (var pair in entry.Properties)
+                    page.Append("<div><b>").Append(Escape(pair.Key)).Append("</b>: ")
+                        .Append(Escape(pair.Value)).Append("</div>");
+                foreach (var pair in entry.Sections)
+                    page.Append("<div><b>").Append(Escape(pair.Key)).Append("</b><br>")
+                        .Append(Escape(pair.Value)).Append("</div>");
+                foreach (var tie in entry.Relationships)
+                    page.Append("<div>").Append(Escape(tie)).Append("</div>");
+                page.Append("</div>");
+            }
+        });
+    }
+
+    private static void AppendArchivedPlotlines(StringBuilder page, WorldArchiveDocument archive)
+    {
+        Section(page, "plotlines", "Plot threads", archive.Plotlines.Count, () =>
+        {
+            foreach (var plotline in archive.Plotlines)
+            {
+                page.Append("<div class=\"entry\"><h3>").Append(Escape(plotline.Name))
+                    .Append("</h3><div class=\"kind\">").Append(Escape(plotline.Importance))
+                    .Append(", ").Append(plotline.Unresolved).Append(" open</div>")
+                    .Append("<div>").Append(Escape(plotline.Description)).Append("</div><ul>");
+                foreach (var step in plotline.Steps)
+                    page.Append("<li>").Append(Escape(step)).Append("</li>");
+                page.Append("</ul></div>");
+            }
+        });
+    }
+
+    private static void AppendArchivedResearch(StringBuilder page, WorldArchiveDocument archive)
+    {
+        Section(page, "research", "Research", archive.Research.Count, () =>
+        {
+            foreach (var item in archive.Research)
+            {
+                page.Append("<div class=\"entry\"><h3>").Append(Escape(item.Title))
+                    .Append("</h3><div class=\"kind\">").Append(Escape(item.Kind));
+                if (item.Tags.Count > 0)
+                    page.Append(" - ").Append(Escape(string.Join(", ", item.Tags)));
+                page.Append("</div><div>").Append(Escape(item.Content)).Append("</div></div>");
+            }
+        });
+    }
+
+    private static void AppendArchivedLists(StringBuilder page, WorldArchiveDocument archive)
+    {
+        Section(page, "lists", "Saved lists", archive.SmartLists.Count, () =>
+        {
+            foreach (var list in archive.SmartLists)
+            {
+                page.Append("<div class=\"entry\"><h3>").Append(Escape(list.Name))
+                    .Append("</h3><div class=\"kind\">matches ").Append(Escape(list.Match))
+                    .Append("</div><ul>");
+                foreach (var rule in list.Rules)
+                    page.Append("<li>").Append(Escape(rule)).Append("</li>");
+                page.Append("</ul></div>");
+            }
+        });
+    }
+
+    private static void AppendArchivedCollections(StringBuilder page, WorldArchiveDocument archive)
+    {
+        Section(page, "collections", "Collections", archive.Collections.Count, () =>
+        {
+            page.Append("<ul>");
+            foreach (var collection in archive.Collections)
+                page.Append("<li>").Append(Escape(collection.Name))
+                    .Append(" - ").Append(collection.Scenes).Append(" scenes</li>");
+            page.Append("</ul>");
+        });
+    }
+
+    private static void AppendArchivedMaps(StringBuilder page, WorldArchiveDocument archive)
+    {
+        Section(page, "maps", "Maps", archive.Maps.Count, () =>
+        {
+            page.Append("<ul>");
+            foreach (var map in archive.Maps)
+                page.Append("<li>").Append(Escape(map)).Append("</li>");
+            page.Append("</ul>");
+        });
+    }
+
+    private static void AppendArchivedBooks(StringBuilder page, WorldArchiveDocument archive)
+    {
+        Section(page, "books", "Other books", archive.OtherBooks.Count, () =>
+        {
+            foreach (var volume in archive.OtherBooks)
+            {
+                page.Append("<div class=\"entry\"><h3>").Append(Escape(volume.Book))
+                    .Append("</h3><div class=\"kind\">").Append(volume.Scenes.Count)
+                    .Append(" scenes, ").Append(volume.Plotlines.Count)
+                    .Append(" threads</div><table><tr><th>Chapter</th><th>Scene</th>")
+                    .Append("<th>Words</th><th>Synopsis</th></tr>");
+                foreach (var scene in volume.Scenes)
+                {
+                    page.Append("<tr><td>").Append(Escape(scene.Chapter))
+                        .Append("</td><td>").Append(Escape(scene.Scene))
+                        .Append("</td><td>").Append(scene.Words)
+                        .Append("</td><td>").Append(Escape(scene.Synopsis)).Append("</td></tr>");
+                }
+                page.Append("</table></div>");
+            }
+        });
+    }
 }

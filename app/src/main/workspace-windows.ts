@@ -29,7 +29,7 @@ export class WorkspaceWindows {
   constructor(
     private readonly router: BackendRouter,
     private readonly timeout = 15_000,
-    private readonly onFailure: (error: string) => void = () => {}
+    private readonly onFailure?: (error: string) => void
   ) {}
 
   register(owner: number, window: WorkspaceWindow): void {
@@ -169,7 +169,7 @@ export class WorkspaceWindows {
       this.recoveryRevision++
       this.router.rejectHeldReplies(error)
       this.finish()
-      this.onFailure(error)
+      this.onFailure?.(error)
       return
     }
     try {
@@ -185,7 +185,7 @@ export class WorkspaceWindows {
       this.recovering = true
       this.recoveryRevision++
       this.router.rejectHeldReplies(error)
-      this.onFailure(error)
+      this.onFailure?.(error)
     }
     finally { if (this.transition === snapshot.token && revision === this.revision) this.finish() }
   }

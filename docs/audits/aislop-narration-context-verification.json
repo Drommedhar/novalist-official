@@ -1,0 +1,49 @@
+{
+  "scope": "Four Core narration APIs and their production/test callers",
+  "status": "Source refactor complete; scoped Aislop verification passed. Final solution tests and coverage are recorded separately by the C# verification task.",
+  "sourceChanges": {
+    "parameterFindingFixes": 4,
+    "parameterAnnotationsRemoved": 4,
+    "callSitesMigrated": 43,
+    "apis": [
+      {
+        "method": "EmotionDirector.Resolve",
+        "change": "Surrounding prose and scene emotion/intensity travel together in EmotionDirectionContext; writer override, language rules and magnitude remain explicit."
+      },
+      {
+        "method": "NarrationScript.Build",
+        "change": "NarrationLanguageContext groups dialogue/direction/utterance rules; SceneNarrationSettings groups the writer's assignments and scene emotion/intensity."
+      },
+      {
+        "method": "NarrationRender.Build",
+        "change": "NarrationRenderContext carries cast and engine resources; reading rate and per-segment placement remain explicit."
+      },
+      {
+        "method": "NarrationRenderJob.RunAsync",
+        "change": "The same NarrationRenderContext is reused across chapter windows; settings, progress and cancellation remain explicit."
+      }
+    ],
+    "publishedSdkSignaturesChanged": false,
+    "rpcWireSignaturesChanged": false,
+    "legacyWrappersAdded": false,
+    "newSuppressionsAdded": false
+  },
+  "behaviorReview": [
+    "Null scene settings still leave all writer assignments unset; absent utterance rules still use UtteranceLanguage.None.",
+    "Explicit blank direction overrides remain neutral and do not fall through to scene emotion. Following speech tags still precede earlier tags and scene emotion.",
+    "Voice and clip dictionaries are retained by reference. Voice reference texts are still filtered to available voices before constructing the engine request.",
+    "Reading-rate defaults, chapter/scene placement, cache fingerprints, progress and cancellation forwarding are unchanged."
+  ],
+  "verification": {
+    "scannerVersion": "0.18.0",
+    "scopedCommand": "aislop scan --include <17 exact narration source and test paths> --json",
+    "rawScan": "../../artifacts/aislop-narration-context-scan.json",
+    "score": 100,
+    "files": 17,
+    "errors": 0,
+    "warnings": 0,
+    "gitDiffCheck": "passed",
+    "testChange": "Build_CarriesTheWordsAndTheVoiceEachIsReadIn now additionally verifies voice dictionary identity with Assert.Same; all existing direction, script, render and job tests were migrated to the typed APIs.",
+    "finalTestsAndCoverage": "See the final C# verification report; this scoped report does not claim coverage."
+  }
+}

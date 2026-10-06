@@ -48,7 +48,7 @@ function isVisible(
  * validation round-tripped over RPC. The collected result is sent back to the
  * host via ui/wizard/complete (null on cancel).
  */
-export function ExtensionWizardHost(): React.JSX.Element | null {
+function useWizardSession(){
   const { t } = useTranslation()
   const wizard = useHostBridgeStore((s) => s.wizard)
   const closeWizard = useHostBridgeStore((s) => s.closeWizard)
@@ -122,6 +122,11 @@ export function ExtensionWizardHost(): React.JSX.Element | null {
     }
   }, [wizard, step, index, dynChoices, buildResult, nextVisible])
 
+  return { t, wizard, closeWizard, steps, answers, setAnswers, index, setIndex, error, setError, busy, setBusy, dynChoices, loadingChoices, nextVisible, step, buildResult }
+}
+
+function useWizardState() {
+  const { t, wizard, closeWizard, steps, answers, setAnswers, index, setIndex, error, setError, busy, setBusy, dynChoices, loadingChoices, nextVisible, step, buildResult } = useWizardSession()
   if (!wizard || !step) return null
 
   const setText = (value: string): void =>
@@ -189,6 +194,13 @@ export function ExtensionWizardHost(): React.JSX.Element | null {
   const visibleSteps = steps.filter((s) => isVisible(s, answers, steps))
   const position = visibleSteps.indexOf(step) + 1
 
+  return { t, wizard, error, busy, loadingChoices, step, setText, setNumber, toggleMulti, textValue, numberValue, multiValue, choices, isLast, canAdvance, cancel, advance, visibleSteps, position }
+}
+
+export function ExtensionWizardHost(): React.JSX.Element | null {
+  const state = useWizardState()
+  if (!state) return null
+  const { t, wizard, error, busy, loadingChoices, step, setText, setNumber, toggleMulti, textValue, numberValue, multiValue, choices, isLast, canAdvance, cancel, advance, visibleSteps, position } = state
   return (
     <div className="dialog-overlay" role="presentation">
       <div className="dialog-card wizard-host-card" role="dialog" aria-label={wizard.definition.displayName}>

@@ -14,6 +14,13 @@ public class ProjectServiceTests : IDisposable
 
     public void Dispose() => _dir.Dispose();
 
+    [Fact]
+    public void ChapterPathsRequireAnActiveBook()
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => _sut.GetChapterFolderPath(new ChapterData()));
+        Assert.Equal("No book active.", error.Message);
+    }
+
     private Task<ProjectMetadata> Create(string name = "My Project", string book = "Book One")
         => _sut.CreateProjectAsync(_dir.Path, name, book);
 

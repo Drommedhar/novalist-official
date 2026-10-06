@@ -4,17 +4,20 @@
 Run from any directory with: python tools/check-source.py
 Builds, typechecking, packaging tests, coverage and E2E remain separate CI gates.
 """
+
 from __future__ import annotations
 
 import os
-from pathlib import Path
 import subprocess
 import sys
-
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECKS = [
-    ("Locale doctor", ["tools/locale-doctor.py", "--target", "react", "--no-fail-on-dead"]),
+    (
+        "Locale doctor",
+        ["tools/locale-doctor.py", "--target", "react", "--no-fail-on-dead"],
+    ),
     ("Manual doctor", ["tools/manual-doctor.py"]),
     ("Manual doctor tests", ["-m", "unittest", "tools/test_manual_doctor.py"]),
     ("Token doctor", ["tools/token-doctor.py"]),
@@ -28,8 +31,11 @@ CHECKS = [
 def main() -> int:
     failed = []
     for name, args in CHECKS:
-        print(f"::group::{name}" if os.environ.get("GITHUB_ACTIONS") else f"\n{name}", flush=True)
-        result = subprocess.run([sys.executable, *args], cwd=ROOT)
+        print(
+            f"::group::{name}" if os.environ.get("GITHUB_ACTIONS") else f"\n{name}",
+            flush=True,
+        )
+        result = subprocess.run([sys.executable, *args], cwd=ROOT, check=False)
         if os.environ.get("GITHUB_ACTIONS"):
             print("::endgroup::", flush=True)
         if result.returncode:

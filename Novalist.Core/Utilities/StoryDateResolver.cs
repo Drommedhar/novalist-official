@@ -15,10 +15,10 @@ public static class StoryDateResolver
     public static StoryDateRange? Resolve(SceneData? scene, ChapterData? chapter, IReadOnlyList<ActData>? acts)
     {
         if (scene?.DateRange?.HasValue == true) return scene.DateRange;
-        if (!string.IsNullOrWhiteSpace(scene?.Date)) return new StoryDateRange { Start = scene!.Date };
+        if (!string.IsNullOrWhiteSpace(scene?.Date)) return new StoryDateRange { Start = scene.Date };
 
         if (chapter?.DateRange?.HasValue == true) return chapter.DateRange;
-        if (!string.IsNullOrWhiteSpace(chapter?.Date)) return new StoryDateRange { Start = chapter!.Date };
+        if (!string.IsNullOrWhiteSpace(chapter?.Date)) return new StoryDateRange { Start = chapter.Date };
 
         if (chapter != null && acts != null && !string.IsNullOrWhiteSpace(chapter.Act))
         {

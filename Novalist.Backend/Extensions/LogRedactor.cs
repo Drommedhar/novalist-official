@@ -48,6 +48,7 @@ internal static partial class LogRedactor
     {
         var tokens = line.Split(' ');
         var changed = false;
+        // aislop-ignore-next-line ai-slop/csharp-index-loop -- The index is required to replace oversized tokens in the original array.
         for (var index = 0; index < tokens.Length; index++)
         {
             if (tokens[index].Length <= MaxTokenLength) continue;

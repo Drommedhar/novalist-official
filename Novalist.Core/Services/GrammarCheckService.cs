@@ -96,7 +96,8 @@ public sealed class GrammarCheckService
             requestUrl = PlusApiDefault;
         }
 
-        System.Diagnostics.Debug.WriteLine($"[GrammarCheckService] Sending POST to {requestUrl} (ApiKey present: {!string.IsNullOrEmpty(ApiKey)})");
+        // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Reports request start and credential presence without logging URL, credentials, or prose.
+        System.Diagnostics.Debug.WriteLine($"[GrammarCheckService] Sending POST (ApiKey present: {!string.IsNullOrEmpty(ApiKey)})");
         var swHttp = System.Diagnostics.Stopwatch.StartNew();
 
         try
@@ -105,7 +106,8 @@ public sealed class GrammarCheckService
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
-            System.Diagnostics.Debug.WriteLine($"[GrammarCheckService] POST to {requestUrl} threw {ex.GetType().Name} after {swHttp.ElapsedMilliseconds}ms");
+            // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Reports failure type and latency without logging URL, credentials, or prose.
+            System.Diagnostics.Debug.WriteLine($"[GrammarCheckService] POST threw {ex.GetType().Name} after {swHttp.ElapsedMilliseconds}ms");
             return [];
         }
         finally
@@ -113,7 +115,8 @@ public sealed class GrammarCheckService
             swHttp.Stop();
         }
 
-        System.Diagnostics.Debug.WriteLine($"[GrammarCheckService] POST to {requestUrl} completed with status {response.StatusCode} in {swHttp.ElapsedMilliseconds}ms");
+        // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Reports response status and latency without logging URL, credentials, or prose.
+        System.Diagnostics.Debug.WriteLine($"[GrammarCheckService] POST completed with status {response.StatusCode} in {swHttp.ElapsedMilliseconds}ms");
 
         if (!response.IsSuccessStatusCode)
             return [];
@@ -319,10 +322,11 @@ public sealed class GrammarCheckService
         var prefix = language.Split('-')[0] + "-";
         var variants = dictionaries
             .Select(tag => LanguageVariants.GetValueOrDefault(tag))
-            .Where(variant => variant != null && variant.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .OfType<string>()
+            .Where(variant => variant.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             .Distinct()
             .ToArray();
-        return variants.Length == 1 ? variants[0]! : language;
+        return variants.Length == 1 ? variants[0] : language;
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+// aislop-ignore-file ai-slop/console-leftover -- Screenshot CLI reports capture progress and output paths to its invoking terminal.
 /**
  * Captures raw macOS screenshots of every view we ship in the manual and on the
  * App Store.
@@ -9,7 +10,9 @@
  *
  * Usage: node tools/screenshots/capture-desktop.mjs <project-dir> <out-dir> [scale]
  */
-import { _electron as electron } from 'playwright'
+import { createRequire } from 'node:module'
+
+const { _electron: electron } = createRequire(new URL('../../app/package.json', import.meta.url))('@playwright/test')
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname, resolve } from 'node:path'

@@ -9,7 +9,7 @@ namespace Novalist.Core.Tests.Services;
 public class BackupServiceTests
 {
     private const string Root = "/projects/MyNovel";
-    private const string BackupRoot = "/appdata/Backups";
+    private static readonly string BackupRoot = Path.Combine(Path.DirectorySeparatorChar.ToString(), "appdata", "Backups");
 
     /// <summary>
     /// Records what it was asked to archive and writes a placeholder through the
@@ -69,6 +69,14 @@ public class BackupServiceTests
         var settings = new StubSettings();
         var sut = new BackupService(project, files, archive, settings, BackupRoot);
         return (sut, files, archive, settings);
+    }
+
+    private static async Task AssertBackupFolderOwnedAsync(InMemoryFileService files, string folder)
+    {
+        Assert.True(await files.DirectoryExistsAsync(folder));
+        var owner = Path.TrimEndingDirectorySeparator(Path.GetFullPath(Root));
+        if (OperatingSystem.IsWindows()) owner = owner.ToUpperInvariant();
+        Assert.Equal(owner, await files.ReadTextAsync(files.CombinePath(folder, BackupStorage.OwnerFileName)));
     }
 
     [Fact]
@@ -151,7 +159,7 @@ public class BackupServiceTests
     {
         var (sut, files, _, _) = Build();
         var folder = sut.GetBackupFolder()!;
-        await files.CreateDirectoryAsync(folder);
+        await AssertBackupFolderOwnedAsync(files, folder);
         await files.WriteTextAsync(files.CombinePath(folder, "20260101-100000-manual.zip"), "a");
         await files.WriteTextAsync(files.CombinePath(folder, "20260301-100000-interval.zip"), "bb");
         await files.WriteTextAsync(files.CombinePath(folder, "not-a-backup.zip"), "x");
@@ -170,7 +178,7 @@ public class BackupServiceTests
         var (sut, files, _, settings) = Build();
         settings.Settings.BackupRetentionCount = 2;
         var folder = sut.GetBackupFolder()!;
-        await files.CreateDirectoryAsync(folder);
+        await AssertBackupFolderOwnedAsync(files, folder);
         foreach (var stamp in new[] { "20260101", "20260102", "20260103", "20260104" })
             await files.WriteTextAsync(files.CombinePath(folder, $"{stamp}-100000-manual.zip"), "x");
 
@@ -188,7 +196,7 @@ public class BackupServiceTests
         var (sut, files, _, settings) = Build();
         settings.Settings.BackupRetentionCount = 5;
         var folder = sut.GetBackupFolder()!;
-        await files.CreateDirectoryAsync(folder);
+        await AssertBackupFolderOwnedAsync(files, folder);
         await files.WriteTextAsync(files.CombinePath(folder, "20260101-100000-manual.zip"), "x");
 
         await sut.PruneAsync();
@@ -202,7 +210,7 @@ public class BackupServiceTests
         var (sut, files, _, settings) = Build();
         settings.Settings.BackupRetentionCount = 1;
         var folder = sut.GetBackupFolder()!;
-        await files.CreateDirectoryAsync(folder);
+        await AssertBackupFolderOwnedAsync(files, folder);
         await files.WriteTextAsync(files.CombinePath(folder, "20200101-100000-manual.zip"), "old");
 
         await sut.CreateAsync("manual");
@@ -215,7 +223,7 @@ public class BackupServiceTests
     {
         var (sut, files, archive, _) = Build();
         var folder = sut.GetBackupFolder()!;
-        await files.CreateDirectoryAsync(folder);
+        await AssertBackupFolderOwnedAsync(files, folder);
         var id = "20260101-100000-manual";
         await files.WriteTextAsync(files.CombinePath(folder, id + ".zip"), "x");
 
@@ -270,7 +278,7 @@ public class BackupServiceTests
         var (sut, files, _, settings) = Build();
         settings.Settings.BackupIntervalMinutes = 30;
         var folder = sut.GetBackupFolder()!;
-        await files.CreateDirectoryAsync(folder);
+        await AssertBackupFolderOwnedAsync(files, folder);
         await files.WriteTextAsync(files.CombinePath(folder, "20260101-120000-manual.zip"), "x");
 
         var last = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
@@ -393,7 +401,7 @@ public class BackupServiceTests
         var (sut, files, _, settings) = Build();
         settings.Settings.BackupRetentionCount = 1;
         var folder = sut.GetBackupFolder()!;
-        await files.CreateDirectoryAsync(folder);
+        await AssertBackupFolderOwnedAsync(files, folder);
         foreach (var name in new[]
                  {
                      "20260101-100000-milestone-First-draft",
@@ -417,7 +425,7 @@ public class BackupServiceTests
         var (sut, files, _, settings) = Build();
         settings.Settings.BackupRetentionCount = 1;
         var folder = sut.GetBackupFolder()!;
-        await files.CreateDirectoryAsync(folder);
+        await AssertBackupFolderOwnedAsync(files, folder);
         foreach (var name in new[]
                  {
                      "20260101-100000-milestone-One",
@@ -436,7 +444,7 @@ public class BackupServiceTests
     {
         var (sut, files, _, _) = Build();
         var folder = sut.GetBackupFolder()!;
-        await files.CreateDirectoryAsync(folder);
+        await AssertBackupFolderOwnedAsync(files, folder);
         await files.WriteTextAsync(
             files.CombinePath(folder, "20260101-100000-milestone-One.zip"), "x");
 
@@ -456,7 +464,7 @@ public class BackupServiceTests
     {
         var (sut, files, _, _) = Build();
         var folder = sut.GetBackupFolder()!;
-        await files.CreateDirectoryAsync(folder);
+        await AssertBackupFolderOwnedAsync(files, folder);
         await files.WriteTextAsync(files.CombinePath(folder, "20260101-100000-manual.zip"), "x");
 
         var only = Assert.Single(await sut.ListAsync());

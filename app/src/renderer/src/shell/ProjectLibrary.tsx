@@ -17,7 +17,7 @@ interface SelectionClick { target: HTMLButtonElement; project: RecentProjectDto;
 interface StartScreenProps { recentProjects: RecentProjectDto[]; onOpenPath(path: string, bookId?: string): Promise<void> }
 const projectBooks = (project: RecentProjectDto): LibraryBook[] => project.books?.length ? project.books : [{ name: project.name, cover: project.cover }]
 
-export function StartScreen({ recentProjects, onOpenPath }: StartScreenProps): React.JSX.Element {
+function useLibrarySelection(recentProjects: RecentProjectDto[]){
   const { t } = useTranslation()
   const library = useBookshelfStore()
   const [search, setSearch] = useState('')
@@ -52,6 +52,11 @@ export function StartScreen({ recentProjects, onOpenPath }: StartScreenProps): R
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [selection])
 
+  return { t, library, search, setSearch, activeShelf, setActiveShelf, newShelf, setNewShelf, renameShelf, setRenameShelf, selection, setSelection, dropShelf, setDropShelf, failedCovers, setFailedCovers, removedOpen, setRemovedOpen, lastRemoved, setLastRemoved, opening, setOpening, openError, setOpenError, undoButton, searchInput, moreTrigger, openButton, selectedTrigger, selectionClick, instructionsId }
+}
+
+function useProjectLibrary({ recentProjects, onOpenPath }: StartScreenProps) {
+  const { t, library, search, setSearch, activeShelf, setActiveShelf, newShelf, setNewShelf, renameShelf, setRenameShelf, selection, setSelection, dropShelf, setDropShelf, failedCovers, setFailedCovers, removedOpen, setRemovedOpen, lastRemoved, setLastRemoved, opening, setOpening, openError, setOpenError, undoButton, searchInput, moreTrigger, openButton, selectedTrigger, selectionClick, instructionsId } = useLibrarySelection(recentProjects)
   const needle = search.trim().toLocaleLowerCase()
   const assigned = new Set(library.shelves.flatMap(shelf => shelf.projects))
   const rowById = new Map([{ id: '', name: t('bookshelf.unshelved'), projects: library.unshelved }, ...library.shelves].map(shelf => [shelf.id, shelf]))
@@ -117,6 +122,12 @@ export function StartScreen({ recentProjects, onOpenPath }: StartScreenProps): R
   </div>
   const closeMenu = (element: HTMLElement): void => { element.closest('details')?.removeAttribute('open') }
 
+  return { t, library, search, setSearch, activeShelf, setActiveShelf, newShelf, setNewShelf, renameShelf, setRenameShelf, selection, setSelection, dropShelf, setDropShelf, removedOpen, setRemovedOpen, lastRemoved, setLastRemoved, opening, openError, undoButton, searchInput, moreTrigger, openButton, selectedTrigger, selectionClick, instructionsId, needle, rows, availableProjects, shelfFor, selectedProject, selectedBook, selectedShelf, visibleShelves, selectedNeighbors, selectedIndex, remove, accept, open, finishSelectionClick, cover, closeMenu }
+}
+
+export function StartScreen({ recentProjects, onOpenPath }: StartScreenProps): React.JSX.Element {
+  const state = useProjectLibrary({ recentProjects, onOpenPath })
+  const { t, library, search, setSearch, activeShelf, setActiveShelf, newShelf, setNewShelf, renameShelf, setRenameShelf, selection, setSelection, dropShelf, setDropShelf, removedOpen, setRemovedOpen, lastRemoved, setLastRemoved, opening, openError, undoButton, searchInput, moreTrigger, openButton, selectedTrigger, selectionClick, instructionsId, needle, rows, availableProjects, shelfFor, selectedProject, selectedBook, selectedShelf, visibleShelves, selectedNeighbors, selectedIndex, remove, accept, open, finishSelectionClick, cover, closeMenu } = state
   return <div className="start-screen project-library" style={{ '--library-cover-scale': library.coverScale } as CSSProperties} onClickCapture={finishSelectionClick}>
     <div className="library-content">
       <header className="library-header">

@@ -33,16 +33,16 @@ public sealed class ArcRpc
     {
         var character = await FindAsync(characterId);
         var clean = (points ?? [])
-            .Where(p => !string.IsNullOrWhiteSpace(p.Label))
-            .Select(p => new ArcPoint
+            .Select(p => string.IsNullOrWhiteSpace(p.Label) ? null : new ArcPoint
             {
                 Id = string.IsNullOrWhiteSpace(p.Id) ? Guid.NewGuid().ToString() : p.Id,
                 // A point can exist before the writer knows which scene it
                 // happens in; that is half the use of writing it down.
                 SceneId = p.SceneId ?? string.Empty,
-                Label = p.Label!.Trim(),
+                Label = p.Label.Trim(),
                 IsTurn = p.IsTurn ?? false
             })
+            .OfType<ArcPoint>()
             .ToList();
 
         var arc = new CharacterArc
@@ -81,14 +81,14 @@ public sealed class ArcRpc
             }
 
         return [.. (await _entities.LoadCharactersAsync())
-            .Where(c => c.Arc != null)
-            .Select(c => new CharacterArcDto(
-                c.Id, c.Name, c.Arc!.Start, c.Arc.End, c.Arc.Want, c.Arc.Need,
-                [.. c.Arc.Points
+            .Select(c => c.Arc is not { } arc ? null : new CharacterArcDto(
+                c.Id, c.Name, arc.Start, arc.End, arc.Want, arc.Need,
+                [.. arc.Points
                     .Select(p => new ArcPointPlacedDto(
                         p.Id, p.SceneId, titles.GetValueOrDefault(p.SceneId, string.Empty),
                         p.Label, position.TryGetValue(p.SceneId, out var at) ? at : -1, p.IsTurn))
-                    .OrderBy(p => p.ReadingIndex < 0 ? int.MaxValue : p.ReadingIndex)]))];
+                    .OrderBy(p => p.ReadingIndex < 0 ? int.MaxValue : p.ReadingIndex)]))
+            .OfType<CharacterArcDto>()];
     }
 
     private async Task<CharacterData> FindAsync(string characterId)
@@ -105,7 +105,6 @@ public sealed record ArcPointDto(string? Id, string? SceneId, string? Label, boo
 public sealed record ArcDto(
     string Start, string End, string Want, string Need, ArcPointDto[] Points);
 
-/// <summary>An arc point with the scene it sits in resolved.</summary>
 public sealed record ArcPointPlacedDto(
     string Id, string SceneId, string SceneTitle, string Label, int ReadingIndex, bool IsTurn);
 

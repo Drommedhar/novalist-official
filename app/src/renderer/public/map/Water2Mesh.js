@@ -8,7 +8,8 @@ import {
 	TempNode
 } from 'three/webgpu';
 
-import { Fn, vec2, viewportSafeUV, viewportSharedTexture, reflector, pow, float, abs, texture, uniform, vec4, cameraPosition, positionWorld, uv, mix, vec3, normalize, max, dot, screenUV, attribute } from 'three/tsl';
+// aislop-ignore-next-line ai-slop/hallucinated-import -- map.html supplies this browser import through its import map to the bundled Three.js modules; npm resolution does not apply.
+import { Fn, viewportSafeUV, viewportSharedTexture, reflector, pow, float, abs, texture, uniform, vec4, cameraPosition, positionWorld, uv, mix, vec3, normalize, max, dot, screenUV, attribute } from 'three/tsl';
 
 /** @module Water2Mesh */
 

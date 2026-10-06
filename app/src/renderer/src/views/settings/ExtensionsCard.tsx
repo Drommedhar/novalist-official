@@ -11,17 +11,8 @@ import {
 /**
  * Everything installed extensions have put into Settings.
  *
- * This used to be a read-only list of what was installed - a fraction of the
- * Extensions view, offering nothing you could not see better over there, while
- * the settings extensions actually contribute lived in the Extensions view
- * itself. Both halves were in the wrong place: what an extension can be
- * configured to do is a setting, and settings live in Settings; installing,
- * enabling and removing one is managing the application, and that is what the
- * Extensions view is for.
- *
- * So the contributed pages, schemas and wizards moved here, and what is left of
- * the list is a line saying how many extensions are installed with a way over
- * to manage them.
+ * Contributed pages, schemas and wizards are settings. Installation and
+ * lifecycle controls belong to the linked Extensions view.
  */
 export function ExtensionsCard(): React.JSX.Element {
   const { t } = useTranslation()

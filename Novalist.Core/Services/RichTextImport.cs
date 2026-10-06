@@ -3,7 +3,6 @@ using System.Text;
 
 namespace Novalist.Core.Services;
 
-/// <summary>The semantic inline formatting recovered from an imported file.</summary>
 public sealed record ImportedTextRun(
     string Text,
     bool Bold = false,
@@ -13,7 +12,6 @@ public sealed record ImportedTextRun(
     bool Superscript = false,
     bool Subscript = false);
 
-/// <summary>A list an imported paragraph belongs to.</summary>
 public enum ImportedListKind
 {
     None,

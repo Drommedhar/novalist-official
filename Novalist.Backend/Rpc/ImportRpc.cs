@@ -10,6 +10,7 @@ namespace Novalist.Backend.Rpc;
 /// the import log is written into the new project, and learned relationship
 /// pairs / auto-replacements are merged into app settings.
 /// </summary>
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
 public sealed class ImportRpc(Workspace workspace)
 {
     /// <summary>Test seam for the import-log write (real file IO otherwise).</summary>

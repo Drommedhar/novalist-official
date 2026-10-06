@@ -40,7 +40,7 @@ export function AppendToEntityDialog({
   useEffect(() => {
     let cancelled = false
     const load = async (): Promise<void> => {
-      const types = [...BUILT_IN.map((b) => b.typeKey)]
+      const types = BUILT_IN.map((b) => b.typeKey)
       try {
         const custom = await rpc.request<{ typeKey: string }[]>('entities/customTypes')
         types.push(...custom.map((c) => c.typeKey))

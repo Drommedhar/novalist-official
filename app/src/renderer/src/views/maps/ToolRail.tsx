@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   MousePointer2,
@@ -58,8 +58,6 @@ export function ToolRail({
     return () => window.removeEventListener('mousedown', onDown, true)
   }, [flyout])
 
-  const roads = SPLINE_PRESETS.filter((p) => p.kind === 'road')
-  const rivers = SPLINE_PRESETS.filter((p) => p.kind === 'river')
 
   return (
     <div className="map-toolrail" ref={railRef}>
@@ -89,31 +87,24 @@ export function ToolRail({
         <ImagePlus size={16} strokeWidth={2} />
       </button>
 
-      <button
-        type="button"
-        className={`map-tool${activeTool === 'add-pin' ? ' active' : ''}`}
-        title={t('map.toolAddPinTooltip')}
-        disabled={disabled}
-        onClick={() => {
-          setFlyout(null)
-          onSelectTool(activeTool === 'add-pin' ? 'select' : 'add-pin')
-        }}
-      >
-        <MapPin size={16} strokeWidth={2} />
-      </button>
-
-      <button
-        type="button"
-        className={`map-tool${activeTool === 'add-label' ? ' active' : ''}`}
-        title={t('map.toolAddLabelTooltip')}
-        disabled={disabled}
-        onClick={() => {
-          setFlyout(null)
-          onSelectTool(activeTool === 'add-label' ? 'select' : 'add-label')
-        }}
-      >
-        <Type size={16} strokeWidth={2} />
-      </button>
+      {[
+        { tool: 'add-pin' as const, label: 'map.toolAddPinTooltip', Icon: MapPin },
+        { tool: 'add-label' as const, label: 'map.toolAddLabelTooltip', Icon: Type }
+      ].map(({ tool, label, Icon }) => (
+        <button
+          key={tool}
+          type="button"
+          className={`map-tool${activeTool === tool ? ' active' : ''}`}
+          title={t(label)}
+          disabled={disabled}
+          onClick={() => {
+            setFlyout(null)
+            onSelectTool(activeTool === tool ? 'select' : tool)
+          }}
+        >
+          <Icon size={16} strokeWidth={2} />
+        </button>
+      ))}
 
       <div className="map-tool-group">
         <button
@@ -127,33 +118,26 @@ export function ToolRail({
         </button>
         {flyout === 'spline' && (
           <div className="map-flyout" role="menu">
-            <div className="map-flyout-header">{t('map.splineRoadHeader')}</div>
-            {roads.map((p) => (
-              <button
-                key={`${p.kind}:${p.preset}`}
-                type="button"
-                className="map-flyout-item"
-                onClick={() => {
-                  setFlyout(null)
-                  onSplinePreset(p.kind, p.preset)
-                }}
-              >
-                {t(p.labelKey)}
-              </button>
-            ))}
-            <div className="map-flyout-header">{t('map.splineRiverHeader')}</div>
-            {rivers.map((p) => (
-              <button
-                key={`${p.kind}:${p.preset}`}
-                type="button"
-                className="map-flyout-item"
-                onClick={() => {
-                  setFlyout(null)
-                  onSplinePreset(p.kind, p.preset)
-                }}
-              >
-                {t(p.labelKey)}
-              </button>
+            {[
+              { kind: 'road', label: 'map.splineRoadHeader' },
+              { kind: 'river', label: 'map.splineRiverHeader' }
+            ].map(({ kind, label }) => (
+              <Fragment key={kind}>
+                <div className="map-flyout-header">{t(label)}</div>
+                {SPLINE_PRESETS.filter((preset) => preset.kind === kind).map((preset) => (
+                  <button
+                    key={`${preset.kind}:${preset.preset}`}
+                    type="button"
+                    className="map-flyout-item"
+                    onClick={() => {
+                      setFlyout(null)
+                      onSplinePreset(preset.kind, preset.preset)
+                    }}
+                  >
+                    {t(preset.labelKey)}
+                  </button>
+                ))}
+              </Fragment>
             ))}
             {customProfiles.length > 0 && (
               <>

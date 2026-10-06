@@ -129,7 +129,7 @@ public sealed class NarrationRenderSettings
 /// That is what lets the whole job be tested against a fake returning a tenth of
 /// a second of tone per line.
 /// </summary>
-public sealed class NarrationRenderJob
+public sealed partial class NarrationRenderJob
 {
     /// <summary>What the job needs from an engine, and all it needs.</summary>
     public delegate IAsyncEnumerable<NarrationClip> RenderDelegate(
@@ -166,33 +166,20 @@ public sealed class NarrationRenderJob
     /// Renders every chapter that is not already rendered.
     /// </summary>
     /// <param name="chapters">The book, compiled and in order.</param>
-    /// <param name="sheet">Who is read in which voice.</param>
-    /// <param name="voices">Reference audio per voice id.</param>
-    /// <param name="features">What the engine can be told.</param>
-    /// <param name="language">The book's language, BCP-47.</param>
-    /// <param name="clips">Emotion-reference clips by name, for the lines that
-    /// point at one.</param>
+    /// <param name="context">Cast and engine resources retained for every chapter in this run.</param>
     public async Task<NarrationRenderOutcome> RunAsync(
         IReadOnlyList<NarrationRenderChapter> chapters,
-        VoiceCastSheet sheet,
-        IReadOnlyDictionary<string, byte[]> voices,
-        VoiceEngineFeatures features,
-        string language,
+        NarrationRenderContext context,
         NarrationRenderSettings? settings = null,
         IProgress<NarrationRenderProgress>? progress = null,
-        CancellationToken cancellationToken = default,
-        IReadOnlyDictionary<string, byte[]>? clips = null,
-        IReadOnlyDictionary<string, string>? voiceReferenceTexts = null)
+        CancellationToken cancellationToken = default)
     {
         settings ??= new NarrationRenderSettings();
         Directory.CreateDirectory(_folder);
 
         var manifest = ReadManifest();
         var done = new List<NarrationChapterAudio>();
-        var started = _clock();
-        var totalSegments = chapters.Sum(c => c.Segments.Count);
-        var segmentsDone = 0;
-        var audioMs = 0d;
+        var tracking = new JobProgress(progress, chapters.Count, chapters.Sum(c => c.Segments.Count), _clock);
         string? error = null;
 
         for (var index = 0; index < chapters.Count; index++)
@@ -201,7 +188,7 @@ public sealed class NarrationRenderJob
             if (cancellationToken.IsCancellationRequested)
                 break;
 
-            var stamp = Fingerprint(chapter, sheet, features, language, settings);
+            var stamp = Fingerprint(chapter, context.Cast, context.Features, context.Language, settings);
             var name = FileNameFor(index, chapter);
 
             // Already rendered, from exactly these words. The expensive branch
@@ -212,32 +199,18 @@ public sealed class NarrationRenderJob
             {
                 done.Add(new NarrationChapterAudio(
                     chapter.Guid, chapter.Title, was.File, was.DurationMs, was.Missing, true));
-                segmentsDone += chapter.Segments.Count;
-                audioMs += was.DurationMs;
-                progress?.Report(new NarrationRenderProgress(
-                    index + 1, chapters.Count, chapter.Title,
-                    segmentsDone, totalSegments, audioMs, _clock() - started));
+                tracking.Cached(index, chapter.Title, chapter.Segments.Count, was.DurationMs);
                 continue;
             }
 
-            progress?.Report(new NarrationRenderProgress(
-                index + 1, chapters.Count, chapter.Title,
-                segmentsDone, totalSegments, audioMs, _clock() - started));
+            tracking.Report(index, chapter.Title);
 
             NarrationChapterAudio rendered;
             try
             {
                 rendered = await RenderChapterAsync(
-                    chapter, name, sheet, voices, features, language, settings, clips,
-                    voiceReferenceTexts,
-                    spoken =>
-                    {
-                        segmentsDone++;
-                        audioMs += spoken;
-                        progress?.Report(new NarrationRenderProgress(
-                            index + 1, chapters.Count, chapter.Title,
-                            segmentsDone, totalSegments, audioMs, _clock() - started));
-                    },
+                    chapter, name, context, settings,
+                    spoken => tracking.Spoke(index, chapter.Title, spoken),
                     cancellationToken);
             }
             catch (OperationCanceledException)
@@ -261,270 +234,49 @@ public sealed class NarrationRenderJob
         return new NarrationRenderOutcome(
             done,
             done.Count == chapters.Count && error == null,
-            audioMs,
-            _clock() - started,
+            tracking.AudioMs,
+            tracking.Elapsed,
             error);
     }
 
-    /// <summary>Which chapters are on disk already, by guid, so an estimate can
-    /// say how much of the work is actually left.</summary>
-    public IReadOnlyDictionary<string, double> Rendered() => RenderedIn(_folder);
-
-    /// <summary>
-    /// The same, for a caller that only wants to look.
-    ///
-    /// Static because reading the manifest needs no engine, and a caller forced
-    /// to construct a job just to ask would have to invent one.
-    /// </summary>
-    public static IReadOnlyDictionary<string, double> RenderedIn(string folder)
-        => ReadManifest(folder)
-            .ToDictionary(p => p.Key, p => p.Value.DurationMs, StringComparer.Ordinal);
-
-    /// <summary>Forgets every rendered chapter, so the next run does all of
-    /// them. What "render again from scratch" means.</summary>
-    public void Reset()
+    private sealed class JobProgress
     {
-        if (!Directory.Exists(_folder))
-            return;
-        foreach (var file in Directory.EnumerateFiles(_folder))
+        private readonly IProgress<NarrationRenderProgress>? progress;
+        private readonly int chapters;
+        private readonly int totalSegments;
+        private readonly Func<double> clock;
+        private readonly double started;
+        private int segmentsDone;
+
+        public JobProgress(IProgress<NarrationRenderProgress>? progress, int chapters,
+            int totalSegments, Func<double> clock)
         {
-            try
-            {
-                NarrationFileCleanup.Delete(file);
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-            {
-            }
+            this.progress = progress;
+            this.chapters = chapters;
+            this.totalSegments = totalSegments;
+            this.clock = clock;
+            started = clock();
         }
+
+        public double AudioMs { get; private set; }
+        public double Elapsed => clock() - started;
+
+        public void Cached(int index, string title, int segments, double audioMs)
+        {
+            segmentsDone += segments;
+            AudioMs += audioMs;
+            Report(index, title);
+        }
+
+        public void Spoke(int index, string title, double audioMs)
+        {
+            segmentsDone++;
+            AudioMs += audioMs;
+            Report(index, title);
+        }
+
+        public void Report(int index, string title)
+            => progress?.Report(new NarrationRenderProgress(
+                index + 1, chapters, title, segmentsDone, totalSegments, AudioMs, Elapsed));
     }
-
-    private async Task<NarrationChapterAudio> RenderChapterAsync(
-        NarrationRenderChapter chapter,
-        string name,
-        VoiceCastSheet sheet,
-        IReadOnlyDictionary<string, byte[]> voices,
-        VoiceEngineFeatures features,
-        string language,
-        NarrationRenderSettings settings,
-        IReadOnlyDictionary<string, byte[]>? clips,
-        IReadOnlyDictionary<string, string>? voiceReferenceTexts,
-        Action<double> spoke,
-        CancellationToken cancellationToken)
-    {
-        var samples = new MemoryStream();
-        WaveFormat? format = null;
-        var missing = 0;
-        // The silence owed before the next clip. Held rather than written,
-        // because the format is not known until the first clip arrives - and
-        // because a scene break followed by a line break would otherwise write
-        // both, making the pause between scenes longer than the setting says.
-        var gapMs = 0;
-
-        foreach (var scene in chapter.Scenes)
-        {
-            if (samples.Length > 0)
-                gapMs = settings.SceneGapMs;
-
-            for (var at = 0; at < scene.Segments.Count; at += settings.Window)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var window = scene.Segments.Skip(at).Take(settings.Window).ToArray();
-                // Consecutive sentences one voice says in one breath, read in
-                // one breath. A recording is listened to end to end, and a model
-                // that starts each call afresh resets its pitch and pace at
-                // every full stop otherwise.
-                var joined = NarrationRender.Joined(
-                    window,
-                    settings.JoinCharacters,
-                    features.HasFlag(VoiceEngineFeatures.EmotionInferred));
-                var covers = joined.ToDictionary(
-                    j => j.Segment.Key, j => j.Covers, StringComparer.Ordinal);
-
-                var request = NarrationRender.Build(
-                    [.. joined.Select(j => j.Segment)], sheet, voices, features, language,
-                    settings.Rate, clips, _ => scene.Where, voiceReferenceTexts);
-
-                // Segments the cast could not place - no voice, or a voice this
-                // machine does not have - never reach the engine. Counted in
-                // lines rather than in calls, so the total the writer sees is
-                // the whole chapter however the lines were grouped.
-                var asked = request.Segments.Select(r => r.Key).ToHashSet(StringComparer.Ordinal);
-                foreach (var join in joined.Where(j => !asked.Contains(j.Segment.Key)))
-                {
-                    missing += join.Covers;
-                    for (var i = 0; i < join.Covers; i++)
-                        spoke(0);
-                }
-                if (request.Segments.Count == 0)
-                    continue;
-
-                var heard = 0;
-                await foreach (var clip in _render(request, cancellationToken)
-                    .WithCancellation(cancellationToken))
-                {
-                    heard++;
-                    var stands = covers.GetValueOrDefault(clip.Key, 1);
-                    var read = clip.Error == null ? WaveAudio.Read(clip.Audio) : null;
-                    if (read == null || read.Samples.Length == 0)
-                    {
-                        missing += stands;
-                        for (var i = 0; i < stands; i++)
-                            spoke(0);
-                        continue;
-                    }
-
-                    format ??= read.Format;
-                    // A clip of another shape cannot be laid beside the rest
-                    // without resampling, and a chapter that changes pitch
-                    // halfway through is worse than one with a gap in it.
-                    if (read.Format != format)
-                    {
-                        missing += stands;
-                        for (var i = 0; i < stands; i++)
-                            spoke(0);
-                        continue;
-                    }
-
-                    if (samples.Length > 0)
-                        samples.Write(WaveAudio.Silence(read.Format, gapMs));
-                    samples.Write(
-                        features.HasFlag(VoiceEngineFeatures.ContinuousContext)
-                            ? read.Samples
-                            : WaveAudio.Fade(read.Samples, read.Format, settings.JoinFadeMs));
-                    gapMs = settings.SegmentGapMs;
-                    // Once per line the call covered, not once per call. The
-                    // bar counts lines, and a joined run that moved it by one
-                    // would leave it short of the end by however many sentences
-                    // were read in one breath.
-                    for (var i = 0; i < stands; i++)
-                        spoke(read.DurationMs / stands);
-                }
-
-                // Fewer clips came back than calls went out. Counted rather than
-                // assumed: an engine that quietly drops a line is a failure only
-                // ever noticed while listening.
-                for (var i = heard; i < request.Segments.Count; i++)
-                {
-                    var stands = covers.GetValueOrDefault(request.Segments[i].Key, 1);
-                    missing += stands;
-                    for (var n = 0; n < stands; n++)
-                        spoke(0);
-                }
-            }
-        }
-
-        var shape = format ?? new WaveFormat(24000, 1, 16);
-        var bytes = samples.ToArray();
-        await File.WriteAllBytesAsync(
-            Path.Combine(_folder, name), WaveAudio.Write(shape, bytes), cancellationToken);
-
-        return new NarrationChapterAudio(
-            chapter.Guid, chapter.Title, name, shape.DurationMs(bytes.LongLength), missing, false);
-    }
-
-    /// <summary>
-    /// Everything that would change the audio, as one string.
-    ///
-    /// The words, who says them, how, at what pace, and what the engine can be
-    /// told - a cast change over unchanged prose is still a different reading.
-    /// What is deliberately absent is anything positional: inserting a chapter
-    /// must not invalidate the ones after it.
-    /// </summary>
-    internal static string Fingerprint(
-        NarrationRenderChapter chapter,
-        VoiceCastSheet sheet,
-        VoiceEngineFeatures features,
-        string language,
-        NarrationRenderSettings settings)
-    {
-        var builder = new StringBuilder();
-        builder.Append(language).Append(Unit)
-            .Append(settings.Rate.ToString("F3", CultureInfo.InvariantCulture)).Append(Unit)
-            .Append(settings.SegmentGapMs).Append(Unit)
-            .Append(settings.SceneGapMs).Append(Unit)
-            // The fade is audible at every join of the chapter, so changing
-            // it changes the audio.
-            .Append(settings.JoinFadeMs).Append(Unit)
-            .Append(settings.JoinCharacters).Append(Unit)
-            .Append((int)features).Append('\n');
-
-        // By scene rather than over the flattened chapter, because which voice
-        // a line resolves to now depends on where the line is.
-        foreach (var scene in chapter.Scenes)
-        {
-            foreach (var segment in scene.Segments)
-            {
-                builder.Append(segment.Key).Append(Unit)
-                    .Append(VoiceCast.Resolve(sheet, segment.SpeakerId, scene.Where) ?? "-")
-                    .Append(Unit)
-                    .Append(segment.Direction.Key).Append(Unit)
-                    .Append(segment.Direction.ReferenceClip ?? "-").Append(Unit);
-                // The line's own direction with the speaker's standing register
-                // already added, which is what will actually be performed.
-                // Hashing the line's own numbers instead meant a writer who made
-                // a character warmer or more clipped and re-rendered was told
-                // every chapter was unchanged, and heard the old delivery back.
-                foreach (var (dimension, value) in EmotionDirector
-                    .WithRegister(segment.Direction.Vector, sheet.RegisterFor(segment.SpeakerId))
-                    .OrderBy(p => p.Key, StringComparer.Ordinal))
-                {
-                    builder.Append(dimension).Append('=')
-                        .Append(value.ToString("F3", CultureInfo.InvariantCulture)).Append(',');
-                }
-                builder.Append(Unit).Append(segment.Text).Append('\n');
-            }
-        }
-
-        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString())))[..32];
-    }
-
-    /// <summary>
-    /// A chapter's file name: its position, so a directory listing is in reading
-    /// order, and part of its guid, so two chapters sharing a title do not write
-    /// to the same file.
-    /// </summary>
-    internal static string FileNameFor(int index, NarrationRenderChapter chapter)
-    {
-        var id = new string([.. chapter.Guid.Where(char.IsLetterOrDigit).Take(8)]);
-        return $"chapter-{index + 1:D3}-{(id.Length == 0 ? "x" : id)}.wav";
-    }
-
-    private Dictionary<string, ManifestEntry> ReadManifest() => ReadManifest(_folder);
-
-    private static Dictionary<string, ManifestEntry> ReadManifest(string folder)
-    {
-        var path = Path.Combine(folder, ManifestName);
-        if (!File.Exists(path))
-            return new Dictionary<string, ManifestEntry>(StringComparer.Ordinal);
-        try
-        {
-            var read = JsonSerializer.Deserialize<Dictionary<string, ManifestEntry>>(
-                File.ReadAllText(path));
-            return read == null
-                ? new Dictionary<string, ManifestEntry>(StringComparer.Ordinal)
-                : new Dictionary<string, ManifestEntry>(read, StringComparer.Ordinal);
-        }
-        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
-        {
-            // A manifest that cannot be read means rendering again, which is
-            // slow but correct. Refusing to render at all would not be.
-            return new Dictionary<string, ManifestEntry>(StringComparer.Ordinal);
-        }
-    }
-
-    private void WriteManifest(Dictionary<string, ManifestEntry> manifest)
-    {
-        try
-        {
-            File.WriteAllText(
-                Path.Combine(_folder, ManifestName), JsonSerializer.Serialize(manifest, Json));
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-        }
-    }
-
-    /// <summary>One chapter's line in the manifest.</summary>
-    internal sealed record ManifestEntry(string Stamp, string File, double DurationMs, int Missing);
 }

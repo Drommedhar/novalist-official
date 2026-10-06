@@ -3,7 +3,7 @@ namespace Novalist.Core.Services;
 /// <summary>What a look at a stored project folder actually established.</summary>
 public enum ProjectPresence
 {
-    /// <summary>The project is there and can be opened.</summary>
+    /// <summary>The .novalist/project.json path exists; the probe does not parse or validate its contents.</summary>
     Present,
 
     /// <summary>

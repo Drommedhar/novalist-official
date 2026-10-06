@@ -33,7 +33,7 @@ function formatSize(bytes: number): string {
   return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`
 }
 
-export function BackupsCard(): React.JSX.Element {
+function useBackups() {
   const { t } = useTranslation()
   const projectPath = useProjectStore((s) => s.projectPath)
   const hasProject = Boolean(projectPath)
@@ -47,12 +47,6 @@ export function BackupsCard(): React.JSX.Element {
   const [restoreCopy, setRestoreCopy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const refreshId = useRef(0)
-
-  const flushEdits = async (): Promise<void> => {
-    await flushPendingWrites()
-    await useProjectStore.getState().flushPendingSave()
-    await useManuscriptStore.getState().flushPendingSave()
-  }
 
   const refresh = useCallback(async () => {
     const id = ++refreshId.current
@@ -83,88 +77,36 @@ export function BackupsCard(): React.JSX.Element {
     return () => { ++refreshId.current }
   }, [refresh])
 
-  const backUpNow = async (): Promise<void> => {
+  const {remove, prune, restore} = createBackupActions({t, setBusy, setError, setBackups, refresh})
+  const createBackup = async (name?: string): Promise<void> => {
     setBusy(true)
     setError(null)
     try {
       await flushEdits()
-      await rpc.request<BackupDto | null>('backup/create', ['manual'])
-      await refresh()
-    } catch (e) {
-      setError(String(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const formatDate = (iso: string): string => new Date(iso).toLocaleString()
-
-  const keepThisVersion = async (): Promise<void> => {
-    const name = milestoneName.trim()
-    if (!name) return
-    setBusy(true)
-    setError(null)
-    try {
-      await flushEdits()
-      await rpc.request<BackupDto | null>('backup/createMilestone', [name])
-      setMilestoneName('')
-      await refresh()
-    } catch (e) {
-      setError(String(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const remove = async (backup: BackupDto): Promise<void> => {
-    // Retention will never clear a milestone, so deleting one is deliberate and
-    // gets asked about rather than assumed.
-    const label = backup.name || formatDate(backup.createdAt)
-    if (!window.confirm(t('backup.deleteConfirm', { name: label }))) return
-    setBusy(true)
-    try {
-      await rpc.request<boolean>('backup/delete', [backup.id])
-      await refresh()
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const prune = async (): Promise<void> => {
-    setBusy(true)
-    try {
-      setBackups(await rpc.request<BackupDto[]>('backup/prune'))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const restore = async (backup: BackupDto): Promise<void> => {
-    // Overwriting the project folder is the most destructive action in the app.
-    // The service archives the current state first, so this is undoable, but the
-    // user still gets told before it happens rather than after.
-    const ok = window.confirm(t('backup.restoreConfirm', { date: formatDate(backup.createdAt) }))
-    if (!ok) return
-    setBusy(true)
-    setError(null)
-    try {
-      await flushEdits()
-      if (!await rpc.request<boolean>('backup/restore', [backup.id])) {
-        throw new Error(t('backup.restoreFailed'))
+      if (name !== undefined) {
+        await rpc.request<BackupDto | null>('backup/createMilestone', [name])
+        setMilestoneName('')
+      } else {
+        await rpc.request<BackupDto | null>('backup/create', ['manual'])
       }
-      // The backend reopened the project over restored files; pull the fresh
-      // state so the binder is not showing chapters that no longer exist.
-      useProjectStore
-        .getState()
-        .applyState(await rpc.request<ProjectStateDto>('project/getState'), true)
-      useManuscriptStore.setState({ loaded: false, sections: [], composed: null })
       await refresh()
-    } catch (e) {
-      setError(String(e))
+    } catch (error) {
+      setError(String(error))
     } finally {
       setBusy(false)
     }
   }
+  const backUpNow = (): Promise<void> => createBackup()
+  const keepThisVersion = (): Promise<void> | undefined => {
+    const name = milestoneName.trim()
+    if (name) return createBackup(name)
+  }
+
+  return { error, busy, setRestoreCopy, t, restoreCopy, refresh, global, update, setError, hasProject, backUpNow, prune, folder, milestoneName, setMilestoneName, keepThisVersion, backups, restore, remove }
+}
+
+export function BackupsCard(): React.JSX.Element {
+  const { error, busy, setRestoreCopy, t, restoreCopy, refresh, global, update, setError, hasProject, backUpNow, prune, folder, milestoneName, setMilestoneName, keepThisVersion, backups, restore, remove } = useBackups()
 
   return (
     <>
@@ -305,11 +247,11 @@ export function BackupsCard(): React.JSX.Element {
                 <div className="backup-row-main">
                   <span className="backup-row-date">
                     {b.isMilestone && <Flag size={12} aria-hidden />}
-                    {b.isMilestone ? b.name : formatDate(b.createdAt)}
+                    {b.isMilestone ? b.name : formatBackupDate(b.createdAt)}
                   </span>
                   <span className="backup-row-meta">
                     {b.isMilestone
-                      ? `${formatDate(b.createdAt)} · ${t('backup.kept')}`
+                      ? `${formatBackupDate(b.createdAt)} · ${t('backup.kept')}`
                       : t(`backup.trigger.${b.trigger}`, { defaultValue: b.trigger })}{' '}
                     · {formatSize(b.sizeBytes)}
                   </span>
@@ -336,4 +278,75 @@ export function BackupsCard(): React.JSX.Element {
       )}
     </>
   )
+}
+
+async function flushEdits(): Promise<void> {
+    await flushPendingWrites()
+    await useProjectStore.getState().flushPendingSave()
+    await useManuscriptStore.getState().flushPendingSave()
+  }
+
+
+const formatBackupDate = (iso: string): string => new Date(iso).toLocaleString()
+
+interface BackupActionsContext {
+  t: ReturnType<typeof useTranslation>['t']
+  setBusy(busy: boolean): void
+  setError(error: string | null): void
+  setBackups(backups: BackupDto[]): void
+  refresh(): Promise<void>
+}
+
+function createBackupActions({t, setBusy, setError, setBackups, refresh}: BackupActionsContext) {
+  const remove = async (backup: BackupDto): Promise<void> => {
+    // Retention will never clear a milestone, so deleting one is deliberate and
+    // gets asked about rather than assumed.
+    const label = backup.name || formatBackupDate(backup.createdAt)
+    if (!window.confirm(t('backup.deleteConfirm', { name: label }))) return
+    setBusy(true)
+    try {
+      await rpc.request<boolean>('backup/delete', [backup.id])
+      await refresh()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const prune = async (): Promise<void> => {
+    setBusy(true)
+    try {
+      setBackups(await rpc.request<BackupDto[]>('backup/prune'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const restore = async (backup: BackupDto): Promise<void> => {
+    // Overwriting the project folder is the most destructive action in the app.
+    // The service archives the current state first, so this is undoable, but the
+    // user still gets told before it happens rather than after.
+    const ok = window.confirm(t('backup.restoreConfirm', { date: formatBackupDate(backup.createdAt) }))
+    if (!ok) return
+    setBusy(true)
+    setError(null)
+    try {
+      await flushEdits()
+      if (!await rpc.request<boolean>('backup/restore', [backup.id])) {
+        throw new Error(t('backup.restoreFailed'))
+      }
+      // The backend reopened the project over restored files; pull the fresh
+      // state so the binder is not showing chapters that no longer exist.
+      useProjectStore
+        .getState()
+        .applyState(await rpc.request<ProjectStateDto>('project/getState'), true)
+      useManuscriptStore.setState({ loaded: false, sections: [], composed: null })
+      await refresh()
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return {remove, prune, restore}
 }

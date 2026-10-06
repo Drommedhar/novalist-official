@@ -63,7 +63,7 @@ interface EditorToolbarProps {
 // placement-container: viewBar
 const PARAGRAPH_STYLES = ['', 'heading', 'subheading', 'blockquote', 'poetry'] as const
 
-export function EditorToolbar({ formatting, speaking, active }: EditorToolbarProps): React.JSX.Element {
+function useEditorToolbar(formatting: FormattingState) {
   const { t } = useTranslation()
   const [optionsOpen, setOptionsOpen] = useState(false)
   const recording = useDictation((s) => s.recording || s.starting)
@@ -131,6 +131,12 @@ export function EditorToolbar({ formatting, speaking, active }: EditorToolbarPro
       {t(option.labelKey)}
     </label>
   )
+
+  return { t, buttons, recording, suggesting, optionsOpen, setOptionsOpen, option }
+}
+
+export function EditorToolbar({ formatting, speaking, active }: EditorToolbarProps): React.JSX.Element {
+  const { t, buttons, recording, suggesting, optionsOpen, setOptionsOpen, option } = useEditorToolbar(formatting)
 
   return (
     <div className="editor-toolbar">

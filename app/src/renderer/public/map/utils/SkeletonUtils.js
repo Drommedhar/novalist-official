@@ -1,3 +1,4 @@
+// aislop-ignore-file complexity/file-too-large -- Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately.
 import {
 	AnimationClip,
 	AnimationMixer,
@@ -36,6 +37,7 @@ function getBoneName( bone, options ) {
  * @param {Object3D|Skeleton} source - The source object.
  * @param {module:SkeletonUtils~RetargetOptions} options - The options.
  */
+// aislop-ignore-next-line complexity/function-too-long complexity/deep-nesting -- Bundled Three.js retargeting preserves bone hierarchy transforms and animation sampling order.
 function retarget( target, source, options = {} ) {
 
 	const quat = new Quaternion(),
@@ -223,6 +225,7 @@ function retarget( target, source, options = {} ) {
  * @param {module:SkeletonUtils~RetargetOptions} options - The options.
  * @return {AnimationClip} The retargeted animation clip.
  */
+// aislop-ignore-next-line complexity/function-too-long complexity/deep-nesting -- Bundled Three.js retargeting preserves bone hierarchy transforms and animation sampling order.
 function retargetClip( target, source, clip, options = {} ) {
 
 	options.useFirstFramePosition = options.useFirstFramePosition !== undefined ? options.useFirstFramePosition : false;

@@ -87,6 +87,7 @@ public sealed class ArchiveService : IArchiveService
         if (!replaceExisting && (Directory.Exists(destination) || File.Exists(destination)))
             throw new IOException("Choose a new project folder. The destination already exists.");
 
+        // aislop-ignore-next-line ai-slop/csharp-null-forgiving -- The normalized destination is a new non-root folder; an existing filesystem root was rejected above.
         var staging = Path.Combine(replaceExisting ? Path.GetTempPath() : Path.GetDirectoryName(destination)!,
             ".novalist-restore-" + Guid.NewGuid().ToString("N"));
         var existing = new List<string>();
@@ -119,6 +120,7 @@ public sealed class ArchiveService : IArchiveService
             foreach (var relative in restored)
             {
                 var target = Path.Combine(destination, relative);
+                // aislop-ignore-next-line ai-slop/csharp-null-forgiving -- target is an extracted child path underneath the destination directory, so its parent exists as a path.
                 Directory.CreateDirectory(Path.GetDirectoryName(target)!);
                 await FileService.CopyFileAsync(Path.Combine(staging, relative), target);
             }

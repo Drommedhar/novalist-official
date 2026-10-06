@@ -23,20 +23,7 @@ export function focusManuscript(): void {
   })
 }
 
-export function FocusMode(): React.JSX.Element {
-  const { t } = useTranslation()
-  const panel = useShellStore((s) => s.focusPanel)
-  const transient = useShellStore((s) => s.focusPanelTransient)
-  const toolsVisible = useShellStore((s) => s.focusToolsVisible)
-  const writing = useShellStore((s) => s.mainView === 'write' && !s.extView)
-  const sceneId = useProjectStore((s) => s.openSceneId)
-  const chapterGuid = useProjectStore((s) => s.openChapterGuid)
-  const sceneKey = `${chapterGuid}/${sceneId}`
-  const [readyScene, setReadyScene] = useState<string | null>(null)
-  const inspectorReady = useCallback((ready: boolean) => setReadyScene(ready ? sceneKey : null), [sceneKey])
-  const shownPanel = panel === 'inspector' && readyScene !== sceneKey ? null : panel
-  const chapters = useProjectStore((s) => s.chapters)
-  const scene = chapters.flatMap((chapter) => chapter.scenes).find((item) => item.id === sceneId)
+function useFocusHoverPanels() {
   const overlay = useRef<HTMLDivElement>(null)
   const bar = useRef<HTMLDivElement>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -84,41 +71,31 @@ export function FocusMode(): React.JSX.Element {
     focusManuscript()
   }
 
+  return { overlay, bar, timer, dismissedEdge, cancelReveal, cancelRetreat, retreatSoon, revealSoon, close }
+}
+
+export function FocusMode(): React.JSX.Element {
+  const { t } = useTranslation()
+  const panel = useShellStore((s) => s.focusPanel)
+  const transient = useShellStore((s) => s.focusPanelTransient)
+  const toolsVisible = useShellStore((s) => s.focusToolsVisible)
+  const writing = useShellStore((s) => s.mainView === 'write' && !s.extView)
+  const sceneId = useProjectStore((s) => s.openSceneId)
+  const chapterGuid = useProjectStore((s) => s.openChapterGuid)
+  const sceneKey = `${chapterGuid}/${sceneId}`
+  const [readyScene, setReadyScene] = useState<string | null>(null)
+  const inspectorReady = useCallback((ready: boolean) => setReadyScene(ready ? sceneKey : null), [sceneKey])
+  const shownPanel = panel === 'inspector' && readyScene !== sceneKey ? null : panel
+  const chapters = useProjectStore((s) => s.chapters)
+  const scene = chapters.flatMap((chapter) => chapter.scenes).find((item) => item.id === sceneId)
+  const { overlay, bar, timer, dismissedEdge, cancelReveal, cancelRetreat, retreatSoon, revealSoon, close } = useFocusHoverPanels()
+
   useEffect(() => {
     void window.novalist.setFocusWindow?.(true)
     return () => { void window.novalist.setFocusWindow?.(false) }
   }, [])
 
-  // Measure the actual page, so hover targets follow zoom, UI scale and display size.
-  // Observing sizes avoids work on every pointer move or editor keystroke.
-  useLayoutEffect(() => {
-    // Other workspaces can change Codex entries and scene metadata. Prepare a
-    // fresh context on return, while retaining it across ordinary panel hovers.
-    if (!writing) {
-      setReadyScene(null)
-      return
-    }
-    const shell = bar.current?.closest<HTMLElement>('.shell')
-    if (!shell) return
-    const frames = [...shell.querySelectorAll<HTMLIFrameElement>('iframe.editor-frame')]
-    const measure = (): void => {
-      const page = frames.map((frame) => frame.getBoundingClientRect()).find((rect) => rect.width > 0)
-      if (!page) return
-      const bounds = shell.getBoundingClientRect()
-      const minimum = parseFloat(getComputedStyle(shell).getPropertyValue('--nl-focus-edge-width'))
-      shell.style.setProperty('--nl-focus-hover-left', `${Math.max(minimum, page.left - bounds.left)}px`)
-      shell.style.setProperty('--nl-focus-hover-right', `${Math.max(minimum, bounds.right - page.right)}px`)
-    }
-    const observer = new ResizeObserver(measure)
-    observer.observe(shell)
-    frames.forEach((frame) => observer.observe(frame))
-    measure()
-    return () => {
-      observer.disconnect()
-      shell.style.removeProperty('--nl-focus-hover-left')
-      shell.style.removeProperty('--nl-focus-hover-right')
-    }
-  }, [writing, sceneId])
+  useFocusPageBounds({ bar, writing, sceneId, setReadyScene })
 
   useEffect(() => {
     if (shownPanel && writing && !transient) overlay.current?.focus()
@@ -245,4 +222,42 @@ export function FocusMode(): React.JSX.Element {
       </div>)}
     </div>
   </>
+}
+
+function useFocusPageBounds({ bar, writing, sceneId, setReadyScene }: {
+  bar: React.RefObject<HTMLDivElement | null>
+  writing: boolean
+  sceneId: string | null
+  setReadyScene: (value: string | null) => void
+}): void {
+  // Measure the actual page, so hover targets follow zoom, UI scale and display size.
+  // Observing sizes avoids work on every pointer move or editor keystroke.
+  useLayoutEffect(() => {
+    // Other workspaces can change Codex entries and scene metadata. Prepare a
+    // fresh context on return, while retaining it across ordinary panel hovers.
+    if (!writing) {
+      setReadyScene(null)
+      return
+    }
+    const shell = bar.current?.closest<HTMLElement>('.shell')
+    if (!shell) return
+    const frames = [...shell.querySelectorAll<HTMLIFrameElement>('iframe.editor-frame')]
+    const measure = (): void => {
+      const page = frames.map((frame) => frame.getBoundingClientRect()).find((rect) => rect.width > 0)
+      if (!page) return
+      const bounds = shell.getBoundingClientRect()
+      const minimum = parseFloat(getComputedStyle(shell).getPropertyValue('--nl-focus-edge-width'))
+      shell.style.setProperty('--nl-focus-hover-left', `${Math.max(minimum, page.left - bounds.left)}px`)
+      shell.style.setProperty('--nl-focus-hover-right', `${Math.max(minimum, bounds.right - page.right)}px`)
+    }
+    const observer = new ResizeObserver(measure)
+    observer.observe(shell)
+    frames.forEach((frame) => observer.observe(frame))
+    measure()
+    return () => {
+      observer.disconnect()
+      shell.style.removeProperty('--nl-focus-hover-left')
+      shell.style.removeProperty('--nl-focus-hover-right')
+    }
+  }, [writing, sceneId])
 }

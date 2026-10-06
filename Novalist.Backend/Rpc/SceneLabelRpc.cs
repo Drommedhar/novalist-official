@@ -35,15 +35,20 @@ public sealed class SceneLabelRpc
             ?? throw new InvalidOperationException("No active book.");
 
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        book.SceneLabels = [.. (labels ?? [])
-            .Where(l => !string.IsNullOrWhiteSpace(l.Key) && !string.IsNullOrWhiteSpace(l.Label))
-            .Where(l => seen.Add(l.Key!.Trim()))
-            .Select(l => new SceneLabel
+        var cleaned = new List<SceneLabel>();
+        foreach (var label in labels ?? [])
+        {
+            if (string.IsNullOrWhiteSpace(label.Key) || string.IsNullOrWhiteSpace(label.Label)) continue;
+            var key = label.Key.Trim();
+            if (!seen.Add(key)) continue;
+            cleaned.Add(new SceneLabel
             {
-                Key = l.Key!.Trim(),
-                Label = l.Label!.Trim(),
-                Color = string.IsNullOrWhiteSpace(l.Color) ? "#8b8b8b" : l.Color!.Trim()
-            })];
+                Key = key,
+                Label = label.Label.Trim(),
+                Color = string.IsNullOrWhiteSpace(label.Color) ? "#8b8b8b" : label.Color.Trim()
+            });
+        }
+        book.SceneLabels = cleaned;
 
         await _workspace.Projects.SaveProjectAsync();
         await PruneAsync(book.SceneLabels);

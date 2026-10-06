@@ -1,3 +1,4 @@
+// aislop-ignore-file complexity/file-too-large -- Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately.
 import {
 	BufferAttribute,
 	BufferGeometry,
@@ -235,8 +236,8 @@ class DRACOLoader extends Loader {
 			} )
 			.then( ( message ) => this._createGeometry( message.geometry ) );
 
-		// Remove task from the task list.
-		// Note: replaced '.finally()' with '.catch().then()' block - iOS 11 support (#19416)
+		// Cleanup must handle both outcomes on iOS 11, which lacks Promise.finally (#19416).
+		// The original geometry promise still reports decoding failures to its caller.
 		geometryPending
 			.catch( () => true )
 			.then( () => {
@@ -464,6 +465,7 @@ class DRACOLoader extends Loader {
 
 	debug() {
 
+		// aislop-ignore-next-line ai-slop/console-leftover -- The public debug method prints worker task loads only when a caller explicitly requests diagnostics.
 		console.log( 'Task load: ', this.workerPool.map( ( worker ) => worker._taskLoad ) );
 
 	}
@@ -492,6 +494,7 @@ class DRACOLoader extends Loader {
 
 /* WEB WORKER */
 
+// aislop-ignore-next-line complexity/function-too-long -- Worker factory is serialized into a standalone worker; decoder protocol closures must travel together.
 function DRACOWorker() {
 
 	let decoderConfig;

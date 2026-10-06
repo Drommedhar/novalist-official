@@ -25,7 +25,7 @@ public static class StoryDateFormatter
         if (range != null && range.HasValue)
             return FormatRange(range);
 
-        return string.IsNullOrWhiteSpace(date) ? string.Empty : date!.Trim();
+        return string.IsNullOrWhiteSpace(date) ? string.Empty : date.Trim();
     }
 
     public static string FormatRange(StoryDateRange range)

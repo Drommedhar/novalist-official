@@ -22,7 +22,7 @@ public sealed class PlotRpc
     /// scenes is she in", which is the same shape of question.
     /// </param>
     [JsonRpcMethod("plot/grid")]
-    public PlotGridDto GetGrid(string rowSource = "plotline")
+    public async Task<PlotGridDto> GetGridAsync(string rowSource = "plotline")
     {
         var projects = _workspace.Projects;
         var book = projects.ActiveBook ?? throw new InvalidOperationException("No project open.");
@@ -54,7 +54,7 @@ public sealed class PlotRpc
         }
 
         var rows = byCodex
-            ? CodexRows(rowSource)
+            ? await CodexRowsAsync(rowSource)
             : [.. _plotlines.GetPlotlines().Select(ToDto)];
 
         return new PlotGridDto(rows, columns.ToArray());
@@ -65,24 +65,24 @@ public sealed class PlotRpc
     /// of their own, so the row takes the neutral one and the grid stays
     /// readable rather than inventing five palettes.
     /// </summary>
-    private PlotlineDto[] CodexRows(string typeKey)
+    private async Task<PlotlineDto[]> CodexRowsAsync(string typeKey)
     {
         var entities = new EntityService(_workspace.Projects);
         var names = typeKey.ToLowerInvariant() switch
         {
-            "character" => entities.LoadCharactersAsync().GetAwaiter().GetResult()
+            "character" => (await entities.LoadCharactersAsync())
                 .Select(c => (c.Id, Name: EntityResolveIndex.Compose(c.Name, c.Surname))),
-            "location" => entities.LoadLocationsAsync().GetAwaiter().GetResult()
+            "location" => (await entities.LoadLocationsAsync())
                 .Select(l => (l.Id, l.Name)),
-            "item" => entities.LoadItemsAsync().GetAwaiter().GetResult()
+            "item" => (await entities.LoadItemsAsync())
                 .Select(i => (i.Id, i.Name)),
-            "lore" => entities.LoadLoreAsync().GetAwaiter().GetResult()
+            "lore" => (await entities.LoadLoreAsync())
                 .Select(l => (l.Id, l.Name)),
             // A custom type that is gone - deleted since the writer last chose
             // it - is no rows rather than a broken view.
             _ => entities.GetCustomEntityTypes().Any(t =>
                     string.Equals(t.TypeKey, typeKey, StringComparison.OrdinalIgnoreCase))
-                ? entities.LoadCustomEntitiesAsync(typeKey).GetAwaiter().GetResult()
+                ? (await entities.LoadCustomEntitiesAsync(typeKey))
                     .Select(e => (e.Id, e.Name))
                 : []
         };
@@ -113,14 +113,14 @@ public sealed class PlotRpc
 
         scene.Cast = cast.Count > 0 ? cast : null;
         await _workspace.Projects.SaveScenesAsync();
-        return GetGrid(rowSource);
+        return await GetGridAsync(rowSource);
     }
 
     [JsonRpcMethod("plot/toggle")]
     public async Task<PlotGridDto> ToggleAsync(string chapterGuid, string sceneId, string plotlineId)
     {
         await _plotlines.ToggleSceneAsync(chapterGuid, sceneId, plotlineId);
-        return GetGrid();
+        return await GetGridAsync();
     }
 
     /// <summary>Sets or clears the short note on one plot-grid cell.</summary>
@@ -129,14 +129,14 @@ public sealed class PlotRpc
         string chapterGuid, string sceneId, string plotlineId, string? note)
     {
         await _plotlines.SetCellNoteAsync(chapterGuid, sceneId, plotlineId, note);
-        return GetGrid();
+        return await GetGridAsync();
     }
 
     [JsonRpcMethod("plot/createPlotline")]
     public async Task<PlotGridDto> CreatePlotlineAsync(string name)
     {
         await _plotlines.CreateAsync(name);
-        return GetGrid();
+        return await GetGridAsync();
     }
 
     [JsonRpcMethod("plot/renamePlotline")]
@@ -150,7 +150,7 @@ public sealed class PlotRpc
         var before = Core.Services.PlotlineService.Serialize(plotline);
         plotline.Name = name;
         await _plotlines.UpdateAsync(plotline, before);
-        return GetGrid();
+        return await GetGridAsync();
     }
 
     /// <summary>
@@ -213,7 +213,7 @@ public sealed class PlotRpc
         if (description != null) plotline.Description = description.Trim();
 
         await _plotlines.UpdateAsync(plotline, before);
-        return GetGrid();
+        return await GetGridAsync();
     }
 
     private static PlotlineDto ToDto(Core.Models.PlotlineData p) => new(
@@ -251,14 +251,14 @@ public sealed class PlotRpc
     {
         if (!await _plotlines.RestoreAsync(plotlineId, revisionId))
             throw new InvalidOperationException("That revision is no longer there.");
-        return GetGrid();
+        return await GetGridAsync();
     }
 
     [JsonRpcMethod("plot/deletePlotline")]
     public async Task<PlotGridDto> DeletePlotlineAsync(string plotlineId)
     {
         await _plotlines.DeleteAsync(plotlineId);
-        return GetGrid();
+        return await GetGridAsync();
     }
 }
 

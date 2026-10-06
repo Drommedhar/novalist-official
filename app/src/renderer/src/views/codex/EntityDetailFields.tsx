@@ -38,9 +38,6 @@ export function builtInFieldLabelKeys(entityType: string): Record<string, string
   return labels
 }
 
-/** Typed, labelled, grouped field layout per entity type (replaces the raw
- * string dumper). Built-in types get curated sections; custom types render
- * their declared fields with type-aware controls. */
 const BUILT_IN: Record<string, Section[]> = {
   character: [
     {

@@ -57,7 +57,7 @@ public static class ImagePicking
                 sheet.AddAction(UIAlertAction.Create(photosLabel, UIAlertActionStyle.Default,
                     _ => MainThread.BeginInvokeOnMainThread(() => PresentPhotoLibrary(tcs))));
                 sheet.AddAction(UIAlertAction.Create(filesLabel, UIAlertActionStyle.Default,
-                    _ => MainThread.BeginInvokeOnMainThread(() => PresentDocumentPicker(title, tcs))));
+                    action => MainThread.BeginInvokeOnMainThread(() => { _ = PresentDocumentPickerAsync(title, tcs); })));
                 sheet.AddAction(UIAlertAction.Create(
                     cancelLabel, UIAlertActionStyle.Cancel, _ => tcs.TrySetResult(null)));
 
@@ -99,7 +99,7 @@ public static class ImagePicking
         }
     }
 
-    private static async void PresentDocumentPicker(string title, TaskCompletionSource<string?> tcs)
+    private static async Task PresentDocumentPickerAsync(string title, TaskCompletionSource<string?> tcs)
     {
         try
         {

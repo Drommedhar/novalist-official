@@ -128,7 +128,11 @@ internal sealed class LogFileSink
                 .Skip(MaxRetainedFiles);
             foreach (var file in files)
             {
-                try { File.Delete(file); } catch { }
+                try { File.Delete(file); }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                {
+                    Console.Error.WriteLine($"[Diagnostics] Could not prune log: {exception.GetType().Name}");
+                }
             }
         }
         catch

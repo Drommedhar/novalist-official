@@ -259,7 +259,6 @@ export interface ExtensionContextMenuItem {
 
 let extensionContextMenuItems: ExtensionContextMenuItem[] = []
 
-/** Replaces the extension context-menu descriptor list pushed to the editor. */
 export function setExtensionContextMenuItems(items: ExtensionContextMenuItem[]): void {
   extensionContextMenuItems = items
 }

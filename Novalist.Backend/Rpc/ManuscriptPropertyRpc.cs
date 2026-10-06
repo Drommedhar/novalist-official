@@ -104,8 +104,10 @@ public sealed class ManuscriptPropertyRpc
         if (manifest == null) return [];
         return manifest.Chapters
             .SelectMany(c => c.Value)
-            .Where(s => s.Properties is { Count: > 0 })
-            .ToDictionary(s => s.Id, s => new Dictionary<string, string>(s.Properties!));
+            .SelectMany(s => s.Properties is { Count: > 0 } properties
+                ? new[] { KeyValuePair.Create(s.Id, new Dictionary<string, string>(properties)) }
+                : [])
+            .ToDictionary();
     }
 
     private static ManuscriptPropertyDto ToDto(ManuscriptPropertyDefinition d) => new(

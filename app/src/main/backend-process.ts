@@ -1,9 +1,8 @@
 import { spawn, type ChildProcessByStdio } from 'node:child_process'
-import { app } from 'electron'
+import { app, type MessagePortMain } from "electron";
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Readable, Writable } from 'node:stream'
-import type { MessagePortMain } from 'electron'
 import { BackendRouter } from './backend-router'
 import type { RpcMessage } from '../shared/rpcFraming'
 
@@ -18,11 +17,11 @@ export class BackendProcess {
   private child: BackendChild | null = null
   private disposed = false
   private notificationHandler: (message: RpcMessage) => boolean = () => false
-  private restartHandler: () => Promise<void> = async () => {}
+  private restartHandler?: () => Promise<void>
   private recovery: Promise<void> | null = null
   private needsRecovery = false
   private needsResync = false
-  private resyncHandler: () => Promise<void> = async () => {}
+  private resyncHandler?: () => Promise<void>
   readonly router = new BackendRouter(
     (frame) => {
       if (!this.child || this.child.stdin.destroyed) throw new Error('Backend is not connected.')
@@ -137,7 +136,7 @@ export class BackendProcess {
   recover(): Promise<void> {
     if (this.recovery) return this.recovery
     if (!this.needsRecovery && !this.needsResync) return Promise.resolve()
-    const operation = (this.needsRecovery ? this.restartHandler() : this.resyncHandler()).then(() => {
+    const operation = Promise.resolve(this.needsRecovery ? this.restartHandler?.() : this.resyncHandler?.()).then(() => {
       if (this.recovery !== operation) return
       this.needsRecovery = false
       this.needsResync = false

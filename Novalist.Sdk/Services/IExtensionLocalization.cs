@@ -19,6 +19,6 @@ public interface IExtensionLocalization : INotifyPropertyChanged
     /// <summary>Get a translated string by key. Falls back to English, then to the key itself.</summary>
     string T(string key);
 
-    /// <summary>Get a translated string with format arguments.</summary>
+    /// <summary>Formats the resolved translation with the current culture; returns the unformatted template if its placeholders are invalid.</summary>
     string T(string key, params object[] args);
 }

@@ -99,6 +99,7 @@ internal static class Log
 
     public static void Debug(string message)
     {
+        // aislop-ignore-next-line ai-slop/csharp-console-leftover -- This logger deliberately mirrors diagnostic messages to an attached debugger.
         System.Diagnostics.Debug.WriteLine(message);
         if (Verbose) Console.Error.WriteLine(message);
         ToFile(message);
@@ -107,6 +108,7 @@ internal static class Log
     public static void Info(string message)
     {
         var line = $"[INFO] {message}";
+        // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Information-level diagnostics are part of this logger's debugger sink.
         System.Diagnostics.Debug.WriteLine(line);
         if (Verbose) Console.Error.WriteLine(line);
         ToFile(line);
@@ -115,6 +117,7 @@ internal static class Log
     public static void Warn(string message)
     {
         var line = $"[WARN] {message}";
+        // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Warning-level diagnostics are part of this logger's debugger sink.
         System.Diagnostics.Debug.WriteLine(line);
         Console.Error.WriteLine(line);
         ToFile(line);
@@ -129,6 +132,7 @@ internal static class Log
         var line = exception == null
             ? $"[ERROR] {message}"
             : $"[ERROR] {message} :: type={exception.GetType().FullName}";
+        // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Error diagnostics report the exception type without serializing exception contents.
         System.Diagnostics.Debug.WriteLine(line);
         Console.Error.WriteLine(line);
         ToFile(line);

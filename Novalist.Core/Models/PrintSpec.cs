@@ -101,7 +101,6 @@ public sealed record PrintSpec
             : MarginOutsideInches;
     }
 
-    /// <summary>The right margin of a given page.</summary>
     public double RightMarginInches(int pageNumber, int pageCount)
     {
         var gutter = EffectiveGutterInches(pageCount);

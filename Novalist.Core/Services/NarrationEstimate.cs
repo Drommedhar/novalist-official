@@ -58,14 +58,15 @@ public sealed class NarrationSpeedLog
     private const double ShortestWorthKeepingMs = 5000;
 
     private readonly string _path;
+    private readonly string _directory;
 
     public NarrationSpeedLog(string? settingsDirectory = null)
     {
-        var root = string.IsNullOrWhiteSpace(settingsDirectory)
+        _directory = string.IsNullOrWhiteSpace(settingsDirectory)
             ? Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Novalist")
             : settingsDirectory;
-        _path = Path.Combine(root, FileName);
+        _path = Path.Combine(_directory, FileName);
     }
 
     /// <summary>Seconds of work per second of audio, or null when this machine
@@ -89,7 +90,7 @@ public sealed class NarrationSpeedLog
 
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+            Directory.CreateDirectory(_directory);
             File.WriteAllText(_path, JsonSerializer.Serialize(samples));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)

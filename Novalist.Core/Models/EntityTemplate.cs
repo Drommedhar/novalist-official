@@ -95,10 +95,15 @@ public class TemplateSection
     public string DefaultContent { get; set; } = string.Empty;
 }
 
+public interface IEntityTemplate
+{
+    string Id { get; set; }
+}
+
 /// <summary>
 /// Template for character entities.
 /// </summary>
-public class CharacterTemplate
+public class CharacterTemplate : IEntityTemplate
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();
@@ -147,7 +152,7 @@ public class CharacterTemplate
 /// <summary>
 /// Template for location entities.
 /// </summary>
-public class LocationTemplate
+public class LocationTemplate : IEntityTemplate
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();
@@ -176,7 +181,7 @@ public class LocationTemplate
 /// <summary>
 /// Template for item entities.
 /// </summary>
-public class ItemTemplate
+public class ItemTemplate : IEntityTemplate
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();
@@ -205,7 +210,7 @@ public class ItemTemplate
 /// <summary>
 /// Template for lore entities.
 /// </summary>
-public class LoreTemplate
+public class LoreTemplate : IEntityTemplate
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();
@@ -234,7 +239,7 @@ public class LoreTemplate
 /// <summary>
 /// Template for custom entity types.
 /// </summary>
-public class CustomEntityTemplate
+public class CustomEntityTemplate : IEntityTemplate
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();

@@ -1,0 +1,1040 @@
+{
+  "count": 100,
+  "byScope": {
+    "next-line": 74,
+    "file": 21,
+    "line": 5
+  },
+  "byCategory": {
+    "csharp": 52,
+    "vendor": 35,
+    "frontend": 13
+  },
+  "byRule": {
+    "ai-slop/csharp-null-forgiving": 8,
+    "complexity/function-too-long": 26,
+    "ai-slop/csharp-index-loop": 2,
+    "ai-slop/csharp-sync-over-async": 4,
+    "ai-slop/csharp-string-concat-in-loop": 2,
+    "ai-slop/csharp-console-leftover": 12,
+    "complexity/too-many-params": 10,
+    "complexity/file-too-large": 5,
+    "ai-slop/console-leftover": 3,
+    "ai-slop/hallucinated-import": 3,
+    "eslint/no-unused-vars": 3,
+    "unicorn/no-new-array": 1,
+    "ai-slop/hidden-fallback": 2,
+    "eslint/no-undef": 3,
+    "eslint/no-unused-expressions": 3,
+    "unicorn/no-thenable": 1,
+    "eslint/no-func-assign": 1,
+    "complexity/deep-nesting": 3,
+    "code-quality/duplicate-block": 10,
+    "ai-slop/hardcoded-url": 1
+  },
+  "entries": [
+    {
+      "file": "Novalist.Core/Services/ArchiveService.cs",
+      "line": 90,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-null-forgiving"
+      ],
+      "reason": "The normalized destination is a new non-root folder; an existing filesystem root was rejected above.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/ArchiveService.cs",
+      "line": 123,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-null-forgiving"
+      ],
+      "reason": "target is an extracted child path underneath the destination directory, so its parent exists as a path.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/BackupStorage.cs",
+      "line": 11,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/BookAnalyticsService.cs",
+      "line": 89,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-index-loop"
+      ],
+      "reason": "The chapter index selects the matching position in each entity's presence array.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/CoordinatedFileService.cs",
+      "line": 10,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/DarlingsService.cs",
+      "line": 42,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/DialogueIndexService.cs",
+      "line": 278,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-null-forgiving"
+      ],
+      "reason": "The preceding text and editability checks cover both conditions under which ReplaceLine returns null.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/DraftTransferService.cs",
+      "line": 358,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-null-forgiving"
+      ],
+      "reason": "The clone JSON was just serialized from a non-null model instance using the same options.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/EntityService.Images.cs",
+      "line": 41,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-sync-over-async"
+      ],
+      "reason": "Retains the published synchronous SDK contract; renderer RPC calls the asynchronous entry point.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/ExportService.CodexPdf.cs",
+      "line": 132,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-string-concat-in-loop"
+      ],
+      "reason": "Both operands are numeric PDF coordinates; this advances the drawing position.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/FolderImportParser.cs",
+      "line": 94,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/FolderImportService.cs",
+      "line": 22,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/GrammarCheckService.cs",
+      "line": 99,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-console-leftover"
+      ],
+      "reason": "Reports request start and credential presence without logging URL, credentials, or prose.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/GrammarCheckService.cs",
+      "line": 109,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-console-leftover"
+      ],
+      "reason": "Reports failure type and latency without logging URL, credentials, or prose.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/GrammarCheckService.cs",
+      "line": 118,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-console-leftover"
+      ],
+      "reason": "Reports response status and latency without logging URL, credentials, or prose.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/ImportImageStore.cs",
+      "line": 17,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent image-store methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/LinuxDependencyService.cs",
+      "line": 60,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-sync-over-async"
+      ],
+      "reason": "Retains the public synchronous detection contract; its cancellable probe runs without the caller's synchronization context.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/PictureCatalogService.cs",
+      "line": 56,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/ResearchService.cs",
+      "line": 80,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-null-forgiving"
+      ],
+      "reason": "The JSON was just serialized from the non-null ResearchItem being cloned.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/SceneAnalysisLexicon.Loading.cs",
+      "line": 47,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-null-forgiving"
+      ],
+      "reason": "The embedded English lexicon is a shipped JSON object, validated by the lexicon tests.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/SnapshotService.cs",
+      "line": 235,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-string-concat-in-loop"
+      ],
+      "reason": "The accumulator and file Count are integers, not strings.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/StoryStructureService.cs",
+      "line": 12,
+      "scope": "next-line",
+      "rules": [
+        "complexity/too-many-params"
+      ],
+      "reason": "Positional result record models eight status fields; this declaration is not an algorithm with eight arguments.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Core/Services/WikiPageService.cs",
+      "line": 14,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/WorkspaceCoordinator.cs",
+      "line": 7,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Extensions/DiagnosticLog.cs",
+      "line": 102,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-console-leftover"
+      ],
+      "reason": "This logger deliberately mirrors diagnostic messages to an attached debugger.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Extensions/DiagnosticLog.cs",
+      "line": 111,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-console-leftover"
+      ],
+      "reason": "Information-level diagnostics are part of this logger's debugger sink.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Extensions/DiagnosticLog.cs",
+      "line": 120,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-console-leftover"
+      ],
+      "reason": "Warning-level diagnostics are part of this logger's debugger sink.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Extensions/DiagnosticLog.cs",
+      "line": 135,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-console-leftover"
+      ],
+      "reason": "Error diagnostics report the exception type without serializing exception contents.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Extensions/LogRedactor.cs",
+      "line": 51,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-index-loop"
+      ],
+      "reason": "The index is required to replace oversized tokens in the original array.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Extensions/UiPump.cs",
+      "line": 119,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-sync-over-async"
+      ],
+      "reason": "Synchronous SDK dispatch must return the pump-created object; CheckAccess runs inline on the pump, and callbacks must not wait back on the caller.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/ImportApi/LocalImportApi.cs",
+      "line": 378,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-sync-over-async"
+      ],
+      "reason": "IDisposable must finish shutting down the listener; StopAsync does not capture the caller's context, and the desktop host uses asynchronous disposal.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/ConlangRpc.cs",
+      "line": 51,
+      "scope": "next-line",
+      "rules": [
+        "complexity/too-many-params"
+      ],
+      "reason": "Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/DictationRpc.cs",
+      "line": 9,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/DictationRpc.cs",
+      "line": 63,
+      "scope": "next-line",
+      "rules": [
+        "complexity/too-many-params"
+      ],
+      "reason": "Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/ExtensionContribRpc.cs",
+      "line": 52,
+      "scope": "next-line",
+      "rules": [
+        "complexity/too-many-params"
+      ],
+      "reason": "Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/ImportRpc.cs",
+      "line": 13,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/LinksRpc.cs",
+      "line": 29,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/MapsRpc.cs",
+      "line": 62,
+      "scope": "next-line",
+      "rules": [
+        "complexity/too-many-params"
+      ],
+      "reason": "Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/SearchRpc.cs",
+      "line": 44,
+      "scope": "next-line",
+      "rules": [
+        "complexity/too-many-params"
+      ],
+      "reason": "Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/SearchRpc.cs",
+      "line": 77,
+      "scope": "next-line",
+      "rules": [
+        "complexity/too-many-params"
+      ],
+      "reason": "Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/SubmissionsRpc.cs",
+      "line": 64,
+      "scope": "next-line",
+      "rules": [
+        "complexity/too-many-params"
+      ],
+      "reason": "Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/TasksRpc.cs",
+      "line": 19,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/TemplatesRpc.cs",
+      "line": 13,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Primary-constructor class declaration; the scanner counts independent methods as one constructor body.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/TimelineRpc.Editing.cs",
+      "line": 30,
+      "scope": "next-line",
+      "rules": [
+        "complexity/too-many-params"
+      ],
+      "reason": "Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Backend/Rpc/VoiceEngineRpc.Design.cs",
+      "line": 60,
+      "scope": "next-line",
+      "rules": [
+        "complexity/too-many-params"
+      ],
+      "reason": "Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Mobile/Pages/RendererHostPage.cs",
+      "line": 97,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-console-leftover"
+      ],
+      "reason": "Reports bridge failure type without exposing request payloads.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Mobile/Pages/RendererHostPage.cs",
+      "line": 168,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-console-leftover"
+      ],
+      "reason": "Reports evaluation failure type without exposing script or response contents.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Mobile/Services/SystemMicrophone.cs",
+      "line": 21,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-console-leftover"
+      ],
+      "reason": "Records shutdown failure type without exposing captured audio or transcript.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Sdk.Example/WritingToolkitExtension.cs",
+      "line": 43,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-null-forgiving"
+      ],
+      "reason": "The extension host calls Initialize before exposing contributions that use host services.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Sdk.Example/WritingToolkitExtension.cs",
+      "line": 45,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-null-forgiving"
+      ],
+      "reason": "Initialize assigns localization before any contribution callback is exposed.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Sdk.Example/WritingToolkitExtension.cs",
+      "line": 256,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-console-leftover"
+      ],
+      "reason": "Literal output demonstrates chapter callback delivery to extension developers.",
+      "category": "csharp"
+    },
+    {
+      "file": "Novalist.Sdk.Example/WritingToolkitExtension.cs",
+      "line": 271,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/csharp-console-leftover"
+      ],
+      "reason": "Literal output demonstrates scene callback delivery to extension developers.",
+      "category": "csharp"
+    },
+    {
+      "file": "app/src/renderer/public/map/DRACOLoader.js",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "complexity/file-too-large"
+      ],
+      "reason": "Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/DRACOLoader.js",
+      "line": 468,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/console-leftover"
+      ],
+      "reason": "The public debug method prints worker task loads only when a caller explicitly requests diagnostics.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/DRACOLoader.js",
+      "line": 497,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Worker factory is serialized into a standalone worker; decoder protocol closures must travel together.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/GLTFLoader.js",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "complexity/file-too-large"
+      ],
+      "reason": "Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/GLTFLoader.js",
+      "line": 4670,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Bundled Three.js accessor, morph-target and bounding-sphere calculations retain upstream numerical behavior.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/KTX2Loader.js",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "complexity/file-too-large"
+      ],
+      "reason": "Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/KTX2Loader.js",
+      "line": 629,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Bundled Basis worker transcodes mip levels and faces under one resource cleanup lifetime.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/KTX2Loader.js",
+      "line": 1077,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Bundled raw-texture decoder preserves upstream format, mipmap and dimension handling; initialization failures are covered by regression tests.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/SkyMesh.js",
+      "line": 15,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/hallucinated-import"
+      ],
+      "reason": "map.html supplies these browser imports through its import map to bundled Three.js modules; npm resolution does not apply.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/Water2Mesh.js",
+      "line": 11,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/hallucinated-import"
+      ],
+      "reason": "map.html supplies this browser import through its import map to the bundled Three.js modules; npm resolution does not apply.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/basis/basis_transcoder.js",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "eslint/no-unused-vars"
+      ],
+      "reason": "Generated imports retain callback arity and existing Module/process option reads; four write-only option bindings preserve initialization behavior.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/basis/basis_transcoder.js",
+      "line": 2,
+      "scope": "file",
+      "rules": [
+        "unicorn/no-new-array"
+      ],
+      "reason": "Generated Embind conversion table intentionally allocates dependentTypes.length empty slots.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/basis/basis_transcoder.js",
+      "line": 11,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/hidden-fallback"
+      ],
+      "reason": "growMemory returns false to report allocation failure; its caller retries smaller reservations and propagates false if all attempts fail.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/basis/basis_transcoder.js",
+      "line": 21,
+      "scope": "next-line",
+      "rules": [
+        "eslint/no-undef"
+      ],
+      "reason": "AMD export is guarded by typeof define; absent AMD loaders are valid.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/basis/basis_transcoder.js",
+      "line": 23,
+      "scope": "next-line",
+      "rules": [
+        "eslint/no-undef"
+      ],
+      "reason": "The enclosing typeof define and AMD guard prove this loader callback exists.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/draco/draco_wasm_wrapper.js",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "eslint/no-unused-vars"
+      ],
+      "reason": "Generated Promise, WASM and instantiation callbacks retain their upstream parameter arity.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/draco/draco_wasm_wrapper.js",
+      "line": 2,
+      "scope": "file",
+      "rules": [
+        "eslint/no-unused-expressions"
+      ],
+      "reason": "Generated Draco glue uses short-circuit and comma expressions for binding side effects.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/draco/draco_wasm_wrapper.js",
+      "line": 3,
+      "scope": "file",
+      "rules": [
+        "unicorn/no-thenable"
+      ],
+      "reason": "Generated Promise polyfill implements the required then method for older runtimes.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/draco/draco_wasm_wrapper.js",
+      "line": 120,
+      "scope": "next-line",
+      "rules": [
+        "eslint/no-undef"
+      ],
+      "reason": "AMD export runs only when typeof define is function; ordinary browsers do not enter this guarded branch.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/libs/ktx-parse.module.js",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "eslint/no-unused-expressions"
+      ],
+      "reason": "Bundled minified KTX parser uses short-circuit expressions for conditional mutations.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/libs/ktx-parse.module.js",
+      "line": 2,
+      "scope": "file",
+      "rules": [
+        "eslint/no-func-assign"
+      ],
+      "reason": "Generated Object.assign helper replaces itself once with the selected native implementation or polyfill.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/libs/ktx-parse.module.js",
+      "line": 3,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/hidden-fallback"
+      ],
+      "reason": "KTX levelCount zero stores one base mip and requests generated mipmaps; Math.max(levelCount, 1) is format semantics. The unrelated identifier-error string shares this minified line.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/libs/zstddec.module.js",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "eslint/no-unused-vars"
+      ],
+      "reason": "Bundled generated Zstd WASM runtime callback retains its ABI parameter.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/libs/zstddec.module.js",
+      "line": 2,
+      "scope": "file",
+      "rules": [
+        "eslint/no-unused-expressions"
+      ],
+      "reason": "Bundled minified Zstd initializer uses an assignment within a short-circuit expression.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/math/ColorSpaces.js",
+      "line": 1,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/hallucinated-import"
+      ],
+      "reason": "map.html supplies this browser import through its import map to the bundled Three.js modules; npm resolution does not apply.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "complexity/file-too-large"
+      ],
+      "reason": "Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+      "line": 134,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Bundled Three.js geometry algorithm retains upstream attribute, indexing and numerical behavior.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+      "line": 642,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long",
+        "complexity/deep-nesting"
+      ],
+      "reason": "Bundled Three.js geometry algorithm retains upstream attribute, indexing and numerical behavior.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+      "line": 807,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Bundled Three.js geometry algorithm retains upstream attribute, indexing and numerical behavior.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+      "line": 923,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Bundled Three.js geometry algorithm retains upstream attribute, indexing and numerical behavior.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+      "line": 1204,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Bundled Three.js geometry algorithm retains upstream attribute, indexing and numerical behavior.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+      "line": 1316,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long"
+      ],
+      "reason": "Bundled Three.js geometry algorithm retains upstream attribute, indexing and numerical behavior.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/utils/SkeletonUtils.js",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "complexity/file-too-large"
+      ],
+      "reason": "Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/utils/SkeletonUtils.js",
+      "line": 40,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long",
+        "complexity/deep-nesting"
+      ],
+      "reason": "Bundled Three.js retargeting preserves bone hierarchy transforms and animation sampling order.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/public/map/utils/SkeletonUtils.js",
+      "line": 228,
+      "scope": "next-line",
+      "rules": [
+        "complexity/function-too-long",
+        "complexity/deep-nesting"
+      ],
+      "reason": "Bundled Three.js retargeting preserves bone hierarchy transforms and animation sampling order.",
+      "category": "vendor"
+    },
+    {
+      "file": "app/src/renderer/src/shell/commands.ts",
+      "line": 297,
+      "scope": "line",
+      "rules": [
+        "code-quality/duplicate-block"
+      ],
+      "reason": "Import commands have distinct IDs and dialogs; repeated registry fields are declarative metadata.",
+      "category": "frontend"
+    },
+    {
+      "file": "app/src/renderer/src/shell/commands.ts",
+      "line": 307,
+      "scope": "line",
+      "rules": [
+        "code-quality/duplicate-block"
+      ],
+      "reason": "Import commands have distinct IDs and dialogs; repeated registry fields are declarative metadata.",
+      "category": "frontend"
+    },
+    {
+      "file": "app/src/renderer/src/shell/editorCommands.ts",
+      "line": 119,
+      "scope": "line",
+      "rules": [
+        "code-quality/duplicate-block"
+      ],
+      "reason": "Each editor command has its own ID, placement, availability, and action; repeated registry fields describe distinct commands.",
+      "category": "frontend"
+    },
+    {
+      "file": "app/src/renderer/src/shell/editorCommands.ts",
+      "line": 130,
+      "scope": "line",
+      "rules": [
+        "code-quality/duplicate-block"
+      ],
+      "reason": "Each editor command has its own ID, placement, availability, and action; repeated registry fields describe distinct commands.",
+      "category": "frontend"
+    },
+    {
+      "file": "app/src/renderer/src/shell/editorCommands.ts",
+      "line": 272,
+      "scope": "line",
+      "rules": [
+        "code-quality/duplicate-block"
+      ],
+      "reason": "Each editor command has its own ID, placement, availability, and action; repeated registry fields describe distinct commands.",
+      "category": "frontend"
+    },
+    {
+      "file": "app/src/renderer/src/shell/projectCommands.ts",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "code-quality/duplicate-block"
+      ],
+      "reason": "Project command registry entries share a schema but retain distinct IDs, availability predicates, and actions.",
+      "category": "frontend"
+    },
+    {
+      "file": "app/src/renderer/src/views/settings/settingsSections.ts",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "code-quality/duplicate-block"
+      ],
+      "reason": "Searchable settings entries share a schema but retain distinct keys, targets, keywords, and help text.",
+      "category": "frontend"
+    },
+    {
+      "file": "app/src/renderer/src/views/settings/writingAssistanceSettingsBody.tsx",
+      "line": 192,
+      "scope": "next-line",
+      "rules": [
+        "ai-slop/hardcoded-url"
+      ],
+      "reason": "Editable endpoint example; requests use the saved setting, not this placeholder.",
+      "category": "frontend"
+    },
+    {
+      "file": "tools/screenshots/capture-desktop.mjs",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "ai-slop/console-leftover"
+      ],
+      "reason": "Screenshot CLI reports capture progress and output paths to its invoking terminal.",
+      "category": "frontend"
+    },
+    {
+      "file": "tools/screenshots/demo-chapters.mjs",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "code-quality/duplicate-block"
+      ],
+      "reason": "Fictional chapter fixtures intentionally share a schema; titles, prose, and scene metadata are distinct data.",
+      "category": "frontend"
+    },
+    {
+      "file": "tools/screenshots/demo-entities.mjs",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "code-quality/duplicate-block"
+      ],
+      "reason": "Fictional entity fixtures intentionally share a schema; identities, traits, and prose are distinct data.",
+      "category": "frontend"
+    },
+    {
+      "file": "tools/screenshots/make-demo-project.mjs",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "ai-slop/console-leftover"
+      ],
+      "reason": "Demo-project CLI reports creation progress and the resulting project path to its invoking terminal.",
+      "category": "frontend"
+    },
+    {
+      "file": "docs/design/desktop-ui-review/depth-data.js",
+      "line": 1,
+      "scope": "file",
+      "rules": [
+        "code-quality/duplicate-block"
+      ],
+      "reason": "Per-view review evidence repeats the same schema with distinct requirements, manual references, and actions.",
+      "category": "frontend"
+    }
+  ]
+}

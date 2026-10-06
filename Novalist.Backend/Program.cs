@@ -39,7 +39,7 @@ internal class Program
             DataMigration.MigrateLegacyIfNeeded(settingsDir);
         Extensions.Log.Configure(settingsDir);
         Extensions.Log.Info("Backend startup begin.");
-        using var host = new BackendHost(settingsDir);
+        await using var host = new BackendHost(settingsDir);
         await host.RunAsync(stdout, stdin);
         return 0;
     }

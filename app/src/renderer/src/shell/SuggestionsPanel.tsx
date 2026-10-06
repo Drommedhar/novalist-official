@@ -96,28 +96,21 @@ export function SuggestionsPanel({
               {suggestion.author ? ` · ${suggestion.author}` : ''}
             </span>
           </button>
-          <button
-            className="ctx-reset"
-            disabled={busy}
-            title={t('suggestions.accept')}
-            aria-label={t('suggestions.accept')}
-            onClick={() =>
-              void answer('suggestions/accept', [chapterGuid, sceneId, suggestion.id])
-            }
-          >
-            <Check size={14} />
-          </button>
-          <button
-            className="ctx-reset"
-            disabled={busy}
-            title={t('suggestions.reject')}
-            aria-label={t('suggestions.reject')}
-            onClick={() =>
-              void answer('suggestions/reject', [chapterGuid, sceneId, suggestion.id])
-            }
-          >
-            <X size={14} />
-          </button>
+          {[
+            { label: 'suggestions.accept', method: 'suggestions/accept', Icon: Check },
+            { label: 'suggestions.reject', method: 'suggestions/reject', Icon: X }
+          ].map(({ label, method, Icon }) => (
+            <button
+              key={method}
+              className="ctx-reset"
+              disabled={busy}
+              title={t(label)}
+              aria-label={t(label)}
+              onClick={() => void answer(method, [chapterGuid, sceneId, suggestion.id])}
+            >
+              <Icon size={14} />
+            </button>
+          ))}
         </div>
       ))}
 

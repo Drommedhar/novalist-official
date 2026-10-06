@@ -27,7 +27,7 @@ const stem = (p: string): string => {
 }
 const src = (url: string): string => `novalist-project://nl/${encodeURI(url)}`
 
-export function GalleryView(): React.JSX.Element {
+function useGallery() {
   const { t } = useTranslation()
   const [catalog, setCatalog] = useState<GalleryCatalog>({
     images: [],
@@ -98,98 +98,17 @@ export function GalleryView(): React.JSX.Element {
     setMenu({ x: e.clientX, y: e.clientY, img })
   }
 
-  const menuActions = menu && [
-    { label: t('imageGallery.copyPath'), run: () => window.novalist.copyText(menu.img.path) },
-    {
-      label: t('imageGallery.copyMarkdown'),
-      run: () => window.novalist.copyText(`![${stem(menu.img.path)}](${menu.img.path})`)
-    },
-    {
-      label: t('imageGallery.openExternally'),
-      run: () => void window.novalist.openExternal(menu.img.url)
-    },
-    {
-      label: t('imageGallery.openInExplorer'),
-      run: () => void window.novalist.revealPath(menu.img.url)
-    },
-    { label: t('imageGallery.fileInto'), run: () => fileInto(menu.img) },
-    { label: t('imageGallery.retag'), run: () => retag(menu.img) }
-  ]
+  const menuActions = menu && galleryMenuActions(menu.img, t, fileInto, retag)
+
+  return { t, search, setSearch, catalog, collection, setCollection, tag, setTag, importImages, listView, setListView, filtered, images, query, setLightbox, openMenu, lightbox, lightboxRef, closeLightbox, menu, menuActions, setMenu }
+}
+
+export function GalleryView(): React.JSX.Element {
+  const { t, search, setSearch, catalog, collection, setCollection, tag, setTag, importImages, listView, setListView, filtered, images, query, setLightbox, openMenu, lightbox, lightboxRef, closeLightbox, menu, menuActions, setMenu } = useGallery()
 
   return (
     <div className="gallery">
-      <div className="timeline-toolbar">
-        <input
-          className="dialog-input relationships-search"
-          placeholder={t('imageGallery.search')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        {/* Only offered once something is filed. A picker with one entry
-            reading "everything" is a control that cannot do anything. */}
-        {catalog.collections.length > 0 && (
-          <select
-            className="dialog-input gallery-filter"
-            aria-label={t('imageGallery.collection')}
-            value={collection}
-            onChange={(e) => setCollection(e.target.value)}
-          >
-            <option value="">{t('imageGallery.allCollections')}</option>
-            {catalog.collections.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        )}
-        {catalog.tags.length > 0 && (
-          <select
-            className="dialog-input gallery-filter"
-            aria-label={t('imageGallery.tag')}
-            value={tag}
-            onChange={(e) => setTag(e.target.value)}
-          >
-            <option value="">{t('imageGallery.allTags')}</option>
-            {catalog.tags.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        )}
-        <DesktopViewActions>
-          {' '}
-          <button className="dialog-button primary" onClick={importImages}>
-            <ImagePlus size={14} strokeWidth={2} /> {t('imageGallery.import')}
-          </button>
-        </DesktopViewActions>
-        <div className="toolbar-spacer" />
-        <div className="gallery-viewtoggle">
-          <button
-            className={`gallery-viewtoggle-btn${listView ? '' : ' active'}`}
-            title={t('imageGallery.gridView')}
-            aria-label={t('imageGallery.gridView')}
-            onClick={() => setListView(false)}
-          >
-            <LayoutGrid size={16} strokeWidth={2} /> {t('imageGallery.gridView')}
-          </button>
-          <button
-            className={`gallery-viewtoggle-btn${listView ? ' active' : ''}`}
-            title={t('imageGallery.listView')}
-            aria-label={t('imageGallery.listView')}
-            onClick={() => setListView(true)}
-          >
-            <List size={16} strokeWidth={2} /> {t('imageGallery.listView')}
-          </button>
-        </div>
-        <span className="inspector-meta">
-          {t('imageGallery.countOf', {
-            shown: filtered.length,
-            total: images.length,
-            defaultValue: '{{shown}} of {{total}}'
-          })}
-        </span>
-      </div>
+      <GalleryToolbar t={t} search={search} setSearch={setSearch} catalog={catalog} collection={collection} setCollection={setCollection} tag={tag} setTag={setTag} importImages={importImages} listView={listView} setListView={setListView} filtered={filtered} images={images} />
       {filtered.length === 0 ? (
         <p className="codex-empty">
           {query.length === 0 ? t('imageGallery.noImages') : t('imageGallery.noResults')}
@@ -293,4 +212,104 @@ export function GalleryView(): React.JSX.Element {
       )}
     </div>
   )
+}
+
+function GalleryToolbar({ t, search, setSearch, catalog, collection, setCollection, tag, setTag, importImages, listView, setListView, filtered, images }: { t: GalleryViewState['t']; search: GalleryViewState['search']; setSearch: GalleryViewState['setSearch']; catalog: GalleryViewState['catalog']; collection: GalleryViewState['collection']; setCollection: GalleryViewState['setCollection']; tag: GalleryViewState['tag']; setTag: GalleryViewState['setTag']; importImages: GalleryViewState['importImages']; listView: GalleryViewState['listView']; setListView: GalleryViewState['setListView']; filtered: GalleryViewState['filtered']; images: GalleryViewState['images'] }): React.JSX.Element {
+  return (
+    <div className="timeline-toolbar">
+      <input
+        className="dialog-input relationships-search"
+        placeholder={t('imageGallery.search')}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+      {/* Only offered once something is filed. A picker with one entry
+          reading "everything" is a control that cannot do anything. */}
+      {catalog.collections.length > 0 && (
+        <select
+          className="dialog-input gallery-filter"
+          aria-label={t('imageGallery.collection')}
+          value={collection}
+          onChange={(e) => setCollection(e.target.value)}
+        >
+          <option value="">{t('imageGallery.allCollections')}</option>
+          {catalog.collections.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+      )}
+      {catalog.tags.length > 0 && (
+        <select
+          className="dialog-input gallery-filter"
+          aria-label={t('imageGallery.tag')}
+          value={tag}
+          onChange={(e) => setTag(e.target.value)}
+        >
+          <option value="">{t('imageGallery.allTags')}</option>
+          {catalog.tags.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+      )}
+      <DesktopViewActions>
+        {' '}
+        <button className="dialog-button primary" onClick={importImages}>
+          <ImagePlus size={14} strokeWidth={2} /> {t('imageGallery.import')}
+        </button>
+      </DesktopViewActions>
+      <div className="toolbar-spacer" />
+      <div className="gallery-viewtoggle">
+        <button
+          className={`gallery-viewtoggle-btn${listView ? '' : ' active'}`}
+          title={t('imageGallery.gridView')}
+          aria-label={t('imageGallery.gridView')}
+          onClick={() => setListView(false)}
+        >
+          <LayoutGrid size={16} strokeWidth={2} /> {t('imageGallery.gridView')}
+        </button>
+        <button
+          className={`gallery-viewtoggle-btn${listView ? ' active' : ''}`}
+          title={t('imageGallery.listView')}
+          aria-label={t('imageGallery.listView')}
+          onClick={() => setListView(true)}
+        >
+          <List size={16} strokeWidth={2} /> {t('imageGallery.listView')}
+        </button>
+      </div>
+      <span className="inspector-meta">
+        {t('imageGallery.countOf', {
+          shown: filtered.length,
+          total: images.length,
+          defaultValue: '{{shown}} of {{total}}'
+        })}
+      </span>
+    </div>
+  )
+}
+
+type GalleryViewState = ReturnType<typeof useGallery>
+
+function galleryMenuActions(image: GalleryImage, t: ReturnType<typeof useTranslation>['t'], fileInto: (image: GalleryImage) => void, retag: (image: GalleryImage) => void) {
+  return [
+    { label: t('imageGallery.copyPath'), run: () => window.novalist.copyText(image.path) },
+    {
+      label: t('imageGallery.copyMarkdown'),
+      run: () => window.novalist.copyText(`![${stem(image.path)}](${image.path})`)
+    },
+    {
+      label: t('imageGallery.openExternally'),
+      run: () => void window.novalist.openExternal(image.url)
+    },
+    {
+      label: t('imageGallery.openInExplorer'),
+      run: () => void window.novalist.revealPath(image.url)
+    },
+    { label: t('imageGallery.fileInto'), run: () => fileInto(image) },
+    { label: t('imageGallery.retag'), run: () => retag(image) }
+  ]
+
 }

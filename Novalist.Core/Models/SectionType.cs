@@ -29,7 +29,6 @@ public sealed class SectionType
     public bool Numbered { get; set; } = true;
 }
 
-/// <summary>The types every book starts with.</summary>
 public static class SectionTypes
 {
     /// <summary>The type a chapter has when the writer has not said otherwise.</summary>

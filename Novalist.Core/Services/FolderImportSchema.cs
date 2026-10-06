@@ -8,13 +8,17 @@ using Novalist.Core.Models;
 
 namespace Novalist.Core.Services;
 
-internal sealed record ImportField(string Key, string Bucket, Type ValueType, PropertyInfo? Property = null,
+internal record ImportField(string Key, string Bucket, Type ValueType,
     CustomPropertyDefinition? Definition = null, string? Label = null);
+internal record ReflectedImportField(string Key, string Bucket, PropertyInfo Property)
+    : ImportField(Key, Bucket, Property.PropertyType);
+internal sealed record TemplateImportField(PropertyInfo Property, string TemplateId)
+    : ReflectedImportField("templateId", "builtIn", Property);
 internal sealed record ImportTemplate(string Id, string Name, List<CustomPropertyDefinition> Properties,
     string? AgeMode = null, IntervalUnit? AgeIntervalUnit = null);
 internal sealed record ImportDefinition(string Target, Dictionary<string, ImportField> Fields, ImportTemplate? Template);
 
-/// <summary>The portable import contract and the parser share this field catalog.</summary>
+/// <summary>Shares the active target and field definitions between schema export and parsing; includes the book's templates and custom entity types.</summary>
 public sealed class FolderImportSchema
 {
     private static readonly Dictionary<string, (Type Model, string Keys)> Models = new()
@@ -54,7 +58,7 @@ public sealed class FolderImportSchema
         return schema.ToJsonString(new JsonSerializerOptions(JsonSerializerOptions.Default) { WriteIndented = true });
     }
 
-    /// <summary>A standalone schema for one currently available import target.</summary>
+    /// <summary>Exports a standalone JSON Schema document for one target in Targets; throws ArgumentException for an unknown target.</summary>
     public string ExportTarget(string target)
     {
         if (!_active.TryGetValue(target, out var definition)) throw new ArgumentException("Unknown import target.", nameof(target));
@@ -69,17 +73,15 @@ public sealed class FolderImportSchema
     private ImportDefinition BuildDefinition(string target, string? hint)
     {
         var model = Models.GetValueOrDefault(target, Models["custom"]);
-        var properties = model.Model.GetProperties().Where(property => property.GetCustomAttribute<JsonPropertyNameAttribute>() != null)
-            .ToDictionary(property => property.GetCustomAttribute<JsonPropertyNameAttribute>()!.Name);
+        var properties = JsonProperties(model.Model);
         var fields = model.Keys.Split(' ').ToDictionary(key => key,
-            key => new ImportField(key, "builtIn", properties[key].PropertyType, properties[key]));
+            key => (ImportField)new ReflectedImportField(key, "builtIn", properties[key]));
         if (target is not ("scene" or "research"))
             fields["images"] = new ImportField("images", "builtIn", typeof(List<ImportImageReference>));
         if (target == "scene")
-            foreach (var property in typeof(SceneAnalysisOverrides).GetProperties().Where(property => property.CanWrite))
+            foreach (var (key, property) in JsonProperties(typeof(SceneAnalysisOverrides)).Where(pair => pair.Value.CanWrite))
             {
-                var key = property.GetCustomAttribute<JsonPropertyNameAttribute>()!.Name;
-                fields[key] = new ImportField(key, "analysis", property.PropertyType, property);
+                fields[key] = new ReflectedImportField(key, "analysis", property);
             }
         if (target is "scene" or "research")
         {
@@ -98,12 +100,18 @@ public sealed class FolderImportSchema
             : matching.Length == 1 ? matching[0] : null;
         if (template != null)
         {
-            fields["templateId"] = new ImportField("templateId", "builtIn", typeof(string), properties["templateId"]);
+            fields["templateId"] = new TemplateImportField(properties["templateId"], template.Id);
             foreach (var property in template.Properties.Where(property => !Reserved(property.Key)))
                 fields["customProperties." + property.Key] = new ImportField(property.Key, "customProperties", typeof(string), Definition: property);
         }
         return new ImportDefinition(target, fields, template);
     }
+
+    private static Dictionary<string, PropertyInfo> JsonProperties(Type model)
+        => model.GetProperties()
+            .SelectMany(property => property.GetCustomAttribute<JsonPropertyNameAttribute>() is { } attribute
+                ? new[] { (attribute.Name, Property: property) } : [])
+            .ToDictionary(entry => entry.Name, entry => entry.Property);
 
     private (List<ImportTemplate>, string) Templates(string target) => target switch
     {
@@ -123,15 +131,17 @@ public sealed class FolderImportSchema
         var bucket = definition.Target is "scene" or "research" ? "properties" : "customProperties";
         var extras = new JsonObject();
         foreach (var field in definition.Fields.Values.Where(field => field.Bucket == bucket)) extras[field.Key] = FieldSchema(field);
-        data[bucket] = ObjectSchema(extras, ScalarSchema());
-        data[bucket]!["propertyNames"] = new JsonObject { ["not"] = new JsonObject { ["enum"] = new JsonArray("importedFrom", "importedMetadata") } };
+        var extraSchema = ObjectSchema(extras, ScalarSchema());
+        extraSchema["propertyNames"] = new JsonObject { ["not"] = new JsonObject { ["enum"] = new JsonArray("importedFrom", "importedMetadata") } };
+        data[bucket] = extraSchema;
         if (_types.ContainsKey(definition.Target))
         {
             var custom = new JsonObject();
             foreach (var field in definition.Fields.Values.Where(field => field.Bucket == "fields")) custom[field.Key] = FieldSchema(field);
-            data["fields"] = ObjectSchema(custom);
-            var required = _types[definition.Target].DefaultFields.Where(field => field.Required).Select(field => (JsonNode)JsonValue.Create(field.Key)!).ToArray();
-            if (required.Length > 0) data["fields"]!["required"] = new JsonArray(required);
+            var customSchema = ObjectSchema(custom);
+            var required = _types[definition.Target].DefaultFields.Where(field => field.Required).Select(field => JsonValue.Create(field.Key)).ToArray();
+            if (required.Length > 0) customSchema["required"] = new JsonArray(required);
+            data["fields"] = customSchema;
         }
         if (definition.Template != null)
             data["templateId"] = new JsonObject
@@ -145,8 +155,9 @@ public sealed class FolderImportSchema
         data[titleKey]!["minLength"] = 1;
         data[titleKey]!["pattern"] = @"\S";
         var dataSchema = ObjectSchema(data);
-        dataSchema["required"] = new JsonArray(titleKey);
-        if (data["fields"]?["required"] != null) ((JsonArray)dataSchema["required"]!).Add(JsonValue.Create("fields"));
+        var requiredData = new JsonArray(titleKey);
+        dataSchema["required"] = requiredData;
+        if (data["fields"]?["required"] != null) requiredData.Add("fields");
         var document = ObjectSchema(new JsonObject
         {
             ["novalistImport"] = new JsonObject { ["type"] = "integer", ["const"] = 1 },
@@ -176,11 +187,11 @@ public sealed class FolderImportSchema
         return document;
     }
 
-    private static JsonNode SampleValue(ImportField field)
+    private static string SampleValue(ImportField field)
     {
         var shape = FieldSchema(field);
-        return shape["enum"] is JsonArray choices ? choices[0]!.DeepClone()
-            : JsonValue.Create(shape["format"] != null ? "2000-01-01" : shape["pattern"] != null ? "0" : "Example value")!;
+        return shape["enum"] is JsonArray choices ? choices.GetValues<string>().First()
+            : shape["format"] != null ? "2000-01-01" : shape["pattern"] != null ? "0" : "Example value";
     }
 
     internal static JsonObject ObjectSchema(JsonObject properties, JsonNode? additional = null)
@@ -201,7 +212,7 @@ public sealed class FolderImportSchema
                 if (propertyType == CustomPropertyType.Bool) result["enum"] = new JsonArray("true", "false");
                 if (propertyType == CustomPropertyType.Date) result["format"] = "date";
                 if (propertyType == CustomPropertyType.Enum && definition.EnumOptions is { Count: > 0 })
-                    result["enum"] = new JsonArray(definition.EnumOptions.Select(option => (JsonNode)JsonValue.Create(option)!).ToArray());
+                    result["enum"] = new JsonArray(definition.EnumOptions.Select(option => JsonValue.Create(option)).ToArray());
             }
             result["description"] = $"{field.Label ?? field.Key}: {definition.TypeKey ?? definition.Type.ToString()}. Store the value as text. {definition.Prompt}".Trim();
         }
@@ -237,7 +248,7 @@ public sealed class FolderImportSchema
                 ["items"] = ImageReferenceSchema()
             };
         else if (valueType == typeof(List<string>)) result = new JsonObject { ["type"] = "array", ["items"] = ScalarSchema() };
-        else if (valueType.IsEnum) result = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(Enum.GetNames(valueType).Select(name => (JsonNode)JsonValue.Create(name)!).ToArray()) };
+        else if (valueType.IsEnum) result = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(Enum.GetNames(valueType).Select(name => JsonValue.Create(name)).ToArray()) };
         else result = new JsonObject { ["type"] = valueType == typeof(bool) ? "boolean" : valueType == typeof(int) ? "integer" : "string" };
         if (field.Bucket is "builtIn" or "analysis")
         {
@@ -278,9 +289,8 @@ public sealed class FolderImportSchema
         switch (schema["type"]?.GetValue<string>())
         {
             case "object":
-                if (value is not JsonObject map) return false;
-                var properties = (JsonObject)schema["properties"]!;
-                if (schema["required"] is JsonArray required && required.Any(key => !map.ContainsKey(key!.GetValue<string>()))) return false;
+                if (value is not JsonObject map || schema["properties"] is not JsonObject properties) return false;
+                if (schema["required"] is JsonArray required && required.GetValues<string>().Any(key => !map.ContainsKey(key))) return false;
                 foreach (var (key, child) in map)
                 {
                     if (schema["propertyNames"] != null && Reserved(key)) return false;
@@ -290,7 +300,7 @@ public sealed class FolderImportSchema
                 }
                 break;
             case "array":
-                if (value is not JsonArray array || array.Any(child => !Accepts((JsonObject)schema["items"]!, child))) return false;
+                if (value is not JsonArray array || schema["items"] is not JsonObject items || array.Any(child => !Accepts(items, child))) return false;
                 if (schema["maxItems"] is { } maxItems && array.Count > maxItems.GetValue<int>()) return false;
                 break;
             case "string":

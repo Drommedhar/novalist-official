@@ -55,13 +55,14 @@ public sealed class DraftTransferService
     public async Task<DraftStructure?> ReadStructureAsync(string draftId)
     {
         var book = _projects.ActiveBook;
+        var bookRoot = _projects.ActiveBookRoot;
         var draft = book?.Drafts.FirstOrDefault(d => d.Id == draftId);
-        if (book == null || draft == null) return null;
+        if (book == null || bookRoot == null || draft == null) return null;
 
         // The active draft may hold edits the folder does not, so it is read
         // from memory. Every other draft is only ever on disk.
         await _projects.FlushActiveDraftAsync().ConfigureAwait(false);
-        var side = await ReadSideAsync(book, draft).ConfigureAwait(false);
+        var side = await ReadSideAsync(book, bookRoot, draft).ConfigureAwait(false);
 
         var chapters = side.Chapters
             .OrderBy(c => c.Order)
@@ -97,7 +98,8 @@ public sealed class DraftTransferService
         bool move)
     {
         var book = _projects.ActiveBook;
-        if (book == null) return new DraftTransferResult(0, 0, 0, move);
+        var bookRoot = _projects.ActiveBookRoot;
+        if (book == null || bookRoot == null) return new DraftTransferResult(0, 0, 0, move);
 
         var source = book.Drafts.FirstOrDefault(d => d.Id == fromDraftId);
         var target = book.Drafts.FirstOrDefault(d => d.Id == toDraftId);
@@ -108,8 +110,8 @@ public sealed class DraftTransferService
         // in has to be on disk first and re-read afterwards.
         await _projects.FlushActiveDraftAsync().ConfigureAwait(false);
 
-        var from = await ReadSideAsync(book, source).ConfigureAwait(false);
-        var to = await ReadSideAsync(book, target).ConfigureAwait(false);
+        var from = await ReadSideAsync(book, bookRoot, source).ConfigureAwait(false);
+        var to = await ReadSideAsync(book, bookRoot, target).ConfigureAwait(false);
 
         var wantedChapters = new HashSet<string>(chapterGuids, StringComparer.OrdinalIgnoreCase);
         var wantedScenes = new HashSet<string>(sceneIds, StringComparer.OrdinalIgnoreCase);
@@ -225,9 +227,9 @@ public sealed class DraftTransferService
         List<ChapterData> Trash,
         ScenesManifest Manifest);
 
-    private async Task<DraftSide> ReadSideAsync(BookData book, BookDraftMetadata draft)
+    private async Task<DraftSide> ReadSideAsync(BookData book, string bookRoot, BookDraftMetadata draft)
     {
-        var root = _files.CombinePath(_projects.ActiveBookRoot!, "Drafts", draft.FolderName);
+        var root = _files.CombinePath(bookRoot, "Drafts", draft.FolderName);
         var data = await ReadJsonAsync<BookDraftData>(_files.CombinePath(root, "draft.json"))
             .ConfigureAwait(false) ?? new BookDraftData();
         var manifest = await ReadJsonAsync<ScenesManifest>(_files.CombinePath(root, "scenes.json"))
@@ -353,6 +355,7 @@ public sealed class DraftTransferService
     /// way between drafts, which is the kind of loss nobody notices for months.
     /// </summary>
     private static T Duplicate<T>(T value) where T : class
+        // aislop-ignore-next-line ai-slop/csharp-null-forgiving -- The clone JSON was just serialized from a non-null model instance using the same options.
         => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, JsonOptions), JsonOptions)!;
 
     private static bool IsActive(BookData book, BookDraftMetadata draft)

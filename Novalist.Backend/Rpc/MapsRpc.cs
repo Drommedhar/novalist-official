@@ -59,6 +59,7 @@ public sealed class MapsRpc
     /// touching anything they drew themselves.
     /// </summary>
     [JsonRpcMethod("maps/generateTerrain")]
+    // aislop-ignore-next-line complexity/too-many-params -- Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.
     public async Task<MapLoadDto?> GenerateTerrainAsync(
         string mapId, int seed, double width, double height,
         double landmass = 0.55, int rivers = 3, int forests = 4, int settlements = 5)

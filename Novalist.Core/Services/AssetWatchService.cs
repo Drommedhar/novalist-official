@@ -27,7 +27,7 @@ public sealed class AssetWatchService : IDisposable
         TimeSpan? debounce = null)
     {
         _debounce = debounce ?? TimeSpan.FromMilliseconds(400);
-        _timer = new System.Threading.Timer(_ => _ = _coordinator!.FlushAsync());
+        _timer = new System.Threading.Timer(FlushPending);
         _coordinator = new AssetWatchCoordinator(
             reload, () => _timer.Change(_debounce, Timeout.InfiniteTimeSpan));
 
@@ -59,6 +59,8 @@ public sealed class AssetWatchService : IDisposable
             }
         }
     }
+
+    private void FlushPending(object? state) => _ = _coordinator.FlushAsync();
 
     public void Dispose()
     {

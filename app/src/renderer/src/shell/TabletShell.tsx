@@ -89,7 +89,7 @@ export function TabletShell(): React.JSX.Element {
   // a tap outside or once a destination is picked. Mirror that back or the
   // toggle's pressed state would drift from the sidebar actually on screen.
   useEffect(() => {
-    const w = window as unknown as { __novalistSidebarCollapsed?: (collapsed: boolean) => void }
+    const w = window
     w.__novalistSidebarCollapsed = (collapsed: boolean) =>
       useShellStore.getState().setSidebarCollapsed(collapsed)
     return () => {

@@ -19,10 +19,8 @@ const TYPES = [
 /**
  * Who and what is in this scene, said outright.
  *
- * Presence used to be inferred entirely from @-mentions in the prose. Those are
- * author-confirmed and never wrong, but they are incomplete: a character who is
- * in the room and says nothing leaves no span behind, and the person a scene is
- * really about is often not the one whose name appears most.
+ * Explicit presence complements prose mentions: a silent character can still
+ * belong to the scene, and its focus need not be its most-mentioned entity.
  */
 export function SceneCastPicker(props: {
   chapterGuid: string

@@ -83,7 +83,7 @@ public sealed class RelationshipsRpc
 
         return string.IsNullOrWhiteSpace(rootId)
             ? [.. nodes]
-            : [.. Neighbourhood(nodes, rootId!, Math.Clamp(depth, 1, 4))];
+            : [.. Neighbourhood(nodes, rootId, Math.Clamp(depth, 1, 4))];
     }
 
     /// <summary>

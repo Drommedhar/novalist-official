@@ -10,7 +10,7 @@ public sealed partial class InWorldCalendarService : IInWorldCalendarService
     [GeneratedRegex(@"^\s*(-?\d+)[\.\-/](\d+)[\.\-/](\d+)\s*$", RegexOptions.Compiled)]
     private static partial Regex YmdRegex();
 
-    public long? Parse(string raw, InWorldCalendar? calendar)
+    public long? Parse(string? raw, InWorldCalendar? calendar)
     {
         if (string.IsNullOrWhiteSpace(raw)) return null;
         var cal = calendar ?? new InWorldCalendar();

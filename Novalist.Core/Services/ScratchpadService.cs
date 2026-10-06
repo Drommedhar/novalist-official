@@ -58,7 +58,7 @@ public sealed class ScratchpadService
     public IReadOnlyList<ScratchpadNote> GetAll()
     {
         Load();
-        return [.. _notes!.OrderByDescending(n => n.CreatedAt)];
+        return [.. _notes.OrderByDescending(n => n.CreatedAt)];
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public sealed class ScratchpadService
 
         Load();
         var note = new ScratchpadNote { Text = body };
-        _notes!.Add(note);
+        _notes.Add(note);
         await SaveAsync();
         return note;
     }
@@ -81,7 +81,7 @@ public sealed class ScratchpadService
     public async Task RemoveAsync(string id)
     {
         Load();
-        if (_notes!.RemoveAll(n => string.Equals(n.Id, id, StringComparison.Ordinal)) == 0) return;
+        if (_notes.RemoveAll(n => string.Equals(n.Id, id, StringComparison.Ordinal)) == 0) return;
         await SaveAsync();
     }
 
@@ -89,9 +89,10 @@ public sealed class ScratchpadService
     public ScratchpadNote? Find(string id)
     {
         Load();
-        return _notes!.FirstOrDefault(n => string.Equals(n.Id, id, StringComparison.Ordinal));
+        return _notes.FirstOrDefault(n => string.Equals(n.Id, id, StringComparison.Ordinal));
     }
 
+    [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(_notes))]
     private void Load()
     {
         if (_notes != null) return;

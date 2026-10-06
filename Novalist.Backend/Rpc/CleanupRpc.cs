@@ -20,7 +20,7 @@ public class CleanupRpc(Workspace workspace)
     private CleanupOptions Options(string[] rules)
     {
         var settings = _workspace.Settings.Effective;
-        var parsed = rules.Select(ParseRule).Where(r => r.HasValue).Select(r => r!.Value);
+        var parsed = rules.Select(ParseRule).OfType<CleanupRule>();
 
         // A writer who switched auto-replacement off asked for their own
         // characters to be left alone. These rules are exactly the pass that

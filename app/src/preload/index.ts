@@ -1,5 +1,4 @@
-import type { WorkspaceEvent, WorkspaceSnapshot } from '../shared/workspaceProtocol'
-import type { CloseStage } from '../shared/workspaceProtocol'
+import type { WorkspaceEvent, WorkspaceSnapshot, CloseStage } from "../shared/workspaceProtocol";
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
 const material =
@@ -61,8 +60,6 @@ contextBridge.exposeInMainWorld('novalist', {
   pickFolder(title: string): Promise<string | null> {
     return ipcRenderer.invoke('novalist:pick-folder', title)
   },
-  /** Captures a region of the window to a PNG. Used by the map image export,
-   * where the surface is a DOM tree rather than a single canvas. */
   captureRegion(
     rect: { x: number; y: number; width: number; height: number },
     outputPath: string,
@@ -252,7 +249,6 @@ contextBridge.exposeInMainWorld('novalist', {
   setTitleBarColors(color: string, symbolColor: string): void {
     ipcRenderer.send('novalist:set-titlebar-colors', color, symbolColor)
   },
-  /** Replaces the application menu with the one the command registry describes. */
   setMenu(nodes: unknown[], labels: unknown): void {
     ipcRenderer.send('novalist:set-menu', nodes, labels)
   },
@@ -264,7 +260,6 @@ contextBridge.exposeInMainWorld('novalist', {
   appVersion(): Promise<string> {
     return ipcRenderer.invoke('novalist:app-version')
   },
-  /** Content-free display facts used by diagnostics and display troubleshooting. */
   displayDiagnostics(): Promise<{
     zoomFactor: number
     scaleFactor: number

@@ -40,21 +40,21 @@ public class GitService : IGitService
         if (_repoRoot == null)
             return null;
 
-        var branchTask = GetBranchNameAsync();
-        var remoteTask = HasRemoteAsync();
-        var aheadBehindTask = GetAheadBehindAsync();
-        var statusTask = GetChangedFilesAsync();
+        var branchTask = GetBranchNameAsync(_repoRoot);
+        var remoteTask = HasRemoteAsync(_repoRoot);
+        var aheadBehindTask = GetAheadBehindAsync(_repoRoot);
+        var statusTask = GetChangedFilesAsync(_repoRoot);
 
         await Task.WhenAll(branchTask, remoteTask, aheadBehindTask, statusTask);
 
-        var (ahead, behind) = aheadBehindTask.Result;
+        var (ahead, behind) = await aheadBehindTask;
 
         return new GitRepoInfo(
-            branchTask.Result,
-            remoteTask.Result,
+            await branchTask,
+            await remoteTask,
             ahead,
             behind,
-            statusTask.Result
+            await statusTask
         );
     }
 
@@ -256,26 +256,26 @@ public class GitService : IGitService
         return null;
     }
 
-    private async Task<string> GetBranchNameAsync()
+    private async Task<string> GetBranchNameAsync(string repoRoot)
     {
-        var (exitCode, output, _) = await RunGitAsync(_repoRoot!, "branch", "--show-current");
+        var (exitCode, output, _) = await RunGitAsync(repoRoot, "branch", "--show-current");
         if (exitCode == 0 && !string.IsNullOrWhiteSpace(output))
             return output.Trim();
 
         // Detached HEAD — get short SHA
-        (exitCode, output, _) = await RunGitAsync(_repoRoot!, "rev-parse", "--short", "HEAD");
+        (exitCode, output, _) = await RunGitAsync(repoRoot, "rev-parse", "--short", "HEAD");
         return exitCode == 0 ? $"({output.Trim()})" : "(unknown)";
     }
 
-    private async Task<bool> HasRemoteAsync()
+    private async Task<bool> HasRemoteAsync(string repoRoot)
     {
-        var (exitCode, output, _) = await RunGitAsync(_repoRoot!, "remote");
+        var (exitCode, output, _) = await RunGitAsync(repoRoot, "remote");
         return exitCode == 0 && !string.IsNullOrWhiteSpace(output);
     }
 
-    private async Task<(int Ahead, int Behind)> GetAheadBehindAsync()
+    private async Task<(int Ahead, int Behind)> GetAheadBehindAsync(string repoRoot)
     {
-        var (exitCode, output, _) = await RunGitAsync(_repoRoot!, "rev-list", "--count", "--left-right", "@{u}...HEAD");
+        var (exitCode, output, _) = await RunGitAsync(repoRoot, "rev-list", "--count", "--left-right", "@{u}...HEAD");
         if (exitCode != 0)
             return (0, 0);
 
@@ -290,9 +290,9 @@ public class GitService : IGitService
         return (0, 0);
     }
 
-    private async Task<IReadOnlyList<GitFileEntry>> GetChangedFilesAsync()
+    private async Task<IReadOnlyList<GitFileEntry>> GetChangedFilesAsync(string repoRoot)
     {
-        var (exitCode, output, _) = await RunGitAsync(_repoRoot!, "status", "--porcelain=v1", "-uall");
+        var (exitCode, output, _) = await RunGitAsync(repoRoot, "status", "--porcelain=v1", "-uall");
         if (exitCode != 0)
             return Array.Empty<GitFileEntry>();
 

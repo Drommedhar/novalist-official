@@ -1,0 +1,544 @@
+{
+  "status": "Vendor correctness and proven dead-code fixes are complete; focused scope has zero findings with35 documented upstream/generated exceptions. Complexity remains accepted upstream maintenance debt, not a claimed refactor.",
+  "authorization": "User requested all remaining findings be addressed and permitted comments or valid narrow flags for intentional code.",
+  "configurationChanged": false,
+  "ignoreFilesChanged": false,
+  "sourceChanges": [
+    {
+      "file": "app/src/renderer/public/map/KTX2Loader.js",
+      "behavior": "The shared Zstd initialization promise now propagates synchronous and asynchronous initialization failure to current and subsequent texture parse error callbacks instead of leaving callers pending."
+    },
+    {
+      "file": "app/src/renderer/public/map/KTX2Loader.js",
+      "behavior": "Raw texture construction rejects a Vulkan format when either its texture format or component type is unsupported; removes the warning-and-continue path."
+    },
+    {
+      "file": "app/src/renderer/public/map/KTX2Loader.js",
+      "behavior": "Documented the existing callable transcoder preloading API instead of retaining a private-method TODO."
+    },
+    {
+      "file": "app/src/renderer/public/map/GLTFLoader.js",
+      "behavior": "Documented the existing lack of skinning-aware instancing instead of an unresolved feature TODO; no new instancing capability claimed."
+    },
+    {
+      "file": "app/src/renderer/public/map/Water2Mesh.js",
+      "behavior": "Removed an unused vec2 import."
+    },
+    {
+      "file": "app/src/renderer/public/map/utils/WorkerPool.js",
+      "behavior": "Expressed conditional message callback invocation as an if statement without changing behavior."
+    },
+    {
+      "file": "app/src/renderer/public/map/DRACOLoader.js",
+      "behavior": "Explained cleanup success/error handling and the existing iOS 11 compatibility constraint without historical edit narration."
+    },
+    {
+      "file": "app/src/renderer/public/map/KTX2Loader.js",
+      "behavior": "Documented the resources disposed by the loader."
+    },
+    {
+      "file": "app/src/renderer/public/map/utils/WorkerPool.js",
+      "behavior": "Documented worker termination and pending callback/queue cleanup."
+    }
+  ],
+  "tests": {
+    "command": "node --test scripts/ktx2-loader.test.mjs",
+    "workingDirectory": "app",
+    "node": "v26.7.0",
+    "passed": 5,
+    "failed": 0,
+    "usesActualBundledSources": true,
+    "usesActualBundledZstdWasm": true,
+    "cases": [
+      "Rejected decoder initialization reaches simultaneous and subsequent parse callbacks, with one shared initialization attempt.",
+      "Synchronous decoder initialization failure reaches the parse error callback.",
+      "Two compressed textures share initialization and decode the expected RGBA bytes using the bundled WASM decoder.",
+      "Uncompressed floating-point texture retains FloatType, RedFormat, Float32Array and the expected pixel value.",
+      "Unsupported Vulkan format reaches the parse error callback."
+    ],
+    "environmentNotes": [
+      "Node module.register is used because the project minimum is Node 22.12; Node 26 emits a deprecation warning for that compatible API.",
+      "The browser .js ES modules trigger Node module-type detection warnings; browser packaging remains unchanged."
+    ]
+  },
+  "scan": {
+    "command": "aislop scan --include 'app/src/renderer/public/map/**' --include 'app/scripts/*loader*' --include 'app/scripts/codec-memory.test.mjs' --json",
+    "score": 100,
+    "summary": {
+      "errors": 0,
+      "warnings": 0,
+      "fixable": 0,
+      "files": 88,
+      "elapsed": "6.2s"
+    },
+    "diagnostics": 0,
+    "artifact": "../../artifacts/aislop-vendor-dead-locals/scan-final.json"
+  },
+  "reviewedAnnotations": {
+    "count": 35,
+    "scopeCounts": {
+      "file": 14,
+      "next-line": 21
+    },
+    "entries": [
+      {
+        "file": "app/src/renderer/public/map/basis/basis_transcoder.js",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "eslint/no-unused-vars"
+        ],
+        "reason": "Generated imports retain callback arity and existing Module/process option reads; four write-only option bindings preserve initialization behavior."
+      },
+      {
+        "file": "app/src/renderer/public/map/basis/basis_transcoder.js",
+        "line": 2,
+        "scope": "file",
+        "rules": [
+          "unicorn/no-new-array"
+        ],
+        "reason": "Generated Embind conversion table intentionally allocates dependentTypes.length empty slots."
+      },
+      {
+        "file": "app/src/renderer/public/map/basis/basis_transcoder.js",
+        "line": 11,
+        "scope": "next-line",
+        "rules": [
+          "ai-slop/hidden-fallback"
+        ],
+        "reason": "growMemory returns false to report allocation failure; its caller retries smaller reservations and propagates false if all attempts fail."
+      },
+      {
+        "file": "app/src/renderer/public/map/basis/basis_transcoder.js",
+        "line": 21,
+        "scope": "next-line",
+        "rules": [
+          "eslint/no-undef"
+        ],
+        "reason": "AMD export is guarded by typeof define; absent AMD loaders are valid."
+      },
+      {
+        "file": "app/src/renderer/public/map/basis/basis_transcoder.js",
+        "line": 23,
+        "scope": "next-line",
+        "rules": [
+          "eslint/no-undef"
+        ],
+        "reason": "The enclosing typeof define and AMD guard prove this loader callback exists."
+      },
+      {
+        "file": "app/src/renderer/public/map/draco/draco_wasm_wrapper.js",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "eslint/no-unused-vars"
+        ],
+        "reason": "Generated Promise, WASM and instantiation callbacks retain their upstream parameter arity."
+      },
+      {
+        "file": "app/src/renderer/public/map/draco/draco_wasm_wrapper.js",
+        "line": 2,
+        "scope": "file",
+        "rules": [
+          "eslint/no-unused-expressions"
+        ],
+        "reason": "Generated Draco glue uses short-circuit and comma expressions for binding side effects."
+      },
+      {
+        "file": "app/src/renderer/public/map/draco/draco_wasm_wrapper.js",
+        "line": 3,
+        "scope": "file",
+        "rules": [
+          "unicorn/no-thenable"
+        ],
+        "reason": "Generated Promise polyfill implements the required then method for older runtimes."
+      },
+      {
+        "file": "app/src/renderer/public/map/draco/draco_wasm_wrapper.js",
+        "line": 120,
+        "scope": "next-line",
+        "rules": [
+          "eslint/no-undef"
+        ],
+        "reason": "AMD export runs only when typeof define is function; ordinary browsers do not enter this guarded branch."
+      },
+      {
+        "file": "app/src/renderer/public/map/DRACOLoader.js",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "complexity/file-too-large"
+        ],
+        "reason": "Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately."
+      },
+      {
+        "file": "app/src/renderer/public/map/DRACOLoader.js",
+        "line": 468,
+        "scope": "next-line",
+        "rules": [
+          "ai-slop/console-leftover"
+        ],
+        "reason": "The public debug method prints worker task loads only when a caller explicitly requests diagnostics."
+      },
+      {
+        "file": "app/src/renderer/public/map/DRACOLoader.js",
+        "line": 497,
+        "scope": "next-line",
+        "rules": [
+          "complexity/function-too-long"
+        ],
+        "reason": "Worker factory is serialized into a standalone worker; decoder protocol closures must travel together."
+      },
+      {
+        "file": "app/src/renderer/public/map/GLTFLoader.js",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "complexity/file-too-large"
+        ],
+        "reason": "Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately."
+      },
+      {
+        "file": "app/src/renderer/public/map/GLTFLoader.js",
+        "line": 4670,
+        "scope": "next-line",
+        "rules": [
+          "complexity/function-too-long"
+        ],
+        "reason": "Bundled Three.js accessor, morph-target and bounding-sphere calculations retain upstream numerical behavior."
+      },
+      {
+        "file": "app/src/renderer/public/map/KTX2Loader.js",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "complexity/file-too-large"
+        ],
+        "reason": "Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately."
+      },
+      {
+        "file": "app/src/renderer/public/map/KTX2Loader.js",
+        "line": 629,
+        "scope": "next-line",
+        "rules": [
+          "complexity/function-too-long"
+        ],
+        "reason": "Bundled Basis worker transcodes mip levels and faces under one resource cleanup lifetime."
+      },
+      {
+        "file": "app/src/renderer/public/map/KTX2Loader.js",
+        "line": 1077,
+        "scope": "next-line",
+        "rules": [
+          "complexity/function-too-long"
+        ],
+        "reason": "Bundled raw-texture decoder preserves upstream format, mipmap and dimension handling; initialization failures are covered by regression tests."
+      },
+      {
+        "file": "app/src/renderer/public/map/libs/ktx-parse.module.js",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "eslint/no-unused-expressions"
+        ],
+        "reason": "Bundled minified KTX parser uses short-circuit expressions for conditional mutations."
+      },
+      {
+        "file": "app/src/renderer/public/map/libs/ktx-parse.module.js",
+        "line": 2,
+        "scope": "file",
+        "rules": [
+          "eslint/no-func-assign"
+        ],
+        "reason": "Generated Object.assign helper replaces itself once with the selected native implementation or polyfill."
+      },
+      {
+        "file": "app/src/renderer/public/map/libs/ktx-parse.module.js",
+        "line": 3,
+        "scope": "next-line",
+        "rules": [
+          "ai-slop/hidden-fallback"
+        ],
+        "reason": "KTX levelCount zero stores one base mip and requests generated mipmaps; Math.max(levelCount, 1) is format semantics. The unrelated identifier-error string shares this minified line."
+      },
+      {
+        "file": "app/src/renderer/public/map/libs/zstddec.module.js",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "eslint/no-unused-vars"
+        ],
+        "reason": "Bundled generated Zstd WASM runtime callback retains its ABI parameter."
+      },
+      {
+        "file": "app/src/renderer/public/map/libs/zstddec.module.js",
+        "line": 2,
+        "scope": "file",
+        "rules": [
+          "eslint/no-unused-expressions"
+        ],
+        "reason": "Bundled minified Zstd initializer uses an assignment within a short-circuit expression."
+      },
+      {
+        "file": "app/src/renderer/public/map/math/ColorSpaces.js",
+        "line": 1,
+        "scope": "next-line",
+        "rules": [
+          "ai-slop/hallucinated-import"
+        ],
+        "reason": "map.html supplies this browser import through its import map to the bundled Three.js modules; npm resolution does not apply."
+      },
+      {
+        "file": "app/src/renderer/public/map/SkyMesh.js",
+        "line": 15,
+        "scope": "next-line",
+        "rules": [
+          "ai-slop/hallucinated-import"
+        ],
+        "reason": "map.html supplies these browser imports through its import map to bundled Three.js modules; npm resolution does not apply."
+      },
+      {
+        "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "complexity/file-too-large"
+        ],
+        "reason": "Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately."
+      },
+      {
+        "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+        "line": 134,
+        "scope": "next-line",
+        "rules": [
+          "complexity/function-too-long"
+        ],
+        "reason": "Bundled Three.js geometry algorithm retains upstream attribute, indexing and numerical behavior."
+      },
+      {
+        "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+        "line": 642,
+        "scope": "next-line",
+        "rules": [
+          "complexity/function-too-long",
+          "complexity/deep-nesting"
+        ],
+        "reason": "Bundled Three.js geometry algorithm retains upstream attribute, indexing and numerical behavior."
+      },
+      {
+        "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+        "line": 807,
+        "scope": "next-line",
+        "rules": [
+          "complexity/function-too-long"
+        ],
+        "reason": "Bundled Three.js geometry algorithm retains upstream attribute, indexing and numerical behavior."
+      },
+      {
+        "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+        "line": 923,
+        "scope": "next-line",
+        "rules": [
+          "complexity/function-too-long"
+        ],
+        "reason": "Bundled Three.js geometry algorithm retains upstream attribute, indexing and numerical behavior."
+      },
+      {
+        "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+        "line": 1204,
+        "scope": "next-line",
+        "rules": [
+          "complexity/function-too-long"
+        ],
+        "reason": "Bundled Three.js geometry algorithm retains upstream attribute, indexing and numerical behavior."
+      },
+      {
+        "file": "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+        "line": 1316,
+        "scope": "next-line",
+        "rules": [
+          "complexity/function-too-long"
+        ],
+        "reason": "Bundled Three.js geometry algorithm retains upstream attribute, indexing and numerical behavior."
+      },
+      {
+        "file": "app/src/renderer/public/map/utils/SkeletonUtils.js",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "complexity/file-too-large"
+        ],
+        "reason": "Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately."
+      },
+      {
+        "file": "app/src/renderer/public/map/utils/SkeletonUtils.js",
+        "line": 40,
+        "scope": "next-line",
+        "rules": [
+          "complexity/function-too-long",
+          "complexity/deep-nesting"
+        ],
+        "reason": "Bundled Three.js retargeting preserves bone hierarchy transforms and animation sampling order."
+      },
+      {
+        "file": "app/src/renderer/public/map/utils/SkeletonUtils.js",
+        "line": 228,
+        "scope": "next-line",
+        "rules": [
+          "complexity/function-too-long",
+          "complexity/deep-nesting"
+        ],
+        "reason": "Bundled Three.js retargeting preserves bone hierarchy transforms and animation sampling order."
+      },
+      {
+        "file": "app/src/renderer/public/map/Water2Mesh.js",
+        "line": 11,
+        "scope": "next-line",
+        "rules": [
+          "ai-slop/hallucinated-import"
+        ],
+        "reason": "map.html supplies this browser import through its import map to the bundled Three.js modules; npm resolution does not apply."
+      }
+    ]
+  },
+  "hiddenFallbackReview": {
+    "file": "app/src/renderer/public/map/libs/ktx-parse.module.js",
+    "installedDetector": "aislop 0.18.0 dist/cli.js hidden-fallback.ts",
+    "matchedExpressions": [
+      "Math.max(n.levelCount,1) in the stored-level loop bound",
+      "Math.max(n.levelCount,1) in the global image-description loop bound"
+    ],
+    "reason": "KTX levelCount zero requires reading one stored base mip and requests runtime mipmap generation. The unrelated Missing KTX 2.0 identifier error text shares the minified line and supplies the detector failure context. No failed operation is converted to successful data."
+  },
+  "allocatorReview": "Both codecs preserve smaller-reservation retries and ultimately return false. Basis now explicitly returns false from growMemory; Draco now explicitly continues its retry loop after Memory.grow throws.",
+  "amdReview": "AMD define calls are guarded by typeof define and the AMD marker, so absence of an AMD loader is intentional and safe.",
+  "upstreamPreservation": "Upstream algorithm bodies and generated compatibility structure remain intact except for the documented small correctness/dead-code changes. Licensing, provenance, original UTF-8 and pre-existing working-tree changes were preserved.",
+  "encodingVerification": {
+    "filesChecked": 12,
+    "nonAsciiLinesMatchCheckedInUtf8": true,
+    "nonAsciiLines": {
+      "DRACOLoader.js": 1,
+      "SkyMesh.js": 2,
+      "Water2Mesh.js": 4
+    },
+    "executableLiteralsAffected": 0,
+    "result": "All seven non-ASCII lines are comments and exactly match the checked-in UTF-8 source. All other annotation-writer files contain only ASCII."
+  },
+  "integrationValidation": "Root task runs the complete transport suite, application builds and browser regression checks after this scoped work.",
+  "secondReview": {
+    "reason": "User challenged excessive annotations; every remaining vendor exception was reconsidered.",
+    "annotationsBefore": 37,
+    "annotationsAfter": 35,
+    "codeChanges": [
+      "Removed the redundant assignment of the Embind alias-check handle record to itself. Handle records are internal data properties and cloned records can be read-only.",
+      "Removed three empty generated branches: the initial Node probe, the unsupported-environment else, and the void-result invoker else.",
+      "Basis growMemory explicitly returns false on allocation failure instead of implicitly returning undefined; the enclosing allocator retains its retry and failure contract.",
+      "Draco explicitly continues to the next smaller memory reservation after allocation failure instead of relying on an empty catch and an undefined temporary."
+    ],
+    "annotationChanges": [
+      "Removed the generated self-assignment exemption after removing the dead assignment.",
+      "Removed both combined empty-block/swallowed-exception exemptions after the allocation code and empty branches were corrected.",
+      "Added one exact hidden-fallback exception for Basis returning false as an explicit allocation-failure outcome; this is a detector false positive, not a successful substitute value.",
+      "Narrowed the KTX levelCount convention annotation from file scope to its minified source line."
+    ],
+    "tests": {
+      "command": "node --test scripts/codec-memory.test.mjs scripts/ktx2-loader.test.mjs",
+      "workingDirectory": "app",
+      "passed": 18,
+      "failed": 0,
+      "newAllocatorAndBasisTests": 13,
+      "retainedKtxTests": 5,
+      "actualBundledWasm": [
+        "Basis",
+        "Zstd"
+      ],
+      "allocatorCases": "Both actual allocator bodies: immediate success, one/two refusals, all attempts refused, limit exceeded, exact maximum size."
+    },
+    "differential": {
+      "passed": 64,
+      "artifact": "../../artifacts/aislop-vendor-second-pass/memory-equivalence.json",
+      "comparison": "Original and revised allocator return values, requested page counts, memory size and heap-view refresh counts are identical across64 scenarios."
+    },
+    "remainingExceptions": [
+      {
+        "annotations": 17,
+        "findingTypes": {
+          "largeFiles": 5,
+          "longFunctions": 12,
+          "deepNesting": 3
+        },
+        "disposition": "Accepted upstream maintenance debt, not false positives and not fixed complexity. Keeping upstream module/algorithm structure avoids a local graphics-library fork solely to satisfy size metrics."
+      },
+      {
+        "annotations": 9,
+        "disposition": "Generated/minified style exceptions retain callback arities and four legacy Module/process option bindings whose getter reads remain observable. Other exceptions cover short-circuit expressions, a sparse Embind type table, the Promise polyfill then method, and cached Object.assign selection. Seven proven dead local bindings and both unused catch bindings were removed in the final dead-local review."
+      },
+      {
+        "annotations": 9,
+        "disposition": "Specific runtime/scanner mismatches: three AMD guard sites, three browser-import-map sites, one requested debug output, one KTX mip-level convention, and one explicit allocation-failure return."
+      }
+    ],
+    "sourceOriginHandling": "Aislop0.18 generated markers and generated/vendor paths broadly omit files from lint and AI detectors. No generated marker, source relocation, configuration change, ignore file or consolidated rule list was used to reduce counts."
+  },
+  "deadLocalReview": {
+    "removedLocals": {
+      "Basis": [
+        "EXITSTATUS",
+        "runtimeInitialized",
+        "uncaughtExceptionCount",
+        "reflectConstruct",
+        "_fd_seek.offset",
+        "local dynCall_jiji alias"
+      ],
+      "Draco": [
+        "vd"
+      ]
+    },
+    "additionalCleanup": [
+      "Removed convertI32PairToI53Checked after its sole, unused result calculation was removed.",
+      "Replaced both unused allocator catch parameters with optional catch bindings."
+    ],
+    "preservedContracts": [
+      "Callback parameter lists and arities are unchanged.",
+      "Both Module.dynCall_jiji assignments remain: initial wrapper export and first-call replacement with the instantiated function.",
+      "Existing Module/process initialization reads remain."
+    ],
+    "retainedOptionBindings": {
+      "names": [
+        "arguments_",
+        "thisProgram",
+        "quit_",
+        "noExitRuntime"
+      ],
+      "reason": "Their stored values are unused, but their initialization reads supplied Module options and process properties. Removing that initialization would change caller-observable getters. Keeping discarded read expressions solely to remove the bindings would not improve the code. The annotation explicitly describes these legacy reads rather than claiming the bindings are required ABI state.",
+      "actualGetterReads": {
+        "thisProgram": 3,
+        "arguments": 2,
+        "quit": 2,
+        "noExitRuntime": 1
+      }
+    },
+    "annotationCount": 35,
+    "annotationCountChanged": false,
+    "tests": {
+      "command": "node --test scripts/codec-memory.test.mjs scripts/ktx2-loader.test.mjs",
+      "workingDirectory": "app",
+      "passed": 19,
+      "failed": 0,
+      "codecMemoryAndBasisTests": 14,
+      "ktxTests": 5,
+      "newCase": "Actual WASM instantiation preserves the public dynCall wrapper arity, all five forwarded arguments, return value and lazy exported-function replacement."
+    },
+    "allocatorEquivalence": {
+      "casesPassed": 64,
+      "artifact": "../../artifacts/aislop-vendor-dead-locals/memory-equivalence.json"
+    },
+    "basisApiEquivalence": {
+      "equivalent": true,
+      "exportedProperties": 56,
+      "comparison": "Real WASM initialization preserves all56 Module property profiles, exported function names/arities and all8 observed reads of the four legacy options.",
+      "artifact": "../../artifacts/aislop-vendor-dead-locals/basis-api-equivalence.json"
+    },
+    "encoding": "Both changed generated sources are ASCII and were read/written explicitly as UTF-8."
+  }
+}

@@ -35,19 +35,19 @@ public sealed class FindReplaceService : IFindReplaceService
 
                 var html = await _projectService.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
                 var plain = StripHtml(html);
-                var bookTitle = _projectService.ActiveBook?.Name ?? string.Empty;
-                Collect(results, regex, plain, "prose", bookTitle, chapter, scene);
+                var source = new SceneSearchSource(_projectService.ActiveBook?.Name ?? string.Empty, chapter, scene);
+                Collect(results, regex, plain, "prose", source);
 
                 // The places a writer leaves what they mean to come back to.
                 if (options.IncludeSceneNotes)
                 {
                     Collect(results, regex, scene.Synopsis ?? string.Empty, "synopsis",
-                        bookTitle, chapter, scene);
+                        source);
                     Collect(results, regex, scene.Notes ?? string.Empty, "notes",
-                        bookTitle, chapter, scene);
+                        source);
                     foreach (var comment in scene.Comments ?? [])
                         Collect(results, regex, comment.Text ?? string.Empty, "comment",
-                            bookTitle, chapter, scene);
+                            source);
                 }
             }
         }).ConfigureAwait(false);
@@ -203,22 +203,24 @@ public sealed class FindReplaceService : IFindReplaceService
         }
     }
 
+    private sealed record SceneSearchSource(string BookTitle, ChapterData Chapter, SceneData Scene);
+
     /// <summary>Adds every match in one field, tagged with which field it was.</summary>
     private static void Collect(
         List<FindMatch> results, Regex regex, string text, string field,
-        string bookTitle, ChapterData chapter, SceneData scene)
+        SceneSearchSource source)
     {
         if (text.Length == 0) return;
         foreach (Match m in regex.Matches(text))
         {
             results.Add(new FindMatch
             {
-                BookTitle = bookTitle,
+                BookTitle = source.BookTitle,
                 Field = field,
-                ChapterGuid = chapter.Guid,
-                ChapterTitle = chapter.Title,
-                SceneId = scene.Id,
-                SceneTitle = scene.Title,
+                ChapterGuid = source.Chapter.Guid,
+                ChapterTitle = source.Chapter.Title,
+                SceneId = source.Scene.Id,
+                SceneTitle = source.Scene.Title,
                 Index = m.Index,
                 Length = m.Length,
                 Before = SnippetBefore(text, m.Index),

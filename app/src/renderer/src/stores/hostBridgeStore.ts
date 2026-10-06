@@ -165,6 +165,13 @@ export function registerHostBridge(): void {
   if (registered) return
   registered = true
 
+  registerProjectNotifications()
+  registerProgressNotifications()
+  registerDialogNotifications()
+}
+
+function registerProjectNotifications(): void {
+
   // An extension writing to the project changes files the interface is
   // already showing. Without these two the writer saw their old values until
   // they clicked away and back, which reads as the extension having failed.
@@ -195,6 +202,9 @@ export function registerHostBridge(): void {
       }).catch(() => {})
   })
 
+}
+
+function registerProgressNotifications(): void {
   rpc.onNotification('ui/showNotification', (params) => {
     const message = firstParam<string>(params)
     if (typeof message === 'string' && message.length > 0) {
@@ -240,6 +250,9 @@ export function registerHostBridge(): void {
     useHostBridgeStore.setState((s) => ({ progress: s.progress.filter((p) => p.token !== token) }))
   })
 
+}
+
+function registerDialogNotifications(): void {
   rpc.onNotification('ui/wizard/open', (params) => {
     const dto = firstParam<{ token: string; definition: WizardDefinitionDto; seed: WizardResultDto | null }>(params)
     useHostBridgeStore.setState({

@@ -1,3 +1,5 @@
+import type { MenuNode, MenuLabels } from '../../../shared/menuProtocol'
+export type { MenuNode, MenuLabels } from '../../../shared/menuProtocol'
 import i18next from 'i18next'
 import { COMMANDS, commandById, homeOf, type CommandDef } from './commands'
 import { buildDefaultHotkeys } from './hotkeys'
@@ -19,26 +21,6 @@ import { useProjectStore } from '../stores/projectStore'
  * selection. That is the whole placement law, and the menu bar is where it
  * would be easiest to quietly break by adding "just one more" convenient copy.
  */
-
-/** A node the main process can turn into an Electron menu item. */
-export type MenuNode =
-  | { kind: 'separator' }
-  /**
-   * An Electron role - undo, copy, quit, fullscreen - whose behaviour main
-   * owns. The label comes from here anyway: Electron's own role labels are
-   * English regardless of the interface language, which is why the Edit menu
-   * read "Undo" and "Paste" to a writer working in German.
-   */
-  | { kind: 'role'; role: string; label: string }
-  | {
-      kind: 'command'
-      id: string
-      label: string
-      /** Shown, never registered: the renderer stays the only dispatcher. */
-      accelerator?: string
-      enabled: boolean
-    }
-  | { kind: 'submenu'; label: string; items: MenuNode[] }
 
 /**
  * Novalist's gesture grammar, in Electron's.
@@ -130,32 +112,6 @@ export function menuBarCommands(): CommandDef[] {
 
 /** The prefix a Recent-projects item sends back, followed by its path. */
 export const OPEN_RECENT = 'openRecent:'
-
-/**
- * Labels for the menus the main process builds itself.
- *
- * Window, the way out of the app, the updater and the About item are the
- * platform's business rather than Novalist's, so main keeps their behaviour -
- * but nothing about a menu bar should be in a different language from the rest
- * of the interface, and "Window" sitting in German next to "Datei" and
- * "Bearbeiten" is exactly the sort of thing that reads as unfinished.
- */
-export interface MenuLabels {
-  window: string
-  mainWindow: string
-  minimize: string
-  zoom: string
-  closeWindow: string
-  front: string
-  windowList: string
-  quit: string
-  about: string
-  hide: string
-  hideOthers: string
-  unhide: string
-  checkUpdates: string
-  github: string
-}
 
 export function buildMenuLabels(): MenuLabels {
   const t = (key: string): string => i18next.t(key)

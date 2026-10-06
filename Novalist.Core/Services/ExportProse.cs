@@ -114,30 +114,14 @@ internal static partial class ExportProse
             if (tagStart < 0)
             {
                 // Remaining text
-                var text = WebUtility.HtmlDecode(html[pos..]);
-                if (!string.IsNullOrEmpty(text))
-                    segments.Add(new InlineSegment
-                    {
-                        Text = text,
-                        Bold = bold,
-                        Italic = italic,
-                        Strike = strike
-                    });
+                AppendInlineText(html[pos..], bold, italic, strike, segments);
                 break;
             }
 
             // Text before tag
             if (tagStart > pos)
             {
-                var text = WebUtility.HtmlDecode(html[pos..tagStart]);
-                if (!string.IsNullOrEmpty(text))
-                    segments.Add(new InlineSegment
-                    {
-                        Text = text,
-                        Bold = bold,
-                        Italic = italic,
-                        Strike = strike
-                    });
+                AppendInlineText(html[pos..tagStart], bold, italic, strike, segments);
             }
 
             var tagEnd = html.IndexOf('>', tagStart);
@@ -188,32 +172,13 @@ internal static partial class ExportProse
                 continue;
             }
 
-            switch (tagName)
-            {
-                case "b" or "strong":
-                    ParseInlineRecursive(innerContent, true, italic, segments, footnotes, strike);
-                    break;
-                case "i" or "em":
-                    ParseInlineRecursive(innerContent, bold, true, segments, footnotes, strike);
-                    break;
-                case "s" or "strike" or "del":
-                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes, true);
-                    break;
-                case "u":
-                    // Underline treated as regular text in export (no underline in most book formats)
-                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes, strike);
-                    break;
-                case "span":
-                    // Spans may carry style info but for export we just recurse.
-                    // A highlight is one of them: it is a working mark the
-                    // writer left themselves, not something to print.
-                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes, strike);
-                    break;
-                default:
-                    // Unknown tag - just extract text
-                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes, strike);
-                    break;
-            }
+            ParseInlineRecursive(
+                innerContent,
+                bold || tagName is "b" or "strong",
+                italic || tagName is "i" or "em",
+                segments,
+                footnotes,
+                strike || tagName is "s" or "strike" or "del");
         }
     }
 
@@ -374,5 +339,12 @@ internal static partial class ExportProse
         foreach (var token in m.Groups[1].Value.Split(' ', System.StringSplitOptions.RemoveEmptyEntries))
             if (token.StartsWith("nv-style-")) return token.Substring("nv-style-".Length);
         return null;
+    }
+
+    private static void AppendInlineText(string html, bool bold, bool italic, bool strike, List<InlineSegment> segments)
+    {
+        var text = WebUtility.HtmlDecode(html);
+        if (!string.IsNullOrEmpty(text))
+            segments.Add(new InlineSegment { Text = text, Bold = bold, Italic = italic, Strike = strike });
     }
 }

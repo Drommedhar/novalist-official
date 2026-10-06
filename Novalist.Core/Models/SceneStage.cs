@@ -36,7 +36,6 @@ public sealed class SceneStage
     public bool CountsAsWritten { get; set; } = true;
 }
 
-/// <summary>The stages a project starts with.</summary>
 public static class SceneStageDefaults
 {
     /// <summary>

@@ -27,10 +27,16 @@ export async function closeTestApp(app: ElectronApplication): Promise<void> {
   // A spec can deliberately leave a save failure or conflict unresolved.
   // Dispose its temporary windows without invoking the writer's close guard;
   // app.close still lets the main process shut down its backend normally.
-  await app.evaluate(({ BrowserWindow }) => {
+  await app.evaluate(({ app, BrowserWindow }) => {
+    // Playwright evaluates app.quit through the Node inspector before closing
+    // that connection. Electron can wait for the inspector during shutdown;
+    // return from its evaluation before beginning the real quit operation.
+    app.removeAllListeners('window-all-closed')
+    const quit = app.quit.bind(app)
+    app.quit = () => { setImmediate(quit) }
     for (const win of BrowserWindow.getAllWindows()) win.destroy()
   }).catch(() => {
-    // Closing the last window can already quit the app on Windows/Linux.
+    // A test may already have initiated shutdown before its teardown runs.
   })
   await app.close()
 }

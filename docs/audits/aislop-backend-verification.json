@@ -1,0 +1,91 @@
+{
+  "status": "applied-and-verified",
+  "scope": "Backend nullable-flow cleanup, typed entity/template access, method decomposition, and provider-availability guards",
+  "previousReviewRejection": "An automatic approval review rejected a broad index-based rewrite because registration, entity-detail, and audiobook changes lacked a reviewable structural proof.",
+  "newEvidence": {
+    "method": "Roslyn parsed original and candidate files. Each helper was expanded at its call site; statement counts and every syntax token were compared in order. Every unrelated method was also checked.",
+    "results": [
+      {
+        "originalStatements": 104,
+        "syntaxErrors": 0,
+        "method": "Attach",
+        "expandedStatements": 104,
+        "tokensIdentical": true,
+        "unrelatedMethodsUnchanged": true,
+        "file": "Novalist.Backend/BackendHost.cs"
+      },
+      {
+        "originalStatements": 20,
+        "syntaxErrors": 0,
+        "method": "GetCharacterDetailedAsync",
+        "expandedStatements": 20,
+        "tokensIdentical": true,
+        "unrelatedMethodsUnchanged": true,
+        "file": "Novalist.Backend/Extensions/HostServices.EntityAccess.cs"
+      },
+      {
+        "originalStatements": 19,
+        "syntaxErrors": 0,
+        "method": "ChaptersAsync",
+        "expandedStatements": 19,
+        "tokensIdentical": true,
+        "unrelatedMethodsUnchanged": true,
+        "file": "Novalist.Backend/Rpc/AudiobookRpc.Rendering.cs"
+      }
+    ],
+    "candidateCompilation": {
+      "strategy": "Three separate single-file MSBuild source overlays under the temporary directory; repository source unchanged during proof; each compiled into its own isolated output directory.",
+      "warnings": 0,
+      "errors": 0
+    },
+    "application": "Automatic review accepted each single-file change separately after this evidence. The audiobook helper explicitly takes the already-captured project service."
+  },
+  "tests": {
+    "project": "tests/Novalist.Backend.Tests/Novalist.Backend.Tests.csproj",
+    "passed": 2034,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 25,
+    "command": "dotnet test tests/Novalist.Backend.Tests/Novalist.Backend.Tests.csproj --no-build --no-restore --collect:'XPlat Code Coverage' --settings tests/coverlet.runsettings --results-directory tests/TestResults/aislop-backend-complete --logger 'console;verbosity=minimal'",
+    "addedCoverage": [
+      "Three provider-removal race cases return existing unavailable-provider results without invocation.",
+      "Four character-detail cases verify custom property, relationship, and section precedence for scene, chapter, act, and base data."
+    ]
+  },
+  "coverage": {
+    "package": "Novalist.Backend",
+    "coveredLines": 13795,
+    "totalLines": 13795,
+    "percent": 100,
+    "gate": "eng/Check-Coverage.ps1",
+    "report": "tests/TestResults/aislop-backend-complete/a7c92d7e-2b09-407a-b291-1cf650472419/coverage.cobertura.xml",
+    "earlierGap": "The first post-extraction run exposed seven collection-projection lines that were previously masked by coverage aggregation. The four collection-precedence cases cover them."
+  },
+  "remainingScanAssessment": {
+    "nullForgivingFindings": 0,
+    "actualLongMethods": 0,
+    "primaryConstructorParserFalsePositives": [
+      "DictationRpc",
+      "ImportRpc",
+      "LinksRpc",
+      "TasksRpc",
+      "TemplatesRpc",
+      "WorkspaceCoordinator"
+    ],
+    "publicRpcArity": "Existing positional JSON-RPC signatures retained for compatibility.",
+    "otherReviewedFindings": "Useful XML contracts, central diagnostic sinks, in-place redaction loop, and synchronous interface bridges remain; no rules or thresholds were disabled."
+  },
+  "relatedRendererValidation": {
+    "views": [
+      "Calendar",
+      "Settings"
+    ],
+    "typecheck": "All app TypeScript projects passed.",
+    "productionBuild": "Passed.",
+    "playwrightPassed": 21,
+    "playwrightFailed": 0,
+    "calendarGridEquivalence": "54 old/new rendering and event-handler scenarios matched across Gregorian and custom calendars.",
+    "settingsSectionFactories": "All eight extracted factory bodies matched the original JSX exactly; typed dependencies checked before application.",
+    "remainingSettingsFindings": "Six repeated metadata-record findings and the LanguageTool URL input placeholder are false positives."
+  }
+}

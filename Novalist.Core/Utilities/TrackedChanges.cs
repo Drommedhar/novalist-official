@@ -99,7 +99,7 @@ public static partial class TrackedChanges
     /// </summary>
     public static string Final(string? html) => Resolve(html, accept: true, only: null);
 
-    /// <summary>The prose as it read before anybody suggested anything.</summary>
+    /// <summary>Returns HTML with every pending insertion removed and every pending deletion restored.</summary>
     public static string Original(string? html) => Resolve(html, accept: false, only: null);
 
     /// <summary>Takes one suggestion, leaving the rest pending.</summary>

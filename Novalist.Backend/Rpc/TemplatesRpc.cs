@@ -10,6 +10,7 @@ namespace Novalist.Backend.Rpc;
 /// live on the active book; custom-type templates share one list keyed by
 /// EntityTypeKey.
 /// </summary>
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
 public sealed class TemplatesRpc(Workspace workspace)
 {
     private static readonly JsonSerializerOptions JsonOptions =
@@ -122,21 +123,18 @@ public sealed class TemplatesRpc(Workspace workspace)
         await workspace.Projects.SaveProjectAsync();
     }
 
-    private static T Materialize<T>(JsonElement template) where T : class
+    private static T Materialize<T>(JsonElement template) where T : class, IEntityTemplate
     {
         var result = template.Deserialize<T>(JsonOptions)
             ?? throw new InvalidOperationException("Invalid template payload.");
-        var idProp = typeof(T).GetProperty("Id")!;
-        if (string.IsNullOrEmpty((string?)idProp.GetValue(result)))
-            idProp.SetValue(result, Guid.NewGuid().ToString());
+        if (string.IsNullOrEmpty(result.Id))
+            result.Id = Guid.NewGuid().ToString();
         return result;
     }
 
-    private static T Upsert<T>(List<T> list, T template) where T : class
+    private static T Upsert<T>(List<T> list, T template) where T : class, IEntityTemplate
     {
-        var idProp = typeof(T).GetProperty("Id")!;
-        var id = (string)idProp.GetValue(template)!;
-        var index = list.FindIndex(t => (string)idProp.GetValue(t)! == id);
+        var index = list.FindIndex(t => t.Id == template.Id);
         if (index >= 0) list[index] = template;
         else list.Add(template);
         return template;

@@ -68,6 +68,27 @@ export async function loadWorkspaceSnapshot(): Promise<void> {
   reportEditingScenes(true)
 }
 
+function failWindowOperation(error: unknown): never {
+  useHostBridgeStore.getState().pushToast(i18n.t('toast.saveFailed').replace('{0}', error instanceof Error ? error.message : String(error)))
+  throw error
+}
+
+async function suspendWorkspace(): Promise<void> {
+  await flushWindowWrites()
+  // Unmount while the old workspace is writable, then drain its cleanup writes.
+  flushSync(() => useProjectStore.setState({ workspaceSuspended: true }))
+  await flushWindowWrites()
+}
+
+function refreshResumedWorkspace(): void {
+  const state = useProjectStore.getState()
+  if (!state.isLoaded) return
+  void state.loadRecents().catch(() => {})
+  void useSettingsStore.getState().load().catch(() => {})
+  void state.loadDrafts().catch(() => {})
+  void useCodexStore.getState().refresh().catch(() => {})
+}
+
 export function useWorkspaceWindow(): WindowCloseStage | null {
   const [closeStage, setCloseStage] = useState<WindowCloseStage | null>(null)
   useEffect(() => {
@@ -89,17 +110,6 @@ export function useWorkspaceWindow(): WindowCloseStage | null {
       if (!state.changingSceneStructure && !state.closingProject) document.querySelector('.shell, .app-shell')?.removeAttribute('inert')
       reportEditingScenes(true)
     }
-    const fail = (error: unknown): never => {
-      useHostBridgeStore.getState().pushToast(i18n.t('toast.saveFailed').replace('{0}', error instanceof Error ? error.message : String(error)))
-      throw error
-    }
-    const suspend = async (): Promise<void> => {
-      await flushWindowWrites()
-      // Cleanup writes still address the old workspace. Unmount while its
-      // gate is yielded, then drain those writes before permitting mutation.
-      flushSync(() => useProjectStore.setState({ workspaceSuspended: true }))
-      await flushWindowWrites()
-    }
     const stopWorkspace = window.novalist.onWorkspaceEvent?.(async (event) => {
       if (event.phase === 'prepare') {
         if (closing || workspaceToken) throw new Error(i18n.t('update.workspaceBusy'))
@@ -108,7 +118,7 @@ export function useWorkspaceWindow(): WindowCloseStage | null {
         workspaceReason = event.preparation.reason
         useProjectStore.setState({ workspaceTransitionToken: workspaceToken })
         lock()
-        try { await suspend() } catch (error) { fail(error) }
+        try { await suspendWorkspace() } catch (error) { failWindowOperation(error) }
       } else if (event.phase === 'changed') {
         // Keep surfaces unmounted and input frozen through the apply ACK.
         // Data hydration happens only after main has advanced our wire epoch.
@@ -126,15 +136,7 @@ export function useWorkspaceWindow(): WindowCloseStage | null {
         workspaceToken = null
         useProjectStore.setState({ workspaceTransitionToken: null })
         resume()
-        if (event.phase === 'resumed') {
-          const state = useProjectStore.getState()
-          if (state.isLoaded) {
-            void state.loadRecents().catch(() => {})
-            void useSettingsStore.getState().load().catch(() => {})
-            void state.loadDrafts().catch(() => {})
-            void useCodexStore.getState().refresh().catch(() => {})
-          }
-        }
+        if (event.phase === 'resumed') refreshResumedWorkspace()
       }
     })
     const stopClose = window.novalist.onBeforeClose?.(async (stage) => {
@@ -151,13 +153,13 @@ export function useWorkspaceWindow(): WindowCloseStage | null {
         }
         closing = true
         lock(stage)
-        if (stage === 'flush') await suspend()
+        if (stage === 'flush') await suspendWorkspace()
         else {
           await createCloseBackup()
           await flushWindowWrites()
           markCloseBackupHandledForQuit()
         }
-      } catch (error) { fail(error) }
+      } catch (error) { failWindowOperation(error) }
     })
     const stopRecovery = rpc.onRecovery((error) => {
       workspaceToken = null

@@ -50,17 +50,16 @@ public sealed class CalendarRpc
 
         var months = new List<string>();
         var days = new List<int>();
-        var pairs = Math.Min(monthNames?.Length ?? 0, daysPerMonth?.Length ?? 0);
-        for (var i = 0; i < pairs; i++)
+        foreach (var (monthName, length) in (monthNames ?? []).Zip(daysPerMonth ?? []))
         {
-            var name = (monthNames![i] ?? string.Empty).Trim();
+            var name = (monthName ?? string.Empty).Trim();
             if (name.Length == 0)
                 continue;
 
             months.Add(name);
             // A month of zero or negative days would make year length arithmetic
             // meaningless; one day is the smallest month that can exist.
-            days.Add(Math.Max(1, daysPerMonth![i]));
+            days.Add(Math.Max(1, length));
         }
 
         book.Calendar = new Core.Models.InWorldCalendar
@@ -78,16 +77,16 @@ public sealed class CalendarRpc
             // An era with no name cannot label anything, and two eras starting
             // in the same year would make a date's era ambiguous.
             Eras = [.. (eras ?? [])
-                .Where(e => !string.IsNullOrWhiteSpace(e.Name))
-                .GroupBy(e => e.StartYear)
-                .Select(g => g.First())
-                .OrderBy(e => e.StartYear)
-                .Select(e => new Core.Models.CalendarEra
+                .Select(e => string.IsNullOrWhiteSpace(e.Name) ? null : new Core.Models.CalendarEra
                 {
-                    Name = e.Name!.Trim(),
+                    Name = e.Name.Trim(),
                     StartYear = e.StartYear,
                     CountsDown = e.CountsDown
-                })]
+                })
+                .OfType<Core.Models.CalendarEra>()
+                .GroupBy(e => e.StartYear)
+                .Select(g => g.First())
+                .OrderBy(e => e.StartYear)]
         };
 
         await _workspace.Projects.SaveProjectAsync();
@@ -103,7 +102,7 @@ public sealed class CalendarRpc
         var custom = book.Calendar?.Type == InWorldCalendarType.Custom;
         var calendar = new InWorldCalendarService();
         long? ParseScene(string? value) => custom
-            ? calendar.Parse(value!, book.Calendar)
+            ? calendar.Parse(value, book.Calendar)
             : TryParseDate(value, out var date) ? date.Date.Ticks / TimeSpan.TicksPerDay : null;
         var from = custom
             ? calendar.Parse(fromIso, book.Calendar) ?? throw new FormatException("Invalid calendar date.")
@@ -154,7 +153,7 @@ public sealed class CalendarRpc
     public async Task RescheduleAsync(string chapterGuid, string sceneId, string dateIso)
     {
         var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
-        var book = _workspace.Projects.ActiveBook!;
+        var book = _workspace.Projects.ActiveBook ?? throw new InvalidOperationException("No active book.");
         var calendar = new InWorldCalendarService();
         var range = StoryDateResolver.Resolve(scene, chapter, book.Acts)?.Clone() ?? new StoryDateRange();
         if (book.Calendar?.Type == InWorldCalendarType.Custom)
@@ -178,7 +177,7 @@ public sealed class CalendarRpc
         var book = _workspace.Projects.ActiveBook;
         if (book?.Calendar?.Type != InWorldCalendarType.Custom) return saved;
         var calendar = new InWorldCalendarService();
-        if (calendar.Parse(saved!, book.Calendar) != null) return saved;
+        if (calendar.Parse(saved, book.Calendar) != null) return saved;
 
         return GetStoryStart() ?? "0.1.1";
     }
@@ -203,7 +202,7 @@ public sealed class CalendarRpc
                 if (custom)
                 {
                     // Ignore malformed imported dates just as undated scenes are ignored.
-                    try { ordinal = calendar.Parse(raw!, book.Calendar); }
+                    try { ordinal = calendar.Parse(raw, book.Calendar); }
                     catch (OverflowException) { continue; }
                     date = raw?.Trim();
                 }

@@ -52,7 +52,7 @@ function isExpanded(node: MapLayerNodeT, expanded: Record<string, boolean>): boo
   return expanded[node.id] ?? node.expanded ?? true
 }
 
-export function LayerPanel(props: LayerPanelProps): React.JSX.Element {
+function useLayerPanel(props: LayerPanelProps) {
   const { t } = useTranslation()
   const { data, selectedNodeId, expanded } = props
   const [renamingId, setRenamingId] = useState<string | null>(null)
@@ -89,6 +89,12 @@ export function LayerPanel(props: LayerPanelProps): React.JSX.Element {
     const pos: DropPosition = rel < 0.3 ? 'before' : rel > 0.7 ? 'after' : 'inside'
     setDrop({ id: node.id, pos })
   }
+
+  return { t, data, dragId, setDrop, drop, setDragId, rows, expanded, selectedNodeId, renamingId, rowDragOver, draft, setDraft, commitRename, setRenamingId, selectedNode }
+}
+
+export function LayerPanel(props: LayerPanelProps): React.JSX.Element {
+  const { t, data, dragId, setDrop, drop, setDragId, rows, expanded, selectedNodeId, renamingId, rowDragOver, draft, setDraft, commitRename, setRenamingId, selectedNode } = useLayerPanel(props)
 
   return (
     <div className="map-layerpanel">

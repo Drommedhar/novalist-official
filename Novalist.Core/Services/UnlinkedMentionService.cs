@@ -15,7 +15,7 @@ public sealed record UnlinkedMention(
     string TypeKey,
     /// <summary>How many times it occurs unlinked in that scene.</summary>
     int Count,
-    /// <summary>A line of prose around the first occurrence.</summary>
+    /// <summary>Plain-text excerpt around the first unlinked occurrence; Count covers all unlinked occurrences in the scene.</summary>
     string Context);
 
 /// <summary>

@@ -16,7 +16,7 @@ public sealed class TemplatesRpcTests : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        _workspace = new Workspace();
+        _workspace = new Workspace(Path.Combine(_dir.Path, "settings"));
         await _workspace.Projects.CreateProjectAsync(_dir.Path, "TemplateProj", "Book One");
         _rpc = new TemplatesRpc(_workspace);
         _entities = new EntitiesRpc(_workspace);
@@ -24,6 +24,7 @@ public sealed class TemplatesRpcTests : IAsyncLifetime
 
     public ValueTask DisposeAsync()
     {
+        _workspace.Dispose();
         _dir.Dispose();
         return ValueTask.CompletedTask;
     }
@@ -33,7 +34,8 @@ public sealed class TemplatesRpcTests : IAsyncLifetime
     [Fact]
     public void List_RequiresOpenProject()
     {
-        var closed = new TemplatesRpc(new Workspace());
+        using var workspace = new Workspace(Path.Combine(_dir.Path, "closed-settings"));
+        var closed = new TemplatesRpc(workspace);
         Assert.Throws<InvalidOperationException>(() => closed.List("character"));
     }
 

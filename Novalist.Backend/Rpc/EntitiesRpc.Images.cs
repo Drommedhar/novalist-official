@@ -80,16 +80,16 @@ public sealed partial class EntitiesRpc
     private async Task<JsonElement> MutateImagesAsync(
         string type, string id, Action<List<EntityImage>> mutate)
     {
-        object entity = type switch
+        IEntityData entity = type switch
         {
-            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
+            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as IEntityData,
             "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
             "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
             "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
         } ?? throw Unknown(id);
 
-        var images = (List<EntityImage>)entity.GetType().GetProperty("Images")!.GetValue(entity)!;
+        var images = entity.Images;
         mutate(images);
 
         switch (entity)

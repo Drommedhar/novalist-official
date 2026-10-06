@@ -30,29 +30,12 @@ let matterFenceSequence = 0
  * is centred with no heading, a copyright page is small print, a foreword reads
  * like a chapter.
  */
-export function BookMatterPanel(): React.JSX.Element {
+function useBookMatter() {
   const { t } = useTranslation()
   const [items, setItems] = useState<Matter[]>([])
   const [kinds, setKinds] = useState<string[]>([])
   const [newKind, setNewKind] = useState('Dedication')
   const [openId, setOpenId] = useState<string | null>(null)
-  const [drafts, setDrafts] = useState<Record<string, string>>({})
-  const draftsRef = useRef(drafts)
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const inFlightSave = useRef<Promise<void> | null>(null)
-  const immediateWrites = useRef(new Set<Promise<unknown>>())
-  const inFlightFenceKey = useRef(`matter:in-flight:${++matterFenceSequence}`)
-  draftsRef.current = drafts
-
-  const trackWrite = useCallback(<T,>(write: Promise<T>): Promise<T> => {
-    immediateWrites.current.add(write)
-    void write.then(
-      () => immediateWrites.current.delete(write),
-      () => immediateWrites.current.delete(write)
-    )
-    return write
-  }, [])
-
   const load = useCallback(async () => {
     setItems(await rpc.request<Matter[]>('matter/list'))
   }, [])
@@ -62,90 +45,9 @@ export function BookMatterPanel(): React.JSX.Element {
     void load()
   }, [load])
 
-  const flushDrafts = useCallback(async (): Promise<void> => {
-    if (saveTimer.current) window.clearTimeout(saveTimer.current)
-    saveTimer.current = null
-    while (true) {
-      const activeSave = inFlightSave.current
-      if (activeSave) {
-        await activeSave
-        continue
-      }
-      const pending = { ...draftsRef.current }
-      const ids = Object.keys(pending)
-      if (ids.length === 0) return
-      const request = (async (): Promise<void> => {
-        for (const id of ids) {
-          const content = pending[id]
-          await persistPendingWrite(`matter:content:${id}`, () =>
-            rpc.request('matter/update', [id, null, content, null, null, null])
-          )
-        }
-        const next = { ...draftsRef.current }
-        for (const id of ids) {
-          if (next[id] === pending[id]) delete next[id]
-        }
-        draftsRef.current = next
-        setDrafts(next)
-        await load()
-      })()
-      inFlightSave.current = request
-      try {
-        await request
-      } finally {
-        if (inFlightSave.current === request) inFlightSave.current = null
-      }
-    }
-  }, [load])
-
-  const changeDraft = (id: string, content: string): void => {
-    const next = { ...draftsRef.current, [id]: content }
-    draftsRef.current = next
-    setDrafts(next)
-  }
-
-  // Body text is debounced so typing does not write the project file on every
-  // keystroke; the toggles save immediately because they are single decisions.
-  useEffect(() => {
-    if (Object.keys(drafts).length === 0) return
-    if (saveTimer.current) window.clearTimeout(saveTimer.current)
-    saveTimer.current = window.setTimeout(() => {
-      saveTimer.current = null
-      void flushDrafts().catch(() => {})
-    }, SAVE_DELAY_MS)
-    return () => {
-      if (saveTimer.current) window.clearTimeout(saveTimer.current)
-    }
-  }, [drafts, flushDrafts])
-
-  const flushAllWrites = useCallback(async (): Promise<void> => {
-    const immediate = [...immediateWrites.current]
-    await flushDrafts()
-    const results = await Promise.allSettled(immediate)
-    const failure = results.find((result) => result.status === 'rejected')
-    if (failure?.status === 'rejected') throw failure.reason
-  }, [flushDrafts])
-
-  useEffect(() => registerPendingWrite(flushAllWrites), [flushAllWrites])
-
-  useEffect(
-    () => () => {
-      if (saveTimer.current) window.clearTimeout(saveTimer.current)
-      // Draft payloads retain themselves by matter id. Immediate button writes
-      // have already started, so retain only an acknowledgement of those exact
-      // promises; retrying this fence cannot repeat a create/reorder/delete.
-      void flushDrafts().catch(() => {})
-      const immediate = [...immediateWrites.current]
-      if (immediate.length > 0) {
-        retainPendingWrite(inFlightFenceKey.current, async () => {
-          const results = await Promise.allSettled(immediate)
-          const failure = results.find((result) => result.status === 'rejected')
-          if (failure?.status === 'rejected') throw failure.reason
-        })
-      }
-    },
-    [flushDrafts]
-  )
+  const writes = useMatterWriteState(load)
+  const {drafts, trackWrite, changeDraft} = writes
+  useMatterWriteLifecycle(writes)
 
   const add = async (): Promise<void> => {
     setItems(await trackWrite(rpc.request<Matter[]>('matter/create', [newKind])))
@@ -180,8 +82,43 @@ export function BookMatterPanel(): React.JSX.Element {
 
   const group = (placement: string): Matter[] => items.filter((m) => m.placement === placement)
 
-  const renderGroup = (placement: string, labelKey: string): React.JSX.Element => (
-    <>
+
+
+  return { t, newKind, setNewKind, kinds, add, group, setOpenId, openId, move, remove, update, drafts, changeDraft }
+}
+
+export function BookMatterPanel(): React.JSX.Element {
+  const { t, newKind, setNewKind, kinds, add, group, setOpenId, openId, move, remove, update, drafts, changeDraft } = useBookMatter()
+
+  return (
+    <div className="matter-panel">
+      <p className="settings-hint">{t('matter.description')}</p>
+
+      <div className="settings-button-row">
+        <select
+          className="inspector-input"
+          value={newKind}
+          onChange={(e) => setNewKind(e.target.value)}
+        >
+          {kinds.map((k) => (
+            <option key={k} value={k}>
+              {t(`matter.kind.${k}`, { defaultValue: k })}
+            </option>
+          ))}
+        </select>
+        <button className="dialog-button" onClick={() => void add()}>
+          <Plus size={14} /> {t('matter.add')}
+        </button>
+      </div>
+
+      <BookMatterGroup placement="Front" labelKey="matter.front" t={t} group={group} setOpenId={setOpenId} openId={openId} move={move} remove={remove} update={update} drafts={drafts} changeDraft={changeDraft} />
+      <BookMatterGroup placement="Back" labelKey="matter.back" t={t} group={group} setOpenId={setOpenId} openId={openId} move={move} remove={remove} update={update} drafts={drafts} changeDraft={changeDraft} />
+    </div>
+  )
+}
+
+function BookMatterGroup({placement, labelKey, t, group, setOpenId, openId, move, remove, update, drafts, changeDraft}: {placement: string; labelKey: string; t: BookMatterState['t']; group: BookMatterState['group']; setOpenId: BookMatterState['setOpenId']; openId: BookMatterState['openId']; move: BookMatterState['move']; remove: BookMatterState['remove']; update: BookMatterState['update']; drafts: BookMatterState['drafts']; changeDraft: BookMatterState['changeDraft']}): React.JSX.Element {
+  return (<>
       <h4>{t(labelKey)}</h4>
       {group(placement).length === 0 && <p className="settings-hint">{t('matter.noneHere')}</p>}
       {group(placement).map((m, i, all) => (
@@ -268,32 +205,118 @@ export function BookMatterPanel(): React.JSX.Element {
           )}
         </div>
       ))}
-    </>
+    </>)
+}
+
+type BookMatterState = ReturnType<typeof useBookMatter>
+
+function useMatterWriteState(load: () => Promise<void>) {
+  const [drafts, setDrafts] = useState<Record<string, string>>({})
+  const draftsRef = useRef(drafts)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const inFlightSave = useRef<Promise<void> | null>(null)
+  const immediateWrites = useRef(new Set<Promise<unknown>>())
+  const inFlightFenceKey = useRef(`matter:in-flight:${++matterFenceSequence}`)
+  draftsRef.current = drafts
+
+  const trackWrite = useCallback(<T,>(write: Promise<T>): Promise<T> => {
+    immediateWrites.current.add(write)
+    void write.then(
+      () => immediateWrites.current.delete(write),
+      () => immediateWrites.current.delete(write)
+    )
+    return write
+  }, [])
+
+  const flushDrafts = useCallback(async (): Promise<void> => {
+    if (saveTimer.current) window.clearTimeout(saveTimer.current)
+    saveTimer.current = null
+    while (true) {
+      const activeSave = inFlightSave.current
+      if (activeSave) {
+        await activeSave
+        continue
+      }
+      const pending = { ...draftsRef.current }
+      const ids = Object.keys(pending)
+      if (ids.length === 0) return
+      const request = (async (): Promise<void> => {
+        for (const id of ids) {
+          const content = pending[id]
+          await persistPendingWrite(`matter:content:${id}`, () =>
+            rpc.request('matter/update', [id, null, content, null, null, null])
+          )
+        }
+        const next = { ...draftsRef.current }
+        for (const id of ids) {
+          if (next[id] === pending[id]) delete next[id]
+        }
+        draftsRef.current = next
+        setDrafts(next)
+        await load()
+      })()
+      inFlightSave.current = request
+      try {
+        await request
+      } finally {
+        if (inFlightSave.current === request) inFlightSave.current = null
+      }
+    }
+  }, [load])
+
+  const changeDraft = (id: string, content: string): void => {
+    const next = { ...draftsRef.current, [id]: content }
+    draftsRef.current = next
+    setDrafts(next)
+  }
+
+  return {drafts, trackWrite, changeDraft, saveTimer, flushDrafts, immediateWrites, inFlightFenceKey}
+}
+
+type MatterWriteState = ReturnType<typeof useMatterWriteState>
+
+function useMatterWriteLifecycle({drafts, saveTimer, flushDrafts, immediateWrites, inFlightFenceKey}: MatterWriteState): void {
+  // Body text is debounced so typing does not write the project file on every
+  // keystroke; the toggles save immediately because they are single decisions.
+  useEffect(() => {
+    if (Object.keys(drafts).length === 0) return
+    if (saveTimer.current) window.clearTimeout(saveTimer.current)
+    saveTimer.current = window.setTimeout(() => {
+      saveTimer.current = null
+      void flushDrafts().catch(() => {})
+    }, SAVE_DELAY_MS)
+    return () => {
+      if (saveTimer.current) window.clearTimeout(saveTimer.current)
+    }
+  }, [drafts, flushDrafts])
+
+  const flushAllWrites = useCallback(async (): Promise<void> => {
+    const immediate = [...immediateWrites.current]
+    await flushDrafts()
+    const results = await Promise.allSettled(immediate)
+    const failure = results.find((result) => result.status === 'rejected')
+    if (failure?.status === 'rejected') throw failure.reason
+  }, [flushDrafts])
+
+  useEffect(() => registerPendingWrite(flushAllWrites), [flushAllWrites])
+
+  useEffect(
+    () => () => {
+      if (saveTimer.current) window.clearTimeout(saveTimer.current)
+      // Draft payloads retain themselves by matter id. Immediate button writes
+      // have already started, so retain only an acknowledgement of those exact
+      // promises; retrying this fence cannot repeat a create/reorder/delete.
+      void flushDrafts().catch(() => {})
+      const immediate = [...immediateWrites.current]
+      if (immediate.length > 0) {
+        retainPendingWrite(inFlightFenceKey.current, async () => {
+          const results = await Promise.allSettled(immediate)
+          const failure = results.find((result) => result.status === 'rejected')
+          if (failure?.status === 'rejected') throw failure.reason
+        })
+      }
+    },
+    [flushDrafts]
   )
 
-  return (
-    <div className="matter-panel">
-      <p className="settings-hint">{t('matter.description')}</p>
-
-      <div className="settings-button-row">
-        <select
-          className="inspector-input"
-          value={newKind}
-          onChange={(e) => setNewKind(e.target.value)}
-        >
-          {kinds.map((k) => (
-            <option key={k} value={k}>
-              {t(`matter.kind.${k}`, { defaultValue: k })}
-            </option>
-          ))}
-        </select>
-        <button className="dialog-button" onClick={() => void add()}>
-          <Plus size={14} /> {t('matter.add')}
-        </button>
-      </div>
-
-      {renderGroup('Front', 'matter.front')}
-      {renderGroup('Back', 'matter.back')}
-    </div>
-  )
 }

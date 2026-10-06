@@ -49,7 +49,7 @@ interface DiffRow {
  * half - seeing what the rewrite actually changed, and bringing one scene of it
  * back across.
  */
-export function DraftCompareDialog({ onClose }: { onClose(): void }): React.JSX.Element {
+function useDraftComparison() {
   const { t } = useTranslation()
   const [drafts, setDrafts] = useState<DraftChoice[]>([])
   const [leftId, setLeftId] = useState('')
@@ -117,6 +117,12 @@ export function DraftCompareDialog({ onClose }: { onClose(): void }): React.JSX.
   const activeId = useMemo(() => drafts.find((d) => d.isActive)?.id ?? '', [drafts])
   const scenes = comparison?.scenes ?? []
   const selectedScene = scenes.find((s) => s.sceneId === selected)
+
+  return { t, leftId, setLeftId, drafts, swap, rightId, setRightId, comparison, scenes, selected, openScene, selectedScene, activeId, busy, take, rows }
+}
+
+export function DraftCompareDialog({ onClose }: { onClose(): void }): React.JSX.Element {
+  const { t, leftId, setLeftId, drafts, swap, rightId, setRightId, comparison, scenes, selected, openScene, selectedScene, activeId, busy, take, rows } = useDraftComparison()
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>

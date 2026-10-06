@@ -30,7 +30,6 @@ public enum DialogueConfidence
     /// such a line inside the same paragraph.</summary>
     High,
 
-    /// <summary>The writer assigned this line themselves.</summary>
     Manual
 }
 
@@ -80,7 +79,7 @@ public sealed record DialogueLanguage(
 /// suggestion instead, because a wrong speaker is worse for the writer than a
 /// missing one.
 /// </summary>
-public static class DialogueAttributor
+public static partial class DialogueAttributor
 {
     // Evidence weights. The gaps between tiers matter more than the absolute
     // numbers: a signal must not be outvoted by a pile of weaker ones.
@@ -108,70 +107,6 @@ public static class DialogueAttributor
     /// <summary>How many runners-up the view is offered.</summary>
     private const int MaxCandidates = 4;
 
-    /// <summary>Builds the match patterns for a cast. Each character answers to
-    /// their given name, their full name, and every alias in the Codex; longer
-    /// forms are tried first so "Aldric Vane" beats the bare "Aldric".</summary>
-    public static IReadOnlyList<DialogueSpeakerCandidate> BuildCandidates(
-        IReadOnlyList<CharacterData> characters, bool wordBoundaries)
-    {
-        var candidates = new List<DialogueSpeakerCandidate>();
-        foreach (var character in characters)
-        {
-            var names = new List<string>
-            {
-                EntityResolveIndex.Compose(character.Name, character.Surname),
-                character.Name,
-                character.Surname
-            };
-            names.AddRange(character.Aliases);
-
-            var forms = names
-                .Where(n => !string.IsNullOrWhiteSpace(n))
-                .Select(n => n.Trim())
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderByDescending(n => n.Length)
-                .ToArray();
-            if (forms.Length == 0)
-                continue;
-
-            candidates.Add(new DialogueSpeakerCandidate(
-                character.Id,
-                BuildWordRegex(forms, wordBoundaries),
-                SceneAnalysisLexicon.ClassifyGender(character.Gender)));
-        }
-        return candidates;
-    }
-
-    /// <summary>Assembles the language matchers from a lexicon. A language that
-    /// ships none still attributes on names and mentions; it just never reaches
-    /// a verb- or pronoun-backed verdict.</summary>
-    public static DialogueLanguage BuildLanguage(SceneAnalysisLexicon? lexicon)
-        => lexicon == null
-            ? new DialogueLanguage(MatchNothing(), MatchNothing(), MatchNothing())
-            : new DialogueLanguage(
-                BuildSpeechVerbPattern(lexicon.SpeechVerbs, lexicon.WordBoundaries),
-                lexicon.MalePronouns,
-                lexicon.FemalePronouns);
-
-    /// <summary>Compiles the language's speech verbs into one matcher. Matches
-    /// nothing when the language ships no verb list, which keeps every verdict
-    /// off verb evidence rather than inventing attributions.</summary>
-    public static Regex BuildSpeechVerbPattern(IReadOnlyList<string> verbs, bool wordBoundaries)
-        => verbs.Count == 0 ? MatchNothing() : BuildWordRegex(verbs, wordBoundaries);
-
-    private static Regex MatchNothing() => new("(?!)", RegexOptions.CultureInvariant);
-
-    private static Regex BuildWordRegex(IReadOnlyList<string> words, bool wordBoundaries)
-    {
-        // Longest first so "Aldric Vane" wins over the bare "Aldric" at the same spot.
-        var alternation = string.Join(
-            "|", words.OrderByDescending(w => w.Length).Select(Regex.Escape));
-        var pattern = wordBoundaries
-            ? $@"(?<![\p{{L}}\p{{N}}])(?:{alternation})(?![\p{{L}}\p{{N}}])"
-            : $"(?:{alternation})";
-        return new Regex(pattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-    }
-
     /// <summary>
     /// Assigns a speaker to every span in one scene, in document order.
     /// <paramref name="sceneText"/> is the scene's plain text, used to see which
@@ -189,6 +124,7 @@ public static class DialogueAttributor
     {
         var known = candidates.Select(c => c.CharacterId).ToHashSet(StringComparer.Ordinal);
         var narration = BuildNarration(sceneText, spans);
+        var context = new ResolutionScene(narration, candidates, language, overrides, known);
         var results = new List<DialogueAttribution>(spans.Count);
         // The last two distinct speakers, newest first — the state an alternating
         // exchange needs to hand the next untagged line back to the right person.
@@ -202,8 +138,7 @@ public static class DialogueAttributor
         foreach (var span in spans)
         {
             var attribution = Resolve(
-                span, narration, candidates, language, overrides, known, recent,
-                previous, previousParagraph, speakersSoFar);
+                span, context, new SpeakerHistory(recent, previous, previousParagraph, speakersSoFar));
             results.Add(attribution);
 
             if (attribution.CharacterId != null)
@@ -244,23 +179,13 @@ public static class DialogueAttributor
         return new string(chars);
     }
 
-    private static DialogueAttribution Resolve(
-        DialogueSpan span,
-        string narration,
-        IReadOnlyList<DialogueSpeakerCandidate> candidates,
-        DialogueLanguage language,
-        IReadOnlyDictionary<string, string>? overrides,
-        IReadOnlySet<string> known,
-        IReadOnlyList<string> recent,
-        DialogueAttribution? previous,
-        int previousParagraph,
-        IReadOnlySet<string> speakersSoFar)
+    private static DialogueAttribution Resolve(DialogueSpan span, ResolutionScene scene, SpeakerHistory history)
     {
-        if (overrides != null && overrides.TryGetValue(span.LineKey, out var manual))
+        if (scene.Overrides != null && scene.Overrides.TryGetValue(span.LineKey, out var manual))
         {
             // A blank override is the writer saying "not attributable" — honour it.
             return new DialogueAttribution(
-                known.Contains(manual) ? manual : null, DialogueConfidence.Manual, []);
+                scene.Known.Contains(manual) ? manual : null, DialogueConfidence.Manual, []);
         }
 
         var scores = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -277,14 +202,14 @@ public static class DialogueAttributor
         }
 
         // Author-confirmed markers first: these cannot be a false positive.
-        Add(MatchMention(span.HtmlAfter, known), WeightMentionAfter, DialogueConfidence.High);
-        Add(MatchMention(span.HtmlBefore, known), WeightMentionBefore, DialogueConfidence.High);
+        Add(MatchMention(span.HtmlAfter, scene.Known), WeightMentionAfter, DialogueConfidence.High);
+        Add(MatchMention(span.HtmlBefore, scene.Known), WeightMentionBefore, DialogueConfidence.High);
 
         // In the tag after a quote the speaker leads ("said Mira, ignoring
         // Aldric"), so the earliest name wins; in the lead-in before one the
         // speaker is whoever the verb belongs to, so the latest does.
-        var after = MatchName(span.ContextAfter, candidates, language.SpeechVerbs, preferLate: false);
-        var before = MatchName(span.ContextBefore, candidates, language.SpeechVerbs, preferLate: true);
+        var after = MatchName(span.ContextAfter, scene.Candidates, scene.Language.SpeechVerbs, preferLate: false);
+        var before = MatchName(span.ContextBefore, scene.Candidates, scene.Language.SpeechVerbs, preferLate: true);
 
         if (after.CharacterId != null)
         {
@@ -302,50 +227,31 @@ public static class DialogueAttributor
         // A second quote in the same paragraph, with nobody else named between
         // them, is the same person still talking. It is only ever as good as the
         // line it continues, so it inherits that verdict's confidence.
-        if (previous?.CharacterId != null
-            && span.ParagraphIndex == previousParagraph
+        if (history.Previous?.CharacterId != null
+            && span.ParagraphIndex == history.PreviousParagraph
             && after.CharacterId == null
             && before.CharacterId == null
-            && MatchMention(span.HtmlBefore, known) == null)
+            && MatchMention(span.HtmlBefore, scene.Known) == null)
         {
-            Add(previous.CharacterId, WeightContinuation,
-                previous.Confidence == DialogueConfidence.Manual
+            Add(history.Previous.CharacterId, WeightContinuation,
+                history.Previous.Confidence == DialogueConfidence.Manual
                     ? DialogueConfidence.High
-                    : previous.Confidence);
+                    : history.Previous.Confidence);
         }
 
         // "brummte er" — a verb whose subject is a pronoun. Resolvable only when
         // exactly one character of that gender was named in the narration above.
-        var pronoun = ResolvePronoun(span, narration, candidates, language, after, before);
+        var pronoun = ResolvePronoun(span, scene.Narration, scene.Candidates, scene.Language, after, before);
         Add(pronoun, WeightPronoun, DialogueConfidence.Inferred);
 
         // Untagged line in a two-hander: the turn goes back to whoever spoke
         // before last. Needs two distinct speakers on record to mean anything.
-        if (recent.Count == 2 && after.CharacterId == null && before.CharacterId == null)
-            Add(recent[1], WeightAlternation, DialogueConfidence.Low);
+        if (history.Recent.Count == 2 && after.CharacterId == null && before.CharacterId == null)
+            Add(history.Recent[1], WeightAlternation, DialogueConfidence.Low);
 
-        AddProximityPriors(span, narration, candidates, speakersSoFar, Add);
+        AddProximityPriors(span, scene.Narration, scene.Candidates, history.SpeakersSoFar, Add);
 
-        if (scores.Count == 0)
-            return new DialogueAttribution(null, DialogueConfidence.None, []);
-
-        var ranked = scores
-            .OrderByDescending(kv => kv.Value)
-            .ThenBy(kv => kv.Key, StringComparer.Ordinal)
-            .ToArray();
-        var winner = ranked[0];
-        var confidence = winner.Value >= MinimumVerdictWeight
-            ? reasons[winner.Key]
-            : DialogueConfidence.None;
-        var speaker = confidence == DialogueConfidence.None ? null : winner.Key;
-
-        // A verdict the prose states outright leaves nothing to choose between;
-        // anything weaker carries its runners-up for one-click correction.
-        var suggestions = confidence == DialogueConfidence.High
-            ? []
-            : BuildShares(ranked);
-
-        return new DialogueAttribution(speaker, confidence, suggestions);
+        return RankAttribution(scores, reasons);
     }
 
     /// <summary>Normalises the raw weights into percentage shares that sum to
@@ -372,64 +278,6 @@ public static class DialogueAttributor
                 shares.Add(new DialogueCandidate(top[i].Key, percent));
         }
         return shares;
-    }
-
-    /// <summary>
-    /// Resolves a pronoun-subject tag ("brummte er") to the character it can
-    /// only be referring to: the narration must name exactly one character of
-    /// that gender, and the tag itself must name nobody — otherwise the name
-    /// rules already have it. Ambiguity yields nothing, so the line falls through
-    /// to a suggestion rather than a guess.
-    ///
-    /// The narration above is tried first. Failing that — a scene that opens on
-    /// "he" and only names him in the paragraph after — the narration below is
-    /// tried on the same one-candidate terms.
-    /// </summary>
-    private static string? ResolvePronoun(
-        DialogueSpan span,
-        string narration,
-        IReadOnlyList<DialogueSpeakerCandidate> candidates,
-        DialogueLanguage language,
-        NameHit after,
-        NameHit before)
-    {
-        if (after.CharacterId != null || before.CharacterId != null)
-            return null;
-
-        // The pronoun has to sit in a tag, next to a speech verb — otherwise it
-        // is just narration that happens to mention somebody.
-        var tag = language.SpeechVerbs.IsMatch(span.ContextAfter) ? span.ContextAfter
-            : language.SpeechVerbs.IsMatch(span.ContextBefore) ? span.ContextBefore
-            : null;
-        if (tag == null)
-            return null;
-
-        var male = language.MalePronouns.IsMatch(tag);
-        var female = language.FemalePronouns.IsMatch(tag);
-        // Neither, or both (German "sie" reads as she and they alike) is no help.
-        if (male == female)
-            return null;
-
-        var gender = male ? DialogueGender.Male : DialogueGender.Female;
-        return SoleMatch(Before(narration, span), candidates, gender)
-            ?? SoleMatch(After(narration, span), candidates, gender);
-    }
-
-    /// <summary>The one character of this gender named in a stretch of
-    /// narration, or null when none or several are.</summary>
-    private static string? SoleMatch(
-        string window, IReadOnlyList<DialogueSpeakerCandidate> candidates, DialogueGender gender)
-    {
-        string? found = null;
-        foreach (var candidate in candidates)
-        {
-            if (candidate.Gender != gender || !candidate.Pattern.IsMatch(window))
-                continue;
-            if (found != null && found != candidate.CharacterId)
-                return null;
-            found = candidate.CharacterId;
-        }
-        return found;
     }
 
     private static string Before(string narration, DialogueSpan span)
@@ -469,80 +317,37 @@ public static class DialogueAttributor
         }
     }
 
-    /// <summary>The first character explicitly `@`-mentioned in a stretch of
-    /// dialogue-tag markup. These spans are author-confirmed, so they cannot be
-    /// a false positive the way a bare name match can.</summary>
-    private static string? MatchMention(string html, IReadOnlySet<string> known)
+    private sealed record ResolutionScene(
+        string Narration, IReadOnlyList<DialogueSpeakerCandidate> Candidates,
+        DialogueLanguage Language, IReadOnlyDictionary<string, string>? Overrides,
+        IReadOnlySet<string> Known);
+
+    private readonly record struct SpeakerHistory(
+        IReadOnlyList<string> Recent, DialogueAttribution? Previous,
+        int PreviousParagraph, IReadOnlySet<string> SpeakersSoFar);
+
+    private static DialogueAttribution RankAttribution(
+        Dictionary<string, int> scores, Dictionary<string, DialogueConfidence> reasons)
     {
-        if (html.Length == 0)
-            return null;
-        foreach (Match match in AppearanceIndexService.EntityIdRegex.Matches(html))
-        {
-            var id = match.Groups[1].Value;
-            if (known.Contains(id))
-                return id;
-        }
-        return null;
-    }
+        if (scores.Count == 0)
+            return new DialogueAttribution(null, DialogueConfidence.None, []);
 
-    /// <summary>How close a name has to sit to a speech verb before the two are
-    /// read as one dialogue tag. Wide enough for "Mira, still shaking, said",
-    /// tight enough that a verb in the next clause does not reach back.</summary>
-    private const int VerbProximity = 40;
+        var ranked = scores
+            .OrderByDescending(kv => kv.Value)
+            .ThenBy(kv => kv.Key, StringComparer.Ordinal)
+            .ToArray();
+        var winner = ranked[0];
+        var confidence = winner.Value >= MinimumVerdictWeight
+            ? reasons[winner.Key]
+            : DialogueConfidence.None;
+        var speaker = confidence == DialogueConfidence.None ? null : winner.Key;
 
-    /// <summary>The name picked out of one stretch of context, and whether a
-    /// speech verb sits close enough to make it a dialogue tag rather than an
-    /// incidental mention.</summary>
-    private readonly record struct NameHit(string? CharacterId, bool NearVerb);
+        // A verdict the prose states outright leaves nothing to choose between;
+        // anything weaker carries its runners-up for one-click correction.
+        var suggestions = confidence == DialogueConfidence.High
+            ? []
+            : BuildShares(ranked);
 
-    /// <summary>
-    /// Picks the character most likely to own this stretch of prose. A name
-    /// beside a speech verb wins outright; failing that the name nearest the
-    /// quote does, which is the earliest in a trailing tag and the latest in a
-    /// lead-in.
-    /// </summary>
-    private static NameHit MatchName(
-        string context,
-        IReadOnlyList<DialogueSpeakerCandidate> candidates,
-        Regex speechVerbs,
-        bool preferLate)
-    {
-        if (context.Length == 0)
-            return new NameHit(null, false);
-
-        var verbs = speechVerbs.Matches(context);
-        string? best = null;
-        var bestDistance = int.MaxValue;
-        var bestPosition = 0;
-
-        foreach (var candidate in candidates)
-        {
-            foreach (Match name in candidate.Pattern.Matches(context))
-            {
-                var distance = int.MaxValue;
-                foreach (Match verb in verbs)
-                {
-                    // Gap between the two spans, zero when they touch or overlap.
-                    var gap = Math.Max(
-                        0,
-                        Math.Max(name.Index - (verb.Index + verb.Length), verb.Index - (name.Index + name.Length)));
-                    distance = Math.Min(distance, gap);
-                }
-
-                var better = distance < bestDistance
-                    || (distance == bestDistance
-                        && best != null
-                        && (preferLate ? name.Index > bestPosition : name.Index < bestPosition))
-                    || best == null;
-                if (better)
-                {
-                    best = candidate.CharacterId;
-                    bestDistance = distance;
-                    bestPosition = name.Index;
-                }
-            }
-        }
-
-        return new NameHit(best, best != null && bestDistance <= VerbProximity);
+        return new DialogueAttribution(speaker, confidence, suggestions);
     }
 }

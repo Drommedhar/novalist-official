@@ -13,7 +13,7 @@ import { CalendarView } from '../views/calendar/CalendarView'
 import { ExportView } from '../views/export/ExportView'
 import { MobileInspectorSheet } from './MobileInspectorSheet'
 import { TabletShell } from './TabletShell'
-import { useShellStore, type MobileTab, type MainView } from '../stores/shellStore'
+import { useShellStore, type MobileTab, type MainView, type MobileLayout } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useCodexStore } from '../stores/codexStore'
 import './mobile.css'
@@ -81,29 +81,14 @@ const TABLET_DESTINATIONS: MainView[] = [
  * between the two layouts without a reload, and the web's chrome insets always
  * match the chrome actually on screen.
  */
-export function MobileShell(): React.JSX.Element {
+function useMobileLayout(): MobileLayout {
   const { t, i18n } = useTranslation()
   const layout = useShellStore((s) => s.mobileLayout)
-  const tab = useShellStore((s) => s.mobileTab)
-  const setTab = useShellStore((s) => s.setMobileTab)
-  const setFindReplaceOpen = useShellStore((s) => s.setFindReplaceOpen)
-  const mainView = useShellStore((s) => s.mainView)
-  const openSceneId = useProjectStore((s) => s.openSceneId)
-  const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
-  const closeTab = useProjectStore((s) => s.closeTab)
-  // Writing-hub sheet (Context / Footnotes / Notes / To do) raised from Write.
-  const [inspectorOpen, setInspectorOpen] = useState(false)
-  // Plan tab: which planning mode is showing, and whether the picker drawer is up.
-  const [planningView, setPlanningView] = useState<MainView>('timeline')
-  const [planningDrawerOpen, setPlanningDrawerOpen] = useState(false)
-  // Codex tab: switch between editing (Codex) and reading (Wiki).
-  const [codexMode, setCodexMode] = useState<'codex' | 'wiki'>('codex')
-
   // The native side owns the size class, so it also owns which layout we render.
   // requestLayout covers the case where the first size-class pass ran before this
   // bundle finished loading and its announcement was therefore lost.
   useEffect(() => {
-    const w = window as unknown as { __novalistLayout?: (mode: string) => void }
+    const w = window
     w.__novalistLayout = (mode: string) =>
       useShellStore.getState().setMobileLayout(mode === 'tablet' ? 'tablet' : 'phone')
     // Electron has no size class to announce, so the e2e flag stands in for one.
@@ -144,9 +129,14 @@ export function MobileShell(): React.JSX.Element {
     }
   }, [t, i18n])
 
+  return layout
+}
+
+function useNativeTabs(layout: MobileLayout, setPlanningDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>): void {
+  const setTab = useShellStore((s) => s.setMobileTab)
   // Bridge for the native tab bar / sidebar (RendererHostPage -> EvaluateJavaScript).
   useEffect(() => {
-    const w = window as unknown as { __novalistTab?: (key: string) => void }
+    const w = window
     w.__novalistTab = (key: string) => {
       // The iPad sidebar sends MainView keys straight through - it has one entry
       // per destination, so there is no tab-to-view mapping and no Plan drawer.
@@ -178,6 +168,12 @@ export function MobileShell(): React.JSX.Element {
     }
   }, [setTab, layout])
 
+}
+
+function useNativeTabSelection(layout: MobileLayout, planningView: MainView, inspectorOpen: boolean): void {
+  const mainView = useShellStore((s) => s.mainView)
+  const tab = useShellStore((s) => s.mobileTab)
+  const setTab = useShellStore((s) => s.setMobileTab)
   // The native Liquid Glass tab bar floats above web content and would occlude the
   // writing-hub bottom sheet, so hide it while that sheet is up. The planning menu
   // sits ABOVE the tab bar, so the bar stays visible for it. The iPad sidebar is
@@ -224,6 +220,28 @@ export function MobileShell(): React.JSX.Element {
     window.novalist.setSelectedTab?.(NATIVE_TAB_ORDER.indexOf(tab === 'export' ? 'manuscript' : tab))
   }, [tab])
 
+}
+
+export function MobileShell(): React.JSX.Element {
+  const { t } = useTranslation()
+  const layout = useMobileLayout()
+  const tab = useShellStore((s) => s.mobileTab)
+  const setTab = useShellStore((s) => s.setMobileTab)
+  const setFindReplaceOpen = useShellStore((s) => s.setFindReplaceOpen)
+  const openSceneId = useProjectStore((s) => s.openSceneId)
+  const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
+  const closeTab = useProjectStore((s) => s.closeTab)
+  // Writing-hub sheet (Context / Footnotes / Notes / To do) raised from Write.
+  const [inspectorOpen, setInspectorOpen] = useState(false)
+  // Plan tab: which planning mode is showing, and whether the picker drawer is up.
+  const [planningView, setPlanningView] = useState<MainView>('timeline')
+  const [planningDrawerOpen, setPlanningDrawerOpen] = useState(false)
+  // Codex tab: switch between editing (Codex) and reading (Wiki).
+  const [codexMode, setCodexMode] = useState<'codex' | 'wiki'>('codex')
+
+  useNativeTabs(layout, setPlanningDrawerOpen)
+  useNativeTabSelection(layout, planningView, inspectorOpen)
+
   const selectPlanning = (target: PlanningTarget): void => {
     setPlanningDrawerOpen(false)
     if (target === 'findReplace') {
@@ -239,10 +257,7 @@ export function MobileShell(): React.JSX.Element {
   // to the Plan button). Drive its visibility + localized labels from here, and
   // receive selection / dismissal back through window callbacks.
   useEffect(() => {
-    const w = window as unknown as {
-      __novalistPlanSelect?: (index: number) => void
-      __novalistPlanDismiss?: () => void
-    }
+    const w = window
     w.__novalistPlanSelect = (index: number) => {
       const target = PLANNING_TARGETS[index]
       if (target) selectPlanning(target)

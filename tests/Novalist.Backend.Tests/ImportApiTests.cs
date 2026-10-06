@@ -385,8 +385,10 @@ public sealed class ImportApiTests : IDisposable
         await Assert.ThrowsAsync<HttpRequestException>(() => client.GetAsync("types"));
     }
 
-    [Fact]
-    public async Task StopCancelsRequestsQueuedBehindEditorWork()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StopCancelsRequestsQueuedBehindEditorWork(bool disposeAsync)
     {
         using var workspace = Workspace();
         await OpenAsync(workspace);
@@ -398,10 +400,31 @@ public sealed class ImportApiTests : IDisposable
         {
             var pending = client.GetAsync("types");
             await Task.Delay(80);
-            await api.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            var stop = disposeAsync ? api.DisposeAsync().AsTask() : api.StopAsync();
+            await stop.WaitAsync(TimeSpan.FromSeconds(10));
             Assert.Equal(HttpStatusCode.Gone, (await pending).StatusCode);
             Assert.False((await api.StatusAsync()).Running);
         }
         finally { gate.Release(); }
+    }
+
+    [Fact]
+    public async Task AsynchronousHostDisposalClosesTheImportListener()
+    {
+        HttpClient client;
+        await using (var host = new BackendHost(Path.Combine(_dir.Path, "settings")))
+        {
+            var streams = FullDuplexStream.CreatePair();
+            host.Attach(streams.Item1, streams.Item1);
+            var formatter = new SystemTextJsonFormatter();
+            formatter.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            using var rpc = new JsonRpc(new HeaderDelimitedMessageHandler(streams.Item2, streams.Item2, formatter));
+            rpc.StartListening();
+            await rpc.InvokeAsync<ProjectStateDto>("project/create", _dir.Path, "Novel", "Book");
+            client = Client(await rpc.InvokeAsync<ImportApiStatus>("importApi/start", "Source writing"));
+            Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("types")).StatusCode);
+        }
+        using (client)
+            await Assert.ThrowsAsync<HttpRequestException>(() => client.GetAsync("types"));
     }
 }

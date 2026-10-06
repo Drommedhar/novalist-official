@@ -8,6 +8,7 @@ namespace Novalist.Core.Services;
 /// Assigns backup directories to project locations. Existing unmarked archives
 /// have no reliable owner and are left available for explicit recovery only.
 /// </summary>
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
 internal sealed class BackupStorage(IFileService files)
 {
     internal const string OwnerFileName = ".novalist-backup-owner";

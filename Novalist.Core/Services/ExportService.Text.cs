@@ -21,10 +21,8 @@ public partial class ExportService
                 sb.AppendLine("    <Paragraph Type=\"General\"><Text>" + XmlEscape(options.Author) + "</Text></Paragraph>");
         }
 
-        var fdxPreset = options.ResolvePreset();
-        for (var ci = 0; ci < chapters.Count; ci++)
+        foreach (var chapter in chapters)
         {
-            var chapter = chapters[ci];
             var fdxHeading = chapter.Heading.ToUpperInvariant();
             sb.AppendLine($"    <Paragraph Type=\"Scene Heading\"><Text>{XmlEscape(fdxHeading)}</Text></Paragraph>");
             foreach (var scene in chapter.Scenes)
@@ -67,9 +65,8 @@ public partial class ExportService
         if (options.IncludeTitlePage) sb.AppendLine("\\maketitle");
 
         var latexPreset = options.ResolvePreset();
-        for (var ci = 0; ci < chapters.Count; ci++)
+        foreach (var chapter in chapters)
         {
-            var chapter = chapters[ci];
             // Starred, because the heading already carries whatever numbering
             // the layout asks for and LaTeX's own would print a second one.
             if (!chapter.HideHeading)
@@ -82,81 +79,7 @@ public partial class ExportService
             for (int si = 0; si < chapter.Scenes.Count; si++)
             {
                 if (si > 0) sb.AppendLine("\\begin{center}* * *\\end{center}");
-                // A run of list items becomes one itemize/enumerate environment
-                // rather than one per item, which LaTeX renders as a stack of
-                // single-entry lists.
-                var openList = ListKind.None;
-                var latexFirst = si == 0;
-                foreach (var block in ParseHtmlToBlocks(
-                    chapter.Scenes[si].HtmlContent, chapter.Scenes[si].Footnotes))
-                {
-                    if (block.ImagePath != null)
-                    {
-                        sb.AppendLine("\\begin{figure}[h]\\centering");
-                        sb.AppendLine(
-                            $"\\includegraphics[width=\\linewidth]{{{block.ImagePath}}}");
-                        if (block.ImageAlt.Length > 0)
-                            sb.AppendLine($"\\caption*{{{LatexEscape(block.ImageAlt)}}}");
-                        sb.AppendLine("\\end{figure}");
-                        continue;
-                    }
-                    var body = string.Concat(block.Segments.Select(seg =>
-                    {
-                        // LaTeX has had this all along: a real footnote, set
-                        // at the foot of whatever page the anchor lands on.
-                        if (seg.FootnoteText != null)
-                            return $"\\footnote{{{LatexEscape(seg.FootnoteText)}}}";
-                        var t = LatexEscape(seg.Text);
-                        if (seg.Strike) t = $"\\sout{{{t}}}";
-                        if (seg.Bold && seg.Italic) return $"\\textbf{{\\textit{{{t}}}}}";
-                        if (seg.Bold) return $"\\textbf{{{t}}}";
-                        if (seg.Italic) return $"\\textit{{{t}}}";
-                        return t;
-                    }));
-
-                    if (block.List != openList)
-                    {
-                        if (openList != ListKind.None)
-                            sb.AppendLine(openList == ListKind.Number
-                                ? "\\end{enumerate}" : "\\end{itemize}");
-                        if (block.List != ListKind.None)
-                            sb.AppendLine(block.List == ListKind.Number
-                                ? "\\begin{enumerate}" : "\\begin{itemize}");
-                        openList = block.List;
-                    }
-
-                    if (block.List != ListKind.None)
-                    {
-                        sb.AppendLine($"\\item {body}");
-                        continue;
-                    }
-
-                    // lettrine sets the initial and the small-caps lead-in in
-                    // one command, which is exactly the opener this describes.
-                    var opener = latexFirst && latexPreset.DropCap && block.StyleId == null
-                        ? SplitOpener(
-                            string.Concat(block.Segments.Select(seg => seg.Text)),
-                            latexPreset.LeadInSmallCapsWords)
-                        : null;
-                    latexFirst = false;
-
-                    sb.AppendLine(opener != null
-                        ? $"\\lettrine{{{LatexEscape(opener.Value.Initial)}}}"
-                            + $"{{{LatexEscape(opener.Value.LeadIn)}}}{LatexEscape(opener.Value.Tail)}"
-                        : block.StyleId switch
-                        {
-                            "heading" => $"\\section*{{{body}}}",
-                            "subheading" => $"\\subsection*{{{body}}}",
-                            "blockquote" => $"\\begin{{quote}}{body}\\end{{quote}}",
-                            "poetry" => $"\\begin{{verse}}{body}\\end{{verse}}",
-                            _ => body,
-                        });
-                    sb.AppendLine();
-                }
-                // A scene that ends inside a list still has to close it.
-                if (openList != ListKind.None)
-                    sb.AppendLine(openList == ListKind.Number
-                        ? "\\end{enumerate}" : "\\end{itemize}");
+                AppendLatexScene(sb, chapter.Scenes[si], latexPreset, si == 0);
             }
         }
         sb.AppendLine("\\end{document}");
@@ -243,38 +166,7 @@ public partial class ExportService
                 }
 
                 var scene = chapter.Scenes[si];
-                // Ordered items number from one per run, so two lists in a scene
-                // do not continue each other's count.
-                var ordinal = 0;
-                foreach (var block in ParseHtmlToBlocks(scene.HtmlContent, scene.Footnotes))
-                {
-                    if (block.ImagePath != null)
-                    {
-                        sb.AppendLine($"![{block.ImageAlt}]({block.ImagePath})");
-                        sb.AppendLine();
-                        continue;
-                    }
-
-                    var text = SegmentsToMarkdown(block.Segments, footnoteDefs);
-                    if (block.List != ListKind.None)
-                    {
-                        ordinal = block.List == ListKind.Number ? ordinal + 1 : 0;
-                        sb.AppendLine(block.List == ListKind.Number ? $"{ordinal}. {text}" : $"- {text}");
-                        sb.AppendLine();
-                        continue;
-                    }
-
-                    ordinal = 0;
-                    sb.AppendLine(block.StyleId switch
-                    {
-                        "heading" => $"# {text}",
-                        "subheading" => $"## {text}",
-                        "blockquote" => $"> {text}",
-                        "poetry" => $"    {text}",
-                        _ => text,
-                    });
-                    sb.AppendLine();
-                }
+                AppendMarkdownScene(sb, scene, footnoteDefs);
             }
         }
 
@@ -320,5 +212,122 @@ public partial class ExportService
                 sb.Append(body);
         }
         return sb.ToString();
+    }
+
+    private static void AppendLatexScene(StringBuilder sb, SceneExportContent scene, Models.ExportPreset latexPreset, bool isFirst)
+    {
+        // A run of list items becomes one itemize/enumerate environment
+        // rather than one per item, which LaTeX renders as a stack of
+        // single-entry lists.
+        var openList = ListKind.None;
+        var latexFirst = isFirst;
+        foreach (var block in ParseHtmlToBlocks(
+            scene.HtmlContent, scene.Footnotes))
+        {
+            if (block.ImagePath != null)
+            {
+                sb.AppendLine("\\begin{figure}[h]\\centering");
+                sb.AppendLine(
+                    $"\\includegraphics[width=\\linewidth]{{{block.ImagePath}}}");
+                if (block.ImageAlt.Length > 0)
+                    sb.AppendLine($"\\caption*{{{LatexEscape(block.ImageAlt)}}}");
+                sb.AppendLine("\\end{figure}");
+                continue;
+            }
+            var body = string.Concat(block.Segments.Select(LatexSegment));
+
+            if (block.List != openList)
+            {
+                if (openList != ListKind.None)
+                    sb.AppendLine(openList == ListKind.Number
+                        ? "\\end{enumerate}" : "\\end{itemize}");
+                if (block.List != ListKind.None)
+                    sb.AppendLine(block.List == ListKind.Number
+                        ? "\\begin{enumerate}" : "\\begin{itemize}");
+                openList = block.List;
+            }
+
+            if (block.List != ListKind.None)
+            {
+                sb.AppendLine($"\\item {body}");
+                continue;
+            }
+
+            // lettrine sets the initial and the small-caps lead-in in
+            // one command, which is exactly the opener this describes.
+            var opener = latexFirst && latexPreset.DropCap && block.StyleId == null
+                ? SplitOpener(
+                    string.Concat(block.Segments.Select(seg => seg.Text)),
+                    latexPreset.LeadInSmallCapsWords)
+                : null;
+            latexFirst = false;
+
+            sb.AppendLine(opener != null
+                ? $"\\lettrine{{{LatexEscape(opener.Value.Initial)}}}"
+                    + $"{{{LatexEscape(opener.Value.LeadIn)}}}{LatexEscape(opener.Value.Tail)}"
+                : block.StyleId switch
+                {
+                    "heading" => $"\\section*{{{body}}}",
+                    "subheading" => $"\\subsection*{{{body}}}",
+                    "blockquote" => $"\\begin{{quote}}{body}\\end{{quote}}",
+                    "poetry" => $"\\begin{{verse}}{body}\\end{{verse}}",
+                    _ => body,
+                });
+            sb.AppendLine();
+        }
+        // A scene that ends inside a list still has to close it.
+        if (openList != ListKind.None)
+            sb.AppendLine(openList == ListKind.Number
+                ? "\\end{enumerate}" : "\\end{itemize}");
+    }
+
+    private static string LatexSegment(InlineSegment seg)
+    {
+        // LaTeX has had this all along: a real footnote, set
+        // at the foot of whatever page the anchor lands on.
+        if (seg.FootnoteText != null)
+            return $"\\footnote{{{LatexEscape(seg.FootnoteText)}}}";
+        var t = LatexEscape(seg.Text);
+        if (seg.Strike) t = $"\\sout{{{t}}}";
+        if (seg.Bold && seg.Italic) return $"\\textbf{{\\textit{{{t}}}}}";
+        if (seg.Bold) return $"\\textbf{{{t}}}";
+        if (seg.Italic) return $"\\textit{{{t}}}";
+        return t;
+    }
+
+    private static void AppendMarkdownScene(StringBuilder sb, SceneExportContent scene, List<string> footnoteDefs)
+    {
+        // Ordered items number from one per run, so two lists in a scene
+        // do not continue each other's count.
+        var ordinal = 0;
+        foreach (var block in ParseHtmlToBlocks(scene.HtmlContent, scene.Footnotes))
+        {
+            if (block.ImagePath != null)
+            {
+                sb.AppendLine($"![{block.ImageAlt}]({block.ImagePath})");
+                sb.AppendLine();
+                continue;
+            }
+
+            var text = SegmentsToMarkdown(block.Segments, footnoteDefs);
+            if (block.List != ListKind.None)
+            {
+                ordinal = block.List == ListKind.Number ? ordinal + 1 : 0;
+                sb.AppendLine(block.List == ListKind.Number ? $"{ordinal}. {text}" : $"- {text}");
+                sb.AppendLine();
+                continue;
+            }
+
+            ordinal = 0;
+            sb.AppendLine(block.StyleId switch
+            {
+                "heading" => $"# {text}",
+                "subheading" => $"## {text}",
+                "blockquote" => $"> {text}",
+                "poetry" => $"    {text}",
+                _ => text,
+            });
+            sb.AppendLine();
+        }
     }
 }

@@ -118,10 +118,10 @@ public sealed class EntityRenameService : IEntityRenameService
         {
             foreach (var scene in _projectService.GetScenesForChapter(chapter.Guid))
             {
-                var pov = scene.AnalysisOverrides?.Pov;
-                if (pov != null && string.Equals(pov, oldName, StringComparison.Ordinal))
+                if (scene.AnalysisOverrides is { Pov: { } pov } overrides
+                    && string.Equals(pov, oldName, StringComparison.Ordinal))
                 {
-                    scene.AnalysisOverrides!.Pov = newName;
+                    overrides.Pov = newName;
                     report.PovOverridesUpdated++;
                 }
             }

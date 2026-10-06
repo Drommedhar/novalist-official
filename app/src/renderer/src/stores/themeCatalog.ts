@@ -58,8 +58,6 @@ const CSS_STYLE_ID = 'nl-dynamic-theme-css'
 
 interface ThemeCatalogState {
   themes: CatalogTheme[]
-  /** Replaces the themes from one source and re-applies the current selection,
-   * so a theme that arrives after settings load still takes effect. */
   setSource(origin: Exclude<ThemeOrigin, 'built-in'>, themes: CatalogTheme[]): void
   /** Repaints with whatever is currently selected. Used after the folders are
    *  re-read, so an edit to the theme in use shows without switching away. */

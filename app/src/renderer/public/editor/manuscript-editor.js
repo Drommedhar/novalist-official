@@ -11,8 +11,8 @@ let lastHtmlMap = {};
 function sendMessage(msg) {
     try {
         const json = JSON.stringify(msg);
-        if (typeof invokeCSharpAction === 'function') {
-            invokeCSharpAction(json);
+        if (typeof window.invokeCSharpAction === 'function') {
+            window.invokeCSharpAction(json);
         } else if (window.chrome && window.chrome.webview) {
             window.chrome.webview.postMessage(json);
         } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.webview) {
@@ -21,7 +21,7 @@ function sendMessage(msg) {
             // Electron shell: same-origin iframe; parent bridges to the backend.
             window.parent.postMessage({ novalistManuscript: json }, '*');
         }
-    } catch (_) {}
+    } catch (error) { console.warn("manuscript-editor: sendMessage failed", error instanceof Error ? error.name : typeof error); }
 }
 
 // ── Manuscript Loading ──────────────────────────────────────────
@@ -32,7 +32,7 @@ function setManuscript(sectionsJson) {
     lastHtmlMap = {};
 
     let sections;
-    try { sections = JSON.parse(sectionsJson); } catch (_) { sections = []; }
+    try { sections = JSON.parse(sectionsJson); } catch { sections = []; }
 
     for (const section of sections) {
         const sectionEl = document.createElement('div');
@@ -69,51 +69,8 @@ function setManuscript(sectionsJson) {
         header.appendChild(titleRow);
         sectionEl.appendChild(header);
 
-        // Scenes
         for (const scene of section.scenes) {
-            const block = document.createElement('div');
-            block.className = 'scene-block';
-
-            const sceneHeader = document.createElement('div');
-            sceneHeader.className = 'scene-header';
-
-            const sceneTitle = document.createElement('span');
-            sceneTitle.className = 'scene-title';
-            sceneTitle.textContent = scene.title;
-            sceneTitle.addEventListener('click', () => {
-                sendMessage({ type: 'openScene', chapterGuid: section.chapterGuid, sceneId: scene.sceneId });
-            });
-            sceneHeader.appendChild(sceneTitle);
-
-            const wordCount = document.createElement('span');
-            wordCount.className = 'scene-wordcount';
-            wordCount.id = 'wc-' + scene.sceneId;
-            wordCount.textContent = scene.wordCount + ' words';
-            sceneHeader.appendChild(wordCount);
-
-            block.appendChild(sceneHeader);
-
-            const editor = document.createElement('div');
-            editor.className = 'scene-editor' + (bookSpacingEnabled ? ' book-spacing' : '');
-            editor.contentEditable = 'true';
-            editor.spellcheck = false;
-            editor.dataset.sceneId = scene.sceneId;
-            editor.dataset.chapterGuid = section.chapterGuid;
-
-            const html = sanitizeSceneHtml(scene.html) || '<p><br></p>';
-            editor.innerHTML = html;
-            refreshSceneBreakClasses(editor);
-            lastHtmlMap[scene.sceneId] = editor.innerHTML;
-
-            editor.addEventListener('input', () => onSceneInput(editor));
-            editor.addEventListener('paste', onPaste);
-            editor.addEventListener('keydown', onKeyDown);
-            editor.addEventListener('focus', () => {
-                sendMessage({ type: 'sceneFocused', sceneId: scene.sceneId, chapterGuid: section.chapterGuid });
-            });
-
-            block.appendChild(editor);
-            sectionEl.appendChild(block);
+            sectionEl.appendChild(createSceneBlock(section.chapterGuid, scene));
         }
 
         wrapper.appendChild(sectionEl);
@@ -127,6 +84,45 @@ function setManuscript(sectionsJson) {
 
     isSettingContent = false;
     updateFooter();
+}
+
+function createSceneBlock(chapterGuid, scene) {
+    const block = document.createElement('div');
+    block.className = 'scene-block';
+    const header = document.createElement('div');
+    header.className = 'scene-header';
+    const title = document.createElement('span');
+    title.className = 'scene-title';
+    title.textContent = scene.title;
+    title.addEventListener('click', () => {
+        sendMessage({ type: 'openScene', chapterGuid, sceneId: scene.sceneId });
+    });
+    header.appendChild(title);
+    const wordCount = document.createElement('span');
+    wordCount.className = 'scene-wordcount';
+    wordCount.id = 'wc-' + scene.sceneId;
+    wordCount.textContent = scene.wordCount + ' words';
+    header.appendChild(wordCount);
+    block.appendChild(header);
+
+    const editor = document.createElement('div');
+    editor.className = 'scene-editor' + (bookSpacingEnabled ? ' book-spacing' : '');
+    editor.contentEditable = 'true';
+    editor.spellcheck = false;
+    editor.dataset.sceneId = scene.sceneId;
+    editor.dataset.chapterGuid = chapterGuid;
+    const html = window.sanitizeSceneHtml(scene.html) || '<p><br></p>';
+    editor.replaceChildren(window.sanitizeSceneFragment(html));
+    refreshSceneBreakClasses(editor);
+    lastHtmlMap[scene.sceneId] = editor.innerHTML;
+    editor.addEventListener('input', () => onSceneInput(editor));
+    editor.addEventListener('paste', onPaste);
+    editor.addEventListener('keydown', onKeyDown);
+    editor.addEventListener('focus', () => {
+        sendMessage({ type: 'sceneFocused', sceneId: scene.sceneId, chapterGuid });
+    });
+    block.appendChild(editor);
+    return block;
 }
 
 // Fire ready only once on initial page load
@@ -204,7 +200,6 @@ function updateFooter() {
     for (const ed of editors) {
         totalWords += countWords(ed.innerText || '');
     }
-    const chapters = wrapper.querySelectorAll('.chapter-section').length;
     const footer = document.getElementById('manuscript-footer');
     if (footer) {
         const readingTime = Math.max(1, Math.round(totalWords / 250));
@@ -218,7 +213,7 @@ function updateSceneContent(sceneId, html) {
     isSettingContent = true;
     const editor = wrapper.querySelector('.scene-editor[data-scene-id="' + sceneId + '"]');
     if (editor) {
-        editor.innerHTML = sanitizeSceneHtml(html) || '<p><br></p>';
+        editor.replaceChildren(window.sanitizeSceneFragment(window.sanitizeSceneHtml(html) || '<p><br></p>'));
         refreshSceneBreakClasses(editor);
         lastHtmlMap[sceneId] = editor.innerHTML;
     }
@@ -227,19 +222,12 @@ function updateSceneContent(sceneId, html) {
 
 // ── Theme & Font ────────────────────────────────────────────────
 
-function setTheme(bg, fg, caretColor, selectionBg, accent, subtle, divider, scrollbarThumb, scrollbarThumbHover, scrollbarThumbActive) {
-    const root = document.documentElement;
-    root.style.setProperty('--bg', bg);
-    root.style.setProperty('--fg', fg);
-    root.style.setProperty('--caret', caretColor || fg);
-    if (selectionBg) root.style.setProperty('--selection-bg', selectionBg);
-    if (accent) root.style.setProperty('--accent', accent);
-    if (subtle) root.style.setProperty('--subtle', subtle);
-    if (divider) root.style.setProperty('--divider', divider);
-    // Scrollbars are browser-painted, so the host hands us its resolved tokens.
-    if (scrollbarThumb) root.style.setProperty('--scrollbar-thumb', scrollbarThumb);
-    if (scrollbarThumbHover) root.style.setProperty('--scrollbar-thumb-hover', scrollbarThumbHover);
-    if (scrollbarThumbActive) root.style.setProperty('--scrollbar-thumb-active', scrollbarThumbActive);
+function setTheme(...colors) {
+    window.applyFrameTheme(colors, [
+        '--bg', '--fg', '--caret', '--selection-bg', '--accent', '--subtle', '--divider',
+        '--scrollbar-thumb', '--scrollbar-thumb-hover', '--scrollbar-thumb-active'
+    ]);
+    document.documentElement.style.setProperty('--caret', colors[2] || colors[1]);
 }
 
 /** Leading, letter spacing and first-line indent, same contract as the scene editor. */
@@ -297,7 +285,7 @@ function onPaste(e) {
 
 function sanitizePastedHtml(html) {
     const tmp = document.createElement('div');
-    tmp.innerHTML = sanitizeSceneHtml(html);
+    tmp.replaceChildren(window.sanitizeSceneFragment(html));
     const allElements = tmp.querySelectorAll('*');
     for (const el of allElements) {
         const tag = el.tagName.toLowerCase();
@@ -365,3 +353,14 @@ function isTextEditingShortcut(e) {
 
 // ── Ready Signal ────────────────────────────────────────────────
 sendMessage({ type: 'ready' });
+
+Object.assign(window, {
+    setManuscript,
+    flushPendingChanges,
+    updateSceneContent,
+    setTheme,
+    setReadingComfort,
+    setFont,
+    setBookParagraphSpacing,
+    setLanguage
+});

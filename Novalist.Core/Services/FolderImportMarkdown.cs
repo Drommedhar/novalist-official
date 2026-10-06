@@ -60,8 +60,8 @@ internal sealed partial class FolderImportParser
             var applied = false;
             foreach (var (field, value) in values)
             {
-                if (field.Bucket == "builtIn" && field.ValueType == typeof(string)
-                    && typeof(CharacterOverride).GetProperty(field.Property!.Name) is { } property)
+                if (field is ReflectedImportField reflected && field.Bucket == "builtIn" && field.ValueType == typeof(string)
+                    && typeof(CharacterOverride).GetProperty(reflected.Property.Name) is { } property)
                 {
                     property.SetValue(result, value.GetValue<string>());
                     applied = true;
@@ -99,6 +99,6 @@ internal sealed partial class FolderImportParser
             }
         }
         foreach (var (key, choices) in detected)
-            if (choices.Count == 1) values.TryAdd(definition.Fields[key], JsonValue.Create(choices.Single())!);
+            if (choices.Count == 1) values.TryAdd(definition.Fields[key], JsonValue.Create(choices.Single()));
     }
 }

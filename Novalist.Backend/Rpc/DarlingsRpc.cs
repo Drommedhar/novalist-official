@@ -3,7 +3,6 @@ using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
 
-/// <summary>A piece of prose the writer cut but kept.</summary>
 public sealed record DarlingDto(
     string Id, string Text, string Source, string Note, DateTime CreatedAt);
 

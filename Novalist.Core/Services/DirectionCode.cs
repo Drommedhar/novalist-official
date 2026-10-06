@@ -60,6 +60,7 @@ public static class DirectionCodec
     /// <returns>Null when nothing was stored - which is not the same as an empty
     /// string, and must not be: one means the writer said nothing and the prose
     /// decides, the other means the writer said "plainly".</returns>
+    [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(stored))]
     public static DirectionCode? Decode(string? stored)
     {
         if (stored == null)

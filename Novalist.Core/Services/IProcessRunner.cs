@@ -52,10 +52,8 @@ public sealed class ProcessRunner : IProcessRunner
         foreach (var arg in args)
             psi.ArgumentList.Add(arg);
 
-        // Process.Start(psi) only returns null for UseShellExecute reuse scenarios,
-        // which cannot happen here (UseShellExecute = false). A genuine launch
-        // failure throws, which callers catch.
-        using var process = Process.Start(psi)!;
+        using var process = new Process { StartInfo = psi };
+        process.Start();
 
         var outputTask = process.StandardOutput.ReadToEndAsync();
         var errorTask = process.StandardError.ReadToEndAsync();

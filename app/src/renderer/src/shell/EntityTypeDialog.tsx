@@ -9,11 +9,6 @@ const BUILT_IN: { typeKey: string; labelKey: string }[] = [
   { typeKey: 'lore', labelKey: 'codexHub.lore' }
 ]
 
-/**
- * Asks which kind of Codex entity to create for an already-known name — used by
- * the editor's "create from a name you just typed" capture flows. Picking a type
- * resolves immediately; there is no second confirmation step.
- */
 export function EntityTypeDialog({
   name,
   onPick,

@@ -9,26 +9,17 @@ import {
   type WebContents
 } from 'electron'
 import { join } from 'node:path'
-import { randomUUID } from 'node:crypto'
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { BackendProcess } from './backend-process'
 import { WorkspaceWindows } from './workspace-windows'
 import { WindowCloseCoordinator } from './window-close'
 import type { WorkspaceEvent } from '../shared/workspaceProtocol'
-import {
-  attachLiquidGlass,
-  detectMaterial,
-  materialWindowOptions
-} from './glass'
+import { attachLiquidGlass } from './glass'
+import { clampWindowToDisplay, createAppWindow, initialWindowGeometry, material, resolveIconPath } from './window-appearance'
 import { registerDialogHandlers } from './dialogs'
 import { registerSpellCheckHandlers, attachSpellingMenu } from './spellcheck'
 import { applyMenuTemplate, installAppMenu, type MenuLabels, type MenuNode } from './menu'
-import {
-  checkAppUpdate,
-  downloadAppUpdate,
-  launchAppUpdate,
-  type DownloadedAppUpdate
-} from './appUpdater'
+import { registerUpdateHandlers } from './update-handlers'
 import { createSplashWindow, setSplashStatus } from './splash'
 import { registerProtocolSchemes, registerProtocolHandlers } from './protocols'
 import { SCHEME, parseDeepLink, deepLinkFromArgv, type DeepLink } from './deeplink'
@@ -38,7 +29,6 @@ import { installFocusWindow } from './focus-window'
 // UI never shows the default "Electron".
 app.setName('Novalist')
 
-const material = detectMaterial(process.platform, process.getSystemVersion())
 const backend = new BackendProcess()
 const workspaceWindows = new WorkspaceWindows(backend.router, 15_000, (error) => backend.requireResync(error))
 const windowCloses = new WindowCloseCoordinator()
@@ -53,16 +43,6 @@ function attachBackendPort(sender: WebContents): void {
   sender.postMessage('novalist:backend-port', null, [port2])
 }
 
-/** Resolves the app icon: packaged resources first, then the repo dev path. */
-function resolveIconPath(): string | null {
-  const candidates = [
-    join(process.resourcesPath, 'icon.png'),
-    join(__dirname, '..', '..', 'resources', 'icon.png'),
-    join(__dirname, '..', '..', 'build', 'icon.png')
-  ]
-  return candidates.find((p) => existsSync(p)) ?? null
-}
-
 registerProtocolSchemes()
 
 /**
@@ -74,10 +54,6 @@ let setFocusWindow: ((enabled: boolean) => Promise<void>) | null = null
 const approvedCloses = new Set<number>()
 let closeRequest: Promise<void> | null = null
 let quitRequested = false
-
-function workspaceOwners(): number[] {
-  return BrowserWindow.getAllWindows().filter((win) => !win.isDestroyed()).map((win) => win.webContents.id)
-}
 
 function prepareWindowClose(win: BrowserWindow, quit: boolean): void {
   quitRequested ||= quit
@@ -144,56 +120,8 @@ function attachWindowLifecycle(win: BrowserWindow): void {
   })
 }
 
-/** A restore-down size expressed in Electron's display-independent pixels. */
-function initialWindowGeometry(): {
-  width: number
-  height: number
-  minWidth: number
-  minHeight: number
-} {
-  const workArea = screen.getPrimaryDisplay().workAreaSize
-  return {
-    width: Math.min(1440, workArea.width),
-    height: Math.min(900, workArea.height),
-    minWidth: Math.min(760, workArea.width),
-    minHeight: Math.min(520, workArea.height)
-  }
-}
-
-/**
- * Keeps a restored window reachable after a monitor is removed or its display
- * scale changes. Bounds and work areas are both DIPs, so OS DPI remains native.
- */
-function clampWindowToDisplay(win: BrowserWindow): void {
-  if (win.isDestroyed() || win.isMaximized() || win.isFullScreen() || win.isMinimized()) return
-  const bounds = win.getBounds()
-  const area = screen.getDisplayMatching(bounds).workArea
-  const width = Math.min(Math.max(bounds.width, Math.min(760, area.width)), area.width)
-  const height = Math.min(Math.max(bounds.height, Math.min(520, area.height)), area.height)
-  const x = Math.max(area.x, Math.min(bounds.x, area.x + area.width - width))
-  const y = Math.max(area.y, Math.min(bounds.y, area.y + area.height - height))
-  if (x !== bounds.x || y !== bounds.y || width !== bounds.width || height !== bounds.height) {
-    win.setBounds({ x, y, width, height })
-  }
-}
-
 function createWindow(): BrowserWindow {
-  const iconPath = resolveIconPath()
-  const geometry = initialWindowGeometry()
-  const win = new BrowserWindow({
-    ...geometry,
-    show: false,
-    title: 'Novalist',
-    ...(iconPath ? { icon: iconPath } : {}),
-    ...materialWindowOptions(material),
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-      contextIsolation: true,
-      nodeIntegration: false,
-      additionalArguments: [`--nl-material=${material}`]
-    }
-  })
+  const win = createAppWindow(initialWindowGeometry())
 
   setFocusWindow = installFocusWindow(win)
   if (material === 'glass') {
@@ -273,24 +201,7 @@ ipcMain.handle(
       sceneId: string | null
     }
   ) => {
-    const iconPath = resolveIconPath()
-    const win = new BrowserWindow({
-      width: 720,
-      height: 900,
-      minWidth: 360,
-      minHeight: 400,
-      show: false,
-      title: 'Novalist',
-      ...(iconPath ? { icon: iconPath } : {}),
-      ...materialWindowOptions(material),
-      webPreferences: {
-        preload: join(__dirname, '../preload/index.js'),
-        sandbox: false,
-        contextIsolation: true,
-        nodeIntegration: false,
-        additionalArguments: [`--nl-material=${material}`]
-      }
-    })
+    const win = createAppWindow({ width: 720, height: 900, minWidth: 360, minHeight: 400 })
     win.once('ready-to-show', () => win.show())
     attachWindowLifecycle(win)
     attachSpellingMenu(win, () => spellingMenuLabels)
@@ -328,53 +239,7 @@ ipcMain.handle('novalist:set-focus-window', (event, enabled: boolean) => {
   }
 })
 
-// App self-update (GitHub release → download installer → open). Extension
-// updates are handled separately by the renderer via the extension store.
-// Disabled in the Mac App Store build: Apple prohibits self-updating, so even a
-// manual trigger must do nothing there (updates arrive via the App Store).
-const isMasBuild = (process as NodeJS.Process & { mas?: boolean }).mas === true
-const pendingAppUpdates = new Map<
-  number,
-  { token: string; update: DownloadedAppUpdate }
->()
-ipcMain.handle('novalist:check-app-update', () => (isMasBuild ? null : checkAppUpdate()))
-ipcMain.handle('novalist:has-detached-panes', () =>
-  BrowserWindow.getAllWindows().some((candidate) => candidate !== mainWindow && !candidate.isDestroyed())
-)
-ipcMain.handle('novalist:download-app-update', async (event, info) => {
-  if (isMasBuild) throw new Error('Self-update is disabled in the App Store build.')
-  const win = BrowserWindow.fromWebContents(event.sender)
-  if (!win) throw new Error('No window for update download.')
-  const update = await downloadAppUpdate(info, win)
-  if (!update.handoff) {
-    pendingAppUpdates.delete(event.sender.id)
-    return { filePath: update.filePath, launchToken: null }
-  }
-  const token = randomUUID()
-  pendingAppUpdates.set(event.sender.id, { token, update })
-  return { filePath: update.filePath, launchToken: token }
-})
-ipcMain.handle('novalist:launch-app-update', async (event, token: string) => {
-  if (isMasBuild) throw new Error('Self-update is disabled in the App Store build.')
-  const pending = pendingAppUpdates.get(event.sender.id)
-  if (!pending || typeof token !== 'string' || pending.token !== token) {
-    throw new Error('The downloaded update is no longer available. Download it again.')
-  }
-  // A launch token is one-shot. A failed OS handoff leaves Novalist open, and
-  // retrying through the dialog obtains a fresh token for the cached download.
-  pendingAppUpdates.delete(event.sender.id)
-  const owners = workspaceOwners()
-  await windowCloses.prepare(owners, mainWindow?.webContents.id)
-  try { await launchAppUpdate(pending.update) }
-  catch (error) { windowCloses.abort(owners); throw error }
-  // This authenticated handoff already awaited the renderer's save and backup
-  // preflight while editing was locked. Do not start that work a second time.
-  for (const target of BrowserWindow.getAllWindows()) approvedCloses.add(target.id)
-  // Launch acknowledgement and shutdown are one main-process operation. In
-  // particular, a spawned Linux helper must never be left waiting because its
-  // renderer disappeared before it could send a second, unauthenticated IPC.
-  app.quit()
-})
+registerUpdateHandlers(() => mainWindow, windowCloses, approvedCloses)
 
 // The menu bar's contents come from the renderer's command registry, because
 // that registry is what decides an application-scoped command exists at all. A

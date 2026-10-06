@@ -21,9 +21,11 @@ A third is reported but not fatal: declared and called but missing from
 editor.html, which the TypeScript compiler cannot see because the iframe's
 globals are not typed.
 """
+
 import re
 import sys
 from pathlib import Path
+
 from html_sources import classic_script_paths
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -69,20 +71,24 @@ def main() -> int:
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
         for name in declared:
-            if re.search(r"\.%s\s*\(" % re.escape(name), text):
+            if re.search(rf"\.{re.escape(name)}\s*\(", text):
                 used.add(name)
                 callers.setdefault(name, []).append(
-                    str(path.relative_to(ROOT)).replace("\\", "/"))
+                    str(path.relative_to(ROOT)).replace("\\", "/")
+                )
 
-    html = "\n".join(path.read_text(encoding="utf-8") for path in classic_script_paths(EDITOR_HTML))
+    html = "\n".join(
+        path.read_text(encoding="utf-8") for path in classic_script_paths(EDITOR_HTML)
+    )
     # `window.name = ...`, or a function declared at the top level of the
     # script - a classic script's top-level declarations become globals, so
     # both forms are callable from the host. A function nested inside another
     # is not, which is why the column matters.
     implemented = {
-        name for name in declared
-        if re.search(r"window\.%s\s*=" % re.escape(name), html)
-        or re.search(r"^function\s+%s\s*\(" % re.escape(name), html, re.MULTILINE)
+        name
+        for name in declared
+        if re.search(rf"window\.{re.escape(name)}\s*=", html)
+        or re.search(rf"^function\s+{re.escape(name)}\s*\(", html, re.MULTILINE)
     }
 
     uncalled = [n for n in declared if n not in used and n not in ALLOWED_UNCALLED]
@@ -95,10 +101,16 @@ def main() -> int:
         failed = True
         print("\nDeclared on the bridge and called by nothing:")
         for name in uncalled:
-            built = "implemented in editor.html" if name in implemented else "not implemented either"
+            built = (
+                "implemented in editor.html"
+                if name in implemented
+                else "not implemented either"
+            )
             print(f"  {name:<28} ({built})")
         print("\n  A bridge method nothing calls is a feature wired to nothing.")
-        print("  Either call it, or delete it, or add it to ALLOWED_UNCALLED with a reason.")
+        print(
+            "  Either call it, or delete it, or add it to ALLOWED_UNCALLED with a reason."
+        )
 
     if unimplemented:
         print("\nDeclared and called, but no matching global in editor.html:")

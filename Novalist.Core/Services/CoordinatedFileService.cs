@@ -7,6 +7,7 @@ namespace Novalist.Core.Services;
 /// a security-scoped iOS bookmark grants permission, but does not download a
 /// cloud-only file or notify iCloud about a completed write. Coordination does.
 /// </summary>
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
 public sealed class CoordinatedFileService(IFileAccessCoordinator coordinator) : IFileService
 {
     public Task<string> ReadTextAsync(string path) => coordinator.ReadAsync(path, File.ReadAllText);

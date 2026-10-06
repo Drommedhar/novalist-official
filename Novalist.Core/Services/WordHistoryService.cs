@@ -281,7 +281,10 @@ public sealed class WordHistoryService : IWordHistoryService
                 _entries.Add(entry);
                 _lastWordsPerScene[entry.SceneId] = entry.Words;
             }
-            catch { }
+            catch (JsonException)
+            {
+                System.Diagnostics.Trace.TraceWarning("Word history contains an invalid entry.");
+            }
         }
         _loaded = true;
     }

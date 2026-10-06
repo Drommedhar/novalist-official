@@ -504,7 +504,7 @@ public class ExportServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Codex_NoImages_RemovesEmptyImagesFolder()
+    public async Task Codex_NoImages_DoesNotCreateImagesFolder()
     {
         _entity.LoadCharactersAsync().Returns(new List<CharacterData> { new() { Name = "Bob" } });
         _entity.LoadLocationsAsync().Returns(new List<LocationData>());

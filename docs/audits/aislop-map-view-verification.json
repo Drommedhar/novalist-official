@@ -1,0 +1,128 @@
+{
+  "schema": "novalist.maps-refactor-verification.v1",
+  "verifiedAt": "2026-10-06T07:04:12.893Z",
+  "scope": "Renderer MapsView decomposition; no map engine or persistence contract changes",
+  "structuralEquivalence": {
+    "stateExtraction": {
+      "sourceHash": "a3badd71b6d1e78ecea45bfdc3ce89f711efcabfc5c48f8b37584120c28e5912",
+      "movedStatements": 31,
+      "totalStatements": 84,
+      "preservedInOrder": true,
+      "jsxAndInlineHandlersIdentical": true,
+      "getWinCallbackRemainsInComponent": true,
+      "allEffectsAndPersistenceRemainInComponent": true,
+      "virtualTypecheckErrors": 0
+    },
+    "componentExtraction": {
+      "files": 10,
+      "originalStateAndCallbackStatements": 52,
+      "statementOrderingPreserved": true,
+      "effectAndCallbackDependenciesPreserved": true,
+      "messageCasesCompared": 264,
+      "jsxSubtreesMovedVerbatim": 2,
+      "virtualTypecheckErrors": 0,
+      "compiledJsxOutputsIdentical": true
+    }
+  },
+  "dispatcherComparison": {
+    "cases": 264,
+    "coverage": [
+      "Every known message type",
+      "Unknown messages and inherited object names",
+      "Missing iframe window",
+      "Active and inactive debounce timer",
+      "Map target and entity pin navigation",
+      "Every 3D loading progress step"
+    ],
+    "comparison": "Original and extracted handler side-effect logs, readyRef state and saveTimer state",
+    "limitation": "Deterministic callback fixtures; browser behavior is checked separately below"
+  },
+  "validation": [
+    {
+      "command": "npm run typecheck",
+      "workingDirectory": "app",
+      "result": "passed"
+    },
+    {
+      "command": "npm run build",
+      "workingDirectory": "app",
+      "result": "passed"
+    },
+    {
+      "command": "python tools/file-doctor.py",
+      "result": "passed"
+    },
+    {
+      "command": "aislop scan . --include 'app/src/renderer/src/views/maps/**/*.ts,app/src/renderer/src/views/maps/**/*.tsx' --json",
+      "result": "passed",
+      "findings": 0
+    },
+    {
+      "command": "npx playwright test e2e/m4-maps.spec.ts e2e/m73-map-3d-controls.spec.ts e2e/map-images.spec.ts",
+      "workingDirectory": "app",
+      "result": "4 passed, 1 skipped",
+      "passed": [
+        "Active map hydration into iframe engine",
+        "Shaped map pins",
+        "PNG map image dimensions, save and reload",
+        "JPEG map image dimensions, save and reload"
+      ],
+      "skipped": [
+        {
+          "test": "3D takes the mouse, and the 2D editor gets out of the way",
+          "reason": "Existing test skips when a working GPU adapter cannot enter 3D within 120 seconds"
+        }
+      ]
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "app/src/renderer/src/views/maps/MapsView.tsx",
+      "sha256": "62d2416870d4ef9942dbd22e6ce6d97de4d9230367f7d322630ac3a994b14ebf"
+    },
+    {
+      "path": "app/src/renderer/src/views/maps/mapLoading.ts",
+      "sha256": "ea176d32386200f250771f242da84ae6270372e6e7509ef89b296e63839d6bb5"
+    },
+    {
+      "path": "app/src/renderer/src/views/maps/mapPersistence.ts",
+      "sha256": "14374e2924c4f742aa4cf125663917b4d5d726fe3eac942d82df0b96129e0ff1"
+    },
+    {
+      "path": "app/src/renderer/src/views/maps/mapMessaging.ts",
+      "sha256": "bdb0117c8e22eccb700bf7e3b08e37bd3222150026326d023200c331aba84a5c"
+    },
+    {
+      "path": "app/src/renderer/src/views/maps/mapMessageHandlers.ts",
+      "sha256": "9a750abd8b00abcee643aec87edb542d8dafe021661a0ec538083f378499e3c2"
+    },
+    {
+      "path": "app/src/renderer/src/views/maps/mapToolActions.ts",
+      "sha256": "6da7d044bc3b3f66366c2603b2252501d8fa44259e79b0793edb5f56fda167cc"
+    },
+    {
+      "path": "app/src/renderer/src/views/maps/mapLayerActions.ts",
+      "sha256": "9ce3d99aefcfec267dc842e9f5ef96c3706455313210da37c27c589d40dac331"
+    },
+    {
+      "path": "app/src/renderer/src/views/maps/mapActions.ts",
+      "sha256": "cd25dbb8a46058a1938e3162ee5e222122c907845ea7988ff58cef9b5c99fe31"
+    },
+    {
+      "path": "app/src/renderer/src/views/maps/mapViewModel.ts",
+      "sha256": "79b71d88eec9fbfc2c902987263ffa05eeb62b2f32a15314368d882e4bf1b6b5"
+    },
+    {
+      "path": "app/src/renderer/src/views/maps/MapCanvas.tsx",
+      "sha256": "5a38abf7ebbe34b36d1a3a5f51f86ae0ab98b037b4703759fda8520b71ee6fd5"
+    },
+    {
+      "path": "app/src/renderer/src/views/maps/mapViewState.ts",
+      "sha256": "4c6a9486a0c612a6e9f2b24881cdcb5dc14a31da3226e13964d9b35a14e23656"
+    },
+    {
+      "path": "app/src/renderer/src/views/maps/mapViewTypes.ts",
+      "sha256": "915f7c5bd26c927ca92cf89d5f9d96714c81c253d34f83b0d43938f5c626d0a7"
+    }
+  ]
+}

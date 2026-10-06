@@ -1,3 +1,4 @@
+// aislop-ignore-file ai-slop/console-leftover -- Demo-project CLI reports creation progress and the resulting project path to its invoking terminal.
 /**
  * Builds the demo project used for App Store and manual screenshots.
  *
@@ -10,7 +11,9 @@
  *
  * Usage: node tools/screenshots/make-demo-project.mjs <output-dir>
  */
-import { _electron as electron } from 'playwright'
+import { createRequire } from 'node:module'
+
+const { _electron: electron } = createRequire(new URL('../../app/package.json', import.meta.url))('@playwright/test')
 import { mkdtempSync, rmSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname, basename, resolve } from 'node:path'

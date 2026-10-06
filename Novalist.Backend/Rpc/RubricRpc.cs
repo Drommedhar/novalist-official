@@ -101,7 +101,7 @@ public sealed record RubricScoreDto(string ElementKey, int Score);
 public sealed record RubricSceneDto(
     IReadOnlyList<RubricScoreDto> Scores, int Answered, int Weak, double Average);
 
-/// <summary>A scene worth opening again.</summary>
+/// <summary>Non-archived scene with at least one answered rubric element rated weak; unscored scenes are excluded.</summary>
 public sealed record RubricWeakSceneDto(
     string ChapterGuid, string SceneId, string ChapterTitle, string SceneTitle,
     int Answered, int Weak, double Average);

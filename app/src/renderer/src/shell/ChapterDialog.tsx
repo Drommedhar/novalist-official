@@ -34,7 +34,7 @@ interface ChapterDialogProps {
 
 /** Create or edit a chapter: title, status, and act in a single dialog,
  * replacing the plain title-only InputDialog. */
-export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.JSX.Element {
+function useChapterDraft({ chapter, onClose }: ChapterDialogProps) {
   useWorkspaceDialogGuard()
   const { t } = useTranslation()
   const isEdit = !!chapter
@@ -118,6 +118,12 @@ export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.J
       setBusy(false)
     }
   }
+
+  return { busy, t, isEdit, inputRef, title, setTitle, submit, sectionType, setSectionType, sectionTypes, status, setStatus, subtitle, setSubtitle, hideHeading, setHideHeading, act, setAct, chapterProps, values, setValues }
+}
+
+export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.JSX.Element {
+  const { busy, t, isEdit, inputRef, title, setTitle, submit, sectionType, setSectionType, sectionTypes, status, setStatus, subtitle, setSubtitle, hideHeading, setHideHeading, act, setAct, chapterProps, values, setValues } = useChapterDraft({ chapter, onClose })
 
   return (
     <div

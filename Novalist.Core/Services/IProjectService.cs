@@ -12,6 +12,7 @@ public interface IProjectService
     string? ActiveBookRoot { get; }
     string? ActiveDraftRoot { get; }
     string? WorldBibleRoot { get; }
+    [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(CurrentProject), nameof(ActiveBook), nameof(ProjectRoot))]
     bool IsProjectLoaded { get; }
 
     /// <summary>Optional sink for v2 to v3 filesystem-migration progress (set before load).</summary>

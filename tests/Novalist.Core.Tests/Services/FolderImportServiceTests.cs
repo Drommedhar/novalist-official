@@ -22,6 +22,24 @@ public sealed class FolderImportServiceTests : IDisposable
 
     public void Dispose() => _dir.Dispose();
     private Task OpenAsync() => _projects.CreateProjectAsync(_dir.Path, "Novel", "Book");
+
+    [Theory]
+    [InlineData("book")]
+    [InlineData("project")]
+    [InlineData("scenes")]
+    public void AClaimedLoadedProjectMustSupplyItsImportScope(string missing)
+    {
+        var projects = Substitute.For<IProjectService>();
+        projects.IsProjectLoaded.Returns(true);
+        projects.ActiveBookRoot.Returns(_dir.Path);
+        projects.ActiveBook.Returns(missing == "book" ? null : new BookData());
+        projects.CurrentProject.Returns(missing == "project" ? null : new ProjectMetadata());
+        projects.ScenesManifest.Returns(missing == "scenes" ? null : new ScenesManifest());
+        var writer = new FolderImportService(projects, _files);
+        var error = Assert.Throws<InvalidOperationException>(() => writer.ConfigureStructured("Source"));
+        Assert.Contains("book or draft changed", error.Message);
+    }
+
     private void Write(string path, string text = "# Title\n\nSome **bold** prose.")
     {
         var full = Path.Combine(_source, path);

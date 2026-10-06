@@ -34,8 +34,8 @@ public sealed class LibraryRpc
     }
 
     [JsonRpcMethod("gallery/list")]
-    public GalleryImageDto[] ListImages() =>
-        _entities.GetProjectImages()
+    public async Task<GalleryImageDto[]> ListImagesAsync() =>
+        (await _entities.GetProjectImagesAsync())
             .Select(path => new GalleryImageDto(path, _entities.ResolveProjectRelativeImage(path)))
             .ToArray();
 
@@ -70,7 +70,7 @@ public sealed class LibraryRpc
             e => e.Path, StringComparer.OrdinalIgnoreCase);
 
         return new GalleryCatalogDto(
-            [.. _entities.GetProjectImages().Select(path =>
+            [.. (await _entities.GetProjectImagesAsync()).Select(path =>
             {
                 filed.TryGetValue(path, out var entry);
                 return new GalleryFiledImageDto(
@@ -405,7 +405,6 @@ public sealed record ResearchItemDto(
 
 public sealed record GalleryImageDto(string Path, string Url);
 
-/// <summary>A picture with whatever the writer has filed it under.</summary>
 public sealed record GalleryFiledImageDto(
     string Path, string Url, string Collection, string[] Tags);
 

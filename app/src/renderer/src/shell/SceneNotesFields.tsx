@@ -37,7 +37,7 @@ const NARRATIVE_MODES = [
  * store and commits on blur. Layout (side-by-side vs stacked) is left to the parent
  * via the .notes-dock-body container styling.
  */
-export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): React.JSX.Element {
+function useSceneNotes() {
   const { t } = useTranslation()
   const chapters = useProjectStore((s) => s.chapters)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
@@ -94,6 +94,12 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
     return () => { cancelled = true }
   }, [openChapterGuid, openSceneId, sceneKey, attempt])
 
+  return { t, openChapterGuid, openSceneId, scene, sceneKey, loadedSceneKey, loadError, setAttempt, synopsis, setSynopsis, notes, setNotes, cast, setCast, focus, setFocus, mode, setMode, strand, setStrand, goal, setGoal, outcome, setOutcome, relAmount, setRelAmount, relUnit, setRelUnit, sceneValues, sceneProps }
+}
+
+export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): React.JSX.Element {
+  const state = useSceneNotes()
+  const { t, openChapterGuid, openSceneId, scene, sceneKey, loadedSceneKey, loadError, setAttempt, synopsis, setSynopsis, notes, setNotes, cast, setCast, focus, setFocus, goal, setGoal, outcome, setOutcome, sceneValues, sceneProps } = state
   if (!(openChapterGuid && openSceneId && scene)) {
     return <div className="notes-dock-empty">{t('sceneNotes.empty')}</div>
   }
@@ -175,6 +181,51 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
         />
       </div>
 
+      <SceneNarrativeFields state={state} idPrefix={idPrefix} />
+      {/* Who and what is in the scene, said outright rather than inferred
+          from which names the prose happens to use. */}
+      <div className="notes-dock-col notes-dock-props">
+        <label className="notes-dock-label">{t('cast.title')}</label>
+        <SceneCastPicker
+          chapterGuid={openChapterGuid}
+          sceneId={openSceneId}
+          cast={cast}
+          focusEntityId={focus}
+          onChange={(next, nextFocus) => {
+            setCast(next)
+            setFocus(nextFocus)
+          }}
+        />
+      </div>
+
+      {/* The book's own scene fields. Nothing shows when the writer has
+          defined none, which is the state every project starts in. */}
+      {sceneProps.length > 0 && (
+        <div className="notes-dock-col notes-dock-props">
+          <label className="notes-dock-label">{t('props.sceneTitle')}</label>
+          {sceneProps.map((property) => (
+            <div key={property.key} className="notes-dock-prop">
+              <span className="notes-dock-prop-label">{property.label}</span>
+              <ManuscriptPropertyField
+                property={property}
+                value={sceneValues[openSceneId]?.[property.key] ?? ''}
+                onCommit={(value) =>
+                  void useManuscriptPropsStore
+                    .getState()
+                    .setSceneValue(openSceneId, property.key, value)
+                }
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SceneNarrativeFields({ state, idPrefix }: { state: ReturnType<typeof useSceneNotes>; idPrefix: string }): React.JSX.Element {
+  const { t, openChapterGuid, openSceneId, mode, setMode, strand, setStrand, relAmount, setRelAmount, relUnit, setRelUnit } = state
+  return <>
       {/* "The next morning", said so the app can count with it. A writer who
           knows a scene is two hours after the last one and not which day had
           to invent a date or leave it blank - and blank dropped the scene out
@@ -270,43 +321,5 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
         )}
       </div>
 
-      {/* Who and what is in the scene, said outright rather than inferred
-          from which names the prose happens to use. */}
-      <div className="notes-dock-col notes-dock-props">
-        <label className="notes-dock-label">{t('cast.title')}</label>
-        <SceneCastPicker
-          chapterGuid={openChapterGuid}
-          sceneId={openSceneId}
-          cast={cast}
-          focusEntityId={focus}
-          onChange={(next, nextFocus) => {
-            setCast(next)
-            setFocus(nextFocus)
-          }}
-        />
-      </div>
-
-      {/* The book's own scene fields. Nothing shows when the writer has
-          defined none, which is the state every project starts in. */}
-      {sceneProps.length > 0 && (
-        <div className="notes-dock-col notes-dock-props">
-          <label className="notes-dock-label">{t('props.sceneTitle')}</label>
-          {sceneProps.map((property) => (
-            <div key={property.key} className="notes-dock-prop">
-              <span className="notes-dock-prop-label">{property.label}</span>
-              <ManuscriptPropertyField
-                property={property}
-                value={sceneValues[openSceneId]?.[property.key] ?? ''}
-                onCommit={(value) =>
-                  void useManuscriptPropsStore
-                    .getState()
-                    .setSceneValue(openSceneId, property.key, value)
-                }
-              />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+  </>
 }

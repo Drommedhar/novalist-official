@@ -126,7 +126,6 @@ public sealed class ManuscriptPropertyService
     public IReadOnlyDictionary<string, string> ResearchValues(string itemId)
         => FindResearch(itemId)?.Properties ?? new Dictionary<string, string>();
 
-    /// <summary>Sets one value on a plotline.</summary>
     public async Task<IReadOnlyDictionary<string, string>> SetPlotlineValueAsync(
         string plotlineId, string key, string? value)
     {
@@ -138,7 +137,6 @@ public sealed class ManuscriptPropertyService
         return plotline.Properties ?? new Dictionary<string, string>();
     }
 
-    /// <summary>Sets one value on a manual timeline event.</summary>
     public async Task<IReadOnlyDictionary<string, string>> SetEventValueAsync(
         string eventId, string key, string? value)
     {
@@ -149,7 +147,6 @@ public sealed class ManuscriptPropertyService
         return story.Properties ?? new Dictionary<string, string>();
     }
 
-    /// <summary>Sets one value on a research item.</summary>
     public async Task<IReadOnlyDictionary<string, string>> SetResearchValueAsync(
         string itemId, string key, string? value)
     {
@@ -162,7 +159,6 @@ public sealed class ManuscriptPropertyService
         return item.Properties ?? new Dictionary<string, string>();
     }
 
-    /// <summary>Sets one value on a chapter.</summary>
     public async Task<IReadOnlyDictionary<string, string>> SetChapterValueAsync(
         string chapterGuid, string key, string? value)
     {

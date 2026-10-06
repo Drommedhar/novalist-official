@@ -1,4 +1,4 @@
-class DictationCapture extends AudioWorkletProcessor {
+class DictationCapture extends globalThis.AudioWorkletProcessor {
   constructor() {
     super()
     this.frame = new Float32Array(2048)
@@ -24,4 +24,4 @@ class DictationCapture extends AudioWorkletProcessor {
     return true
   }
 }
-registerProcessor('novalist-dictation', DictationCapture)
+globalThis.registerProcessor('novalist-dictation', DictationCapture)

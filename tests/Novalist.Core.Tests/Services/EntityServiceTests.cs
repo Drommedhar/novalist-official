@@ -430,6 +430,31 @@ public class EntityServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task GetProjectImages_SynchronousSdkDoesNotCaptureCallersContext()
+    {
+        var files = Substitute.For<IFileService>();
+        files.CombinePath(Arg.Any<string[]>()).Returns(call => Path.Combine(call.Arg<string[]>()));
+        var projects = new ProjectService(files);
+        await projects.CreateProjectAsync(_dir.Path, "Context test", "Book");
+        files.GetFilesAsync(Arg.Any<string>(), recursive: true).Returns(_ => EnumerateAsync());
+        var service = new EntityService(projects);
+        var previous = SynchronizationContext.Current;
+        try
+        {
+            SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
+            Assert.Empty(service.GetProjectImages());
+        }
+        finally { SynchronizationContext.SetSynchronizationContext(previous); }
+
+        static async Task<IReadOnlyList<string>> EnumerateAsync()
+        {
+            Assert.Null(SynchronizationContext.Current);
+            await Task.Yield();
+            return [];
+        }
+    }
+
+    [Fact]
     public void GetImageFullPath_NoProject_Throws()
     {
         _project.ProjectRoot.Returns((string?)null);

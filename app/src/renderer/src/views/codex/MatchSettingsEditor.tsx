@@ -11,12 +11,6 @@ interface MatchSettings {
   ignoredSceneIds: string[]
 }
 
-/**
- * Controls how this entry's name is recognised in prose.
- *
- * Every default reproduces the behaviour Novalist always had, so an existing
- * project reads identically until the writer changes something here.
- */
 export function MatchSettingsEditor(props: {
   entityType: string
   entityId: string

@@ -15,7 +15,7 @@ import './extensions.css'
  * the remote gallery and install/update extensions). Mirrors the frozen desktop
  * ExtensionsView.
  */
-export function ExtensionsView(): React.JSX.Element {
+function useExtensionManagement() {
   const { t } = useTranslation()
   const extensions = useExtensionsStore((s) => s.extensions)
   const themes = useExtensionsStore((s) => s.themes)
@@ -85,6 +85,12 @@ export function ExtensionsView(): React.JSX.Element {
   }
 
   const confirmTarget = extensions.find((e) => e.id === confirmId)
+
+  return { t, tab, doInstall, busy, setTab, error, extensions, storeUpdates, doUpdate, doToggle, setConfirmId, themes, confirmTarget, doUninstall }
+}
+
+export function ExtensionsView(): React.JSX.Element {
+  const { t, tab, doInstall, busy, setTab, error, extensions, storeUpdates, doUpdate, doToggle, setConfirmId, themes, confirmTarget, doUninstall } = useExtensionManagement()
 
   return (
     <div className="dashboard extensions-view">

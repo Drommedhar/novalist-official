@@ -66,15 +66,14 @@ public sealed class IosFileAccessCoordinator : IFileAccessCoordinator
 
     private sealed class AccessResult<T>
     {
-        private T _value = default!;
-        private bool _called;
+        private sealed record CallbackValue(T Value);
+        private CallbackValue? _result;
         private ExceptionDispatchInfo? _failure;
 
         public void Invoke(Func<T> action)
         {
-            _called = true;
             // A managed exception must not escape an Objective-C callback.
-            try { _value = action(); }
+            try { _result = new CallbackValue(action()); }
             catch (Exception ex) { _failure = ExceptionDispatchInfo.Capture(ex); }
         }
 
@@ -91,8 +90,8 @@ public sealed class IosFileAccessCoordinator : IFileAccessCoordinator
                     throw new FileNotFoundException("The cloud file was not found.");
                 throw new IOException($"File provider access failed ({error.Domain}, {error.Code}).");
             }
-            if (!_called) throw new IOException("The file provider did not grant access.");
-            return _value;
+            if (_result is not { } result) throw new IOException("The file provider did not grant access.");
+            return result.Value;
         }
     }
 }

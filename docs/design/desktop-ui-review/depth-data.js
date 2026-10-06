@@ -1,3 +1,4 @@
+// aislop-ignore-file code-quality/duplicate-block -- Per-view review evidence repeats the same schema with distinct requirements, manual references, and actions.
 /* Review 02: feature-preservation requirements, sourced from the checkout and manuals. */
 window.UI_DEPTH = {
   "library": {

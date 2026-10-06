@@ -42,7 +42,7 @@ public sealed partial class EntitiesRpc
             if (existing is { IsUserSource: false })
                 throw new InvalidOperationException($"Custom type is not editable: {spec.TypeKey}");
         }
-        var key = isEditing ? spec.TypeKey! : GenerateTypeKey(spec.DisplayName);
+        var key = string.IsNullOrWhiteSpace(spec.TypeKey) ? GenerateTypeKey(spec.DisplayName) : spec.TypeKey;
         var name = spec.DisplayName.Trim();
         await _entities.SaveCustomEntityTypeAsync(new CustomEntityTypeDefinition
         {
@@ -101,8 +101,7 @@ public sealed partial class EntitiesRpc
     public async Task<CustomPropDto[]> GetCustomPropsAsync(string type, string id)
     {
         var (entity, templateId) = await LoadWithTemplateAsync(type, id);
-        var props = (Dictionary<string, string>)entity.GetType()
-            .GetProperty("CustomProperties")!.GetValue(entity)!;
+        var props = entity.CustomProperties;
         var defs = ResolvePropertyDefs(type, templateId);
         return props
             .Select(kv =>
@@ -121,8 +120,7 @@ public sealed partial class EntitiesRpc
     public async Task<CustomPropDto[]> SetCustomPropAsync(string type, string id, string key, string? value)
     {
         var (entity, _) = await LoadWithTemplateAsync(type, id);
-        var props = (Dictionary<string, string>)entity.GetType()
-            .GetProperty("CustomProperties")!.GetValue(entity)!;
+        var props = entity.CustomProperties;
         if (value == null) props.Remove(key);
         else props[key] = value;
         await SaveEntityAsync(entity);
@@ -132,8 +130,7 @@ public sealed partial class EntitiesRpc
     private async Task<(IEntityData Entity, string? TemplateId)> LoadWithTemplateAsync(string type, string id)
     {
         var entity = await FindEntityAsync(type, id) ?? throw Unknown(id);
-        var templateId = entity.GetType().GetProperty("TemplateId")?.GetValue(entity) as string;
-        return (entity, templateId);
+        return (entity, entity.TemplateId);
     }
 
     private List<CustomPropertyDefinition> ResolvePropertyDefs(string type, string? templateId)
@@ -199,12 +196,13 @@ public sealed partial class EntitiesRpc
     /// <summary>Applies a book template: known fields by name, custom-property
     /// defaults without overwriting, and section seeds - mirroring the
     /// Avalonia EntityPanelViewModel.Apply*Template behavior.</summary>
-    private void ApplyTemplate(object entity, string type, string templateId)
+    private void ApplyTemplate(IEntityData entity, string type, string templateId)
     {
         var defs = ResolvePropertyDefs(type, templateId);
-        entity.GetType().GetProperty("TemplateId")?.SetValue(entity, templateId);
+        entity.TemplateId = templateId;
 
-        var book = _workspace.Projects.ActiveBook!;
+        var book = _workspace.Projects.ActiveBook
+            ?? throw new InvalidOperationException("No project open.");
         (List<TemplateField> Fields, List<TemplateSection> Sections) parts = type switch
         {
             "character" => Pick(book.CharacterTemplates.FirstOrDefault(t => t.Id == templateId)),
@@ -213,8 +211,7 @@ public sealed partial class EntitiesRpc
             _ => Pick(book.LoreTemplates.FirstOrDefault(t => t.Id == templateId))
         };
 
-        var props = (Dictionary<string, string>)entity.GetType()
-            .GetProperty("CustomProperties")!.GetValue(entity)!;
+        var props = entity.CustomProperties;
         foreach (var field in parts.Fields)
         {
             var property = entity.GetType().GetProperty(
@@ -245,8 +242,7 @@ public sealed partial class EntitiesRpc
             props.TryAdd(def.Key, def.DefaultValue);
         }
 
-        var sections = (List<EntitySection>)entity.GetType()
-            .GetProperty("Sections")!.GetValue(entity)!;
+        var sections = entity.Sections;
         foreach (var section in parts.Sections)
         {
             if (sections.All(s => s.Title != section.Title))

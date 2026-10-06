@@ -11,6 +11,7 @@ namespace Novalist.Core.Services;
 /// belonged to, or live outside the Wiki in Research. Only Locations nested, so
 /// filing one page under another was not possible either.
 /// </summary>
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
 public class WikiPageService(IProjectService projectService)
 {
     private readonly IProjectService _projectService = projectService;

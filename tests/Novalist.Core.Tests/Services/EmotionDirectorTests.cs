@@ -26,7 +26,14 @@ public class EmotionDirectorTests
     public void Resolve_WriterDirectionWinsOverEverything()
     {
         var direction = EmotionDirector.Resolve(
-            "joyful", " she screamed.", null, "sorrowful", 10, English());
+            "joyful",
+            new EmotionDirectionContext()
+            {
+                ContextAfter = " she screamed.",
+                SceneEmotion = "sorrowful",
+                SceneIntensity = 10
+            },
+            English());
 
         Assert.Equal("joyful", direction.Key);
         Assert.Equal(DirectionSource.Writer, direction.Source);
@@ -39,7 +46,13 @@ public class EmotionDirectorTests
         // A stored blank is the writer saying "no performance on this line".
         // Falling through to the scene's emotion would quietly undo them.
         var direction = EmotionDirector.Resolve(
-            "  ", " she screamed.", null, "sorrowful", null, English());
+            "  ",
+            new EmotionDirectionContext()
+            {
+                ContextAfter = " she screamed.",
+                SceneEmotion = "sorrowful"
+            },
+            English());
 
         Assert.Equal(EmotionDirector.NeutralKey, direction.Key);
         Assert.Equal(DirectionSource.Writer, direction.Source);
@@ -49,7 +62,13 @@ public class EmotionDirectorTests
     public void Resolve_TakesTheSpeechVerbFromTheTagAfterTheQuote()
     {
         var direction = EmotionDirector.Resolve(
-            null, " she snapped, not turning round.", null, "peaceful", null, English());
+            null,
+            new EmotionDirectionContext()
+            {
+                ContextAfter = " she snapped, not turning round.",
+                SceneEmotion = "peaceful"
+            },
+            English());
 
         Assert.Equal("angry", direction.Key);
         Assert.Equal(DirectionSource.Verb, direction.Source);
@@ -60,7 +79,13 @@ public class EmotionDirectorTests
     public void Resolve_ReadsTheTagBeforeTheQuoteWhenNothingFollowsIt()
     {
         var direction = EmotionDirector.Resolve(
-            null, "  ", "Aldric whispered, close to her ear. ", null, null, English());
+            null,
+            new EmotionDirectionContext()
+            {
+                ContextAfter = "  ",
+                ContextBefore = "Aldric whispered, close to her ear. "
+            },
+            English());
 
         Assert.Equal("peaceful", direction.Key);
         Assert.Equal("whispered", direction.Evidence);
@@ -72,7 +97,13 @@ public class EmotionDirectorTests
         // "she snapped" is attached to this line; the verb in the prose leading
         // up to it belongs to whatever came before.
         var direction = EmotionDirector.Resolve(
-            null, " she snapped.", "He had whispered it twice already. ", null, null, English());
+            null,
+            new EmotionDirectionContext()
+            {
+                ContextAfter = " she snapped.",
+                ContextBefore = "He had whispered it twice already. "
+            },
+            English());
 
         Assert.Equal("angry", direction.Key);
         Assert.Equal("snapped", direction.Evidence);
@@ -82,7 +113,12 @@ public class EmotionDirectorTests
     public void Resolve_AVerbTheLanguageDoesNotMapDirectsNothing()
     {
         var direction = EmotionDirector.Resolve(
-            null, " she said.", null, null, null, UnmappedVerb());
+            null,
+            new EmotionDirectionContext()
+            {
+                ContextAfter = " she said."
+            },
+            UnmappedVerb());
 
         Assert.Equal(EmotionDirector.NeutralKey, direction.Key);
         Assert.Equal(DirectionSource.None, direction.Source);
@@ -92,7 +128,13 @@ public class EmotionDirectorTests
     public void Resolve_FallsBackToTheScenesOwnEmotion()
     {
         var direction = EmotionDirector.Resolve(
-            null, " she said, and looked away.", null, " tense ", null, English());
+            null,
+            new EmotionDirectionContext()
+            {
+                ContextAfter = " she said, and looked away.",
+                SceneEmotion = " tense "
+            },
+            English());
 
         Assert.Equal("tense", direction.Key);
         Assert.Equal(DirectionSource.Scene, direction.Source);
@@ -102,7 +144,13 @@ public class EmotionDirectorTests
     [Fact]
     public void Resolve_NothingSaidAnywhereIsNeutralRatherThanAGuess()
     {
-        var direction = EmotionDirector.Resolve(null, null, null, "   ", null, English());
+        var direction = EmotionDirector.Resolve(
+            null,
+            new EmotionDirectionContext()
+            {
+                SceneEmotion = "   "
+            },
+            English());
 
         Assert.Equal(EmotionDirector.NeutralKey, direction.Key);
         Assert.Equal(DirectionSource.None, direction.Source);
@@ -111,9 +159,21 @@ public class EmotionDirectorTests
     [Fact]
     public void Resolve_NarrationMagnitudeHoldsTheProseBackFromTheDialogue()
     {
-        var spoken = EmotionDirector.Resolve(null, null, null, "angry", null, English());
+        var spoken = EmotionDirector.Resolve(
+            null,
+            new EmotionDirectionContext()
+            {
+                SceneEmotion = "angry"
+            },
+            English());
         var prose = EmotionDirector.Resolve(
-            null, null, null, "angry", null, English(), EmotionDirector.NarrationMagnitude);
+            null,
+            new EmotionDirectionContext()
+            {
+                SceneEmotion = "angry"
+            },
+            English(),
+            EmotionDirector.NarrationMagnitude);
 
         Assert.Equal(spoken.Key, prose.Key);
         Assert.True(Sum(prose.Vector) < Sum(spoken.Vector));
@@ -123,7 +183,12 @@ public class EmotionDirectorTests
     public void BuildLanguage_NoLexiconMatchesNothing()
     {
         var direction = EmotionDirector.Resolve(
-            null, " she snapped.", null, null, null, EmotionDirector.BuildLanguage(null));
+            null,
+            new EmotionDirectionContext()
+            {
+                ContextAfter = " she snapped."
+            },
+            EmotionDirector.BuildLanguage(null));
 
         Assert.Equal(DirectionSource.None, direction.Source);
     }
@@ -134,7 +199,12 @@ public class EmotionDirectorTests
         // "murmured back" must not be read as "murmured" and given the wrong
         // half of its meaning.
         var direction = EmotionDirector.Resolve(
-            null, " he murmured back.", null, null, null, English());
+            null,
+            new EmotionDirectionContext()
+            {
+                ContextAfter = " he murmured back."
+            },
+            English());
 
         Assert.Equal("murmured back", direction.Evidence);
     }
@@ -144,7 +214,13 @@ public class EmotionDirectorTests
     {
         var chinese = EmotionDirector.BuildLanguage(SceneAnalysisLexicon.For("zh-CN"));
 
-        var direction = EmotionDirector.Resolve(null, "她低声说道。", null, null, null, chinese);
+        var direction = EmotionDirector.Resolve(
+            null,
+            new EmotionDirectionContext()
+            {
+                ContextAfter = "她低声说道。"
+            },
+            chinese);
 
         Assert.Equal(DirectionSource.Verb, direction.Source);
     }
@@ -155,7 +231,12 @@ public class EmotionDirectorTests
         var german = EmotionDirector.BuildLanguage(SceneAnalysisLexicon.For("de"));
 
         var direction = EmotionDirector.Resolve(
-            null, ", flüsterte sie.", null, null, null, german);
+            null,
+            new EmotionDirectionContext()
+            {
+                ContextAfter = ", flüsterte sie."
+            },
+            german);
 
         Assert.Equal(DirectionSource.Verb, direction.Source);
         Assert.Equal("flüsterte", direction.Evidence);

@@ -31,7 +31,7 @@ public sealed class ExportFiles(string cacheDirectory)
             if (!_pending.TryGetValue(path, out var directory))
                 throw new InvalidOperationException("This file is not a pending export.");
             if (!File.Exists(path)) throw new FileNotFoundException("The export file was not created.");
-            if (Directory.EnumerateFileSystemEntries(directory).Count() == 1) return path;
+            if (!Directory.EnumerateFileSystemEntries(directory).Skip(1).Any()) return path;
 
             // Outside the source directory, so the archive never includes itself.
             var archive = directory + ".zip";

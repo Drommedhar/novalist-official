@@ -50,12 +50,12 @@ public sealed class WordTargetService
     {
         var scene = _projectService.GetScenesForChapter(chapterGuid)
             .FirstOrDefault(s => s.Id == sceneId);
-        return scene == null
-            ? null
-            : new WordTargetProgress(
-                "scene", scene.Id, scene.Title, scene.WordCount,
-                scene.WordTarget ?? 0, scene.WordTarget.HasValue);
+        return scene == null ? null : SceneProgress(scene);
     }
+
+    private static WordTargetProgress SceneProgress(SceneData scene)
+        => new("scene", scene.Id, scene.Title, scene.WordCount,
+            scene.WordTarget ?? 0, scene.WordTarget.HasValue);
 
     /// <summary>
     /// Progress for a chapter. Its own target when it has one, otherwise the sum
@@ -66,12 +66,15 @@ public sealed class WordTargetService
     {
         var chapter = _projectService.GetChaptersOrdered()
             .FirstOrDefault(c => c.Guid == chapterGuid);
-        if (chapter == null) return null;
+        return chapter == null ? null : ChapterProgress(chapter);
+    }
 
+    private WordTargetProgress ChapterProgress(ChapterData chapter)
+    {
         // A scene taken out of the book neither contributes its words nor its
         // target: counting a target the writer has parked would make the
         // chapter look permanently behind.
-        var scenes = _projectService.GetScenesForChapter(chapterGuid)
+        var scenes = _projectService.GetScenesForChapter(chapter.Guid)
             .Where(s => !s.Inactive)
             .ToList();
         var words = scenes.Sum(s => s.WordCount);
@@ -94,7 +97,7 @@ public sealed class WordTargetService
             .ToList();
         if (chapters.Count == 0) return null;
 
-        var rows = chapters.Select(c => Chapter(c.Guid)!).ToList();
+        var rows = chapters.Select(ChapterProgress).ToList();
         var stored = _projectService.ActiveBook?.Acts
             .FirstOrDefault(a => string.Equals(a.Name, name, StringComparison.OrdinalIgnoreCase));
 
@@ -118,13 +121,13 @@ public sealed class WordTargetService
                 if (act?.HasTarget == true) rows.Add(act);
             }
 
-            var chapterRow = Chapter(chapter.Guid);
+            var chapterRow = ChapterProgress(chapter);
             if (chapterRow?.HasTarget == true) rows.Add(chapterRow);
 
             foreach (var scene in _projectService.GetScenesForChapter(chapter.Guid))
             {
                 if (scene.WordTarget is > 0)
-                    rows.Add(Scene(chapter.Guid, scene.Id)!);
+                    rows.Add(SceneProgress(scene));
             }
         }
 

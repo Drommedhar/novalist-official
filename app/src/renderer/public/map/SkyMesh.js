@@ -12,6 +12,7 @@ import {
 	NodeMaterial
 } from 'three/webgpu';
 
+// aislop-ignore-next-line ai-slop/hallucinated-import -- map.html supplies these browser imports through its import map to bundled Three.js modules; npm resolution does not apply.
 import { Fn, float, vec2, vec3, acos, add, mul, clamp, cos, dot, exp, max, mix, modelViewProjection, normalize, positionWorld, pow, smoothstep, sub, varyingProperty, vec4, uniform, cameraPosition, fract, floor, sin, time, Loop, If } from 'three/tsl';
 
 class SkyMesh extends Mesh {

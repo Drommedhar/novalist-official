@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sliders } from 'lucide-react'
-import { useNarrationStore } from '../../stores/narrationStore'
-import type { SegmentRef } from '../../stores/narrationStore'
+import { useNarrationStore, type SegmentRef } from "../../stores/narrationStore";
 
 /**
  * The eight sliders, for the moment the sixteen names do not cover.

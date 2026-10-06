@@ -68,25 +68,18 @@ export function buildGuidedSteps(
         })
       ]
     case 'location':
+    case 'item': {
+      const relation = entityType === 'location' ? 'parent' : 'origin'
       return [
         text('type', t('wizard.entity.field.type'), {
-          help: t('wizard.entity.location.typeHelp')
+          help: t(`wizard.entity.${entityType}.typeHelp`)
         }),
-        text('parent', t('wizard.entity.location.parent'), {
-          help: t('wizard.entity.location.parentHelp')
+        text(relation, t(`wizard.entity.${entityType}.${relation}`), {
+          help: t(`wizard.entity.${entityType}.${relation}Help`)
         }),
         text('description', t('wizard.entity.field.description'), { multiline: true })
       ]
-    case 'item':
-      return [
-        text('type', t('wizard.entity.field.type'), {
-          help: t('wizard.entity.item.typeHelp')
-        }),
-        text('origin', t('wizard.entity.item.origin'), {
-          help: t('wizard.entity.item.originHelp')
-        }),
-        text('description', t('wizard.entity.field.description'), { multiline: true })
-      ]
+    }
     case 'lore':
       return [
         {

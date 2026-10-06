@@ -104,7 +104,7 @@ function stagingFailure(error: unknown): { stage: string; reason: string } | nul
  * lands in the project. Dropping someone's whole manuscript in unannounced is
  * not a thing to do on one click.
  */
-export function ImportManuscriptDialog(props: { onClose: () => void }): React.JSX.Element {
+function useManuscriptImportState(){
   const { t } = useTranslation()
   const [path, setPath] = useState('')
   const [plan, setPlan] = useState<ImportPlan | null>(null)
@@ -149,8 +149,21 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
     }
   }, [path])
 
-  const asArgument = (chosen: Record<string, Destination>): { key: string; destination: string }[] =>
-    Object.entries(chosen).map(([key, destination]) => ({ key, destination }))
+  return { t, path, setPath, plan, setPlan, result, setResult, busy, setBusy, formats, formatsFailed, openFailed, setOpenFailed, rows, setRows, overrides, setOverrides }
+}
+
+function childrenOf(rows: ImportMappingRow[], key: string): ImportMappingRow[] {
+  const start = rows.findIndex((row) => row.key === key)
+  if (start < 0 || rows[start].depth > 0) return []
+  const rest = rows.slice(start + 1)
+  const end = rest.findIndex((row) => row.depth === 0)
+  return end < 0 ? rest : rest.slice(0, end)
+}
+
+function useManuscriptImport(props: { onClose: () => void }) {
+  const state = useManuscriptImportState()
+  const { t, path, setPath, plan, setPlan, result, setResult, busy, setBusy, formats, formatsFailed, openFailed, rows, setRows, overrides, setOverrides } = state
+
 
   const preview = async (chosen: string): Promise<void> => {
     setBusy(true)
@@ -164,17 +177,6 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
     } finally {
       setBusy(false)
     }
-  }
-
-  /** The rows nested under a top-level one: everything after it, up to the next
-   *  top-level row. The list is flat and in binder order, so this is the run
-   *  immediately following it. */
-  const childrenOf = (key: string): ImportMappingRow[] => {
-    const start = rows.findIndex((r) => r.key === key)
-    if (start < 0 || rows[start].depth > 0) return []
-    const rest = rows.slice(start + 1)
-    const end = rest.findIndex((r) => r.depth === 0)
-    return end < 0 ? rest : rest.slice(0, end)
   }
 
   /**
@@ -193,7 +195,7 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
    */
   const reroute = async (key: string, destination: Destination): Promise<void> => {
     const next = { ...overrides, [key]: destination }
-    for (const child of childrenOf(key)) next[child.key] = destination
+    for (const child of childrenOf(rows, key)) next[child.key] = destination
     setOverrides(next)
 
     setBusy(true)
@@ -206,45 +208,14 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
     }
   }
 
+
+
   const destinationOf = (row: ImportMappingRow): Destination =>
     overrides[row.key] ?? row.destination
 
-  const pick = async (): Promise<void> => {
-    if (formats.length === 0) return
-    setBusy(true)
-    setOpenFailed(false)
-    try {
-      const chosen = await window.novalist.pickFile(
-        t('manuscriptImport.choose'),
-        'manuscript',
-        {
-          extensions: formats,
-          filterName: t('manuscriptImport.filterName'),
-          scrivenerAccessTitle: t('manuscriptImport.scrivenerAccess')
-        }
-      )
-      if (chosen) await preview(chosen)
-    } catch (error) {
-      const failure = stagingFailure(error)
-      if (failure) {
-        void rpc
-          .request<void>('manuscriptImport/pickerFailure', [failure.stage, failure.reason])
-          .catch(() => {
-            // The backend may itself be unavailable; the in-dialog error remains.
-          })
-      }
-      setOpenFailed(true)
-      setPlan(null)
-      setRows([])
-    } finally {
-      setBusy(false)
-    }
-  }
+  const pick = (): Promise<void> => pickManuscriptFile(state, preview)
 
-  /** A Scrivener project can be worth importing for its Codex sketches and
-   *  research alone, so an empty draft is not an empty import. */
-  const hasSomething = (p: ImportPlan): boolean =>
-    p.chapterCount > 0 || p.characterCount > 0 || p.locationCount > 0 || p.researchCount > 0
+
 
   const run = async (): Promise<void> => {
     if (!plan || !hasSomething(plan)) return
@@ -270,6 +241,12 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
     if (!busy) props.onClose()
   }
 
+  return { t, plan, result, busy, formats, formatsFailed, openFailed, rows, reroute, destinationOf, pick, hasSomething, run, fileName, close }
+}
+
+export function ImportManuscriptDialog(props: { onClose: () => void }): React.JSX.Element {
+  const state = useManuscriptImport(props)
+  const { t, result, busy, formats, formatsFailed, openFailed, rows, reroute, destinationOf, pick, fileName, close } = state
   return (
     <div className="dialog-overlay" onClick={close}>
       <div
@@ -360,6 +337,43 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
           </>
         )}
 
+      <ManuscriptImportPreview state={state} />
+        {result && (
+          <>
+            <p className="settings-hint">
+              {t('manuscriptImport.done', {
+                chapters: result.chapters,
+                scenes: result.scenes,
+                words: result.words.toLocaleString()
+              })}
+            </p>
+            {(result.characters > 0 || result.locations > 0 || result.research > 0) && (
+              <p className="settings-hint">
+                {t('manuscriptImport.doneExtras', {
+                  characters: result.characters,
+                  locations: result.locations,
+                  research: result.research
+                })}
+              </p>
+            )}
+            {(result.drafts > 0 || result.books > 0) && (
+              <p className="settings-hint">
+                {t('manuscriptImport.doneTargets', {
+                  drafts: result.drafts,
+                  books: result.books
+                })}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ManuscriptImportPreview({ state }: { state: ReturnType<typeof useManuscriptImport> }): React.JSX.Element {
+  const { t, plan, busy, hasSomething, run } = state
+  return <>
         {/* Named before the import runs, not discovered afterwards. */}
         {plan && plan.losses.length > 0 && (
           <p className="settings-hint">
@@ -453,35 +467,46 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
           </>
         )}
 
-        {result && (
-          <>
-            <p className="settings-hint">
-              {t('manuscriptImport.done', {
-                chapters: result.chapters,
-                scenes: result.scenes,
-                words: result.words.toLocaleString()
-              })}
-            </p>
-            {(result.characters > 0 || result.locations > 0 || result.research > 0) && (
-              <p className="settings-hint">
-                {t('manuscriptImport.doneExtras', {
-                  characters: result.characters,
-                  locations: result.locations,
-                  research: result.research
-                })}
-              </p>
-            )}
-            {(result.drafts > 0 || result.books > 0) && (
-              <p className="settings-hint">
-                {t('manuscriptImport.doneTargets', {
-                  drafts: result.drafts,
-                  books: result.books
-                })}
-              </p>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  )
+  </>
 }
+
+  const asArgument = (chosen: Record<string, Destination>): { key: string; destination: string }[] =>
+    Object.entries(chosen).map(([key, destination]) => ({ key, destination }))
+
+  /** A Scrivener project can be worth importing for its Codex sketches and
+   *  research alone, so an empty draft is not an empty import. */
+  const hasSomething = (p: ImportPlan): boolean =>
+    p.chapterCount > 0 || p.characterCount > 0 || p.locationCount > 0 || p.researchCount > 0
+
+async function pickManuscriptFile(state: ReturnType<typeof useManuscriptImportState>, preview: (chosen: string) => Promise<void>): Promise<void> {
+  const { t, formats, setBusy, setOpenFailed, setPlan, setRows } = state
+    if (formats.length === 0) return
+    setBusy(true)
+    setOpenFailed(false)
+    try {
+      const chosen = await window.novalist.pickFile(
+        t('manuscriptImport.choose'),
+        'manuscript',
+        {
+          extensions: formats,
+          filterName: t('manuscriptImport.filterName'),
+          scrivenerAccessTitle: t('manuscriptImport.scrivenerAccess')
+        }
+      )
+      if (chosen) await preview(chosen)
+    } catch (error) {
+      const failure = stagingFailure(error)
+      if (failure) {
+        void rpc
+          .request<void>('manuscriptImport/pickerFailure', [failure.stage, failure.reason])
+          .catch(() => {
+            // The backend may itself be unavailable; the in-dialog error remains.
+          })
+      }
+      setOpenFailed(true)
+      setPlan(null)
+      setRows([])
+    } finally {
+      setBusy(false)
+    }
+  }

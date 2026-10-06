@@ -199,10 +199,6 @@ export async function downloadAppUpdate(
 export async function launchAppUpdate(update: DownloadedAppUpdate): Promise<void> {
   if (!update.handoff) throw new Error('This downloaded update requires a manual install.')
   if (update.handoff.kind === 'linux-appimage') {
-    // Starting the new AppImage directly would lose to this process's
-    // single-instance lock and exit before this process quits. A detached
-    // helper waits for the lock owner to go away, replaces the current
-    // AppImage when possible, and relaunches afterwards.
     await stageLinuxAppImageUpdate(
       update.filePath,
       update.handoff.runningAppImage,

@@ -81,7 +81,7 @@ export class WorkerPool {
 	_onMessage( workerId, msg ) {
 
 		const resolve = this.workersResolve[ workerId ];
-		resolve && resolve( msg );
+		if ( resolve ) resolve( msg );
 
 		if ( this.queue.length ) {
 
@@ -151,8 +151,7 @@ export class WorkerPool {
 	}
 
 	/**
-	 * Terminates all Workers of this pool. Call this  method whenever this
-	 * Worker pool is no longer used in your app.
+	 * Terminates all workers and clears pending callbacks and queued messages.
 	 */
 	dispose() {
 

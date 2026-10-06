@@ -40,7 +40,6 @@ public sealed class CompletionList
     [JsonPropertyName("trigger")]
     public int Trigger { get; set; } = MinimumTrigger;
 
-    /// <summary>The trigger length actually used.</summary>
     [JsonIgnore]
     public int EffectiveTrigger => Math.Clamp(Trigger, MinimumTrigger, 10);
 

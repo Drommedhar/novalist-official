@@ -48,6 +48,7 @@ public sealed class ConlangRpc
 
     /// <summary>Adds a word, or rewrites one. An empty id creates.</summary>
     [JsonRpcMethod("conlang/saveWord")]
+    // aislop-ignore-next-line complexity/too-many-params -- Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.
     public async Task<ConlangLanguageDto[]> SaveWordAsync(
         string languageId, string? wordId, string word, string meaning,
         string? partOfSpeech = null, string? pronunciation = null, string? notes = null)
@@ -96,7 +97,6 @@ public sealed record ConlangWordDto(
     string Id, string Word, string Meaning, string PartOfSpeech,
     string Pronunciation, string Notes);
 
-/// <summary>An invented language and its dictionary.</summary>
 public sealed record ConlangLanguageDto(
     string Id, string Name, string Description, IReadOnlyList<ConlangWordDto> Words);
 

@@ -106,7 +106,7 @@ public sealed class MapService : IMapService
                     {
                         if (l is not JsonObject layer) continue;
                         // An old layer maps 1:1 to a leaf node; clone its fields.
-                        var leaf = JsonNode.Parse(layer.ToJsonString())!.AsObject();
+                        var leaf = layer.DeepClone().AsObject();
                         if (!leaf.ContainsKey("expanded")) leaf["expanded"] = true;
                         if (!leaf.ContainsKey("children")) leaf["children"] = new JsonArray();
                         children.Add(leaf);

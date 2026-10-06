@@ -60,8 +60,6 @@ public sealed record CraftPromptDto(string Id, string Kind, string Text);
 public sealed record CraftEntryDto(
     string Key, string Group, string Name, IReadOnlyList<string> Signals);
 
-/// <summary>An article in a list.</summary>
 public sealed record CraftArticleSummaryDto(string Id, string Topic, string Title);
 
-/// <summary>An article to read.</summary>
 public sealed record CraftArticleDto(string Id, string Topic, string Title, string Body);

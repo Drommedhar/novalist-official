@@ -31,7 +31,6 @@ public sealed class DocxRevision
     public string Author { get; init; } = string.Empty;
     public string Date { get; init; } = string.Empty;
 
-    /// <summary>The inserted or deleted text.</summary>
     public string Text { get; init; } = string.Empty;
 }
 
@@ -149,11 +148,10 @@ public static class DocxReviewReader
     /// </summary>
     private static Dictionary<string, string> ReadCommentAnchors(XDocument document)
     {
-        // LoadPart only returns a document that parsed, so Root is always set.
         var anchors = new Dictionary<string, string>(StringComparer.Ordinal);
         var open = new Dictionary<string, StringBuilder>(StringComparer.Ordinal);
 
-        foreach (var node in document.Root!.Descendants())
+        foreach (var node in document.Elements().SelectMany(root => root.Descendants()))
         {
             if (node.Name == W + "commentRangeStart")
             {
@@ -180,7 +178,7 @@ public static class DocxReviewReader
     private static List<DocxRevision> ReadRevisions(XDocument document)
     {
         var result = new List<DocxRevision>();
-        foreach (var element in document.Root!.Descendants())
+        foreach (var element in document.Elements().SelectMany(root => root.Descendants()))
         {
             var kind =
                 element.Name == W + "ins" ? "insert"

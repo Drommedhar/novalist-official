@@ -1,0 +1,402 @@
+// aislop-ignore-file code-quality/duplicate-block -- Searchable settings entries share a schema but retain distinct keys, targets, keywords, and help text.
+import { type SettingsSectionMetadata, control } from './settingsMetadata'
+
+/**
+ * Metadata for settings navigation, availability, search, and deep links.
+ * settingsSectionBodies supplies the controls with the live settings context.
+ */
+export const SETTINGS_REGISTRY: readonly SettingsSectionMetadata[] = [
+  {
+    /**
+     * The open project itself, and the way back out of it.
+     *
+     * Desktop closes a project from the menu bar or the command palette, and
+     * iOS has neither - the phone navigates by a five-item tab bar and the iPad
+     * by a sidebar of destinations, so an open project was a one-way door: the
+     * welcome screen, with every other project on it, could not be reached
+     * again without restarting the app. Settings is the one destination both
+     * layouts carry, so the door is here.
+     */
+    key: 'project',
+    category: 'project',
+    titleKey: 'settings.group.project',
+    scope: 'project',
+    requiresProject: true,
+    mobileOnly: true,
+    keywords: ['project', 'close', 'switch', 'leave', 'exit', 'welcome', 'recent'],
+    controls: [control('close-project', 'command.closeProject')]
+  },
+  {
+    key: 'appearance',
+    category: 'general',
+    titleKey: 'settings.appearance',
+    scope: 'overridable',
+    keywords: ['appearance', 'language', 'theme', 'accent', 'color', 'colour', 'interface'],
+    controls: [
+      control('language', 'settings.uiLanguage', 'set-language', ['settings.uiLanguageDesc']),
+      control('theme', 'settings.theme', 'set-theme', ['settings.themeDescription']),
+      control('interface-scale', 'settings.uiScale', 'set-ui-scale', ['settings.uiScaleDesc'], [
+        'zoom',
+        'dpi',
+        'display size'
+      ]),
+      control('accent-color', 'settings.accentColor', 'set-accent', ['settings.accentColorDesc'])
+    ]
+  },
+  {
+    key: 'accessibility',
+    category: 'general',
+    titleKey: 'settings.accessibility',
+    scope: 'mixed',
+    keywords: ['accessibility', 'readability', 'dyslexia', 'contrast', 'spacing'],
+    controls: [
+      control(
+        'contextual-tips',
+        'settings.contextualTips',
+        'set-contextual-tips',
+        ['settings.contextualTipsDesc'],
+        ['onboarding', 'guidance', 'coachmark', 'focus peek']
+      ),
+      control('accessible-font', 'settings.accessibleFont', 'set-a11y-font', [
+        'settings.accessibleFontHint'
+      ]),
+      control('font-size', 'settings.fontSize', 'set-a11y-size', ['settings.fontSizeDesc']),
+      control('line-height', 'settings.lineHeight', 'set-a11y-spacing', [
+        'settings.lineHeightDesc'
+      ]),
+      control('high-contrast', 'settings.useHighContrast', 'set-high-contrast', [
+        'settings.highContrastHint'
+      ])
+    ]
+  },
+  {
+    key: 'hotkeys',
+    category: 'general',
+    titleKey: 'settings.hotkeys',
+    scope: 'global',
+    desktopOnly: true,
+    standalone: true,
+    keywords: ['hotkey', 'keyboard', 'shortcut', 'key', 'binding', 'gesture'],
+    controls: [
+      control('filter', 'hotkeys.searchPlaceholder', undefined, undefined, ['find shortcut']),
+      control('reset-all', 'hotkeys.resetAll', undefined, undefined, ['defaults'])
+    ]
+  },
+  {
+    key: 'editor',
+    category: 'writing',
+    titleKey: 'settings.editor',
+    scope: 'overridable',
+    keywords: ['editor', 'font', 'book', 'width', 'page', 'paragraph', 'spacing', 'speech'],
+    controls: [
+      control('font-family', 'settings.fontFamily', 'set-font', ['settings.fontFamilyDesc']),
+      control('font-size', 'settings.fontSize', 'set-fontsize', ['settings.fontSizeDesc']),
+      control('line-height', 'settings.lineHeight', 'set-lineheight', ['settings.lineHeightDesc']),
+      control('letter-spacing', 'settings.letterSpacing', 'set-letterspacing', [
+        'settings.letterSpacingDesc'
+      ]),
+      control('paragraph-spacing', 'settings.paragraphSpacing', 'set-paraspacing', [
+        'settings.paragraphSpacingDesc'
+      ]),
+      control('first-line-indent', 'settings.firstLineIndent', 'set-first-line-indent', [
+        'settings.firstLineIndentDesc'
+      ]),
+      control('read-aloud-speed', 'settings.readAloudRate', 'set-readaloud-rate'),
+      control('read-aloud-voice', 'settings.readAloudVoice', 'set-readaloud-voice', [
+        'settings.readAloudDesc',
+        'settings.readAloudVoiceKinds'
+      ]),
+      control('compose-dimming', 'settings.composeDimming', 'set-compose-dimming', [
+        'settings.composeDimmingDesc'
+      ]),
+      control('typewriter-scrolling', 'settings.typewriterScroll', 'set-typewriter-scroll', [
+        'settings.typewriterScrollDesc'
+      ]),
+      control('page-view', 'settings.pageView', 'set-page-view', ['settings.pageViewDesc']),
+      control('book-paragraph-spacing', 'settings.bookSpacing', 'set-book-spacing', [
+        'settings.bookSpacingDesc'
+      ]),
+      control('book-page-width', 'settings.bookWidth', 'set-book-width', [
+        'settings.bookWidthDesc'
+      ]),
+      control('page-format', 'settings.bookWidthPageFormat', 'set-pageformat'),
+      control('text-block-width', 'settings.bookWidthCustom', 'set-customwidth', [
+        'settings.bookWidthCustomDesc'
+      ]),
+      control('book-font', 'settings.bookWidthFont', 'set-bookfont'),
+      control('book-font-size', 'settings.bookWidthFontSize', 'set-bookfontsize')
+    ]
+  },
+  {
+    key: 'writingAssistance',
+    category: 'writing',
+    titleKey: 'settings.writingAssistance',
+    scope: 'overridable',
+    keywords: ['writing', 'replacement', 'quote', 'dialogue', 'grammar', 'spelling', 'dictation', 'speech'],
+    controls: [
+      control('system-dictation', 'dictation.systemName', 'set-system-dictation', ['dictation.appleHelp', 'dictation.windowsHelp']),
+      control('automatic-replacements', 'settings.autoReplacement', 'set-auto-replacement', [
+        'settings.autoReplacementDesc'
+      ]),
+      control('quote-style', 'settings.quoteStyle', 'set-quotes', ['settings.quoteStyleDesc']),
+      control('reviewer-name', 'settings.reviewerName', 'set-reviewer', [
+        'settings.reviewerNameHint'
+      ]),
+      control('dialogue-correction', 'settings.dialogueCorrection', 'set-dialogue-correction', [
+        'settings.dialogueCorrectionDesc'
+      ]),
+      control('spell-check', 'settings.spellCheck', 'set-spell-check', [
+        'settings.spellCheckHint'
+      ]),
+      control('grammar-check', 'settings.grammarCheck', 'set-grammar-check', [
+        'settings.grammarCheckDesc'
+      ]),
+      control('grammar-provider', 'settings.grammarCheckProvider', 'set-gc-provider', [
+        'settings.grammarCheckHarper', 'settings.grammarCheckHarperDesc'
+      ]),
+      control('grammar-server', 'settings.grammarCheckApiUrl', 'set-gc-url', [
+        'settings.grammarCheckApiUrlDesc'
+      ]),
+      control('grammar-account', 'settings.grammarCheckUsername', 'set-gc-user', [
+        'settings.grammarCheckUsernameDesc'
+      ]),
+      control('grammar-api-key', 'settings.grammarCheckApiKey', 'set-gc-key', [
+        'settings.grammarCheckApiKeyDesc'
+      ]),
+      control('advanced-style-check', 'settings.grammarCheckPickyMode', 'set-gc-picky', [
+        'settings.grammarCheckPickyModeDesc'
+      ]),
+      control('native-language', 'settings.grammarCheckMotherTongue', 'set-gc-mother', [
+        'settings.grammarCheckMotherTongueDesc'
+      ])
+    ]
+  },
+  {
+    key: 'writingGoals',
+    category: 'project',
+    titleKey: 'settings.writingGoals',
+    scope: 'project',
+    requiresProject: true,
+    keywords: ['goal', 'deadline', 'author', 'target', 'words', 'chapter', 'scene', 'act'],
+    controls: [
+      control('deadline', 'settings.projectDeadline', 'set-deadline', [
+        'settings.projectDeadlineDesc'
+      ]),
+      control('author', 'settings.projectAuthor', 'set-author', ['settings.projectAuthorDesc']),
+      control('daily-word-goal', 'settings.dailyWordGoal', 'set-daily-goal', [
+        'settings.dailyWordGoalDesc'
+      ]),
+      control('weekly-word-goal', 'settings.weeklyWordGoal', 'set-weekly-goal', [
+        'settings.weeklyWordGoalDesc'
+      ]),
+      control('monthly-word-goal', 'settings.monthlyWordGoal', 'set-monthly-goal', [
+        'settings.monthlyWordGoalDesc'
+      ]),
+      control('words-per-page', 'settings.wordsPerPage', 'set-words-per-page', [
+        'settings.wordsPerPageDesc'
+      ]),
+      control('project-word-goal', 'settings.projectWordGoal', 'set-project-goal', [
+        'settings.projectWordGoalDesc'
+      ])
+    ]
+  },
+  {
+    key: 'completion',
+    category: 'project',
+    titleKey: 'completion.title',
+    scope: 'project',
+    requiresProject: true,
+    keywords: ['completion', 'autocomplete', 'words', 'phrases', 'vocabulary', 'typing'],
+    controls: [
+      control('words', 'completion.words'),
+      control('trigger-length', 'completion.trigger', 'set-completion-trigger', [
+        'completion.triggerHint'
+      ])
+    ]
+  },
+  {
+    key: 'backups',
+    category: 'system',
+    titleKey: 'backup.title',
+    scope: 'mixed',
+    keywords: ['backup', 'archive', 'restore', 'zip', 'recovery', 'safety'],
+    controls: [
+      control('enabled', 'backup.enabled', undefined, ['backup.enabledDesc']),
+      control('folder', 'backup.folder', 'set-backup-folder', ['backup.folderDesc']),
+      control('interval', 'backup.interval', 'set-backup-interval', ['backup.intervalDesc']),
+      control('retention', 'backup.retention', 'set-backup-retention', ['backup.retentionDesc']),
+      control('milestone', 'backup.milestone', 'set-backup-milestone', [
+        'backup.milestoneDesc'
+      ])
+    ]
+  },
+  {
+    key: 'templates',
+    category: 'project',
+    titleKey: 'settings.templates',
+    scope: 'project',
+    requiresProject: true,
+    standalone: true,
+    keywords: ['template', 'character', 'location', 'item', 'lore'],
+    controls: [
+      control('character-templates', 'settings.characterTemplates'),
+      control('location-templates', 'settings.locationTemplates'),
+      control('item-templates', 'settings.itemTemplates'),
+      control('lore-templates', 'settings.loreTemplates')
+    ]
+  },
+  {
+    key: 'sceneStages',
+    category: 'project',
+    titleKey: 'stages.title',
+    scope: 'project',
+    requiresProject: true,
+    keywords: ['stage', 'status', 'revision', 'draft', 'progress', 'scene'],
+    controls: [
+      control('add-stage', 'stages.add'),
+      control('counts-as-written', 'stages.countsAsWritten', undefined, [
+        'stages.countsAsWrittenHint'
+      ])
+    ]
+  },
+  {
+    key: 'sceneLabels',
+    category: 'project',
+    titleKey: 'labels.title',
+    scope: 'project',
+    requiresProject: true,
+    keywords: ['label', 'labels', 'colour', 'color', 'flag', 'scene', 'corkboard'],
+    controls: [control('add-label', 'labels.add'), control('label-colour', 'labels.colour')]
+  },
+  {
+    key: 'themeTokens',
+    category: 'general',
+    titleKey: 'themeTokens.title',
+    scope: 'global',
+    keywords: ['token', 'theme', 'colour', 'color', 'appearance', 'font', 'radius', 'spacing'],
+    controls: [
+      control('profile', 'themeTokens.profile'),
+      control('reset-all', 'themeTokens.resetAll')
+    ]
+  },
+  {
+    key: 'groups',
+    category: 'project',
+    titleKey: 'groups.title',
+    scope: 'project',
+    requiresProject: true,
+    keywords: ['group', 'faction', 'house', 'crew', 'family', 'colour', 'color'],
+    controls: [control('add-group', 'groups.add'), control('harvest-groups', 'groups.harvest')]
+  },
+  {
+    key: 'sceneTemplates',
+    category: 'project',
+    titleKey: 'sceneTemplates.title',
+    scope: 'project',
+    requiresProject: true,
+    keywords: ['template', 'scene', 'preset', 'skeleton', 'start'],
+    controls: [control('summary', 'sceneTemplates.summary')]
+  },
+  {
+    key: 'tags',
+    category: 'project',
+    titleKey: 'tags.title',
+    scope: 'project',
+    requiresProject: true,
+    keywords: ['tag', 'label', 'colour', 'color', 'merge', 'rename', 'vocabulary'],
+    controls: [control('rename-tag', 'tags.rename'), control('tag-colour', 'tags.colour')]
+  },
+  {
+    key: 'manuscriptProperties',
+    category: 'project',
+    titleKey: 'props.title',
+    scope: 'project',
+    requiresProject: true,
+    keywords: ['property', 'field', 'custom', 'metadata', 'column', 'scene', 'chapter'],
+    controls: [control('add-property', 'props.add'), control('show-in-outliner', 'props.showInOutliner')]
+  },
+  {
+    key: 'updatesIntegrations',
+    category: 'system',
+    titleKey: 'settings.updatesIntegrations',
+    scope: 'global',
+    desktopOnly: true,
+    keywords: ['update', 'extension', 'github', 'token', 'integration'],
+    controls: [
+      control('application-updates', 'update.checkForUpdates', 'set-check-updates', [
+        'update.checkForUpdatesDesc'
+      ]),
+      control('extension-updates', 'settings.checkForExtensionUpdates', 'set-extension-updates', [
+        'settings.checkForExtensionUpdatesDesc'
+      ]),
+      control('github-token', 'settings.githubToken', 'set-github-token', [
+        'settings.githubTokenDesc'
+      ])
+    ]
+  },
+  {
+    key: 'languagePacks',
+    category: 'system',
+    titleKey: 'languagePacks.title',
+    scope: 'global',
+    keywords: ['language', 'locale', 'translation', 'lexicon', 'analysis', 'pack'],
+    controls: [
+      control('rescan', 'languagePacks.rescan'),
+      control('open-languages', 'languagePacks.openLocales'),
+      control('open-analysis', 'languagePacks.openAnalysis')
+    ]
+  },
+  {
+    key: 'diagnostics',
+    category: 'system',
+    titleKey: 'settings.diagnostics',
+    scope: 'global',
+    keywords: ['log', 'logging', 'diagnostic', 'support'],
+    controls: [
+      control(
+        'display-information',
+        'settings.displayInfoRefresh',
+        'set-display-diagnostics',
+        ['settings.displayInfoDesc'],
+        ['dpi', 'scale', 'zoom', 'window size', 'monitor']
+      ),
+      control('diagnostic-logging', 'settings.diagnosticLogging', 'set-diagnostic-logging', [
+        'settings.diagnosticLoggingDesc'
+      ]),
+      control('open-log-folder', 'settings.openLogFolder'),
+      control('clear-logs', 'settings.clearLogs')
+    ]
+  },
+  {
+    key: 'narration',
+    category: 'system',
+    titleKey: 'settings.narration',
+    scope: 'global',
+    // The engines are downloads onto this machine, and an installed model is
+    // not a thing a project carries.
+    desktopOnly: true,
+    keywords: [
+      'narration',
+      'speech',
+      'voice',
+      'engine',
+      'tts',
+      'audiobook',
+      'read aloud',
+      'prepare',
+      'download'
+    ],
+    controls: [
+      control('engines', 'settings.narrationEngines', undefined, ['settings.narrationDesc'])
+    ]
+  },
+  {
+    key: 'extensions',
+    category: 'system',
+    titleKey: 'extensions.title',
+    scope: 'global',
+    desktopOnly: true,
+    standalone: true,
+    keywords: ['extension', 'plugin', 'addon']
+  }
+] as const

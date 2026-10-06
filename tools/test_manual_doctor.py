@@ -57,7 +57,9 @@ class ManualDoctorTests(unittest.TestCase):
 
         messages = self.messages()
         self.assertTrue(any("missing manual page" in message for message in messages))
-        self.assertTrue(any("missing heading '#not-here'" in message for message in messages))
+        self.assertTrue(
+            any("missing heading '#not-here'" in message for message in messages)
+        )
 
     def test_reports_missing_image(self) -> None:
         self.write("README.md", "# Manual\n\n[First](01-first.md)\n")

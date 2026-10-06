@@ -52,7 +52,6 @@ public sealed class SettingsField
     /// <summary>Localized label rendered next to the input.</summary>
     public string Label { get; init; } = string.Empty;
 
-    /// <summary>The editor kind.</summary>
     public SettingsFieldType Type { get; init; } = SettingsFieldType.Text;
 
     /// <summary>Current value as a string.</summary>

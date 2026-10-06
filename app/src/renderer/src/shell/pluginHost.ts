@@ -239,9 +239,6 @@ async function runPlugins(): Promise<void> {
     // reason to visit. Loading is idempotent on the host.
     await rpc.request('extensions/load')
     plugins = await rpc.request<RendererPlugin[]>('extensions/rendererPlugins')
-    // The protocol resolves novalist-ext://<id>/... against these, so they are
-    // registered before a single import is attempted. Registering replaces the
-    // whole map, so the webview roots go back in with them.
     const views = await rpc
       .request<{ extensionId: string; folderPath: string }[]>('extensions/views')
       .catch(() => [])

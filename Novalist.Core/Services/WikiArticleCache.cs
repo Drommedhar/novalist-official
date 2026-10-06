@@ -7,7 +7,6 @@ namespace Novalist.Core.Services;
 /// <summary>A cached AI-generated Wiki summary for one entity.</summary>
 public sealed class WikiArticleCacheEntry
 {
-    /// <summary>The generated summary prose.</summary>
     public string Summary { get; set; } = string.Empty;
 
     /// <summary>When it was generated (ISO 8601 UTC).</summary>

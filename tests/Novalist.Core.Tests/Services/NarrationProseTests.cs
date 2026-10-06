@@ -21,9 +21,7 @@ public class NarrationProseTests
         return NarrationScript.Build(
             html,
             DialogueAttributor.BuildCandidates([Mira], wordBoundaries: true),
-            DialogueAttributor.BuildLanguage(lexicon),
-            EmotionDirector.BuildLanguage(lexicon),
-            null, null, null, null);
+            new NarrationLanguageContext(DialogueAttributor.BuildLanguage(lexicon), EmotionDirector.BuildLanguage(lexicon)));
     }
 
     private static string Annotate(string html) => NarrationProse.Annotate(html, Segments(html));

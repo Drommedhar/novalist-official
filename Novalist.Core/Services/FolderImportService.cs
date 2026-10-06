@@ -12,13 +12,15 @@ public sealed record FolderImportIssue(string Path, string Kind);
 public sealed record FolderImportProgress(
     int Total, int Processed, int Imported, int Skipped, int Failed, bool Done,
     FolderImportIssue[] Issues);
+internal sealed record ImportScope(BookData Book, ProjectMetadata Project, ScenesManifest Scenes, string BookRoot);
 
 /// <summary>
 /// A folder import keeps only file paths during discovery and reads one body at
 /// a time. Folder rules inherit down the tree; callers advance bounded batches
 /// so the workspace queue and the interface stay available between requests.
 /// </summary>
-public sealed class FolderImportService(IProjectService projects, IFileService files)
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
+public sealed partial class FolderImportService(IProjectService projects, IFileService files)
 {
     private static readonly MarkdownPipeline MarkdownPipeline =
         new MarkdownPipelineBuilder().DisableHtml().UseEmphasisExtras().Build();
@@ -35,8 +37,8 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
     private string? _draftRoot;
     private string _sectionTitle = string.Empty;
     private string _tag = string.Empty;
-    private string[]? _targets;
-    private FolderImportParser? _parser;
+    private sealed record ImportConfiguration(string[] Targets, FolderImportParser Parser);
+    private ImportConfiguration? _configuration;
     private bool _projectDirty, _scenesDirty;
     private bool _structured;
     private int _processed, _imported, _skipped, _failed, _nextChapterOrder;
@@ -97,7 +99,7 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
         string defaultTarget, Dictionary<string, string> overrides, string sectionTitle, string? tag = null)
     {
         EnsureScope();
-        if (_targets != null) throw new InvalidOperationException("This import has already started.");
+        if (_configuration != null) throw new InvalidOperationException("This import has already started.");
         var knownFolders = Folders.Select(folder => folder.Path).ToHashSet(StringComparer.Ordinal);
         var targets = _entities.GetCustomEntityTypes().Select(type => type.TypeKey)
             .Concat(["skip", "scene", "research", "character", "location", "item", "lore"])
@@ -106,9 +108,9 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
                 !knownFolders.Contains(pair.Key) || !targets.Contains(pair.Value)))
             throw new ArgumentException("Choose valid folders and import targets.");
         _rules = new Dictionary<string, string>(overrides, StringComparer.Ordinal) { [string.Empty] = defaultTarget };
-        _targets = [.. _paths.Select(path => ResolveTarget(Parent(path), _rules))];
         _sectionTitle = sectionTitle;
-        _parser = new FolderImportParser(new FolderImportSchema(projects.ActiveBook, _entities.GetCustomEntityTypes()));
+        _configuration = new ImportConfiguration([.. _paths.Select(path => ResolveTarget(Parent(path), _rules))],
+            new FolderImportParser(new FolderImportSchema(projects.ActiveBook, _entities.GetCustomEntityTypes())));
         _tag = (tag ?? string.Empty).Trim();
         PrepareWriting();
         return Progress();
@@ -127,26 +129,27 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
 
     private void PrepareWriting()
     {
-        _existing = projects.ScenesManifest!.Chapters.Values.SelectMany(scenes => scenes)
-            .Select(scene => scene.Id).Concat(projects.ScenesManifest.Archived.Select(scene => scene.Id))
-            .Concat(projects.CurrentProject!.ResearchItems.Select(item => item.Id)).ToHashSet(StringComparer.Ordinal);
-        foreach (var chapter in projects.ActiveBook!.Chapters)
+        var scope = EnsureScope();
+        _existing = scope.Scenes.Chapters.Values.SelectMany(scenes => scenes)
+            .Select(scene => scene.Id).Concat(scope.Scenes.Archived.Select(scene => scene.Id))
+            .Concat(scope.Project.ResearchItems.Select(item => item.Id)).ToHashSet(StringComparer.Ordinal);
+        foreach (var chapter in scope.Book.Chapters)
         {
             _chapters[chapter.Guid] = chapter;
             _orders[chapter.Guid] = projects.GetScenesForChapter(chapter.Guid).Select(scene => scene.Order).DefaultIfEmpty().Max();
         }
-        _nextChapterOrder = projects.ActiveBook.Chapters.Select(chapter => chapter.Order).DefaultIfEmpty().Max();
+        _nextChapterOrder = scope.Book.Chapters.Select(chapter => chapter.Order).DefaultIfEmpty().Max();
     }
 
     public async Task<FolderImportProgress> ImportBatchAsync(int batchSize = 40)
     {
         EnsureScope();
-        if (_targets == null) throw new InvalidOperationException("Choose import targets first.");
+        var configuration = _configuration ?? throw new InvalidOperationException("Choose import targets first.");
         var end = Math.Min(Total, _processed + Math.Clamp(batchSize, 1, 100));
         for (; _processed < end; _processed++)
         {
             var relative = _paths[_processed];
-            var target = _targets[_processed];
+            var target = configuration.Targets[_processed];
             var id = Identity(target, relative);
             if (target == "skip" || _existing.Contains(id) || await EntityExistsAsync(target, id))
             {
@@ -164,7 +167,7 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
                 continue;
             }
             ParsedFolderImport document;
-            try { document = _parser!.Parse(relative, text, target); }
+            try { document = configuration.Parser.Parse(relative, text, target); }
             catch (FormatException)
             {
                 Fail(relative, "parse");
@@ -208,8 +211,9 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
 
     private async Task WriteDocumentAsync(string id, string relative, string target, ParsedFolderImport document, string origin, string folder)
     {
+        var scope = EnsureScope();
         if (!_structured) await ImportImagesAsync(document.Images, origin);
-        document.Images.AddRange(await new ImportImageStore(projects, files).ResolveAsync(document.ImageReferences));
+        document.Images.AddRange(await new ImportImageStore(scope.Book, scope.BookRoot, files).ResolveAsync(document.ImageReferences));
         var note = new VaultNote { RelativePath = relative, Title = document.Title, Body = document.Content };
         var tags = document.Tags.Concat(folder.Split('/', StringSplitOptions.RemoveEmptyEntries))
             .Concat(_tag.Length > 0 ? new[] { _tag } : [])
@@ -230,11 +234,11 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
                     Content = note.Body,
                     Tags = tags,
                     Properties = source,
-                    Order = projects.CurrentProject!.ResearchItems.Count,
+                    Order = scope.Project.ResearchItems.Count,
                     Type = ResearchItemType.Note
                 };
                 document.Apply(research, _sectionTitle);
-                projects.CurrentProject.ResearchItems.Add(research);
+                scope.Project.ResearchItems.Add(research);
                 _projectDirty = true;
                 break;
             case "character":
@@ -281,44 +285,6 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
         }
     }
 
-    private async Task ImportImagesAsync(List<EntityImage> images, string sourceFile)
-    {
-        foreach (var image in images.ToArray())
-        {
-            var path = image.Path.Replace('\\', '/');
-            // Embedded links are local image references, not arbitrary paths or URLs.
-            if (Path.IsPathRooted(path) || path.Contains(':') || path.Split('/').Contains("..")
-                || Path.GetExtension(path).ToLowerInvariant() is not (".png" or ".jpg" or ".jpeg" or ".gif" or ".bmp" or ".svg" or ".webp"))
-            {
-                images.Remove(image);
-                continue;
-            }
-            string? source = null;
-            var boundary = Path.GetDirectoryName(_root) ?? _root;
-            for (var directory = Path.GetDirectoryName(Path.GetFullPath(sourceFile)); directory != null; directory = Path.GetDirectoryName(directory))
-            {
-                var candidate = Path.Combine(directory, path);
-                if (await files.ExistsAsync(candidate)) { source = candidate; break; }
-                if (directory.Equals(boundary, StringComparison.OrdinalIgnoreCase)) break;
-            }
-            if (source == null)
-            {
-                // A relocated export can still reference an image already in this book.
-                if (await files.ExistsAsync(Path.Combine(_bookRoot!, path))) image.Path = path;
-                else images.Remove(image);
-                continue;
-            }
-            if (!_imagePaths.TryGetValue(source, out var imported))
-            {
-                imported = Path.Combine(projects.ActiveBook!.ImageFolder, "Imported", Identity("image", source) + Path.GetExtension(source).ToLowerInvariant()).Replace('\\', '/');
-                var destination = Path.Combine(_bookRoot!, imported);
-                if (!await files.ExistsAsync(destination)) await files.WriteBytesAsync(destination, await files.ReadBytesAsync(source));
-                _imagePaths[source] = imported;
-            }
-            image.Path = imported;
-        }
-    }
-
     internal async Task SavePendingAsync()
     {
         // Whole manifests are saved once per batch, rather than once per file.
@@ -342,10 +308,12 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
 
     private async Task<bool> ImportSceneAsync(string id, VaultNote note, List<string> tags, Dictionary<string, string> source, ParsedFolderImport document, string folder)
     {
+        var scope = EnsureScope();
         var chapterId = Identity("chapter", folder);
-        var isNew = !_chapters.TryGetValue(chapterId, out var chapter);
-        if (isNew)
+        var isNew = false;
+        if (!_chapters.TryGetValue(chapterId, out var chapter))
         {
+            isNew = true;
             var title = folder.Length > 0 ? folder : Path.GetFileName(_root);
             var safeTitle = new string(title.Where(character => !Path.GetInvalidFileNameChars().Contains(character)).ToArray());
             chapter = new ChapterData
@@ -370,24 +338,25 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
             AnalysisOverrides = new SceneAnalysisOverrides { Tags = tags }
         };
         document.Apply(scene, _sectionTitle);
-        await files.CreateDirectoryAsync(projects.GetChapterFolderPath(chapter!));
-        await projects.WriteSceneContentAsync(chapter!, scene, html);
+        await files.CreateDirectoryAsync(projects.GetChapterFolderPath(chapter));
+        await projects.WriteSceneContentAsync(chapter, scene, html);
         if (isNew)
         {
-            projects.ActiveBook!.Chapters.Add(chapter!);
-            projects.ScenesManifest!.Chapters[chapterId] = [];
-            _chapters[chapterId] = chapter!;
+            scope.Book.Chapters.Add(chapter);
+            scope.Scenes.Chapters[chapterId] = [];
+            _chapters[chapterId] = chapter;
             _nextChapterOrder++;
         }
-        projects.ScenesManifest!.Chapters[chapterId].Add(scene);
+        scope.Scenes.Chapters[chapterId].Add(scene);
         _orders[chapterId] = scene.Order;
         return isNew;
     }
 
     private async Task<bool> EntityExistsAsync(string target, string id)
     {
-        var book = projects.ActiveBook!;
-        var project = projects.CurrentProject!;
+        var scope = EnsureScope();
+        var book = scope.Book;
+        var project = scope.Project;
         var folders = target switch
         {
             "character" => (book.CharacterFolder, project.CharacterFolder),
@@ -396,7 +365,7 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
             "lore" => (book.LoreFolder, project.LoreFolder),
             _ => (_entities.GetCustomEntityTypes().FirstOrDefault(type => type.TypeKey == target)?.FolderName, (string?)null)
         };
-        return folders.Item1 != null && (await files.ExistsAsync(Path.Combine(_bookRoot!, folders.Item1, $"{id}.json"))
+        return folders.Item1 != null && (await files.ExistsAsync(Path.Combine(scope.BookRoot, folders.Item1, $"{id}.json"))
             || projects.WorldBibleRoot != null && await files.ExistsAsync(Path.Combine(
                 projects.WorldBibleRoot, folders.Item2 ?? folders.Item1, $"{id}.json")));
     }
@@ -408,10 +377,12 @@ public sealed class FolderImportService(IProjectService projects, IFileService f
         return new Guid(SHA256.HashData(Encoding.UTF8.GetBytes(target + "\n" + path)).AsSpan(0, 16)).ToString();
     }
 
-    internal void EnsureScope()
+    internal ImportScope EnsureScope()
     {
-        if (_bookRoot == null || _bookRoot != projects.ActiveBookRoot || _draftRoot != projects.ActiveDraftRoot)
+        if (_bookRoot is not { } bookRoot || bookRoot != projects.ActiveBookRoot || _draftRoot != projects.ActiveDraftRoot
+            || projects.ActiveBook is not { } book || projects.CurrentProject is not { } project || projects.ScenesManifest is not { } scenes)
             throw new InvalidOperationException("The open book or draft changed. Choose the folder again.");
+        return new ImportScope(book, project, scenes, bookRoot);
     }
 
     private void Fail(string path, string kind)

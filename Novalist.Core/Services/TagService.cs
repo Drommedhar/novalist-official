@@ -139,9 +139,8 @@ public sealed class TagService
 
         foreach (var scene in AllScenes())
         {
-            var tags = scene.AnalysisOverrides?.Tags;
-            if (tags == null || !Has(tags, source)) continue;
-            scene.AnalysisOverrides!.Tags = Replace(tags, source, target);
+            if (scene.AnalysisOverrides is not { Tags: { } tags } overrides || !Has(tags, source)) continue;
+            overrides.Tags = Replace(tags, source, target);
             changed++;
         }
         if (changed > 0) await _projectService.SaveScenesAsync();

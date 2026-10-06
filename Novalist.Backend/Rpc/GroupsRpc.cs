@@ -51,18 +51,22 @@ public sealed class GroupsRpc
             ?? throw new InvalidOperationException("No active book.");
 
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var order = 0;
-        book.Groups = [.. (groups ?? [])
-            .Where(g => !string.IsNullOrWhiteSpace(g.Name))
-            .Where(g => seen.Add(g.Name!.Trim()))
-            .Select(g => new EntityGroup
+        var cleaned = new List<EntityGroup>();
+        foreach (var group in groups ?? [])
+        {
+            if (string.IsNullOrWhiteSpace(group.Name)) continue;
+            var name = group.Name.Trim();
+            if (!seen.Add(name)) continue;
+            cleaned.Add(new EntityGroup
             {
-                Id = string.IsNullOrWhiteSpace(g.Id) ? Guid.NewGuid().ToString() : g.Id!,
-                Name = g.Name!.Trim(),
-                Color = string.IsNullOrWhiteSpace(g.Color) ? "#8b8b8b" : g.Color!.Trim(),
-                Description = (g.Description ?? string.Empty).Trim(),
-                Order = order++
-            })];
+                Id = string.IsNullOrWhiteSpace(group.Id) ? Guid.NewGuid().ToString() : group.Id,
+                Name = name,
+                Color = string.IsNullOrWhiteSpace(group.Color) ? "#8b8b8b" : group.Color.Trim(),
+                Description = (group.Description ?? string.Empty).Trim(),
+                Order = cleaned.Count
+            });
+        }
+        book.Groups = cleaned;
 
         await _workspace.Projects.SaveProjectAsync();
         return await ListAsync();

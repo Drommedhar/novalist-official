@@ -1,0 +1,85 @@
+{
+  "status": "implemented-and-verified",
+  "authorization": "User explicitly approved the proposed editor/map decomposition on 2026-10-06.",
+  "implementationStatus": "All three oversized scripts were replaced with responsibility modules. All eleven oversized map functions were decomposed. The full scanner has no diagnostics in these refactored components.",
+  "historicalProposalReview": {
+    "status": "proposed-not-applied",
+    "implementationStatus": "This is a component, integration and validation proposal, not an implementation patch. Automatic review rejected the earlier generator before it ran.",
+    "reason": "Automatic approval review rejected broad live-script decomposition and a subsequent complex geometry/texture-loader extraction because of runtime and integration risk.",
+    "narrowerAlternativeAssessed": {
+      "source": "app/src/renderer/public/editor/editor.js",
+      "method": "AST-only relocation of top-level function declarations while preserving shared state and initialization order.",
+      "topLevelFunctions": 175,
+      "functionLinesIncludingLeadingComments": 3281,
+      "remainingInitializerAndInlineHandlerLines": 1403,
+      "outcome": "Declaration-only extraction cannot satisfy the file-size limit. Further decomposition must also address event handlers, shared bindings and cross-script dependencies; no partial source rewrite was applied."
+    }
+  },
+  "scope": [
+    {
+      "retiredSource": "app/src/renderer/public/editor/editor.js",
+      "entry": "app/src/renderer/public/editor/editor.html",
+      "readinessScript": "app/src/renderer/public/editor/editor-ready.js",
+      "responsibilityScripts": 44,
+      "integration": "Ordered classic scripts with explicit function publication and live lexical-state accessors preserve the host bridge and initialization order. Mobile assets now include all editor JavaScript files.",
+      "evidence": "aislop-editor-verification.json"
+    },
+    {
+      "retiredSource": "app/src/renderer/public/map/map.js",
+      "entry": "app/src/renderer/public/map/map-bootstrap.js",
+      "modulesIncludingEntry": 43,
+      "integration": "Explicit ES-module dependencies, shared map state and ordered initialization preserve host callbacks and live Map3DHost getters.",
+      "decomposedFunctions": [
+        "renderSplines",
+        "bbEntityPicker",
+        "buildFloorPlanInto"
+      ],
+      "evidence": "aislop-map-engine-verification.json"
+    },
+    {
+      "retiredSource": "app/src/renderer/public/map/map3d.js",
+      "entry": "app/src/renderer/public/map/map3d-bootstrap.js",
+      "modulesDirectory": "app/src/renderer/public/map/map3d/",
+      "modulesIncludingEntry": 29,
+      "integration": "Scene, sky, water, grass and tree state have explicit owners. Dependencies resolve to the same bundled libraries. Lifecycle, geometry, loading and GPU disposal were checked.",
+      "decomposedFunctions": [
+        "makeWater",
+        "buildRiverWaterGeo",
+        "buildGrass",
+        "sampleGrassTile",
+        "updateGrassVisibility",
+        "loadTreeAssets",
+        "buildTrees",
+        "updateTreeVisibility"
+      ],
+      "evidence": "aislop-map3d-verification.json"
+    }
+  ],
+  "acceptance": [
+    "No disabled rules, ignore entries or baseline changes.",
+    "Every extracted component has explicit dependencies and remains below the configured complexity limits.",
+    "Editor bridge doctor continues to find every host method implemented and called.",
+    "Existing editor proofing, composition, comments and dictation suites remain green.",
+    "Dialogue and map geometry output-equivalence checks remain green.",
+    "Map tests cover layer visibility, pins, image transforms, splines, terrain, buildings and floor plans.",
+    "Representative 3D scenes validate water, grass, trees and repeated enter/exit GPU cleanup.",
+    "HTML script references, syntax checks and the complete aislop scan are rerun."
+  ],
+  "acceptanceStatus": "Passed; component evidence records AST and browser comparisons, and the combined integration report records builds, source checks, mobile assets and real GPU entry/exit.",
+  "combinedEvidence": "aislop-approved-integration-verification.json",
+  "scanner": {
+    "version": "0.18.0",
+    "scopedScores": {
+      "editor": 100,
+      "map2d": 100,
+      "map3d": 100
+    },
+    "approvedFindingsFixed": 14,
+    "approvedFindingsRemaining": 0,
+    "fullScanScore": 89,
+    "fullScan": "aislop-scan-2026-10-06.json",
+    "classification": "aislop-review-2026-10-06.json",
+    "rulesDisabled": false,
+    "configurationChanged": false
+  }
+}

@@ -1,14 +1,14 @@
 """MSBuild regression checks for per-configuration/RID native output isolation."""
+
 import json
-from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from xml.sax.saxutils import escape
-
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -22,22 +22,49 @@ class AppleSpeechBuildTests(unittest.TestCase):
             mobile = ROOT / "Novalist.Mobile" / "Novalist.Mobile.csproj"
             references = ET.parse(mobile).findall(".//ProjectReference")
             for reference in references:
-                reference.set("Include", str((mobile.parent / reference.get("Include").replace("\\", "/")).resolve()))
-            project.write_text('''<Project Sdk="Microsoft.NET.Sdk">
+                reference.set(
+                    "Include",
+                    str(
+                        (
+                            mobile.parent / reference.get("Include").replace("\\", "/")
+                        ).resolve()
+                    ),
+                )
+            project.write_text(
+                """<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
-  <ItemGroup>''' + "".join(ET.tostring(reference, encoding="unicode") for reference in references)
-                + "</ItemGroup></Project>")
-            targets.write_text('''<Project>
+  <ItemGroup>"""
+                + "".join(
+                    ET.tostring(reference, encoding="unicode")
+                    for reference in references
+                )
+                + "</ItemGroup></Project>"
+            )
+            targets.write_text("""<Project>
 <ItemGroup><ProjectReferenceTargets Include="InspectBuildOutput" Targets="InspectBuildOutput" /></ItemGroup>
 <Target Name="InspectBuildOutput">
   <Message Importance="high" Text="BUILD_OUTPUT|$(TargetPath)" />
-</Target></Project>''')
-            result = subprocess.run([
-                "dotnet", "msbuild", str(project), "-graphBuild", "-t:InspectBuildOutput",
-                "-p:RuntimeIdentifier=ios-arm64", f"-p:CustomAfterMicrosoftCommonTargets={targets}",
-            ], capture_output=True, text=True, timeout=60, check=True)
-            outputs = [line.split("BUILD_OUTPUT|", 1)[1] for line in result.stdout.splitlines()
-                       if "BUILD_OUTPUT|" in line]
+</Target></Project>""")
+            result = subprocess.run(
+                [
+                    "dotnet",
+                    "msbuild",
+                    str(project),
+                    "-graphBuild",
+                    "-t:InspectBuildOutput",
+                    "-p:RuntimeIdentifier=ios-arm64",
+                    f"-p:CustomAfterMicrosoftCommonTargets={targets}",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=60,
+                check=True,
+            )
+            outputs = [
+                line.split("BUILD_OUTPUT|", 1)[1]
+                for line in result.stdout.splitlines()
+                if "BUILD_OUTPUT|" in line
+            ]
             self.assertGreaterEqual(len(outputs), 4)
             self.assertEqual(len(outputs), len(set(outputs)), result.stdout)
 
@@ -55,37 +82,71 @@ class AppleSpeechBuildTests(unittest.TestCase):
       AdditionalProperties="BuildAppleDesktopSpeech=false;EnableImportApi=false" />
   </ItemGroup>
 </Project>''')
-            for rid in ("ios-arm64", "iossimulator-arm64", "iossimulator-x64", "win-x64", "osx-arm64", "linux-x64"):
+            for rid in (
+                "ios-arm64",
+                "iossimulator-arm64",
+                "iossimulator-x64",
+                "win-x64",
+                "osx-arm64",
+                "linux-x64",
+            ):
                 with self.subTest(rid=rid):
-                    subprocess.run([
-                        "dotnet", "msbuild", str(project), "-t:GenerateRestoreGraphFile",
-                        f"-p:RuntimeIdentifier={rid}", f"-p:RestoreGraphOutputPath={graph_path}",
-                    ], capture_output=True, text=True, timeout=60, check=True)
+                    subprocess.run(
+                        [
+                            "dotnet",
+                            "msbuild",
+                            str(project),
+                            "-t:GenerateRestoreGraphFile",
+                            f"-p:RuntimeIdentifier={rid}",
+                            f"-p:RestoreGraphOutputPath={graph_path}",
+                        ],
+                        capture_output=True,
+                        text=True,
+                        timeout=60,
+                        check=True,
+                    )
                     graph = json.loads(graph_path.read_text())
-                    entry = next(value for key, value in graph["projects"].items()
-                                 if Path(key).resolve() == backend.resolve())
+                    entry = next(
+                        value
+                        for key, value in graph["projects"].items()
+                        if Path(key).resolve() == backend.resolve()
+                    )
                     references = entry["frameworks"]["net8.0"]["frameworkReferences"]
-                    self.assertEqual("Microsoft.AspNetCore.App" in references, not rid.startswith("ios"))
+                    self.assertEqual(
+                        "Microsoft.AspNetCore.App" in references,
+                        not rid.startswith("ios"),
+                    )
 
     def evaluate(self, platform, configuration, rid="", enabled=True):
         # No Apple workload/restore required: reproduce the real SDK import
         # ordering while only running the native configuration target.
-        with tempfile.TemporaryDirectory(prefix="novalist-speech-msbuild-") as directory:
+        with tempfile.TemporaryDirectory(
+            prefix="novalist-speech-msbuild-"
+        ) as directory:
             project = Path(directory) / "Probe.csproj"
             project.write_text(f'''<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
-  <Import Project="{escape(str(ROOT / 'native' / 'AppleSpeech' / f'AppleSpeech.{platform}.targets'))}" />
+  <Import Project="{escape(str(ROOT / "native" / "AppleSpeech" / f"AppleSpeech.{platform}.targets"))}" />
 </Project>''')
-            result = subprocess.run([
-                "dotnet", "msbuild", str(project),
-                f"-t:Configure{'Mac' if platform == 'Mac' else 'Ios'}Speech",
-                f"-p:Configuration={configuration}", f"-p:RuntimeIdentifier={rid}",
-                f"-p:BuildAppleDesktopSpeech={str(enabled).lower()}",
-                "-getProperty:IntermediateOutputPath,_SpeechLibrary,_SpeechArchive,_SpeechArch,_SpeechPlatform",
-                "-getItem:NativeReference",
-            ], capture_output=True, text=True, timeout=30, check=True)
+            result = subprocess.run(
+                [
+                    "dotnet",
+                    "msbuild",
+                    str(project),
+                    f"-t:Configure{'Mac' if platform == 'Mac' else 'Ios'}Speech",
+                    f"-p:Configuration={configuration}",
+                    f"-p:RuntimeIdentifier={rid}",
+                    f"-p:BuildAppleDesktopSpeech={str(enabled).lower()}",
+                    "-getProperty:IntermediateOutputPath,_SpeechLibrary,_SpeechArchive,_SpeechArch,_SpeechPlatform",
+                    "-getItem:NativeReference",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=True,
+            )
             return json.loads(result.stdout)
 
     @unittest.skipUnless(sys.platform == "darwin", "Mac target requires macOS")
@@ -95,9 +156,13 @@ class AppleSpeechBuildTests(unittest.TestCase):
             for rid, arch in (("osx-arm64", "arm64"), ("osx-x64", "x86_64")):
                 with self.subTest(configuration=configuration, rid=rid):
                     properties = self.evaluate("Mac", configuration, rid)["Properties"]
-                    intermediate = properties["IntermediateOutputPath"].replace("\\", "/")
-                    self.assertEqual(properties["_SpeechLibrary"].replace("\\", "/"),
-                                     f"{intermediate}apple-speech/{arch}/libNovalistSpeech.dylib")
+                    intermediate = properties["IntermediateOutputPath"].replace(
+                        "\\", "/"
+                    )
+                    self.assertEqual(
+                        properties["_SpeechLibrary"].replace("\\", "/"),
+                        f"{intermediate}apple-speech/{arch}/libNovalistSpeech.dylib",
+                    )
                     self.assertIn(f"/{configuration}/net8.0/{rid}/", intermediate)
                     self.assertEqual(properties["_SpeechArch"], arch)
                     outputs.add(properties["_SpeechLibrary"])
@@ -106,20 +171,28 @@ class AppleSpeechBuildTests(unittest.TestCase):
     def test_mobile_reference_tracks_final_configuration_and_runtime(self):
         outputs = set()
         for configuration in ("Debug", "Release"):
-            for rid, arch, platform in (("ios-arm64", "arm64", "ios"),
-                                        ("iossimulator-arm64", "arm64", "simulator"),
-                                        ("iossimulator-x64", "x86_64", "simulator")):
+            for rid, arch, platform in (
+                ("ios-arm64", "arm64", "ios"),
+                ("iossimulator-arm64", "arm64", "simulator"),
+                ("iossimulator-x64", "x86_64", "simulator"),
+            ):
                 with self.subTest(configuration=configuration, rid=rid):
                     result = self.evaluate("iOS", configuration, rid)
                     properties = result["Properties"]
-                    intermediate = properties["IntermediateOutputPath"].replace("\\", "/")
+                    intermediate = properties["IntermediateOutputPath"].replace(
+                        "\\", "/"
+                    )
                     archive = f"{intermediate}apple-speech/{rid}/libNovalistSpeech.a"
-                    self.assertEqual(properties["_SpeechArchive"].replace("\\", "/"), archive)
+                    self.assertEqual(
+                        properties["_SpeechArchive"].replace("\\", "/"), archive
+                    )
                     self.assertEqual(properties["_SpeechArch"], arch)
                     self.assertEqual(properties["_SpeechPlatform"], platform)
                     references = result["Items"]["NativeReference"]
                     self.assertEqual(len(references), 1)
-                    self.assertEqual(references[0]["Identity"].replace("\\", "/"), archive)
+                    self.assertEqual(
+                        references[0]["Identity"].replace("\\", "/"), archive
+                    )
                     self.assertEqual(references[0]["ForceLoad"], "true")
                     self.assertEqual(references[0]["SmartLink"], "false")
                     outputs.add(archive)

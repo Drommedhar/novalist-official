@@ -12,6 +12,7 @@ kept working because each var() carried a hardcoded fallback.
 
 Run from the repo root:  python tools/token-doctor.py
 """
+
 from __future__ import annotations
 
 import argparse
@@ -44,7 +45,9 @@ EXTENSION_WORKSPACES = [
 RAW_COLOUR = re.compile(r"#[0-9a-fA-F]{3,8}\b|\brgba?\(")
 
 RAW_FONT = re.compile(r"font-size:\s*[\d.]+px")
-RAW_SPACE = re.compile(r"\b(?:padding|margin|gap|row-gap|column-gap):\s*[^;]*?\b[\d.]+px")
+RAW_SPACE = re.compile(
+    r"\b(?:padding|margin|gap|row-gap|column-gap):\s*[^;]*?\b[\d.]+px"
+)
 
 # Files that legitimately measure in raw pixels: the token scale itself, and
 # anything drawing at a fixed device size rather than at a text size.
@@ -65,7 +68,7 @@ def extension_roots() -> list[pathlib.Path]:
     return roots
 
 
-DEFINITION = re.compile(r"^\s*(--n[lv]-[a-z0-9-]+)\s*:", re.M)
+DEFINITION = re.compile(r"^\s*(--n[lv]-[a-z0-9-]+)\s*:", re.MULTILINE)
 REFERENCE = re.compile(r"var\(\s*(--n[lv]-[a-z0-9-]+)")
 # var(--token, fallback) - legal CSS, but on a token that does exist the
 # fallback is dead weight that silently drifts from the real value.
@@ -87,6 +90,69 @@ def family(name: str) -> str:
     """The token's family: --nl-surface-card and --nl-surface-window share one."""
     parts = name.split("-")
     return "-".join(parts[:4]) if len(parts) > 3 else name
+
+
+def collect_references(root: pathlib.Path, families: set[str]):
+    used: dict[str, set[str]] = {}
+    fallbacks: dict[str, set[str]] = {}
+    for path in sorted(root.rglob("*.css")):
+        text = path.read_text(encoding="utf-8")
+        for match in REFERENCE.finditer(text):
+            used.setdefault(match.group(1), set()).add(path.as_posix())
+        for match in REFERENCE_WITH_FALLBACK.finditer(text):
+            fallbacks.setdefault(match.group(1), set()).add(path.as_posix())
+
+    for pattern in ("*.ts", "*.tsx"):
+        for path in sorted(root.rglob(pattern)):
+            text = path.read_text(encoding="utf-8")
+            for match in REFERENCE.finditer(text):
+                used.setdefault(match.group(1), set()).add(path.as_posix())
+            for match in SCRIPT_DASHED.finditer(text):
+                used.setdefault(match.group(1), set()).add(path.as_posix())
+            for match in SCRIPT_BARE.finditer(text):
+                name = "--" + match.group(1)
+                if family(name) in families:
+                    used.setdefault(name, set()).add(path.as_posix())
+
+    # The same reference scan over every extension web folder in the workspace -
+    # but only for tokens that do not exist, not for fallbacks.
+    #
+    # A fallback is dead weight in the renderer, where :root is always right
+    # there. In an extension panel it is load-bearing: the panel is a separate
+    # document that inherits no tokens at all, and gets them only once the host
+    # posts them in. So var(--nl-surface-card, #252526) is what a panel should
+    # write - it is the colour before the theme arrives, and the colour for
+    # good on a host too old to send one. Extensions ship on their own release
+    # cycle, so "too old" is a real host, not a hypothetical one.
+    for extension_root in extension_roots():
+        for pattern in ("*.css", "*.html", "*.js", "*.ts", "*.tsx"):
+            for path in sorted(extension_root.rglob(pattern)):
+                if any(part in SKIP_DIRS for part in path.parts):
+                    continue
+                text = path.read_text(encoding="utf-8", errors="ignore")
+                for match in REFERENCE.finditer(text):
+                    used.setdefault(match.group(1), set()).add(path.as_posix())
+
+    return used, fallbacks
+
+
+def raw_values(root: pathlib.Path) -> tuple[list[str], list[str]]:
+    # Sizes written by hand instead of taken from the scale.
+    raw: list[str] = []
+    colours: list[str] = []
+    for path in sorted(root.rglob("*.css")):
+        if path.name in RAW_ALLOWED:
+            continue
+        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if RAW_FONT.search(line) or RAW_SPACE.search(line):
+                raw.append(f"{path.as_posix()}:{number}: {line.strip()}")
+            # rgb(from var(--nl-accent) r g b / 0.05) derives from the token
+            # and is exactly what this check wants people to write, so a
+            # declaration that already names a token is left alone.
+            if RAW_COLOUR.search(line) and "var(--" not in line:
+                colours.append(f"{path.as_posix()}:{number}: {line.strip()}")
+
+    return raw, colours
 
 
 def main() -> int:
@@ -112,65 +178,16 @@ def main() -> int:
     defined = set(DEFINITION.findall(tokens_file.read_text(encoding="utf-8")))
     families = {family(name) for name in defined}
 
-    used: dict[str, set[str]] = {}
-    fallbacks: dict[str, set[str]] = {}
-    for path in sorted(args.root.rglob("*.css")):
-        text = path.read_text(encoding="utf-8")
-        for match in REFERENCE.finditer(text):
-            used.setdefault(match.group(1), set()).add(path.as_posix())
-        for match in REFERENCE_WITH_FALLBACK.finditer(text):
-            fallbacks.setdefault(match.group(1), set()).add(path.as_posix())
+    used, fallbacks = collect_references(args.root, families)
 
-    for pattern in ("*.ts", "*.tsx"):
-        for path in sorted(args.root.rglob(pattern)):
-            text = path.read_text(encoding="utf-8")
-            for match in REFERENCE.finditer(text):
-                used.setdefault(match.group(1), set()).add(path.as_posix())
-            for match in SCRIPT_DASHED.finditer(text):
-                used.setdefault(match.group(1), set()).add(path.as_posix())
-            for match in SCRIPT_BARE.finditer(text):
-                name = "--" + match.group(1)
-                if family(name) in families:
-                    used.setdefault(name, set()).add(path.as_posix())
-
-
-    # The same reference scan over every extension web folder in the workspace -
-    # but only for tokens that do not exist, not for fallbacks.
-    #
-    # A fallback is dead weight in the renderer, where :root is always right
-    # there. In an extension panel it is load-bearing: the panel is a separate
-    # document that inherits no tokens at all, and gets them only once the host
-    # posts them in. So var(--nl-surface-card, #252526) is what a panel should
-    # write - it is the colour before the theme arrives, and the colour for
-    # good on a host too old to send one. Extensions ship on their own release
-    # cycle, so "too old" is a real host, not a hypothetical one.
-    for root in extension_roots():
-        for pattern in ("*.css", "*.html", "*.js", "*.ts", "*.tsx"):
-            for path in sorted(root.rglob(pattern)):
-                if any(part in SKIP_DIRS for part in path.parts):
-                    continue
-                text = path.read_text(encoding="utf-8", errors="ignore")
-                for match in REFERENCE.finditer(text):
-                    used.setdefault(match.group(1), set()).add(path.as_posix())
-
-    # Sizes written by hand instead of taken from the scale.
-    raw: list[str] = []
-    colours: list[str] = []
-    for path in sorted(args.root.rglob("*.css")):
-        if path.name in RAW_ALLOWED:
-            continue
-        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            if RAW_FONT.search(line) or RAW_SPACE.search(line):
-                raw.append(f"{path.as_posix()}:{number}: {line.strip()}")
-            # rgb(from var(--nl-accent) r g b / 0.05) derives from the token
-            # and is exactly what this check wants people to write, so a
-            # declaration that already names a token is left alone.
-            if RAW_COLOUR.search(line) and 'var(--' not in line:
-                colours.append(f"{path.as_posix()}:{number}: {line.strip()}")
-
+    raw, colours = raw_values(args.root)
 
     missing = {name: files for name, files in used.items() if name not in defined}
-    stale = {} if args.allow_fallbacks else {n: f for n, f in fallbacks.items() if n in defined}
+    stale = (
+        {}
+        if args.allow_fallbacks
+        else {n: f for n, f in fallbacks.items() if n in defined}
+    )
 
     print(f"{len(defined)} tokens defined, {len(used)} referenced")
 

@@ -1,0 +1,55 @@
+{
+  "scope": "Browser test fixtures only; no production lifecycle or project-close behavior changed.",
+  "recentProjects": {
+    "file": "app/e2e/m77-recent-projects.spec.ts",
+    "observedFailure": "On Windows, deleting the complete project directory immediately after closeProject returned EPERM; deleting only .novalist passed.",
+    "evidence": [
+      "The failed project directory had normal Directory attributes and was removable after its test process exited.",
+      "An isolated diagnostic retried the exact deletion while Electron stayed open: attempts 0 through 5 returned EPERM, then attempt 6 succeeded after approximately 600 ms. All original recent-project assertions passed.",
+      "On the installed Node v26.7.0, synchronous rmSync still failed in three repetitions with maxRetries: 5 and retryDelay: 100. Awaited node:fs/promises rm with the same options passed."
+    ],
+    "limitation": "These checks demonstrate a transient directory lock but do not identify its native owner or establish when it first appeared.",
+    "change": "Await native asynchronous rm with recursive: true, force: true, maxRetries: 5, retryDelay: 100 for the complete project directory. Keep the existing assertions and close each test app in finally.",
+    "retryBound": "At most five native retries, with the configured linear delay of 100 ms per retry; no assertion retries or swallowed deletion failures.",
+    "validation": {
+      "repeatedCasesPassed": 6,
+      "repetitions": 3,
+      "casesPerRepetition": 2
+    }
+  },
+  "electronTeardown": {
+    "file": "app/e2e/harness.ts",
+    "observedFailure": "The detached-window test completed its assertions, then hung during ElectronApplication.close. A runtime image/audio protocol test had also intermittently hung during teardown.",
+    "evidence": [
+      "A fresh Chromium profile did not prevent the detached-window teardown hang.",
+      "Removing window-all-closed listeners alone did not prevent the hang. After the timeout, the test Electron main process remained while its backend and renderers had exited.",
+      "The installed Playwright close implementation evaluates app.quit through the Node inspector before closing that inspector connection and awaiting the application-close event.",
+      "Deferring the bound real app.quit with setImmediate allowed the inspector evaluation to return before Electron shutdown. Both pane-window cases then passed across three repetitions."
+    ],
+    "diagnosis": "The teardown evidence supports an inspector/shutdown ordering race. Electron can wait for the attached inspector during shutdown while Playwright is still waiting for its app.quit evaluation to finish.",
+    "change": "The test fixture removes window-all-closed listeners before destroying its temporary windows and defers the bound real app.quit with setImmediate. Playwright initiates the quit after the fixture destroys the windows.",
+    "preserved": "The real bound quit method, before-quit, will-quit, and backend disposal remain active. Production shutdown code is unchanged.",
+    "validation": {
+      "repeatedCasesPassed": 6,
+      "repetitions": 3,
+      "casesPerRepetition": 2,
+      "diagnosticOutput": "artifacts/aislop-fixture-runs/test-results-m32-deferred-quit-verification"
+    }
+  },
+  "finalValidation": {
+    "archivedOutput": "artifacts/aislop-fixture-runs/test-results-fixture-verification",
+    "workingDirectory": "app",
+    "command": "npx playwright test e2e/m32-pane-window.spec.ts e2e/m77-recent-projects.spec.ts e2e/runtime-protocols.spec.ts --workers=1 --output=test-results-fixture-verification",
+    "passed": 8,
+    "failed": 0,
+    "durationSeconds": 9.6,
+    "includes": [
+      "Both pane-window cases, including detached-window teardown",
+      "Both recent-project cases",
+      "All four runtime-protocol cases, including local image and narration-audio loading"
+    ],
+    "typecheck": "npm run typecheck passed.",
+    "diffWhitespaceCheck": "git diff --check passed for the edited fixture files.",
+    "cleanup": "Temporary diagnostic specs were removed. Only explicitly verified test-owned Electron processes left by failed diagnostic runs were stopped."
+  }
+}

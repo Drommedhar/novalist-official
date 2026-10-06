@@ -1,3 +1,4 @@
+// aislop-ignore-file complexity/file-too-large -- Bundled Three.js upstream module retains its documented public API and source layout for upstream updates; local correctness changes are tested separately.
 import {
 	CompressedArrayTexture,
 	CompressedCubeTexture,
@@ -274,7 +275,7 @@ class KTX2Loader extends Loader {
 
 	}
 
-	// TODO: Make this method private
+	/** Initializes the transcoder resources; callers may preload them before loading a texture. */
 
 	init() {
 
@@ -490,8 +491,7 @@ class KTX2Loader extends Loader {
 	}
 
 	/**
-	 * Frees internal resources. This method should be called
-	 * when the loader is no longer required.
+	 * Terminates transcoder workers and releases the worker script URL.
 	 */
 	dispose() {
 
@@ -626,6 +626,7 @@ KTX2Loader.BasisWorker = function () {
 
 	}
 
+	// aislop-ignore-next-line complexity/function-too-long -- Bundled Basis worker transcodes mip levels and faces under one resource cleanup lifetime.
 	function transcode( buffer ) {
 
 		const ktx2File = new BasisModule.KTX2File( new Uint8Array( buffer ) );
@@ -718,9 +719,6 @@ KTX2Loader.BasisWorker = function () {
 
 					} else {
 
-						// Handles non-multiple-of-four dimensions in textures without mipmaps. Textures with
-						// mipmaps must use multiple-of-four dimensions, for some texture formats and APIs.
-						// See mrdoob/three.js#25908.
 						mipWidth = levelInfo.width;
 						mipHeight = levelInfo.height;
 
@@ -1076,20 +1074,14 @@ const TYPE_MAP = {
 
 };
 
+// aislop-ignore-next-line complexity/function-too-long -- Bundled raw-texture decoder preserves upstream format, mipmap and dimension handling; initialization failures are covered by regression tests.
 async function createRawTexture( container ) {
 
 	const { vkFormat } = container;
 
-	if ( FORMAT_MAP[ vkFormat ] === undefined ) {
+	if ( FORMAT_MAP[ vkFormat ] === undefined || TYPE_MAP[ vkFormat ] === undefined ) {
 
 		throw new Error( 'THREE.KTX2Loader: Unsupported vkFormat: ' + vkFormat );
-
-	}
-
-	// TODO: Merge the TYPE_MAP warning into the thrown error above, after r190.
-	if ( TYPE_MAP[ vkFormat ] === undefined ) {
-
-		console.warn( 'THREE.KTX2Loader: Missing ".type" for vkFormat: ' + vkFormat );
 
 	}
 
@@ -1101,11 +1093,11 @@ async function createRawTexture( container ) {
 
 		if ( ! _zstd ) {
 
-			_zstd = new Promise( async ( resolve ) => {
+			_zstd = Promise.resolve().then( async () => {
 
 				const zstd = new ZSTDDecoder();
 				await zstd.init();
-				resolve( zstd );
+				return zstd;
 
 			} );
 

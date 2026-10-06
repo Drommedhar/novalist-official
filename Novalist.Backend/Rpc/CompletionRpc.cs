@@ -70,5 +70,4 @@ public sealed class CompletionRpc
     }
 }
 
-/// <summary>The completion list as the renderer and the editor read it.</summary>
 public sealed record CompletionListDto(IReadOnlyList<string> Words, int Trigger);

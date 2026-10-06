@@ -96,7 +96,7 @@ interface ContinuityReport {
   disabledRules: string[]
 }
 
-export function StyleView(): React.JSX.Element {
+function useStyleReport() {
   const { t } = useTranslation()
   const chapters = useProjectStore((s) => s.chapters)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
@@ -159,6 +159,12 @@ export function StyleView(): React.JSX.Element {
 
   const scopeDisabled = (s: Scope): boolean =>
     (s === 'scene' && !openSceneId) || (s === 'chapter' && !openChapterGuid)
+
+  return { t, scope, scopeDisabled, setScope, textScope, setTextScope, busy, run, report, pov, continuity, setContinuity, weakest, setExpanded, expanded, chapters }
+}
+
+export function StyleView(): React.JSX.Element {
+  const { t, scope, scopeDisabled, setScope, textScope, setTextScope, busy, run, report, pov, continuity, setContinuity, weakest, setExpanded, expanded, chapters } = useStyleReport()
 
   return (
     <div className="style-view">
@@ -283,55 +289,7 @@ export function StyleView(): React.JSX.Element {
               reads the book as a book, which is where a character standing two
               chapters after their own funeral actually shows up. */}
           {continuity && (
-            <div className="style-continuity">
-              <div className="inspector-label">{t('style.continuity')}</div>
-              <div className="settings-hint">{t('style.continuityHint')}</div>
-
-              <div className="style-continuity-rules">
-                {continuity.allRules.map((rule) => (
-                  <label key={rule} className="style-continuity-rule">
-                    <input
-                      type="checkbox"
-                      checked={!continuity.disabledRules.includes(rule)}
-                      onChange={(e) =>
-                        void rpc
-                          .request<ContinuityReport>('style/setContinuityRule', [
-                            rule,
-                            e.target.checked
-                          ])
-                          .then(setContinuity)
-                      }
-                    />
-                    {t(`style.continuityRule.${rule}`)}
-                  </label>
-                ))}
-              </div>
-
-              {continuity.findings.length === 0 ? (
-                <div className="settings-hint">{t('style.continuityClean')}</div>
-              ) : (
-                <ul className="style-examples">
-                  {continuity.findings.map((f, i) => (
-                    <li key={`${f.ruleId}-${f.sceneId}-${i}`}>
-                      <button
-                        className="style-continuity-jump"
-                        onClick={() =>
-                          void useProjectStore.getState().openScene(f.chapterGuid, f.sceneId)
-                        }
-                      >
-                        {f.chapterTitle} - {f.sceneTitle}
-                      </button>
-                      <span className="style-example-context">
-                        {t(`style.continuityFinding.${f.ruleId}`, {
-                          subject: f.subject,
-                          detail: f.detail
-                        })}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <ContinuityFindings t={t} continuity={continuity} setContinuity={setContinuity} />
           )}
 
           {/* Scenes the writer scored low against the rubric, worst first.
@@ -360,46 +318,7 @@ export function StyleView(): React.JSX.Element {
             </div>
           )}
 
-          <div className="style-findings">
-            {report.findings.map((f) => (
-              <div key={f.key} className="style-finding">
-                <button
-                  className="style-finding-head"
-                  onClick={() => setExpanded(expanded === f.key ? null : f.key)}
-                  disabled={!f.supported || f.examples.length === 0}
-                >
-                  <span className="style-finding-name">{t(`style.report.${f.key}`)}</span>
-                  {f.supported ? (
-                    <span className="style-finding-count">
-                      {f.count}
-                      <span className="style-finding-density">
-                        {t('style.per1000', { value: f.per1000Words })}
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="style-finding-unsupported">
-                      {t('style.unsupported', { language: report.language })}
-                    </span>
-                  )}
-                </button>
-
-                {f.supported && (
-                  <div className="settings-hint">{t(`style.reportDesc.${f.key}`)}</div>
-                )}
-
-                {expanded === f.key && (
-                  <ul className="style-examples">
-                    {f.examples.map((e, i) => (
-                      <li key={`${e.offset}-${i}`}>
-                        <span className="style-example-hit">{e.text}</span>
-                        <span className="style-example-context">{e.context}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </div>
+          <StyleFindings report={report} setExpanded={setExpanded} expanded={expanded} t={t} />
         </>
       )}
 
@@ -414,6 +333,107 @@ function Stat(props: { label: string; value: string; hint?: string }): React.JSX
     <div className="style-stat" title={props.hint}>
       <div className="style-stat-value">{props.value}</div>
       <div className="style-stat-label">{props.label}</div>
+    </div>
+  )
+}
+
+function ContinuityFindings({ t, continuity, setContinuity }: { t: StyleViewState['t']; continuity: NonNullable<StyleViewState['continuity']>; setContinuity: StyleViewState['setContinuity'] }): React.JSX.Element {
+  return (
+    <div className="style-continuity">
+      <div className="inspector-label">{t('style.continuity')}</div>
+      <div className="settings-hint">{t('style.continuityHint')}</div>
+
+      <div className="style-continuity-rules">
+        {continuity.allRules.map((rule) => (
+          <label key={rule} className="style-continuity-rule">
+            <input
+              type="checkbox"
+              checked={!continuity.disabledRules.includes(rule)}
+              onChange={(e) =>
+                void rpc
+                  .request<ContinuityReport>('style/setContinuityRule', [
+                    rule,
+                    e.target.checked
+                  ])
+                  .then(setContinuity)
+              }
+            />
+            {t(`style.continuityRule.${rule}`)}
+          </label>
+        ))}
+      </div>
+
+      {continuity.findings.length === 0 ? (
+        <div className="settings-hint">{t('style.continuityClean')}</div>
+      ) : (
+        <ul className="style-examples">
+          {continuity.findings.map((f, i) => (
+            <li key={`${f.ruleId}-${f.sceneId}-${i}`}>
+              <button
+                className="style-continuity-jump"
+                onClick={() =>
+                  void useProjectStore.getState().openScene(f.chapterGuid, f.sceneId)
+                }
+              >
+                {f.chapterTitle} - {f.sceneTitle}
+              </button>
+              <span className="style-example-context">
+                {t(`style.continuityFinding.${f.ruleId}`, {
+                  subject: f.subject,
+                  detail: f.detail
+                })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+type StyleViewState = ReturnType<typeof useStyleReport>
+
+function StyleFindings({ report, setExpanded, expanded, t }: { report: NonNullable<StyleViewState['report']>; setExpanded: StyleViewState['setExpanded']; expanded: StyleViewState['expanded']; t: StyleViewState['t'] }): React.JSX.Element {
+  return (
+    <div className="style-findings">
+      {report.findings.map((f) => (
+        <div key={f.key} className="style-finding">
+          <button
+            className="style-finding-head"
+            onClick={() => setExpanded(expanded === f.key ? null : f.key)}
+            disabled={!f.supported || f.examples.length === 0}
+          >
+            <span className="style-finding-name">{t(`style.report.${f.key}`)}</span>
+            {f.supported ? (
+              <span className="style-finding-count">
+                {f.count}
+                <span className="style-finding-density">
+                  {t('style.per1000', { value: f.per1000Words })}
+                </span>
+              </span>
+            ) : (
+              <span className="style-finding-unsupported">
+                {t('style.unsupported', { language: report.language })}
+              </span>
+            )}
+          </button>
+
+          {f.supported && (
+            <div className="settings-hint">{t(`style.reportDesc.${f.key}`)}</div>
+          )}
+
+          {expanded === f.key && (
+            <ul className="style-examples">
+              {f.examples.map((e, i) => (
+                <li key={`${e.offset}-${i}`}>
+                  <span className="style-example-hit">{e.text}</span>
+                  <span className="style-example-context">{e.context}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ))}
     </div>
   )
 }

@@ -71,7 +71,6 @@ public sealed class EntityProposal
     public string Detail { get; init; } = string.Empty;
 }
 
-/// <summary>The result of an extraction attempt.</summary>
 public sealed class EntityExtractionResult
 {
     /// <summary>The proposed entries, in the order they should be reviewed.</summary>

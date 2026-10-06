@@ -32,7 +32,6 @@ public sealed class ChapterMarker
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public StoryDateRange? DateRange { get; set; }
 
-    /// <summary>The marker file name written inside a chapter folder.</summary>
     public const string FileName = ".nvchapter.json";
 
     public static ChapterMarker FromChapter(ChapterData chapter) => new()

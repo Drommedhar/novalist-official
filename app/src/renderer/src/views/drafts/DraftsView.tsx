@@ -42,7 +42,7 @@ type Pending =
  * called "Draft 1" through "Draft 4" in creation order and no way to fix any of
  * that.
  */
-export function DraftsView(): React.JSX.Element {
+function useDraftsView() {
   const { t } = useTranslation()
   const [drafts, setDrafts] = useState<DraftRow[] | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
@@ -58,13 +58,6 @@ export function DraftsView(): React.JSX.Element {
   const [chapterPicks, setChapterPicks] = useState<string[]>([])
   const [scenePicks, setScenePicks] = useState<string[]>([])
   const [sent, setSent] = useState<string | null>(null)
-
-  /** The toolbar's draft picker and the open book, after something moved. */
-  const syncShell = async (reloadBook: boolean): Promise<void> => {
-    await useProjectStore.getState().loadDrafts()
-    if (reloadBook)
-      useProjectStore.getState().applyState(await rpc.request<ProjectStateDto>('project/getState'))
-  }
 
   const load = (): void => {
     void rpc.request<DraftRow[]>('drafts/list', []).then((rows) => {
@@ -96,13 +89,13 @@ export function DraftsView(): React.JSX.Element {
     void rpc.request<DraftStructure | null>('drafts/structure', [toId]).then(setTo)
   }, [toId, sent, activeDraftId])
 
-  if (!drafts) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
+  if (!drafts) return {ready: false as const, t}
 
   const rename = (id: string, name: string): void => {
     if (!name.trim()) return
     void rpc.request<DraftRow[]>('drafts/rename', [id, name.trim()]).then((rows) => {
       setDrafts(rows)
-      void syncShell(false)
+      void syncDraftShell(false)
     })
   }
 
@@ -111,15 +104,138 @@ export function DraftsView(): React.JSX.Element {
   }
 
   const reorder = (draggedId: string, targetId: string): void => {
-    const ids = drafts.map((d) => d.id).filter((id) => id !== draggedId)
-    const at = ids.indexOf(targetId)
-    ids.splice(at < 0 ? ids.length : at, 0, draggedId)
-    void rpc.request<DraftRow[]>('drafts/reorder', [ids]).then((rows) => {
+    void rpc.request<DraftRow[]>('drafts/reorder', [reorderedDraftIds(drafts, draggedId, targetId)]).then((rows) => {
       setDrafts(rows)
-      void syncShell(false)
+      void syncDraftShell(false)
     })
   }
 
+  const {pickedScenes, replaced, preview} = previewDraftTransfer(from, to, chapterPicks, scenePicks)
+
+  const transfer = async (move: boolean): Promise<void> => {
+    const result = await rpc.request<{ chapters: number; scenes: number; replaced: number }>(
+      'drafts/transfer',
+      [fromId, toId, chapterPicks, scenePicks, move]
+    )
+    setChapterPicks([])
+    setScenePicks([])
+    setSent(`${result.scenes}:${Date.now()}`)
+    load()
+    // The writer may be standing in one of the two drafts, so the binder has to
+    // be told what it holds now.
+    await syncDraftShell(true)
+  }
+
+    return {ready: true as const, t, setPending, drafts, dropId, setDragId, setDropId, dragId, reorder, rename, setNotes, fromId, setFromId, setChapterPicks, setScenePicks, toId, setToId, from, chapterPicks, scenePicks, to, preview, pickedScenes, replaced, transfer, pending, load, setDrafts}
+}
+
+function reorderedDraftIds(drafts: DraftRow[], draggedId: string, targetId: string): string[] {
+  const ids = drafts.map((draft) => draft.id).filter((id) => id !== draggedId)
+  const at = ids.indexOf(targetId)
+  ids.splice(at < 0 ? ids.length : at, 0, draggedId)
+  return ids
+}
+
+export function DraftsView(): React.JSX.Element {
+  const model = useDraftsView()
+  if (!model.ready) return <div className="main-placeholder">{model.t('shell.backendConnecting')}</div>
+  const { t, setPending, drafts, dropId, setDragId, setDropId, dragId, reorder, rename, setNotes, fromId, setFromId, setChapterPicks, setScenePicks, toId, setToId, from, chapterPicks, scenePicks, to, preview, pickedScenes, replaced, transfer, pending, load, setDrafts } = model
+  return (
+    <div className="drafts">
+      <div className="drafts-toolbar">
+        <span className="drafts-title">{t('drafts.title')}</span>
+        <DesktopViewActions>
+          {' '}
+          <button className="dialog-button primary" onClick={() => setPending({ kind: 'new' })}>
+            <Plus size={14} strokeWidth={2} />
+            {t('drafts.new')}
+          </button>
+        </DesktopViewActions>
+      </div>
+
+      {/* What the view is for is said once, by the guidance strip above it. */}
+      <div className="drafts-scroll">
+        <DraftList drafts={drafts} dropId={dropId} setDragId={setDragId} setDropId={setDropId} dragId={dragId} reorder={reorder} t={t} rename={rename} setNotes={setNotes} setPending={setPending} />
+
+        {/* Sending content the other way is the half of "reorganize" the
+            dropdown could never do. */}
+        <DraftTransfer t={t} fromId={fromId} setFromId={setFromId} setChapterPicks={setChapterPicks} setScenePicks={setScenePicks} drafts={drafts} toId={toId} setToId={setToId} from={from} chapterPicks={chapterPicks} scenePicks={scenePicks} to={to} preview={preview} pickedScenes={pickedScenes} replaced={replaced} setPending={setPending} transfer={transfer} />
+      </div>
+
+      {pending?.kind === 'new' && (
+        <InputDialog
+          title={t('drafts.new')}
+          placeholder={t('draft.newPrompt')}
+          onCancel={() => setPending(null)}
+          onSubmit={(name) => {
+            setPending(null)
+            void rpc.request('project/createDraft', [name, null]).then(() => {
+              load()
+              void syncDraftShell(false)
+            })
+          }}
+        />
+      )}
+      {pending?.kind === 'duplicate' && (
+        <InputDialog
+          title={t('drafts.duplicate')}
+          placeholder={t('drafts.duplicateOf', { name: pending.name })}
+          onCancel={() => setPending(null)}
+          onSubmit={(name) => {
+            const id = pending.id
+            setPending(null)
+            void rpc.request<DraftRow[]>('drafts/duplicate', [id, name]).then((rows) => {
+              setDrafts(rows)
+              void syncDraftShell(false)
+            })
+          }}
+        />
+      )}
+      {pending?.kind === 'delete' && (
+        <ConfirmDialog
+          title={t('drafts.deleteTitle')}
+          message={t('drafts.deleteMessage', { name: pending.name })}
+          onCancel={() => setPending(null)}
+          onConfirm={() => {
+            const id = pending.id
+            setPending(null)
+            void useProjectStore
+              .getState()
+              .deleteDraft(id)
+              .then(() => load())
+          }}
+        />
+      )}
+      {pending?.kind === 'transfer' && (
+        <ConfirmDialog
+          title={pending.move ? t('drafts.moveTitle') : t('drafts.copyTitle')}
+          message={
+            pending.move
+              ? t('drafts.moveMessage', { count: pickedScenes.size, replaced: pending.replaced })
+              : t('drafts.replaceMessage', { count: pending.replaced })
+          }
+          confirmLabel={pending.move ? t('drafts.moveTo') : t('drafts.copyTo')}
+          onCancel={() => setPending(null)}
+          onConfirm={() => {
+            const move = pending.move
+            setPending(null)
+            void transfer(move)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+  /** The toolbar's draft picker and the open book, after something moved. */
+async function syncDraftShell(reloadBook: boolean): Promise<void> {
+    await useProjectStore.getState().loadDrafts()
+    if (reloadBook)
+      useProjectStore.getState().applyState(await rpc.request<ProjectStateDto>('project/getState'))
+  }
+
+
+function previewDraftTransfer(from: DraftStructure | null, to: DraftStructure | null, chapterPicks: string[], scenePicks: string[]) {
   // Everything selected, including the scenes a ticked chapter carries with it.
   const pickedScenes = new Set(scenePicks)
   for (const chapter of from?.chapters ?? [])
@@ -187,346 +303,262 @@ export function DraftsView(): React.JSX.Element {
     })
   }
 
-  const transfer = async (move: boolean): Promise<void> => {
-    const result = await rpc.request<{ chapters: number; scenes: number; replaced: number }>(
-      'drafts/transfer',
-      [fromId, toId, chapterPicks, scenePicks, move]
-    )
-    setChapterPicks([])
-    setScenePicks([])
-    setSent(`${result.scenes}:${Date.now()}`)
-    load()
-    // The writer may be standing in one of the two drafts, so the binder has to
-    // be told what it holds now.
-    await syncShell(true)
-  }
+  return {pickedScenes, replaced, preview}
+}
 
+type DraftsViewState = Extract<ReturnType<typeof useDraftsView>, {ready: true}>
+
+function DraftList({ drafts, dropId, setDragId, setDropId, dragId, reorder, t, rename, setNotes, setPending }: { drafts: DraftsViewState['drafts']; dropId: DraftsViewState['dropId']; setDragId: DraftsViewState['setDragId']; setDropId: DraftsViewState['setDropId']; dragId: DraftsViewState['dragId']; reorder: DraftsViewState['reorder']; t: DraftsViewState['t']; rename: DraftsViewState['rename']; setNotes: DraftsViewState['setNotes']; setPending: DraftsViewState['setPending'] }): React.JSX.Element {
   return (
-    <div className="drafts">
-      <div className="drafts-toolbar">
-        <span className="drafts-title">{t('drafts.title')}</span>
-        <DesktopViewActions>
-          {' '}
-          <button className="dialog-button primary" onClick={() => setPending({ kind: 'new' })}>
-            <Plus size={14} strokeWidth={2} />
-            {t('drafts.new')}
-          </button>
-        </DesktopViewActions>
-      </div>
+    <div className="drafts-list">
+      {drafts.map((draft) => (
+        <div
+          key={draft.id}
+          className={`drafts-row${draft.isActive ? ' active' : ''}${
+            dropId === draft.id ? ' drop' : ''
+          }`}
+          draggable
+          onDragStart={(e) => {
+            setDragId(draft.id)
+            e.dataTransfer.effectAllowed = 'move'
+          }}
+          onDragEnd={() => {
+            setDragId(null)
+            setDropId(null)
+          }}
+          onDragOver={(e) => {
+            e.preventDefault()
+            if (dragId && dragId !== draft.id) setDropId(draft.id)
+          }}
+          onDrop={() => {
+            if (dragId && dragId !== draft.id) reorder(dragId, draft.id)
+            setDragId(null)
+            setDropId(null)
+          }}
+        >
+          <span className="drafts-grip" title={t('drafts.reorder')}>
+            <GripVertical size={14} strokeWidth={2} />
+          </span>
 
-      {/* What the view is for is said once, by the guidance strip above it. */}
-      <div className="drafts-scroll">
-        <div className="drafts-list">
-          {drafts.map((draft) => (
-            <div
-              key={draft.id}
-              className={`drafts-row${draft.isActive ? ' active' : ''}${
-                dropId === draft.id ? ' drop' : ''
-              }`}
-              draggable
-              onDragStart={(e) => {
-                setDragId(draft.id)
-                e.dataTransfer.effectAllowed = 'move'
-              }}
-              onDragEnd={() => {
-                setDragId(null)
-                setDropId(null)
-              }}
-              onDragOver={(e) => {
-                e.preventDefault()
-                if (dragId && dragId !== draft.id) setDropId(draft.id)
-              }}
-              onDrop={() => {
-                if (dragId && dragId !== draft.id) reorder(dragId, draft.id)
-                setDragId(null)
-                setDropId(null)
-              }}
-            >
-              <span className="drafts-grip" title={t('drafts.reorder')}>
-                <GripVertical size={14} strokeWidth={2} />
-              </span>
-
-              <div className="drafts-fields">
-                <input
-                  className="inspector-input drafts-name"
-                  defaultValue={draft.name}
-                  aria-label={t('drafts.name')}
-                  onBlur={(e) => e.target.value !== draft.name && rename(draft.id, e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-                />
-                <input
-                  className="inspector-input drafts-notes"
-                  defaultValue={draft.notes}
-                  placeholder={t('drafts.notesPlaceholder')}
-                  aria-label={t('drafts.notes')}
-                  onBlur={(e) =>
-                    e.target.value !== draft.notes && setNotes(draft.id, e.target.value)
-                  }
-                  onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-                />
-              </div>
-
-              <span className="drafts-counts">
-                {t('drafts.counts', { chapters: draft.chapters, scenes: draft.scenes })}
-              </span>
-
-              {draft.isActive ? (
-                <span className="drafts-current">
-                  <Check size={12} strokeWidth={2} />
-                  {t('drafts.current')}
-                </span>
-              ) : (
-                <button
-                  className="dialog-button"
-                  onClick={() => void useProjectStore.getState().switchDraft(draft.id)}
-                >
-                  {t('drafts.switchTo')}
-                </button>
-              )}
-              <button
-                className="dialog-button"
-                title={t('drafts.duplicate')}
-                onClick={() => setPending({ kind: 'duplicate', id: draft.id, name: draft.name })}
-              >
-                <Copy size={12} strokeWidth={2} />
-              </button>
-              <button
-                className="dialog-button"
-                title={t('drafts.delete')}
-                disabled={drafts.length <= 1}
-                onClick={() => setPending({ kind: 'delete', id: draft.id, name: draft.name })}
-              >
-                <Trash2 size={12} strokeWidth={2} />
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {/* Sending content the other way is the half of "reorganize" the
-            dropdown could never do. */}
-        <div className="drafts-transfer">
-          <div className="inspector-label">{t('drafts.sendTitle')}</div>
-          <p className="inspector-meta">{t('drafts.sendHint')}</p>
-
-          <div className="drafts-sides">
-            <label className="drafts-side">
-              {t('drafts.sendFrom')}
-              <select
-                className="inspector-input"
-                value={fromId}
-                onChange={(e) => {
-                  setFromId(e.target.value)
-                  setChapterPicks([])
-                  setScenePicks([])
-                }}
-              >
-                {drafts.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <ArrowRight size={14} strokeWidth={2} className="drafts-arrow" />
-            <label className="drafts-side">
-              {t('drafts.sendTo')}
-              <select
-                className="inspector-input"
-                value={toId}
-                onChange={(e) => setToId(e.target.value)}
-              >
-                {drafts
-                  .filter((d) => d.id !== fromId)
-                  .map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-              </select>
-            </label>
+          <div className="drafts-fields">
+            <input
+              className="inspector-input drafts-name"
+              defaultValue={draft.name}
+              aria-label={t('drafts.name')}
+              onBlur={(e) => e.target.value !== draft.name && rename(draft.id, e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+            />
+            <input
+              className="inspector-input drafts-notes"
+              defaultValue={draft.notes}
+              placeholder={t('drafts.notesPlaceholder')}
+              aria-label={t('drafts.notes')}
+              onBlur={(e) =>
+                e.target.value !== draft.notes && setNotes(draft.id, e.target.value)
+              }
+              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+            />
           </div>
 
-          {from && from.chapters.length === 0 && (
-            <p className="codex-empty">{t('drafts.sourceEmpty')}</p>
+          <span className="drafts-counts">
+            {t('drafts.counts', { chapters: draft.chapters, scenes: draft.scenes })}
+          </span>
+
+          {draft.isActive ? (
+            <span className="drafts-current">
+              <Check size={12} strokeWidth={2} />
+              {t('drafts.current')}
+            </span>
+          ) : (
+            <button
+              className="dialog-button"
+              onClick={() => void useProjectStore.getState().switchDraft(draft.id)}
+            >
+              {t('drafts.switchTo')}
+            </button>
           )}
+          <button
+            className="dialog-button"
+            title={t('drafts.duplicate')}
+            onClick={() => setPending({ kind: 'duplicate', id: draft.id, name: draft.name })}
+          >
+            <Copy size={12} strokeWidth={2} />
+          </button>
+          <button
+            className="dialog-button"
+            title={t('drafts.delete')}
+            disabled={drafts.length <= 1}
+            onClick={() => setPending({ kind: 'delete', id: draft.id, name: draft.name })}
+          >
+            <Trash2 size={12} strokeWidth={2} />
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
 
-          <div className="drafts-panes">
-            <div className="drafts-pane">
-              <div className="drafts-pane-head">
-                {t('drafts.paneSource', { name: from?.name ?? '' })}
-              </div>
-              <div className="drafts-tree">
-                {from?.chapters.map((chapter) => {
-                  const whole = chapterPicks.includes(chapter.guid)
-                  return (
-                    <div key={chapter.guid} className="drafts-chapter">
-                      <label className="drafts-pick">
-                        <input
-                          type="checkbox"
-                          checked={whole}
-                          onChange={(e) =>
-                            setChapterPicks(
-                              e.target.checked
-                                ? [...chapterPicks, chapter.guid]
-                                : chapterPicks.filter((g) => g !== chapter.guid)
-                            )
-                          }
-                        />
-                        <span className="drafts-chapter-title">{chapter.title}</span>
-                      </label>
-                      {chapter.scenes.map((scene) => (
-                        <label key={scene.id} className="drafts-pick drafts-scene">
-                          <input
-                            type="checkbox"
-                            // A ticked chapter carries its scenes, so their own
-                            // ticks are shown and not asked for again.
-                            checked={whole || scenePicks.includes(scene.id)}
-                            disabled={whole}
-                            onChange={(e) =>
-                              setScenePicks(
-                                e.target.checked
-                                  ? [...scenePicks, scene.id]
-                                  : scenePicks.filter((id) => id !== scene.id)
-                              )
-                            }
-                          />
-                          <span>{scene.title}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+function DraftTransfer({ t, fromId, setFromId, setChapterPicks, setScenePicks, drafts, toId, setToId, from, chapterPicks, scenePicks, to, preview, pickedScenes, replaced, setPending, transfer }: { t: DraftsViewState['t']; fromId: DraftsViewState['fromId']; setFromId: DraftsViewState['setFromId']; setChapterPicks: DraftsViewState['setChapterPicks']; setScenePicks: DraftsViewState['setScenePicks']; drafts: DraftsViewState['drafts']; toId: DraftsViewState['toId']; setToId: DraftsViewState['setToId']; from: DraftsViewState['from']; chapterPicks: DraftsViewState['chapterPicks']; scenePicks: DraftsViewState['scenePicks']; to: DraftsViewState['to']; preview: DraftsViewState['preview']; pickedScenes: DraftsViewState['pickedScenes']; replaced: DraftsViewState['replaced']; setPending: DraftsViewState['setPending']; transfer: DraftsViewState['transfer'] }): React.JSX.Element {
+  return (
+    <div className="drafts-transfer">
+      <div className="inspector-label">{t('drafts.sendTitle')}</div>
+      <p className="inspector-meta">{t('drafts.sendHint')}</p>
 
-            <div className="drafts-pane">
-              <div className="drafts-pane-head">
-                {t('drafts.paneTarget', { name: to?.name ?? '' })}
-              </div>
-              <div className="drafts-tree">
-                {preview.length === 0 && (
-                  <p className="inspector-meta">{t('drafts.targetEmpty')}</p>
-                )}
-                {preview.map((chapter) => (
-                  <div key={chapter.guid} className="drafts-chapter">
-                    <div
-                      className={`drafts-preview-row${chapter.state === 'new' ? ' arriving' : ''}`}
-                    >
-                      <span className="drafts-chapter-title">{chapter.title}</span>
-                      {chapter.state === 'new' && (
-                        <span className="drafts-mark new">{t('drafts.markNew')}</span>
-                      )}
-                    </div>
-                    {chapter.scenes.map((scene) => (
-                      <div
-                        key={scene.id}
-                        className={`drafts-preview-row drafts-scene${
-                          scene.state === 'keeps' ? '' : ' arriving'
-                        }`}
-                      >
-                        <span>{scene.title}</span>
-                        {scene.state === 'new' && (
-                          <span className="drafts-mark new">{t('drafts.markNew')}</span>
-                        )}
-                        {scene.state === 'rewritten' && (
-                          <span className="drafts-mark rewritten">{t('drafts.markRewritten')}</span>
-                        )}
-                      </div>
-                    ))}
+      <div className="drafts-sides">
+        <label className="drafts-side">
+          {t('drafts.sendFrom')}
+          <select
+            className="inspector-input"
+            value={fromId}
+            onChange={(e) => {
+              setFromId(e.target.value)
+              setChapterPicks([])
+              setScenePicks([])
+            }}
+          >
+            {drafts.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <ArrowRight size={14} strokeWidth={2} className="drafts-arrow" />
+        <label className="drafts-side">
+          {t('drafts.sendTo')}
+          <select
+            className="inspector-input"
+            value={toId}
+            onChange={(e) => setToId(e.target.value)}
+          >
+            {drafts
+              .filter((d) => d.id !== fromId)
+              .map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+          </select>
+        </label>
+      </div>
+
+      {from && from.chapters.length === 0 && (
+        <p className="codex-empty">{t('drafts.sourceEmpty')}</p>
+      )}
+
+      <div className="drafts-panes">
+        <div className="drafts-pane">
+          <div className="drafts-pane-head">
+            {t('drafts.paneSource', { name: from?.name ?? '' })}
+          </div>
+          <div className="drafts-tree">
+            {from?.chapters.map((chapter) => {
+              const whole = chapterPicks.includes(chapter.guid)
+              return (
+                <div key={chapter.guid} className="drafts-chapter">
+                  <label className="drafts-pick">
+                    <input
+                      type="checkbox"
+                      checked={whole}
+                      onChange={(e) =>
+                        setChapterPicks(
+                          e.target.checked
+                            ? [...chapterPicks, chapter.guid]
+                            : chapterPicks.filter((g) => g !== chapter.guid)
+                        )
+                      }
+                    />
+                    <span className="drafts-chapter-title">{chapter.title}</span>
+                  </label>
+                  {chapter.scenes.map((scene) => (
+                    <label key={scene.id} className="drafts-pick drafts-scene">
+                      <input
+                        type="checkbox"
+                        // A ticked chapter carries its scenes, so their own
+                        // ticks are shown and not asked for again.
+                        checked={whole || scenePicks.includes(scene.id)}
+                        disabled={whole}
+                        onChange={(e) =>
+                          setScenePicks(
+                            e.target.checked
+                              ? [...scenePicks, scene.id]
+                              : scenePicks.filter((id) => id !== scene.id)
+                          )
+                        }
+                      />
+                      <span>{scene.title}</span>
+                    </label>
+                  ))}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="drafts-pane">
+          <div className="drafts-pane-head">
+            {t('drafts.paneTarget', { name: to?.name ?? '' })}
+          </div>
+          <div className="drafts-tree">
+            {preview.length === 0 && (
+              <p className="inspector-meta">{t('drafts.targetEmpty')}</p>
+            )}
+            {preview.map((chapter) => (
+              <div key={chapter.guid} className="drafts-chapter">
+                <div
+                  className={`drafts-preview-row${chapter.state === 'new' ? ' arriving' : ''}`}
+                >
+                  <span className="drafts-chapter-title">{chapter.title}</span>
+                  {chapter.state === 'new' && (
+                    <span className="drafts-mark new">{t('drafts.markNew')}</span>
+                  )}
+                </div>
+                {chapter.scenes.map((scene) => (
+                  <div
+                    key={scene.id}
+                    className={`drafts-preview-row drafts-scene${
+                      scene.state === 'keeps' ? '' : ' arriving'
+                    }`}
+                  >
+                    <span>{scene.title}</span>
+                    {scene.state === 'new' && (
+                      <span className="drafts-mark new">{t('drafts.markNew')}</span>
+                    )}
+                    {scene.state === 'rewritten' && (
+                      <span className="drafts-mark rewritten">{t('drafts.markRewritten')}</span>
+                    )}
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-
-          <div className="drafts-send-actions">
-            <span className="inspector-meta">
-              {t('drafts.selected', { count: pickedScenes.size })}
-              {replaced > 0 && ` - ${t('drafts.willReplace', { count: replaced })}`}
-            </span>
-            <button
-              className="dialog-button primary"
-              disabled={pickedScenes.size === 0 || !toId}
-              onClick={() =>
-                replaced > 0
-                  ? setPending({ kind: 'transfer', move: false, replaced })
-                  : void transfer(false)
-              }
-            >
-              {t('drafts.copyTo')}
-            </button>
-            <button
-              className="dialog-button"
-              disabled={pickedScenes.size === 0 || !toId}
-              onClick={() => setPending({ kind: 'transfer', move: true, replaced })}
-            >
-              {t('drafts.moveTo')}
-            </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {pending?.kind === 'new' && (
-        <InputDialog
-          title={t('drafts.new')}
-          placeholder={t('draft.newPrompt')}
-          onCancel={() => setPending(null)}
-          onSubmit={(name) => {
-            setPending(null)
-            void rpc.request('project/createDraft', [name, null]).then(() => {
-              load()
-              void syncShell(false)
-            })
-          }}
-        />
-      )}
-      {pending?.kind === 'duplicate' && (
-        <InputDialog
-          title={t('drafts.duplicate')}
-          placeholder={t('drafts.duplicateOf', { name: pending.name })}
-          onCancel={() => setPending(null)}
-          onSubmit={(name) => {
-            const id = pending.id
-            setPending(null)
-            void rpc.request<DraftRow[]>('drafts/duplicate', [id, name]).then((rows) => {
-              setDrafts(rows)
-              void syncShell(false)
-            })
-          }}
-        />
-      )}
-      {pending?.kind === 'delete' && (
-        <ConfirmDialog
-          title={t('drafts.deleteTitle')}
-          message={t('drafts.deleteMessage', { name: pending.name })}
-          onCancel={() => setPending(null)}
-          onConfirm={() => {
-            const id = pending.id
-            setPending(null)
-            void useProjectStore
-              .getState()
-              .deleteDraft(id)
-              .then(() => load())
-          }}
-        />
-      )}
-      {pending?.kind === 'transfer' && (
-        <ConfirmDialog
-          title={pending.move ? t('drafts.moveTitle') : t('drafts.copyTitle')}
-          message={
-            pending.move
-              ? t('drafts.moveMessage', { count: pickedScenes.size, replaced: pending.replaced })
-              : t('drafts.replaceMessage', { count: pending.replaced })
+      <div className="drafts-send-actions">
+        <span className="inspector-meta">
+          {t('drafts.selected', { count: pickedScenes.size })}
+          {replaced > 0 && ` - ${t('drafts.willReplace', { count: replaced })}`}
+        </span>
+        <button
+          className="dialog-button primary"
+          disabled={pickedScenes.size === 0 || !toId}
+          onClick={() =>
+            replaced > 0
+              ? setPending({ kind: 'transfer', move: false, replaced })
+              : void transfer(false)
           }
-          confirmLabel={pending.move ? t('drafts.moveTo') : t('drafts.copyTo')}
-          onCancel={() => setPending(null)}
-          onConfirm={() => {
-            const move = pending.move
-            setPending(null)
-            void transfer(move)
-          }}
-        />
-      )}
+        >
+          {t('drafts.copyTo')}
+        </button>
+        <button
+          className="dialog-button"
+          disabled={pickedScenes.size === 0 || !toId}
+          onClick={() => setPending({ kind: 'transfer', move: true, replaced })}
+        >
+          {t('drafts.moveTo')}
+        </button>
+      </div>
     </div>
   )
 }

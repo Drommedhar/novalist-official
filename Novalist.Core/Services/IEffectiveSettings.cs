@@ -44,7 +44,7 @@ public interface IEffectiveSettings
     /// writer's own quotes, hyphens and dots exactly as typed.</summary>
     bool AutoReplacementEnabled { get; }
 
-    /// <summary>The name put on a suggested edit.</summary>
+    /// <summary>Author name attached to new suggested edits; resolved from the active book's override or the global setting.</summary>
     string ReviewerName { get; }
     List<AutoReplacementPair> AutoReplacements { get; }
     bool DialogueCorrectionEnabled { get; }

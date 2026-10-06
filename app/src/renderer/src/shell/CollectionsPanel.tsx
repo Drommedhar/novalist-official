@@ -33,7 +33,7 @@ interface CollectionDto {
  * run is often deliberately out of sequence, and re-sorting it would throw away
  * the only thing the writer said about the set.
  */
-export function CollectionsPanel(): React.JSX.Element {
+function useCollections() {
   const { t } = useTranslation()
   const bookScope = useBookScope()
   const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
@@ -73,6 +73,12 @@ export function CollectionsPanel(): React.JSX.Element {
     setRenamingId(null)
     setRenameValue('')
   }
+
+  return { t, name, setName, create, selectedIds, collections, setCollapsed, collapsed, renamingId, renameValue, setRenameValue, rename, setRenamingId, update }
+}
+
+export function CollectionsPanel(): React.JSX.Element {
+  const { t, name, setName, create, selectedIds, collections, setCollapsed, collapsed, renamingId, renameValue, setRenameValue, rename, setRenamingId, update } = useCollections()
 
   return (
     <div className="collections-panel">

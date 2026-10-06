@@ -48,14 +48,14 @@ public sealed class PublishingRpc
             // no link resolves to nothing in the back matter - both are a row
             // somebody started and did not finish.
             Retailers = [.. (value.Retailers ?? [])
-                .Where(r => !string.IsNullOrWhiteSpace(r.Key))
-                .Select(r => new RetailerLink
+                .Select(r => string.IsNullOrWhiteSpace(r.Key) ? null : new RetailerLink
                 {
-                    Key = r.Key!.Trim(),
-                    Name = string.IsNullOrWhiteSpace(r.Name) ? r.Key!.Trim() : r.Name!.Trim(),
+                    Key = r.Key.Trim(),
+                    Name = string.IsNullOrWhiteSpace(r.Name) ? r.Key.Trim() : r.Name.Trim(),
                     Url = (r.Url ?? string.Empty).Trim(),
                     ProductId = (r.ProductId ?? string.Empty).Trim()
                 })
+                .OfType<RetailerLink>()
                 .GroupBy(r => r.Key, StringComparer.OrdinalIgnoreCase)
                 .Select(g => g.First())]
         };

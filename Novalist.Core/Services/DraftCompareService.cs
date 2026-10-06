@@ -82,14 +82,15 @@ public sealed class DraftCompareService
     public async Task<DraftComparison?> CompareAsync(string leftDraftId, string rightDraftId)
     {
         var book = _projects.ActiveBook;
-        if (book == null) return null;
+        var bookRoot = _projects.ActiveBookRoot;
+        if (book == null || bookRoot == null) return null;
 
         var left = book.Drafts.FirstOrDefault(d => d.Id == leftDraftId);
         var right = book.Drafts.FirstOrDefault(d => d.Id == rightDraftId);
         if (left == null || right == null) return null;
 
-        var leftSide = await LoadAsync(left).ConfigureAwait(false);
-        var rightSide = await LoadAsync(right).ConfigureAwait(false);
+        var leftSide = await LoadAsync(book, bookRoot, left).ConfigureAwait(false);
+        var rightSide = await LoadAsync(book, bookRoot, right).ConfigureAwait(false);
 
         var rows = new List<DraftSceneComparison>();
 
@@ -140,10 +141,11 @@ public sealed class DraftCompareService
     public async Task<string> ReadSceneHtmlAsync(string draftId, string sceneId)
     {
         var book = _projects.ActiveBook;
+        var bookRoot = _projects.ActiveBookRoot;
         var draft = book?.Drafts.FirstOrDefault(d => d.Id == draftId);
-        if (draft == null) return string.Empty;
+        if (book == null || bookRoot == null || draft == null) return string.Empty;
 
-        var side = await LoadAsync(draft).ConfigureAwait(false);
+        var side = await LoadAsync(book, bookRoot, draft).ConfigureAwait(false);
         if (!side.Scenes.TryGetValue(sceneId, out var found)) return string.Empty;
         return await ReadAsync(side, found.Chapter, found.Scene).ConfigureAwait(false);
     }
@@ -162,10 +164,11 @@ public sealed class DraftCompareService
     public async Task<bool> TakeSceneAsync(string fromDraftId, string sceneId)
     {
         var book = _projects.ActiveBook;
+        var bookRoot = _projects.ActiveBookRoot;
         var source = book?.Drafts.FirstOrDefault(d => d.Id == fromDraftId);
-        if (book == null || source == null || source.Id == book.ActiveDraft?.Id) return false;
+        if (book == null || bookRoot == null || source == null || source.Id == book.ActiveDraft?.Id) return false;
 
-        var side = await LoadAsync(source).ConfigureAwait(false);
+        var side = await LoadAsync(book, bookRoot, source).ConfigureAwait(false);
         if (!side.Scenes.TryGetValue(sceneId, out var found)) return false;
 
         var html = await ReadAsync(side, found.Chapter, found.Scene).ConfigureAwait(false);
@@ -202,10 +205,9 @@ public sealed class DraftCompareService
         IReadOnlyList<(ChapterData Chapter, SceneData Scene)> Ordered,
         IReadOnlyDictionary<string, (ChapterData Chapter, SceneData Scene)> Scenes);
 
-    private async Task<DraftSide> LoadAsync(BookDraftMetadata draft)
+    private async Task<DraftSide> LoadAsync(BookData book, string bookRoot, BookDraftMetadata draft)
     {
-        var book = _projects.ActiveBook!;
-        var root = _files.CombinePath(_projects.ActiveBookRoot!, "Drafts", draft.FolderName);
+        var root = _files.CombinePath(bookRoot, "Drafts", draft.FolderName);
 
         // The active draft is already in memory and may hold unsaved edits the
         // files do not; reading it back off disk would compare against a stale

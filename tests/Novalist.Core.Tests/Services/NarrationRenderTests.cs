@@ -51,29 +51,29 @@ public class NarrationRenderTests
     [Fact]
     public void Build_CarriesTheWordsAndTheVoiceEachIsReadIn()
     {
+        var voices = Audio();
         var request = NarrationRender.Build(
             [
                 Segment("n:1", "She waited.", null, kind: NarrationSegmentKind.Narration),
                 Segment("d:1", "You are late,", "mira")
             ],
-            Cast(),
-            Audio(),
-            VoiceEngineFeatures.EmotionVector,
-            "en",
-            1.5,
-            voiceReferenceTexts: new Dictionary<string, string>(StringComparer.Ordinal)
+            new NarrationRenderContext(Cast(), voices, VoiceEngineFeatures.EmotionVector, "en")
             {
-                ["narrator-voice"] = "The harbour was quiet.",
-                ["mira-voice"] = "The tide turned at four.",
-                ["voice-not-on-this-machine"] = "This must not be sent."
-            });
+                VoiceReferenceTexts = new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    ["narrator-voice"] = "The harbour was quiet.",
+                    ["mira-voice"] = "The tide turned at four.",
+                    ["voice-not-on-this-machine"] = "This must not be sent."
+                }
+            },
+            1.5);
 
         Assert.Equal(["n:1", "d:1"], request.Segments.Select(s => s.Key));
         Assert.Equal(["narrator-voice", "mira-voice"], request.Segments.Select(s => s.VoiceId));
         Assert.Equal([false, true], request.Segments.Select(s => s.IsDialogue));
         Assert.Equal("en", request.Language);
         Assert.Equal(1.5, request.Rate);
-        Assert.Equal(Audio(), request.Voices);
+        Assert.Same(voices, request.Voices);
         Assert.Equal(2, request.VoiceReferenceTexts.Count);
         Assert.Equal("The harbour was quiet.", request.VoiceReferenceTexts["narrator-voice"]);
         Assert.Equal("The tide turned at four.", request.VoiceReferenceTexts["mira-voice"]);
@@ -87,10 +87,7 @@ public class NarrationRenderTests
         // engine will refuse, so the gap is visible to the caller.
         var request = NarrationRender.Build(
             [Segment("d:1", "You are late,", "mira")],
-            Cast(),
-            new Dictionary<string, byte[]>(StringComparer.Ordinal),
-            VoiceEngineFeatures.EmotionVector,
-            "en");
+            new NarrationRenderContext(Cast(), new Dictionary<string, byte[]>(StringComparer.Ordinal), VoiceEngineFeatures.EmotionVector, "en"));
 
         Assert.Empty(request.Segments);
     }
@@ -101,11 +98,13 @@ public class NarrationRenderTests
         var nothingCast = new VoiceCastSheet();
 
         Assert.Empty(NarrationRender
-            .Build([Segment("d:1", "A line.", "mira")], nothingCast, Audio(),
-                VoiceEngineFeatures.EmotionVector, "en").Segments);
+            .Build(
+                [Segment("d:1", "A line.", "mira")],
+                new NarrationRenderContext(nothingCast, Audio(), VoiceEngineFeatures.EmotionVector, "en")).Segments);
         Assert.Empty(NarrationRender
-            .Build([Segment("n:1", "   ", null)], Cast(), Audio(),
-                VoiceEngineFeatures.EmotionVector, "en").Segments);
+            .Build(
+                [Segment("n:1", "   ", null)],
+                new NarrationRenderContext(Cast(), Audio(), VoiceEngineFeatures.EmotionVector, "en")).Segments);
     }
 
     [Fact]

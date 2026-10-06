@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace Novalist.Core.Models;
 
-/// <summary>The unit a relative story time is measured in.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum StoryTimeUnit
 {

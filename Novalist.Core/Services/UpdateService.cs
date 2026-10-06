@@ -154,7 +154,7 @@ public sealed class UpdateService : IUpdateService
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             psi.FileName = "open";
-            psi.Arguments = $"\"{installerPath}\"";
+            psi.ArgumentList.Add(installerPath);
         }
 
         System.Diagnostics.Process.Start(psi);
@@ -180,11 +180,6 @@ public sealed class UpdateService : IUpdateService
             return;
         }
 
-        // Write a detached bash script that waits for *this* process to exit,
-        // replaces the running AppImage in place, and re-launches it. If the
-        // in-place replacement fails (read-only mount, permission denied) it
-        // launches the freshly downloaded copy instead so the user is never
-        // left without a working app.
         var pid = Environment.ProcessId;
         var scriptPath = Path.Combine(Path.GetTempPath(),
             $"novalist-update-{Guid.NewGuid():N}.sh");
@@ -269,7 +264,7 @@ public sealed class UpdateService : IUpdateService
                 a.Name != null && a.Name.Contains("macos", StringComparison.OrdinalIgnoreCase) &&
                 a.Name.EndsWith(".dmg", StringComparison.OrdinalIgnoreCase)).ToArray();
 
-            return macAssets.FirstOrDefault(a => a.Name!.Contains(archSuffix, StringComparison.OrdinalIgnoreCase))
+            return macAssets.FirstOrDefault(a => a.Name?.Contains(archSuffix, StringComparison.OrdinalIgnoreCase) == true)
                 ?? macAssets.FirstOrDefault();
         }
 
@@ -304,11 +299,7 @@ public sealed class UpdateService : IUpdateService
 
     private static int[] ParseParts(string version)
     {
-        var parts = version.Split('.');
-        var result = new int[parts.Length];
-        for (var i = 0; i < parts.Length; i++)
-            int.TryParse(parts[i], out result[i]);
-        return result;
+        return version.Split('.').Select(part => int.TryParse(part, out var number) ? number : 0).ToArray();
     }
 
     // GitHub API DTOs

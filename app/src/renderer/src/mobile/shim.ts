@@ -22,14 +22,8 @@ import i18next from 'i18next'
 
 import { installProjectImageLoader, clearProjectImageCache } from './projectImages'
 
-type HybridWebViewApi = { SendRawMessage?: (message: string) => void }
-
-function hwv(): HybridWebViewApi | undefined {
-  return (window as unknown as { HybridWebView?: HybridWebViewApi }).HybridWebView
-}
-
 function sendRaw(message: string): void {
-  hwv()?.SendRawMessage?.(message)
+  window.HybridWebView?.SendRawMessage?.(message)
 }
 
 function bytesToBase64(bytes: Uint8Array): string {
@@ -52,9 +46,7 @@ function base64ToBytes(base64: string): Uint8Array {
 
 let backendPort: MessagePort | null = null
 
-;(window as unknown as { __novalistRecv: (base64: string) => void }).__novalistRecv = (
-  base64: string
-) => {
+window.__novalistRecv = (base64: string) => {
   backendPort?.postMessage(base64ToBytes(base64))
 }
 
@@ -72,9 +64,7 @@ type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void }
 const pendingHostCalls = new Map<number, Pending>()
 let nextHostCallId = 1
 
-;(window as unknown as { __novalistHostResult: (base64: string) => void }).__novalistHostResult = (
-  base64: string
-) => {
+window.__novalistHostResult = (base64: string) => {
   const text = new TextDecoder().decode(base64ToBytes(base64))
   const msg = JSON.parse(text) as { id: number; ok: boolean; result?: unknown; error?: string }
   const pending = pendingHostCalls.get(msg.id)
@@ -229,11 +219,15 @@ const novalist: Window['novalist'] = {
   checkAppUpdate: async () => null,
   hasDetachedPanes: async () => false,
   downloadAppUpdate: async () => ({ filePath: '', launchToken: null }),
-  launchAppUpdate: async () => {},
+  launchAppUpdate: () => Promise.resolve(),
   // No protocol handler on mobile: there is nothing to register a scheme with.
   takeDeepLink: () => Promise.resolve(null),
-  onDeepLink: () => {},
-  updatesChecked: () => {}
+  onDeepLink: () => {
+    // Mobile has no protocol handler to deliver desktop deep-link events.
+  },
+  updatesChecked: () => {
+    // Store updates have no desktop update-check event to acknowledge.
+  }
 }
 
 window.novalist = novalist

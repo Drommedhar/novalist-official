@@ -371,7 +371,7 @@ public static class VoiceBriefBuilder
     private static void Add(List<string> parts, string? part)
     {
         if (!string.IsNullOrWhiteSpace(part))
-            parts.Add(part!);
+            parts.Add(part);
     }
 
     private static string Clean(string? text)

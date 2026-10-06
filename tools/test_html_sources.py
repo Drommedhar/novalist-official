@@ -17,7 +17,9 @@ class HtmlSourcesTests(unittest.TestCase):
             entry.write_text('<script src="editor.js"></script>', encoding="utf-8")
             script.write_text(body, encoding="utf-8")
             self.assertEqual(body.count("\n"), extracted_script_lines(previous, entry))
-            self.assertEqual(body.count("\n"), extracted_script_lines(previous + previous, entry))
+            self.assertEqual(
+                body.count("\n"), extracted_script_lines(previous + previous, entry)
+            )
             script.write_text("function unrelated() {}", encoding="utf-8")
             self.assertEqual(0, extracted_script_lines(previous, entry))
             script.unlink()
@@ -26,7 +28,8 @@ class HtmlSourcesTests(unittest.TestCase):
     def test_tracks_local_classic_scripts_and_preserves_missing_references(self):
         with tempfile.TemporaryDirectory() as folder:
             entry = Path(folder) / "editor.html"
-            entry.write_text('''
+            entry.write_text(
+                """
                 <script>function inlineBridge() {}</script>
                 <script src="editor.js?v=2"></script>
                 <script src="editor.js?v=3"></script>
@@ -35,9 +38,15 @@ class HtmlSourcesTests(unittest.TestCase):
                 <script src="https://example.com/remote.js"></script>
                 <script src="//example.com/remote.js"></script>
                 <script type="importmap">{}</script>
-            ''', encoding="utf-8")
+            """,
+                encoding="utf-8",
+            )
             self.assertEqual(
-                [entry, (entry.parent / "editor.js").resolve(), (entry.parent / "rich text.js").resolve()],
+                [
+                    entry,
+                    (entry.parent / "editor.js").resolve(),
+                    (entry.parent / "rich text.js").resolve(),
+                ],
                 classic_script_paths(entry),
             )
             with self.assertRaises(FileNotFoundError):

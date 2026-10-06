@@ -28,13 +28,14 @@ public class NarrationScriptTests
         return NarrationScript.Build(
             html,
             DialogueAttributor.BuildCandidates([Mira, Aldric], lexicon?.WordBoundaries ?? true),
-            DialogueAttributor.BuildLanguage(lexicon),
-            EmotionDirector.BuildLanguage(lexicon),
-            speakers,
-            directions,
-            sceneEmotion,
-            sceneIntensity,
-            UtteranceLanguage.From(lexicon));
+            new NarrationLanguageContext(DialogueAttributor.BuildLanguage(lexicon), EmotionDirector.BuildLanguage(lexicon), UtteranceLanguage.From(lexicon)),
+            new SceneNarrationSettings()
+            {
+                SpeakerOverrides = speakers,
+                DirectionOverrides = directions,
+                Emotion = sceneEmotion,
+                Intensity = sceneIntensity
+            });
     }
 
     // ─── one utterance is one sentence, on both kinds of segment ───

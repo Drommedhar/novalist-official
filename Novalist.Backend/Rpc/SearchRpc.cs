@@ -41,6 +41,7 @@ public sealed class SearchRpc
     }
 
     [JsonRpcMethod("search/find")]
+    // aislop-ignore-next-line complexity/too-many-params -- Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.
     public async Task<FindMatchDto[]> FindAsync(
         string pattern,
         bool matchCase,
@@ -73,6 +74,7 @@ public sealed class SearchRpc
     }
 
     [JsonRpcMethod("search/replaceAll")]
+    // aislop-ignore-next-line complexity/too-many-params -- Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.
     public async Task<int> ReplaceAllAsync(
         string pattern,
         string replacement,

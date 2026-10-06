@@ -6,7 +6,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 DOCTOR = Path(__file__).resolve().with_name("file-doctor.py")
 JAVASCRIPT_SUFFIXES = (".js", ".mjs", ".cjs", ".jsx")
 SCRIPT = "\n".join(f"const value{number} = {number};" for number in range(100)) + "\n"
@@ -21,17 +20,28 @@ class FileDoctorTests(unittest.TestCase):
 
     def git(self, *arguments: str) -> None:
         subprocess.run(
-            ["git", *arguments], cwd=self.root, check=True, capture_output=True, text=True
+            ["git", *arguments],
+            cwd=self.root,
+            check=True,
+            capture_output=True,
+            text=True,
         )
 
     def commit(self) -> None:
         self.git("add", ".")
         self.git(
-            "-c", "user.name=File doctor fixture",
-            "-c", "user.email=file-doctor@example.invalid",
-            "-c", "commit.gpgsign=false",
-            "-c", f"core.hooksPath={self.root / '.disabled-hooks'}",
-            "commit", "--quiet", "-m", "Record fixture",
+            "-c",
+            "user.name=File doctor fixture",
+            "-c",
+            "user.email=file-doctor@example.invalid",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            f"core.hooksPath={self.root / '.disabled-hooks'}",
+            "commit",
+            "--quiet",
+            "-m",
+            "Record fixture",
         )
 
     def doctor(self) -> subprocess.CompletedProcess[str]:

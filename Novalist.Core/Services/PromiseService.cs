@@ -11,10 +11,10 @@ public enum PromiseState
     /// <summary>Nothing pays it off. The gun stays on the mantel.</summary>
     Unpaid,
 
-    /// <summary>The scene that paid it off is gone.</summary>
+    /// <summary>Set when a nonblank payoff scene id cannot be found in the current manuscript.</summary>
     Broken,
 
-    /// <summary>The payoff comes before the setup in reading order.</summary>
+    /// <summary>Set when the payoff occupies the same or an earlier manuscript position than its setup; story dates are irrelevant.</summary>
     OutOfOrder
 }
 

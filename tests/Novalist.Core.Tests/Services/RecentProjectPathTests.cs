@@ -82,14 +82,12 @@ public class RecentProjectPathTests
     [Fact]
     public void MissingMountDoesNotInheritRootVolumePolicy()
     {
-        if (OperatingSystem.IsWindows()) return;
-
         var visited = new List<string>();
         Assert.False(RecentProjectPath.IsCaseInsensitive("/Volumes/Offline/Book", path =>
         {
             visited.Add(path);
             return (-1L, 2);
-        }));
+        }, path => path[..path.LastIndexOf('/')]));
         Assert.Equal(new[] { "/Volumes/Offline/Book", "/Volumes/Offline" }, visited);
     }
 

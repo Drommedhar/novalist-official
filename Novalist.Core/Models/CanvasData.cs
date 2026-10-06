@@ -70,11 +70,11 @@ public class CanvasConnector
     [JsonPropertyName("label")]
     public string Label { get; set; } = string.Empty;
 
-    /// <summary>The cardinal edge of the source card chosen by the writer.</summary>
+    /// <summary>Writer-selected source edge: top, right, bottom, or left. Empty or invalid values use the edge facing the destination.</summary>
     [JsonPropertyName("fromSide")]
     public string FromSide { get; set; } = string.Empty;
 
-    /// <summary>The cardinal edge of the destination card nearest the drop.</summary>
+    /// <summary>Destination edge nearest the drop: top, right, bottom, or left. Empty or invalid values use the edge facing the source.</summary>
     [JsonPropertyName("toSide")]
     public string ToSide { get; set; } = string.Empty;
 }

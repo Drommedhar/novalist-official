@@ -53,6 +53,7 @@ public sealed class PictureCatalog
 /// already pointed at by scenes, entries, banners and map layers by its path;
 /// filing it into a folder would move it and break every one of them.
 /// </summary>
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
 public class PictureCatalogService(IProjectService projectService, IFileService fileService)
 {
     private const string FileName = "gallery.json";

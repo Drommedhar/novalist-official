@@ -124,7 +124,8 @@ public static class CommandLine
     {
         try
         {
-            await workspace.OpenProjectAsync(request.ProjectPath!);
+            ArgumentNullException.ThrowIfNull(request.ProjectPath);
+            await workspace.OpenProjectAsync(request.ProjectPath);
         }
         catch (Exception ex)
         {
@@ -149,9 +150,11 @@ public static class CommandLine
 
         try
         {
+            ArgumentNullException.ThrowIfNull(request.Format);
+            ArgumentNullException.ThrowIfNull(request.OutputPath);
             var result = await new Rpc.ExportRpc(workspace).RunAsync(
-                request.Format!,
-                request.OutputPath!,
+                request.Format,
+                request.OutputPath,
                 workspace.Projects.ActiveBook?.Name ?? string.Empty,
                 settings.Author,
                 includeTitlePage: true,

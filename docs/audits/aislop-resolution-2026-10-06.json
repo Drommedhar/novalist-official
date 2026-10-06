@@ -1,0 +1,387 @@
+{
+  "date": "2026-10-06",
+  "request": "Fix every remaining Aislop finding; explain valid implementations in comments or use supported explicit flags.",
+  "status": "Second review complete. Avoidable exceptions were replaced with fixes; the active scan is clear with explicit retained exceptions and upstream complexity debt.",
+  "initialCleanupScore": 63,
+  "beforeThisPass": {
+    "score": 89,
+    "diagnostics": 382,
+    "errors": 8,
+    "warnings": 370,
+    "info": 4,
+    "rawScan": "aislop-scan-2026-10-06.json"
+  },
+  "final": {
+    "score": 100,
+    "errors": 0,
+    "warnings": 0,
+    "fixable": 0,
+    "files": 1633,
+    "elapsed": "16.2s",
+    "diagnostics": 0,
+    "rawScan": "aislop-scan-final-2026-10-06.json"
+  },
+  "scanner": {
+    "version": "0.18.0",
+    "command": "aislop scan --json",
+    "configurationChanged": false,
+    "globalRulesDisabled": false,
+    "ignoreFilesChanged": false,
+    "cliExclusionsUsedForFinalScan": false,
+    "baselineAcceptanceUsed": false
+  },
+  "correctnessChanges": [
+    "KTX2 decoder initialization now rejects current and subsequent callers on synchronous or asynchronous failure instead of leaving a shared promise pending.",
+    "Unsupported raw texture format/component types are rejected before construction.",
+    "Gallery RPC awaits image enumeration; published synchronous SDK compatibility runs provider work independently of the calling synchronization context.",
+    "Desktop shutdown awaits import-listener and backend-host disposal in the established ownership order.",
+    "The synchronous Linux dependency probe runs independently of the caller context and has a five-second cancellation limit.",
+    "Grammar debug logs omit configurable URLs, including possible userinfo or query credentials.",
+    "Folder-import reflection retains validated attributes with properties, removing an unnecessary non-null assertion."
+  ],
+  "otherCleanup": [
+    "Removed unused water import and redundant summary.",
+    "Expressed worker callback dispatch as an equivalent explicit conditional.",
+    "Replaced upstream TODOs with accurate capability/API documentation.",
+    "Moved existing image-import method verbatim into its own partial class file to keep the service focused."
+  ],
+  "validation": {
+    "typescript": {
+      "command": "npm run typecheck",
+      "configurations": 3,
+      "exitCode": 0
+    },
+    "builds": {
+      "desktop": "passed",
+      "mobileWeb": "passed",
+      "builtPublicFilesHashMatchedPerOutput": 142,
+      "desktopLog": "../../artifacts/aislop-second-review-desktop-build.log",
+      "mobileWebLog": "../../artifacts/aislop-second-review-mobile-build.log"
+    },
+    "dotnet": {
+      "testsPassed": {
+        "Core": 3860,
+        "Backend": 2036,
+        "Sdk": 59
+      },
+      "totalPassed": 5955,
+      "failures": 0,
+      "skipped": 0,
+      "coverage": {
+        "Core": "21771/21771 (100%)",
+        "Backend": "13829/13829 (100%)",
+        "Sdk": "30/30 (100%)"
+      },
+      "gateChanged": false,
+      "details": "aislop-csharp-review.json",
+      "compilerWarnings": "Pre-existing test nullability/analyzer warnings remain; see the C# audit. No claim of a warning-free test build."
+    },
+    "node": {
+      "transportIncludingTextureLoaderPassed": 75,
+      "packagingPassed": 9,
+      "failures": 0,
+      "textureLoaderCases": 5,
+      "usesBundledZstdWasm": true,
+      "allocatorAndBasisCases": 14,
+      "usesBundledBasisWasm": true,
+      "log": "../../artifacts/aislop-second-review-transport-tests.log",
+      "packagingEvidence": "Nine packaging tests passed in the preceding pass; packaging sources did not change in this review."
+    },
+    "builtApp": {
+      "importNarrationCommand": "npx playwright test e2e/import-api.spec.ts e2e/m79-narration-view.spec.ts e2e/m82-narration-playback.spec.ts --output=../artifacts/aislop-second-review-import-narration --reporter=list",
+      "importNarrationPassed": 6,
+      "mapCommand": "npx playwright test e2e/map-images.spec.ts e2e/m73-map-3d-controls.spec.ts --output=../artifacts/aislop-second-review-map --reporter=list",
+      "mapPassed": 3,
+      "totalPassedThisReview": 9,
+      "failed": 0,
+      "skipped": 0,
+      "coverage": [
+        "Import API discovery, custom schemas, image upload, repeat imports, draft-scope changes and shutdown",
+        "Narration markup, speakers and manual overrides",
+        "Sample-engine audio rendering, retained clip bytes and playback",
+        "PNG/JPEG gallery images, map previews and persistence",
+        "Two real WebGPU entry/exit cycles with matched device creation and destruction"
+      ],
+      "previousShutdownEvidence": {
+        "passed": 2,
+        "command": "npx playwright test e2e/workspace-windows-regression.spec.ts --grep 'backend restart restores|closing the main window' --output=../artifacts/aislop-final-shutdown --reporter=list",
+        "note": "Verified in the preceding pass; shutdown code was not changed in this review."
+      }
+    },
+    "sourceChecks": {
+      "command": "python tools/check-source.py",
+      "passed": 8,
+      "editorBridge": "65/65 methods implemented and called",
+      "log": "../../artifacts/aislop-second-review-source-checks.log"
+    },
+    "diffCheck": {
+      "command": "git -c core.safecrlf=false diff --check",
+      "exitCode": 0
+    },
+    "nativeMobileLimitation": "The native maui-ios workload is unavailable. Mobile web builds and assets pass. Native callback-state and gesture changes received source/API review, but no native MAUI build is claimed.",
+    "wizardOutputEquivalence": {
+      "comparisonsPassed": 12,
+      "locales": [
+        "en",
+        "de",
+        "zh-CN"
+      ],
+      "entityTypes": [
+        "character",
+        "location",
+        "item",
+        "lore"
+      ],
+      "comparison": "Exact translated output before and after sharing item/location field construction."
+    }
+  },
+  "evidence": [
+    "aislop-csharp-review.json",
+    "aislop-csharp-explanations-verification.json",
+    "aislop-vendor-verification.json",
+    "aislop-narration-context-verification.json"
+  ],
+  "beforeSecondReview": {
+    "annotations": 230,
+    "byCategory": {
+      "csharp": 179,
+      "vendor": 37,
+      "frontend": 14
+    },
+    "score": 100,
+    "qualification": "The previous clean score was after 230 annotations. That score did not establish that all underlying code was worth retaining."
+  },
+  "secondReview": {
+    "trigger": "User challenged the excessive 230 rule-specific annotations and asked whether real fixes were still needed.",
+    "annotationsRemovedNet": 130,
+    "changes": [
+      {
+        "annotationsRemoved": 64,
+        "area": "C# nullability",
+        "change": "Use validated scope values, typed reflected/template fields, explicit project-state contracts, derived parent paths, and callback result state. Preserve eight justified invariants/lifecycle assertions."
+      },
+      {
+        "annotationsRemoved": 59,
+        "area": "C# documentation",
+        "change": "Delete 26 redundant summaries and replace 33 with concrete, checked contract details, including corrected thresholds and capability claims."
+      },
+      {
+        "annotationsRemoved": 4,
+        "area": "Core narration APIs",
+        "change": "Replace long internal parameter lists with cohesive language, scene, direction and render contexts; migrate 43 calls and preserve SDK/RPC signatures, defaults and dictionary identity."
+      },
+      {
+        "annotationsRemoved": 1,
+        "area": "Codex wizards",
+        "change": "Share the item/location wizard implementation with type-specific relation keys. All 12 entity-type/language output comparisons match the previous implementation."
+      },
+      {
+        "annotationsRemoved": 2,
+        "area": "Bundled codecs",
+        "change": "Remove a redundant alias assignment and three empty branches; explicitly handle allocation failure/retries. Also remove seven proven dead locals, their unused pure helper and two catch bindings; preserve exported lazy dynCall behavior."
+      }
+    ],
+    "otherCleanup": [
+      "Correct the outdated settings-registry comment to point at settingsSectionBodies."
+    ],
+    "interpretation": "A zero-finding scan is qualified by the remaining annotations. Vendor complexity remains maintenance debt, and retained generated style does not mean every construct is ideal."
+  },
+  "reviewedExceptions": {
+    "authorization": "The user explicitly authorized explanatory comments and correct flags for valid implementations.",
+    "syntax": "// aislop-ignore-next-line exact/rule -- specific reason; line and file scopes are used only where appropriate.",
+    "officialDocumentation": "https://github.com/scanaislop/aislop#scan",
+    "annotationCount": 100,
+    "ruleOccurrences": 103,
+    "byScope": {
+      "next-line": 74,
+      "file": 21,
+      "line": 5
+    },
+    "byCategory": {
+      "csharp": 52,
+      "vendor": 35,
+      "frontend": 13
+    },
+    "byRule": {
+      "ai-slop/csharp-null-forgiving": 8,
+      "complexity/function-too-long": 26,
+      "ai-slop/csharp-index-loop": 2,
+      "ai-slop/csharp-sync-over-async": 4,
+      "ai-slop/csharp-string-concat-in-loop": 2,
+      "ai-slop/csharp-console-leftover": 12,
+      "complexity/too-many-params": 10,
+      "complexity/file-too-large": 5,
+      "ai-slop/console-leftover": 3,
+      "ai-slop/hallucinated-import": 3,
+      "eslint/no-unused-vars": 3,
+      "unicorn/no-new-array": 1,
+      "ai-slop/hidden-fallback": 2,
+      "eslint/no-undef": 3,
+      "eslint/no-unused-expressions": 3,
+      "unicorn/no-thenable": 1,
+      "eslint/no-func-assign": 1,
+      "complexity/deep-nesting": 3,
+      "code-quality/duplicate-block": 10,
+      "ai-slop/hardcoded-url": 1
+    },
+    "scopePolicy": "Each annotation names exact rules and a local reason. No global rules, scanner configuration, exclusions or generated markers were changed to reduce the count.",
+    "mobileStubs": "Both mobile callbacks now explain inside their bodies why the desktop protocol/update operation has nothing to do on mobile; no suppression is required.",
+    "csharpBreakdown": {
+      "primaryConstructorParserMistakes": 14,
+      "intentionalDiagnosticOutput": 12,
+      "rpcWireSignatures": 9,
+      "positionalStatusRecord": 1,
+      "synchronousContractBoundaries": 4,
+      "remainingNullableInvariants": 8,
+      "numericAdditionAndIndexedMutationFalsePositives": 4
+    },
+    "frontendBreakdown": {
+      "declarativeRegistriesOrFixtureData": 10,
+      "cliProgressOutput": 2,
+      "editableEndpointExample": 1
+    },
+    "vendorBreakdown": {
+      "upstreamComplexityAnnotations": 17,
+      "generatedOrMinifiedStyleAnnotations": 9,
+      "specificRuntimeScannerMismatches": 9
+    },
+    "frontendSites": [
+      {
+        "file": "app/src/renderer/src/shell/commands.ts",
+        "line": 297,
+        "scope": "line",
+        "rules": [
+          "code-quality/duplicate-block"
+        ],
+        "reason": "Import commands have distinct IDs and dialogs; repeated registry fields are declarative metadata."
+      },
+      {
+        "file": "app/src/renderer/src/shell/commands.ts",
+        "line": 307,
+        "scope": "line",
+        "rules": [
+          "code-quality/duplicate-block"
+        ],
+        "reason": "Import commands have distinct IDs and dialogs; repeated registry fields are declarative metadata."
+      },
+      {
+        "file": "app/src/renderer/src/shell/editorCommands.ts",
+        "line": 119,
+        "scope": "line",
+        "rules": [
+          "code-quality/duplicate-block"
+        ],
+        "reason": "Each editor command has its own ID, placement, availability, and action; repeated registry fields describe distinct commands."
+      },
+      {
+        "file": "app/src/renderer/src/shell/editorCommands.ts",
+        "line": 130,
+        "scope": "line",
+        "rules": [
+          "code-quality/duplicate-block"
+        ],
+        "reason": "Each editor command has its own ID, placement, availability, and action; repeated registry fields describe distinct commands."
+      },
+      {
+        "file": "app/src/renderer/src/shell/editorCommands.ts",
+        "line": 272,
+        "scope": "line",
+        "rules": [
+          "code-quality/duplicate-block"
+        ],
+        "reason": "Each editor command has its own ID, placement, availability, and action; repeated registry fields describe distinct commands."
+      },
+      {
+        "file": "app/src/renderer/src/shell/projectCommands.ts",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "code-quality/duplicate-block"
+        ],
+        "reason": "Project command registry entries share a schema but retain distinct IDs, availability predicates, and actions."
+      },
+      {
+        "file": "app/src/renderer/src/views/settings/settingsSections.ts",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "code-quality/duplicate-block"
+        ],
+        "reason": "Searchable settings entries share a schema but retain distinct keys, targets, keywords, and help text."
+      },
+      {
+        "file": "app/src/renderer/src/views/settings/writingAssistanceSettingsBody.tsx",
+        "line": 192,
+        "scope": "next-line",
+        "rules": [
+          "ai-slop/hardcoded-url"
+        ],
+        "reason": "Editable endpoint example; requests use the saved setting, not this placeholder."
+      },
+      {
+        "file": "tools/screenshots/capture-desktop.mjs",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "ai-slop/console-leftover"
+        ],
+        "reason": "Screenshot CLI reports capture progress and output paths to its invoking terminal."
+      },
+      {
+        "file": "tools/screenshots/demo-chapters.mjs",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "code-quality/duplicate-block"
+        ],
+        "reason": "Fictional chapter fixtures intentionally share a schema; titles, prose, and scene metadata are distinct data."
+      },
+      {
+        "file": "tools/screenshots/demo-entities.mjs",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "code-quality/duplicate-block"
+        ],
+        "reason": "Fictional entity fixtures intentionally share a schema; identities, traits, and prose are distinct data."
+      },
+      {
+        "file": "tools/screenshots/make-demo-project.mjs",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "ai-slop/console-leftover"
+        ],
+        "reason": "Demo-project CLI reports creation progress and the resulting project path to its invoking terminal."
+      },
+      {
+        "file": "docs/design/desktop-ui-review/depth-data.js",
+        "line": 1,
+        "scope": "file",
+        "rules": [
+          "code-quality/duplicate-block"
+        ],
+        "reason": "Per-view review evidence repeats the same schema with distinct requirements, manual references, and actions."
+      }
+    ],
+    "inventory": "aislop-annotations-final-2026-10-06.json",
+    "note": "These are reviewed exceptions. In particular, upstream complexity is retained debt rather than repaired complexity."
+  },
+  "retainedMaintenanceDebt": {
+    "annotations": 17,
+    "diagnostics": 20,
+    "findingTypes": {
+      "largeFiles": 5,
+      "longFunctions": 12,
+      "deepNesting": 3
+    },
+    "files": [
+      "app/src/renderer/public/map/DRACOLoader.js",
+      "app/src/renderer/public/map/GLTFLoader.js",
+      "app/src/renderer/public/map/KTX2Loader.js",
+      "app/src/renderer/public/map/utils/BufferGeometryUtils.js",
+      "app/src/renderer/public/map/utils/SkeletonUtils.js"
+    ],
+    "reason": "Preserve upstream graphics-library module and algorithm structure for updateability. Serialized worker closures, geometry calculations and skeletal retargeting remain large. This pass does not claim those size/nesting findings are false positives or fixed."
+  }
+}

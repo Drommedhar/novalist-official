@@ -6,6 +6,7 @@ using StreamJsonRpc;
 namespace Novalist.Backend.Rpc;
 
 /// <summary>Speech conversion only. The editor owns insertion and undo.</summary>
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
 public sealed class DictationRpc(Workspace workspace, ISystemDictation? system = null)
 {
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _requests = new();
@@ -59,6 +60,7 @@ public sealed class DictationRpc(Workspace workspace, ISystemDictation? system =
         }, cancellationToken, TimeSpan.FromMinutes(10));
 
     [JsonRpcMethod("dictation/transcribe")]
+    // aislop-ignore-next-line complexity/too-many-params -- Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.
     public async Task<string> TranscribeAsync(string requestId, string providerId,
         string audioBase64, string mimeType, string language, string[]? vocabulary = null, CancellationToken cancellationToken = default)
     {

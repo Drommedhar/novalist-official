@@ -14,7 +14,8 @@ public sealed record ImportImageUpload(string ImageId, string ContentType, int B
 public sealed class ImportImageNotFoundException() : FormatException("Upload every referenced image using POST /v1/images before validating or importing.");
 
 /// <summary>Book-local, content-addressed images. References never read agent-supplied paths.</summary>
-internal sealed class ImportImageStore(IProjectService projects, IFileService files)
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent image-store methods as one constructor body.
+internal sealed class ImportImageStore(BookData book, string bookRoot, IFileService files)
 {
     public const int MaxImageBytes = 32 * 1024 * 1024;
     public const int MaxImagesPerEntry = 100;
@@ -36,7 +37,7 @@ internal sealed class ImportImageStore(IProjectService projects, IFileService fi
         if (!Formats.TryGetValue(contentType, out var extension) || !Matches(content, contentType))
             throw new ArgumentException("Send PNG, JPEG, GIF, WebP, BMP or SVG image bytes with their matching Content-Type.");
         var id = Convert.ToHexString(SHA256.HashData(content)).ToLowerInvariant();
-        var destination = Path.Combine(projects.ActiveBookRoot!, RelativePath(id, extension));
+        var destination = Path.Combine(bookRoot, RelativePath(id, extension));
         var reused = await files.ExistsAsync(destination);
         if (!reused)
         {
@@ -68,7 +69,7 @@ internal sealed class ImportImageStore(IProjectService projects, IFileService fi
             foreach (var extension in Formats.Values)
             {
                 var candidate = RelativePath(reference.ImageId, extension);
-                if (await files.ExistsAsync(Path.Combine(projects.ActiveBookRoot!, candidate))) { path = candidate; break; }
+                if (await files.ExistsAsync(Path.Combine(bookRoot, candidate))) { path = candidate; break; }
             }
             if (path == null) throw new ImportImageNotFoundException();
             if (paths.Add(path)) result.Add(new EntityImage { Name = reference.Name, Path = path, Alt = reference.Alt ?? string.Empty });
@@ -77,7 +78,7 @@ internal sealed class ImportImageStore(IProjectService projects, IFileService fi
     }
 
     private string RelativePath(string id, string extension)
-        => Path.Combine(projects.ActiveBook!.ImageFolder, "Imported", id + extension).Replace('\\', '/');
+        => Path.Combine(book.ImageFolder, "Imported", id + extension).Replace('\\', '/');
 
     private static bool Matches(byte[] content, string contentType)
     {

@@ -109,7 +109,7 @@ public sealed class SmartList
         void Add(string field, string? value, SmartListOperator op)
         {
             if (!string.IsNullOrWhiteSpace(value))
-                converted.Add(new SmartListRule { Field = field, Op = op, Value = value! });
+                converted.Add(new SmartListRule { Field = field, Op = op, Value = value });
         }
         Add("chapterStatus", ChapterStatus, SmartListOperator.Is);
         Add("pov", PovContains, SmartListOperator.Contains);

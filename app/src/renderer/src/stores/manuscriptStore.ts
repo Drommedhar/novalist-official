@@ -32,7 +32,6 @@ export interface ManuscriptSectionDto {
 
 export type ManuscriptMode = 'manuscript' | 'corkboard' | 'outliner' | 'board'
 
-// Matches the Avalonia ManuscriptViewModel autosave debounce.
 const MANUSCRIPT_AUTOSAVE_MS = 800
 
 interface PendingManuscriptSave {

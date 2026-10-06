@@ -7,6 +7,32 @@ namespace Novalist.Core.Tests.Services;
 
 public sealed class FolderImportParserTests
 {
+    [Fact]
+    public void TypedExtraFieldsRejectAnUnsupportedModel()
+    {
+        var document = new ParsedFolderImport
+        {
+            Definition = new FolderImportSchema().Definition("character"),
+            Title = "Entry", Content = string.Empty, Source = string.Empty,
+            Values = new Dictionary<ImportField, JsonNode>
+            {
+                [new ImportField("detail", "customProperties", typeof(string))] = JsonValue.Create("value")
+            }
+        };
+        var error = Assert.Throws<ArgumentException>(() => document.Apply(new object(), "Source"));
+        Assert.Equal("model", error.ParamName);
+    }
+
+    [Theory]
+    [InlineData("object")]
+    [InlineData("array")]
+    public void AContainerSchemaWithoutItsMemberShapeCannotAcceptData(string type)
+    {
+        var schema = new JsonObject { ["type"] = type };
+        JsonNode value = type == "object" ? new JsonObject() : new JsonArray();
+        Assert.False(FolderImportSchema.Accepts(schema, value));
+    }
+
     [Theory]
     [InlineData("md", "\n", "\n")]
     [InlineData("md", "\r\n", "\r\n")]

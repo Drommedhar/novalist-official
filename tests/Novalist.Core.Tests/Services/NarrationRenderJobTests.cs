@@ -119,8 +119,11 @@ public class NarrationRenderJobTests : IDisposable
         VoiceCastSheet? sheet = null,
         Dictionary<string, byte[]>? voices = null)
         => job.RunAsync(
-            chapters, sheet ?? Sheet(), voices ?? Voices(), VoiceEngineFeatures.EmotionVector, "en",
-            settings, progress, token);
+            chapters,
+            new NarrationRenderContext(sheet ?? Sheet(), voices ?? Voices(), VoiceEngineFeatures.EmotionVector, "en"),
+            settings,
+            progress,
+            token);
 
     // ─── what it produces ───────────────────────────────────────────
 
@@ -347,10 +350,7 @@ public class NarrationRenderJobTests : IDisposable
 
         var outcome = await job.RunAsync(
             [Chapter("a", "One", ["Hello.", "Goodbye."])],
-            Sheet(),
-            Voices(),
-            VoiceEngineFeatures.EmotionVector | VoiceEngineFeatures.ContinuousContext,
-            "en",
+            new NarrationRenderContext(Sheet(), Voices(), VoiceEngineFeatures.EmotionVector | VoiceEngineFeatures.ContinuousContext, "en"),
             new NarrationRenderSettings { SegmentGapMs = 0, JoinCharacters = 0 });
 
         Assert.Equal(200, outcome.Chapters[0].DurationMs, 1);
@@ -415,7 +415,8 @@ public class NarrationRenderJobTests : IDisposable
             ["other"] = [3], ["narrator"] = [2]
         };
         var outcome = await Job(Speaks()).RunAsync(
-            chapters, recast, voices, VoiceEngineFeatures.EmotionVector, "en");
+            chapters,
+            new NarrationRenderContext(recast, voices, VoiceEngineFeatures.EmotionVector, "en"));
 
         Assert.False(outcome.Chapters[0].Reused);
     }
@@ -635,7 +636,8 @@ public class NarrationRenderJobTests : IDisposable
         };
 
         var outcome = await Job(Speaks()).RunAsync(
-            [chapter], sheet, Voices(), VoiceEngineFeatures.EmotionVector, "en");
+            [chapter],
+            new NarrationRenderContext(sheet, Voices(), VoiceEngineFeatures.EmotionVector, "en"));
 
         Assert.Equal(1, outcome.Chapters[0].Missing);
     }

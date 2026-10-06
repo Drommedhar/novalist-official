@@ -39,7 +39,8 @@ internal static class RecentProjectPath
     internal static bool IsCaseInsensitive(string path) => OperatingSystem.IsWindows()
         || OperatingSystem.IsMacOS() && !path.Contains('\0') && IsCaseInsensitive(path, QueryVolume);
 
-    internal static bool IsCaseInsensitive(string path, Func<string, (long Value, int Error)> query)
+    internal static bool IsCaseInsensitive(string path, Func<string, (long Value, int Error)> query,
+        Func<string, string?>? parentOf = null)
     {
         var current = path;
         while (true)
@@ -47,7 +48,7 @@ internal static class RecentProjectPath
             var (value, error) = query(current);
             if (value > 0 || value < 0 && error != 2) return false;
 
-            var parent = Path.GetDirectoryName(current);
+            var parent = parentOf == null ? Path.GetDirectoryName(current) : parentOf(current);
             if (string.IsNullOrEmpty(parent)) return value == 0;
             // An absent mounted volume must not inherit the host volume's policy.
             if (value < 0 && parent.Equals("/Volumes", StringComparison.OrdinalIgnoreCase))

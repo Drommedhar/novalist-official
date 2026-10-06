@@ -284,7 +284,8 @@ public sealed class ExtensionLoader
 
             // extensionType is already verified to implement IExtension above, so
             // the cast cannot fail; any construction failure throws and is caught below.
-            info.Instance = (IExtension)Activator.CreateInstance(extensionType)!;
+            info.Instance = Activator.CreateInstance(extensionType) as IExtension
+                ?? throw new InvalidOperationException("Could not construct the extension instance.");
             info.LoadContext = loadContext;
             loadContext = null; // Ownership transfers only after successful construction.
             info.IsLoaded = true;

@@ -112,7 +112,6 @@ public enum ResearchStatus
     /// <summary>Nothing said. Every item starts here and most stay here.</summary>
     None,
 
-    /// <summary>A question the book needs answered.</summary>
     Open,
 
     /// <summary>Being worked on.</summary>

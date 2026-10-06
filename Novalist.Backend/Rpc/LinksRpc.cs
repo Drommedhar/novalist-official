@@ -26,6 +26,7 @@ public sealed record BacklinkDto(
 /// research note, could only say so as prose in its own notes - which nothing
 /// could follow, and which the other end never knew about.
 /// </summary>
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
 public class LinksRpc(Workspace workspace)
 {
     private readonly Workspace _workspace = workspace;

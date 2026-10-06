@@ -23,41 +23,7 @@ const STARTER_WEEKDAYS = ['Firstday', 'Secondday', 'Thirdday', 'Fourthday', 'Fif
  */
 export function CalendarConfigPanel({ onSaved }: { onSaved?(config: CalendarConfig): void }): React.JSX.Element {
   const { t } = useTranslation()
-  const [config, setConfig] = useState<CalendarConfig | null>(null)
-  const [busy, setBusy] = useState(false)
-  const scope = useBookScope()
-  const saveRevision = useRef(0)
-
-  useEffect(() => {
-    void rpc.request<CalendarConfig>('calendar/getConfig').then(setConfig)
-  }, [])
-
-  const save = async (next: CalendarConfig): Promise<void> => {
-    const revision = ++saveRevision.current
-    setConfig(next)
-    setBusy(true)
-    try {
-      await persistPendingWrite(`calendar-config:${scope}`, async () => {
-        const saved = await rpc.request<CalendarConfig>('calendar/setConfig', [
-          next.type,
-          next.yearLabel,
-          next.monthNames,
-          next.daysPerMonth,
-          next.weekdayNames,
-          next.eras
-        ])
-        // The stored calendar omits unnamed rows and sorts eras. Keep the
-        // editable draft so adding a blank row or clearing a name to replace
-        // it does not remove the input under the writer's cursor.
-        if (saveRevision.current === revision) {
-          setConfig((draft) => draft && { ...draft, yearLength: saved.yearLength })
-          onSaved?.(saved)
-        }
-      })
-    } finally {
-      if (saveRevision.current === revision) setBusy(false)
-    }
-  }
+  const { config, busy, save } = useCalendarConfiguration(onSaved)
 
   if (!config) return <p className="settings-hint">{t('calendarConfig.loading')}</p>
 
@@ -101,12 +67,6 @@ export function CalendarConfigPanel({ onSaved }: { onSaved?(config: CalendarConf
       daysPerMonth: config.daysPerMonth.filter((_, i) => i !== index)
     })
 
-  const setEra = (index: number, patch: Partial<CalendarEra>): void =>
-    void save({
-      ...config,
-      eras: config.eras.map((era, i) => (i === index ? { ...era, ...patch } : era))
-    })
-
   const setWeekday = (index: number, name: string): void => {
     const weekdayNames = [...config.weekdayNames]
     weekdayNames[index] = name
@@ -140,56 +100,7 @@ export function CalendarConfigPanel({ onSaved }: { onSaved?(config: CalendarConf
           />
           <div className="settings-hint">{t('calendarConfig.yearLabelDesc')}</div>
 
-          <h4>{t('calendarConfig.eras')}</h4>
-          <div className="settings-hint">{t('calendarConfig.erasDesc')}</div>
-          {config.eras.map((era, index) => (
-            <div key={index} className="calendar-config-row">
-              <input
-                className="inspector-input"
-                aria-label={t('calendarConfig.eraName')}
-                value={era.name}
-                placeholder={t('calendarConfig.eraNamePlaceholder')}
-                onChange={(e) => setEra(index, { name: e.target.value })}
-              />
-              <input
-                className="inspector-input"
-                type="number"
-                aria-label={t('calendarConfig.eraStart')}
-                value={era.startYear}
-                onChange={(e) => setEra(index, { startYear: Number(e.target.value) || 0 })}
-              />
-              {/* What "12 Before the Fall" means: years inside the era count
-                  down towards the one that follows it. */}
-              <label className="match-toggle">
-                <input
-                  type="checkbox"
-                  checked={era.countsDown}
-                  onChange={(e) => setEra(index, { countsDown: e.target.checked })}
-                />
-                {t('calendarConfig.eraCountsDown')}
-              </label>
-              <button
-                className="dialog-button danger"
-                title={t('calendarConfig.removeEra')}
-                onClick={() =>
-                  void save({ ...config, eras: config.eras.filter((_, i) => i !== index) })
-                }
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
-          <button
-            className="dialog-button"
-            onClick={() =>
-              void save({
-                ...config,
-                eras: [...config.eras, { name: '', startYear: 0, countsDown: false }]
-              })
-            }
-          >
-            <Plus size={14} /> {t('calendarConfig.addEra')}
-          </button>
+          <CalendarEras config={config} save={save} />
 
           <h4>{t('calendarConfig.months')}</h4>
           {config.monthNames.map((name, i) => (
@@ -252,4 +163,107 @@ export function CalendarConfigPanel({ onSaved }: { onSaved?(config: CalendarConf
       )}
     </div>
   )
+}
+
+function useCalendarConfiguration(onSaved?: (config: CalendarConfig) => void) {
+  const [config, setConfig] = useState<CalendarConfig | null>(null)
+  const [busy, setBusy] = useState(false)
+  const scope = useBookScope()
+  const saveRevision = useRef(0)
+
+  useEffect(() => {
+    void rpc.request<CalendarConfig>('calendar/getConfig').then(setConfig)
+  }, [])
+
+  const save = async (next: CalendarConfig): Promise<void> => {
+    const revision = ++saveRevision.current
+    setConfig(next)
+    setBusy(true)
+    try {
+      await persistPendingWrite(`calendar-config:${scope}`, async () => {
+        const saved = await rpc.request<CalendarConfig>('calendar/setConfig', [
+          next.type,
+          next.yearLabel,
+          next.monthNames,
+          next.daysPerMonth,
+          next.weekdayNames,
+          next.eras
+        ])
+        if (saveRevision.current === revision) {
+          setConfig((draft) => draft && { ...draft, yearLength: saved.yearLength })
+          onSaved?.(saved)
+        }
+      })
+    } finally {
+      if (saveRevision.current === revision) setBusy(false)
+    }
+  }
+
+  return { config, busy, save }
+}
+
+function CalendarEras({ config, save }: {
+  config: CalendarConfig
+  save: (next: CalendarConfig) => Promise<void>
+}): React.JSX.Element {
+  const { t } = useTranslation()
+  const setEra = (index: number, patch: Partial<CalendarEra>): void =>
+    void save({
+      ...config,
+      eras: config.eras.map((era, i) => (i === index ? { ...era, ...patch } : era))
+    })
+
+  return <>
+          <h4>{t('calendarConfig.eras')}</h4>
+          <div className="settings-hint">{t('calendarConfig.erasDesc')}</div>
+          {config.eras.map((era, index) => (
+            <div key={index} className="calendar-config-row">
+              <input
+                className="inspector-input"
+                aria-label={t('calendarConfig.eraName')}
+                value={era.name}
+                placeholder={t('calendarConfig.eraNamePlaceholder')}
+                onChange={(e) => setEra(index, { name: e.target.value })}
+              />
+              <input
+                className="inspector-input"
+                type="number"
+                aria-label={t('calendarConfig.eraStart')}
+                value={era.startYear}
+                onChange={(e) => setEra(index, { startYear: Number(e.target.value) || 0 })}
+              />
+              {/* What "12 Before the Fall" means: years inside the era count
+                  down towards the one that follows it. */}
+              <label className="match-toggle">
+                <input
+                  type="checkbox"
+                  checked={era.countsDown}
+                  onChange={(e) => setEra(index, { countsDown: e.target.checked })}
+                />
+                {t('calendarConfig.eraCountsDown')}
+              </label>
+              <button
+                className="dialog-button danger"
+                title={t('calendarConfig.removeEra')}
+                onClick={() =>
+                  void save({ ...config, eras: config.eras.filter((_, i) => i !== index) })
+                }
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+          <button
+            className="dialog-button"
+            onClick={() =>
+              void save({
+                ...config,
+                eras: [...config.eras, { name: '', startYear: 0, countsDown: false }]
+              })
+            }
+          >
+            <Plus size={14} /> {t('calendarConfig.addEra')}
+          </button>
+
+  </>
 }

@@ -39,7 +39,6 @@ public sealed record ExportPreset
     /// </summary>
     public List<SectionLayout> SectionLayouts { get; init; } = [];
 
-    /// <summary>The heading for one chapter of a given type.</summary>
     public string ChapterHeading(int number, string title, SectionType type)
     {
         var layout = SectionLayouts.FirstOrDefault(

@@ -115,6 +115,11 @@ public interface IEntityData
 {
     string Id { get; }
     bool IsWorldBible { get; set; }
+    List<string> Aliases { get; set; }
+    List<EntitySection> Sections { get; set; }
+    List<EntityImage> Images { get; set; }
+    Dictionary<string, string> CustomProperties { get; set; }
+    string? TemplateId { get; set; }
 
     /// <summary>How this entry's name is matched in prose. Never null.</summary>
     EntityMatchSettings Match { get; set; }

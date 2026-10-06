@@ -22,6 +22,7 @@ evidence that the app does.
 
 Run from the repo root:  python tools/rpc-doctor.py
 """
+
 from __future__ import annotations
 
 import argparse
@@ -41,39 +42,22 @@ import sys
 #
 # Removing a line is the goal. Adding one needs a reason, not a shrug.
 ALLOWED_UNCALLED = {
-    "import/scanVault":
-        "superseded: folderImport/scan discovers files for the generic folder importer; retained for older clients",
-    "import/vault":
-        "superseded: folderImport/start and folderImport/batch import research alongside the other targets; retained for older clients",
-    "export/formats":
-        "superseded: the export view keeps its own ordered list, with the label and extension each format needs",
-    "pages/get":
-        "superseded: pages/list returns every page with its body",
-    "pages/move":
-        "superseded: pages/save carries the parent with the rest of the record",
-    "snapshots/load":
-        "superseded: the dialog reads through snapshots/diff and writes back through snapshots/restore",
-    "wiki/generatorAvailable":
-        "superseded: the flag rides along on the wiki/article payload",
-    "bookmarks/groups":
-        "superseded: the panel derives group names from the bookmarks it already has",
-    "groups/members":
-        "superseded: the Codex derives membership from the entries it has loaded",
-    "extensions/contributions":
-        "host surface: read by the extension host rather than by the renderer",
-
-    "binder/pinChapter":
-        "unwired: a scene can be pinned in the binder and a chapter cannot",
-    "collections/rename":
-        "unwired: a collection can be made and deleted but not renamed",
-    "collections/move":
-        "unwired: a collection's entries cannot be reordered",
-    "dialogue/clearSpeaker":
-        "unwired: a speaker can be assigned in the Dialogue view and never cleared",
-    "entities/setGroup":
-        "unwired: an entry's group is only reachable through the generic field save",
-    "plot/setPlotlineDetail":
-        "unwired: plotline importance, cast and resolution steps are stored with no editor",
+    "import/scanVault": "superseded: folderImport/scan discovers files for the generic folder importer; retained for older clients",
+    "import/vault": "superseded: folderImport/start and folderImport/batch import research alongside the other targets; retained for older clients",
+    "export/formats": "superseded: the export view keeps its own ordered list, with the label and extension each format needs",
+    "pages/get": "superseded: pages/list returns every page with its body",
+    "pages/move": "superseded: pages/save carries the parent with the rest of the record",
+    "snapshots/load": "superseded: the dialog reads through snapshots/diff and writes back through snapshots/restore",
+    "wiki/generatorAvailable": "superseded: the flag rides along on the wiki/article payload",
+    "bookmarks/groups": "superseded: the panel derives group names from the bookmarks it already has",
+    "groups/members": "superseded: the Codex derives membership from the entries it has loaded",
+    "extensions/contributions": "host surface: read by the extension host rather than by the renderer",
+    "binder/pinChapter": "unwired: a scene can be pinned in the binder and a chapter cannot",
+    "collections/rename": "unwired: a collection can be made and deleted but not renamed",
+    "collections/move": "unwired: a collection's entries cannot be reordered",
+    "dialogue/clearSpeaker": "unwired: a speaker can be assigned in the Dialogue view and never cleared",
+    "entities/setGroup": "unwired: an entry's group is only reachable through the generic field save",
+    "plot/setPlotlineDetail": "unwired: plotline importance, cast and resolution steps are stored with no editor",
 }
 
 
@@ -103,7 +87,9 @@ DECLARATION = re.compile(r'JsonRpcMethod\(\s*"([^"]+)"')
 # ("extensions/inlineAction/execute"), so match one-or-more separators.
 NAME = r"[a-zA-Z]+(?:/[a-zA-Z]+)+"
 # rpc.request<T>('a/b'), rpc.request('a/b'), rpc.notify('a/b').
-TS_CALL = re.compile(rf"""(?:request|notify|invoke)\s*(?:<[^>]*>)?\s*\(\s*['"]({NAME})['"]""")
+TS_CALL = re.compile(
+    rf"""(?:request|notify|invoke)\s*(?:<[^>]*>)?\s*\(\s*['"]({NAME})['"]"""
+)
 # Any bare "namespace/method" string literal. Used only to spare a method from
 # the unused list - a name can reach the transport through a variable or a table.
 TS_LITERAL = re.compile(rf"""['"]({NAME})['"]""")
@@ -134,7 +120,9 @@ def main() -> int:
     declared: dict[str, str] = {}
     for root in CS_ROOTS:
         for path in walk(pathlib.Path(root), (".cs",)):
-            for name in DECLARATION.findall(path.read_text(encoding="utf-8", errors="ignore")):
+            for name in DECLARATION.findall(
+                path.read_text(encoding="utf-8", errors="ignore")
+            ):
                 declared[name] = path.as_posix()
 
     if not declared:
@@ -150,7 +138,9 @@ def main() -> int:
         named.update(TS_LITERAL.findall(text))
     for root in CS_CALLER_ROOTS:
         for path in walk(pathlib.Path(root), (".cs",)):
-            named.update(CS_LITERAL.findall(path.read_text(encoding="utf-8", errors="ignore")))
+            named.update(
+                CS_LITERAL.findall(path.read_text(encoding="utf-8", errors="ignore"))
+            )
 
     # The extensions in the workspace, if any: their calls are real calls, and
     # a name they request has to exist just as much as one the renderer asks for.
@@ -162,11 +152,12 @@ def main() -> int:
             named.update(TS_LITERAL.findall(text))
             named.update(CS_LITERAL.findall(text))
 
-
     unknown = {n: f for n, f in called.items() if n not in declared}
     unused = sorted(n for n in declared if n not in named)
 
-    print(f"{len(declared)} backend methods declared, {len(called)} called by the renderer")
+    print(
+        f"{len(declared)} backend methods declared, {len(called)} called by the renderer"
+    )
 
     failed = False
     if unknown:
@@ -179,7 +170,9 @@ def main() -> int:
 
     unexplained = [n for n in unused if n not in ALLOWED_UNCALLED]
     if unused:
-        print("\nDeclared but nothing calls it (dead surface, or a feature wired to nothing):")
+        print(
+            "\nDeclared but nothing calls it (dead surface, or a feature wired to nothing):"
+        )
         for name in unused:
             reason = ALLOWED_UNCALLED.get(name)
             print(f"  {name:<38} {declared[name]}")
@@ -187,8 +180,12 @@ def main() -> int:
                 print(f"      known: {reason}")
         if args.strict and unexplained:
             failed = True
-            print("\n  These are new. The backend answers them and no control reaches them.")
-            print("  Wire it, delete it, or list it in ALLOWED_UNCALLED with a reason that")
+            print(
+                "\n  These are new. The backend answers them and no control reaches them."
+            )
+            print(
+                "  Wire it, delete it, or list it in ALLOWED_UNCALLED with a reason that"
+            )
             print("  says which of the two it is.")
 
     if failed:

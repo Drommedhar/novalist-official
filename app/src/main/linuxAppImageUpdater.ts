@@ -8,13 +8,6 @@ function bashQuote(value: string): string {
   return `'${value.replaceAll("'", `'\\''`)}'`
 }
 
-/**
- * Builds the detached handoff used by an AppImage update.
- *
- * The new AppImage cannot start while this process owns Electron's
- * single-instance lock. The helper therefore waits for this PID to disappear,
- * replaces the current AppImage when it can, and only then launches the update.
- */
 export function buildLinuxUpdateScript(
   downloadedAppImage: string,
   currentAppImage: string,

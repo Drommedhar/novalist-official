@@ -86,6 +86,7 @@ public sealed partial class BookAnalyticsService
         var acts = new Dictionary<string, (int Scenes, int Words)>(StringComparer.OrdinalIgnoreCase);
         var totalScenes = 0;
 
+        // aislop-ignore-next-line ai-slop/csharp-index-loop -- The chapter index selects the matching position in each entity's presence array.
         for (var index = 0; index < chapters.Count; index++)
         {
             var chapter = chapters[index];

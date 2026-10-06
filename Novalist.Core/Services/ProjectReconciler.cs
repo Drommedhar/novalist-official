@@ -67,39 +67,7 @@ public sealed class ProjectReconciler
         var chaptersRoot = _fileService.CombinePath(draftRoot, chapterFolderName);
         var diskFolders = await EnumerateChapterFoldersAsync(chaptersRoot);
 
-        // ── Chapters ──
-        var matchedGuids = new HashSet<string>(StringComparer.Ordinal);
-        // Effective guid per disk folder (marker guid, matched cached guid, or null = brand new).
-        var folderGuid = new Dictionary<string, string?>(StringComparer.Ordinal);
-
-        foreach (var folder in diskFolders)
-        {
-            var marker = await ReadMarkerAsync(chaptersRoot, folder);
-            if (marker != null && chapterByGuid.TryGetValue(marker.Guid, out var cachedByGuid))
-            {
-                matchedGuids.Add(marker.Guid);
-                folderGuid[folder] = marker.Guid;
-                if (!string.Equals(cachedByGuid.FolderName, folder, StringComparison.Ordinal))
-                    report.Chapters.Add(new ChapterChange(ChapterChangeKind.Renamed, marker.Guid, folder, cachedByGuid.FolderName));
-            }
-            else if (marker == null && chapters.FirstOrDefault(c => c.FolderName == folder) is { } cachedByName)
-            {
-                // Existing chapter with no marker yet (pre-migration leftover) — matched, no change.
-                matchedGuids.Add(cachedByName.Guid);
-                folderGuid[folder] = cachedByName.Guid;
-            }
-            else
-            {
-                // New chapter: a marker with an unknown guid, or no marker and no name match.
-                var newGuid = marker?.Guid ?? string.Empty;
-                folderGuid[folder] = marker?.Guid;
-                report.Chapters.Add(new ChapterChange(ChapterChangeKind.New, newGuid, folder));
-            }
-        }
-
-        foreach (var c in chapters)
-            if (!matchedGuids.Contains(c.Guid))
-                report.Chapters.Add(new ChapterChange(ChapterChangeKind.Deleted, c.Guid, c.FolderName));
+        var folderGuid = await ScanChapterFoldersAsync(chaptersRoot, diskFolders, chapters, chapterByGuid, report);
 
         // ── Scenes ──
         // Precompute manifest scenes whose file is missing, with their cached hash, for
@@ -377,5 +345,44 @@ public sealed class ProjectReconciler
         if (!await _fileService.ExistsAsync(path)) return null;
         var json = await _fileService.ReadTextAsync(path);
         return JsonSerializer.Deserialize<ChapterMarker>(json, JsonOptions);
+    }
+
+    private async Task<Dictionary<string, string?>> ScanChapterFoldersAsync(string chaptersRoot, IReadOnlyList<string> diskFolders, IReadOnlyList<ChapterData> chapters, Dictionary<string, ChapterData> chapterByGuid, ReconciliationReport report)
+    {
+        // ── Chapters ──
+        var matchedGuids = new HashSet<string>(StringComparer.Ordinal);
+        // Effective guid per disk folder (marker guid, matched cached guid, or null = brand new).
+        var folderGuid = new Dictionary<string, string?>(StringComparer.Ordinal);
+
+        foreach (var folder in diskFolders)
+        {
+            var marker = await ReadMarkerAsync(chaptersRoot, folder);
+            if (marker != null && chapterByGuid.TryGetValue(marker.Guid, out var cachedByGuid))
+            {
+                matchedGuids.Add(marker.Guid);
+                folderGuid[folder] = marker.Guid;
+                if (!string.Equals(cachedByGuid.FolderName, folder, StringComparison.Ordinal))
+                    report.Chapters.Add(new ChapterChange(ChapterChangeKind.Renamed, marker.Guid, folder, cachedByGuid.FolderName));
+            }
+            else if (marker == null && chapters.FirstOrDefault(c => c.FolderName == folder) is { } cachedByName)
+            {
+                // Existing chapter with no marker yet (pre-migration leftover) — matched, no change.
+                matchedGuids.Add(cachedByName.Guid);
+                folderGuid[folder] = cachedByName.Guid;
+            }
+            else
+            {
+                // New chapter: a marker with an unknown guid, or no marker and no name match.
+                var newGuid = marker?.Guid ?? string.Empty;
+                folderGuid[folder] = marker?.Guid;
+                report.Chapters.Add(new ChapterChange(ChapterChangeKind.New, newGuid, folder));
+            }
+        }
+
+        foreach (var c in chapters)
+            if (!matchedGuids.Contains(c.Guid))
+                report.Chapters.Add(new ChapterChange(ChapterChangeKind.Deleted, c.Guid, c.FolderName));
+
+        return folderGuid;
     }
 }

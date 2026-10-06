@@ -123,8 +123,8 @@ public sealed class ExtensionsRpc
     [JsonRpcMethod("extensions/views")]
     public WebViewInfoDto[] Views() =>
         _workspace.ExtensionsHost.Extensions
-            .Where(e => e.IsEnabled && e.Manifest.Contributes != null)
-            .SelectMany(e => e.Manifest.Contributes!.Views.Select(v => new WebViewInfoDto(
+            .SelectMany(e => e.IsEnabled && e.Manifest.Contributes is { } contributions
+                ? contributions.Views.Select(v => new WebViewInfoDto(
                 e.Manifest.Id,
                 v.Key,
                 v.Title,
@@ -132,7 +132,7 @@ public sealed class ExtensionsRpc
                 v.Placement,
                 v.Mode,
                 $"{e.Manifest.Id}/{v.Entry}",
-                e.FolderPath)))
+                e.FolderPath)) : [])
             .ToArray();
 
     /// <summary>
@@ -192,7 +192,6 @@ public sealed class ExtensionsRpc
         return [.. plugins];
     }
 
-    /// <summary>The plugin API this Novalist implements.</summary>
     public const int RendererPluginApiVersion = 1;
 
     [JsonRpcMethod("extensions/webviewMessage")]

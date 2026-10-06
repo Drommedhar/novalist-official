@@ -39,9 +39,10 @@ public sealed class StyleRpc
             foreach (var scene in projects.GetScenesForChapter(chapter.Guid))
             {
                 if (scene.ArchivedAt != null) continue;
-                var date = string.IsNullOrEmpty(scene.DateRange?.Start)
+                var rangeStart = scene.DateRange?.Start;
+                var date = string.IsNullOrEmpty(rangeStart)
                     ? (string.IsNullOrEmpty(scene.Date) ? chapter.Date : scene.Date)
-                    : scene.DateRange!.Start;
+                    : rangeStart;
                 scenes.Add(new Core.Services.GateScene(
                     chapter.Guid, scene.Id, index, [.. scene.Cast ?? []], date, scene.NarrativeMode));
                 indexOf[$"{chapter.Guid}/{scene.Id}"] = index;
@@ -127,7 +128,6 @@ public sealed class StyleRpc
     private IReadOnlyCollection<string> WatchWords
         => _workspace.Settings.Settings.StyleWatchWords;
 
-    /// <summary>The words the style report is watching for this writer.</summary>
     [JsonRpcMethod("style/watchWords")]
     public async Task<string[]> GetWatchWordsAsync()
     {
@@ -198,7 +198,7 @@ public sealed class StyleRpc
             [.. report.Slips.Select(s => new PovSlipDto(s.Name, s.Verb, s.Offset, s.Context))]);
     }
 
-    /// <summary>An unknown scope reads as everything rather than as nothing.</summary>
+    /// <summary>Returns Everything when parsing fails; valid scope names are matched without regard to case.</summary>
     private static ProseScope ParseScope(string? scope)
         => Enum.TryParse<ProseScope>(scope, ignoreCase: true, out var parsed)
             ? parsed

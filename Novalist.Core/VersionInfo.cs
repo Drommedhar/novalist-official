@@ -73,10 +73,6 @@ public static class VersionInfo
         var plusIndex = version.IndexOf('+');
         if (plusIndex >= 0) version = version[..plusIndex];
 
-        var parts = version.Split('.');
-        var result = new int[parts.Length];
-        for (var i = 0; i < parts.Length; i++)
-            int.TryParse(parts[i], out result[i]);
-        return result;
+        return version.Split('.').Select(part => int.TryParse(part, out var number) ? number : 0).ToArray();
     }
 }

@@ -103,11 +103,15 @@ def repo_url(lines: list[str]) -> str | None:
     return None
 
 
-def rewrite_links(lines: list[str], version: str, tag: str, previous_tag: str | None) -> None:
+def rewrite_links(
+    lines: list[str], version: str, tag: str, previous_tag: str | None
+) -> None:
     """Repoint [Unreleased] at the new tag and add a link for the new version."""
     base = repo_url(lines)
     if base is None:
-        print("changelog: no compare links found, skipping link update", file=sys.stderr)
+        print(
+            "changelog: no compare links found, skipping link update", file=sys.stderr
+        )
         return
     for i, line in enumerate(lines):
         m = LINK.match(line)
@@ -119,7 +123,9 @@ def rewrite_links(lines: list[str], version: str, tag: str, previous_tag: str | 
             new_link = f"[{version}]: {base}/releases/tag/{tag}\n"
         lines[i : i + 1] = [f"[Unreleased]: {base}/compare/{tag}...HEAD\n", new_link]
         return
-    print("changelog: no [Unreleased] link found, skipping link update", file=sys.stderr)
+    print(
+        "changelog: no [Unreleased] link found, skipping link update", file=sys.stderr
+    )
 
 
 def cmd_release(args: argparse.Namespace) -> int:
@@ -131,9 +137,12 @@ def cmd_release(args: argparse.Namespace) -> int:
 
     try:
         find_section(lines, args.version)
-        sys.exit(f"changelog: {args.version} is already released in {args.file}")
     except KeyError:
-        pass
+        already_released = False
+    else:
+        already_released = True
+    if already_released:
+        sys.exit(f"changelog: {args.version} is already released in {args.file}")
 
     lines[start] = f"## [{args.version}] - {args.date}\n"
     lines.insert(start, EMPTY_UNRELEASED)
@@ -146,13 +155,19 @@ def cmd_release(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Read and stamp CHANGELOG.md")
-    parser.add_argument("--file", type=Path, default=DEFAULT_FILE, help="path to CHANGELOG.md")
+    parser.add_argument(
+        "--file", type=Path, default=DEFAULT_FILE, help="path to CHANGELOG.md"
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     ex = sub.add_parser("extract", help="print a release section's body")
     group = ex.add_mutually_exclusive_group(required=True)
-    group.add_argument("--version", help="version or tag to extract (v-prefix optional)")
-    group.add_argument("--unreleased", action="store_true", help="extract the Unreleased section")
+    group.add_argument(
+        "--version", help="version or tag to extract (v-prefix optional)"
+    )
+    group.add_argument(
+        "--unreleased", action="store_true", help="extract the Unreleased section"
+    )
     ex.add_argument(
         "--require-content",
         action="store_true",
@@ -161,7 +176,9 @@ def main(argv: list[str] | None = None) -> int:
     ex.set_defaults(func=cmd_extract)
 
     rel = sub.add_parser("release", help="stamp Unreleased with a version and date")
-    rel.add_argument("--version", required=True, help="version being released, e.g. 2.2.0")
+    rel.add_argument(
+        "--version", required=True, help="version being released, e.g. 2.2.0"
+    )
     rel.add_argument("--date", required=True, help="release date, YYYY-MM-DD")
     rel.add_argument("--tag", required=True, help="git tag being released, e.g. v2.2.0")
     rel.add_argument("--previous-tag", help="previous tag, used for the compare link")

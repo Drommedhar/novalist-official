@@ -39,9 +39,11 @@ could encounter in a previously released version.
 - Switching books reloads the correct Exposé and preserves each book's text. Exposé limits wait for the initial load before accepting edits.
 - Git actions follow the current project after switching projects. Audiobook exports retain the original book's title, author and language when another book is opened during rendering.
 - Reinstalling an extension from its own installed folder preserves its files. Failed extension startup removes partially registered features, and extension shutdown no longer leaves waiting calls hanging.
+- Disabling an AI provider as a scene scan or Wiki generation starts no longer causes an unexpected error.
 - Oversized local import API uploads reliably return a size-limit error instead of abruptly closing the connection.
 - Images resolve correctly in book folders whose names begin with WorldBible, and recent-project entries and relocated covers follow filesystem path casing rules on Windows and macOS.
 - Update-check errors use the selected interface language after startup.
+- Failed texture-decoder initialization no longer leaves 3D texture loading waiting indefinitely.
 
 ### Security
 

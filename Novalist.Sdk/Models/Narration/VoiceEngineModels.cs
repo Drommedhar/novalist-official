@@ -22,7 +22,6 @@ public enum VoiceEngineFeatures
     /// the feature entirely.</summary>
     DesignFromDescription = 1 << 0,
 
-    /// <summary>A voice can be cloned from a supplied recording.</summary>
     CloneFromSample = 1 << 1,
 
     /// <summary>Takes <see cref="VoiceDirection.Vector"/> - emotion as numbers
@@ -100,7 +99,6 @@ public sealed class VoiceBrief
     public int? Seed { get; init; }
 }
 
-/// <summary>The voice an engine designed.</summary>
 public sealed class VoiceDesignResult
 {
     /// <summary>The id the voice is known by from now on - normally the brief's,
@@ -198,7 +196,6 @@ public sealed class NarrationSegment
     /// <summary>The words to speak. Never carries direction markup.</summary>
     public string Text { get; init; } = string.Empty;
 
-    /// <summary>The designed voice to speak them in.</summary>
     public string VoiceId { get; init; } = string.Empty;
 
     /// <summary>True when this is somebody speaking, false for the prose around
@@ -209,7 +206,6 @@ public sealed class NarrationSegment
     public VoiceDirection Direction { get; init; } = new();
 }
 
-/// <summary>A run of the book to be spoken in one go.</summary>
 public sealed class NarrationRequest
 {
     /// <summary>Optional live playback sink. Engines may call it in generation
@@ -248,10 +244,8 @@ public sealed class NarrationRequest
 /// <summary>One rendered segment.</summary>
 public sealed class NarrationClip
 {
-    /// <summary>The key of the segment this is the audio for.</summary>
     public string Key { get; init; } = string.Empty;
 
-    /// <summary>The audio.</summary>
     public byte[] Audio { get; init; } = [];
 
     /// <summary>Container of <see cref="Audio"/> ("wav", "mp3", "opus").</summary>

@@ -177,7 +177,6 @@ let installedActions: HotkeyAction[] = []
 let extensionActions: HotkeyAction[] = []
 let hotkeysEnabled = true
 
-/** Replaces the set of extension-contributed hotkeys. */
 export function setExtensionHotkeys(actions: HotkeyAction[]): void {
   extensionActions = actions
 }

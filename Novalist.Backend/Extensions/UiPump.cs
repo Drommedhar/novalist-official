@@ -116,6 +116,7 @@ public sealed class UiPump : IDisposable
             try { tcs.SetResult(func()); }
             catch (Exception ex) { tcs.SetException(ex); }
         });
+        // aislop-ignore-next-line ai-slop/csharp-sync-over-async -- Synchronous SDK dispatch must return the pump-created object; CheckAccess runs inline on the pump, and callbacks must not wait back on the caller.
         return tcs.Task.GetAwaiter().GetResult();
     }
 

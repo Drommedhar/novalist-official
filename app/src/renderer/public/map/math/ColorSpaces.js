@@ -1,3 +1,4 @@
+// aislop-ignore-next-line ai-slop/hallucinated-import -- map.html supplies this browser import through its import map to the bundled Three.js modules; npm resolution does not apply.
 import { LinearTransfer, Matrix3, SRGBTransfer, SRGBColorSpace, ColorManagement } from 'three';
 
 /** @module ColorSpaces */

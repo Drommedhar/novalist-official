@@ -34,7 +34,7 @@ public sealed record RubricElement(
 /// </param>
 public sealed record RubricScore(string ElementKey, int Score);
 
-/// <summary>A scene and how much of the rubric it has been answered against.</summary>
+/// <summary>Counts and averages answered elements only; zero scores are excluded, and Average is zero when none are answered.</summary>
 public sealed record RubricSceneSummary(
     string ChapterGuid,
     string SceneId,

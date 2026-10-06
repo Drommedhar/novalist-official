@@ -16,9 +16,7 @@ export interface ExtensionWebView {
   iconPath: string
   placement: 'main' | 'inspector'
   /**
-   * The mode this view joins. An extension used to be appended to a flat rail,
-   * where it was guaranteed to be the first thing pushed into the overflow
-   * menu; naming a mode puts it in a list the writer is already reading.
+   * The activity-bar mode containing this extension view.
    * Absent means the mode a content view implies, which is World.
    */
   mode?: string

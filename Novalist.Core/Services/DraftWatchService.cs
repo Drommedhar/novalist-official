@@ -24,7 +24,7 @@ public sealed class DraftWatchService : IDisposable
     public DraftWatchService(string draftRoot, Func<Task> reconcile, TimeSpan? debounce = null)
     {
         _debounce = debounce ?? TimeSpan.FromMilliseconds(500);
-        _timer = new System.Threading.Timer(_ => _ = _coordinator!.FlushAsync());
+        _timer = new System.Threading.Timer(FlushPending);
         _coordinator = new DraftWatchCoordinator(reconcile, () => _timer.Change(_debounce, Timeout.InfiniteTimeSpan));
 
         try
@@ -58,6 +58,8 @@ public sealed class DraftWatchService : IDisposable
         _coordinator.NotifyChange(e.OldFullPath);
         _coordinator.NotifyChange(e.FullPath);
     }
+
+    private void FlushPending(object? state) => _ = _coordinator.FlushAsync();
 
     public void Dispose()
     {

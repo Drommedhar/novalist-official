@@ -13,7 +13,7 @@ public static class SubmissionStatuses
     public const string Accepted = "accepted";
     public const string Withdrawn = "withdrawn";
 
-    /// <summary>The writer has decided the silence is the answer.</summary>
+    /// <summary>Marks a writer-declared no-response outcome as closed; elapsed time alone does not set this status.</summary>
     public const string NoReply = "noReply";
 
     public static readonly string[] All =
@@ -29,7 +29,7 @@ public static class SubmissionStatuses
            || status.Equals(Sent, StringComparison.OrdinalIgnoreCase)
            || status.Equals(Requested, StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>An unknown status reads as still out rather than as resolved.</summary>
+    /// <summary>Trims and canonicalizes known statuses; null, blank, and unrecognized values become Sent and remain open.</summary>
     public static string Normalise(string? status)
         => All.FirstOrDefault(s => s.Equals(status?.Trim(), StringComparison.OrdinalIgnoreCase))
            ?? Sent;

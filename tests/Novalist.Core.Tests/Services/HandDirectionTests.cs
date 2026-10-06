@@ -27,7 +27,9 @@ public class HandDirectionTests
     public void AHandPushedVector_IsWhatGetsPerformed()
     {
         var direction = EmotionDirector.Resolve(
-            "v:happy=0.8,surprised=0.3", null, null, null, null, NoVerbs());
+            "v:happy=0.8,surprised=0.3",
+            new EmotionDirectionContext(),
+            NoVerbs());
 
         Assert.Equal(DirectionSource.Writer, direction.Source);
         Assert.Equal(0.8, direction.Vector["happy"], 3);
@@ -40,7 +42,13 @@ public class HandDirectionTests
         // The screen shows what the writer set. Scaling it behind them would be
         // the screen and the ear disagreeing.
         var direction = EmotionDirector.Resolve(
-            "v:angry=0.9", null, null, "peaceful", -10, NoVerbs());
+            "v:angry=0.9",
+            new EmotionDirectionContext()
+            {
+                SceneEmotion = "peaceful",
+                SceneIntensity = -10
+            },
+            NoVerbs());
 
         Assert.Equal(0.9, direction.Vector["angry"], 3);
     }
@@ -49,7 +57,9 @@ public class HandDirectionTests
     public void AHandPushedVector_IsNotReducedBecauseTheLineIsNarration()
     {
         var direction = EmotionDirector.Resolve(
-            "v:sad=0.9", null, null, null, null, NoVerbs(),
+            "v:sad=0.9",
+            new EmotionDirectionContext(),
+            NoVerbs(),
             EmotionDirector.NarrationMagnitude);
 
         Assert.Equal(0.9, direction.Vector["sad"], 3);
@@ -61,7 +71,9 @@ public class HandDirectionTests
         // Labelling it with the nearest of the sixteen names would be putting
         // back the word the writer had just refused.
         var direction = EmotionDirector.Resolve(
-            "v:happy=0.5", null, null, null, null, NoVerbs());
+            "v:happy=0.5",
+            new EmotionDirectionContext(),
+            NoVerbs());
 
         Assert.Equal(EmotionDirector.CustomKey, direction.Key);
     }
@@ -70,7 +82,9 @@ public class HandDirectionTests
     public void AHandPushedVectorKeepsItsNameWhenItWasGivenOne()
     {
         var direction = EmotionDirector.Resolve(
-            "angry|v:angry=0.4", null, null, null, null, NoVerbs());
+            "angry|v:angry=0.4",
+            new EmotionDirectionContext(),
+            NoVerbs());
 
         Assert.Equal("angry", direction.Key);
         Assert.Equal(0.4, direction.Vector["angry"], 3);
@@ -80,7 +94,9 @@ public class HandDirectionTests
     public void AHandPushedVectorAskingForEverything_IsHeldUnderTheCeiling()
     {
         var direction = EmotionDirector.Resolve(
-            "v:happy=1,angry=1,sad=1", null, null, null, null, NoVerbs());
+            "v:happy=1,angry=1,sad=1",
+            new EmotionDirectionContext(),
+            NoVerbs());
 
         Assert.True(direction.Vector.Values.Sum() <= EmotionDirector.MaxVectorSum + 0.001);
     }
@@ -258,9 +274,11 @@ public class HandDirectionTests
         var voices = new Dictionary<string, byte[]>(StringComparer.Ordinal) { ["narrator"] = [1] };
 
         var request = NarrationRender.Build(
-            segments, sheet, voices,
-            VoiceEngineFeatures.EmotionVector | VoiceEngineFeatures.EmotionReference,
-            "en", 1.0, new Dictionary<string, byte[]>(StringComparer.Ordinal));
+            segments,
+            new NarrationRenderContext(sheet, voices, VoiceEngineFeatures.EmotionVector | VoiceEngineFeatures.EmotionReference, "en")
+            {
+                Clips = new Dictionary<string, byte[]>(StringComparer.Ordinal)
+            });
 
         Assert.Null(Assert.Single(request.Segments).Direction.ReferenceAudio);
     }
@@ -290,7 +308,8 @@ public class HandDirectionTests
         var voices = new Dictionary<string, byte[]>(StringComparer.Ordinal) { ["mira-voice"] = [1] };
 
         var request = NarrationRender.Build(
-            segments, sheet, voices, VoiceEngineFeatures.EmotionVector, "en");
+            segments,
+            new NarrationRenderContext(sheet, voices, VoiceEngineFeatures.EmotionVector, "en"));
 
         var sent = Assert.Single(request.Segments).Direction;
         Assert.Equal(0.6, sent.Vector["angry"], 3);

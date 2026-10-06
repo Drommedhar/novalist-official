@@ -70,7 +70,6 @@ public sealed class ArticleGenerationRequest
     public string SectionContent { get; init; } = string.Empty;
 }
 
-/// <summary>The result of a generation attempt.</summary>
 public sealed class ArticleGenerationResult
 {
     /// <summary>The generated summary prose (plain text or light Markdown).</summary>

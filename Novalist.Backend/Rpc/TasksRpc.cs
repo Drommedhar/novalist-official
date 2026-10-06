@@ -16,6 +16,7 @@ public sealed record TaskDto(
 /// aloud", "decide whether Tomas survives" belong to no passage and to no
 /// scene, so they were kept on paper.
 /// </summary>
+// aislop-ignore-next-line complexity/function-too-long -- Primary-constructor class declaration; the scanner counts independent methods as one constructor body.
 public class TasksRpc(Workspace workspace)
 {
     private readonly Workspace _workspace = workspace;
