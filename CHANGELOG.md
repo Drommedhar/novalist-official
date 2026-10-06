@@ -21,6 +21,12 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.5.2] - 2026-10-06
+
 ### Added
 
 - **Subtle interface transitions** — brief fades and small slides soften navigation, book and entry details, panels, dialogs and menus, including popups in the writing editor. Expandable sections and bookshelf details open and close smoothly. Transitions respect your system's reduced-motion preference.
@@ -1717,7 +1723,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.5.1...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.5.2...HEAD
+[3.5.2]: https://github.com/Drommedhar/novalist-official/compare/v3.5.1...v3.5.2
 [3.5.1]: https://github.com/Drommedhar/novalist-official/compare/v3.5...v3.5.1
 [3.5]: https://github.com/Drommedhar/novalist-official/compare/v3.4.2...v3.5
 [3.4.2]: https://github.com/Drommedhar/novalist-official/compare/v3.4.1...v3.4.2
