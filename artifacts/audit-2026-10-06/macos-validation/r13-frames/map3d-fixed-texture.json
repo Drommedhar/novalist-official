@@ -1,0 +1,81 @@
+{
+  "active": true,
+  "rendererReady": true,
+  "backendType": "GR",
+  "sceneRootChildren": 2,
+  "meshes": [
+    {
+      "geometry": "PlaneGeometry",
+      "textureVersion": 1,
+      "textureDecoded": true,
+      "dimensions": [
+        256,
+        256
+      ],
+      "dataUri": true,
+      "quadrants": [
+        [
+          240,
+          25,
+          35,
+          255
+        ],
+        [
+          25,
+          220,
+          55,
+          255
+        ],
+        [
+          25,
+          55,
+          235,
+          255
+        ],
+        [
+          245,
+          225,
+          20,
+          255
+        ]
+      ],
+      "position": [
+        300,
+        -0.05,
+        300
+      ],
+      "rotation": [
+        1.5707963267948966,
+        0,
+        0,
+        "YXZ"
+      ],
+      "visible": true
+    }
+  ],
+  "canvasSize": [
+    870,
+    807
+  ],
+  "renderInfo": {
+    "calls": 7682,
+    "frameCalls": 3,
+    "drawCalls": 4,
+    "triangles": 17,
+    "points": 0,
+    "lines": 0,
+    "timestamp": 0
+  },
+  "referenceRelative": true,
+  "referenceDataUri": false,
+  "frameCssSize": [
+    290,
+    269
+  ],
+  "canvasCssSize": [
+    290,
+    269
+  ],
+  "devicePixelRatio": 3,
+  "inlineSizingOverride": false
+}

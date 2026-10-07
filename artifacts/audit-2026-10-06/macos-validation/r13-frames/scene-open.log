@@ -1,0 +1,640 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project <temporary-r13-frames>/harness/AuditHarness.xcodeproj -scheme AuditUITests -destination "platform=iOS Simulator,id=C9BC7CC6-C48A-431D-9CE0-BEA89C791D81" -derivedDataPath <temporary-r13-frames>/harness/DerivedData -parallel-testing-enabled NO -resultBundlePath <temporary-r13-frames>/scene-open.xcresult CODE_SIGNING_ALLOWED=NO
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+Writing result bundle at path:
+	<temporary-r13-frames>/scene-open.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'AuditUITests' in project 'AuditHarness' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 8d3504515fc60d572f496a48ab8f2c65
+Build description path: /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/XCBuildData/8d3504515fc60d572f496a48ab8f2c65.xcbuilddata
+CreateBuildDirectory /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex
+    cd /tmp/novalist-r13-frames/harness/AuditHarness.xcodeproj
+    builtin-create-build-directory /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex
+
+CreateBuildDirectory /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules
+    cd /tmp/novalist-r13-frames/harness/AuditHarness.xcodeproj
+    builtin-create-build-directory /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules
+
+CreateBuildDirectory /tmp/novalist-r13-frames/harness/DerivedData/CompilationCache.noindex
+    cd /tmp/novalist-r13-frames/harness/AuditHarness.xcodeproj
+    builtin-create-build-directory /tmp/novalist-r13-frames/harness/DerivedData/CompilationCache.noindex
+
+CreateBuildDirectory /tmp/novalist-r13-frames/harness/DerivedData/Build/Products
+    cd /tmp/novalist-r13-frames/harness/AuditHarness.xcodeproj
+    builtin-create-build-directory /tmp/novalist-r13-frames/harness/DerivedData/Build/Products
+
+CreateBuildDirectory /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex
+    cd /tmp/novalist-r13-frames/harness/AuditHarness.xcodeproj
+    builtin-create-build-directory /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /tmp/novalist-r13-frames/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /tmp/novalist-r13-frames/harness/AuditHarness.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /tmp/novalist-r13-frames/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+CreateBuildDirectory /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+    cd /tmp/novalist-r13-frames/harness/AuditHarness.xcodeproj
+    builtin-create-build-directory /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+CreateBuildDirectory /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+    cd /tmp/novalist-r13-frames/harness/AuditHarness.xcodeproj
+    builtin-create-build-directory /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+CreateBuildDirectory /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/PrecompiledHeaders
+    cd /tmp/novalist-r13-frames/harness/AuditHarness.xcodeproj
+    builtin-create-build-directory /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/PrecompiledHeaders
+
+CreateBuildDirectory /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator
+    cd /tmp/novalist-r13-frames/harness/AuditHarness.xcodeproj
+    builtin-create-build-directory /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator
+
+CreateBuildDirectory /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+    cd /tmp/novalist-r13-frames/harness/AuditHarness.xcodeproj
+    builtin-create-build-directory /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditHarness-1033485b5d886bb69b4e2a5aa61d135b-VFS-iphonesimulator/all-product-headers.yaml
+    cd /tmp/novalist-r13-frames/harness/AuditHarness.xcodeproj
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditHarness-1033485b5d886bb69b4e2a5aa61d135b-VFS-iphonesimulator/all-product-headers.yaml
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/ProductTypeInfoPlistAdditions.plist (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/ProductTypeInfoPlistAdditions.plist
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/empty-AuditUITests.plist (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/empty-AuditUITests.plist
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests.hmap (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests.hmap
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests.DependencyMetadataFileList (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests.DependencyMetadataFileList
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests.DependencyStaticMetadataFileList (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-OutputFileMap.json (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-OutputFileMap.json
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.LinkFileList (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.LinkFileList
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_const_extract_protocols.json (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_const_extract_protocols.json
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftConstValuesFileList (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftFileList (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftFileList
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_const_extract_protocols.json (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_const_extract_protocols.json
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.LinkFileList (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.LinkFileList
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftFileList (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftFileList
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-OutputFileMap.json (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-OutputFileMap.json
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftConstValuesFileList (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap
+
+WriteAuxiliaryFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-non-framework-target-headers.hmap (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    write-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-non-framework-target-headers.hmap
+
+MkDir /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    /bin/mkdir -p /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest
+
+ProcessInfoPlistFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/Info.plist /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/empty-AuditUITests.plist (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-infoPlistUtility /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/empty-AuditUITests.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/ProductTypeInfoPlistAdditions.plist -o /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/Info.plist
+
+SwiftDriver AuditUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AuditUITests -O @/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftFileList -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/novalist-r13-frames/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources-normal/arm64 -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/arm64 -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources -emit-objc-header -emit-objc-header-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-Swift.h -working-directory /tmp/novalist-r13-frames/harness -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver AuditUITests normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AuditUITests -O @/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftFileList -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target x86_64-apple-ios27.0-simulator -g -module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/novalist-r13-frames/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources-normal/x86_64 -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/x86_64 -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources -emit-objc-header -emit-objc-header-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-Swift.h -working-directory /tmp/novalist-r13-frames/harness -experimental-emit-module-separately -disable-cmo
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_SwiftConcurrencyShims-C1H47G2IAT6DA4XKGD2M37TUU.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/ptrcheck-4TF25PZHZOJK897C61GJ0D9JH.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/DeveloperToolsSupport-2RLKN1WCGJ13OC6NSC4LQOQ3N.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_stddef-A81I65C0H7GDFJ4UBNMZ7DB7S.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/SwiftShims-76K2GPB1V5BZDA26R1YKEB5RO.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/SwiftShims-CVFSJK03G0JWYL1NKIY9IRM12.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_float-5217RW5BRSCG0KFX1WI8RBEQJ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_SwiftConcurrencyShims-7XQI9AI6P3QU6B2K4219XKFDQ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/ptrauth-CPGSVEQT1WK462J5VA816V47R.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_stdarg-5L4LBG8XZXMG9PXPXRH5PHIWX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/ptrcheck-2GP4RQI7BXEI5H6SHD7H2J1CF.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_stdarg-AW9BBQHH1T6VGY66KBYETLS50.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_stdbool-BOXICW27OFFU8B4Y4W04K8S2O.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_AvailabilityInternal-U65WJ2HOJ9V94O2ZYRXEEWM0.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_stddef-NUJVUUQ2VRAM5EWK9WAU8I2J.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_stdbool-8S76OWD42NMWTOZK37OFQ4O6Q.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/DeveloperToolsSupport-D8XN6ZIXK2YQ12LP5UAJHX9QO.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/ptrauth-E6EOEU07OIKS6Z4UHFIM4EEVR.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_AvailabilityInternal-294ST1QJHHQN81NNIZO926T5Y.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_float-3VJZG6P8S1MVE2JYDA27QRCBX.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_DarwinFoundation1-8JKQL6BT2JG1ZL1U50QBT8H9V.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_DarwinFoundation1-73ZA0CEK32PLIY3KUMR0RR608.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_DarwinFoundation2-D6HF7NFDU5T48BNNEW9N63Z9D.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_limits-2KFQPVSUX64RN2GK8UZL2E7ZD.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_limits-5VL5VKA932VKAOWN7KE3ODJAQ.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_DarwinFoundation2-3U7FT9QG14ALNR4RKB9HNFGWP.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/string_h-48JQ00FCAY6W4GBCJQEMCACU7.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_tgmath-PD5E02R6YUORTV8GNGXB5I8D.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_stdint-5RF3C8KEJ9HG3AO186Q11UAQM.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/sys_types-6ZBPAK1WH5QG8F70HRQRQDV2W.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/sys_types-8GGWPD15Z3NP8UFNHRPJOKSA2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_stdint-CVF60ZRX4JNL5LENGI2QEQTK3.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_tgmath-9SXOQWJAM3D74CKBMSEMZIXBR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/string_h-19UFVPPA454LYU772XE1CPRTI.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_stdatomic-6I6XMVL0J8AEYAKO11D1ZOQC9.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_DarwinFoundation3-93XVLQYB3VVTXJJV34B7D6M0J.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_DarwinFoundation3-9GC0EGQPHW11M1Y8V061E7CM0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_stdatomic-4Z5YNHSRUXZQI03228T8XA2MN.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_intrinsics-QG9RGELPD47ZROZMQZ9EXKPB.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_intrinsics-7V48FHKU6XGQ1RPPYXNT7E97G.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_inttypes-19L4LFVH4ST9YB6WAMHI9QULN.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_Builtin_inttypes-5Y9EFDVNCXGN33HZGNBJHFWO4.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Darwin-5VS5JD5B485EYRAR0HNIG4SJV.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Darwin-9J6RD7GAY1KMS2O50ZGSASBIO.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/simd-APX69PBVX325N15E30CP5TR91.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/simd-B53L621PSX3PG4URB5PBCZ696.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/ObjectiveC-6FVJM5KBEESF3NFUDZA033NXO.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/MachO-7DLP51QMMBDS71BYCFM2KQDNH.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/MachO-3MIJWUAXPIJUONXRRGG8GVQW9.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/ObjectiveC-7T43QH6UMY5Q9UCE8Q2SGWXKZ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/os_object-H91U53V1UVCMIOZHFEN033U6.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/os_object-CPLQUQBSOZKR4K7ET99GASAZF.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/os_workgroup-5SU8G35OKQ3CTDZ6ZWPUT6304.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Spatial-AP2HEERJWIBVNY8JUXCYUNJWE.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/os_workgroup-3H0RS213G6MJJPIR4AMJDQBD9.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Dispatch-CKF05CI2TQZ6N5G6KRNGL5QZR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Dispatch-CGLWBCPJX6Q0QEN3G93NM4XO.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreFoundation-QARHEGFUQH1P011DKF9OFZQZ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/XPC-D1DFX77W6W6KSMS77IRR3TQGA.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/XPC-EEULLW96AJT6SUIGYKFHOQ2DR.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreFoundation-8TRH9AMNPY6VQTB5EDOKESWCB.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Spatial-DHNZ8OQ7WRKEPE07381LZZGRE.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/os-6KKDBCTZALASUWN8RGDHB70ES.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/os-BSH1QHMUBUFRND38WO1528IM8.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Security-D8JSQ7VCGQEKO2AXKU2ZFA4S9.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CFNetwork-EOWARI0W87ZGO8X60TOD5YAT.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreGraphics-C774I62IK5GWC3CTTOWT7N5QL.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Security-EKGPZG5HPXXT7NM89CXBEID65.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreGraphics-1QIJ0HX8FD8DHXQIN0Y91PP3O.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CFNetwork-3CQ050JM2WBW5OAY1BK7FMM7W.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Foundation-IBUYW549KV4HJAJ868F6F4PO.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreText-67YDQCOA79RFG34XDWV6Q00HQ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/ImageIO-6PNS9EJCFFM94J1DKT7G9WHT0.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Foundation-4ZUKB0KJ38NCRSELDVEKQVEVM.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreText-18C3RGXBKX0DU79CNBL6A8V3K.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/ImageIO-B6DR3O3AXSWTO0U6A4DVCNMZL.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Symbols-98KGCHJQ0JM556S01FU7NSEME.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Accessibility-2MEVLRRMPMP2IKXZYB1GUMU1M.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/OSLog-A5J6A4K9GOUMLF7XQKW9HMV53.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/UserNotifications-6NT6P7WAHRJGMS0NP3THMOCMF.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/FileProvider-D94MRHT804UQ1FXPXGRJ789J4.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_LocationEssentials-1JA7LKB3HU6N14C2UYDD02MK3.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/OpenGLES-EUKU3BXY63SPNLYTNDO5WL0AN.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/UniformTypeIdentifiers-D0FITVVSFNLQLHCUAPUASMNIK.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/IOSurface-B304M8D29AEFLDHEB8GIINZGI.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/DataDetection-4UAGM2I81JFVODXP9GYHV6QS6.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreTransferable-B2YKV8KKNGE4Y17TJV22UZQXQ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/UIUtilities-EWF1IDGKARE3BDVUR94NQPUD4.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Accessibility-D8DAP4K7C66KJ5V8G7EBZOO4Z.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/OpenGLES-8WAXYKK2NMYJBJF3AJVZSB13A.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/_LocationEssentials-EMPWM8B4EINKRPBVO0WBVOII2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/UniformTypeIdentifiers-86RH61A7OWEDV2JIPNVK7V8BY.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/DataDetection-EXG48J7F2FW53CIA4T8EEYTTH.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/IOSurface-BXHS4QHXICEON1EXI735PX2UI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Symbols-55YYQMBIAHI1G15QR3UY2NP5U.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/UserNotifications-DMS5QBVYO5FZDP0WNT92DF7ZM.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/FileProvider-EX419RBLB14WYQKZ95P3BTBZN.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreLocation-DA3C48S9F7FV48KLUIML6UYRO.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/UIUtilities-AA60BL4JW79LTF553X0UW6G0T.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/OSLog-B07UMAE72VS5QNFUBYWNCYX7C.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreTransferable-5G4IZXXG0TWRXTJNH8AKA9D8X.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Metal-2LJAYZ42XMTZHOGCWFQ9UU9R2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreLocation-4CKNLVTITJ5FOZ8BPGSVNDMAM.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/Metal-85GZGMVOFGQI6UN5CPSLGGFHH.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreMotion-BUBFRZRNQX6TD3K26DJJJRO0T.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreMotion-7VBTFAJS5D3AFC125HNEH3V8.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreVideo-DX38Z2CP22UUSFPDYPVJXT13A.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreVideo-10DET09X24BWPP567EVPTJUYF.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/QuartzCore-VJISXLKKD6V2LMXGCD0M66JB.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreImage-QLJG4DXVRMTPR06ZYLN5FB19.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/CoreImage-EOXCPRFPVAGC4JFS1CMHR2VFI.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/QuartzCore-BNUXOKT96AE1IBA360T9G73RV.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/SwiftUICore-E94SJUDW8GYNFTGNE8D8E3CDN.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/UIKit-Y9VBMI697IXE3H8MJUCKIR8I.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/SwiftUICore-8GAWLUHNINCVVN02J8AGC6XI1.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules/UIKit-E27DW7K7YNC9LI3I552K8DEIQ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCUIAutomation-D3VGV47DTD9QQ1R4IIXRN8FK2.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCUIAutomation-18N4K43Z0QNCP3HNWYRPYXQXH.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCTest-411N3UBPG96E81YP59YHSOGNX.pcm
+
+SwiftExplicitDependencyCompileModuleFromInterface x86_64 /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCUIAutomation-27DTM6UNSSP09.swiftmodule
+
+SwiftExplicitDependencyCompileModuleFromInterface arm64 /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCUIAutomation-28Q5EEJTZYYE2.swiftmodule
+
+SwiftExplicitDependencyGeneratePcm arm64 /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCTest-6MSGUMT4C00XPKUQTEBLQOPBI.pcm
+
+SwiftExplicitDependencyCompileModuleFromInterface x86_64 /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCTest-U379X75J0SPC.swiftmodule
+
+SwiftExplicitDependencyCompileModuleFromInterface arm64 /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCTest-3T96U1M2O1ILM.swiftmodule
+
+SwiftEmitModule normal x86_64 Emitting\ module\ for\ AuditUITests (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftCompile normal x86_64 (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    
+
+SwiftCompile normal x86_64 Compiling\ AuditUITests.swift /tmp/novalist-r13-frames/harness/AuditUITests.swift (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftCompile normal x86_64 /tmp/novalist-r13-frames/harness/AuditUITests.swift (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-SwiftPerFileCompile AuditUITests.swift
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ AuditUITests (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftCompile normal arm64 (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    
+
+SwiftCompile normal arm64 Compiling\ AuditUITests.swift /tmp/novalist-r13-frames/harness/AuditUITests.swift (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftCompile normal arm64 /tmp/novalist-r13-frames/harness/AuditUITests.swift (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-SwiftPerFileCompile AuditUITests.swift
+
+SwiftDriverJobDiscovery normal x86_64 Emitting module for AuditUITests (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftDriver\ Compilation\ Requirements AuditUITests normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AuditUITests -O @/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftFileList -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target x86_64-apple-ios27.0-simulator -g -module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/novalist-r13-frames/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources-normal/x86_64 -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/x86_64 -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources -emit-objc-header -emit-objc-header-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-Swift.h -working-directory /tmp/novalist-r13-frames/harness -experimental-emit-module-separately -disable-cmo
+
+Copy /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/x86_64-apple-ios-simulator.abi.json /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.abi.json (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.abi.json /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/x86_64-apple-ios-simulator.abi.json
+
+Copy /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/x86_64-apple-ios-simulator.swiftdoc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftdoc (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftdoc /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/x86_64-apple-ios-simulator.swiftdoc
+
+Copy /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/x86_64-apple-ios-simulator.swiftmodule /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftmodule (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftmodule /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/x86_64-apple-ios-simulator.swiftmodule
+
+Copy /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/Project/x86_64-apple-ios-simulator.swiftsourceinfo /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftsourceinfo (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftsourceinfo /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/Project/x86_64-apple-ios-simulator.swiftsourceinfo
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for AuditUITests (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftDriverJobDiscovery normal x86_64 Compiling AuditUITests.swift (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftDriver\ Compilation\ Requirements AuditUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AuditUITests -O @/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftFileList -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/novalist-r13-frames/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources-normal/arm64 -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/arm64 -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources -emit-objc-header -emit-objc-header-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-Swift.h -working-directory /tmp/novalist-r13-frames/harness -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver\ Compilation AuditUITests normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AuditUITests -O @/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftFileList -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target x86_64-apple-ios27.0-simulator -g -module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/novalist-r13-frames/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources-normal/x86_64 -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/x86_64 -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources -emit-objc-header -emit-objc-header-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-Swift.h -working-directory /tmp/novalist-r13-frames/harness -experimental-emit-module-separately -disable-cmo
+
+Copy /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/arm64-apple-ios-simulator.swiftdoc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftdoc (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftdoc /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/arm64-apple-ios-simulator.swiftmodule /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftmodule (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftmodule /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+SwiftMergeGeneratedHeaders /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/AuditUITests-Swift.h /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-Swift.h /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-Swift.h (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-swiftHeaderTool -arch arm64 /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-Swift.h -arch x86_64 /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-Swift.h -o /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/AuditUITests-Swift.h
+
+Copy /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftsourceinfo (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftsourceinfo /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Copy /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/arm64-apple-ios-simulator.abi.json /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.abi.json (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.abi.json /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Ld /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/Binary/AuditUITests normal x86_64 (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target x86_64-apple-ios27.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -Os -Xlinker -no_warn_duplicate_libraries -L/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -filelist /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_lto.o -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport -o /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/Binary/AuditUITests
+
+SwiftDriverJobDiscovery normal arm64 Compiling AuditUITests.swift (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftDriver\ Compilation AuditUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AuditUITests -O @/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftFileList -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /tmp/novalist-r13-frames/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex -sdk-module-cache-path /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /tmp/novalist-r13-frames/harness/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_const_extract_protocols.json -Xcc -iquote -Xcc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap -Xcc -iquote -Xcc /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources-normal/arm64 -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/arm64 -Xcc -I/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources -emit-objc-header -emit-objc-header-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-Swift.h -working-directory /tmp/novalist-r13-frames/harness -experimental-emit-module-separately -disable-cmo
+
+Ld /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/Binary/AuditUITests normal arm64 (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -Os -Xlinker -no_warn_duplicate_libraries -L/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -filelist /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_lto.o -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport -o /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/Binary/AuditUITests
+
+CreateUniversalBinary /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/AuditUITests normal arm64\ x86_64 (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/Binary/AuditUITests /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/Binary/AuditUITests -output /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/AuditUITests
+
+CopySwiftLibs /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/AuditUITests --scan-folder /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/Frameworks --scan-folder /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/PlugIns --scan-folder /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/SystemExtensions --scan-folder /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+ExtractAppIntentsMetadata (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name AuditUITests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 27.0 --bundle-identifier com.novalist.audit.uitests --output /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest --target-triple arm64-apple-ios27.0-simulator --target-triple x86_64-apple-ios27.0-simulator --binary-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/AuditUITests --dependency-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_dependency_info.dat --dependency-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_dependency_info.dat --stringsdata-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --stringsdata-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftFileList --source-file-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftFileList --metadata-file-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests.DependencyMetadataFileList --static-metadata-file-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests.DependencyStaticMetadataFileList --swift-const-vals-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftConstValuesFileList --swift-const-vals-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-07 12:04:45.011 appintentsmetadataprocessor[1647:3256164] Starting appintentsmetadataprocessor export
+2026-10-07 12:04:45.013 appintentsmetadataprocessor[1647:3256164] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+GenerateDSYMFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest.dSYM /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/AuditUITests (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    export PATH\=/Applications/Xcode.app/Contents/SharedFrameworks/SwiftBuild.framework/Versions/A/PlugIns/SWBBuildService.bundle/Contents/PlugIns/SWBUniversalPlatformPlugin.bundle/Contents/Frameworks/SWBUniversalPlatform.framework/Resources:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/bin:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/libexec:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/local/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/local/bin:/Applications/Xcode.app/Contents/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/usr/local/bin:<home>/.antigravity-ide/antigravity-ide/bin:<home>/.local/bin:/Library/Frameworks/Python.framework/Versions/3.14/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/usr/local/share/dotnet:<home>/.codex/tmp/arg0/codex-arg0hUkZUN:<home>/.cargo/bin:<home>/.lmstudio/bin:<home>/.vscode/extensions/openai.chatgpt-26.930.51102-darwin-arm64/bin/macos-aarch64
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/dsymutil /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/AuditUITests -o /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest.dSYM
+
+AppIntentsSSUTraining (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/Info.plist --temp-dir-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/ssu --bundle-id com.novalist.audit.uitests --product-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest --extracted-metadata-path /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/Metadata.appintents --metadata-file-list /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests.DependencyMetadataFileList --source-file /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/Info.plist --archive-ssu-assets
+2026-10-07 12:04:45.031 appintentsnltrainingprocessor[1650:3256182] Parsing options for appintentsnltrainingprocessor
+2026-10-07 12:04:45.031 appintentsnltrainingprocessor[1650:3256182] Starting AppIntents SSU YAML Generation
+2026-10-07 12:04:45.032 appintentsnltrainingprocessor[1650:3256182] No AppShortcuts found - Skipping.
+
+MkDir /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    /bin/mkdir -p /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app
+
+CopyPlistFile /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/Info.plist /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/XCTRunner.app/Info.plist (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-copyPlist --validate --convert xml1 --macro-expansion WRAPPEDPRODUCTNAME AuditUITests-Runner --macro-expansion WRAPPEDPRODUCTBUNDLEIDENTIFIER com.novalist.audit.uitests.xctrunner --macro-expansion TESTPRODUCTNAME AuditUITests --macro-expansion TESTPRODUCTBUNDLEIDENTIFIER com.novalist.audit.uitests --copy-value UIDeviceFamily /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/Info.plist --outdir /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app -- /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/XCTRunner.app/Info.plist
+
+CopyAndPreserveArchs /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/AuditUITests-Runner (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/XCTRunner.app/XCTRunner -output /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/AuditUITests-Runner -extract arm64 -extract x86_64
+
+Copy /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PkgInfo /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/XCTRunner.app/PkgInfo (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Xcode/Agents/XCTRunner.app/PkgInfo /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app
+
+RegisterExecutionPolicyException /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    builtin-RegisterExecutionPolicyException /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest
+
+Touch /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest (in target 'AuditUITests' from project 'AuditHarness')
+    cd /tmp/novalist-r13-frames/harness
+    /usr/bin/touch -c /tmp/novalist-r13-frames/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest
+
+PruneExplicitPrecompiledModules /tmp/novalist-r13-frames/harness/DerivedData/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/novalist-r13-frames/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+warning: Traditional headermap style is no longer supported; please migrate to using separate headermaps and set 'ALWAYS_SEARCH_USER_PATHS' to NO. (in target 'AuditUITests' from project 'AuditHarness')
+2026-10-07 12:04:45.882491+0200 AuditUITests-Runner[1673:3256595] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'All tests' started at 2026-10-07 12:04:47.992.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 12:04:47.992.
+Test Suite 'AuditUITests' started at 2026-10-07 12:04:47.992.
+Test Case '-[AuditUITests.AuditUITests testActualSceneImage]' started.
+    t =     0.00s Start Test at 2026-10-07 12:04:47.997
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.06s Setting device orientation to Portrait
+    t =     0.07s     Wait for com.novalist.app to idle
+    t =     0.07s Waiting 20.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =     1.12s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     1.13s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     1.18s Double tap "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     1.18s     Wait for com.novalist.app to idle
+    t =     1.18s     Find the "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     1.19s     Check for interrupting elements affecting "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     1.21s     Synthesize event
+    t =     1.56s     Wait for com.novalist.app to idle
+    t =     1.56s Waiting 15.0s for "Write" Button to exist
+    t =     2.57s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =     2.58s         Checking existence of `"Write" Button`
+    t =     2.68s Tap "Write" Button
+    t =     2.68s     Wait for com.novalist.app to idle
+    t =     2.68s     Find the "Write" Button
+    t =     2.76s     Check for interrupting elements affecting "Write" Button
+    t =     2.80s     Synthesize event
+    t =     3.08s     Wait for com.novalist.app to idle
+    t =     4.55s Waiting 10.0s for Button (First Match) to exist
+    t =     5.62s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     5.62s         Checking existence of `Button (First Match)`
+    t =     5.64s Tap Button (First Match)
+    t =     5.64s     Wait for com.novalist.app to idle
+    t =     5.64s     Find the Button (First Match)
+    t =     5.66s     Check for interrupting elements affecting "Audit R13 Frame Image 4" Button
+    t =     5.68s     Synthesize event
+    t =     5.97s     Wait for com.novalist.app to idle
+    t =     5.97s Waiting 10.0s for TextView (First Match) to exist
+    t =     7.05s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =     7.05s         Checking existence of `TextView (First Match)`
+AUDIT_R13_SCENE_OPEN_PASS
+    t =     7.07s Tear Down
+Test Case '-[AuditUITests.AuditUITests testActualSceneImage]' passed (7.067 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 12:04:55.065.
+	 Executed 1 test, with 0 failures (0 unexpected) in 7.067 (7.072) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 12:04:55.065.
+	 Executed 1 test, with 0 failures (0 unexpected) in 7.067 (7.073) seconds
+Test Suite 'All tests' passed at 2026-10-07 12:04:55.065.
+	 Executed 1 test, with 0 failures (0 unexpected) in 7.067 (7.073) seconds
+2026-10-07 12:04:55.345 xcodebuild[1110:3252310] [MT] IDETestOperationsObserverDebug: 10.280 elapsed -- Testing started completed.
+2026-10-07 12:04:55.345 xcodebuild[1110:3252310] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 12:04:55.345 xcodebuild[1110:3252310] [MT] IDETestOperationsObserverDebug: 10.280 sec, +10.280 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/novalist-r13-frames/scene-open.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

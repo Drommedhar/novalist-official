@@ -33,6 +33,7 @@ could encounter in a previously released version.
 - Splitting scenes preserves export exclusions; splitting and merging retains comments, suggestions and footnotes. Exports finish against a stable book and draft.
 - Image-only scenes retain their content, spelling actions reach the correct split editor, and inline extension actions retain their alternatives and suggested-edit behavior.
 - Inserted images keep their chosen paragraph after a prose rebuild, including in page view.
+- 3D maps fit the visible area on high-resolution displays instead of appearing cropped or blank.
 - Dialogs contain keyboard focus and return it when closed; command and quick-open palettes keep the selected result visible while scrolling.
 - Disabling an extension retires its open web panels and pending controller calls.
 

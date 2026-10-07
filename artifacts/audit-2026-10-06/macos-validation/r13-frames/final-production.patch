@@ -1,0 +1,118 @@
+diff --git a/Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs b/Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs
+index 66e53e23..b92d966e 100644
+--- a/Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs
+@@ -268,8 +268,8 @@ public sealed partial class RendererHostPage
+     private async Task<object?> ShareExportAsync(JsonElement args)
+     {
+         var path = ArgString(args, 0);
+-        var shared = await Task.Run(() => _exports.PrepareShare(path)).ConfigureAwait(false);
+-        return await ExportSharing.ShareAsync(shared).ConfigureAwait(false);
++        return await Task.Run(() => _exports.ShareAsync(path, ExportSharing.ShareAsync))
++            .ConfigureAwait(false);
+     }
+ 
+     private async Task<object?> OpenExternalAsync(JsonElement args)
+diff --git a/Novalist.Mobile/Services/ExportFiles.cs b/Novalist.Mobile/Services/ExportFiles.cs
+index 5ca0f55e..ccae37a1 100644
+--- a/Novalist.Mobile/Services/ExportFiles.cs
++++ b/Novalist.Mobile/Services/ExportFiles.cs
+@@ -10,6 +10,7 @@ namespace Novalist.Mobile.Services;
+ public sealed class ExportFiles(string cacheDirectory)
+ {
+     private readonly Dictionary<string, string> _pending = new(StringComparer.Ordinal);
++    private readonly HashSet<string> _sharing = new(StringComparer.Ordinal);
+     private readonly object _gate = new();
+ 
+     public string Create(string suggestedName)
+@@ -51,6 +52,9 @@ public sealed class ExportFiles(string cacheDirectory)
+     {
+         lock (_gate)
+         {
++            // The renderer can time out or disconnect while the native sheet is
++            // still open. Its cleanup must not remove a file iOS is sharing.
++            if (_sharing.Contains(path)) return;
+             if (!_pending.TryGetValue(path, out var directory)) return;
+             if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true);
+             var sharedDirectory = directory + "-shared";
+@@ -59,4 +63,29 @@ public sealed class ExportFiles(string cacheDirectory)
+             _pending.Remove(path);
+         }
+     }
++
++    public async Task<bool> ShareAsync(string path, Func<string, Task<bool>> share)
++    {
++        string shared;
++        lock (_gate)
++        {
++            if (_sharing.Contains(path))
++                throw new InvalidOperationException("This export is already being shared.");
++            shared = PrepareShare(path);
++            _sharing.Add(path);
++        }
++
++        try
++        {
++            return await share(shared).ConfigureAwait(false);
++        }
++        finally
++        {
++            lock (_gate)
++            {
++                _sharing.Remove(path);
++                Release(path);
++            }
++        }
++    }
+ }
+diff --git a/app/src/renderer/public/map/map.html b/app/src/renderer/public/map/map.html
+index 2f698dea..cfb2d810 100644
+--- a/app/src/renderer/public/map/map.html
++++ b/app/src/renderer/public/map/map.html
+@@ -79,7 +79,7 @@ body.tool-select.mode-edit .nv-label { cursor: pointer; }
+ .nv-label.nv-hovered                   { outline: 1px dashed var(--accent); outline-offset: 3px; }
+ .nv-image.nv-hovered                   { outline: 2px solid var(--accent); }
+ /* 3D view canvas — hidden until Map3D.enter(); swaps in place with #stage. */
+-#stage3d { position: fixed; inset: 0; display: none; outline: none; }
++#stage3d { position: fixed; inset: 0; width: 100%; height: 100%; display: none; outline: none; }
+ #world {
+     position: absolute; left: 0; top: 0;
+     transform-origin: 0 0;
+diff --git a/app/src/renderer/src/mobile/shim.ts b/app/src/renderer/src/mobile/shim.ts
+index 623c40ef..82c28e22 100644
+--- a/app/src/renderer/src/mobile/shim.ts
++++ b/app/src/renderer/src/mobile/shim.ts
+@@ -44,7 +44,6 @@ function base64ToBytes(base64: string): Uint8Array {
+   return out
+ }
+ 
+-// --- RPC transport (Phase 1) ---------------------------------------------
+ 
+ let backendPort: MessagePort | null = null
+ let bridgeFailed = false
+@@ -81,7 +80,6 @@ function requestBackendPort(): void {
+   window.postMessage({ novalist: 'backend-port' }, '*', [channel.port1])
+ }
+ 
+-// --- Host bridge (Phase 2) -----------------------------------------------
+ 
+ const hostCalls = new HostCallChannel(sendRaw)
+ const backgroundSaves = new Set<() => Promise<void>>()
+@@ -105,7 +103,8 @@ window.__novalistHostResult = (base64: string) => {
+ }
+ 
+ function hostCall<T>(method: string, args: unknown[]): Promise<T> {
+-  const timeout = method.startsWith('pick') ? 600_000 : method === 'readProjectAsset' ? 120_000 : 30_000
++  const timeout = method.startsWith('pick') || method === 'shareExport'
++    ? 600_000 : method === 'readProjectAsset' ? 120_000 : 30_000
+   return hostCalls.request<T>(method, args, timeout)
+ }
+ 
+@@ -125,7 +124,6 @@ function manuscriptExtensions(options?: { extensions?: string[] }): string[] {
+   ]
+ }
+ 
+-// --- window.novalist -----------------------------------------------------
+ 
+ const novalist: Window['novalist'] = {
+   onBackgroundSave: (handler) => {

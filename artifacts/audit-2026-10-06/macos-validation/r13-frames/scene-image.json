@@ -1,0 +1,53 @@
+{
+  "nativeMobile": true,
+  "frameTitle": "editor",
+  "frameLoaded": "complete",
+  "frameConnected": true,
+  "decoded": true,
+  "naturalWidth": 256,
+  "naturalHeight": 256,
+  "dataUri": true,
+  "storedRelativeReference": "Images/audit-quadrants.png",
+  "imageRect": {
+    "x": 119,
+    "y": 128.890625,
+    "width": 202,
+    "height": 202
+  },
+  "frameRect": {
+    "x": 0,
+    "y": 158,
+    "width": 440,
+    "height": 681
+  },
+  "visible": true,
+  "sampledQuadrants": [
+    [
+      240,
+      25,
+      35,
+      255
+    ],
+    [
+      25,
+      220,
+      55,
+      255
+    ],
+    [
+      25,
+      55,
+      235,
+      255
+    ],
+    [
+      245,
+      225,
+      20,
+      255
+    ]
+  ],
+  "ariaError": null,
+  "cleanSerializedRelative": true,
+  "cleanSerializedDataUri": false
+}

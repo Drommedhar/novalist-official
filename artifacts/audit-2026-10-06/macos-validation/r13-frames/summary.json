@@ -1,0 +1,93 @@
+{
+  "finding": "R13",
+  "device": "Dedicated iPhone 17 Pro Max simulator",
+  "os": "iOS 27.0",
+  "status": "R13-01 and R13-03 passed; whole finding still awaits separate native memory acceptance",
+  "source": {
+    "instrumented": "probe-provenance.json",
+    "pre_fix_note": "Scene/map and failed 3D runs used the same recorded probe inputs except map.html retained its baseline un-sized stage3d rule; fixed native run added only the preserved viewport correction.",
+    "clean": "final-snapshot.json",
+    "clean_production_inputs": "final-production-inputs.json",
+    "clean_base_revision": "dd9817e3d8bc06522a451524b4953dd125e27bc1",
+    "clean_diff": "final-production.patch",
+    "clean_diff_sha256": "eac0c5001f50ba6f2a580cf9d1ffa92fb776dae5dde94b7f08439398fa0d070f"
+  },
+  "cases": [
+    {
+      "acceptance_case": "R13-01",
+      "status": "passed",
+      "observed": "Actual native UI opened a persisted synthetic scene and map. Their real nested editor/map frames decoded the 256x256 quadrant image through production loading. Exact RGBA samples and visible native screenshots matched. Scene clean serialization retains the relative source.",
+      "evidence": [
+        "scene-open.swift",
+        "scene-open.log",
+        "scene-image.json",
+        "scene-image.png",
+        "map-open.swift",
+        "map-open.log",
+        "map-image.json",
+        "map-image.png"
+      ]
+    },
+    {
+      "acceptance_case": "R13-03",
+      "status": "passed-after-fix",
+      "observed": "Actual 3D UI loaded the project image as a Three.js plane texture and rendered the expected quadrants. Original source clipped a three-times oversized canvas. Rebuilt fixed source fits the native frame with a full Retina buffer and no runtime style override. Clean native reopening also visibly renders the texture.",
+      "evidence": [
+        "map3d-texture.png",
+        "map3d-view.json",
+        "map3d-sizing-diagnostic.json",
+        "map3d-sizing-diagnostic.png",
+        "map3d-fixed-open.swift",
+        "map3d-fixed-open.log",
+        "map3d-fixed-texture.json",
+        "map3d-fixed-texture.png",
+        "final-clean-ui.swift",
+        "final-clean-ui.log",
+        "final-clean-ui.png"
+      ]
+    },
+    {
+      "acceptance_case": "R13-06",
+      "status": "supporting-passed",
+      "observed": "Image and scene SHA256 unchanged; persisted scene/map references remain relative with no data URI. Map image dimensions unchanged. Normal map viewport persistence changed the whole map JSON hash; no unchanged-map-document claim. Clean reinstall retained all resulting fixture files.",
+      "evidence": [
+        "fixture-before.json",
+        "file-retention.json",
+        "whole-document-hash-first-attempt.json",
+        "final-clean-install.json"
+      ]
+    }
+  ],
+  "concrete_fix": {
+    "production_file": "app/src/renderer/public/map/map.html",
+    "change": "Give stage3d width and height 100% so its CSS size follows the viewport independently of Retina drawing-buffer dimensions.",
+    "regression": "app/e2e/map-canvas-scale.spec.ts",
+    "before": "Real Three renderer sizing and production resize path: DPR1 passed, DPR2/3 failed with CSS size equal to oversized buffer.",
+    "after": "DPR1/2/3 passed at landscape and portrait sizes; 3 tests in 891ms.",
+    "native_fixed_ui_seconds": 12.134,
+    "typecheck": "e2e typecheck passed",
+    "aislop": "One test file: zero errors, warnings and fixable findings; security audit and telemetry disabled.",
+    "release_scope": "Same sizing bug present in released v3.5.3; one Unreleased desktop Fixed entry added."
+  },
+  "cleanup": {
+    "status": "passed-for-exact-snapshot",
+    "source_inputs_matching_main_at_snapshot": 1257,
+    "source_manifest_sha256": "182e4dd10e249a20424d550d6714a7a1d19d8399993bb313f8289ff217f0f8bb",
+    "fresh_native_bin_obj": true,
+    "renderer_rebuilt": true,
+    "native_clean_build": true,
+    "signature": "strict deep ad-hoc signature passed",
+    "installed_and_launched": true,
+    "native_ui_seconds": 12.145,
+    "app_tree_sha256": "bcd62cc22542d222caaad884c3355c9cc738b0faea677d7b2cb89c7b81f85cd0",
+    "probe_source_and_hooks_absent": true
+  },
+  "limitations": [
+    "No physical-device claim. Memory acceptance is a separate investigation and remains pending.",
+    "Clean snapshot includes the then-frozen export corrections; instrumented frame/texture tests used the separately recorded earlier source subset.",
+    "No all-fixes final integration claim is made for any source changes after this cleanup snapshot.",
+    "The first inspector import used an incorrect relative evaluation base; corrected absolute frame URL inspected the existing production module. This was a harness error, not a product import failure.",
+    "Whole-document hash assertion first failed because normal map save persisted viewport/default arrays; all original image bytes and required relative references remained intact.",
+    "Synthetic fixtures only. Private backups, app bundles and xcresults remain outside the committed evidence; host paths are redacted from logs/scripts."
+  ]
+}

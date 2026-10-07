@@ -1,0 +1,11 @@
+{
+  "source_snapshot": "final-snapshot.json",
+  "clean_native_build": true,
+  "probe_source_and_hooks_absent": true,
+  "strict_deep_signature_passed": true,
+  "installed_and_launched": true,
+  "synthetic_fixture_hashes_preserved": true,
+  "app_tree_sha256": "bcd62cc22542d222caaad884c3355c9cc738b0faea677d7b2cb89c7b81f85cd0",
+  "app_tree_hash_method": "SHA256 compact sorted JSON mapping relative app paths to file SHA256",
+  "limitation": "Exact snapshot cleanup; subsequent memory-related source changes are not covered."
+}

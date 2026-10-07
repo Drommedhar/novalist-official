@@ -1,0 +1,9 @@
+{
+  "source_head": "dd9817e3d8bc06522a451524b4953dd125e27bc1",
+  "current_tracked_source_snapshot": true,
+  "production_inputs": 1257,
+  "manifest_sha256": "182e4dd10e249a20424d550d6714a7a1d19d8399993bb313f8289ff217f0f8bb",
+  "all_production_inputs_match_main": true,
+  "native_audit_control_absent": true,
+  "fresh_checkout_has_no_native_bin_obj": true
+}

@@ -1,0 +1,10 @@
+
+Running 3 tests using 1 worker
+
+(node:9685) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/map-canvas-scale.spec.ts:6:7 › 3D map canvas fits its viewport at 1x pixel density (218ms)
+  ✓  2 e2e/map-canvas-scale.spec.ts:6:7 › 3D map canvas fits its viewport at 2x pixel density (171ms)
+  ✓  3 e2e/map-canvas-scale.spec.ts:6:7 › 3D map canvas fits its viewport at 3x pixel density (163ms)
+
+  3 passed (891ms)

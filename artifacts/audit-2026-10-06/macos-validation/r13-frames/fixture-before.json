@@ -1,0 +1,37 @@
+{
+  "fixture": "synthetic quadrants; scene and map fixture added while app stopped",
+  "image_dimensions": [
+    256,
+    256
+  ],
+  "expected_quadrants_rgb": [
+    [
+      240,
+      25,
+      35
+    ],
+    [
+      25,
+      220,
+      55
+    ],
+    [
+      25,
+      55,
+      235
+    ],
+    [
+      245,
+      225,
+      20
+    ]
+  ],
+  "files": {
+    "Audit Book Alpha/Images/audit-quadrants.png": "436b8e84cb19dc7d7b7f7e6c9903ef8d67ba4a2171ca83a6f56b906aeb84f000",
+    "Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-r13-image.novalist": "fa1267c98708c23bc072e22ae58ff7cb21f7ead1424d1b55a1fa8f1e1b28525f",
+    "Audit Book Alpha/Drafts/default/Maps/map-audit-r13-frames.json": "3985ad565aab03db8d3b753bf7d489abb8628934f6835ec91ee7474d650d2726"
+  },
+  "scene_relative_reference": "Images/audit-quadrants.png",
+  "map_book_relative_reference": "Images/audit-quadrants.png",
+  "prior_synthetic_data_backed_up": true
+}

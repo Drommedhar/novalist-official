@@ -1,0 +1,12 @@
+{
+  "all_fixture_hashes_unchanged": false,
+  "image_scene_and_map_files": {
+    "Audit Book Alpha/Images/audit-quadrants.png": "436b8e84cb19dc7d7b7f7e6c9903ef8d67ba4a2171ca83a6f56b906aeb84f000",
+    "Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-r13-image.novalist": "fa1267c98708c23bc072e22ae58ff7cb21f7ead1424d1b55a1fa8f1e1b28525f",
+    "Audit Book Alpha/Drafts/default/Maps/map-audit-r13-frames.json": "4f290f910765951211abc3eaa97803c7a5c0e5d994cb767465a7a688b6102e32"
+  },
+  "scene_reference_relative": true,
+  "scene_has_no_data_uri": true,
+  "map_reference_relative": true,
+  "map_has_no_data_uri": true
+}

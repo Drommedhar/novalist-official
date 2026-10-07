@@ -1,0 +1,501 @@
+--- /dev/null
++++ b/Novalist.Mobile/Pages/RendererHostPage.AuditControl.cs
+@@ -0,0 +1,173 @@
++// TEMPORARY AUDIT INSTRUMENTATION. Never include in a shipped application.
++using System.Diagnostics;
++using System.Runtime.InteropServices;
++using System.Text.Json;
++using Microsoft.Maui.ApplicationModel;
++using Foundation;
++using ObjCRuntime;
++using UIKit;
++using WebKit;
++
++namespace Novalist.Mobile.Pages;
++
++public sealed partial class RendererHostPage
++{
++    private readonly string _auditPage = Guid.NewGuid().ToString("N");
++    private readonly object _auditGate = new();
++    private readonly List<object> _auditEvents = [];
++    private int _auditEvaluatorFault;
++    private int _auditAssetGateArmed;
++    private int _auditAssetReads;
++    private int _auditProjectGeneration;
++    private TaskCompletionSource? _auditAssetGate;
++    private static readonly string AuditDirectory = Path.Combine(
++        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "NovalistAudit");
++
++    private void AuditRecord(string kind, string? detail = null)
++    {
++        lock (_auditGate)
++        {
++            _auditEvents.Add(new { kind, detail, utc = DateTimeOffset.UtcNow, ticks = Stopwatch.GetTimestamp() });
++            if (_auditEvents.Count > 100) _auditEvents.RemoveAt(0);
++        }
++    }
++
++    private Task<string?> AuditEvaluateDeliveryAsync(string script)
++    {
++        switch (Interlocked.Exchange(ref _auditEvaluatorFault, 0))
++        {
++            case 1:
++                AuditRecord("evaluator-failure-consumed");
++                return Task.FromException<string?>(new IOException("Synthetic audit evaluator failure."));
++            case 3:
++                AuditRecord("evaluator-native-failure-consumed");
++                return EvaluateScriptAsync("throw new Error('Synthetic native evaluation failure')");
++            case 2:
++                AuditRecord("evaluator-timeout-consumed");
++                return new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously).Task;
++            default:
++                return EvaluateScriptAsync(script);
++        }
++    }
++
++    private async Task AuditAfterAssetReadAsync()
++    {
++        Interlocked.Increment(ref _auditAssetReads);
++        if (Interlocked.Exchange(ref _auditAssetGateArmed, 0) == 0) return;
++        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
++        _auditAssetGate = gate;
++        AuditRecord("asset-reply-held", _auditProjectGeneration.ToString());
++        await gate.Task.ConfigureAwait(false);
++        AuditRecord("asset-reply-released", _auditProjectGeneration.ToString());
++    }
++
++    private async Task AuditControlLoopAsync()
++    {
++        Directory.CreateDirectory(AuditDirectory);
++        AuditRecord("control-started");
++        await _rendererReady.Task.ConfigureAwait(false);
++        AuditRecord("renderer-ready");
++        await File.WriteAllTextAsync(Path.Combine(AuditDirectory, "ready.json"),
++            JsonSerializer.Serialize(new { page = _auditPage, ready = true, utc = DateTimeOffset.UtcNow }));
++        while (Volatile.Read(ref _disposed) == 0)
++        {
++            await Task.Delay(100).ConfigureAwait(false);
++            var commandFile = Path.Combine(AuditDirectory, "command.json");
++            if (!File.Exists(commandFile)) continue;
++            string id = "unread";
++            object? result = null;
++            string? errorType = null;
++            var started = DateTimeOffset.UtcNow;
++            try
++            {
++                var contents = await File.ReadAllTextAsync(commandFile).ConfigureAwait(false);
++                File.Delete(commandFile);
++                using var command = JsonDocument.Parse(contents);
++                var root = command.RootElement;
++                id = root.GetProperty("id").GetString() ?? "missing";
++                result = await AuditExecuteAsync(root).ConfigureAwait(false);
++            }
++            catch (Exception exception) { errorType = exception.GetType().Name; }
++            var response = JsonSerializer.Serialize(new {
++                id, page = _auditPage, started, finished = DateTimeOffset.UtcNow,
++                ok = errorType == null, errorType, result
++            });
++            var temporary = Path.Combine(AuditDirectory, "response.tmp");
++            await File.WriteAllTextAsync(temporary, response).ConfigureAwait(false);
++            File.Move(temporary, Path.Combine(AuditDirectory, "response.json"), true);
++        }
++    }
++
++    private async Task<object?> AuditExecuteAsync(JsonElement command)
++    {
++        switch (command.GetProperty("op").GetString())
++        {
++            case "eval":
++                return await MainThread.InvokeOnMainThreadAsync(() =>
++                    EvaluateScriptAsync(command.GetProperty("script").GetString()!))
++                    .WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
++            case "state":
++                return await MainThread.InvokeOnMainThreadAsync(AuditState);
++            case "evaluator-failure":
++                Interlocked.Exchange(ref _auditEvaluatorFault, 1);
++                AuditRecord("evaluator-failure-armed");
++                return "armed";
++            case "evaluator-native-failure":
++                Interlocked.Exchange(ref _auditEvaluatorFault, 3);
++                AuditRecord("evaluator-native-failure-armed");
++                return "armed";
++            case "evaluator-timeout":
++                Interlocked.Exchange(ref _auditEvaluatorFault, 2);
++                AuditRecord("evaluator-timeout-armed");
++                return "armed";
++            case "backend-failure":
++                AuditRecord("backend-dispose");
++                _bridge.Dispose();
++                return "disposed";
++            case "asset-hold":
++                Interlocked.Exchange(ref _auditAssetGateArmed, 1);
++                return "armed";
++            case "asset-release":
++                return _auditAssetGate?.TrySetResult() == true;
++            case "reload":
++                await MainThread.InvokeOnMainThreadAsync(() => {
++                    var window = Window ?? throw new InvalidOperationException("No window");
++                    Dispose();
++                    window.Page = new RendererHostPage();
++                });
++                return "reloaded";
++            default:
++                throw new InvalidOperationException("Unknown synthetic audit operation.");
++        }
++    }
++
++    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
++    private static extern int AuditIntMessage(nint receiver, nint selector);
++
++    private object AuditState()
++    {
++        int? webProcessId = null;
++        if (_web.Handler?.PlatformView is WKWebView web)
++        {
++            var selector = new Selector("_webProcessIdentifier");
++            if (web.RespondsToSelector(selector)) webProcessId = AuditIntMessage(web.Handle, selector.Handle);
++        }
++        var controller = (Window?.Handler?.PlatformView as UIWindow)?.RootViewController;
++        while (controller?.PresentedViewController is { } presented) controller = presented;
++        var alert = controller as UIAlertController;
++        object[] events;
++        lock (_auditGate) events = _auditEvents.ToArray();
++        return new {
++            page = _auditPage, bridgeFailed = _bridgeFailed, disposed = _disposed,
++            rendererReady = _rendererReady.Task.IsCompletedSuccessfully,
++            bridgeCancellation = _cts.IsCancellationRequested,
++            evaluatorFault = _auditEvaluatorFault, assetReads = _auditAssetReads,
++            assetHeld = _auditAssetGate is { Task.IsCompleted: false },
++            projectGeneration = _auditProjectGeneration, webProcessId,
++            nativeEditingPausedAlert = alert?.Title == "Editing paused",
++            nativeReloadAvailable = alert?.Actions.Any(action => action.Title == "Reload") == true,
++            nativeLaterAvailable = alert?.Actions.Any(action => action.Title == "Later") == true,
++            events
++        };
++    }
++}
+--- a/Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs
+@@ -85,8 +85,10 @@
+             if (!full.StartsWith(rootFull.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
+                     StringComparison.Ordinal)) return null;
+             if (!await _files.ExistsAsync(full)) return null;
+-            return await new IosFileAccessCoordinator().ReadAsync(full,
++            var data = await new IosFileAccessCoordinator().ReadAsync(full,
+                 path => MobileAssetReader.ReadDataUri(path, MimeForExtension(path))).ConfigureAwait(false);
++            await AuditAfterAssetReadAsync().ConfigureAwait(false);
++            return data;
+         }
+         catch (FileNotFoundException)
+         {
+@@ -150,6 +152,7 @@
+                 SecurityScopedFolders.EndAccess(ArgString(args, 0));
+                 return null;
+             case "setProjectRoot":
++                Interlocked.Increment(ref _auditProjectGeneration);
+                 _projectRoot = ArgString(args, 0);
+                 IosStoredPathResolver.ActiveProjectPath = _projectRoot;
+                 SecurityScopedFolders.ReleaseExcept(_projectRoot);
+--- /dev/null
++++ b/Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs
+@@ -0,0 +1,23 @@
++#if IOS
++using WebKit;
++#endif
++
++namespace Novalist.Mobile.Pages;
++
++public sealed partial class RendererHostPage
++{
++    private async Task<string?> EvaluateScriptAsync(string script)
++    {
++#if IOS
++        if (_web.Handler?.PlatformView is not WKWebView webView)
++            throw new InvalidOperationException("The editor is not ready.");
++
++        // MAUI's async-void evaluation handler can throw outside the caller's
++        // task. Await WebKit directly so process failures reach our recovery path.
++        using var result = await webView.EvaluateJavaScriptAsync(script);
++        return result?.ToString();
++#else
++        return await _web.EvaluateJavaScriptAsync(script);
++#endif
++    }
++}
+--- a/Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs
+@@ -46,7 +46,7 @@
+         {
+             var script = $"typeof window.__novalistLifecycleSave === 'function' ? "
+                 + $"(window.__novalistLifecycleSave({requestId}), 'requested') : 'unavailable'";
+-            var state = await MainThread.InvokeOnMainThreadAsync(() => _web.EvaluateJavaScriptAsync(script))
++            var state = await MainThread.InvokeOnMainThreadAsync(() => EvaluateScriptAsync(script))
+                 .WaitAsync(deadline.Token).ConfigureAwait(false);
+             if (state?.Trim('"') != "requested") return;
+             if (!await acknowledgement.WaitAsync(deadline.Token).ConfigureAwait(false))
+--- a/Novalist.Mobile/Pages/RendererHostPage.Transport.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.Transport.cs
+@@ -13,7 +13,7 @@
+ 
+     private async Task DeliverCallbackAsync(string script)
+     {
+-        var result = await MainThread.InvokeOnMainThreadAsync(() => _web.EvaluateJavaScriptAsync(script))
++        var result = await MainThread.InvokeOnMainThreadAsync(() => AuditEvaluateDeliveryAsync(script))
+             .WaitAsync(TimeSpan.FromSeconds(15), _cts.Token).ConfigureAwait(false);
+         if (result?.Trim('"') != "accepted") throw new IOException("The editor did not accept its response.");
+     }
+@@ -23,16 +23,18 @@
+         if (_disposed != 0 || Interlocked.Exchange(ref _bridgeFailed, 1) != 0) return;
+         // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Content-free transport failure diagnostics; no script, manuscript or path is logged.
+         System.Diagnostics.Debug.WriteLine($"[MobileBridge] Connection failed: {exception.GetType().Name}");
++        AuditRecord("bridge-failed", exception.GetType().Name);
+         _cts.Cancel();
+         await MainThread.InvokeOnMainThreadAsync(async () =>
+         {
+             try
+             {
+-                await _web.EvaluateJavaScriptAsync("window.__novalistBridgeFailed?.()")
++                await EvaluateScriptAsync("window.__novalistBridgeFailed?.()")
+                     .WaitAsync(TimeSpan.FromSeconds(2));
+             }
+             catch (Exception) { /* A terminated WebKit process cannot receive the failure notification. */ }
+             if (_disposed != 0) return;
++            AuditRecord("native-alert-presenting");
+             var reload = await DisplayAlertAsync("Editing paused",
+                 "The editor stopped responding. Reload Novalist to reopen your saved work and recover retained edits.",
+                 "Reload", "Later");
+@@ -64,7 +66,10 @@
+     private sealed class WebProcessObserver(RendererHostPage owner) : WKNavigationDelegate
+     {
+         public override void ContentProcessDidTerminate(WKWebView webView)
+-            => _ = owner.FailBridgeAsync(new IOException("WebKit content process terminated."));
++            {
++            owner.AuditRecord("content-process-did-terminate");
++            _ = owner.FailBridgeAsync(new IOException("WebKit content process terminated."));
++        }
+     }
+ #endif
+ }
+--- a/Novalist.Mobile/Pages/RendererHostPage.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.cs
+@@ -78,6 +78,7 @@
+ #endif
+ 
+         _ = PumpBackendToWebAsync(_cts.Token);
++        _ = Task.Run(AuditControlLoopAsync);
+     }
+     private void OnRawMessageReceived(object? sender, HybridWebViewRawMessageReceivedEventArgs e)
+     {
+@@ -166,7 +167,7 @@
+     private Task EvalOnMainAsync(string js) =>
+         MainThread.InvokeOnMainThreadAsync(async () =>
+         {
+-            try { await _web.EvaluateJavaScriptAsync(js); }
++            try { await EvaluateScriptAsync(js); }
+             catch (Exception ex)
+             {
+                 // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Reports evaluation failure type without exposing script or response contents.
+--- a/Novalist.Mobile/Services/OwnedProjectPaths.cs
++++ b/Novalist.Mobile/Services/OwnedProjectPaths.cs
+@@ -1,6 +1,5 @@
+ using System.Text.Json;
+ using Novalist.Core.Models;
+-using Novalist.Core.Services;
+ 
+ namespace Novalist.Mobile.Services;
+ 
+@@ -9,31 +8,66 @@
+ {
+     private sealed record Entry(string RelativePath, string ProjectId);
+     private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
++    private static readonly object RegistryGate = new();
+ 
+-    public async Task RecordAsync(string projectPath)
++    public Task RecordAsync(string projectPath) => Task.Run(() =>
+     {
+         if (!Contained(documents, projectPath)) return;
+         var id = ReadId(projectPath);
+         if (string.IsNullOrEmpty(id)) return;
+-        var entries = Load();
+-        entries[projectPath] = new Entry(Path.GetRelativePath(documents, projectPath), id);
+-        await new FileService().WriteTextAsync(storePath, JsonSerializer.Serialize(entries, Json));
+-    }
++        lock (RegistryGate)
++        {
++            var entries = Load();
++            entries[projectPath] = new Entry(Path.GetRelativePath(documents, projectPath), id);
++            Save(entries);
++        }
++    });
+ 
+     public string? Resolve(string storedPath)
+     {
+-        if (!Load().TryGetValue(storedPath, out var entry)
+-            || entry is not { RelativePath.Length: > 0, ProjectId.Length: > 0 }) return null;
++        lock (RegistryGate)
++        {
++            var entries = Load();
++            if (!entries.TryGetValue(storedPath, out var entry)
++                || entry is not { RelativePath.Length: > 0, ProjectId.Length: > 0 }) return null;
++            try
++            {
++                var candidate = Path.GetFullPath(Path.Combine(documents, entry.RelativePath));
++                if (!Contained(documents, candidate) || string.Equals(candidate, storedPath, StringComparison.Ordinal)
++                    || !string.Equals(ReadId(candidate), entry.ProjectId, StringComparison.Ordinal)) return null;
++                // Recents can publish this path without opening the book. Persist its
++                // exact authorization first, so another container move can resolve it.
++                if (!entries.TryGetValue(candidate, out var existing) || existing != entry)
++                {
++                    entries[candidate] = entry;
++                    Save(entries);
++                }
++                return candidate;
++            }
++            catch (Exception error) when (error is ArgumentException or NotSupportedException or IOException or UnauthorizedAccessException)
++            {
++                return null;
++            }
++        }
++    }
++
++    private void Save(Dictionary<string, Entry> entries)
++    {
++        var directory = Path.GetDirectoryName(Path.GetFullPath(storePath))
++            ?? throw new IOException("The owned-project registry must name a file.");
++        Directory.CreateDirectory(directory);
++        var temporary = Path.Combine(directory, ".novalist-owned-" + Guid.NewGuid().ToString("N") + ".tmp");
+         try
+         {
+-            var candidate = Path.GetFullPath(Path.Combine(documents, entry.RelativePath));
+-            if (!Contained(documents, candidate) || string.Equals(candidate, storedPath, StringComparison.Ordinal)) return null;
+-            return string.Equals(ReadId(candidate), entry.ProjectId, StringComparison.Ordinal) ? candidate : null;
++            using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
++            {
++                JsonSerializer.Serialize(output, entries, Json);
++                output.Flush(flushToDisk: true);
++            }
++            if (File.Exists(storePath)) File.Replace(temporary, storePath, null);
++            else File.Move(temporary, storePath);
+         }
+-        catch (Exception error) when (error is ArgumentException or NotSupportedException or IOException)
+-        {
+-            return null;
+-        }
++        finally { File.Delete(temporary); }
+     }
+ 
+     private Dictionary<string, Entry> Load()
+--- a/app/src/renderer/index.mobile.html
++++ b/app/src/renderer/index.mobile.html
+@@ -8,7 +8,7 @@
+     />
+     <meta
+       http-equiv="Content-Security-Policy"
+-      content="default-src 'self'; script-src 'self' 'unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-src 'self' data:; connect-src 'self' data:"
++      content="default-src 'self'; script-src 'self' 'unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data:; frame-src 'self' data:; connect-src 'self' data:"
+     />
+     <!-- MAUI HybridWebView (.NET 10) serves its JS bridge library here but does
+          NOT auto-inject it; the page must reference it. This defines
+--- a/app/src/renderer/public/map/map.html
++++ b/app/src/renderer/public/map/map.html
+@@ -79,7 +79,7 @@
+ .nv-label.nv-hovered                   { outline: 1px dashed var(--accent); outline-offset: 3px; }
+ .nv-image.nv-hovered                   { outline: 2px solid var(--accent); }
+ /* 3D view canvas — hidden until Map3D.enter(); swaps in place with #stage. */
+-#stage3d { position: fixed; inset: 0; display: none; outline: none; }
++#stage3d { position: fixed; inset: 0; width: 100%; height: 100%; display: none; outline: none; }
+ #world {
+     position: absolute; left: 0; top: 0;
+     transform-origin: 0 0;
+--- a/app/src/renderer/src/mobile/recovery.ts
++++ b/app/src/renderer/src/mobile/recovery.ts
+@@ -3,7 +3,7 @@
+ import { useProjectStore } from '../stores/projectStore'
+ import { pendingManuscriptRecovery, hasPendingManuscriptWrites } from '../stores/manuscriptStore'
+ import { useHostBridgeStore } from '../stores/hostBridgeStore'
+-import { readRecoveryJournal, recordRecovery, removeRecovery, remapRecoveryEntry, sameRecoveryScope, sameResearchValue, type RecoveryEntry, type RecoveryScope, type ResearchRecoveryValue } from './recoveryJournal'
++import { readRecoveryJournal, recordRecovery, removeRecovery, remapRecoveryEntry, sameRecoveryScope, sameResearchValue, type RecoveryEntry, type RecoveryScope, type ResearchRecoveryValue, type SceneRecovery } from './recoveryJournal'
+ 
+ let restoring = false
+ let startupJournal: RecoveryEntry[] | null = null
+@@ -21,6 +21,15 @@
+ export function registerResearchRecovery(capture: () => void): () => void {
+   researchCaptures.add(capture)
+   return () => { researchCaptures.delete(capture) }
++}
++
++export function retainMobileSceneRecovery(scene: Omit<SceneRecovery, 'kind'>): void {
++  if (!window.novalist.isMobile) return
++  try {
++    const scope = mobileRecoveryScope()
++    if (!scope) throw new Error(i18n.t('update.workspaceBusy'))
++    recordRecovery({ ...scene, kind: 'scene', scope })
++  } catch (error) { reportRecoveryError(error) }
+ }
+ 
+ export function captureMobileRecovery(): RecoveryEntry[] {
+--- a/app/src/renderer/src/stores/manuscriptStore.ts
++++ b/app/src/renderer/src/stores/manuscriptStore.ts
+@@ -4,6 +4,7 @@
+ import { useFilterStore } from './filterStore'
+ import type { ColourDimension } from '../views/manuscript/sceneColour'
+ import i18n from '../i18n'
++import { retainMobileSceneRecovery } from '../mobile/recovery'
+ 
+ export interface ManuscriptSceneDto {
+   sceneId: string
+@@ -320,6 +321,7 @@
+       })
+     }, MANUSCRIPT_AUTOSAVE_MS)
+     saveTimers.set(sceneId, save)
++    retainMobileSceneRecovery({ source: `manuscript:${sceneId}`, chapterGuid: save.chapterGuid, sceneId, html, plainText, hash: save.expectedHash })
+     reportManuscriptClaims()
+   },
+ 
+--- a/app/src/renderer/src/stores/projectEditorActions.ts
++++ b/app/src/renderer/src/stores/projectEditorActions.ts
+@@ -6,6 +6,7 @@
+ import { type ProjectSlice } from './projectTypes'
+ import { capturePendingWrites } from './pendingWrites'
+ import { enqueueSceneWrite } from './sceneWriteQueue'
++import { retainMobileSceneRecovery } from '../mobile/recovery'
+ 
+ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn' | 'openSceneInSplit' | 'resolveSceneConflict' | 'dismissSceneConflict' | 'closeTab' | 'moveTabToOtherPane' | 'onEditorContentChanged' | 'syncEditorPanes' | 'flushPane' | 'flushPendingSave' | 'applyManuscriptSceneWrite'> = (set, get) => ({
+   openScene: async (chapterGuid, sceneId) => {
+@@ -174,6 +175,7 @@
+       ...patchEditor(s, paneId, { html, plainText, isDirty: true }),
+       dirtyMap: { ...s.dirtyMap, [sceneId]: true }
+     }))
++    retainMobileSceneRecovery({ source: `pane:${paneId}`, chapterGuid, sceneId, html, plainText, hash: editor.hash ?? '' })
+     scheduleSave(paneId, chapterGuid, sceneId, html, plainText)
+   },
+ 
+--- a/app/src/renderer/src/views/library/ResearchEditor.tsx
++++ b/app/src/renderer/src/views/library/ResearchEditor.tsx
+@@ -218,10 +218,23 @@
+ 
+ export function ResearchEditor({ selected, t, fetchingTitle, fetchLinkTitle, setConfirmDelete, isInbox, setFiling, markFiled, patchSelected, save, setLifecycle, removeTag, newTag, setNewTag, addTag, entityNames, unlinkEntity, linkEntity, allEntities, items, setSelectedId, toggleRelated, setItems }: { selected: NonNullable<ResearchViewState['selected']>; t: ResearchViewState['t']; fetchingTitle: ResearchViewState['fetchingTitle']; fetchLinkTitle: ResearchViewState['fetchLinkTitle']; setConfirmDelete: ResearchViewState['setConfirmDelete']; isInbox: ResearchViewState['isInbox']; setFiling: ResearchViewState['setFiling']; markFiled: ResearchViewState['markFiled']; patchSelected: ResearchViewState['patchSelected']; save: ResearchViewState['save']; setLifecycle: ResearchViewState['setLifecycle']; removeTag: ResearchViewState['removeTag']; newTag: ResearchViewState['newTag']; setNewTag: ResearchViewState['setNewTag']; addTag: ResearchViewState['addTag']; entityNames: ResearchViewState['entityNames']; unlinkEntity: ResearchViewState['unlinkEntity']; linkEntity: ResearchViewState['linkEntity']; allEntities: ResearchViewState['allEntities']; items: ResearchViewState['items']; setSelectedId: ResearchViewState['setSelectedId']; toggleRelated: ResearchViewState['toggleRelated']; setItems: ResearchViewState['setItems'] }): React.JSX.Element {
+   const [previewError, setPreviewError] = useState<{ id: string; message: string } | null>(null)
+-  return (
+-    <div className="research-editor" onErrorCapture={(event) => {
++  const previewLoaded = (event: React.SyntheticEvent): void => {
++    const target = event.target as HTMLElement
++    if (!target.matches('.research-preview img, .research-embed, .research-audio')) return
++    if (window.novalist.isMobile) {
++      target.removeAttribute('aria-description')
++      target.removeAttribute('title')
++    }
++    setPreviewError(null)
++  }
++  return (
++    <div className="research-editor" onLoadCapture={previewLoaded} onLoadedDataCapture={previewLoaded} onErrorCapture={(event) => {
+       const target = event.target as HTMLElement
+-      setPreviewError({ id: selected.id, message: target.getAttribute('aria-description') || t('research.previewFailed') })
++      const reason = target.getAttribute('aria-description')
++      const source = target.getAttribute(target.tagName === 'OBJECT' ? 'data' : 'src')
++      // WebKit may reject the project URL before the mobile host resolves it.
++      if (window.novalist.isMobile && !reason && source?.startsWith('novalist-project://')) return
++      setPreviewError({ id: selected.id, message: reason || t('research.previewFailed') })
+     }}>
+       {previewError?.id === selected.id && <p role="alert" className="settings-hint">{previewError.message}</p>}
+       <div className="codex-detail-actions">

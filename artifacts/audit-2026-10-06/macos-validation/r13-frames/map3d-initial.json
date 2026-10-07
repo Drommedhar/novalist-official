@@ -1,0 +1,13 @@
+{
+  "mapActive": true,
+  "loading": false,
+  "canvas": [
+    {
+      "id": "stage3d",
+      "width": 1650,
+      "height": 594,
+      "display": "block",
+      "aria": null
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "nativeMobile": true,
+  "frameTitle": "map",
+  "frameLoaded": "complete",
+  "frameConnected": true,
+  "decoded": true,
+  "naturalWidth": 256,
+  "naturalHeight": 256,
+  "dataUri": true,
+  "storedRelativeReference": null,
+  "imageRect": {
+    "x": 166.10000610351562,
+    "y": 7.599999904632568,
+    "width": 174.79998779296875,
+    "height": 174.79998779296875
+  },
+  "frameRect": {
+    "x": 107,
+    "y": 221.625,
+    "width": 507,
+    "height": 198.375
+  },
+  "visible": true,
+  "sampledQuadrants": [
+    [
+      240,
+      25,
+      35,
+      255
+    ],
+    [
+      25,
+      220,
+      55,
+      255
+    ],
+    [
+      25,
+      55,
+      235,
+      255
+    ],
+    [
+      245,
+      225,
+      20,
+      255
+    ]
+  ],
+  "ariaError": null,
+  "cleanSerializedRelative": null,
+  "cleanSerializedDataUri": null
+}

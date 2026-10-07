@@ -1,0 +1,17 @@
+{
+  "baseline_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "probe_effective_patch": "probe-effective.patch",
+  "probe_effective_patch_sha256": "b6413fd1c37171b04cbf216793950674666554ad7dda6da7f63482acd2160e97",
+  "probe_production_manifest": "probe-production-inputs.json",
+  "instrumented_fixed_build": "fixed-probe-build.log",
+  "difference_from_clean_snapshot": [
+    "Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs",
+    "Novalist.Mobile/Pages/RendererHostPage.Transport.cs",
+    "Novalist.Mobile/Pages/RendererHostPage.cs",
+    "Novalist.Mobile/Services/ExportFiles.cs",
+    "app/src/renderer/src/mobile/shim.ts",
+    "Novalist.Mobile/Pages/RendererHostPage.AuditControl.cs"
+  ],
+  "control_patch": "../audit-control-fixed.patch",
+  "scope": "Native evaluator correction/control plus recorded frozen journaling, media, owned-path and 3D sizing files. Instrumented tests exclude later export corrections; separate clean snapshot includes them."
+}

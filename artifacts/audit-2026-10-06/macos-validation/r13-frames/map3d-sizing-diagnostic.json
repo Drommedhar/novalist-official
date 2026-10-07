@@ -1,0 +1,20 @@
+{
+  "frameCssSize": [
+    550,
+    292
+  ],
+  "drawingBuffer": [
+    1650,
+    876
+  ],
+  "devicePixelRatio": 3,
+  "before": {
+    "width": 1650,
+    "height": 876
+  },
+  "after": {
+    "width": 550,
+    "height": 292
+  },
+  "diagnosticOnly": true
+}

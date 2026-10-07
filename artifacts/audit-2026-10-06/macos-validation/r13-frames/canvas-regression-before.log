@@ -1,0 +1,86 @@
+
+Running 3 tests using 1 worker
+
+(node:8409) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/map-canvas-scale.spec.ts:6:7 › 3D map canvas fits its viewport at 1x pixel density (301ms)
+  ✘  2 e2e/map-canvas-scale.spec.ts:6:7 › 3D map canvas fits its viewport at 2x pixel density (163ms)
+(node:8454) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  3 e2e/map-canvas-scale.spec.ts:6:7 › 3D map canvas fits its viewport at 3x pixel density (194ms)
+
+
+  1) e2e/map-canvas-scale.spec.ts:6:7 › 3D map canvas fits its viewport at 2x pixel density ────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Object {
+        "bufferHeight": 584,
+        "bufferWidth": 1100,
+    -   "height": 292,
+    -   "width": 550,
+    +   "height": 584,
+    +   "width": 1100,
+      }
+
+      37 |           return { width: rect.width, height: rect.height, bufferWidth: canvas.width, bufferHeight: canvas.height }
+      38 |         })
+    > 39 |         expect(actual).toEqual({
+         |                        ^
+      40 |           ...viewport,
+      41 |           bufferWidth: viewport.width * deviceScaleFactor,
+      42 |           bufferHeight: viewport.height * deviceScaleFactor
+        at <repository>/app/e2e/map-canvas-scale.spec.ts:39:24
+
+    Error Context: test-results/map-canvas-scale-3D-map-ca-286f0-iewport-at-2x-pixel-density/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/map-canvas-scale-3D-map-ca-286f0-iewport-at-2x-pixel-density/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/map-canvas-scale-3D-map-ca-286f0-iewport-at-2x-pixel-density/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) e2e/map-canvas-scale.spec.ts:6:7 › 3D map canvas fits its viewport at 3x pixel density ────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+      Object {
+        "bufferHeight": 876,
+        "bufferWidth": 1650,
+    -   "height": 292,
+    -   "width": 550,
+    +   "height": 876,
+    +   "width": 1650,
+      }
+
+      37 |           return { width: rect.width, height: rect.height, bufferWidth: canvas.width, bufferHeight: canvas.height }
+      38 |         })
+    > 39 |         expect(actual).toEqual({
+         |                        ^
+      40 |           ...viewport,
+      41 |           bufferWidth: viewport.width * deviceScaleFactor,
+      42 |           bufferHeight: viewport.height * deviceScaleFactor
+        at <repository>/app/e2e/map-canvas-scale.spec.ts:39:24
+
+    Error Context: test-results/map-canvas-scale-3D-map-ca-78271-iewport-at-3x-pixel-density/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/map-canvas-scale-3D-map-ca-78271-iewport-at-3x-pixel-density/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/map-canvas-scale-3D-map-ca-78271-iewport-at-3x-pixel-density/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    e2e/map-canvas-scale.spec.ts:6:7 › 3D map canvas fits its viewport at 2x pixel density ─────────
+    e2e/map-canvas-scale.spec.ts:6:7 › 3D map canvas fits its viewport at 3x pixel density ─────────
+  1 passed (1.7s)
