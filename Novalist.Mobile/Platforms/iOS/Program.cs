@@ -14,4 +14,4 @@ public class Program
     }
 }
 
-#error NOVALIST_AUDIT_M05_INVALID_IOS_SYMBOL
+// Audit M05 clean native build after invalid-symbol rejection.
