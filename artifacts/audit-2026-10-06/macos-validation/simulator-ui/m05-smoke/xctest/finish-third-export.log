@@ -1,0 +1,7 @@
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' started.
+    t =     0.00s Start Test at 2026-10-07 12:15:28.334
+    t =     0.04s Waiting 10.0s for "SiblingA" NavigationBar to exist
+<smoke>/xctest/AuditUITests.swift:7: error: -[AuditUITests.AuditUITests testM02NativePicker] : XCTAssertTrue failed
+    t =    10.36s Tear Down
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' failed (10.372 seconds).
+** TEST FAILED **

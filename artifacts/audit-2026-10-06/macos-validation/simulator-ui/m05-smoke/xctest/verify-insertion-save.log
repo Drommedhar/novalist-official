@@ -1,0 +1,8 @@
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' started.
+    t =     0.00s Start Test at 2026-10-07 11:52:23.974
+    t =     0.06s Tap "Dashboard" Button
+    t =     0.71s Waiting 8.0s for "Project Dashboard" StaticText to exist
+<smoke>/xctest/AuditUITests.swift:13: error: -[AuditUITests.AuditUITests testM02NativePicker] : XCTAssertTrue failed
+    t =     8.87s Tear Down
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' failed (8.870 seconds).
+** TEST FAILED **

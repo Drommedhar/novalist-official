@@ -1,0 +1,28 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    let card = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Select Audit Project A — Audit Project A")).firstMatch
+    XCTAssertTrue(card.waitForExistence(timeout: 12))
+    card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).doubleTap()
+    XCTAssertTrue(app.staticTexts["Project Dashboard"].firstMatch.waitForExistence(timeout: 10))
+    app.buttons["Write"].firstMatch.tap()
+    let export = app.buttons["Export"].firstMatch
+    XCTAssertTrue(export.waitForExistence(timeout: 10))
+    export.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    XCTAssertTrue(app.textFields.matching(NSPredicate(format: "value == %@", "Audit Project A")).firstMatch.waitForExistence(timeout: 10))
+    app.buttons["Export"].firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    let saveActivity = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "In Dateien sichern")).firstMatch
+    XCTAssertTrue(saveActivity.waitForExistence(timeout: 15))
+    print("DELAY_STARTED " + String(Date().timeIntervalSince1970))
+    Thread.sleep(forTimeInterval: 36)
+    print("DELAY_FINISHED " + String(Date().timeIntervalSince1970))
+    XCTAssertTrue(saveActivity.exists)
+    saveActivity.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    XCTAssertTrue(app.buttons["Sichern"].firstMatch.waitForExistence(timeout: 20))
+    print("FILES_DESTINATION_READY")
+
+  }
+}

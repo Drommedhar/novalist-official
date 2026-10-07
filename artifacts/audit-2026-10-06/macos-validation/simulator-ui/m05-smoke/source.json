@@ -1,0 +1,14 @@
+{
+  "revision": "8489c9a3fa3b14b3cc695cef1b6d162b3d9aa3ab",
+  "combined_inputs_reference": "../../combined-final-inputs.json",
+  "combined_inputs_sha256": "4a6911696395c40599486ae9b2df402e841bd20e0889b2213d2146741f71ae65",
+  "all_changed_input_hashes_match": true,
+  "app_sha256": {
+    "Novalist.Mobile": "9a34a31c5153d1cf72f28429cce9c20a8d92871869e4d9df6beb3db17905a5cd",
+    "Novalist.Mobile.dll": "ab13c6acdc31c91dbec84cf0869b0e53f2e46c8e6b10e0f98f1311bb5df8702f",
+    "Info.plist": "47648c423394c43a6fb08ff9f850b2ff4fffb427b41e2a1b92aa1224aa295e27"
+  },
+  "device": "iPhone17Pro simulator",
+  "os": "iOS27.0",
+  "native_probes": false
+}

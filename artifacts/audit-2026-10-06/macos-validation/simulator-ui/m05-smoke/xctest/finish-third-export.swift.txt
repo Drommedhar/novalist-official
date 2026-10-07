@@ -1,0 +1,13 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    XCTAssertTrue(app.navigationBars["SiblingA"].firstMatch.waitForExistence(timeout: 10))
+    app.buttons["Sichern"].firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    XCTAssertTrue(app.buttons["Sichern"].firstMatch.waitForNonExistence(timeout: 10))
+    XCTAssertTrue(app.staticTexts["Export complete."].firstMatch.waitForExistence(timeout: 10))
+
+  }
+}

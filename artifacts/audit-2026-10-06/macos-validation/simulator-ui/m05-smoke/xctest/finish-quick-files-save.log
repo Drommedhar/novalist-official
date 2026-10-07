@@ -1,0 +1,9 @@
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' started.
+    t =     0.01s Start Test at 2026-10-07 12:12:18.789
+    t =     0.04s Tap Application 'com.novalist.app'[0.85, 0.11]
+    t =     0.71s Waiting 5.0s for Any (First Match) to exist
+    t =     6.01s Waiting 10.0s for "Sichern" Button to not exist
+<smoke>/xctest/AuditUITests.swift:11: error: -[AuditUITests.AuditUITests testM02NativePicker] : XCTAssertTrue failed
+    t =    16.36s Tear Down
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' failed (16.392 seconds).
+** TEST FAILED **

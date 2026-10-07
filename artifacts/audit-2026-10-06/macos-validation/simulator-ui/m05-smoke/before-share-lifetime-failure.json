@@ -1,0 +1,16 @@
+{
+  "status": "fail-before-fix",
+  "source_reference": "source.json",
+  "generated_local_time": "2026-10-07 11:57:22",
+  "save_to_files_selected_local_time": "2026-10-07 11:58:01",
+  "elapsed_before_share_destination_seconds": 39,
+  "native_share_sheet_showed_epub": true,
+  "save_to_files_stalled_on_loading": true,
+  "export_cache_file_count_while_sheet_pending": 0,
+  "renderer_export_failed_accessibility_text_observed": true,
+  "cause": "shareExport inherited30s host deadline; renderer finally called releaseExport while native sharing was pending. Cache was empty before native completion.",
+  "screenshots": [
+    "03-before-native-share-sheet.png",
+    "04-before-files-stalled.png"
+  ]
+}

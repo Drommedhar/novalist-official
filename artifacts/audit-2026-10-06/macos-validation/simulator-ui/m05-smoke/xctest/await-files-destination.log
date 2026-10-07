@@ -1,0 +1,7 @@
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' started.
+    t =     0.00s Start Test at 2026-10-07 11:58:32.493
+    t =     0.04s Waiting 30.0s for "Sichern" Button to exist
+<smoke>/xctest/AuditUITests.swift:8: error: -[AuditUITests.AuditUITests testM02NativePicker] : XCTAssertTrue failed
+    t =    30.30s Tear Down
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' failed (30.309 seconds).
+** TEST FAILED **

@@ -1,0 +1,594 @@
+diff --git a/Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs b/Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs
+index 66e53e23..b92d966e 100644
+--- a/Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs
+@@ -268,8 +268,8 @@ public sealed partial class RendererHostPage
+     private async Task<object?> ShareExportAsync(JsonElement args)
+     {
+         var path = ArgString(args, 0);
+-        var shared = await Task.Run(() => _exports.PrepareShare(path)).ConfigureAwait(false);
+-        return await ExportSharing.ShareAsync(shared).ConfigureAwait(false);
++        return await Task.Run(() => _exports.ShareAsync(path, ExportSharing.ShareAsync))
++            .ConfigureAwait(false);
+     }
+ 
+     private async Task<object?> OpenExternalAsync(JsonElement args)
+diff --git a/Novalist.Mobile/Services/ExportFiles.cs b/Novalist.Mobile/Services/ExportFiles.cs
+index 5ca0f55e..ccae37a1 100644
+--- a/Novalist.Mobile/Services/ExportFiles.cs
++++ b/Novalist.Mobile/Services/ExportFiles.cs
+@@ -10,6 +10,7 @@ namespace Novalist.Mobile.Services;
+ public sealed class ExportFiles(string cacheDirectory)
+ {
+     private readonly Dictionary<string, string> _pending = new(StringComparer.Ordinal);
++    private readonly HashSet<string> _sharing = new(StringComparer.Ordinal);
+     private readonly object _gate = new();
+ 
+     public string Create(string suggestedName)
+@@ -51,6 +52,9 @@ public sealed class ExportFiles(string cacheDirectory)
+     {
+         lock (_gate)
+         {
++            // The renderer can time out or disconnect while the native sheet is
++            // still open. Its cleanup must not remove a file iOS is sharing.
++            if (_sharing.Contains(path)) return;
+             if (!_pending.TryGetValue(path, out var directory)) return;
+             if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true);
+             var sharedDirectory = directory + "-shared";
+@@ -59,4 +63,29 @@ public sealed class ExportFiles(string cacheDirectory)
+             _pending.Remove(path);
+         }
+     }
++
++    public async Task<bool> ShareAsync(string path, Func<string, Task<bool>> share)
++    {
++        string shared;
++        lock (_gate)
++        {
++            if (_sharing.Contains(path))
++                throw new InvalidOperationException("This export is already being shared.");
++            shared = PrepareShare(path);
++            _sharing.Add(path);
++        }
++
++        try
++        {
++            return await share(shared).ConfigureAwait(false);
++        }
++        finally
++        {
++            lock (_gate)
++            {
++                _sharing.Remove(path);
++                Release(path);
++            }
++        }
++    }
+ }
+diff --git a/Novalist.Mobile/Services/OwnedProjectPaths.cs b/Novalist.Mobile/Services/OwnedProjectPaths.cs
+index cd012f4e..dd6e8d45 100644
+--- a/Novalist.Mobile/Services/OwnedProjectPaths.cs
++++ b/Novalist.Mobile/Services/OwnedProjectPaths.cs
+@@ -1,6 +1,5 @@
+ using System.Text.Json;
+ using Novalist.Core.Models;
+-using Novalist.Core.Services;
+ 
+ namespace Novalist.Mobile.Services;
+ 
+@@ -9,31 +8,66 @@ public sealed class OwnedProjectPaths(string documents, string storePath)
+ {
+     private sealed record Entry(string RelativePath, string ProjectId);
+     private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
++    private static readonly object RegistryGate = new();
+ 
+-    public async Task RecordAsync(string projectPath)
++    public Task RecordAsync(string projectPath) => Task.Run(() =>
+     {
+         if (!Contained(documents, projectPath)) return;
+         var id = ReadId(projectPath);
+         if (string.IsNullOrEmpty(id)) return;
+-        var entries = Load();
+-        entries[projectPath] = new Entry(Path.GetRelativePath(documents, projectPath), id);
+-        await new FileService().WriteTextAsync(storePath, JsonSerializer.Serialize(entries, Json));
+-    }
++        lock (RegistryGate)
++        {
++            var entries = Load();
++            entries[projectPath] = new Entry(Path.GetRelativePath(documents, projectPath), id);
++            Save(entries);
++        }
++    });
+ 
+     public string? Resolve(string storedPath)
+     {
+-        if (!Load().TryGetValue(storedPath, out var entry)
+-            || entry is not { RelativePath.Length: > 0, ProjectId.Length: > 0 }) return null;
+-        try
++        lock (RegistryGate)
+         {
+-            var candidate = Path.GetFullPath(Path.Combine(documents, entry.RelativePath));
+-            if (!Contained(documents, candidate) || string.Equals(candidate, storedPath, StringComparison.Ordinal)) return null;
+-            return string.Equals(ReadId(candidate), entry.ProjectId, StringComparison.Ordinal) ? candidate : null;
++            var entries = Load();
++            if (!entries.TryGetValue(storedPath, out var entry)
++                || entry is not { RelativePath.Length: > 0, ProjectId.Length: > 0 }) return null;
++            try
++            {
++                var candidate = Path.GetFullPath(Path.Combine(documents, entry.RelativePath));
++                if (!Contained(documents, candidate) || string.Equals(candidate, storedPath, StringComparison.Ordinal)
++                    || !string.Equals(ReadId(candidate), entry.ProjectId, StringComparison.Ordinal)) return null;
++                // Recents can publish this path without opening the book. Persist its
++                // exact authorization first, so another container move can resolve it.
++                if (!entries.TryGetValue(candidate, out var existing) || existing != entry)
++                {
++                    entries[candidate] = entry;
++                    Save(entries);
++                }
++                return candidate;
++            }
++            catch (Exception error) when (error is ArgumentException or NotSupportedException or IOException or UnauthorizedAccessException)
++            {
++                return null;
++            }
+         }
+-        catch (Exception error) when (error is ArgumentException or NotSupportedException or IOException)
++    }
++
++    private void Save(Dictionary<string, Entry> entries)
++    {
++        var directory = Path.GetDirectoryName(Path.GetFullPath(storePath))
++            ?? throw new IOException("The owned-project registry must name a file.");
++        Directory.CreateDirectory(directory);
++        var temporary = Path.Combine(directory, ".novalist-owned-" + Guid.NewGuid().ToString("N") + ".tmp");
++        try
+         {
+-            return null;
++            using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
++            {
++                JsonSerializer.Serialize(output, entries, Json);
++                output.Flush(flushToDisk: true);
++            }
++            if (File.Exists(storePath)) File.Replace(temporary, storePath, null);
++            else File.Move(temporary, storePath);
+         }
++        finally { File.Delete(temporary); }
+     }
+ 
+     private Dictionary<string, Entry> Load()
+diff --git a/app/scripts/mobile-recovery.test.mjs b/app/scripts/mobile-recovery.test.mjs
+index f69f9ff6..45b41474 100644
+--- a/app/scripts/mobile-recovery.test.mjs
++++ b/app/scripts/mobile-recovery.test.mjs
+@@ -11,6 +11,7 @@ function fixture() {
+   const journal = loadRendererSource('src/mobile/recoveryJournal.ts', {}, { localStorage })
+   let state = { projectPath: scope.projectPath, activeBookId: scope.bookId, activeDraftId: scope.draftId, drafts: [], editors: {}, chapters: [{ guid: 'chapter', scenes: [{ id: 'scene' }] }], dirtyMap: {}, isLoaded: true, activeEditorPaneId: 'pane' }
+   const calls = []
++  const errors = []
+   let disk = { html: '<p>Original</p>', hash: 'original' }
+   let research = []
+   const manuscript = []
+@@ -27,7 +28,7 @@ function fixture() {
+     '../i18n': { default: { t: (key) => key } }, '../rpc/client': { rpc },
+     '../stores/projectStore': { useProjectStore: store },
+     '../stores/manuscriptStore': { pendingManuscriptRecovery: () => manuscript, hasPendingManuscriptWrites: () => false },
+-    '../stores/hostBridgeStore': { useHostBridgeStore: { getState: () => ({ pushToast: (message) => { throw new Error(message) } }) } },
++    '../stores/hostBridgeStore': { useHostBridgeStore: { getState: () => ({ pushToast: (message) => { errors.push(message) } }) } },
+     './recoveryJournal': journal
+   }, { window: { novalist: host } })
+   Object.assign(state, {
+@@ -41,9 +42,45 @@ function fixture() {
+       recovery.acknowledgeMobileSceneRecovery('scene', editor.html)
+     }
+   })
+-  return { ...journal, ...recovery, host, store, calls, manuscript, storage, disk: () => disk, setDisk: (value) => { disk = value }, setResearch: (value) => { research = value } }
++  return { ...journal, ...recovery, host, store, calls, errors, manuscript, storage, disk: () => disk, setDisk: (value) => { disk = value }, setResearch: (value) => { research = value } }
+ }
+ 
++test('actual manuscript edit action journals the latest buffer before its autosave timer', () => {
++  const f = fixture()
++  const timers = []
++  const create = (initialize) => {
++    let state
++    const store = { getState: () => state, setState: (patch) => { state = { ...state, ...(typeof patch === 'function' ? patch(state) : patch) } } }
++    state = initialize(store.setState, store.getState)
++    return store
++  }
++  const manuscript = loadRendererSource('src/stores/manuscriptStore.ts', {
++    zustand: { create }, '../rpc/client': { rpc: { request: () => { throw new Error('Autosave must not run') } } },
++    './projectStore': { useProjectStore: f.store, reportManuscriptEditing() {} },
++    './filterStore': { useFilterStore: { getState: () => ({}) } },
++    '../i18n': { default: { t: (key) => key } }, '../mobile/recovery': f
++  }, { window: { novalist: f.host }, setTimeout: (fn) => (timers.push(fn), timers.length), clearTimeout() {} }).useManuscriptStore
++  manuscript.setState({ sections: [{ chapterGuid: 'chapter', scenes: [{ sceneId: 'scene', html: 'base', hash: 'original' }] }] })
++  manuscript.getState().onSceneContentChanged('scene', '<p>First edit</p>', 'First edit', 2)
++  manuscript.getState().onSceneContentChanged('scene', '<p>Newest edit</p>', 'Newest edit', 2)
++  const entries = f.readRecoveryJournal()
++  assert.equal(entries.length, 1)
++  assert.equal(entries[0].source, 'manuscript:scene')
++  assert.equal(entries[0].html, '<p>Newest edit</p>')
++  assert.equal(entries[0].hash, 'original')
++  assert.deepEqual({ ...entries[0].scope }, scope)
++  assert.equal(f.calls.length, 0)
++  assert.equal(timers.length, 2)
++})
++
++test('failed immediate journaling preserves the prior payload and reports the failure', () => {
++  const f = fixture()
++  f.recordRecovery(scene)
++  f.retainMobileSceneRecovery({ ...scene, html: 'x'.repeat(2_000_001) })
++  assert.equal(f.readRecoveryJournal()[0].html, scene.html)
++  assert.equal(f.errors.length, 1)
++})
++
+ test('background capture journals scene and manuscript buffers synchronously', () => {
+   const f = fixture()
+   f.store.setState({ editors: { pane: { ...scene, isDirty: true } } })
+diff --git a/app/scripts/mobile-shim.test.mjs b/app/scripts/mobile-shim.test.mjs
+index 3c70abf5..06944675 100644
+--- a/app/scripts/mobile-shim.test.mjs
++++ b/app/scripts/mobile-shim.test.mjs
+@@ -83,6 +83,25 @@ test('bridge failure rejects pending and future calls and pauses the renderer',
+   assert.equal(f.channels[0].port2.messages[0].novalistControl, 'backend-recovery-failed')
+ })
+ 
++test('native sharing allows a human decision but keeps a bounded deadline', async (t) => {
++  t.mock.timers.enable({ apis: ['setTimeout'] })
++  const f = fixture(t)
++  let settled = false
++  const sharing = f.window.novalist.shareExport('synthetic.epub')
++  sharing.then(() => { settled = true }, () => { settled = true })
++  const ordinary = assert.rejects(f.window.novalist.saveFile('synthetic.epub'), /result is unknown/)
++  t.mock.timers.tick(35_000)
++  await ordinary
++  assert.equal(settled, false)
++  f.reply(f.hostRequests()[0], true)
++  assert.equal(await sharing, true)
++
++  const abandoned = assert.rejects(f.window.novalist.shareExport('synthetic.epub'), /result is unknown/)
++  t.mock.timers.tick(600_000)
++  await abandoned
++  assert.equal(f.hostRequests().length, 3)
++})
++
+ for (const fails of [false, true]) {
+   test(`background save acknowledgement reports ${fails ? 'failure' : 'durable completion'}`, async (t) => {
+     const f = fixture(t)
+diff --git a/app/scripts/renderer-source-loader.mjs b/app/scripts/renderer-source-loader.mjs
+index ebc91beb..bbeb5907 100644
+--- a/app/scripts/renderer-source-loader.mjs
++++ b/app/scripts/renderer-source-loader.mjs
+@@ -6,9 +6,9 @@ export function loadRendererSource(path, dependencies = {}, globals = {}, source
+   const filename = new URL('../src/renderer/' + path, import.meta.url)
+   let code = stripTypeScriptTypes(sourceOverride ?? readFileSync(filename, 'utf8'))
+   const names = [...code.matchAll(/export\s+(?:async\s+)?(?:function|const|let|class)\s+(\w+)/g)].map((match) => match[1])
+-  code = code.replace(/^import\s+\{([^}]+)\}\s+from\s+'([^']+)'\s*;?/gm,
++  code = code.replace(/^import\s+\{([^}]+)\}\s+from\s+'([^']+)'[ \t]*;?/gm,
+     (_match, imports, name) => imports.replace(/[,\s]/g, '') ? `const {${imports}} = require('${name}');` : '')
+-    .replace(/^import\s+(\w+)\s+from\s+'([^']+)'\s*;?/gm, (_match, name, path) => `const ${name} = require('${path}').default;`)
++    .replace(/^import\s+(\w+)\s+from\s+'([^']+)'[ \t]*;?/gm, (_match, name, path) => `const ${name} = require('${path}').default;`)
+     .replace(/\bexport\s+/g, '')
+   code += `\nObject.assign(module.exports, { ${names.join(', ')} });`
+   const module = { exports: {} }
+diff --git a/app/scripts/scene-persistence.test.mjs b/app/scripts/scene-persistence.test.mjs
+index 7e83534e..b3cffc28 100644
+--- a/app/scripts/scene-persistence.test.mjs
++++ b/app/scripts/scene-persistence.test.mjs
+@@ -5,8 +5,8 @@ import { loadRendererSource } from './renderer-source-loader.mjs'
+ const turn = () => new Promise((resolve) => setImmediate(resolve))
+ const editor = (html, hash = 'hash-0') => ({ chapterGuid: 'c', sceneId: 's', html, plainText: html, hash, isDirty: true, tabs: [{ chapterGuid: 'c', sceneId: 's' }] })
+ 
+-function fixture() {
+-  let state = { workspaceEpoch: 1, sceneHashes: { s: 'hash-0' }, sceneConflict: null, activeEditorPaneId: 'a', editors: {}, dirtyMap: {}, chapters: [] }
++function fixture(isMobile = false) {
++  let state = { projectPath: '/synthetic/project', activeBookId: 'book', activeDraftId: 'draft', drafts: [], workspaceEpoch: 1, sceneHashes: { s: 'hash-0' }, sceneConflict: null, activeEditorPaneId: 'a', editors: {}, dirtyMap: {}, chapters: [] }
+   const store = { getState: () => state, setState: (next) => { state = { ...state, ...(typeof next === 'function' ? next(state) : next) } } }
+   const helpers = { useProjectStore: store, mirror: () => ({}),
+     mapEditors: (editors, fn) => Object.fromEntries(Object.entries(editors).map(([id, value]) => [id, fn(value)])),
+@@ -31,15 +31,50 @@ function fixture() {
+     '../rpc/client': { rpc }, './projectStore': helpers, './sceneWriteQueue': queue
+   }, { setTimeout: (fn) => (timers.push(fn), timers.length), clearTimeout() {} })
+   const shell = { unsavedGuards: {}, setPaneView() {}, setActivePane() {}, panes: {} }
++  const storage = new Map()
++  const journal = loadRendererSource('src/mobile/recoveryJournal.ts', {}, { localStorage: {
++    getItem: (key) => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value), removeItem: (key) => storage.delete(key)
++  } })
++  const recovery = loadRendererSource('src/mobile/recovery.ts', {
++    '../i18n': { default: { t: (key) => key } }, '../rpc/client': { rpc },
++    '../stores/projectStore': { useProjectStore: store },
++    '../stores/manuscriptStore': { pendingManuscriptRecovery: () => [], hasPendingManuscriptWrites: () => false },
++    '../stores/hostBridgeStore': { useHostBridgeStore: { getState: () => ({ pushToast: (message) => { throw new Error(message) } }) } },
++    './recoveryJournal': journal
++  }, { window: { novalist: { isMobile } } })
+   const actions = loadRendererSource('src/stores/projectEditorActions.ts', {
+     '../rpc/client': { rpc }, './shellStore': { useShellStore: { getState: () => shell }, paneLeaves: () => [] },
+     './projectStore': helpers, './projectPersistence': persistence, './sceneWriteQueue': queue,
+-    './pendingWrites': { capturePendingWrites() {} }, './projectSceneActions': { runSceneContext: (fn) => fn() }
++    './pendingWrites': { capturePendingWrites() {} }, './projectSceneActions': { runSceneContext: (fn) => fn() },
++    '../mobile/recovery': recovery
+   }).createProjectEditorActions(store.setState, store.getState)
+   store.setState(actions)
+-  return { store, rpc, persistence, timers, requests, disk: () => disk }
++  return { store, rpc, persistence, timers, requests, disk: () => disk, readJournal: journal.readRecoveryJournal }
+ }
+ 
++test('mobile scene edits survive in the journal before autosave or a failure notification', () => {
++  const f = fixture(true)
++  f.store.setState({ editors: { a: editor('base'), b: { ...editor('second'), sceneId: 'other' } } })
++  f.store.getState().onEditorContentChanged('a', '<p>First pending edit</p>', 'First pending edit')
++  f.store.getState().onEditorContentChanged('b', '<p>Second pending edit</p>', 'Second pending edit')
++  f.store.getState().onEditorContentChanged('a', '<p>Newest pending edit</p>', 'Newest pending edit')
++  const entries = f.readJournal()
++  assert.equal(entries.length, 2)
++  assert.equal(entries.find((entry) => entry.source === 'pane:a').html, '<p>Newest pending edit</p>')
++  assert.equal(entries.find((entry) => entry.source === 'pane:b').sceneId, 'other')
++  assert.equal(entries[0].scope.draftId, 'draft')
++  assert.equal(entries[0].hash, 'hash-0')
++  assert.equal(f.requests.length, 0)
++  assert.equal(f.disk(), 'base')
++})
++
++test('desktop scene edits do not create a mobile recovery journal', () => {
++  const f = fixture()
++  f.store.setState({ editors: { a: editor('base') } })
++  f.store.getState().onEditorContentChanged('a', 'desktop edit', 'desktop edit')
++  assert.equal(f.readJournal().length, 0)
++})
++
+ test('divergent split panes retain their own base and produce a conflict', async () => {
+   const f = fixture()
+   f.store.setState({ editors: { a: editor('first'), b: editor('second') } })
+diff --git a/app/src/renderer/index.mobile.html b/app/src/renderer/index.mobile.html
+index 47736243..b9b5ceba 100644
+--- a/app/src/renderer/index.mobile.html
++++ b/app/src/renderer/index.mobile.html
+@@ -8,7 +8,7 @@
+     />
+     <meta
+       http-equiv="Content-Security-Policy"
+-      content="default-src 'self'; script-src 'self' 'unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-src 'self' data:; connect-src 'self' data:"
++      content="default-src 'self'; script-src 'self' 'unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data:; frame-src 'self' data:; connect-src 'self' data:"
+     />
+     <!-- MAUI HybridWebView (.NET 10) serves its JS bridge library here but does
+          NOT auto-inject it; the page must reference it. This defines
+diff --git a/app/src/renderer/src/mobile/recovery.ts b/app/src/renderer/src/mobile/recovery.ts
+index 991082b3..0ba38765 100644
+--- a/app/src/renderer/src/mobile/recovery.ts
++++ b/app/src/renderer/src/mobile/recovery.ts
+@@ -3,7 +3,7 @@ import { rpc } from '../rpc/client'
+ import { useProjectStore } from '../stores/projectStore'
+ import { pendingManuscriptRecovery, hasPendingManuscriptWrites } from '../stores/manuscriptStore'
+ import { useHostBridgeStore } from '../stores/hostBridgeStore'
+-import { readRecoveryJournal, recordRecovery, removeRecovery, remapRecoveryEntry, sameRecoveryScope, sameResearchValue, type RecoveryEntry, type RecoveryScope, type ResearchRecoveryValue } from './recoveryJournal'
++import { readRecoveryJournal, recordRecovery, removeRecovery, remapRecoveryEntry, sameRecoveryScope, sameResearchValue, type RecoveryEntry, type RecoveryScope, type ResearchRecoveryValue, type SceneRecovery } from './recoveryJournal'
+ 
+ let restoring = false
+ let startupJournal: RecoveryEntry[] | null = null
+@@ -23,6 +23,15 @@ export function registerResearchRecovery(capture: () => void): () => void {
+   return () => { researchCaptures.delete(capture) }
+ }
+ 
++export function retainMobileSceneRecovery(scene: Omit<SceneRecovery, 'kind'>): void {
++  if (!window.novalist.isMobile) return
++  try {
++    const scope = mobileRecoveryScope()
++    if (!scope) throw new Error(i18n.t('update.workspaceBusy'))
++    recordRecovery({ ...scene, kind: 'scene', scope })
++  } catch (error) { reportRecoveryError(error) }
++}
++
+ export function captureMobileRecovery(): RecoveryEntry[] {
+   if (!window.novalist.isMobile) return []
+   const scope = mobileRecoveryScope()
+diff --git a/app/src/renderer/src/mobile/shim.ts b/app/src/renderer/src/mobile/shim.ts
+index 623c40ef..82c28e22 100644
+--- a/app/src/renderer/src/mobile/shim.ts
++++ b/app/src/renderer/src/mobile/shim.ts
+@@ -44,7 +44,6 @@ function base64ToBytes(base64: string): Uint8Array {
+   return out
+ }
+ 
+-// --- RPC transport (Phase 1) ---------------------------------------------
+ 
+ let backendPort: MessagePort | null = null
+ let bridgeFailed = false
+@@ -81,7 +80,6 @@ function requestBackendPort(): void {
+   window.postMessage({ novalist: 'backend-port' }, '*', [channel.port1])
+ }
+ 
+-// --- Host bridge (Phase 2) -----------------------------------------------
+ 
+ const hostCalls = new HostCallChannel(sendRaw)
+ const backgroundSaves = new Set<() => Promise<void>>()
+@@ -105,7 +103,8 @@ window.__novalistHostResult = (base64: string) => {
+ }
+ 
+ function hostCall<T>(method: string, args: unknown[]): Promise<T> {
+-  const timeout = method.startsWith('pick') ? 600_000 : method === 'readProjectAsset' ? 120_000 : 30_000
++  const timeout = method.startsWith('pick') || method === 'shareExport'
++    ? 600_000 : method === 'readProjectAsset' ? 120_000 : 30_000
+   return hostCalls.request<T>(method, args, timeout)
+ }
+ 
+@@ -125,7 +124,6 @@ function manuscriptExtensions(options?: { extensions?: string[] }): string[] {
+   ]
+ }
+ 
+-// --- window.novalist -----------------------------------------------------
+ 
+ const novalist: Window['novalist'] = {
+   onBackgroundSave: (handler) => {
+diff --git a/app/src/renderer/src/stores/manuscriptStore.ts b/app/src/renderer/src/stores/manuscriptStore.ts
+index d52994bc..520776b5 100644
+--- a/app/src/renderer/src/stores/manuscriptStore.ts
++++ b/app/src/renderer/src/stores/manuscriptStore.ts
+@@ -4,6 +4,7 @@ import { useProjectStore, reportManuscriptEditing, type ChapterDto, type Project
+ import { useFilterStore } from './filterStore'
+ import type { ColourDimension } from '../views/manuscript/sceneColour'
+ import i18n from '../i18n'
++import { retainMobileSceneRecovery } from '../mobile/recovery'
+ 
+ export interface ManuscriptSceneDto {
+   sceneId: string
+@@ -320,6 +321,7 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
+       })
+     }, MANUSCRIPT_AUTOSAVE_MS)
+     saveTimers.set(sceneId, save)
++    retainMobileSceneRecovery({ source: `manuscript:${sceneId}`, chapterGuid: save.chapterGuid, sceneId, html, plainText, hash: save.expectedHash })
+     reportManuscriptClaims()
+   },
+ 
+diff --git a/app/src/renderer/src/stores/projectEditorActions.ts b/app/src/renderer/src/stores/projectEditorActions.ts
+index 7610373c..1a3a0603 100644
+--- a/app/src/renderer/src/stores/projectEditorActions.ts
++++ b/app/src/renderer/src/stores/projectEditorActions.ts
+@@ -6,6 +6,7 @@ import { runSceneContext } from './projectSceneActions'
+ import { type ProjectSlice } from './projectTypes'
+ import { capturePendingWrites } from './pendingWrites'
+ import { enqueueSceneWrite } from './sceneWriteQueue'
++import { retainMobileSceneRecovery } from '../mobile/recovery'
+ 
+ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn' | 'openSceneInSplit' | 'resolveSceneConflict' | 'dismissSceneConflict' | 'closeTab' | 'moveTabToOtherPane' | 'onEditorContentChanged' | 'syncEditorPanes' | 'flushPane' | 'flushPendingSave' | 'applyManuscriptSceneWrite'> = (set, get) => ({
+   openScene: async (chapterGuid, sceneId) => {
+@@ -174,6 +175,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
+       ...patchEditor(s, paneId, { html, plainText, isDirty: true }),
+       dirtyMap: { ...s.dirtyMap, [sceneId]: true }
+     }))
++    retainMobileSceneRecovery({ source: `pane:${paneId}`, chapterGuid, sceneId, html, plainText, hash: editor.hash ?? '' })
+     scheduleSave(paneId, chapterGuid, sceneId, html, plainText)
+   },
+ 
+diff --git a/app/src/renderer/src/views/library/ResearchEditor.tsx b/app/src/renderer/src/views/library/ResearchEditor.tsx
+index 13955dd4..999956a8 100644
+--- a/app/src/renderer/src/views/library/ResearchEditor.tsx
++++ b/app/src/renderer/src/views/library/ResearchEditor.tsx
+@@ -218,10 +218,23 @@ function ResearchMetadata({ t, selected, setLifecycle, patchSelected, save, remo
+ 
+ export function ResearchEditor({ selected, t, fetchingTitle, fetchLinkTitle, setConfirmDelete, isInbox, setFiling, markFiled, patchSelected, save, setLifecycle, removeTag, newTag, setNewTag, addTag, entityNames, unlinkEntity, linkEntity, allEntities, items, setSelectedId, toggleRelated, setItems }: { selected: NonNullable<ResearchViewState['selected']>; t: ResearchViewState['t']; fetchingTitle: ResearchViewState['fetchingTitle']; fetchLinkTitle: ResearchViewState['fetchLinkTitle']; setConfirmDelete: ResearchViewState['setConfirmDelete']; isInbox: ResearchViewState['isInbox']; setFiling: ResearchViewState['setFiling']; markFiled: ResearchViewState['markFiled']; patchSelected: ResearchViewState['patchSelected']; save: ResearchViewState['save']; setLifecycle: ResearchViewState['setLifecycle']; removeTag: ResearchViewState['removeTag']; newTag: ResearchViewState['newTag']; setNewTag: ResearchViewState['setNewTag']; addTag: ResearchViewState['addTag']; entityNames: ResearchViewState['entityNames']; unlinkEntity: ResearchViewState['unlinkEntity']; linkEntity: ResearchViewState['linkEntity']; allEntities: ResearchViewState['allEntities']; items: ResearchViewState['items']; setSelectedId: ResearchViewState['setSelectedId']; toggleRelated: ResearchViewState['toggleRelated']; setItems: ResearchViewState['setItems'] }): React.JSX.Element {
+   const [previewError, setPreviewError] = useState<{ id: string; message: string } | null>(null)
++  const previewLoaded = (event: React.SyntheticEvent): void => {
++    const target = event.target as HTMLElement
++    if (!target.matches('.research-preview img, .research-embed, .research-audio')) return
++    if (window.novalist.isMobile) {
++      target.removeAttribute('aria-description')
++      target.removeAttribute('title')
++    }
++    setPreviewError(null)
++  }
+   return (
+-    <div className="research-editor" onErrorCapture={(event) => {
++    <div className="research-editor" onLoadCapture={previewLoaded} onLoadedDataCapture={previewLoaded} onErrorCapture={(event) => {
+       const target = event.target as HTMLElement
+-      setPreviewError({ id: selected.id, message: target.getAttribute('aria-description') || t('research.previewFailed') })
++      const reason = target.getAttribute('aria-description')
++      const source = target.getAttribute(target.tagName === 'OBJECT' ? 'data' : 'src')
++      // WebKit may reject the project URL before the mobile host resolves it.
++      if (window.novalist.isMobile && !reason && source?.startsWith('novalist-project://')) return
++      setPreviewError({ id: selected.id, message: reason || t('research.previewFailed') })
+     }}>
+       {previewError?.id === selected.id && <p role="alert" className="settings-hint">{previewError.message}</p>}
+       <div className="codex-detail-actions">
+diff --git a/tests/Novalist.Core.Tests/Services/MobileExportFilesTests.cs b/tests/Novalist.Core.Tests/Services/MobileExportFilesTests.cs
+index 983d771f..182a4980 100644
+--- a/tests/Novalist.Core.Tests/Services/MobileExportFilesTests.cs
++++ b/tests/Novalist.Core.Tests/Services/MobileExportFilesTests.cs
+@@ -87,4 +87,44 @@ public sealed class MobileExportFilesTests
+         Assert.True(File.Exists(privateFile));
+         Assert.Throws<InvalidOperationException>(() => exports.PrepareShare(missing));
+     }
++
++    [Theory]
++    [InlineData(false, false, false)]
++    [InlineData(true, false, false)]
++    [InlineData(true, true, false)]
++    [InlineData(true, false, true)]
++    public async Task NativeSharingOwnsFilesUntilCompletion(bool companion, bool cancelled, bool failed)
++    {
++        using var dir = new TempDir();
++        var exports = new ExportFiles(dir.Path);
++        var output = exports.Create("manuscript.md");
++        File.WriteAllText(output, "synthetic export");
++        if (companion) File.WriteAllText(Path.Combine(Path.GetDirectoryName(output)!, "asset.txt"), "asset");
++        var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
++        string? shared = null;
++        var sharing = exports.ShareAsync(output, path => { shared = path; return completion.Task; });
++
++        // Renderer timeout/disconnection and duplicate cleanup must not break
++        // the native operation or let another share replace its archive.
++        await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => Task.Run(() => exports.Release(output))));
++        Assert.True(File.Exists(output));
++        Assert.True(File.Exists(shared));
++        await Assert.ThrowsAsync<InvalidOperationException>(() =>
++            exports.ShareAsync(output, _ => Task.FromResult(true)));
++        Assert.False(sharing.IsCompleted);
++
++        if (failed)
++        {
++            completion.SetException(new IOException("Synthetic native failure."));
++            await Assert.ThrowsAsync<IOException>(() => sharing);
++        }
++        else
++        {
++            completion.SetResult(!cancelled);
++            Assert.Equal(!cancelled, await sharing);
++        }
++        Assert.False(File.Exists(shared));
++        Assert.False(Directory.Exists(Path.GetDirectoryName(output)));
++        exports.Release(output);
++    }
+ }
+diff --git a/tests/Novalist.Core.Tests/Services/MobileOwnedProjectPathsTests.cs b/tests/Novalist.Core.Tests/Services/MobileOwnedProjectPathsTests.cs
+index 5a8af9d4..c0a71528 100644
+--- a/tests/Novalist.Core.Tests/Services/MobileOwnedProjectPathsTests.cs
++++ b/tests/Novalist.Core.Tests/Services/MobileOwnedProjectPathsTests.cs
+@@ -44,6 +44,50 @@ public sealed class MobileOwnedProjectPathsTests : IDisposable
+         Assert.False(File.Exists(Registry));
+     }
+ 
++    [Fact]
++    public async Task SuccessiveContainerMovesRetainTheRepairedPathWithoutReopening()
++    {
++        var original = CreateProject(OldDocuments, "Book", "project-a");
++        await new OwnedProjectPaths(OldDocuments, Registry).RecordAsync(original);
++        var intermediate = CreateProject(Documents, "Book", "project-a");
++        Assert.Equal(intermediate, new OwnedProjectPaths(Documents, Registry).Resolve(original));
++        var nextDocuments = Path.Combine(_root, "third-container", "Documents");
++        var latest = CreateProject(nextDocuments, "Book", "project-a");
++
++        // Recents publishes the resolved path without opening the project or recording it again.
++        var resolver = new OwnedProjectPaths(nextDocuments, Registry);
++        Assert.Equal(latest, resolver.Resolve(intermediate));
++        Assert.Equal(latest, resolver.Resolve(original));
++    }
++
++    [Fact]
++    public async Task RelocationAliasesDoNotAuthorizeExternalMatchingSuffixesOrChangedIdentities()
++    {
++        var original = CreateProject(OldDocuments, "Book", "project-a");
++        await new OwnedProjectPaths(OldDocuments, Registry).RecordAsync(original);
++        var intermediate = CreateProject(Documents, "Book", "project-a");
++        Assert.Equal(intermediate, new OwnedProjectPaths(Documents, Registry).Resolve(original));
++        var external = CreateProject(Path.Combine(_root, "external", "Documents"), "Book", "project-a");
++        var nextDocuments = Path.Combine(_root, "third-container", "Documents");
++        CreateProject(nextDocuments, "Book", "project-a");
++        var resolver = new OwnedProjectPaths(nextDocuments, Registry);
++        Assert.Null(resolver.Resolve(external));
++        CreateProject(nextDocuments, "Book", "different-project");
++        Assert.Null(resolver.Resolve(intermediate));
++    }
++
++    [Fact]
++    public async Task ConcurrentRecordsFromSeparateInstancesRetainEveryProject()
++    {
++        var originals = Enumerable.Range(0, 12)
++            .Select(index => CreateProject(OldDocuments, "Book-" + index, "project-" + index)).ToArray();
++        await Task.WhenAll(originals.Select(path => new OwnedProjectPaths(OldDocuments, Registry).RecordAsync(path)));
++        using var registry = JsonDocument.Parse(await File.ReadAllTextAsync(Registry));
++        var keys = registry.RootElement.EnumerateObject().Select(entry => entry.Name).ToHashSet(StringComparer.Ordinal);
++        Assert.Equal(originals.Length, keys.Count);
++        Assert.All(originals, path => Assert.Contains(path, keys));
++    }
++
+     [Fact]
+     public async Task CorruptAndMissingCandidateManifestsDoNotRelocate()
+     {

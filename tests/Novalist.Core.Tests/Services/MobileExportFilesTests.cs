@@ -87,4 +87,44 @@ public sealed class MobileExportFilesTests
         Assert.True(File.Exists(privateFile));
         Assert.Throws<InvalidOperationException>(() => exports.PrepareShare(missing));
     }
+
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, true)]
+    public async Task NativeSharingOwnsFilesUntilCompletion(bool companion, bool cancelled, bool failed)
+    {
+        using var dir = new TempDir();
+        var exports = new ExportFiles(dir.Path);
+        var output = exports.Create("manuscript.md");
+        File.WriteAllText(output, "synthetic export");
+        if (companion) File.WriteAllText(Path.Combine(Path.GetDirectoryName(output)!, "asset.txt"), "asset");
+        var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        string? shared = null;
+        var sharing = exports.ShareAsync(output, path => { shared = path; return completion.Task; });
+
+        // Renderer timeout/disconnection and duplicate cleanup must not break
+        // the native operation or let another share replace its archive.
+        await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => Task.Run(() => exports.Release(output))));
+        Assert.True(File.Exists(output));
+        Assert.True(File.Exists(shared));
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            exports.ShareAsync(output, _ => Task.FromResult(true)));
+        Assert.False(sharing.IsCompleted);
+
+        if (failed)
+        {
+            completion.SetException(new IOException("Synthetic native failure."));
+            await Assert.ThrowsAsync<IOException>(() => sharing);
+        }
+        else
+        {
+            completion.SetResult(!cancelled);
+            Assert.Equal(!cancelled, await sharing);
+        }
+        Assert.False(File.Exists(shared));
+        Assert.False(Directory.Exists(Path.GetDirectoryName(output)));
+        exports.Release(output);
+    }
 }

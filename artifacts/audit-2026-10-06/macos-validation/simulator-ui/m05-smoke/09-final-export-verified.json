@@ -1,0 +1,14 @@
+{
+  "observed_utc": "2026-10-07T10:16:28.423881+00:00",
+  "destination": "Separate synthetic fixture application Documents, chosen through native Save to Files",
+  "file_extension": ".epub",
+  "file_sha256": "7ee181ca58763f80249855e95f7951e5c2c7994abc6f48419da81c8e6661f86b",
+  "file_bytes": 3626,
+  "zip_integrity": true,
+  "epub_mimetype": "application/epub+zip",
+  "epub_container_present": true,
+  "marker_present_in_exactly_one_chapter": true,
+  "marker_sha256": "7297174da34594367bb773997dc85dbf67d99fc1a615ba8dc4e7df1e7bdafe61",
+  "original_imported_sentence_preserved_after_whitespace_normalization": true,
+  "native_export_cache_files_after_completion": 0
+}

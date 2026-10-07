@@ -1,0 +1,10 @@
+  Wiederherzustellende Projekte werden ermittelt...
+  Alle Projekte sind für die Wiederherstellung auf dem neuesten Stand.
+  Novalist.Sdk -> <source>/Novalist.Sdk/bin/Debug/net8.0/Novalist.Sdk.dll
+  Novalist.Core -> <source>/Novalist.Core/bin/Debug/net8.0/Novalist.Core.dll
+<source>/tests/Novalist.Core.Tests/Services/NarrationClipCacheTests.cs(75,43): warning CS8625: Ein NULL-Literal kann nicht in einen Non-Nullable-Verweistyp konvertiert werden. [<source>/tests/Novalist.Core.Tests/Novalist.Core.Tests.csproj]
+  Novalist.Core.Tests -> <source>/tests/Novalist.Core.Tests/bin/Debug/net8.0/Novalist.Core.Tests.dll
+Testlauf für "<source>/tests/Novalist.Core.Tests/bin/Debug/net8.0/Novalist.Core.Tests.dll" (.NETCoreApp,Version=v8.0)
+Insgesamt 1 Testdateien stimmten mit dem angegebenen Muster überein.
+
+Bestanden!   : Fehler:     0, erfolgreich:    14, übersprungen:     0, gesamt:    14, Dauer: 33 ms - Novalist.Core.Tests.dll (net8.0)

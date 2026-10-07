@@ -1,0 +1,12 @@
+{
+  "observed_utc": "2026-10-07T10:09:31.760514+00:00",
+  "share_sheet_delay_seconds": 36,
+  "native_files_destination_ready": true,
+  "files": [
+    {
+      "suffix": ".epub",
+      "bytes": 3626,
+      "sha256": "7ee181ca58763f80249855e95f7951e5c2c7994abc6f48419da81c8e6661f86b"
+    }
+  ]
+}

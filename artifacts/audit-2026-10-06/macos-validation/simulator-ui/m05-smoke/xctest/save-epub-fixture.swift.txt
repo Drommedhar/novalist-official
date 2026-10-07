@@ -1,0 +1,18 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    let fixture = app.cells.containing(.staticText, identifier: "Audit Fixtures").firstMatch
+    XCTAssertTrue(fixture.waitForExistence(timeout: 10))
+    fixture.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)).tap()
+    XCTAssertTrue(app.staticTexts["MovedParent"].firstMatch.waitForExistence(timeout: 10))
+    let save = app.buttons["Sichern"].firstMatch
+    XCTAssertTrue(save.isEnabled)
+    save.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    XCTAssertTrue(save.waitForNonExistence(timeout: 15))
+    print("EXPORT_RESULT " + app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Export")).debugDescription)
+
+  }
+}

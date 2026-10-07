@@ -1,0 +1,12 @@
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' started.
+    t =     0.00s Start Test at 2026-10-07 12:09:55.817
+    t =     0.04s Waiting 10.0s for Cell (First Match) to exist
+    t =     1.19s Tap Cell (First Match)[0.50, 0.25]
+    t =     1.86s Waiting 10.0s for "MovedParent" StaticText to exist
+    t =     3.11s Tap "DOCPicker.actionButton" Button[0.50, 0.50]
+    t =     4.48s Waiting 15.0s for "DOCPicker.actionButton" Button to not exist
+      StaticText, 0x106b30b40, {{188.0, 704.0}, {96.0, 15.0}}, label: 'Export complete.', value: Export complete., Focused
+        StaticText, 0x106b14b40, {{188.0, 704.0}, {96.0, 15.0}}, label: 'Export complete.', value: Export complete., Focused
+    t =     6.04s Tear Down
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' passed (6.069 seconds).
+** TEST SUCCEEDED **

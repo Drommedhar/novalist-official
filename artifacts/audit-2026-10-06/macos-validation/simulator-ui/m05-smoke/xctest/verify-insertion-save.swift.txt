@@ -1,0 +1,16 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    let editor = app.textViews.firstMatch
+    let value = editor.value as? String ?? ""
+    XCTAssertTrue(value.contains("M05EXPORT20261007ALPHA"))
+    let original = value.replacingOccurrences(of:"M05EXPORT20261007ALPHA",with:"").replacingOccurrences(of:"\\s+",with:" ",options:.regularExpression).trimmingCharacters(in:.whitespacesAndNewlines)
+    XCTAssertEqual(original,"Synthetic M02 manuscript fixture.")
+    app.buttons["Dashboard"].firstMatch.tap()
+    XCTAssertTrue(app.staticTexts["Project Dashboard"].firstMatch.waitForExistence(timeout:8))
+
+  }
+}

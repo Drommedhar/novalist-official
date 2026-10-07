@@ -1,0 +1,28 @@
+(node:826) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file://<source>/app/src/renderer/src/mobile/hostCalls.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to <source>/app/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ mobile host calls resolve the matching reply once (1.923125ms)
+✔ microphone denial retains the browser permission error contract (0.375208ms)
+✔ unavailable native bridge rejects immediately (0.439375ms)
+✔ missing acknowledgements time out without replaying a mutation (5.570834ms)
+✔ disconnect rejects outstanding calls and late replies stay retired (0.163375ms)
+(node:827) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file://<source>/app/src/renderer/src/mobile/hostCalls.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to <source>/app/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:827) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+✔ mobile RPC waits for native readiness and acknowledges byte delivery (6.383125ms)
+✔ replaced mobile ports cannot forward writes queued before readiness (2.049042ms)
+✔ bridge failure rejects pending and future calls and pauses the renderer (1.9635ms)
+✔ native sharing allows a human decision but keeps a bounded deadline (1.591375ms)
+✔ background save acknowledgement reports durable completion (2.099041ms)
+✔ background save acknowledgement reports failure (2.024834ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 112.859625

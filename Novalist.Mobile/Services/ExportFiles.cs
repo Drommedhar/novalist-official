@@ -10,6 +10,7 @@ namespace Novalist.Mobile.Services;
 public sealed class ExportFiles(string cacheDirectory)
 {
     private readonly Dictionary<string, string> _pending = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _sharing = new(StringComparer.Ordinal);
     private readonly object _gate = new();
 
     public string Create(string suggestedName)
@@ -51,12 +52,40 @@ public sealed class ExportFiles(string cacheDirectory)
     {
         lock (_gate)
         {
+            // The renderer can time out or disconnect while the native sheet is
+            // still open. Its cleanup must not remove a file iOS is sharing.
+            if (_sharing.Contains(path)) return;
             if (!_pending.TryGetValue(path, out var directory)) return;
             if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true);
             var sharedDirectory = directory + "-shared";
             if (Directory.Exists(sharedDirectory)) Directory.Delete(sharedDirectory, recursive: true);
             File.Delete(directory + ".zip");
             _pending.Remove(path);
+        }
+    }
+
+    public async Task<bool> ShareAsync(string path, Func<string, Task<bool>> share)
+    {
+        string shared;
+        lock (_gate)
+        {
+            if (_sharing.Contains(path))
+                throw new InvalidOperationException("This export is already being shared.");
+            shared = PrepareShare(path);
+            _sharing.Add(path);
+        }
+
+        try
+        {
+            return await share(shared).ConfigureAwait(false);
+        }
+        finally
+        {
+            lock (_gate)
+            {
+                _sharing.Remove(path);
+                Release(path);
+            }
         }
     }
 }

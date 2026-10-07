@@ -1,0 +1,183 @@
+
+> novalist@3.3.0 test:transport
+> node --experimental-strip-types --test scripts/*.test.mjs
+
+✔ polls pause while busy and resume in the acknowledged epoch (2.529166ms)
+✔ stale rejected poll cannot permanently stop the render watcher (0.689583ms)
+✔ late terminal response from the old epoch cannot stop current polling (0.5985ms)
+✔ a rejected token after an aborted transition still retries (2.6325ms)
+✔ refresh skips busy workspace and starts watching after resume (1.147459ms)
+✔ render status is global and continues without an open project (0.562666ms)
+(node:4623) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file://<REPOSITORY>/app/src/shared/rpcFraming.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to <REPOSITORY>/app/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ windows with identical request IDs receive only their own replies (1.498625ms)
+✔ newly attached windows do not receive another client partial response (0.099791ms)
+✔ port replacement ignores old replies and late old-port messages (0.08575ms)
+✔ data notifications broadcast while interactive UI has one owner (0.736709ms)
+✔ epochs change only after client acknowledgement and drain tokens are scoped (0.254042ms)
+✔ malformed client input closes only that client (0.109625ms)
+✔ restart rejects internal calls and clears incomplete old backend frames (0.403125ms)
+✔ recovery rejects writes without replay and resumes independent clients only when restored (0.226709ms)
+✔ real broker holds old replies until every resume ACK while fresh scene reads remain live (2.716375ms)
+✔ a failed resume rejects held requests and ignores their eventual stale successes (0.171792ms)
+(node:4624) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file://<REPOSITORY>/app/src/renderer/src/stores/bookScopedLoad.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to <REPOSITORY>/app/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ current book read publishes its result (2.376375ms)
+✔ old read is retired when projectPath changes (0.077625ms)
+✔ old read is retired when activeBookId changes (0.037834ms)
+✔ old read is retired when activeDraftId changes (0.0335ms)
+✔ old read is retired when workspaceEpoch changes (0.042166ms)
+✔ old read is retired when workspaceBusy changes (0.032125ms)
+✔ old read is retired when isLoaded changes (0.042666ms)
+✔ transition rejection is retired without an unhandled failure (0.06075ms)
+✔ failure in the current book still reaches its caller (0.202333ms)
+✔ busy or unloaded workspace does not start a request (0.096ms)
+✔ resume starts a fresh read under the acknowledged epoch (0.069541ms)
+✔ Basis grows memory after 0 refused reservations (1.626958ms)
+✔ Basis grows memory after 1 refused reservations (0.83875ms)
+✔ Basis grows memory after 2 refused reservations (0.489291ms)
+✔ Basis reports failure without refreshing heap views when every growth attempt fails (0.550541ms)
+✔ Basis rejects requests beyond the heap limit before attempting growth (1.184792ms)
+✔ Basis permits growth up to the exact heap limit (0.597917ms)
+✔ Draco grows memory after 0 refused reservations (0.606208ms)
+✔ Draco grows memory after 1 refused reservations (0.507375ms)
+✔ Draco grows memory after 2 refused reservations (0.362542ms)
+✔ Draco reports failure without refreshing heap views when every growth attempt fails (0.506209ms)
+✔ Draco rejects requests beyond the heap limit before attempting growth (0.3625ms)
+✔ Draco permits growth up to the exact heap limit (0.701917ms)
+✔ bundled Basis handles recognize aliases without writing the read-only clone record (42.910958ms)
+✔ Basis preserves its exported dynCall wrapper and replaces it with the instantiated function after the first call (1.602917ms)
+✔ English dialogue moves punctuation inside the quote and normalizes speech tags (1.6565ms)
+✔ interrupted dialogue retains sentence boundaries (0.148917ms)
+✔ German dialogue retains its quote and punctuation conventions (0.499875ms)
+✔ unchanged prose and unsupported speech tags produce no correction (0.074542ms)
+(node:4627) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ Zstd initialization rejection reaches every current and subsequent parse callback (15.658583ms)
+✔ a synchronous decoder initialization failure reaches the parse error callback (4.995917ms)
+✔ concurrent Zstd textures share initialization and decode using the bundled WASM (30.044583ms)
+✔ uncompressed floating-point textures retain their type and pixel values (3.291416ms)
+✔ an unsupported Vulkan format reaches the parse error callback before creating a texture (2.095042ms)
+(node:4627) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file://<REPOSITORY>/app/src/renderer/public/map/libs/ktx-parse.module.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to <REPOSITORY>/app/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:4628) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file://<REPOSITORY>/app/src/renderer/src/mobile/hostCalls.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to <REPOSITORY>/app/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:4628) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+✔ native microphone denial reaches dictation permission state through the shim and can retry (11.099208ms)
+(node:4629) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file://<REPOSITORY>/app/src/renderer/src/mobile/hostCalls.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to <REPOSITORY>/app/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ mobile host calls resolve the matching reply once (1.8115ms)
+✔ microphone denial retains the browser permission error contract (0.3715ms)
+✔ unavailable native bridge rejects immediately (0.835291ms)
+✔ missing acknowledgements time out without replaying a mutation (5.580583ms)
+✔ disconnect rejects outstanding calls and late replies stay retired (0.310959ms)
+(node:4630) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ actual manuscript edit action journals the latest buffer before its autosave timer (52.830583ms)
+✔ failed immediate journaling preserves the prior payload and reports the failure (4.167084ms)
+✔ background capture journals scene and manuscript buffers synchronously (1.852375ms)
+✔ a deleted recovery scene remains journaled without blocking a later valid scene (1.946708ms)
+✔ research recovery copies with different tags or entity links are not mistaken for duplicates (1.820417ms)
+✔ an older recovery acknowledgement retains a newer background journal for the same source (5.645917ms)
+✔ recovery refuses a different book or draft without issuing a write (1.382083ms)
+✔ unchanged disk restores through a checked scene write and retires its journal (1.127917ms)
+✔ changed disk opens the existing conflict path and keeps the recovery payload (1.018125ms)
+✔ changed research preserves the disk item and creates a recovered copy (3.488542ms)
+✔ the journal refuses oversized replacement while preserving the prior payload (3.173ms)
+✔ journal entries produced in this session are not replayed over live edits (2.737583ms)
+✔ trusted project relocation remaps the journal only within the same book and draft (1.482042ms)
+✔ similar external path suffixes do not authorize journal remapping (1.16575ms)
+✔ journal remapping cannot overwrite newer target-scope captures (1.180292ms)
+✔ a workspace change during trusted path resolution prevents recovery writes (1.231416ms)
+(node:4631) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file://<REPOSITORY>/app/src/renderer/src/mobile/hostCalls.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to <REPOSITORY>/app/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:4631) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+✔ mobile RPC waits for native readiness and acknowledges byte delivery (23.505458ms)
+✔ replaced mobile ports cannot forward writes queued before readiness (2.4745ms)
+✔ bridge failure rejects pending and future calls and pauses the renderer (1.861958ms)
+✔ native sharing allows a human decision but keeps a bounded deadline (1.84875ms)
+✔ background save acknowledgement reports durable completion (2.743875ms)
+✔ background save acknowledgement reports failure (7.943459ms)
+(node:4632) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file://<REPOSITORY>/app/src/renderer/src/stores/pendingWrites.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to <REPOSITORY>/app/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ recovery capture copies live prose without starting or consuming persistence (0.711542ms)
+(node:4633) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file://<REPOSITORY>/app/src/renderer/src/stores/pendingWrites.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to <REPOSITORY>/app/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ a newer mounted save supersedes a failed retained payload (5.171708ms)
+✔ a newer same-key write waits for the older in-flight request (5.124709ms)
+(node:4634) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ an old image response cannot replace a newer source (65.504958ms)
+✔ project changes retire pending responses even when the relative path is identical (2.288875ms)
+✔ concurrent asset reads deduplicate and research audio/video/PDF use the host asset reader (4.379167ms)
+✔ host media errors retain the explicit reason and remain retryable (2.458208ms)
+✔ resolved assets use a bounded least-recently-used cache (0.860125ms)
+✔ mobile unresolved URL errors do not become false Research failures, but native size errors stay visible (1.546666ms)
+✔ successful preview decode clears a previous failure while unrelated content loads do not (0.883125ms)
+✔ desktop project protocol failures remain visible (0.335125ms)
+✔ mobile CSP allows native media data URIs without allowing remote media origins (0.452417ms)
+(node:4636) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ a delayed note acknowledgement preserves later status, rating and links (43.265042ms)
+✔ unmount retains every dirty note when the first write fails (2.938ms)
+✔ one successful note does not clear the error from a failed sibling (5.692375ms)
+✔ an old hook acknowledgement cannot erase the remounted note recovery journal (7.177333ms)
+(node:4637) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file://<REPOSITORY>/app/src/shared/rpcFraming.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to <REPOSITORY>/app/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ frames preserve Unicode when every byte arrives separately (3.816ms)
+✔ concatenated frames and a partial successor keep their own boundaries (21.467ms)
+✔ a parser has no shared partial frame state with another client (0.178334ms)
+✔ invalid and ambiguous lengths fail instead of corrupting a later frame (2.426625ms)
+✔ invalid JSON, protocol objects and UTF-8 are rejected (0.239584ms)
+(node:4638) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ mobile scene edits survive in the journal before autosave or a failure notification (52.645375ms)
+✔ desktop scene edits do not create a mobile recovery journal (3.916292ms)
+✔ divergent split panes retain their own base and produce a conflict (4.414333ms)
+✔ refused save preserves the visible dirty editor on open (4.788417ms)
+✔ refused save preserves the visible dirty editor on close (3.296417ms)
+✔ overlapping autosaves serialize and preserve a newer dirty edit until acknowledged (10.653583ms)
+✔ a failed save retains the dirty buffer and the next explicit flush can retry (5.208708ms)
+✔ prepare requires every owner and ignores a forged or stale acknowledgement (3.428458ms)
+✔ one refused save rejects prepare and abort resumes every original epoch (0.402625ms)
+✔ apply advances only acknowledged owners and resumes after all are applied (0.359ms)
+✔ failed apply keeps every surface frozen and never acknowledges stale UI (0.227708ms)
+✔ unresponsive save fails within the deadline (32.318459ms)
+✔ destroyed window cannot strand a remaining window or consume another ACK (0.542958ms)
+✔ close flushes all windows before backup and accepts only owner-matched replies (0.693875ms)
+✔ failed close resumes every window and focuses the failed owner (0.312375ms)
+✔ renderer crash resolves its impossible close wait without skipping other windows (0.085584ms)
+✔ global quit queued behind detached close gets a new complete preflight (0.498625ms)
+✔ window joining during prepare receives no stale bootstrap snapshot (0.38375ms)
+✔ backend recovery restores the acknowledged project, book and draft before snapshot (0.196708ms)
+✔ failed backend restoration does not replace the acknowledged recovery target (0.136917ms)
+✔ crash cannot release a waiting bootstrap snapshot into partially restored draft state (0.688584ms)
+✔ snapshot reply followed immediately by prepare cannot settle a client into old context (0.378417ms)
+✔ a new transition during resume is refused without consuming the old ACKs (0.2345ms)
+✔ coordination retry only reads current snapshot without reopening a project (0.088459ms)
+ℹ tests 123
+ℹ suites 0
+ℹ pass 123
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 259.649333

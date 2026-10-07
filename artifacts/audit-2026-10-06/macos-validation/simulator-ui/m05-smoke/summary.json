@@ -1,0 +1,98 @@
+{
+  "case": "M05-09",
+  "status": "simulator-smoke-pass",
+  "device": "iPhone17Pro simulator",
+  "os": "iOS27.0",
+  "physical_device_acceptance": "not-run; remains deferred",
+  "source_before_fix": "source.json",
+  "source_fixed": "share-final-inputs.json",
+  "production_patch": "share-fix-combined-source.patch",
+  "native_probes": false,
+  "checks": [
+    {
+      "name": "native keyboard edit, autosave, terminate/relaunch",
+      "status": "pass",
+      "evidence": [
+        "01-edited-scene-persisted.json",
+        "02-edited-scene-relaunched.json",
+        "xctest/relaunch-edited-scene.log"
+      ]
+    },
+    {
+      "name": "native export/share decision delayed36seconds, Save to Files completed",
+      "status": "pass",
+      "evidence": [
+        "05-fixed-pending-share.json",
+        "06-saved-epub-verified.json",
+        "xctest/fixed-delayed-share-destination.log",
+        "xctest/save-epub-fixture.log"
+      ]
+    },
+    {
+      "name": "EPUB type/container/ZIP integrity and synthetic marker verified in actual destination",
+      "status": "pass",
+      "evidence": [
+        "06-saved-epub-verified.json",
+        "check-export.py"
+      ]
+    },
+    {
+      "name": "temporary export cleanup after native completion",
+      "status": "pass",
+      "evidence": [
+        "06-saved-epub-verified.json",
+        "09-final-export-verified.json"
+      ]
+    },
+    {
+      "name": "original imported text and scene hash retained after export and final relaunch",
+      "status": "pass",
+      "evidence": [
+        "07-scene-after-export.json",
+        "10-scene-final-relaunch.json",
+        "xctest/fixed-final-relaunch-marker.log"
+      ]
+    },
+    {
+      "name": "fresh renderer/native build, strict deep signature, install and launch",
+      "status": "pass",
+      "evidence": [
+        "share-final-inputs.json",
+        "renderer-build.log",
+        "native-clean-build.log"
+      ]
+    },
+    {
+      "name": "native export ownership regressions including concurrent release, duplicate share, cancellation and error",
+      "status": "pass",
+      "tests": 14,
+      "evidence": [
+        "focused-export-tests.log"
+      ]
+    },
+    {
+      "name": "renderer decision deadline35s succeeds,600s bounded; ordinary calls remain30s",
+      "status": "pass",
+      "tests": 11,
+      "evidence": [
+        "focused-renderer-tests.log"
+      ]
+    }
+  ],
+  "actual_create_import_context": {
+    "reference": "../../m02-ui/summary.json",
+    "note": "Actual synthetic project creation and final manuscript Import were performed earlier on the separately recorded M02 source. They are not attributed to this newer combined build."
+  },
+  "concrete_failure_fixed": {
+    "before": "before-share-lifetime-failure.json",
+    "behavior": "After waiting39seconds on the native sheet, renderer30second timeout deleted the export; native Save to Files stalled.",
+    "fix": "shareExport now uses existing600second picker deadline; native export ownership defers renderer cleanup until native completion/cancellation/failure, then always releases."
+  },
+  "limitations": [
+    "Simulator results do not satisfy signed physical-device acceptance.",
+    "A duplicate destination name in an optional quick repeat did not dismiss native Files or show the expected replacement prompt. Changing to an empty synthetic destination completed; no duplicate-overwrite acceptance is claimed.",
+    "An optional immediate repeat reached Files promptly, but extra XCTest locator failures prevented a single uninterrupted quick-completion measurement; it is not claimed as separate acceptance.",
+    "Earlier navigation/label/element-type guesses and raw whole-sentence assertion after intentional marker insertion are harness failures, excluded from accepted pass evidence; xctest-summary.json distinguishes them.",
+    "This snapshot predates any later map3D viewport fix."
+  ]
+}

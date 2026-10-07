@@ -1,0 +1,15 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.114)).tap()
+    print("AFTER_SAVE " + app.alerts.debugDescription)
+    let replace = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Ersetzen")).firstMatch
+    if replace.waitForExistence(timeout: 5) { replace.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap() }
+    XCTAssertTrue(app.buttons["Sichern"].firstMatch.waitForNonExistence(timeout: 10))
+    XCTAssertTrue(app.staticTexts["Export complete."].firstMatch.waitForExistence(timeout: 10))
+
+  }
+}

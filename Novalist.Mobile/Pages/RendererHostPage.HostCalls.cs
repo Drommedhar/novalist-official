@@ -268,8 +268,8 @@ public sealed partial class RendererHostPage
     private async Task<object?> ShareExportAsync(JsonElement args)
     {
         var path = ArgString(args, 0);
-        var shared = await Task.Run(() => _exports.PrepareShare(path)).ConfigureAwait(false);
-        return await ExportSharing.ShareAsync(shared).ConfigureAwait(false);
+        return await Task.Run(() => _exports.ShareAsync(path, ExportSharing.ShareAsync))
+            .ConfigureAwait(false);
     }
 
     private async Task<object?> OpenExternalAsync(JsonElement args)

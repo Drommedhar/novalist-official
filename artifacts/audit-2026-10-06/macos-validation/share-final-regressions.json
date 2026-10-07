@@ -1,0 +1,30 @@
+{
+  "source_revision": "8489c9a3fa3b14b3cc695cef1b6d162b3d9aa3ab",
+  "files": {
+    "Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs": "a3f66f47d9902ea0ef4ab8218bc97aec6a5a249e298d3f4b55f51012c4371075",
+    "Novalist.Mobile/Services/ExportFiles.cs": "00d599a84c4e12bdd109669f8776c65c099bb2c8cce6e06d154adcafd205ebe6",
+    "Novalist.Mobile/Services/OwnedProjectPaths.cs": "e687fbb0385bb3c922b23f7dee575cf35fec49805cc3e730b0d36788a55f200f",
+    "app/scripts/mobile-recovery.test.mjs": "925368cd30751714debae538bee3a6fa53f8e0af104532cbcda3f18554ffa1a2",
+    "app/scripts/mobile-shim.test.mjs": "8efa26c15d32575b8fdca09d30b6aa9db03dc5908440af85bbba9e0a3a3dd25a",
+    "app/scripts/renderer-source-loader.mjs": "68e361fc207f1dd44f68f5d4ac1615a2b00803a09784252959c4be85baa0d2c4",
+    "app/scripts/scene-persistence.test.mjs": "6fdf832655dc3b1509eceb2248c722701bde7dc84b9f7ec936408cf726d7f2a1",
+    "app/src/renderer/index.mobile.html": "088e3f89b2ab99c2f674454c3f18bbac614d41c7314cc6e2b798d73a1e361bc7",
+    "app/src/renderer/src/mobile/recovery.ts": "43306402fb364da4b77d70477c7e00fcf5c27eb5c3ebccca3126f43b4f99385a",
+    "app/src/renderer/src/mobile/shim.ts": "33d049203a1c667ab1128d19d36979f3938e40d39fab686d914e7a23a9c51ee9",
+    "app/src/renderer/src/stores/manuscriptStore.ts": "4200b055c42919f867961259e431da6bf4a38657695fd58899ad042d983b566c",
+    "app/src/renderer/src/stores/projectEditorActions.ts": "b0d9a036236be9ff63c3bb35c9aa1b7b20b753785e7b57d1ef3182463267e9a7",
+    "app/src/renderer/src/views/library/ResearchEditor.tsx": "45758eb17b0745ffd15ed59182afd50c5f591c2c8a52d9573a386b2fe31258a6",
+    "tests/Novalist.Core.Tests/Services/MobileExportFilesTests.cs": "c2babafab5d9d1c960ffbfa89c91e0d8869f2756e09cf8b41d5eb96f7ccea0fe",
+    "tests/Novalist.Core.Tests/Services/MobileOwnedProjectPathsTests.cs": "a7727000aab76f3beb100d129fa82fb2c62ae935a417c3e599e09a7258037e53",
+    "app/scripts/research-media-preview.test.mjs": "9cf6609465648eb8cb8f16be4bd585c9a91e5f96a844f6692d81010521f5aac9"
+  },
+  "typecheck": "passed",
+  "transport_tests": "123/123 passed",
+  "source_gates": "8/8 passed",
+  "evidence": [
+    "share-final-typecheck.log",
+    "share-final-transport.log",
+    "share-final-source-gates.log"
+  ],
+  "source_note": "Exact source hashes include three comment-only shim separator removals after the initial run; typecheck and123transport tests repeated successfully. Base revision remains8489 plus16file inputs."
+}

@@ -83,6 +83,25 @@ test('bridge failure rejects pending and future calls and pauses the renderer', 
   assert.equal(f.channels[0].port2.messages[0].novalistControl, 'backend-recovery-failed')
 })
 
+test('native sharing allows a human decision but keeps a bounded deadline', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+  const f = fixture(t)
+  let settled = false
+  const sharing = f.window.novalist.shareExport('synthetic.epub')
+  sharing.then(() => { settled = true }, () => { settled = true })
+  const ordinary = assert.rejects(f.window.novalist.saveFile('synthetic.epub'), /result is unknown/)
+  t.mock.timers.tick(35_000)
+  await ordinary
+  assert.equal(settled, false)
+  f.reply(f.hostRequests()[0], true)
+  assert.equal(await sharing, true)
+
+  const abandoned = assert.rejects(f.window.novalist.shareExport('synthetic.epub'), /result is unknown/)
+  t.mock.timers.tick(600_000)
+  await abandoned
+  assert.equal(f.hostRequests().length, 3)
+})
+
 for (const fails of [false, true]) {
   test(`background save acknowledgement reports ${fails ? 'failure' : 'durable completion'}`, async (t) => {
     const f = fixture(t)

@@ -1,0 +1,92 @@
+[
+  {
+    "scenario": "relaunch-edited-scene",
+    "native_xctest_pass": true,
+    "accepted_pass_evidence": true,
+    "raw_log_sha256": "8ce0cf7b9d6a026cc816ad232ff1585db0648d666a8f9f1c6f7a41cafacb70b5"
+  },
+  {
+    "scenario": "fixed-delayed-share-destination",
+    "native_xctest_pass": true,
+    "accepted_pass_evidence": true,
+    "raw_log_sha256": "dc706ca8729c9d2e8a5537bec93a9ff0dd0d3d4355af7518fd801598c2f9c4da"
+  },
+  {
+    "scenario": "save-epub-fixture",
+    "native_xctest_pass": true,
+    "accepted_pass_evidence": true,
+    "raw_log_sha256": "456969736be4fcffde6c2f133d113d944aa3d905aacc4274882fe768b897575c"
+  },
+  {
+    "scenario": "save-second-epub-in-movedparent",
+    "native_xctest_pass": true,
+    "accepted_pass_evidence": true,
+    "raw_log_sha256": "f048294c1fc3d6fda00cd03f2b91c0f59dd259f946d6b92c5b85e14f0de851e5"
+  },
+  {
+    "scenario": "complete-final-pending-save",
+    "native_xctest_pass": true,
+    "accepted_pass_evidence": true,
+    "raw_log_sha256": "18300568346714800d9a407758815ce3282d9c5a86a1b4e54477cb385be95477"
+  },
+  {
+    "scenario": "fixed-final-relaunch-marker",
+    "native_xctest_pass": true,
+    "accepted_pass_evidence": true,
+    "raw_log_sha256": "3e5d778e2d4c5945832210ffb485ee4ebab5f54fd9cd89939a06c181a36db679"
+  },
+  {
+    "scenario": "edit-smoke-marker",
+    "native_xctest_pass": false,
+    "accepted_pass_evidence": false,
+    "raw_log_sha256": "ebeb2e6ab74ca1764af74144cf6761cc9a078ff525be0688c50f89110daa8ea1"
+  },
+  {
+    "scenario": "verify-insertion-save",
+    "native_xctest_pass": false,
+    "accepted_pass_evidence": false,
+    "raw_log_sha256": "0d7ac0a9b232681d002320c479c88a6988f1aec913077db0feee3684d3123dc6"
+  },
+  {
+    "scenario": "generate-epub-share",
+    "native_xctest_pass": false,
+    "accepted_pass_evidence": false,
+    "raw_log_sha256": "a9f7361d56d7663c0fb335ab19f1ff520a5162e6513fb428db642aec87305106"
+  },
+  {
+    "scenario": "select-save-to-files",
+    "native_xctest_pass": false,
+    "accepted_pass_evidence": false,
+    "raw_log_sha256": "f24b8314f8602c3851015596cb9155d30c38c98426cc1e21c8a57da6b91bf56a"
+  },
+  {
+    "scenario": "await-files-destination",
+    "native_xctest_pass": false,
+    "accepted_pass_evidence": false,
+    "raw_log_sha256": "632cf8db6d3d42d37748f07f4addb104884c6b39488508bdc4a818d7cd39a5b4"
+  },
+  {
+    "scenario": "fixed-quick-share",
+    "native_xctest_pass": false,
+    "accepted_pass_evidence": false,
+    "raw_log_sha256": "272a09ecd7e04897679b575b4be76a629dc45a4064d5b1badbf53bf21849e029"
+  },
+  {
+    "scenario": "finish-quick-files-save",
+    "native_xctest_pass": false,
+    "accepted_pass_evidence": false,
+    "raw_log_sha256": "468dadcf7fca26f6b714caa9cfabcd54b10d6e9a9e7ae98e7936d0f73eca0ef7"
+  },
+  {
+    "scenario": "fixed-quick-distinct-destination",
+    "native_xctest_pass": false,
+    "accepted_pass_evidence": false,
+    "raw_log_sha256": "b9af62abc14fffc74a06dddc8094834cf5f418174a17678c26be34790c9cccfe"
+  },
+  {
+    "scenario": "finish-third-export",
+    "native_xctest_pass": false,
+    "accepted_pass_evidence": false,
+    "raw_log_sha256": "ee135f3ae6d47bb6aad343f36a78ab6814b3fcd38bd97495a41ba63cf79a58fe"
+  }
+]

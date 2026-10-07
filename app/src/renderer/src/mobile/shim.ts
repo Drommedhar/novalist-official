@@ -44,7 +44,6 @@ function base64ToBytes(base64: string): Uint8Array {
   return out
 }
 
-// --- RPC transport (Phase 1) ---------------------------------------------
 
 let backendPort: MessagePort | null = null
 let bridgeFailed = false
@@ -81,7 +80,6 @@ function requestBackendPort(): void {
   window.postMessage({ novalist: 'backend-port' }, '*', [channel.port1])
 }
 
-// --- Host bridge (Phase 2) -----------------------------------------------
 
 const hostCalls = new HostCallChannel(sendRaw)
 const backgroundSaves = new Set<() => Promise<void>>()
@@ -105,7 +103,8 @@ window.__novalistHostResult = (base64: string) => {
 }
 
 function hostCall<T>(method: string, args: unknown[]): Promise<T> {
-  const timeout = method.startsWith('pick') ? 600_000 : method === 'readProjectAsset' ? 120_000 : 30_000
+  const timeout = method.startsWith('pick') || method === 'shareExport'
+    ? 600_000 : method === 'readProjectAsset' ? 120_000 : 30_000
   return hostCalls.request<T>(method, args, timeout)
 }
 
@@ -125,7 +124,6 @@ function manuscriptExtensions(options?: { extensions?: string[] }): string[] {
   ]
 }
 
-// --- window.novalist -----------------------------------------------------
 
 const novalist: Window['novalist'] = {
   onBackgroundSave: (handler) => {
