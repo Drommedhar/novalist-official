@@ -1,0 +1,29 @@
+{
+  "source_revision": "0558dda71a395b6ab6208dd6820cc19811a61430",
+  "production_diff": "none",
+  "device_model": "iPhone 17 Pro Max simulator",
+  "device_os": "iOS 27.0",
+  "unsigned_launch": {
+    "status": "failed",
+    "exception": "EXC_BAD_ACCESS",
+    "signal": "SIGKILL (Code Signature Invalid)",
+    "termination": {
+      "flags": 0,
+      "code": 2,
+      "namespace": "CODESIGNING",
+      "indicator": "Invalid Page"
+    },
+    "observation": "EnableCodeSigning=false left 11 bundled runtime dylibs with invalid signatures; simulator launch rejected before app startup."
+  },
+  "adhoc_launch": {
+    "status": "passed",
+    "build_arguments": [
+      "-p:EnableCodeSigning=true",
+      "-p:CodesignKey=-"
+    ],
+    "deep_signature_verification": "passed",
+    "observation": "Same production source rebuilt with local ad-hoc signing installed and launched successfully; XCTest subsequently inspected real WKWebView controls.",
+    "evidence": "simulator-adhoc-build.log"
+  },
+  "limit": "Signing/launch evidence alone does not prove any complete finding acceptance."
+}

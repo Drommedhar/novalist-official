@@ -1,0 +1,23 @@
+{
+  "finding": "M01",
+  "case": "manuscript-background-terminate-relaunch",
+  "status": "pass",
+  "scope": "Simulator full Manuscript lifecycle subset; not full M01 acceptance.",
+  "device": "Dedicated iPad (A16) simulator",
+  "os": "iOS 27.0",
+  "xcode": "27.0 (27A266a)",
+  "revision": "0558dda71a395b6ab6208dd6820cc19811a61430",
+  "native_build": "Same clean production source, local ad-hoc simulator signature; see ../macos-validation/simulator-launch.json",
+  "scenario": "Type synthetic marker into full Manuscript content editor, immediately Home, terminate, relaunch, reopen same project/book and Manuscript view, assert marker.",
+  "observed": "XCTest passed one test in 16.734 seconds, with zero failures.",
+  "evidence": [
+    "manuscript-lifecycle.log",
+    "ManuscriptLifecycleTests.swift"
+  ],
+  "limitations": [
+    "No lock scenario.",
+    "No two-dirty-pane, conflict or save-acknowledgement reorder claim.",
+    "Physical device acceptance remains untested."
+  ],
+  "raw_results": "Retained only in local temporary harness directory; not committed because full XCResult/build output includes machine-specific paths."
+}

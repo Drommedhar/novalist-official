@@ -1,0 +1,224 @@
+[
+  {
+    "name": "actual-import-apply",
+    "status": "pass",
+    "source": "xctest/actual-import-apply.swift.txt",
+    "log": "xctest/actual-import-apply.log"
+  },
+  {
+    "name": "after-import-project-close",
+    "status": "pass",
+    "source": "xctest/after-import-project-close.swift.txt",
+    "log": "xctest/after-import-project-close.log"
+  },
+  {
+    "name": "clean-final-library",
+    "status": "pass",
+    "source": "xctest/clean-final-library.swift.txt",
+    "log": "xctest/clean-final-library.log"
+  },
+  {
+    "name": "close-before-parent-move",
+    "status": "fail",
+    "source": "xctest/close-before-parent-move.swift.txt",
+    "log": "xctest/close-before-parent-move.log"
+  },
+  {
+    "name": "create-project-a-confirmed",
+    "status": "fail",
+    "source": "xctest/create-project-a-confirmed.swift.txt",
+    "log": "xctest/create-project-a-confirmed.log"
+  },
+  {
+    "name": "create-project-a",
+    "status": "fail",
+    "source": "xctest/create-project-a.swift.txt",
+    "log": "xctest/create-project-a.log"
+  },
+  {
+    "name": "create-project-b-confirmed",
+    "status": "pass",
+    "source": "xctest/create-project-b-confirmed.swift.txt",
+    "log": "xctest/create-project-b-confirmed.log"
+  },
+  {
+    "name": "final-import-library",
+    "status": "pass",
+    "source": "xctest/final-import-library.swift.txt",
+    "log": "xctest/final-import-library.log"
+  },
+  {
+    "name": "final-library-balanced",
+    "status": "pass",
+    "source": "xctest/final-library-balanced.swift.txt",
+    "log": "xctest/final-library-balanced.log"
+  },
+  {
+    "name": "folder-cancel-confirmed",
+    "status": "pass",
+    "source": "xctest/folder-cancel-confirmed.swift.txt",
+    "log": "xctest/folder-cancel-confirmed.log"
+  },
+  {
+    "name": "folder-confirm-visible-dismissal",
+    "status": "pass",
+    "source": "xctest/folder-confirm-visible-dismissal.swift.txt",
+    "log": "xctest/folder-confirm-visible-dismissal.log"
+  },
+  {
+    "name": "folder-initial-confirm",
+    "status": "pass",
+    "source": "xctest/folder-initial-confirm.swift.txt",
+    "log": "xctest/folder-initial-confirm.log"
+  },
+  {
+    "name": "folder-picker-cancel",
+    "status": "pass",
+    "source": "xctest/folder-picker-cancel.swift.txt",
+    "log": "xctest/folder-picker-cancel.log"
+  },
+  {
+    "name": "folder-picker-reselect",
+    "status": "pass",
+    "source": "xctest/folder-picker-reselect.swift.txt",
+    "log": "xctest/folder-picker-reselect.log"
+  },
+  {
+    "name": "import-apply-fixture-select",
+    "status": "fail",
+    "source": "xctest/import-apply-fixture-select.swift.txt",
+    "log": "xctest/import-apply-fixture-select.log"
+  },
+  {
+    "name": "import-apply-native-pick-confirmed",
+    "status": "fail",
+    "source": "xctest/import-apply-native-pick-confirmed.swift.txt",
+    "log": "xctest/import-apply-native-pick-confirmed.log"
+  },
+  {
+    "name": "import-apply-native-pick",
+    "status": "fail",
+    "source": "xctest/import-apply-native-pick.swift.txt",
+    "log": "xctest/import-apply-native-pick.log"
+  },
+  {
+    "name": "import-apply-open-target",
+    "status": "pass",
+    "source": "xctest/import-apply-open-target.swift.txt",
+    "log": "xctest/import-apply-open-target.log"
+  },
+  {
+    "name": "import-dialog-close",
+    "status": "pass",
+    "source": "xctest/import-dialog-close.swift.txt",
+    "log": "xctest/import-dialog-close.log"
+  },
+  {
+    "name": "import-first-selection-confirmed",
+    "status": "pass",
+    "source": "xctest/import-first-selection-confirmed.swift.txt",
+    "log": "xctest/import-first-selection-confirmed.log"
+  },
+  {
+    "name": "import-first-selection",
+    "status": "fail",
+    "source": "xctest/import-first-selection.swift.txt",
+    "log": "xctest/import-first-selection.log"
+  },
+  {
+    "name": "import-picker-cancel",
+    "status": "pass",
+    "source": "xctest/import-picker-cancel.swift.txt",
+    "log": "xctest/import-picker-cancel.log"
+  },
+  {
+    "name": "import-reselect-second-file",
+    "status": "pass",
+    "source": "xctest/import-reselect-second-file.swift.txt",
+    "log": "xctest/import-reselect-second-file.log"
+  },
+  {
+    "name": "imported-dialog-close",
+    "status": "pass",
+    "source": "xctest/imported-dialog-close.swift.txt",
+    "log": "xctest/imported-dialog-close.log"
+  },
+  {
+    "name": "inspect-library-accessibility",
+    "status": "pass",
+    "source": "xctest/inspect-library-accessibility.swift.txt",
+    "log": "xctest/inspect-library-accessibility.log"
+  },
+  {
+    "name": "inspect-library-elements",
+    "status": "pass",
+    "source": "xctest/inspect-library-elements.swift.txt",
+    "log": "xctest/inspect-library-elements.log"
+  },
+  {
+    "name": "move-full-sibling-projects",
+    "status": "pass",
+    "source": "xctest/move-full-sibling-projects.swift.txt",
+    "log": "xctest/move-full-sibling-projects.log"
+  },
+  {
+    "name": "post-import-reopen-target",
+    "status": "pass",
+    "source": "xctest/post-import-reopen-target.swift.txt",
+    "log": "xctest/post-import-reopen-target.log"
+  },
+  {
+    "name": "post-import-reselect-file",
+    "status": "pass",
+    "source": "xctest/post-import-reselect-file.swift.txt",
+    "log": "xctest/post-import-reselect-file.log"
+  },
+  {
+    "name": "post-import-reselection-close",
+    "status": "pass",
+    "source": "xctest/post-import-reselection-close.swift.txt",
+    "log": "xctest/post-import-reselection-close.log"
+  },
+  {
+    "name": "project-a-browse",
+    "status": "pass",
+    "source": "xctest/project-a-browse.swift.txt",
+    "log": "xctest/project-a-browse.log"
+  },
+  {
+    "name": "project-b-browse",
+    "status": "pass",
+    "source": "xctest/project-b-browse.swift.txt",
+    "log": "xctest/project-b-browse.log"
+  },
+  {
+    "name": "reopen-moved-project-a-confirmed",
+    "status": "pass",
+    "source": "xctest/reopen-moved-project-a-confirmed.swift.txt",
+    "log": "xctest/reopen-moved-project-a-confirmed.log"
+  },
+  {
+    "name": "reopen-moved-project-a",
+    "status": "fail",
+    "source": "xctest/reopen-moved-project-a.swift.txt",
+    "log": "xctest/reopen-moved-project-a.log"
+  },
+  {
+    "name": "reopen-moved-project-b-confirmed",
+    "status": "pass",
+    "source": "xctest/reopen-moved-project-b-confirmed.swift.txt",
+    "log": "xctest/reopen-moved-project-b-confirmed.log"
+  },
+  {
+    "name": "reopen-moved-project-b",
+    "status": "fail",
+    "source": "xctest/reopen-moved-project-b.swift.txt",
+    "log": "xctest/reopen-moved-project-b.log"
+  },
+  {
+    "name": "clean-after-import-library",
+    "status": "pass",
+    "source": "xctest/clean-after-import-library.swift.txt",
+    "log": "xctest/clean-after-import-library.log"
+  }
+]

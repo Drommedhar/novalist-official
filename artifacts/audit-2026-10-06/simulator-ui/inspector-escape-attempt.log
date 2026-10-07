@@ -1,0 +1,88 @@
+Test Suite 'All tests' started at 2026-10-07 10:42:04.365.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 10:42:04.365.
+Test Suite 'AuditUITests' started at 2026-10-07 10:42:04.365.
+Test Case '-[AuditUITests.AuditUITests testInspectorLayoutsAndEscape]' started.
+    t =     0.00s Start Test at 2026-10-07 10:42:04.370
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.04s Setting device orientation to Portrait
+    t =     0.04s     Wait for com.novalist.app to idle
+    t =     0.04s Waiting 1.0s for "Close" Button to exist
+    t =     1.05s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =     1.05s         Checking existence of `"Close" Button`
+    t =     1.06s     Checking existence of `"Close" Button`
+    t =     1.08s Tap "Close" Button
+    t =     1.08s     Wait for com.novalist.app to idle
+    t =     1.08s     Find the "Close" Button
+    t =     1.09s     Check for interrupting elements affecting "Close" Button
+    t =     1.11s     Synthesize event
+    t =     1.40s     Wait for com.novalist.app to idle
+    t =     1.40s Checking existence of `"selected" Button`
+    t =     1.41s Waiting 10.0s for "Inspector" Button to exist
+    t =     2.43s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =     2.43s         Checking existence of `"Inspector" Button`
+    t =     2.45s Tap "Inspector" Button
+    t =     2.45s     Wait for com.novalist.app to idle
+    t =     2.45s     Find the "Inspector" Button
+    t =     2.47s     Check for interrupting elements affecting "Inspector" Button
+    t =     2.48s     Synthesize event
+    t =     2.77s     Wait for com.novalist.app to idle
+    t =     2.77s Waiting 10.0s for "Close" Button to exist
+    t =     3.81s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =     3.81s         Checking existence of `"Close" Button`
+    t =     3.84s Find the "Close" Button
+    t =     3.86s Checking existence of `"Context" Button`
+    t =     3.88s Checking existence of `"Inspector" Button`
+    t =     3.89s Find the Application 'com.novalist.app'
+    t =     3.97s Added attachment named 'inspector-portrait'
+    t =     3.97s Type '⎋' key (XCUIKeyboardKeyEscape) with no modifiers
+    t =     3.97s     Wait for com.novalist.app to idle
+    t =     3.97s     Find the Application 'com.novalist.app'
+    t =     3.98s     Check for interrupting elements affecting "Novalist" Application
+    t =     3.99s     Synthesize event
+    t =     4.35s     Wait for com.novalist.app to idle
+    t =     4.37s Waiting 10.0s for "Inspector" Button to exist
+    t =     5.40s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =     5.40s         Checking existence of `"Inspector" Button`
+    t =     5.42s         Capturing element debug description
+    t =     6.46s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =     6.46s         Checking existence of `"Inspector" Button`
+    t =     6.49s         Capturing element debug description
+    t =     7.42s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =     7.42s         Checking existence of `"Inspector" Button`
+    t =     7.45s         Capturing element debug description
+    t =     8.38s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =     8.38s         Checking existence of `"Inspector" Button`
+    t =     8.40s         Capturing element debug description
+    t =     9.44s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =     9.44s         Checking existence of `"Inspector" Button`
+    t =     9.47s         Capturing element debug description
+    t =    10.40s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    10.40s         Checking existence of `"Inspector" Button`
+    t =    10.43s         Capturing element debug description
+    t =    11.47s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    11.47s         Checking existence of `"Inspector" Button`
+    t =    11.50s         Capturing element debug description
+    t =    12.43s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    12.43s         Checking existence of `"Inspector" Button`
+    t =    12.46s         Capturing element debug description
+    t =    13.39s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    13.39s         Checking existence of `"Inspector" Button`
+    t =    13.41s         Capturing element debug description
+    t =    14.38s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    14.38s         Checking existence of `"Inspector" Button`
+    t =    14.41s         Capturing element debug description
+    t =    14.41s     Checking existence of `"Inspector" Button`
+    t =    14.43s Collecting debug information to assist test failure triage
+    t =    14.43s     Requesting snapshot of accessibility hierarchy for app with pid 63008
+<temporary-harness>/AuditUITests.swift:22: error: -[AuditUITests.AuditUITests testInspectorLayoutsAndEscape] : XCTAssertTrue failed
+    t =    14.48s Tear Down
+Test Case '-[AuditUITests.AuditUITests testInspectorLayoutsAndEscape]' failed (14.501 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 10:42:18.871.
+	 Executed 1 test, with 1 failure (0 unexpected) in 14.501 (14.506) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 10:42:18.871.
+	 Executed 1 test, with 1 failure (0 unexpected) in 14.501 (14.506) seconds
+Test Suite 'All tests' failed at 2026-10-07 10:42:18.871.
+	 Executed 1 test, with 1 failure (0 unexpected) in 14.501 (14.506) seconds

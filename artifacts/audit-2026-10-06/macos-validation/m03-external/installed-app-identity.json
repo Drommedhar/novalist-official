@@ -1,0 +1,7 @@
+{
+  "installed_app_matches_frozen_source_tree": true,
+  "files": 571,
+  "tree_sha256": "3c8e8078aa21c4b05df9d05a3a184c80d4d32fd81a756d38309a7841ffa3b5a5",
+  "source_reference": "../simulator-ui/m05-smoke/share-final-inputs.json",
+  "native_probes": false
+}

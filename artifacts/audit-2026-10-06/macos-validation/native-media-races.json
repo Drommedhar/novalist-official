@@ -1,0 +1,64 @@
+{
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "probe_diff_sha256": "2580103702a3a67ac99bc3680b0f61b8c7a3ef9f39c55e8d5396a01fefc26ca0",
+  "device": "iPhone 17 Pro simulator",
+  "os": "iOS 27.0",
+  "status": "passed",
+  "checks": [
+    {
+      "case": "native-image-decode",
+      "status": "passed",
+      "width": 2,
+      "route": "Actual projectImages MutationObserver -> native coordinated read -> data URI -> WKWebView image decode"
+    },
+    {
+      "case": "delayed-native-source-switch",
+      "status": "passed",
+      "observed": "4px new source decoded while old 2px native reply was held; releasing old reply retained the 4px source."
+    },
+    {
+      "case": "delayed-native-project-switch-cache",
+      "status": "passed",
+      "observed": "Two distinct synthetic roots have 2px/3px content at identical relative path. Old request resolved null after switch; new 3px preview/cache remained, cached reread caused zero additional native reads."
+    },
+    {
+      "case": "delayed-native-dismissal",
+      "status": "passed",
+      "observed": "Dismissed node stayed disconnected with its original project-relative URL; late reply was not installed."
+    },
+    {
+      "case": "native-oversize-rejection",
+      "status": "passed",
+      "observed": "This media file is too large for the mobile preview (16 MiB limit).",
+      "limit": "Native failure and accessible image error proved; full Research visible-error component remains separate."
+    },
+    {
+      "case": "disk-retention-and-relative-references",
+      "status": "passed",
+      "observed": "All fixture file hashes including >16MiB image and project-relative reference JSON are unchanged."
+    }
+  ],
+  "fixture_hashes": {
+    "0": {
+      "references.json": "8887e852d67376836fc4dfd9c28ca36d2075c104168ad2c46a17dc525ccc5f96",
+      "media/shared.png": "97a3a410c9bca540512251c37ce63982edccbed54c6f2e1d06ec717b9f753e29",
+      "media/oversized.png": "1b8f6a0d8280dab441a41fc7e71f2fcaf0da6b699989e8aa8afe6a2660ea73b9",
+      "media/tone.wav": "c4a948f325d39c925685c2f91f30453f46903bf6e1826eed691cbd8f86643061",
+      "media/second.png": "ab28b4a64e82968abd28ebb7dbeee2c20464947ece47a40f68beae8b7c9a3924",
+      "media/fixture.pdf": "dee0b8572d2ed4e4c02b3e4704480f22d2b7c4ef4c55d8ea8b7b1d97dbb79d14"
+    },
+    "1": {
+      "references.json": "8887e852d67376836fc4dfd9c28ca36d2075c104168ad2c46a17dc525ccc5f96",
+      "media/shared.png": "1d146bb1c4fd0291851dd075a05b9d0c2b0e326bfb6c69e853065712aab9ffd3",
+      "media/oversized.png": "1b8f6a0d8280dab441a41fc7e71f2fcaf0da6b699989e8aa8afe6a2660ea73b9",
+      "media/tone.wav": "c4a948f325d39c925685c2f91f30453f46903bf6e1826eed691cbd8f86643061",
+      "media/second.png": "ab28b4a64e82968abd28ebb7dbeee2c20464947ece47a40f68beae8b7c9a3924",
+      "media/fixture.pdf": "dee0b8572d2ed4e4c02b3e4704480f22d2b7c4ef4c55d8ea8b7b1d97dbb79d14"
+    }
+  },
+  "limitations": [
+    "Exercises production asset loader and native host in actual WKWebView using synthetic DOM preview nodes; does not establish every scene/map/Research/3D UI integration.",
+    "No native memory peak or physical-device result claimed.",
+    "Probe removal and clean final build still required."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "source_revision": "8489c9a3fa3b14b3cc695cef1b6d162b3d9aa3ab",
+  "baseline_plugin_revision": "ba8b6d328b64ded6e923baa25ce086d7e9e799e4",
+  "only_source_difference": [
+    "app/build/manual-plugin.ts"
+  ],
+  "comparison_scope": "Native simulator build pair preparation only; physical performance acceptance remains pending.",
+  "dependency_lock_sha256": "4af5b0d05ba2f64dad9f05a48fabc4ed6a86c8576769f361999bd4c63965af96",
+  "plugins": {
+    "original": "8e6dbe4a1fcb6b736b2eaada5d9b915d0f3697722a3c2d3973fb6b36f9c253c3",
+    "fixed": "039d560fed2af581876ef02427f45ca5cabf909b139a778a39ef52049f8ba301"
+  }
+}

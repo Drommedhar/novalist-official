@@ -1,0 +1,21 @@
+{
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "tracked_mobile_diff_sha256": "5f0d63d949cda5a56434bed23ba7cfdf9a6b51941271757320b1c6c32411b241",
+  "new_native_helper_sha256": "7b9abb8656b96a0aab6be6bd513cb8af1f01916fe6a6daad8a09f9edd7f42540",
+  "app_tree_sha256": "44065f20c2a2ce9d833286cc54c0643c2f9e857f3946d4379122e5ae6d21efd8",
+  "codesign_verify_deep_strict": true,
+  "simulators": [
+    {
+      "device": "iPhone",
+      "os": "iOS 27.0",
+      "synthetic_data_preserved": true,
+      "data_container_uuid_changed_during_update": true
+    },
+    {
+      "device": "iPad A16",
+      "os": "iOS 27.0",
+      "synthetic_data_preserved": true,
+      "data_container_uuid_changed_during_update": true
+    }
+  ]
+}

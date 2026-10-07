@@ -1,0 +1,192 @@
+{
+  "scope": "renderer",
+  "case_id": "M05-03",
+  "base_source": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "probe_source": "9e49f23ce6388e2d5caa0be3f483fff7c7996899",
+  "clean_source": null,
+  "clean_difference": null,
+  "changed_path": "app/src/renderer/src/mobile/hostCalls.ts",
+  "pull_request": {
+    "baseRefName": "dev",
+    "baseRefOid": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+    "files": [
+      {
+        "path": "app/src/renderer/src/mobile/hostCalls.ts",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "audit/m05-renderer-only-20261007",
+    "headRefOid": "9e49f23ce6388e2d5caa0be3f483fff7c7996899",
+    "isDraft": true,
+    "number": 38,
+    "state": "OPEN",
+    "url": "https://github.com/Drommedhar/novalist-official/pull/38"
+  },
+  "runs": [
+    {
+      "conclusion": "success",
+      "createdAt": "2026-10-07T08:38:45Z",
+      "databaseId": 37595142216,
+      "event": "pull_request",
+      "headSha": "9e49f23ce6388e2d5caa0be3f483fff7c7996899",
+      "jobs": [
+        {
+          "completedAt": "2026-10-07T08:42:04Z",
+          "conclusion": "success",
+          "databaseId": 112705833060,
+          "name": "build",
+          "startedAt": "2026-10-07T08:38:53Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-10-07T08:38:55Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-10-07T08:38:53Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:38:58Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "startedAt": "2026-10-07T08:38:55Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:39:00Z",
+              "conclusion": "success",
+              "name": "Select Xcode 27",
+              "number": 3,
+              "startedAt": "2026-10-07T08:38:58Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:39:01Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@v4",
+              "number": 4,
+              "startedAt": "2026-10-07T08:39:00Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:39:02Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v4",
+              "number": 5,
+              "startedAt": "2026-10-07T08:39:01Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:39:17Z",
+              "conclusion": "success",
+              "name": "Compile both Mac architectures",
+              "number": 6,
+              "startedAt": "2026-10-07T08:39:02Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:39:30Z",
+              "conclusion": "success",
+              "name": "Check native output and reference isolation",
+              "number": 7,
+              "startedAt": "2026-10-07T08:39:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:39:47Z",
+              "conclusion": "success",
+              "name": "Build desktop backend with bundled speech library",
+              "number": 8,
+              "startedAt": "2026-10-07T08:39:30Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:40:06Z",
+              "conclusion": "success",
+              "name": "Install iOS workload",
+              "number": 9,
+              "startedAt": "2026-10-07T08:39:47Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:40:29Z",
+              "conclusion": "success",
+              "name": "Build mobile renderer",
+              "number": 10,
+              "startedAt": "2026-10-07T08:40:06Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:41:58Z",
+              "conclusion": "success",
+              "name": "Build iOS simulator and compile device archive",
+              "number": 11,
+              "startedAt": "2026-10-07T08:40:29Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:41:59Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v4",
+              "number": 20,
+              "startedAt": "2026-10-07T08:41:58Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:41:59Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@v4",
+              "number": 21,
+              "startedAt": "2026-10-07T08:41:59Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:42:00Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 22,
+              "startedAt": "2026-10-07T08:41:59Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-10-07T08:42:01Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 23,
+              "startedAt": "2026-10-07T08:42:00Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/Drommedhar/novalist-official/actions/runs/37595142216/job/112705833060"
+        }
+      ],
+      "status": "completed",
+      "updatedAt": "2026-10-07T08:42:06Z",
+      "url": "https://github.com/Drommedhar/novalist-official/actions/runs/37595142216",
+      "workflowName": "Apple speech build",
+      "log_excerpt": {
+        "file": "run-37595142216-excerpt.log",
+        "checkout_revision": "3fc011823098b043a916e48c8b7ce410902932d9",
+        "sha256": "4f137f89905a381c91eae84f2bb7f7179cd4fa0f02b75fe5a824d27313306727",
+        "full_log_sha256": "124996f1fe8dd9ef1ed2f052c716e9f070710fe3dc4b26ac6dd40c005359fe44",
+        "method": "Selected build commands, success/failure results and intentional CS1029 marker; absolute paths redacted. Full raw download retained only in the disposable local evidence directory."
+      }
+    }
+  ],
+  "acceptance_status": "passed",
+  "limitation": "Actual GitHub Apple PR evidence only. No probe is merged. M05 still requires the separate signed-device smoke, which remains deferred under the simulator-only direction.",
+  "pull_request_after_cleanup": {
+    "closedAt": "2026-10-07T08:48:39Z",
+    "headRefName": "audit/m05-renderer-only-20261007",
+    "headRefOid": "9e49f23ce6388e2d5caa0be3f483fff7c7996899",
+    "isDraft": true,
+    "mergedAt": null,
+    "number": 38,
+    "state": "CLOSED",
+    "url": "https://github.com/Drommedhar/novalist-official/pull/38"
+  }
+}

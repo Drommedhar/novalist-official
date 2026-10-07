@@ -1,0 +1,9 @@
+build	Check native output and reference isolation	2026-10-07T08:39:30.0997970Z Ran 5 tests in 12.114s
+build	Build desktop backend with bundled speech library	2026-10-07T08:39:47.2971040Z Build succeeded.
+build	Install iOS workload	2026-10-07T08:40:06.3078260Z Successfully installed workload(s) maui-ios.
+build	Build mobile renderer	﻿2026-10-07T08:40:06.3646110Z ##[group]Run npm ci --no-audit
+build	Build mobile renderer	2026-10-07T08:40:06.3646540Z ^[[36;1mnpm ci --no-audit^[[0m
+build	Build mobile renderer	2026-10-07T08:40:06.3646810Z ^[[36;1mnpm run build:mobile^[[0m
+build	Build iOS simulator and compile device archive	2026-10-07T08:40:29.8888440Z ^[[36;1mdotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios27.0 -p:RuntimeIdentifier="$rid" -p:EnableCodeSigning=false^[[0m
+build	Build iOS simulator and compile device archive	2026-10-07T08:40:29.8889680Z ^[[36;1mbash native/AppleSpeech/build.sh ios arm64 artifacts/apple-speech/ios/libNovalistSpeech.a^[[0m
+build	Build iOS simulator and compile device archive	2026-10-07T08:41:42.8315680Z Build succeeded.

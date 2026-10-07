@@ -1,0 +1,8 @@
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' started.
+    t =     0.00s Start Test at 2026-10-07 12:22:22.236
+    t =     0.06s Waiting 10.0s for "Browse for Project Folder..." Button to exist
+    t =     1.12s Tap "Browse for Project Folder..." Button[0.50, 0.50]
+    t =     1.51s Waiting 10.0s for "DOCPicker.actionButton" Button to exist
+    t =     4.94s Tear Down
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' passed (4.951 seconds).
+** TEST SUCCEEDED **

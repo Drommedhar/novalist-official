@@ -1,0 +1,74 @@
+{
+  "finding": "M06",
+  "status": "supporting-simulator-pass",
+  "scope": "Real native permission denial/grant and WKWebView retry/stop/background subset. Full M06 physical acceptance remains pending.",
+  "device": "iPhone 17 Pro Max simulator",
+  "os": "iOS 27.0",
+  "source_evidence": "fixed-build-provenance.json",
+  "app_tree_sha256_after_microphone": "44065f20c2a2ce9d833286cc54c0643c2f9e857f3946d4379122e5ae6d21efd8",
+  "same_as_fixed_build": true,
+  "synthetic_scene_still_marker_only": true,
+  "cases": [
+    {
+      "case": "Native denial",
+      "status": "pass",
+      "duration_seconds": 4.528,
+      "source": "microphone-denial.swift",
+      "log": "microphone-denial.log",
+      "observed": "Start displayed the real SpringBoard microphone permission prompt. Tapping Nicht erlauben produced the permission-specific renderer error, returned Start and left Stop absent."
+    },
+    {
+      "case": "Grant in native iOS Settings",
+      "status": "pass",
+      "duration_seconds": 2.754,
+      "source": "microphone-grant-control.swift",
+      "log": "microphone-grant-control.log",
+      "observed": "Novalist microphone switch in Privacy and Security changed from value 0 to 1. After the permission change, the next activate launched a new Novalist process."
+    },
+    {
+      "case": "Retry and explicit stop",
+      "status": "pass",
+      "source": "microphone-retry-stop-ready.swift",
+      "log": "microphone-retry-stop-ready.log",
+      "observed": "After cold launch and reopening the same synthetic scene, Start reached Listening. Permission and generic microphone errors were absent. Stop returned Start and removed Listening/Stop."
+    },
+    {
+      "case": "Background interruption",
+      "status": "pass",
+      "source": "microphone-retry-stop-ready.swift",
+      "log": "microphone-retry-stop-ready.log",
+      "observed": "Second Start reached Listening. Home then foreground returned Start; Listening/Stop and permission error were absent."
+    }
+  ],
+  "retry_and_background_combined_duration_seconds": 23.711,
+  "native_path_interpretation": "The unmodified mobile shim uses native microphoneStart. Production Swift returns success only after AVAudioSession activation and AVAudioEngine.start; Listening in this UI therefore supports successful simulator native startup, without measuring actual recorded audio.",
+  "navigation_attempts": [
+    {
+      "source": "microphone-settings-search.swift",
+      "log": "microphone-settings-search.log",
+      "result": "Harness navigation failure: iOS Settings search had no Novalist result; subsequent native Privacy navigation succeeded."
+    },
+    {
+      "source": "microphone-privacy-navigation.swift",
+      "log": "microphone-privacy-navigation.log",
+      "result": "Harness locator failure: Mikrofon label included additional text; native MICROPHONE identifier resolved it."
+    },
+    {
+      "source": "microphone-grant.swift",
+      "log": "microphone-grant.log",
+      "result": "Harness tap hit outer row, leaving toggle value 0; tapping its actual nested switch succeeded in microphone-grant-control."
+    },
+    {
+      "source": "microphone-retry-stop.swift",
+      "log": "microphone-retry-stop.log",
+      "result": "Harness cold-launch readiness failure before microphone Start; corrected test waited for bookshelf and passed."
+    }
+  ],
+  "limitations": [
+    "No physical-device acceptance, call interruption, audio-route change, signal-level/audio-quality or transcription claim.",
+    "After the iOS permission grant, Novalist required a fresh process; no same-process stale-permission-error clearing claim. The error was absent before and after the successful retry.",
+    "No Mac microphone permission was granted or changed. All automation targeted only dedicated simulator iOS UI.",
+    "No production instrumentation or source changes. The installed native app hash still equals the fixed lifecycle build, and the synthetic scene remains exactly its original marker."
+  ],
+  "final_state": "Dedicated iPhone simulator has microphone permission enabled; recording stopped and original synthetic scene content preserved."
+}

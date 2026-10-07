@@ -1,0 +1,51 @@
+  Wiederherzustellende Projekte werden ermittelt...
+  "<disposable-checkout>/Novalist.Sdk/Novalist.Sdk.csproj" wiederhergestellt (in 36 ms.).
+  "<disposable-checkout>/Novalist.Core/Novalist.Core.csproj" wiederhergestellt (in 58 ms.).
+  "<disposable-checkout>/Novalist.Backend/Novalist.Backend.csproj" wiederhergestellt (in 62 ms.).
+  "<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj" wiederhergestellt (in 88 ms.).
+<disposable-checkout>/native/AppleSpeech/AppleMicrophone.swift(44,23): warning GDE007459: 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+   42 |     init() throws {
+   43 |         let session = AVAudioSession.sharedInstance()
+   44 |         guard session.recordPermission == .granted else { throw CaptureFailure.permission }
+EXEC : |                       `- warning : 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+   45 |         try session.setCategory(.record, mode: .measurement)
+   46 |         try session.setActive(true)
+  
+<disposable-checkout>/native/AppleSpeech/AppleMicrophone.swift(44,44): warning GF0D51539: 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+   42 |     init() throws {
+   43 |         let session = AVAudioSession.sharedInstance()
+   44 |         guard session.recordPermission == .granted else { throw CaptureFailure.permission }
+EXEC : |                                            |- warning : 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+      |                                            `- note: use 'AVAudioApplication.recordPermission.granted' instead
+   45 |         try session.setCategory(.record, mode: .measurement)
+   46 |         try session.setActive(true)
+  
+<disposable-checkout>/native/AppleSpeech/AppleMicrophone.swift(55,15): warning G55802322: 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+   53 |               let target = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16000, channels: 1, interleaved: false),
+   54 |               let converter = AVAudioConverter(from: format, to: target) else { throw CaptureFailure.format }
+   55 |         input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
+EXEC : |               `- warning : 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+   56 |             guard let self else { return }
+   57 |             let capacity = AVAudioFrameCount(ceil(Double(buffer.frameLength) * 16000 / format.sampleRate)) + 256
+  
+  [#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+  Novalist.Sdk -> <disposable-checkout>/Novalist.Sdk/bin/Debug/net8.0/Novalist.Sdk.dll
+  Novalist.Core -> <disposable-checkout>/Novalist.Core/bin/Debug/net8.0/Novalist.Core.dll
+  Novalist.Backend -> <disposable-checkout>/Novalist.Backend/bin/Debug/net8.0/iossimulator-arm64/Novalist.Backend.dll
+  Novalist.Sdk -> <disposable-checkout>/Novalist.Sdk/bin/Debug/net8.0/Novalist.Sdk.dll
+  Novalist.Core -> <disposable-checkout>/Novalist.Core/bin/Debug/net8.0/Novalist.Core.dll
+<disposable-checkout>/Novalist.Mobile/Platforms/iOS/Program.cs(1,8): error CS1029: #error: "NOVALIST_AUDIT_M05_INVALID_IOS_SYMBOL" [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+
+Fehler beim Buildvorgang.
+
+<disposable-checkout>/native/AppleSpeech/AppleMicrophone.swift(44,23): warning GDE007459: 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+EXEC : |                       `- warning : 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/native/AppleSpeech/AppleMicrophone.swift(44,44): warning GF0D51539: 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+EXEC : |                                            |- warning : 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/native/AppleSpeech/AppleMicrophone.swift(55,15): warning G55802322: 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+EXEC : |               `- warning : 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/Novalist.Mobile/Platforms/iOS/Program.cs(1,8): error CS1029: #error: "NOVALIST_AUDIT_M05_INVALID_IOS_SYMBOL" [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+    6 Warnung(en)
+    1 Fehler
+
+Verstrichene Zeit 00:00:05.76

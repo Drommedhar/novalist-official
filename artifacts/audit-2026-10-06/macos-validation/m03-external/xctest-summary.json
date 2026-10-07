@@ -1,0 +1,22 @@
+[
+  {
+    "scenario": "create-owned-keyboard-dismissed",
+    "passed": true,
+    "raw_log_sha256": "2349880f4ded210600cc5fea07b966322767e2a11339f83eb763484431ffdc9e"
+  },
+  {
+    "scenario": "open-real-external-folder-picker",
+    "passed": true,
+    "raw_log_sha256": "7a4b2a2bf67310dc8668adb2aae272f83cc8ce2cef1314b0a2f37b43f28a1f94"
+  },
+  {
+    "scenario": "select-external-and-check-marker",
+    "passed": true,
+    "raw_log_sha256": "27ae0258fa271c5048b986903af5973f9f1755dc07c79d0b187bf9d05e95e0a9"
+  },
+  {
+    "scenario": "reopen-external-recent-after-relocation",
+    "passed": true,
+    "raw_log_sha256": "6012f82ae770822da864c2562627d67772523e1503a94bdce8dc199860645b8b"
+  }
+]

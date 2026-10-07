@@ -1,0 +1,125 @@
+Test Suite 'All tests' started at 2026-10-07 10:35:49.967.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 10:35:49.968.
+Test Suite 'AuditUITests' started at 2026-10-07 10:35:49.968.
+Test Case '-[AuditUITests.AuditUITests testSceneBackgroundTerminateRelaunch]' started.
+    t =     0.00s Start Test at 2026-10-07 10:35:49.972
+    t =     0.02s Set Up
+    t =     0.03s Open com.novalist.app
+    t =     0.03s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.05s Waiting 2.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     1.09s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     1.16s         Capturing element debug description
+    t =     2.05s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     2.05s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     2.12s         Capturing element debug description
+    t =     2.12s     Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     2.19s Collecting debug information to assist test failure triage
+    t =     2.19s     Requesting snapshot of accessibility hierarchy for app with pid 61121
+    t =     2.28s Waiting 20.0s for "Write" Button to exist
+    t =     3.31s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =     3.31s         Checking existence of `"Write" Button`
+    t =     3.38s Checking existence of `"Close tour" Button`
+    t =     3.45s Tap "Write" Button
+    t =     3.45s     Wait for com.novalist.app to idle
+    t =     3.45s     Find the "Write" Button
+    t =     3.52s     Check for interrupting elements affecting "Write" Button
+    t =     3.55s     Synthesize event
+    t =     3.85s     Wait for com.novalist.app to idle
+    t =     5.21s Waiting 3.0s for Button (First Match) to exist
+    t =     6.25s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     6.25s         Checking existence of `Button (First Match)`
+    t =     6.31s         Capturing element debug description
+    t =     7.24s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     7.24s         Checking existence of `Button (First Match)`
+    t =     7.29s         Capturing element debug description
+    t =     8.22s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     8.22s         Checking existence of `Button (First Match)`
+    t =     8.27s         Capturing element debug description
+    t =     8.27s     Checking existence of `Button (First Match)`
+    t =     8.30s Collecting debug information to assist test failure triage
+    t =     8.30s     Requesting snapshot of accessibility hierarchy for app with pid 61121
+    t =     8.34s Waiting 10.0s for "Manuscript" Button to exist
+    t =     9.37s     Checking `Expect predicate `existsNoRetry == 1` for object "Manuscript" Button`
+    t =     9.37s         Checking existence of `"Manuscript" Button`
+    t =     9.41s Waiting 10.0s for TextView (First Match) to exist
+    t =    10.45s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    10.45s         Checking existence of `TextView (First Match)`
+    t =    10.49s Find the TextView (First Match)
+AUDIT_ORIGINAL_MARKER_PRESENT=true
+    t =    10.52s Tap "AUDIT_SCENE_HOME_20261007" TextView
+    t =    10.52s     Wait for com.novalist.app to idle
+    t =    10.53s     Find the "AUDIT_SCENE_HOME_20261007" TextView
+    t =    10.55s     Check for interrupting elements affecting "AUDIT_SCENE_HOME_20261007" TextView
+    t =    10.58s     Synthesize event
+    t =    10.87s     Wait for com.novalist.app to idle
+    t =    10.88s Type '
+AUDIT_LIFECYCLE_S...' into "AUDIT_SCENE_HOME_20261007" TextView
+    t =    10.88s     Wait for com.novalist.app to idle
+    t =    10.88s     Find the "AUDIT_SCENE_HOME_20261007" TextView
+    t =    10.92s     Check for interrupting elements affecting "AUDIT_SCENE_HOME_20261007" TextView
+    t =    10.95s     Synthesize event
+    t =    11.69s     Wait for com.novalist.app to idle
+    t =    11.70s Pressing Home button
+    t =    12.16s Terminate com.novalist.app:61121
+    t =    13.17s Open com.novalist.app
+    t =    13.17s     Launch com.novalist.app
+    t =    13.20s         Setting up automation session
+    t =    15.74s         Wait for com.novalist.app to idle
+    t =    17.40s Waiting 2.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =    18.44s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    18.44s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    18.51s Double tap "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =    18.51s     Wait for com.novalist.app to idle
+    t =    18.51s     Find the "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =    18.53s     Check for interrupting elements affecting "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =    18.55s     Synthesize event
+    t =    18.90s     Wait for com.novalist.app to idle
+    t =    18.90s Waiting 20.0s for "Write" Button to exist
+    t =    19.93s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =    19.94s         Checking existence of `"Write" Button`
+    t =    20.04s Checking existence of `"Close tour" Button`
+    t =    20.11s Tap "Write" Button
+    t =    20.11s     Wait for com.novalist.app to idle
+    t =    20.11s     Find the "Write" Button
+    t =    20.18s     Check for interrupting elements affecting "Write" Button
+    t =    20.21s     Synthesize event
+    t =    20.50s     Wait for com.novalist.app to idle
+    t =    21.97s Waiting 3.0s for Button (First Match) to exist
+    t =    23.01s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    23.01s         Checking existence of `Button (First Match)`
+    t =    23.04s Tap Button (First Match)
+    t =    23.04s     Wait for com.novalist.app to idle
+    t =    23.04s     Find the Button (First Match)
+    t =    23.06s     Check for interrupting elements affecting "Audit Scene Alpha 7" Button
+    t =    23.08s     Synthesize event
+    t =    23.37s     Wait for com.novalist.app to idle
+    t =    23.83s Waiting 10.0s for "Manuscript" Button to exist
+    t =    24.87s     Checking `Expect predicate `existsNoRetry == 1` for object "Manuscript" Button`
+    t =    24.87s         Checking existence of `"Manuscript" Button`
+    t =    24.91s Waiting 10.0s for TextView (First Match) to exist
+    t =    25.95s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    25.95s         Checking existence of `TextView (First Match)`
+    t =    25.99s Find the TextView (First Match)
+AUDIT_SCENE_BACKGROUND_TERMINATE_RELAUNCH_PASS
+    t =    26.02s Find the Application 'com.novalist.app'
+    t =    26.12s Added attachment named 'scene-after-relaunch'
+    t =    26.12s Tear Down
+Test Case '-[AuditUITests.AuditUITests testSceneBackgroundTerminateRelaunch]' passed (26.376 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 10:36:16.349.
+	 Executed 1 test, with 0 failures (0 unexpected) in 26.376 (26.381) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 10:36:16.349.
+	 Executed 1 test, with 0 failures (0 unexpected) in 26.376 (26.382) seconds
+Test Suite 'All tests' passed at 2026-10-07 10:36:16.350.
+	 Executed 1 test, with 0 failures (0 unexpected) in 26.376 (26.383) seconds
+2026-10-07 10:36:16.646 xcodebuild[62947:2846921] [MT] IDETestOperationsObserverDebug: 29.314 elapsed -- Testing started completed.
+2026-10-07 10:36:16.646 xcodebuild[62947:2846921] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 10:36:16.646 xcodebuild[62947:2846921] [MT] IDETestOperationsObserverDebug: 29.314 sec, +29.314 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-harness>/scene-lifecycle-second.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

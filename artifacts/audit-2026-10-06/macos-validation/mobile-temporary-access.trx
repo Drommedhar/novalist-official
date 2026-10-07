@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="b764c588-ad05-4d9a-95c5-70c753455149" name="@MacBook-Pro 2026-10-07 10:27:28" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-07T10:27:28.1610120+02:00" queuing="2026-10-07T10:27:28.1610120+02:00" start="2026-10-07T10:27:26.7683520+02:00" finish="2026-10-07T10:27:28.1629800+02:00" />
+  <TestSettings name="default" id="a1ce6211-fc2b-4999-afe8-276aa7f18111">
+    <Deployment runDeploymentRoot="_MacBook-Pro_2026-10-07_10_27_28" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="bb53cda2-324b-49f7-8710-954c422f607d" testId="a4521fb3-8ce2-c5e3-1622-f960abcb03c0" testName="Novalist.Core.Tests.Services.MobileTemporaryAccessTests.PageDisposalReleasesAllSelectionsAndDuplicateCleanupDoesNothing" computerName="audit-mac" duration="00:00:00.0033414" startTime="2026-10-07T10:27:28.0994110+02:00" endTime="2026-10-07T10:27:28.1027720+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bb53cda2-324b-49f7-8710-954c422f607d" />
+    <UnitTestResult executionId="07dabc4e-122d-4b4a-a0f4-8cebbaa83753" testId="ac895cef-eddf-b1e6-a19b-ae029baea700" testName="Novalist.Core.Tests.Services.MobileTemporaryAccessTests.ConcurrentReplacementReleaseAndDisposalBalanceEachAcquisitionOnce" computerName="audit-mac" duration="00:00:00.0134845" startTime="2026-10-07T10:27:28.0803810+02:00" endTime="2026-10-07T10:27:28.0965530+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="07dabc4e-122d-4b4a-a0f4-8cebbaa83753" />
+    <UnitTestResult executionId="fd591f89-6a8c-44eb-9012-c634cc2069cc" testId="d531e0f7-1661-6b64-c357-3a54f5c6d955" testName="Novalist.Core.Tests.Services.MobileTemporaryAccessTests.ReselectingTheSamePathReleasesOnlyThePreviousAcquisition" computerName="audit-mac" duration="00:00:00.0001058" startTime="2026-10-07T10:27:28.1035560+02:00" endTime="2026-10-07T10:27:28.1036690+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fd591f89-6a8c-44eb-9012-c634cc2069cc" />
+    <UnitTestResult executionId="fdc0c01e-e969-4150-8e5b-4995583560b1" testId="a432fd8d-e82a-f3a0-f987-2c4fbb88a3c9" testName="Novalist.Core.Tests.Services.MobileTemporaryAccessTests.LatePickerResultIsRejectedAndReleasedWithoutTouchingTheNewPage" computerName="audit-mac" duration="00:00:00.0001035" startTime="2026-10-07T10:27:28.1037620+02:00" endTime="2026-10-07T10:27:28.1038720+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fdc0c01e-e969-4150-8e5b-4995583560b1" />
+    <UnitTestResult executionId="c2f5a34b-6ca4-4030-ab9c-106d41a0ea10" testId="1ea13a6b-5d91-f538-1f9b-38a55c5d4303" testName="Novalist.Core.Tests.Services.MobileTemporaryAccessTests.FailedStopDuringReplacementOrLateCompletionIsStillAttemptedOnce" computerName="audit-mac" duration="00:00:00.0008245" startTime="2026-10-07T10:27:28.0984280+02:00" endTime="2026-10-07T10:27:28.0992820+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c2f5a34b-6ca4-4030-ab9c-106d41a0ea10" />
+    <UnitTestResult executionId="1fba82c5-5900-4527-8053-699a62825f25" testId="1c32453b-51eb-795a-8652-f26a7a1de287" testName="Novalist.Core.Tests.Services.MobileTemporaryAccessTests.OneNativeStopFailureIsReportedWithoutSkippingOtherReleases" computerName="audit-mac" duration="00:00:00.0004736" startTime="2026-10-07T10:27:28.1029560+02:00" endTime="2026-10-07T10:27:28.1034420+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1fba82c5-5900-4527-8053-699a62825f25" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="Novalist.Core.Tests.Services.MobileTemporaryAccessTests.LatePickerResultIsRejectedAndReleasedWithoutTouchingTheNewPage" storage="/users/dominikgoblirsch/git/novalist-official/tests/novalist.core.tests/bin/debug/net8.0/novalist.core.tests.dll" id="a432fd8d-e82a-f3a0-f987-2c4fbb88a3c9">
+      <Execution id="fdc0c01e-e969-4150-8e5b-4995583560b1" />
+      <TestMethod codeBase="&lt;repo&gt;/tests/Novalist.Core.Tests/bin/Debug/net8.0/Novalist.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Core.Tests.Services.MobileTemporaryAccessTests" name="LatePickerResultIsRejectedAndReleasedWithoutTouchingTheNewPage" />
+    </UnitTest>
+    <UnitTest name="Novalist.Core.Tests.Services.MobileTemporaryAccessTests.FailedStopDuringReplacementOrLateCompletionIsStillAttemptedOnce" storage="/users/dominikgoblirsch/git/novalist-official/tests/novalist.core.tests/bin/debug/net8.0/novalist.core.tests.dll" id="1ea13a6b-5d91-f538-1f9b-38a55c5d4303">
+      <Execution id="c2f5a34b-6ca4-4030-ab9c-106d41a0ea10" />
+      <TestMethod codeBase="&lt;repo&gt;/tests/Novalist.Core.Tests/bin/Debug/net8.0/Novalist.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Core.Tests.Services.MobileTemporaryAccessTests" name="FailedStopDuringReplacementOrLateCompletionIsStillAttemptedOnce" />
+    </UnitTest>
+    <UnitTest name="Novalist.Core.Tests.Services.MobileTemporaryAccessTests.OneNativeStopFailureIsReportedWithoutSkippingOtherReleases" storage="/users/dominikgoblirsch/git/novalist-official/tests/novalist.core.tests/bin/debug/net8.0/novalist.core.tests.dll" id="1c32453b-51eb-795a-8652-f26a7a1de287">
+      <Execution id="1fba82c5-5900-4527-8053-699a62825f25" />
+      <TestMethod codeBase="&lt;repo&gt;/tests/Novalist.Core.Tests/bin/Debug/net8.0/Novalist.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Core.Tests.Services.MobileTemporaryAccessTests" name="OneNativeStopFailureIsReportedWithoutSkippingOtherReleases" />
+    </UnitTest>
+    <UnitTest name="Novalist.Core.Tests.Services.MobileTemporaryAccessTests.ConcurrentReplacementReleaseAndDisposalBalanceEachAcquisitionOnce" storage="/users/dominikgoblirsch/git/novalist-official/tests/novalist.core.tests/bin/debug/net8.0/novalist.core.tests.dll" id="ac895cef-eddf-b1e6-a19b-ae029baea700">
+      <Execution id="07dabc4e-122d-4b4a-a0f4-8cebbaa83753" />
+      <TestMethod codeBase="&lt;repo&gt;/tests/Novalist.Core.Tests/bin/Debug/net8.0/Novalist.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Core.Tests.Services.MobileTemporaryAccessTests" name="ConcurrentReplacementReleaseAndDisposalBalanceEachAcquisitionOnce" />
+    </UnitTest>
+    <UnitTest name="Novalist.Core.Tests.Services.MobileTemporaryAccessTests.ReselectingTheSamePathReleasesOnlyThePreviousAcquisition" storage="/users/dominikgoblirsch/git/novalist-official/tests/novalist.core.tests/bin/debug/net8.0/novalist.core.tests.dll" id="d531e0f7-1661-6b64-c357-3a54f5c6d955">
+      <Execution id="fd591f89-6a8c-44eb-9012-c634cc2069cc" />
+      <TestMethod codeBase="&lt;repo&gt;/tests/Novalist.Core.Tests/bin/Debug/net8.0/Novalist.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Core.Tests.Services.MobileTemporaryAccessTests" name="ReselectingTheSamePathReleasesOnlyThePreviousAcquisition" />
+    </UnitTest>
+    <UnitTest name="Novalist.Core.Tests.Services.MobileTemporaryAccessTests.PageDisposalReleasesAllSelectionsAndDuplicateCleanupDoesNothing" storage="/users/dominikgoblirsch/git/novalist-official/tests/novalist.core.tests/bin/debug/net8.0/novalist.core.tests.dll" id="a4521fb3-8ce2-c5e3-1622-f960abcb03c0">
+      <Execution id="bb53cda2-324b-49f7-8710-954c422f607d" />
+      <TestMethod codeBase="&lt;repo&gt;/tests/Novalist.Core.Tests/bin/Debug/net8.0/Novalist.Core.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Core.Tests.Services.MobileTemporaryAccessTests" name="PageDisposalReleasesAllSelectionsAndDuplicateCleanupDoesNothing" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="a4521fb3-8ce2-c5e3-1622-f960abcb03c0" executionId="bb53cda2-324b-49f7-8710-954c422f607d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ac895cef-eddf-b1e6-a19b-ae029baea700" executionId="07dabc4e-122d-4b4a-a0f4-8cebbaa83753" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d531e0f7-1661-6b64-c357-3a54f5c6d955" executionId="fd591f89-6a8c-44eb-9012-c634cc2069cc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a432fd8d-e82a-f3a0-f987-2c4fbb88a3c9" executionId="fdc0c01e-e969-4150-8e5b-4995583560b1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1ea13a6b-5d91-f538-1f9b-38a55c5d4303" executionId="c2f5a34b-6ca4-4030-ab9c-106d41a0ea10" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1c32453b-51eb-795a-8652-f26a7a1de287" executionId="1fba82c5-5900-4527-8053-699a62825f25" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Ergebnisse nicht in einer Liste" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="Alle geladenen Ergebnisse" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="6" executed="6" passed="6" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 8.0.25)
+[xUnit.net 00:00:00.30]   Discovering: Novalist.Core.Tests
+[xUnit.net 00:00:00.91]   Discovered:  Novalist.Core.Tests
+[xUnit.net 00:00:01.02]   Starting:    Novalist.Core.Tests
+[xUnit.net 00:00:01.07]   Finished:    Novalist.Core.Tests
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

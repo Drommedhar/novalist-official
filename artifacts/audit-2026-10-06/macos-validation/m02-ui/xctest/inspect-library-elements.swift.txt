@@ -1,0 +1,12 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    for e in app.descendants(matching:.any).matching(NSPredicate(format:"label CONTAINS %@", "Audit Project")).allElementsBoundByIndex {
+      print("AUDIT_ELEMENT=" + String(e.elementType.rawValue) + ":" + e.label)
+    }
+
+  }
+}

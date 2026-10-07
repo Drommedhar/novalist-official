@@ -1,0 +1,77 @@
+--- a/Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs
+@@ -46,7 +46,7 @@
+         {
+             var script = $"typeof window.__novalistLifecycleSave === 'function' ? "
+                 + $"(window.__novalistLifecycleSave({requestId}), 'requested') : 'unavailable'";
+-            var state = await MainThread.InvokeOnMainThreadAsync(() => _web.EvaluateJavaScriptAsync(script))
++            var state = await MainThread.InvokeOnMainThreadAsync(() => EvaluateScriptAsync(script))
+                 .WaitAsync(deadline.Token).ConfigureAwait(false);
+             if (state?.Trim('"') != "requested") return;
+             if (!await acknowledgement.WaitAsync(deadline.Token).ConfigureAwait(false))
+--- a/Novalist.Mobile/Pages/RendererHostPage.Transport.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.Transport.cs
+@@ -13,7 +13,7 @@
+ 
+     private async Task DeliverCallbackAsync(string script)
+     {
+-        var result = await MainThread.InvokeOnMainThreadAsync(() => _web.EvaluateJavaScriptAsync(script))
++        var result = await MainThread.InvokeOnMainThreadAsync(() => EvaluateScriptAsync(script))
+             .WaitAsync(TimeSpan.FromSeconds(15), _cts.Token).ConfigureAwait(false);
+         if (result?.Trim('"') != "accepted") throw new IOException("The editor did not accept its response.");
+     }
+@@ -28,7 +28,7 @@
+         {
+             try
+             {
+-                await _web.EvaluateJavaScriptAsync("window.__novalistBridgeFailed?.()")
++                await EvaluateScriptAsync("window.__novalistBridgeFailed?.()")
+                     .WaitAsync(TimeSpan.FromSeconds(2));
+             }
+             catch (Exception) { /* A terminated WebKit process cannot receive the failure notification. */ }
+--- a/Novalist.Mobile/Pages/RendererHostPage.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.cs
+@@ -124,8 +124,6 @@
+         catch (Exception exception) { await FailBridgeAsync(exception).ConfigureAwait(false); }
+     }
+ 
+-    // ---- Host bridge (window.novalist) --------------------------------------
+-
+     private async Task HandleHostCallAsync(string json)
+     {
+         var id = 0;
+@@ -166,7 +164,7 @@
+     private Task EvalOnMainAsync(string js) =>
+         MainThread.InvokeOnMainThreadAsync(async () =>
+         {
+-            try { await _web.EvaluateJavaScriptAsync(js); }
++            try { await EvaluateScriptAsync(js); }
+             catch (Exception ex)
+             {
+                 // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Reports evaluation failure type without exposing script or response contents.
+--- a/Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs
+@@ -0,0 +1,23 @@
++#if IOS
++using WebKit;
++#endif
++
++namespace Novalist.Mobile.Pages;
++
++public sealed partial class RendererHostPage
++{
++    private async Task<string?> EvaluateScriptAsync(string script)
++    {
++#if IOS
++        if (_web.Handler?.PlatformView is not WKWebView webView)
++            throw new InvalidOperationException("The editor is not ready.");
++
++        // MAUI's async-void evaluation handler can throw outside the caller's
++        // task. Await WebKit directly so process failures reach our recovery path.
++        using var result = await webView.EvaluateJavaScriptAsync(script);
++        return result?.ToString();
++#else
++        return await _web.EvaluateJavaScriptAsync(script);
++#endif
++    }
++}

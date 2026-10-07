@@ -1,0 +1,127 @@
+Test Suite 'All tests' started at 2026-10-07 11:10:31.396.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:10:31.397.
+Test Suite 'AuditUITests' started at 2026-10-07 11:10:31.397.
+Test Case '-[AuditUITests.AuditUITests testMicrophoneEntryInspection]' started.
+    t =     0.00s Start Test at 2026-10-07 11:10:31.398
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Checking existence of `"selected" Button`
+    t =     0.05s Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     0.06s Checking existence of `Button (First Match)`
+AUDIT_MICROPHONE_ENTRY_BEGIN
+    t =     0.08s Requesting snapshot of accessibility hierarchy for app with pid 76015
+    t =     0.32s Requesting snapshot of accessibility hierarchy for app with pid 76015
+Attributes: Application, 0x106071cc0, pid: 76015, label: 'Novalist'
+Element subtree:
+ →Application, 0x106071cc0, pid: 76015, label: 'Novalist'
+    Window (Main), 0x106071b80, {{0.0, 0.0}, {440.0, 956.0}}
+      Other, 0x106071e00, {{0.0, 0.0}, {440.0, 956.0}}
+        Other, 0x106071f40, {{0.0, 0.0}, {440.0, 956.0}}
+          Other, 0x106072080, {{0.0, 0.0}, {440.0, 956.0}}
+            Other, 0x1060721c0, {{0.0, 0.0}, {440.0, 956.0}}
+              WebView, 0x106072300, {{0.0, 0.0}, {440.0, 956.0}}
+                WebView, 0x106072440, {{0.0, 0.0}, {440.0, 956.0}}
+                  Other, 0x106072580, {{0.0, 0.0}, {440.0, 956.0}}
+                    Other, 0x1060726c0, {{0.0, 0.0}, {440.0, 102.0}}
+                  WebView, 0x106072800, {{0.0, 0.0}, {440.0, 956.0}}
+                    Other, 0x106072940, {{0.0, 0.0}, {440.0, 956.0}}
+                      Other, 0x106072a80, {{0.0, 0.0}, {440.0, 956.0}}
+                        Other, 0x106072bc0, {{0.0, 0.0}, {440.0, 956.0}}
+                          Other, 0x106072d00, {{0.0, 0.0}, {440.0, 956.0}}, label: 'Novalist'
+                            Button, 0x106072e40, {{12.0, 70.0}, {119.0, 39.0}}, label: 'Manuscript'
+                            Button, 0x106072f80, {{388.0, 72.0}, {40.0, 35.0}}, label: 'Inspector'
+                            Other, 0x1060730c0, {{0.0, 118.0}, {440.0, 39.0}}, label: 'Editor commands'
+                              Button, 0x106073200, {{12.0, 124.0}, {106.0, 27.0}}, label: 'Paragraph style', value: Body
+                                Other, 0x106073340, {{0.0, 0.0}, {0.0, 0.0}}
+                              Switch, 0x106073480, {{128.0, 124.0}, {31.0, 27.0}}, label: 'Bulleted list', value: 0
+                              Switch, 0x1060735c0, {{163.0, 124.0}, {31.0, 27.0}}, label: 'Numbered list', value: 0
+                              Switch, 0x106073700, {{198.0, 124.0}, {31.0, 27.0}}, label: 'Align left', value: 1
+                              Switch, 0x106073840, {{233.0, 124.0}, {31.0, 27.0}}, label: 'Centre', value: 0
+                              Switch, 0x106073980, {{268.0, 124.0}, {31.0, 27.0}}, label: 'Align right', value: 0
+                              Switch, 0x106073ac0, {{303.0, 124.0}, {31.0, 27.0}}, label: 'Justify', value: 0
+                              Switch, 0x106073c00, {{342.0, 124.0}, {31.0, 27.0}}, label: 'Dictate', value: 0
+                              Button, 0x106073d40, {{377.0, 124.0}, {31.0, 27.0}}, label: 'Scene snapshots'
+                              Switch, 0x106073e80, {{412.0, 124.0}, {31.0, 27.0}}, label: 'Suggest edits instead of making them', value: 0
+                              Button, 0x102a935c0, {{447.0, 124.0}, {31.0, 27.0}}, label: 'Writing options'
+                            Other, 0x106080000, {{0.0, 158.0}, {440.0, 681.0}}, label: 'editor'
+                              Other, 0x106080140, {{0.0, 158.0}, {440.0, 681.0}}
+                                Other, 0x106080280, {{0.0, 158.0}, {440.0, 681.0}}, label: 'editor'
+                                  TextView, 0x1060803c0, {{0.0, 158.0}, {440.0, 1016.0}}, value: AUDIT_FIXED_SCENE_..., Keyboard Focused, Focused
+                                    Other, 0x106080500, {{119.0, 258.0}, {202.0, 58.0}}, Focused
+                                      StaticText, 0x106080640, {{119.0, 263.0}, {193.0, 48.0}}, label: 'AUDIT_FIXED_SCENE_20261007_A', value: AUDIT_FIXED_SCENE_..., Focused
+                                    StaticText, 0x106080780, {{119.0, 263.0}, {193.0, 48.0}}, label: 'AUDIT_FIXED_SCENE_20261007_A', value: AUDIT_FIXED_SCENE_..., Focused
+                                  Other, 0x1060808c0, {{378.0, 802.0}, {14.0, 14.0}}
+                  Other, 0x106080a00, {{0.0, 0.0}, {440.0, 956.0}}
+                    Other, 0x106080b40, {{0.0, 0.0}, {440.0, 102.0}}
+                  Other, 0x106080c80, {{407.0, 62.0}, {30.0, 832.0}}, label: 'Vertical scroll bar, 1 page', value: 0 %
+                    Other, 0x106080dc0, {{434.0, 161.0}, {3.0, 730.0}}
+                  Other, 0x106080f00, {{407.0, 62.0}, {30.0, 832.0}}, label: 'Vertical scroll bar, 1 page', value: 0 %
+                    Other, 0x106081040, {{434.0, 161.0}, {3.0, 730.0}}
+              Other, 0x106081180, {{0.0, 0.0}, {440.0, 956.0}}
+              TabBar, 0x1060812c0, {{0.0, 873.0}, {440.0, 83.0}}, label: 'Tab Bar'
+                Other, 0x106081400, {{21.0, 873.0}, {398.0, 62.0}}
+                  Other, 0x106081540, {{21.0, 873.0}, {87.7, 54.0}}
+                  Other, 0x106081680, {{21.0, 873.0}, {398.0, 62.0}}
+                    Button, 0x1060817c0, {{25.0, 877.0}, {87.7, 54.0}}, label: 'Dashboard'
+                      Image, 0x106081900, {{55.3, 884.3}, {27.0, 25.0}}, identifier: 'square.grid.2x2', label: 'Grid view'
+                    Button, 0x106081a40, {{100.6, 877.0}, {87.7, 54.0}}, label: 'Write', Selected
+                      Image, 0x106081b80, {{130.2, 881.0}, {28.3, 28.3}}, identifier: 'square.and.pencil', label: 'compose'
+                    Button, 0x106081cc0, {{176.2, 877.0}, {87.7, 54.0}}, label: 'Codex'
+                      Image, 0x106081e00, {{201.2, 884.3}, {37.7, 26.7}}, identifier: 'person.2', label: 'Two people'
+                    Button, 0x106081f40, {{251.8, 877.0}, {87.7, 54.0}}, label: 'Plan'
+                      Image, 0x106082080, {{281.1, 879.7}, {28.7, 32.0}}, identifier: 'square.stack.3d.up', label: 'hdr'
+                    Button, 0x1060821c0, {{327.3, 877.0}, {87.7, 54.0}}, label: 'Settings'
+                      Image, 0x106082300, {{356.7, 882.3}, {28.7, 28.7}}, identifier: 'gearshape', label: 'Gear shape'
+                  Other, 0x106082440, {{21.0, 873.0}, {398.0, 62.0}}
+                  Other, 0x106082580, {{21.0, 873.0}, {398.0, 62.0}}
+                    Other, 0x1060826c0, {{21.0, 873.0}, {398.0, 62.0}}
+                      Other, 0x106082800, {{21.0, 873.0}, {398.0, 62.0}}
+                        Other, 0x106082940, {{21.0, 873.0}, {398.0, 62.0}}
+                          Other, 0x106082a80, {{21.0, 873.0}, {398.0, 62.0}}
+                            Other, 0x106082bc0, {{21.0, 873.0}, {398.0, 62.0}}
+                        Other, 0x106082d00, {{21.0, 873.0}, {398.0, 62.0}}
+                          Other, 0x106082e40, {{21.0, 873.0}, {398.0, 62.0}}
+                  Other, 0x106082f80, {{100.6, 877.0}, {87.7, 54.0}}
+                    Other, 0x1060830c0, {{100.6, 877.0}, {87.7, 54.0}}
+                      Other, 0x106083200, {{100.6, 877.0}, {87.7, 54.0}}
+                      Other, 0x106083340, {{100.6, 877.0}, {87.7, 54.0}}
+                        Other, 0x106083480, {{100.6, 877.0}, {87.7, 54.0}}
+                          Other, 0x1060835c0, {{100.6, 877.0}, {87.7, 54.0}}
+                            Other, 0x106083700, {{100.6, 877.0}, {87.7, 54.0}}
+                          Other, 0x106083840, {{100.6, 877.0}, {87.7, 54.0}}
+                        Other, 0x106083980, {{100.6, 877.0}, {87.7, 54.0}}
+            Other, 0x106083ac0, {{0.0, 0.0}, {440.0, 956.0}}
+              Other, 0x106083c00, {{0.0, 0.0}, {440.0, 956.0}}
+    Window, 0x106083d40, {{0.0, 0.0}, {440.0, 956.0}}
+      Other, 0x106083e80, {{0.0, 0.0}, {440.0, 956.0}}
+        Other, 0x106084000, {{0.0, 0.0}, {440.0, 956.0}}
+Path to element:
+ →Application, 0x106071cc0, pid: 76015, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x106084140, pid: 76015, label: 'Novalist'
+  }
+
+AUDIT_MICROPHONE_ENTRY_END
+    t =     0.34s Checking existence of `"Dictation" Button`
+    t =     0.35s Tear Down
+Test Case '-[AuditUITests.AuditUITests testMicrophoneEntryInspection]' passed (0.355 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:10:31.754.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.355 (0.357) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:10:31.754.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.355 (0.357) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:10:31.754.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.355 (0.358) seconds
+2026-10-07 11:10:32.031 xcodebuild[81363:3028952] [MT] IDETestOperationsObserverDebug: 3.141 elapsed -- Testing started completed.
+2026-10-07 11:10:32.031 xcodebuild[81363:3028952] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 11:10:32.031 xcodebuild[81363:3028952] [MT] IDETestOperationsObserverDebug: 3.141 sec, +3.141 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-harness>/microphone-inspect.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

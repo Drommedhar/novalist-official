@@ -1,0 +1,9 @@
+dotnet-info	passed
+apple-build-regressions	passed
+install-web-dependencies	passed
+typecheck	passed
+transport	passed
+mobile-renderer	passed
+source-gates	passed
+ios-simulator	passed
+ios-speech-archive	passed

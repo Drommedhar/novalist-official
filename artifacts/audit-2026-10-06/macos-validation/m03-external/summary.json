@@ -1,0 +1,44 @@
+{
+  "finding": "M03",
+  "case": "M03-02 simulator supporting external-path acceptance",
+  "status": "simulator-external-matching-suffix-pass",
+  "device": "iPhone17Pro simulator",
+  "os": "iOS27.0",
+  "source_reference": "../simulator-ui/m05-smoke/share-final-inputs.json",
+  "installed_app_identity": "installed-app-identity.json",
+  "native_probes": false,
+  "fixture": "An owned local project created through New Project/default Documents and a separate Files-visible synthetic project both have Documents/Audit Matching Suffix. External has a different project/book identity and an external-only scene marker.",
+  "sequence": [
+    "Create local project through native UI; ownership registry records its exact path.",
+    "Prepare distinct synthetic external fixture without touching recents or ownership registry.",
+    "Use actual native folder picker to open external project and display its marker in editor.",
+    "Back up synthetic Documents/Library; install identical frozen app normally, causing actual data-container relocation and removal of old container. No restored or edited state.",
+    "Launch and open actual external recent card without picker; verify external-only marker in editor and read-only registry/recents/identity checks."
+  ],
+  "observed": {
+    "external_recent_path_stayed_external": true,
+    "external_never_recorded_as_owned": true,
+    "local_current_exact_owned_alias_and_recent_repaired": true,
+    "distinct_project_and_book_identities_preserved": true,
+    "external_scene_hash_preserved": true,
+    "local_project_metadata_hash_preserved": true,
+    "external_metadata_semantically_unchanged": true,
+    "metadata_format_note": "Only final newline was removed by normal production serialization. See metadata-normalization.json."
+  },
+  "evidence": [
+    "01-fixture-setup.json",
+    "02-before-relocation.json",
+    "03-real-relocation.json",
+    "04-after-relocation-reopen.json",
+    "metadata-normalization.json",
+    "xctest-summary.json",
+    "native-external-picker.png",
+    "native-external-editor-after-relocation.png"
+  ],
+  "limitations": [
+    "Physical-device relocation remains not-run under simulator-only authorization.",
+    "Uses native sharing/owned-path/journaling/media-CSP frozen source identified by M05 manifest; later map3D changes are outside this snapshot.",
+    "Two initial fixture-creation harness attempts were excluded: covered Create button hit a keyboard character; explicit native keyboard dismissal and corrected synthetic name produced the accepted creation run."
+  ],
+  "data_preservation": "All existing synthetic projects/files preserved; pre-relocation Documents/Library backup remains in disposable scratch storage; no manual registry or recents repair."
+}

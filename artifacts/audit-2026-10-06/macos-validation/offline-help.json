@@ -1,0 +1,257 @@
+{
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "probe_diff_sha256": "2580103702a3a67ac99bc3680b0f61b8c7a3ef9f39c55e8d5396a01fefc26ca0",
+  "simulator": "iPhone 17 Pro",
+  "os": "iOS 27.0",
+  "status": "passed",
+  "method": "Actual Help UI buttons clicked in WKWebView; browser-enforced CSP blocks HTTP(S) fetch/image/media requests, preserves app:// local assets. External fetch rejection confirmed by securitypolicyviolation/connect-src. Simulator does not provide physical airplane-mode evidence.",
+  "observed": {
+    "status": "passed",
+    "pages": [
+      {
+        "heading": "Novalist User Manual",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Getting Started",
+        "screenshotCount": 1
+      },
+      {
+        "heading": "Interface Overview",
+        "screenshotCount": 1
+      },
+      {
+        "heading": "Projects & Books",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Chapters & Scenes",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Editor",
+        "screenshotCount": 1
+      },
+      {
+        "heading": "Codex (Characters, Locations, Items, Lore, Custom types)",
+        "screenshotCount": 1
+      },
+      {
+        "heading": "Templates",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Plot Grid & Plotlines",
+        "screenshotCount": 1
+      },
+      {
+        "heading": "Manuscript view",
+        "screenshotCount": 1
+      },
+      {
+        "heading": "Dashboard",
+        "screenshotCount": 1
+      },
+      {
+        "heading": "Timeline",
+        "screenshotCount": 1
+      },
+      {
+        "heading": "Calendar & story dates",
+        "screenshotCount": 1
+      },
+      {
+        "heading": "Relationships graph",
+        "screenshotCount": 1
+      },
+      {
+        "heading": "Research",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Smart Lists",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Snapshots",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Git integration",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Image Gallery",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Export",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Find & Replace",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Inspector",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Settings",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Extensions",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Command Palette",
+        "screenshotCount": 1
+      },
+      {
+        "heading": "Hotkeys reference",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Localization",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Troubleshooting & FAQ",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Maps",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Wiki",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Quick Open (search everything)",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Expos\u00e9",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Dialogue",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Custom themes and language packs",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Backups",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Style report",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Planning board",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Importing a manuscript",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Accessibility",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Series",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "The command line, and novalist:// links",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Languages",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Does this scene work?",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Craft reference",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "About",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Drafts",
+        "screenshotCount": 0
+      },
+      {
+        "heading": "Narration",
+        "screenshotCount": 0
+      }
+    ],
+    "images": {
+      "start-screen-BvRe-Sy9.png": {
+        "width": 1440,
+        "height": 900
+      },
+      "interface-overview-CF0MAiIW.png": {
+        "width": 1440,
+        "height": 900
+      },
+      "editor-HTwOZI_U.png": {
+        "width": 1440,
+        "height": 900
+      },
+      "codex-Dm7nA2_e.png": {
+        "width": 1440,
+        "height": 900
+      },
+      "plot-grid-CFu546Gv.png": {
+        "width": 1440,
+        "height": 900
+      },
+      "manuscript-BxONnxtb.png": {
+        "width": 1440,
+        "height": 900
+      },
+      "dashboard-CWhGlVIK.png": {
+        "width": 1440,
+        "height": 900
+      },
+      "timeline-Kmm0y5rk.png": {
+        "width": 1440,
+        "height": 900
+      },
+      "calendar-CbP15NkD.png": {
+        "width": 1440,
+        "height": 900
+      },
+      "relationships-D9wZaZdB.png": {
+        "width": 1440,
+        "height": 900
+      },
+      "command-palette-C8RKrZnJ.png": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    "externalFetchBlocked": true,
+    "blockedByPolicy": true
+  },
+  "evidence": [
+    "offline-help-probe.js",
+    "audit-control.patch"
+  ],
+  "limitations": [
+    "Physical iPhone/iPad Help and performance acceptance remain pending.",
+    "Initial broader test CSP blocked the evaluation bridge; it was removed by real native Reload, then narrowed to network resource directives before this successful run."
+  ]
+}

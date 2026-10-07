@@ -1,0 +1,193 @@
+{
+  "finding": "M02",
+  "status": "simulator-acceptance-pass",
+  "device": "iPhone 17 Pro simulator",
+  "os": "iOS 27.0",
+  "source": "source.json",
+  "cases": [
+    {
+      "id": "actual-external-folder-reselect",
+      "status": "pass",
+      "observed": "Native New Project Browse selected FixtureParent via real UIDocumentPicker (successfulStarts1/stop0/retainedFolders1). A second confirmed selection of the same folder replaced the prior native scope (starts2/stops1/completed1/retained1). No synthetic URL or successful-start stub.",
+      "evidence": [
+        "02-folder-acquired.json",
+        "03-folder-selected-ui.json",
+        "07-picker-dismissal-check.json",
+        "xctest/folder-confirm-visible-dismissal.log"
+      ]
+    },
+    {
+      "id": "actual-external-folder-cancel",
+      "status": "pass",
+      "observed": "From the actual creation dialog, opened the native picker and dismissed its sheet. XCTest required DOCPicker.actionButton disappear and Create Project be hittable. Cancellation preserved existing parent/grant at2/1/retained1. Subsequent real creation under that parent ended2/2/retained0.",
+      "evidence": [
+        "08-folder-cancel-confirmed.json",
+        "xctest/folder-cancel-confirmed.log",
+        "10-after-create-a.json",
+        "11-project-a-created.json"
+      ]
+    },
+    {
+      "id": "actual-import-dialog-preview",
+      "status": "pass",
+      "observed": "With real project A loaded, opened the existing Import Manuscript dialog via production menu-command handler. Selected external manuscript.txt with native Files UI and confirmed actual dismissal. Real preview showed one chapter and no visible error; native counts3/2/pageGrants1.",
+      "evidence": [
+        "14-import-first-confirmed-grant.json",
+        "15-import-first-confirmed-preview-ui.json",
+        "17-import-cancel-preserves-preview.json",
+        "xctest/import-first-selection-confirmed.log"
+      ]
+    },
+    {
+      "id": "actual-import-picker-cancel",
+      "status": "pass",
+      "observed": "Opened a new picker from the import dialog and cancelled via actual sheet dismissal. Picker callback count advanced1\u21922; the first file and parsed preview remained, Choose was enabled, no error displayed, and native grant stayed3/2/pageGrants1.",
+      "evidence": [
+        "16-import-after-cancel.json",
+        "17-import-cancel-preserves-preview.json",
+        "xctest/import-picker-cancel.log"
+      ]
+    },
+    {
+      "id": "actual-import-dialog-reselect",
+      "status": "pass",
+      "observed": "Selected a DIFFERENT real file manuscript-two.txt from the same import dialog. The second file was previewed without error. Its actual native acquisition raised starts4; React replacement cleanup invoked one native stop, leaving4/3/pageGrants1.",
+      "evidence": [
+        "18-import-second-grant-first-released.json",
+        "19-import-second-preview-ui.json",
+        "import-preview.png",
+        "xctest/import-reselect-second-file.log"
+      ]
+    },
+    {
+      "id": "actual-import-dialog-close",
+      "status": "pass",
+      "observed": "Tapped the actual Close control via native XCTest, required Choose disappear and dashboard exist. The production component unmounted and released its retained file: starts4/stops4/completed4/pageGrants0; DOM independently confirmed no import dialog.",
+      "evidence": [
+        "20-import-dialog-close-balanced.json",
+        "21-import-dialog-closed-ui.json",
+        "xctest/import-dialog-close.log"
+      ]
+    },
+    {
+      "id": "full-sibling-project-parent-move",
+      "status": "pass",
+      "observed": "Created two complete Novalist projects under the same external FixtureParent through real creation dialogs. Each had one book and distinct project/book identities. Native fixture app moved the real parent with NSFileCoordinator/FileManager; old parent became absent. On foreground resume, BOTH real recent-library cards changed to MovedParent without repicking. Metadata file hashes and project/book identity hashes remained exactly unchanged. Native bookmark work acquired/released twice, ending7/7/retained0.",
+      "evidence": [
+        "22-project-b-parent-ui.json",
+        "23-identities-before-move.json",
+        "24-before-parent-move-balanced.json",
+        "25-library-before-move.json",
+        "26-identities-after-move.json",
+        "27-library-after-move.json",
+        "28-after-parent-move.json",
+        "xctest/create-project-b-confirmed.log",
+        "xctest/move-full-sibling-projects.log",
+        "Fixture.swift"
+      ]
+    },
+    {
+      "id": "full-sibling-project-recent-reopens",
+      "status": "pass",
+      "observed": "Native XCTest double-tapped the actual recent cards (native accessibility type40, selected by label across descendants). A reopened its own dashboard with starts8/stops7/retained1 and B absent; after close, B reopened its own dashboard with9/8/retained1 and A absent. No picker appeared. Final close left both recent cards, no recovery alert, native9/9/completed9/zero folder/file grants. Both project/book identities and metadata file hashes still matched the premove values.",
+      "evidence": [
+        "31-moved-project-a-open-confirmed.json",
+        "32-moved-project-a-dashboard-confirmed.json",
+        "33-moved-project-b-open-confirmed.json",
+        "34-moved-project-b-dashboard-confirmed.json",
+        "35-final-native-balance.json",
+        "36-identities-after-reopens.json",
+        "xctest/reopen-moved-project-a-confirmed.log",
+        "xctest/reopen-moved-project-b-confirmed.log",
+        "xctest/final-library-balanced.log",
+        "moved-project-library.png"
+      ]
+    },
+    {
+      "id": "probe-removal-clean-build-and-launch",
+      "status": "pass",
+      "observed": "All counters, callback gates and audit control removed; Mobile/Core/Backend/Sdk outputs cleared. Native build0errors14warnings, strict deep signature verification, clean install/launch and native XCTest two moved-project cards/no recovery alert all passed. Synthetic control files removed.",
+      "evidence": [
+        "probe-removal.json",
+        "clean-final-build.log",
+        "xctest/clean-final-library.log"
+      ]
+    },
+    {
+      "id": "actual-import-apply-and-persisted-marker",
+      "status": "pass",
+      "observed": "Reopened actual moved project A, selected external manuscript.txt with a genuine native picker, then native XCTest tapped Import. UI reported 1 imported chapter, 1 scene and 4 words. While success dialog was STILL OPEN, source name and Import action were cleared and native file grant was already stopped: starts2/stops1/completed1/retainedFolders1/pageGrants0. The expected synthetic marker is present in exactly one native .novalist scene in target A and absent from sibling B; project and active-book identity hashes are unchanged.",
+      "evidence": [
+        "40-import-apply-baseline.json",
+        "42-before-import-apply-grants.json",
+        "43-import-apply-preview-ui.json",
+        "44-import-completed-ui.json",
+        "45-import-completion-file-grant-released.json",
+        "47-after-import-marker-native-format.json",
+        "import-completed.png",
+        "xctest/actual-import-apply.log",
+        "xctest/actual-import-apply.swift.txt",
+        "import-marker.py"
+      ]
+    },
+    {
+      "id": "completed-import-close-and-reselect",
+      "status": "pass",
+      "observed": "Closing the completed result dialog did not double-stop the already released file grant (still2/1 with project folder retained). Closing project balanced2/2. Reopened A and selected a DIFFERENT real external manuscript again; preview succeeded without error and Import was enabled (starts4/stops2/folder1/file1). Closed that preview without duplicate import, then project; final 4 successful starts / 4 native stop calls / 4 completed stops/zero retained folder or file grants.",
+      "evidence": [
+        "48-after-import-dialog-close.json",
+        "49-after-import-all-grants-balanced.json",
+        "50-post-import-reselection-grants.json",
+        "51-post-import-reselection-preview.json",
+        "52-import-run-final-native-balance.json",
+        "xctest/imported-dialog-close.log",
+        "xctest/post-import-reselect-file.log",
+        "xctest/post-import-reselection-close.log",
+        "xctest/final-import-library.log"
+      ]
+    },
+    {
+      "id": "final-clean-build-relaunch-import-persistence",
+      "status": "pass",
+      "observed": "After actual Import and post-completion reselection, all probes were removed again and all native project outputs cleared. Final native build had 0 errors and 14 warnings; strict deep signature verification, install, clean launch and native library XCTest passed. Marker remained in the same single target-A native scene after clean relaunch, absent from B.",
+      "evidence": [
+        "probe-removal.json",
+        "clean-after-import-build.log",
+        "xctest/clean-after-import-library.log",
+        "53-import-marker-after-clean-relaunch.json"
+      ]
+    }
+  ],
+  "earlier_page_disposal_and_real_webkit_late_picker_proof": "../m02/summary.json",
+  "instrumented_source_bytes_match_earlier_late_picker_run": true,
+  "identity_hashes_equal_before_move_after_reopens": true,
+  "native_final_counters": {
+    "successfulStarts": 9,
+    "failedStarts": 0,
+    "stopCalls": 9,
+    "completedStops": 9,
+    "retainedFolders": 0,
+    "pageGrants": 0
+  },
+  "probe_cleanup": "probe-removal.json",
+  "physical_device": "not-run; simulator-only authorization",
+  "excluded_attempts": [
+    "04-folder-cancel.json and05-folder-reselected.json are preliminary checks that only saw underlying Create Project, not actual picker dismissal; not credited. Explicit later dismissal tests and native counters establish actual behavior.",
+    "create-project-a and create-project-a-confirmed used a wrong assertion that project title was a button; the actual dashboard and on-disk project were independently confirmed.",
+    "import-first-selection navigated to Files root instead of fixture app; no acquisition occurred. import-first-selection-confirmed provides the real accepted selection.",
+    "close-before-parent-move and initial reopen-moved-project-a/b queried card titles as buttons/static text; iOS exposes aria-pressed cards as native element type40. Confirmed tests target actual native elements and pass.",
+    "29-moved-project-a-open.json and30-moved-project-a-dashboard.json are excluded preliminary state before an actual successful open.",
+    "import-apply-native-pick and import-apply-native-pick-confirmed were navigation retries from remembered moved-parent location. import-apply-fixture-select selected the file successfully but then wrongly expected an Open button after automatic dismissal. Actual preview/grant and Import completion are independently proven.",
+    "46-after-import-marker.json omitted the .novalist scene extension and is NOT persistence evidence. Correct native-format scan 47 proves the expected marker in one target scene and absent from sibling B. Initial scan 41 also covered only generic text extensions."
+  ],
+  "evidence_policy": "Only synthetic fixture names are visible. Raw project/book identifiers are SHA256 hashed. No manuscript body, personal paths, credentials, remote tooling or product features were added.",
+  "actual_import_run_source": "import-run-source.json",
+  "import_run_final_native_counters": {
+    "successfulStarts": 4,
+    "failedStarts": 0,
+    "stopCalls": 4,
+    "completedStops": 4,
+    "retainedFolders": 0,
+    "pageGrants": 0
+  }
+}

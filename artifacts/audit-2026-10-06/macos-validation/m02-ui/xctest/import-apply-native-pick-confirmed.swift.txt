@@ -1,0 +1,26 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    let file = app.cells.containing(.staticText, identifier:"manuscript").firstMatch
+    for _ in 0..<4 {
+      if file.waitForExistence(timeout:1) { break }
+      let local = app.staticTexts["Auf meinem iPhone"].firstMatch
+      let fixtures = app.cells.containing(.staticText, identifier:"Audit Fixtures").firstMatch
+      if local.exists { local.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).tap() }
+      else if fixtures.exists { fixtures.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.25)).tap() }
+      else { app.buttons["DOC.navBarButton.backInHistory"].coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).tap() }
+    }
+    XCTAssertTrue(file.exists)
+    file.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.25)).tap()
+    let open = app.buttons["DOCPicker.actionButton"]
+    if open.waitForExistence(timeout:1) {
+      open.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).tap()
+      XCTAssertTrue(open.waitForNonExistence(timeout:5))
+    }
+    XCTAssertTrue(app.buttons["Import"].firstMatch.waitForExistence(timeout:5))
+
+  }
+}

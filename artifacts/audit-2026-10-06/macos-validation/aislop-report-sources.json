@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "1",
+  "cliVersion": "0.18.1",
+  "version": "0.18.1",
+  "score": 94,
+  "label": "Healthy",
+  "scoreable": true,
+  "coverage": {
+    "supportedFiles": 1,
+    "unsupportedFiles": 0,
+    "dominantUnsupported": null,
+    "scoreable": true
+  },
+  "engines": {
+    "format": {
+      "issues": 0,
+      "skipped": true,
+      "elapsed": 126.49879199999998,
+      "skipReason": "missing tools: ruff",
+      "missingTools": [
+        "ruff"
+      ]
+    },
+    "lint": {
+      "issues": 0,
+      "skipped": true,
+      "elapsed": 126.47075000000007,
+      "skipReason": "missing tools: ruff",
+      "missingTools": [
+        "ruff"
+      ]
+    },
+    "code-quality": {
+      "issues": 1,
+      "skipped": false,
+      "elapsed": 126.54766599999994
+    },
+    "ai-slop": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 124.34437500000001
+    },
+    "security": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 1.8156249999999545
+    }
+  },
+  "engineDefinitions": {
+    "format": {
+      "label": "Formatting",
+      "description": "Whitespace, indentation, line wrapping, and import ordering"
+    },
+    "lint": {
+      "label": "Linting",
+      "description": "Static analysis for likely bugs and bad patterns"
+    },
+    "code-quality": {
+      "label": "Code Quality",
+      "description": "Complexity limits, dead code detection, and duplication checks"
+    },
+    "ai-slop": {
+      "label": "AI Slop",
+      "description": "Narrative comments, dead patterns, unsafe type casts, TODO stubs, generic names"
+    },
+    "architecture": {
+      "label": "Architecture",
+      "description": "Project-specific import and layering rules"
+    },
+    "security": {
+      "label": "Security",
+      "description": "Secret leaks, risky APIs, and dependency vulnerabilities"
+    }
+  },
+  "diagnostics": [
+    {
+      "filePath": "artifacts/audit-2026-10-06/build-implementation-report.py",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 153,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "main · 98 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    }
+  ],
+  "findingAssessment": {
+    "rows": [
+      {
+        "kind": "style-policy",
+        "label": "style/policy",
+        "count": 1,
+        "errors": 0,
+        "warnings": 1,
+        "info": 0,
+        "fixable": 0
+      }
+    ],
+    "byKind": {
+      "confirmed-defect": 0,
+      "conservative-security": 0,
+      "style-policy": 1,
+      "ai-slop-indicator": 0
+    },
+    "byConfidence": {
+      "high": 0,
+      "medium": 1,
+      "low": 0
+    }
+  },
+  "summary": {
+    "errors": 0,
+    "warnings": 1,
+    "fixable": 0,
+    "files": 1,
+    "elapsed": "128ms"
+  }
+}

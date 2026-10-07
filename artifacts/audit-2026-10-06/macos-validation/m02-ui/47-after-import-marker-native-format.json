@@ -1,0 +1,23 @@
+{
+  "expected_synthetic_marker_sha256": "626ab3eb7f4d400a49b8c4268322be69b07099bfe450b898671da9d5205ff499",
+  "projects": {
+    "A": {
+      "project_id_sha256": "49a7ca4e8844f60c075c44d30adc50155a99cdbfb85cab2f9fecdb2fe3dfc301",
+      "active_book_id_sha256": "30e4148ba516e6b8ea88ebcefcae93ed92ac8648a7002df258b822a291eea735",
+      "matching_marker_files": [
+        {
+          "path_suffix": ".novalist",
+          "relative_path_sha256": "26d0932cf6c9c8dda33402bfa46098bc8e8ed4485ee6fb0249cdb6c8234e118c",
+          "file_sha256": "d3a74d0bfed1db6febcd1a83ed7882926cf56191f447f92f11323b49362a4ef3"
+        }
+      ],
+      "marker_file_count": 1
+    },
+    "B": {
+      "project_id_sha256": "4cb1390ddf9c15a2505483b3c1d7ae5267507c5e90a9a9ae0893b0e809a810cc",
+      "active_book_id_sha256": "1cd273c71c1348dc7aafe760b92f36982442d80f3955e6f017ada1cca27cbbd6",
+      "matching_marker_files": [],
+      "marker_file_count": 0
+    }
+  }
+}

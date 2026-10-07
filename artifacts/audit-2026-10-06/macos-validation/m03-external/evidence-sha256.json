@@ -1,0 +1,22 @@
+{
+  "record-state.py": "aa5cc6a667aa8728cab1e766baebc46a69ccd1b0a6f415f0f782779bf5d941d2",
+  "summary.json": "6911511ed0e89079cfb2e94fd8a332fd9408be02fd03a690bf44fb8b761cd170",
+  "01-fixture-setup.json": "ce39e0c1c314cf93264bf619c1b6dd7e2dcbfea1e591a7888ff05936b528aac1",
+  "02-before-relocation.json": "be323141aac153f9c5c6dfb15e84043e94a9ce681f2056e35cd6cf82ff451ca0",
+  "installed-app-identity.json": "353941ffb5d0344d94aebbe09a1293bac3628432715f6d1ccdfe494007dfbfb3",
+  "native-external-picker.png": "899d277d0027fd9398e68ba160a956930589dace9441a4eb14077f994c267733",
+  "native-external-editor-after-relocation.png": "a19749833837480fe6d68ee9fd2dafe0730dfcc7d7552ffd5723688d40ed3098",
+  "04-after-relocation-reopen.json": "a9151a36e4b03db57d23004187434878bf4624b992fb089c030296482c15d7a7",
+  "03-real-relocation.json": "38e156a3a24fa8be68bbbdcae542cf75309971203ae81b168cef9c1305290dcf",
+  "metadata-normalization.json": "5a21e8841247369796322b96ba10c647d6cd6d4d3986f468ae5250223506e2be",
+  "setup-fixture.py": "25c779bc4b71d72f3fce94512b5fb900ed2bf3710c5e9a425a221510ff01f4cf",
+  "xctest-summary.json": "53364a96f535e3d7075deb043227a2a78e8997c5174ac9c0e873a574a36c3fbd",
+  "xctest/open-real-external-folder-picker.log": "a7f99a41915fb79365e1fabcda665030882572c37228cc50ade756f963834a01",
+  "xctest/select-external-and-check-marker.swift.txt": "77271248efa44f187ed354374d3601d81df2d02db7f283b1fbedc4e94580200e",
+  "xctest/create-owned-keyboard-dismissed.swift.txt": "132dc345e76111b74626163f6dee3dd5f4f0939743f1eada3c9d7eea3ed857f8",
+  "xctest/reopen-external-recent-after-relocation.swift.txt": "627c41b81266e1efc615e859d6ce917af686fa1fbefba1f958f581ed5fe6ccdf",
+  "xctest/reopen-external-recent-after-relocation.log": "dd3e945e5bff3c54ad7501c3fb5ea5a7c6a60bf2ab77d4dcfede2eac3224e5d5",
+  "xctest/open-real-external-folder-picker.swift.txt": "8fdc4acf5751587593a2635dfe4b932517c124713b9b76228477c79483dc6617",
+  "xctest/select-external-and-check-marker.log": "3260f6fc4b64ea18fe66cb069f92e204113733578ce5d85881f7cd880a720adb",
+  "xctest/create-owned-keyboard-dismissed.log": "6407a0fadbdf39635ca180e8d473fb69e50f136830d420a17b00422c2e02d166"
+}

@@ -1,0 +1,17 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    let fixture = XCUIApplication(bundleIdentifier:"com.novalist.audit.fixtures")
+    fixture.activate()
+    let move = fixture.buttons["Move synthetic parent"]
+    XCTAssertTrue(move.waitForExistence(timeout:5))
+    move.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).tap()
+    XCTAssertTrue(fixture.staticTexts["Synthetic parent moved"].waitForExistence(timeout:5))
+    app.activate()
+    XCTAssertTrue(app.buttons["Browse for Project Folder..."].waitForExistence(timeout:10))
+
+  }
+}

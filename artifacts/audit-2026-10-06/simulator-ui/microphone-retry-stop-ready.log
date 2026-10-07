@@ -1,0 +1,113 @@
+Test Suite 'All tests' started at 2026-10-07 11:16:46.711.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:16:46.711.
+Test Suite 'AuditUITests' started at 2026-10-07 11:16:46.711.
+Test Case '-[AuditUITests.AuditUITests testMicrophoneRetryStopAndBackground]' started.
+    t =     0.00s Start Test at 2026-10-07 11:16:46.716
+    t =     0.02s Set Up
+    t =     0.02s Terminate com.novalist.app:82661
+    t =     1.05s Open com.novalist.app
+    t =     1.05s     Launch com.novalist.app
+    t =     1.07s         Setting up automation session
+    t =     3.64s         Wait for com.novalist.app to idle
+    t =     5.28s Waiting 20.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =     6.32s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     6.32s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     6.38s Double tap "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     6.38s     Wait for com.novalist.app to idle
+    t =     6.38s     Find the "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     6.39s     Check for interrupting elements affecting "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     6.41s     Synthesize event
+    t =     6.76s     Wait for com.novalist.app to idle
+    t =     6.76s Waiting 15.0s for "Write" Button to exist
+    t =     7.80s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =     7.80s         Checking existence of `"Write" Button`
+    t =     7.91s Tap "Write" Button
+    t =     7.91s     Wait for com.novalist.app to idle
+    t =     7.91s     Find the "Write" Button
+    t =     7.98s     Check for interrupting elements affecting "Write" Button
+    t =     8.01s     Synthesize event
+    t =     8.30s     Wait for com.novalist.app to idle
+    t =     9.77s Tap Button (First Match)
+    t =     9.77s     Wait for com.novalist.app to idle
+    t =     9.77s     Find the Button (First Match)
+    t =     9.79s     Check for interrupting elements affecting "Audit Fixed Scene 20261007 5" Button
+    t =     9.81s     Synthesize event
+    t =    10.10s     Wait for com.novalist.app to idle
+    t =    10.10s Checking existence of `"Start dictation" Button`
+    t =    10.12s Tap "Dictate" Switch
+    t =    10.12s     Wait for com.novalist.app to idle
+    t =    10.12s     Find the "Dictate" Switch
+    t =    10.13s     Check for interrupting elements affecting "Dictate" Switch
+    t =    10.15s     Synthesize event
+    t =    10.44s     Wait for com.novalist.app to idle
+    t =    10.45s Checking existence of `"Microphone access was denied. Allow microphone access in your system settings, then try again." StaticText`
+AUDIT_MICROPHONE_PERMISSION_ERROR_BEFORE_RETRY=false
+    t =    10.47s Waiting 10.0s for "Start dictation" Button to exist
+    t =    11.51s     Checking `Expect predicate `existsNoRetry == 1` for object "Start dictation" Button`
+    t =    11.51s         Checking existence of `"Start dictation" Button`
+    t =    11.53s Tap "Start dictation" Button
+    t =    11.53s     Wait for com.novalist.app to idle
+    t =    11.53s     Find the "Start dictation" Button
+    t =    11.55s     Check for interrupting elements affecting "Start dictation" Button
+    t =    11.58s     Synthesize event
+    t =    11.86s     Wait for com.novalist.app to idle
+    t =    17.16s Waiting 8.0s for "Listening…" StaticText to exist
+    t =    18.20s     Checking `Expect predicate `existsNoRetry == 1` for object "Listening…" StaticText`
+    t =    18.20s         Checking existence of `"Listening…" StaticText`
+AUDIT_MICROPHONE_LISTENING=true
+    t =    18.22s Checking existence of `"Microphone access was denied. Allow microphone access in your system settings, then try again." StaticText`
+AUDIT_MICROPHONE_PERMISSION_ERROR_AFTER_RETRY=false
+    t =    18.24s Checking existence of `"The microphone could not be opened. Check that it is connected and available." StaticText`
+AUDIT_MICROPHONE_GENERIC_ERROR=false
+    t =    18.27s Checking existence of `"Microphone access was denied. Allow microphone access in your system settings, then try again." StaticText`
+    t =    18.29s Checking existence of `"The microphone could not be opened. Check that it is connected and available." StaticText`
+    t =    18.31s Tap "Stop dictation" Button
+    t =    18.31s     Wait for com.novalist.app to idle
+    t =    18.32s     Find the "Stop dictation" Button
+    t =    18.34s     Check for interrupting elements affecting "Stop dictation" Button
+    t =    18.37s     Synthesize event
+    t =    18.66s     Wait for com.novalist.app to idle
+    t =    18.73s Waiting 5.0s for "Start dictation" Button to exist
+    t =    19.76s     Checking `Expect predicate `existsNoRetry == 1` for object "Start dictation" Button`
+    t =    19.76s         Checking existence of `"Start dictation" Button`
+    t =    19.79s Checking existence of `"Stop dictation" Button`
+    t =    19.81s Checking existence of `"Listening…" StaticText`
+AUDIT_MICROPHONE_RETRY_AND_STOP_PASS
+    t =    19.82s Tap "Start dictation" Button
+    t =    19.82s     Wait for com.novalist.app to idle
+    t =    19.83s     Find the "Start dictation" Button
+    t =    19.85s     Check for interrupting elements affecting "Start dictation" Button
+    t =    19.87s     Synthesize event
+    t =    20.15s     Wait for com.novalist.app to idle
+    t =    20.26s Waiting 5.0s for "Listening…" StaticText to exist
+    t =    21.29s     Checking `Expect predicate `existsNoRetry == 1` for object "Listening…" StaticText`
+    t =    21.29s         Checking existence of `"Listening…" StaticText`
+    t =    21.32s Pressing Home button
+    t =    21.79s Open com.novalist.app
+    t =    21.79s     Activate com.novalist.app
+    t =    22.27s         Wait for com.novalist.app to idle
+    t =    22.35s Waiting 8.0s for "Start dictation" Button to exist
+    t =    23.39s     Checking `Expect predicate `existsNoRetry == 1` for object "Start dictation" Button`
+    t =    23.39s         Checking existence of `"Start dictation" Button`
+    t =    23.41s Checking existence of `"Stop dictation" Button`
+    t =    23.43s Checking existence of `"Listening…" StaticText`
+    t =    23.45s Checking existence of `"Microphone access was denied. Allow microphone access in your system settings, then try again." StaticText`
+AUDIT_MICROPHONE_BACKGROUND_STOP_PASS
+    t =    23.47s Tear Down
+Test Case '-[AuditUITests.AuditUITests testMicrophoneRetryStopAndBackground]' passed (23.711 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:17:10.427.
+	 Executed 1 test, with 0 failures (0 unexpected) in 23.711 (23.716) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:17:10.427.
+	 Executed 1 test, with 0 failures (0 unexpected) in 23.711 (23.716) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:17:10.427.
+	 Executed 1 test, with 0 failures (0 unexpected) in 23.711 (23.717) seconds
+2026-10-07 11:17:10.718 xcodebuild[82836:3051354] [MT] IDETestOperationsObserverDebug: 26.544 elapsed -- Testing started completed.
+2026-10-07 11:17:10.718 xcodebuild[82836:3051354] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 11:17:10.718 xcodebuild[82836:3051354] [MT] IDETestOperationsObserverDebug: 26.544 sec, +26.544 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-harness>/microphone-retry-stop-ready.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

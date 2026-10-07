@@ -1,0 +1,72 @@
+{
+  "started_utc": "2026-10-07T08:29:36.077546+00:00",
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "source_archive_sha256": "f5e59e1fa812dedd1f393d11df3640ee6dc89763d70f82fe62c87fdb7f99adcb",
+  "source_scope": "git archive HEAD; no main checkout modifications copied",
+  "renderer_assets_scope": "current generated Resources/Raw/app copied unchanged",
+  "renderer_asset_count": 203,
+  "renderer_manifest_sha256": "64fd65591ae82f201c2bcf7678247d4c78b66ab3d33da6f98acca4a045a2c701",
+  "probe_file": "Novalist.Mobile/Platforms/iOS/Program.cs",
+  "probe": "#error NOVALIST_AUDIT_M05_INVALID_IOS_SYMBOL",
+  "original_program_sha256": "ec1335794d6358c1f7f7c3a8ce68aafdf7a3af3c41e905bfbb9ac6ed201625a1",
+  "probe_program_sha256": "ff99d9d6763617d4e0426ccf7ddbd63d5a906ed13fc649917f7ef62ee17c65f5",
+  "status": "passed",
+  "negative_build_exit_code": 1,
+  "negative_build_expected_error": "CS1029 NOVALIST_AUDIT_M05_INVALID_IOS_SYMBOL",
+  "probe_removed": true,
+  "positive_tracked_source_matches_archive": true,
+  "positive_source_differences": [],
+  "cleaned_disposable_outputs": [
+    "Novalist.Mobile/bin",
+    "Novalist.Mobile/obj",
+    "Novalist.Backend/bin",
+    "Novalist.Backend/obj",
+    "Novalist.Core/bin",
+    "Novalist.Core/obj",
+    "Novalist.Sdk/bin",
+    "Novalist.Sdk/obj"
+  ],
+  "restored_program_sha256": "ec1335794d6358c1f7f7c3a8ce68aafdf7a3af3c41e905bfbb9ac6ed201625a1",
+  "finished_utc": "2026-10-07T08:31:07.637980+00:00",
+  "os": "27.0.1",
+  "architecture": "arm64",
+  "xcode": "Xcode 27.0\nBuild version 27A266a",
+  "dotnet_sdk": "10.0.401",
+  "simulator_sdk": "27.0",
+  "positive_build_exit_code": 0,
+  "positive_build_errors": 0,
+  "positive_build_warnings": 14,
+  "positive_source_matches_archive_after_build": true,
+  "renderer_inputs_unchanged": true,
+  "build_command": "dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios27.0 -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false -p:NuGetAudit=false -m:1 -nr:false",
+  "application_artifacts": [
+    {
+      "file": "Novalist.Mobile.app/Novalist.Mobile",
+      "bytes": 5178624,
+      "sha256": "81f63ff3a4e833f947d2c5703064f285bc514e9a3d3377928ff969b7541b5dfe"
+    },
+    {
+      "file": "Novalist.Mobile.app/Novalist.Mobile.dll",
+      "bytes": 497152,
+      "sha256": "9d17a35a06a9334ff51859b50597930737f0555c5f3767233244c1794b86093a"
+    },
+    {
+      "file": "Novalist.Mobile.app/Info.plist",
+      "bytes": 2370,
+      "sha256": "47648c423394c43a6fb08ff9f850b2ff4fffb427b41e2a1b92aa1224aa295e27"
+    }
+  ],
+  "acceptance_scope": "Local M05 intentional-invalid-iOS-symbol failure and probe-free clean positive compile only. Does not establish actual GitHub Actions path triggers or physical-device create/edit/relaunch/import/share smoke.",
+  "evidence": [
+    {
+      "file": "m05-invalid-symbol-build.log",
+      "sha256": "d72f2eaab981cee4cfa01732c3b8668e33ee10cbda7a11e4ec4168a4bde8a831",
+      "redactions": "disposable checkout and personal paths"
+    },
+    {
+      "file": "m05-clean-simulator-build.log",
+      "sha256": "4a7cfb96ecff2535fec18c62b3fd3c98bc44f386bcc2041545d27bf0cde4ce9b",
+      "redactions": "disposable checkout and personal paths"
+    }
+  ]
+}

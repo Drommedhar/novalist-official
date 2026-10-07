@@ -1,0 +1,26 @@
+<repo>/native/AppleSpeech/AppleMicrophone.swift:44:23: warning: 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration]
+ 42 |     init() throws {
+ 43 |         let session = AVAudioSession.sharedInstance()
+ 44 |         guard session.recordPermission == .granted else { throw CaptureFailure.permission }
+    |                       `- warning: 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration]
+ 45 |         try session.setCategory(.record, mode: .measurement)
+ 46 |         try session.setActive(true)
+
+<repo>/native/AppleSpeech/AppleMicrophone.swift:44:44: warning: 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration]
+ 42 |     init() throws {
+ 43 |         let session = AVAudioSession.sharedInstance()
+ 44 |         guard session.recordPermission == .granted else { throw CaptureFailure.permission }
+    |                                            |- warning: 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration]
+    |                                            `- note: use 'AVAudioApplication.recordPermission.granted' instead
+ 45 |         try session.setCategory(.record, mode: .measurement)
+ 46 |         try session.setActive(true)
+
+<repo>/native/AppleSpeech/AppleMicrophone.swift:55:15: warning: 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration]
+ 53 |               let target = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16000, channels: 1, interleaved: false),
+ 54 |               let converter = AVAudioConverter(from: format, to: target) else { throw CaptureFailure.format }
+ 55 |         input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
+    |               `- warning: 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration]
+ 56 |             guard let self else { return }
+ 57 |             let capacity = AVAudioFrameCount(ceil(Double(buffer.frameLength) * 16000 / format.sampleRate)) + 256
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>

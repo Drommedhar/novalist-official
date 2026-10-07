@@ -1,0 +1,13 @@
+Test Suite 'All tests' started at 2026-10-07 11:26:10.183.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:26:10.183.
+Test Suite 'AuditUITests' started at 2026-10-07 11:26:10.184.
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' started.
+<isolated-checkout>/xctest/AuditUITests.swift:8: error: -[AuditUITests.AuditUITests testM02NativePicker] : XCTAssertTrue failed
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' failed (1.145 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 11:26:11.330.
+	 Executed 1 test, with 1 failure (0 unexpected) in 1.145 (1.147) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 11:26:11.330.
+	 Executed 1 test, with 1 failure (0 unexpected) in 1.145 (1.147) seconds
+Test Suite 'All tests' failed at 2026-10-07 11:26:11.331.
+	 Executed 1 test, with 1 failure (0 unexpected) in 1.145 (1.148) seconds
+** TEST FAILED **

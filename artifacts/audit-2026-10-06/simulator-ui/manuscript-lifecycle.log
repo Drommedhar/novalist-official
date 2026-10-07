@@ -1,0 +1,94 @@
+Test Suite 'All tests' started at 2026-10-07 10:48:51.641.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 10:48:51.641.
+Test Suite 'AuditUITests' started at 2026-10-07 10:48:51.641.
+Test Case '-[AuditUITests.AuditUITests testManuscriptBackgroundTerminateRelaunch]' started.
+    t =     0.00s Start Test at 2026-10-07 10:48:51.645
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.04s Waiting 10.0s for "Corkboard" Button to exist
+    t =     1.07s     Checking `Expect predicate `existsNoRetry == 1` for object "Corkboard" Button`
+    t =     1.07s         Checking existence of `"Corkboard" Button`
+    t =     1.10s Waiting 10.0s for TextView (First Match) to exist
+    t =     2.13s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =     2.13s         Checking existence of `TextView (First Match)`
+    t =     2.16s Tap TextView (First Match)
+    t =     2.16s     Wait for com.novalist.app to idle
+    t =     2.16s     Find the TextView (First Match)
+    t =     2.18s     Check for interrupting elements affecting "
+" TextView
+    t =     2.21s         Wait for com.apple.springboard to idle
+    t =     2.22s     Synthesize event
+    t =     2.50s     Wait for com.novalist.app to idle
+    t =     2.82s Type 'AUDIT_MANUSCRIPT_H...' into "
+" TextView
+    t =     2.82s     Wait for com.novalist.app to idle
+    t =     2.83s     Find the "
+" TextView
+    t =     2.85s     Check for interrupting elements affecting "
+" TextView
+    t =     2.88s         Wait for com.apple.springboard to idle
+    t =     3.23s     Synthesize event
+    t =     3.93s     Wait for com.novalist.app to idle
+    t =     4.24s Pressing Home button
+    t =     4.71s Terminate com.novalist.app:67083
+    t =     5.77s Open com.novalist.app
+    t =     5.77s     Launch com.novalist.app
+    t =     5.79s         Setting up automation session
+    t =     8.53s         Wait for com.novalist.app to idle
+    t =    10.25s Waiting 20.0s for "Select Audit Tablet Book — Audit Tablet Fixture" Switch to exist
+    t =    11.29s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =    11.29s         Checking existence of `"Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =    11.35s Double tap "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =    11.36s     Wait for com.novalist.app to idle
+    t =    11.36s     Find the "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =    11.37s     Check for interrupting elements affecting "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =    11.39s         Wait for com.apple.springboard to idle
+    t =    11.40s     Synthesize event
+    t =    11.74s     Wait for com.novalist.app to idle
+    t =    11.74s Waiting 3.0s for "Manuscript" StaticText to exist
+    t =    12.78s     Checking `Expect predicate `existsNoRetry == 1` for object "Manuscript" StaticText`
+    t =    12.78s         Checking existence of `"Manuscript" StaticText`
+    t =    12.81s Waiting 10.0s for "Manuscript" StaticText to exist
+    t =    13.84s     Checking `Expect predicate `existsNoRetry == 1` for object "Manuscript" StaticText`
+    t =    13.84s         Checking existence of `"Manuscript" StaticText`
+    t =    13.86s Tap "Manuscript" StaticText
+    t =    13.86s     Wait for com.novalist.app to idle
+    t =    13.86s     Find the "Manuscript" StaticText
+    t =    13.88s     Check for interrupting elements affecting "Manuscript" StaticText
+    t =    13.93s         Wait for com.apple.springboard to idle
+    t =    13.94s     Synthesize event
+    t =    14.23s     Wait for com.novalist.app to idle
+    t =    14.28s Waiting 10.0s for "Corkboard" Button to exist
+    t =    15.31s     Checking `Expect predicate `existsNoRetry == 1` for object "Corkboard" Button`
+    t =    15.31s         Checking existence of `"Corkboard" Button`
+    t =    15.34s Waiting 10.0s for "
+" TextView to exist
+    t =    16.38s     Checking `Expect predicate `existsNoRetry == 1` for object "
+" TextView`
+    t =    16.38s         Checking existence of `"
+" TextView`
+    t =    16.41s Find the "
+" TextView
+AUDIT_MANUSCRIPT_BACKGROUND_TERMINATE_RELAUNCH_PASS
+    t =    16.42s Find the Application 'com.novalist.app'
+    t =    16.51s Added attachment named 'manuscript-after-relaunch'
+    t =    16.51s Tear Down
+Test Case '-[AuditUITests.AuditUITests testManuscriptBackgroundTerminateRelaunch]' passed (16.734 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 10:49:08.380.
+	 Executed 1 test, with 0 failures (0 unexpected) in 16.734 (16.739) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 10:49:08.381.
+	 Executed 1 test, with 0 failures (0 unexpected) in 16.734 (16.740) seconds
+Test Suite 'All tests' passed at 2026-10-07 10:49:08.382.
+	 Executed 1 test, with 0 failures (0 unexpected) in 16.734 (16.741) seconds
+2026-10-07 10:49:08.669 xcodebuild[68302:2908694] [MT] IDETestOperationsObserverDebug: 19.501 elapsed -- Testing started completed.
+2026-10-07 10:49:08.669 xcodebuild[68302:2908694] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 10:49:08.669 xcodebuild[68302:2908694] [MT] IDETestOperationsObserverDebug: 19.501 sec, +19.501 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-harness>/manuscript-lifecycle.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

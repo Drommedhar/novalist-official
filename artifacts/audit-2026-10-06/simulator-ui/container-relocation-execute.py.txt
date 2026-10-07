@@ -1,0 +1,26 @@
+import hashlib,json,pathlib,shutil,subprocess
+base=pathlib.Path('/private/tmp/novalist-audit-relocation')
+m=json.loads((base/'before-private.json').read_text());udid=m['udid']
+run=lambda *args: subprocess.check_output(args,text=True).strip()
+def digest(root):
+ h=hashlib.sha256()
+ for p in sorted(root.rglob('*')):
+  if p.is_file(): h.update(str(p.relative_to(root)).encode());h.update(b'\0');h.update(hashlib.sha256(p.read_bytes()).digest())
+ return h.hexdigest()
+subprocess.run(['xcrun','simctl','uninstall',udid,'com.novalist.app'],check=True)
+subprocess.run(['xcrun','simctl','install',udid,str(base/'Novalist.Mobile.app')],check=True)
+new=pathlib.Path(run('xcrun','simctl','get_app_container',udid,'com.novalist.app','data'))
+newapp=pathlib.Path(run('xcrun','simctl','get_app_container',udid,'com.novalist.app','app'))
+assert str(new)!=m['old_container'], 'No actual relocation occurred'
+assert not pathlib.Path(m['old_container']).exists(), 'Old container remains reachable'
+assert digest(newapp)==m['app_tree_sha256'], 'Installed app bytes changed'
+for folder in ('Documents','Library','tmp'):
+ source=base/'data-backup'/folder
+ if source.exists(): shutil.copytree(source,new/folder,dirs_exist_ok=True,symlinks=True)
+refs=m['old_path_reference_files']
+assert all((new/p).read_bytes()==(base/'data-backup'/p).read_bytes() for p in refs)
+assert all(m['old_container'] in (new/p).read_text() for p in refs)
+m.update({'new_container':str(new),'app_tree_sha256_after':digest(newapp),'actual_container_changed':True,'old_container_removed':True,'old_path_reference_files_restored_unchanged':len(refs)})
+(base/'after-private.json').write_text(json.dumps(m,indent=2))
+subprocess.run(['xcrun','simctl','launch',udid,'com.novalist.app'],check=True)
+print(json.dumps({k:m[k] for k in ('actual_container_changed','old_container_removed','old_path_reference_files_restored_unchanged','app_tree_sha256_after')}))

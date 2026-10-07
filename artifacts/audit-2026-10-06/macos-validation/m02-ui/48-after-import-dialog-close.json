@@ -1,0 +1,21 @@
+{
+  "id": "e8f3d1b2-1f09-40c5-b592-1fd86e34aca4",
+  "page": "009a900b5db14fb0950aa26fd9232692",
+  "started": "2026-10-07T09:40:01.441558+00:00",
+  "finished": "2026-10-07T09:40:01.442324+00:00",
+  "ok": true,
+  "errorType": null,
+  "result": {
+    "scopes": {
+      "successfulStarts": 2,
+      "failedStarts": 0,
+      "stopCalls": 1,
+      "completedStops": 1,
+      "retainedFolders": 1,
+      "pickerCallbacks": 1,
+      "pickerHeld": false,
+      "pickerResumed": 0
+    },
+    "pageGrants": 0
+  }
+}

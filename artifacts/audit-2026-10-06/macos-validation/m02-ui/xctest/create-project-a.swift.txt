@@ -1,0 +1,12 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    app.buttons["Create Project"].tap()
+    XCTAssertTrue(app.buttons["Audit Project A"].firstMatch.waitForExistence(timeout:12))
+    XCTAssertFalse(app.buttons["Create Project"].exists)
+
+  }
+}

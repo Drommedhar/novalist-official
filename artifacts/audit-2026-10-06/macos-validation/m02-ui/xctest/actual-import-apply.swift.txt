@@ -1,0 +1,17 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    let apply = app.buttons["Import"].firstMatch
+    XCTAssertTrue(apply.waitForExistence(timeout:5))
+    XCTAssertTrue(apply.isEnabled)
+    apply.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).tap()
+    let done = app.staticTexts.matching(NSPredicate(format:"label BEGINSWITH %@", "Imported 1 chapters, 1 scenes")).firstMatch
+    XCTAssertTrue(done.waitForExistence(timeout:15))
+    XCTAssertTrue(apply.waitForNonExistence(timeout:5))
+    XCTAssertTrue(app.buttons["Close"].firstMatch.isEnabled)
+
+  }
+}

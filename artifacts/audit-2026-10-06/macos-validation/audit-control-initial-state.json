@@ -1,0 +1,37 @@
+{
+  "id": "5be0c656-be2b-4dca-ad91-dcdc18835a59",
+  "page": "e78a861f886a49c88ca2947821d20d0e",
+  "started": "2026-10-07T08:37:57.811623+00:00",
+  "finished": "2026-10-07T08:37:57.813103+00:00",
+  "ok": true,
+  "errorType": null,
+  "result": {
+    "page": "e78a861f886a49c88ca2947821d20d0e",
+    "bridgeFailed": 0,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": false,
+    "evaluatorFault": 0,
+    "assetReads": 0,
+    "assetHeld": false,
+    "projectGeneration": 1,
+    "webProcessId": 63222,
+    "nativeEditingPausedAlert": false,
+    "nativeReloadAvailable": false,
+    "nativeLaterAvailable": false,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T08:37:09.407366+00:00",
+        "ticks": 150561063879500
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T08:37:10.05224+00:00",
+        "ticks": 150561708748083
+      }
+    ]
+  }
+}

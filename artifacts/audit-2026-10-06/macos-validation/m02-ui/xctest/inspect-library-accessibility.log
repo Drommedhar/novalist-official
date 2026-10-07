@@ -1,0 +1,14 @@
+Test Suite 'All tests' started at 2026-10-07 11:28:16.331.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:28:16.332.
+Test Suite 'AuditUITests' started at 2026-10-07 11:28:16.332.
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' started.
+AUDIT_BUTTON_LABELS=Sort books|Browse for Project Folder...|New Project|Add shelf|More project actions|Actions for shelf My projects
+AUDIT_LINK_LABELS=
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' passed (0.123 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:28:16.461.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.123 (0.129) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:28:16.461.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.123 (0.129) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:28:16.461.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.123 (0.130) seconds
+** TEST SUCCEEDED **

@@ -1,0 +1,32 @@
+{
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "scope": "Isolated native counters and asynchronous real-picker callback gate only. No production source edited.",
+  "instrumentation_sha256": "f2df1455ac8be161ca5e9865d8ab8449a5d5dc8cd8e208640342e1a1fed8f150",
+  "simulator_name": "Novalist-Audit-M02",
+  "device": "iPhone 17 Pro",
+  "os": "iOS 27.0",
+  "counter_rule": "successfulStarts only increments on actual native true return; stopCalls increments when native stop is invoked; completedStops increments after native stop returns. No paths recorded.",
+  "picker_gate": "Actual DidPickDocumentAtUrls callback held asynchronously before original completion. No manufactured NSUrl.",
+  "fixed_source": "base revision plus production-evaluator-fix.patch",
+  "fixed_combined_patch_sha256": "e37e3ffae6e5f5ca33f01c71bd0b2c5bab832b5eb74bf330834969a58fdbc015",
+  "final_instrumentation_sha256": "56d0c495f118bc5c9b1767e5ac64b7c60f6de2d5584465e42ed9903481a1d060",
+  "production_fix_sha256": "6a03ac6b9cc90d4f6c35ffe3bb1bf8d94384a64860385d2c1615d61502f8e4f9",
+  "instrumented_changed_file_sha256": {
+    "Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs": "762bcd8008e59df8b3296d3ef43ae087642e1685d8067925709c98f22029f606",
+    "Novalist.Mobile/Pages/RendererHostPage.Transport.cs": "bdaa9a8e225e61dfa5ba72e9b5de82536cfc5ecb634033f129a46bc8cb0cf616",
+    "Novalist.Mobile/Pages/RendererHostPage.cs": "169b6b65bb176131cf787b4f5f6bf7624c14811d6956a67ccddfec2fc4233dfe",
+    "Novalist.Mobile/Services/SecurityScopedFolders.Manuscripts.cs": "e021711acfc20b5deec89e2a04c0f414058b15875fbb66f50bc09cab584a6aa9",
+    "Novalist.Mobile/Services/SecurityScopedFolders.cs": "1110b0c6afea4aa6cc5fe36673b1749dbd954cd83ba7e56371c8fa437baa7aca",
+    "Novalist.Mobile/Services/TemporaryAccessRegistry.cs": "5f24bd28dfa0f612fe284adbf325d3ff4be2d1bbbd9088601d230ea4d67cb131",
+    "Novalist.Mobile/Pages/RendererHostPage.AuditControl.cs": "aa3af268d0f37acfea2664ad5c371d476703c1f4df73fe4f4616955b4aace94f",
+    "Novalist.Mobile/Services/SecurityScopedFolders.Audit.cs": "998e4d7844e882c0b392d82cc3c954fb7a7506c56a69391aac360e8cf3dc1e67",
+    "Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs": "7b9abb8656b96a0aab6be6bd513cb8af1f01916fe6a6daad8a09f9edd7f42540"
+  },
+  "instrumented_app_executable_sha256": "ced811ce1d27e0d75c2d8cc528e6734577b2299e0dacafe2fed5cdded7232a5c",
+  "fixture_source_sha256": "7116de32fa1167d9720a5cab4b165f0f21f77f5a3a8898fd1912fac353ee5a35",
+  "renderer_assets": {
+    "files": 203,
+    "canonical_manifest_sha256": "f7529b6770da2062fc6e83981205a3741c2b856cedac337f112fcd34ad276608",
+    "manifest": "renderer-inputs.json"
+  }
+}

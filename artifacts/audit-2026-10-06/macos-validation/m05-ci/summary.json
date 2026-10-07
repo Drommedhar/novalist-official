@@ -1,0 +1,128 @@
+{
+  "updated_utc": "2026-10-07T08:49:03.826590+00:00",
+  "finding": "M05",
+  "base_source": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "target_branch": "dev",
+  "method": "Three independent one-comment path probes plus a separate intentional iOS #error PR followed by its removal. Actual pull_request workflow runs and changed-file lists collected from GitHub.",
+  "cases": [
+    {
+      "id": "M05-01",
+      "scope": "core",
+      "status": "passed",
+      "evidence": "core.json",
+      "pr": 36,
+      "runs": [
+        {
+          "id": 37595132709,
+          "head": "744bbb33000c39c800166a7edf928579e0b7b873",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Drommedhar/novalist-official/actions/runs/37595132709"
+        }
+      ]
+    },
+    {
+      "id": "M05-02",
+      "scope": "sdk",
+      "status": "passed",
+      "evidence": "sdk.json",
+      "pr": 37,
+      "runs": [
+        {
+          "id": 37595136026,
+          "head": "a1d4c22681a0d7ecf64341ebfe81b3a72255dfc3",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Drommedhar/novalist-official/actions/runs/37595136026"
+        }
+      ]
+    },
+    {
+      "id": "M05-03",
+      "scope": "renderer",
+      "status": "passed",
+      "evidence": "renderer.json",
+      "pr": 38,
+      "runs": [
+        {
+          "id": 37595142216,
+          "head": "9e49f23ce6388e2d5caa0be3f483fff7c7996899",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Drommedhar/novalist-official/actions/runs/37595142216"
+        }
+      ]
+    },
+    {
+      "id": "M05-05",
+      "scope": "invalid-ios",
+      "status": "passed",
+      "evidence": "invalid-ios.json",
+      "pr": 39,
+      "runs": [
+        {
+          "id": 37595331474,
+          "head": "bbe349fcba1c2567ae520cfe1f04455ff9a2ece2",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Drommedhar/novalist-official/actions/runs/37595331474"
+        },
+        {
+          "id": 37595706669,
+          "head": "0ef64850acd3b7155676dc4c40addc79d630922c",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Drommedhar/novalist-official/actions/runs/37595706669"
+        }
+      ]
+    }
+  ],
+  "no_probe_merged": true,
+  "remaining": "Physical-device create/edit/relaunch/import/share acceptance remains deferred; these CI results alone cannot complete M05.",
+  "cleanup": {
+    "status": "complete",
+    "closed_without_merge": [
+      {
+        "closedAt": "2026-10-07T08:48:37Z",
+        "headRefName": "audit/m05-core-only-20261007",
+        "headRefOid": "744bbb33000c39c800166a7edf928579e0b7b873",
+        "isDraft": true,
+        "mergedAt": null,
+        "number": 36,
+        "state": "CLOSED",
+        "url": "https://github.com/Drommedhar/novalist-official/pull/36"
+      },
+      {
+        "closedAt": "2026-10-07T08:48:38Z",
+        "headRefName": "audit/m05-sdk-only-20261007",
+        "headRefOid": "a1d4c22681a0d7ecf64341ebfe81b3a72255dfc3",
+        "isDraft": true,
+        "mergedAt": null,
+        "number": 37,
+        "state": "CLOSED",
+        "url": "https://github.com/Drommedhar/novalist-official/pull/37"
+      },
+      {
+        "closedAt": "2026-10-07T08:48:39Z",
+        "headRefName": "audit/m05-renderer-only-20261007",
+        "headRefOid": "9e49f23ce6388e2d5caa0be3f483fff7c7996899",
+        "isDraft": true,
+        "mergedAt": null,
+        "number": 38,
+        "state": "CLOSED",
+        "url": "https://github.com/Drommedhar/novalist-official/pull/38"
+      },
+      {
+        "closedAt": "2026-10-07T08:48:40Z",
+        "headRefName": "audit/m05-invalid-ios-20261007",
+        "headRefOid": "0ef64850acd3b7155676dc4c40addc79d630922c",
+        "isDraft": true,
+        "mergedAt": null,
+        "number": 39,
+        "state": "CLOSED",
+        "url": "https://github.com/Drommedhar/novalist-official/pull/39"
+      }
+    ],
+    "remote_branches": "Preserved for source/evidence review; no probe branch merged into dev."
+  }
+}

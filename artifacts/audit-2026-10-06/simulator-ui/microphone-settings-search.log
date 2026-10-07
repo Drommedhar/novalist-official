@@ -1,0 +1,67 @@
+Test Suite 'All tests' started at 2026-10-07 11:12:49.840.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:12:49.840.
+Test Suite 'AuditUITests' started at 2026-10-07 11:12:49.841.
+Test Case '-[AuditUITests.AuditUITests testMicrophoneSettingsSearch]' started.
+    t =     0.00s Start Test at 2026-10-07 11:12:49.842
+    t =     0.02s Set Up
+    t =     0.02s Open com.apple.Preferences
+    t =     0.02s     Activate com.apple.Preferences
+    t =     0.03s         Wait for com.apple.Preferences to idle
+    t =     0.03s Waiting 10.0s for SearchField (First Match) to exist
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object SearchField (First Match)`
+    t =     1.08s         Checking existence of `SearchField (First Match)`
+    t =     1.10s Tap SearchField (First Match)
+    t =     1.10s     Wait for com.apple.Preferences to idle
+    t =     1.11s     Find the SearchField (First Match)
+    t =     1.13s     Check for interrupting elements affecting "Suchen" SearchField
+    t =     1.15s     Synthesize event
+    t =     1.44s     Wait for com.apple.Preferences to idle
+    t =     2.55s Type 'Novalist' into "Suchen" SearchField
+    t =     2.55s     Wait for com.apple.Preferences to idle
+    t =     2.56s     Find the "Suchen" SearchField
+    t =     2.62s     Check for interrupting elements affecting "Suchen" SearchField
+    t =     2.66s     Synthesize event
+    t =     2.99s     Wait for com.apple.Preferences to idle
+    t =     3.00s Waiting 10.0s for "Novalist" StaticText to exist
+    t =     4.06s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist" StaticText`
+    t =     4.06s         Checking existence of `"Novalist" StaticText`
+    t =     4.10s         Capturing element debug description
+    t =     5.07s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist" StaticText`
+    t =     5.07s         Checking existence of `"Novalist" StaticText`
+    t =     5.10s         Capturing element debug description
+    t =     6.07s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist" StaticText`
+    t =     6.07s         Checking existence of `"Novalist" StaticText`
+    t =     6.09s         Capturing element debug description
+    t =     7.06s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist" StaticText`
+    t =     7.06s         Checking existence of `"Novalist" StaticText`
+    t =     7.08s         Capturing element debug description
+    t =     8.05s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist" StaticText`
+    t =     8.05s         Checking existence of `"Novalist" StaticText`
+    t =     8.08s         Capturing element debug description
+    t =     9.05s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist" StaticText`
+    t =     9.05s         Checking existence of `"Novalist" StaticText`
+    t =     9.09s         Capturing element debug description
+    t =    10.05s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist" StaticText`
+    t =    10.06s         Checking existence of `"Novalist" StaticText`
+    t =    10.09s         Capturing element debug description
+    t =    11.05s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist" StaticText`
+    t =    11.05s         Checking existence of `"Novalist" StaticText`
+    t =    11.08s         Capturing element debug description
+    t =    12.05s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist" StaticText`
+    t =    12.05s         Checking existence of `"Novalist" StaticText`
+    t =    12.09s         Capturing element debug description
+    t =    13.00s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist" StaticText`
+    t =    13.01s         Checking existence of `"Novalist" StaticText`
+    t =    13.04s         Capturing element debug description
+    t =    13.04s     Checking existence of `"Novalist" StaticText`
+    t =    13.07s Collecting debug information to assist test failure triage
+    t =    13.07s     Requesting snapshot of accessibility hierarchy for app with pid 81803
+<temporary-harness>/AuditUITests.swift:11: error: -[AuditUITests.AuditUITests testMicrophoneSettingsSearch] : XCTAssertTrue failed
+    t =    13.13s Tear Down
+Test Case '-[AuditUITests.AuditUITests testMicrophoneSettingsSearch]' failed (13.166 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 11:13:03.009.
+	 Executed 1 test, with 1 failure (0 unexpected) in 13.166 (13.168) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 11:13:03.009.
+	 Executed 1 test, with 1 failure (0 unexpected) in 13.166 (13.168) seconds
+Test Suite 'All tests' failed at 2026-10-07 11:13:03.009.
+	 Executed 1 test, with 1 failure (0 unexpected) in 13.166 (13.169) seconds

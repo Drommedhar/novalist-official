@@ -1,0 +1,138 @@
+Test Suite 'All tests' started at 2026-10-07 11:02:37.130.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:02:37.131.
+Test Suite 'AuditUITests' started at 2026-10-07 11:02:37.131.
+Test Case '-[AuditUITests.AuditUITests testFixedNativeEvaluatorResearchLifecycle]' started.
+    t =     0.00s Start Test at 2026-10-07 11:02:37.135
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.07s Waiting 20.0s for "Select Audit Tablet Book — Audit Tablet Fixture" Switch to exist
+    t =     1.07s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =     1.07s         Checking existence of `"Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =     1.11s Double tap "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     1.11s     Wait for com.novalist.app to idle
+    t =     1.12s     Find the "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     1.13s     Check for interrupting elements affecting "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     1.15s         Wait for com.apple.springboard to idle
+    t =     1.16s     Synthesize event
+    t =     1.50s     Wait for com.novalist.app to idle
+    t =     1.50s Waiting 2.0s for "Research" StaticText to exist
+    t =     2.53s     Checking `Expect predicate `existsNoRetry == 1` for object "Research" StaticText`
+    t =     2.53s         Checking existence of `"Research" StaticText`
+    t =     2.56s Waiting 10.0s for "Research" StaticText to exist
+    t =     3.59s     Checking `Expect predicate `existsNoRetry == 1` for object "Research" StaticText`
+    t =     3.59s         Checking existence of `"Research" StaticText`
+    t =     3.62s Tap "Research" StaticText
+    t =     3.62s     Wait for com.novalist.app to idle
+    t =     3.62s     Find the "Research" StaticText
+    t =     3.64s     Check for interrupting elements affecting "Research" StaticText
+    t =     3.69s         Wait for com.apple.springboard to idle
+    t =     3.70s     Synthesize event
+    t =     3.99s     Wait for com.novalist.app to idle
+    t =     4.03s Waiting 10.0s for "+ Note" Button to exist
+    t =     5.07s     Checking `Expect predicate `existsNoRetry == 1` for object "+ Note" Button`
+    t =     5.07s         Checking existence of `"+ Note" Button`
+    t =     5.11s Tap "+ Note" Button
+    t =     5.11s     Wait for com.novalist.app to idle
+    t =     5.11s     Find the "+ Note" Button
+    t =     5.13s     Check for interrupting elements affecting "+ Note" Button
+    t =     5.15s         Wait for com.apple.springboard to idle
+    t =     5.16s     Synthesize event
+    t =     5.45s     Wait for com.novalist.app to idle
+    t =     5.45s Waiting 10.0s for "Title" TextField to exist
+    t =     6.49s     Checking `Expect predicate `existsNoRetry == 1` for object "Title" TextField`
+    t =     6.49s         Checking existence of `"Title" TextField`
+    t =     6.53s Tap "Title" TextField
+    t =     6.53s     Wait for com.novalist.app to idle
+    t =     6.53s     Find the "Title" TextField
+    t =     6.55s     Check for interrupting elements affecting "Title" TextField
+    t =     6.58s         Wait for com.apple.springboard to idle
+    t =     6.59s     Synthesize event
+    t =     6.87s     Wait for com.novalist.app to idle
+    t =     6.91s Type 'Audit Fixed Resear...' into "Title" TextField
+    t =     6.91s     Wait for com.novalist.app to idle
+    t =     6.91s     Find the "Title" TextField
+    t =     6.95s     Check for interrupting elements affecting "Title" TextField
+    t =     6.97s         Wait for com.apple.springboard to idle
+    t =     6.98s     Synthesize event
+    t =     7.67s     Wait for com.novalist.app to idle
+    t =     7.68s Find the "Content" TextView
+    t =     7.72s Tap "Notes / URL / file path" TextView
+    t =     7.72s     Wait for com.novalist.app to idle
+    t =     7.72s     Find the "Notes / URL / file path" TextView
+    t =     7.75s     Check for interrupting elements affecting "Notes / URL / file path" TextView
+    t =     7.78s         Wait for com.apple.springboard to idle
+    t =     7.79s     Synthesize event
+    t =     8.08s     Wait for com.novalist.app to idle
+    t =     8.36s Type 'AUDIT_FIXED_RESEAR...' into "Notes / URL / file path" TextView
+    t =     8.36s     Wait for com.novalist.app to idle
+    t =     8.37s     Find the "Notes / URL / file path" TextView
+    t =     8.40s     Check for interrupting elements affecting "Notes / URL / file path" TextView
+    t =     8.42s         Wait for com.apple.springboard to idle
+    t =     8.44s     Synthesize event
+    t =     9.16s     Wait for com.novalist.app to idle
+    t =     9.16s Pressing Home button
+    t =     9.63s Terminate com.novalist.app:76231
+    t =    10.70s Open com.novalist.app
+    t =    10.70s     Launch com.novalist.app
+    t =    10.72s         Setting up automation session
+    t =    13.47s         Wait for com.novalist.app to idle
+    t =    15.14s Waiting 20.0s for "Select Audit Tablet Book — Audit Tablet Fixture" Switch to exist
+    t =    16.17s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =    16.17s         Checking existence of `"Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =    16.23s Double tap "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =    16.23s     Wait for com.novalist.app to idle
+    t =    16.23s     Find the "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =    16.24s     Check for interrupting elements affecting "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =    16.26s         Wait for com.apple.springboard to idle
+    t =    16.27s     Synthesize event
+    t =    16.61s     Wait for com.novalist.app to idle
+    t =    16.61s Waiting 2.0s for "Research" StaticText to exist
+    t =    17.65s     Checking `Expect predicate `existsNoRetry == 1` for object "Research" StaticText`
+    t =    17.65s         Checking existence of `"Research" StaticText`
+    t =    17.68s Waiting 10.0s for "Research" StaticText to exist
+    t =    18.72s     Checking `Expect predicate `existsNoRetry == 1` for object "Research" StaticText`
+    t =    18.72s         Checking existence of `"Research" StaticText`
+    t =    18.75s Tap "Research" StaticText
+    t =    18.75s     Wait for com.novalist.app to idle
+    t =    18.75s     Find the "Research" StaticText
+    t =    18.77s     Check for interrupting elements affecting "Research" StaticText
+    t =    18.82s         Wait for com.apple.springboard to idle
+    t =    18.83s     Synthesize event
+    t =    19.12s     Wait for com.novalist.app to idle
+    t =    19.15s Waiting 10.0s for Button (First Match) to exist
+    t =    20.18s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    20.18s         Checking existence of `Button (First Match)`
+    t =    20.22s Tap Button (First Match)
+    t =    20.22s     Wait for com.novalist.app to idle
+    t =    20.22s     Find the Button (First Match)
+    t =    20.24s     Check for interrupting elements affecting "Audit Fixed Research 20261007Title Note" Button
+    t =    20.26s         Wait for com.apple.springboard to idle
+    t =    20.28s     Synthesize event
+    t =    20.56s     Wait for com.novalist.app to idle
+    t =    20.56s Waiting 10.0s for "Notes / URL / file path" TextView to exist
+    t =    21.60s     Checking `Expect predicate `existsNoRetry == 1` for object "Notes / URL / file path" TextView`
+    t =    21.60s         Checking existence of `"Notes / URL / file path" TextView`
+    t =    21.64s Find the "Notes / URL / file path" TextView
+AUDIT_FIXED_RESEARCH_LIFECYCLE_PASS
+    t =    21.67s Find the Application 'com.novalist.app'
+    t =    21.75s Added attachment named 'fixed-research-after-relaunch'
+    t =    21.76s Tear Down
+Test Case '-[AuditUITests.AuditUITests testFixedNativeEvaluatorResearchLifecycle]' passed (21.977 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:02:59.112.
+	 Executed 1 test, with 0 failures (0 unexpected) in 21.977 (21.981) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:02:59.113.
+	 Executed 1 test, with 0 failures (0 unexpected) in 21.977 (21.982) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:02:59.113.
+	 Executed 1 test, with 0 failures (0 unexpected) in 21.977 (21.983) seconds
+2026-10-07 11:02:59.411 xcodebuild[76393:2982896] [MT] IDETestOperationsObserverDebug: 24.886 elapsed -- Testing started completed.
+2026-10-07 11:02:59.411 xcodebuild[76393:2982896] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 11:02:59.411 xcodebuild[76393:2982896] [MT] IDETestOperationsObserverDebug: 24.886 sec, +24.886 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-harness>/research-fixed.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

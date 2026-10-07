@@ -18,6 +18,7 @@
   "fixture-before.json": "29c51c9a030d5a64f98ab1e3fbbbeb3c137be880e2ac36b39db94a0c95722419",
   "inspect3d-relative-attempt.js": "c56ffb7472efd138199ebcb9f4a205fb81e61839ebf17240df311775f7de95d9",
   "inspect3d.js": "f04151702a1d40abde2f57a46d54fdb42b500c51156b12fe4182e04f5e5ee9f4",
+  "inspector-relative-import-error.json": "afcc03b69921fc4b10710a98aafd4c23e457c06cc6091667fde78820c71917e1",
   "map-canvas-scale.spec.ts": "cfedac2c25e4b071a4821093f16eae2b7a58e1a52f858c55f58ae6eefaa54ef9",
   "map-image.json": "63043e52ea762761087d352bc09ff83ab6766349ba082a98a8a90e0776b4ccee",
   "map-image.png": "6778dd667dabdb35d3b0319f20bd8f80af535774f0511166e2705782e7772084",

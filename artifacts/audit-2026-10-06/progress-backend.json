@@ -415,7 +415,7 @@
     },
     {
       "id": "M02",
-      "status": "native-pending",
+      "status": "implemented-verified",
       "implementation": [
         "Temporary manuscript scope ownership is now per RendererHostPage. Disposing or reloading the page drains and permanently closes its registry; late picker completions are refused and any newly acquired grant is immediately stopped. Replacement pages own separate registries, so old cleanup cannot release their grants.",
         "Registry replacement, explicit release and disposal claim callbacks under one lock and invoke them outside it. Native stop failures are reported without skipping the remaining releases."
@@ -427,16 +427,18 @@
         "Novalist.Mobile/Pages/RendererHostPage.cs",
         "Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs",
         "tests/Novalist.Core.Tests/Novalist.Core.Tests.csproj",
-        "tests/Novalist.Core.Tests/Services/MobileTemporaryAccessTests.cs"
+        "tests/Novalist.Core.Tests/Services/MobileTemporaryAccessTests.cs",
+        "artifacts/audit-2026-10-06/macos-validation/m02-ui/summary.json",
+        "artifacts/audit-2026-10-06/macos-validation/m02-ui/probe-removal.json"
       ],
       "tests": [
         "MobileTemporaryAccessTests: 6/6 freshly compiled portable tests pass: dispose all selections; duplicate cleanup; same-path replacement; late old-page acquisition rejected/released without touching replacement page; concurrent replacement/release/dispose; native stop failure continuation.",
         "Independent read-only review found no blocking ownership issue and independently reran 6/6 tests without rebuilding.",
-        "Elevated scoped Aislop: 100 across 6 supported files, zero diagnostics; unused System.Text.Json removed and no legacy temporary-registry/release references remain."
+        "Elevated scoped Aislop: 100 across 6 supported files, zero diagnostics; unused System.Text.Json removed and no legacy temporary-registry/release references remain.",
+        "Actual iPhone simulator native NSUrl counts prove positive acquisition/replacement/cancel/explicit release, native Reload disposal and genuine delayed old picker isolation. Real parent move resolved both sibling-directory bookmarks, ending6 successful starts/6 completed stops/zero retained. All probes removed; clean native build and launch passed. See macos-validation/m02/summary.json.",
+        "Actual native folder pick/cancel/reselect/create/open/close, manuscript preview/cancel/reselect/Import/Close, late old-page picker isolation after real WebContent termination, and full moved-parent sibling-project recents/identity passed. Native counts ended 9/9/zero retained in move run and 4/4/zero retained in actual import follow-up. All probes removed and clean build/signature/install/native UI/relaunch passed. Evidence: macos-validation/m02-ui/summary.json."
       ],
-      "pending": [
-        "On iOS, count successful native starts/stops across pick/cancel/import/close/reselect and page disposal/WebKit reload, including a delayed old picker reply and an active replacement-page grant. Portable callback tests do not establish NSUrl or picker runtime behavior."
-      ]
+      "pending": []
     }
   ],
   "aiFollowup": {

@@ -1,0 +1,20 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    let choose = app.buttons["Choose a manuscript..."].firstMatch
+    XCTAssertTrue(choose.waitForExistence(timeout:5))
+    choose.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).tap()
+    let cell = app.cells.containing(.staticText, identifier:"manuscript").firstMatch
+    XCTAssertTrue(cell.waitForExistence(timeout:5))
+    cell.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.25)).tap()
+    let open = app.buttons["DOCPicker.actionButton"]
+    if open.waitForExistence(timeout:1) {
+      open.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).tap()
+      XCTAssertTrue(open.waitForNonExistence(timeout:5))
+    }
+
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "fe7cd20e-a5f4-4e3a-ae61-9b0733c64295",
+  "page": "c4e9d732507a4a5a94a051331c34aca2",
+  "started": "2026-10-07T09:18:12.150669+00:00",
+  "finished": "2026-10-07T09:18:12.153841+00:00",
+  "ok": true,
+  "errorType": null,
+  "result": "{\"dialog\":\"Create New Project\",\"parent\":\"FixtureParent\",\"createEnabled\":true}"
+}

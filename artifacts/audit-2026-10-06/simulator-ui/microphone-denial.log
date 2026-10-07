@@ -1,0 +1,124 @@
+Test Suite 'All tests' started at 2026-10-07 11:11:42.760.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:11:42.760.
+Test Suite 'AuditUITests' started at 2026-10-07 11:11:42.760.
+Test Case '-[AuditUITests.AuditUITests testMicrophoneNativePromptDenial]' started.
+    t =     0.00s Start Test at 2026-10-07 11:11:42.762
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.03s Waiting 10.0s for "Start dictation" Button to exist
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object "Start dictation" Button`
+    t =     1.08s         Checking existence of `"Start dictation" Button`
+    t =     1.10s Find the "Start dictation" Button
+    t =     1.12s Tap "Start dictation" Button
+    t =     1.12s     Wait for com.novalist.app to idle
+    t =     1.12s     Find the "Start dictation" Button
+    t =     1.14s     Check for interrupting elements affecting "Start dictation" Button
+    t =     1.16s     Synthesize event
+    t =     1.45s     Wait for com.novalist.app to idle
+    t =     1.45s Waiting 10.0s for Alert (First Match) to exist
+    t =     2.46s     Checking `Expect predicate `existsNoRetry == 1` for object Alert (First Match)`
+    t =     2.46s         Checking existence of `Alert (First Match)`
+AUDIT_MICROPHONE_NATIVE_ALERT_BEGIN
+    t =     2.50s Requesting snapshot of accessibility hierarchy for app with pid 59291
+    t =     2.60s Requesting snapshot of accessibility hierarchy for app with pid 59291
+    t =     2.63s Requesting snapshot of accessibility hierarchy for app with pid 59291
+    t =     2.65s Find: Descendants matching type Alert
+    t =     2.65s Requesting snapshot of accessibility hierarchy for app with pid 59291
+Attributes: Alert, 0x10a5d9680, {{60.0, 350.3}, {320.0, 283.3}}, label: 'Darf „Novalist“ auf dein Mikrofon zugreifen?'
+Element subtree:
+ →Alert, 0x10a5d9680, {{60.0, 350.3}, {320.0, 283.3}}, label: 'Darf „Novalist“ auf dein Mikrofon zugreifen?'
+    Other, 0x10a5d97c0, {{60.0, 350.3}, {320.0, 283.3}}
+      Other, 0x10a5d9900, {{60.0, 350.3}, {320.0, 283.3}}
+        Other, 0x10a5d9a40, {{60.0, 350.3}, {320.0, 283.3}}
+        Other, 0x10a5d9b80, {{60.0, 350.3}, {320.0, 283.3}}
+          ScrollView, 0x10a5d9cc0, {{60.0, 350.3}, {320.0, 203.3}}
+            Other, 0x10a5d9e00, {{60.0, 350.3}, {320.0, 203.3}}
+              Other, 0x10a5d9f40, {{86.0, 350.3}, {268.0, 89.0}}
+                Other, 0x10a5da080, {{86.0, 350.3}, {268.0, 89.0}}
+                  Image, 0x10a5da1c0, {{86.0, 370.3}, {69.0, 69.0}}, identifier: '<dedicated-simulator>/data/tmp/com.apple.tccd/kTCCServiceMicrophone@3x.png'
+              StaticText, 0x10a5da300, {{90.0, 461.3}, {260.0, 42.3}}, label: 'Darf „Novalist“ auf dein Mikrofon zugreifen?'
+              StaticText, 0x10a5da440, {{90.0, 511.3}, {260.0, 38.0}}, label: 'Novalist uses the microphone to write the words you dictate.'
+            Other, 0x10a5da580, {{347.0, 350.3}, {30.0, 203.3}}, label: 'Vertikaler Rollbalken, 1 Seite', value: 0 %
+              Other, 0x10a5da6c0, {{374.0, 311.3}, {3.0, 36.0}}
+            Other, 0x10a5da800, {{60.0, 520.7}, {320.0, 30.0}}, label: 'Horizontaler Rollbalken, 1 Seite', value: 0 %
+              Other, 0x10a5da940, {{21.0, 547.7}, {36.0, 3.0}}
+            Other, 0x10a5daa80, {{347.0, 350.3}, {30.0, 203.3}}, label: 'Vertikaler Rollbalken, 1 Seite', value: 0 %
+              Other, 0x10a5dabc0, {{374.0, 311.3}, {3.0, 36.0}}
+            Other, 0x10a5dad00, {{60.0, 520.7}, {320.0, 30.0}}, label: 'Horizontaler Rollbalken, 1 Seite', value: 0 %
+              Other, 0x10a5dae40, {{21.0, 547.7}, {36.0, 3.0}}
+          ScrollView, 0x10a5daf80, {{60.0, 553.7}, {320.0, 80.0}}
+            Other, 0x10a5db0c0, {{60.0, 553.7}, {320.0, 80.0}}
+              Other, 0x10a5db200, {{76.0, 569.7}, {288.0, 48.0}}
+                Button, 0x10a5db340, {{76.0, 569.7}, {140.0, 48.0}}, label: 'Nicht erlauben'
+                Button, 0x10a5db480, {{224.0, 569.7}, {140.0, 48.0}}, label: 'Erlauben'
+            Other, 0x10a5db5c0, {{347.0, 553.7}, {30.0, 80.0}}, label: 'Vertikaler Rollbalken, 1 Seite', value: 0 %
+              Other, 0x10a5db700, {{374.0, 643.7}, {3.0, 7.0}}
+            Other, 0x10a5db840, {{60.0, 600.7}, {320.0, 30.0}}, label: 'Horizontaler Rollbalken, 1 Seite', value: 0 %
+              Other, 0x10a5db980, {{150.0, 627.7}, {7.0, 3.0}}
+            Other, 0x10a5dbac0, {{347.0, 553.7}, {30.0, 80.0}}, label: 'Vertikaler Rollbalken, 1 Seite', value: 0 %
+              Other, 0x10a5dbc00, {{374.0, 643.7}, {3.0, 7.0}}
+            Other, 0x10a5dbd40, {{60.0, 600.7}, {320.0, 30.0}}, label: 'Horizontaler Rollbalken, 1 Seite', value: 0 %
+              Other, 0x10a5dbe80, {{150.0, 627.7}, {7.0, 3.0}}
+    Other, 0x10a5fc000, {{60.0, 350.3}, {320.0, 283.3}}
+      Other, 0x10a5fc140, {{60.0, 350.3}, {320.0, 283.3}}
+        Other, 0x10a5fc280, {{60.0, 350.3}, {320.0, 283.3}}
+          Other, 0x10a5fc3c0, {{60.0, 350.3}, {320.0, 283.3}}
+            Other, 0x10a5fc500, {{60.0, 350.3}, {320.0, 283.3}}
+              Other, 0x10a5fc640, {{60.0, 350.3}, {440.0, 956.0}}
+          Other, 0x10a5fc780, {{60.0, 350.3}, {320.0, 283.3}}
+            Other, 0x10a5fc8c0, {{60.0, 350.3}, {440.0, 956.0}}
+Path to element:
+ →Application, 0x106e80f00, pid: 59291, label: ' '
+  ↳Window (Main), 0x10a5d8f00, {{0.0, 0.0}, {440.0, 956.0}}
+   ↳Other, 0x10a5d92c0, {{0.0, 0.0}, {440.0, 956.0}}
+    ↳Alert, 0x10a5d9680, {{60.0, 350.3}, {320.0, 283.3}}, label: 'Darf „Novalist“ auf dein Mikrofon zugreifen?'
+Query chain:
+ →Find: Application 'com.apple.springboard'
+  Output: {
+    Application, 0x10a7dc000, pid: 59291, label: ' '
+  }
+  ↪︎Find: Descendants matching type Alert
+    Output: {
+      Alert, 0x10a7c0c80, {{60.0, 350.3}, {320.0, 283.3}}, label: 'Darf „Novalist“ auf dein Mikrofon zugreifen?'
+    }
+    ↪︎Find: First Match
+      Output: {
+        Alert, 0x10a7a0f00, {{60.0, 350.3}, {320.0, 283.3}}, label: 'Darf „Novalist“ auf dein Mikrofon zugreifen?'
+      }
+
+AUDIT_MICROPHONE_NATIVE_ALERT_END
+    t =     2.68s Checking existence of `Button (First Match)`
+    t =     2.69s Tap Button (First Match)
+    t =     2.69s     Wait for com.apple.springboard to idle
+    t =     2.70s     Find the Button (First Match)
+    t =     2.71s     Check for interrupting elements affecting "Nicht erlauben" Button
+    t =     2.73s     Synthesize event
+    t =     3.02s     Wait for com.apple.springboard to idle
+    t =     3.26s Waiting 10.0s for "Microphone access was denied. Allow microphone access in your system settings, then try again." StaticText to exist
+    t =     4.33s     Checking `Expect predicate `existsNoRetry == 1` for object "Microphone access was denied. Allow microphone access in your system settings, then try again." StaticText`
+    t =     4.34s         Checking existence of `"Microphone access was denied. Allow microphone access in your system settings, then try again." StaticText`
+    t =     4.37s Checking existence of `"Start dictation" Button`
+    t =     4.39s Checking existence of `"Stop dictation" Button`
+AUDIT_MICROPHONE_DENIAL_UI_PASS
+    t =     4.41s Find the Application 'com.novalist.app'
+    t =     4.50s Added attachment named 'microphone-permission-denied'
+    t =     4.50s Tear Down
+Test Case '-[AuditUITests.AuditUITests testMicrophoneNativePromptDenial]' passed (4.528 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:11:47.290.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.528 (4.530) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:11:47.290.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.528 (4.530) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:11:47.291.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.528 (4.531) seconds
+2026-10-07 11:11:47.578 xcodebuild[81708:3034795] [MT] IDETestOperationsObserverDebug: 7.325 elapsed -- Testing started completed.
+2026-10-07 11:11:47.578 xcodebuild[81708:3034795] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 11:11:47.578 xcodebuild[81708:3034795] [MT] IDETestOperationsObserverDebug: 7.325 sec, +7.325 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-harness>/microphone-denial.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

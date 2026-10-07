@@ -1,0 +1,99 @@
+Test Suite 'All tests' started at 2026-10-07 10:52:57.923.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 10:52:57.924.
+Test Suite 'AuditUITests' started at 2026-10-07 10:52:57.924.
+Test Case '-[AuditUITests.AuditUITests testActualContainerRelocation]' started.
+    t =     0.00s Start Test at 2026-10-07 10:52:57.927
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.06s Waiting 20.0s for "Select Audit Tablet Book — Audit Tablet Fixture" Switch to exist
+    t =     1.09s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =     1.09s         Checking existence of `"Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =     1.14s Double tap "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     1.14s     Wait for com.novalist.app to idle
+    t =     1.14s     Find the "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     1.16s     Check for interrupting elements affecting "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     1.18s         Wait for com.apple.springboard to idle
+    t =     1.20s     Synthesize event
+    t =     1.54s     Wait for com.novalist.app to idle
+    t =     1.55s Waiting 1.0s for "Research" StaticText to exist
+    t =     2.55s     Checking `Expect predicate `existsNoRetry == 1` for object "Research" StaticText`
+    t =     2.55s         Checking existence of `"Research" StaticText`
+    t =     2.57s     Checking existence of `"Research" StaticText`
+    t =     2.59s Waiting 10.0s for "Research" StaticText to exist
+    t =     3.62s     Checking `Expect predicate `existsNoRetry == 1` for object "Research" StaticText`
+    t =     3.62s         Checking existence of `"Research" StaticText`
+    t =     3.64s Tap "Research" StaticText
+    t =     3.64s     Wait for com.novalist.app to idle
+    t =     3.64s     Find the "Research" StaticText
+    t =     3.66s     Check for interrupting elements affecting "Research" StaticText
+    t =     3.70s         Wait for com.apple.springboard to idle
+    t =     3.71s     Synthesize event
+    t =     4.00s     Wait for com.novalist.app to idle
+    t =     4.04s Waiting 10.0s for Button (First Match) to exist
+    t =     5.08s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     5.08s         Checking existence of `Button (First Match)`
+    t =     5.10s Tap Button (First Match)
+    t =     5.10s     Wait for com.novalist.app to idle
+    t =     5.11s     Find the Button (First Match)
+    t =     5.12s     Check for interrupting elements affecting "Audit Research AlphaTitle Note" Button
+    t =     5.14s         Wait for com.apple.springboard to idle
+    t =     5.16s     Synthesize event
+    t =     5.44s     Wait for com.novalist.app to idle
+    t =     5.44s Waiting 10.0s for "Content" TextView to exist
+    t =     6.48s     Checking `Expect predicate `existsNoRetry == 1` for object "Content" TextView`
+    t =     6.48s         Checking existence of `"Content" TextView`
+    t =     6.51s Find the "Content" TextView
+    t =     6.54s Waiting 1.0s for "Manuscript" StaticText to exist
+    t =     7.54s     Checking `Expect predicate `existsNoRetry == 1` for object "Manuscript" StaticText`
+    t =     7.54s         Checking existence of `"Manuscript" StaticText`
+    t =     7.57s         Capturing element debug description
+    t =     7.57s     Checking existence of `"Manuscript" StaticText`
+    t =     7.60s Collecting debug information to assist test failure triage
+    t =     7.60s     Requesting snapshot of accessibility hierarchy for app with pid 69734
+    t =     7.63s Tap "Toggle sidebar" Switch
+    t =     7.63s     Wait for com.novalist.app to idle
+    t =     7.63s     Find the "Toggle sidebar" Switch
+    t =     7.65s     Check for interrupting elements affecting "Toggle sidebar" Switch
+    t =     7.67s         Wait for com.apple.springboard to idle
+    t =     7.69s     Synthesize event
+    t =     7.98s     Wait for com.novalist.app to idle
+    t =     8.03s Waiting 10.0s for "Manuscript" StaticText to exist
+    t =     9.07s     Checking `Expect predicate `existsNoRetry == 1` for object "Manuscript" StaticText`
+    t =     9.07s         Checking existence of `"Manuscript" StaticText`
+    t =     9.09s Tap "Manuscript" StaticText
+    t =     9.09s     Wait for com.novalist.app to idle
+    t =     9.09s     Find the "Manuscript" StaticText
+    t =     9.10s     Check for interrupting elements affecting "Manuscript" StaticText
+    t =     9.13s         Wait for com.apple.springboard to idle
+    t =     9.14s     Synthesize event
+    t =     9.44s     Wait for com.novalist.app to idle
+    t =     9.48s Waiting 10.0s for "Corkboard" Button to exist
+    t =    10.52s     Checking `Expect predicate `existsNoRetry == 1` for object "Corkboard" Button`
+    t =    10.52s         Checking existence of `"Corkboard" Button`
+    t =    10.56s Waiting 10.0s for TextView (First Match) to exist
+    t =    11.59s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    11.59s         Checking existence of `TextView (First Match)`
+    t =    11.61s Find the TextView (First Match)
+AUDIT_ACTUAL_CONTAINER_RELOCATION_REOPEN_MARKERS_PASS
+    t =    11.63s Find the Application 'com.novalist.app'
+    t =    11.72s Added attachment named 'manuscript-after-container-relocation'
+    t =    11.72s Tear Down
+Test Case '-[AuditUITests.AuditUITests testActualContainerRelocation]' passed (11.722 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 10:53:09.649.
+	 Executed 1 test, with 0 failures (0 unexpected) in 11.722 (11.726) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 10:53:09.650.
+	 Executed 1 test, with 0 failures (0 unexpected) in 11.722 (11.726) seconds
+Test Suite 'All tests' passed at 2026-10-07 10:53:09.650.
+	 Executed 1 test, with 0 failures (0 unexpected) in 11.722 (11.726) seconds
+2026-10-07 10:53:09.930 xcodebuild[69910:2926215] [MT] IDETestOperationsObserverDebug: 14.967 elapsed -- Testing started completed.
+2026-10-07 10:53:09.930 xcodebuild[69910:2926215] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 10:53:09.930 xcodebuild[69910:2926215] [MT] IDETestOperationsObserverDebug: 14.967 sec, +14.967 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-harness>/container-relocation.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

@@ -1,0 +1,40 @@
+Test Suite 'All tests' started at 2026-10-07 11:15:32.454.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:15:32.454.
+Test Suite 'AuditUITests' started at 2026-10-07 11:15:32.454.
+Test Case '-[AuditUITests.AuditUITests testMicrophoneGrantControl]' started.
+    t =     0.00s Start Test at 2026-10-07 11:15:32.456
+    t =     0.02s Set Up
+    t =     0.02s Open com.apple.Preferences
+    t =     0.02s     Activate com.apple.Preferences
+    t =     0.03s         Wait for com.apple.Preferences to idle
+    t =     0.03s Waiting 10.0s for "Novalist" Switch to exist
+    t =     1.07s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist" Switch`
+    t =     1.07s         Checking existence of `"Novalist" Switch`
+    t =     1.08s Find the "Novalist" Switch
+    t =     1.09s Tap Switch (First Match)
+    t =     1.09s     Wait for com.apple.Preferences to idle
+    t =     1.10s     Find the Switch (First Match)
+    t =     1.11s     Check for interrupting elements affecting "0" Switch
+    t =     1.12s     Synthesize event
+    t =     1.41s     Wait for com.apple.Preferences to idle
+    t =     2.72s Checking `Expect predicate `value == "1"` for object "com.novalist.app" Switch`
+    t =     2.72s     Find the "com.novalist.app" Switch
+AUDIT_MICROPHONE_NATIVE_SETTINGS_GRANT_PASS
+    t =     2.74s Tear Down
+Test Case '-[AuditUITests.AuditUITests testMicrophoneGrantControl]' passed (2.754 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:15:35.210.
+	 Executed 1 test, with 0 failures (0 unexpected) in 2.754 (2.755) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:15:35.210.
+	 Executed 1 test, with 0 failures (0 unexpected) in 2.754 (2.755) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:15:35.210.
+	 Executed 1 test, with 0 failures (0 unexpected) in 2.754 (2.756) seconds
+2026-10-07 11:15:35.492 xcodebuild[82493:3046344] [MT] IDETestOperationsObserverDebug: 5.501 elapsed -- Testing started completed.
+2026-10-07 11:15:35.492 xcodebuild[82493:3046344] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 11:15:35.492 xcodebuild[82493:3046344] [MT] IDETestOperationsObserverDebug: 5.501 sec, +5.501 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-harness>/microphone-grant-control.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

@@ -1,0 +1,64 @@
+{
+  "association": "Private debug-only WKWebView _webProcessIdentifier on this dedicated simulator page",
+  "state": {
+    "id": "03617870-6bbb-4eb9-a275-2f19a35cb7de",
+    "page": "bb765fca0f54444aa056dd37aaa83765",
+    "started": "2026-10-07T09:01:02.148161+00:00",
+    "finished": "2026-10-07T09:01:02.149111+00:00",
+    "ok": true,
+    "errorType": null,
+    "result": {
+      "page": "bb765fca0f54444aa056dd37aaa83765",
+      "bridgeFailed": 0,
+      "disposed": 0,
+      "rendererReady": true,
+      "bridgeCancellation": false,
+      "evaluatorFault": 0,
+      "assetReads": 0,
+      "assetHeld": false,
+      "projectGeneration": 0,
+      "webProcessId": 75238,
+      "nativeEditingPausedAlert": false,
+      "nativeReloadAvailable": false,
+      "nativeLaterAvailable": false,
+      "events": [
+        {
+          "kind": "control-started",
+          "detail": null,
+          "utc": "2026-10-07T08:59:33.931689+00:00",
+          "ticks": 151905593704833
+        },
+        {
+          "kind": "renderer-ready",
+          "detail": null,
+          "utc": "2026-10-07T08:59:34.446223+00:00",
+          "ticks": 151906108227791
+        }
+      ]
+    }
+  },
+  "scopeBeforeTermination": {
+    "id": "61f50a8e-9105-4e9a-a099-7898bfae7b6d",
+    "page": "bb765fca0f54444aa056dd37aaa83765",
+    "started": "2026-10-07T09:01:01.944598+00:00",
+    "finished": "2026-10-07T09:01:01.945131+00:00",
+    "ok": true,
+    "errorType": null,
+    "result": {
+      "scopes": {
+        "successfulStarts": 1,
+        "failedStarts": 0,
+        "stopCalls": 0,
+        "completedStops": 0,
+        "retainedFolders": 0,
+        "pickerCallbacks": 2,
+        "pickerHeld": true,
+        "pickerResumed": 0
+      },
+      "pageGrants": 1
+    }
+  },
+  "process_basename": "com.apple.WebKit.WebContent",
+  "signal": "SIGKILL",
+  "pid": 75238
+}

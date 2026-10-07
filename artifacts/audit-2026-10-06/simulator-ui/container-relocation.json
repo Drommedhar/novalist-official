@@ -1,0 +1,36 @@
+{
+  "finding": "M03",
+  "case": "actual-simulator-data-container-relocation",
+  "status": "pass",
+  "scope": "Supporting simulator acceptance only; physical-device and external matching-suffix cases remain pending.",
+  "device": "Dedicated iPad (A16) simulator",
+  "os": "iOS 27.0",
+  "xcode": "27.0 (27A266a)",
+  "revision": "0558dda71a395b6ab6208dd6820cc19811a61430",
+  "backup_verified_before_uninstall": true,
+  "actual_container_uuid_changed": true,
+  "old_container_removed": true,
+  "app_tree_sha256_before": "344496523f195adfc6717962ba8c0ade128a5d8066a759cc1d776773ca25e916",
+  "app_tree_sha256_after": "344496523f195adfc6717962ba8c0ade128a5d8066a759cc1d776773ca25e916",
+  "same_native_app_bytes": true,
+  "backup_data_sha256": "374edef49c1a75a1fc0658219eadb3f8b224186fbc8e3d9d92201a8949ccab12",
+  "old_path_reference_files_restored_byte_identical_before_launch": 2,
+  "reference_files_containing_new_container_after_ui_reopen": 2,
+  "identity_sha256_before": "6998bc31d99ac84c4ff2faeb83d9ac11e57cacfede60dc9d207bd765c41747db",
+  "identity_sha256_after": "6998bc31d99ac84c4ff2faeb83d9ac11e57cacfede60dc9d207bd765c41747db",
+  "same_project_book_draft_ids": true,
+  "research_marker_on_disk": true,
+  "manuscript_marker_in_default_draft_on_disk": true,
+  "ui_observed": "Opened retained bookshelf entry after actual reinstall and unchanged old-path data restore. Research and Manuscript marker assertions passed in one XCTest, 11.722 seconds, zero failures.",
+  "evidence": [
+    "container-relocation.log",
+    "ContainerRelocationTests.swift",
+    "container-relocation-prepare.py.txt",
+    "container-relocation-execute.py.txt"
+  ],
+  "limitations": [
+    "No physical-device relocation claim.",
+    "External project with matching suffix has not been opened through a real external Files-provider grant; case remains pending.",
+    "Backup and raw XCResult remain local temporary artifacts; private paths and raw project IDs omitted from this report."
+  ]
+}

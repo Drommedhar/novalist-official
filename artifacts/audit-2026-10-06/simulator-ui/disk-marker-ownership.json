@@ -1,0 +1,29 @@
+{
+  "scope": "Only synthetic dedicated-simulator fixtures; no user story content.",
+  "records": [
+    {
+      "device": "iphone",
+      "relative_file": "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-01.novalist",
+      "synthetic_markers": [
+        "AUDIT_SCENE_HOME_20261007",
+        "AUDIT_LIFECYCLE_SECOND_20261007"
+      ],
+      "default_draft": true
+    },
+    {
+      "device": "ipad",
+      "relative_file": "Audit Tablet Fixture/Audit Tablet Book/Drafts/default/Chapters/01 - Audit Tablet Chapter/scene-01.novalist",
+      "synthetic_markers": [
+        "AUDIT_MANUSCRIPT_HOME_20261007"
+      ],
+      "default_draft": true
+    },
+    {
+      "device": "ipad",
+      "relative_file": "Audit Tablet Fixture/.novalist/project.json",
+      "synthetic_markers": [
+        "AUDIT_RESEARCH_HOME_20261007"
+      ]
+    }
+  ]
+}

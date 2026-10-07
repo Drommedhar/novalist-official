@@ -1,0 +1,16 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    let browse = app.buttons["Browse..."].firstMatch
+    browse.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).tap()
+    let open = app.buttons["DOCPicker.actionButton"]
+    XCTAssertTrue(open.waitForExistence(timeout:5))
+    app.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.09)).press(forDuration:0.15,thenDragTo:app.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.86)))
+    XCTAssertTrue(open.waitForNonExistence(timeout:5))
+    XCTAssertTrue(app.buttons["Create Project"].isHittable)
+
+  }
+}

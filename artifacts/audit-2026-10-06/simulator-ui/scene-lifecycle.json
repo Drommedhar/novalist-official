@@ -1,0 +1,24 @@
+{
+  "finding": "M01",
+  "case": "scene-background-terminate-relaunch",
+  "status": "pass",
+  "scope": "Simulator scene-only lifecycle subset; not full M01 acceptance.",
+  "device": "Dedicated iPhone simulator",
+  "os": "iOS 27.0",
+  "xcode": "27.0 (27A266a)",
+  "revision": "0558dda71a395b6ab6208dd6820cc19811a61430",
+  "native_build": "Same clean production source, local ad-hoc simulator signature; see ../macos-validation/simulator-launch.json",
+  "scenario": "Type synthetic second marker into scene editor, press Home immediately after typing, terminate, launch, reopen same project/book, open scene and assert marker.",
+  "observed": "XCTest passed one test in 26.376 seconds. Original marker from previous run also present. Home at t=11.70s after typing completion t=11.69s; termination t=12.16s.",
+  "evidence": [
+    "scene-lifecycle.log",
+    "SceneLifecycleTests.swift"
+  ],
+  "limitations": [
+    "No lock scenario.",
+    "No two-dirty-pane, conflict, Research/manuscript or save-acknowledgement reordering claim.",
+    "Physical device acceptance remains untested.",
+    "Earlier exploratory tests needed bookshelf and dynamic scene-label navigation corrections; their failed UI selector assertions are not product failures."
+  ],
+  "raw_results": "Retained only in local temporary harness directory; not committed because full XCResult/build output includes machine-specific paths."
+}

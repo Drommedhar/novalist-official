@@ -1,0 +1,5 @@
+{
+  "semantic_changes": [],
+  "note": "Metadata semantic object is unchanged. Production serialization normalized formatting after synthetic fixture setup; identity and scene bytes remain unchanged.",
+  "same_except_trailing_newline": true
+}

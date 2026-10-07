@@ -1,0 +1,23 @@
+{
+  "base_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "production_fix": "../m02/production-evaluator-fix.patch",
+  "instrumentation": "../m02/final-instrumentation.patch",
+  "simulator": "iPhone17Pro iOS27.0",
+  "isolated": true,
+  "source_sha256": {
+    "Novalist.Mobile/Pages/RendererHostPage.cs": "169b6b65bb176131cf787b4f5f6bf7624c14811d6956a67ccddfec2fc4233dfe",
+    "Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs": "762bcd8008e59df8b3296d3ef43ae087642e1685d8067925709c98f22029f606",
+    "Novalist.Mobile/Pages/RendererHostPage.Transport.cs": "bdaa9a8e225e61dfa5ba72e9b5de82536cfc5ecb634033f129a46bc8cb0cf616",
+    "Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs": "7b9abb8656b96a0aab6be6bd513cb8af1f01916fe6a6daad8a09f9edd7f42540",
+    "Novalist.Mobile/Pages/RendererHostPage.AuditControl.cs": "aa3af268d0f37acfea2664ad5c371d476703c1f4df73fe4f4616955b4aace94f",
+    "Novalist.Mobile/Services/SecurityScopedFolders.cs": "1110b0c6afea4aa6cc5fe36673b1749dbd954cd83ba7e56371c8fa437baa7aca",
+    "Novalist.Mobile/Services/SecurityScopedFolders.Manuscripts.cs": "e021711acfc20b5deec89e2a04c0f414058b15875fbb66f50bc09cab584a6aa9",
+    "Novalist.Mobile/Services/SecurityScopedFolders.Audit.cs": "998e4d7844e882c0b392d82cc3c954fb7a7506c56a69391aac360e8cf3dc1e67",
+    "Novalist.Mobile/Services/TemporaryAccessRegistry.cs": "5f24bd28dfa0f612fe284adbf325d3ff4be2d1bbbd9088601d230ea4d67cb131"
+  },
+  "combined_patch_sha256": "dc4a84b1c134622bff6475154182ecf40b2fc6a8724d73d53c6c1543ed370b92",
+  "instrumentation_sha256": "2c090be112670938076670cc32f9c023644ef99a30fd345771e0ceb41c550310",
+  "fixture_source_sha256": "549eca29963ba26b468e5900fbe45d0ddfbd9ef3265de1cf7a2d9966612c2af5",
+  "instrumented_app_executable_sha256": "b2bf8e872fac585deb9be5a7d7c9c5769dcba6498ba54b81561e68c3ddc30939",
+  "renderer_assets": "../m02/renderer-inputs.json"
+}

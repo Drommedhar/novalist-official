@@ -1,0 +1,54 @@
+.NET SDK:
+ Version:           10.0.401
+ Commit:            e34a38d2ae
+ Workload version:  10.0.401.1
+ MSBuild version:   18.9.11+e34a38d2a
+
+Laufzeitumgebung:
+ OS Name:     Mac OS X
+ OS Version:  27.0
+ OS Platform: Darwin
+ RID:         osx-arm64
+ Base Path:   /usr/local/share/dotnet/sdk/10.0.401/
+
+Installierte .NET-Workloads:
+ [maui-ios]
+   Installationsquelle: SDK 10.0.400
+   Manifestversion:    10.0.110/10.0.100
+   Manifestpfad:       /usr/local/share/dotnet/sdk-manifests/10.0.100/microsoft.net.sdk.maui/10.0.110/WorkloadManifest.json
+   Installationstyp:        FileBased
+
+Für die Verwendung von workload sets bei der Installation neuer Manifeste konfiguriert.
+
+Host:
+  Version:      10.0.12
+  Architecture: arm64
+  Commit:       95017c711e
+
+.NET SDKs installed:
+  8.0.419 [/usr/local/share/dotnet/sdk]
+  10.0.300 [/usr/local/share/dotnet/sdk]
+  10.0.401 [/usr/local/share/dotnet/sdk]
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 8.0.25 [/usr/local/share/dotnet/shared/Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 10.0.8 [/usr/local/share/dotnet/shared/Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 10.0.12 [/usr/local/share/dotnet/shared/Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 8.0.25 [/usr/local/share/dotnet/shared/Microsoft.NETCore.App]
+  Microsoft.NETCore.App 10.0.8 [/usr/local/share/dotnet/shared/Microsoft.NETCore.App]
+  Microsoft.NETCore.App 10.0.12 [/usr/local/share/dotnet/shared/Microsoft.NETCore.App]
+
+Other architectures found:
+  None
+
+Environment variables:
+  Not set
+
+global.json file:
+  Not found
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download

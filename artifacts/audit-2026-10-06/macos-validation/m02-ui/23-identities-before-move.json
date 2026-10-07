@@ -1,0 +1,21 @@
+{
+  "parent_fixture_basename": "FixtureParent",
+  "old_parent_exists": true,
+  "moved_parent_exists": false,
+  "projects": {
+    "A": {
+      "project_id_sha256": "49a7ca4e8844f60c075c44d30adc50155a99cdbfb85cab2f9fecdb2fe3dfc301",
+      "book_ids_sha256": "08766bf20efc105c2a86d7abeeadb0de2d0b135f5d24dfbfa53b4c28f481f2ae",
+      "project_metadata_file_sha256": "9ff0508716c7845b9f4fa7d5c44c3e2d0264f705bf830b0585e1bf1c344edd52",
+      "book_count": 1,
+      "metadata_present": true
+    },
+    "B": {
+      "project_id_sha256": "4cb1390ddf9c15a2505483b3c1d7ae5267507c5e90a9a9ae0893b0e809a810cc",
+      "book_ids_sha256": "82a600a0d2da23e700d11dc40e243215297a378e503414f07311356d81daf3ed",
+      "project_metadata_file_sha256": "bc002c09a299db155ff9bb6ba55d37f236fd7d05062030b4d8d27e3ce6ade478",
+      "book_count": 1,
+      "metadata_present": true
+    }
+  }
+}

@@ -1,0 +1,122 @@
+[
+  {
+    "name": "cancel",
+    "status": "pass",
+    "source": "xctest/cancel.swift.txt",
+    "log": "xctest/cancel.log"
+  },
+  {
+    "name": "delayed-before-webkit",
+    "status": "pass",
+    "source": "xctest/delayed-before-webkit.swift.txt",
+    "log": "xctest/delayed-before-webkit.log"
+  },
+  {
+    "name": "delayed-old-selection",
+    "status": "pass",
+    "source": "xctest/delayed-old-selection.swift.txt",
+    "log": "xctest/delayed-old-selection.log"
+  },
+  {
+    "name": "disposal-selection",
+    "status": "pass",
+    "source": "xctest/disposal-selection.swift.txt",
+    "log": "xctest/disposal-selection.log"
+  },
+  {
+    "name": "exact-parent-icon-selection",
+    "status": "pass",
+    "source": "xctest/exact-parent-icon-selection.swift.txt",
+    "log": "xctest/exact-parent-icon-selection.log"
+  },
+  {
+    "name": "exact-parent-selection",
+    "status": "fail",
+    "source": "xctest/exact-parent-selection.swift.txt",
+    "log": "xctest/exact-parent-selection.log"
+  },
+  {
+    "name": "fixed-baseline-selection",
+    "status": "pass",
+    "source": "xctest/fixed-baseline-selection.swift.txt",
+    "log": "xctest/fixed-baseline-selection.log"
+  },
+  {
+    "name": "fixed-delayed-old-selection",
+    "status": "pass",
+    "source": "xctest/fixed-delayed-old-selection.swift.txt",
+    "log": "xctest/fixed-delayed-old-selection.log"
+  },
+  {
+    "name": "fixed-new-page-selection",
+    "status": "pass",
+    "source": "xctest/fixed-new-page-selection.swift.txt",
+    "log": "xctest/fixed-new-page-selection.log"
+  },
+  {
+    "name": "fixed-reload-after-webkit",
+    "status": "pass",
+    "source": "xctest/fixed-reload-after-webkit.swift.txt",
+    "log": "xctest/fixed-reload-after-webkit.log"
+  },
+  {
+    "name": "folder-selection",
+    "status": "pass",
+    "source": "xctest/folder-selection.swift.txt",
+    "log": "xctest/folder-selection.log"
+  },
+  {
+    "name": "move-exact-parent",
+    "status": "pass",
+    "source": "xctest/move-exact-parent.swift.txt",
+    "log": "xctest/move-exact-parent.log"
+  },
+  {
+    "name": "move-synthetic-parent",
+    "status": "pass",
+    "source": "xctest/move-synthetic-parent.swift.txt",
+    "log": "xctest/move-synthetic-parent.log"
+  },
+  {
+    "name": "new-page-selection",
+    "status": "pass",
+    "source": "xctest/new-page-selection.swift.txt",
+    "log": "xctest/new-page-selection.log"
+  },
+  {
+    "name": "post-webkit-new-selection",
+    "status": "pass",
+    "source": "xctest/post-webkit-new-selection.swift.txt",
+    "log": "xctest/post-webkit-new-selection.log"
+  },
+  {
+    "name": "reload-after-native-failure",
+    "status": "pass",
+    "source": "xctest/reload-after-native-failure.swift.txt",
+    "log": "xctest/reload-after-native-failure.log"
+  },
+  {
+    "name": "reload-after-webkit",
+    "status": "fail",
+    "source": "xctest/reload-after-webkit.swift.txt",
+    "log": "xctest/reload-after-webkit.log"
+  },
+  {
+    "name": "reselect-confirm",
+    "status": "pass",
+    "source": "xctest/reselect-confirm.swift.txt",
+    "log": "xctest/reselect-confirm.log"
+  },
+  {
+    "name": "reselect",
+    "status": "pass",
+    "source": "xctest/reselect.swift.txt",
+    "log": "xctest/reselect.log"
+  },
+  {
+    "name": "clean-final-launch",
+    "status": "pass",
+    "source": "xctest/clean-final-launch.swift.txt",
+    "log": "xctest/clean-final-launch.log"
+  }
+]

@@ -1,0 +1,34 @@
+import hashlib,json,pathlib,shutil,subprocess
+run=lambda *args: subprocess.check_output(args,text=True).strip()
+udid='4F155C1B-8F9C-4919-8BD7-1CFAD764B61B'
+base=pathlib.Path('/private/tmp/novalist-audit-relocation')
+old=pathlib.Path(run('xcrun','simctl','get_app_container',udid,'com.novalist.app','data'))
+app=pathlib.Path(run('xcrun','simctl','get_app_container',udid,'com.novalist.app','app'))
+subprocess.run(['xcrun','simctl','terminate',udid,'com.novalist.app'],check=True)
+def digest(root):
+ h=hashlib.sha256()
+ for p in sorted(root.rglob('*')):
+  if p.is_file():
+   h.update(str(p.relative_to(root)).encode());h.update(b'\0');h.update(hashlib.sha256(p.read_bytes()).digest())
+ return h.hexdigest()
+assert not (base/'data-backup').exists()
+shutil.copytree(old,base/'data-backup',symlinks=True)
+shutil.copytree(app,base/'Novalist.Mobile.app',symlinks=True)
+assert digest(app)==digest(base/'Novalist.Mobile.app')
+assert digest(old)==digest(base/'data-backup')
+ids={}
+for p in (old/'Documents').rglob('*.json'):
+ if '.config' in p.parts: continue
+ try: data=json.loads(p.read_text())
+ except Exception: continue
+ if p.name in ('project.json','draft.json','scenes.json'):
+  print(p.name, 'keys', list(data) if isinstance(data,dict) else 'list')
+  ids[str(p.relative_to(old/'Documents'))]=data
+old_refs=[]
+for p in old.rglob('*.json'):
+ try:
+  if str(old) in p.read_text(): old_refs.append(str(p.relative_to(old)))
+ except Exception: pass
+meta={'udid':udid,'old_container':str(old),'app_tree_sha256':digest(app),'backup_data_sha256':digest(old),'old_path_reference_files':old_refs,'ids':ids}
+(base/'before-private.json').write_text(json.dumps(meta,indent=2))
+print(json.dumps({'backup_verified':True,'app_copy_verified':True,'app_tree_sha256':meta['app_tree_sha256'],'old_path_reference_file_count':len(old_refs)}))

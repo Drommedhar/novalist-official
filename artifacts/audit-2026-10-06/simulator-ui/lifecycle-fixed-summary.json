@@ -1,0 +1,67 @@
+{
+  "finding": "M01",
+  "status": "pass",
+  "scope": "Final evaluator-fix regression: three simulator lifecycle subsets; full M01 remains pending.",
+  "source_evidence": "fixed-build-provenance.json",
+  "source_diff": "fixed-mobile-source.patch",
+  "new_helper_snapshot": "fixed-native-evaluator.cs.txt",
+  "cases": [
+    {
+      "case": "scene",
+      "device": "iPhone simulator iOS 27.0",
+      "duration_seconds": 29.743,
+      "status": "pass",
+      "source": "scene-fixed.swift",
+      "log": "scene-fixed.log"
+    },
+    {
+      "case": "Research",
+      "device": "iPad A16 simulator iOS 27.0",
+      "duration_seconds": 21.977,
+      "status": "pass",
+      "source": "research-fixed.swift",
+      "log": "research-fixed.log"
+    },
+    {
+      "case": "full Manuscript",
+      "device": "iPad A16 simulator iOS 27.0",
+      "duration_seconds": 27.619,
+      "status": "pass",
+      "source": "manuscript-fixed.swift",
+      "log": "manuscript-fixed.log"
+    }
+  ],
+  "scenario": "Each test created a fresh scene or Research note, verified its unique new marker was absent, typed that marker in real WKWebView UI, immediately pressed Home, terminated, relaunched, reopened the same synthetic book and asserted the new marker.",
+  "on_disk_ownership_checks": [
+    {
+      "device": "iPhone",
+      "marker": "AUDIT_FIXED_SCENE_20261007_A",
+      "single_active_scene_contains_marker": true,
+      "scene_index_title_matches_fresh_fixture": true,
+      "default_draft": true,
+      "relative_synthetic_file": "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-02.novalist"
+    },
+    {
+      "device": "iPad A16",
+      "marker": "AUDIT_FIXED_MANUSCRIPT_20261007_C",
+      "single_active_scene_contains_marker": true,
+      "scene_index_title_matches_fresh_fixture": true,
+      "default_draft": true,
+      "relative_synthetic_file": "Audit Tablet Fixture/Audit Tablet Book/Drafts/default/Chapters/01 - Audit Tablet Chapter/scene-02.novalist"
+    },
+    {
+      "device": "iPad A16",
+      "marker": "AUDIT_FIXED_RESEARCH_20261007_B",
+      "single_research_item_contains_marker": true,
+      "research_title_matches_fresh_fixture_prefix": true,
+      "actual_synthetic_research_title": "Audit Fixed Research 20261007Title",
+      "relative_synthetic_file": "Audit Tablet Fixture/.novalist/project.json"
+    }
+  ],
+  "limitations": [
+    "No physical-device claim.",
+    "No lock, two-dirty-pane, disk conflict or save-acknowledgement reorder acceptance claim.",
+    "Research input retained the default Title suffix; its fresh unique prefix and marker were verified before/after.",
+    "Full native coverage remains in the parent audit ledger; these are regression subsets."
+  ]
+}

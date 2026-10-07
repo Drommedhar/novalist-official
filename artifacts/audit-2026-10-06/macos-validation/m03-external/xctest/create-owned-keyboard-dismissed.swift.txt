@@ -1,0 +1,17 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+  func testM02NativePicker() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+    app.activate()
+    let name = app.textFields["My Novel"].firstMatch
+    XCTAssertEqual(name.value as? String, "Audit Matching SuffixI")
+    name.typeText(XCUIKeyboardKey.delete.rawValue)
+    XCTAssertEqual(name.value as? String, "Audit Matching Suffix")
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: 0.586)).tap()
+    XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+    app.buttons["Create Project"].firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    XCTAssertTrue(app.staticTexts["Project Dashboard"].firstMatch.waitForExistence(timeout: 12))
+
+  }
+}

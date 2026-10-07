@@ -1,0 +1,15 @@
+{
+  "source_reference": "../simulator-ui/m05-smoke/share-final-inputs.json",
+  "native_probes": false,
+  "fixture_method": "Owned project created by native New Project with default Documents; external project copied from prior synthetic imported project, given new synthetic project/book IDs and external marker before native opening. No settings/recents/ownership registry writes by harness.",
+  "matching_documents_relative_path": "Audit Matching Suffix",
+  "different_project_ids": true,
+  "local_project_id_sha256": "039c17ed8876ac94bd368535f88783086a0fb744c43e5606e7a47c9be84d4328",
+  "external_project_id_sha256": "704989a6ad04eab138e6e238759ca2801fbc520095498a661204b4c5d46de4e4",
+  "external_book_id_sha256": "4ac2f81e8e8bf67f385dfbb7c84df08f7573bfd06bc6db83ea730d794166031f",
+  "external_marker_sha256": "fd938419e2f9391f27d05d8274b5b5daf365c602e7539dbfd498e7258dced4cb",
+  "local_exact_owned_entry_present": true,
+  "external_owned_entry_absent": true,
+  "external_project_metadata_sha256": "ebb4067430866aca0590491941f48dc2499a179c799cf1511cbb986dad073a05",
+  "external_scene_sha256": "7bc07a23df1c6292ef9135f0d1a8c46ceb76f4120fd64c360d02d9750116068b"
+}

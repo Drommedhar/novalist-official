@@ -1,0 +1,76 @@
+{
+  "utc_started": "2026-10-07T08:26:48.460117+00:00",
+  "source_revision": "0558dda71a395b6ab6208dd6820cc19811a61430",
+  "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tracked_diff_bytes": 0,
+  "tracked_source_dirty": false,
+  "command": "dotnet test tests/Novalist.Core.Tests/Novalist.Core.Tests.csproj --filter 'FullyQualifiedName~MobileTemporaryAccessTests' -m:1 -nr:false",
+  "sdk": "10.0.401",
+  "utc_finished": "2026-10-07T08:27:58.711197+00:00",
+  "status": "passed",
+  "passed": 6,
+  "failed": 0,
+  "skipped": 0,
+  "duration_ms": 23,
+  "native_security_scope_acceptance": false,
+  "successful_command": "dotnet test tests/Novalist.Core.Tests/Novalist.Core.Tests.csproj --filter 'FullyQualifiedName~MobileTemporaryAccessTests' -m:1 -nr:false --no-restore --logger 'trx;LogFileName=mobile-temporary-access.trx' --results-directory artifacts/audit-2026-10-06/macos-validation",
+  "execution": "elevated after sandbox VSTest loopback socket bind failure",
+  "notes": [
+    "Portable net8.0 lifetime tests only; does not prove native security-scope acquisition/release counts.",
+    "Initial requested command compiled but VSTest aborted because the sandbox denied its loopback socket.",
+    "Initial restore emitted NU1900 warnings: NuGet vulnerability service unreachable. Successful retry used --no-restore, which replayed cached warnings without rerunning restore.",
+    "Existing NarrationClipCacheTests.cs:75 CS8625 warning appeared during initial build.",
+    "No npm audit invoked."
+  ],
+  "cases": [
+    {
+      "name": "Novalist.Core.Tests.Services.MobileTemporaryAccessTests.PageDisposalReleasesAllSelectionsAndDuplicateCleanupDoesNothing",
+      "outcome": "Passed",
+      "duration": "00:00:00.0033414"
+    },
+    {
+      "name": "Novalist.Core.Tests.Services.MobileTemporaryAccessTests.ConcurrentReplacementReleaseAndDisposalBalanceEachAcquisitionOnce",
+      "outcome": "Passed",
+      "duration": "00:00:00.0134845"
+    },
+    {
+      "name": "Novalist.Core.Tests.Services.MobileTemporaryAccessTests.ReselectingTheSamePathReleasesOnlyThePreviousAcquisition",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001058"
+    },
+    {
+      "name": "Novalist.Core.Tests.Services.MobileTemporaryAccessTests.LatePickerResultIsRejectedAndReleasedWithoutTouchingTheNewPage",
+      "outcome": "Passed",
+      "duration": "00:00:00.0001035"
+    },
+    {
+      "name": "Novalist.Core.Tests.Services.MobileTemporaryAccessTests.FailedStopDuringReplacementOrLateCompletionIsStillAttemptedOnce",
+      "outcome": "Passed",
+      "duration": "00:00:00.0008245"
+    },
+    {
+      "name": "Novalist.Core.Tests.Services.MobileTemporaryAccessTests.OneNativeStopFailureIsReportedWithoutSkippingOtherReleases",
+      "outcome": "Passed",
+      "duration": "00:00:00.0004736"
+    }
+  ],
+  "evidence": [
+    {
+      "file": "mobile-temporary-access.log",
+      "sha256": "2c28237efdaa9ff3c0ec37f9a504f9136fc5e28df4552fd51f09fa117b47c023",
+      "redactions": "repository/home path and TRX machine/user identity"
+    },
+    {
+      "file": "mobile-temporary-access-elevated.log",
+      "sha256": "3a96fc00426180c381d0d43110e5547b2c462660654e8226f94d21455dcc140d",
+      "redactions": "repository/home path and TRX machine/user identity"
+    },
+    {
+      "file": "mobile-temporary-access.trx",
+      "sha256": "df711e6d95e3713493fee485bc7b207177d41b83ba18f78a7702ed7d3d85651a",
+      "redactions": "repository/home path and TRX machine/user identity"
+    }
+  ],
+  "tracked_diff_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tracked_diff_bytes_after": 0
+}

@@ -1,0 +1,29 @@
+Test Suite 'All tests' started at 2026-10-07 11:16:14.478.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:16:14.478.
+Test Suite 'AuditUITests' started at 2026-10-07 11:16:14.479.
+Test Case '-[AuditUITests.AuditUITests testMicrophoneRetryStopAndBackground]' started.
+    t =     0.00s Start Test at 2026-10-07 11:16:14.481
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Launch com.novalist.app
+    t =     0.04s         Setting up automation session
+    t =     3.30s         Wait for com.novalist.app to idle
+    t =     5.04s Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     5.06s Checking existence of `"Start dictation" Button`
+    t =     5.07s Tap "Dictate" Switch
+    t =     5.07s     Wait for com.novalist.app to idle
+    t =     5.07s     Find the "Dictate" Switch
+    t =     6.08s         Find the "Dictate" Switch (retry 1)
+    t =     7.14s         Find the "Dictate" Switch (retry 2)
+    t =     7.16s Requesting snapshot of accessibility hierarchy for app with pid 82661
+<temporary-harness>/AuditUITests.swift:13: error: -[AuditUITests.AuditUITests testMicrophoneRetryStopAndBackground] : Failed to tap "Dictate" Switch: No matches found for Descendants matching type Switch from input {(
+    Application, pid: 82661, label: 'Novalist'
+)}
+    t =     7.20s Tear Down
+Test Case '-[AuditUITests.AuditUITests testMicrophoneRetryStopAndBackground]' failed (7.408 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 11:16:21.890.
+	 Executed 1 test, with 1 failure (0 unexpected) in 7.408 (7.411) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 11:16:21.891.
+	 Executed 1 test, with 1 failure (0 unexpected) in 7.408 (7.412) seconds
+Test Suite 'All tests' failed at 2026-10-07 11:16:21.891.
+	 Executed 1 test, with 1 failure (0 unexpected) in 7.408 (7.413) seconds

@@ -1,0 +1,12 @@
+Test Suite 'All tests' started at 2026-10-07 11:26:37.979.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:26:37.979.
+Test Suite 'AuditUITests' started at 2026-10-07 11:26:37.979.
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' started.
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' passed (5.134 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:26:43.118.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.134 (5.139) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:26:43.118.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.134 (5.139) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:26:43.118.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.134 (5.140) seconds
+** TEST SUCCEEDED **

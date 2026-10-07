@@ -1,0 +1,168 @@
+Test Suite 'All tests' started at 2026-10-07 11:13:25.186.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:13:25.187.
+Test Suite 'AuditUITests' started at 2026-10-07 11:13:25.187.
+Test Case '-[AuditUITests.AuditUITests testMicrophoneSettingsSearchResultInspection]' started.
+    t =     0.00s Start Test at 2026-10-07 11:13:25.188
+    t =     0.02s Set Up
+    t =     0.02s Open com.apple.Preferences
+    t =     0.02s     Activate com.apple.Preferences
+    t =     0.03s         Wait for com.apple.Preferences to idle
+AUDIT_SETTINGS_SEARCH_RESULTS_BEGIN
+    t =     0.03s Requesting snapshot of accessibility hierarchy for app with pid 81803
+    t =     0.17s Requesting snapshot of accessibility hierarchy for app with pid 81803
+Attributes: Application, 0x102e7ebc0, pid: 81803, label: 'Einstellungen'
+Element subtree:
+ →Application, 0x102e7ebc0, pid: 81803, label: 'Einstellungen'
+    Window (Main), 0x102e7ee40, {{0.0, 0.0}, {440.0, 956.0}}
+      Other, 0x102e7ed00, {{0.0, 0.0}, {440.0, 956.0}}
+        Other, 0x102e7ef80, {{0.0, 0.0}, {440.0, 956.0}}
+          Other, 0x102e7f0c0, {{0.0, 0.0}, {440.0, 956.0}}
+            Other, 0x102e7f340, {{0.0, 0.0}, {440.0, 956.0}}
+              Other, 0x102e7f480, {{0.0, 0.0}, {440.0, 956.0}}
+                Other, 0x102e7f700, {{0.0, 0.0}, {440.0, 956.0}}
+                  Other, 0x102e7f840, {{0.0, 0.0}, {440.0, 956.0}}
+                    Other, 0x102e7f5c0, {{0.0, 0.0}, {440.0, 956.0}}
+                      Other, 0x102e7c780, {{0.0, 0.0}, {440.0, 956.0}}
+                        Other, 0x102e7cf00, {{0.0, 0.0}, {440.0, 956.0}}
+                          Other, 0x102fcc3c0, {{0.0, 0.0}, {440.0, 956.0}}
+                            Other, 0x102fcd900, {{0.0, 0.0}, {440.0, 956.0}}
+                              Other, 0x102fcca00, {{0.0, 0.0}, {440.0, 956.0}}
+                                CollectionView, 0x102fccb40, {{0.0, 0.0}, {440.0, 956.0}}, identifier: 'com.apple.settings.sidebar.collectionView'
+                                  Other, 0x102fccc80, {{0.0, 0.0}, {440.0, 956.0}}
+                                    Other, 0x102fccf00, {{0.0, 0.0}, {440.0, 102.0}}
+                                    Other, 0x102fcd040, {{0.0, 501.0}, {440.0, 148.0}}
+                                  Other, 0x102fccdc0, {{0.0, 0.0}, {440.0, 956.0}}
+                                    Other, 0x102fcd180, {{0.0, 501.0}, {440.0, 148.0}}
+                                  Other, 0x102fcd680, {{407.0, 62.0}, {30.0, 832.0}}, label: 'Vertikaler Rollbalken, 1 Seite', value: 0 %
+                                    Other, 0x102fcd7c0, {{434.0, 65.0}, {3.0, 455.3}}
+                                  Other, 0x102fcdb80, {{407.0, 62.0}, {30.0, 832.0}}, label: 'Vertikaler Rollbalken, 1 Seite', value: 0 %
+                                    Other, 0x102fcda40, {{434.0, 65.0}, {3.0, 455.3}}
+                                StaticText, 0x102fcdcc0, {{73.3, 219.3}, {293.3, 85.8}}, label: 'Keine Ergebnisse für „Novalist“'
+                                Image, 0x102fcde00, {{201.0, 219.3}, {38.3, 38.7}}, identifier: 'magnifyingglass', label: 'Magnifying glass'
+                                StaticText, 0x102fce1c0, {{46.3, 308.2}, {347.3, 49.0}}, label: 'Überprüfe die Schreibweise oder starte eine neue Suche.'
+                            Other, 0x102fcdf40, {{0.0, 0.0}, {440.0, 956.0}}
+                              Other, 0x102fce300, {{0.0, 0.0}, {440.0, 956.0}}
+                                Other, 0x102fce080, {{0.0, 0.0}, {440.0, 956.0}}
+                        Toolbar, 0x102fce6c0, {{0.0, 0.0}, {440.0, 956.0}}, identifier: 'Toolbar', label: 'Symbolleiste'
+                          Other, 0x102fce580, {{0.0, 0.0}, {440.0, 956.0}}
+                            Other, 0x102fce800, {{0.0, 62.0}, {440.0, 894.0}}
+                              Other, 0x102fce940, {{0.0, 62.0}, {440.0, 894.0}}
+                                Other, 0x102fcebc0, {{0.0, 62.0}, {0.0, 0.0}}
+                                  Other, 0x102fcea80, {{8.0, 551.0}, {364.0, 48.0}}
+                                    Other, 0x102fced00, {{8.0, 551.0}, {364.0, 48.0}}
+                                      Other, 0x102fcee40, {{8.0, 561.0}, {364.0, 28.0}}
+                                        SearchField, 0x102fcf0c0, {{8.0, 561.0}, {364.0, 28.0}}, label: 'Suchen', placeholderValue: 'Suchen', value: Novalist, Keyboard Focused
+                                          Image, 0x102fcef80, {{20.0, 565.0}, {20.7, 19.3}}, identifier: 'magnifyingglass', label: 'Suchen'
+                                          Button, 0x102fcf200, {{338.7, 564.7}, {20.0, 20.0}}, label: 'Text löschen'
+                                  Other, 0x102fcf340, {{384.0, 551.0}, {48.0, 48.0}}
+                                    Other, 0x102fcf5c0, {{384.0, 551.0}, {48.0, 48.0}}
+                                      Other, 0x102fcf480, {{389.0, 556.0}, {38.0, 38.0}}
+                                        Other, 0x102fcf700, {{389.0, 556.0}, {38.0, 38.0}}
+                                          Button, 0x102fcf840, {{389.0, 556.0}, {38.0, 38.0}}, label: 'Schließen'
+                    Toolbar, 0x102fcf980, {{0.0, 0.0}, {440.0, 956.0}}, identifier: 'Toolbar', label: 'Symbolleiste'
+                      Other, 0x102fcfc00, {{0.0, 0.0}, {440.0, 956.0}}
+                Other, 0x102fcfd40, {{0.0, 0.0}, {440.0, 956.0}}
+                  Other, 0x102fcfac0, {{0.0, 0.0}, {440.0, 956.0}}
+    Window, 0x102fcc000, {{0.0, 0.0}, {440.0, 956.0}}
+      Other, 0x106848000, {{0.0, 0.0}, {440.0, 956.0}}
+        Other, 0x106848140, {{0.0, 0.0}, {440.0, 956.0}}
+        Other, 0x106848280, {{0.0, 609.0}, {440.0, 347.0}}
+          Other, 0x1068483c0, {{0.0, 609.0}, {440.0, 347.0}}, identifier: 'inputView'
+    Window, 0x106848500, {{0.0, 0.0}, {440.0, 956.0}}
+      Other, 0x106848640, {{0.0, 0.0}, {440.0, 956.0}}
+        Other, 0x106848780, {{0.0, 609.0}, {440.0, 347.0}}
+          Other, 0x1068488c0, {{0.0, 609.0}, {440.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x106848a00, {{0.0, 609.0}, {440.0, 44.0}}
+              Other, 0x106848b40, {{0.0, 609.0}, {440.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x106848c80, {{0.0, 9.0}, {440.0, 1244.0}}
+                  ScrollView, 0x106848dc0, {{0.0, 609.0}, {440.0, 44.0}}
+                Other, 0x106848f00, {{0.0, 609.0}, {440.0, 44.0}}
+                  Other, 0x106849040, {{0.0, 609.0}, {440.0, 44.0}}
+                    Other, 0x106849180, {{0.0, 609.0}, {440.0, 44.0}}, label: 'Eingabevorschläge'
+                      Other, 0x1068492c0, {{0.0, 609.0}, {440.0, 44.0}}
+                        Other, 0x106849400, {{0.0, 609.0}, {440.0, 44.0}}
+                          Button, 0x106849540, {{0.0, 609.0}, {146.7, 44.0}}
+                          Button, 0x106849680, {{146.7, 609.0}, {146.7, 44.0}}
+                          Button, 0x1068497c0, {{293.3, 609.0}, {146.7, 44.0}}
+          Other, 0x106849900, {{0.0, 609.0}, {440.0, 348.0}}
+            Other, 0x106849a40, {{0.0, 609.0}, {440.0, 348.0}}
+              Other, 0x106849b80, {{0.0, 609.0}, {440.0, 348.0}}
+          Other, 0x106849cc0, {{0.0, 653.0}, {440.0, 245.0}}
+            Keyboard, 0x106849e00, {{0.0, 653.0}, {440.0, 245.0}}
+              Other, 0x106849f40, {{0.0, 653.0}, {440.0, 245.0}}
+                Other, 0x10684a080, {{0.0, 653.0}, {440.0, 245.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x10684a1c0, {{0.0, 653.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10684a300, {{4.7, 660.0}, {39.3, 56.0}}, label: 'Q'
+                  Key, 0x10684a440, {{44.0, 660.0}, {39.3, 56.0}}, label: 'W'
+                  Key, 0x10684a580, {{83.3, 660.0}, {39.3, 56.0}}, label: 'E'
+                  Key, 0x10684a6c0, {{122.7, 660.0}, {39.3, 56.0}}, label: 'R'
+                  Key, 0x10684a800, {{162.0, 660.0}, {39.3, 56.0}}, label: 'T'
+                  Key, 0x10684a940, {{201.3, 660.0}, {39.3, 56.0}}, label: 'Z'
+                  Key, 0x10684aa80, {{240.7, 660.0}, {39.3, 56.0}}, label: 'U'
+                  Key, 0x10684abc0, {{280.0, 660.0}, {39.3, 56.0}}, label: 'I'
+                  Key, 0x10684ad00, {{319.3, 660.0}, {39.3, 56.0}}, label: 'O'
+                  Key, 0x10684ae40, {{358.7, 660.0}, {39.3, 56.0}}, label: 'P'
+                  Key, 0x10684af80, {{398.0, 660.0}, {39.7, 56.0}}, label: 'Ü'
+                  Key, 0x10684b0c0, {{0.0, 653.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10684b200, {{0.0, 653.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10684b340, {{4.7, 716.0}, {39.3, 56.0}}, label: 'A'
+                  Key, 0x10684b480, {{44.0, 716.0}, {39.3, 56.0}}, label: 'S'
+                  Key, 0x10684b5c0, {{83.3, 716.0}, {39.3, 56.0}}, label: 'D'
+                  Key, 0x10684b700, {{122.7, 716.0}, {39.3, 56.0}}, label: 'F'
+                  Key, 0x10684b840, {{162.0, 716.0}, {39.3, 56.0}}, label: 'G'
+                  Key, 0x10684b980, {{201.3, 716.0}, {39.3, 56.0}}, label: 'H'
+                  Key, 0x10684bac0, {{240.7, 716.0}, {39.3, 56.0}}, label: 'J'
+                  Key, 0x10684bc00, {{280.0, 716.0}, {39.3, 56.0}}, label: 'K'
+                  Key, 0x10684bd40, {{319.3, 716.0}, {39.3, 56.0}}, label: 'L'
+                  Key, 0x10684be80, {{358.7, 716.0}, {39.3, 56.0}}, label: 'Ö'
+                  Key, 0x10684c000, {{398.0, 716.0}, {39.7, 56.0}}, label: 'Ä'
+                  Key, 0x10684c140, {{0.0, 653.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Button, 0x10684c280, {{4.7, 772.0}, {56.0, 56.0}}, identifier: 'shift', label: 'Umschalt', Selected
+                  Key, 0x10684c3c0, {{0.0, 653.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10684c500, {{83.3, 772.0}, {39.3, 56.0}}, label: 'Y'
+                  Key, 0x10684c640, {{122.7, 772.0}, {39.3, 56.0}}, label: 'X'
+                  Key, 0x10684c780, {{162.0, 772.0}, {39.3, 56.0}}, label: 'C'
+                  Key, 0x10684c8c0, {{201.3, 772.0}, {39.3, 56.0}}, label: 'V'
+                  Key, 0x10684ca00, {{240.7, 772.0}, {39.3, 56.0}}, label: 'B'
+                  Key, 0x10684cb40, {{280.0, 772.0}, {39.3, 56.0}}, label: 'N'
+                  Key, 0x10684cc80, {{319.3, 772.0}, {39.3, 56.0}}, label: 'M'
+                  Key, 0x10684cdc0, {{0.0, 653.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10684cf00, {{381.3, 772.0}, {56.3, 56.0}}, identifier: 'delete', label: 'Löschen'
+                  Key, 0x10684d040, {{4.7, 828.0}, {54.0, 56.0}}, identifier: 'more', label: 'Zahlen'
+                  Button, 0x10684d180, {{58.7, 828.0}, {54.0, 56.0}}, identifier: 'emoji', label: 'Emoji-Symbole'
+                  Key, 0x10684d2c0, {{112.7, 828.0}, {216.7, 56.0}}, identifier: 'space', label: 'Leerzeichen'
+                  Button, 0x10684d400, {{329.3, 828.0}, {108.3, 56.0}}, identifier: 'Search', label: 'Suchen'
+          Other, 0x10684d540, {{0.0, 653.0}, {440.0, 303.0}}
+            Button, 0x10684d680, {{2.5, 887.7}, {80.1, 68.7}}, label: 'Nächste Tastatur', value: English (US)
+              StaticText, 0x10684d7c0, {{2.5, 887.7}, {0.0, 0.0}}
+            Button, 0x10684d900, {{357.4, 887.4}, {80.1, 68.7}}, identifier: 'dictation', label: 'Diktieren'
+              StaticText, 0x10684da40, {{357.4, 887.4}, {0.0, 0.0}}
+            Button, 0x10684db80, {{357.4, 887.4}, {80.1, 68.7}}, identifier: 'dictation', label: 'Diktieren'
+              StaticText, 0x10684dcc0, {{357.4, 887.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x102e7ebc0, pid: 81803, label: 'Einstellungen'
+Query chain:
+ →Find: Application 'com.apple.Preferences'
+  Output: {
+    Application, 0x10684de00, pid: 81803, label: 'Einstellungen'
+  }
+
+AUDIT_SETTINGS_SEARCH_RESULTS_END
+    t =     0.19s Tear Down
+Test Case '-[AuditUITests.AuditUITests testMicrophoneSettingsSearchResultInspection]' passed (0.216 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:13:25.405.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.216 (0.218) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:13:25.405.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.216 (0.218) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:13:25.405.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.216 (0.219) seconds
+2026-10-07 11:13:25.705 xcodebuild[82054:3040938] [MT] IDETestOperationsObserverDebug: 2.986 elapsed -- Testing started completed.
+2026-10-07 11:13:25.705 xcodebuild[82054:3040938] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 11:13:25.705 xcodebuild[82054:3040938] [MT] IDETestOperationsObserverDebug: 2.986 sec, +2.986 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-harness>/microphone-settings-results.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

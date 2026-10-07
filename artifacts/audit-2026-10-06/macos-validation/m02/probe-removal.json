@@ -1,0 +1,39 @@
+{
+  "status": "pass",
+  "production_source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "production_patch": "production-evaluator-fix.patch",
+  "instrumentation_removed": true,
+  "source_matches_main_snapshot": true,
+  "clean_changed_file_sha256": {
+    "Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs": "762bcd8008e59df8b3296d3ef43ae087642e1685d8067925709c98f22029f606",
+    "Novalist.Mobile/Pages/RendererHostPage.Transport.cs": "bdaa9a8e225e61dfa5ba72e9b5de82536cfc5ecb634033f129a46bc8cb0cf616",
+    "Novalist.Mobile/Pages/RendererHostPage.cs": "3df4b2a85c97390a3eb7cdf743e6d9a5c842af08bc903978a8e907b6224acb1e",
+    "Novalist.Mobile/Services/SecurityScopedFolders.Manuscripts.cs": "54fbe670931c321594bf36a084fde8d72688d0a4e00e97a8725e8abb228b0bb4",
+    "Novalist.Mobile/Services/SecurityScopedFolders.cs": "6bae32b526a26d14ce7dbcb305aa27616285cc2084b0cef354dc23e8835e85fd",
+    "Novalist.Mobile/Services/TemporaryAccessRegistry.cs": "fcc92fae9ed86ee80faf882230dab0dea245354348fcaeda7c9a1a14c2c73bc0",
+    "Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs": "7b9abb8656b96a0aab6be6bd513cb8af1f01916fe6a6daad8a09f9edd7f42540"
+  },
+  "clean_build_exit_code": 0,
+  "clean_build_warnings": 14,
+  "clean_build_errors": 0,
+  "clean_build_log": "clean-final-build.log",
+  "cleaned_outputs": [
+    "Novalist.Mobile/bin",
+    "Novalist.Mobile/obj",
+    "Novalist.Core/bin",
+    "Novalist.Core/obj"
+  ],
+  "build_command": "dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios27.0 -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=true -p:CodesignKey=- -m:1 -nr:false",
+  "codesign_verify_deep_strict_exit_code": 0,
+  "clean_app_install_exit_code": 0,
+  "clean_app_launch_exit_code": 0,
+  "clean_launch_pid": 81454,
+  "clean_launch_xctest": "xctest/clean-final-launch.log",
+  "synthetic_control_directory_removed": true,
+  "clean_source_scan_no_probe_symbols": true,
+  "app_file_sha256": {
+    "Novalist.Mobile": "fc5f741b8e6d391d19fe20cc6523fa14fe68ca6f7cbdf5ee7178ddccbe9eb08f",
+    "Novalist.Mobile.dll": "6bb6fe97ee1e7c16806fc53ed893c7e66827739738a2984b66f681cf168cbc07",
+    "Info.plist": "47648c423394c43a6fb08ff9f850b2ff4fffb427b41e2a1b92aa1224aa295e27"
+  }
+}

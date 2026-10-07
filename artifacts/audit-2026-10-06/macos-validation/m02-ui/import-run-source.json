@@ -1,0 +1,17 @@
+{
+  "same_instrumented_source_bytes_as_ui_matrix": {
+    "Novalist.Mobile/Pages/RendererHostPage.cs": true,
+    "Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs": true,
+    "Novalist.Mobile/Pages/RendererHostPage.Transport.cs": true,
+    "Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs": true,
+    "Novalist.Mobile/Pages/RendererHostPage.AuditControl.cs": true,
+    "Novalist.Mobile/Services/SecurityScopedFolders.cs": true,
+    "Novalist.Mobile/Services/SecurityScopedFolders.Manuscripts.cs": true,
+    "Novalist.Mobile/Services/SecurityScopedFolders.Audit.cs": true,
+    "Novalist.Mobile/Services/TemporaryAccessRegistry.cs": true
+  },
+  "instrumentation": "instrumentation.patch",
+  "source": "source.json",
+  "app_executable_sha256": "8b8194d94115faa497859295a08f20ef4a0883d1abc379d2878e666775fbd347",
+  "build": "import-instrumented-build.log"
+}

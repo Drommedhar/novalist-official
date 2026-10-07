@@ -1,0 +1,1823 @@
+{
+  "schema_version": 1,
+  "updated": "2026-10-07",
+  "purpose": "Per-scenario acceptance evidence for the ten original Apple runtime findings. Native compilation is recorded separately from simulator, physical-device and CI acceptance.",
+  "overall_status": "incomplete",
+  "scope": {
+    "total_original_findings": 73,
+    "previously_verified": 63,
+    "pending_findings": [
+      "M01",
+      "M03",
+      "M05",
+      "M06",
+      "R15",
+      "P01"
+    ],
+    "current_user_direction": "Use simulators only for now.",
+    "physical_device_acceptance": "Deferred by the current simulator-only direction; required physical acceptance remains not-run and prevents completion.",
+    "release_publication": "Not authorized; no release is part of this validation.",
+    "delivery": "Validated fixes 0c789b29, 8489c9a3, dd9817e3, 624533d8, af9f44d3 and 9ec4bcf2 pushed to dev. Original CI probes complete and closed without merge; no release.",
+    "currently_verified": 67
+  },
+  "sources": {
+    "native-clean": {
+      "revision": "0558dda71a395b6ab6208dd6820cc19811a61430",
+      "working_tree": "clean",
+      "dirty_diff": "none",
+      "note": "Source for the recorded native compilation. Future instrumented runs must identify their own revision and preserved diff/hash; remove probes and rebuild before final-source attribution.",
+      "runtime_build_arguments": [
+        "-p:EnableCodeSigning=true",
+        "-p:CodesignKey=-"
+      ]
+    },
+    "p01-original-manual-plugin": {
+      "revision": "ba8b6d328b64ded6e923baa25ce086d7e9e799e4",
+      "path": "app/build/manual-plugin.ts",
+      "note": "Use only this historical plugin against otherwise identical current sources/build settings; never compare unrelated complete revisions."
+    },
+    "ci-no-audit": {
+      "revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+      "working_tree": "clean archive",
+      "dirty_diff": "none",
+      "note": "Only Apple workflow npm restoration differs from native-clean production source."
+    },
+    "audit-control": {
+      "revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+      "working_tree": "temporary instrumented disposable checkout",
+      "dirty_diff": "audit-control.patch",
+      "dirty_diff_sha256": "2580103702a3a67ac99bc3680b0f61b8c7a3ef9f39c55e8d5396a01fefc26ca0"
+    },
+    "native-evaluator-final": {
+      "revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+      "working_tree": "final native fix; clean rebuild without audit probes",
+      "dirty_diff": "final-mobile-source.patch",
+      "dirty_diff_sha256": "e1be8f17101ec55093aadd2c7c47a2f0e063f7ffd3295977756eec9f5052b2b4",
+      "build_evidence": "final-clean-build.json",
+      "committed_revision": "8489c9a3fa3b14b3cc695cef1b6d162b3d9aa3ab"
+    },
+    "audit-control-fixed": {
+      "revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+      "working_tree": "disposable checkout with native evaluator fix and temporary runtime controls",
+      "dirty_diff": "audit-control-fixed.patch",
+      "dirty_diff_sha256": "2d88274ef724e09d0bdfc0bd3a4885112d88f7d80002594cc5730a6f431795e8"
+    },
+    "m02-fixed-probe": {
+      "revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+      "working_tree": "disposable native evaluator fix plus scope counters and asynchronous genuine picker callback gate",
+      "dirty_diff": "m02/combined-validation.patch",
+      "identity_evidence": "m02/source-identity.json"
+    },
+    "m02-ui": {
+      "revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+      "identity_evidence": "m02-ui/source.json",
+      "working_tree": "Native evaluator correction plus exact scope instrumentation matching earlier late-picker run; all probes subsequently removed."
+    },
+    "r13-fixed": {
+      "identity_evidence": "r13/source-provenance.json",
+      "working_tree": "Native evaluator correction plus mobile media CSP and Research preview error fixes; temporary controls removed after acceptance."
+    },
+    "m04-full": {
+      "revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+      "identity_evidence": "../simulator-ui/m04-full/summary.json",
+      "dirty_diff": "../simulator-ui/m04-full/final-effective-source.patch",
+      "dirty_diff_sha256": "92be7e7479b079db9b8ca488a7f89744def8cdbf5e8610ceac98956ce43f75a7",
+      "note": "Native evaluator correction plus three proactive journal source files. Later M03 and R13 changes excluded; combined build recorded separately."
+    },
+    "m03-successive": {
+      "identity_evidence": "m03-successive/source-provenance.json",
+      "note": "Exact frozen owned-path alias/concurrency fix; two actual simulator relocations; no probes."
+    },
+    "m05-share-final": {
+      "identity_evidence": "simulator-ui/m05-smoke/share-final-inputs.json",
+      "patch": "simulator-ui/m05-smoke/share-fix-combined-source.patch",
+      "committed_revision": "624533d8",
+      "note": "Uninstrumented combined source including native share ownership correction, before later map3D viewport fix."
+    },
+    "r13-frames": {
+      "identity_evidence": "r13-frames/probe-provenance.json",
+      "cleanup_evidence": "r13-frames/final-snapshot.json",
+      "committed_viewport_fix": "af9f44d3",
+      "note": "Actual nested scene/map and3D rendering; separate instrumented and clean snapshots. Native memory acceptance remains separate."
+    },
+    "m03-external": {
+      "identity_evidence": "m03-external/installed-app-identity.json",
+      "source_reference": "simulator-ui/m05-smoke/share-final-inputs.json",
+      "note": "Actual native Files-visible external matching suffix and container relocation; no probes or manual registry/recents changes. Later map fix excluded."
+    },
+    "native-ownership-final": {
+      "revision": "9ec4bcf2cf57eac8bcc3c0751da70b67263fe8d0",
+      "helper_sha256": "781778b7425a12700dd3528afe6951db38180a958af69d22ab68b2ec1f246e8a",
+      "clean_integrated_inputs": "r13-memory/evaluator-regressions/production-inputs.json",
+      "clean_integrated_inputs_count": 1257,
+      "evidence": "r13-memory/evaluator-regressions/summary.json",
+      "note": "Regression instrumented source is af9f44d3 plus identical candidate-helper.patch. Clean final integrated production inputs match this source commit."
+    },
+    "r13-memory-fixed": {
+      "revision": "8489c9a3fa3b14b3cc695cef1b6d162b3d9aa3ab",
+      "dirty_diff": "r13-memory/production-fixes.patch plus ownership-fix.patch; read-only cache/control probes recorded in source-provenance.json",
+      "helper_sha256": "781778b7425a12700dd3528afe6951db38180a958af69d22ab68b2ec1f246e8a",
+      "evidence": "r13-memory/source-provenance.json",
+      "note": "Controlled workload snapshot excludes later native export/map edits. Separate native-ownership-final integration includes all current production changes."
+    }
+  },
+  "environment": {
+    "host_os": "macOS 27.0.1",
+    "xcode": "27.0",
+    "ios_sdk": "27.0",
+    "dotnet_sdk": "10.0.401",
+    "maui_ios_workload": "10.0.401.1",
+    "node": "26.0.0",
+    "python": "3.14.7",
+    "simulator": {
+      "status": "dedicated-created-and-launched",
+      "model": "iPhone 17 Pro Max",
+      "os": "iOS 27.0",
+      "name": "Novalist-Audit-iPhone"
+    },
+    "physical_device": {
+      "status": "deferred",
+      "model": null,
+      "os": null,
+      "reason": "User requests simulator-only validation for now."
+    }
+  },
+  "native_compile": {
+    "status": "passed",
+    "source": "native-clean",
+    "command": "bash artifacts/audit-2026-10-06/verify-native.sh",
+    "evidence_directory": "native-compile",
+    "checks_evidence": "native-compile/checks.tsv",
+    "checks": [
+      {
+        "id": "dotnet-info",
+        "status": "passed",
+        "evidence": "native-compile/dotnet-info.log"
+      },
+      {
+        "id": "apple-build-regressions",
+        "status": "passed",
+        "evidence": "native-compile/apple-build-regressions.log"
+      },
+      {
+        "id": "install-web-dependencies",
+        "status": "passed",
+        "evidence": "native-compile/install-web-dependencies.log"
+      },
+      {
+        "id": "typecheck",
+        "status": "passed",
+        "evidence": "native-compile/typecheck.log"
+      },
+      {
+        "id": "transport",
+        "status": "passed",
+        "evidence": "native-compile/transport.log"
+      },
+      {
+        "id": "mobile-renderer",
+        "status": "passed",
+        "evidence": "native-compile/mobile-renderer.log"
+      },
+      {
+        "id": "source-gates",
+        "status": "passed",
+        "evidence": "native-compile/source-gates.log"
+      },
+      {
+        "id": "ios-simulator",
+        "status": "passed",
+        "evidence": "native-compile/ios-simulator.log"
+      },
+      {
+        "id": "ios-speech-archive",
+        "status": "passed",
+        "evidence": "native-compile/ios-speech-archive.log"
+      }
+    ],
+    "acceptance_limit": "Nine checks passed, including unsigned simulator compilation and device speech archive compilation. No simulator launch, physical-device behavior, signing, security-scope balance or actual CI trigger result is implied."
+  },
+  "recording_contract": {
+    "case_status_values": [
+      "not-run",
+      "passed",
+      "failed"
+    ],
+    "run_status_values": [
+      "not-run",
+      "passed",
+      "failed"
+    ],
+    "source_reference": "Each scenario initially names native-clean; each observed run must record the actual source reference or revision, dirty diff evidence/hash, device model and OS, observed outcome and compact evidence filenames.",
+    "physical_cases": "Supporting simulator runs may be appended to physical-required cases, but their acceptance status cannot become passed until the specified physical acceptance is proven.",
+    "privacy": "Only synthetic fixture markers and compact nonprivate diagnostics; exclude manuscript content, personal paths, credentials, project names and identities from committed evidence.",
+    "probes": "Temporary scope counters and asynchronous fault gates must be removed; preserve probe diff hashes and clean-build evidence without claiming probes are final source."
+  },
+  "findings": [
+    {
+      "id": "M01",
+      "title": "Retained edits",
+      "status": "incomplete",
+      "scenarios": [
+        {
+          "id": "M01-01",
+          "key": "scene-background",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Immediately background after editing a scene; normal acknowledged flush retains the synthetic marker after relaunch.",
+          "observed": null,
+          "evidence": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "native-clean",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Actual XCTest editor input, Home immediately after typing, terminate, launch and reopen same fixture scene.",
+              "observed": "Saved synthetic marker found in actual editor after reopening. Home at 11.70s after typing finished at 11.69s; termination at 12.16s.",
+              "evidence": [
+                "../simulator-ui/scene-lifecycle.json",
+                "../simulator-ui/scene-lifecycle.log",
+                "../simulator-ui/SceneLifecycleTests.swift"
+              ],
+              "limit": "Supporting simulator result; required physical-device variant remains deferred."
+            },
+            {
+              "status": "passed",
+              "source": "native-evaluator-final",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Fresh scene marker saved after immediate Home, termination and relaunch on iPhone simulator.",
+              "evidence": [
+                "../simulator-ui/lifecycle-fixed-summary.json",
+                "../simulator-ui/scene-fixed.log",
+                "../simulator-ui/scene-fixed.swift",
+                "../simulator-ui/fixed-build-provenance.json"
+              ],
+              "limit": "Supporting simulator result. Compiled source differs from final source only by removed decorative comment; tested exact source preserved in fixed-mobile-source.patch. Original physical acceptance remains deferred."
+            }
+          ],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M01-02",
+          "key": "manuscript-background",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Immediately background after editing a manuscript; normal acknowledged flush retains the synthetic marker after relaunch.",
+          "observed": null,
+          "evidence": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "native-evaluator-final",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Fresh full Manuscript scene marker saved after immediate Home, termination and relaunch on iPad simulator.",
+              "evidence": [
+                "../simulator-ui/lifecycle-fixed-summary.json",
+                "../simulator-ui/manuscript-fixed.log",
+                "../simulator-ui/manuscript-fixed.swift",
+                "../simulator-ui/fixed-build-provenance.json"
+              ],
+              "limit": "Supporting simulator result. Compiled source differs from final source only by removed decorative comment; tested exact source preserved in fixed-mobile-source.patch. Original physical acceptance remains deferred."
+            }
+          ],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M01-03",
+          "key": "research-background",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Immediately background after editing Research; all dirty notes retain synthetic markers after relaunch.",
+          "observed": null,
+          "evidence": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "native-clean",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Real UI Research note creation/edit, immediate Home, termination, relaunch and reopened note marker passed one XCTest in16.748s.",
+              "evidence": [
+                "../simulator-ui/research-lifecycle.json",
+                "../simulator-ui/research-lifecycle.log",
+                "../simulator-ui/ResearchLifecycleTests.swift"
+              ],
+              "limit": "Physical lifecycle requirements remain deferred."
+            },
+            {
+              "status": "passed",
+              "source": "native-evaluator-final",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Fresh Research marker saved after immediate Home, termination and relaunch on iPad simulator.",
+              "evidence": [
+                "../simulator-ui/lifecycle-fixed-summary.json",
+                "../simulator-ui/research-fixed.log",
+                "../simulator-ui/research-fixed.swift",
+                "../simulator-ui/fixed-build-provenance.json"
+              ],
+              "limit": "Supporting simulator result. Compiled source differs from final source only by removed decorative comment; tested exact source preserved in fixed-mobile-source.patch. Original physical acceptance remains deferred."
+            }
+          ],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M01-04",
+          "key": "lock-terminate",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Immediately lock after editing, terminate after backgrounding, then reopen; scene, manuscript and Research markers are saved or offered for recovery.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M01-05",
+          "key": "interrupted-flush",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Interrupt the flush before acknowledgement and terminate/relaunch; retained edits recover. Record whether the OS granted background execution.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M01-06",
+          "key": "offline",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Repeat immediate background/termination/relaunch offline; saved or recovered markers remain available without silent loss.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M01-07",
+          "key": "cloud-only",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Repeat with cloud-only files; unfinished provider writes leave recoverable markers and never imply a completed disk save.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M01-08",
+          "key": "two-dirty-panes",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Keep two independent panes dirty, background/terminate/relaunch, then recover both exact buffers without crossing ownership.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M01-09",
+          "key": "disk-conflict",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Retain an unresolved disk conflict through background/termination; newer disk content is not silently overwritten and local markers remain recoverable.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M01-10",
+          "key": "late-acknowledgement",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Let a newer edit arrive before an older save acknowledgement; the older acknowledgement cannot clear the newer dirty buffer or journal entry.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M01-11",
+          "key": "scope-ownership",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Exercise distinct project/book/draft scopes for scenes, manuscript and Research; recovery restores each marker only to its exact owner.",
+          "observed": null,
+          "evidence": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "native-evaluator-final",
+              "device_model": "iPhone and iPad simulators",
+              "device_os": "iOS 27.0",
+              "observed": "Unique fresh scene/manuscript markers confirmed in intended active scene and default draft; Research marker in intended new item.",
+              "evidence": [
+                "../simulator-ui/lifecycle-fixed-summary.json"
+              ],
+              "limit": "Supporting ownership subset; multiple drafts and retained recovery remain unproven."
+            }
+          ],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        }
+      ]
+    },
+    {
+      "id": "M02",
+      "title": "Security-scope balance",
+      "status": "passed",
+      "scenarios": [
+        {
+          "id": "M02-01",
+          "key": "folder-open-close",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "m02-ui",
+          "device_model": "iPhone17Pro simulator",
+          "device_os": "iOS27.0",
+          "expected": "Count successful native scope acquisitions and actual native stop calls while repeatedly opening and closing external projects; settled counts return to the retained active-project baseline.",
+          "observed": "Two complete external sibling projects reopened their own dashboards through actual recent cards after a real parent move; final close balanced9 successful starts/9 completed stops/zero grants.",
+          "evidence": [
+            "m02-ui/summary.json",
+            "m02-ui/probe-removal.json"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "m02-fixed-probe",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Real external Files-provider folder grant acquired and explicitly released; native balance proved.",
+              "evidence": [
+                "m02/summary.json"
+              ],
+              "limit": "Full project open/close through actual UI remains unproven."
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "M02-02",
+          "key": "folder-cancel-reselect",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "m02-ui",
+          "device_model": "iPhone17Pro simulator",
+          "device_os": "iOS27.0",
+          "expected": "Cancel and reselect external folders, including the same folder repeatedly; failed starts acquire no lease and replaced successful grants release once.",
+          "observed": "Real folder picker confirmed same-folder replacement and cancellation; positive acquisitions and actual stops balanced after creation. Failed-start counter remained0; no fabricated native grant.",
+          "evidence": [
+            "m02-ui/summary.json",
+            "m02-ui/probe-removal.json"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "m02-fixed-probe",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Real file picker cancellation retained previous grant unchanged; same-file reselection replaced/released previous lease.",
+              "evidence": [
+                "m02/summary.json"
+              ],
+              "limit": "Exact repeated external-folder cancel/reselect variant remains unproven."
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "M02-03",
+          "key": "manuscript-cancel-close",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "m02-ui",
+          "device_model": "iPhone17Pro simulator",
+          "device_os": "iOS27.0",
+          "expected": "Pick, cancel, import, close and reselect manuscript selections; temporary grant release follows the owning operation and closing dialog.",
+          "observed": "Actual native file pick, preview, cancel, different-file reselection, Import and Close passed. Import reported1 chapter/1 scene/4 words; marker written in exactly one target-A scene and absent fromB. File scope released before result dialog closed; Close did not double-stop. Later reselection and close balanced4/4/zero grants.",
+          "evidence": [
+            "m02-ui/summary.json",
+            "m02-ui/probe-removal.json"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "m02-fixed-probe",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Real external manuscript pick/cancel/reselect and explicit releasePickedFile invocation balanced native starts/stops.",
+              "evidence": [
+                "m02/summary.json"
+              ],
+              "limit": "Actual import and dialog-close ownership path remains unproven."
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "M02-04",
+          "key": "page-disposal",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "m02-fixed-probe",
+          "device_model": "iPhone 17 Pro simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Dispose/reload a page with retained temporary imports; every old-page grant releases exactly once, with no surviving abandoned scope.",
+          "observed": "Actual native Reload after backend failure and known WebContent termination disposed old-page native grants exactly once. Host survived fixed WebContent termination; 1/1 starts/stops before replacement page acquisition.",
+          "evidence": [
+            "m02/23-fixed-after-native-reload.json",
+            "m02/summary.json"
+          ],
+          "runs": [],
+          "blocker": null
+        },
+        {
+          "id": "M02-05",
+          "key": "late-old-page-picker",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "m02-fixed-probe",
+          "device_model": "iPhone 17 Pro simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Deliver a picker result after the old page was disposed/reloaded; reject/release that result while preserving an active grant owned by the replacement page.",
+          "observed": "Old actual UIDocumentPicker callback was held across native Reload; replacement page acquired same file. Resuming old callback left starts2/stops1/pageGrants1; cleanup ended2/2 and zero retained.",
+          "evidence": [
+            "m02/22-fixed-associated-webkit-termination.json",
+            "m02/26-fixed-old-picker-rejected-new-grant-retained.json",
+            "m02/27-fixed-final-balanced.json",
+            "m02/summary.json"
+          ],
+          "runs": [],
+          "blocker": null
+        },
+        {
+          "id": "M02-06",
+          "key": "moved-parent-siblings",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "m02-ui",
+          "device_model": "iPhone17Pro simulator",
+          "device_os": "iOS27.0",
+          "expected": "Bookmark a parent containing two projects, move that parent in Files, then reopen both children from recents; access resolves and scope counts return to the active baseline.",
+          "observed": "Created complete A/B projects with distinct stable project/book identity hashes. Actual external parent rename changed real recent paths; both cards reopened the correct respective projects without picker. Metadata and identity hashes unchanged, final native balance9/9.",
+          "evidence": [
+            "m02-ui/summary.json",
+            "m02-ui/probe-removal.json"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "m02-fixed-probe",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Actual external parent move using NSFileCoordinator; both old sibling directory paths resolved through native bookmarks to moved parent. Ended6 starts/6 completed stops/zero retained.",
+              "evidence": [
+                "m02/summary.json"
+              ],
+              "limit": "Fixtures were sibling directories, not full projects; recents and identity path remain unproven."
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "M02-07",
+          "key": "remove-counters-clean-build",
+          "status": "passed",
+          "required_environment": "native-build",
+          "source": "m02-ui",
+          "device_model": "iPhone17Pro simulator",
+          "device_os": "iOS27.0",
+          "expected": "Remove temporary counter-only instrumentation and obtain a clean native build before attributing the scope results to final source.",
+          "observed": "After actual import/reselection, all counters/gates/controls removed; clean four-project outputs rebuild0errors14warnings, strict deep signature, install and actual native UI passed. Imported marker and scene hash retained through clean relaunch.",
+          "evidence": [
+            "m02-ui/summary.json",
+            "m02-ui/probe-removal.json"
+          ],
+          "runs": [],
+          "blocker": null
+        }
+      ]
+    },
+    {
+      "id": "M03",
+      "title": "Container relocation",
+      "status": "incomplete",
+      "scenarios": [
+        {
+          "id": "M03-01",
+          "key": "actual-relocation",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Perform a real app update/restore that changes the app data-container location while preserving app-owned synthetic data; record a changed-container boolean and verify recents reopen the original stable project IDs. If the location did not change, this case remains not-run.",
+          "observed": null,
+          "evidence": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "native-clean",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Actual changed data-container UUID, old container absent, byte-identical backed-up data restored before launch. Reopened recents repaired paths and retained original project/book/draft identity hash and saved Research/manuscript markers.",
+              "evidence": [
+                "../simulator-ui/container-relocation.json",
+                "../simulator-ui/container-relocation.log"
+              ],
+              "limit": "Supporting simulator result; this earlier subset did not establish physical relocation or external matching-suffix acceptance. Later simulator external matching-suffix acceptance is recorded separately; physical relocation remains deferred."
+            },
+            {
+              "status": "passed",
+              "source": "m03-successive",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Two successive actual container moves without opening the project between repairs. Exact trusted aliases and recents persisted at each new path; stable app/project/book/metadata hashes; prior roots absent. No probes or intervening registry edits.",
+              "evidence": [
+                "m03-successive/summary.json",
+                "m03-successive/relocation-observations.json"
+              ],
+              "limit": "Simulator support; physical relocation and genuine external Files-provider suffix case remain deferred/unproven."
+            }
+          ],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M03-02",
+          "key": "external-matching-suffix",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "With a distinct external project sharing an app-owned path suffix, perform actual relocation and reopen recents; the external project must never redirect to the unrelated local project.",
+          "observed": null,
+          "evidence": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "m03-external",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS27.0",
+              "observed": "Native picker opened a distinct external project with the same Documents-relative suffix as owned local project. Actual data-container relocation and recent-card reopen preserved external-only marker/identities and external path; local alias repaired independently. External never entered owned registry.",
+              "evidence": [
+                "m03-external/summary.json",
+                "m03-external/04-after-relocation-reopen.json"
+              ],
+              "limit": "Supporting simulator evidence; physical requirement remains not-run."
+            }
+          ],
+          "blocker": "Physical-device acceptance deferred; actual simulator external matching-suffix relocation has passed."
+        }
+      ]
+    },
+    {
+      "id": "M04",
+      "title": "Native transport failure",
+      "status": "passed",
+      "scenarios": [
+        {
+          "id": "M04-01",
+          "key": "evaluator-failure",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "m04-full",
+          "device_model": "iPhone 17 Pro Max simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Inject one asynchronous evaluator exception after readiness; pending calls settle, editing pauses, Reload/Later remains available, reload reconnects and retains unsaved markers without replaying mutations.",
+          "observed": "Native NSError rejected the pending actual To do reply and showed Reload/Later. Actual Reload restored the scene marker that existed in the journal but was absent from disk; it persisted and the journal cleared. Exactly one task in disk/UI.",
+          "evidence": [
+            "../simulator-ui/m04-full/summary.json",
+            "../simulator-ui/m04-full/EVALFIXC.json",
+            "../simulator-ui/m04-full/EVALFIXC.swift",
+            "../simulator-ui/m04-full/EVALFIXC.log",
+            "../simulator-ui/m04-full/EVALFIXC-clean-source.json"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "audit-control-fixed",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Transport recovery subset: evaluator-native-failure",
+              "observed": "Native host survived; real Editing paused alert with Reload/Later appeared. Actual Reload XCTest passed and production host bridge reconnected. Pending production host call rejected.",
+              "evidence": [
+                "m04-fixed-evaluator-native-failure.json",
+                "m04-fixed-reload-summary.json"
+              ],
+              "limit": "This earlier subset did not prove retained unsaved marker recovery or mutation nonreplay; the later full scenario is recorded above."
+            },
+            {
+              "status": "failed",
+              "source": "audit-control-fixed",
+              "device_model": "iPhone17ProMax simulator",
+              "device_os": "iOS27.0",
+              "observed": "Native evaluator crash fix exposed a second defect: unsaved typed scene marker absent from journal/disk before real Reload and absent from editor/journal/disk afterward; bridge reconnected.",
+              "evidence": [
+                "../simulator-ui/m04-full/evaluator-loss-summary.json"
+              ],
+              "resolution": "Resolved by the native evaluator and proactive journal corrections; final full matrix is recorded by m04-full."
+            },
+            {
+              "status": "passed",
+              "source": "native-ownership-final",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Native ownership correction regression and final clean integration",
+              "observed": "The final native ownership helper passed real NSError and actual associated WebContent termination on the iPhone simulator. Scene/Manuscript markers journaled but absent from disk before Reload were restored and persisted; exactly one actual To do mutation remained in disk/UI. Probes were removed and all 1,257 current production inputs matched before fresh renderer/native build, strict signature, installation and actual 3D UI acceptance. Evidence: macos-validation/r13-memory/evaluator-regressions/summary.json. The killed JavaScript context cannot report its Promise rejection.",
+              "evidence": [
+                "r13-memory/evaluator-regressions/summary.json"
+              ]
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "M04-02",
+          "key": "evaluator-timeout",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "m04-full",
+          "device_model": "iPhone 17 Pro Max simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Substitute one uncompleted evaluator task while the UI remains running; preserve the 15-second delivery deadline and at most 2-second notification attempt. Pending calls settle and editing pauses; reload recovers without mutation replay.",
+          "observed": "Actual asynchronous delivery deadline fired at15.005173542s with live UI. Pending actual To do reply rejected; workspace became inert. Native Reload retained the scene marker and exactly one task in disk/UI. Autosave reached disk during the timeout; missing-disk restoration is established separately by M04-01/04.",
+          "evidence": [
+            "../simulator-ui/m04-full/summary.json",
+            "../simulator-ui/m04-full/TIMEOUTA.json",
+            "../simulator-ui/m04-full/TIMEOUTA.swift",
+            "../simulator-ui/m04-full/TIMEOUTA.log",
+            "../simulator-ui/m04-full/TIMEOUTA-clean-source.json"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "audit-control-fixed",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Transport recovery subset: evaluator-timeout",
+              "observed": "Native host survived; real Editing paused alert with Reload/Later appeared. Actual Reload XCTest passed and production host bridge reconnected. Pending production host call rejected.",
+              "evidence": [
+                "m04-fixed-evaluator-timeout.json",
+                "m04-fixed-reload-summary.json"
+              ],
+              "limit": "This earlier subset did not prove retained unsaved marker recovery or mutation nonreplay; the later full scenario is recorded above."
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "M04-03",
+          "key": "backend-pump-failure",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "m04-full",
+          "device_model": "iPhone 17 Pro Max simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Dispose only the ready test page bridge to induce its pump read failure; observe FailBridgeAsync, settled pending calls, paused editing, actionable reload and recovery without duplicate mutation.",
+          "observed": "Disposing only the ready page bridge produced pump failure, rejected the pending actual To do reply and paused editing. Actual Reload retained full Manuscript marker and exactly one task in disk/UI. Autosave reached disk before alert; this case proves retention/nonreplay.",
+          "evidence": [
+            "../simulator-ui/m04-full/summary.json",
+            "../simulator-ui/m04-full/BACKENDA.json",
+            "../simulator-ui/m04-full/BACKENDA.swift",
+            "../simulator-ui/m04-full/BACKENDA.log",
+            "../simulator-ui/m04-full/BACKENDA-clean-source.json"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "audit-control-fixed",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Transport recovery subset: backend-failure",
+              "observed": "Native host survived; real Editing paused alert with Reload/Later appeared. Actual Reload XCTest passed and production host bridge reconnected. Pending production host call rejected.",
+              "evidence": [
+                "m04-fixed-backend-failure.json",
+                "m04-fixed-reload-summary.json"
+              ],
+              "limit": "This earlier subset did not prove retained unsaved marker recovery or mutation nonreplay; the later full scenario is recorded above."
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "M04-04",
+          "key": "real-webcontent-termination",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "m04-full",
+          "device_model": "iPhone 17 Pro Max simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Establish the isolated app's associated WebContent process, terminate that process and observe ContentProcessDidTerminate. Pending calls settle, editing pauses and reload recovers retained edits without mutation replay. Direct handler invocation is insufficient.",
+          "observed": "The specifically associated WebContent process was killed and observer termination recorded; native host survived and displayed Reload/Later. Full Manuscript marker was journaled but absent on disk before kill and before Reload; actual Reload restored/persisted it and cleared the journal. Exactly one actual To do task in disk/UI. Dead JS context cannot report its Promise rejection.",
+          "evidence": [
+            "../simulator-ui/m04-full/summary.json",
+            "../simulator-ui/m04-full/WEBKITA.json",
+            "../simulator-ui/m04-full/WEBKITA.swift",
+            "../simulator-ui/m04-full/WEBKITA.log",
+            "../simulator-ui/m04-full/WEBKITA-clean-source.json"
+          ],
+          "runs": [
+            {
+              "status": "failed",
+              "source": "audit-control",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Before correction, real WebContent termination caused native host SIGABRT through MAUI async-void JavaScript evaluation.",
+              "evidence": [
+                "m04-prefixed-webkit-crash.json",
+                "m04-prefixed-webkit-crash.log"
+              ],
+              "resolution": "Resolved by the native evaluator and proactive journal corrections; final full matrix is recorded by m04-full."
+            },
+            {
+              "status": "passed",
+              "source": "audit-control-fixed",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Transport recovery subset: webcontent-termination",
+              "observed": "Native host survived; real Editing paused alert with Reload/Later appeared. Actual Reload XCTest passed and production host bridge reconnected. Associated WebContent process was killed and ContentProcessDidTerminate observed; the dead JS context cannot report promise settlement.",
+              "evidence": [
+                "m04-fixed-webcontent-termination.json",
+                "m04-fixed-reload-summary.json"
+              ],
+              "limit": "This earlier subset did not prove retained unsaved marker recovery or mutation nonreplay; the later full scenario is recorded above."
+            },
+            {
+              "status": "passed",
+              "source": "native-ownership-final",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Native ownership correction regression and final clean integration",
+              "observed": "The final native ownership helper passed real NSError and actual associated WebContent termination on the iPhone simulator. Scene/Manuscript markers journaled but absent from disk before Reload were restored and persisted; exactly one actual To do mutation remained in disk/UI. Probes were removed and all 1,257 current production inputs matched before fresh renderer/native build, strict signature, installation and actual 3D UI acceptance. Evidence: macos-validation/r13-memory/evaluator-regressions/summary.json. The killed JavaScript context cannot report its Promise rejection.",
+              "evidence": [
+                "r13-memory/evaluator-regressions/summary.json"
+              ]
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "M04-05",
+          "key": "remove-probes-clean-build",
+          "status": "passed",
+          "required_environment": "native-build",
+          "source": "m04-full",
+          "device_model": "iPhone 17 Pro Max simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Remove each fault probe and rebuild between independent failure cases; finish with an uninstrumented clean build and record its source/diff hash.",
+          "observed": "All native probes removed and four project bin/obj outputs cleared before clean build between every independent fault. Final uninstrumented clean build, strict signature, install/launch and actual recovered-Manuscript UI smoke passed.",
+          "evidence": [
+            "../simulator-ui/m04-full/summary.json",
+            "../simulator-ui/m04-full/final-clean-build-install.json",
+            "../simulator-ui/m04-full/final-clean-smoke.log"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "native-evaluator-final",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Final clean native build/signature/install/launch after all audit controls removed and 568 production inputs compared.",
+              "evidence": [
+                "final-clean-build.json",
+                "final-clean-build.log",
+                "final-source-inputs.json"
+              ],
+              "limit": "Independent faults used one-shot controls and native Reload rather than removing/rebuilding the harness between every case; the stricter original case is not marked passed."
+            },
+            {
+              "status": "passed",
+              "source": "native-ownership-final",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Native ownership correction regression and final clean integration",
+              "observed": "The final native ownership helper passed real NSError and actual associated WebContent termination on the iPhone simulator. Scene/Manuscript markers journaled but absent from disk before Reload were restored and persisted; exactly one actual To do mutation remained in disk/UI. Probes were removed and all 1,257 current production inputs matched before fresh renderer/native build, strict signature, installation and actual 3D UI acceptance. Evidence: macos-validation/r13-memory/evaluator-regressions/summary.json. The killed JavaScript context cannot report its Promise rejection.",
+              "evidence": [
+                "r13-memory/evaluator-regressions/summary.json"
+              ]
+            }
+          ],
+          "blocker": null
+        }
+      ]
+    },
+    {
+      "id": "M05",
+      "title": "Apple CI and native smoke",
+      "status": "incomplete",
+      "scenarios": [
+        {
+          "id": "M05-01",
+          "key": "core-only-ci-trigger",
+          "status": "passed",
+          "required_environment": "actual-github-ci",
+          "source": "ci-no-audit",
+          "device_model": "GitHub Actions Xcode 27 runner",
+          "device_os": "Recorded per-run Apple runner metadata",
+          "expected": "Observe the actual Apple PR workflow triggered by a Core-only change; retain run/job identifiers, changed-path evidence and completed result.",
+          "observed": "Actual core-only pull_request change triggered and passed Apple workflow.",
+          "evidence": [
+            "m05-ci/summary.json",
+            "m05-ci/core.json"
+          ],
+          "runs": [
+            {
+              "id": 37595132709,
+              "head": "744bbb33000c39c800166a7edf928579e0b7b873",
+              "status": "completed",
+              "conclusion": "success",
+              "url": "https://github.com/Drommedhar/novalist-official/actions/runs/37595132709"
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "M05-02",
+          "key": "sdk-only-ci-trigger",
+          "status": "passed",
+          "required_environment": "actual-github-ci",
+          "source": "ci-no-audit",
+          "device_model": "GitHub Actions Xcode 27 runner",
+          "device_os": "Recorded per-run Apple runner metadata",
+          "expected": "Observe the actual Apple PR workflow triggered by an SDK-only change; retain run/job identifiers, changed-path evidence and completed result.",
+          "observed": "Actual sdk-only pull_request change triggered and passed Apple workflow.",
+          "evidence": [
+            "m05-ci/summary.json",
+            "m05-ci/sdk.json"
+          ],
+          "runs": [
+            {
+              "id": 37595136026,
+              "head": "a1d4c22681a0d7ecf64341ebfe81b3a72255dfc3",
+              "status": "completed",
+              "conclusion": "success",
+              "url": "https://github.com/Drommedhar/novalist-official/actions/runs/37595136026"
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "M05-03",
+          "key": "renderer-only-ci-trigger",
+          "status": "passed",
+          "required_environment": "actual-github-ci",
+          "source": "ci-no-audit",
+          "device_model": "GitHub Actions Xcode 27 runner",
+          "device_os": "Recorded per-run Apple runner metadata",
+          "expected": "Observe the actual Apple PR workflow triggered by a renderer-only change; retain run/job identifiers, changed-path evidence and completed result.",
+          "observed": "Actual renderer-only pull_request change triggered and passed Apple workflow.",
+          "evidence": [
+            "m05-ci/summary.json",
+            "m05-ci/renderer.json"
+          ],
+          "runs": [
+            {
+              "id": 37595142216,
+              "head": "9e49f23ce6388e2d5caa0be3f483fff7c7996899",
+              "status": "completed",
+              "conclusion": "success",
+              "url": "https://github.com/Drommedhar/novalist-official/actions/runs/37595142216"
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "M05-04",
+          "key": "invalid-symbol-local",
+          "status": "passed",
+          "required_environment": "native-build",
+          "source": "ci-no-audit",
+          "device_model": "MacBook Pro arm64 build host",
+          "device_os": "macOS 27.0.1 / iOS 27.0 simulator SDK",
+          "expected": "In a disposable checkout add an invalid symbol to iOS-compiled source and prove the simulator build fails for that symbol.",
+          "observed": "Intentional iOS #error failed compiler with CS1029, exit 1.",
+          "evidence": [
+            "m05-invalid-symbol-build.json",
+            "m05-invalid-symbol-build.log",
+            "m05-clean-simulator-build.log"
+          ],
+          "runs": [],
+          "blocker": null
+        },
+        {
+          "id": "M05-05",
+          "key": "invalid-symbol-ci",
+          "status": "passed",
+          "required_environment": "actual-github-ci",
+          "source": "ci-no-audit",
+          "device_model": "GitHub Actions Xcode 27 runner",
+          "device_os": "Recorded per-run Apple runner metadata",
+          "expected": "Prove an intentional invalid iOS symbol fails the actual Apple PR simulator check; a local failure alone does not establish the original PR acceptance.",
+          "observed": "Intentional iOS symbol failed actual PR gate with CS1029; removal passed clean follow-up.",
+          "evidence": [
+            "m05-ci/summary.json",
+            "m05-ci/invalid-ios.json"
+          ],
+          "runs": [
+            {
+              "id": 37595331474,
+              "head": "bbe349fcba1c2567ae520cfe1f04455ff9a2ece2",
+              "status": "completed",
+              "conclusion": "failure",
+              "url": "https://github.com/Drommedhar/novalist-official/actions/runs/37595331474"
+            },
+            {
+              "id": 37595706669,
+              "head": "0ef64850acd3b7155676dc4c40addc79d630922c",
+              "status": "completed",
+              "conclusion": "success",
+              "url": "https://github.com/Drommedhar/novalist-official/actions/runs/37595706669"
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "M05-06",
+          "key": "remove-symbol-clean-build",
+          "status": "passed",
+          "required_environment": "native-build",
+          "source": "ci-no-audit",
+          "device_model": "MacBook Pro arm64 build host",
+          "device_os": "macOS 27.0.1 / iOS 27.0 simulator SDK",
+          "expected": "Remove the invalid symbol and obtain a clean passing simulator build; preserve failure and clean-build evidence.",
+          "observed": "Probe removed, all tracked inputs byte-matched archived revision, all disposable bin/obj removed, clean simulator build passed with zero errors.",
+          "evidence": [
+            "m05-invalid-symbol-build.json",
+            "m05-invalid-symbol-build.log",
+            "m05-clean-simulator-build.log"
+          ],
+          "runs": [],
+          "blocker": null
+        },
+        {
+          "id": "M05-07",
+          "key": "device-create-edit-relaunch",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "On a dedicated signed test device create/open a synthetic project, edit/save and relaunch; verify the exact synthetic marker.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M05-08",
+          "key": "device-import-share",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "On the dedicated signed device pick/import a synthetic fixture and share an export; verify imported and shared outputs.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M05-09",
+          "key": "simulator-create-edit-relaunch-import-share",
+          "status": "passed",
+          "required_environment": "ios-simulator",
+          "source": "m05-share-final",
+          "device_model": "iPhone 17 Pro simulator",
+          "device_os": "iOS 27.0",
+          "expected": "On a dedicated simulator create/open a synthetic project, edit/save/relaunch, pick/import a fixture and share an export. This supplies simulator evidence and does not replace the signed-device smoke.",
+          "observed": "Actual synthetic project creation and native manuscript Import are proven on separately recorded M02 source. Subsequent real keyboard edit/save/terminate/relaunch passed. After a36s native share-sheet delay, Save to Files produced a valid EPUB with the unique new marker and original imported text; staging cleanup occurred after native completion; source hash remained unchanged and final native relaunch retained content.",
+          "evidence": [
+            "m02-ui/summary.json",
+            "simulator-ui/m05-smoke/summary.json",
+            "simulator-ui/m05-smoke/06-saved-epub-verified.json"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "m02-ui",
+              "device_model": "iPhone17Pro simulator",
+              "device_os": "iOS27.0",
+              "observed": "Actual project creation, native manuscript Import and clean relaunch retained exact synthetic marker in intended project/book and one scene.",
+              "evidence": [
+                "m02-ui/summary.json",
+                "m02-ui/probe-removal.json"
+              ],
+              "limit": "Supporting import/relaunch subset; export/share check remains in progress."
+            },
+            {
+              "status": "failed",
+              "source": "simulator-ui/m05-smoke/source.json",
+              "observed": "Waiting39s on the native share sheet triggered the ordinary30s renderer timeout, deleted the pending export and left Files loading.",
+              "evidence": [
+                "simulator-ui/m05-smoke/before-share-lifetime-failure.json"
+              ],
+              "resolution": "Native ownership retains the file until actual completion/cancel/failure; share uses the existing600s picker deadline. Fixed delayed native share passed."
+            }
+          ],
+          "blocker": null
+        }
+      ]
+    },
+    {
+      "id": "M06",
+      "title": "Microphone permission and interruption",
+      "status": "incomplete",
+      "scenarios": [
+        {
+          "id": "M06-01",
+          "key": "deny-permission",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Deny the actual native microphone permission prompt; the real shim/dictation path displays the permission-specific explanation.",
+          "observed": null,
+          "evidence": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "native-evaluator-final",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Real native SpringBoard microphone prompt denied; actual dictation UI displayed permission-specific error and no Stop control.",
+              "evidence": [
+                "../simulator-ui/microphone-summary.json",
+                "../simulator-ui/fixed-build-provenance.json"
+              ],
+              "limit": "Supporting simulator subset only. Physical-device acceptance remains deferred. Settings grant restarted process; same-process stale-error recovery not proven. Call/route interruption, actual audio quality and transcription not measured."
+            }
+          ],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M06-02",
+          "key": "enable-retry",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Enable microphone access in iOS Settings, retry and confirm native recording starts and the stale permission error clears.",
+          "observed": null,
+          "evidence": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "native-evaluator-final",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Native iOS Settings microphone switch changed0 to1. System restarted app; fresh launch/reopen retry reached Listening with no permission/generic error.",
+              "evidence": [
+                "../simulator-ui/microphone-summary.json",
+                "../simulator-ui/fixed-build-provenance.json"
+              ],
+              "limit": "Supporting simulator subset only. Physical-device acceptance remains deferred. Settings grant restarted process; same-process stale-error recovery not proven. Call/route interruption, actual audio quality and transcription not measured."
+            }
+          ],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M06-03",
+          "key": "stop-once",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Stop permitted native recording and verify exactly one stop, clean recording state and no stale error.",
+          "observed": null,
+          "evidence": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "native-evaluator-final",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "observed": "After successful native startup, actual Stop returned Start and removed Listening/Stop controls.",
+              "evidence": [
+                "../simulator-ui/microphone-summary.json",
+                "../simulator-ui/fixed-build-provenance.json"
+              ],
+              "limit": "Supporting simulator subset only. Physical-device acceptance remains deferred. Settings grant restarted process; same-process stale-error recovery not proven. Call/route interruption, actual audio quality and transcription not measured."
+            }
+          ],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "M06-04",
+          "key": "interrupt-recording",
+          "status": "not-run",
+          "required_environment": "physical-ios",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Interrupt active recording by backgrounding and another audio session; verify AVAudioSession behavior, cleanup and subsequent retry.",
+          "observed": null,
+          "evidence": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "native-evaluator-final",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Second actual Start reached Listening; Home then foreground returned stopped UI with no stale permission error.",
+              "evidence": [
+                "../simulator-ui/microphone-summary.json",
+                "../simulator-ui/fixed-build-provenance.json"
+              ],
+              "limit": "Supporting simulator subset only. Physical-device acceptance remains deferred. Settings grant restarted process; same-process stale-error recovery not proven. Call/route interruption, actual audio quality and transcription not measured."
+            }
+          ],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        }
+      ]
+    },
+    {
+      "id": "R13",
+      "title": "Native media previews",
+      "status": "passed",
+      "scenarios": [
+        {
+          "id": "R13-01",
+          "key": "scene-map-images",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "r13-frames",
+          "device_model": "iPhone 17 Pro Max simulator",
+          "device_os": "iOS27.0",
+          "expected": "In WKWebView load scene and map images through nested editor/map frames and verify visible rendering.",
+          "observed": "Actual native UI opened a persisted synthetic scene and map. Their real nested editor/map frames decoded the 256x256 quadrant image through production loading. Exact RGBA samples and visible native screenshots matched. Scene clean serialization retains the relative source.",
+          "evidence": [
+            "r13-frames/summary.json",
+            "r13-frames/scene-open.swift",
+            "r13-frames/scene-open.log",
+            "r13-frames/scene-image.json",
+            "r13-frames/scene-image.png",
+            "r13-frames/map-open.swift",
+            "r13-frames/map-open.log",
+            "r13-frames/map-image.json",
+            "r13-frames/map-image.png"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "audit-control-fixed",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Actual production asset loader/native read decoded synthetic image, exposed accessible >16MiB rejection, and retained all fixture disk hashes and relative references.",
+              "evidence": [
+                "native-media-races-fixed.json"
+              ],
+              "limit": "Synthetic DOM nodes exercised native production loading. Full scene/map/Research/3D integration, visible Research failure and memory requirements were not established by this earlier subset; subsequent acceptance is recorded above."
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "R13-02",
+          "key": "pdf-audio-video",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "r13-fixed",
+          "device_model": "iPad A16 simulator",
+          "device_os": "iOS27.0",
+          "expected": "In WKWebView open PDF attachments and play audio/video Research attachments; verify each native media type renders or plays.",
+          "observed": "Real Research PDF visually rendered; actual WAV and MP4 elements reached readyState4, play/playing/timeupdate/ended with advancing playback to1s/2s; video64x64. No fake media DOM.",
+          "evidence": [
+            "r13/summary.json",
+            "r13/file-retention.json",
+            "r13/probe-removal.json"
+          ],
+          "runs": [],
+          "blocker": null
+        },
+        {
+          "id": "R13-03",
+          "key": "map3d-textures",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "r13-frames",
+          "device_model": "iPhone 17 Pro Max simulator",
+          "device_os": "iOS27.0",
+          "expected": "Load programmatic 3D map textures in WKWebView and verify the expected rendered texture.",
+          "observed": "Actual 3D UI loaded the project image as a Three.js plane texture and rendered the expected quadrants. Original source clipped a three-times oversized canvas. Rebuilt fixed source fits the native frame with a full Retina buffer and no runtime style override. Clean native reopening also visibly renders the texture.",
+          "evidence": [
+            "r13-frames/summary.json",
+            "r13-frames/map3d-texture.png",
+            "r13-frames/map3d-view.json",
+            "r13-frames/map3d-sizing-diagnostic.json",
+            "r13-frames/map3d-sizing-diagnostic.png",
+            "r13-frames/map3d-fixed-open.swift",
+            "r13-frames/map3d-fixed-open.log",
+            "r13-frames/map3d-fixed-texture.json",
+            "r13-frames/map3d-fixed-texture.png",
+            "r13-frames/final-clean-ui.swift",
+            "r13-frames/final-clean-ui.log",
+            "r13-frames/final-clean-ui.png"
+          ],
+          "runs": [],
+          "blocker": null
+        },
+        {
+          "id": "R13-04",
+          "key": "oversized-preview",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "r13-fixed",
+          "device_model": "iPad A16 simulator",
+          "device_os": "iOS27.0",
+          "expected": "Attempt previews above 16 MiB; observe a visible accessible preview-size error and verify the complete original media bytes remain on disk.",
+          "observed": "Actual Research oversized original showed visible accessible16MiB error; original file retained. Subsequent valid image decoded and cleared stale visible and accessible errors.",
+          "evidence": [
+            "r13/summary.json",
+            "r13/file-retention.json",
+            "r13/probe-removal.json"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "audit-control-fixed",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Actual production asset loader/native read decoded synthetic image, exposed accessible >16MiB rejection, and retained all fixture disk hashes and relative references.",
+              "evidence": [
+                "native-media-races-fixed.json"
+              ],
+              "limit": "Synthetic DOM nodes exercised native production loading. Full scene/map/Research/3D integration, visible Research failure and memory requirements were not established by this earlier subset; subsequent acceptance is recorded above."
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "R13-05",
+          "key": "bounded-memory",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "r13-memory-fixed",
+          "device_model": "iPad A16 simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Exercise repeated previews and measure bounded native preview behavior/memory; verify the data-URI cache remains within its conservative 32 MiB accounting bound.",
+          "observed": "The defined 69-preview iPad simulator workload passed without forced GC: app footprint settled at 259.50 MiB (259.41 MiB after warmup), versus 901.11 MiB before the native string-ownership correction. All 145 cache observations remained within 32 MiB (maximum 28,326,744 bytes); 67 native reads and two hits proved LRU behavior. No retained large CFString buffers remained. Native app peak was 346.05 MiB; this is not a whole-app 32 MiB cap or physical/endurance claim. Six native media/race checks and clean probe removal/build/signature/install/Research UI passed. Evidence: macos-validation/r13-memory/summary.json.",
+          "evidence": [
+            "r13-memory/summary.json",
+            "r13-memory/source-provenance.json",
+            "r13-memory/before/phase-summary.json",
+            "r13-memory/after/phase-summary.json",
+            "r13-memory/after/cache-observations.json",
+            "r13-memory/after/native-footprint-samples.json",
+            "r13-memory/probe-removal.json",
+            "r13-memory/evaluator-regressions/summary.json"
+          ],
+          "runs": [
+            {
+              "status": "failed",
+              "observed": "Initial69-preview workload kept conservative cache accounting at28,326,744bytes but native app footprint grew across equal batches (~453→609→774→911MiB), with901MiB after final idle. Diagnosis and narrow correction in progress; no memory pass claimed.",
+              "evidence": [
+                "r13-memory/before/cache-observations.json",
+                "r13-memory/before/native-footprint-samples.json"
+              ],
+              "source": "r13-memory-fixed",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Original workload before ownership-fix.patch; exact before snapshot recorded by source-provenance.json.",
+              "resolution": "Native NSString constructor added a retained reference. Explicit owned-reference transfer removes retained large buffers; identical no-forced-GC workload now passes."
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "R13-06",
+          "key": "relative-references",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "r13-fixed",
+          "device_model": "iPad A16 simulator",
+          "device_os": "iOS27.0",
+          "expected": "Switch projects and reopen media; inspect persisted fixture references and confirm they remain project-relative and still resolve to the correct project.",
+          "observed": "All five persisted Research project-relative references and media SHA256 values unchanged after native preview/playback.",
+          "evidence": [
+            "r13/summary.json",
+            "r13/file-retention.json",
+            "r13/probe-removal.json"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "audit-control-fixed",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Actual production asset loader/native read decoded synthetic image, exposed accessible >16MiB rejection, and retained all fixture disk hashes and relative references.",
+              "evidence": [
+                "native-media-races-fixed.json"
+              ],
+              "limit": "Synthetic DOM nodes exercised native production loading. Full scene/map/Research/3D integration, visible Research failure and memory requirements were not established by this earlier subset; subsequent acceptance is recorded above."
+            }
+          ],
+          "blocker": null
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "title": "Delayed native media replies",
+      "status": "passed",
+      "scenarios": [
+        {
+          "id": "R14-01",
+          "key": "source-switch",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "audit-control-fixed",
+          "device_model": "iPhone 17 Pro simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Use a one-shot asynchronous native gate after the read captures bytes/root and before reply; switch source with the UI running, release the old reply and verify it cannot replace the current preview.",
+          "observed": "Live DOM source switched from held 2px image to new 4px source; old native reply released without replacing it. Repeated successfully with corrected native evaluator.",
+          "evidence": [
+            "native-media-races-fixed.json",
+            "audit-control-fixed.patch"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "r13-fixed",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS27.0",
+              "observed": "Repeated native source/project/cache/dismissal race matrix passed after media correction. All controls subsequently removed; final clean native build/signature/install/Research UI passed.",
+              "evidence": [
+                "r13/native-media-races-fixed.json",
+                "r13/probe-removal.json"
+              ]
+            },
+            {
+              "status": "passed",
+              "source": "r13-memory-fixed",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Six native media/race checks passed with the ownership correction; control probes removed and clean build/signature/install/Research UI passed.",
+              "evidence": [
+                "r13-memory/native-media-races.json",
+                "r13-memory/probe-removal.json"
+              ]
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "R14-02",
+          "key": "project-switch-cache",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "audit-control-fixed",
+          "device_model": "iPhone 17 Pro simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Delay a native reply, switch to another project containing the same relative asset path, then release the old reply; it cannot display or populate the new project's cache.",
+          "observed": "Root changed between two distinct synthetic media directories with same relative path. Old promise resolved null; new 3px result stayed cached and reread required no native I/O. Repeated successfully with corrected native evaluator.",
+          "evidence": [
+            "native-media-races-fixed.json",
+            "audit-control-fixed.patch"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "r13-fixed",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS27.0",
+              "observed": "Repeated native source/project/cache/dismissal race matrix passed after media correction. All controls subsequently removed; final clean native build/signature/install/Research UI passed.",
+              "evidence": [
+                "r13/native-media-races-fixed.json",
+                "r13/probe-removal.json"
+              ]
+            },
+            {
+              "status": "passed",
+              "source": "r13-memory-fixed",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Six native media/race checks passed with the ownership correction; control probes removed and clean build/signature/install/Research UI passed.",
+              "evidence": [
+                "r13-memory/native-media-races.json",
+                "r13-memory/probe-removal.json"
+              ]
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "R14-03",
+          "key": "dismissal",
+          "status": "passed",
+          "required_environment": "ios-simulator-or-device",
+          "source": "audit-control-fixed",
+          "device_model": "iPhone 17 Pro simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Dismiss the preview while an asynchronous native read waits, then release its reply; completion cannot restore an obsolete preview.",
+          "observed": "Preview node removed while actual native bytes/reply gated; late completion kept it disconnected and unchanged. Repeated successfully with corrected native evaluator.",
+          "evidence": [
+            "native-media-races-fixed.json",
+            "audit-control-fixed.patch"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "r13-fixed",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS27.0",
+              "observed": "Repeated native source/project/cache/dismissal race matrix passed after media correction. All controls subsequently removed; final clean native build/signature/install/Research UI passed.",
+              "evidence": [
+                "r13/native-media-races-fixed.json",
+                "r13/probe-removal.json"
+              ]
+            },
+            {
+              "status": "passed",
+              "source": "r13-memory-fixed",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Six native media/race checks passed with the ownership correction; control probes removed and clean build/signature/install/Research UI passed.",
+              "evidence": [
+                "r13-memory/native-media-races.json",
+                "r13-memory/probe-removal.json"
+              ]
+            }
+          ],
+          "blocker": null
+        },
+        {
+          "id": "R14-04",
+          "key": "remove-gate-clean-build",
+          "status": "passed",
+          "required_environment": "native-build",
+          "source": "native-evaluator-final",
+          "device_model": "iPhone 17 Pro simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Remove the one-shot asynchronous native asset gate and obtain a clean build before attributing results to final source.",
+          "observed": "Removed temporary control source and restored all injected host/gate hooks; 568 production source files matched final source. Cleared disposable bin/obj, built successfully, verified strict deep signature, installed and launched clean app.",
+          "evidence": [
+            "final-clean-build.json",
+            "final-clean-build.log",
+            "final-source-inputs.json"
+          ],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "r13-fixed",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS27.0",
+              "observed": "Repeated native source/project/cache/dismissal race matrix passed after media correction. All controls subsequently removed; final clean native build/signature/install/Research UI passed.",
+              "evidence": [
+                "r13/native-media-races-fixed.json",
+                "r13/probe-removal.json"
+              ]
+            },
+            {
+              "status": "passed",
+              "source": "r13-memory-fixed",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Six native media/race checks passed with the ownership correction; control probes removed and clean build/signature/install/Research UI passed.",
+              "evidence": [
+                "r13-memory/native-media-races.json",
+                "r13-memory/probe-removal.json"
+              ]
+            }
+          ],
+          "blocker": null
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "title": "Native focus and accessibility",
+      "status": "not-run",
+      "scenarios": [
+        {
+          "id": "R15-01",
+          "key": "iphone-voiceover",
+          "status": "not-run",
+          "required_environment": "physical-iphone",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Use real iPhone VoiceOver swipe and rotor navigation in inspector sheets; focus enters the named dialog, stays outside covered prose and returns to the invoking inspector control.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "R15-02",
+          "key": "ipad-hardware-keyboard",
+          "status": "not-run",
+          "required_environment": "physical-ipad",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Use a real iPad hardware keyboard for Tab, Shift+Tab and Escape; focus enters and stays within the sheet and returns to the invoking inspector control.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "R15-03",
+          "key": "nested-dialogs",
+          "status": "not-run",
+          "required_environment": "physical-iphone-and-ipad",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Exercise nested dialogs with VoiceOver on iPhone and hardware keyboard on iPad; only the top dialog receives focus and closing layers restores the correct invoking control.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "R15-04",
+          "key": "portrait-landscape",
+          "status": "not-run",
+          "required_environment": "physical-iphone-and-ipad",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Repeat the VoiceOver and hardware-keyboard focus scenarios in portrait and landscape; covered editor remains inaccessible and focus return remains correct.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        }
+      ]
+    },
+    {
+      "id": "P01",
+      "title": "Manual image packaging performance",
+      "status": "incomplete",
+      "scenarios": [
+        {
+          "id": "P01-01",
+          "key": "controlled-build-pair",
+          "status": "passed",
+          "required_environment": "native-build",
+          "source": "native-evaluator-final",
+          "device_model": "Native simulator build pair; not installed/measured",
+          "device_os": "iOS27 SDK / iossimulator-arm64",
+          "expected": "Prepare original/fixed native variants from the identical current source, fixture and settings; only replace manual-plugin.ts with the version from ba8b6d328b64ded6e923baa25ce086d7e9e799e4 for the original variant. Record source/diff and artifact hashes and compare entry bytes.",
+          "observed": "Controlled native simulator pair built and strict-signature-verified from identical8489c9a3 sources, lockfile and settings; only manual-plugin.ts differs, using historical ba8b6d32 for original. Original entry16,140,902 bytes with11 base64 images versus fixed3,458,437 bytes with0; reduction12,682,465 bytes. App/source manifests preserved in macos-validation/p01-native-pair/summary.json. This proves build packaging only, not physical startup, memory or JavaScriptCore performance.",
+          "evidence": [
+            "p01-native-pair/inputs.json",
+            "p01-native-pair/summary.json"
+          ],
+          "runs": [],
+          "blocker": null
+        },
+        {
+          "id": "P01-02",
+          "key": "iphone-launch-memory",
+          "status": "not-run",
+          "required_environment": "physical-iphone",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "On the available oldest supported iPhone, alternate at least five fresh-process launches per original/fixed variant; record launch-to-usable timing and peak app/WebKit memory with device, OS, thermal and cache conditions.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "P01-03",
+          "key": "ipad-launch-memory",
+          "status": "not-run",
+          "required_environment": "physical-ipad",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "On the available oldest supported iPad, alternate at least five fresh-process launches per original/fixed variant; record launch-to-usable timing and peak app/WebKit memory with device, OS, thermal and cache conditions.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "P01-04",
+          "key": "iphone-javascriptcore-trace",
+          "status": "not-run",
+          "required_environment": "physical-iphone",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Capture a separate JavaScriptCore parsing trace for the controlled original/fixed iPhone build pair; report the measured event and duration, separate from desktop V8 metrics.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "P01-05",
+          "key": "ipad-javascriptcore-trace",
+          "status": "not-run",
+          "required_environment": "physical-ipad",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Capture a separate JavaScriptCore parsing trace for the controlled original/fixed iPad build pair; report the measured event and duration, separate from desktop V8 metrics.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "P01-06",
+          "key": "iphone-offline-help",
+          "status": "not-run",
+          "required_environment": "physical-iphone",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Open every Help page on the iPhone in airplane mode and confirm all 11 screenshot assets decode with nonzero dimensions.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "P01-07",
+          "key": "ipad-offline-help",
+          "status": "not-run",
+          "required_environment": "physical-ipad",
+          "source": "native-clean",
+          "device_model": null,
+          "device_os": null,
+          "expected": "Open every Help page on the iPad in airplane mode and confirm all 11 screenshot assets decode with nonzero dimensions.",
+          "observed": null,
+          "evidence": [],
+          "runs": [],
+          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+        },
+        {
+          "id": "P01-08",
+          "key": "simulator-offline-help",
+          "status": "passed",
+          "required_environment": "ios-simulator",
+          "source": "audit-control",
+          "device_model": "iPhone 17 Pro simulator",
+          "device_os": "iOS 27.0",
+          "expected": "Open every Help page offline in the dedicated simulator and confirm all 11 screenshots decode with nonzero dimensions. This supplies simulator coverage and does not replace physical-device Help acceptance.",
+          "observed": "All 47 Help pages opened; all 11 local screenshots decoded at 1440x900 under browser-enforced network blocking.",
+          "evidence": [
+            "offline-help.json",
+            "offline-help-probe.js"
+          ],
+          "runs": [],
+          "blocker": null
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Native compilation, original Apple CI acceptance, complete M02 simulator scope/UI, M04 fault recovery/nonreplay, R13 media/memory and R14 native races passed. Six original findings remain pending.",
+    "Required physical acceptance remains deferred under simulator-only direction. Simulator evidence does not waive original physical or associated edge-case acceptance.",
+    "The 32 MiB limit applies to conservative cache accounting. Native memory acceptance covers the defined simulator workload; no physical-device or indefinite endurance claim.",
+    "Desktop performance and simulator Help do not establish physical iOS memory, timing or JavaScriptCore results."
+  ]
+}

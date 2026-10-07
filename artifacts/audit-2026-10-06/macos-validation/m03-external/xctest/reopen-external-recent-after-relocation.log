@@ -1,0 +1,12 @@
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' started.
+    t =     0.00s Start Test at 2026-10-07 12:24:44.775
+    t =     0.06s Waiting 12.0s for Any (First Match) to exist
+    t =     1.14s Double tap Any (First Match)[0.50, 0.50]
+    t =     1.59s Waiting 12.0s for "Project Dashboard" StaticText to exist
+    t =     2.83s Tap "Write" Button
+    t =     4.64s Waiting 10.0s for "Export" Button to exist
+    t =     5.75s Tap Application 'com.novalist.app'[0.30, 0.39]
+    t =     6.55s Waiting 10.0s for TextView (First Match) to exist
+    t =     7.71s Tear Down
+Test Case '-[AuditUITests.AuditUITests testM02NativePicker]' passed (7.758 seconds).
+** TEST SUCCEEDED **

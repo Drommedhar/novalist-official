@@ -1,0 +1,11 @@
+{
+  "method": "Native simctl install of identical frozen app relocates real application data container; backed up synthetic Documents/Library beforehand; no restores or settings/registry changes applied.",
+  "actual_container_changed": true,
+  "old_container_absent": true,
+  "input_app_sha256": {
+    "Novalist.Mobile": "c226d1f8231dade962a5d22daacdd0b7be2f92ad7fa131f809a4f1ac41cd58e3",
+    "Novalist.Mobile.dll": "f2d16db96d20f96cc9bab299a78adce40009d09eb2fdfe3a368b1ff5f0ba9a11",
+    "Info.plist": "47648c423394c43a6fb08ff9f850b2ff4fffb427b41e2a1b92aa1224aa295e27"
+  },
+  "synthetic_backup_retained": true
+}

@@ -1,0 +1,173 @@
+{
+  "finding": "M02",
+  "status": "partial",
+  "device": "iPhone 17 Pro simulator",
+  "os": "iOS 27.0",
+  "source": "source-identity.json",
+  "builds": [
+    "instrumented-build.log",
+    "fixed-instrumented-build.log",
+    "clean-final-build.log"
+  ],
+  "instrumentation": [
+    "instrumentation.patch",
+    "final-instrumentation.patch",
+    "combined-validation.patch"
+  ],
+  "production_fix": "production-evaluator-fix.patch",
+  "cases": [
+    {
+      "id": "native-external-file-acquisition",
+      "status": "pass",
+      "observed": "Real UIDocumentPicker selected a synthetic .txt from a separate file-sharing app sandbox. Native StartAccessingSecurityScopedResource returned true: starts1/stops0/pageGrants1.",
+      "evidence": [
+        "01-before-picker-selection.json",
+        "02-external-manuscript-selected.json"
+      ]
+    },
+    {
+      "id": "native-picker-cancel",
+      "status": "pass",
+      "observed": "Cancelled a real native picker while an earlier grant remained retained. The cancelled request returned null; native counts remained starts1/stops0/pageGrants1, pickerCallbacks2.",
+      "evidence": [
+        "04-after-cancel.json",
+        "xctest/cancel.log",
+        "xctest/cancel.swift.txt"
+      ]
+    },
+    {
+      "id": "native-same-file-reselection",
+      "status": "pass",
+      "observed": "Confirmed Open after selecting the same external file. New successful native acquisition replaced and stopped the earlier grant: starts2/stops1/completedStops1/pageGrants1.",
+      "evidence": [
+        "05-reselect-confirmed.json",
+        "xctest/reselect-confirm.log"
+      ]
+    },
+    {
+      "id": "production-explicit-release",
+      "status": "pass",
+      "observed": "Production window.novalist.releasePickedFile acknowledged release, leaving starts2/stops2/completedStops2/pageGrants0. This is service-release evidence, not import-dialog close UI acceptance.",
+      "evidence": [
+        "07-explicit-release.json",
+        "08-release-acknowledged.json"
+      ]
+    },
+    {
+      "id": "backend-failure-disposal-late-picker",
+      "status": "pass",
+      "observed": "Held a genuine DidPickDocumentAtUrls callback before production completion; disposed backend; tapped actual native Editing paused/Reload. Old-page disposal stopped its acquired grant (3/3); new page acquired its own (4/3). Releasing old callback resumed once and did not stop the new page grant.",
+      "evidence": [
+        "09-before-disposal.json",
+        "10-old-picker-held.json",
+        "12-after-old-page-disposal.json",
+        "13-new-page-selected.json",
+        "15-old-picker-completed-new-grant-retained.json",
+        "xctest/reload-after-native-failure.log"
+      ]
+    },
+    {
+      "id": "webkit-termination-before-fix",
+      "status": "fail",
+      "observed": "Associated WebContent process termination caused host process exit via the MAUI async-void evaluator route. XCTest activation relaunched the host, resetting static counters; that reset is not evidence of native grant cleanup. Superseded by the fixed repeat.",
+      "evidence": [
+        "16-associated-webkit-termination.json",
+        "17-after-webkit-disposal.json",
+        "xctest/reload-after-webkit.log"
+      ],
+      "superseded_by": "webkit-termination-fixed-late-picker"
+    },
+    {
+      "id": "webkit-termination-fixed-late-picker",
+      "status": "pass",
+      "observed": "With direct WKWebView production evaluator, initial native grant1/0 remained held while a genuine picker callback was delayed. Associated WebContent PID75238 was killed; host PID75234 survived. XCTest tapped the actual native Reload alert; old page disposed to1/1. New page acquired same external file (2/1). Old picker completion resumed once without altering new-page grant (2/1, pageGrants1). Explicit cleanup ended2/2/completed2/pageGrants0.",
+      "evidence": [
+        "20-fixed-baseline.json",
+        "21-fixed-acquired.json",
+        "22-fixed-associated-webkit-termination.json",
+        "23-fixed-after-native-reload.json",
+        "24-fixed-new-page-grant.json",
+        "25-fixed-old-picker-release.json",
+        "26-fixed-old-picker-rejected-new-grant-retained.json",
+        "27-fixed-final-balanced.json",
+        "xctest/fixed-reload-after-webkit.log",
+        "xctest/fixed-reload-after-webkit.swift.txt"
+      ],
+      "host_pid_before": 75234,
+      "host_pid_after_native_reload": 75234
+    },
+    {
+      "id": "external-folder-acquire-release",
+      "status": "pass",
+      "observed": "A real folder picker acquired the external fixture Documents directory; production endProjectAccess stopped it. Fixed-process counts3/3. This preliminary selection was not the intended exact parent and is excluded from relocation proof.",
+      "evidence": [
+        "30-folder-selected.json",
+        "31-folder-identity.json",
+        "32-folder-release.json"
+      ]
+    },
+    {
+      "id": "real-parent-move-sibling-directory-bookmarks",
+      "status": "pass",
+      "observed": "Native Files picker navigated by folder icon into MovedParent, verified SiblingA/SiblingB and selected the exact parent. Acquisition4/3, then release4/4. Fixture app used NSFileCoordinator plus FileManager.moveItem to move it to FixtureParent. Production resolveStoredProjectPath resolved BOTH old sibling paths to the new parent; each actual native start was released, ending6/6/completed6/retainedFolders0/pageGrants0. These are two synthetic directories, not full Novalist projects.",
+      "evidence": [
+        "33-exact-parent-selected.json",
+        "34-exact-parent-scope.json",
+        "35-sibling-resolve-results.json",
+        "36-sibling-resolve-balanced.json",
+        "xctest/exact-parent-icon-selection.log",
+        "xctest/move-exact-parent.log",
+        "Fixture.swift"
+      ]
+    },
+    {
+      "id": "import-dialog-close-ui",
+      "status": "not-run",
+      "observed": "Production explicit release verified, but a selected manuscript was not closed through the actual Import Manuscript dialog. No import-dialog cleanup claim. ",
+      "evidence": []
+    },
+    {
+      "id": "moved-parent-full-sibling-projects",
+      "status": "not-run",
+      "observed": "Actual native parent move and both directory bookmarks passed; complete Novalist sibling projects, recents and project identity were not exercised in this M02 fixture.",
+      "evidence": []
+    },
+    {
+      "id": "physical-device",
+      "status": "not-run",
+      "observed": "This work used an iPhone17Pro iOS27 simulator; it provides no physical-device acceptance.",
+      "evidence": []
+    },
+    {
+      "id": "probe-removal-clean-final-build-launch",
+      "status": "pass",
+      "observed": "All M02 counters, callback gate and audit control sources removed in disposable checkout. Cleaned native sources match main production snapshot including WKWebView evaluator fix. Rebuilt0errors14warnings, verified deep strict signatures, installed/launched; XCTest found normal Browse for Project Folder UI and no Editing paused alert. Removed synthetic control files.",
+      "evidence": [
+        "probe-removal.json",
+        "clean-final-build.log",
+        "xctest/clean-final-launch.log"
+      ]
+    }
+  ],
+  "source_cleanup": "probe-removal.json",
+  "clean_final_build": "pass",
+  "counter_semantics": "Only actual successful NSUrl.StartAccessingSecurityScopedResource returns increment successfulStarts; stopCalls increments immediately before calling native StopAccessingSecurityScopedResource, completedStops after it returns. No synthetic true returns or managed-only disposal counts.",
+  "picker_gate_semantics": "Only the asynchronous real native picker completion is delayed; NSUrl comes from DidPickDocumentAtUrls. It is not manufactured. Old disposed registry rejects it before acquiring, leaving the new page grant untouched.",
+  "navigation_attempts_excluded": [
+    "03-reselect.json: file tapped without confirming Open; no acquisition was claimed.",
+    "xctest/exact-parent-selection.log: tapping the text label did not enter folder; exact-parent-icon-selection succeeded.",
+    "17-after-webkit-disposal.json: host-relaunch counter reset; never credited as cleanup."
+  ],
+  "procedure": [
+    "Build synthetic file-sharing fixture from Fixture.swift and Fixture-Info.plist, using module-name AuditFixtures, ad-hoc sign, install on dedicated simulator.",
+    "Build Novalist source revision plus combined-validation.patch with RuntimeIdentifier=iossimulator-arm64 EnableCodeSigning=true CodesignKey=-.",
+    "Use audit-control-client.py eval to start window.novalist.pickFile(title,'manuscript',{extensions:['txt']}); hold promise result in window variable. Use native XCTest to select manuscript icon/text and confirm DOCPicker.actionButton.",
+    "Record scope-state before/after each action. For old-page race, picker-hold arms exactly one real callback; confirm selection, capture state and scope before failure.",
+    "For WebKit case, read temporary private _webProcessIdentifier from state; verify OS process basename com.apple.WebKit.WebContent then kill only that PID. Native XCTest waits Editing paused and taps Reload. Confirm host process unchanged and static counters persist.",
+    "Select same external file on new page, record acquisition, picker-release old callback, record resumed1 and unchanged new page retained count. Explicit release new grant, verify starts==completedStops and zero retained.",
+    "For folder case, window.novalist.pickFolder; native XCTest taps MovedParent cell icon and waits for SiblingA/SiblingB before Open. endProjectAccess releases exact returned path. Fixture app button performs actual coordinated move to FixtureParent. Resolve old parent+SiblingA and old parent+SiblingB via production resolveStoredProjectPath, verify both new suffixes and native balance.",
+    "Preserve patches and fixture/test procedures, remove every probe source, compare cleaned sources against main production snapshot, clear disposable build outputs and rebuild before attribution."
+  ],
+  "clean_final_app_launch": "pass",
+  "subsequent_ui_completion": "../m02-ui/summary.json"
+}

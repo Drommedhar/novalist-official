@@ -1,0 +1,188 @@
+Test Suite 'All tests' started at 2026-10-07 11:03:48.680.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:03:48.680.
+Test Suite 'AuditUITests' started at 2026-10-07 11:03:48.680.
+Test Case '-[AuditUITests.AuditUITests testFixedNativeEvaluatorManuscriptLifecycle]' started.
+    t =     0.00s Start Test at 2026-10-07 11:03:48.684
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.04s Waiting 1.0s for "Editor" StaticText to exist
+    t =     1.04s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =     1.04s         Checking existence of `"Editor" StaticText`
+    t =     1.07s         Capturing element debug description
+    t =     1.07s     Checking existence of `"Editor" StaticText`
+    t =     1.09s Collecting debug information to assist test failure triage
+    t =     1.09s     Requesting snapshot of accessibility hierarchy for app with pid 76471
+    t =     1.13s Tap "Toggle sidebar" Switch
+    t =     1.13s     Wait for com.novalist.app to idle
+    t =     1.13s     Find the "Toggle sidebar" Switch
+    t =     1.15s     Check for interrupting elements affecting "Toggle sidebar" Switch
+    t =     1.17s         Wait for com.apple.springboard to idle
+    t =     1.19s     Synthesize event
+    t =     1.48s     Wait for com.novalist.app to idle
+    t =     1.52s Waiting 10.0s for "Editor" StaticText to exist
+    t =     2.55s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =     2.55s         Checking existence of `"Editor" StaticText`
+    t =     2.57s Tap "Editor" StaticText
+    t =     2.57s     Wait for com.novalist.app to idle
+    t =     2.58s     Find the "Editor" StaticText
+    t =     2.59s     Check for interrupting elements affecting "Editor" StaticText
+    t =     2.61s         Wait for com.apple.springboard to idle
+    t =     2.63s     Synthesize event
+    t =     2.92s     Wait for com.novalist.app to idle
+    t =     2.97s Waiting 1.0s for "Scene" Button to exist
+    t =     3.97s     Checking `Expect predicate `existsNoRetry == 1` for object "Scene" Button`
+    t =     3.97s         Checking existence of `"Scene" Button`
+    t =     4.01s         Capturing element debug description
+    t =     4.01s     Checking existence of `"Scene" Button`
+    t =     4.03s Collecting debug information to assist test failure triage
+    t =     4.03s     Requesting snapshot of accessibility hierarchy for app with pid 76471
+    t =     4.05s Tap "Toggle binder" Switch
+    t =     4.05s     Wait for com.novalist.app to idle
+    t =     4.06s     Find the "Toggle binder" Switch
+    t =     4.07s     Check for interrupting elements affecting "Toggle binder" Switch
+    t =     4.09s         Wait for com.apple.springboard to idle
+    t =     4.10s     Synthesize event
+    t =     4.39s     Wait for com.novalist.app to idle
+    t =     4.39s Waiting 10.0s for "Scene" Button to exist
+    t =     5.43s     Checking `Expect predicate `existsNoRetry == 1` for object "Scene" Button`
+    t =     5.43s         Checking existence of `"Scene" Button`
+    t =     5.47s Tap "Scene" Button
+    t =     5.47s     Wait for com.novalist.app to idle
+    t =     5.47s     Find the "Scene" Button
+    t =     5.50s     Check for interrupting elements affecting "Scene" Button
+    t =     5.52s         Wait for com.apple.springboard to idle
+    t =     5.53s     Synthesize event
+    t =     5.82s     Wait for com.novalist.app to idle
+    t =     5.89s Type 'Audit Fixed Manusc...' into "Enter scene title..." TextField
+    t =     5.89s     Wait for com.novalist.app to idle
+    t =     5.90s     Find the "Enter scene title..." TextField
+    t =     5.92s     Check for interrupting elements affecting "Enter scene title..." TextField
+    t =     5.95s         Wait for com.apple.springboard to idle
+    t =     5.96s     Synthesize event
+    t =     6.78s     Wait for com.novalist.app to idle
+    t =     6.79s Checking existence of `"Hide keyboard" Button`
+    t =     6.81s Find the "Hide keyboard" Button
+    t =     6.84s Tap "OK" Button
+    t =     6.84s     Wait for com.novalist.app to idle
+    t =     6.85s     Find the "OK" Button
+    t =     6.87s     Check for interrupting elements affecting "OK" Button
+    t =     6.89s         Wait for com.apple.springboard to idle
+    t =     6.90s     Synthesize event
+    t =     7.19s     Wait for com.novalist.app to idle
+    t =     7.19s Waiting 10.0s for "Audit Fixed Manuscript Scene 20261007" Button to exist
+    t =     8.23s     Checking `Expect predicate `existsNoRetry == 1` for object "Audit Fixed Manuscript Scene 20261007" Button`
+    t =     8.23s         Checking existence of `"Audit Fixed Manuscript Scene 20261007" Button`
+    t =     8.26s Waiting 1.0s for "Manuscript" StaticText to exist
+    t =     9.26s     Checking `Expect predicate `existsNoRetry == 1` for object "Manuscript" StaticText`
+    t =     9.26s         Checking existence of `"Manuscript" StaticText`
+    t =     9.30s         Capturing element debug description
+    t =     9.30s     Checking existence of `"Manuscript" StaticText`
+    t =     9.33s Collecting debug information to assist test failure triage
+    t =     9.33s     Requesting snapshot of accessibility hierarchy for app with pid 76471
+    t =     9.36s Tap "Toggle sidebar" Switch
+    t =     9.36s     Wait for com.novalist.app to idle
+    t =     9.36s     Find the "Toggle sidebar" Switch
+    t =     9.38s     Check for interrupting elements affecting "Toggle sidebar" Switch
+    t =     9.40s         Wait for com.apple.springboard to idle
+    t =     9.41s     Synthesize event
+    t =     9.70s     Wait for com.novalist.app to idle
+    t =     9.74s Waiting 10.0s for "Manuscript" StaticText to exist
+    t =    10.78s     Checking `Expect predicate `existsNoRetry == 1` for object "Manuscript" StaticText`
+    t =    10.78s         Checking existence of `"Manuscript" StaticText`
+    t =    10.79s Tap "Manuscript" StaticText
+    t =    10.79s     Wait for com.novalist.app to idle
+    t =    10.80s     Find the "Manuscript" StaticText
+    t =    10.81s     Check for interrupting elements affecting "Manuscript" StaticText
+    t =    10.83s         Wait for com.apple.springboard to idle
+    t =    10.84s     Synthesize event
+    t =    11.13s     Wait for com.novalist.app to idle
+    t =    11.17s Waiting 10.0s for "Corkboard" Button to exist
+    t =    12.20s     Checking `Expect predicate `existsNoRetry == 1` for object "Corkboard" Button`
+    t =    12.20s         Checking existence of `"Corkboard" Button`
+    t =    12.23s Waiting 10.0s for TextView (First Match) to exist
+    t =    13.27s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    13.27s         Checking existence of `TextView (First Match)`
+    t =    13.29s Get all elements bound by index for: Descendants matching type TextView
+    t =    13.31s Find the TextView (Element at index 0)
+    t =    13.32s Find the TextView (Element at index 1)
+    t =    13.34s Find the "
+" TextView
+    t =    13.36s Tap "
+" TextView
+    t =    13.36s     Wait for com.novalist.app to idle
+    t =    13.36s     Find the "
+" TextView
+    t =    13.37s     Check for interrupting elements affecting "
+" TextView
+    t =    13.40s         Wait for com.apple.springboard to idle
+    t =    13.41s     Synthesize event
+    t =    13.70s     Wait for com.novalist.app to idle
+    t =    14.02s Type 'AUDIT_FIXED_MANUSC...' into "
+" TextView
+    t =    14.02s     Wait for com.novalist.app to idle
+    t =    14.03s     Find the "
+" TextView
+    t =    14.05s     Check for interrupting elements affecting "
+" TextView
+    t =    14.08s         Wait for com.apple.springboard to idle
+    t =    14.44s     Synthesize event
+    t =    15.20s     Wait for com.novalist.app to idle
+    t =    15.48s Pressing Home button
+    t =    15.95s Terminate com.novalist.app:76471
+    t =    17.01s Open com.novalist.app
+    t =    17.01s     Launch com.novalist.app
+    t =    17.04s         Setting up automation session
+    t =    19.53s         Wait for com.novalist.app to idle
+    t =    21.20s Waiting 20.0s for "Select Audit Tablet Book — Audit Tablet Fixture" Switch to exist
+    t =    22.23s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =    22.23s         Checking existence of `"Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =    22.29s Double tap "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =    22.29s     Wait for com.novalist.app to idle
+    t =    22.29s     Find the "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =    22.31s     Check for interrupting elements affecting "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =    22.33s         Wait for com.apple.springboard to idle
+    t =    22.34s     Synthesize event
+    t =    22.69s     Wait for com.novalist.app to idle
+    t =    22.69s Waiting 1.0s for "Manuscript" StaticText to exist
+    t =    23.69s     Checking `Expect predicate `existsNoRetry == 1` for object "Manuscript" StaticText`
+    t =    23.70s         Checking existence of `"Manuscript" StaticText`
+    t =    23.71s     Checking existence of `"Manuscript" StaticText`
+    t =    23.72s Waiting 10.0s for "Manuscript" StaticText to exist
+    t =    24.76s     Checking `Expect predicate `existsNoRetry == 1` for object "Manuscript" StaticText`
+    t =    24.76s         Checking existence of `"Manuscript" StaticText`
+    t =    24.77s Tap "Manuscript" StaticText
+    t =    24.77s     Wait for com.novalist.app to idle
+    t =    24.77s     Find the "Manuscript" StaticText
+    t =    24.78s     Check for interrupting elements affecting "Manuscript" StaticText
+    t =    24.83s         Wait for com.apple.springboard to idle
+    t =    24.85s     Synthesize event
+    t =    25.14s     Wait for com.novalist.app to idle
+    t =    25.17s Waiting 10.0s for "Corkboard" Button to exist
+    t =    26.21s     Checking `Expect predicate `existsNoRetry == 1` for object "Corkboard" Button`
+    t =    26.21s         Checking existence of `"Corkboard" Button`
+    t =    26.24s Waiting 10.0s for TextView (First Match) to exist
+    t =    27.27s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    27.27s         Checking existence of `TextView (First Match)`
+AUDIT_FIXED_MANUSCRIPT_LIFECYCLE_PASS
+    t =    27.30s Find the Application 'com.novalist.app'
+    t =    27.39s Added attachment named 'fixed-manuscript-after-relaunch'
+    t =    27.39s Tear Down
+Test Case '-[AuditUITests.AuditUITests testFixedNativeEvaluatorManuscriptLifecycle]' passed (27.619 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:04:16.304.
+	 Executed 1 test, with 0 failures (0 unexpected) in 27.619 (27.623) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:04:16.304.
+	 Executed 1 test, with 0 failures (0 unexpected) in 27.619 (27.624) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:04:16.305.
+	 Executed 1 test, with 0 failures (0 unexpected) in 27.619 (27.625) seconds
+2026-10-07 11:04:16.592 xcodebuild[76614:2986872] [MT] IDETestOperationsObserverDebug: 30.350 elapsed -- Testing started completed.
+2026-10-07 11:04:16.592 xcodebuild[76614:2986872] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 11:04:16.592 xcodebuild[76614:2986872] [MT] IDETestOperationsObserverDebug: 30.350 sec, +30.350 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-harness>/manuscript-fixed.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started
