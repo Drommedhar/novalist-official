@@ -52,3 +52,5 @@ export class HostCallChannel {
     this.pending.clear()
   }
 }
+
+// Audit M05 renderer-only Apple CI path-trigger probe.
