@@ -1,0 +1,65 @@
+[
+  {
+    "step": 0,
+    "role": "establish-clean-fixed-start",
+    "actual_container_changed": true,
+    "old_container_removed": true,
+    "container_token": "63A96843-49E5-4BA6-BF2D-677B49213B72",
+    "installed_app_tree_sha256": "1671653af0c02aea15d1338becfbd56dce1802b9500181ff37beb0a756a8cc50",
+    "recent_matches_current": true,
+    "current_exact_path_registered": true,
+    "current_entry": {
+      "RelativePath": "Audit Research Media",
+      "ProjectId": "audit-r13-project-20261007"
+    },
+    "project_id": "audit-r13-project-20261007",
+    "book_ids": [
+      "book-1791362612224"
+    ],
+    "project_metadata_sha256": "f579b4d921204362eaa719ebfc929debd86f28fb8b768219452829056ef2ed39",
+    "registry_count": 8,
+    "all_prior_exact_aliases_retained": true
+  },
+  {
+    "step": 1,
+    "role": "first-successive-move",
+    "actual_container_changed": true,
+    "old_container_removed": true,
+    "container_token": "2758929A-5B57-4F6A-821D-1254858E3299",
+    "installed_app_tree_sha256": "1671653af0c02aea15d1338becfbd56dce1802b9500181ff37beb0a756a8cc50",
+    "recent_matches_current": true,
+    "current_exact_path_registered": true,
+    "current_entry": {
+      "RelativePath": "Audit Research Media",
+      "ProjectId": "audit-r13-project-20261007"
+    },
+    "project_id": "audit-r13-project-20261007",
+    "book_ids": [
+      "book-1791362612224"
+    ],
+    "project_metadata_sha256": "f579b4d921204362eaa719ebfc929debd86f28fb8b768219452829056ef2ed39",
+    "registry_count": 9,
+    "all_prior_exact_aliases_retained": true
+  },
+  {
+    "step": 2,
+    "role": "second-successive-move",
+    "actual_container_changed": true,
+    "old_container_removed": true,
+    "container_token": "EDBE1C39-2258-4652-9E6C-D43B365693E8",
+    "installed_app_tree_sha256": "1671653af0c02aea15d1338becfbd56dce1802b9500181ff37beb0a756a8cc50",
+    "recent_matches_current": true,
+    "current_exact_path_registered": true,
+    "current_entry": {
+      "RelativePath": "Audit Research Media",
+      "ProjectId": "audit-r13-project-20261007"
+    },
+    "project_id": "audit-r13-project-20261007",
+    "book_ids": [
+      "book-1791362612224"
+    ],
+    "project_metadata_sha256": "f579b4d921204362eaa719ebfc929debd86f28fb8b768219452829056ef2ed39",
+    "registry_count": 10,
+    "all_prior_exact_aliases_retained": true
+  }
+]

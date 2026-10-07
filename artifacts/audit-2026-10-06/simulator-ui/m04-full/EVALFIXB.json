@@ -1,0 +1,26 @@
+{
+  "case": "evaluator-native-failure",
+  "tag": "EVALFIXB",
+  "marker": "M04EVALFIXB26",
+  "task_label": "Audit M04 task EVALFIXB",
+  "scene_label": "Audit M04 EVALFIXB",
+  "source": "proactive-journal-source.json",
+  "runtime_gate_sha256": "d37fcfdd559207eeae554687ab3a833e75908e183d5dcb315fcc05cc32ad5729",
+  "xcodebuild_pid": 91432,
+  "status": "failed",
+  "harness_error_type": "RuntimeError",
+  "harness_error": "XCTest assertion failed before AUDIT_M04_ARM_NOW",
+  "failureObservation": {
+    "markerInEditor": false,
+    "journalContainsMarker": false,
+    "inertElementPresent": true,
+    "replay": {
+      "taskRequestCount": 0,
+      "taskReplyHeld": 0,
+      "taskId": null,
+      "backendRejected": 0
+    },
+    "markerOnDisk": false,
+    "taskCountOnDisk": 0
+  }
+}

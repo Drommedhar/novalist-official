@@ -1,0 +1,104 @@
+{
+  "finding": "M04",
+  "status": "passed-simulator-acceptance",
+  "device": "iPhone 17 Pro Max simulator",
+  "os": "iOS 27.0",
+  "baseline_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "final_source_patch": "final-effective-source.patch",
+  "final_source_patch_sha256": "92be7e7479b079db9b8ca488a7f89744def8cdbf5e8610ceac98956ce43f75a7",
+  "journal_fix_identity": "proactive-journal-source.json",
+  "native_probe_identity": "setup.json",
+  "cases": [
+    {
+      "case": "evaluator-native-failure",
+      "status": "passed",
+      "test_seconds": 31.742,
+      "native_failure_to_alert_seconds": 0.001015375,
+      "source": "EVALFIXC.swift",
+      "log": "EVALFIXC.log",
+      "observations": "EVALFIXC.json",
+      "clean_probe_removal": "EVALFIXC-clean-source.json",
+      "clean_build": "EVALFIXC-clean-build.log",
+      "editor_surface": "scene, actual portrait UI",
+      "acceptance_case": "M04-01"
+    },
+    {
+      "case": "evaluator-timeout",
+      "status": "passed",
+      "test_seconds": 45.595,
+      "native_failure_to_alert_seconds": 0.005181208,
+      "source": "TIMEOUTA.swift",
+      "log": "TIMEOUTA.log",
+      "observations": "TIMEOUTA.json",
+      "clean_probe_removal": "TIMEOUTA-clean-source.json",
+      "clean_build": "TIMEOUTA-clean-build.log",
+      "delivery_deadline_seconds": 15.005173542,
+      "editor_surface": "scene, actual portrait UI",
+      "acceptance_case": "M04-02"
+    },
+    {
+      "case": "backend-failure",
+      "status": "passed",
+      "test_seconds": 36.187,
+      "native_failure_to_alert_seconds": 0.0009105,
+      "source": "BACKENDA.swift",
+      "log": "BACKENDA.log",
+      "observations": "BACKENDA.json",
+      "clean_probe_removal": "BACKENDA-clean-source.json",
+      "clean_build": "BACKENDA-clean-build.log",
+      "editor_surface": "full Manuscript, actual landscape UI",
+      "acceptance_case": "M04-03"
+    },
+    {
+      "case": "webcontent-termination",
+      "status": "passed",
+      "test_seconds": 35.922,
+      "native_failure_to_alert_seconds": 0.005955833,
+      "source": "WEBKITA.swift",
+      "log": "WEBKITA.log",
+      "observations": "WEBKITA.json",
+      "clean_probe_removal": "WEBKITA-clean-source.json",
+      "clean_build": "WEBKITA-clean-build.log",
+      "editor_surface": "full Manuscript, actual landscape UI",
+      "acceptance_case": "M04-04"
+    }
+  ],
+  "independent_case_cleanup_order": [
+    {
+      "after_case": "EVALFIXC",
+      "before_case": "TIMEOUTA",
+      "clean_build_completed_before_next_probe_applied": true
+    },
+    {
+      "after_case": "TIMEOUTA",
+      "before_case": "BACKENDA",
+      "clean_build_completed_before_next_probe_applied": true
+    },
+    {
+      "after_case": "BACKENDA",
+      "before_case": "WEBKITA",
+      "clean_build_completed_before_next_probe_applied": true
+    }
+  ],
+  "final_cleanup": "final-clean-build-install.json",
+  "final_clean_ui_source": "final-clean-smoke.swift",
+  "final_clean_ui_log": "final-clean-smoke.log",
+  "disk_ownership": "final-disk-ownership.json",
+  "regression_found_and_fixed": "evaluator-loss-summary.json",
+  "mutation_nonreplay": "Each case used a real To do UI mutation. Backend committed exactly one task while a temporary receive gate withheld its actual reply, keeping production RPC pending. Native failure and actual Reload did not replay it: exactly one task persisted and appeared in actual UI afterward.",
+  "unsaved_recovery": "Evaluator NSError case recovered a real scene marker absent on disk before Reload. Actual WebContent death recovered a real full Manuscript marker absent on disk before termination and before Reload. Both markers existed in the genuine journal and persisted after Reload, then their journal entries cleared.",
+  "limitations": [
+    "Exact tested source is baseline 0c789b29 plus the preserved native evaluator correction and three proactive journaling files. It excludes the later R13 CSP/Research and M03 OwnedProjectPaths alias fixes; its app hash does not identify the subsequent combined main build.",
+    "Timeout and backend-pump cases began with an unsaved/unacknowledged marker but normal backend save reached disk before Reload. They demonstrate retention without duplicate task replay, not missing-disk journal restoration.",
+    "The killed JavaScript context cannot report Promise rejection. Its associated process termination, native alert, new healthy page and mutation nonreplay were observed.",
+    "WebContent case installed a temporary outgoing scenes/write gate for determinism; counter was zero at the pre-termination sample. No claim that this gate was consumed. Marker remained absent on disk until native Reload.",
+    "Earlier EVALFIXC inertElementPresent included unrelated hidden motion nodes; editing-pause evidence for that case is the actual modal alert plus pending RPC rejection. Later cases record exact workspaceInert false-to-true-to-false transitions.",
+    "EVALFIXB stopped before fault injection because consecutive container moves exposed a separate M03 recent-path registry gap. A synthetic-only recent-path repair and private original-settings backup are documented.",
+    "No physical-device acceptance claimed. Archived scripts redact repository and temporary host paths; production patches and executed Swift/JavaScript logic are retained."
+  ],
+  "probe_removal_case": {
+    "acceptance_case": "M04-05",
+    "status": "passed",
+    "observed": "Native probes removed and all four project bin/obj outputs cleared before every intervening clean build. Final clean build, strict deep signature, install, launch and real UI smoke passed."
+  }
+}

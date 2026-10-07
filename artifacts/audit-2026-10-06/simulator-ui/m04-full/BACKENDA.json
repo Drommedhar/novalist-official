@@ -1,0 +1,113 @@
+{
+  "case": "backend-failure",
+  "tag": "BACKENDA",
+  "marker": "M04BACKENDA26",
+  "task_label": "Audit M04 task BACKENDA",
+  "scene_label": "Audit M04 BACKENDA",
+  "source": "proactive-journal-source.json",
+  "runtime_gate_sha256": "d37fcfdd559207eeae554687ab3a833e75908e183d5dcb315fcc05cc32ad5729",
+  "xcodebuild_pid": 95244,
+  "beforeArm": {
+    "markerInEditor": false,
+    "journalContainsMarker": false,
+    "journalSourceKinds": [],
+    "workspaceInert": false,
+    "replay": {
+      "taskRequestCount": 1,
+      "taskReplyHeld": 1,
+      "taskId": 70,
+      "backendRejected": 0
+    },
+    "markerOnDisk": false,
+    "taskCountOnDisk": 1
+  },
+  "immediatelyBeforeFault": {
+    "markerInEditor": true,
+    "journalContainsMarker": true,
+    "journalSourceKinds": [
+      "manuscript"
+    ],
+    "workspaceInert": false,
+    "replay": {
+      "taskRequestCount": 1,
+      "taskReplyHeld": 1,
+      "taskId": 70,
+      "backendRejected": 0
+    },
+    "markerOnDisk": false,
+    "taskCountOnDisk": 1
+  },
+  "nativeFailureState": {
+    "page": "26a385ab4c7a4784a84937c4d0a200ad",
+    "bridgeFailed": 1,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": true,
+    "evaluatorFault": 0,
+    "assetReads": 0,
+    "assetHeld": false,
+    "projectGeneration": 3,
+    "webProcessId": 95232,
+    "nativeEditingPausedAlert": true,
+    "nativeReloadAvailable": true,
+    "nativeLaterAvailable": true,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T09:47:20.154109+00:00",
+        "ticks": 154771800382791
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T09:47:20.739525+00:00",
+        "ticks": 154772385785750
+      },
+      {
+        "kind": "backend-dispose",
+        "detail": null,
+        "utc": "2026-10-07T09:47:47.885095+00:00",
+        "ticks": 154799531327583
+      },
+      {
+        "kind": "bridge-failed",
+        "detail": "InvalidOperationException",
+        "utc": "2026-10-07T09:47:47.888626+00:00",
+        "ticks": 154799534859541
+      },
+      {
+        "kind": "native-alert-presenting",
+        "detail": null,
+        "utc": "2026-10-07T09:47:47.889537+00:00",
+        "ticks": 154799535770041
+      }
+    ]
+  },
+  "beforeReload": {
+    "markerInEditor": true,
+    "journalContainsMarker": false,
+    "journalSourceKinds": [],
+    "workspaceInert": true,
+    "replay": {
+      "taskRequestCount": 1,
+      "taskReplyHeld": 1,
+      "taskId": 70,
+      "backendRejected": 1
+    },
+    "markerOnDisk": true,
+    "taskCountOnDisk": 1
+  },
+  "afterReload": {
+    "markerInEditor": true,
+    "journalContainsMarker": false,
+    "journalSourceKinds": [],
+    "workspaceInert": false,
+    "replay": null,
+    "markerOnDisk": true,
+    "taskCountOnDisk": 1
+  },
+  "healthyAfterReload": true,
+  "status": "passed",
+  "xcodebuild_exit_code": 0
+}

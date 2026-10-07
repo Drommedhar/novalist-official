@@ -11,6 +11,7 @@ function fixture() {
   const journal = loadRendererSource('src/mobile/recoveryJournal.ts', {}, { localStorage })
   let state = { projectPath: scope.projectPath, activeBookId: scope.bookId, activeDraftId: scope.draftId, drafts: [], editors: {}, chapters: [{ guid: 'chapter', scenes: [{ id: 'scene' }] }], dirtyMap: {}, isLoaded: true, activeEditorPaneId: 'pane' }
   const calls = []
+  const errors = []
   let disk = { html: '<p>Original</p>', hash: 'original' }
   let research = []
   const manuscript = []
@@ -27,7 +28,7 @@ function fixture() {
     '../i18n': { default: { t: (key) => key } }, '../rpc/client': { rpc },
     '../stores/projectStore': { useProjectStore: store },
     '../stores/manuscriptStore': { pendingManuscriptRecovery: () => manuscript, hasPendingManuscriptWrites: () => false },
-    '../stores/hostBridgeStore': { useHostBridgeStore: { getState: () => ({ pushToast: (message) => { throw new Error(message) } }) } },
+    '../stores/hostBridgeStore': { useHostBridgeStore: { getState: () => ({ pushToast: (message) => { errors.push(message) } }) } },
     './recoveryJournal': journal
   }, { window: { novalist: host } })
   Object.assign(state, {
@@ -41,8 +42,44 @@ function fixture() {
       recovery.acknowledgeMobileSceneRecovery('scene', editor.html)
     }
   })
-  return { ...journal, ...recovery, host, store, calls, manuscript, storage, disk: () => disk, setDisk: (value) => { disk = value }, setResearch: (value) => { research = value } }
+  return { ...journal, ...recovery, host, store, calls, errors, manuscript, storage, disk: () => disk, setDisk: (value) => { disk = value }, setResearch: (value) => { research = value } }
 }
+
+test('actual manuscript edit action journals the latest buffer before its autosave timer', () => {
+  const f = fixture()
+  const timers = []
+  const create = (initialize) => {
+    let state
+    const store = { getState: () => state, setState: (patch) => { state = { ...state, ...(typeof patch === 'function' ? patch(state) : patch) } } }
+    state = initialize(store.setState, store.getState)
+    return store
+  }
+  const manuscript = loadRendererSource('src/stores/manuscriptStore.ts', {
+    zustand: { create }, '../rpc/client': { rpc: { request: () => { throw new Error('Autosave must not run') } } },
+    './projectStore': { useProjectStore: f.store, reportManuscriptEditing() {} },
+    './filterStore': { useFilterStore: { getState: () => ({}) } },
+    '../i18n': { default: { t: (key) => key } }, '../mobile/recovery': f
+  }, { window: { novalist: f.host }, setTimeout: (fn) => (timers.push(fn), timers.length), clearTimeout() {} }).useManuscriptStore
+  manuscript.setState({ sections: [{ chapterGuid: 'chapter', scenes: [{ sceneId: 'scene', html: 'base', hash: 'original' }] }] })
+  manuscript.getState().onSceneContentChanged('scene', '<p>First edit</p>', 'First edit', 2)
+  manuscript.getState().onSceneContentChanged('scene', '<p>Newest edit</p>', 'Newest edit', 2)
+  const entries = f.readRecoveryJournal()
+  assert.equal(entries.length, 1)
+  assert.equal(entries[0].source, 'manuscript:scene')
+  assert.equal(entries[0].html, '<p>Newest edit</p>')
+  assert.equal(entries[0].hash, 'original')
+  assert.deepEqual({ ...entries[0].scope }, scope)
+  assert.equal(f.calls.length, 0)
+  assert.equal(timers.length, 2)
+})
+
+test('failed immediate journaling preserves the prior payload and reports the failure', () => {
+  const f = fixture()
+  f.recordRecovery(scene)
+  f.retainMobileSceneRecovery({ ...scene, html: 'x'.repeat(2_000_001) })
+  assert.equal(f.readRecoveryJournal()[0].html, scene.html)
+  assert.equal(f.errors.length, 1)
+})
 
 test('background capture journals scene and manuscript buffers synchronously', () => {
   const f = fixture()

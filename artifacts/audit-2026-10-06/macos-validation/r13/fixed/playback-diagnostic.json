@@ -1,0 +1,98 @@
+[
+  {
+    "kind": "audio",
+    "events": [
+      {
+        "event": "play",
+        "time": 0
+      },
+      {
+        "event": "playing",
+        "time": 0
+      },
+      {
+        "event": "timeupdate",
+        "time": 0.17915437266762346
+      },
+      {
+        "event": "timeupdate",
+        "time": 0.4303370813535325
+      },
+      {
+        "event": "timeupdate",
+        "time": 0.6816353460127442
+      },
+      {
+        "event": "timeupdate",
+        "time": 0.9336453460140928
+      },
+      {
+        "event": "timeupdate",
+        "time": 1
+      },
+      {
+        "event": "ended",
+        "time": 1
+      }
+    ],
+    "promise": "resolved",
+    "currentTime": 1,
+    "ended": true
+  },
+  {
+    "kind": "video",
+    "events": [
+      {
+        "event": "play",
+        "time": 0
+      },
+      {
+        "event": "playing",
+        "time": 0
+      },
+      {
+        "event": "timeupdate",
+        "time": 0.2337061663317656
+      },
+      {
+        "event": "timeupdate",
+        "time": 0.48401075000904686
+      },
+      {
+        "event": "timeupdate",
+        "time": 0.7358645000027213
+      },
+      {
+        "event": "timeupdate",
+        "time": 0.9862215833214615
+      },
+      {
+        "event": "timeupdate",
+        "time": 1.2381982493522863
+      },
+      {
+        "event": "timeupdate",
+        "time": 1.4902532499948795
+      },
+      {
+        "event": "timeupdate",
+        "time": 1.7403019993249986
+      },
+      {
+        "event": "timeupdate",
+        "time": 1.9923951249853429
+      },
+      {
+        "event": "timeupdate",
+        "time": 2
+      },
+      {
+        "event": "ended",
+        "time": 2
+      }
+    ],
+    "promise": "resolved",
+    "currentTime": 2,
+    "ended": true
+  }
+]

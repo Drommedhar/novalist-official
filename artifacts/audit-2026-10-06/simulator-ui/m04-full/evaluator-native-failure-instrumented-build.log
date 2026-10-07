@@ -1,0 +1,74 @@
+  Wiederherzustellende Projekte werden ermittelt...
+  "<disposable-checkout>/Novalist.Sdk/Novalist.Sdk.csproj" wiederhergestellt (in 41 ms.).
+  "<disposable-checkout>/Novalist.Core/Novalist.Core.csproj" wiederhergestellt (in 59 ms.).
+  "<disposable-checkout>/Novalist.Backend/Novalist.Backend.csproj" wiederhergestellt (in 61 ms.).
+  "<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj" wiederhergestellt (in 83 ms.).
+<disposable-checkout>/native/AppleSpeech/AppleMicrophone.swift(44,23): warning GD52B0E74: 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+   42 |     init() throws {
+   43 |         let session = AVAudioSession.sharedInstance()
+   44 |         guard session.recordPermission == .granted else { throw CaptureFailure.permission }
+EXEC : |                       `- warning : 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+   45 |         try session.setCategory(.record, mode: .measurement)
+   46 |         try session.setActive(true)
+  
+<disposable-checkout>/native/AppleSpeech/AppleMicrophone.swift(44,44): warning GF302C310: 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+   42 |     init() throws {
+   43 |         let session = AVAudioSession.sharedInstance()
+   44 |         guard session.recordPermission == .granted else { throw CaptureFailure.permission }
+EXEC : |                                            |- warning : 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+      |                                            `- note: use 'AVAudioApplication.recordPermission.granted' instead
+   45 |         try session.setCategory(.record, mode: .measurement)
+   46 |         try session.setActive(true)
+  
+<disposable-checkout>/native/AppleSpeech/AppleMicrophone.swift(55,15): warning GFAAF8041: 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+   53 |               let target = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16000, channels: 1, interleaved: false),
+   54 |               let converter = AVAudioConverter(from: format, to: target) else { throw CaptureFailure.format }
+   55 |         input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
+EXEC : |               `- warning : 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+   56 |             guard let self else { return }
+   57 |             let capacity = AVAudioFrameCount(ceil(Double(buffer.frameLength) * 16000 / format.sampleRate)) + 256
+  
+  [#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+  Novalist.Sdk -> <disposable-checkout>/Novalist.Sdk/bin/Debug/net8.0/Novalist.Sdk.dll
+  Novalist.Core -> <disposable-checkout>/Novalist.Core/bin/Debug/net8.0/Novalist.Core.dll
+  Novalist.Backend -> <disposable-checkout>/Novalist.Backend/bin/Debug/net8.0/iossimulator-arm64/Novalist.Backend.dll
+  Novalist.Sdk -> <disposable-checkout>/Novalist.Sdk/bin/Debug/net8.0/Novalist.Sdk.dll
+  Novalist.Core -> <disposable-checkout>/Novalist.Core/bin/Debug/net8.0/Novalist.Core.dll
+  Erkannte Signaturidentität:
+          
+    Code Signing Key: "" (-)
+    Provisioning Profile: "" () - no entitlements
+    Bundle Id: com.novalist.app
+    App Id: com.novalist.app
+<disposable-checkout>/Novalist.Mobile/Pages/RendererHostPage.SidebarRows.cs(103,24): warning CS8601: Mögliche Nullverweiszuweisung. [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/Novalist.Mobile/Pages/RendererHostPage.TabBar.cs(185,63): warning CS8601: Mögliche Nullverweiszuweisung. [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/Novalist.Mobile/Pages/RendererHostPage.Transport.cs(54,42): warning CS8625: Ein NULL-Literal kann nicht in einen Non-Nullable-Verweistyp konvertiert werden. [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/Novalist.Mobile/Services/SecurityScopedFolders.cs(272,27): warning CA1422: Diese Aufrufsite ist erreichbar für: iOS, 27.0 und höhere Versionen, maccatalyst, 27.0 und höhere Versionen. „UIApplication.Windows“ ist veraltet für: ios, 15.0 und höhere Versionen (Use 'UIWindowScene.Windows' in the desired window scene object instead.), maccatalyst, 15.0 und höhere Versionen (Use 'UIWindowScene.Windows' in the desired window scene object instead.). (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1422) [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/Novalist.Mobile/Services/ImagePicking.cs(181,27): warning CA1422: Diese Aufrufsite ist erreichbar für: iOS, 27.0 und höhere Versionen, maccatalyst, 27.0 und höhere Versionen. „UIApplication.Windows“ ist veraltet für: ios, 15.0 und höhere Versionen (Use 'UIWindowScene.Windows' in the desired window scene object instead.), maccatalyst, 15.0 und höhere Versionen (Use 'UIWindowScene.Windows' in the desired window scene object instead.). (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1422) [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/Novalist.Mobile/Pages/RendererHostPage.TabBar.cs(184,13): warning CA1422: Diese Aufrufsite ist erreichbar für: iOS, 27.0 und höhere Versionen, maccatalyst, 27.0 und höhere Versionen. „UIButton.ContentEdgeInsets“ ist veraltet für: ios, 15.0 und höhere Versionen (Ignored when 'UIButtonConfiguration' is used.), maccatalyst, 15.0 und höhere Versionen (Ignored when 'UIButtonConfiguration' is used.). (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1422) [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+  Novalist.Mobile -> <disposable-checkout>/Novalist.Mobile/bin/Debug/net10.0-ios27.0/iossimulator-arm64/Novalist.Mobile.dll
+/usr/local/share/dotnet/packs/Microsoft.iOS.Sdk.net10.0_27.0/27.0.10722/targets/Xamarin.Shared.Sdk.targets(2724,3): warning : Die Datei „<disposable-checkout>/Novalist.Backend/bin/Debug/net8.0/iossimulator-arm64/Novalist.Backend.deps.json“ gibt keine PublishFolderType-Metadaten an, und ein Standardwert konnte nicht berechnet werden. Die Datei wird nicht in das App-Bundle kopiert. [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+/usr/local/share/dotnet/packs/Microsoft.iOS.Sdk.net10.0_27.0/27.0.10722/targets/Xamarin.Shared.Sdk.targets(2724,3): warning : Die Datei „<disposable-checkout>/Novalist.Backend/bin/Debug/net8.0/iossimulator-arm64/Novalist.Backend.runtimeconfig.json“ gibt keine PublishFolderType-Metadaten an, und ein Standardwert konnte nicht berechnet werden. Die Datei wird nicht in das App-Bundle kopiert. [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+  Das Optimieren der Assembly für die Größe kann das Verhalten der App ändern. Stellen Sie sicher, dass nach der Veröffentlichung Tests durchgeführt werden. Informationen finden Sie unter https://aka.ms/dotnet-illink.
+  Assemblys werden für die Größe optimiert. Dieser Vorgang kann eine Weile dauern.
+
+Der Buildvorgang wurde erfolgreich ausgeführt.
+
+<disposable-checkout>/native/AppleSpeech/AppleMicrophone.swift(44,23): warning GD52B0E74: 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+EXEC : |                       `- warning : 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/native/AppleSpeech/AppleMicrophone.swift(44,44): warning GF302C310: 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+EXEC : |                                            |- warning : 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/native/AppleSpeech/AppleMicrophone.swift(55,15): warning GFAAF8041: 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+EXEC : |               `- warning : 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration] [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/Novalist.Mobile/Pages/RendererHostPage.SidebarRows.cs(103,24): warning CS8601: Mögliche Nullverweiszuweisung. [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/Novalist.Mobile/Pages/RendererHostPage.TabBar.cs(185,63): warning CS8601: Mögliche Nullverweiszuweisung. [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/Novalist.Mobile/Pages/RendererHostPage.Transport.cs(54,42): warning CS8625: Ein NULL-Literal kann nicht in einen Non-Nullable-Verweistyp konvertiert werden. [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/Novalist.Mobile/Services/SecurityScopedFolders.cs(272,27): warning CA1422: Diese Aufrufsite ist erreichbar für: iOS, 27.0 und höhere Versionen, maccatalyst, 27.0 und höhere Versionen. „UIApplication.Windows“ ist veraltet für: ios, 15.0 und höhere Versionen (Use 'UIWindowScene.Windows' in the desired window scene object instead.), maccatalyst, 15.0 und höhere Versionen (Use 'UIWindowScene.Windows' in the desired window scene object instead.). (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1422) [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/Novalist.Mobile/Services/ImagePicking.cs(181,27): warning CA1422: Diese Aufrufsite ist erreichbar für: iOS, 27.0 und höhere Versionen, maccatalyst, 27.0 und höhere Versionen. „UIApplication.Windows“ ist veraltet für: ios, 15.0 und höhere Versionen (Use 'UIWindowScene.Windows' in the desired window scene object instead.), maccatalyst, 15.0 und höhere Versionen (Use 'UIWindowScene.Windows' in the desired window scene object instead.). (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1422) [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+<disposable-checkout>/Novalist.Mobile/Pages/RendererHostPage.TabBar.cs(184,13): warning CA1422: Diese Aufrufsite ist erreichbar für: iOS, 27.0 und höhere Versionen, maccatalyst, 27.0 und höhere Versionen. „UIButton.ContentEdgeInsets“ ist veraltet für: ios, 15.0 und höhere Versionen (Ignored when 'UIButtonConfiguration' is used.), maccatalyst, 15.0 und höhere Versionen (Ignored when 'UIButtonConfiguration' is used.). (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1422) [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+/usr/local/share/dotnet/packs/Microsoft.iOS.Sdk.net10.0_27.0/27.0.10722/targets/Xamarin.Shared.Sdk.targets(2724,3): warning : Die Datei „<disposable-checkout>/Novalist.Backend/bin/Debug/net8.0/iossimulator-arm64/Novalist.Backend.deps.json“ gibt keine PublishFolderType-Metadaten an, und ein Standardwert konnte nicht berechnet werden. Die Datei wird nicht in das App-Bundle kopiert. [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+/usr/local/share/dotnet/packs/Microsoft.iOS.Sdk.net10.0_27.0/27.0.10722/targets/Xamarin.Shared.Sdk.targets(2724,3): warning : Die Datei „<disposable-checkout>/Novalist.Backend/bin/Debug/net8.0/iossimulator-arm64/Novalist.Backend.runtimeconfig.json“ gibt keine PublishFolderType-Metadaten an, und ein Standardwert konnte nicht berechnet werden. Die Datei wird nicht in das App-Bundle kopiert. [<disposable-checkout>/Novalist.Mobile/Novalist.Mobile.csproj]
+    14 Warnung(en)
+    0 Fehler
+
+Verstrichene Zeit 00:00:11.16

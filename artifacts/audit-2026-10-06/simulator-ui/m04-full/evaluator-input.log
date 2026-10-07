@@ -1,0 +1,56 @@
+Test Suite 'All tests' started at 2026-10-07 11:24:17.917.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:24:17.917.
+Test Suite 'AuditUITests' started at 2026-10-07 11:24:17.917.
+Test Case '-[AuditUITests.AuditUITests testUnsavedMarkerAtNativeEvaluatorFailure]' started.
+    t =     0.00s Start Test at 2026-10-07 11:24:17.919
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Waiting 10.0s for TextView (First Match) to exist
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =     1.08s         Checking existence of `TextView (First Match)`
+    t =     1.09s Find the TextView (First Match)
+    t =     1.11s Tap "
+" TextView
+    t =     1.11s     Wait for com.novalist.app to idle
+    t =     1.11s     Find the "
+" TextView
+    t =     1.12s     Check for interrupting elements affecting "
+" TextView
+    t =     1.14s     Synthesize event
+    t =     1.43s     Wait for com.novalist.app to idle
+AUDIT_M04_ARM_NOW
+    t =     3.72s Type 'M04EVAL26A' into "
+" TextView
+    t =     3.72s     Wait for com.novalist.app to idle
+    t =     3.73s     Find the "
+" TextView
+    t =     3.77s     Check for interrupting elements affecting "
+" TextView
+    t =     3.79s     Synthesize event
+    t =     4.16s     Wait for com.novalist.app to idle
+    t =     4.62s Waiting 12.0s for "Editing paused" Alert to exist
+    t =     5.69s     Checking `Expect predicate `existsNoRetry == 1` for object "Editing paused" Alert`
+    t =     5.69s         Checking existence of `"Editing paused" Alert`
+    t =     5.72s Checking existence of `"Reload" Button`
+    t =     5.73s Checking existence of `"Later" Button`
+AUDIT_M04_NATIVE_ALERT_READY
+    t =     5.75s Tear Down
+Test Case '-[AuditUITests.AuditUITests testUnsavedMarkerAtNativeEvaluatorFailure]' passed (5.790 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:24:23.709.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.790 (5.792) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:24:23.710.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.790 (5.793) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:24:23.710.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.790 (5.793) seconds
+2026-10-07 11:24:23.997 xcodebuild[84954:3079141] [MT] IDETestOperationsObserverDebug: 8.638 elapsed -- Testing started completed.
+2026-10-07 11:24:23.997 xcodebuild[84954:3079141] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 11:24:23.997 xcodebuild[84954:3079141] [MT] IDETestOperationsObserverDebug: 8.638 sec, +8.638 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-m04>/evaluator-input.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

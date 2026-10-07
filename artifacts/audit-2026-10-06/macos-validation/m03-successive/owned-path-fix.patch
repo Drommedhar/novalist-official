@@ -1,0 +1,146 @@
+diff --git a/Novalist.Mobile/Services/OwnedProjectPaths.cs b/Novalist.Mobile/Services/OwnedProjectPaths.cs
+index cd012f4e..dd6e8d45 100644
+--- a/Novalist.Mobile/Services/OwnedProjectPaths.cs
++++ b/Novalist.Mobile/Services/OwnedProjectPaths.cs
+@@ -1,6 +1,5 @@
+ using System.Text.Json;
+ using Novalist.Core.Models;
+-using Novalist.Core.Services;
+ 
+ namespace Novalist.Mobile.Services;
+ 
+@@ -9,31 +8,66 @@ public sealed class OwnedProjectPaths(string documents, string storePath)
+ {
+     private sealed record Entry(string RelativePath, string ProjectId);
+     private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
++    private static readonly object RegistryGate = new();
+ 
+-    public async Task RecordAsync(string projectPath)
++    public Task RecordAsync(string projectPath) => Task.Run(() =>
+     {
+         if (!Contained(documents, projectPath)) return;
+         var id = ReadId(projectPath);
+         if (string.IsNullOrEmpty(id)) return;
+-        var entries = Load();
+-        entries[projectPath] = new Entry(Path.GetRelativePath(documents, projectPath), id);
+-        await new FileService().WriteTextAsync(storePath, JsonSerializer.Serialize(entries, Json));
+-    }
++        lock (RegistryGate)
++        {
++            var entries = Load();
++            entries[projectPath] = new Entry(Path.GetRelativePath(documents, projectPath), id);
++            Save(entries);
++        }
++    });
+ 
+     public string? Resolve(string storedPath)
+     {
+-        if (!Load().TryGetValue(storedPath, out var entry)
+-            || entry is not { RelativePath.Length: > 0, ProjectId.Length: > 0 }) return null;
+-        try
++        lock (RegistryGate)
+         {
+-            var candidate = Path.GetFullPath(Path.Combine(documents, entry.RelativePath));
+-            if (!Contained(documents, candidate) || string.Equals(candidate, storedPath, StringComparison.Ordinal)) return null;
+-            return string.Equals(ReadId(candidate), entry.ProjectId, StringComparison.Ordinal) ? candidate : null;
++            var entries = Load();
++            if (!entries.TryGetValue(storedPath, out var entry)
++                || entry is not { RelativePath.Length: > 0, ProjectId.Length: > 0 }) return null;
++            try
++            {
++                var candidate = Path.GetFullPath(Path.Combine(documents, entry.RelativePath));
++                if (!Contained(documents, candidate) || string.Equals(candidate, storedPath, StringComparison.Ordinal)
++                    || !string.Equals(ReadId(candidate), entry.ProjectId, StringComparison.Ordinal)) return null;
++                // Recents can publish this path without opening the book. Persist its
++                // exact authorization first, so another container move can resolve it.
++                if (!entries.TryGetValue(candidate, out var existing) || existing != entry)
++                {
++                    entries[candidate] = entry;
++                    Save(entries);
++                }
++                return candidate;
++            }
++            catch (Exception error) when (error is ArgumentException or NotSupportedException or IOException or UnauthorizedAccessException)
++            {
++                return null;
++            }
+         }
+-        catch (Exception error) when (error is ArgumentException or NotSupportedException or IOException)
++    }
++
++    private void Save(Dictionary<string, Entry> entries)
++    {
++        var directory = Path.GetDirectoryName(Path.GetFullPath(storePath))
++            ?? throw new IOException("The owned-project registry must name a file.");
++        Directory.CreateDirectory(directory);
++        var temporary = Path.Combine(directory, ".novalist-owned-" + Guid.NewGuid().ToString("N") + ".tmp");
++        try
+         {
+-            return null;
++            using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
++            {
++                JsonSerializer.Serialize(output, entries, Json);
++                output.Flush(flushToDisk: true);
++            }
++            if (File.Exists(storePath)) File.Replace(temporary, storePath, null);
++            else File.Move(temporary, storePath);
+         }
++        finally { File.Delete(temporary); }
+     }
+ 
+     private Dictionary<string, Entry> Load()
+diff --git a/tests/Novalist.Core.Tests/Services/MobileOwnedProjectPathsTests.cs b/tests/Novalist.Core.Tests/Services/MobileOwnedProjectPathsTests.cs
+index 5a8af9d4..c0a71528 100644
+--- a/tests/Novalist.Core.Tests/Services/MobileOwnedProjectPathsTests.cs
++++ b/tests/Novalist.Core.Tests/Services/MobileOwnedProjectPathsTests.cs
+@@ -44,6 +44,50 @@ public sealed class MobileOwnedProjectPathsTests : IDisposable
+         Assert.False(File.Exists(Registry));
+     }
+ 
++    [Fact]
++    public async Task SuccessiveContainerMovesRetainTheRepairedPathWithoutReopening()
++    {
++        var original = CreateProject(OldDocuments, "Book", "project-a");
++        await new OwnedProjectPaths(OldDocuments, Registry).RecordAsync(original);
++        var intermediate = CreateProject(Documents, "Book", "project-a");
++        Assert.Equal(intermediate, new OwnedProjectPaths(Documents, Registry).Resolve(original));
++        var nextDocuments = Path.Combine(_root, "third-container", "Documents");
++        var latest = CreateProject(nextDocuments, "Book", "project-a");
++
++        // Recents publishes the resolved path without opening the project or recording it again.
++        var resolver = new OwnedProjectPaths(nextDocuments, Registry);
++        Assert.Equal(latest, resolver.Resolve(intermediate));
++        Assert.Equal(latest, resolver.Resolve(original));
++    }
++
++    [Fact]
++    public async Task RelocationAliasesDoNotAuthorizeExternalMatchingSuffixesOrChangedIdentities()
++    {
++        var original = CreateProject(OldDocuments, "Book", "project-a");
++        await new OwnedProjectPaths(OldDocuments, Registry).RecordAsync(original);
++        var intermediate = CreateProject(Documents, "Book", "project-a");
++        Assert.Equal(intermediate, new OwnedProjectPaths(Documents, Registry).Resolve(original));
++        var external = CreateProject(Path.Combine(_root, "external", "Documents"), "Book", "project-a");
++        var nextDocuments = Path.Combine(_root, "third-container", "Documents");
++        CreateProject(nextDocuments, "Book", "project-a");
++        var resolver = new OwnedProjectPaths(nextDocuments, Registry);
++        Assert.Null(resolver.Resolve(external));
++        CreateProject(nextDocuments, "Book", "different-project");
++        Assert.Null(resolver.Resolve(intermediate));
++    }
++
++    [Fact]
++    public async Task ConcurrentRecordsFromSeparateInstancesRetainEveryProject()
++    {
++        var originals = Enumerable.Range(0, 12)
++            .Select(index => CreateProject(OldDocuments, "Book-" + index, "project-" + index)).ToArray();
++        await Task.WhenAll(originals.Select(path => new OwnedProjectPaths(OldDocuments, Registry).RecordAsync(path)));
++        using var registry = JsonDocument.Parse(await File.ReadAllTextAsync(Registry));
++        var keys = registry.RootElement.EnumerateObject().Select(entry => entry.Name).ToHashSet(StringComparer.Ordinal);
++        Assert.Equal(originals.Length, keys.Count);
++        Assert.All(originals, path => Assert.Contains(path, keys));
++    }
++
+     [Fact]
+     public async Task CorruptAndMissingCandidateManifestsDoNotRelocate()
+     {

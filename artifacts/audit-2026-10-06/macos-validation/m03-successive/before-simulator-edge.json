@@ -1,0 +1,13 @@
+{
+  "finding": "M03",
+  "status": "failed-supporting-simulator-edge",
+  "scenario": "Two app container moves with an intervening bookshelf-only launch and no project open.",
+  "recent_path_is_registry_key": false,
+  "recent_path_exists": false,
+  "current_candidate_exists": true,
+  "candidate_project_id_matches_recent": true,
+  "candidate_relative_path_in_registry": true,
+  "recent_path_sha256": "56e816c63e400d70316e2c8b08a332986b0c2c3b75931734deb9a68b8ddb24a5",
+  "current_candidate_sha256": "bed30c6009385e9c8031c41ddac5f0299acde9669917cbf624ef17c526ebc97e",
+  "observed": "Bookshelf shows generic project card with no book detail although current owned synthetic project exists; recent now references an intermediate container URI absent from the trusted registry."
+}

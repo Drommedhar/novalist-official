@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "source": "all-fixes-inputs.json",
+  "patch": "all-fixes-source.patch",
+  "build": "Fresh uninstrumented source with final fixes; all four native project bin/obj cleared before build.",
+  "command": "dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios27.0 -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=true -p:CodesignKey=- -p:NuGetAudit=false -m:1 -nr:false",
+  "exit_code": 0,
+  "deep_strict_signature": "passed",
+  "simulator": "iPhone17Pro/iOS27.0",
+  "install": "passed",
+  "launch": "passed",
+  "pid": 98905,
+  "app_binary_sha256": "7b4f43ad5916a22f81d4d966b6bb047571908f8ba337cb6ad48866a17f47dc50",
+  "native_ui": {
+    "status": "passed",
+    "test": "testCleanFinalLaunch",
+    "duration_seconds": 2.312,
+    "observed": "Actual WKWebView and hittable New Project bookshelf control; no Editing paused alert.",
+    "evidence": "all-fixes-native-ui.log",
+    "setup_note": "Earlier test required Browse for Project Folder on a populated bookshelf; corrected the harness to the always-present New Project control. No production change."
+  }
+}

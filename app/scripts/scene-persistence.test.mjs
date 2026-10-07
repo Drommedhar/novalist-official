@@ -5,8 +5,8 @@ import { loadRendererSource } from './renderer-source-loader.mjs'
 const turn = () => new Promise((resolve) => setImmediate(resolve))
 const editor = (html, hash = 'hash-0') => ({ chapterGuid: 'c', sceneId: 's', html, plainText: html, hash, isDirty: true, tabs: [{ chapterGuid: 'c', sceneId: 's' }] })
 
-function fixture() {
-  let state = { workspaceEpoch: 1, sceneHashes: { s: 'hash-0' }, sceneConflict: null, activeEditorPaneId: 'a', editors: {}, dirtyMap: {}, chapters: [] }
+function fixture(isMobile = false) {
+  let state = { projectPath: '/synthetic/project', activeBookId: 'book', activeDraftId: 'draft', drafts: [], workspaceEpoch: 1, sceneHashes: { s: 'hash-0' }, sceneConflict: null, activeEditorPaneId: 'a', editors: {}, dirtyMap: {}, chapters: [] }
   const store = { getState: () => state, setState: (next) => { state = { ...state, ...(typeof next === 'function' ? next(state) : next) } } }
   const helpers = { useProjectStore: store, mirror: () => ({}),
     mapEditors: (editors, fn) => Object.fromEntries(Object.entries(editors).map(([id, value]) => [id, fn(value)])),
@@ -31,14 +31,49 @@ function fixture() {
     '../rpc/client': { rpc }, './projectStore': helpers, './sceneWriteQueue': queue
   }, { setTimeout: (fn) => (timers.push(fn), timers.length), clearTimeout() {} })
   const shell = { unsavedGuards: {}, setPaneView() {}, setActivePane() {}, panes: {} }
+  const storage = new Map()
+  const journal = loadRendererSource('src/mobile/recoveryJournal.ts', {}, { localStorage: {
+    getItem: (key) => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value), removeItem: (key) => storage.delete(key)
+  } })
+  const recovery = loadRendererSource('src/mobile/recovery.ts', {
+    '../i18n': { default: { t: (key) => key } }, '../rpc/client': { rpc },
+    '../stores/projectStore': { useProjectStore: store },
+    '../stores/manuscriptStore': { pendingManuscriptRecovery: () => [], hasPendingManuscriptWrites: () => false },
+    '../stores/hostBridgeStore': { useHostBridgeStore: { getState: () => ({ pushToast: (message) => { throw new Error(message) } }) } },
+    './recoveryJournal': journal
+  }, { window: { novalist: { isMobile } } })
   const actions = loadRendererSource('src/stores/projectEditorActions.ts', {
     '../rpc/client': { rpc }, './shellStore': { useShellStore: { getState: () => shell }, paneLeaves: () => [] },
     './projectStore': helpers, './projectPersistence': persistence, './sceneWriteQueue': queue,
-    './pendingWrites': { capturePendingWrites() {} }, './projectSceneActions': { runSceneContext: (fn) => fn() }
+    './pendingWrites': { capturePendingWrites() {} }, './projectSceneActions': { runSceneContext: (fn) => fn() },
+    '../mobile/recovery': recovery
   }).createProjectEditorActions(store.setState, store.getState)
   store.setState(actions)
-  return { store, rpc, persistence, timers, requests, disk: () => disk }
+  return { store, rpc, persistence, timers, requests, disk: () => disk, readJournal: journal.readRecoveryJournal }
 }
+
+test('mobile scene edits survive in the journal before autosave or a failure notification', () => {
+  const f = fixture(true)
+  f.store.setState({ editors: { a: editor('base'), b: { ...editor('second'), sceneId: 'other' } } })
+  f.store.getState().onEditorContentChanged('a', '<p>First pending edit</p>', 'First pending edit')
+  f.store.getState().onEditorContentChanged('b', '<p>Second pending edit</p>', 'Second pending edit')
+  f.store.getState().onEditorContentChanged('a', '<p>Newest pending edit</p>', 'Newest pending edit')
+  const entries = f.readJournal()
+  assert.equal(entries.length, 2)
+  assert.equal(entries.find((entry) => entry.source === 'pane:a').html, '<p>Newest pending edit</p>')
+  assert.equal(entries.find((entry) => entry.source === 'pane:b').sceneId, 'other')
+  assert.equal(entries[0].scope.draftId, 'draft')
+  assert.equal(entries[0].hash, 'hash-0')
+  assert.equal(f.requests.length, 0)
+  assert.equal(f.disk(), 'base')
+})
+
+test('desktop scene edits do not create a mobile recovery journal', () => {
+  const f = fixture()
+  f.store.setState({ editors: { a: editor('base') } })
+  f.store.getState().onEditorContentChanged('a', 'desktop edit', 'desktop edit')
+  assert.equal(f.readJournal().length, 0)
+})
 
 test('divergent split panes retain their own base and produce a conflict', async () => {
   const f = fixture()

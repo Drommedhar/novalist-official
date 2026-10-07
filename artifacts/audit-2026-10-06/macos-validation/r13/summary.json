@@ -1,0 +1,81 @@
+{
+  "finding": "R13",
+  "status": "supporting-native-simulator-passes",
+  "device": "Dedicated iPad (A16) simulator / iOS 27.0",
+  "source": "source-provenance.json",
+  "before": "before/preview-observations.json",
+  "after": "fixed/preview-observations.json",
+  "concrete_failures": [
+    {
+      "failure": "Valid image decoded but generic error remained visible; returning from oversized image left stale accessible size description.",
+      "evidence": [
+        "before/image.png",
+        "before/intermediate-accessible-error.json"
+      ],
+      "correction": "Research ignores premature mobile project-scheme errors, retains explicit native rejection, and clears only its successful preview errors/accessibility attributes."
+    },
+    {
+      "failure": "WAV and MP4 stayed at readyState 0 / media error 4 despite valid native data URIs. Explicit load did not recover; real CSP event reported media-src blocked=data.",
+      "evidence": [
+        "before/csp-diagnostic.json",
+        "before/load-diagnostic.json"
+      ],
+      "correction": "Mobile page allows media-src self/data only. HTTP(S) media origins remain unavailable."
+    }
+  ],
+  "passed_cases": [
+    {
+      "id": "R13-02",
+      "observed": "Real production Research PDF visibly renders AUDIT PDF FIXTURE. Real Research WAV reaches readyState 4 / duration 1; MP4 reaches readyState 4 / duration 2 / 64x64. Calling play on those existing UI elements resolves; play/playing/timeupdate/ended events prove advancement to 1 s and 2 s. No fake media DOM."
+    },
+    {
+      "id": "R13-04",
+      "observed": "Actual Research displays accessible 16 MiB size error for oversized original. All original bytes retained."
+    },
+    {
+      "id": "R13-06",
+      "observed": "Five persisted project-relative Research references and all five media SHA256 values unchanged."
+    }
+  ],
+  "additional_regressions": [
+    {
+      "case": "valid-image-error",
+      "observed": "Real Research 2 px image renders with no stale visible error; oversize-to-valid selection ends with no title or aria-description."
+    },
+    {
+      "case": "R14-repeat",
+      "observed": "All 6 native loader/race/media-retention checks passed again using separate synthetic roots; original R14 evidence untouched.",
+      "evidence": "native-media-races-fixed.json"
+    },
+    {
+      "case": "portable-tests",
+      "observed": "All 9 focused tests pass (4 Research/CSP, 5 asset-loader).",
+      "evidence": "focused-tests.log"
+    },
+    {
+      "case": "clean-native",
+      "observed": "All audit controls removed; 568 production native hashes match original verified final source; four project bin/obj outputs cleared; clean ad-hoc native build: 14 warnings, 0 errors; strict deep signature verification, install, launch and native Research navigation pass.",
+      "evidence": "probe-removal.json"
+    }
+  ],
+  "limitations": [
+    "Full R13 remains pending: scene/map nested-frame previews, actual programmatic 3D textures and bounded native memory measurement.",
+    "Programmatic play on real Research media elements established actual simulator playback, not a native control tap or physical audio/speaker quality.",
+    "iPhone 17 Pro landscape retained compact navigation without Research; its initial navigation harness failed without exercising previews. A separate dedicated iPad used the actual native Research sidebar.",
+    "A normal onboarding Skip action returned the initial Research attempt to Dashboard; native sidebar reopening corrected the test setup before measured previews.",
+    "Synthetic project derived from read-only Audit Tablet Fixture, cloned and seeded locally with five synthetic Research entries; no personal content or credentials used.",
+    "Native runtime source is preserved base plus evaluator/control patch plus the two-file media fix; later independently developed root recovery fixes are covered by root combined validation, not these isolated runs."
+  ],
+  "file_retention": "file-retention.json",
+  "screenshots": [
+    "before/image.png",
+    "before/audio.png",
+    "before/video.png",
+    "fixed/image.png",
+    "fixed/pdf.png",
+    "fixed/audio.png",
+    "fixed/video.png",
+    "fixed/oversize.png"
+  ],
+  "delivery": "Parent owns ledger/report integration and validated fix commit/push; no release."
+}

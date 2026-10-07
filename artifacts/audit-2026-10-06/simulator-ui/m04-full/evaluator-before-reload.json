@@ -1,0 +1,64 @@
+{
+  "xctest_exit_code": 0,
+  "beforeReload": {
+    "markerInEditor": true,
+    "journalContainsMarker": false,
+    "inertElementPresent": true,
+    "markerOnDisk": false
+  },
+  "native_state": {
+    "page": "cd8fb8ee243f473297ea7f7a1d778266",
+    "bridgeFailed": 1,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": true,
+    "evaluatorFault": 0,
+    "assetReads": 0,
+    "assetHeld": false,
+    "projectGeneration": 3,
+    "webProcessId": 84472,
+    "nativeEditingPausedAlert": true,
+    "nativeReloadAvailable": true,
+    "nativeLaterAvailable": true,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T09:22:37.551455+00:00",
+        "ticks": 153289199198041
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T09:22:38.110732+00:00",
+        "ticks": 153289758467541
+      },
+      {
+        "kind": "evaluator-native-failure-armed",
+        "detail": null,
+        "utc": "2026-10-07T09:24:21.2741+00:00",
+        "ticks": 153392921734583
+      },
+      {
+        "kind": "evaluator-native-failure-consumed",
+        "detail": null,
+        "utc": "2026-10-07T09:24:21.941978+00:00",
+        "ticks": 153393589610166
+      },
+      {
+        "kind": "bridge-failed",
+        "detail": "NSErrorException",
+        "utc": "2026-10-07T09:24:21.950815+00:00",
+        "ticks": 153393598447041
+      },
+      {
+        "kind": "native-alert-presenting",
+        "detail": null,
+        "utc": "2026-10-07T09:24:21.952289+00:00",
+        "ticks": 153393599920958
+      }
+    ]
+  },
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "probe_diff_sha256": "2d88274ef724e09d0bdfc0bd3a4885112d88f7d80002594cc5730a6f431795e8"
+}

@@ -1,0 +1,17 @@
+{
+  "source_revision": "8489c9a3fa3b14b3cc695cef1b6d162b3d9aa3ab",
+  "files": {
+    "app/src/renderer/src/mobile/recovery.ts": "43306402fb364da4b77d70477c7e00fcf5c27eb5c3ebccca3126f43b4f99385a",
+    "app/src/renderer/src/stores/projectEditorActions.ts": "b0d9a036236be9ff63c3bb35c9aa1b7b20b753785e7b57d1ef3182463267e9a7",
+    "app/src/renderer/src/stores/manuscriptStore.ts": "4200b055c42919f867961259e431da6bf4a38657695fd58899ad042d983b566c",
+    "app/src/renderer/src/views/library/ResearchEditor.tsx": "45758eb17b0745ffd15ed59182afd50c5f591c2c8a52d9573a386b2fe31258a6",
+    "app/src/renderer/index.mobile.html": "088e3f89b2ab99c2f674454c3f18bbac614d41c7314cc6e2b798d73a1e361bc7",
+    "app/scripts/mobile-recovery.test.mjs": "925368cd30751714debae538bee3a6fa53f8e0af104532cbcda3f18554ffa1a2",
+    "app/scripts/scene-persistence.test.mjs": "6fdf832655dc3b1509eceb2248c722701bde7dc84b9f7ec936408cf726d7f2a1",
+    "app/scripts/renderer-source-loader.mjs": "68e361fc207f1dd44f68f5d4ac1615a2b00803a09784252959c4be85baa0d2c4",
+    "app/scripts/research-media-preview.test.mjs": "9cf6609465648eb8cb8f16be4bd585c9a91e5f96a844f6692d81010521f5aac9"
+  },
+  "typecheck": "passed",
+  "transport_tests": "122/122 passed",
+  "source_gates": "8/8 passed"
+}

@@ -1,0 +1,37 @@
+Test Suite 'All tests' started at 2026-10-07 11:55:10.337.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:55:10.338.
+Test Suite 'AuditUITests' started at 2026-10-07 11:55:10.338.
+Test Case '-[AuditUITests.AuditUITests testCleanFinalLaunch]' started.
+    t =     0.00s Start Test at 2026-10-07 11:55:10.342
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.06s Waiting 20.0s for WebView (First Match) to exist
+objc[98939]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10681c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10774c310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.16s     Checking `Expect predicate `existsNoRetry == 1` for object WebView (First Match)`
+    t =     1.16s         Checking existence of `WebView (First Match)`
+    t =     1.18s Waiting 20.0s for "New Project" Button to exist
+    t =     2.20s     Checking `Expect predicate `existsNoRetry == 1` for object "New Project" Button`
+    t =     2.20s         Checking existence of `"New Project" Button`
+    t =     2.27s Find the "New Project" Button
+    t =     2.30s Checking existence of `"Editing paused" Alert`
+AUDIT_CLEAN_FINAL_LAUNCH_PASS
+    t =     2.31s Tear Down
+Test Case '-[AuditUITests.AuditUITests testCleanFinalLaunch]' passed (2.312 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:55:12.654.
+	 Executed 1 test, with 0 failures (0 unexpected) in 2.312 (2.316) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:55:12.654.
+	 Executed 1 test, with 0 failures (0 unexpected) in 2.312 (2.316) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:55:12.654.
+	 Executed 1 test, with 0 failures (0 unexpected) in 2.312 (2.317) seconds
+2026-10-07 11:55:12.942 xcodebuild[98867:3226856] [MT] IDETestOperationsObserverDebug: 7.430 elapsed -- Testing started completed.
+2026-10-07 11:55:12.942 xcodebuild[98867:3226856] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 11:55:12.942 xcodebuild[98867:3226856] [MT] IDETestOperationsObserverDebug: 7.430 sec, +7.430 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/novalist-probe-ui/DerivedData/Logs/Test/Test-AuditUITests-2026.10.07_11-55-04-+0200.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

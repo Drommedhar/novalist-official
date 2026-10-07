@@ -1,0 +1,107 @@
+{
+  "case": "webcontent-termination",
+  "tag": "WEBKITA",
+  "marker": "M04WEBKITA26",
+  "task_label": "Audit M04 task WEBKITA",
+  "scene_label": "Audit M04 WEBKITA",
+  "source": "proactive-journal-source.json",
+  "runtime_gate_sha256": "5d48ea99ed388905a587cd836a6f9113946d992672decbcbb0879721080cc6e2",
+  "runtime_gate_file": "replay-gate-with-scene-hold.js",
+  "xcodebuild_pid": 96968,
+  "beforeArm": {
+    "markerInEditor": false,
+    "journalContainsMarker": false,
+    "journalSourceKinds": [],
+    "workspaceInert": false,
+    "replay": {
+      "taskRequestCount": 1,
+      "taskReplyHeld": 1,
+      "taskId": 70,
+      "backendRejected": 0,
+      "sceneWritesHeld": 0
+    },
+    "markerOnDisk": false,
+    "taskCountOnDisk": 1
+  },
+  "immediatelyBeforeFault": {
+    "markerInEditor": true,
+    "journalContainsMarker": true,
+    "journalSourceKinds": [
+      "manuscript"
+    ],
+    "workspaceInert": false,
+    "replay": {
+      "taskRequestCount": 1,
+      "taskReplyHeld": 1,
+      "taskId": 70,
+      "backendRejected": 0,
+      "sceneWritesHeld": 0
+    },
+    "markerOnDisk": false,
+    "taskCountOnDisk": 1
+  },
+  "associated_webcontent_pid": 96956,
+  "nativeFailureState": {
+    "page": "897215413a324080a00934d39452b057",
+    "bridgeFailed": 1,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": true,
+    "evaluatorFault": 0,
+    "assetReads": 0,
+    "assetHeld": false,
+    "projectGeneration": 3,
+    "webProcessId": 0,
+    "nativeEditingPausedAlert": true,
+    "nativeReloadAvailable": true,
+    "nativeLaterAvailable": true,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T09:51:09.147365+00:00",
+        "ticks": 155000793407458
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T09:51:09.658195+00:00",
+        "ticks": 155001304226875
+      },
+      {
+        "kind": "content-process-did-terminate",
+        "detail": null,
+        "utc": "2026-10-07T09:51:36.998235+00:00",
+        "ticks": 155028644240875
+      },
+      {
+        "kind": "bridge-failed",
+        "detail": "IOException",
+        "utc": "2026-10-07T09:51:36.998487+00:00",
+        "ticks": 155028644491875
+      },
+      {
+        "kind": "native-alert-presenting",
+        "detail": null,
+        "utc": "2026-10-07T09:51:37.004442+00:00",
+        "ticks": 155028650447708
+      }
+    ]
+  },
+  "beforeReloadDisk": {
+    "markerOnDisk": false,
+    "taskCountOnDisk": 1
+  },
+  "afterReload": {
+    "markerInEditor": true,
+    "journalContainsMarker": false,
+    "journalSourceKinds": [],
+    "workspaceInert": false,
+    "replay": null,
+    "markerOnDisk": true,
+    "taskCountOnDisk": 1
+  },
+  "healthyAfterReload": true,
+  "status": "passed",
+  "xcodebuild_exit_code": 0
+}

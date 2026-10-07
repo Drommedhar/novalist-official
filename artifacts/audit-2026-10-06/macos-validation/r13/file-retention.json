@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "media_sha256": {
+    "shared.png": "97a3a410c9bca540512251c37ce63982edccbed54c6f2e1d06ec717b9f753e29",
+    "oversized.png": "1b8f6a0d8280dab441a41fc7e71f2fcaf0da6b699989e8aa8afe6a2660ea73b9",
+    "fixture.mp4": "4edb8c9eee3d4ea4510ecf55e8a8dbdde76b4b41d37baa1826e202b34bedeec4",
+    "tone.wav": "c4a948f325d39c925685c2f91f30453f46903bf6e1826eed691cbd8f86643061",
+    "fixture.pdf": "dee0b8572d2ed4e4c02b3e4704480f22d2b7c4ef4c55d8ea8b7b1d97dbb79d14"
+  },
+  "relative_references": {
+    "audit-r13-image": "media/shared.png",
+    "audit-r13-pdf": "media/fixture.pdf",
+    "audit-r13-audio": "media/tone.wav",
+    "audit-r13-video": "media/fixture.mp4",
+    "audit-r13-oversize": "media/oversized.png"
+  },
+  "observed": "All five original media hashes and all five persisted relative references unchanged after preview/playback/oversize checks."
+}

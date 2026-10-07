@@ -1,0 +1,5 @@
+{
+  "revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "instrumented_patch_sha256": "2d88274ef724e09d0bdfc0bd3a4885112d88f7d80002594cc5730a6f431795e8",
+  "renderer_assets": "Copied byte-identical prepared final renderer assets; no renderer probe modifications."
+}

@@ -1,0 +1,9 @@
+{
+  "case": "TIMEOUTA",
+  "mode": "instrumented",
+  "audit_control_source_present": true,
+  "bin_obj_cleared": true,
+  "baseline_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "native_patch_sha256": "2d88274ef724e09d0bdfc0bd3a4885112d88f7d80002594cc5730a6f431795e8",
+  "renderer_patch_evidence": "proactive-journal-source.json"
+}

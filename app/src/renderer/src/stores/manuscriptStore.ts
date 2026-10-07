@@ -4,6 +4,7 @@ import { useProjectStore, reportManuscriptEditing, type ChapterDto, type Project
 import { useFilterStore } from './filterStore'
 import type { ColourDimension } from '../views/manuscript/sceneColour'
 import i18n from '../i18n'
+import { retainMobileSceneRecovery } from '../mobile/recovery'
 
 export interface ManuscriptSceneDto {
   sceneId: string
@@ -320,6 +321,7 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
       })
     }, MANUSCRIPT_AUTOSAVE_MS)
     saveTimers.set(sceneId, save)
+    retainMobileSceneRecovery({ source: `manuscript:${sceneId}`, chapterGuid: save.chapterGuid, sceneId, html, plainText, hash: save.expectedHash })
     reportManuscriptClaims()
   },
 

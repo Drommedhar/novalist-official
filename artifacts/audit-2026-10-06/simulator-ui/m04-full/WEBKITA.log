@@ -1,0 +1,246 @@
+Test Suite 'All tests' started at 2026-10-07 11:51:14.125.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:51:14.125.
+Test Suite 'AuditUITests' started at 2026-10-07 11:51:14.125.
+Test Case '-[AuditUITests.AuditUITests testActualUnsavedRecoveryAndMutationNonreplay]' started.
+    t =     0.00s Start Test at 2026-10-07 11:51:14.130
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.06s Waiting 20.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =     1.07s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     1.07s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     1.12s Double tap "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     1.12s     Wait for com.novalist.app to idle
+    t =     1.12s     Find the "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     1.13s     Check for interrupting elements affecting "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     1.15s     Synthesize event
+    t =     1.50s     Wait for com.novalist.app to idle
+    t =     1.50s Waiting 15.0s for "Write" Button to exist
+    t =     2.56s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =     2.56s         Checking existence of `"Write" Button`
+    t =     2.68s Tap "Write" Button
+    t =     2.68s     Wait for com.novalist.app to idle
+    t =     2.68s     Find the "Write" Button
+    t =     2.75s     Check for interrupting elements affecting "Write" Button
+    t =     2.78s     Synthesize event
+    t =     3.07s     Wait for com.novalist.app to idle
+    t =     4.54s Tap "Scene" Button
+    t =     4.54s     Wait for com.novalist.app to idle
+    t =     4.54s     Find the "Scene" Button
+    t =     4.58s     Check for interrupting elements affecting "Scene" Button
+    t =     4.60s     Synthesize event
+    t =     4.89s     Wait for com.novalist.app to idle
+    t =     4.96s Type 'Audit M04 WEBKITA' into "Enter scene title..." TextField
+    t =     4.97s     Wait for com.novalist.app to idle
+    t =     5.34s     Find the "Enter scene title..." TextField
+    t =     5.38s     Check for interrupting elements affecting "Enter scene title..." TextField
+    t =     5.41s     Synthesize event
+    t =     5.90s     Wait for com.novalist.app to idle
+    t =     5.91s Checking existence of `"selected" Button`
+    t =     5.94s Find the "selected" Button
+    t =     5.98s Tap "selected" Button
+    t =     5.98s     Wait for com.novalist.app to idle
+    t =     5.98s     Find the "selected" Button
+    t =     6.00s     Check for interrupting elements affecting "selected" Button
+    t =     6.02s     Synthesize event
+    t =     6.31s     Wait for com.novalist.app to idle
+    t =     6.56s Tap "OK" Button
+    t =     6.56s     Wait for com.novalist.app to idle
+    t =     6.56s     Find the "OK" Button
+    t =     6.58s     Check for interrupting elements affecting "OK" Button
+    t =     6.60s     Synthesize event
+    t =     6.90s     Wait for com.novalist.app to idle
+    t =     6.90s Waiting 10.0s for "Audit M04 WEBKITA" Button to exist
+    t =     7.97s     Checking `Expect predicate `existsNoRetry == 1` for object "Audit M04 WEBKITA" Button`
+    t =     7.97s         Checking existence of `"Audit M04 WEBKITA" Button`
+    t =     8.00s Tap "Audit M04 WEBKITA" Button
+    t =     8.00s     Wait for com.novalist.app to idle
+    t =     8.01s     Find the "Audit M04 WEBKITA" Button
+    t =     8.03s     Check for interrupting elements affecting "Audit M04 WEBKITA" Button
+    t =     8.05s     Synthesize event
+    t =     8.34s     Wait for com.novalist.app to idle
+    t =     8.34s Waiting 10.0s for "Inspector" Button to exist
+    t =     9.42s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =     9.42s         Checking existence of `"Inspector" Button`
+    t =     9.44s Tap "Inspector" Button
+    t =     9.44s     Wait for com.novalist.app to idle
+    t =     9.45s     Find the "Inspector" Button
+    t =     9.46s     Check for interrupting elements affecting "Inspector" Button
+    t =     9.48s     Synthesize event
+    t =     9.77s     Wait for com.novalist.app to idle
+    t =     9.77s Tap "To do" Button
+    t =     9.77s     Wait for com.novalist.app to idle
+    t =     9.78s     Find the "To do" Button
+    t =     9.79s     Check for interrupting elements affecting "To do" Button
+    t =     9.80s     Synthesize event
+    t =    10.09s     Wait for com.novalist.app to idle
+    t =    10.09s Waiting 10.0s for "What needs doing" TextField to exist
+    t =    11.17s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =    11.17s         Checking existence of `"What needs doing" TextField`
+    t =    11.19s Tap "What needs doing" TextField
+    t =    11.19s     Wait for com.novalist.app to idle
+    t =    11.20s     Find the "What needs doing" TextField
+    t =    11.21s     Check for interrupting elements affecting "What needs doing" TextField
+    t =    11.23s     Synthesize event
+    t =    11.52s     Wait for com.novalist.app to idle
+    t =    11.79s Type 'Audit M04 task WEB...' into "What needs doing" TextField
+    t =    11.79s     Wait for com.novalist.app to idle
+    t =    11.79s     Find the "What needs doing" TextField
+    t =    11.83s     Check for interrupting elements affecting "What needs doing" TextField
+    t =    11.86s     Synthesize event
+    t =    12.44s     Wait for com.novalist.app to idle
+AUDIT_M04_TASK_SUBMITTED
+    t =    12.45s Checking existence of `"selected" Button`
+    t =    12.49s Find the "selected" Button
+    t =    12.52s Tap "selected" Button
+    t =    12.52s     Wait for com.novalist.app to idle
+    t =    12.52s     Find the "selected" Button
+    t =    12.54s     Check for interrupting elements affecting "selected" Button
+    t =    12.56s     Synthesize event
+    t =    12.85s     Wait for com.novalist.app to idle
+    t =    13.08s Tap "Close" Button
+    t =    13.08s     Wait for com.novalist.app to idle
+    t =    13.09s     Find the "Close" Button
+    t =    13.10s     Check for interrupting elements affecting "Close" Button
+    t =    13.12s     Synthesize event
+    t =    13.41s     Wait for com.novalist.app to idle
+    t =    13.42s Setting device orientation to Landscape Left
+    t =    13.42s     Device orientation changed to Landscape Left
+    t =    13.45s     Interface orientation changed to Landscape Right
+    t =    13.45s     Wait for com.novalist.app to idle
+    t =    13.49s Checking existence of `"Manuscript" StaticText`
+    t =    13.52s Waiting 10.0s for "Manuscript" StaticText to exist
+    t =    14.60s     Checking `Expect predicate `existsNoRetry == 1` for object "Manuscript" StaticText`
+    t =    14.60s         Checking existence of `"Manuscript" StaticText`
+    t =    14.62s Tap "Manuscript" StaticText
+    t =    14.62s     Wait for com.novalist.app to idle
+    t =    14.62s     Find the "Manuscript" StaticText
+    t =    14.63s     Check for interrupting elements affecting "Manuscript" StaticText
+    t =    14.66s     Synthesize event
+    t =    14.95s     Wait for com.novalist.app to idle
+    t =    14.99s Waiting 10.0s for "Corkboard" Button to exist
+    t =    16.07s     Checking `Expect predicate `existsNoRetry == 1` for object "Corkboard" Button`
+    t =    16.07s         Checking existence of `"Corkboard" Button`
+    t =    16.11s Get number of matches for: Descendants matching type TextView
+    t =    16.13s Find the TextView (Element at index 6)
+    t =    16.16s Swipe up WebView (First Match)
+    t =    16.16s     Wait for com.novalist.app to idle
+    t =    16.16s     Find the WebView (First Match)
+    t =    16.17s     Check for interrupting elements affecting WebView
+    t =    16.19s     Synthesize event
+    t =    16.61s     Wait for com.novalist.app to idle
+    t =    17.74s Find the "
+" TextView
+    t =    17.78s Waiting 10.0s for "
+" TextView to exist
+    t =    18.85s     Checking `Expect predicate `existsNoRetry == 1` for object "
+" TextView`
+    t =    18.85s         Checking existence of `"
+" TextView`
+    t =    18.88s Find the "
+" TextView
+    t =    18.90s Tap "
+" TextView
+    t =    18.90s     Wait for com.novalist.app to idle
+    t =    18.98s     Find the "
+" TextView
+    t =    19.01s     Check for interrupting elements affecting "
+" TextView
+    t =    19.04s     Synthesize event
+    t =    19.33s     Wait for com.novalist.app to idle
+AUDIT_M04_ARM_NOW
+    t =    21.64s Type 'M04WEBKITA26' into "
+" TextView
+    t =    21.64s     Wait for com.novalist.app to idle
+    t =    21.65s     Find the "
+" TextView
+    t =    21.67s     Check for interrupting elements affecting "
+" TextView
+    t =    21.71s     Synthesize event
+    t =    22.12s     Wait for com.novalist.app to idle
+AUDIT_M04_TYPED
+    t =    22.39s Waiting 25.0s for "Editing paused" Alert to exist
+    t =    23.47s     Checking `Expect predicate `existsNoRetry == 1` for object "Editing paused" Alert`
+    t =    23.47s         Checking existence of `"Editing paused" Alert`
+    t =    23.50s Checking existence of `"Reload" Button`
+    t =    23.52s Checking existence of `"Later" Button`
+AUDIT_M04_BEFORE_ACTUAL_RELOAD
+    t =    26.55s Tap "Reload" Button
+    t =    26.55s     Wait for com.novalist.app to idle
+    t =    26.55s     Find the "Reload" Button
+    t =    26.58s     Check for interrupting elements affecting "Reload" Button
+    t =    26.60s     Synthesize event
+    t =    26.90s     Wait for com.novalist.app to idle
+    t =    27.23s Setting device orientation to Portrait
+    t =    27.23s     Device orientation changed to Portrait
+    t =    27.26s     Interface orientation changed to Portrait
+    t =    27.26s     Wait for com.novalist.app to idle
+    t =    27.28s Waiting 20.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =    28.34s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    28.34s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    28.35s         Capturing element debug description
+    t =    29.32s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    29.32s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    29.35s Double tap "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =    29.35s     Wait for com.novalist.app to idle
+    t =    29.35s     Find the "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =    29.37s     Check for interrupting elements affecting "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =    29.39s     Synthesize event
+    t =    29.73s     Wait for com.novalist.app to idle
+    t =    29.74s Waiting 15.0s for "Write" Button to exist
+    t =    30.79s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =    30.80s         Checking existence of `"Write" Button`
+    t =    30.90s Tap "Write" Button
+    t =    30.90s     Wait for com.novalist.app to idle
+    t =    30.90s     Find the "Write" Button
+    t =    30.97s     Check for interrupting elements affecting "Write" Button
+    t =    31.00s     Synthesize event
+    t =    31.29s     Wait for com.novalist.app to idle
+    t =    32.69s Checking existence of `Button (First Match)`
+    t =    32.71s Waiting 10.0s for TextView (First Match) to exist
+    t =    33.76s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    33.76s         Checking existence of `TextView (First Match)`
+    t =    33.79s Find the TextView (First Match)
+AUDIT_M04_MARKER_AFTER_ACTUAL_RELOAD=true
+    t =    33.81s Tap "Inspector" Button
+    t =    33.81s     Wait for com.novalist.app to idle
+    t =    33.81s     Find the "Inspector" Button
+    t =    33.83s     Check for interrupting elements affecting "Inspector" Button
+    t =    33.85s     Synthesize event
+    t =    34.14s     Wait for com.novalist.app to idle
+    t =    34.14s Tap "To do" Button
+    t =    34.14s     Wait for com.novalist.app to idle
+    t =    34.14s     Find the "To do" Button
+    t =    34.16s     Check for interrupting elements affecting "To do" Button
+    t =    34.18s     Synthesize event
+    t =    34.46s     Wait for com.novalist.app to idle
+    t =    34.47s Waiting 10.0s for "Audit M04 task WEBKITA" Switch to exist
+    t =    35.51s     Checking `Expect predicate `existsNoRetry == 1` for object "Audit M04 task WEBKITA" Switch`
+    t =    35.51s         Checking existence of `"Audit M04 task WEBKITA" Switch`
+    t =    35.52s Get number of matches for: Elements matching predicate 'label == "Audit M04 task WEBKITA"'
+AUDIT_M04_SINGLE_TASK_AFTER_RELOAD_PASS
+    t =    35.53s Tap "Close" Button
+    t =    35.53s     Wait for com.novalist.app to idle
+    t =    35.54s     Find the "Close" Button
+    t =    35.55s     Check for interrupting elements affecting "Close" Button
+    t =    35.57s     Synthesize event
+    t =    35.85s     Wait for com.novalist.app to idle
+    t =    35.86s Tear Down
+Test Case '-[AuditUITests.AuditUITests testActualUnsavedRecoveryAndMutationNonreplay]' passed (35.922 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:51:50.052.
+	 Executed 1 test, with 0 failures (0 unexpected) in 35.922 (35.927) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:51:50.052.
+	 Executed 1 test, with 0 failures (0 unexpected) in 35.922 (35.927) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:51:50.053.
+	 Executed 1 test, with 0 failures (0 unexpected) in 35.922 (35.928) seconds
+2026-10-07 11:51:50.350 xcodebuild[96968:3211206] [MT] IDETestOperationsObserverDebug: 38.868 elapsed -- Testing started completed.
+2026-10-07 11:51:50.350 xcodebuild[96968:3211206] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 11:51:50.350 xcodebuild[96968:3211206] [MT] IDETestOperationsObserverDebug: 38.868 sec, +38.868 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-m04>/WEBKITA.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

@@ -1,0 +1,7 @@
+{
+  "after_case": "evaluator-native-failure",
+  "probe_source_removed": true,
+  "baseline_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "final_mobile_patch_sha256": "e1be8f17101ec55093aadd2c7c47a2f0e063f7ffd3295977756eec9f5052b2b4",
+  "mobile_backend_core_sdk_bin_obj_removed": true
+}

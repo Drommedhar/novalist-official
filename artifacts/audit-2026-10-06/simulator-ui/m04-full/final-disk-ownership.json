@@ -1,0 +1,26 @@
+[
+  {
+    "case": "EVALFIXC",
+    "unique_active_default_draft_scene_marker": true,
+    "scene_index_title_matches_expected": true,
+    "task_count": 1
+  },
+  {
+    "case": "TIMEOUTA",
+    "unique_active_default_draft_scene_marker": true,
+    "scene_index_title_matches_expected": true,
+    "task_count": 1
+  },
+  {
+    "case": "BACKENDA",
+    "unique_active_default_draft_scene_marker": true,
+    "scene_index_title_matches_expected": true,
+    "task_count": 1
+  },
+  {
+    "case": "WEBKITA",
+    "unique_active_default_draft_scene_marker": true,
+    "scene_index_title_matches_expected": true,
+    "task_count": 1
+  }
+]

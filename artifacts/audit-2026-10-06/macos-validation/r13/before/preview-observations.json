@@ -1,0 +1,128 @@
+[
+  {
+    "case": "image",
+    "observed": {
+      "title": "Audit R13 Image",
+      "tag": "IMG",
+      "sourcePrefix": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91Jp",
+      "width": 2,
+      "height": 2,
+      "readyState": null,
+      "duration": null,
+      "mediaError": null,
+      "accessibleError": null,
+      "visibleError": "This media file could not be previewed.",
+      "relativeReference": "media/shared.png",
+      "rect": {
+        "x": 924.5,
+        "y": 464.75,
+        "width": 2,
+        "height": 2
+      },
+      "objectDocument": null
+    },
+    "screenshot": "image.png"
+  },
+  {
+    "case": "pdf",
+    "observed": {
+      "title": "Audit R13 PDF",
+      "tag": "OBJECT",
+      "sourcePrefix": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ",
+      "width": null,
+      "height": null,
+      "readyState": null,
+      "duration": null,
+      "mediaError": null,
+      "accessibleError": null,
+      "visibleError": null,
+      "relativeReference": "media/fixture.pdf",
+      "rect": {
+        "x": 695,
+        "y": 393.5,
+        "width": 461,
+        "height": 369
+      },
+      "objectDocument": null
+    },
+    "screenshot": "pdf.png"
+  },
+  {
+    "case": "audio",
+    "observed": {
+      "title": "Audit R13 Audio",
+      "tag": "AUDIO",
+      "sourcePrefix": "data:audio/wav;base64,UklGRiR9AABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAA",
+      "width": null,
+      "height": null,
+      "readyState": 0,
+      "duration": null,
+      "mediaError": {
+        "code": 4,
+        "message": ""
+      },
+      "accessibleError": null,
+      "visibleError": "This media file could not be previewed.",
+      "relativeReference": "media/tone.wav",
+      "rect": {
+        "x": 695,
+        "y": 455.75,
+        "width": 461,
+        "height": 31
+      },
+      "objectDocument": null
+    },
+    "screenshot": "audio.png"
+  },
+  {
+    "case": "video",
+    "observed": {
+      "title": "Audit R13 Video",
+      "tag": "VIDEO",
+      "sourcePrefix": "data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAWlzb21tcDQxbXA0MgAAAAF",
+      "width": null,
+      "height": null,
+      "readyState": 0,
+      "duration": null,
+      "mediaError": {
+        "code": 4,
+        "message": ""
+      },
+      "accessibleError": null,
+      "visibleError": "This media file could not be previewed.",
+      "relativeReference": "media/fixture.mp4",
+      "rect": {
+        "x": 695,
+        "y": 455.75,
+        "width": 461,
+        "height": 369
+      },
+      "objectDocument": null
+    },
+    "screenshot": "video.png"
+  },
+  {
+    "case": "oversize",
+    "observed": {
+      "title": "Audit R13 Oversize",
+      "tag": "IMG",
+      "sourcePrefix": "novalist-project://nl/media/oversized.png",
+      "width": null,
+      "height": null,
+      "readyState": null,
+      "duration": null,
+      "mediaError": null,
+      "accessibleError": "This media file is too large for the mobile preview (16 MiB limit).",
+      "visibleError": "This media file is too large for the mobile preview (16 MiB limit).",
+      "relativeReference": "media/oversized.png",
+      "rect": {
+        "x": 852.5,
+        "y": 464.75,
+        "width": 146,
+        "height": 22
+      },
+      "objectDocument": null
+    },
+    "screenshot": "oversize.png"
+  }
+]

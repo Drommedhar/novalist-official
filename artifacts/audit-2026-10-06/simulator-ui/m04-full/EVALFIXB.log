@@ -1,0 +1,82 @@
+Test Suite 'All tests' started at 2026-10-07 11:36:53.342.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:36:53.342.
+Test Suite 'AuditUITests' started at 2026-10-07 11:36:53.343.
+Test Case '-[AuditUITests.AuditUITests testActualUnsavedRecoveryAndMutationNonreplay]' started.
+    t =     0.00s Start Test at 2026-10-07 11:36:53.346
+    t =     0.01s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.06s Waiting 20.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     1.08s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     1.12s         Capturing element debug description
+    t =     2.07s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     2.07s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     2.09s         Capturing element debug description
+    t =     3.06s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     3.06s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     3.09s         Capturing element debug description
+    t =     4.16s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     4.16s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     4.19s         Capturing element debug description
+    t =     5.15s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     5.16s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     5.18s         Capturing element debug description
+    t =     6.15s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     6.15s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     6.17s         Capturing element debug description
+    t =     7.13s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     7.13s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     7.16s         Capturing element debug description
+    t =     8.13s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     8.13s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     8.16s         Capturing element debug description
+    t =     9.12s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     9.12s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     9.15s         Capturing element debug description
+    t =    10.12s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    10.12s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    10.14s         Capturing element debug description
+    t =    11.11s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    11.11s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    11.14s         Capturing element debug description
+    t =    12.10s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    12.11s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    12.12s         Capturing element debug description
+    t =    13.09s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    13.09s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    13.12s         Capturing element debug description
+    t =    14.09s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    14.09s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    14.12s         Capturing element debug description
+    t =    15.08s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    15.08s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    15.10s         Capturing element debug description
+    t =    16.07s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    16.07s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    16.09s         Capturing element debug description
+    t =    17.16s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    17.16s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    17.18s         Capturing element debug description
+    t =    18.15s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    18.15s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    18.17s         Capturing element debug description
+    t =    19.14s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    19.14s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    19.16s         Capturing element debug description
+    t =    20.07s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    20.07s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    20.09s         Capturing element debug description
+    t =    20.09s     Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    20.10s Collecting debug information to assist test failure triage
+    t =    20.10s     Requesting snapshot of accessibility hierarchy for app with pid 90268
+<temporary-harness>/AuditUITests.swift:8: error: -[AuditUITests.AuditUITests testActualUnsavedRecoveryAndMutationNonreplay] : XCTAssertTrue failed
+    t =    20.15s Tear Down
+Test Case '-[AuditUITests.AuditUITests testActualUnsavedRecoveryAndMutationNonreplay]' failed (20.165 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 11:37:13.511.
+	 Executed 1 test, with 1 failure (0 unexpected) in 20.165 (20.168) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 11:37:13.511.
+	 Executed 1 test, with 1 failure (0 unexpected) in 20.165 (20.168) seconds
+Test Suite 'All tests' failed at 2026-10-07 11:37:13.511.
+	 Executed 1 test, with 1 failure (0 unexpected) in 20.165 (20.169) seconds

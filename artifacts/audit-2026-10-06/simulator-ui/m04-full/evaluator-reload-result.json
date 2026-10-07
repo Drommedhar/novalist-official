@@ -1,0 +1,14 @@
+{
+  "case_status": "failed",
+  "immediatelyBeforeActualReload": {
+    "journalContainsMarker": false,
+    "markerInEditor": true
+  },
+  "afterActualReload": {
+    "journalContainsMarker": false,
+    "markerInEditor": false,
+    "markerOnDisk": false
+  },
+  "newNativePageHealthy": true,
+  "harness_notes": "XCTest completed with marker assertion failure in11.902s. Parent Python55s wait expired during xcodebuild post-failure result collection; recovered preserved pre-Reload response and separately collected post-Reload observations."
+}

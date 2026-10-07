@@ -1,0 +1,12 @@
+{
+  "source_base": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "native_control_patch": "../audit-control-fixed.patch",
+  "native_control_patch_sha256": "2d88274ef724e09d0bdfc0bd3a4885112d88f7d80002594cc5730a6f431795e8",
+  "media_fix_patch": "media-fix.patch",
+  "media_fix_patch_sha256": "1d8fc48fe0b4c6f83e7382b2a1bb6f233e30f42a9953cc0a0bdab3711dff01b1",
+  "device": "Dedicated iPad (A16) simulator / iOS 27.0",
+  "app_tree_sha256": "9c51406d213e3572a70a8c644efbf0d35af388d651fa05678948c86fea8ff9cd",
+  "app_tree_hash_method": "SHA256 compact sorted JSON mapping relative app paths to SHA256 file contents",
+  "renderer_inputs": "renderer-inputs.json",
+  "source_scope": "Native base plus preserved evaluator fix/control instrumentation, plus two frozen media renderer changes. Later root recovery changes are not part of this isolated media run."
+}

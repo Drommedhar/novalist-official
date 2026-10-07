@@ -1,0 +1,20 @@
+{
+  "source_base": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "native_evaluator_fix": "../final-mobile-source.patch",
+  "native_evaluator_fix_sha256": "e1be8f17101ec55093aadd2c7c47a2f0e063f7ffd3295977756eec9f5052b2b4",
+  "media_fix": "../r13/media-fix.patch",
+  "media_fix_sha256": "1d8fc48fe0b4c6f83e7382b2a1bb6f233e30f42a9953cc0a0bdab3711dff01b1",
+  "owned_path_fix": "owned-path-fix.patch",
+  "owned_path_fix_sha256": "b330919bc2a0bd24540fc9af49ba0790c3f281756e0381e4a8e3d25215ef6735",
+  "owned_path_source_sha256": "e687fbb0385bb3c922b23f7dee575cf35fec49805cc3e730b0d36788a55f200f",
+  "tests_source_sha256": "a7727000aab76f3beb100d129fa82fb2c62ae935a417c3e599e09a7258037e53",
+  "native_original_input_reference": "../final-source-inputs.json",
+  "unchanged_native_files": 567,
+  "changed_native_files": [
+    "Novalist.Mobile/Services/OwnedProjectPaths.cs"
+  ],
+  "renderer_input_reference": "../r13/renderer-inputs.json",
+  "renderer_hashes_match": true,
+  "temporary_probes_present": false,
+  "scope": "Clean native build with evaluator and Research media fixes plus the focused owned-path correction. Later root recovery renderer changes remain separate from this isolated run."
+}

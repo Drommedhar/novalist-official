@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "temporary_controls_removed": true,
+  "production_native_input_count": 568,
+  "production_native_reference": "../final-source-inputs.json",
+  "matched_native_hashes": true,
+  "renderer_input_reference": "renderer-inputs.json",
+  "fresh_outputs": "All four production project bin/obj trees removed before rebuild",
+  "build_warnings": 14,
+  "build_errors": 0,
+  "deep_strict_codesign": "passed",
+  "dedicated_iPad_install_launch": "passed",
+  "native_navigation": "passed: real synthetic book and native Research sidebar, clean-navigation.log",
+  "scope": "Native source matches pushed evaluator fix; renderer includes only the R13 two-file correction plus preserved original source. Root later combined recovery fixes are separate."
+}

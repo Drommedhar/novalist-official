@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Novalist.Core.Models;
-using Novalist.Core.Services;
 
 namespace Novalist.Mobile.Services;
 
@@ -9,31 +8,66 @@ public sealed class OwnedProjectPaths(string documents, string storePath)
 {
     private sealed record Entry(string RelativePath, string ProjectId);
     private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
+    private static readonly object RegistryGate = new();
 
-    public async Task RecordAsync(string projectPath)
+    public Task RecordAsync(string projectPath) => Task.Run(() =>
     {
         if (!Contained(documents, projectPath)) return;
         var id = ReadId(projectPath);
         if (string.IsNullOrEmpty(id)) return;
-        var entries = Load();
-        entries[projectPath] = new Entry(Path.GetRelativePath(documents, projectPath), id);
-        await new FileService().WriteTextAsync(storePath, JsonSerializer.Serialize(entries, Json));
-    }
+        lock (RegistryGate)
+        {
+            var entries = Load();
+            entries[projectPath] = new Entry(Path.GetRelativePath(documents, projectPath), id);
+            Save(entries);
+        }
+    });
 
     public string? Resolve(string storedPath)
     {
-        if (!Load().TryGetValue(storedPath, out var entry)
-            || entry is not { RelativePath.Length: > 0, ProjectId.Length: > 0 }) return null;
+        lock (RegistryGate)
+        {
+            var entries = Load();
+            if (!entries.TryGetValue(storedPath, out var entry)
+                || entry is not { RelativePath.Length: > 0, ProjectId.Length: > 0 }) return null;
+            try
+            {
+                var candidate = Path.GetFullPath(Path.Combine(documents, entry.RelativePath));
+                if (!Contained(documents, candidate) || string.Equals(candidate, storedPath, StringComparison.Ordinal)
+                    || !string.Equals(ReadId(candidate), entry.ProjectId, StringComparison.Ordinal)) return null;
+                // Recents can publish this path without opening the book. Persist its
+                // exact authorization first, so another container move can resolve it.
+                if (!entries.TryGetValue(candidate, out var existing) || existing != entry)
+                {
+                    entries[candidate] = entry;
+                    Save(entries);
+                }
+                return candidate;
+            }
+            catch (Exception error) when (error is ArgumentException or NotSupportedException or IOException or UnauthorizedAccessException)
+            {
+                return null;
+            }
+        }
+    }
+
+    private void Save(Dictionary<string, Entry> entries)
+    {
+        var directory = Path.GetDirectoryName(Path.GetFullPath(storePath))
+            ?? throw new IOException("The owned-project registry must name a file.");
+        Directory.CreateDirectory(directory);
+        var temporary = Path.Combine(directory, ".novalist-owned-" + Guid.NewGuid().ToString("N") + ".tmp");
         try
         {
-            var candidate = Path.GetFullPath(Path.Combine(documents, entry.RelativePath));
-            if (!Contained(documents, candidate) || string.Equals(candidate, storedPath, StringComparison.Ordinal)) return null;
-            return string.Equals(ReadId(candidate), entry.ProjectId, StringComparison.Ordinal) ? candidate : null;
+            using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                JsonSerializer.Serialize(output, entries, Json);
+                output.Flush(flushToDisk: true);
+            }
+            if (File.Exists(storePath)) File.Replace(temporary, storePath, null);
+            else File.Move(temporary, storePath);
         }
-        catch (Exception error) when (error is ArgumentException or NotSupportedException or IOException)
-        {
-            return null;
-        }
+        finally { File.Delete(temporary); }
     }
 
     private Dictionary<string, Entry> Load()

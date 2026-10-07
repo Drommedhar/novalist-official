@@ -1,0 +1,19 @@
+(node:93347) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ an old image response cannot replace a newer source (29.608792ms)
+✔ project changes retire pending responses even when the relative path is identical (1.111375ms)
+✔ concurrent asset reads deduplicate and research audio/video/PDF use the host asset reader (1.300583ms)
+✔ host media errors retain the explicit reason and remain retryable (1.714875ms)
+✔ resolved assets use a bounded least-recently-used cache (0.776959ms)
+✔ mobile unresolved URL errors do not become false Research failures, but native size errors stay visible (1.245916ms)
+✔ successful preview decode clears a previous failure while unrelated content loads do not (0.770166ms)
+✔ desktop project protocol failures remain visible (0.254458ms)
+✔ mobile CSP allows native media data URIs without allowing remote media origins (0.237459ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 144.767292

@@ -6,6 +6,7 @@ import { runSceneContext } from './projectSceneActions'
 import { type ProjectSlice } from './projectTypes'
 import { capturePendingWrites } from './pendingWrites'
 import { enqueueSceneWrite } from './sceneWriteQueue'
+import { retainMobileSceneRecovery } from '../mobile/recovery'
 
 export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn' | 'openSceneInSplit' | 'resolveSceneConflict' | 'dismissSceneConflict' | 'closeTab' | 'moveTabToOtherPane' | 'onEditorContentChanged' | 'syncEditorPanes' | 'flushPane' | 'flushPendingSave' | 'applyManuscriptSceneWrite'> = (set, get) => ({
   openScene: async (chapterGuid, sceneId) => {
@@ -174,6 +175,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
       ...patchEditor(s, paneId, { html, plainText, isDirty: true }),
       dirtyMap: { ...s.dirtyMap, [sceneId]: true }
     }))
+    retainMobileSceneRecovery({ source: `pane:${paneId}`, chapterGuid, sceneId, html, plainText, hash: editor.hash ?? '' })
     scheduleSave(paneId, chapterGuid, sceneId, html, plainText)
   },
 

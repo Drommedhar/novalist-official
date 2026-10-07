@@ -3,7 +3,7 @@ import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
 import { pendingManuscriptRecovery, hasPendingManuscriptWrites } from '../stores/manuscriptStore'
 import { useHostBridgeStore } from '../stores/hostBridgeStore'
-import { readRecoveryJournal, recordRecovery, removeRecovery, remapRecoveryEntry, sameRecoveryScope, sameResearchValue, type RecoveryEntry, type RecoveryScope, type ResearchRecoveryValue } from './recoveryJournal'
+import { readRecoveryJournal, recordRecovery, removeRecovery, remapRecoveryEntry, sameRecoveryScope, sameResearchValue, type RecoveryEntry, type RecoveryScope, type ResearchRecoveryValue, type SceneRecovery } from './recoveryJournal'
 
 let restoring = false
 let startupJournal: RecoveryEntry[] | null = null
@@ -21,6 +21,15 @@ export function mobileRecoveryScope(): RecoveryScope | null {
 export function registerResearchRecovery(capture: () => void): () => void {
   researchCaptures.add(capture)
   return () => { researchCaptures.delete(capture) }
+}
+
+export function retainMobileSceneRecovery(scene: Omit<SceneRecovery, 'kind'>): void {
+  if (!window.novalist.isMobile) return
+  try {
+    const scope = mobileRecoveryScope()
+    if (!scope) throw new Error(i18n.t('update.workspaceBusy'))
+    recordRecovery({ ...scene, kind: 'scene', scope })
+  } catch (error) { reportRecoveryError(error) }
 }
 
 export function captureMobileRecovery(): RecoveryEntry[] {

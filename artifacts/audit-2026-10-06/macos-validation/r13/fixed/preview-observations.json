@@ -1,0 +1,221 @@
+[
+  {
+    "case": "image",
+    "observed": {
+      "title": "Audit R13 Image",
+      "tag": "IMG",
+      "sourcePrefix": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91Jp",
+      "width": 2,
+      "height": 2,
+      "readyState": null,
+      "duration": null,
+      "mediaError": null,
+      "accessibleError": null,
+      "visibleError": null,
+      "relativeReference": "media/shared.png",
+      "rect": {
+        "x": 924.5,
+        "y": 402.5,
+        "width": 2,
+        "height": 2
+      },
+      "objectDocument": null
+    },
+    "screenshot": "image.png"
+  },
+  {
+    "case": "pdf",
+    "observed": {
+      "title": "Audit R13 PDF",
+      "tag": "OBJECT",
+      "sourcePrefix": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ",
+      "width": null,
+      "height": null,
+      "readyState": null,
+      "duration": null,
+      "mediaError": null,
+      "accessibleError": null,
+      "visibleError": null,
+      "relativeReference": "media/fixture.pdf",
+      "rect": {
+        "x": 695,
+        "y": 393.5,
+        "width": 461,
+        "height": 369
+      },
+      "objectDocument": null
+    },
+    "screenshot": "pdf.png"
+  },
+  {
+    "case": "audio",
+    "observed": {
+      "title": "Audit R13 Audio",
+      "tag": "AUDIO",
+      "sourcePrefix": "data:audio/wav;base64,UklGRiR9AABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAA",
+      "width": null,
+      "height": null,
+      "readyState": 4,
+      "duration": 1,
+      "mediaError": null,
+      "accessibleError": null,
+      "visibleError": null,
+      "relativeReference": "media/tone.wav",
+      "rect": {
+        "x": 695,
+        "y": 393.5,
+        "width": 461,
+        "height": 31
+      },
+      "objectDocument": null
+    },
+    "screenshot": "audio.png",
+    "playback": {
+      "events": [
+        {
+          "event": "play",
+          "time": 0
+        },
+        {
+          "event": "playing",
+          "time": 0
+        },
+        {
+          "event": "timeupdate",
+          "time": 0.19089858200707993
+        },
+        {
+          "event": "timeupdate",
+          "time": 0.4422115820089351
+        },
+        {
+          "event": "timeupdate",
+          "time": 0.6936689459951814
+        },
+        {
+          "event": "timeupdate",
+          "time": 0.9452246119907873
+        },
+        {
+          "event": "timeupdate",
+          "time": 1
+        },
+        {
+          "event": "ended",
+          "time": 1
+        }
+      ],
+      "promise": "resolved",
+      "currentTime": 1,
+      "ended": true
+    }
+  },
+  {
+    "case": "video",
+    "observed": {
+      "title": "Audit R13 Video",
+      "tag": "VIDEO",
+      "sourcePrefix": "data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAWlzb21tcDQxbXA0MgAAAAF",
+      "width": 64,
+      "height": 64,
+      "readyState": 4,
+      "duration": 2,
+      "mediaError": null,
+      "accessibleError": null,
+      "visibleError": null,
+      "relativeReference": "media/fixture.mp4",
+      "rect": {
+        "x": 695,
+        "y": 393.5,
+        "width": 461,
+        "height": 369
+      },
+      "objectDocument": null
+    },
+    "screenshot": "video.png",
+    "playback": {
+      "events": [
+        {
+          "event": "play",
+          "time": 0
+        },
+        {
+          "event": "playing",
+          "time": 0
+        },
+        {
+          "event": "timeupdate",
+          "time": 0.24050245798193234
+        },
+        {
+          "event": "timeupdate",
+          "time": 0.49237616700061093
+        },
+        {
+          "event": "timeupdate",
+          "time": 0.7442135416733157
+        },
+        {
+          "event": "timeupdate",
+          "time": 0.994746208325537
+        },
+        {
+          "event": "timeupdate",
+          "time": 1.2467511666578148
+        },
+        {
+          "event": "timeupdate",
+          "time": 1.4986575419791532
+        },
+        {
+          "event": "timeupdate",
+          "time": 1.7503561253379327
+        },
+        {
+          "event": "timeupdate",
+          "time": 2
+        },
+        {
+          "event": "ended",
+          "time": 2
+        }
+      ],
+      "promise": "resolved",
+      "currentTime": 2,
+      "ended": true
+    }
+  },
+  {
+    "case": "oversize",
+    "observed": {
+      "title": "Audit R13 Oversize",
+      "tag": "IMG",
+      "sourcePrefix": "novalist-project://nl/media/oversized.png",
+      "width": null,
+      "height": null,
+      "readyState": null,
+      "duration": null,
+      "mediaError": null,
+      "accessibleError": "This media file is too large for the mobile preview (16 MiB limit).",
+      "visibleError": "This media file is too large for the mobile preview (16 MiB limit).",
+      "relativeReference": "media/oversized.png",
+      "rect": {
+        "x": 852.5,
+        "y": 464.75,
+        "width": 146,
+        "height": 22
+      },
+      "objectDocument": null
+    },
+    "screenshot": "oversize.png"
+  },
+  {
+    "case": "valid-image-after-oversize",
+    "observed": {
+      "width": 2,
+      "description": null,
+      "title": null,
+      "visibleError": null
+    }
+  }
+]

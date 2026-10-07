@@ -1,0 +1,34 @@
+[
+  {
+    "type": "audio",
+    "before": {
+      "state": 0,
+      "error": 4,
+      "canPlay": "maybe",
+      "source": ""
+    },
+    "after_explicit_load": {
+      "state": 0,
+      "error": 4,
+      "duration": null,
+      "width": null,
+      "visibleError": "This media file could not be previewed."
+    }
+  },
+  {
+    "type": "video",
+    "before": {
+      "state": 0,
+      "error": 4,
+      "canPlay": "maybe",
+      "source": ""
+    },
+    "after_explicit_load": {
+      "state": 0,
+      "error": 4,
+      "duration": null,
+      "width": 0,
+      "visibleError": "This media file could not be previewed."
+    }
+  }
+]

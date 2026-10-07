@@ -1,0 +1,60 @@
+Test Suite 'All tests' started at 2026-10-07 11:54:08.391.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:54:08.392.
+Test Suite 'AuditUITests' started at 2026-10-07 11:54:08.392.
+Test Case '-[AuditUITests.AuditUITests testFinalCleanBuildRetainsRecoveredManuscript]' started.
+    t =     0.00s Start Test at 2026-10-07 11:54:08.396
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.06s Waiting 20.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =     1.07s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     1.07s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     1.13s Double tap "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     1.13s     Wait for com.novalist.app to idle
+    t =     1.13s     Find the "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     1.14s     Check for interrupting elements affecting "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     1.16s     Synthesize event
+    t =     1.50s     Wait for com.novalist.app to idle
+    t =     1.51s Waiting 15.0s for "Write" Button to exist
+    t =     2.52s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =     2.52s         Checking existence of `"Write" Button`
+    t =     2.63s Tap "Write" Button
+    t =     2.63s     Wait for com.novalist.app to idle
+    t =     2.64s     Find the "Write" Button
+    t =     2.71s     Check for interrupting elements affecting "Write" Button
+    t =     2.74s     Synthesize event
+    t =     3.03s     Wait for com.novalist.app to idle
+    t =     4.49s Waiting 10.0s for Button (First Match) to exist
+    t =     5.57s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     5.57s         Checking existence of `Button (First Match)`
+    t =     5.59s Tap Button (First Match)
+    t =     5.59s     Wait for com.novalist.app to idle
+    t =     5.60s     Find the Button (First Match)
+    t =     5.62s     Check for interrupting elements affecting "Audit M04 WEBKITA 1" Button
+    t =     5.64s     Synthesize event
+    t =     5.93s     Wait for com.novalist.app to idle
+    t =     5.93s Waiting 10.0s for TextView (First Match) to exist
+    t =     7.01s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =     7.01s         Checking existence of `TextView (First Match)`
+    t =     7.04s Find the TextView (First Match)
+    t =     7.06s Checking existence of `"Editing paused" Alert`
+AUDIT_M04_FINAL_CLEAN_UI_PASS
+    t =     7.08s Tear Down
+Test Case '-[AuditUITests.AuditUITests testFinalCleanBuildRetainsRecoveredManuscript]' passed (7.106 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:54:15.502.
+	 Executed 1 test, with 0 failures (0 unexpected) in 7.106 (7.110) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:54:15.502.
+	 Executed 1 test, with 0 failures (0 unexpected) in 7.106 (7.111) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:54:15.503.
+	 Executed 1 test, with 0 failures (0 unexpected) in 7.106 (7.111) seconds
+2026-10-07 11:54:15.790 xcodebuild[98501:3223033] [MT] IDETestOperationsObserverDebug: 12.139 elapsed -- Testing started completed.
+2026-10-07 11:54:15.790 xcodebuild[98501:3223033] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 11:54:15.790 xcodebuild[98501:3223033] [MT] IDETestOperationsObserverDebug: 12.139 sec, +12.139 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-m04>/final-clean-smoke.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

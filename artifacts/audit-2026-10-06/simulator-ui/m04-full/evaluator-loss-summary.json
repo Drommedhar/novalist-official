@@ -1,0 +1,21 @@
+{
+  "finding": "M04-01",
+  "status": "failed",
+  "device": "iPhone 17 Pro Max simulator",
+  "os": "iOS27.0",
+  "source_evidence": "setup.json",
+  "scenario": "New actual UI scene, real typed marker before2s autosave, one native evaluator NSError, genuine Editing paused alert, actual Reload, reopened same project/book/scene.",
+  "observed": "Marker present in live editor but absent in journal/disk before Reload; missing from editor/journal/disk after Reload while new native bridge healthy.",
+  "evidence": [
+    "evaluator-before-reload.json",
+    "evaluator-immediately-before-reload.json",
+    "evaluator-reload-result.json",
+    "evaluator-input.swift",
+    "evaluator-input.log",
+    "evaluator-reload.swift",
+    "evaluator-reload.log"
+  ],
+  "harness_limitation": "Parent Python wait expired during xcodebuild post-test result collection; native UI assertion failure and separate before/after probe values are preserved. Only repository path redacted in archived Python sources.",
+  "mutation_nonreplay": "Not yet checked; loss identified first.",
+  "cleanup": "Probe removed, Mobile/Backend/Core/SDK bin+obj cleared, clean build passed14warnings0errors9.44s; subsequent signature/install/launch recorded by parent tool transcript."
+}

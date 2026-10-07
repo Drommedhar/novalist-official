@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "source": "combined-final-inputs.json",
+  "build": "Fresh git archive plus exact final renderer fix files and rebuilt assets; no bin/obj or audit probes before build.",
+  "command": "dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios27.0 -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=true -p:CodesignKey=- -p:NuGetAudit=false -m:1 -nr:false",
+  "exit_code": 0,
+  "deep_strict_signature": "passed",
+  "simulator": "iPhone17Pro/iOS27.0",
+  "install": "passed",
+  "launch": "passed",
+  "pid": 95048,
+  "app_binary_sha256": "9a34a31c5153d1cf72f28429cce9c20a8d92871869e4d9df6beb3db17905a5cd",
+  "note": "Source excludes the later repeated-container-alias fix under development; each evidence record retains its own tested source."
+}

@@ -1,0 +1,60 @@
+Test Suite 'All tests' started at 2026-10-07 11:26:22.945.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:26:22.945.
+Test Suite 'AuditUITests' started at 2026-10-07 11:26:22.945.
+Test Case '-[AuditUITests.AuditUITests testUnsavedMarkerSurvivesActualNativeReload]' started.
+    t =     0.00s Start Test at 2026-10-07 11:26:22.950
+    t =     0.02s Set Up
+    t =     0.02s Waiting 10.0s for "Editing paused" Alert to exist
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object "Editing paused" Alert`
+    t =     1.08s         Checking existence of `"Editing paused" Alert`
+AUDIT_M04_BEFORE_ACTUAL_RELOAD
+    t =     3.11s Tap "Reload" Button
+    t =     3.11s     Wait for com.novalist.app to idle
+    t =     3.11s     Find the "Reload" Button
+    t =     3.15s     Check for interrupting elements affecting "Reload" Button
+    t =     3.17s     Synthesize event
+    t =     3.46s     Wait for com.novalist.app to idle
+    t =     3.82s Waiting 20.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =     4.90s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     4.90s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     4.91s         Capturing element debug description
+    t =     5.87s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     5.87s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     5.90s Double tap "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     5.90s     Wait for com.novalist.app to idle
+    t =     5.90s     Find the "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     5.92s     Check for interrupting elements affecting "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     5.94s     Synthesize event
+    t =     6.29s     Wait for com.novalist.app to idle
+    t =     6.29s Waiting 15.0s for "Write" Button to exist
+    t =     7.37s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =     7.37s         Checking existence of `"Write" Button`
+    t =     7.47s Tap "Write" Button
+    t =     7.47s     Wait for com.novalist.app to idle
+    t =     7.47s     Find the "Write" Button
+    t =     7.54s     Check for interrupting elements affecting "Write" Button
+    t =     7.57s     Synthesize event
+    t =     7.86s     Wait for com.novalist.app to idle
+    t =     9.34s Waiting 10.0s for Button (First Match) to exist
+    t =    10.40s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    10.40s         Checking existence of `Button (First Match)`
+    t =    10.43s Tap Button (First Match)
+    t =    10.43s     Wait for com.novalist.app to idle
+    t =    10.44s     Find the Button (First Match)
+    t =    10.46s     Check for interrupting elements affecting "Audit M04 Evaluator A" Button
+    t =    10.48s     Synthesize event
+    t =    10.77s     Wait for com.novalist.app to idle
+    t =    10.77s Waiting 10.0s for TextView (First Match) to exist
+    t =    11.84s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    11.84s         Checking existence of `TextView (First Match)`
+    t =    11.86s Find the TextView (First Match)
+AUDIT_M04_MARKER_AFTER_ACTUAL_RELOAD=false
+<temporary-harness>/AuditUITests.swift:23: error: -[AuditUITests.AuditUITests testUnsavedMarkerSurvivesActualNativeReload] : XCTAssertTrue failed - Actual unsaved UI marker must survive native Reload
+    t =    11.90s Tear Down
+Test Case '-[AuditUITests.AuditUITests testUnsavedMarkerSurvivesActualNativeReload]' failed (11.902 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 11:26:34.852.
+	 Executed 1 test, with 1 failure (0 unexpected) in 11.902 (11.907) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 11:26:34.853.
+	 Executed 1 test, with 1 failure (0 unexpected) in 11.902 (11.907) seconds
+Test Suite 'All tests' failed at 2026-10-07 11:26:34.853.
+	 Executed 1 test, with 1 failure (0 unexpected) in 11.902 (11.908) seconds

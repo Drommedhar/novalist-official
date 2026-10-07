@@ -1,0 +1,69 @@
+diff --git a/app/src/renderer/src/mobile/recovery.ts b/app/src/renderer/src/mobile/recovery.ts
+index 991082b3..0ba38765 100644
+--- a/app/src/renderer/src/mobile/recovery.ts
++++ b/app/src/renderer/src/mobile/recovery.ts
+@@ -3,7 +3,7 @@ import { rpc } from '../rpc/client'
+ import { useProjectStore } from '../stores/projectStore'
+ import { pendingManuscriptRecovery, hasPendingManuscriptWrites } from '../stores/manuscriptStore'
+ import { useHostBridgeStore } from '../stores/hostBridgeStore'
+-import { readRecoveryJournal, recordRecovery, removeRecovery, remapRecoveryEntry, sameRecoveryScope, sameResearchValue, type RecoveryEntry, type RecoveryScope, type ResearchRecoveryValue } from './recoveryJournal'
++import { readRecoveryJournal, recordRecovery, removeRecovery, remapRecoveryEntry, sameRecoveryScope, sameResearchValue, type RecoveryEntry, type RecoveryScope, type ResearchRecoveryValue, type SceneRecovery } from './recoveryJournal'
+ 
+ let restoring = false
+ let startupJournal: RecoveryEntry[] | null = null
+@@ -23,6 +23,15 @@ export function registerResearchRecovery(capture: () => void): () => void {
+   return () => { researchCaptures.delete(capture) }
+ }
+ 
++export function retainMobileSceneRecovery(scene: Omit<SceneRecovery, 'kind'>): void {
++  if (!window.novalist.isMobile) return
++  try {
++    const scope = mobileRecoveryScope()
++    if (!scope) throw new Error(i18n.t('update.workspaceBusy'))
++    recordRecovery({ ...scene, kind: 'scene', scope })
++  } catch (error) { reportRecoveryError(error) }
++}
++
+ export function captureMobileRecovery(): RecoveryEntry[] {
+   if (!window.novalist.isMobile) return []
+   const scope = mobileRecoveryScope()
+diff --git a/app/src/renderer/src/stores/manuscriptStore.ts b/app/src/renderer/src/stores/manuscriptStore.ts
+index d52994bc..520776b5 100644
+--- a/app/src/renderer/src/stores/manuscriptStore.ts
++++ b/app/src/renderer/src/stores/manuscriptStore.ts
+@@ -4,6 +4,7 @@ import { useProjectStore, reportManuscriptEditing, type ChapterDto, type Project
+ import { useFilterStore } from './filterStore'
+ import type { ColourDimension } from '../views/manuscript/sceneColour'
+ import i18n from '../i18n'
++import { retainMobileSceneRecovery } from '../mobile/recovery'
+ 
+ export interface ManuscriptSceneDto {
+   sceneId: string
+@@ -320,6 +321,7 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
+       })
+     }, MANUSCRIPT_AUTOSAVE_MS)
+     saveTimers.set(sceneId, save)
++    retainMobileSceneRecovery({ source: `manuscript:${sceneId}`, chapterGuid: save.chapterGuid, sceneId, html, plainText, hash: save.expectedHash })
+     reportManuscriptClaims()
+   },
+ 
+diff --git a/app/src/renderer/src/stores/projectEditorActions.ts b/app/src/renderer/src/stores/projectEditorActions.ts
+index 7610373c..1a3a0603 100644
+--- a/app/src/renderer/src/stores/projectEditorActions.ts
++++ b/app/src/renderer/src/stores/projectEditorActions.ts
+@@ -6,6 +6,7 @@ import { runSceneContext } from './projectSceneActions'
+ import { type ProjectSlice } from './projectTypes'
+ import { capturePendingWrites } from './pendingWrites'
+ import { enqueueSceneWrite } from './sceneWriteQueue'
++import { retainMobileSceneRecovery } from '../mobile/recovery'
+ 
+ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn' | 'openSceneInSplit' | 'resolveSceneConflict' | 'dismissSceneConflict' | 'closeTab' | 'moveTabToOtherPane' | 'onEditorContentChanged' | 'syncEditorPanes' | 'flushPane' | 'flushPendingSave' | 'applyManuscriptSceneWrite'> = (set, get) => ({
+   openScene: async (chapterGuid, sceneId) => {
+@@ -174,6 +175,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
+       ...patchEditor(s, paneId, { html, plainText, isDirty: true }),
+       dirtyMap: { ...s.dirtyMap, [sceneId]: true }
+     }))
++    retainMobileSceneRecovery({ source: `pane:${paneId}`, chapterGuid, sceneId, html, plainText, hash: editor.hash ?? '' })
+     scheduleSave(paneId, chapterGuid, sceneId, html, plainText)
+   },
+ 

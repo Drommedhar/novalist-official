@@ -1,0 +1,26 @@
+  Novalist.Sdk -> <workspace>/Novalist.Sdk/bin/Debug/net8.0/Novalist.Sdk.dll
+  Novalist.Core -> <workspace>/Novalist.Core/bin/Debug/net8.0/Novalist.Core.dll
+<workspace>/tests/Novalist.Core.Tests/Services/NarrationClipCacheTests.cs(75,43): warning CS8625: Ein NULL-Literal kann nicht in einen Non-Nullable-Verweistyp konvertiert werden. [<workspace>/tests/Novalist.Core.Tests/Novalist.Core.Tests.csproj]
+  Novalist.Core.Tests -> <workspace>/tests/Novalist.Core.Tests/bin/Debug/net8.0/Novalist.Core.Tests.dll
+Testlauf für "<workspace>/tests/Novalist.Core.Tests/bin/Debug/net8.0/Novalist.Core.Tests.dll" (.NETCoreApp,Version=v8.0)
+Insgesamt 1 Testdateien stimmten mit dem angegebenen Muster überein.
+[xUnit.net 00:00:01.25]     Novalist.Core.Tests.Services.MobileOwnedProjectPathsTests.ConcurrentRecordsFromSeparateInstancesRetainEveryProject [FAIL]
+[xUnit.net 00:00:01.27]     Novalist.Core.Tests.Services.MobileOwnedProjectPathsTests.SuccessiveContainerMovesRetainTheRepairedPathWithoutReopening [FAIL]
+  Fehler Novalist.Core.Tests.Services.MobileOwnedProjectPathsTests.ConcurrentRecordsFromSeparateInstancesRetainEveryProject [58 ms]
+  Fehlermeldung:
+   Assert.Equal() Failure: Values differ
+Expected: 12
+Actual:   1
+  Stapelverfolgung:
+     at Novalist.Core.Tests.Services.MobileOwnedProjectPathsTests.ConcurrentRecordsFromSeparateInstancesRetainEveryProject() in <workspace>/tests/Novalist.Core.Tests/Services/MobileOwnedProjectPathsTests.cs:line 87
+--- End of stack trace from previous location ---
+  Fehler Novalist.Core.Tests.Services.MobileOwnedProjectPathsTests.SuccessiveContainerMovesRetainTheRepairedPathWithoutReopening [7 ms]
+  Fehlermeldung:
+   Assert.Equal() Failure: Strings differ
+Expected: "<temporary>/n"···
+Actual:   null
+  Stapelverfolgung:
+     at Novalist.Core.Tests.Services.MobileOwnedProjectPathsTests.SuccessiveContainerMovesRetainTheRepairedPathWithoutReopening() in <workspace>/tests/Novalist.Core.Tests/Services/MobileOwnedProjectPathsTests.cs:line 59
+--- End of stack trace from previous location ---
+
+Fehler!      : Fehler:     2, erfolgreich:     7, übersprungen:     0, gesamt:     9, Dauer: 176 ms - Novalist.Core.Tests.dll (net8.0)

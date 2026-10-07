@@ -1,0 +1,6 @@
+[
+  {
+    "directive": "media-src",
+    "blocked": "data"
+  }
+]

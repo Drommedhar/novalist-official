@@ -218,10 +218,23 @@ function ResearchMetadata({ t, selected, setLifecycle, patchSelected, save, remo
 
 export function ResearchEditor({ selected, t, fetchingTitle, fetchLinkTitle, setConfirmDelete, isInbox, setFiling, markFiled, patchSelected, save, setLifecycle, removeTag, newTag, setNewTag, addTag, entityNames, unlinkEntity, linkEntity, allEntities, items, setSelectedId, toggleRelated, setItems }: { selected: NonNullable<ResearchViewState['selected']>; t: ResearchViewState['t']; fetchingTitle: ResearchViewState['fetchingTitle']; fetchLinkTitle: ResearchViewState['fetchLinkTitle']; setConfirmDelete: ResearchViewState['setConfirmDelete']; isInbox: ResearchViewState['isInbox']; setFiling: ResearchViewState['setFiling']; markFiled: ResearchViewState['markFiled']; patchSelected: ResearchViewState['patchSelected']; save: ResearchViewState['save']; setLifecycle: ResearchViewState['setLifecycle']; removeTag: ResearchViewState['removeTag']; newTag: ResearchViewState['newTag']; setNewTag: ResearchViewState['setNewTag']; addTag: ResearchViewState['addTag']; entityNames: ResearchViewState['entityNames']; unlinkEntity: ResearchViewState['unlinkEntity']; linkEntity: ResearchViewState['linkEntity']; allEntities: ResearchViewState['allEntities']; items: ResearchViewState['items']; setSelectedId: ResearchViewState['setSelectedId']; toggleRelated: ResearchViewState['toggleRelated']; setItems: ResearchViewState['setItems'] }): React.JSX.Element {
   const [previewError, setPreviewError] = useState<{ id: string; message: string } | null>(null)
+  const previewLoaded = (event: React.SyntheticEvent): void => {
+    const target = event.target as HTMLElement
+    if (!target.matches('.research-preview img, .research-embed, .research-audio')) return
+    if (window.novalist.isMobile) {
+      target.removeAttribute('aria-description')
+      target.removeAttribute('title')
+    }
+    setPreviewError(null)
+  }
   return (
-    <div className="research-editor" onErrorCapture={(event) => {
+    <div className="research-editor" onLoadCapture={previewLoaded} onLoadedDataCapture={previewLoaded} onErrorCapture={(event) => {
       const target = event.target as HTMLElement
-      setPreviewError({ id: selected.id, message: target.getAttribute('aria-description') || t('research.previewFailed') })
+      const reason = target.getAttribute('aria-description')
+      const source = target.getAttribute(target.tagName === 'OBJECT' ? 'data' : 'src')
+      // WebKit may reject the project URL before the mobile host resolves it.
+      if (window.novalist.isMobile && !reason && source?.startsWith('novalist-project://')) return
+      setPreviewError({ id: selected.id, message: reason || t('research.previewFailed') })
     }}>
       {previewError?.id === selected.id && <p role="alert" className="settings-hint">{previewError.message}</p>}
       <div className="codex-detail-actions">

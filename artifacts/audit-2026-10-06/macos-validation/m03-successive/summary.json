@@ -1,0 +1,43 @@
+{
+  "finding": "M03",
+  "status": "passed-successive-simulator-relocation-regression",
+  "problem": "A bookshelf-only repair C0 to C1 updated recents but did not record C1 as an exact trusted registry key. A subsequent C1 to C2 move therefore lost book details unless the book had been opened between moves. Concurrent registry writes also discarded other recorded projects.",
+  "fix": "Persist the verified contained candidate as an exact alias before returning it, retaining the original alias and project ID. Serialize read/modify/write across resolver instances and write through a temporary file, flush to disk, then atomic replace. Resolve stays synchronous; RecordAsync runs the same transaction on a worker thread. No suffix-based fallback or sync-over-async introduced.",
+  "source": "source-provenance.json",
+  "before_simulator": "before-simulator-edge.json",
+  "tests": {
+    "before": "Two reproduced failures: second move returned null, concurrent 12-project record retained only 1 entry.",
+    "after": "9/9 passed; two successive moves without RecordAsync/reopen, external identical suffix/project-ID rejection, changed identity rejection, concurrent recording and all prior malformed/missing/path-boundary checks.",
+    "evidence": [
+      "before-tests.log",
+      "after-tests.log"
+    ]
+  },
+  "native": {
+    "device": "Dedicated iPad (A16) simulator / iOS 27.0",
+    "build": "Uninstrumented ad-hoc build passed with 8 warnings and 0 errors; deep strict signature verification passed.",
+    "sequence": "Established a fixed baseline, then two real simctl install container relocations. Every launch stayed on the bookshelf; no project opening, RecordAsync invocation or fixture/registry/settings edit by the harness between repairs.",
+    "observed": "All three container UUIDs differ and old containers are absent. Identical installed app bytes, project/book IDs and project metadata hash throughout. Every current recent path is also the exact persisted registry key with the expected relative path and project ID. All previous exact aliases retained.",
+    "evidence": "relocation-observations.json",
+    "ui": "Actual native XCTest confirms New Project bookshelf and Select Audit Media Book — Audit Research Media card after the second move; 1/1 passed in 2.238 seconds.",
+    "ui_evidence": [
+      "SuccessiveContainerBookshelfTests.swift",
+      "bookshelf.log",
+      "bookshelf.png"
+    ]
+  },
+  "aislop": {
+    "score": 95,
+    "errors": 0,
+    "warnings": 1,
+    "fixable": 0,
+    "evidence": "aislop.json",
+    "note": "One nonfixable style warning counts the entire primary-constructor class as a 98-line function. No individual method exceeds the stated 80-line limit. Null-forgiving warning was corrected and the final binary/tests/runtime were rerun."
+  },
+  "limitations": [
+    "This closes the concrete successive-move regression, not all M03 acceptance. Genuine external Files-provider matching-suffix and deferred physical-device relocation remain unproven.",
+    "Runtime uses the isolated native/evaluator/Research-media source plus this owned-path fix; parent records the later combined recovery build separately."
+  ],
+  "temporary_probes_present": false,
+  "delivery": "Parent owns final report/ledger integration and validated fixes commit/push. No release."
+}
