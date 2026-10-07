@@ -150,7 +150,11 @@ export function CommandPalette({ onClose }: CommandPaletteProps): React.JSX.Elem
   }
 
   return (
-    <div className="dialog-overlay palette-overlay" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="dialog-overlay palette-overlay" onPointerDown={(e) => {
+      if (e.target === e.currentTarget) e.preventDefault()
+    }} onClick={(e) => {
+      if (e.target === e.currentTarget) onClose()
+    }}>
       <div {...keyboard} className="dialog-card palette-card" role="dialog" aria-modal="true" aria-label={t('commandPalette.placeholder')}>
         <input
           ref={inputRef}

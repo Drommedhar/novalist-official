@@ -267,7 +267,7 @@ test('conflict choices preserve complete original and mixed block HTML', async (
   } finally { await h.close() }
 })
 
-test('the mobile inspector traps keyboard focus and restores its trigger', async () => {
+test('the mobile inspector traps focus through nested palettes and restores its trigger', async () => {
   const h = await launchApp('nl-audit-mobile-sheet-', { NOVALIST_FORCE_MOBILE: '1' })
   try {
     await seedBook(h, { One: ['A'] })
@@ -286,8 +286,48 @@ test('the mobile inspector traps keyboard focus and restores its trigger', async
     await expect(sheet).toHaveAccessibleName('A')
     await expect(sheet.getByRole('button', { name: 'Close', exact: true })).toBeFocused()
     await h.page.keyboard.press('Shift+Tab')
-    expect(await sheet.evaluate((element) => element.contains(document.activeElement))).toBe(true)
+    await expect.poll(() => sheet.evaluate((element) => element.contains(document.activeElement))).toBe(true)
     expect(await trigger.evaluate((element) => !!element.closest('[inert]'))).toBe(true)
+    const tasksTab = sheet.getByRole('button', { name: 'To do', exact: true, includeHidden: true })
+    const contextTab = sheet.getByRole('button', { name: 'Context', exact: true, includeHidden: true })
+    await tasksTab.click()
+    const invokingField = sheet.locator('.tasks-add input').first()
+    await invokingField.focus()
+    for (let opening = 0; opening < 2; opening++) {
+      if (opening === 1) {
+        await resizeWindow(h, 852, 393)
+        await invokingField.focus()
+      }
+      const coveredTab = await contextTab.boundingBox()
+      if (!coveredTab) throw new Error('Inspector Context tab is missing')
+      await h.page.keyboard.press('ControlOrMeta+Shift+p')
+      const palette = h.page.locator('.palette-card')
+      await expect(palette).toBeVisible()
+      await expect(palette.getByRole('combobox')).toBeFocused()
+      expect(await sheet.evaluate((element) => !!element.closest('[inert]'))).toBe(true)
+      if (opening === 0) await h.page.keyboard.press('Escape')
+      else {
+        const point = { x: coveredTab.x + 2, y: coveredTab.y + coveredTab.height / 2 }
+        expect(await h.page.locator('.palette-overlay').evaluate(
+          (overlay, p) => document.elementFromPoint(p.x, p.y) === overlay, point
+        )).toBe(true)
+        await h.page.mouse.move(point.x, point.y)
+        await h.page.mouse.down()
+        try {
+          await expect(palette).toBeVisible()
+          await expect(palette.getByRole('combobox')).toBeFocused()
+          expect(await sheet.evaluate((element) => !!element.closest('[inert]'))).toBe(true)
+        } finally { await h.page.mouse.up() }
+      }
+      await expect(palette).toHaveCount(0)
+      await expect(invokingField).toBeFocused()
+      await expect(tasksTab).toHaveClass(/active/)
+      await expect(contextTab).not.toHaveClass(/active/)
+      expect(await sheet.evaluate((element) => !!element.closest('[inert]'))).toBe(false)
+      expect(await h.page.locator('[data-motion-presence="closing"]').evaluateAll(
+        (elements) => elements.every((element) => element.hasAttribute('inert'))
+      )).toBe(true)
+    }
     await h.page.keyboard.press('Escape')
     await expect(sheet).toHaveCount(0)
     await expect(trigger).toBeFocused()

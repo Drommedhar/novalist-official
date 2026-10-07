@@ -11,9 +11,9 @@ function controls(dialog: HTMLElement): HTMLElement[] {
 export function installModalFocus(): () => void {
   let lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
   let stack: { dialog: HTMLElement; previous: HTMLElement | null }[] = []
-  const background = new Map<HTMLElement, boolean>()
+  const background = new Set<HTMLElement>()
   const restoreBackground = (): void => {
-    for (const [element, inert] of background) element.inert = inert
+    for (const element of background) element.inert = false
     background.clear()
   }
   const focus = (dialog: HTMLElement): void => {
@@ -40,8 +40,8 @@ export function installModalFocus(): () => void {
     let branch: HTMLElement = active
     while (branch.parentElement) {
       for (const sibling of branch.parentElement.children) {
-        if (!(sibling instanceof HTMLElement) || sibling === branch) continue
-        background.set(sibling, sibling.inert)
+        if (!(sibling instanceof HTMLElement) || sibling === branch || sibling.inert) continue
+        background.add(sibling)
         sibling.inert = true
       }
       branch = branch.parentElement
@@ -59,10 +59,11 @@ export function installModalFocus(): () => void {
     }
   }
   const onFocus = (event: FocusEvent): void => {
+    const owner = event.target instanceof HTMLElement ? event.target.closest(MODAL) : null
+    if (owner && !stack.some((entry) => entry.dialog === owner)) refresh()
     const dialog = stack.at(-1)?.dialog
     if (dialog && event.target instanceof Node && !dialog.contains(event.target)) { focus(dialog); return }
     if (event.target instanceof HTMLElement) {
-      const owner = event.target.closest(MODAL)
       if (!owner || stack.some((entry) => entry.dialog === owner)) lastFocused = event.target
     }
   }
