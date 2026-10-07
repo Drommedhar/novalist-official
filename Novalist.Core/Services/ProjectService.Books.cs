@@ -113,6 +113,7 @@ public partial class ProjectService
         if (CurrentProject == null || ProjectRoot == null)
             throw new InvalidOperationException("No project loaded.");
 
+        var folderName = await ReserveBookFolderAsync(bookName);
         var defaultDraft = new BookDraftMetadata
         {
             Id = "draft-default",
@@ -122,9 +123,9 @@ public partial class ProjectService
         };
         var book = new BookData
         {
-            Id = $"book-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            Id = "book-" + Guid.NewGuid().ToString("N"),
             Name = bookName,
-            FolderName = SanitizeFileName(bookName),
+            FolderName = folderName,
             CreatedAt = DateTime.UtcNow,
             Drafts = [defaultDraft],
             ActiveDraftId = defaultDraft.Id,

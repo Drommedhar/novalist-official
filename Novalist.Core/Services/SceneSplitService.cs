@@ -45,9 +45,16 @@ public sealed class SceneSplitService
 
         var created = await _projectService.CreateSceneAsync(chapterGuid, title);
         CarryMetadata(original, created);
+        var remainingAnnotations = new SceneData { Comments = original.Comments, Footnotes = original.Footnotes };
+        SceneAnnotationTransfer.Split(remainingAnnotations, created, beforeHtml, afterHtml);
 
-        await _projectService.WriteSceneContentAsync(chapter, original, beforeHtml);
+        // Persist the new half's privacy flags and annotations before its prose,
+        // then preserve that prose before shortening the original scene.
+        await _projectService.SaveScenesAsync();
         await _projectService.WriteSceneContentAsync(chapter, created, afterHtml);
+        await _projectService.WriteSceneContentAsync(chapter, original, beforeHtml);
+        original.Comments = remainingAnnotations.Comments;
+        original.Footnotes = remainingAnnotations.Footnotes;
 
         // CreateSceneAsync appends, so the new half has to be moved up to sit
         // directly after the scene it came out of.
@@ -82,6 +89,7 @@ public sealed class SceneSplitService
 
         var firstHtml = await _projectService.ReadSceneContentAsync(chapter, first);
         var secondHtml = await _projectService.ReadSceneContentAsync(chapter, second);
+        secondHtml = SceneAnnotationTransfer.Merge(first, second, secondHtml);
         await _projectService.WriteSceneContentAsync(chapter, first, firstHtml + secondHtml);
 
         first.WordCount += second.WordCount;
@@ -99,6 +107,8 @@ public sealed class SceneSplitService
                 .Distinct(StringComparer.Ordinal)];
         }
 
+        // Make remapped annotations durable before removing their original scene.
+        await _projectService.SaveScenesAsync();
         await _projectService.DeleteSceneAsync(chapterGuid, secondSceneId);
         await _projectService.SaveScenesAsync();
         return true;
@@ -134,6 +144,17 @@ public sealed class SceneSplitService
         to.DateRange = from.DateRange?.Clone();
         to.Stage = from.Stage;
         to.LabelColor = from.LabelColor;
+        to.LabelKey = from.LabelKey;
+        to.Inactive = from.Inactive;
+        to.ExcludeFromExport = from.ExcludeFromExport;
+        to.Notes = from.Notes;
+        to.Goal = from.Goal;
+        to.Outcome = from.Outcome;
+        to.NarrativeMode = from.NarrativeMode;
+        to.Strand = from.Strand;
+        to.FocusEntityId = from.FocusEntityId;
+        to.Cast = from.Cast == null ? null : [.. from.Cast];
+        to.Properties = from.Properties == null ? null : new(from.Properties);
         to.PlotlineIds = from.PlotlineIds is { Count: > 0 } ? [.. from.PlotlineIds] : null;
         to.AnalysisOverrides = from.AnalysisOverrides?.Clone();
     }

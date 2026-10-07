@@ -1,3 +1,5 @@
+import { useHostBridgeStore } from '../../stores/hostBridgeStore'
+import { resolveProjectAssetUrl } from '../../mobile/projectImages'
 import { type MapViewState } from './mapViewState'
 import { IMAGE_BASE_URL } from './mapViewTypes'
 import { useCallback } from 'react'
@@ -93,7 +95,11 @@ export function useMapImages(context: MapImagesContext) {
       const probe = new Image()
       probe.onload = () => win.addImageToMap(path, probe.naturalWidth, probe.naturalHeight)
       probe.onerror = () => win.addImageToMap(path, 0, 0)
-      probe.src = url
+      void resolveProjectAssetUrl(url).then((resolved) => {
+        if (resolved && getWin() === win) probe.src = resolved
+      }).catch((error: unknown) => {
+        if (getWin() === win) useHostBridgeStore.getState().pushToast(String(error))
+      })
     },
     [getWin]
   )

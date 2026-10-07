@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Foundation;
 using Microsoft.Maui.Storage;
 using UIKit;
@@ -11,7 +10,7 @@ public static partial class SecurityScopedFolders
     /// <summary>
     /// Present the one manuscript chooser with both folders and the exact file
     /// types advertised by the backend. The selected security scope stays open
-    /// until <see cref="ReleaseTemporaryManuscriptAccess"/> is called. A directly
+    /// until the owning registry releases it. A directly
     /// selected .scrivx receives only file access from iOS, so it is returned only
     /// after the writer grants its exact parent folder in a second prompt.
     /// </summary>
@@ -19,13 +18,15 @@ public static partial class SecurityScopedFolders
         string title,
         IEnumerable<string> allowedTypeIdentifiers,
         IEnumerable<string> allowedExtensions,
-        string scrivenerAccessTitle)
+        string scrivenerAccessTitle,
+        TemporaryAccessRegistry access)
     {
         var tcs = new TaskCompletionSource<string?>();
         MainThread.BeginInvokeOnMainThread(() =>
         {
             try
             {
+                if (access.IsDisposed) { tcs.TrySetResult(null); return; }
                 var extensions = allowedExtensions
                     .Select(extension => extension.Trim().TrimStart('.').ToLowerInvariant())
                     .Where(extension => extension.Length > 0 &&
@@ -42,7 +43,7 @@ public static partial class SecurityScopedFolders
                 types[UTTypes.Folder.Identifier] = UTTypes.Folder;
                 if (types.Count == 1) { tcs.TrySetResult(null); return; }
 
-                PresentDocumentPicker(types.Values, title, initialDirectory: null, selectedUrl => CompleteManuscriptSelection(selectedUrl, extensions, tcs, title, scrivenerAccessTitle));
+                PresentDocumentPicker(types.Values, title, initialDirectory: null, selectedUrl => CompleteManuscriptSelection(selectedUrl, extensions, tcs, title, scrivenerAccessTitle, access));
             }
             catch
             {
@@ -50,19 +51,6 @@ public static partial class SecurityScopedFolders
             }
         });
         return tcs.Task;
-    }
-
-    /// <summary>Stop the temporary scope held for an imported manuscript.</summary>
-    public static void ReleaseTemporaryManuscriptAccess(string path)
-    {
-        if (string.IsNullOrEmpty(path)) return;
-        NSUrl? url;
-        lock (Gate)
-        {
-            if (!TemporaryManuscripts.Remove(path, out url)) return;
-        }
-        try { url.StopAccessingSecurityScopedResource(); }
-        catch { /* already released */ }
     }
 
     private static void PresentScrivenerAccessPicker(
@@ -122,26 +110,16 @@ public static partial class SecurityScopedFolders
         top.PresentViewController(picker, true, null);
     }
 
-    private static bool HoldTemporaryAccess(string selectionPath, NSUrl accessUrl)
+    private static bool HoldTemporaryAccess(string selectionPath, NSUrl accessUrl, TemporaryAccessRegistry access)
     {
+        if (access.IsDisposed) return false;
         var started = false;
-        NSUrl? previous = null;
         try
         {
             started = accessUrl.StartAccessingSecurityScopedResource();
-            if (!started) return IsInsideAppContainer(selectionPath);
+            if (!started) return !access.IsDisposed && IsInsideAppContainer(selectionPath);
 
-            lock (Gate)
-            {
-                TemporaryManuscripts.Remove(selectionPath, out previous);
-                TemporaryManuscripts[selectionPath] = accessUrl;
-            }
-            if (previous != null)
-            {
-                try { previous.StopAccessingSecurityScopedResource(); }
-                catch { /* already released */ }
-            }
-            return true;
+            return access.TryRetain(selectionPath, accessUrl.StopAccessingSecurityScopedResource);
         }
         catch
         {
@@ -149,17 +127,6 @@ public static partial class SecurityScopedFolders
             {
                 try { accessUrl.StopAccessingSecurityScopedResource(); }
                 catch { /* best-effort rollback */ }
-            }
-            if (previous != null)
-            {
-                try { previous.StopAccessingSecurityScopedResource(); }
-                catch { /* best-effort rollback */ }
-            }
-            lock (Gate)
-            {
-                if (TemporaryManuscripts.TryGetValue(selectionPath, out var current) &&
-                    ReferenceEquals(current, accessUrl))
-                    TemporaryManuscripts.Remove(selectionPath);
             }
             return false;
         }
@@ -199,7 +166,7 @@ public static partial class SecurityScopedFolders
     }
 
     private static Action? CompleteManuscriptSelection(NSUrl? selectedUrl, HashSet<string> extensions,
-        TaskCompletionSource<string?> tcs, string title, string scrivenerAccessTitle)
+        TaskCompletionSource<string?> tcs, string title, string scrivenerAccessTitle, TemporaryAccessRegistry access)
     {
                     try
                     {
@@ -224,7 +191,7 @@ public static partial class SecurityScopedFolders
 
                         if (!Path.GetExtension(selectedPath).Equals(".scrivx", StringComparison.OrdinalIgnoreCase))
                         {
-                            tcs.TrySetResult(HoldTemporaryAccess(selectedPath, selectedUrl) ? selectedPath : null);
+                            tcs.TrySetResult(HoldTemporaryAccess(selectedPath, selectedUrl, access) ? selectedPath : null);
                             return null;
                         }
 
@@ -239,7 +206,7 @@ public static partial class SecurityScopedFolders
                         // picker's dismissal completion, never while it is still on
                         // screen or in the middle of its automatic dismissal.
                         return () =>
-                        RequestScrivenerParentAccess(projectRoot, selectedPath, tcs, title, scrivenerAccessTitle);
+                        RequestScrivenerParentAccess(projectRoot, selectedPath, tcs, title, scrivenerAccessTitle, access);
                     }
                     catch
                     {
@@ -249,8 +216,9 @@ public static partial class SecurityScopedFolders
                 }
 
     private static void RequestScrivenerParentAccess(string projectRoot, string selectedPath,
-        TaskCompletionSource<string?> tcs, string title, string scrivenerAccessTitle)
+        TaskCompletionSource<string?> tcs, string title, string scrivenerAccessTitle, TemporaryAccessRegistry access)
     {
+                            if (access.IsDisposed) { tcs.TrySetResult(null); return; }
                             try
                             {
                                 PresentScrivenerAccessPicker(
@@ -265,7 +233,7 @@ public static partial class SecurityScopedFolders
                                             var accessPath = accessUrl?.Path;
                                             if (accessUrl == null || string.IsNullOrEmpty(accessPath) ||
                                                 !SamePath(accessPath, projectRoot) ||
-                                                !HoldTemporaryAccess(selectedPath, accessUrl))
+                                                !HoldTemporaryAccess(selectedPath, accessUrl, access))
                                             {
                                                 tcs.TrySetResult(null);
                                                 return null;

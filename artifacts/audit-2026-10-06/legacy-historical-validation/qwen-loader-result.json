@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "hostVersion": "1.15-dev",
+  "sdkCommit": "8ffe1bf180ece40ce791a49155b79fca1be68856",
+  "extensionId": "com.novalist.tts.qwen3",
+  "extensionVersion": "0.4.0",
+  "loadedUsingHistoricalLoader": true,
+  "providerRegisteredAndUnregisteredUsingHistoricalRegistry": true,
+  "pythonEnvironmentCreated": false,
+  "limitation": "Historical SDK/loader/registry exercised; UI views and model synthesis not started; host services substituted."
+}

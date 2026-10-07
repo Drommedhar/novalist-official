@@ -13,7 +13,7 @@ import {
   Strikethrough,
   Table
 } from 'lucide-react'
-import { EditorState, RangeSetBuilder, type ChangeSpec, type Range } from '@codemirror/state'
+import { EditorState, RangeSetBuilder, type ChangeSpec, type Range, type Extension } from '@codemirror/state'
 import {
   Decoration,
   EditorView,
@@ -315,6 +315,7 @@ export function MarkdownEditor({
   const { t } = useTranslation()
   const host = useRef<HTMLDivElement | null>(null)
   const view = useRef<EditorView | null>(null)
+  const extensions = useRef<Extension[]>([])
   // Kept in refs so the CodeMirror extensions can stay static: rebuilding the
   // view on every keystroke would lose the selection and the undo history.
   const onChangeRef = useRef(onChange)
@@ -324,9 +325,7 @@ export function MarkdownEditor({
 
   useEffect(() => {
     if (!host.current) return
-    const state = EditorState.create({
-      doc: value,
-      extensions: [
+    extensions.current = [
         history(),
         keymap.of([
           {
@@ -352,7 +351,7 @@ export function MarkdownEditor({
         }),
         EditorView.contentAttributes.of(ariaLabel ? { 'aria-label': ariaLabel } : {})
       ]
-    })
+    const state = EditorState.create({ doc: value, extensions: extensions.current })
     const created = new EditorView({ state, parent: host.current })
     view.current = created
     return () => {
@@ -364,13 +363,13 @@ export function MarkdownEditor({
   }, [])
 
   // Adopt an externally changed value (switching entity, discarding an
-  // override), but never while the user is mid-edit in this field.
+  // override), resetting undo ownership when the authoritative value changes.
   useEffect(() => {
     const v = view.current
-    if (!v || v.hasFocus) return
+    if (!v) return
     const current = v.state.doc.toString()
     if (current === value) return
-    v.dispatch({ changes: { from: 0, to: current.length, insert: value } })
+    v.setState(EditorState.create({ doc: value, extensions: extensions.current }))
   }, [value])
 
   const act = useCallback((action: MarkdownAction) => {

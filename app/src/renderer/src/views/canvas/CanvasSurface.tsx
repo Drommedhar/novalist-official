@@ -121,7 +121,7 @@ export function CanvasCards({
   moveConnectorDrag,
   finishConnectorDrag,
   cancelConnectorDrag,
-  useConnectorHandleWithKeyboard
+  handleConnectorKeyboard
 }: CanvasCardsProps): React.JSX.Element {
   return <>{canvas.cards.map((storedCard) => {
         const card = renderedCard(storedCard)
@@ -204,7 +204,7 @@ export function CanvasCards({
                 onPointerUp={finishConnectorDrag}
                 onPointerCancel={(event) => cancelConnectorDrag(event.pointerId)}
                 onLostPointerCapture={(event) => cancelConnectorDrag(event.pointerId)}
-                onKeyDown={(event) => useConnectorHandleWithKeyboard(event, card, side)}
+                onKeyDown={(event) => handleConnectorKeyboard(event, card, side)}
                 onClick={(event) => {
                   event.preventDefault()
                   event.stopPropagation()
@@ -309,7 +309,7 @@ type CanvasCardsProps = {
   moveConnectorDrag: CanvasViewState['moveConnectorDrag']
   finishConnectorDrag: CanvasViewState['finishConnectorDrag']
   cancelConnectorDrag: CanvasViewState['cancelConnectorDrag']
-  useConnectorHandleWithKeyboard: CanvasViewState['useConnectorHandleWithKeyboard']
+  handleConnectorKeyboard: CanvasViewState['handleConnectorKeyboard']
 }
 
 type CanvasLinesProps = {

@@ -11,6 +11,26 @@ public class FileServiceTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public async Task FailedStagedWritePreservesTheOriginalAndCleansTemporaryFiles(bool exists)
+    {
+        using var dir = new TempDir();
+        var path = dir.Combine("scene.novalist");
+        if (exists) File.WriteAllText(path, "Original prose");
+
+        await Assert.ThrowsAsync<IOException>(() => FileService.WriteAtomicallyAsync(path, async output =>
+        {
+            await output.WriteAsync(new byte[] { 1, 2, 3 });
+            throw new IOException("Simulated full disk");
+        }));
+
+        if (exists) Assert.Equal("Original prose", File.ReadAllText(path));
+        else Assert.False(File.Exists(path));
+        Assert.Empty(Directory.GetFiles(dir.Path, ".novalist-save-*"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public async Task Writes_ReplaceHiddenMetadataAndTruncateOldContent(bool binary)
     {
         using var dir = new TempDir();

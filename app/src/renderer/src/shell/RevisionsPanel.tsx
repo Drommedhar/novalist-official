@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { History } from 'lucide-react'
 import { rpc } from '../rpc/client'
+import { flushPendingWrites } from '../stores/pendingWrites'
 
 interface Revision {
   id: string
@@ -51,6 +52,7 @@ export function RevisionsPanel({
   const restore = async (revisionId: string): Promise<void> => {
     setBusy(true)
     try {
+      await flushPendingWrites()
       const result = await rpc.request<unknown>(restoreMethod, [...restoreArgs, revisionId])
       onRestored?.(result)
       // The state just replaced became a revision of its own, so an unwanted

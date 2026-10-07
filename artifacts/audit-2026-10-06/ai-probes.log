@@ -1,0 +1,22 @@
+C:\Users\domin\AppData\Local\Temp\MSBuildTemptxrvowja.cus\tmpedf61080803645319ba99776a6b947ba.tmp(207,13): warning CS0162: Unreachable code detected [D:\git\novalist-aiassistant\Novalist.Extensions.AiAssistant.csproj]
+[
+  {
+    "probe": "empty-choices-sse",
+    "observed": "InvalidOperationException",
+    "Message": "Operation is not valid due to the current state of the object."
+  },
+  {
+    "probe": "cancel-during-model-load",
+    "completedAfterCancellation": false
+  },
+  {
+    "probe": "overlapping-model-scopes",
+    "expectedDefault": "original",
+    "actualDefault": "first"
+  },
+  {
+    "probe": "duplicate-preview-headings",
+    "firstContentSent": true,
+    "firstShownAsKept": false
+  }
+]

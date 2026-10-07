@@ -157,7 +157,9 @@ public sealed partial class HostServices
                 Title = s.Title,
                 ChapterGuid = chapterGuid,
                 ChapterTitle = chapterTitle,
-                WordCount = s.WordCount
+                WordCount = s.WordCount,
+                Inactive = s.Inactive,
+                ExcludeFromExport = s.ExcludeFromExport
             })
             .ToList();
     }

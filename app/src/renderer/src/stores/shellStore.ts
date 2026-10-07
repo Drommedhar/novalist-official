@@ -6,6 +6,22 @@ import { type MainView, type InspectorTab, type ShellState } from './shellTypes'
 import { newLeaf, findPane, paneLeaves, splitPane, closePane, setPaneViewIn, resize, reidentify, persistLayouts, storedLayouts, initialPanes } from './shellPanes'
 import { BINDER_MIN, BINDER_MAX, INSPECTOR_MIN, INSPECTOR_MAX, shellCapacityForWidth, clamp, savePanelSize, initialPanelSize, storedPanels, screenW } from './shellPanels'
 
+function withSavedPanes(ids: string[], proceed: () => void): void {
+  void (async () => {
+    const [{ useProjectStore }, { capturePendingWrites }] = await Promise.all([
+      import('./projectStore'), import('./pendingWrites')
+    ])
+    capturePendingWrites()
+    for (const id of ids) await useProjectStore.getState().flushPane(id)
+    const state = useProjectStore.getState()
+    if (state.sceneConflict || ids.some((id) => state.editors[id]?.isDirty)) return
+    proceed()
+  })().catch(async (reason: unknown) => {
+    const { useHostBridgeStore } = await import('./hostBridgeStore')
+    useHostBridgeStore.getState().pushToast(String(reason))
+  })
+}
+
 /** Commit the active drawer field before a shortcut removes its React tree. */
 function blurFocusPanel(): void {
   const active = document.activeElement
@@ -238,7 +254,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
 
   closeActivePane: () => get().closePaneById(get().activePaneId),
 
-  closePaneById: (id) =>
+  closePaneById: (id) => withSavedPanes([id], () =>
     set((s) => {
       // The last pane stays: a content area with nothing in it is not a layout,
       // it is a broken window.
@@ -250,12 +266,12 @@ export const useShellStore = create<ShellState>((set, get) => ({
       if (id !== s.activePaneId && findPane(root, s.activePaneId)) return { panes: root }
       const first = paneLeaves(root)[0]
       return { panes: root, activePaneId: first.id, ...viewState(s, first.view) }
-    }),
+    })),
 
   setPaneSizes: (splitId, sizes) =>
     set((s) => ({ panes: resize(s.panes, splitId, sizes) })),
 
-  resetPanes: () =>
+  resetPanes: () => withSavedPanes(paneLeaves(get().panes).map((pane) => pane.id), () =>
     set((s) => {
       if (s.panes.kind === 'leaf') return {}
       // The view you are on comes with you. Which view a pane shows is where you
@@ -265,7 +281,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
       const view = here && here.kind === 'leaf' ? here.view : s.mainView
       const root = newLeaf(view)
       return { panes: root, activePaneId: root.id, ...viewState(s, view) }
-    }),
+    })),
 
   saveLayout: (name) =>
     set((s) => {
@@ -277,14 +293,14 @@ export const useShellStore = create<ShellState>((set, get) => ({
       return { layouts }
     }),
 
-  applyLayout: (name) =>
+  applyLayout: (name) => withSavedPanes(paneLeaves(get().panes).map((pane) => pane.id), () =>
     set((s) => {
       const layout = s.layouts.find((l) => l.name === name)
       if (!layout) return {}
       const root = reidentify(layout.root)
       const first = paneLeaves(root)[0]
       return { panes: root, activePaneId: first.id, ...viewState(s, first.view) }
-    }),
+    })),
 
   deleteLayout: (name) =>
     set((s) => {

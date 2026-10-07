@@ -1,0 +1,917 @@
+{
+  "checks": [
+    {
+      "detail": "99 passed, 0 failed; fresh build",
+      "status": "passed",
+      "command": "dotnet test Core --filter ProjectCreationSafetyTests|FileServiceTests|ArchiveServiceTests|SettingsServiceTests"
+    },
+    {
+      "command": "Core full suite with XPlat coverage",
+      "status": "passed",
+      "detail": "3894 tests passed; coverage22007/22012 before final edge tests and mobile provenance additions"
+    },
+    {
+      "command": "Backend targeted RPC and lifecycle suites",
+      "status": "passed",
+      "detail": "48 tests passed"
+    },
+    {
+      "command": "aislop scan --changes --json --include **/*.cs",
+      "status": "passed",
+      "detail": "Score100, zero diagnostics"
+    },
+    {
+      "command": "dotnet test Core --collect XPlat Code Coverage --settings tests/coverlet.runsettings",
+      "status": "passed",
+      "detail": "3909 passed / 0 failed / 0 skipped; 100% Core line coverage"
+    },
+    {
+      "command": "dotnet test Backend --collect XPlat Code Coverage --settings tests/coverlet.runsettings",
+      "status": "passed",
+      "detail": "2057 passed / 0 failed / 0 skipped;13920/13920 Backend lines covered"
+    },
+    {
+      "command": "aislop scan --changes --json --include Novalist.Core/**/*.cs,Novalist.Backend/**/*.cs",
+      "status": "passed",
+      "detail": "score100, zero diagnostics"
+    },
+    {
+      "command": "aislop scan --changes --json --include Novalist.Core/**/*.cs,Novalist.Backend/**/*.cs (elevated)",
+      "status": "passed",
+      "detail": "Score100;462 files;zero diagnostics;final artifact aislop-backend-final.json"
+    },
+    {
+      "command": "dotnet test tests/Novalist.Core.Tests/Novalist.Core.Tests.csproj --no-restore -m:1 -nr:false --collect XPlat Code Coverage --settings tests/coverlet.runsettings --results-directory artifacts/audit-2026-10-06/final-core-coverage",
+      "status": "passed",
+      "detail": "3918 passed,0 failed,0 skipped; includes4 split write-failure cases and1 merge post-deletion manifest failure. Final report1e0d17e2-383c-416b-a697-9c63498b4748."
+    },
+    {
+      "command": "eng/Check-Coverage.ps1 final-core-coverage/*/coverage.cobertura.xml -Package Novalist.Core",
+      "status": "passed",
+      "detail": "22025/22025 deduplicated executable lines,100%."
+    },
+    {
+      "command": "dotnet test tests/Novalist.Sdk.Tests/Novalist.Sdk.Tests.csproj --no-restore -m:1 -nr:false --collect XPlat Code Coverage --settings tests/coverlet.runsettings --results-directory artifacts/audit-2026-10-06/final-sdk-coverage",
+      "status": "passed",
+      "detail": "61 passed,0 failed,0 skipped; report93feaca9-8b42-4d32-964d-af499719adb8."
+    },
+    {
+      "command": "eng/Check-Coverage.ps1 final-sdk-coverage/*/coverage.cobertura.xml -Package Novalist.Sdk",
+      "status": "passed",
+      "detail": "30/30 deduplicated executable lines,100%."
+    },
+    {
+      "command": "aislop scan --include Novalist.Core/Services/SceneSplitService.cs --include tests/Novalist.Core.Tests/Services/SceneSplitServiceTests.cs --json (elevated)",
+      "status": "passed",
+      "detail": "Score100;2 files;zero diagnostics."
+    },
+    {
+      "command": "npm run typecheck && npm run build",
+      "status": "passed",
+      "detail": "Final Research changes compile; build log research-acceptance-build.log."
+    },
+    {
+      "command": "npm run test:transport",
+      "status": "passed",
+      "detail": "113 source regression tests passed, including 4 Research save/recovery cases. Evidence: research-acceptance-source-tests.log."
+    },
+    {
+      "command": "npx playwright test e2e/audit-research-acceptance.spec.ts e2e/audit-search-navigation.spec.ts",
+      "status": "passed",
+      "detail": "7/7 real Electron acceptance tests passed. Evidence: research-search-acceptance.log."
+    },
+    {
+      "command": "Elevated Aislop Research/search changed production and regression files",
+      "status": "passed",
+      "detail": "App-scoped score 99, 5 files, zero errors/warnings/fixable diagnostics. One informational dependency-audit launcher failure: npm ENOENT. Official-root scoped scan: 100. Evidence: aislop-research-acceptance.json."
+    },
+    {
+      "command": "npx playwright test e2e/audit-search-navigation.spec.ts --repeat-each=3",
+      "status": "passed",
+      "detail": "3/3 after requiring seeded scene content to finish loading before the test edits it. This avoids treating a visible but not-yet-hydrated iframe as ready. Both saved HTML and reopened editor are checked. Evidence: search-navigation-readiness.log."
+    },
+    {
+      "command": "npm run test:transport (M06 actual-shim follow-through)",
+      "status": "passed",
+      "detail": "114/114 passed. New real renderer-path denial/retry regression, mocked native JSON replies only. Evidence: mobile-dictation-source-tests.log."
+    },
+    {
+      "command": "Elevated Aislop two changed M06 test files from repository root",
+      "status": "passed",
+      "detail": "Score 100, 2 files, zero diagnostics. Evidence: aislop-mobile-dictation.json. No dependency metadata audit was run."
+    },
+    {
+      "command": "dotnet test tests/Novalist.Core.Tests/Novalist.Core.Tests.csproj --no-restore -m:1 -nr:false --filter FullyQualifiedName~MobileTemporaryAccessTests",
+      "status": "passed",
+      "detail": "6/6 new portable mobile lifetime tests passed; evidence: mobile-temporary-access/mobile-temporary-access.trx. Existing Core production source and 100% coverage are unchanged. One pre-existing test warning: NarrationClipCacheTests.cs:75, CS8625."
+    },
+    {
+      "command": "Elevated Aislop changed M02 registry/native wiring/test sources",
+      "status": "passed",
+      "detail": "Score 100, 6 supported files, zero diagnostics; evidence: aislop-mobile-temporary-access.json. Independent review and a second 6/6 test run passed."
+    }
+  ],
+  "updated": "2026-10-07 M02 temporary manuscript scope teardown correction; native acceptance pending",
+  "findings": [
+    {
+      "tests": [
+        "ProjectCreationSafetyTests"
+      ],
+      "id": "BE-01",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Services/ProjectService.cs",
+        "Novalist.Core/Services/ProjectService.Storage.cs"
+      ],
+      "pending": [],
+      "implementation": [
+        "Project creation validates the normalized folder name and reserves a fresh destination by no-overwrite directory rename before writing. Existing destinations are rejected without changing their files or the active project."
+      ]
+    },
+    {
+      "tests": [
+        "ProjectCreationSafetyTests"
+      ],
+      "id": "BE-02",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Services/ProjectService.Books.cs",
+        "Novalist.Core/Services/ProjectService.Storage.cs"
+      ],
+      "pending": [],
+      "implementation": [
+        "New books reserve unique storage folders independently of their display names, including collisions with existing filesystem entries and reserved project folders."
+      ]
+    },
+    {
+      "tests": [
+        "RpcFacadeTests"
+      ],
+      "id": "BE-03",
+      "status": "complete",
+      "files": [
+        "Novalist.Backend/Rpc/ProjectRpc.cs"
+      ],
+      "pending": [],
+      "implementation": [
+        "Chapter status and act mutations await project persistence before their RPC returns, so they survive a fresh reopen."
+      ]
+    },
+    {
+      "tests": [
+        "FileServiceTests",
+        "SettingsServiceTests"
+      ],
+      "id": "BE-04",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Services/FileService.cs",
+        "Novalist.Core/Services/SettingsService.cs"
+      ],
+      "pending": [],
+      "implementation": [
+        "Text, byte and settings writes stage a unique sibling file, flush it to disk and atomically replace the destination. Failed staging leaves the previous destination available; Windows replacement retains its file metadata."
+      ]
+    },
+    {
+      "tests": [
+        "ArchiveServiceTests"
+      ],
+      "id": "BE-05",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Services/ArchiveService.cs"
+      ],
+      "pending": [],
+      "implementation": [
+        "Backup creation writes an unpublished staging archive and publishes the completed archive only after ZIP finalization. Failed staging files are removed and cannot count as valid restore points or defer retry."
+      ]
+    },
+    {
+      "tests": [
+        "ExportDataTests"
+      ],
+      "id": "BE-06",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Services/ExportService.Compile.cs"
+      ],
+      "pending": [],
+      "implementation": [
+        "Multi-book export loads each requested active draft chapter list from its own storage instead of depending on whether the book has already been opened during the session."
+      ]
+    },
+    {
+      "tests": [
+        "SnapshotServiceTests"
+      ],
+      "id": "BE-07",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Services/SnapshotService.cs",
+        "Novalist.Core/Models/SceneSnapshot.cs"
+      ],
+      "pending": [],
+      "implementation": [
+        "Snapshots record metadata schema presence so captured null values clear nullable fields on restore while legacy snapshots without those fields preserve current metadata."
+      ]
+    },
+    {
+      "tests": [
+        "FindReplaceServiceTests",
+        "HtmlSearchTextTests"
+      ],
+      "id": "BE-08",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Services/FindReplaceService.cs",
+        "Novalist.Core/Utilities/HtmlSearchText.cs"
+      ],
+      "pending": [],
+      "implementation": [
+        "Find and Replace share a visible-text-to-HTML mapping. Cross-formatting matches replace the corresponding text-node spans while retaining unrelated markup and attributes."
+      ]
+    },
+    {
+      "tests": [
+        "DraftManagementTests"
+      ],
+      "id": "BE-09",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Services/ProjectService.Drafts.cs"
+      ],
+      "pending": [],
+      "implementation": [
+        "Draft cloning copies file bytes directly, preserving binary assets rather than decoding and re-encoding every file as text."
+      ]
+    },
+    {
+      "tests": [
+        "SerialDispatchTests"
+      ],
+      "id": "BE-10",
+      "status": "complete",
+      "files": [
+        "Novalist.Backend/SerialDispatchJsonRpc.cs"
+      ],
+      "pending": [],
+      "implementation": [
+        "Compilation and export-setting mutations share the workspace gate. Queued saves and workspace changes wait until export completes; format/token reads and cancellation remain responsive. This bounded fix serializes mutable reads rather than adding an immutable export snapshot."
+      ]
+    },
+    {
+      "tests": [
+        "SearchRpcTests",
+        "FindReplaceServiceTests",
+        "Electron: project search result waits for a held dirty prose save, opens the identified remote book/chapter/scene and preserves original-book rich text on return. Evidence: research-search-acceptance.log (1 search test, 7 total acceptance cases)."
+      ],
+      "id": "BE-11",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Models/FindReplace.cs",
+        "Novalist.Core/Services/FindReplaceService.cs",
+        "Novalist.Backend/Rpc/SearchRpc.cs",
+        "app/src/renderer/src/shell/FindReplaceDialog.tsx",
+        "app/e2e/audit-search-navigation.spec.ts"
+      ],
+      "pending": [],
+      "implementation": [
+        "Project search includes the owning book ID and title in each scene result. Selecting a result drains pending edits through the existing book transition, switches to the owning book and opens its chapter and scene."
+      ]
+    },
+    {
+      "tests": [
+        "SceneSplitServiceTests",
+        "SceneSplitServiceTests33 passed including new metadata/new-half/original/final metadata IO failures; reopened files retain all words, annotations and privacy flags.",
+        "Final SceneSplitServiceTests34/34 after nullable cleanup; actual FileService failure after second-scene deletion verifies reloaded merged text and remapped annotation metadata remain durable."
+      ],
+      "id": "BE-12",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Services/SceneSplitService.cs",
+        "Novalist.Core/Services/SceneAnnotationTransfer.cs"
+      ],
+      "pending": [],
+      "notes": [
+        "Independent review found failure ordering risk: now persist new-half metadata and prose before shortening original, delay original annotation partition until both content writes succeed.",
+        "Merged annotation metadata is persisted before deleting the second scene, preventing dangling remapped references if deletion manifest persistence fails."
+      ],
+      "implementation": [
+        "Split and merge transfer annotation records according to surviving HTML markers, remap merge collisions, and retain privacy/export properties. Splits stage the new half before shortening the original; merges persist annotation metadata before deleting the source scene."
+      ]
+    },
+    {
+      "tests": [
+        "ArchiveServiceTests"
+      ],
+      "id": "BE-13",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Services/ArchiveService.cs"
+      ],
+      "pending": [],
+      "implementation": [
+        "Archive traversal rejects symbolic links/reparse points, including linked files and recursive folder cycles. Failure removes the unpublished staging archive rather than exposing outside-project bytes."
+      ]
+    }
+  ],
+  "additional": [
+    {
+      "id": "R03/R04",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Services/SceneConflictGuard.cs",
+        "Novalist.Core/Utilities/HtmlMergeBlocks.cs",
+        "Novalist.Core/Services/SnapshotService.cs",
+        "Novalist.Backend/Rpc/ScenesRpc.cs"
+      ],
+      "tests": [
+        "SceneConflictGuardTests",
+        "SceneConflictRpcTests"
+      ],
+      "pending": []
+    },
+    {
+      "id": "H01",
+      "status": "complete",
+      "files": [
+        "Novalist.Backend/Rpc/ExtensionsRpc.cs",
+        "Novalist.Backend/Extensions/ExtensionManager.cs",
+        "Novalist.Backend/Workspace.cs"
+      ],
+      "tests": [
+        "ExtensionsRpcTests"
+      ],
+      "pending": []
+    },
+    {
+      "id": "M02/M03-shared",
+      "status": "complete",
+      "files": [
+        "Novalist.Core/Models/AppSettings.cs",
+        "Novalist.Core/Services/IStoredPathResolver.cs",
+        "Novalist.Backend/Workspace.Library.cs",
+        "Novalist.Backend/Workspace.cs"
+      ],
+      "tests": [
+        "WorkspaceTests",
+        "HtmlSearchTextTests"
+      ],
+      "pending": []
+    },
+    {
+      "id": "R06",
+      "status": "implemented-verified",
+      "implementation": [
+        "Research flush registers every dirty note even when another note fails. Failed payloads remain in the shared registry after unmount, and a successful sibling cannot clear the overall save error."
+      ],
+      "files": [
+        "app/src/renderer/src/views/library/useResearchDrafts.ts",
+        "app/scripts/research-persistence.test.mjs",
+        "app/e2e/audit-research-acceptance.spec.ts"
+      ],
+      "tests": [
+        "Electron: failed two-note saves survive unmount, veto native window close and retry successfully. Focused title and focused Markdown are flushed on immediate project close and survive reopen.",
+        "Node: unmounted retry saves all dirty notes and a failed sibling retains the visible error."
+      ],
+      "pending": []
+    },
+    {
+      "id": "R07",
+      "status": "implemented-verified",
+      "implementation": [
+        "Content-save acknowledgements preserve current lifecycle and relationship fields. Lifecycle and relationship acknowledgements merge only the fields changed by that operation, preserving newer note drafts and acknowledged content."
+      ],
+      "files": [
+        "app/src/renderer/src/views/library/useResearchDrafts.ts",
+        "app/src/renderer/src/views/library/researchModel.ts",
+        "app/scripts/research-persistence.test.mjs",
+        "app/e2e/audit-research-acceptance.spec.ts"
+      ],
+      "tests": [
+        "Electron: delayed A response preserves B title/content/tags; delayed content save preserves later status/rating; delayed lifecycle response preserves later acknowledged title/content.",
+        "Node: delayed note save preserves later status/rating/links."
+      ],
+      "pending": []
+    },
+    {
+      "id": "M06",
+      "status": "native-pending",
+      "implementation": [
+        "The existing permission-denied reply maps to NotAllowedError through HostCallChannel and the real mobile shim; the microphone abstraction propagates it into dictation.permission. No production change was needed for this follow-through."
+      ],
+      "files": [
+        "app/scripts/mobile-dictation.test.mjs",
+        "app/scripts/renderer-source-loader.mjs"
+      ],
+      "tests": [
+        "mobile-dictation.test.mjs executes actual shim.ts, HostCallChannel, audio.openMicrophone/openSystemMicrophone and dictationStore: native denial sets dictation.permission, leaves starting/recording false, permits successful retry, reads/stops exactly once and clears stale permission error.",
+        "Full portable source suite: 114/114 passed after adding a source-loader override for Vite-transformed audio.ts parameter properties. Evidence: mobile-dictation-source-tests.log."
+      ],
+      "pending": [
+        "Deny and subsequently enable microphone permission on an actual iOS device; portable host replies do not certify native authorization behavior."
+      ]
+    },
+    {
+      "id": "M02",
+      "status": "native-pending",
+      "implementation": [
+        "Temporary manuscript scope ownership is now per RendererHostPage. Disposing or reloading the page drains and permanently closes its registry; late picker completions are refused and any newly acquired grant is immediately stopped. Replacement pages own separate registries, so old cleanup cannot release their grants.",
+        "Registry replacement, explicit release and disposal claim callbacks under one lock and invoke them outside it. Native stop failures are reported without skipping the remaining releases."
+      ],
+      "files": [
+        "Novalist.Mobile/Services/TemporaryAccessRegistry.cs",
+        "Novalist.Mobile/Services/SecurityScopedFolders.cs",
+        "Novalist.Mobile/Services/SecurityScopedFolders.Manuscripts.cs",
+        "Novalist.Mobile/Pages/RendererHostPage.cs",
+        "Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs",
+        "tests/Novalist.Core.Tests/Novalist.Core.Tests.csproj",
+        "tests/Novalist.Core.Tests/Services/MobileTemporaryAccessTests.cs"
+      ],
+      "tests": [
+        "MobileTemporaryAccessTests: 6/6 freshly compiled portable tests pass: dispose all selections; duplicate cleanup; same-path replacement; late old-page acquisition rejected/released without touching replacement page; concurrent replacement/release/dispose; native stop failure continuation.",
+        "Independent read-only review found no blocking ownership issue and independently reran 6/6 tests without rebuilding.",
+        "Elevated scoped Aislop: 100 across 6 supported files, zero diagnostics; unused System.Text.Json removed and no legacy temporary-registry/release references remain."
+      ],
+      "pending": [
+        "On iOS, count successful native starts/stops across pick/cancel/import/close/reselect and page disposal/WebKit reload, including a delayed old picker reply and an active replacement-page grant. Portable callback tests do not establish NSUrl or picker runtime behavior."
+      ]
+    }
+  ],
+  "aiFollowup": {
+    "status": "complete",
+    "findings": [
+      "A04",
+      "A05",
+      "A09",
+      "A11",
+      "A01",
+      "A02",
+      "A06",
+      "A10"
+    ],
+    "files": [
+      "Services/AiService.cs",
+      "Services/CopilotAcpClient.cs",
+      "Services/ClaudeCliClient.cs",
+      "Services/AnthropicClient.cs",
+      "tests/AuditCliRequestTests.cs",
+      "tests/AuditServiceCancellationTests.cs",
+      "tests/FakeCli/Program.cs",
+      "tests/FakeCli/Novalist.FakeAiCli.csproj",
+      "tests/Novalist.Extensions.AiAssistant.Tests.csproj",
+      "Services/ContextEngine.cs",
+      "Services/ChatRequestAssembler.cs",
+      "Services/ChatWebViewController.cs",
+      "ViewModels/AiChatViewModel.cs",
+      "web/chat.html",
+      "tests/AuditChatLifecycleTests.cs",
+      "tests/ChatRequestAssemblerTests.cs",
+      "tests/chat-web.test.cjs"
+    ],
+    "changes": [
+      "Request-model errors propagate except explicit method-not-found legacy fallback. Fresh Copilot sessions rediscover their model config ID and ignore stale-session notifications.",
+      "Protocol write errors and child exits fail pending work promptly. Cancellation covers initialize/session/model/prompt phases and stops child processes. Late events from retired children are ignored.",
+      "CLI gate regression tests verify model/callback isolation, queued cancellation, cancel-all, recovery, large stdin, system-prompt temporary-file cleanup and pre-cancelled calls.",
+      "Cancel-all snapshots active requests to allow synchronous cancellation callbacks to start a new request safely.",
+      "Injected Anthropic transport now applies to availability/model discovery as well as generation.",
+      "Removed redundant diagnostic output and raw response snippets; narrowed parser and availability exception handling.",
+      "Send consumes the preflight request plan; hooks are not invoked again after validation. Context read and budget failures return actionable rejection replies.",
+      "Request identity prevents queued UI chunks from repopulating completed or subsequent responses. Reentrant project changes during hooks cannot send or retain previous-project text.",
+      "Response filters remain applied to the final visible message and stored conversation. Cancelled partial responses use received chunks even if UI dispatch has not yet caught up.",
+      "Preview tracks repeated occurrences of the same ContextBlock instance independently. Blank blocks no longer appear as included context.",
+      "Webview keeps drafts until acceptance, prevents duplicate sends while context loads or a response runs, clears previous-project preview/context on reset, and restores active stream state during hydration."
+    ],
+    "tests": {
+      "new": 27,
+      "fullSuite": {
+        "passed": 157,
+        "skipped": 4,
+        "failed": 0,
+        "total": 161
+      },
+      "command": "dotnet test tests/Novalist.Extensions.AiAssistant.Tests.csproj --no-restore --nologo --verbosity quiet -m:1 -nr:false -p:SkipExtensionDeploy=true -p:BuildProjectReferences=false",
+      "note": "AI main and fake CLI compiled first. Four existing dictation hardware/provider tests remain intentionally skipped. All model calls use fake HTTP or fake local CLI.",
+      "fullSuiteLog": "D:\\git\\novalist-aiassistant\\artifacts\\chat-review\\ai-final-review.trx"
+    },
+    "pinnedSdk": {
+      "revision": "ba8b6d328b64ded6e923baa25ce086d7e9e799e4",
+      "hostVersion": "3.5.3",
+      "fixture": "D:\\git\\novalist-official\\artifacts\\audit-2026-10-06\\sdk-compat-fixture",
+      "source": "Clean git archive of pinned SDK and root Directory.Build.props. Current AI working source copied as sibling. No live SDK/output dependencies. Parent build-property inheritance blocked.",
+      "restore": "Local NuGet cache only with empty local package source; NuGetAudit=false; no network needed.",
+      "build": "Release dotnet test with BuildProjectReferences enabled and SkipExtensionDeploy=true",
+      "suite": {
+        "passed": 157,
+        "skipped": 4,
+        "failed": 0,
+        "total": 161
+      },
+      "loadSmoke": {
+        "status": "passed",
+        "typesLoaded": 375,
+        "hostInterfacesBound": 13,
+        "constructed": "com.novalist.ai 3.0",
+        "limitations": "Managed assembly/interface load smoke plus fake-host tests; not an installed desktop GUI launch."
+      },
+      "suiteLog": "D:\\git\\novalist-official\\artifacts\\audit-2026-10-06\\sdk-compat-fixture\\results\\pinned-sdk-final.trx"
+    },
+    "pending": [],
+    "aislop": {
+      "score": 69,
+      "summary": {
+        "errors": 0,
+        "warnings": 12,
+        "fixable": 0,
+        "files": 4,
+        "elapsed": "229ms"
+      },
+      "diagnostics": [
+        {
+          "filePath": "Services/AiService.cs",
+          "engine": "code-quality",
+          "rule": "complexity/file-too-large",
+          "severity": "warning",
+          "message": "File too large (limit: 400, flagged above 441 lines)",
+          "help": "Consider splitting this file into partial class files or smaller modules",
+          "line": 0,
+          "column": 0,
+          "category": "Complexity",
+          "fixable": false,
+          "detail": "1162 lines",
+          "changeContext": "unknown",
+          "assessment": {
+            "kind": "style-policy",
+            "confidence": "medium",
+            "label": "style/policy"
+          },
+          "scoreImpact": {
+            "tier": "style",
+            "multiplier": 0.5,
+            "cap": 8,
+            "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+          },
+          "forceFixable": false
+        },
+        {
+          "filePath": "Services/AiService.cs",
+          "engine": "code-quality",
+          "rule": "complexity/function-too-long",
+          "severity": "warning",
+          "message": "Function too long (limit: 80, flagged above 88 lines)",
+          "help": "Consider breaking this function into smaller pieces",
+          "line": 442,
+          "column": 0,
+          "category": "Complexity",
+          "fixable": false,
+          "detail": "GenerateCompatibleAsync \u00b7 122 lines",
+          "changeContext": "changed-line",
+          "assessment": {
+            "kind": "style-policy",
+            "confidence": "medium",
+            "label": "style/policy"
+          },
+          "scoreImpact": {
+            "tier": "style",
+            "multiplier": 0.5,
+            "cap": 8,
+            "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+          },
+          "forceFixable": false
+        },
+        {
+          "filePath": "Services/AiService.cs",
+          "engine": "code-quality",
+          "rule": "complexity/too-many-params",
+          "severity": "warning",
+          "message": "Function has too many parameters (max: 6)",
+          "help": "Consider using an options object parameter",
+          "line": 566,
+          "column": 0,
+          "category": "Complexity",
+          "fixable": false,
+          "detail": "ProcessToken \u00b7 7 params",
+          "changeContext": "existing-file-context",
+          "assessment": {
+            "kind": "style-policy",
+            "confidence": "medium",
+            "label": "style/policy"
+          },
+          "scoreImpact": {
+            "tier": "maintainability",
+            "multiplier": 0.75,
+            "cap": 24,
+            "rationale": "Large parameter lists hurt call-site safety but usually need intentional refactoring."
+          },
+          "forceFixable": false
+        },
+        {
+          "filePath": "Services/AiService.cs",
+          "engine": "code-quality",
+          "rule": "complexity/too-many-params",
+          "severity": "warning",
+          "message": "Function has too many parameters (max: 6)",
+          "help": "Consider using an options object parameter",
+          "line": 734,
+          "column": 0,
+          "category": "Complexity",
+          "fixable": false,
+          "detail": "AnalyseChapterWholeAsync \u00b7 9 params",
+          "changeContext": "existing-file-context",
+          "assessment": {
+            "kind": "style-policy",
+            "confidence": "medium",
+            "label": "style/policy"
+          },
+          "scoreImpact": {
+            "tier": "maintainability",
+            "multiplier": 0.75,
+            "cap": 24,
+            "rationale": "Large parameter lists hurt call-site safety but usually need intentional refactoring."
+          },
+          "forceFixable": false
+        },
+        {
+          "filePath": "Services/ClaudeCliClient.cs",
+          "engine": "code-quality",
+          "rule": "complexity/file-too-large",
+          "severity": "warning",
+          "message": "File too large (limit: 400, flagged above 441 lines)",
+          "help": "Consider splitting this file into partial class files or smaller modules",
+          "line": 0,
+          "column": 0,
+          "category": "Complexity",
+          "fixable": false,
+          "detail": "568 lines",
+          "changeContext": "unknown",
+          "assessment": {
+            "kind": "style-policy",
+            "confidence": "medium",
+            "label": "style/policy"
+          },
+          "scoreImpact": {
+            "tier": "style",
+            "multiplier": 0.5,
+            "cap": 8,
+            "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+          },
+          "forceFixable": false
+        },
+        {
+          "filePath": "Services/ClaudeCliClient.cs",
+          "engine": "code-quality",
+          "rule": "complexity/function-too-long",
+          "severity": "warning",
+          "message": "Function too long (limit: 80, flagged above 88 lines)",
+          "help": "Consider breaking this function into smaller pieces",
+          "line": 324,
+          "column": 0,
+          "category": "Complexity",
+          "fixable": false,
+          "detail": "LogEnvironmentProbeAsync \u00b7 90 lines",
+          "changeContext": "existing-file-context",
+          "assessment": {
+            "kind": "style-policy",
+            "confidence": "medium",
+            "label": "style/policy"
+          },
+          "scoreImpact": {
+            "tier": "style",
+            "multiplier": 0.5,
+            "cap": 8,
+            "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+          },
+          "forceFixable": false
+        },
+        {
+          "filePath": "Services/CopilotAcpClient.cs",
+          "engine": "code-quality",
+          "rule": "complexity/file-too-large",
+          "severity": "warning",
+          "message": "File too large (limit: 400, flagged above 441 lines)",
+          "help": "Consider splitting this file into partial class files or smaller modules",
+          "line": 0,
+          "column": 0,
+          "category": "Complexity",
+          "fixable": false,
+          "detail": "503 lines",
+          "changeContext": "unknown",
+          "assessment": {
+            "kind": "style-policy",
+            "confidence": "medium",
+            "label": "style/policy"
+          },
+          "scoreImpact": {
+            "tier": "style",
+            "multiplier": 0.5,
+            "cap": 8,
+            "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+          },
+          "forceFixable": false
+        },
+        {
+          "filePath": "Services/ClaudeCliClient.cs",
+          "engine": "ai-slop",
+          "rule": "ai-slop/todo-stub",
+          "severity": "info",
+          "message": "Unresolved TODO/FIXME/HACK comment indicates incomplete code",
+          "help": "Resolve the TODO or create a tracked issue for it",
+          "line": 41,
+          "column": 0,
+          "category": "AI Slop",
+          "fixable": false,
+          "changeContext": "existing-file-context",
+          "assessment": {
+            "kind": "ai-slop-indicator",
+            "confidence": "medium",
+            "label": "AI-slop indicators"
+          },
+          "scoreImpact": {
+            "tier": "standard",
+            "multiplier": 1,
+            "rationale": "Unresolved TODO/stub markers often indicate unfinished behavior."
+          },
+          "forceFixable": false
+        },
+        {
+          "filePath": "Services/AiService.cs",
+          "engine": "ai-slop",
+          "rule": "ai-slop/csharp-console-leftover",
+          "severity": "warning",
+          "message": "Debug/Trace output left in shipped code is usually a leftover.",
+          "help": "Remove the diagnostic write, or route it through the project's logger.",
+          "line": 253,
+          "column": 1,
+          "category": "AI Slop",
+          "fixable": false,
+          "changeContext": "existing-file-context",
+          "assessment": {
+            "kind": "ai-slop-indicator",
+            "confidence": "medium",
+            "label": "AI-slop indicators"
+          },
+          "scoreImpact": {
+            "tier": "style",
+            "multiplier": 0.5,
+            "cap": 8,
+            "rationale": "Leftover Console/Debug/Trace output is visible cleanup unless it leaks sensitive data."
+          },
+          "forceFixable": false
+        },
+        {
+          "filePath": "Services/AiService.cs",
+          "engine": "ai-slop",
+          "rule": "ai-slop/csharp-console-leftover",
+          "severity": "warning",
+          "message": "Debug/Trace output left in shipped code is usually a leftover.",
+          "help": "Remove the diagnostic write, or route it through the project's logger.",
+          "line": 267,
+          "column": 1,
+          "category": "AI Slop",
+          "fixable": false,
+          "changeContext": "existing-file-context",
+          "assessment": {
+            "kind": "ai-slop-indicator",
+            "confidence": "medium",
+            "label": "AI-slop indicators"
+          },
+          "scoreImpact": {
+            "tier": "style",
+            "multiplier": 0.5,
+            "cap": 8,
+            "rationale": "Leftover Console/Debug/Trace output is visible cleanup unless it leaks sensitive data."
+          },
+          "forceFixable": false
+        },
+        {
+          "filePath": "Services/AiService.cs",
+          "engine": "ai-slop",
+          "rule": "ai-slop/csharp-console-leftover",
+          "severity": "warning",
+          "message": "Debug/Trace output left in shipped code is usually a leftover.",
+          "help": "Remove the diagnostic write, or route it through the project's logger.",
+          "line": 538,
+          "column": 1,
+          "category": "AI Slop",
+          "fixable": false,
+          "changeContext": "changed-line",
+          "assessment": {
+            "kind": "ai-slop-indicator",
+            "confidence": "medium",
+            "label": "AI-slop indicators"
+          },
+          "scoreImpact": {
+            "tier": "style",
+            "multiplier": 0.5,
+            "cap": 8,
+            "rationale": "Leftover Console/Debug/Trace output is visible cleanup unless it leaks sensitive data."
+          },
+          "forceFixable": false
+        },
+        {
+          "filePath": "Services/AiService.cs",
+          "engine": "ai-slop",
+          "rule": "ai-slop/csharp-console-leftover",
+          "severity": "warning",
+          "message": "Debug/Trace output left in shipped code is usually a leftover.",
+          "help": "Remove the diagnostic write, or route it through the project's logger.",
+          "line": 561,
+          "column": 1,
+          "category": "AI Slop",
+          "fixable": false,
+          "changeContext": "existing-file-context",
+          "assessment": {
+            "kind": "ai-slop-indicator",
+            "confidence": "medium",
+            "label": "AI-slop indicators"
+          },
+          "scoreImpact": {
+            "tier": "style",
+            "multiplier": 0.5,
+            "cap": 8,
+            "rationale": "Leftover Console/Debug/Trace output is visible cleanup unless it leaks sensitive data."
+          },
+          "forceFixable": false
+        },
+        {
+          "filePath": "Services/AiService.cs",
+          "engine": "ai-slop",
+          "rule": "ai-slop/csharp-console-leftover",
+          "severity": "warning",
+          "message": "Debug/Trace output left in shipped code is usually a leftover.",
+          "help": "Remove the diagnostic write, or route it through the project's logger.",
+          "line": 759,
+          "column": 1,
+          "category": "AI Slop",
+          "fixable": false,
+          "changeContext": "existing-file-context",
+          "assessment": {
+            "kind": "ai-slop-indicator",
+            "confidence": "medium",
+            "label": "AI-slop indicators"
+          },
+          "scoreImpact": {
+            "tier": "style",
+            "multiplier": 0.5,
+            "cap": 8,
+            "rationale": "Leftover Console/Debug/Trace output is visible cleanup unless it leaks sensitive data."
+          },
+          "forceFixable": false
+        }
+      ],
+      "note": "Remaining warnings are pre-existing file/function/parameter size or deliberate failure diagnostics. No errors or fixable warnings. Retained TODO info is a prose false positive (HOMEPATH)."
+    },
+    "chatReview": {
+      "status": "complete",
+      "files": [
+        "Services/ContextEngine.cs",
+        "Services/ChatRequestAssembler.cs",
+        "Services/ChatWebViewController.cs",
+        "ViewModels/AiChatViewModel.cs",
+        "web/chat.html",
+        "tests/AuditChatLifecycleTests.cs",
+        "tests/ChatRequestAssemblerTests.cs",
+        "tests/chat-web.test.cjs"
+      ],
+      "fixes": [
+        "Send consumes the preflight request plan; hooks are not invoked again after validation. Context read and budget failures return actionable rejection replies.",
+        "Request identity prevents queued UI chunks from repopulating completed or subsequent responses. Reentrant project changes during hooks cannot send or retain previous-project text.",
+        "Response filters remain applied to the final visible message and stored conversation. Cancelled partial responses use received chunks even if UI dispatch has not yet caught up.",
+        "Preview tracks repeated occurrences of the same ContextBlock instance independently. Blank blocks no longer appear as included context.",
+        "Webview keeps drafts until acceptance, prevents duplicate sends while context loads or a response runs, clears previous-project preview/context on reset, and restores active stream state during hydration."
+      ],
+      "newCSharpTests": 9,
+      "webTests": {
+        "passed": 4,
+        "failed": 0,
+        "command": "node --test tests/chat-web.test.cjs",
+        "log": "D:\\git\\novalist-aiassistant\\artifacts\\chat-review\\chat-web-final.log",
+        "scope": "Original web/chat.html script executed in a deterministic minimal DOM; no installed Electron UI end-to-end run."
+      },
+      "aislop": {
+        "score": 100,
+        "errors": 0,
+        "warnings": 0,
+        "fixable": 0,
+        "artifact": "D:\\git\\novalist-aiassistant\\artifacts\\audit-chat-review-scan.json"
+      },
+      "pending": []
+    }
+  },
+  "researchRecoveryFollowup": {
+    "id": "M01",
+    "status": "portable-regression-verified-native-pending",
+    "implementation": "Acknowledgements remove only an exactly matching saved Research value in the captured recovery scope. An old hook acknowledgement cannot remove a newer remounted draft merely because the note ID is equal.",
+    "tests": [
+      "Research persistence source regression failed before the correction (new journal was missing) and passed afterward. All4 new source regressions pass."
+    ],
+    "files": [
+      "app/src/renderer/src/views/library/useResearchDrafts.ts",
+      "app/scripts/research-persistence.test.mjs"
+    ],
+    "pending": [
+      "Actual iOS background/process-termination/device recovery acceptance remains pending."
+    ]
+  }
+}

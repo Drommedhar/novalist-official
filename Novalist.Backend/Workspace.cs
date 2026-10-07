@@ -101,9 +101,12 @@ public sealed partial class Workspace : IDisposable
 
     /// <summary>Test seam: overrides the extension discovery directory.</summary>
     public Extensions.ExtensionLoader? ExtensionsLoaderOverride { get; set; }
+    internal event Action? Disposing;
 
     public void Dispose()
     {
+        Disposing?.Invoke();
+        Disposing = null;
         _extensions?.ShutdownAll();
         _hostServices?.Dispose();
         _uiPump?.Dispose();
@@ -118,6 +121,7 @@ public sealed partial class Workspace : IDisposable
         // Record the portrait cover's absolute path so the welcome screen can
         // render each recent project's cover without opening it.
         Settings.AddRecentProject(metadata.Name, projectDirectory, ActiveCoverAbsolutePath() ?? string.Empty);
+        Settings.Settings.RecentProjects[0].ProjectId = metadata.Id;
         await Settings.SaveAsync();
         // Notify extensions (e.g. the AI Assistant's first-run setup + knowledge
         // cache) that a project is now available.

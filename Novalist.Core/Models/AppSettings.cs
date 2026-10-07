@@ -409,6 +409,10 @@ public class AppSettings : IEffectiveSettings
 
 public class RecentProject
 {
+    [JsonPropertyName("projectId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ProjectId { get; set; }
+
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 

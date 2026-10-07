@@ -25,6 +25,7 @@ public sealed partial class ExtensionManager
     private readonly HostServices _hostServices;
 
     public ObservableCollection<ExtensionInfo> Extensions { get; } = [];
+    internal event Action<string>? ExtensionStopping;
 
     // ── Hook collections (populated during loading) ─────────────────
 
@@ -262,6 +263,7 @@ public sealed partial class ExtensionManager
         if (info == null) return;
 
         info.IsEnabled = false;
+        ExtensionStopping?.Invoke(info.Manifest.Id);
         _settingsService.Settings.Extensions[extensionId] = false;
         await _settingsService.SaveAsync();
 
@@ -283,6 +285,7 @@ public sealed partial class ExtensionManager
     {
         foreach (var info in Extensions.Where(e => e.IsLoaded))
         {
+            ExtensionStopping?.Invoke(info.Manifest.Id);
             try
             {
                 RemoveHooks(info);

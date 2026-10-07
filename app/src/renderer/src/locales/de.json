@@ -270,6 +270,7 @@
     "fetchingTitle": "Wird abgerufen...",
     "typeAudio": "Audio",
     "typeVideo": "Video",
+    "previewFailed": "Diese Mediendatei konnte nicht angezeigt werden.",
     "pdfFallback": "Dieses PDF kann hier nicht angezeigt werden. Öffnen Sie es extern.",
     "status": "Status",
     "statusNone": "Kein Status",
@@ -386,7 +387,10 @@
       "inactive": "Nicht im Buch"
     }
   },
+  "inlineReview": {"title":"Textaktion","choose":"Ergebnis auswählen","apply":"Anwenden"},
+  "mobileRecovery": { "recovered": "Wiederhergestellt" },
   "findReplace": {
+    "failed": "Suchen oder Ersetzen fehlgeschlagen: {{message}}",
     "title": "Suchen und Ersetzen",
     "find": "Suchen",
     "replace": "Ersetzen",

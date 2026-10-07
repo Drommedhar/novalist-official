@@ -21,5 +21,7 @@ public sealed class MapInfo
 {
     public string Id { get; init; } = string.Empty;
     public string Name { get; init; } = string.Empty;
+    /// <summary>Project-relative images used by all map layers and pin icons.</summary>
+    public IReadOnlyList<string> ImagePaths { get; init; } = [];
     public IReadOnlyList<MapPinInfo> Pins { get; init; } = [];
 }

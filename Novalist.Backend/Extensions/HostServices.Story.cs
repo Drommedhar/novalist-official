@@ -228,6 +228,9 @@ public sealed partial class HostServices
             {
                 Id = map.Id,
                 Name = map.Name,
+                ImagePaths = [.. MapImagePaths(map.Layers).Concat(map.Pins
+                    .Select(pin => pin.IconPath ?? string.Empty)).Where(path => !string.IsNullOrWhiteSpace(path))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)],
                 Pins = [.. (map.Pins ?? []).Select(pin => new MapPinInfo
                 {
                     Id = pin.Id,
@@ -241,6 +244,15 @@ public sealed partial class HostServices
             });
         }
         return maps;
+    }
+
+    private static IEnumerable<string> MapImagePaths(IEnumerable<MapLayerNode> layers)
+    {
+        foreach (var layer in layers)
+        {
+            foreach (var image in layer.Images) yield return image.Path;
+            foreach (var path in MapImagePaths(layer.Children)) yield return path;
+        }
     }
 
     IReadOnlyList<ActInfo> IExtensionStoryService.GetActs()

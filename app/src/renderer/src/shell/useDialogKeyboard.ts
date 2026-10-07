@@ -11,7 +11,11 @@ export function restoreDialogFocus(dialog: HTMLElement | null, previous: HTMLEle
 export function useDialogAutoFocus(ref: RefObject<HTMLElement | null>): void {
   const present = useMotionPresent()
   useEffect(() => {
-    if (present) ref.current?.focus()
+    if (!present) return
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const dialog = ref.current?.closest<HTMLElement>('[role="dialog"]') ?? ref.current
+    ref.current?.focus()
+    return () => restoreDialogFocus(dialog, previous)
   }, [present, ref])
 }
 

@@ -1,0 +1,370 @@
+{
+  "updated": "2026-10-07",
+  "findings": [
+    {
+      "id": "A01",
+      "status": "implemented-verified",
+      "implementation": [
+        "Chat reads only selected privacy-filtered context. Project changes, reset, cancellation and disposal retire delayed context reads and responses."
+      ],
+      "files": [
+        "../novalist-aiassistant/Services/ChatWebViewController.cs",
+        "../novalist-aiassistant/ViewModels/AiChatViewModel.cs"
+      ],
+      "tests": [
+        "AuditChatLifecycleTests covers delayed provider/context replies, reset, project changes, queued UI chunks and prepared request reuse.",
+        "Final complete AI suite: 157 passed and 4 existing hardware-dependent skips; chat webview state tests: 4 passed."
+      ],
+      "pending": []
+    },
+    {
+      "id": "A02",
+      "status": "implemented-verified",
+      "implementation": [
+        "Chat reads only selected privacy-filtered context. Project changes, reset, cancellation and disposal retire delayed context reads and responses."
+      ],
+      "files": [
+        "../novalist-aiassistant/Services/ChatWebViewController.cs",
+        "../novalist-aiassistant/ViewModels/AiChatViewModel.cs"
+      ],
+      "tests": [
+        "AuditChatLifecycleTests covers delayed provider/context replies, reset, project changes, queued UI chunks and prepared request reuse.",
+        "Final complete AI suite: 157 passed and 4 existing hardware-dependent skips; chat webview state tests: 4 passed."
+      ],
+      "pending": []
+    },
+    {
+      "id": "A08",
+      "status": "implemented-verified",
+      "implementation": [
+        "Chat reads only selected privacy-filtered context. Project changes, reset, cancellation and disposal retire delayed context reads and responses."
+      ],
+      "files": [
+        "../novalist-aiassistant/Services/ChatWebViewController.cs",
+        "../novalist-aiassistant/ViewModels/AiChatViewModel.cs"
+      ],
+      "tests": [
+        "AuditChatLifecycleTests covers delayed provider/context replies, reset, project changes, queued UI chunks and prepared request reuse.",
+        "Final complete AI suite: 157 passed and 4 existing hardware-dependent skips; chat webview state tests: 4 passed."
+      ],
+      "pending": []
+    },
+    {
+      "id": "A03",
+      "status": "implemented-verified",
+      "implementation": [
+        "Knowledge caches and locks use captured project-specific paths. A single cancellable lock owns each transaction; failed writes do not publish a changed cache."
+      ],
+      "files": [
+        "../novalist-aiassistant/Services/CharacterKnowledgeService.cs"
+      ],
+      "tests": [
+        "CharacterKnowledgeServiceTests: cold/warm updates, concurrency, cancellation, project switches, failed writes and corrupt files."
+      ],
+      "pending": []
+    },
+    {
+      "id": "A12",
+      "status": "implemented-verified",
+      "implementation": [
+        "Knowledge caches and locks use captured project-specific paths. A single cancellable lock owns each transaction; failed writes do not publish a changed cache."
+      ],
+      "files": [
+        "../novalist-aiassistant/Services/CharacterKnowledgeService.cs"
+      ],
+      "tests": [
+        "CharacterKnowledgeServiceTests: cold/warm updates, concurrency, cancellation, project switches, failed writes and corrupt files."
+      ],
+      "pending": []
+    },
+    {
+      "id": "A04",
+      "status": "implemented-verified",
+      "implementation": [
+        "Requests capture model and cancellation independently. CLI access is serialized; ACP requests use isolated sessions and bounded waits. Empty SSE choice arrays preserve preceding text."
+      ],
+      "files": [
+        "../novalist-aiassistant/Services/AiService.cs",
+        "../novalist-aiassistant/Services/AnthropicClient.cs",
+        "../novalist-aiassistant/Services/CopilotAcpClient.cs",
+        "../novalist-aiassistant/Services/ClaudeCliClient.cs"
+      ],
+      "tests": [
+        "Full AI suite: 157 passed, 4 existing hardware-dependent tests skipped.",
+        "Real fake-CLI child processes verify session/model arguments, cancellation, process exit, stdin and temporary-file cleanup."
+      ],
+      "pending": []
+    },
+    {
+      "id": "A05",
+      "status": "implemented-verified",
+      "implementation": [
+        "Requests capture model and cancellation independently. CLI access is serialized; ACP requests use isolated sessions and bounded waits. Empty SSE choice arrays preserve preceding text."
+      ],
+      "files": [
+        "../novalist-aiassistant/Services/AiService.cs",
+        "../novalist-aiassistant/Services/AnthropicClient.cs",
+        "../novalist-aiassistant/Services/CopilotAcpClient.cs",
+        "../novalist-aiassistant/Services/ClaudeCliClient.cs"
+      ],
+      "tests": [
+        "Full AI suite: 157 passed, 4 existing hardware-dependent tests skipped.",
+        "Real fake-CLI child processes verify session/model arguments, cancellation, process exit, stdin and temporary-file cleanup."
+      ],
+      "pending": []
+    },
+    {
+      "id": "A06",
+      "status": "implemented-verified",
+      "implementation": [
+        "Requests capture model and cancellation independently. CLI access is serialized; ACP requests use isolated sessions and bounded waits. Empty SSE choice arrays preserve preceding text."
+      ],
+      "files": [
+        "../novalist-aiassistant/Services/AiService.cs",
+        "../novalist-aiassistant/Services/AnthropicClient.cs",
+        "../novalist-aiassistant/Services/CopilotAcpClient.cs",
+        "../novalist-aiassistant/Services/ClaudeCliClient.cs"
+      ],
+      "tests": [
+        "Full AI suite: 157 passed, 4 existing hardware-dependent tests skipped.",
+        "Real fake-CLI child processes verify session/model arguments, cancellation, process exit, stdin and temporary-file cleanup."
+      ],
+      "pending": []
+    },
+    {
+      "id": "A09",
+      "status": "implemented-verified",
+      "implementation": [
+        "Requests capture model and cancellation independently. CLI access is serialized; ACP requests use isolated sessions and bounded waits. Empty SSE choice arrays preserve preceding text."
+      ],
+      "files": [
+        "../novalist-aiassistant/Services/AiService.cs",
+        "../novalist-aiassistant/Services/AnthropicClient.cs",
+        "../novalist-aiassistant/Services/CopilotAcpClient.cs",
+        "../novalist-aiassistant/Services/ClaudeCliClient.cs"
+      ],
+      "tests": [
+        "Full AI suite: 157 passed, 4 existing hardware-dependent tests skipped.",
+        "Real fake-CLI child processes verify session/model arguments, cancellation, process exit, stdin and temporary-file cleanup."
+      ],
+      "pending": []
+    },
+    {
+      "id": "A07",
+      "status": "implemented-verified",
+      "implementation": [
+        "One request assembler budgets instructions, selected context, current input and recent whole turns, with output reserve. Permanent history stores the writer's original input rather than repeating attached context."
+      ],
+      "files": [
+        "../novalist-aiassistant/Services/ChatRequestAssembler.cs",
+        "../novalist-aiassistant/web/chat.html"
+      ],
+      "tests": [
+        "ChatRequestAssemblerTests: bounded full requests, complete turn eviction, oversized required input and duplicate labels.",
+        "Output reserve is sent to compatible HTTP and Anthropic providers; CLI output remains an estimate."
+      ],
+      "pending": []
+    },
+    {
+      "id": "A10",
+      "status": "implemented-verified",
+      "implementation": [
+        "Preview inclusion tracks each occurrence independently, including repeated instances of one block; blank blocks are excluded."
+      ],
+      "files": [
+        "../novalist-aiassistant/Services/ContextEngine.cs"
+      ],
+      "tests": [
+        "Duplicate-heading tests verify each block's inclusion independently."
+      ],
+      "pending": []
+    },
+    {
+      "id": "A11",
+      "status": "implemented-verified",
+      "implementation": [
+        "PRs and release packaging share a test gate. SDK source and package versions are pinned, and the manifest declares the corresponding minimum host."
+      ],
+      "files": [
+        "../novalist-aiassistant/.github/workflows/validate.yml",
+        "../novalist-aiassistant/.github/workflows/release.yml",
+        "../novalist-aiassistant/sdk-compatibility.json",
+        "../novalist-aiassistant/tools/check-sdk-compatibility.py"
+      ],
+      "tests": [
+        "Compatibility contract check passes: host 3.5.3, SDK 13.4.0, revision ba8b6d328b64ded6e923baa25ce086d7e9e799e4.",
+        "Clean pinned-SDK Release fixture: 157 passed, 4 existing skips; runtime smoke loaded 375 types and bound 13 host interfaces.",
+        "Offline dictation worker suite: 14 passed."
+      ],
+      "pending": []
+    },
+    {
+      "id": "P02",
+      "status": "implemented-verified",
+      "implementation": [
+        "The chat bridge sends response/thinking suffixes with an explicit reset flag. The webview batches DOM updates to animation frames and retains final messages."
+      ],
+      "files": [
+        "../novalist-aiassistant/Services/ChatStreamUpdate.cs",
+        "../novalist-aiassistant/web/chat.html"
+      ],
+      "tests": [
+        "Synthetic 12,000-character reply plus thinking transfers 12,006 content characters, preserving exact final text."
+      ],
+      "pending": []
+    },
+    {
+      "id": "M01",
+      "status": "native-validation-pending",
+      "implementation": [
+        "Native background events request a bounded, acknowledged flush. A project/book/draft-scoped journal retains scene, manuscript and Research edits for checked recovery after suspension or termination."
+      ],
+      "files": [
+        "Novalist.Mobile/App.cs",
+        "Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs",
+        "app/src/renderer/src/mobile/recovery.ts",
+        "app/src/renderer/src/mobile/recoveryJournal.ts",
+        "app/src/renderer/src/shell/useWorkspaceWindow.ts",
+        "app/src/renderer/src/views/library/useResearchDrafts.ts",
+        "app/scripts/research-persistence.test.mjs"
+      ],
+      "tests": [
+        "Portable journal tests cover scope, retained edits and conflict-safe recovery; shim tests acknowledge only completed background saves.",
+        "Research persistence regression holds an old hook's save across unmount/remount and proves its acknowledgement cannot erase the newer journal entry; all dirty notes remain retryable after a failed flush."
+      ],
+      "pending": [
+        "Run the macOS simulator build and corresponding device acceptance cases below; no native runtime result is claimed on Windows."
+      ]
+    },
+    {
+      "id": "M02",
+      "status": "native-validation-pending",
+      "implementation": [
+        "Folder grants are released on failed acquisition, moved-path rejection, project changes and teardown. Moved parent bookmarks retain aliases for unopened sibling projects. Temporary manuscript grants belong to one renderer page, including late picker replies after reload."
+      ],
+      "files": [
+        "Novalist.Mobile/Services/SecurityScopedFolders.cs",
+        "Novalist.Mobile/Services/IosStoredPathResolver.cs",
+        "Novalist.Mobile/Services/TemporaryAccessRegistry.cs",
+        "Novalist.Mobile/Services/SecurityScopedFolders.Manuscripts.cs",
+        "Novalist.Backend/Workspace.Library.cs"
+      ],
+      "tests": [
+        "Shared resolver/workspace tests pass; native start/stop balancing was reviewed statically."
+      ],
+      "pending": [
+        "Run the macOS simulator build and corresponding device acceptance cases below; no native runtime result is claimed on Windows."
+      ]
+    },
+    {
+      "id": "M03",
+      "status": "native-validation-pending",
+      "implementation": [
+        "Container relocation applies only to recorded app-owned projects with matching stable IDs. External matching suffixes, corrupt records and path escapes cannot redirect a project."
+      ],
+      "files": [
+        "Novalist.Mobile/Services/OwnedProjectPaths.cs",
+        "Novalist.Mobile/Services/IosStoredPathResolver.cs"
+      ],
+      "tests": [
+        "MobileOwnedProjectPathsTests: 6 passed, including malicious paths and corrupt/missing candidate manifests."
+      ],
+      "pending": [
+        "Run the macOS simulator build and corresponding device acceptance cases below; no native runtime result is claimed on Windows."
+      ]
+    },
+    {
+      "id": "M04",
+      "status": "native-validation-pending",
+      "implementation": [
+        "The bridge waits for readiness and acknowledges delivery. Timeouts/disconnect reject outstanding calls without replaying writes; stale ports are retired. WebKit failure pauses editing and offers reload after a bounded notification attempt."
+      ],
+      "files": [
+        "Novalist.Mobile/Pages/RendererHostPage.Transport.cs",
+        "Novalist.Mobile/Pages/RendererHostPage.cs",
+        "app/src/renderer/src/mobile/hostCalls.ts",
+        "app/src/renderer/src/mobile/shim.ts"
+      ],
+      "tests": [
+        "Mobile host-call and shim tests: 10 passed, including readiness, stale ports, timeout, disconnect and lifecycle acknowledgement."
+      ],
+      "pending": [
+        "On macOS/iOS, inject evaluator failure and timeout, backend pump read failure, and real WebKit termination. Verify pending calls settle, the new channel reconnects, retained edits recover, and no mutation is replayed."
+      ]
+    },
+    {
+      "id": "M05",
+      "status": "native-validation-pending",
+      "implementation": [
+        "Expanded the existing Apple PR workflow to cover Core, SDK, renderer and shared build inputs. Audit correction: a simulator compile gate already existed; its path triggers were incomplete."
+      ],
+      "files": [
+        ".github/workflows/apple-speech.yml",
+        "app/package.json",
+        "app/package-lock.json",
+        "README.md"
+      ],
+      "tests": [
+        "Workflow review confirms unsigned simulator compilation and device speech-library compilation. This workflow was not run on Windows."
+      ],
+      "pending": [
+        "Run the macOS simulator build and corresponding device acceptance cases below; no native runtime result is claimed on Windows."
+      ]
+    },
+    {
+      "id": "M06",
+      "status": "native-validation-pending",
+      "implementation": [
+        "Native permission denial travels as a stable error code and becomes the browser NotAllowedError contract used by dictation."
+      ],
+      "files": [
+        "Novalist.Mobile/Pages/RendererHostPage.cs",
+        "app/src/renderer/src/mobile/hostCalls.ts",
+        "app/scripts/mobile-dictation.test.mjs"
+      ],
+      "tests": [
+        "Portable microphone tests check NotAllowedError and execute the actual shim, HostCallChannel, microphone abstraction and dictation store. Denial shows dictation.permission; permitted retry records, stops exactly once and clears the stale error. Full source suite: 114 passed."
+      ],
+      "pending": [
+        "Run the macOS simulator build and corresponding device acceptance cases below; no native runtime result is claimed on Windows."
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "command": "dotnet test Core --filter MobileOwnedProjectPathsTests|MobileAssetReaderTests",
+      "status": "passed",
+      "detail": "8 tests passed. Oversized media is rejected before allocation; preview limit is 16 MiB."
+    },
+    {
+      "command": "node --experimental-strip-types --test --test-isolation=none scripts/mobile-host-calls.test.mjs scripts/mobile-shim.test.mjs",
+      "status": "passed",
+      "detail": "10 passed."
+    },
+    {
+      "command": "Elevated Aislop mobile/transport scan",
+      "status": "passed",
+      "detail": "Score 100; zero diagnostics. See aislop-mobile-current.json."
+    },
+    {
+      "command": "AI full suite and clean pinned-SDK Release fixture",
+      "status": "passed",
+      "detail": "157 passed, 4 existing hardware skips in each run; minimum-host managed load smoke passed."
+    },
+    {
+      "command": "node --test tests/chat-web.test.cjs",
+      "status": "passed",
+      "detail": "4 chat webview lifecycle tests passed; included in PR/release validation."
+    },
+    {
+      "command": "Elevated Aislop AI changed files",
+      "status": "passed-with-warnings",
+      "detail": "Score 81; 0 errors, 0 fixable warnings; 32 nonfixable size, complexity and diagnostic warnings remain."
+    },
+    {
+      "command": "Elevated Aislop official project scan",
+      "status": "passed",
+      "detail": "Score 100; 0 errors, 0 warnings, 0 fixable findings; 1,672 supported files. Whole-app ESLint findings are recorded separately using the app working directory."
+    }
+  ]
+}

@@ -4,6 +4,8 @@ import { EMPTY_EDITOR, editorPane, mirror, mapEditors, patchEditor, writePaneIds
 import { autosaveTimers, autosaveWrites, flushEditor, stripHtml, scheduleSave } from './projectPersistence'
 import { runSceneContext } from './projectSceneActions'
 import { type ProjectSlice } from './projectTypes'
+import { capturePendingWrites } from './pendingWrites'
+import { enqueueSceneWrite } from './sceneWriteQueue'
 
 export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn' | 'openSceneInSplit' | 'resolveSceneConflict' | 'dismissSceneConflict' | 'closeTab' | 'moveTabToOtherPane' | 'onEditorContentChanged' | 'syncEditorPanes' | 'flushPane' | 'flushPendingSave' | 'applyManuscriptSceneWrite'> = (set, get) => ({
   openScene: async (chapterGuid, sceneId) => {
@@ -25,7 +27,9 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
     // pane lost people.
     shell.setPaneView(paneId, 'write')
     shell.setActivePane(paneId)
+    capturePendingWrites()
     await get().flushPane(paneId)
+    if (get().sceneConflict || get().editors[paneId]?.isDirty) return
     const content = await rpc.request<{ sceneId: string; html: string; hash: string }>(
       'scenes/read',
       [chapterGuid, sceneId]
@@ -39,6 +43,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
           chapterGuid,
           sceneId,
           html: content.html,
+          hash: content.hash,
           plainText: stripHtml(content.html),
           tabs: previous.tabs.some((t) => t.sceneId === sceneId)
             ? previous.tabs
@@ -67,21 +72,29 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
   resolveSceneConflict: async (html) => {
     const conflict = get().sceneConflict
     if (!conflict) return
-    const result = await rpc.request<{ wordCount: number; hash: string }>(
+    for (const [paneId, editor] of Object.entries(get().editors)) {
+      if (editor.sceneId !== conflict.sceneId) continue
+      const timer = autosaveTimers.get(paneId)
+      if (timer) clearTimeout(timer)
+      autosaveTimers.delete(paneId)
+    }
+    const result = await enqueueSceneWrite(conflict.sceneId, () => rpc.request<{ wordCount: number; hash: string }>(
       'scenes/resolveConflict',
-      [conflict.chapterGuid, conflict.sceneId, html, stripHtml(html)]
+      [conflict.chapterGuid, conflict.sceneId, html, stripHtml(html), conflict.mine]
+      )
     )
     set((state) => {
       // The resolved text belongs to every pane holding that scene, not just the
       // one the writer resolved it from.
       const editors = mapEditors(state.editors, (editor) =>
-        editor.sceneId === conflict.sceneId ? { ...editor, html, isDirty: false } : editor
+        editor.sceneId === conflict.sceneId && (!editor.isDirty || editor.html === conflict.mine)
+          ? { ...editor, html, plainText: stripHtml(html), hash: result.hash, isDirty: false } : editor
       )
       return {
         sceneConflict: null,
         sceneHashes: { ...state.sceneHashes, [conflict.sceneId]: result.hash },
         editors,
-        dirtyMap: { ...state.dirtyMap, [conflict.sceneId]: false },
+        dirtyMap: { ...state.dirtyMap, [conflict.sceneId]: Object.values(editors).some((editor) => editor.sceneId === conflict.sceneId && editor.isDirty) },
         ...mirror(editors, state.activeEditorPaneId),
         chapters: state.chapters.map((c) =>
           c.guid === conflict.chapterGuid
@@ -95,6 +108,10 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
         )
       }
     })
+    if (window.novalist.isMobile) {
+      const { acknowledgeMobileSceneRecovery } = await import('../mobile/recovery')
+      acknowledgeMobileSceneRecovery(conflict.sceneId, html, conflict.mine)
+    }
     // manuscriptStore imports this store, so load it lazily here rather than
     // creating an eager module cycle. A resolved manuscript payload must be
     // retired or its old version would immediately conflict again on shutdown.
@@ -111,7 +128,11 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
     const idx = editor.tabs.findIndex((t) => t.sceneId === sceneId)
     if (idx < 0) return
     const isActive = editor.sceneId === sceneId
-    if (isActive) await get().flushPane(paneId)
+    if (isActive) {
+      capturePendingWrites()
+      await get().flushPane(paneId)
+      if (get().sceneConflict || get().editors[paneId]?.isDirty) return
+    }
     const remaining = editorPane(get(), paneId).tabs.filter((t) => t.sceneId !== sceneId)
 
     if (!isActive) {
@@ -138,6 +159,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
     if (!tab) return
     const others = writePaneIds().filter((id) => id !== paneId)
     await get().closeTab(paneId, sceneId)
+    if (editorPane(get(), paneId).tabs.some((entry) => entry.sceneId === sceneId)) return
     // With no second pane to move to, "the other pane" is one that has to exist
     // first - which is what a writer asking for this means anyway.
     if (others.length === 0) await get().openSceneInSplit(tab.chapterGuid, tab.sceneId)
@@ -172,7 +194,10 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
       for (const id of stale) {
         // A pane that goes away takes its editor with it, but not the writer's
         // last keystrokes: closing a split must never be a way to lose words.
-        void flushEditor(editors[id])
+        if (editors[id].isDirty) {
+          void flushEditor(editors[id], id).catch(() => {})
+          continue
+        }
         delete editors[id]
       }
     }
@@ -202,7 +227,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
     autosaveTimers.delete(paneId)
     const inFlight = autosaveWrites.get(paneId)
     if (inFlight) await inFlight
-    await flushEditor(get().editors[paneId])
+    await flushEditor(get().editors[paneId], paneId)
   },
 
   flushPendingSave: async () => {
@@ -227,7 +252,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
         // A clean frame must follow the version just written elsewhere. An
         // exact dirty match is now acknowledged too; there is no conflict to
         // ask the writer to resolve.
-        return { ...editor, html, plainText, isDirty: false }
+        return { ...editor, html, plainText, hash, isDirty: false }
       })
       const stillDirty = Object.values(editors).some(
         (editor) => editor.sceneId === sceneId && editor.isDirty

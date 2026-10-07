@@ -5,6 +5,7 @@ namespace Novalist.Core.Services;
 
 public class SettingsService : ISettingsService
 {
+    private static readonly FileService Files = new();
     private readonly string _settingsPath;
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -49,7 +50,7 @@ public class SettingsService : ISettingsService
     {
         if (File.Exists(_settingsPath))
         {
-            var json = await File.ReadAllTextAsync(_settingsPath);
+            var json = await Files.ReadTextAsync(_settingsPath);
             Settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
         }
         Settings.EnsureDefaults();
@@ -64,7 +65,7 @@ public class SettingsService : ISettingsService
             // being edited by whoever asked for the save, and reading it
             // outside would let one save capture half of the next one's change.
             var json = JsonSerializer.Serialize(Settings, JsonOptions);
-            await File.WriteAllTextAsync(_settingsPath, json);
+            await Files.WriteTextAsync(_settingsPath, json);
         }
         finally
         {

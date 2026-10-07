@@ -6,7 +6,7 @@ namespace Novalist.Core.Tests.TestHelpers;
 /// In-memory <see cref="IFileService"/> for services that do read-modify-write
 /// round trips. Avoids real disk while preserving the abstraction's semantics.
 /// </summary>
-public sealed class InMemoryFileService : IFileService
+public class InMemoryFileService : IFileService
 {
     public readonly Dictionary<string, string> Files = new(StringComparer.OrdinalIgnoreCase);
     public readonly HashSet<string> Dirs = new(StringComparer.OrdinalIgnoreCase);
@@ -18,6 +18,7 @@ public sealed class InMemoryFileService : IFileService
     public Task WriteTextAsync(string path, string content)
     {
         Files[path] = content;
+        Binaries.Remove(path);
         Mtimes[path] = DateTime.UtcNow;
         return Task.CompletedTask;
     }
@@ -30,12 +31,14 @@ public sealed class InMemoryFileService : IFileService
     public Task<byte[]> ReadBytesAsync(string path)
         => Binaries.TryGetValue(path, out var v)
             ? Task.FromResult(v)
-            : throw new FileNotFoundException(path);
+            : Files.TryGetValue(path, out var text)
+                ? Task.FromResult(System.Text.Encoding.UTF8.GetBytes(text))
+                : throw new FileNotFoundException(path);
 
     public Task WriteBytesAsync(string path, byte[] bytes)
     {
         Binaries[path] = bytes;
-        Files[path] = string.Empty;
+        Files[path] = System.Text.Encoding.UTF8.GetString(bytes);
         Mtimes[path] = DateTime.UtcNow;
         return Task.CompletedTask;
     }
@@ -126,7 +129,7 @@ public sealed class InMemoryFileService : IFileService
             ? Task.FromResult((long)System.Text.Encoding.UTF8.GetByteCount(v))
             : throw new FileNotFoundException(path);
 
-    public async Task MoveDirectoryAsync(string oldPath, string newPath)
+    public virtual async Task MoveDirectoryAsync(string oldPath, string newPath)
     {
         var prefix = Canonical(oldPath) + Path.DirectorySeparatorChar;
         foreach (var path in Files.Keys.Where(p => Canonical(p).StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).ToArray())

@@ -214,4 +214,8 @@ public sealed class SceneInfo
     public string ChapterGuid { get; init; } = string.Empty;
     public string ChapterTitle { get; init; } = string.Empty;
     public int WordCount { get; init; }
+    /// <summary>True when this scene is parked outside the manuscript.</summary>
+    public bool Inactive { get; init; }
+    /// <summary>True when the writer has withheld this scene from exports.</summary>
+    public bool ExcludeFromExport { get; init; }
 }

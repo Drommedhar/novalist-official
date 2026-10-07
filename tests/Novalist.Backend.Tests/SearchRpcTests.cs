@@ -35,6 +35,28 @@ public sealed class SearchRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task ProjectMatchesIdentifyTheBookToOpenWithoutLeavingItSelected()
+    {
+        var originalBook = _workspace.Projects.ActiveBook!.Id;
+        var book = await _workspace.Projects.CreateBookAsync("Second book");
+        await _workspace.Projects.SwitchBookAsync(book.Id);
+        var chapter = await _workspace.Projects.CreateChapterAsync("Elsewhere");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Wolf scene");
+        await _workspace.Projects.WriteSceneContentAsync(chapter, scene, "<p>The wolf sleeps.</p>");
+        await _workspace.Projects.SwitchBookAsync(originalBook);
+
+        var matches = await _rpc.FindAsync("wolf", false, false, false, "Project", null, null, false, false, CancellationToken.None);
+
+        var remote = Assert.Single(matches, match => match.SceneId == scene.Id);
+        Assert.Equal(book.Id, remote.BookId);
+        Assert.Equal("Second book", remote.BookTitle);
+        Assert.Equal(originalBook, _workspace.Projects.ActiveBook!.Id);
+        await _workspace.Projects.SwitchBookAsync(remote.BookId);
+        var resolved = _workspace.ResolveScene(remote.ChapterGuid, remote.SceneId);
+        Assert.Equal(scene.Id, resolved.scene.Id);
+    }
+
+    [Fact]
     public async Task Find_RespectsCaseAndScope()
     {
         var insensitive = await _rpc.FindAsync(

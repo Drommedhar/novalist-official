@@ -8,6 +8,7 @@
 /** The editor page's global functions the host is allowed to call. */
 export interface EditorWindow extends Window {
   setContent(html: string): void
+  setSceneContext(sceneId: string): void
   /** Clean stored HTML and plain text currently in the live contenteditable. */
   getContent(): string
   getPlainText(): string
@@ -192,7 +193,9 @@ export interface InlineActionResult {
   text: string
   /** 'replace' swaps the selection, 'insertAfter' appends on a new line after
    *  it, 'insertAtCaret' writes at the caret and replaces nothing. */
-  disposition: 'replace' | 'insertAfter' | 'insertAtCaret'
+  disposition: 'replace' | 'insertAfter' | 'insertAtCaret' | 'information'
+  alternatives?: string[]
+  asSuggestion?: boolean
   /** Non-empty aborts the edit; editor.html leaves the selection untouched. */
   error?: string
 }

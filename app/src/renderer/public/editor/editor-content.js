@@ -89,7 +89,8 @@ function extractBody(html) {
 function isEmptyHtml(html) {
     const tmp = document.createElement('div');
     tmp.replaceChildren(window.sanitizeSceneFragment(html));
-    return !tmp.textContent || tmp.textContent.trim() === '';
+    return !tmp.querySelector('img, hr, table, audio, video, iframe, object') &&
+        (!tmp.textContent || tmp.textContent.trim() === '');
 }
 
 Object.assign(window, {

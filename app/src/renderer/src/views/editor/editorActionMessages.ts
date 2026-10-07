@@ -1,3 +1,4 @@
+import { reviewInlineAction } from './InlineActionDialog'
 import { runInlineAction } from './editorBridge'
 import { useProjectStore, type ProjectStateDto } from '../../stores/projectStore'
 import { useSettingsStore } from '../../stores/settingsStore'
@@ -30,6 +31,9 @@ export function createEditorActionMessages(context: EditorHandlerContext): Edito
         })
     },
     inlineActionRequested: (message) => {
+      const sceneId = paneIds().sceneId
+      const frame = editorRef.current
+      const requestId = message.requestId
       const actionId = String(message.actionId ?? '')
       const selected = String(message.selectedText ?? '')
       // Carried so an action invoked at a bare caret has something to work
@@ -39,7 +43,13 @@ export function createEditorActionMessages(context: EditorHandlerContext): Edito
         precedingText: String(message.precedingText ?? ''),
         directive: String(message.directive ?? '')
       }).then((result) => {
-        editorRef.current?.applyInlineActionResult(JSON.stringify({ actionId, ...result }))
+        if (!frame || frame !== editorRef.current || paneIds().sceneId !== sceneId) return
+        const apply = (text: string | null): void => {
+          if (frame !== editorRef.current || paneIds().sceneId !== sceneId) return
+          frame.applyInlineActionResult(JSON.stringify({ ...result, actionId, requestId, text: text ?? '', cancelled: text === null }))
+        }
+        if (result.error || result.disposition === 'information' || result.alternatives?.length) reviewInlineAction(result, apply)
+        else apply(result.text)
       })
     },
     extensionContextMenuRequested: (message) => {

@@ -1,0 +1,7 @@
+
+Running 2 tests using 1 worker
+
+  ✓  1 e2e/m49-insert-image.spec.ts:59:5 › an image survives a prose rebuild at the remembered caret (13.9s)
+  ✓  2 e2e/m49-insert-image.spec.ts:80:5 › an image survives a prose rebuild at the remembered caret in page view (12.7s)
+
+  2 passed (29.8s)

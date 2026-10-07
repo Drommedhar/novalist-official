@@ -1,0 +1,640 @@
+{
+  "findings": [
+    {
+      "id": "EXT-001",
+      "title": "Apply the same scene exclusions to every export and published site",
+      "priority": "P1",
+      "category": "Privacy",
+      "repo": "novalist-extension",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Formats/Services/Manuscript.cs",
+          "line": 69,
+          "endLine": 79,
+          "detail": "Reads every scene returned by the host; checks chapter selection only."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Publish/PublishExtension.cs",
+          "line": 352,
+          "endLine": 361,
+          "detail": "Manuscript publishing reads every scene with no inactive/excluded filter."
+        },
+        {
+          "path": "D:/git/novalist-official/Novalist.Backend/Extensions/HostServices.ProjectAccess.cs",
+          "line": 141,
+          "endLine": 163,
+          "detail": "SDK GetScenesForChapter returns the entire manifest list."
+        },
+        {
+          "path": "D:/git/novalist-official/Novalist.Core/Services/ExportService.Compile.cs",
+          "line": 103,
+          "endLine": 111,
+          "detail": "Built-in compilation excludes Inactive and ExcludeFromExport scenes."
+        },
+        {
+          "path": "D:/git/novalist-official/Novalist.Sdk/Models/ExportFormatDescriptor.cs",
+          "line": 46,
+          "detail": "Extension export context does not expose the compiled, filtered scene set."
+        }
+      ],
+      "trigger": "Mark a scene inactive or excluded from export, then export the chapter using Formats or generate a manuscript website.",
+      "impact": "Passages the writer deliberately withheld can be included in the shared file. Changing format changes the privacy boundary.",
+      "recommendation": "Pass a canonical filtered manuscript snapshot to contributed exporters, or expose and consistently enforce the same scene eligibility rules in Formats and Publish. Reuse core compilation decisions.",
+      "validation": "Create a chapter with public, inactive and export-excluded scenes; assert that built-in export, every Formats export, and Publish contain only the public scene."
+    },
+    {
+      "id": "EXT-002",
+      "title": "Escape HTML attributes in published links and cover metadata",
+      "priority": "P1",
+      "category": "Security",
+      "repo": "novalist-extension",
+      "confidence": "reproduced",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Publish/Site/Markup.cs",
+          "line": 237,
+          "endLine": 240,
+          "detail": "A Markdown URL is interpolated directly into a double-quoted href."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Publish/Site/Markup.cs",
+          "line": 303,
+          "detail": "Escape replaces ampersand and angle brackets but leaves quotes."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Formats/Writers/TextWriters.cs",
+          "line": 78,
+          "detail": "Cover alt interpolates the same incompletely escaped book title."
+        }
+      ],
+      "trigger": "Publish a Codex section containing [reader](https://example.invalid/\"onmouseover=\"window.name=123), or export HTML with a crafted title and a cover.",
+      "impact": "The generated standalone HTML contains an event-handler attribute. Pasted/imported text can become active browser code when someone opens the shared output.",
+      "recommendation": "Use context-specific attribute encoding, retain the URL scheme allowlist, and treat link destinations as data. Apply the same encoding to language, cover alt and every other interpolated attribute.",
+      "validation": "The source-linked probe generated an anchor with literal onmouseover=\"window.name=123\". Add malicious quotes/entity/URL tests and a browser assertion that dispatching mouseover cannot execute supplied code."
+    },
+    {
+      "id": "EXT-003",
+      "title": "Remove stale generated pages safely when publishing again",
+      "priority": "P1",
+      "category": "Privacy",
+      "repo": "novalist-extension",
+      "confidence": "reproduced",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Publish/PublishExtension.cs",
+          "line": 254,
+          "endLine": 263,
+          "detail": "Writes the new list into the selected folder without tracking or removing prior generated files."
+        }
+      ],
+      "trigger": "Generate Everything, then regenerate World into the same folder; similarly remove a sensitive entry or shorten the manuscript.",
+      "impact": "Old chapter/entry files remain in the folder although the new index no longer links to them. Zipping or uploading that folder can disclose content the writer now intended to omit. A cancelled run also leaves a mixture of versions.",
+      "recommendation": "Stage a complete generation, maintain a manifest of files this publisher owns, and replace that set only after success. Remove obsolete owned files while preserving unrelated user files.",
+      "validation": "The probe wrote a manuscript then World-only output; chapter-2.html containing the private ending remained. Test scope reduction, renamed/removed entries, cancellation, and unrelated files."
+    },
+    {
+      "id": "EXT-004",
+      "title": "Reserve index and chapter filenames when allocating entity slugs",
+      "priority": "P2",
+      "category": "Correctness",
+      "repo": "novalist-extension",
+      "confidence": "reproduced",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Publish/Site/SiteGenerator.cs",
+          "line": 42,
+          "endLine": 51,
+          "detail": "The generator reserves index.html and chapter-N.html only implicitly."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Publish/Site/SiteGenerator.cs",
+          "line": 64,
+          "endLine": 79,
+          "detail": "Slug uniqueness considers entity names only; used starts empty."
+        }
+      ],
+      "trigger": "Publish an entity named Index or Chapter 1 together with manuscript chapters.",
+      "impact": "Two generated SiteFile records have the same output path. An entity can overwrite the index, or a chapter can overwrite an entity page; links then lead to the wrong content.",
+      "recommendation": "Allocate all output paths from a single case-insensitive namespace, reserving index.html, robots.txt and chapter filenames before entity slugs.",
+      "validation": "The probe reproduced duplicate index.html and chapter-1.html paths. Require uniqueness across the complete generated file list."
+    },
+    {
+      "id": "EXT-005",
+      "title": "Preserve inline action alternatives and suggestion protection through the host",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-official + novalist-extension + novalist-aiassistant",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Toolkit/ToolkitExtension.cs",
+          "line": 166,
+          "endLine": 192,
+          "detail": "Definition returns InsertAfterSelection, despite its comment promising a comment."
+        },
+        {
+          "path": "D:/git/novalist-official/Novalist.Backend/Rpc/ExtensionContribRpc.cs",
+          "line": 69,
+          "detail": "RPC projects only Text, Disposition and Error, dropping Alternatives and AsSuggestion."
+        },
+        {
+          "path": "D:/git/novalist-official/app/src/renderer/public/editor/dictation-bridge.js",
+          "line": 108,
+          "endLine": 123,
+          "detail": "The editor directly inserts/replaces prose via execCommand."
+        },
+        {
+          "path": "D:/git/novalist-aiassistant/Services/InlineRewriteService.cs",
+          "line": 175,
+          "endLine": 179,
+          "detail": "AI rewrite results also populate Alternatives and AsSuggestion."
+        }
+      ],
+      "trigger": "Use Toolkit Synonyms/Define or an AI action that returns several alternatives or asks for a suggested edit.",
+      "impact": "Only the first result survives. Synonyms and AI rewrites replace prose immediately rather than presenting the promised alternatives/review step; dictionary definitions are inserted into manuscript text.",
+      "recommendation": "Carry the complete inline result contract through RPC and renderer; honor AsSuggestion, present alternatives, and route definitions to an informational/comment disposition. Preserve undo and the original range.",
+      "validation": "End-to-end test Toolkit synonyms, dictionary definition, AI rewrite alternatives and cancellation: original prose stays unchanged until the explicit action appropriate to the returned disposition."
+    },
+    {
+      "id": "EXT-006",
+      "title": "Read CSV records across quoted line breaks",
+      "priority": "P2",
+      "category": "Import fidelity",
+      "repo": "novalist-extension",
+      "confidence": "reproduced",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Formats/Importers/ProjectImporters.cs",
+          "line": 158,
+          "endLine": 178,
+          "detail": "Splits input into physical lines before parsing quoted fields."
+        }
+      ],
+      "trigger": "Import CSV/TSV exported from a spreadsheet where the text cell contains more than one paragraph.",
+      "impact": "Only the first physical line becomes scene text; later lines are skipped or misinterpreted as separate rows. The imported manuscript is incomplete even though its source is valid.",
+      "recommendation": "Parse a record stream with quote state across line boundaries; validate unclosed quotes before creating chapters/scenes and report row-level errors without truncating prose.",
+      "validation": "The probe imported a two-paragraph quoted cell and kept only First paragraph. Test embedded CRLF/LF, quoted delimiters, escaped quotes, and malformed trailing quotes."
+    },
+    {
+      "id": "EXT-007",
+      "title": "Respect the Scrivener manuscript tree instead of scanning every folder",
+      "priority": "P2",
+      "category": "Import fidelity",
+      "repo": "novalist-extension",
+      "confidence": "reproduced",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Formats/Importers/ProjectImporters.cs",
+          "line": 60,
+          "endLine": 70,
+          "detail": "Visits every Folder descendant globally, filtering only the current folder title."
+        }
+      ],
+      "trigger": "Import a binder containing a DraftFolder with text directly beneath it and nested folders inside Research or Trash.",
+      "impact": "Actual draft text directly under the manuscript root is omitted, while research/trash descendant folders become manuscript chapters. Renamed or localized special folders worsen this.",
+      "recommendation": "Find the manuscript root by binder type and traverse only that subtree with an explicit chapter/scene mapping. Exclude research/trash by ancestry and type, and report unsupported structures.",
+      "validation": "A synthetic binder probe imported only Unpublished plan from Research and omitted Actual prose from DraftFolder. Add nested draft, root text, localized folder-name and trash fixtures."
+    },
+    {
+      "id": "EXT-008",
+      "title": "Decode RTF code pages and Unicode fallback lengths correctly",
+      "priority": "P2",
+      "category": "Import fidelity",
+      "repo": "novalist-extension",
+      "confidence": "reproduced",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Formats/Importers/RtfReader.cs",
+          "line": 85,
+          "endLine": 95,
+          "detail": "Hex escapes are converted directly to Latin-1 characters."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Formats/Importers/RtfReader.cs",
+          "line": 167,
+          "endLine": 173,
+          "detail": "Unicode handling skips only a literal question-mark fallback."
+        }
+      ],
+      "trigger": "Import RTF containing Windows-1252 smart quotes or a valid Unicode escape such as \\uc1\\u233e.",
+      "impact": "Common punctuation turns into control characters and accented letters can be duplicated. Other declared code pages can corrupt substantially more of the imported manuscript.",
+      "recommendation": "Track ansicpg and group-scoped uc fallback lengths; decode byte runs using the declared encoding and skip the specified fallback characters/control escapes. Prefer a maintained parser if its scope fits.",
+      "validation": "The probe converted CP1252 quotes to U+0093/U+0094 and é to ée. Test CP1252 punctuation, non-Western encodings, uc0/uc1/uc2 and nested groups."
+    },
+    {
+      "id": "EXT-009",
+      "title": "Make nested Markdown-folder import complete or explicitly reject omitted content",
+      "priority": "P2",
+      "category": "Import fidelity",
+      "repo": "novalist-extension",
+      "confidence": "reproduced",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Formats/Importers/ProjectImporters.cs",
+          "line": 112,
+          "endLine": 121,
+          "detail": "Imports root files and one directory level only."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Formats/Importers/ProjectImporters.cs",
+          "line": 242,
+          "detail": "TextFilesIn is non-recursive."
+        }
+      ],
+      "trigger": "Import a manuscript folder organized as Act/Chapter/scene.md, or another supported folder whose prose is deeper than one level.",
+      "impact": "Valid scene files are silently outside the scan. A project containing only deeper files is reported as having no Markdown/text; mixed projects import partially without identifying the missing subtree.",
+      "recommendation": "Traverse nested directories deterministically with a documented chapter mapping, or detect and list omitted subtrees before import. Validate advertised package formats with real fixtures rather than treating every folder as plain text.",
+      "validation": "The probe placed a scene under Act One/Chapter One and imported zero scenes. Test depth greater than one, mixed roots and nested folders, ordering, and non-manuscript files."
+    },
+    {
+      "id": "EXT-010",
+      "title": "Tie continuity review marks to the entity revision that was reviewed",
+      "priority": "P2",
+      "category": "Analysis accuracy",
+      "repo": "novalist-extension",
+      "confidence": "reproduced",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Insight/Analysis/ContinuityWorklist.cs",
+          "line": 99,
+          "detail": "Reviewed uses a scene/entity key without the entity fingerprint."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Insight/Analysis/ContinuityWorklist.cs",
+          "line": 127,
+          "detail": "The stored review key is sceneId|entityId only."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Insight/InsightExtension.cs",
+          "line": 479,
+          "detail": "MarkReviewed marks every entity in the project, including unchanged/unrelated entries."
+        }
+      ],
+      "trigger": "Review a scene after a character change, then change that character again before rebasing. Or later change a different entity after marking the scene read.",
+      "impact": "The scene stays marked reviewed for facts the writer has never checked. Marking all entity IDs can pre-approve future unrelated changes.",
+      "recommendation": "Store the reviewed fingerprint per scene/entity, mark only the changed entities actually relevant to the scene, and invalidate review status when any fingerprint changes.",
+      "validation": "The probe changed an entity from baseline v1 to v3 after marking the scene reviewed; the item still reported Reviewed=true. Test successive edits and multiple linked entities."
+    },
+    {
+      "id": "EXT-011",
+      "title": "Enroll new Codex entries in continuity tracking without clearing existing work",
+      "priority": "P2",
+      "category": "Analysis accuracy",
+      "repo": "novalist-extension",
+      "confidence": "reproduced",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Insight/Analysis/ContinuityWorklist.cs",
+          "line": 82,
+          "detail": "Unknown entity IDs are skipped without recording their first-seen fingerprint."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Insight/InsightExtension.cs",
+          "line": 440,
+          "endLine": 449,
+          "detail": "Automatic rebase happens only when the entire baseline is empty."
+        }
+      ],
+      "trigger": "Create a Codex entry after the first continuity baseline, then edit it repeatedly.",
+      "impact": "The UI counts the entry as tracked, but its changes never create worklist items until the user rebases everything, which also clears existing outstanding review state.",
+      "recommendation": "Merge first-seen entity fingerprints into the baseline while retaining pending differences and review records for existing entries. Make the tracked count reflect actual persisted coverage.",
+      "validation": "The probe's newly introduced entry had a changed fingerprint and a scene mention but produced no worklist item. Test add-then-edit without a global rebase."
+    },
+    {
+      "id": "EXT-012",
+      "title": "Read real location, item and lore bodies for publishing and continuity",
+      "priority": "P2",
+      "category": "Correctness",
+      "repo": "novalist-extension",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Publish/PublishExtension.cs",
+          "line": 332,
+          "endLine": 337,
+          "detail": "Location, item and lore entries are created with empty sections regardless of stored content."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Insight/InsightExtension.cs",
+          "line": 535,
+          "endLine": 540,
+          "detail": "The same entity types get empty description/sections in continuity input."
+        },
+        {
+          "path": "D:/git/novalist-official/Novalist.Sdk/Services/IExtensionEntityService.cs",
+          "line": 225,
+          "endLine": 247,
+          "detail": "Lightweight non-character projections expose identity/name/type but no rich sections."
+        }
+      ],
+      "trigger": "Write substantial location/item/lore sections, generate a World website, or edit those facts after establishing a continuity baseline.",
+      "impact": "The website claims nothing is written for these entities; Insight cannot detect changes to their bodies. Character/custom-entry handling gives a misleading impression that the whole Codex is covered.",
+      "recommendation": "Extend the existing read-only entity projection to return normalized details for all built-in types and consume it consistently in Publish and Insight.",
+      "validation": "Create nonempty examples of every built-in entity type; verify exported sections and continuity changes for content edits, not just renames."
+    },
+    {
+      "id": "EXT-013",
+      "title": "Normalize image references against the project before health analysis",
+      "priority": "P2",
+      "category": "Analysis accuracy",
+      "repo": "novalist-extension",
+      "confidence": "reproduced",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Insight/InsightExtension.cs",
+          "line": 530,
+          "detail": "Character image input uses GetCharacterImagePathAsync, which returns an absolute path."
+        },
+        {
+          "path": "D:/git/novalist-official/Novalist.Backend/Extensions/HostServices.EntityAccess.cs",
+          "line": 282,
+          "endLine": 284,
+          "detail": "Host resolves the stored image reference to an absolute path before returning it."
+        },
+        {
+          "path": "D:/git/novalist-official/Novalist.Core/Services/EntityService.Images.cs",
+          "line": 44,
+          "endLine": 63,
+          "detail": "GetProjectImagesAsync returns project/book-relative image references."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Insight/Analysis/ProjectHealth.cs",
+          "line": 208,
+          "detail": "Normalization only changes separators and trims; it cannot reconcile absolute/relative roots."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Insight/Analysis/ProjectHealth.cs",
+          "line": 164,
+          "detail": "No present images suppresses all missing-image reports."
+        }
+      ],
+      "trigger": "Run Project Health with an existing character portrait, or remove the last file from the image library.",
+      "impact": "The same valid portrait is called both missing and unused. Conversely, an empty library suppresses missing-image findings entirely. This makes the health report unreliable for cleanup decisions.",
+      "recommendation": "Resolve every image reference to one canonical identity using the host's project-aware resolver; include all supported image consumers. Remove the early return for an empty library and keep missing/unused classifications distinct.",
+      "validation": "The probe reports Missing image plus Unused image for one physical portrait and no Missing image for a referenced file when the library is empty."
+    },
+    {
+      "id": "EXT-014",
+      "title": "Terminate render requests after a fatal speech-worker error",
+      "priority": "P2",
+      "category": "Reliability",
+      "repo": "novalist-extension",
+      "confidence": "reproduced",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Speech/python/sidecar.py",
+          "line": 560,
+          "detail": "ensure_clone runs before the per-segment exception boundary."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Speech/python/sidecar.py",
+          "line": 671,
+          "endLine": 677,
+          "detail": "Outer request failure emits error but no terminal done and continues waiting for stdin."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Speech/Engine/VoiceEngine.cs",
+          "line": 282,
+          "endLine": 286,
+          "detail": "The C# consumer yields any error then continues waiting for another reply."
+        }
+      ],
+      "trigger": "Model loading or another request-level operation fails during render, for example when switching back from voice design under memory pressure.",
+      "impact": "The UI can wait indefinitely: the worker is waiting for the next request while the host is waiting for this request's done message.",
+      "recommendation": "Give every request exactly one terminal success/failure message. Distinguish segment errors from fatal request errors, stop the C# iterator on fatal failure, and keep the engine state truthful.",
+      "validation": "The Python mock probe exercised main() with ensure_clone failing and captured only {type:error,error:RuntimeError}. Add a host-channel contract test that remains open after that reply and assert prompt termination."
+    },
+    {
+      "id": "EXT-015",
+      "title": "Distinguish installed Python packages from downloaded speech models",
+      "priority": "P2",
+      "category": "Privacy and reliability",
+      "repo": "novalist-extension",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Speech/SpeechExtension.cs",
+          "line": 223,
+          "endLine": 225,
+          "detail": "DownloadBytes becomes null when the Python environment is built, without checking checkpoint availability."
+        },
+        {
+          "path": "D:/git/novalist-official/Novalist.Backend/Rpc/VoiceEngineRpc.cs",
+          "line": 90,
+          "endLine": 112,
+          "detail": "Installed/no-download status authorizes automatic engine startup."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Speech/python/sidecar.py",
+          "line": 361,
+          "detail": "snapshot_download is called without local_files_only or a pinned revision."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Speech/python/sidecar.py",
+          "line": 655,
+          "endLine": 660,
+          "detail": "status preparation ensures both model checkpoints."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Speech/python/mlx_backend.py",
+          "line": 146,
+          "detail": "MLX uses the same unrestricted checkpoint download."
+        }
+      ],
+      "trigger": "Cancel initial preparation after packages install but before all weights arrive, then reopen Narration/restart Novalist. Normal prepared restarts also resolve remote model repositories.",
+      "impact": "A status/list action can resume a multi-gigabyte transfer without a new Prepare action, contrary to the stated explicit-download behavior. Offline startup can also spend time attempting remote resolution.",
+      "recommendation": "Track and validate the required checkpoint snapshots separately from the environment recipe. Use an offline local-only load path for auto-start; reserve downloads/updates for explicit preparation and pin model revisions.",
+      "validation": "Simulate a built venv plus missing/partial model cache; listing engines must not contact the network. Test a fully cached restart with network disabled."
+    },
+    {
+      "id": "EXT-016",
+      "title": "Cancel queued speech work between passages",
+      "priority": "P2",
+      "category": "Performance",
+      "repo": "novalist-extension",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Speech/Engine/VoiceEngine.cs",
+          "line": 266,
+          "detail": "Cancellation ends host reading but sends no worker cancellation operation."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Speech/Engine/VoiceEngine.cs",
+          "line": 368,
+          "endLine": 377,
+          "detail": "Old replies are discarded only when a subsequent request reads them."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Speech/python/sidecar.py",
+          "line": 565,
+          "detail": "The worker loops through every requested segment without a cancellation check."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Speech/python/sidecar.py",
+          "line": 638,
+          "detail": "Requests are read synchronously; a new request cannot be observed until current rendering completes."
+        }
+      ],
+      "trigger": "Stop narration during a render window, then immediately start elsewhere or design another voice.",
+      "impact": "The GPU continues rendering abandoned passages; the next operation waits behind them. Scratch clips can remain until the next read, and a new playback can feel unresponsive despite Stop succeeding in the UI.",
+      "recommendation": "Add request cancellation observable between generated passages, with a single protocol reader/queue and a terminal acknowledgement; or safely restart the worker on cancellation where model reload cost is acceptable.",
+      "validation": "Use a fake multi-passage model with a barrier: cancel after passage one, assert later passages are not generated and the next request is serviced promptly."
+    },
+    {
+      "id": "EXT-017",
+      "title": "Scope sprint word counts to the book and draft where the sprint began",
+      "priority": "P2",
+      "category": "Correctness",
+      "repo": "novalist-extension",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Toolkit/ToolkitExtension.cs",
+          "line": 50,
+          "detail": "Sprint subscribes only to SceneSaved, without project/book/draft lifecycle handling."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Toolkit/ToolkitExtension.cs",
+          "line": 63,
+          "endLine": 73,
+          "detail": "Every save replaces the count with the current book's total."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Toolkit/Services/Sprint.cs",
+          "line": 60,
+          "endLine": 66,
+          "detail": "Start captures only a number, not a project/book/draft identity."
+        }
+      ],
+      "trigger": "Start a sprint in a short book, switch to a longer book or draft while it runs, then save a scene.",
+      "impact": "The difference between two unrelated manuscript totals is recorded as newly written words. Switching to a smaller manuscript can erase valid session progress.",
+      "recommendation": "Capture the active project/book/draft identity and define a clear transition policy: stop/save the sprint at a scope change, or track per-scope deltas. Keep scene switches within the same draft supported.",
+      "validation": "Start at 1,000 words, switch to a 50,000-word book and save without writing; the sprint must not report 49,000 new words."
+    },
+    {
+      "id": "EXT-018",
+      "title": "Retire misleading compatibility ranges on native legacy extensions",
+      "priority": "P3",
+      "category": "Compatibility",
+      "repo": "novalist-pnp + novalist-qwentts",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-pnp/extension.json",
+          "line": 8,
+          "endLine": 10,
+          "detail": "Legacy Pen & Paper accepts all hosts from 0.0.1 with no maximum."
+        },
+        {
+          "path": "D:/git/novalist-pnp/PenAndPaperExtension.cs",
+          "line": 18,
+          "endLine": 20,
+          "detail": "Depends on removed native sidebar/content-view contributor interfaces."
+        },
+        {
+          "path": "D:/git/novalist-qwentts/extension.json",
+          "line": 8,
+          "endLine": 10,
+          "detail": "Legacy Qwen accepts hosts from 1.15.0 with no maximum."
+        },
+        {
+          "path": "D:/git/novalist-qwentts/Qwen3TtsExtension.cs",
+          "line": 36,
+          "detail": "Depends on native IContentViewContributor and Avalonia CreateView descriptors."
+        }
+      ],
+      "trigger": "Manually install an older Pen & Paper or Qwen3 extension package into the current Electron host.",
+      "impact": "The manifests claim compatibility even though the SDK no longer contains their native content-view contracts. Users face load errors or unavailable views without a truthful version boundary.",
+      "recommendation": "Record the last verified compatible host range and mark the repositories/releases as legacy; direct speech users to the existing Speech extension. Treat any eventual UI migration as a separate decision.",
+      "validation": "Static compatibility check confirms IContentViewContributor/ISidebarContributor are absent from the current SDK. Validate manifest rejection against current host and acceptance against the last supported native host."
+    },
+    {
+      "id": "EXT-019",
+      "title": "Serialize report severity as the strings the report UI expects",
+      "priority": "P3",
+      "category": "UX",
+      "repo": "novalist-extension",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Insight/InsightExtension.cs",
+          "line": 73,
+          "endLine": 76,
+          "detail": "JSON options camel-case properties but do not convert enums to strings."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Insight/web/report.html",
+          "line": 64,
+          "endLine": 65,
+          "detail": "CSS highlights only Problem and Warning classes."
+        },
+        {
+          "path": "D:/git/novalist-extension/Novalist.Extensions.Insight/web/report.html",
+          "line": 136,
+          "detail": "The received numeric severity is interpolated directly into the CSS class."
+        }
+      ],
+      "trigger": "Open Insight Project Health or a report that uses HealthFinding/Severity.",
+      "impact": "Problem and warning rows serialize as 0/1/2 and miss the intended severity styling, reducing the visual distinction between broken links and informational notes.",
+      "recommendation": "Use an explicit stable severity wire value or JsonStringEnumConverter, and keep report CSS/rendering aligned with that contract.",
+      "validation": "Assert that a serialized Problem finding renders a Problem class and the intended indicator; do not rely on C# enum names inferred by JavaScript."
+    }
+  ],
+  "checks": [
+    {
+      "command": "dotnet test tests/Novalist.Extensions.Tests/Novalist.Extensions.Tests.csproj --no-restore -m:1 -nr:false -p:ExtensionFolder= -p:SkipExtensionDeploy=true --verbosity minimal",
+      "status": "passed",
+      "detail": "365 passed, 0 failed, 0 skipped against current source. ExtensionFolder global override prevented local extension deployment. Existing warnings: unused MessagePosted events and SDK-generated unreachable-code warning."
+    },
+    {
+      "command": "python -m unittest discover -s Novalist.Extensions.Speech/python -v",
+      "status": "passed",
+      "detail": "37 tests passed; no model weights, GPU or network needed."
+    },
+    {
+      "command": "dotnet run --project artifacts/audit-2026-10-06/extension-probes/ExtensionProbes.csproj -m:1 -nr:false --verbosity quiet",
+      "status": "reproduced",
+      "detail": "11 adversarial source-linked probes reproduced publishing attribute injection/reserved collisions/stale pages, multiline CSV loss, Scrivener subtree selection, nested Markdown omission, RTF decoding, continuity revisions/new entries, and image-reference classification."
+    },
+    {
+      "command": "python artifacts/audit-2026-10-06/extension-probes/speech_probe.py",
+      "status": "reproduced",
+      "detail": "Fatal model-load failure emits an error without done; the actual worker handler was exercised with mocks."
+    },
+    {
+      "command": "Static gallery/manifest/SDK cross-check",
+      "status": "completed",
+      "detail": "All six gallery IDs correspond to current local extension manifests. Gallery uses shared novalist-extensions release repository; release workflow packages per-ID ZIP/manifest/README assets. No gallery CI validator exists. Remote release availability was not queried."
+    }
+  ],
+  "coverage": [
+    "Read Formats, Publish, Insight, Toolkit and Speech source, tests, manifests, gallery metadata and release workflows; traced critical behavior into host SDK/RPC/editor contracts.",
+    "Legacy Pen & Paper and standalone Qwen3 were inspected read-only for compatibility. They are not current gallery entries; no legacy builds or deep RPG feature audit were performed.",
+    "Source-linked C# probe artifacts are isolated under artifacts/audit-2026-10-06/extension-probes; no production source, changelog, installed extension or user project was edited.",
+    "No real model download, GPU inference, network dictionary/web capture, packaged extension installation, or desktop visual interaction was performed. Cancellation and automatic-download findings are code-confirmed rather than hardware reproductions.",
+    "Publishing raw attribute generation is reproduced; active browser execution should be checked separately. Core exclusion/inline-result findings need end-to-end regression tests across the actual renderer.",
+    "Further bounded opportunities found but not promoted to separate findings: preserve emphasis and line breaks in rich exports; localize English report bodies/sprint status; avoid rereading the entire manuscript per board/report request; validate gallery schema/unique IDs in CI; ensure Speech Python tests gate tag releases too.",
+    "Release reproducibility/SDK pinning and AI-specific provider behavior are assigned to the parent audit to avoid duplicated findings."
+  ]
+}

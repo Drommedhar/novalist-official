@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-07",
+  "status": "passed",
+  "platform": "Debian GNU/Linux 13 x64 under WSL2",
+  "node": "22.23.3",
+  "command": "node --experimental-strip-types --test --test-reporter=tap scripts/*.test.mjs",
+  "result": { "tests": 114, "passed": 114, "failed": 0, "skipped": 0, "cancelled": 0, "durationMs": 1132.992761 },
+  "scope": [
+    "Current app/src and app/scripts plus package manifests copied from the shared working tree into the existing isolated Linux fixture.",
+    "All current test filenames and SHA256 hashes verified against the shared working tree, including renderer-source-loader.mjs and the mobile shim/audio/dictation sources.",
+    "The M06 native microphone denial/retry test passed using Vite transformWithEsbuild and the renderer-source-loader under Node 22.",
+    "Cached Linux Node and existing Linux node_modules reused. No dependency install, download, metadata audit or product-file modification."
+  ],
+  "evidence": ["node22-transport.log", "node22-transport-inputs.json", "node22-transport.sh"],
+  "limitations": ["Portable source regression tests do not validate native iOS microphone permissions or device lifecycle behavior."]
+}

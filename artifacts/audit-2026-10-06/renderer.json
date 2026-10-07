@@ -1,0 +1,657 @@
+{
+  "scope": "Renderer/editor/shell audit including mobile shared UI. Read-only production review; findings are bounded fixes or polish to existing behavior.",
+  "findings": [
+    {
+      "id": "R01",
+      "title": "Independent split panes can silently overwrite each other's scene edits",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "M",
+      "platforms": [
+        "Desktop",
+        "iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/stores/projectPersistence.ts",
+          "line": 73,
+          "detail": "Each write reads the latest global sceneHashes[sceneId], regardless of the content version loaded by this pane."
+        },
+        {
+          "path": "app/src/renderer/src/stores/projectPersistence.ts",
+          "line": 90,
+          "detail": "Successful saves clear exact matching editors but neither synchronize clean sibling HTML nor preserve divergent sibling base hashes."
+        },
+        {
+          "path": "app/src/renderer/src/stores/projectEditorActions.ts",
+          "line": 147,
+          "detail": "Editing changes only the addressed pane; multiple panes can own different content for one scene."
+        }
+      ],
+      "trigger": "Open the same scene in two panes; edit and save the first, then edit/save the still-stale second pane.",
+      "impact": "The second save uses the first save's fresh hash and passes conflict detection while replacing the first pane's changes. Source-level probe executes real persistence code with a checked-write transport and reproduces this.",
+      "recommendation": "Track expected hash per independent editor buffer, or keep a single shared document model per scene. Refresh clean sibling panes and preserve the original base for divergent dirty panes.",
+      "validation": "Add a split-pane e2e: edit both independently, flush in both orders, assert both changes survive or a conflict is offered. Probe: node artifacts/audit-2026-10-06/renderer-probes.cjs."
+    },
+    {
+      "id": "R02",
+      "title": "Navigating away after a refused save can discard the only unsaved scene buffer",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "M",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/stores/projectPersistence.ts",
+          "line": 78,
+          "detail": "A conflicted save sets sceneConflict and returns successfully."
+        },
+        {
+          "path": "app/src/renderer/src/stores/projectEditorActions.ts",
+          "line": 28,
+          "detail": "openSceneIn proceeds after flushPane and replaces the pane with another clean scene."
+        },
+        {
+          "path": "app/src/renderer/src/stores/projectEditorActions.ts",
+          "line": 107,
+          "detail": "Decide later clears the conflict payload."
+        }
+      ],
+      "trigger": "External modification causes a conflict while opening another scene or closing a tab; choose Decide later.",
+      "impact": "Navigation retires the original dirty editor. The conflict object becomes the only retained local prose, and dismissing it erases that buffer. Unlike successful conflict resolution, this path has not snapshotted the local text.",
+      "recommendation": "Make flush explicitly report/refuse unresolved conflicts and abort navigation/tab closure. Keep dirty buffers owned by scene until acknowledged or intentionally discarded.",
+      "validation": "Source-level probe reproduces openSceneIn followed by dismissSceneConflict losing all references to mine. Add e2e for navigation, tab close, and move-to-pane under an external write conflict."
+    },
+    {
+      "id": "R03",
+      "title": "Conflict Save is enabled before the diff is ready, allowing an empty replacement",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/shell/SceneConflictDialog.tsx",
+          "line": 32,
+          "detail": "rows starts empty; the merge request is asynchronous and failure resets rows to empty."
+        },
+        {
+          "path": "app/src/renderer/src/shell/SceneConflictDialog.tsx",
+          "line": 61,
+          "detail": "merged() serializes only rows, so no loaded rows means an empty string."
+        },
+        {
+          "path": "app/src/renderer/src/shell/SceneConflictDialog.tsx",
+          "line": 150,
+          "detail": "Save is disabled only while applying, not while loading or after a diff error."
+        }
+      ],
+      "trigger": "Open a conflict and click Save before scenes/mergeRows returns, or after that request fails.",
+      "impact": "The existing resolution endpoint is called with empty HTML and replaces the scene. Backend snapshots preserve the previous disk version, but do not preserve the original unsaved local version: ResolveAsync receives only mergedHtml and snapshots disk plus the result. A previous conflict's rows can also remain during a subsequent load.",
+      "recommendation": "Track loading/error/ready state keyed to the conflict identity; clear old rows immediately, ignore stale responses, and allow Save only for successfully loaded rows. Keep a retry action for errors. Preserve both original local and disk conflict inputs in recovery snapshots before any resolution write.",
+      "validation": "Delay/reject scenes/mergeRows, assert Save disabled and disk unchanged; resolve a second conflict before the first response and assert rows never cross scenes. After any completed resolution, verify both original local HTML and original disk HTML can be independently restored."
+    },
+    {
+      "id": "R04",
+      "title": "Choosing either side of a conflict strips all rich document structure",
+      "priority": "P2",
+      "category": "Editing fidelity",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/shell/SceneConflictDialog.tsx",
+          "line": 61,
+          "detail": "The merged result maps escaped plain-text lines into p tags."
+        },
+        {
+          "path": "Novalist.Backend/Rpc/ScenesRpc.cs",
+          "line": 345,
+          "detail": "The dialog receives plain MergeRowDto text through SceneConflictGuard.Rows."
+        }
+      ],
+      "trigger": "Resolve any rich-text scene conflict, including Take all mine or Take all theirs.",
+      "impact": "Headings, emphasis, links, lists, inline images and annotation markers are not preserved by rebuilding every row as escaped paragraph text. Resolution snapshots preserve the prior disk version and the merged result, not the original unsaved local HTML; they do not guarantee recovery of lost local formatting or omitted local passages.",
+      "recommendation": "Use the exact original HTML for take-all choices. For mixed choices preserve block-level source markup/annotation ownership rather than constructing a new plain-text document; explicitly handle genuinely overlapping structural edits. Snapshot both original conflict inputs before writing the chosen result.",
+      "validation": "Conflict tests with images, emphasis, headings, footnotes/comments and links must verify take-all byte-equivalent or semantically-equivalent HTML plus valid annotation references. Restore the original local and original disk snapshots separately and assert each preserves its complete pre-merge document."
+    },
+    {
+      "id": "R05",
+      "title": "Slow writes make successive autosaves conflict with their own predecessor",
+      "priority": "P2",
+      "category": "Reliability",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "M",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/stores/projectPersistence.ts",
+          "line": 40,
+          "detail": "Every timer starts saveScene immediately and overwrites the pane's autosaveWrites entry."
+        },
+        {
+          "path": "app/src/renderer/src/stores/projectPersistence.ts",
+          "line": 73,
+          "detail": "Expected hash is captured when the request is sent, before the preceding save acknowledges."
+        },
+        {
+          "path": "app/src/renderer/src/stores/manuscriptStore.ts",
+          "line": 63,
+          "detail": "The manuscript editor already uses per-scene write tails to avoid this exact race."
+        }
+      ],
+      "trigger": "A save takes over two seconds; continue typing and pause long enough for a second autosave before the first reply.",
+      "impact": "The second request sends the old hash and produces a false external-edit conflict against the user's own first save. Only the newest promise is visible in the pane map, making shutdown coordination harder.",
+      "recommendation": "Serialize writes by scene and read the expected hash after its predecessor settles. Coalesce queued latest content and preserve dirty/error state on genuine failures, following the existing manuscript queue pattern.",
+      "validation": "Source probe delays first acknowledgement and reproduces a self-conflict. Extend e2e with delayed RPC acknowledgements and multiple debounce periods; final disk content must be latest without a merge dialog."
+    },
+    {
+      "id": "R06",
+      "title": "Research note edits are outside the shared save/close lifecycle",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/views/library/ResearchEditor.tsx",
+          "line": 270,
+          "detail": "Title updates local component items and is persisted only on blur."
+        },
+        {
+          "path": "app/src/renderer/src/views/library/ResearchEditor.tsx",
+          "line": 328,
+          "detail": "Markdown content likewise persists only on blur."
+        },
+        {
+          "path": "app/src/renderer/src/views/library/researchModel.ts",
+          "line": 150,
+          "detail": "Research has no registered pending-write capture/flush or retained failure payload."
+        },
+        {
+          "path": "app/src/renderer/src/shell/MarkdownEditor.tsx",
+          "line": 358,
+          "detail": "Unmount destroys the CodeMirror view; cleanup does not invoke onBlur."
+        }
+      ],
+      "trigger": "Type a research note and navigate through a keyboard command/native tab or close the application without a completed blur/save acknowledgement.",
+      "impact": "Dirty research state may be unmounted without entering the coordinated save drain. A failed void blur save has no retained retry and no dirty protection. Existing scene/Codex buffers have stronger guarantees.",
+      "recommendation": "Use resource-owned research drafts, register a pending-write flusher, retain failed payloads and show a retryable save error. Flush on unmount and workspace transitions using the existing registry.",
+      "validation": "Test typing into title and Markdown then immediately invoking navigation/close without clicking outside; inspect reopened disk content. Inject a failed research/save and ensure close is blocked with recoverable draft."
+    },
+    {
+      "id": "R07",
+      "title": "Research save responses overwrite newer unsaved edits across the collection",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/views/library/researchModel.ts",
+          "line": 150,
+          "detail": "save(item) replaces the whole local collection with the server's returned list."
+        },
+        {
+          "path": "app/src/renderer/src/views/library/researchModel.ts",
+          "line": 162,
+          "detail": "patchSelected stores edits in that same collection."
+        },
+        {
+          "path": "app/src/renderer/src/views/library/researchModel.ts",
+          "line": 271,
+          "detail": "Lifecycle updates also replace the whole list."
+        }
+      ],
+      "trigger": "Blur/save note A, immediately select/type into B while the response is delayed; or edit a title while an earlier note save is still in flight.",
+      "impact": "The older server snapshot replaces B's newer local draft (and other concurrent metadata edits). Even serial backend execution cannot protect keystrokes that exist only in the renderer.",
+      "recommendation": "Merge acknowledgements by resource and revision rather than replacing all drafts. Keep server data separate from dirty fields and serialize/coalesce writes per research item.",
+      "validation": "Delay A's response, edit B and assert B's draft survives. Repeat same-item title/content and tag/lifecycle combinations; verify both UI and reopened persistence."
+    },
+    {
+      "id": "R08",
+      "title": "Markdown undo history crosses research and scalar-field resource boundaries",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "M",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/shell/MarkdownEditor.tsx",
+          "line": 330,
+          "detail": "CodeMirror history is created once per mounted editor."
+        },
+        {
+          "path": "app/src/renderer/src/shell/MarkdownEditor.tsx",
+          "line": 373,
+          "detail": "External value changes are dispatched as ordinary undoable full-document edits."
+        },
+        {
+          "path": "app/src/renderer/src/views/library/ResearchView.tsx",
+          "line": 132,
+          "detail": "ResearchEditor is reused for selected items without an identity key."
+        },
+        {
+          "path": "app/src/renderer/src/views/codex/CodexView.tsx",
+          "line": 405,
+          "detail": "Scalar EntityDetailFields are also reused across selected records."
+        }
+      ],
+      "trigger": "Switch research notes (or scalar Markdown entity fields), then press Undo in the new resource.",
+      "impact": "Undo can restore the previous resource's complete text into the newly selected item, and normal blur persistence then saves it there. The probe confirms the retained CodeMirror history behavior; the finding is scoped to reused editors, not EntityListsEditor which is keyed per entity.",
+      "recommendation": "Pass a stable document identity and reset/recreate CodeMirror state/history when it changes. Mark same-resource external synchronization as non-user changes and avoid emitting onChange for such sync.",
+      "validation": "Probe uses installed CodeMirror history and reproduces cross-document undo. Add UI tests: edit A, select B, undo repeatedly; no text from A may appear in B."
+    },
+    {
+      "id": "R09",
+      "title": "Restoring an entity revision leaves aliases, relationships and sections showing stale data",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "Desktop",
+        "iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/views/codex/EntityHistoryPanel.tsx",
+          "line": 24,
+          "detail": "Restore updates selectedRecord for the current entity."
+        },
+        {
+          "path": "app/src/renderer/src/views/codex/EntityListsEditor.tsx",
+          "line": 93,
+          "detail": "Aliases and relationships reload only when selectedId changes."
+        },
+        {
+          "path": "app/src/renderer/src/views/codex/useEntitySections.ts",
+          "line": 57,
+          "detail": "Sections also ignore all record changes for the same owner."
+        },
+        {
+          "path": "app/src/renderer/src/views/codex/CodexView.tsx",
+          "line": 478,
+          "detail": "The lists component key remains unchanged for a same-entity restore."
+        }
+      ],
+      "trigger": "On desktop or the tablet layout, restore a previous revision while the same entity remains selected, then edit one of its displayed lists/sections. The phone drill-down normally unmounts these editors when entering history, so its remount mitigates this particular stale-list path.",
+      "impact": "The backend restores the old record while the editor retains the pre-restore lists. A later edit sends those stale whole lists back and can undo the restoration. The same issue can hide interview/wizard updates for an existing entry.",
+      "recommendation": "Distinguish acknowledgements of local drafts from authoritative external replacements. Explicitly reset draft generations after restore/wizard completion, flushing or discarding older pending writes in a controlled order.",
+      "validation": "Restore a revision with different aliases, relationships and sections; assert immediate UI refresh, then edit one value and reopen to verify the remainder stays restored."
+    },
+    {
+      "id": "R10",
+      "title": "Only the last mounted split editor receives spelling suggestions",
+      "priority": "P2",
+      "category": "Editing correctness",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/preload/index.ts",
+          "line": 112,
+          "detail": "onSpellingContext removes all prior listeners before registering the new one."
+        },
+        {
+          "path": "app/src/renderer/src/views/editor/useEditorSynchronization.ts",
+          "line": 88,
+          "detail": "Every editor pane subscribes once on mount, without selecting the currently focused pane or cleanup."
+        }
+      ],
+      "trigger": "Open two editor panes and right-click a misspelling in the first; also try after closing the most recently mounted pane.",
+      "impact": "The native spelling context is delivered to the last mounted pane's editor, not necessarily the pane whose menu is open. After that pane closes, the surviving pane's overwritten listener is not restored.",
+      "recommendation": "Own the native listener once and route context to the active/focused editor bridge, or return proper unsubscribe functions and route by frame identity.",
+      "validation": "In split mode request different misspellings in both panes, close the last one, and repeat. Assert correct words and suggestion menus each time."
+    },
+    {
+      "id": "R11",
+      "title": "An image-only scene is treated as empty when loaded",
+      "priority": "P1",
+      "category": "Editing fidelity",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/public/editor/editor-content.js",
+          "line": 35,
+          "detail": "setContent replaces isEmptyHtml documents with one blank paragraph."
+        },
+        {
+          "path": "app/src/renderer/public/editor/editor-content.js",
+          "line": 89,
+          "detail": "isEmptyHtml checks only sanitized textContent, which is empty for images and other meaningful non-text nodes."
+        },
+        {
+          "path": "app/src/renderer/src/views/editor/useEditorSynchronization.ts",
+          "line": 16,
+          "detail": "Save capture compares the live empty document to the stored HTML and can persist that replacement."
+        }
+      ],
+      "trigger": "Insert an illustration into a blank scene, save, then reopen the scene.",
+      "impact": "The image disappears on load because alt text is not textContent. A subsequent content edit or save capture can replace its stored markup with the blank document.",
+      "recommendation": "Define emptiness in terms of both text and supported meaningful elements such as images, rules and annotation anchors. Preserve non-text-only sanitized documents.",
+      "validation": "Create image-only and image-plus-whitespace scenes, reopen and flush without editing, and assert the image and alt text remain on disk. Add equivalent manuscript-read coverage."
+    },
+    {
+      "id": "R12",
+      "title": "Several modal dialogs lack keyboard containment and focus restoration",
+      "priority": "P2",
+      "category": "Accessibility",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/shell/SceneConflictDialog.tsx",
+          "line": 98,
+          "detail": "Conflict dialog declares role=dialog but does not use shared keyboard containment, aria-modal, or focus restoration."
+        },
+        {
+          "path": "app/src/renderer/src/views/timeline/TimelineEventEditor.tsx",
+          "line": 120,
+          "detail": "Event editor autofocuses a field but has no modal keyboard containment."
+        },
+        {
+          "path": "app/src/renderer/src/shell/useDialogKeyboard.ts",
+          "line": 20,
+          "detail": "A reusable containment/restoration hook already exists."
+        },
+        {
+          "path": "app/src/renderer/src/shell/MotionPresence.tsx",
+          "line": 83,
+          "detail": "MotionPresence makes closing content inert, not the background while a modal is open."
+        }
+      ],
+      "trigger": "Use Tab/Shift+Tab or a screen reader inside conflict/event/layout dialogs.",
+      "impact": "Focus can leave the visible modal and reach obscured controls; Escape behavior varies and dismissal often loses the user's previous position. Source inventory found 51 TSX files declaring role=dialog: 12 reference the shared helper module, but only 3 call useDialogKeyboard. This inventory is a triage signal, not proof that every other dialog is broken.",
+      "recommendation": "Apply a shared modal primitive/hook to actual modal surfaces, mark them aria-modal, inert the background, focus a useful initial control and restore the invoking control. Keep true popovers distinct.",
+      "validation": "Keyboard-only and NVDA/VoiceOver checks on conflict, timeline event, layouts and import dialogs. Tab must cycle inside, Escape must follow safe busy rules, and focus must return to the trigger."
+    },
+    {
+      "id": "R13",
+      "title": "Mobile editor/map images and research media bypass the only working asset bridge",
+      "priority": "P2",
+      "category": "Mobile compatibility",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/mobile/projectImages.ts",
+          "line": 54,
+          "detail": "The mobile loader only scans top-document img[src] elements."
+        },
+        {
+          "path": "app/src/renderer/src/views/editor/editorReadyMessages.ts",
+          "line": 16,
+          "detail": "Editor iframe image base uses novalist-project://, which the top-document observer cannot reach."
+        },
+        {
+          "path": "app/src/renderer/src/views/library/ResearchEditor.tsx",
+          "line": 288,
+          "detail": "Research PDF object, audio and video use novalist-project:// without a matching mobile rewrite."
+        },
+        {
+          "path": "app/src/renderer/src/views/maps/mapViewTypes.ts",
+          "line": 27,
+          "detail": "Map iframe also uses the desktop project protocol."
+        },
+        {
+          "path": "app/src/renderer/src/mobile/shim.ts",
+          "line": 206,
+          "detail": "The shim explicitly says no custom-scheme handler exists in the mobile WebView."
+        }
+      ],
+      "trigger": "Open a desktop-created illustrated scene, map, or research PDF/audio/video on an iPhone/iPad.",
+      "impact": "These existing media surfaces can issue unsupported protocol requests on device while ordinary top-level image thumbnails work. Electron tests forced into mobile layout still retain Electron's protocol handler and do not validate this bridge.",
+      "recommendation": "Resolve assets through one mobile-capable URL service, covering nested frames and media attributes, or implement a scoped native scheme handler. Preserve stored project-relative paths rather than saving data URIs into documents.",
+      "validation": "On real WKWebView/simulator load scene images, map images, PDF/audio/video, switch projects and verify rendering/playback plus unchanged stored references. Run desktop tests as compatibility coverage."
+    },
+    {
+      "id": "R14",
+      "title": "Delayed mobile image reads can show the wrong entity or previous project's image",
+      "priority": "P2",
+      "category": "Mobile correctness",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "S",
+      "platforms": [
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/mobile/projectImages.ts",
+          "line": 20,
+          "detail": "Cache clear has no project generation or cancellation guard."
+        },
+        {
+          "path": "app/src/renderer/src/mobile/projectImages.ts",
+          "line": 43,
+          "detail": "An outstanding read writes into the cache when it finishes, even after a project switch."
+        },
+        {
+          "path": "app/src/renderer/src/mobile/projectImages.ts",
+          "line": 50,
+          "detail": "The final element check accepts any scheme URL, not the exact URL originally requested."
+        }
+      ],
+      "trigger": "Rapidly change an image-bearing selection, or switch projects with identical relative image paths while reads are pending.",
+      "impact": "An old result replaces a newer selection's image; the newer result then sees a data URI and is skipped. A late read can also repopulate the just-cleared cache with the previous project's image.",
+      "recommendation": "Capture a project generation and exact source URL per request; apply/cache only when both still match. Coalesce same-path in-flight reads and clear ownership on project changes.",
+      "validation": "Both race paths are reproduced with real projectImages source and mocked asynchronous image reads in renderer-probes.cjs. Add device tests with intentionally delayed host image replies."
+    },
+    {
+      "id": "R15",
+      "title": "The mobile inspector sheet is not exposed as a modal to assistive technology",
+      "priority": "P2",
+      "category": "Accessibility",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "platforms": [
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/shell/MobileSheet.tsx",
+          "line": 62,
+          "detail": "The sheet is a pair of generic divs; there is no dialog role, aria-modal, labelled relationship, autofocus or focus trap."
+        },
+        {
+          "path": "app/src/renderer/src/shell/MobileSheet.tsx",
+          "line": 29,
+          "detail": "The only keyboard handling is a global Escape listener."
+        },
+        {
+          "path": "app/src/renderer/src/shell/MobileShell.tsx",
+          "line": 380,
+          "detail": "The writing inspector mounts this overlay above the still-interactive editor."
+        }
+      ],
+      "trigger": "Open the inspector using VoiceOver or an iPad hardware keyboard.",
+      "impact": "Assistive technology is not told that navigation entered a new modal surface and can traverse the covered editor. Focus does not reliably enter or return from the sheet.",
+      "recommendation": "Give the sheet a shared modal contract with an accessible title, initial focus, background inertness, containment and focus return. Respect nested dialogs in the sheet.",
+      "validation": "Real iPhone VoiceOver swipe/rotor test and iPad keyboard Tab/Shift+Tab/Escape. Verify focus enters sheet, cannot edit underlying prose, and returns to inspector button."
+    },
+    {
+      "id": "R16",
+      "title": "Keyboard selection in command and quick-open palettes can disappear below the scroll viewport",
+      "priority": "P3",
+      "category": "Usability",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/shell/CommandPalette.tsx",
+          "line": 157,
+          "detail": "Arrow keys update an index, but never scroll or focus the active result."
+        },
+        {
+          "path": "app/src/renderer/src/shell/QuickOpen.tsx",
+          "line": 122,
+          "detail": "Quick-open uses the same index-only navigation."
+        },
+        {
+          "path": "app/src/renderer/src/shell/shell.css",
+          "line": 3559,
+          "detail": "Result lists have a bounded 320px scrolling viewport."
+        }
+      ],
+      "trigger": "Open a palette with enough results and press ArrowDown past the visible rows.",
+      "impact": "The selected command remains executable with Enter while its label is offscreen. Assistive technology also receives no active-descendant update from the input.",
+      "recommendation": "Scroll the active result into view on selection, prevent default cursor movement, and expose listbox/combobox selection semantics without moving typing focus away from the query.",
+      "validation": "Navigate to the last result and back with only keys in a short window and at enlarged UI scale. Selected result must stay visible and be announced."
+    },
+    {
+      "id": "R17",
+      "title": "A known image-placement regression is skipped on Linux",
+      "priority": "P2",
+      "category": "Test coverage",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "app/e2e/m49-insert-image.spec.ts",
+          "line": 45,
+          "detail": "The test explicitly documents a live prose-rebuild race, then skips Linux rather than validating a fix."
+        },
+        {
+          "path": "app/src/renderer/public/editor/content-input.js",
+          "line": 35,
+          "detail": "Image insertion stores a DOM node; once the prose is rebuilt it falls back to the current caret/end instead of the originally requested position."
+        }
+      ],
+      "trigger": "Open the image picker at a middle paragraph, rebuild/reload the scene while the picker is open, then complete insertion.",
+      "impact": "The image can land at the end instead of the selected position. The platform skip removes the environment that exposed this behavior from regression coverage.",
+      "recommendation": "Preserve a logical insertion anchor tied to scene identity and a document position, remap it through changes or clearly reject a stale target. Replace timing luck with an explicit rebuild step, then re-enable Linux.",
+      "validation": "Deterministically rebuild prose between invoking insert and completing it; assert the image lands at the requested logical paragraph in normal/page view on all desktop CI platforms."
+    },
+    {
+      "id": "R18",
+      "title": "Invalid Find/Replace expressions fail without actionable user feedback",
+      "priority": "P2",
+      "category": "Error handling",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/shell/FindReplaceDialog.tsx",
+          "line": 48,
+          "detail": "find() uses try/finally without catch or error state; failures leave existing matches intact."
+        },
+        {
+          "path": "app/src/renderer/src/shell/FindReplaceDialog.tsx",
+          "line": 62,
+          "detail": "replaceAll() likewise clears busy in finally but does not present failure."
+        },
+        {
+          "path": "app/src/renderer/src/shell/FindReplaceDialog.tsx",
+          "line": 145,
+          "detail": "Click handlers discard promises with void, so backend errors become unhandled rejections."
+        }
+      ],
+      "trigger": "Enable regex and enter an invalid pattern, or trigger an I/O/connection failure while finding/replacing.",
+      "impact": "The action appears to do nothing, and stale matches may remain under the new expression. Users cannot distinguish zero results, invalid input, or a failed write.",
+      "recommendation": "Add localized, accessible error feedback tied to the attempted request; clear/label stale results, preserve user input, and allow retry. Validate regex errors from the backend contract rather than guessing different JS regex semantics.",
+      "validation": "Test malformed regex, timeout and rejected replacement; assert a visible error and unchanged content on failed writes, then correct the pattern and succeed."
+    }
+  ],
+  "checks": [
+    {
+      "command": "npm run typecheck (app)",
+      "status": "passed",
+      "detail": "All web, node and e2e TypeScript projects passed."
+    },
+    {
+      "command": "node artifacts/audit-2026-10-06/renderer-probes.cjs",
+      "status": "passed-defects-reproduced",
+      "detail": "Six isolated source-level defect probes: split overwrite, conflict buffer loss, autosave self-conflict, CodeMirror cross-document undo, mobile source race, mobile cache generation race. Actual source modules with mocked transport/state; not an end-to-end application run."
+    },
+    {
+      "command": "TSX modal source inventory",
+      "status": "completed",
+      "detail": "51 files declare role=dialog; 12 import the shared helper module, but only 3 call useDialogKeyboard for containment. Representative gaps traced; remaining dialogs not automatically classified."
+    },
+    {
+      "command": "Initial esbuild-based probe runner",
+      "status": "environment-limited-replaced",
+      "detail": "Child process launch was denied with spawn EPERM. Replaced with built-in Node stripTypeScriptTypes and VM; final probes require no build/process launch."
+    }
+  ],
+  "coverage": [
+    "Read AGENTS.md and CLAUDE.md; no production files or changelog changed.",
+    "Inspected scene editor persistence, conflict merge, split panes, manuscript save queue, pending writes, research and Codex editing/restoration, CodeMirror lifecycle, RPC handling, modal keyboard behavior, palette navigation, mobile asset bridge and mobile inspector.",
+    "Traced backend serial request dispatch and workspace coordination; excluded speculative out-of-order scene-read and replace-before-save findings because existing coordination mitigates those paths.",
+    "Verified Codex EntityListsEditor is keyed by entity, so the cross-entity Markdown undo finding is limited to unkeyed research and scalar fields, not that keyed component.",
+    "Mobile media findings are static source confirmation with native-handler absence independently checked by parent; native WKWebView rendering, VoiceOver, physical keyboard and macOS runtime checks remain required.",
+    "Did not run the full Electron e2e suite or a physical mobile simulator. Source-level reproductions clearly distinguish transport mocks from device behavior."
+  ]
+}

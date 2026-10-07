@@ -21,9 +21,11 @@
 import i18next from 'i18next'
 
 import { installProjectImageLoader, clearProjectImageCache } from './projectImages'
+import { HostCallChannel } from './hostCalls'
 
 function sendRaw(message: string): void {
-  window.HybridWebView?.SendRawMessage?.(message)
+  if (!window.HybridWebView?.SendRawMessage) throw new Error('The mobile host bridge is unavailable.')
+  window.HybridWebView.SendRawMessage(message)
 }
 
 function bytesToBase64(bytes: Uint8Array): string {
@@ -45,42 +47,70 @@ function base64ToBytes(base64: string): Uint8Array {
 // --- RPC transport (Phase 1) ---------------------------------------------
 
 let backendPort: MessagePort | null = null
+let bridgeFailed = false
+let ready: Promise<void> | null = null
 
 window.__novalistRecv = (base64: string) => {
-  backendPort?.postMessage(base64ToBytes(base64))
+  if (!backendPort || bridgeFailed) return 'unavailable'
+  backendPort.postMessage(base64ToBytes(base64))
+  return 'accepted'
+}
+
+window.__novalistBridgeFailed = () => {
+  if (bridgeFailed) return
+  bridgeFailed = true
+  hostCalls.disconnect(new Error('The mobile connection stopped. Reopen Novalist before retrying changes.'))
+  backendPort?.postMessage({ novalistControl: 'backend-recovery-failed', error: 'The mobile connection stopped. Reopen Novalist to recover your work.' })
 }
 
 function requestBackendPort(): void {
   const channel = new MessageChannel()
-  backendPort = channel.port2
-  backendPort.onmessage = (event) => sendRaw(bytesToBase64(event.data as Uint8Array))
+  backendPort?.close()
+  const port = channel.port2
+  backendPort = port
+  const connection = ready ??= hostCall<void>('bridgeReady', [])
+  backendPort.onmessage = (event) => {
+    void connection.then(() => {
+      if (backendPort !== port) return
+      if (bridgeFailed) throw new Error('The mobile connection stopped.')
+      sendRaw(bytesToBase64(event.data as Uint8Array))
+    }).catch(() => window.__novalistBridgeFailed?.())
+  }
+  void ready.catch(() => window.__novalistBridgeFailed?.())
   backendPort.start()
   window.postMessage({ novalist: 'backend-port' }, '*', [channel.port1])
 }
 
 // --- Host bridge (Phase 2) -----------------------------------------------
 
-type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void }
-const pendingHostCalls = new Map<number, Pending>()
-let nextHostCallId = 1
+const hostCalls = new HostCallChannel(sendRaw)
+const backgroundSaves = new Set<() => Promise<void>>()
+
+window.__novalistLifecycleSave = (requestId: number) => {
+  void (async () => {
+    let success = false
+    try {
+      await Promise.all([...backgroundSaves].map((save) => save()))
+      success = backgroundSaves.size > 0
+    } finally {
+      await hostCall('backgroundSaveCompleted', [requestId, success])
+    }
+  })().catch((error: unknown) => console.error('Mobile background save did not complete:', error instanceof Error ? error.name : 'Error'))
+}
 
 window.__novalistHostResult = (base64: string) => {
   const text = new TextDecoder().decode(base64ToBytes(base64))
-  const msg = JSON.parse(text) as { id: number; ok: boolean; result?: unknown; error?: string }
-  const pending = pendingHostCalls.get(msg.id)
-  if (!pending) return
-  pendingHostCalls.delete(msg.id)
-  if (msg.ok) pending.resolve(msg.result)
-  else pending.reject(new Error(msg.error ?? 'host call failed'))
+  hostCalls.receive(JSON.parse(text))
+  return 'accepted'
 }
 
 function hostCall<T>(method: string, args: unknown[]): Promise<T> {
-  const id = nextHostCallId++
-  const promise = new Promise<T>((resolve, reject) => {
-    pendingHostCalls.set(id, { resolve: resolve as (v: unknown) => void, reject })
-  })
-  sendRaw(JSON.stringify({ id, method, args }))
-  return promise
+  const timeout = method.startsWith('pick') ? 600_000 : method === 'readProjectAsset' ? 120_000 : 30_000
+  return hostCalls.request<T>(method, args, timeout)
+}
+
+function notifyHost(method: string, args: unknown[]): void {
+  void hostCall(method, args).catch(() => window.__novalistBridgeFailed?.())
 }
 
 function manuscriptExtensions(options?: { extensions?: string[] }): string[] {
@@ -98,6 +128,10 @@ function manuscriptExtensions(options?: { extensions?: string[] }): string[] {
 // --- window.novalist -----------------------------------------------------
 
 const novalist: Window['novalist'] = {
+  onBackgroundSave: (handler) => {
+    backgroundSaves.add(handler)
+    return () => { backgroundSaves.delete(handler) }
+  },
   systemMicrophone: {
     start: () => hostCall<void>('microphoneStart', []),
     read: () => hostCall<{ clips: string[]; ended: boolean }>('microphoneRead', []),
@@ -157,61 +191,63 @@ const novalist: Window['novalist'] = {
   openExternal: (target) => hostCall<boolean>('openExternal', [target]),
   revealPath: (target) => hostCall<boolean>('revealPath', [target]),
   copyText: (text) => {
-    void hostCall('copyText', [text])
+    notifyHost('copyText', [text])
   },
   // Mobile-only: show/hide the native Liquid Glass tab bar (hidden on welcome).
   setNavVisible: (visible: boolean) => {
-    void hostCall('setNavVisible', [visible])
+    notifyHost('setNavVisible', [visible])
   },
   // Mobile-only: push localized titles onto the native tab bar, in tab order
   // (dashboard, manuscript, codex, search, more). Re-pushed on language change.
   setTabTitles: (titles: string[]) => {
-    void hostCall('setTabTitles', [titles])
+    notifyHost('setTabTitles', [titles])
   },
   // Mobile-only: move the native bar's highlight to this tab index, for a tab
   // change the web made rather than the writer tapping.
   setSelectedTab: (index: number) => {
-    void hostCall('setSelectedTab', [index])
+    notifyHost('setSelectedTab', [index])
   },
   // Mobile-only: show/hide the native Liquid Glass Plan popover with the given
   // localized item labels; selection comes back via window.__novalistPlanSelect.
   setPlanningMenuOpen: (open: boolean, labels: string[]) => {
-    void hostCall('setPlanningMenuOpen', [open, labels])
+    notifyHost('setPlanningMenuOpen', [open, labels])
   },
   // Tablet-only: localized titles for the native iPad sidebar, in the order the
   // native SidebarItems table declares (see TABLET_DESTINATIONS).
   setSidebarTitles: (titles: string[]) => {
-    void hostCall('setSidebarTitles', [titles])
+    notifyHost('setSidebarTitles', [titles])
   },
   // Tablet-only: move the sidebar highlight to a destination key.
   setSidebarSelection: (key: string) => {
-    void hostCall('setSidebarSelection', [key])
+    notifyHost('setSidebarSelection', [key])
   },
   // Tablet-only: collapse the sidebar to an icon-only rail, or expand it back.
   setSidebarCollapsed: (collapsed: boolean) => {
-    void hostCall('setSidebarCollapsed', [collapsed])
+    notifyHost('setSidebarCollapsed', [collapsed])
   },
   // Ask the native side to re-push the current size class through
   // window.__novalistLayout; the first pass can run before the bundle loads.
   requestLayout: () => {
-    void hostCall('requestLayout', [])
+    notifyHost('requestLayout', [])
   },
   readClipboardImage: () => hostCall<string | null>('readClipboardImage', []),
   // Track the open project's folder natively so project images can be read, and
   // drop the resolved-image cache so a new project can't reuse the old one's.
   setProjectRoot: (root) => {
     clearProjectImageCache()
-    void hostCall('setProjectRoot', [root])
+    notifyHost('setProjectRoot', [root])
   },
   // Read a project-relative image as a data: URI (novalist-project:// has no
   // scheme handler in the mobile WebView; projectImages rewrites those srcs).
   readProjectImage: (path: string) => hostCall<string | null>('readProjectImage', [path]),
+  readProjectAsset: (path: string) => hostCall<string | null>('readProjectAsset', [path]),
   // Security-scoped external folders: resolve the native bookmark and start/stop
   // access around opening a project (mirrors the Mac App Store contract). A false
   // result makes the renderer re-prompt for the folder.
   beginProjectAccess: (path: string) => hostCall<boolean>('beginProjectAccess', [path]),
+  resolveStoredProjectPath: (path: string) => hostCall<string | null>('resolveStoredProjectPath', [path]),
   endProjectAccess: (path: string) => {
-    void hostCall('endProjectAccess', [path])
+    notifyHost('endProjectAccess', [path])
   },
   openPaneWindow: () => Promise.resolve(),
   registerExtensionRoots: () => Promise.resolve(),
@@ -231,6 +267,17 @@ const novalist: Window['novalist'] = {
 }
 
 window.novalist = novalist
+
+const healthCheck = setInterval(() => {
+  if (!ready || bridgeFailed || document.visibilityState !== 'visible') return
+  void hostCall('bridgeHealth', []).catch(() => window.__novalistBridgeFailed?.())
+}, 15_000)
+window.addEventListener('pagehide', () => {
+  clearInterval(healthCheck)
+  bridgeFailed = true
+  backendPort?.close()
+  hostCalls.disconnect(new Error('The mobile page closed.'))
+})
 
 // Rewrite novalist-project:// <img> srcs to data URIs (no custom-scheme handler
 // in the mobile WebView).

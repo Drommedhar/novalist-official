@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useDialogKeyboard } from './useDialogKeyboard'
 
 /**
  * Generic mobile bottom sheet: a panel that slides up over a scrim, with a drag
@@ -24,17 +25,8 @@ export function MobileSheet({
   const { t } = useTranslation()
   const [dragY, setDragY] = useState(0)
   const drag = useRef<{ startY: number } | null>(null)
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') {
-        e.stopPropagation()
-        onClose()
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
+  const titleId = useId()
+  const keyboard = useDialogKeyboard(onClose)
 
   const onDown = (e: React.PointerEvent): void => {
     drag.current = { startY: e.clientY }
@@ -59,13 +51,18 @@ export function MobileSheet({
     >
       <div
         className="mobile-sheet"
+        {...keyboard}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+        aria-label={title ? undefined : t('shell.inspector')}
         style={dragY ? { transform: `translateY(${dragY}px)`, transition: 'none' } : undefined}
       >
         <div className="mobile-sheet-grab" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}>
           <div className="mobile-sheet-grabber" />
         </div>
         <div className="mobile-sheet-header">
-          {title && <div className="mobile-sheet-title">{title}</div>}
+          {title && <div id={titleId} className="mobile-sheet-title">{title}</div>}
           <button
             type="button"
             className="mobile-sheet-close"

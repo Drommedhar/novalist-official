@@ -1,0 +1,36 @@
+{
+  "status": "complete",
+  "files": [
+    "Services/ContextEngine.cs",
+    "Services/ChatRequestAssembler.cs",
+    "Services/ChatWebViewController.cs",
+    "ViewModels/AiChatViewModel.cs",
+    "web/chat.html",
+    "tests/AuditChatLifecycleTests.cs",
+    "tests/ChatRequestAssemblerTests.cs",
+    "tests/chat-web.test.cjs"
+  ],
+  "fixes": [
+    "Send consumes the preflight request plan; hooks are not invoked again after validation. Context read and budget failures return actionable rejection replies.",
+    "Request identity prevents queued UI chunks from repopulating completed or subsequent responses. Reentrant project changes during hooks cannot send or retain previous-project text.",
+    "Response filters remain applied to the final visible message and stored conversation. Cancelled partial responses use received chunks even if UI dispatch has not yet caught up.",
+    "Preview tracks repeated occurrences of the same ContextBlock instance independently. Blank blocks no longer appear as included context.",
+    "Webview keeps drafts until acceptance, prevents duplicate sends while context loads or a response runs, clears previous-project preview/context on reset, and restores active stream state during hydration."
+  ],
+  "newCSharpTests": 9,
+  "webTests": {
+    "passed": 4,
+    "failed": 0,
+    "command": "node --test tests/chat-web.test.cjs",
+    "log": "D:\\git\\novalist-aiassistant\\artifacts\\chat-review\\chat-web-final.log",
+    "scope": "Original web/chat.html script executed in a deterministic minimal DOM; no installed Electron UI end-to-end run."
+  },
+  "aislop": {
+    "score": 100,
+    "errors": 0,
+    "warnings": 0,
+    "fixable": 0,
+    "artifact": "D:\\git\\novalist-aiassistant\\artifacts\\audit-chat-review-scan.json"
+  },
+  "pending": []
+}

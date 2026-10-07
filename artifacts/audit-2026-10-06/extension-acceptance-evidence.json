@@ -1,0 +1,27 @@
+{
+  "csharp": {
+    "passed": 414,
+    "failed": 0,
+    "skipped": 0
+  },
+  "python": {
+    "passed": 41,
+    "failed": 0
+  },
+  "browser": {
+    "passed": 7,
+    "failed": 0,
+    "artifact": "browser-extension-acceptance/result.json"
+  },
+  "evidence": {
+    "EXT-001": "EveryContributedFormatOmitsInactiveAndExcludedContent: all9 actual format export handlers passed; prose/outline public markers present, withheld/inactive prose and identities absent; ODT content.xml inspected.",
+    "EXT-002": "Chromium149 actual generated Markup and HTML cover:5 malicious quote/entity/URL payloads plus cover load/error events; no injected attributes or executed handler. browser-extension-acceptance/result.json.",
+    "EXT-006": "MalformedCsvAfterAValidRowImportsNothing:3 malformed quote cases reject the entire import before mutation; CsvPreservesQuotedNewlinesDelimitersAndEscapedQuotes:LF andCRLF cases passed.",
+    "EXT-007": "ScrivenerUsesTypedDraftRootAndPreservesNestedOrderWithLocalizedNames:localized root, nested folders, root prose, misleading Research/Trash names and exact scene/prose order passed.",
+    "EXT-008": "RtfHandlesTwoCharacterFallbackAndMultibyteCodePages:4 additional uc2 literal/hex/grouped fallback andShift-JIS cases passed, alongside existing uc0/uc1/CP1251/CP1252 fixtures.",
+    "EXT-009": "MarkdownImportsMixedDepthInStableOrderAndIgnoresNonProseFiles:root+depth2 files, stable chapter/scene ordering and nonprose exclusions passed.",
+    "EXT-012": "AllEntityKindsPublishBodiesAndContinuityDetectsContentOnlyEdits:character/location/item/lore/custom faction bodies+sections appear in actual generated sites; editing only section content independently flags the referenced scene for every kind, without renaming.",
+    "EXT-019": "Chromium149 consumes actual Insight controller serialized Problem response and renders li.finding.Problem with the missing image text and computed3px red border. browser-extension-acceptance/result.json."
+  },
+  "productionFollowup": "EXT006 rejects malformed quoted fields before creating any chapter or scene; no other production change in this acceptance pass."
+}

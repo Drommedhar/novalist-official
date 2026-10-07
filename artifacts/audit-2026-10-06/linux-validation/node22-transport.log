@@ -1,0 +1,740 @@
+TAP version 13
+# Subtest: polls pause while busy and resume in the acknowledged epoch
+ok 1 - polls pause while busy and resume in the acknowledged epoch
+  ---
+  duration_ms: 2.334385
+  type: 'test'
+  ...
+# Subtest: stale rejected poll cannot permanently stop the render watcher
+ok 2 - stale rejected poll cannot permanently stop the render watcher
+  ---
+  duration_ms: 0.776051
+  type: 'test'
+  ...
+# Subtest: late terminal response from the old epoch cannot stop current polling
+ok 3 - late terminal response from the old epoch cannot stop current polling
+  ---
+  duration_ms: 0.561565
+  type: 'test'
+  ...
+# Subtest: a rejected token after an aborted transition still retries
+ok 4 - a rejected token after an aborted transition still retries
+  ---
+  duration_ms: 1.245952
+  type: 'test'
+  ...
+# Subtest: refresh skips busy workspace and starts watching after resume
+ok 5 - refresh skips busy workspace and starts watching after resume
+  ---
+  duration_ms: 0.645533
+  type: 'test'
+  ...
+# Subtest: render status is global and continues without an open project
+ok 6 - render status is global and continues without an open project
+  ---
+  duration_ms: 0.489528
+  type: 'test'
+  ...
+# (node:267) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/src/shared/rpcFraming.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: windows with identical request IDs receive only their own replies
+ok 7 - windows with identical request IDs receive only their own replies
+  ---
+  duration_ms: 1.527596
+  type: 'test'
+  ...
+# Subtest: newly attached windows do not receive another client partial response
+ok 8 - newly attached windows do not receive another client partial response
+  ---
+  duration_ms: 0.14776
+  type: 'test'
+  ...
+# Subtest: port replacement ignores old replies and late old-port messages
+ok 9 - port replacement ignores old replies and late old-port messages
+  ---
+  duration_ms: 0.146357
+  type: 'test'
+  ...
+# Subtest: data notifications broadcast while interactive UI has one owner
+ok 10 - data notifications broadcast while interactive UI has one owner
+  ---
+  duration_ms: 0.219466
+  type: 'test'
+  ...
+# Subtest: epochs change only after client acknowledgement and drain tokens are scoped
+ok 11 - epochs change only after client acknowledgement and drain tokens are scoped
+  ---
+  duration_ms: 0.23223
+  type: 'test'
+  ...
+# Subtest: malformed client input closes only that client
+ok 12 - malformed client input closes only that client
+  ---
+  duration_ms: 0.18454
+  type: 'test'
+  ...
+# Subtest: restart rejects internal calls and clears incomplete old backend frames
+ok 13 - restart rejects internal calls and clears incomplete old backend frames
+  ---
+  duration_ms: 0.456235
+  type: 'test'
+  ...
+# Subtest: recovery rejects writes without replay and resumes independent clients only when restored
+ok 14 - recovery rejects writes without replay and resumes independent clients only when restored
+  ---
+  duration_ms: 0.269891
+  type: 'test'
+  ...
+# Subtest: real broker holds old replies until every resume ACK while fresh scene reads remain live
+ok 15 - real broker holds old replies until every resume ACK while fresh scene reads remain live
+  ---
+  duration_ms: 4.633884
+  type: 'test'
+  ...
+# Subtest: a failed resume rejects held requests and ignores their eventual stale successes
+ok 16 - a failed resume rejects held requests and ignores their eventual stale successes
+  ---
+  duration_ms: 0.34283
+  type: 'test'
+  ...
+# (node:268) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/src/renderer/src/stores/bookScopedLoad.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: current book read publishes its result
+ok 17 - current book read publishes its result
+  ---
+  duration_ms: 1.569184
+  type: 'test'
+  ...
+# Subtest: old read is retired when projectPath changes
+ok 18 - old read is retired when projectPath changes
+  ---
+  duration_ms: 0.199778
+  type: 'test'
+  ...
+# Subtest: old read is retired when activeBookId changes
+ok 19 - old read is retired when activeBookId changes
+  ---
+  duration_ms: 0.093076
+  type: 'test'
+  ...
+# Subtest: old read is retired when activeDraftId changes
+ok 20 - old read is retired when activeDraftId changes
+  ---
+  duration_ms: 0.086824
+  type: 'test'
+  ...
+# Subtest: old read is retired when workspaceEpoch changes
+ok 21 - old read is retired when workspaceEpoch changes
+  ---
+  duration_ms: 0.079491
+  type: 'test'
+  ...
+# Subtest: old read is retired when workspaceBusy changes
+ok 22 - old read is retired when workspaceBusy changes
+  ---
+  duration_ms: 0.075774
+  type: 'test'
+  ...
+# Subtest: old read is retired when isLoaded changes
+ok 23 - old read is retired when isLoaded changes
+  ---
+  duration_ms: 0.159783
+  type: 'test'
+  ...
+# Subtest: transition rejection is retired without an unhandled failure
+ok 24 - transition rejection is retired without an unhandled failure
+  ---
+  duration_ms: 0.182566
+  type: 'test'
+  ...
+# Subtest: failure in the current book still reaches its caller
+ok 25 - failure in the current book still reaches its caller
+  ---
+  duration_ms: 0.545765
+  type: 'test'
+  ...
+# Subtest: busy or unloaded workspace does not start a request
+ok 26 - busy or unloaded workspace does not start a request
+  ---
+  duration_ms: 0.444523
+  type: 'test'
+  ...
+# Subtest: resume starts a fresh read under the acknowledged epoch
+ok 27 - resume starts a fresh read under the acknowledged epoch
+  ---
+  duration_ms: 0.221129
+  type: 'test'
+  ...
+# Subtest: Basis grows memory after 0 refused reservations
+ok 28 - Basis grows memory after 0 refused reservations
+  ---
+  duration_ms: 9.579536
+  type: 'test'
+  ...
+# Subtest: Basis grows memory after 1 refused reservations
+ok 29 - Basis grows memory after 1 refused reservations
+  ---
+  duration_ms: 14.014745
+  type: 'test'
+  ...
+# Subtest: Basis grows memory after 2 refused reservations
+ok 30 - Basis grows memory after 2 refused reservations
+  ---
+  duration_ms: 13.737523
+  type: 'test'
+  ...
+# Subtest: Basis reports failure without refreshing heap views when every growth attempt fails
+ok 31 - Basis reports failure without refreshing heap views when every growth attempt fails
+  ---
+  duration_ms: 9.905339
+  type: 'test'
+  ...
+# Subtest: Basis rejects requests beyond the heap limit before attempting growth
+ok 32 - Basis rejects requests beyond the heap limit before attempting growth
+  ---
+  duration_ms: 15.399254
+  type: 'test'
+  ...
+# Subtest: Basis permits growth up to the exact heap limit
+ok 33 - Basis permits growth up to the exact heap limit
+  ---
+  duration_ms: 7.517422
+  type: 'test'
+  ...
+# Subtest: Draco grows memory after 0 refused reservations
+ok 34 - Draco grows memory after 0 refused reservations
+  ---
+  duration_ms: 8.084316
+  type: 'test'
+  ...
+# Subtest: Draco grows memory after 1 refused reservations
+ok 35 - Draco grows memory after 1 refused reservations
+  ---
+  duration_ms: 5.314815
+  type: 'test'
+  ...
+# Subtest: Draco grows memory after 2 refused reservations
+ok 36 - Draco grows memory after 2 refused reservations
+  ---
+  duration_ms: 8.548888
+  type: 'test'
+  ...
+# Subtest: Draco reports failure without refreshing heap views when every growth attempt fails
+ok 37 - Draco reports failure without refreshing heap views when every growth attempt fails
+  ---
+  duration_ms: 7.091678
+  type: 'test'
+  ...
+# Subtest: Draco rejects requests beyond the heap limit before attempting growth
+ok 38 - Draco rejects requests beyond the heap limit before attempting growth
+  ---
+  duration_ms: 7.961428
+  type: 'test'
+  ...
+# Subtest: Draco permits growth up to the exact heap limit
+ok 39 - Draco permits growth up to the exact heap limit
+  ---
+  duration_ms: 7.240155
+  type: 'test'
+  ...
+# Subtest: bundled Basis handles recognize aliases without writing the read-only clone record
+ok 40 - bundled Basis handles recognize aliases without writing the read-only clone record
+  ---
+  duration_ms: 77.23385
+  type: 'test'
+  ...
+# Subtest: Basis preserves its exported dynCall wrapper and replaces it with the instantiated function after the first call
+ok 41 - Basis preserves its exported dynCall wrapper and replaces it with the instantiated function after the first call
+  ---
+  duration_ms: 13.245998
+  type: 'test'
+  ...
+# Subtest: English dialogue moves punctuation inside the quote and normalizes speech tags
+ok 42 - English dialogue moves punctuation inside the quote and normalizes speech tags
+  ---
+  duration_ms: 1.945864
+  type: 'test'
+  ...
+# Subtest: interrupted dialogue retains sentence boundaries
+ok 43 - interrupted dialogue retains sentence boundaries
+  ---
+  duration_ms: 1.290121
+  type: 'test'
+  ...
+# Subtest: German dialogue retains its quote and punctuation conventions
+ok 44 - German dialogue retains its quote and punctuation conventions
+  ---
+  duration_ms: 0.591081
+  type: 'test'
+  ...
+# Subtest: unchanged prose and unsupported speech tags produce no correction
+ok 45 - unchanged prose and unsupported speech tags produce no correction
+  ---
+  duration_ms: 0.192234
+  type: 'test'
+  ...
+# (node:276) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/src/renderer/public/map/libs/ktx-parse.module.js is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Zstd initialization rejection reaches every current and subsequent parse callback
+ok 46 - Zstd initialization rejection reaches every current and subsequent parse callback
+  ---
+  duration_ms: 128.147687
+  type: 'test'
+  ...
+# Subtest: a synchronous decoder initialization failure reaches the parse error callback
+ok 47 - a synchronous decoder initialization failure reaches the parse error callback
+  ---
+  duration_ms: 77.072234
+  type: 'test'
+  ...
+# Subtest: concurrent Zstd textures share initialization and decode using the bundled WASM
+ok 48 - concurrent Zstd textures share initialization and decode using the bundled WASM
+  ---
+  duration_ms: 96.103002
+  type: 'test'
+  ...
+# Subtest: uncompressed floating-point textures retain their type and pixel values
+ok 49 - uncompressed floating-point textures retain their type and pixel values
+  ---
+  duration_ms: 74.260324
+  type: 'test'
+  ...
+# Subtest: an unsupported Vulkan format reaches the parse error callback before creating a texture
+ok 50 - an unsupported Vulkan format reaches the parse error callback before creating a texture
+  ---
+  duration_ms: 73.518015
+  type: 'test'
+  ...
+# (node:282) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/src/renderer/src/mobile/hostCalls.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:282) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# Subtest: native microphone denial reaches dictation permission state through the shim and can retry
+ok 51 - native microphone denial reaches dictation permission state through the shim and can retry
+  ---
+  duration_ms: 25.280918
+  type: 'test'
+  ...
+# (node:289) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/src/renderer/src/mobile/hostCalls.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: mobile host calls resolve the matching reply once
+ok 52 - mobile host calls resolve the matching reply once
+  ---
+  duration_ms: 0.949187
+  type: 'test'
+  ...
+# Subtest: microphone denial retains the browser permission error contract
+ok 53 - microphone denial retains the browser permission error contract
+  ---
+  duration_ms: 0.330898
+  type: 'test'
+  ...
+# Subtest: unavailable native bridge rejects immediately
+ok 54 - unavailable native bridge rejects immediately
+  ---
+  duration_ms: 0.224496
+  type: 'test'
+  ...
+# Subtest: missing acknowledgements time out without replaying a mutation
+ok 55 - missing acknowledgements time out without replaying a mutation
+  ---
+  duration_ms: 5.57452
+  type: 'test'
+  ...
+# Subtest: disconnect rejects outstanding calls and late replies stay retired
+ok 56 - disconnect rejects outstanding calls and late replies stay retired
+  ---
+  duration_ms: 0.212413
+  type: 'test'
+  ...
+# (node:294) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: background capture journals scene and manuscript buffers synchronously
+ok 57 - background capture journals scene and manuscript buffers synchronously
+  ---
+  duration_ms: 85.903065
+  type: 'test'
+  ...
+# Subtest: a deleted recovery scene remains journaled without blocking a later valid scene
+ok 58 - a deleted recovery scene remains journaled without blocking a later valid scene
+  ---
+  duration_ms: 8.532766
+  type: 'test'
+  ...
+# Subtest: research recovery copies with different tags or entity links are not mistaken for duplicates
+ok 59 - research recovery copies with different tags or entity links are not mistaken for duplicates
+  ---
+  duration_ms: 12.666142
+  type: 'test'
+  ...
+# Subtest: an older recovery acknowledgement retains a newer background journal for the same source
+ok 60 - an older recovery acknowledgement retains a newer background journal for the same source
+  ---
+  duration_ms: 10.106765
+  type: 'test'
+  ...
+# Subtest: recovery refuses a different book or draft without issuing a write
+ok 61 - recovery refuses a different book or draft without issuing a write
+  ---
+  duration_ms: 11.228813
+  type: 'test'
+  ...
+# Subtest: unchanged disk restores through a checked scene write and retires its journal
+ok 62 - unchanged disk restores through a checked scene write and retires its journal
+  ---
+  duration_ms: 11.507245
+  type: 'test'
+  ...
+# Subtest: changed disk opens the existing conflict path and keeps the recovery payload
+ok 63 - changed disk opens the existing conflict path and keeps the recovery payload
+  ---
+  duration_ms: 9.130991
+  type: 'test'
+  ...
+# Subtest: changed research preserves the disk item and creates a recovered copy
+ok 64 - changed research preserves the disk item and creates a recovered copy
+  ---
+  duration_ms: 11.379022
+  type: 'test'
+  ...
+# Subtest: the journal refuses oversized replacement while preserving the prior payload
+ok 65 - the journal refuses oversized replacement while preserving the prior payload
+  ---
+  duration_ms: 14.985169
+  type: 'test'
+  ...
+# Subtest: journal entries produced in this session are not replayed over live edits
+ok 66 - journal entries produced in this session are not replayed over live edits
+  ---
+  duration_ms: 10.800385
+  type: 'test'
+  ...
+# Subtest: trusted project relocation remaps the journal only within the same book and draft
+ok 67 - trusted project relocation remaps the journal only within the same book and draft
+  ---
+  duration_ms: 9.229713
+  type: 'test'
+  ...
+# Subtest: similar external path suffixes do not authorize journal remapping
+ok 68 - similar external path suffixes do not authorize journal remapping
+  ---
+  duration_ms: 10.580127
+  type: 'test'
+  ...
+# Subtest: journal remapping cannot overwrite newer target-scope captures
+ok 69 - journal remapping cannot overwrite newer target-scope captures
+  ---
+  duration_ms: 7.046875
+  type: 'test'
+  ...
+# Subtest: a workspace change during trusted path resolution prevents recovery writes
+ok 70 - a workspace change during trusted path resolution prevents recovery writes
+  ---
+  duration_ms: 8.878547
+  type: 'test'
+  ...
+# (node:295) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/src/renderer/src/mobile/hostCalls.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:295) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# Subtest: mobile RPC waits for native readiness and acknowledges byte delivery
+ok 71 - mobile RPC waits for native readiness and acknowledges byte delivery
+  ---
+  duration_ms: 12.316611
+  type: 'test'
+  ...
+# Subtest: replaced mobile ports cannot forward writes queued before readiness
+ok 72 - replaced mobile ports cannot forward writes queued before readiness
+  ---
+  duration_ms: 7.806424
+  type: 'test'
+  ...
+# Subtest: bridge failure rejects pending and future calls and pauses the renderer
+ok 73 - bridge failure rejects pending and future calls and pauses the renderer
+  ---
+  duration_ms: 6.178484
+  type: 'test'
+  ...
+# Subtest: background save acknowledgement reports durable completion
+ok 74 - background save acknowledgement reports durable completion
+  ---
+  duration_ms: 5.74728
+  type: 'test'
+  ...
+# Subtest: background save acknowledgement reports failure
+ok 75 - background save acknowledgement reports failure
+  ---
+  duration_ms: 8.884784
+  type: 'test'
+  ...
+# (node:296) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/src/renderer/src/stores/pendingWrites.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: recovery capture copies live prose without starting or consuming persistence
+ok 76 - recovery capture copies live prose without starting or consuming persistence
+  ---
+  duration_ms: 0.376353
+  type: 'test'
+  ...
+# (node:307) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/src/renderer/src/stores/pendingWrites.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: a newer mounted save supersedes a failed retained payload
+ok 77 - a newer mounted save supersedes a failed retained payload
+  ---
+  duration_ms: 3.706071
+  type: 'test'
+  ...
+# Subtest: a newer same-key write waits for the older in-flight request
+ok 78 - a newer same-key write waits for the older in-flight request
+  ---
+  duration_ms: 1.160109
+  type: 'test'
+  ...
+# (node:344) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: an old image response cannot replace a newer source
+ok 79 - an old image response cannot replace a newer source
+  ---
+  duration_ms: 42.387424
+  type: 'test'
+  ...
+# Subtest: project changes retire pending responses even when the relative path is identical
+ok 80 - project changes retire pending responses even when the relative path is identical
+  ---
+  duration_ms: 7.278538
+  type: 'test'
+  ...
+# Subtest: concurrent asset reads deduplicate and research audio/video/PDF use the host asset reader
+ok 81 - concurrent asset reads deduplicate and research audio/video/PDF use the host asset reader
+  ---
+  duration_ms: 5.160242
+  type: 'test'
+  ...
+# Subtest: host media errors retain the explicit reason and remain retryable
+ok 82 - host media errors retain the explicit reason and remain retryable
+  ---
+  duration_ms: 5.390434
+  type: 'test'
+  ...
+# Subtest: resolved assets use a bounded least-recently-used cache
+ok 83 - resolved assets use a bounded least-recently-used cache
+  ---
+  duration_ms: 4.798746
+  type: 'test'
+  ...
+# (node:345) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: a delayed note acknowledgement preserves later status, rating and links
+ok 84 - a delayed note acknowledgement preserves later status, rating and links
+  ---
+  duration_ms: 39.541629
+  type: 'test'
+  ...
+# Subtest: unmount retains every dirty note when the first write fails
+ok 85 - unmount retains every dirty note when the first write fails
+  ---
+  duration_ms: 16.807183
+  type: 'test'
+  ...
+# Subtest: one successful note does not clear the error from a failed sibling
+ok 86 - one successful note does not clear the error from a failed sibling
+  ---
+  duration_ms: 11.971399
+  type: 'test'
+  ...
+# Subtest: an old hook acknowledgement cannot erase the remounted note recovery journal
+ok 87 - an old hook acknowledgement cannot erase the remounted note recovery journal
+  ---
+  duration_ms: 26.687335
+  type: 'test'
+  ...
+# (node:351) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/src/shared/rpcFraming.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: frames preserve Unicode when every byte arrives separately
+ok 88 - frames preserve Unicode when every byte arrives separately
+  ---
+  duration_ms: 2.495712
+  type: 'test'
+  ...
+# Subtest: concatenated frames and a partial successor keep their own boundaries
+ok 89 - concatenated frames and a partial successor keep their own boundaries
+  ---
+  duration_ms: 5.387518
+  type: 'test'
+  ...
+# Subtest: a parser has no shared partial frame state with another client
+ok 90 - a parser has no shared partial frame state with another client
+  ---
+  duration_ms: 0.27444
+  type: 'test'
+  ...
+# Subtest: invalid and ambiguous lengths fail instead of corrupting a later frame
+ok 91 - invalid and ambiguous lengths fail instead of corrupting a later frame
+  ---
+  duration_ms: 5.536807
+  type: 'test'
+  ...
+# Subtest: invalid JSON, protocol objects and UTF-8 are rejected
+ok 92 - invalid JSON, protocol objects and UTF-8 are rejected
+  ---
+  duration_ms: 0.572325
+  type: 'test'
+  ...
+# (node:352) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: divergent split panes retain their own base and produce a conflict
+ok 93 - divergent split panes retain their own base and produce a conflict
+  ---
+  duration_ms: 50.761889
+  type: 'test'
+  ...
+# Subtest: refused save preserves the visible dirty editor on open
+ok 94 - refused save preserves the visible dirty editor on open
+  ---
+  duration_ms: 16.467442
+  type: 'test'
+  ...
+# Subtest: refused save preserves the visible dirty editor on close
+ok 95 - refused save preserves the visible dirty editor on close
+  ---
+  duration_ms: 18.265409
+  type: 'test'
+  ...
+# Subtest: overlapping autosaves serialize and preserve a newer dirty edit until acknowledged
+ok 96 - overlapping autosaves serialize and preserve a newer dirty edit until acknowledged
+  ---
+  duration_ms: 17.823839
+  type: 'test'
+  ...
+# Subtest: a failed save retains the dirty buffer and the next explicit flush can retry
+ok 97 - a failed save retains the dirty buffer and the next explicit flush can retry
+  ---
+  duration_ms: 15.99488
+  type: 'test'
+  ...
+# Subtest: prepare requires every owner and ignores a forged or stale acknowledgement
+ok 98 - prepare requires every owner and ignores a forged or stale acknowledgement
+  ---
+  duration_ms: 4.512796
+  type: 'test'
+  ...
+# Subtest: one refused save rejects prepare and abort resumes every original epoch
+ok 99 - one refused save rejects prepare and abort resumes every original epoch
+  ---
+  duration_ms: 0.700899
+  type: 'test'
+  ...
+# Subtest: apply advances only acknowledged owners and resumes after all are applied
+ok 100 - apply advances only acknowledged owners and resumes after all are applied
+  ---
+  duration_ms: 0.616398
+  type: 'test'
+  ...
+# Subtest: failed apply keeps every surface frozen and never acknowledges stale UI
+ok 101 - failed apply keeps every surface frozen and never acknowledges stale UI
+  ---
+  duration_ms: 0.293246
+  type: 'test'
+  ...
+# Subtest: unresponsive save fails within the deadline
+ok 102 - unresponsive save fails within the deadline
+  ---
+  duration_ms: 29.718476
+  type: 'test'
+  ...
+# Subtest: destroyed window cannot strand a remaining window or consume another ACK
+ok 103 - destroyed window cannot strand a remaining window or consume another ACK
+  ---
+  duration_ms: 0.804315
+  type: 'test'
+  ...
+# Subtest: close flushes all windows before backup and accepts only owner-matched replies
+ok 104 - close flushes all windows before backup and accepts only owner-matched replies
+  ---
+  duration_ms: 1.21831
+  type: 'test'
+  ...
+# Subtest: failed close resumes every window and focuses the failed owner
+ok 105 - failed close resumes every window and focuses the failed owner
+  ---
+  duration_ms: 0.387484
+  type: 'test'
+  ...
+# Subtest: renderer crash resolves its impossible close wait without skipping other windows
+ok 106 - renderer crash resolves its impossible close wait without skipping other windows
+  ---
+  duration_ms: 0.212843
+  type: 'test'
+  ...
+# Subtest: global quit queued behind detached close gets a new complete preflight
+ok 107 - global quit queued behind detached close gets a new complete preflight
+  ---
+  duration_ms: 1.102285
+  type: 'test'
+  ...
+# Subtest: window joining during prepare receives no stale bootstrap snapshot
+ok 108 - window joining during prepare receives no stale bootstrap snapshot
+  ---
+  duration_ms: 0.440775
+  type: 'test'
+  ...
+# Subtest: backend recovery restores the acknowledged project, book and draft before snapshot
+ok 109 - backend recovery restores the acknowledged project, book and draft before snapshot
+  ---
+  duration_ms: 0.201893
+  type: 'test'
+  ...
+# Subtest: failed backend restoration does not replace the acknowledged recovery target
+ok 110 - failed backend restoration does not replace the acknowledged recovery target
+  ---
+  duration_ms: 0.240316
+  type: 'test'
+  ...
+# Subtest: crash cannot release a waiting bootstrap snapshot into partially restored draft state
+ok 111 - crash cannot release a waiting bootstrap snapshot into partially restored draft state
+  ---
+  duration_ms: 0.640003
+  type: 'test'
+  ...
+# Subtest: snapshot reply followed immediately by prepare cannot settle a client into old context
+ok 112 - snapshot reply followed immediately by prepare cannot settle a client into old context
+  ---
+  duration_ms: 0.64366
+  type: 'test'
+  ...
+# Subtest: a new transition during resume is refused without consuming the old ACKs
+ok 113 - a new transition during resume is refused without consuming the old ACKs
+  ---
+  duration_ms: 0.498304
+  type: 'test'
+  ...
+# Subtest: coordination retry only reads current snapshot without reopening a project
+ok 114 - coordination retry only reads current snapshot without reopening a project
+  ---
+  duration_ms: 0.218865
+  type: 'test'
+  ...
+1..114
+# tests 114
+# suites 0
+# pass 114
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1132.992761

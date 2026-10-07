@@ -17,13 +17,16 @@ import { AppendToEntityDialog } from '../../shell/AppendToEntityDialog'
 import './library.css'
 
 export function ResearchView(): React.JSX.Element {
-  const { t, researchTab, setResearchTab, setItems, dragging, setDragging, handleDrop, create, importFile, setVaultOpen, search, setSearch, inboxCount, inboxOnly, setInboxOnly, filtered, selectedId, setSelectedId, isInbox, selected, fetchingTitle, fetchLinkTitle, setConfirmDelete, setFiling, markFiled, patchSelected, save, setLifecycle, removeTag, newTag, setNewTag, addTag, entityNames, unlinkEntity, linkEntity, allEntities, items, toggleRelated, confirmDelete, filing, fileAsNewEntity, fileIntoEntity, vaultOpen } = useResearchModel()
+  const model = useResearchModel()
+  const { saveError } = model
+  const { t, researchTab, setResearchTab, setItems, dragging, setDragging, handleDrop, create, importFile, setVaultOpen, search, setSearch, inboxCount, inboxOnly, setInboxOnly, filtered, selectedId, setSelectedId, isInbox, selected, fetchingTitle, fetchLinkTitle, setConfirmDelete, setFiling, markFiled, patchSelected, save, setLifecycle, removeTag, newTag, setNewTag, addTag, entityNames, unlinkEntity, linkEntity, allEntities, items, toggleRelated, confirmDelete, filing, fileAsNewEntity, fileIntoEntity, vaultOpen } = model
   const contentRef = useRef<HTMLDivElement>(null)
   const detailRef = useRef<HTMLDivElement>(null)
   useContentTransition(contentRef, researchTab)
   useContentTransition(detailRef, selectedId ?? '')
   return (
     <div className="codex research-view" ref={contentRef}>
+      {saveError && <p role="alert">{saveError}</p>}
       <nav className="codex-tabs" aria-label={t('shell.view.research')}>
         <button
           className={`codex-tab${researchTab === 'project' ? ' active' : ''}`}

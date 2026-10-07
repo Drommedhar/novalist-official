@@ -1,0 +1,20 @@
+{
+  "result": "passed",
+  "findings": 73,
+  "checks": [
+    "all counts",
+    "priority filter",
+    "evidence filter",
+    "mobile filter",
+    "search/no results",
+    "expand/collapse",
+    "filtered JSON download",
+    "deep links",
+    "internal anchors",
+    "print expansion/restoration",
+    "390px layout",
+    "no horizontal overflow",
+    "no JS errors",
+    "no network dependencies"
+  ]
+}

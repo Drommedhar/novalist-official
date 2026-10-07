@@ -17,6 +17,47 @@ public class SceneConflictGuardTests : IDisposable
 
     public void Dispose() => _dir.Dispose();
 
+    [Fact]
+    public async Task ResolvingSnapshotsTheOriginalLocalTextEvenWhenNoneOfItIsChosen()
+    {
+        var (chapter, scene) = await SceneAsync();
+        await WriteOnDiskAsync(chapter, scene, "<p>Disk version</p>");
+        var snapshots = new SnapshotService(_projects, new FileService());
+
+        await Guard(snapshots).ResolveAsync(chapter, scene, "<p>Disk version</p>", "<p>Unsaved local prose</p>");
+
+        var taken = await snapshots.ListAsync(scene);
+        Assert.Equal(3, taken.Count);
+        var local = Assert.Single(taken, snapshot => snapshot.Label == "Before merge: local version");
+        Assert.Equal("<p>Unsaved local prose</p>", local.Content);
+        Assert.Equal(3, local.WordCount);
+        Assert.True(await snapshots.RestoreAsync(chapter, scene, local.Id));
+        Assert.Equal(local.Content, await _projects.ReadSceneContentAsync(chapter, scene));
+        Assert.Equal(3, scene.WordCount);
+    }
+
+    [Theory]
+    [InlineData("<p style='text-align:center'>A <strong>bold</strong> line</p><ul><li>One</li><li>Two</li></ul><p><img src='cover.png'></p>")]
+    [InlineData("<table><tr><td><p>Cell</p></td></tr></table>\n<p>After</p>\n")]
+    [InlineData("<p>Unclosed")]
+    [InlineData("<p>Mismatch</div>")]
+    [InlineData("Plain text")]
+    public void MergeRowsPreserveCompleteOriginalMarkup(string html)
+    {
+        var rows = SceneConflictGuard.Rows(html, "<p>Different</p>");
+        Assert.Equal(html, string.Concat(rows.Select(row => row.MineHtml)));
+        Assert.Equal("<p>Different</p>", string.Concat(rows.Select(row => row.TheirsHtml)));
+    }
+
+    [Fact]
+    public void FormattingOnlyChangesAndImageOnlyBlocksRemainSelectable()
+    {
+        var rows = SceneConflictGuard.Rows("<p><b>Same</b></p><p><img src='a.png'></p>", "<p><i>Same</i></p>");
+        Assert.Equal("changed", rows[0].State);
+        Assert.Equal("mine", rows[1].State);
+        Assert.Contains("a.png", rows[1].MineHtml);
+    }
+
     private async Task<(ChapterData Chapter, SceneData Scene)> SceneAsync()
     {
         await _projects.CreateProjectAsync(_dir.Path, "P", "Book");

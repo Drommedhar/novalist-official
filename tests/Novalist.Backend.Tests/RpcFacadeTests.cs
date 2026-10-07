@@ -40,6 +40,22 @@ public sealed class RpcFacadeTests : IAsyncDisposable
     private Task<T> InvokeAsync<T>(string method, params object[] args) =>
         _client.InvokeAsync<T>(method, args);
 
+    [Theory]
+    [InlineData("project/setChapterAct", "Final act")]
+    [InlineData("project/setChapterStatus", "Final")]
+    public async Task ChapterPlanningEditsSurviveOpeningTheProjectAgain(string method, string value)
+    {
+        var created = await InvokeAsync<ProjectStateDto>("project/create", _root, "Planning", "Book");
+        var state = await InvokeAsync<ProjectStateDto>("project/createChapter", "Chapter");
+        var chapter = Assert.Single(state.Chapters);
+
+        await InvokeAsync<ProjectStateDto>(method, chapter.Guid, value);
+        var reopened = await InvokeAsync<ProjectStateDto>("project/open", created.ProjectPath!);
+
+        var saved = Assert.Single(reopened.Chapters);
+        Assert.Equal(value, method.EndsWith("Act", StringComparison.Ordinal) ? saved.Act : saved.Status);
+    }
+
     [Fact]
     public async Task ProjectTemplates_ListAndCreateFromTemplate()
     {

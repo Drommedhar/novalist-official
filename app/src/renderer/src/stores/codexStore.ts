@@ -24,6 +24,7 @@ interface CodexState {
   entities: EntitySummary[]
   selectedId: string | null
   selectedRecord: Record<string, unknown> | null
+  restoredRevision: number
   setType(type: EntityType): Promise<void>
   refresh(): Promise<void>
   select(id: string): Promise<void>
@@ -46,6 +47,7 @@ export const useCodexStore = create<CodexState>((set, get) => ({
   entities: [],
   selectedId: null,
   selectedRecord: null,
+  restoredRevision: 0,
 
   setType: async (entityType) => {
     selectionRevision++

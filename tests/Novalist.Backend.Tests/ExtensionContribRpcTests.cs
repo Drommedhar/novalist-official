@@ -3,6 +3,7 @@ using Novalist.Backend.Extensions;
 using Novalist.Backend.Rpc;
 using Novalist.Backend.Tests.TestHelpers;
 using Novalist.Sdk.Models;
+using Novalist.Sdk.Hooks;
 using Xunit;
 
 namespace Novalist.Backend.Tests;
@@ -106,6 +107,32 @@ public sealed class ExtensionContribRpcTests : IDisposable
     }
 
     // ── Context menu ────────────────────────────────────────────────
+
+    [Fact]
+    public async Task InlineAlternativesAndSuggestionIntentReachTheRenderer()
+    {
+        _workspace.HostServices!.RegisterInlineActionContributor(new ReviewAction());
+        var result = await _rpc.ExecuteInlineActionAsync("audit-review", "original", _chapterGuid, _sceneId, CancellationToken.None);
+        Assert.NotNull(result);
+        Assert.Equal(new[] { "first proposal", "second proposal" }, result.Alternatives);
+        Assert.True(result.AsSuggestion);
+        Assert.Equal("information", result.Disposition);
+        Assert.Equal("first proposal", result.Text);
+    }
+
+    private sealed class ReviewAction : IInlineActionContributor
+    {
+        public IReadOnlyList<InlineActionDescriptor> GetInlineActions() => [new() { Id = "audit-review" }];
+
+        public Task<InlineActionResult> ExecuteAsync(string actionId, InlineActionRequest request, CancellationToken cancellationToken)
+            => Task.FromResult(new InlineActionResult
+            {
+                Text = "first proposal",
+                Alternatives = ["first proposal", "second proposal"],
+                AsSuggestion = true,
+                Disposition = InlineActionDisposition.ShowInformation
+            });
+    }
 
     [Fact]
     public void ContextMenuItems_Surfaced_AndNoHostEmpty()

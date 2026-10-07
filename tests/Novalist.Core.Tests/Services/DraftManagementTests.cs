@@ -23,6 +23,22 @@ public class DraftManagementTests : IDisposable
 
     public void Dispose() => _dir.Dispose();
 
+    [Fact]
+    public async Task CloningDraftPreservesBinaryFilesAndNestedAssets()
+    {
+        await _projects.CreateProjectAsync(_dir.Path, "Drafts", "Book");
+        var sourceId = _projects.ActiveBook!.ActiveDraftId;
+        var source = Path.Combine(_projects.ActiveDraftRoot!, "assets", "nested", "image.bin");
+        var bytes = Enumerable.Range(0, 256).Select(i => (byte)i).ToArray();
+        await _files.WriteBytesAsync(source, bytes);
+
+        var clone = await _projects.CreateDraftAsync("Clone", sourceId);
+        await _projects.SwitchDraftAsync(clone.Id);
+
+        Assert.Equal(bytes, await File.ReadAllBytesAsync(Path.Combine(_projects.ActiveDraftRoot!, "assets", "nested", "image.bin")));
+        Assert.Equal(bytes, await File.ReadAllBytesAsync(source));
+    }
+
     private async Task<(string First, string Second)> TwoDraftsAsync()
     {
         await _projects.CreateProjectAsync(_dir.Path, "Drafts", "Book");

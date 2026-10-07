@@ -1,5 +1,6 @@
 
 
+import { useState } from 'react'
 import { RevisionsPanel } from '../../shell/RevisionsPanel'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { ExternalLink, FolderOpen, Link2, Star, Trash2 } from 'lucide-react'
@@ -216,8 +217,13 @@ function ResearchMetadata({ t, selected, setLifecycle, patchSelected, save, remo
 }
 
 export function ResearchEditor({ selected, t, fetchingTitle, fetchLinkTitle, setConfirmDelete, isInbox, setFiling, markFiled, patchSelected, save, setLifecycle, removeTag, newTag, setNewTag, addTag, entityNames, unlinkEntity, linkEntity, allEntities, items, setSelectedId, toggleRelated, setItems }: { selected: NonNullable<ResearchViewState['selected']>; t: ResearchViewState['t']; fetchingTitle: ResearchViewState['fetchingTitle']; fetchLinkTitle: ResearchViewState['fetchLinkTitle']; setConfirmDelete: ResearchViewState['setConfirmDelete']; isInbox: ResearchViewState['isInbox']; setFiling: ResearchViewState['setFiling']; markFiled: ResearchViewState['markFiled']; patchSelected: ResearchViewState['patchSelected']; save: ResearchViewState['save']; setLifecycle: ResearchViewState['setLifecycle']; removeTag: ResearchViewState['removeTag']; newTag: ResearchViewState['newTag']; setNewTag: ResearchViewState['setNewTag']; addTag: ResearchViewState['addTag']; entityNames: ResearchViewState['entityNames']; unlinkEntity: ResearchViewState['unlinkEntity']; linkEntity: ResearchViewState['linkEntity']; allEntities: ResearchViewState['allEntities']; items: ResearchViewState['items']; setSelectedId: ResearchViewState['setSelectedId']; toggleRelated: ResearchViewState['toggleRelated']; setItems: ResearchViewState['setItems'] }): React.JSX.Element {
+  const [previewError, setPreviewError] = useState<{ id: string; message: string } | null>(null)
   return (
-    <div className="research-editor">
+    <div className="research-editor" onErrorCapture={(event) => {
+      const target = event.target as HTMLElement
+      setPreviewError({ id: selected.id, message: target.getAttribute('aria-description') || t('research.previewFailed') })
+    }}>
+      {previewError?.id === selected.id && <p role="alert" className="settings-hint">{previewError.message}</p>}
       <div className="codex-detail-actions">
         {(selected.type === 'Link' || isFileType(selected.type)) && (
           <button
@@ -320,6 +326,7 @@ export function ResearchEditor({ selected, t, fetchingTitle, fetchLinkTitle, set
         </dl>
       )}
       <MarkdownEditor
+        key={selected.id}
         className="research-content"
         minRows={12}
         placeholder={t('research.contentWatermark')}

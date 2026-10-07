@@ -81,6 +81,10 @@ Depending on the type, the editor's action row offers:
 
 Everything saves automatically as you edit — changes are written when you leave a field.
 
+Pending note edits also save before changing workspaces or closing Novalist. A slow save keeps newer text in the editor. Undo stays within the selected note or field.
+
+On iPhone and iPad, pending notes are retained for recovery when the app backgrounds. If a recovered note conflicts with newer project data, Novalist preserves it as a separate recovered note. Mobile previews support project images, PDFs, audio and video up to 16 MiB per file; larger files stay in the project and show a preview-limit message.
+
 ## Status, rating and links between items
 
 Every item carries three things beyond its content, all optional and all set from the detail pane:

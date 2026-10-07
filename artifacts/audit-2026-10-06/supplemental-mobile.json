@@ -1,0 +1,56 @@
+{
+  "findings": [
+    {
+      "id": "M06",
+      "title": "Preserve permission-denied errors across the mobile microphone bridge",
+      "priority": "P3",
+      "category": "UX",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "D:/git/novalist-official/Novalist.Mobile/Services/SystemMicrophone.cs",
+          "line": 13,
+          "detail": "A denied native microphone prompt throws UnauthorizedAccessException."
+        },
+        {
+          "path": "D:/git/novalist-official/Novalist.Mobile/Pages/RendererHostPage.cs",
+          "line": 147,
+          "detail": "Host serializes only the exception message."
+        },
+        {
+          "path": "D:/git/novalist-official/app/src/renderer/src/mobile/shim.ts",
+          "line": 74,
+          "detail": "Every failed host call becomes an ordinary Error."
+        },
+        {
+          "path": "D:/git/novalist-official/app/src/renderer/src/dictation/dictationStore.ts",
+          "line": 163,
+          "endLine": 165,
+          "detail": "Permission guidance is selected only for DOMException named NotAllowedError."
+        }
+      ],
+      "trigger": "Deny the microphone permission prompt on iOS, or keep the app's microphone access disabled in system settings, then start dictation.",
+      "impact": "The UI shows the generic connected/available microphone error instead of the existing instruction to allow access in system settings. Retrying the same action does not explain how to recover.",
+      "recommendation": "Return a stable permission-denied code through the existing host bridge and map it to dictation.permission, keeping generic device and transport errors distinct.",
+      "validation": "Mock native permission denial through the actual shim contract and assert dictation.permission; verify denied and subsequently enabled permissions on an iOS device.",
+      "platforms": [
+        "iOS"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "command": "Static mobile manuscript picker / Apple speech contract review",
+      "status": "completed",
+      "detail": "Read manuscript security-scope picker, native Swift speech and microphone code, iOS/macOS targets/build script, C# AppleSpeechBridge/SystemMicrophone and renderer capture consumer. No Apple toolchain/device execution on Windows."
+    }
+  ],
+  "coverage": [
+    "No additional independently confirmed native functional defect was found beyond the parent audit's lifecycle/scope/path/transport/CI findings. Hardware route-change, audio-session restoration and cancellation race hypotheses were deliberately withheld.",
+    "novalist-pnp: inventory, manifest, csproj dependency/deploy configuration, contributor declarations/native view factories were inspected; no deep RPG, encounter, import, Owlbear, PDF, build or test audit.",
+    "novalist-qwentts: inventory, manifest, csproj dependency/deploy configuration, contributor declarations/native view factories were inspected; no deep legacy Python/model/playback/voice-store audit or build.",
+    "Legacy compatibility was compared with current SDK/host and gallery; neither old extension appears in the current gallery. Current Speech is a separate extension. Both legacy repositories remained read-only."
+  ]
+}

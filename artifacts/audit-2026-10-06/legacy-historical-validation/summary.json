@@ -1,0 +1,111 @@
+{
+  "finding": "EXT-018",
+  "status": "verified-loader-contract",
+  "originalAcceptance": "Static compatibility check confirms IContentViewContributor/ISidebarContributor are absent from the current SDK. Validate manifest rejection against current host and acceptance against the last supported native host.",
+  "currentGate": {
+    "artifact": "../legacy-host-gating.json",
+    "passedCases": 18,
+    "details": "Actual current ExtensionLoader rejects PnP1.6 and both legacy extensions on2.0/3.5.3/3.5.4; PnP1.7 and appropriate historical minima pass only the version gate."
+  },
+  "pnp": {
+    "sourceState": "HEAD fd72ec8 contains onlyREADME.md; implementation was pre-existing untracked working content. No clean published implementation revision exists locally to substitute for it.",
+    "changesToOriginalFiles": [
+      "extension.json:minHostVersion1.7.0 (previous0.0.1); prior maxHostVersion1.999.999 retained",
+      "README.md:exact tested endpoints and loader-only limitations"
+    ],
+    "build": {
+      "hostTag": "v1.7",
+      "commit": "08c6e3a76bcc933841258f9889eeb98c003a7c22",
+      "sdk": "3.1.0",
+      "avalonia": "12.0.0",
+      "pdfPig": "0.1.14",
+      "communityToolkit": "8.4.0",
+      "status": "passed",
+      "existingWarnings": 4
+    },
+    "loads": [
+      {
+        "status": "passed",
+        "hostVersion": "1.7",
+        "hostTag": "v1.7",
+        "sdkCommit": "08c6e3a76bcc933841258f9889eeb98c003a7c22",
+        "extensionId": "com.novalist.pnp",
+        "extensionVersion": "0.1.0",
+        "nativeContributions": [
+          "IExtension",
+          "IRibbonContributor",
+          "ISidebarContributor",
+          "IContentViewContributor",
+          "ISettingsContributor",
+          "IEntityTypeContributor",
+          "IContextMenuContributor",
+          "IStatusBarContributor",
+          "IHotkeyContributor",
+          "IAiHook",
+          "IEditorExtension",
+          "IExportFormatContributor",
+          "IPropertyTypeContributor"
+        ],
+        "loadedUsingHistoricalLoader": true,
+        "limitation": "Historical SDK/loader exercised; extension Initialize and UI views not started."
+      },
+      {
+        "status": "passed",
+        "hostVersion": "1.14.5",
+        "hostTag": "v1.14.5",
+        "sdkCommit": "8827483e45dcf06096e2aad56347eb588936e56d",
+        "extensionId": "com.novalist.pnp",
+        "extensionVersion": "0.1.0",
+        "nativeContributions": [
+          "IExtension",
+          "IRibbonContributor",
+          "ISidebarContributor",
+          "IContentViewContributor",
+          "ISettingsContributor",
+          "IEntityTypeContributor",
+          "IContextMenuContributor",
+          "IStatusBarContributor",
+          "IHotkeyContributor",
+          "IAiHook",
+          "IEditorExtension",
+          "IExportFormatContributor",
+          "IPropertyTypeContributor"
+        ],
+        "loadedUsingHistoricalLoader": true,
+        "limitation": "Historical SDK/loader exercised; extension Initialize and UI views not started."
+      }
+    ],
+    "failedEarlierAttempts": [
+      "v1.6 SDK lacks CustomEntitySectionInfo:7 compile errors.",
+      "Rebuilding unchanged project against1.15-dev SDK produces Avalonia12.0.0 vs12.0.1 downgrade error; loading its correctly built v1.7 binary on v1.14.5 succeeds."
+    ],
+    "rangeInterpretation": "Verified exact endpoints1.7 and1.14.5; minimum follows required API availability. Family upper bound excludes2.x; no claim every intermediate/development version was exercised."
+  },
+  "qwen": {
+    "sourceState": "HEAD f321b49 plus pre-existing working modifications preserved; current working version0.4.0 copied for validation.",
+    "historicalTarget": "Untagged official tts branch8ffe1bf180ece40ce791a49155b79fca1be68856, host1.15-dev/SDK9.0.0; no local release tag contains this commit.",
+    "whyLastNativeTagIsNotSuitable": "v1.14.5 lacks ITtsProvider/TtsRegistry;1.15.0 minimum refers to the experimental development branch, not an established published release.",
+    "result": {
+      "status": "passed",
+      "hostVersion": "1.15-dev",
+      "sdkCommit": "8ffe1bf180ece40ce791a49155b79fca1be68856",
+      "extensionId": "com.novalist.tts.qwen3",
+      "extensionVersion": "0.4.0",
+      "loadedUsingHistoricalLoader": true,
+      "providerRegisteredAndUnregisteredUsingHistoricalRegistry": true,
+      "pythonEnvironmentCreated": false,
+      "limitation": "Historical SDK/loader/registry exercised; UI views and model synthesis not started; host services substituted."
+    }
+  },
+  "safety": [
+    "All builds and loader probes isolated under audit artifacts.",
+    "DeployExtension removed only from copied legacy csproj files before build.",
+    "PnP exact declared NuGet dependencies restored only to isolated artifact cache; no model packages/downloads.",
+    "No installed extension files or user projects changed; no native views started; Qwen smoke did not start Python or create a venv."
+  ],
+  "limitations": [
+    "These checks establish manifest gates, CLR type compatibility and extension instantiation using actual historical SDK/loader implementations.",
+    "Qwen additionally used actual historical provider registry with substituted isolated host services.",
+    "Native GUI behavior, PnP project workflows and model inference were not exercised; they are outside this manifest compatibility acceptance."
+  ]
+}

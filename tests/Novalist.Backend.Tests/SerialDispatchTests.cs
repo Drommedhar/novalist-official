@@ -47,6 +47,27 @@ public sealed class SerialDispatchTests : IDisposable
         public TaskCompletionSource ReleaseHeldSlow { get; } =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+        [JsonRpcMethod("export/run")]
+        public async Task<int> ExportAsync(bool fail, CancellationToken cancellationToken)
+        {
+            var now = Interlocked.Increment(ref _inside);
+            if (now > Peak) Peak = now;
+            HeldSlowEntered.TrySetResult();
+            try
+            {
+                await ReleaseHeldSlow.Task.WaitAsync(cancellationToken);
+                if (fail) throw new IOException("Export failed");
+                return now;
+            }
+            finally { Interlocked.Decrement(ref _inside); }
+        }
+
+        [JsonRpcMethod("export/formats")]
+        public static string[] Formats() => ["Markdown"];
+
+        [JsonRpcMethod("scenes/write")]
+        public Task<int> SaveAsync() => SlowAsync();
+
         [JsonRpcMethod("spec/slow")]
         public async Task<int> SlowAsync()
         {
@@ -120,6 +141,38 @@ public sealed class SerialDispatchTests : IDisposable
         }
 
         Assert.Equal(1, target.Peak);
+    }
+
+    [Theory]
+    [InlineData("success")]
+    [InlineData("failure")]
+    [InlineData("cancel")]
+    public async Task ExportProtectsItsWorkspaceUntilFinishedThenReleasesQueuedSaves(string outcome)
+    {
+        var (client, target, server) = Pair(serial: true);
+        using (client)
+        using (server)
+        using (var cancellation = new CancellationTokenSource())
+        {
+            var export = client.InvokeWithCancellationAsync<int>("export/run", [outcome == "failure"], cancellation.Token);
+            try
+            {
+                await target.HeldSlowEntered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                var save = client.InvokeAsync<int>("scenes/write");
+                await client.InvokeAsync<string[]>("export/formats").WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.False(save.IsCompleted);
+                if (outcome == "cancel") cancellation.Cancel();
+                else target.ReleaseHeldSlow.TrySetResult();
+                if (outcome == "cancel")
+                    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => export.WaitAsync(TimeSpan.FromSeconds(5)));
+                else if (outcome == "failure")
+                    await Assert.ThrowsAsync<RemoteInvocationException>(() => export.WaitAsync(TimeSpan.FromSeconds(5)));
+                else await export.WaitAsync(TimeSpan.FromSeconds(5));
+                await save.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.Equal(1, target.Peak);
+            }
+            finally { target.ReleaseHeldSlow.TrySetResult(); }
+        }
     }
 
     [Fact]
@@ -218,6 +271,7 @@ public sealed class SerialDispatchTests : IDisposable
                      "ui/wizard/complete",
                      "ui/pick/complete",
                      "ui/progress/cancel",
+                     "$/cancelRequest",
                      "system/ping",
                      "system/shutdown",
                      // A reading is a run of voices/speak calls that each last as
@@ -232,7 +286,7 @@ public sealed class SerialDispatchTests : IDisposable
                      // the whole backend with it rather than only itself.
                      "git/status",
                      "git/changedScenes",
-                     "export/run",
+                     "export/formats", "export/tokens",
                      // Posts the scene to a language server and waits up to
                      // thirty seconds. Queued, one grammar check held every
                      // other screen in the app behind it.
@@ -251,6 +305,7 @@ public sealed class SerialDispatchTests : IDisposable
                      "dashboard/get", "extensions/load", "scenes/write", "entities/list",
                      "backup/create", "backup/createMilestone", "backup/prune", "backup/delete",
                      "backup/restore", "backup/restoreAsNewProject",
+                     "export/run", "export/saveReplacements", "export/preview", "export/codexSections",
                      // This is useful only when it waits behind earlier
                      // workspace writes; making it reentrant defeats the fence.
                      "system/barrier"

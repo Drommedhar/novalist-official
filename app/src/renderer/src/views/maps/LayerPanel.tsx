@@ -97,7 +97,8 @@ function useLayerPanel(props: LayerPanelProps) {
 }
 
 export function LayerPanel(props: LayerPanelProps): React.JSX.Element {
-  const { t, data, dragId, setDrop, drop, setDragId, rows, expanded, selectedNodeId, renamingId, rowDragOver, draft, setDraft, commitRename, setRenamingId, selectedNode } = useLayerPanel(props)
+  const state = useLayerPanel(props)
+  const { t, data, dragId, setDrop, drop, setDragId, rows, selectedNode } = state
 
   return (
     <div className="map-layerpanel">
@@ -129,7 +130,32 @@ export function LayerPanel(props: LayerPanelProps): React.JSX.Element {
           setDrop(null)
         }}
       >
-        {rows.map(({ node, depth, visible }) => {
+        {rows.map((row) => <LayerTreeRow key={row.node.id} row={row} state={state} actions={props} />)}
+        {rows.length === 0 && <div className="map-layer-empty">{t('map.layerPanel')}</div>}
+      </div>
+
+      <MotionPresence collapse>{selectedNode && data && (
+        <NodeProperties
+          data={data}
+          node={selectedNode}
+          isolated={props.isolated}
+          onSetOpacity={props.onSetOpacity}
+          onSetNodeZoom={props.onSetNodeZoom}
+          onSetFloorMode={props.onSetFloorMode}
+          onSetActiveFloor={props.onSetActiveFloor}
+          onSetElementZoom={props.onSetElementZoom}
+          onToggleIsolate={props.onToggleIsolate}
+        />
+      )}</MotionPresence>
+    </div>
+  )
+}
+
+
+function LayerTreeRow({ state, actions: props, row: { node, depth, visible } }: {
+  state: ReturnType<typeof useLayerPanel>; actions: LayerPanelProps; row: FlatRow
+}): React.JSX.Element {
+  const { t, dragId, setDrop, drop, setDragId, expanded, selectedNodeId, renamingId, rowDragOver, draft, setDraft, commitRename, setRenamingId } = state
           const hasChildren = (node.children?.length ?? 0) > 0
           const open = isExpanded(node, expanded)
           const dropHint =
@@ -240,25 +266,6 @@ export function LayerPanel(props: LayerPanelProps): React.JSX.Element {
             </div>
             </div>}</MotionPresence>
           )
-        })}
-        {rows.length === 0 && <div className="map-layer-empty">{t('map.layerPanel')}</div>}
-      </div>
-
-      <MotionPresence collapse>{selectedNode && data && (
-        <NodeProperties
-          data={data}
-          node={selectedNode}
-          isolated={props.isolated}
-          onSetOpacity={props.onSetOpacity}
-          onSetNodeZoom={props.onSetNodeZoom}
-          onSetFloorMode={props.onSetFloorMode}
-          onSetActiveFloor={props.onSetActiveFloor}
-          onSetElementZoom={props.onSetElementZoom}
-          onToggleIsolate={props.onToggleIsolate}
-        />
-      )}</MotionPresence>
-    </div>
-  )
 }
 
 interface NodePropsProps {
@@ -286,14 +293,7 @@ function fileName(path: string): string {
   return parts[parts.length - 1] || path
 }
 
-function NodeProperties(props: NodePropsProps): React.JSX.Element {
-  const { t } = useTranslation()
-  const { node, data, isolated } = props
-  const hasChildren = (node.children?.length ?? 0) > 0
-  const propertiesRef = useRef<HTMLDivElement>(null)
-  useContentTransition(propertiesRef, node.id)
-
-  const elementRows: ElementRow[] = useMemo(() => {
+function layerElementRows(node: MapLayerNodeT, data: MapDataT): ElementRow[] {
     const rows: ElementRow[] = []
     for (const img of node.images ?? [])
       rows.push({ kind: 'image', id: img.id, name: fileName(img.path), min: img.minZoom ?? 0, max: img.maxZoom ?? 0 })
@@ -322,7 +322,16 @@ function NodeProperties(props: NodePropsProps): React.JSX.Element {
           max: l.maxZoom ?? 0
         })
     return rows
-  }, [node, data])
+}
+
+function NodeProperties(props: NodePropsProps): React.JSX.Element {
+  const { t } = useTranslation()
+  const { node, data, isolated } = props
+  const hasChildren = (node.children?.length ?? 0) > 0
+  const propertiesRef = useRef<HTMLDivElement>(null)
+  useContentTransition(propertiesRef, node.id)
+
+  const elementRows = useMemo(() => layerElementRows(node, data), [node, data])
 
   const memberChoices: MapLayerNodeT[] = node.children ?? []
 

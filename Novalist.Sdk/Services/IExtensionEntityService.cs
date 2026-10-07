@@ -14,6 +14,12 @@ public interface IExtensionEntityService
     Task<IReadOnlyList<LoreInfo>> LoadLoreAsync();
     Task<IReadOnlyList<CustomEntityInfo>> LoadCustomEntitiesAsync(string typeKey);
 
+    /// <summary>Reads authored content for a built-in or registered custom entry.
+    /// Image paths use the same stored, project-aware references as GetProjectImages.
+    /// Publishing must respect ReaderHidden on the entry and its sections.
+    /// Use GetAiContextAsync instead when assembling context for an AI provider.</summary>
+    Task<EntityContentInfo?> GetEntityContentAsync(string typeKey, string entityId);
+
     /// <summary>Returns all registered custom entity type keys and display names.</summary>
     IReadOnlyList<CustomEntityTypeInfo> GetCustomEntityTypes();
 
@@ -260,6 +266,20 @@ public sealed class CustomEntitySectionInfo
 {
     public string Title { get; init; } = string.Empty;
     public string Content { get; init; } = string.Empty;
+    /// <summary>Withheld from reader-facing output; still visible to the writer.</summary>
+    public bool ReaderHidden { get; init; }
+}
+
+/// <summary>Authored Codex content for local reports and publishing.</summary>
+public sealed class EntityContentInfo
+{
+    public string Id { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public IReadOnlyList<CustomEntitySectionInfo> Sections { get; init; } = [];
+    public IReadOnlyList<string> ImagePaths { get; init; } = [];
+    public IReadOnlyList<string> Aliases { get; init; } = [];
+    public bool ReaderHidden { get; init; }
 }
 
 /// <summary>Describes a registered custom entity type.</summary>

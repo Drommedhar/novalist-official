@@ -15,6 +15,33 @@ namespace Novalist.Backend.Extensions;
 
 public sealed partial class HostServices
 {
+    async Task<EntityContentInfo?> IExtensionEntityService.GetEntityContentAsync(string typeKey, string entityId)
+    {
+        var entity = await LoadAnyAsync(typeKey, entityId);
+        if (entity == null) return null;
+        return new EntityContentInfo
+        {
+            Id = entity.Id,
+            Name = entity.DisplayName,
+            Description = entity switch
+            {
+                LocationData location => location.Description,
+                ItemData item => item.Description,
+                LoreData lore => lore.Description,
+                _ => string.Empty
+            },
+            Sections = entity.Sections.Select(section => new CustomEntitySectionInfo
+            {
+                Title = section.Title,
+                Content = section.Content,
+                ReaderHidden = section.ReaderHidden
+            }).ToArray(),
+            ImagePaths = entity.Images.Select(image => image.Path).ToArray(),
+            Aliases = entity.Aliases.ToArray(),
+            ReaderHidden = entity.ReaderHidden
+        };
+    }
+
     // ── IExtensionEntityService ────────────────────────────────────
 
     async Task<IReadOnlyList<Sdk.Services.CharacterInfo>> IExtensionEntityService.LoadCharactersAsync()

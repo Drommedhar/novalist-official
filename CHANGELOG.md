@@ -21,7 +21,24 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Creating a project or book now protects existing folders with the same name.
+- Scene and settings saves replace files atomically, and failed backups no longer appear as completed backups.
+- Chapter planning changes and inactive volumes in box-set exports survive reopening a project; cloned drafts preserve binary attachments.
+- Restoring a scene snapshot can clear metadata that was empty in the saved version.
+- Split editors retain independent edits, serialize successive saves, and preserve unsaved text when a conflict prevents navigation. Conflict resolution waits for its comparison and preserves the chosen document's formatting.
+- Research notes participate in save and close handling, retain newer edits during slow saves, and keep undo history separate between notes and fields. Restored Codex revisions refresh all displayed details.
+- Find and Replace agrees on matches across inline formatting and explains invalid expressions. Project-wide search opens results in the correct book.
+- Splitting scenes preserves export exclusions; splitting and merging retains comments, suggestions and footnotes. Exports finish against a stable book and draft.
+- Image-only scenes retain their content, spelling actions reach the correct split editor, and inline extension actions retain their alternatives and suggested-edit behavior.
+- Inserted images keep their chosen paragraph after a prose rebuild, including in page view.
+- Dialogs contain keyboard focus and return it when closed; command and quick-open palettes keep the selected result visible while scrolling.
+- Disabling an extension retires its open web panels and pending controller calls.
+
+### Security
+
+- Backups no longer follow linked folders outside the project.
 
 ---
 

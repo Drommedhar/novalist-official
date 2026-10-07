@@ -1,0 +1,435 @@
+{
+  "generatedOn": "2026-10-06",
+  "scope": "Novalist.Core, Novalist.Backend, shared desktop/iOS persistence and RPC behavior; selected SDK boundaries. Production source remained unchanged.",
+  "findings": [
+    {
+      "id": "BE-01",
+      "title": "Creating a project with an existing name overwrites its metadata",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "Novalist.Core/Services/ProjectService.cs",
+          "line": 78,
+          "endLine": 130,
+          "detail": "CreateProjectAsync uses an existing directory without rejecting it, then saves new project, settings, draft and scene manifests."
+        },
+        {
+          "path": "app/src/renderer/src/shell/CreateProjectDialog.tsx",
+          "line": 48,
+          "endLine": 61,
+          "detail": "The desktop/mobile creation dialog checks only a nonblank name and location before calling project/create."
+        }
+      ],
+      "trigger": "Create a project in a parent directory containing a same-name project, including names that sanitize to the same folder.",
+      "impact": "Existing scene notes and metadata are overwritten without confirmation. Reproduction changed a scenes.json containing 'Irreplaceable notes' into an empty manifest. Shared Core behavior affects desktop and iOS.",
+      "recommendation": "Validate the normalized project name, exclusively reserve a new destination, and reject any existing project or nonempty destination before writing. Preserve the existing project byte-for-byte on rejection.",
+      "validation": "Add an actual filesystem regression that creates a project with scene metadata, attempts same-name and sanitized-collision creation, and asserts every original file and the active workspace remain unchanged. Audit harness: existing-project-overwrite."
+    },
+    {
+      "id": "BE-02",
+      "title": "Duplicate book names share the same on-disk draft folders",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "Novalist.Core/Services/ProjectService.Books.cs",
+          "line": 111,
+          "endLine": 136,
+          "detail": "The new book's FolderName is only SanitizeFileName(bookName); no unique-folder reservation or collision check exists."
+        },
+        {
+          "path": "Novalist.Core/Services/ProjectService.Migrations.cs",
+          "line": 11,
+          "endLine": 35,
+          "detail": "Folder initialization accepts preexisting folders."
+        }
+      ],
+      "trigger": "Add a book with a name already used by another book, or a different name producing the same sanitized/case-insensitive folder.",
+      "impact": "Two independent book records read and write one manuscript. Reproduction opened the 'new' book and saw the original book's chapter. Subsequent edits can cross-contaminate books on desktop and iOS.",
+      "recommendation": "Assign stable unique storage folders independently of the display name, using the existing draft-folder uniqueness approach and checking the filesystem too.",
+      "validation": "Create two identically named books with different prose, restart, switch between them and verify independent manifests, files and chapter trees. Audit harness: duplicate-book-folders."
+    },
+    {
+      "id": "BE-03",
+      "title": "Chapter status and act edits disappear after reopening",
+      "priority": "P2",
+      "category": "Persistence",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "Novalist.Backend/Rpc/ProjectRpc.cs",
+          "line": 268,
+          "endLine": 281,
+          "detail": "SetChapterActAsync and SetChapterStatusAsync mutate ChapterData but only call SaveScenesAsync."
+        },
+        {
+          "path": "Novalist.Core/Services/ProjectService.Migrations.cs",
+          "line": 172,
+          "endLine": 203,
+          "detail": "ChapterData is loaded and saved through draft.json, not scenes.json."
+        }
+      ],
+      "trigger": "Change only a chapter's act or status and close/reopen before another operation happens to save draft metadata.",
+      "impact": "The UI reports success while the edit is only in memory. The harness reopened Act II/FirstDraft as empty act/Outline. Desktop and mobile share these RPC methods.",
+      "recommendation": "Persist chapter mutations through SaveProjectAsync or a focused draft-metadata save, including updated chapter markers.",
+      "validation": "Exercise both RPCs, construct a fresh ProjectService, reopen and assert values survive. Existing facade tests check immediate state and miss the persistence boundary. Audit harness: chapter-fields-persist."
+    },
+    {
+      "id": "BE-04",
+      "title": "Desktop saves overwrite the only good copy in place",
+      "priority": "P1",
+      "category": "Recovery",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "Novalist.Core/Services/FileService.cs",
+          "line": 63,
+          "endLine": 80,
+          "detail": "WriteBytesAsync writes directly into the destination and truncates afterward. A failure during WriteAsync or process termination leaves partial new/old bytes."
+        },
+        {
+          "path": "Novalist.Core/Services/SettingsService.cs",
+          "line": 59,
+          "endLine": 67,
+          "detail": "Settings are also written directly through File.WriteAllTextAsync."
+        },
+        {
+          "path": "Novalist.Core/Services/CoordinatedFileService.cs",
+          "line": 18,
+          "endLine": 33,
+          "detail": "The iOS coordinated implementation already stages writes and moves them over the destination, providing a local pattern to reuse."
+        }
+      ],
+      "trigger": "App crash, disk-full condition, power loss, or an IO failure while saving a scene, manifest or settings file.",
+      "impact": "Desktop prose or JSON can become truncated or contain mixed versions. File gates and retries prevent overlapping app writes but do not preserve the previous durable copy. iOS project writes use staging; shared settings still overwrite directly.",
+      "recommendation": "Write to a unique sibling temporary file, flush, then replace atomically while preserving required Windows hidden attributes and permissions. Keep the prior file intact until the staged write completes.",
+      "validation": "Inject failures after a partial write and before replacement; assert the original scene/JSON remains intact and retry succeeds. Include hidden-file and cloud-provider attribute tests."
+    },
+    {
+      "id": "BE-05",
+      "title": "A failed backup is listed as a valid recent restore point",
+      "priority": "P1",
+      "category": "Recovery",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "Novalist.Core/Services/ArchiveService.cs",
+          "line": 29,
+          "endLine": 37,
+          "detail": "Archive creation writes directly to the final ZIP name and leaves it behind when reading any source file fails."
+        },
+        {
+          "path": "Novalist.Core/Services/BackupService.cs",
+          "line": 153,
+          "endLine": 180,
+          "detail": "ListFolderAsync trusts timestamp-shaped ZIP filenames without a completion marker or validation."
+        },
+        {
+          "path": "Novalist.Core/Services/BackupService.cs",
+          "line": 263,
+          "endLine": 276,
+          "detail": "IsDueAsync uses the newest listed archive, including an incomplete failed archive."
+        }
+      ],
+      "trigger": "Any project file is locked or unreadable while an automatic/manual backup is being created.",
+      "impact": "The harness produced an IOException but left a 22-byte ZIP listed as a backup; IsDueAsync then returned false. Failed archives can also consume retention slots and later displace good copies. Desktop and mobile use this archive implementation.",
+      "recommendation": "Build each archive under a temporary name and publish it only after all files and central-directory writes succeed. Clean up failed staging files and base retention/due checks only on completed backups.",
+      "validation": "Lock a source file and confirm failure produces no listed restore point, does not defer retry, and does not affect valid retention. Also test failure after some valid entries have been written. Audit harness: failed-backup-is-listed."
+    },
+    {
+      "id": "BE-06",
+      "title": "Box-set export silently omits unopened books after a restart",
+      "priority": "P2",
+      "category": "Export correctness",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "Novalist.Core/Services/ExportService.Compile.cs",
+          "line": 51,
+          "endLine": 73,
+          "detail": "OtherVolumesAsync loads the inactive book's scenes manifest but obtains chapters from book.Chapters in memory."
+        },
+        {
+          "path": "Novalist.Core/Services/ProjectService.Books.cs",
+          "line": 52,
+          "endLine": 63,
+          "detail": "LoadChaptersForAsync exists to read inactive-book draft chapter trees from disk."
+        },
+        {
+          "path": "Novalist.Core/Services/ProjectService.Persistence.cs",
+          "line": 64,
+          "endLine": 89,
+          "detail": "Multi-draft book chapter lists are intentionally serialized empty in project.json."
+        }
+      ],
+      "trigger": "Reopen a multi-book project and export a box set before manually visiting every additional book.",
+      "impact": "Additional volumes get a heading but no chapter content. Reproduction expected two scenes and exported one. The same shared export path affects any desktop/mobile UI exposing the format.",
+      "recommendation": "Load chapters from each requested book's active draft alongside its scene manifest, using LoadChaptersForAsync instead of the inactive in-memory chapter list.",
+      "validation": "Build two real books, close/reopen, export both without switching books and assert each volume's chapter and prose content. Audit harness: box-set-after-restart."
+    },
+    {
+      "id": "BE-07",
+      "title": "Restoring a snapshot cannot restore an unset metadata field",
+      "priority": "P2",
+      "category": "Recovery",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "Novalist.Core/Services/SnapshotService.cs",
+          "line": 46,
+          "endLine": 57,
+          "detail": "Snapshot capture preserves nullable notes, stage, labels and plotline fields as null."
+        },
+        {
+          "path": "Novalist.Core/Services/SnapshotService.cs",
+          "line": 112,
+          "endLine": 127,
+          "detail": "ApplyMeta treats every null as 'not captured', so it cannot undo a value added after a modern snapshot."
+        },
+        {
+          "path": "Novalist.Core/Models/SceneSnapshot.cs",
+          "line": 48,
+          "detail": "The snapshot metadata schema has no distinction between a missing legacy property and an explicitly captured null."
+        }
+      ],
+      "trigger": "Take a snapshot with no notes/stage/plotline assignment, add those values, then restore the snapshot.",
+      "impact": "Prose rewinds but metadata remains from the later version. The harness retained later notes, 'finished' stage and a later plotline. Applies to shared snapshot behavior on desktop and mobile.",
+      "recommendation": "Distinguish legacy absence from explicitly saved null through a snapshot schema version or property-presence tracking. Restore captured nulls while preserving compatibility with older snapshots.",
+      "validation": "Test both directions for every nullable captured field and retain tests for older snapshots without metadata. Audit harness: snapshot-clears-unset-metadata."
+    },
+    {
+      "id": "BE-08",
+      "title": "Find and Replace disagree when a phrase crosses inline formatting",
+      "priority": "P2",
+      "category": "Editing correctness",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "Novalist.Core/Services/FindReplaceService.cs",
+          "line": 36,
+          "endLine": 39,
+          "detail": "Find strips markup and matches across adjacent HTML text nodes."
+        },
+        {
+          "path": "Novalist.Core/Services/FindReplaceService.cs",
+          "line": 295,
+          "endLine": 308,
+          "detail": "Replacement runs the regex independently on each text token, preventing a match spanning strong/emphasis/link boundaries."
+        }
+      ],
+      "trigger": "Find 'Hello world' in '<p>Hello <strong>world</strong>.</p>' and run Replace All.",
+      "impact": "Find reports a match, but Replace All performs zero replacements. Formatting common in manuscripts makes the tool unreliable on desktop and mobile.",
+      "recommendation": "Use one visible-text mapping for finding and replacement, with offsets mapped back to text nodes so cross-formatting replacements preserve unrelated markup.",
+      "validation": "Assert identical match/replacement counts for phrases spanning bold, italic, links and encoded entities; verify attributes and unaffected formatting survive. Audit harness: find-replace-inline-formatting."
+    },
+    {
+      "id": "BE-09",
+      "title": "Cloning a draft corrupts non-text files in the draft tree",
+      "priority": "P2",
+      "category": "Data integrity",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "Novalist.Core/Services/ProjectService.Drafts.cs",
+          "line": 183,
+          "endLine": 200,
+          "detail": "CopyDraftTreeAsync copies every file using ReadTextAsync and WriteTextAsync regardless of type."
+        }
+      ],
+      "trigger": "Clone a draft whose folder contains a binary reference image, attachment, or other non-text file, including externally maintained files.",
+      "impact": "The copy is UTF-8 decoded/re-encoded and binary bytes change. The harness changed 89504E4700FFFE80 into EFBFBD504E4700EFBFBDEFBFBDEFBFBD. Normal built-in book-level image storage reduces exposure, but the recursive copier accepts all draft files on desktop and iOS.",
+      "recommendation": "Copy draft-tree files as bytes through IFileService; parse/rewrite only files that explicitly need a schema transformation.",
+      "validation": "Clone a draft containing random binary bytes and representative image files and compare byte hashes. Audit harness: clone-draft-binary-file."
+    },
+    {
+      "id": "BE-10",
+      "title": "Exports run outside the workspace lock while reading mutable active-book state",
+      "priority": "P2",
+      "category": "Concurrency",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "Novalist.Backend/SerialDispatchJsonRpc.cs",
+          "line": 114,
+          "endLine": 119,
+          "detail": "The entire export/ RPC family bypasses workspace serialization."
+        },
+        {
+          "path": "Novalist.Core/Services/ExportService.cs",
+          "line": 56,
+          "endLine": 60,
+          "detail": "ActiveSource captures the current book/chapter list but keeps delegates that look up scenes and file paths from the live active project."
+        },
+        {
+          "path": "Novalist.Core/Services/ProjectService.Content.cs",
+          "line": 80,
+          "endLine": 98,
+          "detail": "Scene file reads derive paths from ActiveDraftRoot/ActiveBookRoot at call time."
+        },
+        {
+          "path": "Novalist.Backend/Rpc/ExportRpc.cs",
+          "line": 45,
+          "endLine": 62,
+          "detail": "The bypass also includes export/saveReplacements, which mutates and saves the shared project."
+        }
+      ],
+      "trigger": "Start an export/preview in one window and switch book/draft/project, or edit export replacements, while compilation is awaiting file reads.",
+      "impact": "Later reads can use a different active root or manifest, omitting scenes or combining inconsistent state. The workspace transition validates request identity at entry but does not freeze an already running export. Desktop multiwindow makes the race practical; shared backend design also applies on mobile.",
+      "recommendation": "Capture an immutable export input snapshot under the workspace gate, including stable roots, chapters, scenes and settings; run expensive conversion outside the lock. Keep export-setting mutations serialized.",
+      "validation": "Use a controllably delayed file service, pause compilation between scene reads, switch the workspace, resume, and assert output contains exactly the original selected source."
+    },
+    {
+      "id": "BE-11",
+      "title": "Project-wide search results lose the book needed to open them",
+      "priority": "P2",
+      "category": "Navigation",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "evidence": [
+        {
+          "path": "Novalist.Core/Services/FindReplaceService.cs",
+          "line": 179,
+          "endLine": 203,
+          "detail": "Project-scope search visits every book then restores the originally active book."
+        },
+        {
+          "path": "Novalist.Backend/Rpc/SearchRpc.cs",
+          "line": 69,
+          "endLine": 73,
+          "detail": "The RPC projection drops BookTitle and supplies no book ID in FindMatchDto."
+        },
+        {
+          "path": "app/src/renderer/src/shell/FindReplaceDialog.tsx",
+          "line": 165,
+          "endLine": 171,
+          "detail": "Clicking a result calls openScene with only chapterGuid and sceneId in the currently active book."
+        }
+      ],
+      "trigger": "Search with Project scope and click a match belonging to another book.",
+      "impact": "The result cannot reliably open because its chapter belongs to a different active manifest; duplicate chapter titles also make results ambiguous. Shared renderer/backend contract affects desktop and mobile.",
+      "recommendation": "Carry bookId and bookTitle through search results and switch to the owning book before opening its scene, using existing workspace coordination.",
+      "validation": "Search a two-book project, click a result in the unopened book, and assert the correct book, scene and match are selected without losing pending edits."
+    },
+    {
+      "id": "BE-12",
+      "title": "Split and merge leave annotations and export flags behind",
+      "priority": "P2",
+      "category": "Editing correctness",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "Novalist.Core/Services/SceneSplitService.cs",
+          "line": 45,
+          "endLine": 50,
+          "detail": "Both HTML halves are written, but only the small CarryMetadata allowlist is copied."
+        },
+        {
+          "path": "Novalist.Core/Services/SceneSplitService.cs",
+          "line": 131,
+          "endLine": 139,
+          "detail": "Copying retains the legacy LabelColor but omits current LabelKey, footnotes, comments, Inactive and ExcludeFromExport."
+        },
+        {
+          "path": "Novalist.Core/Services/SceneSplitService.cs",
+          "line": 83,
+          "endLine": 103,
+          "detail": "Merge concatenates HTML and archives the second scene but never merges its annotation collections."
+        },
+        {
+          "path": "Novalist.Core/Models/SceneData.cs",
+          "line": 162,
+          "endLine": 169,
+          "detail": "Footnote/comment definitions live in scene metadata separately from the inline HTML markers."
+        }
+      ],
+      "trigger": "Split a scene with a footnote/comment in the second half, split an excluded/inactive scene, or merge a second scene containing annotations.",
+      "impact": "Inline references can survive without their definitions in the resulting scene, so annotation text is omitted from editing/export. The second half of an excluded/inactive scene can unexpectedly become exportable. Shared Core behavior affects desktop/mobile.",
+      "recommendation": "Partition/move annotations according to the actual inline markers in each resulting HTML fragment, union them on merge with collision handling, and carry the current visibility/export/label properties deliberately.",
+      "validation": "Split and merge annotated scenes through RPC and verify every surviving marker resolves and exported footnotes remain present; assert inactive/excluded halves stay inactive/excluded."
+    },
+    {
+      "id": "BE-13",
+      "title": "Backup traversal follows linked folders outside the project",
+      "priority": "P2",
+      "category": "Filesystem safety",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "evidence": [
+        {
+          "path": "Novalist.Core/Services/ArchiveService.cs",
+          "line": 160,
+          "endLine": 174,
+          "detail": "Recursive enumeration checks excluded names but not link/reparse targets, canonical containment, or visited directories."
+        },
+        {
+          "path": "Novalist.Core/Services/ArchiveService.cs",
+          "line": 138,
+          "endLine": 151,
+          "detail": "Restore explicitly refuses links, demonstrating that archive creation currently applies a different boundary."
+        }
+      ],
+      "trigger": "A project contains a symlink/junction to another directory, an ancestor, or the backup destination.",
+      "impact": "Backups can copy unrelated external data or recursively expand through a cycle until failure, and may include their own output through a link. Most relevant on desktop; iOS providers require separate testing. The straightforward nonlinked project case is unaffected.",
+      "recommendation": "Define and enforce a consistent link policy during archive creation: skip/reject linked entries with a clear content-free diagnostic, or resolve canonical targets and enforce project containment and visited-directory tracking.",
+      "validation": "Use isolated test directories containing an external link and ancestor cycle. Assert external bytes are absent, traversal terminates, and failed archives are not published."
+    }
+  ],
+  "checks": [
+    {
+      "command": "dotnet test tests/Novalist.Core.Tests/Novalist.Core.Tests.csproj --no-restore --nologo --verbosity quiet -m:1 -nodeReuse:false",
+      "status": "passed",
+      "detail": "Rebuilt from current source outside restricted sandbox: 3,860 passed, 0 failed, 0 skipped. One existing nullable warning in NarrationClipCacheTests."
+    },
+    {
+      "command": "dotnet test tests/Novalist.Backend.Tests/Novalist.Backend.Tests.csproj --no-restore --nologo --verbosity quiet -m:1 -nodeReuse:false",
+      "status": "passed",
+      "detail": "Rebuilt from current source outside restricted sandbox: 2,036 passed, 0 failed, 0 skipped. Existing nullable and xUnit analyzer warnings remain."
+    },
+    {
+      "command": "dotnet run --project artifacts/audit-2026-10-06/backend-repro/AuditRepro.csproj --no-launch-profile -m:1 -nodeReuse:false --verbosity quiet",
+      "status": "reproduced",
+      "detail": "Eight isolated temporary-directory probes completed and reproduced eight existing defects. Sources are in backend-repro/; exact observations saved in backend-repro-results.json. No production source modified."
+    },
+    {
+      "command": "Initial sandboxed dotnet test / exploratory --no-build run",
+      "status": "superseded",
+      "detail": "The first build stalled without output under restricted worker IPC and was cancelled; its orphan workers were cleaned up. An exploratory old-binary run had 3,859 pass/1 fail with verbose output truncated. Both are superseded by the clean current-source escalated suite above; no old-binary result is used as final validation."
+    }
+  ],
+  "coverage": [
+    "Reviewed real file persistence, project/book/draft lifecycle, snapshots, backups, exports, find/replace, selected RPC contracts, dispatch concurrency, import listener safeguards and selected host interfaces.",
+    "The passing line-coverage suites do not cover these end-to-end invariants: reopen after chapter changes, name collisions, unopened multi-volume export, partial backup publication, text-node replacement parity, nullable snapshot restore and byte-preserving draft clones.",
+    "No native iOS/macOS build or physical-device execution occurred on Windows. Shared Core reproduction used real Windows files; mobile applicability is based on its use of the same service/RPC code.",
+    "Checked the mobile parent's lifecycle/security-scope/path-recovery/bridge candidates independently and sent mitigation notes; those findings are owned by the main report to avoid duplicates.",
+    "The eight runtime probes are reproducible audit artifacts, not additions to the production test projects. Non-atomic write, export race, cross-book navigation, split annotation and link-traversal findings are explicitly static confirmations, not claimed runtime reproductions.",
+    "SDK public interface coverage was sampled through host/service callers; this is not an exhaustive compatibility or third-party-extension audit. No vulnerability database or dependency freshness claim is made here.",
+    "Existing positive safeguards include serialized workspace mutations, editor conflict detection, staged iOS coordinated writes, backup ownership markers, ZIP path validation, authenticated loopback import requests, and content-redacted diagnostic RPC logging."
+  ]
+}

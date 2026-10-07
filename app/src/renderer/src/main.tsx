@@ -5,6 +5,8 @@ import './styles/tokens.css'
 import './styles/base.css'
 import './styles/motion.css'
 import { AppShell } from './shell/AppShell'
+import { installModalFocus } from './shell/modalFocus'
+import { InlineActionDialog } from './views/editor/InlineActionDialog'
 import { DetachedPane, type DetachedRequest } from './shell/DetachedPane'
 import { useShellStore, type MainView } from "./stores/shellStore";
 import { useProjectStore } from './stores/projectStore'
@@ -47,6 +49,7 @@ void import('./shell/pluginHost').then((host) => {
 })
 
 const root = document.documentElement
+installModalFocus()
 root.dataset.shell = window.novalist.isMobile ? 'mobile' : 'desktop'
 root.dataset.material = window.novalist.material
 // The light theme was removed; Default is dark. Named themes pin data-theme via
@@ -72,5 +75,6 @@ const detached: DetachedRequest | null = detachedView
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     {detached ? <DetachedPane request={detached} /> : <AppShell />}
+    <InlineActionDialog />
   </React.StrictMode>
 )

@@ -27,6 +27,41 @@ public class FindReplaceServiceTests
     private static ChapterData Chapter(string guid, string title = "Ch") => new() { Guid = guid, Title = title };
     private static SceneData Scene(string id, string title = "Sc") => new() { Id = id, Title = title };
 
+    [Theory]
+    [InlineData("<p>Hello <strong>world</strong>.</p>", "Hello world", "<p>Goodbye<strong></strong>.</p>")]
+    [InlineData("<p><em>Hello</em> <a title='1 > 0' href='world'>world</a>.</p>", "Hello world", "<p><em>Goodbye</em><a title='1 > 0' href='world'></a>.</p>")]
+    [InlineData("<p>Fish &amp; <em>chips</em></p>", "Fish & chips", "<p>Goodbye<em></em></p>")]
+    public async Task ReplaceUsesTheSameVisibleTextAsFindAcrossInlineMarkup(string html, string pattern, string expected)
+    {
+        var (sut, project) = Build();
+        var chapter = Chapter("chapter");
+        var scene = Scene("scene");
+        project.GetChaptersOrdered().Returns([chapter]);
+        project.GetScenesForChapter(chapter.Guid).Returns([scene]);
+        project.ReadSceneContentAsync(chapter, scene).Returns(html);
+        var options = new FindOptions { Pattern = pattern, Replacement = "Goodbye" };
+
+        Assert.Single(await sut.FindAsync(options));
+        Assert.Equal(1, await sut.ReplaceAllAsync(options));
+        await project.Received().WriteSceneContentAsync(chapter, scene, expected);
+    }
+
+    [Fact]
+    public async Task WholeWordDoesNotReplacePartOfAWordSplitByFormatting()
+    {
+        var (sut, project) = Build();
+        var chapter = Chapter("chapter");
+        var scene = Scene("scene");
+        project.GetChaptersOrdered().Returns([chapter]);
+        project.GetScenesForChapter(chapter.Guid).Returns([scene]);
+        project.ReadSceneContentAsync(chapter, scene).Returns("<p>cat<strong>egory</strong> cat</p>");
+        var options = new FindOptions { Pattern = "cat", Replacement = "dog", WholeWord = true };
+
+        Assert.Single(await sut.FindAsync(options));
+        Assert.Equal(1, await sut.ReplaceAllAsync(options));
+        await project.Received().WriteSceneContentAsync(chapter, scene, "<p>cat<strong>egory</strong> dog</p>");
+    }
+
     [Fact]
     public async Task FindAsync_EmptyPattern_ReturnsEmpty()
     {

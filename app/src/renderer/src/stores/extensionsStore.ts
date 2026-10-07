@@ -221,7 +221,9 @@ export const useExtensionsStore = create<ExtensionsState>((set, get) => ({
         const proj = useProjectStore.getState()
         const result = await rpc.request<{
           text: string
-          disposition: 'replace' | 'insertAfter' | 'insertAtCaret'
+          disposition: InlineActionResult['disposition']
+          alternatives: string[]
+          asSuggestion: boolean
           error: string | null
         } | null>('extensions/inlineAction/execute', [
           a.id,
@@ -232,7 +234,7 @@ export const useExtensionsStore = create<ExtensionsState>((set, get) => ({
           context?.directive ?? ''
         ])
         if (!result) return { text: '', disposition: 'replace', error: `Unknown inline action: ${a.id}` }
-        return { text: result.text, disposition: result.disposition, error: result.error ?? undefined }
+        return { ...result, error: result.error ?? undefined }
       })
     )
 

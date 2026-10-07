@@ -6,6 +6,7 @@ import { rpc } from '../../rpc/client'
 
 import { useShellStore } from '../../stores/shellStore'
 import { useHostBridgeStore } from '../../stores/hostBridgeStore'
+import { useResearchDrafts } from './useResearchDrafts'
 
 /** Reserved tag marking a quick-captured note that has not been filed yet.
  *  Mirrors ResearchItem.InboxTag on the backend. */
@@ -43,7 +44,8 @@ function useResearchData() {
   const clearPendingResearch = useShellStore((s) => s.clearPendingResearch)
   const folderImportOpen = useShellStore((s) => s.dialog === 'importFolder')
   const importRevision = useHostBridgeStore((s) => s.importRevision)
-  const [items, setItems] = useState<ResearchItemDto[]>([])
+  const drafts = useResearchDrafts()
+  const { items, setItems } = drafts
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [researchTab, setResearchTab] = useState<'project' | 'scratchpad'>('project')
@@ -58,7 +60,7 @@ function useResearchData() {
   // Filing an inbox note into the Codex: which dialog is open, if any.
   const [filing, setFiling] = useState<'create' | 'append' | null>(null)
 
-  return { t, pendingResearchId, clearPendingResearch, folderImportOpen, importRevision, items, setItems, selectedId, setSelectedId, search, setSearch, researchTab, setResearchTab, vaultOpen, setVaultOpen, newTag, setNewTag, confirmDelete, setConfirmDelete, inboxOnly, setInboxOnly, dragging, setDragging, fetchingTitle, setFetchingTitle, allEntities, setAllEntities, filing, setFiling }
+  return { ...drafts, t, pendingResearchId, clearPendingResearch, folderImportOpen, importRevision, items, setItems, selectedId, setSelectedId, search, setSearch, researchTab, setResearchTab, vaultOpen, setVaultOpen, newTag, setNewTag, confirmDelete, setConfirmDelete, inboxOnly, setInboxOnly, dragging, setDragging, fetchingTitle, setFetchingTitle, allEntities, setAllEntities, filing, setFiling }
 }
 
 function useResearchLoading(context: ReturnType<typeof useResearchData>) {
@@ -80,7 +82,7 @@ function useResearchLoading(context: ReturnType<typeof useResearchData>) {
     return () => {
       cancelled = true
     }
-  }, [folderImportOpen, vaultOpen, importRevision])
+  }, [folderImportOpen, vaultOpen, importRevision, setItems])
 
   // Quick-open (and other deep links) can ask for a specific item; select it once
   // the list has loaded, then clear the request so it fires only once.
@@ -91,7 +93,7 @@ function useResearchLoading(context: ReturnType<typeof useResearchData>) {
     setResearchTab('project')
     setSearch('')
     clearPendingResearch()
-  }, [pendingResearchId, items, clearPendingResearch])
+  }, [pendingResearchId, items, clearPendingResearch, setSelectedId, setResearchTab, setSearch])
 
   const selected = items.find((i) => i.id === selectedId) ?? null
 
@@ -123,7 +125,7 @@ function useResearchLoading(context: ReturnType<typeof useResearchData>) {
     return () => {
       cancelled = true
     }
-  }, [folderImportOpen, vaultOpen, importRevision])
+  }, [folderImportOpen, vaultOpen, importRevision, setAllEntities])
 
   const entityNames = new Map(allEntities.map((e) => [e.id, e.name]))
 
@@ -147,21 +149,11 @@ function researchCollection(context: ReturnType<typeof useResearchLoading>) {
         i.tags.some((tag) => tag.toLowerCase().includes(query))
     )
 
-  const save = async (item: ResearchItemDto): Promise<void> => {
-    const updated = await rpc.request<ResearchItemDto[]>('research/save', [
-      item.id,
-      item.title,
-      item.type,
-      item.content,
-      item.tags,
-      item.entityRefs
-    ])
-    setItems(updated)
-  }
+  const { save, patchItem } = context
 
   const patchSelected = (patch: Partial<ResearchItemDto>): void => {
     if (!selected) return
-    setItems(items.map((i) => (i.id === selected.id ? { ...i, ...patch } : i)))
+    patchItem(selected.id, patch)
   }
 
   const create = (type: string, content: string): void => {
@@ -271,7 +263,11 @@ function researchMetadata(context: ReturnType<typeof researchAttachments>) {
     status: string | null,
     rating: number | null
   ): Promise<void> => {
-    setItems(await rpc.request<ResearchItemDto[]>('research/setLifecycle', [id, status, rating]))
+    const updated = await rpc.request<ResearchItemDto[]>('research/setLifecycle', [id, status, rating])
+    const acknowledged = updated.find((item) => item.id === id)
+    if (acknowledged) setItems((current) => current.map((item) => item.id === id
+      ? { ...item, status: status === null ? item.status : acknowledged.status, rating: rating === null ? item.rating : acknowledged.rating }
+      : item))
   }
 
   /**
@@ -281,7 +277,12 @@ function researchMetadata(context: ReturnType<typeof researchAttachments>) {
    */
   const toggleRelated = async (otherId: string, linked: boolean): Promise<void> => {
     if (!selected) return
-    setItems(await rpc.request<ResearchItemDto[]>('research/link', [selected.id, otherId, linked]))
+    const updated = await rpc.request<ResearchItemDto[]>('research/link', [selected.id, otherId, linked])
+    setItems((current) => current.map((item) => {
+      if (item.id !== selected.id && item.id !== otherId) return item
+      const acknowledged = updated.find((entry) => entry.id === item.id)
+      return acknowledged ? { ...item, relatedIds: acknowledged.relatedIds } : item
+    }))
   }
 
   const linkEntity = async (entityId: string): Promise<void> => {

@@ -108,6 +108,8 @@ public enum InlineActionDisposition
     /// With a selection this behaves as <see cref="InsertAfterSelection"/>.
     /// </summary>
     InsertAtCaret,
+    /// <summary>Show the answer without modifying the manuscript.</summary>
+    ShowInformation,
 }
 
 public sealed class InlineActionResult

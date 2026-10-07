@@ -1,0 +1,151 @@
+{
+  "config": {
+    "argv": [
+      "/mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/node/bin/node",
+      "/mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/m49-insert-image.spec.ts",
+      "--reporter=list,json"
+    ],
+    "configFile": "/mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/playwright.config.ts",
+    "rootDir": "/mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/source/app/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "m49-insert-image.spec.ts",
+      "file": "m49-insert-image.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "an image survives a prose rebuild at the remembered caret",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13942,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-06T21:48:59.049Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d8999a542de3cee51e7c-c8cea5901055103b1623",
+          "file": "m49-insert-image.spec.ts",
+          "line": 59,
+          "column": 5
+        },
+        {
+          "title": "an image survives a prose rebuild at the remembered caret in page view",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12705,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-06T21:49:13.089Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d8999a542de3cee51e7c-cde50b6c37b86b971edf",
+          "file": "m49-insert-image.spec.ts",
+          "line": 80,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-06T21:48:56.027Z",
+    "duration": 29798.849000000002,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

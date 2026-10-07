@@ -1,0 +1,260 @@
+
+Locale doctor
+
+=== Locale doctor: react ===
+  en.json keys:        3955
+  de.json keys:      3955
+  zh-CN.json keys:      3955
+  static references:   2804
+  dead keys:           541
+  missing keys:        0
+  untranslated keys:   0
+  placeholder drift:   0
+  spelling faults:     0
+
+  -- DEAD (react: no reference, not dynamic) --
+    app.ready
+    app.subtitle
+    app.title
+    book.addBookPrompt
+    book.cannotDeleteLast
+    book.deleteBook
+    book.deleteBookMessage
+    book.deleteBookTitle
+    book.noBooks
+    book.pickerTitle
+    book.renameBook
+    book.renameBookPrompt
+    book.wbBadge
+    book.wbBadgeTooltip
+    bookshelf.books_one
+    bookshelf.books_other
+    bookshelf.description
+    bookshelf.eyebrow
+    bookshelf.projects_one
+    bookshelf.projects_other
+    castAbsence.gap_other
+    castAbsence.scenes_other
+    castAbsence.since_other
+    codexHub.all
+    codexHub.lockedNotice
+    codexHub.searchPlaceholder
+    codexHub.sortName
+    codexHub.sortNameDesc
+    codexHub.subtitle
+    codexHub.templates
+    codexHub.title
+    comments.noSelection
+    common.dateWatermarkIso
+    context.absent
+    context.editTags
+    context.empty
+    context.groupBadge
+    context.inLocation
+    context.mentioned
+    context.openSceneHint
+    context.stats
+    context.title
+    dashboard.avgChapter
+    dashboard.bookCoverLabel
+    dashboard.chapters
+    dashboard.characters
+    dashboard.locations
+    dashboard.scenes
+    dashboard.streak
+    dashboard.totalWords
+    ... +491 more
+
+=== Locale doctor: ext:Novalist.Extensions.Formats ===
+  en.json keys:        20
+  de.json keys:      20
+  static references:   12
+  dead keys:           8
+  missing keys:        0
+  untranslated keys:   0
+  placeholder drift:   0
+  spelling faults:     0
+
+  -- DEAD (ext:Novalist.Extensions.Formats: no reference, not dynamic) --
+    formats.csv
+    formats.fb2
+    formats.fountain
+    formats.html
+    formats.json
+    formats.opml
+    formats.rtf
+    formats.txt
+
+=== Locale doctor: ext:Novalist.Extensions.Insight ===
+  en.json keys:        61
+  de.json keys:      61
+  static references:   61
+  dead keys:           0
+  missing keys:        0
+  untranslated keys:   0
+  placeholder drift:   0
+  spelling faults:     0
+
+=== Locale doctor: ext:Novalist.Extensions.Publish ===
+  en.json keys:        46
+  de.json keys:      46
+  static references:   45
+  dead keys:           1
+  missing keys:        0
+  untranslated keys:   0
+  placeholder drift:   0
+  spelling faults:     0
+
+  -- DEAD (ext:Novalist.Extensions.Publish: no reference, not dynamic) --
+    publish.title
+
+=== Locale doctor: ext:Novalist.Extensions.Speech ===
+  en.json keys:        22
+  de.json keys:      22
+  zh-CN.json keys:      22
+  static references:   22
+  dead keys:           0
+  missing keys:        0
+  untranslated keys:   0
+  placeholder drift:   0
+  spelling faults:     0
+
+=== Locale doctor: ext:Novalist.Extensions.Toolkit ===
+  en.json keys:        79
+  de.json keys:      79
+  static references:   77
+  dead keys:           2
+  missing keys:        0
+  untranslated keys:   0
+  placeholder drift:   0
+  spelling faults:     0
+
+  -- DEAD (ext:Novalist.Extensions.Toolkit: no reference, not dynamic) --
+    toolkit.capture
+    toolkit.title
+
+=== Locale doctor: ext:novalist-aiassistant ===
+  en.json keys:        374
+  de.json keys:      374
+  static references:   257
+  dead keys:           119
+  missing keys:        0
+  untranslated keys:   0
+  placeholder drift:   0
+  spelling faults:     0
+
+  -- DEAD (ext:novalist-aiassistant: no reference, not dynamic) --
+    ai.addToCodex
+    ai.analysisTitle
+    ai.assistant
+    ai.chatTitle
+    ai.context
+    ai.editorAssistance
+    ai.filterSceneStats
+    ai.minP
+    ai.providerCopilotCli
+    ai.providerLmStudio
+    ai.rawOutput
+    ai.scene
+    ai.stat.conflict
+    ai.stat.emotion
+    ai.stat.intensity
+    ai.stat.pov
+    ai.thinking
+    ai.thinkingDots
+    ai.topP
+    bible.kind.character
+    bible.kind.item
+    bible.kind.location
+    bible.kind.lore
+    characterChat.character
+    characterChat.includeImage
+    characterChat.includeImageTooltip
+    characterChat.includeKnowledge
+    characterChat.preparing
+    characterChat.sceneContext
+    characterChat.title
+    context.budget
+    critique.lens.agent
+    critique.lens.agentDescription
+    critique.lens.continuity
+    critique.lens.continuityDescription
+    critique.lens.developmental
+    critique.lens.developmentalDescription
+    critique.lens.firstReader
+    critique.lens.firstReaderDescription
+    critique.lens.line
+    critique.lens.lineDescription
+    critique.lens.voice
+    critique.lens.voiceDescription
+    dictation.models
+    dictation.notReady
+    dictation.packages
+    dictation.preparing
+    knowledge.field.companions
+    knowledge.field.emotion
+    knowledge.field.goals
+    ... +69 more
+
+Manual doctor
+manual links, anchors, images, and TOC are valid (47 pages)
+
+Manual doctor tests
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.033s
+
+OK
+
+Token doctor
+201 tokens defined, 190 referenced
+every referenced token is defined, with no redundant fallbacks
+
+File doctor
+no tracked source file is empty or gutted
+
+RPC doctor
+577 backend methods declared, 504 called by the renderer
+
+Declared but nothing calls it (dead surface, or a feature wired to nothing):
+  binder/pinChapter                      Novalist.Backend/Rpc/BinderRpc.cs
+      known: unwired: a scene can be pinned in the binder and a chapter cannot
+  bookmarks/groups                       Novalist.Backend/Rpc/BookmarksRpc.cs
+      known: superseded: the panel derives group names from the bookmarks it already has
+  dialogue/clearSpeaker                  Novalist.Backend/Rpc/DialogueRpc.cs
+      known: unwired: a speaker can be assigned in the Dialogue view and never cleared
+  entities/setGroup                      Novalist.Backend/Rpc/EntitiesRpc.Editing.cs
+      known: unwired: an entry's group is only reachable through the generic field save
+  export/formats                         Novalist.Backend/Rpc/ExportRpc.cs
+      known: superseded: the export view keeps its own ordered list, with the label and extension each format needs
+  extensions/contributions               Novalist.Backend/Rpc/ExtensionsRpc.cs
+      known: host surface: read by the extension host rather than by the renderer
+  groups/members                         Novalist.Backend/Rpc/GroupsRpc.cs
+      known: superseded: the Codex derives membership from the entries it has loaded
+  import/scanVault                       Novalist.Backend/Rpc/ImportRpc.cs
+      known: superseded: folderImport/scan discovers files for the generic folder importer; retained for older clients
+  import/vault                           Novalist.Backend/Rpc/ImportRpc.cs
+      known: superseded: folderImport/start and folderImport/batch import research alongside the other targets; retained for older clients
+  pages/get                              Novalist.Backend/Rpc/WikiPagesRpc.cs
+      known: superseded: pages/list returns every page with its body
+  pages/move                             Novalist.Backend/Rpc/WikiPagesRpc.cs
+      known: superseded: pages/save carries the parent with the rest of the record
+  snapshots/load                         Novalist.Backend/Rpc/SnapshotsRpc.cs
+      known: superseded: the dialog reads through snapshots/diff and writes back through snapshots/restore
+
+every renderer call resolves to a declared backend method
+
+Placement doctor
+placement-doctor: 96 commands, one home each.
+  contextMenu: 7
+  menuBar: 52
+  projectBar: 10
+  selectionToolbar: 8
+  viewBar: 19
+  5 declare a home other than their scope's default.
+
+Bridge doctor
+editor bridge: 66 methods declared, 66 called
+every bridge method is declared, implemented, and called
+
+All 8 source checks passed.

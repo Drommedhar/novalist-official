@@ -110,6 +110,12 @@ An extension whose `minHostVersion` is above the running Novalist is skipped wit
 
 **`EntityService`** — the Codex. Characters, locations, items, lore, and custom types; creating entries; per-context character profiles and images with all the chapter/scene/act override rules already applied.
 
+For local reports and publishing, `GetEntityContentAsync(typeKey, entityId)` returns authored descriptions, sections, aliases and project-relative image paths for every Codex type, or `null` for a missing entry. Preserve `ReaderHidden` on the entry and each section: reader-facing output must omit either when hidden. AI integrations must use `GetAiContextAsync`, which applies the separate AI inclusion policy.
+
+`SceneInfo.Inactive` and `SceneInfo.ExcludeFromExport` expose the manuscript's existing visibility choices. Exporters and reader-facing publishers must skip scenes when either flag is set.
+
+`StoryService.GetMapsAsync()` includes `MapInfo.ImagePaths`, the stored project-relative image references from nested map layers and pin icons. Health reports can compare these and `EntityContentInfo.ImagePaths` against `EntityService.GetProjectImages()` without converting them into absolute paths.
+
 **`EntityService`, writing an entry** — `SaveEntityAsync` writes the name, description and free-text sections; `SetEntityFieldsAsync` writes the entry's own typed fields (a character's age and eye colour, a location's region); `SetEntityCustomPropertyAsync` writes the properties the writer added themselves; `SetEntityRelationshipsAsync` writes the relationship rows. An importer that could bring a character across with their biography but not their hair colour produced an entry the writer had to finish by hand.
 
 `SetEntityFieldsAsync` matches field names the way the Codex shows them, without regard to case, and **returns the names it could not write** rather than dropping them — a typo that silently loses a value is the worst way to find out about one. Only text fields are settable; a field holding a list or a date has its own call.
@@ -281,6 +287,8 @@ Novalist has known both since assigned casts shipped and never handed them over,
 Use `Language` for whatever your format calls a language declaration, and read `CoverImagePath` off disk if your format can hold a picture. A format that ignores them produces a file that claims to be English and has no cover, whatever the writer set.
 
 ## Web views
+
+Inline editor actions can return `InlineActionDisposition.ShowInformation` to display `Text` without changing prose. `Alternatives` are choices for the writer to review, and `AsSuggestion` records an accepted edit as a suggestion. Do not insert informational results into the document or silently pick the first alternative.
 
 Anything with a user interface is HTML rendered in a sandboxed frame. Declare it in the manifest:
 

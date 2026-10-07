@@ -70,25 +70,33 @@ public class FileService : IFileService
             Directory.CreateDirectory(dir);
         return WithFileAsync(path, async () =>
         {
-            // FileMode.Create rejects existing Hidden files on Windows. Cloud
-            // providers can mark dotfiles such as .nvindex.json as Hidden.
-            using var output = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
-            await output.WriteAsync(bytes);
-            output.SetLength(bytes.Length);
+            await WriteAtomicallyAsync(path, output => output.WriteAsync(bytes).AsTask());
             return true;
         });
+    }
+
+    internal static async Task WriteAtomicallyAsync(string path, Func<Stream, Task> write)
+    {
+        var temporary = Path.Combine(Path.GetDirectoryName(path) ?? ".", ".novalist-save-" + Guid.NewGuid().ToString("N") + ".tmp");
+        try
+        {
+            await using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await write(output);
+                await output.FlushAsync();
+                output.Flush(flushToDisk: true);
+            }
+            if (File.Exists(path)) File.Replace(temporary, path, null);
+            else File.Move(temporary, path);
+        }
+        finally { File.Delete(temporary); }
     }
 
     internal static Task CopyFileAsync(string source, string destination)
         => WithFileAsync(destination, async () =>
         {
-            // Stream into the existing file to preserve its attributes. File.Copy
-            // rejects a Hidden destination when the staged source is not Hidden.
-            // Share the save gate and bounded retries for sync/scanner locks.
             using var input = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.Read);
-            using var output = new FileStream(destination, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
-            await input.CopyToAsync(output);
-            output.SetLength(input.Length);
+            await WriteAtomicallyAsync(destination, output => input.CopyToAsync(output));
             return true;
         });
 

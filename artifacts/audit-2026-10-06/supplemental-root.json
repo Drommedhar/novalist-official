@@ -1,0 +1,32 @@
+{
+  "findings": [
+    {
+      "id": "A12",
+      "title": "Character knowledge scans deadlock while saving their first result",
+      "priority": "P1",
+      "category": "Reliability",
+      "repo": "novalist-aiassistant",
+      "confidence": "reproduced",
+      "effort": "S",
+      "platforms": ["Desktop"],
+      "evidence": [
+        {"path": "Services/CharacterKnowledgeService.cs", "line": 267, "detail": "ApplyRecordAsync acquires the character's SemaphoreSlim, then calls LoadAsync and UpsertAsync without releasing it."},
+        {"path": "Services/CharacterKnowledgeService.cs", "line": 52, "detail": "On a cold cache, LoadAsync waits on that same non-reentrant semaphore without a cancellation token."},
+        {"path": "Services/CharacterKnowledgeService.cs", "line": 90, "detail": "On a warm cache, UpsertAsync reaches SaveAsync, which also waits on the same already-held semaphore."},
+        {"path": "AiAssistantExtension.cs", "line": 480, "detail": "The existing knowledge scan awaits ApplyRecordAsync after obtaining each scene-analysis record."}
+      ],
+      "trigger": "Run the character knowledge scan with at least one selected character and one nonempty scene for which analysis produces a record.",
+      "impact": "The scan cannot finish its first knowledge update. Both cold-cache and warm-cache probes remained pending after a watchdog deadline and after caller cancellation; no file writes occurred. Further operations for the locked character can also stall. The probe used fake host/files and made no model request.",
+      "recommendation": "Acquire the character lock once around the complete read-modify-write transaction; use internal helpers that assume the caller owns it. Pass cancellation to waits and release in finally. Do not simply remove synchronization from the shared cache.",
+      "validation": "Run knowledge-probe for cold and warm caches. Both cases must complete, write exactly one valid result and release the lock; add overlapping same-character updates and mid-operation cancellation tests.",
+      "sources": []
+    }
+  ],
+  "checks": [
+    {
+      "command": "dotnet run --project artifacts/audit-2026-10-06/knowledge-probe/knowledge-probe.csproj -p:SkipExtensionDeploy=true -m:1 -nr:false --verbosity quiet",
+      "status": "reproduced",
+      "detail": "Cold and warm cache scenarios both remained pending after 500 ms, still pending 250 ms after cancellation, and performed zero writes. Same-lock acquisition was independently traced in source. Clean observations saved in knowledge-probe-results.json; fake host/files, no network/model, extension deployment disabled. An existing generated-code CS0162 warning was emitted."
+    }
+  ]
+}

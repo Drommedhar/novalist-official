@@ -32,9 +32,8 @@ public class SceneSnapshot
     /// <summary>
     /// The scene around the prose, as it stood. Restoring only the words put
     /// the writer back at a version whose synopsis, notes and dates described
-    /// a different draft. Every field is nullable and every one is absent from
-    /// a snapshot taken before this existed, which is what tells a restore to
-    /// leave that field alone rather than blanking it.
+    /// a different draft. Captured fields distinguish an intentionally empty
+    /// value from a field absent in an older snapshot.
     /// </summary>
     [JsonPropertyName("meta")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -44,6 +43,10 @@ public class SceneSnapshot
 /// <summary>The scene's own fields at the moment a snapshot was taken.</summary>
 public class SceneSnapshotMeta
 {
+    [JsonPropertyName("capturedFields")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? CapturedFields { get; set; }
+
     [JsonPropertyName("title")]
     public string? Title { get; set; }
 

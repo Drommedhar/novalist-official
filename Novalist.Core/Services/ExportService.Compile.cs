@@ -61,10 +61,13 @@ public partial class ExportService
 
             var manifest = await _projectService.LoadScenesManifestForAsync(book);
             if (manifest == null) continue;
+            var chapters = book.ActiveDraft == null
+                ? book.Chapters
+                : await _projectService.LoadChaptersForAsync(book);
 
             sources.Add((book, new VolumeSource(
                 book,
-                [.. book.Chapters.OrderBy(c => c.Order)],
+                [.. chapters.OrderBy(c => c.Order)],
                 guid => manifest.Chapters.TryGetValue(guid, out var scenes)
                     ? [.. scenes.Where(s => s.ArchivedAt == null).OrderBy(s => s.Order)]
                     : [],

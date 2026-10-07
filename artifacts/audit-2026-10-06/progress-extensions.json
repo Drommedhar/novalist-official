@@ -1,0 +1,359 @@
+{
+  "updatedAt": "2026-10-06",
+  "findings": [
+    {
+      "id": "EXT-001",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Formats/Services/Manuscript.cs",
+        "D:/git/novalist-extension/Novalist.Extensions.Publish/PublishExtension.cs",
+        "D:/git/novalist-official/Novalist.Backend/Extensions/HostServices.ProjectAccess.cs",
+        "D:/git/novalist-official/Novalist.Core/Services/ExportService.Compile.cs",
+        "D:/git/novalist-official/Novalist.Sdk/Models/ExportFormatDescriptor.cs",
+        "Novalist.Sdk/Services/IExtensionProjectService.cs",
+        "Novalist.Backend/Extensions/HostServices.ProjectAccess.cs",
+        "tests/Novalist.Backend.Tests/HostServicesTests.cs",
+        "D:/git/novalist-extension/tests/Novalist.Extensions.Tests/ExportImportAcceptanceTests.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "Backend full suite2057/2057 passed including actual SDK scene/entity/map projection tests; SDK61/61 passed",
+        "EveryContributedFormatOmitsInactiveAndExcludedContent: all9 actual format export handlers passed; prose/outline public markers present, withheld/inactive prose and identities absent; ODT content.xml inspected."
+      ],
+      "pending": [],
+      "notes": [
+        "Formats/Insight/Publish/Toolkit manifests require host3.5.4 for the new SDK contracts; hosts through3.5.3 remain excluded. README/manual and release SDK v3.5.4 source pin document required next desktop release."
+      ]
+    },
+    {
+      "id": "EXT-002",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Publish/Site/Markup.cs",
+        "D:/git/novalist-extension/Novalist.Extensions.Formats/Writers/TextWriters.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "Chromium149 actual generated Markup and HTML cover:5 malicious quote/entity/URL payloads plus cover load/error events; no injected attributes or executed handler. browser-extension-acceptance/result.json."
+      ],
+      "pending": []
+    },
+    {
+      "id": "EXT-003",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Publish/PublishExtension.cs",
+        "../novalist-extension/Novalist.Extensions.Publish/Site/SitePublisher.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled"
+      ],
+      "pending": []
+    },
+    {
+      "id": "EXT-004",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Publish/Site/SiteGenerator.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled"
+      ],
+      "pending": []
+    },
+    {
+      "id": "EXT-005",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Toolkit/ToolkitExtension.cs",
+        "D:/git/novalist-official/Novalist.Backend/Rpc/ExtensionContribRpc.cs",
+        "D:/git/novalist-official/app/src/renderer/public/editor/dictation-bridge.js",
+        "D:/git/novalist-aiassistant/Services/InlineRewriteService.cs",
+        "Novalist.Sdk/Hooks/IInlineActionContributor.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "Renderer owner final Windows Electron audit-regression E2E9/9: information dialog read-only, alternatives require selection, cancel preserves text, chosen replacement marks original deletion and chosen insertion through extensionsStore registration."
+      ],
+      "pending": [],
+      "notes": [
+        "Formats/Insight/Publish/Toolkit manifests require host3.5.4 for the new SDK contracts; hosts through3.5.3 remain excluded. README/manual and release SDK v3.5.4 source pin document required next desktop release."
+      ]
+    },
+    {
+      "id": "EXT-006",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Formats/Importers/ProjectImporters.cs",
+        "D:/git/novalist-extension/tests/Novalist.Extensions.Tests/ExportImportAcceptanceTests.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "MalformedCsvAfterAValidRowImportsNothing:3 malformed quote cases reject the entire import before mutation; CsvPreservesQuotedNewlinesDelimitersAndEscapedQuotes:LF andCRLF cases passed."
+      ],
+      "pending": []
+    },
+    {
+      "id": "EXT-007",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Formats/Importers/ProjectImporters.cs",
+        "D:/git/novalist-extension/tests/Novalist.Extensions.Tests/ExportImportAcceptanceTests.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "ScrivenerUsesTypedDraftRootAndPreservesNestedOrderWithLocalizedNames:localized root, nested folders, root prose, misleading Research/Trash names and exact scene/prose order passed."
+      ],
+      "pending": []
+    },
+    {
+      "id": "EXT-008",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Formats/Importers/RtfReader.cs",
+        "D:/git/novalist-extension/tests/Novalist.Extensions.Tests/ExportImportAcceptanceTests.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "RtfHandlesTwoCharacterFallbackAndMultibyteCodePages:4 additional uc2 literal/hex/grouped fallback andShift-JIS cases passed, alongside existing uc0/uc1/CP1251/CP1252 fixtures."
+      ],
+      "pending": []
+    },
+    {
+      "id": "EXT-009",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Formats/Importers/ProjectImporters.cs",
+        "D:/git/novalist-extension/tests/Novalist.Extensions.Tests/ExportImportAcceptanceTests.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "MarkdownImportsMixedDepthInStableOrderAndIgnoresNonProseFiles:root+depth2 files, stable chapter/scene ordering and nonprose exclusions passed."
+      ],
+      "pending": []
+    },
+    {
+      "id": "EXT-010",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Insight/Analysis/ContinuityWorklist.cs",
+        "D:/git/novalist-extension/Novalist.Extensions.Insight/InsightExtension.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled"
+      ],
+      "pending": []
+    },
+    {
+      "id": "EXT-011",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Insight/Analysis/ContinuityWorklist.cs",
+        "D:/git/novalist-extension/Novalist.Extensions.Insight/InsightExtension.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled"
+      ],
+      "pending": [],
+      "notes": [
+        "Formats/Insight/Publish/Toolkit manifests require host3.5.4 for the new SDK contracts; hosts through3.5.3 remain excluded. README/manual and release SDK v3.5.4 source pin document required next desktop release."
+      ]
+    },
+    {
+      "id": "EXT-012",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Publish/PublishExtension.cs",
+        "D:/git/novalist-extension/Novalist.Extensions.Insight/InsightExtension.cs",
+        "D:/git/novalist-official/Novalist.Sdk/Services/IExtensionEntityService.cs",
+        "Novalist.Sdk/Services/IExtensionEntityService.cs",
+        "Novalist.Backend/Extensions/HostServices.EntityAccess.cs",
+        "tests/Novalist.Backend.Tests/HostServicesTests.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "SDK61 passed; actual Backend entity/map projection tests passed in backend full run",
+        "Backend full suite2057/2057 passed including actual SDK scene/entity/map projection tests; SDK61/61 passed",
+        "AllEntityKindsPublishBodiesAndContinuityDetectsContentOnlyEdits:character/location/item/lore/custom faction bodies+sections appear in actual generated sites; editing only section content independently flags the referenced scene for every kind, without renaming."
+      ],
+      "pending": [],
+      "notes": [
+        "Formats/Insight/Publish/Toolkit manifests require host3.5.4 for the new SDK contracts; hosts through3.5.3 remain excluded. README/manual and release SDK v3.5.4 source pin document required next desktop release."
+      ]
+    },
+    {
+      "id": "EXT-013",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Insight/InsightExtension.cs",
+        "D:/git/novalist-official/Novalist.Backend/Extensions/HostServices.EntityAccess.cs",
+        "D:/git/novalist-official/Novalist.Core/Services/EntityService.Images.cs",
+        "D:/git/novalist-extension/Novalist.Extensions.Insight/Analysis/ProjectHealth.cs",
+        "Novalist.Sdk/Services/MapInfo.cs",
+        "Novalist.Backend/Extensions/HostServices.Story.cs",
+        "tests/Novalist.Backend.Tests/HostServicesExtendedTests.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "SDK61 passed; actual Backend entity/map projection tests passed in backend full run",
+        "Backend full suite2057/2057 passed including actual SDK scene/entity/map projection tests; SDK61/61 passed"
+      ],
+      "pending": [],
+      "notes": [
+        "Formats/Insight/Publish/Toolkit manifests require host3.5.4 for the new SDK contracts; hosts through3.5.3 remain excluded. README/manual and release SDK v3.5.4 source pin document required next desktop release."
+      ]
+    },
+    {
+      "id": "EXT-014",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Speech/python/sidecar.py",
+        "D:/git/novalist-extension/Novalist.Extensions.Speech/Engine/VoiceEngine.cs",
+        "../novalist-extension/tests/Novalist.Extensions.Tests/SpeechAcceptanceTests.cs",
+        "../novalist-extension/Novalist.Extensions.Speech/python/test_lifecycle.py"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "Speech Python suites: 41 passed, including fatal render completion and cache restart/offline regressions",
+        "Exact original acceptance verified; see speech-acceptance-evidence.json for named tests/assertions. Final extension414/414 and Python41/41 passed."
+      ],
+      "pending": [],
+      "limitations": [
+        "Optional real GPU/model inference not exercised; original regression acceptance uses controlled channels/model barriers and offline cache fixtures, now fully tested."
+      ]
+    },
+    {
+      "id": "EXT-015",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Speech/SpeechExtension.cs",
+        "D:/git/novalist-official/Novalist.Backend/Rpc/VoiceEngineRpc.cs",
+        "D:/git/novalist-extension/Novalist.Extensions.Speech/python/sidecar.py",
+        "D:/git/novalist-extension/Novalist.Extensions.Speech/python/mlx_backend.py",
+        "../novalist-extension/Novalist.Extensions.Speech/Engine/SpeechModelCache.cs",
+        "../novalist-extension/tests/Novalist.Extensions.Tests/SpeechAcceptanceTests.cs",
+        "../novalist-extension/Novalist.Extensions.Speech/python/test_lifecycle.py"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "Speech Python suites: 41 passed, including fatal render completion and cache restart/offline regressions",
+        "Exact original acceptance verified; see speech-acceptance-evidence.json for named tests/assertions. Final extension414/414 and Python41/41 passed."
+      ],
+      "pending": [],
+      "limitations": [
+        "Optional real GPU/model inference not exercised; original regression acceptance uses controlled channels/model barriers and offline cache fixtures, now fully tested."
+      ]
+    },
+    {
+      "id": "EXT-016",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Speech/Engine/VoiceEngine.cs",
+        "D:/git/novalist-extension/Novalist.Extensions.Speech/python/sidecar.py",
+        "../novalist-extension/tests/Novalist.Extensions.Tests/SpeechAcceptanceTests.cs",
+        "../novalist-extension/Novalist.Extensions.Speech/python/test_lifecycle.py"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "Speech Python suites: 41 passed, including fatal render completion and cache restart/offline regressions",
+        "Exact original acceptance verified; see speech-acceptance-evidence.json for named tests/assertions. Final extension414/414 and Python41/41 passed."
+      ],
+      "pending": [],
+      "limitations": [
+        "Optional real GPU/model inference not exercised; original regression acceptance uses controlled channels/model barriers and offline cache fixtures, now fully tested."
+      ]
+    },
+    {
+      "id": "EXT-017",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Toolkit/ToolkitExtension.cs",
+        "D:/git/novalist-extension/Novalist.Extensions.Toolkit/Services/Sprint.cs"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled"
+      ],
+      "pending": []
+    },
+    {
+      "id": "EXT-018",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-pnp/extension.json",
+        "D:/git/novalist-pnp/PenAndPaperExtension.cs",
+        "D:/git/novalist-qwentts/extension.json",
+        "D:/git/novalist-qwentts/Qwen3TtsExtension.cs",
+        "D:/git/novalist-pnp/README.md",
+        "D:/git/novalist-qwentts/README.md"
+      ],
+      "tests": [
+        "18 actual current ExtensionLoader gate cases pass against final manifests, includingPnP1.6 rejection/1.7 acceptance and current2.x/3.x rejection for both. legacy-host-gating.json.",
+        "PnP preserved working source built againstv1.7 exact declareddependencies and loads/instantiates all13 interfaces using actualv1.7 and last nativev1.14.5 loaders/SDKs. Final minimum1.7.0 rechecked at both endpoints.",
+        "Qwen preserved working source builds and loads using exact untagged1.15-dev/8ffe1bf1 SDK+loader; initialization/shutdown register/unregister through actual historicalTtsRegistry without startingPython or preparingmodels."
+      ],
+      "pending": [],
+      "notes": [
+        "Original manifest compatibility acceptance satisfied at loader-contract scope. See legacy-historical-validation/summary.json.",
+        "NativeUI/PnPproject workflows/model inference remain untested optional broader runtime checks; no claim of full legacy feature compatibility.",
+        "PnPHEAD has onlyREADME; no tracked implementation release existed to test instead of the preserved untracked working source. No original source/dependency files changed."
+      ]
+    },
+    {
+      "id": "EXT-019",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension/Novalist.Extensions.Insight/InsightExtension.cs",
+        "D:/git/novalist-extension/Novalist.Extensions.Insight/web/report.html"
+      ],
+      "tests": [
+        "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
+        "Chromium149 consumes actual Insight controller serialized Problem response and renders li.finding.Problem with the missing image text and computed3px red border. browser-extension-acceptance/result.json."
+      ],
+      "pending": []
+    },
+    {
+      "id": "G01",
+      "status": "implemented-verified",
+      "files": [
+        "D:/git/novalist-extension-gallery/gallery.json",
+        "D:/git/novalist-extension-gallery/tools/validate_gallery.py",
+        "D:/git/novalist-extension-gallery/tools/test_validate_gallery.py",
+        "D:/git/novalist-extension-gallery/.github/workflows/validate.yml",
+        "D:/git/novalist-extension-gallery/CONTRIBUTING.md"
+      ],
+      "tests": [
+        "Gallery index valid; Python validator tests4 passed; Aislop100 with no diagnostics"
+      ],
+      "pending": []
+    }
+  ],
+  "checks": [
+    "Final extension C#414/414; Python41/41; SDK61/61; Backend2058/2058 incl projections (backend agent run); gallery4/4 and index validation passed",
+    "Elevated Aislop extension score88, errors0, warnings17, fixable0; remaining warnings are existing complexity/lifecycle initialized null-forgiving fields, none reported on changed lines",
+    "Elevated Aislop gallery score100, errors0/warnings0; owned9 official SDK/host/lifecycle sources errors0/warnings0",
+    "Sandbox-only Aislop scans returned false clean results because source/config access was incomplete; elevated scans supersede those results",
+    "Final SDK61/61; eng/Check-Coverage.ps1 deduplicated30/30 executable lines100%, report final-sdk-coverage/93feaca9-8b42-4d32-964d-af499719adb8/coverage.cobertura.xml.",
+    "Manifest/entry/id checks passed all5 extensions; Formats/Insight/Publish/Toolkit minimum3.5.4, Speech unchanged3.3.0. Build XML and CI/release YAML parsed; release explicitly selects local SDK from hostv3.5.4.",
+    "MSBuild SDK evaluation verified adjacent ProjectReference; UseLocalSdk=false without NovalistSdkVersion fails as required; explicit13.4.0 evaluates exact[13.4.0] range (configuration check only, no package restore or compatibility certification).",
+    "Aislop compatibility metadata/docs/workflow scan reports no supported files/no diagnostics; these formats were verified by JSON/YAML/XML and MSBuild checks, not a scored code scan.",
+    "Final extension rebuild after Directory.Build.props/manifest/workflow changes:414/414 passed with -p:UseLocalSdk=true -p:ExtensionFolder= -m:1 -nr:false; installed extensions not modified.",
+    "Final elevated Aislop --changes:score88,0errors,17nonfixablewarnings,0fixable; saved in aislop-extensions-final.json and aislop-extensions-changes-final.json. No new blocking diagnostics.",
+    "Full-repository scan separately preserved as aislop-extensions-full-final.json:score75,2errors,37warnings,5fixable including untouched benchmark.py/mlx_backend.py baseline. Metadata/workflows are not scoreable; JSON/YAML/XML/MSBuild validation passed.",
+    "Final acceptance follow-through: extension414/414; Speech Python41/41; real offline fatal subprocess error+done and nextrequest passed109ms; changed-file Aislop87/0errors/17nonfixablewarnings/0fixable.",
+    "Final acceptance follow-through:extension414/414 C# tests;21 focused export/import/entity integration cases;Chromium7/7 browser checks;Aislop88 with0 errors,17nonfixable warnings,0fixable across56 changed supported files.",
+    "Historical loader probes passed:Qwen0.4.0 on exact untagged1.15-dev/8ffe1bf1 SDK+loader+registry;PnP0.1.0 built from preserved working copy againstv1.7/08c6e3a7 and loaded byv1.7 plus last nativev1.14.5/8827483e exact loaders. See legacy-historical-validation; no nativeUI/model execution.",
+    "EXT018 complete:18 current gate cases plus3 historical actual-loader smokes; PnPminimum narrowed to1.7.0 with exact tested endpoints documented. legacy-historical-validation/summary.json."
+  ],
+  "notes": [
+    "Legacy pnp and qwentts worktrees were dirty before modifications; only manifests maxHostVersion and README legacy notice edited; all pre-existing source work retained. Pnp extension.json was already untracked.",
+    "Builds used -p:ExtensionFolder= and -p:SkipExtensionDeploy=true, so no deployment into installed extensions.",
+    "Official changelog owned by parent; extension repositories have no existing changelogs, relevant README behavior notes updated.",
+    "M01 extra delegation: native App.cs + RendererHostPage.Lifecycle.cs + HostCalls.cs acknowledgement implemented; journal/shim/restore owned root/renderer. Native UIKit build and background/device test pending macOS.",
+    "Required quality cleanup made numpy/torch direct requirements explicit (already runtime dependencies of pinned qwen-tts/MLX stack); preparation signature changes will request runtime preparation again once. No rules/config disabled.",
+    "M01 native changes reviewed against Apple/Microsoft API docs; native build and background-save/dead bridge device scenarios still require macOS/iOS. Root owns final shim/journal integration.",
+    "Native review identified four root-owned follow-ups: bound failed-bridge notification before Reload; release relocated bookmark on unsuccessful BeginAccess; preserve moved-parent aliases for sibling recents; bound binary asset response memory. Root informed with exact locations.",
+    "Updated extensions cannot be released until the matching host v3.5.4 tag exists. If next host uses another version, update release ref and manifest minimums together. Host SDK CI retains version ownership.",
+    "Preserved untouched Speech benchmark.py and mlx_backend.py. Both tracked with empty diff at HEAD6978995 (2026-09-10); last modifying commit91ca373 (2026-09-10); benchmark filesystem timestamp2026-09-10T16:05:33Z and MLX2026-09-09T16:35:48Z. Full-scan findings include stdlib cProfile false-positive, direct tqdm not declared, formatting/import/type-quote cleanup. No code, dependency or rule suppression changed for these baseline findings; concurrent authorship was not inferred.",
+    "EXT014-016 optional GPU smoke was previously over-scoped as a mandatory pending condition. Original acceptance is now mapped and passed using controlled channel/cache/model-barrier tests; no hardware inference claim. EXT018 historical loader acceptance subsequently passed on the exact recorded hosts. Legacy dev branches carry metadata/documentation only; Qwen's loader fixture was the preserved unpublished local 0.4 source, while its pushed metadata retains version 0.3."
+  ]
+}

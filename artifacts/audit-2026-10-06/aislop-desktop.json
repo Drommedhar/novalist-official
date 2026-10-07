@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "1",
+  "cliVersion": "0.18.0",
+  "version": "0.18.0",
+  "score": 100,
+  "label": "Healthy",
+  "scoreable": true,
+  "coverage": {
+    "supportedFiles": 1638,
+    "unsupportedFiles": 2,
+    "dominantUnsupported": "Swift",
+    "scoreable": true
+  },
+  "engines": {
+    "format": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 22073.3534
+    },
+    "lint": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 21626.545899999997
+    },
+    "code-quality": {
+      "issues": 3,
+      "skipped": false,
+      "elapsed": 20730.2471
+    },
+    "ai-slop": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 18208.0383
+    },
+    "security": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 1221.6302000000032
+    }
+  },
+  "engineDefinitions": {
+    "format": {
+      "label": "Formatting",
+      "description": "Whitespace, indentation, line wrapping, and import ordering"
+    },
+    "lint": {
+      "label": "Linting",
+      "description": "Static analysis for likely bugs and bad patterns"
+    },
+    "code-quality": {
+      "label": "Code Quality",
+      "description": "Complexity limits, dead code detection, and duplication checks"
+    },
+    "ai-slop": {
+      "label": "AI Slop",
+      "description": "Narrative comments, dead patterns, unsafe type casts, TODO stubs, generic names"
+    },
+    "architecture": {
+      "label": "Architecture",
+      "description": "Project-specific import and layering rules"
+    },
+    "security": {
+      "label": "Security",
+      "description": "Secret leaks, risky APIs, and dependency vulnerabilities"
+    }
+  },
+  "diagnostics": [
+    {
+      "filePath": "app/src/renderer/src/shell/BinderChapters.tsx",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 160, flagged above 176 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 8,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "BinderChapters · 183 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "app/src/renderer/src/views/extensions/ExtensionStore.tsx",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 160, flagged above 176 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 15,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "ExtensionStore · 178 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "app/src/renderer/src/views/maps/LayerPanel.tsx",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 160, flagged above 176 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 99,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "LayerPanel · 346 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    }
+  ],
+  "findingAssessment": {
+    "rows": [
+      {
+        "kind": "style-policy",
+        "label": "style/policy",
+        "count": 3,
+        "errors": 0,
+        "warnings": 3,
+        "info": 0,
+        "fixable": 0
+      }
+    ],
+    "byKind": {
+      "confirmed-defect": 0,
+      "conservative-security": 0,
+      "style-policy": 3,
+      "ai-slop-indicator": 0
+    },
+    "byConfidence": {
+      "high": 0,
+      "medium": 3,
+      "low": 0
+    }
+  },
+  "summary": {
+    "errors": 0,
+    "warnings": 3,
+    "fixable": 0,
+    "files": 1638,
+    "elapsed": "22.1s"
+  }
+}

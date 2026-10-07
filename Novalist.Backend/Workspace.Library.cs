@@ -40,49 +40,74 @@ public sealed partial class Workspace
         // Over a copy: the loop removes from the list it is walking.
         foreach (var r in Settings.Settings.RecentProjects.ToList())
         {
-            var path = r.Path;
-            var presence = await Projects.ProbeProjectAsync(path);
-
-            if (presence != ProjectPresence.Present && _storedPaths != null)
+            string? resolvedAccess = null;
+            try
             {
-                var resolved = _storedPaths.Resolve(path);
-                if (!string.IsNullOrEmpty(resolved))
+                var path = r.Path;
+                var presence = await Projects.ProbeProjectAsync(path);
+
+                if (presence != ProjectPresence.Present && _storedPaths != null)
                 {
-                    var after = await Projects.ProbeProjectAsync(resolved);
-                    if (after == ProjectPresence.Present)
+                    var resolved = resolvedAccess = _storedPaths.Resolve(path);
+                    if (!string.IsNullOrEmpty(resolved))
                     {
-                        if (!string.Equals(resolved, path, StringComparison.Ordinal))
+                        var after = await Projects.ProbeProjectAsync(resolved);
+                        if (after == ProjectPresence.Present && await MatchesRecentIdentityAsync(r, resolved))
                         {
-                            // Mutates the entry in place, so r.CoverImagePath below
-                            // is the moved one.
-                            Settings.RelocateRecentProject(path, resolved);
-                            changed = true;
+                            if (!string.Equals(resolved, path, StringComparison.Ordinal))
+                            {
+                                // Mutates the entry in place, so r.CoverImagePath below
+                                // is the moved one.
+                                Settings.RelocateRecentProject(path, resolved);
+                                changed = true;
+                            }
+                            path = resolved;
+                            presence = after;
                         }
-                        path = resolved;
-                        presence = after;
+                        else if (after == ProjectPresence.Present)
+                            presence = ProjectPresence.Unknown;
                     }
                 }
-            }
 
-            if (presence == ProjectPresence.Absent)
+                if (presence == ProjectPresence.Absent)
+                {
+                    Settings.RemoveRecentProject(r.Path);
+                    changed = true;
+                    continue;
+                }
+
+                // The File menu needs names and paths, never megabytes of covers
+                // or manifests from every other project while the writer works.
+                // Unknown means the volume/grant is unavailable. Keep its entry,
+                // without opening manifests or covers the presence probe could
+                // not reach. These reads used to incur retry delays per project.
+                var readDetails = includeLibraryDetails && presence == ProjectPresence.Present;
+                var entry = new RecentProjectDto(r.Name, path, null);
+                results.Add(readDetails ? await ReadLibrarySummaryAsync(entry) : entry);
+            }
+            finally
             {
-                Settings.RemoveRecentProject(r.Path);
-                changed = true;
-                continue;
+                if (!string.IsNullOrEmpty(resolvedAccess)) _storedPaths?.Release(resolvedAccess);
             }
-
-            // The File menu needs names and paths, never megabytes of covers
-            // or manifests from every other project while the writer works.
-            // Unknown means the volume/grant is unavailable. Keep its entry,
-            // without opening manifests or covers the presence probe could
-            // not reach. These reads used to incur retry delays per project.
-            var readDetails = includeLibraryDetails && presence == ProjectPresence.Present;
-            var entry = new RecentProjectDto(r.Name, path, null);
-            results.Add(readDetails ? await ReadLibrarySummaryAsync(entry) : entry);
         }
 
         if (changed) await Settings.SaveAsync();
         return results.ToArray();
+    }
+
+    private async Task<bool> MatchesRecentIdentityAsync(RecentProject recent, string resolved)
+    {
+        if (string.IsNullOrEmpty(recent.ProjectId)) return true;
+        try
+        {
+            var json = await FileService.ReadTextAsync(Path.Combine(resolved, ".novalist", "project.json"));
+            var project = System.Text.Json.JsonSerializer.Deserialize<ProjectMetadata>(json);
+            return project?.Id == recent.ProjectId;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            return false;
+        }
     }
 
     /// <summary>Read the manifest and book covers; never open books or load their drafts.</summary>
@@ -144,6 +169,7 @@ public sealed partial class Workspace
         var recent = Settings.Settings.RecentProjects.FirstOrDefault(r => r.Path == root);
         if (recent == null) return;
         recent.Name = project.Name;
+        recent.ProjectId = project.Id;
         recent.CoverImagePath = ActiveCoverAbsolutePath() ?? string.Empty;
         await Settings.SaveAsync();
     }

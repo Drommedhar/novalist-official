@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-06",
+  "finding": "R17",
+  "status": "passed",
+  "platform": {
+    "distribution": "Debian GNU/Linux 13 (trixie), x86_64",
+    "host": "WSL2 with WSLg display :0",
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "node": "22.23.3 Linux x64",
+    "electron": "42.11.8 Linux x64",
+    "dotnetSdk": "8.0.425",
+    "dotnetRuntime": "8.0.31",
+    "playwright": "1.61.1"
+  },
+  "result": {
+    "startTime": "2026-10-06T21:48:56.027Z",
+    "duration": 29798.849000000002,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "scenarios": [
+    {
+      "title": "an image survives a prose rebuild at the remembered caret",
+      "status": "passed",
+      "durationMs": 13942
+    },
+    {
+      "title": "an image survives a prose rebuild at the remembered caret in page view",
+      "status": "passed",
+      "durationMs": 12705
+    }
+  ],
+  "setup": [
+    "Official portable Node archive checked against official SHA256 sums; official .NET installer; Linux Electron installed from project lockfile.",
+    "Missing Debian 13 libraries downloaded as 67 .deb archives and extracted under this directory with dpkg-deb. No global package installation.",
+    "Current source copied excluding bin, obj, node_modules, git, output and test-result folders; Linux backend and frontend built successfully.",
+    "All test projects, app settings, profiles, caches and dependency installations scoped under this directory; Linux IPC temp files use /tmp. No user project or settings writes."
+  ],
+  "testBoundary": [
+    "Production context-menu action, logical bookmark capture, prose rebuild and image insertion execute in the real Linux renderer/backend.",
+    "Only native picker is controlled to hold the asynchronous result; both normal/page-view cases deliberately rebuild prose and clear live selection before completion. Tests always close isolated application in finally.",
+    "Isolated test harness adds --no-sandbox because the WSL distribution runs as root; test data root remains isolated even though Electron IPC uses native /tmp. The production harness is unchanged for this adaptation.",
+    "No claim for physical Linux desktop packaging or platform file-picker behavior; native iOS remains separate device validation."
+  ],
+  "sourceSha256": {
+    "app/e2e/m49-insert-image.spec.ts": "BAA9F34D6C84966E811B1C6C712262618A0FE55182996089720E80924FCFC851",
+    "app/src/renderer/public/editor/content-input.js": "EE3B18F85953E53958CD2E68A2A909035732C121A5542B32B31088D43B84D3B1",
+    "app/src/renderer/public/editor/context-menu-actions.js": "32E3781DEB2C13FABA06E1C25ED3F85CEB12AC845B4FCCFA2D1A709D1BE55EEF",
+    "app/src/renderer/public/editor/context-menu-events.js": "007ACB2544A385C45B670A36624813269564AE343079922625BD7FB2007A4856"
+  },
+  "evidence": [
+    "results.json",
+    "tests.log",
+    "environment.txt",
+    "runtimes.log",
+    "libraries.log",
+    "frontend.log",
+    "backend.log"
+  ],
+  "rerun": "wsl.exe -d Debian -- sh /mnt/d/git/novalist-official/artifacts/audit-2026-10-06/linux-validation/run-tests.sh"
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "1",
+  "cliVersion": "0.18.0",
+  "version": "0.18.0",
+  "score": 100,
+  "label": "Healthy",
+  "scoreable": true,
+  "coverage": {
+    "supportedFiles": 6,
+    "unsupportedFiles": 0,
+    "dominantUnsupported": null,
+    "scoreable": true
+  },
+  "engines": {
+    "format": {
+      "issues": 0,
+      "skipped": true,
+      "elapsed": 1333.9754999999996,
+      "skipReason": "no formatter for the detected languages"
+    },
+    "lint": {
+      "issues": 0,
+      "skipped": true,
+      "elapsed": 1333.937,
+      "skipReason": "no linter for the detected languages"
+    },
+    "code-quality": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 1333.8554000000004
+    },
+    "ai-slop": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 1321.8330000000005
+    },
+    "security": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 5.630600000000413
+    }
+  },
+  "engineDefinitions": {
+    "format": {
+      "label": "Formatting",
+      "description": "Whitespace, indentation, line wrapping, and import ordering"
+    },
+    "lint": {
+      "label": "Linting",
+      "description": "Static analysis for likely bugs and bad patterns"
+    },
+    "code-quality": {
+      "label": "Code Quality",
+      "description": "Complexity limits, dead code detection, and duplication checks"
+    },
+    "ai-slop": {
+      "label": "AI Slop",
+      "description": "Narrative comments, dead patterns, unsafe type casts, TODO stubs, generic names"
+    },
+    "architecture": {
+      "label": "Architecture",
+      "description": "Project-specific import and layering rules"
+    },
+    "security": {
+      "label": "Security",
+      "description": "Secret leaks, risky APIs, and dependency vulnerabilities"
+    }
+  },
+  "diagnostics": [],
+  "findingAssessment": {
+    "rows": [],
+    "byKind": {
+      "confirmed-defect": 0,
+      "conservative-security": 0,
+      "style-policy": 0,
+      "ai-slop-indicator": 0
+    },
+    "byConfidence": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  "summary": {
+    "errors": 0,
+    "warnings": 0,
+    "fixable": 0,
+    "files": 6,
+    "elapsed": "1.3s"
+  }
+}

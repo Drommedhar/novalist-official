@@ -403,6 +403,7 @@ function CodexDetail({ detailTab, isMobile, selectedId, t, record, selected, set
             </button>
           </div>
           <EntityDetailFields
+            key={`${entityType}:${selectedId}`}
             entityType={entityType}
             record={record}
             customDef={customTypes.find((d) => d.typeKey === entityType)}

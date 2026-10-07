@@ -1,0 +1,947 @@
+{
+  "schemaVersion": "1",
+  "cliVersion": "0.18.0",
+  "version": "0.18.0",
+  "score": 81,
+  "label": "Healthy",
+  "scoreable": true,
+  "coverage": {
+    "supportedFiles": 57,
+    "unsupportedFiles": 0,
+    "dominantUnsupported": null,
+    "scoreable": true
+  },
+  "engines": {
+    "format": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 334.0377000000001
+    },
+    "lint": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 326.33910000000003
+    },
+    "code-quality": {
+      "issues": 14,
+      "skipped": false,
+      "elapsed": 288.2512999999999
+    },
+    "ai-slop": {
+      "issues": 19,
+      "skipped": false,
+      "elapsed": 251.45359999999994
+    },
+    "security": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 17.83979999999997
+    }
+  },
+  "engineDefinitions": {
+    "format": {
+      "label": "Formatting",
+      "description": "Whitespace, indentation, line wrapping, and import ordering"
+    },
+    "lint": {
+      "label": "Linting",
+      "description": "Static analysis for likely bugs and bad patterns"
+    },
+    "code-quality": {
+      "label": "Code Quality",
+      "description": "Complexity limits, dead code detection, and duplication checks"
+    },
+    "ai-slop": {
+      "label": "AI Slop",
+      "description": "Narrative comments, dead patterns, unsafe type casts, TODO stubs, generic names"
+    },
+    "architecture": {
+      "label": "Architecture",
+      "description": "Project-specific import and layering rules"
+    },
+    "security": {
+      "label": "Security",
+      "description": "Secret leaks, risky APIs, and dependency vulnerabilities"
+    }
+  },
+  "diagnostics": [
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "code-quality",
+      "rule": "complexity/file-too-large",
+      "severity": "warning",
+      "message": "File too large (limit: 400, flagged above 441 lines)",
+      "help": "Consider splitting this file into partial class files or smaller modules",
+      "line": 0,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "1473 lines",
+      "changeContext": "unknown",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "code-quality",
+      "rule": "complexity/too-many-params",
+      "severity": "warning",
+      "message": "Function has too many parameters (max: 6)",
+      "help": "Consider using an options object parameter",
+      "line": 850,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "Text · 7 params",
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "Large parameter lists hurt call-site safety but usually need intentional refactoring."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 1032,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "RegisterAiCommands · 105 lines",
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 1297,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "OutlineFromPremiseAsync · 97 lines",
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/AiService.cs",
+      "engine": "code-quality",
+      "rule": "complexity/file-too-large",
+      "severity": "warning",
+      "message": "File too large (limit: 400, flagged above 441 lines)",
+      "help": "Consider splitting this file into partial class files or smaller modules",
+      "line": 0,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "1162 lines",
+      "changeContext": "unknown",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/AiService.cs",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 442,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "GenerateCompatibleAsync · 122 lines",
+      "changeContext": "changed-line",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/AiService.cs",
+      "engine": "code-quality",
+      "rule": "complexity/too-many-params",
+      "severity": "warning",
+      "message": "Function has too many parameters (max: 6)",
+      "help": "Consider using an options object parameter",
+      "line": 566,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "ProcessToken · 7 params",
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "Large parameter lists hurt call-site safety but usually need intentional refactoring."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/AiService.cs",
+      "engine": "code-quality",
+      "rule": "complexity/too-many-params",
+      "severity": "warning",
+      "message": "Function has too many parameters (max: 6)",
+      "help": "Consider using an options object parameter",
+      "line": 734,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "AnalyseChapterWholeAsync · 9 params",
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "Large parameter lists hurt call-site safety but usually need intentional refactoring."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/CharacterKnowledgeService.cs",
+      "engine": "code-quality",
+      "rule": "complexity/file-too-large",
+      "severity": "warning",
+      "message": "File too large (limit: 400, flagged above 441 lines)",
+      "help": "Consider splitting this file into partial class files or smaller modules",
+      "line": 0,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "753 lines",
+      "changeContext": "unknown",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/CharacterKnowledgeService.cs",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 429,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "ScanAsync · 166 lines",
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/CharacterKnowledgeService.cs",
+      "engine": "code-quality",
+      "rule": "complexity/too-many-params",
+      "severity": "warning",
+      "message": "Function has too many parameters (max: 6)",
+      "help": "Consider using an options object parameter",
+      "line": 596,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "BuildProgress · 18 params",
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "Large parameter lists hurt call-site safety but usually need intentional refactoring."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/ClaudeCliClient.cs",
+      "engine": "code-quality",
+      "rule": "complexity/file-too-large",
+      "severity": "warning",
+      "message": "File too large (limit: 400, flagged above 441 lines)",
+      "help": "Consider splitting this file into partial class files or smaller modules",
+      "line": 0,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "568 lines",
+      "changeContext": "unknown",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/ClaudeCliClient.cs",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 324,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "LogEnvironmentProbeAsync · 90 lines",
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/CopilotAcpClient.cs",
+      "engine": "code-quality",
+      "rule": "complexity/file-too-large",
+      "severity": "warning",
+      "message": "File too large (limit: 400, flagged above 441 lines)",
+      "help": "Consider splitting this file into partial class files or smaller modules",
+      "line": 0,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "503 lines",
+      "changeContext": "unknown",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/ClaudeCliClient.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/todo-stub",
+      "severity": "info",
+      "message": "Unresolved TODO/FIXME/HACK comment indicates incomplete code",
+      "help": "Resolve the TODO or create a tracked issue for it",
+      "line": 41,
+      "column": 0,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "standard",
+        "multiplier": 1,
+        "rationale": "Unresolved TODO/stub markers often indicate unfinished behavior."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-redundant-doc-comment",
+      "severity": "warning",
+      "message": "XML-doc summary restates the member name without adding information.",
+      "help": "Delete the doc comment, or replace boilerplate (\"Gets or sets the X\") with the *why*: constraints, units, invariants a reader can't infer from the signature.",
+      "line": 579,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "XML-doc that restates the member name is a cleanup/style finding, not a defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 41,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 43,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 54,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 56,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 58,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 61,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 65,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 1171,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 1186,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 1224,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "AiAssistantExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 1371,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/AiService.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-console-leftover",
+      "severity": "warning",
+      "message": "Debug/Trace output left in shipped code is usually a leftover.",
+      "help": "Remove the diagnostic write, or route it through the project's logger.",
+      "line": 253,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover Console/Debug/Trace output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/AiService.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-console-leftover",
+      "severity": "warning",
+      "message": "Debug/Trace output left in shipped code is usually a leftover.",
+      "help": "Remove the diagnostic write, or route it through the project's logger.",
+      "line": 267,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover Console/Debug/Trace output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/AiService.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-console-leftover",
+      "severity": "warning",
+      "message": "Debug/Trace output left in shipped code is usually a leftover.",
+      "help": "Remove the diagnostic write, or route it through the project's logger.",
+      "line": 538,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "changed-line",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover Console/Debug/Trace output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/AiService.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-console-leftover",
+      "severity": "warning",
+      "message": "Debug/Trace output left in shipped code is usually a leftover.",
+      "help": "Remove the diagnostic write, or route it through the project's logger.",
+      "line": 561,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover Console/Debug/Trace output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/AiService.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-console-leftover",
+      "severity": "warning",
+      "message": "Debug/Trace output left in shipped code is usually a leftover.",
+      "help": "Remove the diagnostic write, or route it through the project's logger.",
+      "line": 759,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Leftover Console/Debug/Trace output is visible cleanup unless it leaks sensitive data."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Services/CharacterKnowledgeService.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-index-loop",
+      "severity": "warning",
+      "message": "Index `for` loop over `.Length`/`.Count` is usually clearer as `foreach`.",
+      "help": "Use `foreach (var item in collection)` when you don't need the index. If the index itself is used, ignore this.",
+      "line": 328,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "changeContext": "existing-file-context",
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "advisory",
+        "multiplier": 0.25,
+        "cap": 8,
+        "rationale": "Index for-loops over .Length/.Count are style/readability signals, often not harmful."
+      },
+      "forceFixable": false
+    }
+  ],
+  "findingAssessment": {
+    "rows": [
+      {
+        "kind": "ai-slop-indicator",
+        "label": "AI-slop indicators",
+        "count": 19,
+        "errors": 0,
+        "warnings": 18,
+        "info": 1,
+        "fixable": 0
+      },
+      {
+        "kind": "style-policy",
+        "label": "style/policy",
+        "count": 14,
+        "errors": 0,
+        "warnings": 14,
+        "info": 0,
+        "fixable": 0
+      }
+    ],
+    "byKind": {
+      "confirmed-defect": 0,
+      "conservative-security": 0,
+      "style-policy": 14,
+      "ai-slop-indicator": 19
+    },
+    "byConfidence": {
+      "high": 0,
+      "medium": 33,
+      "low": 0
+    }
+  },
+  "summary": {
+    "errors": 0,
+    "warnings": 32,
+    "fixable": 0,
+    "files": 57,
+    "elapsed": "406ms"
+  }
+}

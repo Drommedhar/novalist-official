@@ -1,0 +1,807 @@
+{
+  "findings": [
+    {
+      "id": "A01",
+      "title": "The AI context picker omits project data that the send path adds anyway",
+      "priority": "P1",
+      "category": "Privacy & security",
+      "repo": "novalist-aiassistant",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "Services/ChatWebViewController.cs",
+          "line": 57,
+          "detail": "Send prepends selected blocks; preview shows only those blocks."
+        },
+        {
+          "path": "ViewModels/AiChatViewModel.cs",
+          "line": 166,
+          "detail": "The first send independently appends all entity summaries to the system prompt."
+        },
+        {
+          "path": "ViewModels/AiChatViewModel.cs",
+          "line": 224,
+          "detail": "Raw entity loads bypass the SDK's AI inclusion filtering."
+        },
+        {
+          "path": "../novalist-official/Novalist.Sdk/Services/IExtensionEntityService.cs",
+          "line": 36,
+          "detail": "The SDK explicitly distinguishes raw entity loads from privacy-filtered GetAiContextAsync."
+        }
+      ],
+      "trigger": "Send a first chat message with no Context items selected, including a project with entities marked never include in AI.",
+      "impact": "Names, roles, types and some custom field values enter the provider request despite the empty picker/preview. With a cloud provider, this is an unintended disclosure of project details; it is not a claim that every entity body is sent.",
+      "recommendation": "Assemble one authoritative request for preview and send. Respect per-entry/per-section exclusions and remove the legacy automatic roster from the chat path.",
+      "validation": "Capture a fake provider request with the picker empty and an excluded entity. Assert its unique marker appears in neither system nor user messages; preview should account for every context block.",
+      "sources": []
+    },
+    {
+      "id": "A02",
+      "title": "AI chat conversations survive a switch to a different project",
+      "priority": "P2",
+      "category": "Correctness",
+      "repo": "novalist-aiassistant",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "ViewModels/AiChatViewModel.cs",
+          "line": 38,
+          "detail": "Conversation history is instance state and clears only on explicit Clear."
+        },
+        {
+          "path": "ViewModels/AiChatViewModel.cs",
+          "line": 68,
+          "detail": "The system prompt and project roster are built only on the first message."
+        },
+        {
+          "path": "../novalist-official/Novalist.Backend/Rpc/ExtensionsRpc.cs",
+          "line": 206,
+          "detail": "Controllers are cached by extension and view, with no project/book component."
+        }
+      ],
+      "trigger": "Chat about project A, open project B in the same application session, then return to AI Chat and send a message.",
+      "impact": "The old history and roster can accompany a request about the new project, contaminating answers and sending project A details again.",
+      "recommendation": "Scope conversation state to project/book identity or explicitly reset it during a coordinated workspace change. Cancel active requests before switching their owning context.",
+      "validation": "Use two synthetic projects with distinctive markers; switch projects and inspect the next provider request and displayed history. Test an in-flight response during the switch too.",
+      "sources": []
+    },
+    {
+      "id": "A03",
+      "title": "Character knowledge caches can write one project's data into another",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-aiassistant",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "Services/CharacterKnowledgeService.cs",
+          "line": 27,
+          "detail": "The lifetime cache is keyed only by character ID."
+        },
+        {
+          "path": "Services/CharacterKnowledgeService.cs",
+          "line": 37,
+          "detail": "The output directory is resolved from the currently open project on every access."
+        },
+        {
+          "path": "Services/CharacterKnowledgeService.cs",
+          "line": 48,
+          "detail": "A cache hit returns before reading the current project's file."
+        },
+        {
+          "path": "Services/CharacterKnowledgeService.cs",
+          "line": 88,
+          "detail": "Save writes cached character data under the current project root."
+        }
+      ],
+      "trigger": "Open two copies/forks of a project that preserve character IDs, loading knowledge in A before switching to B and updating that character.",
+      "impact": "B can receive A's cached scene knowledge. Distinct project roots are not sufficient isolation because the cache key ignores them.",
+      "recommendation": "Key cached records and locks by canonical project identity plus character ID; capture that identity for the whole read-modify-write operation and invalidate on context changes.",
+      "validation": "A fake host with switchable project roots should load different knowledge for the same character ID and never write A's marker to B. Include a delayed write spanning a switch.",
+      "sources": []
+    },
+    {
+      "id": "A04",
+      "title": "Cancellation does not reach every AI provider or model-loading phase",
+      "priority": "P2",
+      "category": "Reliability",
+      "repo": "novalist-aiassistant",
+      "confidence": "reproduced",
+      "effort": "M",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "Services/AiService.cs",
+          "line": 334,
+          "detail": "The model-load semaphore and HTTP calls have no caller cancellation token."
+        },
+        {
+          "path": "Services/AiService.cs",
+          "line": 447,
+          "detail": "Model loading completes before the request's linked token is created."
+        },
+        {
+          "path": "Services/AiService.cs",
+          "line": 659,
+          "detail": "Copilot GenerateAsync receives no caller token."
+        },
+        {
+          "path": "Services/AiService.cs",
+          "line": 723,
+          "detail": "Anthropic GenerateAsync receives no caller token; the client creates its own CTS."
+        }
+      ],
+      "trigger": "Cancel while LM Studio is loading a model, or cancel an extension workflow through its supplied token while Anthropic/Copilot is generating.",
+      "impact": "The model-load probe remains pending after cancellation. The other two provider paths also disconnect caller cancellation from their underlying operation, so paid/slow work can continue after the workflow is cancelled. The dedicated chat Cancel button additionally calls AiService.Cancel, which mitigates that particular UI path.",
+      "recommendation": "Thread the caller token through model discovery/loading, semaphore waits and every provider request. Own cancellation per operation and dispose linked sources in finally.",
+      "validation": "ai-probe reproduces cancellation during a delayed fake model listing. Add provider contract tests for pre-cancelled and mid-stream cancellation, including concurrent independent requests.",
+      "sources": []
+    },
+    {
+      "id": "A05",
+      "title": "Concurrent AI requests share mutable model and cancellation state",
+      "priority": "P2",
+      "category": "Reliability",
+      "repo": "novalist-aiassistant",
+      "confidence": "reproduced",
+      "effort": "M",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "Services/AiService.cs",
+          "line": 72,
+          "detail": "UseRequestModel temporarily mutates shared provider clients."
+        },
+        {
+          "path": "Services/AiService.cs",
+          "line": 103,
+          "detail": "ModelScope.Dispose restores its saved value regardless of overlapping scopes."
+        },
+        {
+          "path": "Services/AiService.cs",
+          "line": 648,
+          "detail": "CLI chunk callbacks and _cts are also shared across requests."
+        }
+      ],
+      "trigger": "Overlap chat with analysis/critique, or select a second model while the first request is active.",
+      "impact": "An isolated interleaving of the actual model scopes ends with default model 'first' instead of 'original'. Shared callbacks and cancellation pointers create related cross-request hazards; those races were identified in code, not separately driven through a live provider.",
+      "recommendation": "Capture immutable request options and pass model/callback/token directly into provider methods. Serialize providers that support only one prompt, with a provider-level queue rather than relying on each caller to cooperate.",
+      "validation": "ai-probe reproduces out-of-order scope disposal. Add overlapping request tests proving model restoration, stream ownership and cancelling one request does not cancel another.",
+      "sources": []
+    },
+    {
+      "id": "A06",
+      "title": "An SSE event with no choices aborts an otherwise valid AI reply",
+      "priority": "P2",
+      "category": "Correctness",
+      "repo": "novalist-aiassistant",
+      "confidence": "reproduced",
+      "effort": "S",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "Services/AiService.cs",
+          "line": 508,
+          "detail": "FirstOrDefault on an empty choices array yields an undefined JsonElement; TryGetProperty then throws."
+        },
+        {
+          "path": "Services/AiService.cs",
+          "line": 537,
+          "detail": "Only JsonException is caught, not that InvalidOperationException."
+        }
+      ],
+      "trigger": "An OpenAI-compatible endpoint includes an empty choices array, such as a usage-only event, after text deltas.",
+      "impact": "A completed-looking answer is followed by an error and is not committed as a successful assistant response. A fake SSE stream reproduces the exact exception without calling any external provider.",
+      "recommendation": "Validate choices is an array with an object element before reading delta, and process terminal/usage events independently of content deltas.",
+      "validation": "Run ai-probe. Add streams with empty choices, usage-only events, terminal events without delta, malformed events and normal completion; preserve all preceding text.",
+      "sources": []
+    },
+    {
+      "id": "A07",
+      "title": "Chat budgets selected context but not the complete conversation",
+      "priority": "P2",
+      "category": "Performance",
+      "repo": "novalist-aiassistant",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "Services/ContextEngine.cs",
+          "line": 105,
+          "detail": "Budgeting applies to the blocks passed to Assemble."
+        },
+        {
+          "path": "Services/ChatWebViewController.cs",
+          "line": 60,
+          "detail": "Each selected context is prepended to the stored user turn."
+        },
+        {
+          "path": "ViewModels/AiChatViewModel.cs",
+          "line": 87,
+          "detail": "The entire unbounded conversation is sent again."
+        },
+        {
+          "path": "Services/AiService.cs",
+          "line": 455,
+          "detail": "Every stored message enters the request payload."
+        }
+      ],
+      "trigger": "Keep a long chat open and repeatedly include a scene/chapter in the context picker.",
+      "impact": "Repeated context accumulates in previous turns, outside the preview's displayed budget. Request sizes and provider cost grow until a context-window rejection, despite the selected-block preview appearing within budget.",
+      "recommendation": "Budget the final message list, reserve output space, avoid storing duplicate context as permanent user prose, and clearly report older turns omitted from an over-limit request. A bounded history policy is sufficient; no new AI feature is needed.",
+      "validation": "Drive many turns through a fake provider with a small configured budget. Assert full payload size stays bounded and the preview reflects the actual final context.",
+      "sources": []
+    },
+    {
+      "id": "A08",
+      "title": "Clear Chat can be undone by an in-flight response",
+      "priority": "P2",
+      "category": "Correctness",
+      "repo": "novalist-aiassistant",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "ViewModels/AiChatViewModel.cs",
+          "line": 146,
+          "detail": "ClearChatAsync clears collections without cancelling/awaiting active generation."
+        },
+        {
+          "path": "ViewModels/AiChatViewModel.cs",
+          "line": 105,
+          "detail": "The pending send later appends to the same collections."
+        },
+        {
+          "path": "web/chat.html",
+          "line": 186,
+          "detail": "Generating state disables Send but not Clear."
+        }
+      ],
+      "trigger": "Press Clear while an AI reply is streaming and let the request finish.",
+      "impact": "Old content can repopulate the cleared conversation. The resulting history can begin with an assistant response whose user turn was deleted.",
+      "recommendation": "Cancel and retire the generation before clearing, or guard completion/stream callbacks with a conversation generation ID.",
+      "validation": "Delay fake provider completion, clear, then release completion. Neither streamed nor final text from the old generation should appear in the new history.",
+      "sources": []
+    },
+    {
+      "id": "A09",
+      "title": "Copilot receives the full history inside an already persistent session",
+      "priority": "P2",
+      "category": "Correctness",
+      "repo": "novalist-aiassistant",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "Services/AiService.cs",
+          "line": 653,
+          "detail": "Every call flattens all supplied messages into one prompt."
+        },
+        {
+          "path": "Services/CopilotAcpClient.cs",
+          "line": 162,
+          "detail": "GenerateAsync reuses the same ACP session across prompts."
+        },
+        {
+          "path": "Services/AiService.cs",
+          "line": 736,
+          "detail": "The session resets only when explicitly requested."
+        }
+      ],
+      "trigger": "Send several chat turns through Copilot, or use another AI workflow between chat turns.",
+      "impact": "Conversation content is resent into a session that already retains prior turns, and the same client/session is shared across workflows. This increases duplicated context and mixes unrelated task history.",
+      "recommendation": "Choose one history owner: send only new turns to a dedicated chat session, or start an isolated session for each complete transcript. Give one-shot analysis workflows independent sessions.",
+      "validation": "Fake the ACP peer and record session IDs/prompt payloads over two chat turns and one analysis call. Check that each prior turn is represented once and workflows are isolated.",
+      "sources": []
+    },
+    {
+      "id": "A10",
+      "title": "Context preview mislabels blocks that share a display name",
+      "priority": "P3",
+      "category": "UX & accessibility",
+      "repo": "novalist-aiassistant",
+      "confidence": "reproduced",
+      "effort": "S",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "Services/ContextEngine.cs",
+          "line": 164,
+          "detail": "Dropped block headings are turned into a set."
+        },
+        {
+          "path": "Services/ContextEngine.cs",
+          "line": 174,
+          "detail": "Every block with that heading is then marked dropped, including one that was kept."
+        }
+      ],
+      "trigger": "Include two context entries with the same heading, where only one fits the budget.",
+      "impact": "The preview can say a block was dropped while the actual request includes it. The isolated probe reports firstContentSent=true but firstShownAsKept=false.",
+      "recommendation": "Track kept/dropped decisions by stable block identity or assembly result index, not display labels. Produce preview and send from that same result.",
+      "validation": "Run ai-probe; add duplicate-heading cases with different sizes and weights and assert every preview row matches the included text.",
+      "sources": []
+    },
+    {
+      "id": "A11",
+      "title": "AI Assistant releases bypass its existing test suite and float the SDK source",
+      "priority": "P2",
+      "category": "Testing & delivery",
+      "repo": "novalist-aiassistant",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": ".github/workflows/release.yml",
+          "line": 1,
+          "detail": "The only workflow is tag-triggered release."
+        },
+        {
+          "path": ".github/workflows/release.yml",
+          "line": 34,
+          "detail": "SDK checkout has no ref and follows the host default branch."
+        },
+        {
+          "path": ".github/workflows/release.yml",
+          "line": 58,
+          "detail": "Release restores/builds/packages without dotnet test."
+        },
+        {
+          "path": "extension.json",
+          "line": 8,
+          "detail": "Minimum host remains 3.0.0 independently of the selected SDK revision."
+        }
+      ],
+      "trigger": "Tag an AI Assistant release after changes to providers, dictation or the host SDK.",
+      "impact": "The 100 passing local tests are not a release prerequisite. Rebuilding the same tag can compile against a different SDK revision; declared compatibility may then be broader than what was tested. No specific old-host load failure is asserted here.",
+      "recommendation": "Run existing tests on PRs and before packaging, pin the SDK revision used for a release, and validate the declared minimum host against the SDK members actually used.",
+      "validation": "Introduce a failing provider test and assert release cannot proceed; rebuild the same tag and compare SDK revision/manifest. Test loading on the minimum supported host.",
+      "sources": []
+    },
+    {
+      "id": "H01",
+      "title": "Cached webview controllers remain callable after their extension is disabled",
+      "priority": "P2",
+      "category": "Reliability",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "Novalist.Backend/Rpc/ExtensionsRpc.cs",
+          "line": 89,
+          "detail": "SetEnabledAsync changes extension state without retiring controllers."
+        },
+        {
+          "path": "Novalist.Backend/Rpc/ExtensionsRpc.cs",
+          "line": 207,
+          "detail": "GetController returns a cached instance before checking IsEnabled."
+        },
+        {
+          "path": "Novalist.Backend/Rpc/ExtensionsRpc.cs",
+          "line": 108,
+          "detail": "Uninstall does not clear cached controllers either."
+        }
+      ],
+      "trigger": "Open an extension view, disable/uninstall it, then deliver a queued or stale webview message; re-enable can also reuse that old controller.",
+      "impact": "The disabled instance can still receive work and retain event handlers/state. Disabling an extension does not consistently retire its active UI controllers.",
+      "recommendation": "Check enabled state before cache lookup; dispose and unsubscribe controllers on disable/uninstall and create fresh ones on re-enable. Include workspace ownership in controller lifecycle where needed.",
+      "validation": "A backend contract test should open a fake controller, disable it, send another message and assert zero invocations. Verify disposal, notification unsubscription and fresh re-enable state.",
+      "sources": []
+    },
+    {
+      "id": "M01",
+      "title": "Mobile has no lifecycle flush for edits waiting on autosave",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "Novalist.Mobile/App.cs",
+          "line": 7,
+          "detail": "The Window is created without Stopped/Deactivated save wiring."
+        },
+        {
+          "path": "Novalist.Mobile/Platforms/iOS/SceneDelegate.cs",
+          "line": 7,
+          "detail": "No native background lifecycle override is installed."
+        },
+        {
+          "path": "app/src/renderer/src/stores/projectPersistence.ts",
+          "line": 5,
+          "detail": "Scene autosave waits 2,000 milliseconds."
+        },
+        {
+          "path": "app/src/renderer/src/shell/useWorkspaceWindow.ts",
+          "line": 142,
+          "detail": "Desktop close flushing depends on onBeforeClose, absent from the mobile shim."
+        }
+      ],
+      "trigger": "Type and immediately background/lock the app before its debounce fires; the OS later terminates the backgrounded process.",
+      "impact": "The last edits have no explicit native lifecycle path to flush. File coordination protects a write that has started, but does not start the renderer's pending save. This is a confirmed wiring gap; actual loss timing requires an iPhone/iPad test.",
+      "recommendation": "Connect scene/window background transitions to the existing pending-write/editor flush, with a bounded native background task and acknowledgement. Preserve a recoverable draft if a provider cannot finish before suspension.",
+      "validation": "On a real device: type a unique marker, immediately lock or switch away, terminate after backgrounding and reopen. Repeat with cloud-only files, offline mode, research notes and an unresolved conflict.",
+      "sources": [
+        {
+          "title": ".NET MAUI application lifecycle",
+          "url": "https://learn.microsoft.com/en-us/dotnet/maui/fundamentals/app-lifecycle?view=net-maui-10.0"
+        }
+      ]
+    },
+    {
+      "id": "M02",
+      "title": "Mobile folder grants accumulate without a balanced release path",
+      "priority": "P2",
+      "category": "Reliability",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "Novalist.Mobile/Services/SecurityScopedFolders.cs",
+          "line": 99,
+          "detail": "Picking a folder starts a security-scoped resource."
+        },
+        {
+          "path": "Novalist.Mobile/Services/SecurityScopedFolders.cs",
+          "line": 112,
+          "detail": "Repeated picks overwrite Active[path] without stopping its previous grant."
+        },
+        {
+          "path": "Novalist.Mobile/Services/SecurityScopedFolders.cs",
+          "line": 170,
+          "detail": "Resolving bookmarks starts additional grants."
+        },
+        {
+          "path": "app/src/renderer/src/mobile/shim.ts",
+          "line": 213,
+          "detail": "endProjectAccess is exposed, but there are no renderer call sites."
+        }
+      ],
+      "trigger": "Open/switch among many external projects, or repeatedly pick the same folder in one session.",
+      "impact": "Native scope starts have no balanced release during the session, and overwritten entries can no longer be released by their original ownership record. Apple explicitly requires balancing starts and stops; eventual device resource failure has not been measured here.",
+      "recommendation": "Represent grants as reference-counted leases owned by operations/projects, release old leases after switching, and balance all failure paths after a successful start.",
+      "validation": "Instrument start/stop counts in a macOS/iOS test build; repeatedly open/close/reselect folders and resolve recents. Counts and retained scope records should return to the active-project baseline.",
+      "sources": [
+        {
+          "title": "Apple: startAccessingSecurityScopedResource",
+          "url": "https://developer.apple.com/documentation/foundation/nsurl/startaccessingsecurityscopedresource()"
+        }
+      ]
+    },
+    {
+      "id": "M03",
+      "title": "Mobile path repair can redirect an external project to a different local project",
+      "priority": "P1",
+      "category": "Data integrity",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "Novalist.Mobile/Services/IosStoredPathResolver.cs",
+          "line": 36,
+          "detail": "Any stored path containing /Documents/ is eligible for local-container remapping."
+        },
+        {
+          "path": "Novalist.Mobile/Services/IosStoredPathResolver.cs",
+          "line": 45,
+          "detail": "The replacement is accepted when a same-suffix directory exists."
+        },
+        {
+          "path": "Novalist.Backend/Workspace.Library.cs",
+          "line": 50,
+          "detail": "The candidate is checked for project presence, then its path is persisted; identity is not compared."
+        }
+      ],
+      "trigger": "An unavailable external project path ends in /Documents/Foo, while the app's own Documents/Foo holds a different project.",
+      "impact": "The recent-project entry can be silently repointed to the unrelated local project. A container migration heuristic is being applied to paths whose provenance is unknown.",
+      "recommendation": "Restrict container repair to previously recorded app-owned paths and compare stable project identity before updating recents. Treat external/bookmarked paths separately.",
+      "validation": "Add resolver tests for old-container paths, external paths with matching suffixes and two distinct project IDs. On-device, upgrade the app and verify genuine container relocation still works.",
+      "sources": []
+    },
+    {
+      "id": "M04",
+      "title": "A failed mobile bridge delivery can leave requests pending forever",
+      "priority": "P2",
+      "category": "Reliability",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "Novalist.Mobile/Pages/RendererHostPage.cs",
+          "line": 120,
+          "detail": "The backend pump exits on read failure without a renderer connection-state message."
+        },
+        {
+          "path": "Novalist.Mobile/Pages/RendererHostPage.cs",
+          "line": 166,
+          "detail": "JavaScript evaluation errors are logged then swallowed, dropping the message."
+        },
+        {
+          "path": "app/src/renderer/src/mobile/shim.ts",
+          "line": 64,
+          "detail": "Host promises remain in a pending map until a matching response arrives."
+        },
+        {
+          "path": "app/src/renderer/src/mobile/shim.ts",
+          "line": 77,
+          "detail": "hostCall has no readiness handshake, deadline or disconnection rejection."
+        }
+      ],
+      "trigger": "A host result or RPC chunk cannot be delivered during WebView startup/reload, or the in-process transport stops.",
+      "impact": "Pickers/saves can wait indefinitely; a dropped byte chunk may also corrupt RPC framing. No recovery hook for WebKit process termination was found, but MAUI's exact default behavior must be checked on-device.",
+      "recommendation": "Queue delivery until the JS bridge acknowledges readiness, propagate connection failures, reject pending operations on teardown, and rebuild the channel with an epoch after reload. Do not replay non-idempotent writes blindly.",
+      "validation": "Inject one EvaluateJavaScript failure and one pump read failure. Assert calls settle with an actionable error and a new channel can reconnect without duplicating a write. Exercise WebView termination on a device/simulator.",
+      "sources": []
+    },
+    {
+      "id": "M05",
+      "title": "Native mobile regressions are first compiled in the release workflow",
+      "priority": "P2",
+      "category": "Testing & delivery",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": ".github/workflows/ci.yml",
+          "line": 192,
+          "detail": "The web job builds the mobile web bundle, not the MAUI/iOS host."
+        },
+        {
+          "path": "Novalist.Mobile/Novalist.Mobile.csproj",
+          "line": 5,
+          "detail": "The mobile project is intentionally absent from the desktop solution."
+        },
+        {
+          "path": ".github/workflows/release.yml",
+          "line": 531,
+          "detail": "Native mobile compilation occurs in the signed IPA release job."
+        },
+        {
+          "path": "app/e2e/harness.ts",
+          "line": 63,
+          "detail": "Mobile UI tests use Electron with a mobile flag, not WKWebView/native host behavior."
+        }
+      ],
+      "trigger": "A PR changes native picker/bridge/lifecycle code or a web API that differs in WKWebView.",
+      "impact": "Green desktop CI cannot establish that the iOS host compiles or that the native bridge works. The shared UI tests are useful but do not exercise file-provider grants, suspension, native presentation or AOT behavior.",
+      "recommendation": "Add a macOS simulator compile/smoke gate for existing mobile paths, and run a short signed-device acceptance checklist before release. Keep the desktop coverage gate unchanged.",
+      "validation": "A deliberately broken native symbol must fail a PR check. On the real native build, open a fixture project, edit/save/relaunch, pick/import/share a file and exercise dictation permissions.",
+      "sources": []
+    },
+    {
+      "id": "P01",
+      "title": "Help screenshots dominate the mobile application's initial JavaScript",
+      "priority": "P2",
+      "category": "Performance",
+      "repo": "novalist-official",
+      "confidence": "reproduced",
+      "effort": "S",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/build/manual-plugin.ts",
+          "line": 62,
+          "detail": "All manual images are converted to base64 strings in one virtual module."
+        },
+        {
+          "path": "app/src/renderer/src/shell/HelpOverlay.tsx",
+          "line": 7,
+          "detail": "The help component statically imports those image strings."
+        },
+        {
+          "path": "app/src/renderer/src/shell/AppShellDialogs.tsx",
+          "line": 12,
+          "detail": "The shell statically imports HelpOverlay, keeping it in the initial graph."
+        }
+      ],
+      "trigger": "Launch the application, even when Help is never opened.",
+      "impact": "The audited mobile build emits 16,129.00 kB of initial JS (10,569.57 kB gzip). Eleven source screenshots total 9,512,185 bytes, about 12.68 MB when base64 encoded. This is a measured bundle-size issue; no claim about device launch milliseconds is made.",
+      "recommendation": "Serve packaged screenshots as separate static assets and lazy-load Help plus its manual content. Keep offline help intact and avoid downloading anything at runtime.",
+      "validation": "Rebuild and compare entry chunk bytes, then measure cold launch, JS parse time and peak memory on the oldest supported iPhone/iPad and desktop. Verify every help image still loads offline.",
+      "sources": []
+    },
+    {
+      "id": "P02",
+      "title": "AI streaming resends the entire accumulated reply for every chunk",
+      "priority": "P2",
+      "category": "Performance",
+      "repo": "novalist-aiassistant",
+      "confidence": "confirmed-code",
+      "effort": "M",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "ViewModels/AiChatViewModel.cs",
+          "line": 95,
+          "detail": "Each token appends to a growing observable string."
+        },
+        {
+          "path": "Services/ChatWebViewController.cs",
+          "line": 324,
+          "detail": "Every string change serializes full streaming and thinking strings."
+        },
+        {
+          "path": "web/chat.html",
+          "line": 188,
+          "detail": "The view updates the full streamed reply on state messages."
+        }
+      ],
+      "trigger": "Generate a long response or long reasoning stream, especially with small provider chunks.",
+      "impact": "Bridge payload work grows quadratically with answer length. For a synthetic 12,000-character reply delivered in 3,000 four-character chunks, the repeated text alone totals 18,006,000 characters rather than 12,000. That is protocol arithmetic, not a measured latency benchmark.",
+      "recommendation": "Send incremental deltas or throttle full-state snapshots to animation-frame/short intervals. Keep a final authoritative response and handle cancellation without replaying every intermediate string.",
+      "validation": "Replay a fixed synthetic stream and record bytes, UI update count and responsiveness. Final text and thinking must match exactly for normal completion and cancellation.",
+      "sources": []
+    },
+    {
+      "id": "Q01",
+      "title": "Three oversized renderer functions remain in the quality scan",
+      "priority": "P3",
+      "category": "Maintainability",
+      "repo": "novalist-official",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "platforms": [
+        "Desktop",
+        "iOS/iPadOS"
+      ],
+      "evidence": [
+        {
+          "path": "app/src/renderer/src/shell/BinderChapters.tsx",
+          "line": 8,
+          "detail": "Aislop reports BinderChapters at 183 lines."
+        },
+        {
+          "path": "app/src/renderer/src/views/extensions/ExtensionStore.tsx",
+          "line": 15,
+          "detail": "Aislop reports ExtensionStore at 178 lines."
+        },
+        {
+          "path": "app/src/renderer/src/views/maps/LayerPanel.tsx",
+          "line": 99,
+          "detail": "Aislop reports LayerPanel at 346 lines."
+        }
+      ],
+      "trigger": "Make future fixes in binder interactions, extension store state or map layer controls.",
+      "impact": "These mixed responsibilities make bounded changes harder to reason about. The installed scanner gives 100/100 while reporting three non-fixable warnings, so the score must not be read as zero findings or proof of behavioral correctness.",
+      "recommendation": "Extract coherent state transitions and repeated subviews when addressing their next behavior fix. Preserve public behavior and add only tests for meaningful state boundaries; do not split functions merely to game a line threshold.",
+      "validation": "Re-run aislop on the touched files and relevant interaction tests. Swift was unsupported by this scan; native code still needs its own review.",
+      "sources": []
+    },
+    {
+      "id": "G01",
+      "title": "The gallery's AI Assistant description advertises only two of its providers",
+      "priority": "P3",
+      "category": "Documentation",
+      "repo": "novalist-extension-gallery",
+      "confidence": "confirmed-code",
+      "effort": "S",
+      "platforms": [
+        "Desktop"
+      ],
+      "evidence": [
+        {
+          "path": "gallery.json",
+          "line": 5,
+          "detail": "Store description mentions only LM Studio and GitHub Copilot CLI."
+        },
+        {
+          "path": "../novalist-aiassistant/extension.json",
+          "line": 4,
+          "detail": "The extension manifest describes Ollama, compatible services, Anthropic and Claude CLI as well."
+        }
+      ],
+      "trigger": "Browse the extension gallery before installing AI Assistant.",
+      "impact": "The discovery surface undersells existing supported connections and omits several established capabilities. The underlying implementation is present; this is metadata drift.",
+      "recommendation": "Update the short gallery description from the extension's current supported capabilities and add a lightweight manifest/gallery consistency check for IDs and core metadata.",
+      "validation": "Validate gallery JSON and compare the rendered store card with the extension manifest. This requires no provider or product feature change.",
+      "sources": []
+    }
+  ],
+  "checks": [
+    {
+      "command": "python tools/check-source.py",
+      "status": "passed",
+      "detail": "All eight source checks passed. Locale check: 0 missing, untranslated, placeholder or spelling failures; dead-key candidates remain advisory."
+    },
+    {
+      "command": "npm run test:transport",
+      "status": "passed",
+      "detail": "75 tests passed. Initial sandbox process-spawn failure was resolved by running the same tests with approved execution."
+    },
+    {
+      "command": "npm run build:mobile",
+      "status": "passed",
+      "detail": "Web assets compiled; bundle-size and mixed static/dynamic import warnings recorded. This is not a native iOS build."
+    },
+    {
+      "command": "dotnet test tests/Novalist.Extensions.AiAssistant.Tests.csproj -p:SkipExtensionDeploy=true -m:1 -nr:false --no-restore",
+      "status": "passed",
+      "detail": "100 passed, 4 skipped. No installed extension was changed. A generated-code CS0162 warning was emitted."
+    },
+    {
+      "command": "dotnet run --project artifacts/audit-2026-10-06/ai-probe/ai-probe.csproj -p:SkipExtensionDeploy=true -m:1 -nr:false",
+      "status": "reproduced",
+      "detail": "Four isolated probes reproduced empty-choices SSE failure, uncancelled model loading, model-scope restoration race and preview heading collision."
+    },
+    {
+      "command": "npm audit --omit=dev --json",
+      "status": "passed",
+      "detail": "Registry advisory query: 0 production dependency vulnerabilities reported. Does not prove the application has no vulnerabilities."
+    },
+    {
+      "command": "dotnet list Novalist.Backend/Novalist.Backend.csproj package --vulnerable --include-transitive --no-restore",
+      "status": "passed",
+      "detail": "NuGet reported no vulnerable backend packages in the restored dependency graph."
+    },
+    {
+      "command": "aislop scan --json",
+      "status": "warnings",
+      "detail": "100/100, 1,638 supported files, 2 unsupported Swift files, three non-fixable function-length warnings. No .aislop/config.yaml was present; no configuration was changed."
+    },
+    {
+      "command": "node artifacts/audit-2026-10-06/run-browser-probes.cjs",
+      "status": "reproduced",
+      "detail": "The generated Publish link fixture creates an event-handler attribute and executes it on mouseover in headless Chromium. An independent hidden Electron probe rejected an opaque-origin fetch of a synthetic project file; that suspected exposure was excluded from findings."
+    }
+  ]
+}

@@ -19,6 +19,8 @@ function precedingTextBefore(range) {
     }
 }
 
+let inlineRequestId = 0;
+
 function triggerInlineAction(id, directive) {
     const action = inlineActionById(id);
     const sel = window.getSelection();
@@ -33,10 +35,12 @@ function triggerInlineAction(id, directive) {
     const text = collapsed ? '' : sel.toString();
     if (!collapsed && !text) return;
 
-    window.NovalistEditorState.pendingInlineAction = { id: id, range: range };
+    const requestId = ++inlineRequestId;
+    window.NovalistEditorState.pendingInlineAction = { id: id, range: range, requestId, originalText: text };
     window.sendMessage({
         type: 'inlineActionRequested',
         actionId: id,
+        requestId,
         selectedText: text,
         precedingText: precedingTextBefore(range),
         directive: directive || ''

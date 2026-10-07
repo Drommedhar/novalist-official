@@ -12,7 +12,7 @@ import { useExtensionsStore, type StoreEntry, type StoreRelease } from '../../st
  * extensions. Download progress and Cancel surface through the shared host
  * progress overlay (driven by the backend `ui/progress/*` bridge).
  */
-export function ExtensionStore(): React.JSX.Element {
+function useExtensionStoreBrowser() {
   const { t } = useTranslation()
   const store = useExtensionsStore((s) => s.store)
   const status = useExtensionsStore((s) => s.storeStatus)
@@ -82,6 +82,12 @@ export function ExtensionStore(): React.JSX.Element {
       setChecking(false)
     }
   }
+
+  return { t, store, status, error, loadStore, query, setQuery, selected, setSelectedId, browseRef, busyId, checking, banner, itemError, setItemError, filtered, doInstall, doCheckUpdates }
+}
+
+export function ExtensionStore(): React.JSX.Element {
+  const { t, store, status, error, loadStore, query, setQuery, selected, setSelectedId, browseRef, busyId, checking, banner, itemError, setItemError, filtered, doInstall, doCheckUpdates } = useExtensionStoreBrowser()
 
   if (status === 'loading' || status === 'idle') {
     return <p className="codex-empty">{t('extensions.store.loading')}</p>

@@ -74,7 +74,7 @@ public sealed partial class RendererHostPage
     // Absolute folder of the open project; set via setProjectRoot on project open.
     private string? _projectRoot;
 
-    private async Task<string?> ReadProjectImageAsync(string relative)
+    private async Task<string?> ReadProjectAssetAsync(string relative)
     {
         if (string.IsNullOrEmpty(_projectRoot) || string.IsNullOrEmpty(relative)) return null;
         try
@@ -85,10 +85,10 @@ public sealed partial class RendererHostPage
             if (!full.StartsWith(rootFull.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
                     StringComparison.Ordinal)) return null;
             if (!await _files.ExistsAsync(full)) return null;
-            var bytes = await _files.ReadBytesAsync(full);
-            return $"data:{MimeForExtension(full)};base64,{Convert.ToBase64String(bytes)}";
+            return await new IosFileAccessCoordinator().ReadAsync(full,
+                path => MobileAssetReader.ReadDataUri(path, MimeForExtension(path))).ConfigureAwait(false);
         }
-        catch
+        catch (FileNotFoundException)
         {
             return null;
         }
@@ -103,6 +103,16 @@ public sealed partial class RendererHostPage
             ".webp" => "image/webp",
             ".bmp" => "image/bmp",
             ".svg" => "image/svg+xml",
+            ".pdf" => "application/pdf",
+            ".mp3" => "audio/mpeg",
+            ".m4a" => "audio/mp4",
+            ".wav" => "audio/wav",
+            ".ogg" => "audio/ogg",
+            ".aac" => "audio/aac",
+            ".flac" => "audio/flac",
+            ".mp4" or ".m4v" => "video/mp4",
+            ".mov" => "video/quicktime",
+            ".webm" => "video/webm",
             _ => "application/octet-stream"
         };
 
@@ -110,13 +120,23 @@ public sealed partial class RendererHostPage
     {
         switch (method)
         {
+            case "bridgeReady":
+                _rendererReady.TrySetResult();
+                return null;
+            case "bridgeHealth":
+                if (_bridgeFailed != 0) throw new IOException("The editor connection stopped.");
+                return null;
+            case "backgroundSaveCompleted":
+                return args.ValueKind == JsonValueKind.Array && args.GetArrayLength() == 2
+                    && args[0].TryGetInt32(out var requestId)
+                    && CompleteBackgroundSave(requestId, args[1].ValueKind == JsonValueKind.True);
             case "microphoneStart": return await _microphone.StartAsync(_cts.Token);
             case "microphoneRead": return await _microphone.ReadAsync(_cts.Token);
             case "microphoneStop": return await _microphone.StopAsync();
             case "pickFolder":
                 return await PickFolderAsync();
             case "releasePickedFile":
-                SecurityScopedFolders.ReleaseTemporaryManuscriptAccess(ArgString(args, 0));
+                _manuscriptAccess.Release(ArgString(args, 0));
                 return null;
             case "defaultProjectRoot":
                 return DefaultProjectRoot();
@@ -124,19 +144,21 @@ public sealed partial class RendererHostPage
                 // Mirror the MAS contract: resolve the stored bookmark and start
                 // access; false lets the renderer re-prompt for the folder.
                 return SecurityScopedFolders.BeginAccess(ArgString(args, 0));
+            case "resolveStoredProjectPath":
+                return ResolveStoredProjectPath(ArgString(args, 0));
             case "endProjectAccess":
                 SecurityScopedFolders.EndAccess(ArgString(args, 0));
                 return null;
             case "setProjectRoot":
-                // Track the open project's folder so project images (served on
-                // desktop via the novalist-project:// scheme) can be read below.
                 _projectRoot = ArgString(args, 0);
+                IosStoredPathResolver.ActiveProjectPath = _projectRoot;
+                SecurityScopedFolders.ReleaseExcept(_projectRoot);
+                if (!string.IsNullOrEmpty(_projectRoot))
+                    await IosStoredPathResolver.OwnedPaths.RecordAsync(_projectRoot).ConfigureAwait(false);
                 return null;
             case "readProjectImage":
-                // Read a project-relative image and return it as a data: URI. The
-                // mobile build has no custom-scheme handler, so novalist-project://
-                // <img> srcs are rewritten to call this (see mobile/projectImages).
-                return await ReadProjectImageAsync(ArgString(args, 0));
+            case "readProjectAsset":
+                return await ReadProjectAssetAsync(ArgString(args, 0));
             case "pickFile":
                 return await PickFileAsync(args);
             case "saveFile":
@@ -186,6 +208,17 @@ public sealed partial class RendererHostPage
         return await SecurityScopedFolders.PickFolderAsync().ConfigureAwait(false);
     }
 
+    private static string? ResolveStoredProjectPath(string storedPath)
+    {
+        var resolver = new IosStoredPathResolver();
+        var resolved = resolver.Resolve(storedPath);
+        try { return resolved; }
+        finally
+        {
+            if (resolved != null) resolver.Release(resolved);
+        }
+    }
+
     private static object? DefaultProjectRoot()
     {
         // Where a new project goes when the writer does not say otherwise:
@@ -225,7 +258,7 @@ public sealed partial class RendererHostPage
                 options.PickerTitle ?? "",
                 options.FileTypes.Value,
                 extensions,
-                ArgString(args, 3)).ConfigureAwait(false);
+                ArgString(args, 3), _manuscriptAccess).ConfigureAwait(false);
         }
         var result = await MainThread.InvokeOnMainThreadAsync(() => FilePicker.Default.PickAsync(options))
             .ConfigureAwait(false);

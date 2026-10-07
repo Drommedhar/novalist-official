@@ -118,7 +118,9 @@ function applyContextAction(action) {
             // has to be settled now: the host's dialogs take focus, and the
             // caret does not survive them.
             restoreContextMenuSelection();
-            window.NovalistEditorState.imageTargetBlock = window.caretBlock();
+            const target = window.NovalistEditorState.contextMenuImageTarget;
+            if (target) window.NovalistEditorState.imageTargetBlock = target;
+            else window.rememberImageTarget();
             window.sendMessage({ type: 'insertImageRequested' });
             break;
         }
@@ -188,6 +190,7 @@ function hideContextMenu() {
     window.NovalistEditorState.contextMenu.classList.remove('visible');
     // Drop the captured selection so a later action can never act on a stale range.
     window.NovalistEditorState.contextMenuRange = null;
+    window.NovalistEditorState.contextMenuImageTarget = null;
     window.NovalistEditorState.contextMenuText = '';
     window.NovalistEditorState.contextSpellingPoint = null;
     window.NovalistEditorState.contextSpellingTarget = null;

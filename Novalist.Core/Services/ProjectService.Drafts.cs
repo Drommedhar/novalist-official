@@ -189,8 +189,8 @@ public partial class ProjectService
         {
             var name = _fileService.GetFileName(f);
             var target = _fileService.CombinePath(dstRoot, name);
-            var content = await _fileService.ReadTextAsync(f);
-            await _fileService.WriteTextAsync(target, content);
+            var content = await _fileService.ReadBytesAsync(f);
+            await _fileService.WriteBytesAsync(target, content);
         }
         foreach (var d in dirs)
         {

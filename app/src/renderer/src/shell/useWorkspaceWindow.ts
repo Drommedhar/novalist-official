@@ -10,6 +10,7 @@ import { useSettingsStore } from '../stores/settingsStore'
 import { useHostBridgeStore } from '../stores/hostBridgeStore'
 import { hasWorkspaceDialogDraft } from './useWorkspaceDialogGuard'
 import { clearCloseBackupHandledForQuit, createCloseBackup, markCloseBackupHandledForQuit } from './useBackupScheduler'
+import { captureMobileRecovery, clearAcknowledgedRecovery, restoreMobileRecovery, reportRecoveryError } from '../mobile/recovery'
 import { setHotkeysEnabled } from './hotkeys'
 
 export type WindowCloseStage = 'flush' | 'backup'
@@ -89,7 +90,26 @@ function refreshResumedWorkspace(): void {
   void useCodexStore.getState().refresh().catch(() => {})
 }
 
+function useMobileBackgroundRecovery(): void {
+  useEffect(() => {
+    const stopBackground = window.novalist.onBackgroundSave?.(async () => {
+      capturePendingWrites()
+      let journal: ReturnType<typeof captureMobileRecovery> = []
+      try { journal = captureMobileRecovery() } catch (error) { reportRecoveryError(error) }
+      try {
+        await flushWindowWrites()
+        clearAcknowledgedRecovery(journal)
+      } catch (error) { reportRecoveryError(error); throw error }
+    })
+    const stopMobileRecovery = window.novalist.isMobile
+      ? useProjectStore.subscribe(() => { void restoreMobileRecovery() }) : undefined
+    void restoreMobileRecovery()
+    return () => { stopBackground?.(); stopMobileRecovery?.() }
+  }, [])
+}
+
 export function useWorkspaceWindow(): WindowCloseStage | null {
+  useMobileBackgroundRecovery()
   const [closeStage, setCloseStage] = useState<WindowCloseStage | null>(null)
   useEffect(() => {
     let workspaceToken: string | null = null

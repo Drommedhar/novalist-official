@@ -1,0 +1,844 @@
+{
+  "finding": "P01",
+  "date": "2026-10-06T22:11:13.626Z",
+  "status": "desktop-measured-native-pending",
+  "machine": {
+    "platform": "win32",
+    "release": "10.0.26300",
+    "architecture": "x64",
+    "cpu": "AMD Ryzen 9 9950X3D 16-Core Processor          ",
+    "logicalProcessors": 32,
+    "memoryBytes": 33976696832
+  },
+  "electron": "42.11.8",
+  "chromium": "148.0.7778.280",
+  "buildControl": {
+    "date": "2026-10-06T22:05:24.507Z",
+    "head": "ba8b6d328b64ded6e923baa25ce086d7e9e799e4",
+    "variants": {
+      "original": {
+        "pluginSha256": "8e6dbe4a1fcb6b736b2eaada5d9b915d0f3697722a3c2d3973fb6b36f9c253c3",
+        "mainSha256": "a172fdf56735473c30f149521408632c910a85b89cd822fe6c9d73ed7544127b",
+        "preloadSha256": "49a6fe0c6eeeb3b6f9e4d132e321d671a919239d2484d191cfb00ebfa9a8d540",
+        "entry": "index-DCYo_30X.js",
+        "entryBytes": 18306115,
+        "entrySha256": "406c8958d5198ba90193a27115bf1aad7b29d068ab39f7a258069f8cf18a6369",
+        "emittedPng": []
+      },
+      "fixed": {
+        "pluginSha256": "9ae7f9f25f413971309ba593a3f176d49bcd61792dcd1a27ddf92220b69cea89",
+        "mainSha256": "a172fdf56735473c30f149521408632c910a85b89cd822fe6c9d73ed7544127b",
+        "preloadSha256": "49a6fe0c6eeeb3b6f9e4d132e321d671a919239d2484d191cfb00ebfa9a8d540",
+        "entry": "index-D0l0wFW8.js",
+        "entryBytes": 5623906,
+        "entrySha256": "97805a3b42fa73e02a6d80b78fed72cba525f4b51265d86fed32e473fef3565e",
+        "emittedPng": [
+          "calendar-CbP15NkD.png",
+          "codex-Dm7nA2_e.png",
+          "command-palette-C8RKrZnJ.png",
+          "dashboard-CWhGlVIK.png",
+          "editor-HTwOZI_U.png",
+          "interface-overview-CF0MAiIW.png",
+          "manuscript-BxONnxtb.png",
+          "plot-grid-CFu546Gv.png",
+          "relationships-D9wZaZdB.png",
+          "start-screen-BvRe-Sy9.png",
+          "timeline-Kmm0y5rk.png"
+        ]
+      }
+    },
+    "normalization": "Remove manualImages map and its emitted URL declarations; normalize Rollup image-number binding names shifted by the added declarations and the resulting Harper chunk hash reference.",
+    "normalizedEntryExcludingManualImageDeclarations": {
+      "original": {
+        "sha256": "2e84bbef87ed889a12ed58aeb99b8e0802d472f5dd2f7a5a8400a7ddae6cdccf",
+        "bytes": 5623135
+      },
+      "fixed": {
+        "sha256": "2e84bbef87ed889a12ed58aeb99b8e0802d472f5dd2f7a5a8400a7ddae6cdccf",
+        "bytes": 5623135
+      }
+    },
+    "normalizedRemainingEntryBytesIdentical": true
+  },
+  "method": [
+    "Both renderer builds use the same current working-tree source and documentation. Only the manual plugin varies: original plugin from recorded HEAD vs fixed current plugin. Main/preload bytes are identical; backend executable is shared. Outputs do not replace the normal app build.",
+    "One discarded instrumentation pilot per variant, then five untraced runs per variant with alternating pair order. Each run gets a newly created Chromium profile and backend settings directory; no project is opened. Splash/update checks and extensions are disabled equally. External browser requests are blocked. OS file caches are retained.",
+    "The readiness probe begins before requiring the copied compiled main module. It waits for the real shell, backend version and RPC client, then two animation frames. Launcher-observed time includes process creation and Playwright/inspector polling; navigation-relative readiness is also retained.",
+    "Untraced memory samples use app.getAppMetrics every 50 ms from app-ready until two seconds after readiness is observed. Renderer memory is matched to the real window process PID. PeakWorkingSetSize is the OS-reported process peak; sampled aggregate Electron working sets can double-count shared pages and exclude the separately spawned .NET backend.",
+    "Three separate fresh-profile trace runs per variant begin Chromium contentTracing before BrowserWindow.loadFile. The report selects the entry URL and renderer PID v8.parseOnBackground complete event. Its wall duration is a background parsing/streaming-compile trace interval, not a pure parser CPU total. Nested events are not added. Traced timings/memory are excluded from the untraced comparison.",
+    "Separate untimed offline acceptance opens all 11 image-bearing manual pages through the real Help UI, awaits each img.decode(), requires nonzero natural dimensions and verifies every emitted asset URL is a local file URL. Browser offline mode and HTTP(S)/WS cancellation stay enabled."
+  ],
+  "metrics": {
+    "shellAndBackendReadyFromProbeMs": {
+      "original": {
+        "n": 5,
+        "values": [
+          358.9373,
+          355.2457,
+          358.58169999999996,
+          356.39439999999996,
+          356.7581
+        ],
+        "median": 356.7581,
+        "mean": 357.18343999999996,
+        "min": 355.2457,
+        "max": 358.9373
+      },
+      "fixed": {
+        "n": 5,
+        "values": [
+          335.182,
+          341.758,
+          340.394,
+          359.0721,
+          341.2262
+        ],
+        "median": 341.2262,
+        "mean": 343.52646000000004,
+        "min": 335.182,
+        "max": 359.0721
+      },
+      "medianReduction": 15.531900000000007,
+      "medianReductionPercent": 4.353622244316249
+    },
+    "launcherObservedReadyMs": {
+      "original": {
+        "n": 5,
+        "values": [
+          441.0451,
+          431.39280000000053,
+          437.6229999999996,
+          429.7646999999997,
+          439.78960000000006
+        ],
+        "median": 437.6229999999996,
+        "mean": 435.92304,
+        "min": 429.7646999999997,
+        "max": 441.0451
+      },
+      "fixed": {
+        "n": 5,
+        "values": [
+          423.44259999999986,
+          428.7385999999997,
+          427.2951000000012,
+          432.5537999999997,
+          416.2682999999997
+        ],
+        "median": 427.2951000000012,
+        "mean": 425.65968000000004,
+        "min": 416.2682999999997,
+        "max": 432.5537999999997
+      },
+      "medianReduction": 10.327899999998408,
+      "medianReductionPercent": 2.3599993601795193
+    },
+    "navigationToShellAndBackendReadyMs": {
+      "original": {
+        "n": 5,
+        "values": [
+          309.90000000596046,
+          303.69999998807907,
+          305.90000000596046,
+          305,
+          306.40000000596046
+        ],
+        "median": 305.90000000596046,
+        "mean": 306.18000000119207,
+        "min": 303.69999998807907,
+        "max": 309.90000000596046
+      },
+      "fixed": {
+        "n": 5,
+        "values": [
+          284.30000001192093,
+          290.2000000178814,
+          289.90000000596046,
+          287.2000000178814,
+          285.80000001192093
+        ],
+        "median": 287.2000000178814,
+        "mean": 287.480000013113,
+        "min": 284.30000001192093,
+        "max": 290.2000000178814
+      },
+      "medianReduction": 18.69999998807907,
+      "medianReductionPercent": 6.113108855088167
+    },
+    "domContentLoadedMs": {
+      "original": {
+        "n": 5,
+        "values": [
+          159.69999998807907,
+          157.2999999821186,
+          158.09999999403954,
+          158,
+          154.80000001192093
+        ],
+        "median": 158,
+        "mean": 157.57999999523162,
+        "min": 154.80000001192093,
+        "max": 159.69999998807907
+      },
+      "fixed": {
+        "n": 5,
+        "values": [
+          136.2000000178814,
+          132.2000000178814,
+          144.69999998807907,
+          131.90000000596046,
+          131.30000001192093
+        ],
+        "median": 132.2000000178814,
+        "mean": 135.26000000834466,
+        "min": 131.30000001192093,
+        "max": 144.69999998807907
+      },
+      "medianReduction": 25.799999982118607,
+      "medianReductionPercent": 16.329113912733295
+    },
+    "firstContentfulPaintMs": {
+      "original": {
+        "n": 5,
+        "values": [
+          276,
+          268,
+          272,
+          272,
+          272
+        ],
+        "median": 272,
+        "mean": 272,
+        "min": 268,
+        "max": 276
+      },
+      "fixed": {
+        "n": 5,
+        "values": [
+          252,
+          168,
+          256,
+          252,
+          252
+        ],
+        "median": 252,
+        "mean": 236,
+        "min": 168,
+        "max": 256
+      },
+      "medianReduction": 20,
+      "medianReductionPercent": 7.352941176470588
+    },
+    "rendererPeakWorkingSetMiB": {
+      "original": {
+        "n": 5,
+        "values": [
+          197.71875,
+          197.90625,
+          197.984375,
+          198.015625,
+          197.94921875
+        ],
+        "median": 197.94921875,
+        "mean": 197.91484375,
+        "min": 197.71875,
+        "max": 198.015625
+      },
+      "fixed": {
+        "n": 5,
+        "values": [
+          124.0546875,
+          122.8125,
+          128.39453125,
+          123.0546875,
+          122.89453125
+        ],
+        "median": 123.0546875,
+        "mean": 124.2421875,
+        "min": 122.8125,
+        "max": 128.39453125
+      },
+      "medianReduction": 74.89453125,
+      "medianReductionPercent": 37.83522446965959
+    },
+    "rendererMaxSampledPrivateMiB": {
+      "original": {
+        "n": 5,
+        "values": [
+          128.91015625,
+          162.9609375,
+          126.7265625,
+          163.0234375,
+          193.60546875
+        ],
+        "median": 162.9609375,
+        "mean": 155.0453125,
+        "min": 126.7265625,
+        "max": 193.60546875
+      },
+      "fixed": {
+        "n": 5,
+        "values": [
+          87.88671875,
+          78.37890625,
+          85.82421875,
+          67.86328125,
+          88.44921875
+        ],
+        "median": 85.82421875,
+        "mean": 81.68046875,
+        "min": 67.86328125,
+        "max": 88.44921875
+      },
+      "medianReduction": 77.13671875,
+      "medianReductionPercent": 47.33448391581572
+    },
+    "electronMaxSampledWorkingSetMiB": {
+      "original": {
+        "n": 5,
+        "values": [
+          427.19921875,
+          421.66796875,
+          424.40625,
+          422.640625,
+          423.2578125
+        ],
+        "median": 423.2578125,
+        "mean": 423.834375,
+        "min": 421.66796875,
+        "max": 427.19921875
+      },
+      "fixed": {
+        "n": 5,
+        "values": [
+          387.65234375,
+          384.703125,
+          387.69921875,
+          384.01171875,
+          384.296875
+        ],
+        "median": 384.703125,
+        "mean": 385.67265625,
+        "min": 384.01171875,
+        "max": 387.69921875
+      },
+      "medianReduction": 38.5546875,
+      "medianReductionPercent": 9.109031507835429
+    },
+    "entryBackgroundParsingTraceMs": {
+      "original": {
+        "n": 3,
+        "values": [
+          69.509,
+          67.858,
+          66.87
+        ],
+        "median": 67.858,
+        "mean": 68.07900000000001,
+        "min": 66.87,
+        "max": 69.509
+      },
+      "fixed": {
+        "n": 3,
+        "values": [
+          46.683,
+          47.561,
+          46.677
+        ],
+        "median": 46.683,
+        "mean": 46.97366666666667,
+        "min": 46.677,
+        "max": 47.561
+      },
+      "medianReduction": 21.175000000000004,
+      "medianReductionPercent": 31.20486899112854
+    }
+  },
+  "traceRuns": [
+    {
+      "label": "trace-1-original",
+      "variant": "original",
+      "entryBackgroundParsingMs": 69.509,
+      "events": [
+        {
+          "args": {
+            "data": {
+              "requestId": "35312.3",
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/original/renderer/assets/index-DCYo_30X.js"
+            }
+          },
+          "cat": "v8,devtools.timeline,disabled-by-default-v8.compile",
+          "dur": 69509,
+          "name": "v8.parseOnBackground",
+          "ph": "X",
+          "pid": 35312,
+          "tid": 17720,
+          "ts": 193460869490
+        },
+        {
+          "args": {
+            "data": {
+              "requestId": "35312.3",
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/original/renderer/assets/index-DCYo_30X.js"
+            },
+            "streaming_suppressed": false
+          },
+          "cat": "disabled-by-default-v8.compile",
+          "dur": 1254,
+          "name": "v8.streamingCompile.complete",
+          "ph": "X",
+          "pid": 35312,
+          "tdur": 1244,
+          "tid": 38984,
+          "ts": 193460944711,
+          "tts": 69810
+        },
+        {
+          "args": {
+            "data": {
+              "columnNumber": 1,
+              "lineNumber": 1,
+              "streamed": true,
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/original/renderer/assets/index-DCYo_30X.js"
+            },
+            "fileName": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/original/renderer/assets/index-DCYo_30X.js"
+          },
+          "cat": "v8,devtools.timeline",
+          "dur": 44,
+          "name": "v8.compileModule",
+          "ph": "X",
+          "pid": 35312,
+          "tdur": 40,
+          "tid": 38984,
+          "ts": 193460945893,
+          "tts": 70988
+        }
+      ]
+    },
+    {
+      "label": "trace-1-fixed",
+      "variant": "fixed",
+      "entryBackgroundParsingMs": 46.683,
+      "events": [
+        {
+          "args": {
+            "data": {
+              "requestId": "35236.3",
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/index-D0l0wFW8.js"
+            }
+          },
+          "cat": "v8,devtools.timeline,disabled-by-default-v8.compile",
+          "dur": 46683,
+          "name": "v8.parseOnBackground",
+          "ph": "X",
+          "pid": 35236,
+          "tid": 35540,
+          "ts": 193463596327
+        },
+        {
+          "args": {
+            "data": {
+              "requestId": "35236.3",
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/index-D0l0wFW8.js"
+            },
+            "streaming_suppressed": false
+          },
+          "cat": "disabled-by-default-v8.compile",
+          "dur": 548,
+          "name": "v8.streamingCompile.complete",
+          "ph": "X",
+          "pid": 35236,
+          "tdur": 539,
+          "tid": 37756,
+          "ts": 193463645233,
+          "tts": 63685
+        },
+        {
+          "args": {
+            "data": {
+              "columnNumber": 1,
+              "lineNumber": 1,
+              "streamed": true,
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/index-D0l0wFW8.js"
+            },
+            "fileName": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/index-D0l0wFW8.js"
+          },
+          "cat": "v8,devtools.timeline",
+          "dur": 65,
+          "name": "v8.compileModule",
+          "ph": "X",
+          "pid": 35236,
+          "tdur": 60,
+          "tid": 37756,
+          "ts": 193463645683,
+          "tts": 64133
+        }
+      ]
+    },
+    {
+      "label": "trace-2-fixed",
+      "variant": "fixed",
+      "entryBackgroundParsingMs": 47.561,
+      "events": [
+        {
+          "args": {
+            "data": {
+              "requestId": "22644.3",
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/index-D0l0wFW8.js"
+            }
+          },
+          "cat": "v8,devtools.timeline,disabled-by-default-v8.compile",
+          "dur": 47561,
+          "name": "v8.parseOnBackground",
+          "ph": "X",
+          "pid": 22644,
+          "tid": 27728,
+          "ts": 193466247723
+        },
+        {
+          "args": {
+            "data": {
+              "requestId": "22644.3",
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/index-D0l0wFW8.js"
+            },
+            "streaming_suppressed": false
+          },
+          "cat": "disabled-by-default-v8.compile",
+          "dur": 491,
+          "name": "v8.streamingCompile.complete",
+          "ph": "X",
+          "pid": 22644,
+          "tdur": 482,
+          "tid": 37856,
+          "ts": 193466297072,
+          "tts": 64063
+        },
+        {
+          "args": {
+            "data": {
+              "columnNumber": 1,
+              "lineNumber": 1,
+              "streamed": true,
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/index-D0l0wFW8.js"
+            },
+            "fileName": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/index-D0l0wFW8.js"
+          },
+          "cat": "v8,devtools.timeline",
+          "dur": 52,
+          "name": "v8.compileModule",
+          "ph": "X",
+          "pid": 22644,
+          "tdur": 47,
+          "tid": 37856,
+          "ts": 193466297487,
+          "tts": 64476
+        }
+      ]
+    },
+    {
+      "label": "trace-2-original",
+      "variant": "original",
+      "entryBackgroundParsingMs": 67.858,
+      "events": [
+        {
+          "args": {
+            "data": {
+              "requestId": "41672.3",
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/original/renderer/assets/index-DCYo_30X.js"
+            }
+          },
+          "cat": "v8,devtools.timeline,disabled-by-default-v8.compile",
+          "dur": 67858,
+          "name": "v8.parseOnBackground",
+          "ph": "X",
+          "pid": 41672,
+          "tid": 38564,
+          "ts": 193468914442
+        },
+        {
+          "args": {
+            "data": {
+              "requestId": "41672.3",
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/original/renderer/assets/index-DCYo_30X.js"
+            },
+            "streaming_suppressed": false
+          },
+          "cat": "disabled-by-default-v8.compile",
+          "dur": 1358,
+          "name": "v8.streamingCompile.complete",
+          "ph": "X",
+          "pid": 41672,
+          "tdur": 1347,
+          "tid": 38368,
+          "ts": 193468988002,
+          "tts": 67269
+        },
+        {
+          "args": {
+            "data": {
+              "columnNumber": 1,
+              "lineNumber": 1,
+              "streamed": true,
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/original/renderer/assets/index-DCYo_30X.js"
+            },
+            "fileName": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/original/renderer/assets/index-DCYo_30X.js"
+          },
+          "cat": "v8,devtools.timeline",
+          "dur": 62,
+          "name": "v8.compileModule",
+          "ph": "X",
+          "pid": 41672,
+          "tdur": 57,
+          "tid": 38368,
+          "ts": 193468989264,
+          "tts": 68526
+        }
+      ]
+    },
+    {
+      "label": "trace-3-original",
+      "variant": "original",
+      "entryBackgroundParsingMs": 66.87,
+      "events": [
+        {
+          "args": {
+            "data": {
+              "requestId": "25356.3",
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/original/renderer/assets/index-DCYo_30X.js"
+            }
+          },
+          "cat": "v8,devtools.timeline,disabled-by-default-v8.compile",
+          "dur": 66870,
+          "name": "v8.parseOnBackground",
+          "ph": "X",
+          "pid": 25356,
+          "tid": 6196,
+          "ts": 193471606544
+        },
+        {
+          "args": {
+            "data": {
+              "requestId": "25356.3",
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/original/renderer/assets/index-DCYo_30X.js"
+            },
+            "streaming_suppressed": false
+          },
+          "cat": "disabled-by-default-v8.compile",
+          "dur": 1284,
+          "name": "v8.streamingCompile.complete",
+          "ph": "X",
+          "pid": 25356,
+          "tdur": 1239,
+          "tid": 26216,
+          "ts": 193471679133,
+          "tts": 67112
+        },
+        {
+          "args": {
+            "data": {
+              "columnNumber": 1,
+              "lineNumber": 1,
+              "streamed": true,
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/original/renderer/assets/index-DCYo_30X.js"
+            },
+            "fileName": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/original/renderer/assets/index-DCYo_30X.js"
+          },
+          "cat": "v8,devtools.timeline",
+          "dur": 41,
+          "name": "v8.compileModule",
+          "ph": "X",
+          "pid": 25356,
+          "tdur": 36,
+          "tid": 26216,
+          "ts": 193471680350,
+          "tts": 68290
+        }
+      ]
+    },
+    {
+      "label": "trace-3-fixed",
+      "variant": "fixed",
+      "entryBackgroundParsingMs": 46.677,
+      "events": [
+        {
+          "args": {
+            "data": {
+              "requestId": "13316.3",
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/index-D0l0wFW8.js"
+            }
+          },
+          "cat": "v8,devtools.timeline,disabled-by-default-v8.compile",
+          "dur": 46677,
+          "name": "v8.parseOnBackground",
+          "ph": "X",
+          "pid": 13316,
+          "tid": 40844,
+          "ts": 193474315012
+        },
+        {
+          "args": {
+            "data": {
+              "requestId": "13316.3",
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/index-D0l0wFW8.js"
+            },
+            "streaming_suppressed": false
+          },
+          "cat": "disabled-by-default-v8.compile",
+          "dur": 508,
+          "name": "v8.streamingCompile.complete",
+          "ph": "X",
+          "pid": 13316,
+          "tdur": 491,
+          "tid": 21344,
+          "ts": 193474363806,
+          "tts": 64732
+        },
+        {
+          "args": {
+            "data": {
+              "columnNumber": 1,
+              "lineNumber": 1,
+              "streamed": true,
+              "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/index-D0l0wFW8.js"
+            },
+            "fileName": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/index-D0l0wFW8.js"
+          },
+          "cat": "v8,devtools.timeline",
+          "dur": 36,
+          "name": "v8.compileModule",
+          "ph": "X",
+          "pid": 13316,
+          "tdur": 31,
+          "tid": 21344,
+          "ts": 193474364235,
+          "tts": 65160
+        }
+      ]
+    }
+  ],
+  "offlineHelp": {
+    "date": "2026-10-06T22:08:19.989Z",
+    "status": "passed",
+    "externalRequestsBlocked": true,
+    "browserOffline": true,
+    "uniqueImages": 11,
+    "images": [
+      {
+        "page": "01-getting-started.md",
+        "original": "start-screen.png",
+        "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/start-screen-BvRe-Sy9.png",
+        "width": 1440,
+        "height": 900,
+        "complete": true
+      },
+      {
+        "page": "02-interface-overview.md",
+        "original": "interface-overview.png",
+        "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/interface-overview-CF0MAiIW.png",
+        "width": 1440,
+        "height": 900,
+        "complete": true
+      },
+      {
+        "page": "05-editor.md",
+        "original": "editor.png",
+        "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/editor-HTwOZI_U.png",
+        "width": 1440,
+        "height": 900,
+        "complete": true
+      },
+      {
+        "page": "06-codex.md",
+        "original": "codex.png",
+        "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/codex-Dm7nA2_e.png",
+        "width": 1440,
+        "height": 900,
+        "complete": true
+      },
+      {
+        "page": "08-plot-grid.md",
+        "original": "plot-grid.png",
+        "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/plot-grid-CFu546Gv.png",
+        "width": 1440,
+        "height": 900,
+        "complete": true
+      },
+      {
+        "page": "10-manuscript.md",
+        "original": "manuscript.png",
+        "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/manuscript-BxONnxtb.png",
+        "width": 1440,
+        "height": 900,
+        "complete": true
+      },
+      {
+        "page": "11-dashboard.md",
+        "original": "dashboard.png",
+        "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/dashboard-CWhGlVIK.png",
+        "width": 1440,
+        "height": 900,
+        "complete": true
+      },
+      {
+        "page": "12-timeline.md",
+        "original": "timeline.png",
+        "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/timeline-Kmm0y5rk.png",
+        "width": 1440,
+        "height": 900,
+        "complete": true
+      },
+      {
+        "page": "13-calendar.md",
+        "original": "calendar.png",
+        "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/calendar-CbP15NkD.png",
+        "width": 1440,
+        "height": 900,
+        "complete": true
+      },
+      {
+        "page": "14-relationships.md",
+        "original": "relationships.png",
+        "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/relationships-D9wZaZdB.png",
+        "width": 1440,
+        "height": 900,
+        "complete": true
+      },
+      {
+        "page": "25-command-palette.md",
+        "original": "command-palette.png",
+        "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/command-palette-C8RKrZnJ.png",
+        "width": 1440,
+        "height": 900,
+        "complete": true
+      }
+    ],
+    "blockedRequests": []
+  },
+  "limitations": [
+    "Fresh profile and process are not an OS-cold-cache benchmark. Builds and discarded pilots warm system file caches; no global cache flush or machine restart was performed.",
+    "Five timing/memory repetitions and three trace repetitions on one Windows development machine are descriptive, not a statistical performance guarantee. Launch differences are small and one untraced fixed run was slower than its original counterpart.",
+    "This runs production-built desktop renderer assets in an unpackaged Electron executable with a Debug .NET backend and instrumentation. Installer/ASAR startup, macOS, Linux performance and physical iPhone/iPad launch/memory remain unmeasured.",
+    "All runs start at the empty project library. Peak renderer memory is measured before opening Help; lazy screenshot decoding can allocate later when those pages are visited.",
+    "Current source is held constant between variants; results measure the help-image packaging change under this fixture, not an aggregate before/after audit product benchmark."
+  ],
+  "sources": [
+    "https://www.electronjs.org/docs/latest/api/structures/memory-info/",
+    "https://www.electronjs.org/docs/latest/api/structures/process-metric",
+    "https://www.electronjs.org/docs/latest/api/content-tracing"
+  ],
+  "evidence": [
+    "builds.json",
+    "measured.json",
+    "trace.json",
+    "runs/*/metrics.json",
+    "runs/trace-*/trace.json",
+    "offline-help.json"
+  ],
+  "commands": [
+    "node artifacts/audit-2026-10-06/p01-desktop/build-variants.cjs",
+    "node artifacts/audit-2026-10-06/p01-desktop/measure.cjs measured",
+    "node artifacts/audit-2026-10-06/p01-desktop/measure.cjs trace",
+    "node artifacts/audit-2026-10-06/p01-desktop/offline-help.cjs",
+    "node artifacts/audit-2026-10-06/p01-desktop/analyze.cjs"
+  ]
+}

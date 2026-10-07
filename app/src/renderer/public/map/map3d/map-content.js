@@ -1,3 +1,4 @@
+import { projectImageUrl } from '../project-assets.js';
 import * as THREE from "../three.webgpu.min.js";
 import { mapHost } from './host.js';
 import { DEG, RO_IMAGE, RO_TERRAIN } from './scene-settings.js';
@@ -116,9 +117,34 @@ export function buildTerrain(root, visIds) {
 }
 
 // Base map images → flat textured ground quads, just below terrain.
+function projectTexture(url) {
+    const texture = new THREE.Texture();
+    let disposed = false;
+    texture.addEventListener('dispose', () => { disposed = true; });
+    void projectImageUrl(url).then((resolved) => {
+        if (!resolved || disposed) return;
+        const image = new Image();
+        image.onload = () => {
+            if (disposed) return;
+            texture.image = image;
+            texture.needsUpdate = true;
+        };
+        image.src = resolved;
+    }).catch((error) => {
+        if (disposed) return;
+        const canvas = document.querySelector('canvas');
+        const message = error instanceof Error ? error.message : String(error);
+        if (canvas) {
+            canvas.title = message;
+            canvas.setAttribute('aria-description', message);
+            canvas.dispatchEvent(new CustomEvent('novalist-asset-error', { bubbles: true, detail: { message } }));
+        }
+    });
+    return texture;
+}
+
 export function buildImages(root, visIds) {
     const base = (typeof mapHost.imageBaseUrl !== 'undefined' && mapHost.imageBaseUrl) || '';
-    const loader = new THREE.TextureLoader();
     let order = 0;
     (function walk(nodes) {
         for (const n of nodes || []) {
@@ -127,7 +153,7 @@ export function buildImages(root, visIds) {
                 const w = img.width || 1, h = img.height || 1;
                 const encoded = String(img.path || '')
                     .split('/').map(encodeURIComponent).join('/');
-                const tex = loader.load(base + encoded);
+                const tex = projectTexture(base + encoded);
                 tex.colorSpace = THREE.SRGBColorSpace;
                 const mesh = new THREE.Mesh(
                     new THREE.PlaneGeometry(w, h),

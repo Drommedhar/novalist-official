@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "1",
+  "cliVersion": "0.18.0",
+  "version": "0.18.0",
+  "score": 100,
+  "label": "Healthy",
+  "scoreable": true,
+  "coverage": {
+    "supportedFiles": 30,
+    "unsupportedFiles": 0,
+    "dominantUnsupported": null,
+    "scoreable": true
+  },
+  "engines": {
+    "format": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 648.0072
+    },
+    "lint": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 647.4718000000003
+    },
+    "code-quality": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 356.27860000000055
+    },
+    "ai-slop": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 335.2021000000004
+    },
+    "security": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 9.775899999999638
+    }
+  },
+  "engineDefinitions": {
+    "format": {
+      "label": "Formatting",
+      "description": "Whitespace, indentation, line wrapping, and import ordering"
+    },
+    "lint": {
+      "label": "Linting",
+      "description": "Static analysis for likely bugs and bad patterns"
+    },
+    "code-quality": {
+      "label": "Code Quality",
+      "description": "Complexity limits, dead code detection, and duplication checks"
+    },
+    "ai-slop": {
+      "label": "AI Slop",
+      "description": "Narrative comments, dead patterns, unsafe type casts, TODO stubs, generic names"
+    },
+    "architecture": {
+      "label": "Architecture",
+      "description": "Project-specific import and layering rules"
+    },
+    "security": {
+      "label": "Security",
+      "description": "Secret leaks, risky APIs, and dependency vulnerabilities"
+    }
+  },
+  "diagnostics": [],
+  "findingAssessment": {
+    "rows": [],
+    "byKind": {
+      "confirmed-defect": 0,
+      "conservative-security": 0,
+      "style-policy": 0,
+      "ai-slop-indicator": 0
+    },
+    "byConfidence": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  "summary": {
+    "errors": 0,
+    "warnings": 0,
+    "fixable": 0,
+    "files": 30,
+    "elapsed": "772ms"
+  }
+}

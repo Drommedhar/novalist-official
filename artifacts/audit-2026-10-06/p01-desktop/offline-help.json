@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-06T22:08:19.989Z",
+  "status": "passed",
+  "externalRequestsBlocked": true,
+  "browserOffline": true,
+  "uniqueImages": 11,
+  "images": [
+    {
+      "page": "01-getting-started.md",
+      "original": "start-screen.png",
+      "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/start-screen-BvRe-Sy9.png",
+      "width": 1440,
+      "height": 900,
+      "complete": true
+    },
+    {
+      "page": "02-interface-overview.md",
+      "original": "interface-overview.png",
+      "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/interface-overview-CF0MAiIW.png",
+      "width": 1440,
+      "height": 900,
+      "complete": true
+    },
+    {
+      "page": "05-editor.md",
+      "original": "editor.png",
+      "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/editor-HTwOZI_U.png",
+      "width": 1440,
+      "height": 900,
+      "complete": true
+    },
+    {
+      "page": "06-codex.md",
+      "original": "codex.png",
+      "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/codex-Dm7nA2_e.png",
+      "width": 1440,
+      "height": 900,
+      "complete": true
+    },
+    {
+      "page": "08-plot-grid.md",
+      "original": "plot-grid.png",
+      "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/plot-grid-CFu546Gv.png",
+      "width": 1440,
+      "height": 900,
+      "complete": true
+    },
+    {
+      "page": "10-manuscript.md",
+      "original": "manuscript.png",
+      "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/manuscript-BxONnxtb.png",
+      "width": 1440,
+      "height": 900,
+      "complete": true
+    },
+    {
+      "page": "11-dashboard.md",
+      "original": "dashboard.png",
+      "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/dashboard-CWhGlVIK.png",
+      "width": 1440,
+      "height": 900,
+      "complete": true
+    },
+    {
+      "page": "12-timeline.md",
+      "original": "timeline.png",
+      "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/timeline-Kmm0y5rk.png",
+      "width": 1440,
+      "height": 900,
+      "complete": true
+    },
+    {
+      "page": "13-calendar.md",
+      "original": "calendar.png",
+      "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/calendar-CbP15NkD.png",
+      "width": 1440,
+      "height": 900,
+      "complete": true
+    },
+    {
+      "page": "14-relationships.md",
+      "original": "relationships.png",
+      "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/relationships-D9wZaZdB.png",
+      "width": 1440,
+      "height": 900,
+      "complete": true
+    },
+    {
+      "page": "25-command-palette.md",
+      "original": "command-palette.png",
+      "url": "file:///D:/git/novalist-official/artifacts/audit-2026-10-06/p01-desktop/fixed/renderer/assets/command-palette-C8RKrZnJ.png",
+      "width": 1440,
+      "height": 900,
+      "complete": true
+    }
+  ],
+  "blockedRequests": []
+}

@@ -26,15 +26,21 @@ public sealed class ArchiveService : IArchiveService
             Directory.CreateDirectory(parent);
 
         var written = 0;
-        using (var zip = ZipFile.Open(destinationZipPath, ZipArchiveMode.Create))
+        var temporary = destinationZipPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
         {
-            foreach (var file in EnumerateFiles(sourceDirectory, sourceDirectory, excluded))
+            using (var zip = ZipFile.Open(temporary, ZipArchiveMode.Create))
             {
-                var relative = Path.GetRelativePath(sourceDirectory, file).Replace('\\', '/');
-                zip.CreateEntryFromFile(file, relative, CompressionLevel.Optimal);
-                written++;
+                foreach (var file in EnumerateFiles(sourceDirectory, excluded))
+                {
+                    var relative = Path.GetRelativePath(sourceDirectory, file).Replace('\\', '/');
+                    zip.CreateEntryFromFile(file, relative, CompressionLevel.Optimal);
+                    written++;
+                }
             }
+            File.Move(temporary, destinationZipPath);
         }
+        finally { File.Delete(temporary); }
 
         return Task.FromResult(written);
     }
@@ -157,11 +163,16 @@ public sealed class ArchiveService : IArchiveService
         }
     }
 
-    private static IEnumerable<string> EnumerateFiles(
-        string root, string current, HashSet<string> excluded)
+    private static IEnumerable<string> EnumerateFiles(string current, HashSet<string> excluded)
     {
+        if (new DirectoryInfo(current).LinkTarget != null)
+            throw new IOException("Cannot back up linked project folders.");
         foreach (var file in Directory.EnumerateFiles(current))
+        {
+            if (new FileInfo(file).LinkTarget != null)
+                throw new IOException("Cannot back up linked project files.");
             yield return file;
+        }
 
         foreach (var dir in Directory.EnumerateDirectories(current))
         {
@@ -169,7 +180,7 @@ public sealed class ArchiveService : IArchiveService
             if (excluded.Contains(name))
                 continue;
 
-            foreach (var file in EnumerateFiles(root, dir, excluded))
+            foreach (var file in EnumerateFiles(dir, excluded))
                 yield return file;
         }
     }

@@ -5,11 +5,12 @@ export function createEditorMediaMessages(context: EditorHandlerContext): Editor
   const { t, setPendingImage, sceneTitleRef, setLinkPrompt, editorRef, paneIds } = context
   return {
     insertImageRequested: () => {
+      const owner = paneIds().sceneId
       void (async () => {
         const path = await window.novalist.pickFile(t('editorImage.pick'), 'images')
-        if (!path) return
+        if (!path || paneIds().sceneId !== owner) return
         const image = await rpc.request<{ path: string; url: string }>('gallery/import', [path])
-        setPendingImage(image.path)
+        if (paneIds().sceneId === owner) setPendingImage(image.path)
       })()
     },
     keepDarling: (message) => {

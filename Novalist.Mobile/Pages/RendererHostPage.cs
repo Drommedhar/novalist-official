@@ -36,6 +36,7 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
     private readonly IFileService _files = new CoordinatedFileService(new IosFileAccessCoordinator());
     private readonly ExportFiles _exports = new(FileSystem.Current.CacheDirectory);
     private readonly SystemMicrophone _microphone = new();
+    private readonly TemporaryAccessRegistry _manuscriptAccess = new(ReportScopeReleaseFailure);
     private readonly Stream _bridge;
     private readonly CancellationTokenSource _cts = new();
 
@@ -69,15 +70,19 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
 #if IOS
         // Lock zoom once the WKWebView exists: prevents the iOS focus-zoom trap
         // (tapping a contenteditable auto-zooms the viewport with no way back).
-        _web.HandlerChanged += (_, _) => LockWebViewZoom();
+        _web.HandlerChanged += (_, _) =>
+        {
+            LockWebViewZoom();
+            ObserveWebProcess();
+        };
 #endif
 
         _ = PumpBackendToWebAsync(_cts.Token);
     }
-private void OnRawMessageReceived(object? sender, HybridWebViewRawMessageReceivedEventArgs e)
+    private void OnRawMessageReceived(object? sender, HybridWebViewRawMessageReceivedEventArgs e)
     {
         var message = e.Message;
-        if (string.IsNullOrEmpty(message)) return;
+        if (string.IsNullOrEmpty(message) || _disposed != 0) return;
 
         // '{' => host-bridge JSON; otherwise base64 RPC frame bytes.
         if (message[0] == '{')
@@ -88,14 +93,14 @@ private void OnRawMessageReceived(object? sender, HybridWebViewRawMessageReceive
 
         try
         {
+            if (_bridgeFailed != 0) throw new IOException("The editor connection stopped.");
             var bytes = Convert.FromBase64String(message);
             _bridge.Write(bytes, 0, bytes.Length);
             _bridge.Flush();
         }
         catch (Exception ex)
         {
-            // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Reports bridge failure type without exposing request payloads.
-            System.Diagnostics.Debug.WriteLine($"[RendererHostPage] inbound bridge write failed: {ex.GetType().Name}");
+            _ = FailBridgeAsync(ex);
         }
     }
 
@@ -103,28 +108,20 @@ private void OnRawMessageReceived(object? sender, HybridWebViewRawMessageReceive
     // RPC receiver. EvaluateJavaScript must run on the UI thread.
     private async Task PumpBackendToWebAsync(CancellationToken ct)
     {
-        var buffer = new byte[64 * 1024];
-        while (!ct.IsCancellationRequested)
+        try
         {
-            int read;
-            try
+            await _rendererReady.Task.WaitAsync(ct).ConfigureAwait(false);
+            var buffer = new byte[64 * 1024];
+            while (!ct.IsCancellationRequested)
             {
-                read = await _bridge.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false);
+                var read = await _bridge.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false);
+                if (read <= 0) throw new EndOfStreamException("The editor connection closed.");
+                var payload = Convert.ToBase64String(buffer, 0, read);
+                await DeliverCallbackAsync($"window.__novalistRecv?.('{payload}')").ConfigureAwait(false);
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception exception)
-            {
-                Console.Error.WriteLine($"[MobileBridge] Backend read failed: {exception.GetType().Name}");
-                break;
-            }
-            if (read <= 0) break;
-
-            var payload = Convert.ToBase64String(buffer, 0, read);
-            await EvalOnMainAsync($"window.__novalistRecv('{payload}')").ConfigureAwait(false);
         }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (Exception exception) { await FailBridgeAsync(exception).ConfigureAwait(false); }
     }
 
     // ---- Host bridge (window.novalist) --------------------------------------
@@ -132,6 +129,8 @@ private void OnRawMessageReceived(object? sender, HybridWebViewRawMessageReceive
     private async Task HandleHostCallAsync(string json)
     {
         var id = 0;
+        object? result = null;
+        Exception? failure = null;
         try
         {
             using var doc = JsonDocument.Parse(json);
@@ -139,24 +138,29 @@ private void OnRawMessageReceived(object? sender, HybridWebViewRawMessageReceive
             id = root.GetProperty("id").GetInt32();
             var method = root.GetProperty("method").GetString() ?? "";
             var args = root.TryGetProperty("args", out var a) ? a : default;
-            var result = await InvokeHostAsync(method, args).ConfigureAwait(false);
-            await SendHostResultAsync(id, ok: true, result, error: null).ConfigureAwait(false);
+            result = await InvokeHostAsync(method, args).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            await SendHostResultAsync(id, ok: false, result: null, error: ex.Message).ConfigureAwait(false);
+            failure = ex;
         }
+        try
+        {
+            await SendHostResultAsync(id, failure == null, result, failure?.Message,
+                failure is UnauthorizedAccessException ? "permission-denied" : null).ConfigureAwait(false);
+        }
+        catch (Exception exception) { await FailBridgeAsync(exception).ConfigureAwait(false); }
     }
 
     private static readonly JsonSerializerOptions CamelCase =
         new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
-    private Task SendHostResultAsync(int id, bool ok, object? result, string? error)
+    private Task SendHostResultAsync(int id, bool ok, object? result, string? error, string? errorCode = null)
     {
         // camelCase so the shim reads {id, ok, result, error}.
-        var payload = JsonSerializer.Serialize(new HostResult(id, ok, result, error), CamelCase);
+        var payload = JsonSerializer.Serialize(new HostResult(id, ok, result, error, errorCode), CamelCase);
         var b64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(payload));
-        return EvalOnMainAsync($"window.__novalistHostResult('{b64}')");
+        return DeliverCallbackAsync($"window.__novalistHostResult?.('{b64}')");
     }
 
     private Task EvalOnMainAsync(string js) =>
@@ -170,19 +174,31 @@ private void OnRawMessageReceived(object? sender, HybridWebViewRawMessageReceive
             }
         });
 
-    private sealed record HostResult(int Id, bool Ok, object? Result, string? Error);
+    private sealed record HostResult(int Id, bool Ok, object? Result, string? Error, string? ErrorCode);
 
     public void Dispose()
     {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+        _manuscriptAccess.Dispose();
+        DisposeLifecycle();
         _ = _microphone.StopOnDisposeAsync();
         _cts.Cancel();
 #if IOS
         // The probe outlives the page otherwise and would keep calling back.
         if (_probe != null) _probe.LayoutChanged = null;
+        DisposeWebProcessObserver();
 #endif
         _web.RawMessageReceived -= OnRawMessageReceived;
         _host.Dispose();
+        IosStoredPathResolver.ActiveProjectPath = null;
+        SecurityScopedFolders.ReleaseExcept(null);
         _bridge.Dispose();
         _cts.Dispose();
+    }
+
+    private static void ReportScopeReleaseFailure(Exception error)
+    {
+        // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Records only the native failure type, without manuscript paths or contents.
+        System.Diagnostics.Debug.WriteLine($"[MobileScope] Temporary release failed: {error.GetType().Name}");
     }
 }

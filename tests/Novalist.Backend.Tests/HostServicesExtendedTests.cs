@@ -1629,6 +1629,8 @@ public class HostServicesExtendedTests
         using var _d = dir;
         var maps = new MapService(proj, new FileService());
         var map = await maps.CreateMapAsync("The North");
+        map.Layers = [new() { Images = [new() { Path = "Images/coast.png" }],
+            Children = [new() { Images = [new() { Path = "Images/island.png" }] }] }];
         map.Pins.Add(new MapPin
         {
             Id = "pin-1",
@@ -1637,7 +1639,8 @@ public class HostServicesExtendedTests
             Y = 0.5,
             EntityId = "loc-1",
             EntityType = "location",
-            TargetMapId = "map-2"
+            TargetMapId = "map-2",
+            IconPath = "Images/pin.png"
         });
         await maps.SaveMapAsync(map);
 
@@ -1645,6 +1648,7 @@ public class HostServicesExtendedTests
 
         Assert.Single(read);
         Assert.Equal("The North", read[0].Name);
+        Assert.Equal(["Images/coast.png", "Images/island.png", "Images/pin.png"], read[0].ImagePaths);
         Assert.Single(read[0].Pins);
         Assert.Equal("Kelmar", read[0].Pins[0].Label);
         Assert.Equal(0.25, read[0].Pins[0].X);

@@ -66,13 +66,15 @@ public sealed class ExtensionContribRpc
         };
         var result = await Host.ExecuteInlineActionAsync(actionId, request, cancellationToken);
         if (result == null) return null;
-        return new InlineActionResultDto(result.Text, DispositionName(result.Disposition), result.Error);
+        return new InlineActionResultDto(result.Text, DispositionName(result.Disposition), result.Error,
+            result.Alternatives.ToArray(), result.AsSuggestion);
     }
 
     internal static string DispositionName(InlineActionDisposition disposition) => disposition switch
     {
         InlineActionDisposition.InsertAfterSelection => "insertAfter",
         InlineActionDisposition.InsertAtCaret => "insertAtCaret",
+        InlineActionDisposition.ShowInformation => "information",
         _ => "replace"
     };
 
@@ -293,7 +295,8 @@ public sealed class ExtensionContribRpc
 public sealed record InlineActionInfoDto(
     string Id, string Label, string Group, string Icon, int Priority,
     bool AllowsEmptySelection, string SlashKeyword);
-public sealed record InlineActionResultDto(string Text, string Disposition, string? Error);
+public sealed record InlineActionResultDto(
+    string Text, string Disposition, string? Error, string[] Alternatives, bool AsSuggestion);
 public sealed record ContextMenuInfoDto(string Id, string Label, string Icon, string? IconPath, string Context);
 public sealed record ExtensionHotkeyInfoDto(string ActionId, string DisplayName, string Category, string DefaultGesture);
 

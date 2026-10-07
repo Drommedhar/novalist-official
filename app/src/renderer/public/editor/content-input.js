@@ -1,5 +1,41 @@
 'use strict';
 
+let sceneIdentity = '';
+
+function setSceneContext(id) {
+    if (id === sceneIdentity) return;
+    sceneIdentity = id;
+    window.NovalistEditorState.imageTargetBlock = null;
+    window.NovalistEditorState.pendingInlineAction = null;
+}
+
+function imageBlocks() {
+    return Array.from(window.NovalistEditorState.editor.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote'));
+}
+
+function captureImageTarget(block = window.caretBlock()) {
+    return block ? {
+        block, index: imageBlocks().indexOf(block), tag: block.tagName, text: block.textContent, scene: sceneIdentity
+    } : null;
+}
+
+function rememberImageTarget() {
+    window.NovalistEditorState.imageTargetBlock = captureImageTarget();
+}
+
+function imageTarget() {
+    const remembered = window.NovalistEditorState.imageTargetBlock;
+    window.NovalistEditorState.imageTargetBlock = null;
+    if (!remembered) return window.caretBlock();
+    if (remembered.scene !== sceneIdentity) return null;
+    if (window.NovalistEditorState.editor.contains(remembered.block)) return remembered.block;
+    const blocks = imageBlocks();
+    const matches = (block) => block && block.tagName === remembered.tag && block.textContent === remembered.text;
+    if (matches(blocks[remembered.index])) return blocks[remembered.index];
+    const candidates = blocks.filter(matches);
+    return candidates.length === 1 ? candidates[0] : null;
+}
+
 function setImageBase(base) {
     window.NovalistEditorState.imageBaseUrl = base || '';
     toDisplayImages(window.NovalistEditorState.editor);
@@ -33,8 +69,8 @@ function insertImageAtCaret(storedPath, alt) {
     // switching scene mid-dialog detaches it, and putting the picture into the
     // scene that happens to be open now is worse than putting it at the end.
     const remembered = window.NovalistEditorState.imageTargetBlock;
-    window.NovalistEditorState.imageTargetBlock = null;
-    const block = remembered && window.NovalistEditorState.editor.contains(remembered) ? remembered : window.caretBlock();
+    const block = imageTarget();
+    if (remembered && !block) return;
     // Into whatever holds the paragraph, which in page view is the .nv-page
     // rather than the editor: testing for the editor put every image in page
     // view at the end of the scene, and outside the paper surface at that.
@@ -145,6 +181,9 @@ function forwardEditorHotkey(e) {
 
 Object.assign(window, {
     setImageBase,
+    setSceneContext,
+    captureImageTarget,
+    rememberImageTarget,
     toDisplayImages,
     insertImageAtCaret,
     getCleanContentHtml,

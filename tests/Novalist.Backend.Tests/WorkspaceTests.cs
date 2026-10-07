@@ -23,6 +23,70 @@ public sealed class WorkspaceTests : IDisposable
     private Workspace CreateWorkspace() => new(Path.Combine(_root, "settings"));
 
     [Fact]
+    public async Task OpeningProjectPersistsItsIdentityInRecentProjects()
+    {
+        using var workspace = await CreateOpenProjectAsync();
+        var identity = workspace.Projects.CurrentProject!.Id;
+        await workspace.Settings.LoadAsync();
+        Assert.Equal(identity, Assert.Single(workspace.Settings.Settings.RecentProjects).ProjectId);
+    }
+
+    [Theory]
+    [InlineData("same")]
+    [InlineData("different")]
+    [InlineData("corrupt")]
+    public async Task RemappedRecentPathsMustKeepTheRecordedProjectIdentity(string identity)
+    {
+        using var writer = CreateWorkspace();
+        await writer.Projects.CreateProjectAsync(_root, "Destination", "Book");
+        var destination = writer.Projects.ProjectRoot!;
+        var oldPath = Path.Combine(_root, "Missing");
+        var resolver = Substitute.For<IStoredPathResolver>();
+        resolver.Resolve(oldPath).Returns(destination);
+        using var reader = await WithRecentAsync("Original", oldPath, resolver);
+        reader.Settings.Settings.RecentProjects[0].ProjectId = identity == "different"
+            ? "another-project-id" : writer.Projects.CurrentProject!.Id;
+        await reader.Settings.SaveAsync();
+        if (identity == "corrupt")
+            await File.WriteAllTextAsync(Path.Combine(destination, ".novalist", "project.json"), "{invalid");
+
+        var recent = Assert.Single(await reader.GetRecentProjectsAsync());
+
+        var expected = identity == "same" ? destination : oldPath;
+        Assert.Equal(expected, recent.Path);
+        await reader.Settings.LoadAsync();
+        Assert.Equal(expected, Assert.Single(reader.Settings.Settings.RecentProjects).Path);
+        resolver.Received(1).Release(destination);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RecentsReleaseResolvedAccessEvenWhenReadingDetailsFails(bool fail)
+    {
+        var files = Substitute.For<IFileService>();
+        var resolver = Substitute.For<IStoredPathResolver>();
+        const string original = "old-project";
+        const string resolved = "resolved-project";
+        resolver.Resolve(original).Returns(resolved);
+        files.CombinePath(Arg.Any<string[]>()).Returns(call => Path.Combine(call.Arg<string[]>()));
+        files.ExistsAsync(Path.Combine(resolved, ".novalist", "project.json")).Returns(true);
+        files.ReadTextAsync(Arg.Any<string>()).Returns(_ => fail
+            ? Task.FromException<string>(new InvalidOperationException("Unexpected read failure"))
+            : Task.FromResult("null"));
+        using var workspace = new Workspace(Path.Combine(_root, "settings"), resolver, files);
+        workspace.Settings.AddRecentProject("Project", original);
+        await workspace.Settings.SaveAsync();
+
+        if (fail)
+            await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.GetRecentProjectsAsync());
+        else
+            Assert.Equal(resolved, Assert.Single(await workspace.GetRecentProjectsAsync()).Path);
+
+        resolver.Received(1).Release(resolved);
+    }
+
+    [Fact]
     public async Task Recents_UnavailableProjectsAreKeptWithoutReadingTheirManifests()
     {
         var files = Substitute.For<IFileService>();

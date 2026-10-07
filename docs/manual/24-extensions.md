@@ -50,11 +50,17 @@ If a mode ends up holding more than ten views, its panel grows a filter box. Not
 
 The flagship example is the **AI Assistant** extension, which contributes three panels:
 
-- **AI Chat** — a project-aware chat with your configured AI provider.
+- **AI Chat** — chat with your configured AI provider using the scene, chapter, outline or characters selected in its Context picker. An empty picker adds no project roster, and selected characters respect AI exclusions. Preview includes the system instructions, selected context, current message and retained conversation turns, with estimated input size and reserved output space. Older turns may be omitted to fit the budget. Clearing chat or opening another project retires the previous reply and conversation.
 - **Character Chat** — converse with one of your characters, grounded in their Codex entry.
 - **Story Analysis** — AI-driven analysis findings for your manuscript.
 
 ## Installing an extension
+
+The updated Formats, Insight, Publish and Toolkit builds require Novalist 3.5.4
+or later. Their visibility checks, complete Codex content and dictionary result
+display require the next updated desktop host; versions through 3.5.3 must use
+an older compatible extension release. The Store reads this requirement from
+each release's manifest.
 
 The simplest way is the **Install from Folder** button in the Extensions view: point it at a folder containing the extension's `extension.json`, DLL, and assets, and Novalist installs, loads, and enables it in place — no restart required.
 
@@ -237,6 +243,10 @@ To publish:
 The full submission flow is in the extension guide.
 
 ## Troubleshooting extensions
+
+Formats and Publish respect scenes marked inactive or excluded from export. Publish also omits Codex entries and sections hidden from readers. When publishing again to the same folder, it removes obsolete pages it previously generated and preserves unrelated files. Choose an empty folder for sites created before the publisher tracked its generated files.
+
+Toolkit's Define action displays a definition without changing your prose. Actions with several alternatives let you review a choice before applying it; suggested edits remain suggestions.
 
 - **Extension didn't load.** Check that the folder contains the DLL and a valid `extension.json`, and that the manifest's `minHostVersion` is not higher than your Novalist version. Load errors are written to the core process log.
 - **Crashes on startup.** Close Novalist and delete or rename `<extensions>/<extensionId>/`. The next startup skips the missing extension.

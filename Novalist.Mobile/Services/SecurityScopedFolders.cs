@@ -26,10 +26,6 @@ public static partial class SecurityScopedFolders
     // Path passed to BeginAccess -> the URL we started accessing for it (may be an
     // ancestor of the path when a parent folder was the one actually bookmarked).
     private static readonly Dictionary<string, NSUrl> Active = new();
-    // Manuscript selections live only as long as their import dialog. Unlike a
-    // project root they are not bookmarked across launches; the renderer releases
-    // the exact returned path after replacement, import, or dialog close.
-    private static readonly Dictionary<string, NSUrl> TemporaryManuscripts = new();
 
     private static string StorePath =>
         Path.Combine(FileSystem.Current.AppDataDirectory, "security-bookmarks.json");
@@ -97,21 +93,26 @@ public static partial class SecurityScopedFolders
         if (string.IsNullOrEmpty(path)) return null;
 
         var started = url.StartAccessingSecurityScopedResource();
-        var data = url.CreateBookmarkData(0, Array.Empty<string>(), null, out var err);
-        if (data != null && err == null)
+        var retained = false;
+        try
         {
-            lock (Gate)
+            var data = url.CreateBookmarkData(0, Array.Empty<string>(), null, out var err);
+            if (data != null && err == null)
             {
-                var map = Load();
-                map[path] = data.GetBase64EncodedString(NSDataBase64EncodingOptions.None);
-                Save(map);
+                lock (Gate)
+                {
+                    var map = Load();
+                    map[path] = data.GetBase64EncodedString(NSDataBase64EncodingOptions.None);
+                    Save(map);
+                }
             }
+            if (started) { Retain(path, url); retained = true; }
+            return path;
         }
-        if (started)
+        finally
         {
-            lock (Gate) Active[path] = url;
+            if (started && !retained) url.StopAccessingSecurityScopedResource();
         }
-        return path;
     }
 
     /// <summary>
@@ -131,7 +132,12 @@ public static partial class SecurityScopedFolders
     {
         if (string.IsNullOrEmpty(path)) return false;
         var current = ResolveCurrentPath(path);
-        if (current != null) return current == path;
+        if (current != null)
+        {
+            if (current == path) return true;
+            if (current != IosStoredPathResolver.ActiveProjectPath) EndAccess(current);
+            return false;
+        }
         return Directory.Exists(path);
     }
 
@@ -161,6 +167,7 @@ public static partial class SecurityScopedFolders
 
         var (bookmark, key) = FindBookmark(path);
         if (bookmark == null || key == null) return null;
+        NSUrl? acquired = null;
         try
         {
             var data = new NSData(bookmark, NSDataBase64DecodingOptions.None);
@@ -168,19 +175,25 @@ public static partial class SecurityScopedFolders
                 data, NSUrlBookmarkResolutionOptions.WithoutUI, null, out var stale, out var err);
             if (url == null || err != null) return null;
             if (!url.StartAccessingSecurityScopedResource()) return null;
+            acquired = url;
 
             var home = url.Path;
-            if (string.IsNullOrEmpty(home)) return null;
+            if (string.IsNullOrEmpty(home))
+            {
+                return null;
+            }
             if (home != key || stale) Rekey(key, home, url, stale);
 
             var current = home + path[key.Length..];
-            lock (Gate) Active[current] = url;
+            Retain(current, url);
+            acquired = null;
             return current;
         }
         catch
         {
             return null;
         }
+        finally { acquired?.StopAccessingSecurityScopedResource(); }
     }
 
     /// <summary>Move a bookmark to the path it now resolves to, refreshing the
@@ -197,7 +210,8 @@ public static partial class SecurityScopedFolders
                 if (fresh != null && err == null)
                     data = fresh.GetBase64EncodedString(NSDataBase64EncodingOptions.None);
             }
-            map.Remove(oldKey);
+            // Other recent projects may still use the moved parent's old path.
+            map[oldKey] = data;
             map[newKey] = data;
             Save(map);
         }
@@ -214,6 +228,22 @@ public static partial class SecurityScopedFolders
         }
         try { url.StopAccessingSecurityScopedResource(); }
         catch { /* already released */ }
+    }
+
+    private static void Retain(string path, NSUrl url)
+    {
+        lock (Gate)
+        {
+            if (Active.Remove(path, out var previous)) previous.StopAccessingSecurityScopedResource();
+            Active[path] = url;
+        }
+    }
+
+    public static void ReleaseExcept(string? projectPath)
+    {
+        string[] paths;
+        lock (Gate) paths = Active.Keys.Where(path => path != projectPath).ToArray();
+        foreach (var path in paths) EndAccess(path);
     }
 
     // Exact bookmark for path, else the longest ancestor bookmark that contains it

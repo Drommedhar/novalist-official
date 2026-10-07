@@ -16,7 +16,7 @@ public sealed record SceneSaveOutcome(
 /// <summary>One row of a two-way merge: what the writer has, what is on disk,
 /// and whether they agree. A row where both sides are equal needs no choosing.
 /// </summary>
-public sealed record MergeRow(string? Mine, string? Theirs, string State);
+public sealed record MergeRow(string? Mine, string? Theirs, string State, string? MineHtml = null, string? TheirsHtml = null);
 
 /// <summary>
 /// Stops a scene save from destroying an edit that arrived from somewhere else.
@@ -86,15 +86,17 @@ public sealed class SceneConflictGuard
     /// anything is overwritten.
     /// </summary>
     public async Task<string> ResolveAsync(
-        ChapterData chapter, SceneData scene, string mergedHtml)
+        ChapterData chapter, SceneData scene, string mergedHtml, string? originalMineHtml = null)
     {
         if (_snapshots != null)
         {
             // On-disk side first: taking it means reading the file, and the
             // resolution is about to replace it.
             await _snapshots.TakeAsync(chapter, scene, "Before merge: version on disk");
+            if (originalMineHtml != null)
+                await _snapshots.TakeContentAsync(chapter, scene, "Before merge: local version", originalMineHtml);
             await _projectService.WriteSceneContentAsync(chapter, scene, mergedHtml);
-            await _snapshots.TakeAsync(chapter, scene, "After merge");
+            await _snapshots.TakeContentAsync(chapter, scene, "After merge", mergedHtml);
         }
         else
         {
@@ -110,9 +112,20 @@ public sealed class SceneConflictGuard
     /// not markup, and a tag-level diff would bury the actual difference.
     /// </summary>
     public static IReadOnlyList<MergeRow> Rows(string mineHtml, string theirsHtml)
-        => [.. TextDiff
-            .ComputePaired(TextDiff.StripHtml(mineHtml), TextDiff.StripHtml(theirsHtml))
-            .Select(row => new MergeRow(row.LeftText, row.RightText, StateOf(row)))];
+    {
+        var mine = HtmlMergeBlocks.Split(mineHtml);
+        var theirs = HtmlMergeBlocks.Split(theirsHtml);
+        var rows = TextDiff.ComputePaired(
+            string.Join('\n', mine.Select(block => block.Key)),
+            string.Join('\n', theirs.Select(block => block.Key)));
+        return rows.Select(row =>
+        {
+            var left = row.LeftIndex is { } l ? mine[l] : null;
+            var right = row.RightIndex is { } r ? theirs[r] : null;
+            var state = row.IsEqual && left?.Html != right?.Html ? "changed" : StateOf(row);
+            return new MergeRow(left?.Text, right?.Text, state, left?.Html, right?.Html);
+        }).ToList();
+    }
 
     private static string StateOf(PairedDiffRow row)
     {

@@ -25,6 +25,36 @@ public class ExportDataTests : IDisposable
 
     private ExportService Service() => new(_project, _entities);
 
+    [Fact]
+    public async Task BoxSetLoadsClosedBookChaptersAfterRestart()
+    {
+        var projects = new ProjectService(new FileService());
+        await projects.CreateProjectAsync(_dir.Path, "Series", "First");
+        var firstBookId = projects.ActiveBook!.Id;
+        var firstChapter = await projects.CreateChapterAsync("First chapter");
+        var firstScene = await projects.CreateSceneAsync(firstChapter.Guid, "Opening");
+        await projects.WriteSceneContentAsync(firstChapter, firstScene, "<p>First volume.</p>");
+        var secondBook = await projects.CreateBookAsync("Second");
+        await projects.SwitchBookAsync(secondBook.Id);
+        var secondChapter = await projects.CreateChapterAsync("Second chapter");
+        var secondScene = await projects.CreateSceneAsync(secondChapter.Guid, "Continuation");
+        await projects.WriteSceneContentAsync(secondChapter, secondScene, "<p>Second volume.</p>");
+        await projects.SwitchBookAsync(firstBookId);
+        var reopened = new ProjectService(new FileService());
+        await reopened.LoadProjectAsync(projects.ProjectRoot!);
+        Assert.Empty(reopened.CurrentProject!.Books.Single(book => book.Id == secondBook.Id).Chapters);
+
+        var chapters = await new ExportService(reopened).CompileChaptersAsync(new ExportOptions
+        {
+            SelectedChapterGuids = [firstChapter.Guid], IncludedBookIds = [secondBook.Id]
+        });
+
+        Assert.Equal(3, chapters.Count);
+        Assert.Contains("First volume.", chapters[0].Scenes.Single().HtmlContent);
+        Assert.Contains("Second volume.", chapters[2].Scenes.Single().HtmlContent);
+        Assert.Equal(firstBookId, reopened.ActiveBook!.Id);
+    }
+
     private string Output(string name) => Path.Combine(_dir.Path, name);
 
     /// <summary>One chapter of scenes, and an empty Codex unless a test fills it.</summary>

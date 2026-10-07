@@ -278,6 +278,56 @@ public class HostServicesTests
     // ── IExtensionEntityService ──
 
     [Fact]
+    public void SceneProjectionPreservesExportPrivacyFlags()
+    {
+        var (host, _, project, _, _) = Build();
+        var manifest = new ScenesManifest();
+        manifest.Chapters["chapter"] = [new() { Id = "parked", Inactive = true }, new() { Id = "private", ExcludeFromExport = true }];
+        project.GetChaptersOrdered().Returns([new() { Guid = "chapter", Title = "Chapter" }]);
+        project.ScenesManifest.Returns(manifest);
+        var scenes = host.ProjectService.GetScenesForChapter("chapter");
+        Assert.True(scenes[0].Inactive);
+        Assert.False(scenes[0].ExcludeFromExport);
+        Assert.True(scenes[1].ExcludeFromExport);
+        Assert.False(scenes[1].Inactive);
+    }
+
+    [Fact]
+    public async Task EntityContentIncludesAllKindsAndPreservesRelativeImagesAndReaderPrivacy()
+    {
+        var (host, _, _, entities, _) = Build();
+        entities.LoadCharactersAsync().Returns([new() { Id = "c", Name = "Mira", Surname = "Vale" }]);
+        entities.LoadLocationsAsync().Returns([new() { Id = "l", Name = "Port", Description = "Harbour", ReaderHidden = true,
+            Sections = [new() { Title = "History", Content = "Secret", ReaderHidden = true }],
+            Images = [new() { Path = "Images/port.png" }], Aliases = ["Haven"] }]);
+        entities.LoadItemsAsync().Returns([new() { Id = "i", Name = "Key", Description = "Silver" }]);
+        entities.LoadLoreAsync().Returns([new() { Id = "r", Name = "Magic", Description = "Rules" }]);
+        entities.GetCustomEntityTypes().Returns([new() { TypeKey = "faction" }]);
+        entities.LoadCustomEntitiesAsync("faction").Returns([new() { Id = "f", Name = "Order", EntityTypeKey = "faction",
+            Sections = [new() { Title = "Motto", Content = "Together" }] }]);
+        var service = host.EntityService;
+        var location = Assert.IsType<EntityContentInfo>(await service.GetEntityContentAsync("location", "l"));
+        Assert.Equal("l", location.Id);
+        Assert.Equal("Port", location.Name);
+        Assert.Equal("Harbour", location.Description);
+        Assert.True(location.ReaderHidden);
+        var section = Assert.Single(location.Sections);
+        Assert.Equal("History", section.Title);
+        Assert.Equal("Secret", section.Content);
+        Assert.True(section.ReaderHidden);
+        Assert.Equal("Images/port.png", Assert.Single(location.ImagePaths));
+        Assert.Equal("Haven", Assert.Single(location.Aliases));
+        Assert.Equal("Mira Vale", (await service.GetEntityContentAsync("character", "c"))?.Name);
+        Assert.Equal("Silver", (await service.GetEntityContentAsync("item", "i"))?.Description);
+        Assert.Equal("Rules", (await service.GetEntityContentAsync("lore", "r"))?.Description);
+        var custom = Assert.IsType<EntityContentInfo>(await service.GetEntityContentAsync("faction", "f"));
+        Assert.Equal("Together", Assert.Single(custom.Sections).Content);
+        Assert.False(custom.ReaderHidden);
+        Assert.Empty(custom.Description);
+        Assert.Null(await service.GetEntityContentAsync("location", "missing"));
+    }
+
+    [Fact]
     public async Task EntityService_LoadsAndMaps()
     {
         var (h, _, _, ent, _) = Build();

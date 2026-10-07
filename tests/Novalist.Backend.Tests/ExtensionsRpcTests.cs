@@ -21,6 +21,7 @@ public sealed class ExtensionsRpcTests : IDisposable
 
     public void Dispose()
     {
+        _workspace.Dispose();
         try { Directory.Delete(_root, true); } catch (IOException) { }
     }
 
@@ -49,9 +50,18 @@ public sealed class ExtensionsRpcTests : IDisposable
 
     private sealed class StubWebExtension : Novalist.Sdk.IExtension, Novalist.Sdk.Hooks.IWebViewContributor
     {
-        public sealed class Controller : Novalist.Sdk.Hooks.IWebViewController
+        public sealed class Controller : Novalist.Sdk.Hooks.IWebViewController, IDisposable
         {
             public event Action<string>? MessagePosted;
+            public int Subscribers => MessagePosted?.GetInvocationList().Length ?? 0;
+            public int DisposeCalls { get; private set; }
+            public bool ThrowOnDispose { get; set; }
+            public void Post(string payload) => MessagePosted?.Invoke(payload);
+            public void Dispose()
+            {
+                DisposeCalls++;
+                if (ThrowOnDispose) throw new InvalidOperationException("Controller disposal failed");
+            }
             public Task<string?> OnMessageAsync(string json)
             {
                 MessagePosted?.Invoke("""{"type":"pushed"}""");
@@ -66,8 +76,64 @@ public sealed class ExtensionsRpcTests : IDisposable
         public string Author => "Tests";
         public void Initialize(Novalist.Sdk.Services.IHostServices host) { }
         public void Shutdown() { }
-        public Novalist.Sdk.Hooks.IWebViewController? CreateController(string viewKey) =>
-            viewKey == "stub.view" ? new Controller() : null;
+        public List<Controller> Created { get; } = [];
+        public Novalist.Sdk.Hooks.IWebViewController? CreateController(string viewKey)
+        {
+            if (viewKey != "stub.view") return null;
+            var controller = new Controller();
+            Created.Add(controller);
+            return controller;
+        }
+    }
+
+    [Theory]
+    [InlineData("disable")]
+    [InlineData("uninstall")]
+    [InlineData("workspace")]
+    [InlineData("manager-shutdown")]
+    [InlineData("disabled-state")]
+    [InlineData("controller-fails")]
+    public async Task StoppingExtensionsDisconnectsAndDisposesCachedControllers(string action)
+    {
+        var extension = new StubWebExtension();
+        var folder = Path.Combine(_root, "stub");
+        System.IO.Directory.CreateDirectory(folder);
+        var info = new ExtensionInfo
+        {
+            Manifest = new Novalist.Sdk.ExtensionManifest { Id = extension.Id },
+            FolderPath = folder, Instance = extension, IsEnabled = true, IsLoaded = true
+        };
+        _workspace.ExtensionsHost.Extensions.Add(info);
+        using var rpc = new ExtensionsRpc(_workspace);
+        var pushes = 0;
+        ExtensionsRpc.WebviewPosted = (_, _, _) => pushes++;
+        try
+        {
+            Assert.Equal("echo:hello", await rpc.WebviewMessageAsync(extension.Id, "stub.view", "hello"));
+            var controller = Assert.Single(extension.Created);
+            Assert.Equal(1, controller.Subscribers);
+            controller.ThrowOnDispose = action == "controller-fails";
+            switch (action)
+            {
+                case "uninstall": await rpc.UninstallAsync(extension.Id); break;
+                case "workspace": _workspace.Dispose(); break;
+                case "manager-shutdown": _workspace.ExtensionsHost.ShutdownAll(); break;
+                case "disabled-state": info.IsEnabled = false; break;
+                default: await rpc.SetEnabledAsync(extension.Id, false); break;
+            }
+            Assert.Null(await rpc.WebviewMessageAsync(extension.Id, "stub.view", "after-stop"));
+            controller.Post("late push");
+            Assert.Equal(1, pushes);
+            Assert.Equal(0, controller.Subscribers);
+            Assert.Equal(1, controller.DisposeCalls);
+            if (action != "disable") return;
+            info.Instance = extension;
+            info.IsLoaded = true;
+            await rpc.SetEnabledAsync(extension.Id, true);
+            Assert.Equal("echo:fresh", await rpc.WebviewMessageAsync(extension.Id, "stub.view", "fresh"));
+            Assert.Equal(2, extension.Created.Count);
+        }
+        finally { ExtensionsRpc.WebviewPosted = null; }
     }
 
     [Fact]

@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useWikiStore } from '../stores/wikiStore'
-import { useDialogAutoFocus } from './useDialogKeyboard'
+import { useDialogAutoFocus, useDialogKeyboard } from './useDialogKeyboard'
 
 export interface GlobalSearchHit {
   kind: string
@@ -47,6 +47,8 @@ export function QuickOpen({ onClose }: { onClose(): void }): React.JSX.Element {
   const workspaceEpoch = useProjectStore((s) => s.workspaceEpoch)
 
   useDialogAutoFocus(inputRef)
+  const keyboard = useDialogKeyboard(onClose)
+  const listId = useId()
 
   // Debounced query: searching scans every scene file, so we wait for a pause.
   useEffect(() => {
@@ -87,6 +89,10 @@ export function QuickOpen({ onClose }: { onClose(): void }): React.JSX.Element {
 
   const flat = useMemo(() => ordered.flatMap((g) => g.items), [ordered])
 
+  useEffect(() => {
+    inputRef.current?.closest('[role="dialog"]')?.querySelector('.palette-item.active')?.scrollIntoView({ block: 'nearest' })
+  }, [index, flat])
+
   const open = (hit: GlobalSearchHit): void => {
     onClose()
     if (hit.chapterGuid && hit.sceneId) {
@@ -112,9 +118,14 @@ export function QuickOpen({ onClose }: { onClose(): void }): React.JSX.Element {
       className="dialog-overlay palette-overlay"
       onPointerDown={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="dialog-card palette-card" role="dialog" aria-label={t('quickOpen.placeholder')}>
+      <div {...keyboard} className="dialog-card palette-card" role="dialog" aria-modal="true" aria-label={t('quickOpen.placeholder')}>
         <input
           ref={inputRef}
+          role="combobox"
+          aria-label={t('quickOpen.placeholder')}
+          aria-expanded="true"
+          aria-controls={listId}
+          aria-activedescendant={flat[index] ? `${listId}-${index}` : undefined}
           className="dialog-input"
           // The syntax is the feature; a placeholder that shows it is the
           // only discovery a search box gets.
@@ -122,10 +133,9 @@ export function QuickOpen({ onClose }: { onClose(): void }): React.JSX.Element {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Escape') onClose()
             if (e.key === 'ArrowDown') {
               e.preventDefault()
-              setIndex((i) => Math.min(i + 1, flat.length - 1))
+              setIndex((i) => Math.max(0, Math.min(i + 1, flat.length - 1)))
             }
             if (e.key === 'ArrowUp') {
               e.preventDefault()
@@ -134,7 +144,7 @@ export function QuickOpen({ onClose }: { onClose(): void }): React.JSX.Element {
             if (e.key === 'Enter' && flat[index]) open(flat[index])
           }}
         />
-        <div className="palette-results">
+        <div className="palette-results" id={listId} role="listbox">
           {loading && <p className="codex-empty">{t('quickOpen.searching')}</p>}
           {showEmpty && <p className="codex-empty">{t('quickOpen.noResults')}</p>}
           {!loading && query.trim().length < 2 && (
@@ -148,6 +158,10 @@ export function QuickOpen({ onClose }: { onClose(): void }): React.JSX.Element {
                 return (
                   <button
                     key={`${hit.kind}-${hit.entityId ?? hit.researchId ?? hit.sceneId ?? ''}-${flatIndex}`}
+                    id={`${listId}-${flatIndex}`}
+                    role="option"
+                    aria-selected={flatIndex === index}
+                    tabIndex={-1}
                     className={`palette-item quickopen-item${flatIndex === index ? ' active' : ''}`}
                     onClick={() => open(hit)}
                     onPointerEnter={() => setIndex(flatIndex)}

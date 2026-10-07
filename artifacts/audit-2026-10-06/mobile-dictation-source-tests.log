@@ -1,0 +1,174 @@
+
+> novalist@3.3.0 test:transport
+> node --experimental-strip-types --test scripts/*.test.mjs
+
+✔ polls pause while busy and resume in the acknowledged epoch (2.0828ms)
+✔ stale rejected poll cannot permanently stop the render watcher (0.656ms)
+✔ late terminal response from the old epoch cannot stop current polling (0.5481ms)
+✔ a rejected token after an aborted transition still retries (0.5324ms)
+✔ refresh skips busy workspace and starts watching after resume (0.678ms)
+✔ render status is global and continues without an open project (0.5287ms)
+(node:40096) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/git/novalist-official/app/src/shared/rpcFraming.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\git\novalist-official\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ windows with identical request IDs receive only their own replies (2.5386ms)
+✔ newly attached windows do not receive another client partial response (0.2445ms)
+✔ port replacement ignores old replies and late old-port messages (0.2645ms)
+✔ data notifications broadcast while interactive UI has one owner (0.3042ms)
+✔ epochs change only after client acknowledgement and drain tokens are scoped (0.3769ms)
+✔ malformed client input closes only that client (0.2146ms)
+✔ restart rejects internal calls and clears incomplete old backend frames (0.5815ms)
+✔ recovery rejects writes without replay and resumes independent clients only when restored (0.3433ms)
+✔ real broker holds old replies until every resume ACK while fresh scene reads remain live (4.6372ms)
+✔ a failed resume rejects held requests and ignores their eventual stale successes (0.2847ms)
+(node:40180) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/git/novalist-official/app/src/renderer/src/stores/bookScopedLoad.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\git\novalist-official\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ current book read publishes its result (0.8397ms)
+✔ old read is retired when projectPath changes (0.0867ms)
+✔ old read is retired when activeBookId changes (0.0489ms)
+✔ old read is retired when activeDraftId changes (0.0397ms)
+✔ old read is retired when workspaceEpoch changes (0.0498ms)
+✔ old read is retired when workspaceBusy changes (0.7157ms)
+✔ old read is retired when isLoaded changes (0.1891ms)
+✔ transition rejection is retired without an unhandled failure (0.2096ms)
+✔ failure in the current book still reaches its caller (0.4564ms)
+✔ busy or unloaded workspace does not start a request (0.2706ms)
+✔ resume starts a fresh read under the acknowledged epoch (0.1779ms)
+✔ Basis grows memory after 0 refused reservations (1.7994ms)
+✔ Basis grows memory after 1 refused reservations (0.9934ms)
+✔ Basis grows memory after 2 refused reservations (0.8124ms)
+✔ Basis reports failure without refreshing heap views when every growth attempt fails (1.1618ms)
+✔ Basis rejects requests beyond the heap limit before attempting growth (0.9581ms)
+✔ Basis permits growth up to the exact heap limit (0.6467ms)
+✔ Draco grows memory after 0 refused reservations (0.5493ms)
+✔ Draco grows memory after 1 refused reservations (0.5132ms)
+✔ Draco grows memory after 2 refused reservations (0.779ms)
+✔ Draco reports failure without refreshing heap views when every growth attempt fails (0.7069ms)
+✔ Draco rejects requests beyond the heap limit before attempting growth (0.5855ms)
+✔ Draco permits growth up to the exact heap limit (0.5252ms)
+✔ bundled Basis handles recognize aliases without writing the read-only clone record (38.7989ms)
+✔ Basis preserves its exported dynCall wrapper and replaces it with the instantiated function after the first call (3.5825ms)
+✔ English dialogue moves punctuation inside the quote and normalizes speech tags (2.0619ms)
+✔ interrupted dialogue retains sentence boundaries (0.1442ms)
+✔ German dialogue retains its quote and punctuation conventions (0.4403ms)
+✔ unchanged prose and unsupported speech tags produce no correction (0.0932ms)
+(node:27784) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ Zstd initialization rejection reaches every current and subsequent parse callback (9.4655ms)
+✔ a synchronous decoder initialization failure reaches the parse error callback (4.1257ms)
+✔ concurrent Zstd textures share initialization and decode using the bundled WASM (22.8322ms)
+✔ uncompressed floating-point textures retain their type and pixel values (3.2646ms)
+✔ an unsupported Vulkan format reaches the parse error callback before creating a texture (3.2258ms)
+(node:27784) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/git/novalist-official/app/src/renderer/public/map/libs/ktx-parse.module.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\git\novalist-official\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41316) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/git/novalist-official/app/src/renderer/src/mobile/hostCalls.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\git\novalist-official\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41316) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+✔ native microphone denial reaches dictation permission state through the shim and can retry (13.3508ms)
+(node:41720) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/git/novalist-official/app/src/renderer/src/mobile/hostCalls.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\git\novalist-official\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ mobile host calls resolve the matching reply once (0.9184ms)
+✔ microphone denial retains the browser permission error contract (0.3503ms)
+✔ unavailable native bridge rejects immediately (0.1636ms)
+✔ missing acknowledgements time out without replaying a mutation (19.8276ms)
+✔ disconnect rejects outstanding calls and late replies stay retired (0.2735ms)
+(node:37280) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ background capture journals scene and manuscript buffers synchronously (29.3541ms)
+✔ a deleted recovery scene remains journaled without blocking a later valid scene (3.8367ms)
+✔ research recovery copies with different tags or entity links are not mistaken for duplicates (4.0829ms)
+✔ an older recovery acknowledgement retains a newer background journal for the same source (2.1538ms)
+✔ recovery refuses a different book or draft without issuing a write (3.1771ms)
+✔ unchanged disk restores through a checked scene write and retires its journal (3.2168ms)
+✔ changed disk opens the existing conflict path and keeps the recovery payload (3.816ms)
+✔ changed research preserves the disk item and creates a recovered copy (2.6522ms)
+✔ the journal refuses oversized replacement while preserving the prior payload (5.2603ms)
+✔ journal entries produced in this session are not replayed over live edits (3.3255ms)
+✔ trusted project relocation remaps the journal only within the same book and draft (3.7959ms)
+✔ similar external path suffixes do not authorize journal remapping (1.9381ms)
+✔ journal remapping cannot overwrite newer target-scope captures (2.2603ms)
+✔ a workspace change during trusted path resolution prevents recovery writes (2.6505ms)
+(node:30236) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/git/novalist-official/app/src/renderer/src/mobile/hostCalls.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\git\novalist-official\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:30236) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+✔ mobile RPC waits for native readiness and acknowledges byte delivery (7.4987ms)
+✔ replaced mobile ports cannot forward writes queued before readiness (2.1374ms)
+✔ bridge failure rejects pending and future calls and pauses the renderer (3.3648ms)
+✔ background save acknowledgement reports durable completion (3.1186ms)
+✔ background save acknowledgement reports failure (3.0926ms)
+(node:39560) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/git/novalist-official/app/src/renderer/src/stores/pendingWrites.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\git\novalist-official\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ recovery capture copies live prose without starting or consuming persistence (0.6815ms)
+(node:41056) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/git/novalist-official/app/src/renderer/src/stores/pendingWrites.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\git\novalist-official\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ a newer mounted save supersedes a failed retained payload (2.4352ms)
+✔ a newer same-key write waits for the older in-flight request (0.479ms)
+(node:3864) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ an old image response cannot replace a newer source (28.8646ms)
+✔ project changes retire pending responses even when the relative path is identical (1.5837ms)
+✔ concurrent asset reads deduplicate and research audio/video/PDF use the host asset reader (2.8454ms)
+✔ host media errors retain the explicit reason and remain retryable (2.3611ms)
+✔ resolved assets use a bounded least-recently-used cache (2.2985ms)
+(node:25068) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ a delayed note acknowledgement preserves later status, rating and links (33.0459ms)
+✔ unmount retains every dirty note when the first write fails (4.0388ms)
+✔ one successful note does not clear the error from a failed sibling (3.7913ms)
+✔ an old hook acknowledgement cannot erase the remounted note recovery journal (5.9757ms)
+(node:40616) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/git/novalist-official/app/src/shared/rpcFraming.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\git\novalist-official\app\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ frames preserve Unicode when every byte arrives separately (1.0234ms)
+✔ concatenated frames and a partial successor keep their own boundaries (3.9304ms)
+✔ a parser has no shared partial frame state with another client (0.283ms)
+✔ invalid and ambiguous lengths fail instead of corrupting a later frame (2.2282ms)
+✔ invalid JSON, protocol objects and UTF-8 are rejected (0.3281ms)
+(node:39500) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ divergent split panes retain their own base and produce a conflict (35.3521ms)
+✔ refused save preserves the visible dirty editor on open (3.4194ms)
+✔ refused save preserves the visible dirty editor on close (3.3024ms)
+✔ overlapping autosaves serialize and preserve a newer dirty edit until acknowledged (5.2001ms)
+✔ a failed save retains the dirty buffer and the next explicit flush can retry (3.3298ms)
+✔ prepare requires every owner and ignores a forged or stale acknowledgement (2.5828ms)
+✔ one refused save rejects prepare and abort resumes every original epoch (0.5761ms)
+✔ apply advances only acknowledged owners and resumes after all are applied (0.5079ms)
+✔ failed apply keeps every surface frozen and never acknowledges stale UI (0.2899ms)
+✔ unresponsive save fails within the deadline (40.1769ms)
+✔ destroyed window cannot strand a remaining window or consume another ACK (0.5755ms)
+✔ close flushes all windows before backup and accepts only owner-matched replies (1.1723ms)
+✔ failed close resumes every window and focuses the failed owner (0.3982ms)
+✔ renderer crash resolves its impossible close wait without skipping other windows (0.1209ms)
+✔ global quit queued behind detached close gets a new complete preflight (0.4195ms)
+✔ window joining during prepare receives no stale bootstrap snapshot (0.2618ms)
+✔ backend recovery restores the acknowledged project, book and draft before snapshot (0.1816ms)
+✔ failed backend restoration does not replace the acknowledged recovery target (0.1274ms)
+✔ crash cannot release a waiting bootstrap snapshot into partially restored draft state (0.3618ms)
+✔ snapshot reply followed immediately by prepare cannot settle a client into old context (0.3299ms)
+✔ a new transition during resume is refused without consuming the old ACKs (0.1809ms)
+✔ coordination retry only reads current snapshot without reopening a project (0.1171ms)
+ℹ tests 114
+ℹ suites 0
+ℹ pass 114
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 315.9806

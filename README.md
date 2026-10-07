@@ -197,7 +197,7 @@ The **Mac App Store edition has no extension feature** - no gallery, no installi
 
 Novalist is an Electron + React front end over a bundled .NET 8 core process (`Novalist.Backend`).
 
-Building requires the .NET 8 SDK and Node.js 22.12 or newer. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
+Building and running the checks requires the .NET 8 SDK and Node.js 22.13+ on the 22 LTS line, or Node.js 23.2+. The renderer tests use Node's TypeScript stripping API. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
 
 ```
 # build the backend the app spawns, then run the app in development

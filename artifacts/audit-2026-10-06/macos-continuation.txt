@@ -1,0 +1,53 @@
+Continue the Novalist audit implementation from the dev branches on this Mac.
+
+Set a goal to finish all 73 original findings. Keep that goal incomplete until every required native acceptance criterion is met; portable passes and this handoff are not completion.
+
+All 73 original findings have implementation changes. The handoff records 63 locally verified findings and ten awaiting Apple runtime acceptance: M01, M02, M03, M04, M05, M06, R13, R14, R15 and P01. Finish their original acceptance and fix concrete regressions; do not add full new features or redesign unrelated code. A compiled web bundle or portable test is not an iOS runtime pass.
+
+Read AGENTS.md and CLAUDE.md, then artifacts/audit-2026-10-06/implementation.html, implementation-progress.json and native-handoff.fragment.html. The immutable pre-fix baseline is audit.html plus findings.json. Preserve its original revision references; do not regenerate build-report.py against the fixed source just to refresh the implementation status.
+
+Check out/pull the latest dev branch without discarding local changes. Record the actual source revision and any dirty diff tested. For cross-repository source links and extension verification, place sibling clones of novalist-aiassistant, novalist-extension and novalist-extension-gallery beside novalist-official and use their corresponding dev changes. The legacy novalist-pnp and novalist-qwentts links describe separate historical compatibility evidence; they are not prerequisites for native mobile testing. Do not publish a release or install into an existing working extension folder as part of this continuation.
+
+The legacy dev branches received metadata-only publication. The Qwen historical loader evidence used an unpublished local 0.4 fixture, whereas the pushed manifest is the existing 0.3 version. Do not claim a fresh clone contains that local fixture or that its historical result directly validates a different published source. Consult publication-extensions.json for exact publication scope.
+
+Use synthetic projects and a dedicated simulator/test device. Verify the pinned prerequisites against the current repository: .NET SDK 10.0.401 with maui-ios workload 10.0.401.1, Xcode with iOS 27.0 SDK and matching simulator, current Node 22 LTS (22.13+) or a supported newer release, Python 3, and .NET 8 for shared tests. If a prerequisite differs, record the exact mismatch rather than silently changing project target versions.
+
+From the repository root, run:
+
+  dotnet workload install maui-ios --version 10.0.401.1
+  bash artifacts/audit-2026-10-06/verify-native.sh
+  dotnet test tests/Novalist.Core.Tests/Novalist.Core.Tests.csproj --filter 'FullyQualifiedName~MobileTemporaryAccessTests' -m:1 -nr:false
+
+Only install the workload if it is missing. verify-native.sh restores renderer dependencies with npm ci --no-audit, runs typecheck, transport tests, mobile renderer build, Apple build regressions and python3 tools/check-source.py, builds an unsigned simulator app and compiles the device speech archive. It stops on failure and writes separate logs. Preserve the logs; investigate failures before repeating checks. The six MobileTemporaryAccessTests cover disposal, replacement, old-page late picker replies, concurrent cleanup and failing release callbacks. Their portable pass does not prove native security-scope balance.
+
+Do not run npm audit or upload the dependency inventory. A separate npm metadata audit remains pending explicit approval because it sends package/version information to the registry; prior approval review rejected that request. Dependency restoration with --no-audit is distinct from that pending audit.
+
+Install/launch on a dedicated simulator using the commands and selected UDID in implementation.html. Signed physical-device commands and provisioning prerequisites are there too; do not substitute a web-asset-only reload for rebuilding the modified native host. Avoid replacing a device's existing Novalist data without backing it up.
+
+Run and record the native scenarios individually:
+
+M01: Immediately background/lock/terminate after editing scenes, manuscript and Research, including two dirty panes and disk conflicts. Verify saved or recovered markers, exact project/book/draft ownership and no silent overwrite. Include a newer edit arriving before an older save acknowledgement.
+M02: Count successful native security-scope acquisitions and actual release calls, using temporary counter-only instrumentation. Cover cancel/reselect/close/disposal, parent folder moves with sibling projects, and a picker reply delivered after the old page was disposed/reloaded. The old page must release/reject its late result without releasing the new page's grant. Remove probes after testing.
+M03: Exercise actual container relocation and stable project identity. An external project with a matching path suffix must never redirect to an unrelated local project. If no real relocation occurred, retain that case as untested.
+M04: Separately inject evaluator failure, evaluator timeout and backend-pump failure, then observe a real WebKit content-process termination where the associated process is known. Pending calls must settle, editing must pause, reload must remain available, and mutations must not replay. Follow the one-shot asynchronous fault procedures in the report; a frozen debugger breakpoint cannot validate a deadline.
+M05: Run the actual Apple CI path-trigger cases for Core-only, SDK-only and renderer-only changes. Confirm an intentional invalid iOS symbol fails the simulator build in a disposable checkout, remove it, and obtain a clean passing build. Complete device create/edit/relaunch/import/share smoke. Local compilation alone does not establish CI trigger behavior.
+M06: Deny microphone access, observe the permission-specific error, permit access and retry, then stop and interrupt recording. Confirm the native prompt/AVAudioSession behavior and absence of a stale error.
+R13: Load scene and map images, PDF/audio/video attachments and 3D textures in WKWebView. Check visible errors above the 16 MiB preview limit, retained on-disk media, bounded preview behavior and unchanged project-relative references.
+R14: Delay native asset replies asynchronously, switch the source/project, then release the reply. The old result must not replace the current preview or repopulate another project's cache.
+R15: Test iPhone VoiceOver and iPad hardware keyboard focus, nested dialogs, Escape, focus return and portrait/landscape layouts.
+P01: Compare original versus corrected manual-image packaging with otherwise identical source/build settings on available supported iPhone and iPad hardware. Alternate at least five fresh-process launches; record usability timing, app/WebKit memory and a separate JavaScriptCore parsing trace. State cache/thermal/device conditions honestly. Open every Help page and decode all 11 screenshots offline. Windows V8/working-set measurements are retained in p01-desktop/summary.json and do not substitute for iOS results.
+
+Maintain per-case pass/fail/not-run records with device/OS, source revision, scenario, observed result and compact evidence filenames. Use synthetic markers; exclude manuscript text, credentials, project identities and personal paths from committed logs. Remove fault-injection edits and run a clean build before attributing results to final source. Follow the repository's source gates and Aislop rules for any fixes. Keep desktop changelog rules; mobile-only validation is not a desktop release note.
+
+Update source workstream ledgers before regenerating the report. progress-renderer.json owns R13/R14/R15/P01 details. Root-owned mobile records are generated by root_progress() inside build-implementation-report.py, so changing progress-root.json alone is overwritten. Add durable native verification records to progress-validation.json (per-finding entries are supported), and update/remove the corresponding pending requirements at their source. The merger unions pending lists; an empty override alone does not clear an older pending requirement.
+
+Then run:
+
+  python3 artifacts/audit-2026-10-06/build-implementation-report.py
+  node artifacts/audit-2026-10-06/verify-implementation.cjs
+
+If the report verifier lacks its Chromium executable, install the pinned local Playwright browser once with node app/node_modules/@playwright/test/cli.js install chromium, then rerun that verifier. This browser dependency is not included in the handoff artifacts.
+
+Recheck the report's links, counts, pending list and honest delivery state. Keep findings pending when hardware, signing, real termination, relocation or CI evidence is unavailable; identify the exact blocker. Mark the overall goal complete only when every required original acceptance case is met. Request input only for a concrete missing credential/device/choice that cannot be resolved independently.
+
+This clone carries curated reports, ledgers, builders, native procedures and compact evidence. Cached SDKs/Electron binaries, Linux packages, test profiles, large traces, full coverage output and optional local hardware-inventory details were deliberately omitted. See commit-artifacts.json for the retained paths and limitations. No inference should be made that omitted raw evidence is present on this Mac.

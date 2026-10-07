@@ -7,6 +7,51 @@ namespace Novalist.Core.Tests.Services;
 
 public class ArchiveServiceTests
 {
+    [Fact]
+    public async Task FailedBackupIsNotPublishedAndLeavesNoTemporaryArchive()
+    {
+        using var temp = new TempDir();
+        var source = temp.Combine("project");
+        Write(Path.Combine(source, "first.txt"), "Good file");
+        var unavailable = Path.Combine(source, "locked.txt");
+        Write(unavailable, "Locked file");
+        using var held = new FileStream(unavailable, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        var archive = temp.Combine("failed.zip");
+
+        await Assert.ThrowsAsync<IOException>(() => new ArchiveService().CreateFromDirectoryAsync(source, archive, []));
+
+        Assert.False(File.Exists(archive));
+        Assert.Empty(Directory.GetFiles(temp.Path));
+    }
+
+    [Theory]
+    [InlineData("root")]
+    [InlineData("directory")]
+    [InlineData("file")]
+    [InlineData("cycle")]
+    public async Task BackupRejectsLinksWithoutPublishingExternalContent(string kind)
+    {
+        using var temp = new TempDir();
+        var source = temp.Combine("project");
+        var external = temp.Combine("external");
+        Write(Path.Combine(external, "private.txt"), "Outside the project");
+        var link = kind == "root" ? source : Path.Combine(source, "link");
+        if (kind != "root") Directory.CreateDirectory(source);
+        if (kind == "file") File.CreateSymbolicLink(link, Path.Combine(external, "private.txt"));
+        else Directory.CreateSymbolicLink(link, kind == "cycle" ? source : external);
+        try
+        {
+            await Assert.ThrowsAsync<IOException>(() => new ArchiveService().CreateFromDirectoryAsync(source, temp.Combine("out.zip"), []));
+            Assert.Empty(Directory.GetFiles(temp.Path));
+            Assert.Equal("Outside the project", File.ReadAllText(Path.Combine(external, "private.txt")));
+        }
+        finally
+        {
+            if (kind == "file") File.Delete(link);
+            else Directory.Delete(link);
+        }
+    }
+
     private const string ProjectMetadata = "{\"name\":\"Book\",\"books\":[{\"name\":\"One\"}]}";
 
     private static string ProjectArchive(TempDir temp, string metadata = ProjectMetadata)

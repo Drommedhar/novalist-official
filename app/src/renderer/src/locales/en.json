@@ -270,6 +270,7 @@
     "fetchingTitle": "Fetching...",
     "typeAudio": "Audio",
     "typeVideo": "Video",
+    "previewFailed": "This media file could not be previewed.",
     "pdfFallback": "This PDF cannot be shown here. Open it externally instead.",
     "status": "Status",
     "statusNone": "No status",
@@ -515,7 +516,10 @@
       "inactive": "Out of the book"
     }
   },
+  "inlineReview": {"title":"Inline action","choose":"Choose a result","apply":"Apply"},
+  "mobileRecovery": { "recovered": "Recovered" },
   "findReplace": {
+    "failed": "Search or replacement failed: {{message}}",
     "title": "Find and Replace",
     "find": "Find",
     "replace": "Replace",

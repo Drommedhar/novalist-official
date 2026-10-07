@@ -20,8 +20,8 @@ const IMAGE_MIME: Record<string, string> = {
  * outside the renderer root) into the renderer as a virtual module. The map
  * is derived from whatever `.md` files exist at build time — no fixed page
  * list — so pages added by other work are picked up automatically. A second
- * virtual module inlines the manual's `images/` as data URIs (keyed by
- * filename) so the in-app viewer can render them without a real asset origin.
+ * virtual module imports the manual images as emitted assets, so screenshots
+ * load only when the reader opens a page that uses them.
  *
  * A third bundles the repo's `CHANGELOG.md` the same way, so About can show
  * what changed in the build the reader is running rather than sending them to
@@ -57,12 +57,10 @@ export function manualPlugin(repositoryRoot: string): Plugin {
         const files = readdirSync(MANUAL_IMAGES_DIR)
           .filter((f) => IMAGE_MIME[extname(f).toLowerCase()])
           .sort()
-        const entries = files.map((file) => {
-          const b64 = readFileSync(resolve(MANUAL_IMAGES_DIR, file)).toString('base64')
-          const uri = `data:${IMAGE_MIME[extname(file).toLowerCase()]};base64,${b64}`
-          return `${JSON.stringify(file)}: ${JSON.stringify(uri)}`
-        })
-        return `export default {\n${entries.join(',\n')}\n}`
+        const imports = files.map((file, index) =>
+          `import image${index} from ${JSON.stringify(resolve(MANUAL_IMAGES_DIR, file).replace(/\\/g, '/') + '?url&no-inline')}`)
+        const entries = files.map((file, index) => `${JSON.stringify(file)}: image${index}`)
+        return `${imports.join('\n')}\nexport default {\n${entries.join(',\n')}\n}`
       }
       if (id === resolvedChangelog) {
         const text = existsSync(CHANGELOG_FILE) ? readFileSync(CHANGELOG_FILE, 'utf8') : ''

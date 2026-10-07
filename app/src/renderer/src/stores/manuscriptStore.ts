@@ -120,6 +120,11 @@ function writePendingManuscriptSave(save: PendingManuscriptSave): Promise<void> 
         result.wordCount,
         result.hash
       )
+    if (window.novalist.isMobile) {
+      const { acknowledgeMobileSceneRecovery } = await import('../mobile/recovery')
+      const pending = saveTimers.get(save.sceneId)
+      acknowledgeMobileSceneRecovery(save.sceneId, save.html, undefined, pending && pending !== save ? undefined : `manuscript:${save.sceneId}`)
+    }
   })
   save.inFlight = write
   const tail = write.catch(() => {})
@@ -412,6 +417,10 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
 
 function reportManuscriptClaims(): void {
   reportManuscriptEditing([...saveTimers.values()].map(({ chapterGuid, sceneId }) => ({ chapterGuid, sceneId, dirty: true })))
+}
+
+export function pendingManuscriptRecovery(): { chapterGuid: string; sceneId: string; html: string; plainText: string; hash: string }[] {
+  return [...saveTimers.values()].map((save) => ({ chapterGuid: save.chapterGuid, sceneId: save.sceneId, html: save.html, plainText: save.plainText, hash: save.expectedHash }))
 }
 
 export function hasPendingManuscriptWrites(): boolean { return saveTimers.size > 0 }

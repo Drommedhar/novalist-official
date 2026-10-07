@@ -1,6 +1,6 @@
-using System.Net;
 using System.Text.RegularExpressions;
 using Novalist.Core.Models;
+using Novalist.Core.Utilities;
 
 namespace Novalist.Core.Services;
 
@@ -35,7 +35,8 @@ public sealed class FindReplaceService : IFindReplaceService
 
                 var html = await _projectService.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
                 var plain = StripHtml(html);
-                var source = new SceneSearchSource(_projectService.ActiveBook?.Name ?? string.Empty, chapter, scene);
+                var source = new SceneSearchSource(_projectService.ActiveBook?.Id ?? string.Empty,
+                    _projectService.ActiveBook?.Name ?? string.Empty, chapter, scene);
                 Collect(results, regex, plain, "prose", source);
 
                 // The places a writer leaves what they mean to come back to.
@@ -66,12 +67,14 @@ public sealed class FindReplaceService : IFindReplaceService
         if (_entityService == null) return;
 
         var bookTitle = _projectService.ActiveBook?.Name ?? string.Empty;
+        var bookId = _projectService.ActiveBook?.Id ?? string.Empty;
         void Add(string where, string text)
         {
             if (string.IsNullOrEmpty(text)) return;
             foreach (Match m in regex.Matches(text))
                 results.Add(new FindMatch
                 {
+                    BookId = bookId,
                     BookTitle = bookTitle,
                     Field = "codex",
                     ChapterTitle = where,
@@ -203,7 +206,7 @@ public sealed class FindReplaceService : IFindReplaceService
         }
     }
 
-    private sealed record SceneSearchSource(string BookTitle, ChapterData Chapter, SceneData Scene);
+    private sealed record SceneSearchSource(string BookId, string BookTitle, ChapterData Chapter, SceneData Scene);
 
     /// <summary>Adds every match in one field, tagged with which field it was.</summary>
     private static void Collect(
@@ -215,6 +218,7 @@ public sealed class FindReplaceService : IFindReplaceService
         {
             results.Add(new FindMatch
             {
+                BookId = source.BookId,
                 BookTitle = source.BookTitle,
                 Field = field,
                 ChapterGuid = source.Chapter.Guid,
@@ -293,19 +297,7 @@ public sealed class FindReplaceService : IFindReplaceService
     }
 
     private static (string Replaced, int Count) ReplaceHtmlWithCount(Regex regex, string html, string replacement)
-    {
-        var count = 0;
-        // Quoted attributes may contain '>'; keep the entire tag together.
-        // The fixed grammar must stay linear even when tags are incomplete.
-        var replaced = Regex.Replace(html, """<(?:"[^"]*"|'[^']*'|[^'">])*>|[^<]+""", token =>
-        {
-            if (token.Value.StartsWith('<')) return token.Value;
-            var (text, matches) = ReplaceWithCount(regex, WebUtility.HtmlDecode(token.Value), replacement);
-            count += matches;
-            return matches == 0 ? token.Value : WebUtility.HtmlEncode(text);
-        }, RegexOptions.NonBacktracking, TimeSpan.FromSeconds(2));
-        return (replaced, count);
-    }
+        => new HtmlSearchText(html).Replace(regex, replacement);
 
     private static (string Replaced, int Count) ReplaceWithCount(Regex regex, string input, string replacement)
     {
@@ -315,13 +307,7 @@ public sealed class FindReplaceService : IFindReplaceService
     }
 
     private static string StripHtml(string html)
-    {
-        if (string.IsNullOrEmpty(html)) return string.Empty;
-        var withBreaks = Regex.Replace(html, "</p>|<br ?/?>", "\n",
-            RegexOptions.IgnoreCase | RegexOptions.NonBacktracking, TimeSpan.FromSeconds(2));
-        return WebUtility.HtmlDecode(Regex.Replace(withBreaks, "<[^>]+>", string.Empty,
-            RegexOptions.NonBacktracking, TimeSpan.FromSeconds(2)));
-    }
+        => new HtmlSearchText(html).Text;
 
     private static int CountWords(string text)
     {

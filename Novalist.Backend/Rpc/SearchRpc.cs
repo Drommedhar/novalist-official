@@ -69,7 +69,7 @@ public sealed class SearchRpc
         return matches
             .Select(m => new FindMatchDto(
                 m.ChapterGuid, m.ChapterTitle, m.SceneId, m.SceneTitle,
-                m.Index, m.Length, m.Before, m.MatchedText, m.After, m.Field))
+                m.Index, m.Length, m.Before, m.MatchedText, m.After, m.Field, m.BookId, m.BookTitle))
             .ToArray();
     }
 
@@ -130,4 +130,6 @@ public sealed record FindMatchDto(
     string Before,
     string MatchedText,
     string After,
-    string Field);
+    string Field,
+    string BookId = "",
+    string BookTitle = "");

@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-06T22:05:24.507Z",
+  "head": "ba8b6d328b64ded6e923baa25ce086d7e9e799e4",
+  "variants": {
+    "original": {
+      "pluginSha256": "8e6dbe4a1fcb6b736b2eaada5d9b915d0f3697722a3c2d3973fb6b36f9c253c3",
+      "mainSha256": "a172fdf56735473c30f149521408632c910a85b89cd822fe6c9d73ed7544127b",
+      "preloadSha256": "49a6fe0c6eeeb3b6f9e4d132e321d671a919239d2484d191cfb00ebfa9a8d540",
+      "entry": "index-DCYo_30X.js",
+      "entryBytes": 18306115,
+      "entrySha256": "406c8958d5198ba90193a27115bf1aad7b29d068ab39f7a258069f8cf18a6369",
+      "emittedPng": []
+    },
+    "fixed": {
+      "pluginSha256": "9ae7f9f25f413971309ba593a3f176d49bcd61792dcd1a27ddf92220b69cea89",
+      "mainSha256": "a172fdf56735473c30f149521408632c910a85b89cd822fe6c9d73ed7544127b",
+      "preloadSha256": "49a6fe0c6eeeb3b6f9e4d132e321d671a919239d2484d191cfb00ebfa9a8d540",
+      "entry": "index-D0l0wFW8.js",
+      "entryBytes": 5623906,
+      "entrySha256": "97805a3b42fa73e02a6d80b78fed72cba525f4b51265d86fed32e473fef3565e",
+      "emittedPng": [
+        "calendar-CbP15NkD.png",
+        "codex-Dm7nA2_e.png",
+        "command-palette-C8RKrZnJ.png",
+        "dashboard-CWhGlVIK.png",
+        "editor-HTwOZI_U.png",
+        "interface-overview-CF0MAiIW.png",
+        "manuscript-BxONnxtb.png",
+        "plot-grid-CFu546Gv.png",
+        "relationships-D9wZaZdB.png",
+        "start-screen-BvRe-Sy9.png",
+        "timeline-Kmm0y5rk.png"
+      ]
+    }
+  }
+}

@@ -6,6 +6,7 @@ const contextMenu = document.getElementById('context-menu');
 
 // Selection captured when the menu opened (see the contextmenu handler).
 let contextMenuRange = null;
+let contextMenuImageTarget = null;
 
 let contextMenuText = '';
 
@@ -42,6 +43,7 @@ document.addEventListener('contextmenu', (e) => {
     // A right-click need not move the selection (notably on Windows). Capture
     // the point in the prose, independently of where the caret was parked.
     const hit = document.caretRangeFromPoint(e.clientX, e.clientY);
+    contextMenuImageTarget = window.captureImageTarget(window.caretBlock() || (hit && window.blockOf(hit.startContainer)));
     if (hit && window.NovalistEditorState.editor.contains(hit.startContainer)) {
         const block = window.getContainingBlock(hit.startContainer) || window.NovalistEditorState.editor;
         const before = document.createRange();
@@ -145,6 +147,7 @@ window.NovalistEditorState.wrapper.addEventListener('scroll', () => {
 
 Object.defineProperties(window.NovalistEditorState, {
     contextMenuRange: { get() { return contextMenuRange; }, set(value) { contextMenuRange = value; } },
+    contextMenuImageTarget: { get() { return contextMenuImageTarget; }, set(value) { contextMenuImageTarget = value; } },
     contextMenuText: { get() { return contextMenuText; }, set(value) { contextMenuText = value; } },
     contextMenuLabels: { get() { return contextMenuLabels; }, set(value) { contextMenuLabels = value; } },
     contextMenu: { get() { return contextMenu; } },

@@ -1,0 +1,134 @@
+{
+  "status": "passed",
+  "cases": [
+    {
+      "extension": "com.novalist.pnp",
+      "hostVersion": "1.6.0",
+      "versionGatePassed": false,
+      "assemblyLoaded": false,
+      "reason": "Requires host version \u003E= 1.7.0 (current: 1.6.0)"
+    },
+    {
+      "extension": "com.novalist.pnp",
+      "hostVersion": "1.7.0",
+      "versionGatePassed": true,
+      "assemblyLoaded": false,
+      "reason": "Entry assembly not found: Novalist.Extensions.PenAndPaper.dll"
+    },
+    {
+      "extension": "com.novalist.pnp",
+      "hostVersion": "1.14.5",
+      "versionGatePassed": true,
+      "assemblyLoaded": false,
+      "reason": "Entry assembly not found: Novalist.Extensions.PenAndPaper.dll"
+    },
+    {
+      "extension": "com.novalist.pnp",
+      "hostVersion": "1.15.0",
+      "versionGatePassed": true,
+      "assemblyLoaded": false,
+      "reason": "Entry assembly not found: Novalist.Extensions.PenAndPaper.dll"
+    },
+    {
+      "extension": "com.novalist.pnp",
+      "hostVersion": "1.15-dev",
+      "versionGatePassed": true,
+      "assemblyLoaded": false,
+      "reason": "Entry assembly not found: Novalist.Extensions.PenAndPaper.dll"
+    },
+    {
+      "extension": "com.novalist.pnp",
+      "hostVersion": "2.0.0",
+      "versionGatePassed": false,
+      "assemblyLoaded": false,
+      "reason": "Requires host version \u003C= 1.999.999 (current: 2.0.0)"
+    },
+    {
+      "extension": "com.novalist.pnp",
+      "hostVersion": "3.5.3",
+      "versionGatePassed": false,
+      "assemblyLoaded": false,
+      "reason": "Requires host version \u003C= 1.999.999 (current: 3.5.3)"
+    },
+    {
+      "extension": "com.novalist.pnp",
+      "hostVersion": "3.5.4",
+      "versionGatePassed": false,
+      "assemblyLoaded": false,
+      "reason": "Requires host version \u003C= 1.999.999 (current: 3.5.4)"
+    },
+    {
+      "extension": "com.novalist.pnp",
+      "hostVersion": "3.5.4-dev",
+      "versionGatePassed": false,
+      "assemblyLoaded": false,
+      "reason": "Requires host version \u003C= 1.999.999 (current: 3.5.4-dev)"
+    },
+    {
+      "extension": "com.novalist.tts.qwen3",
+      "hostVersion": "1.6.0",
+      "versionGatePassed": false,
+      "assemblyLoaded": false,
+      "reason": "Requires host version \u003E= 1.15.0 (current: 1.6.0)"
+    },
+    {
+      "extension": "com.novalist.tts.qwen3",
+      "hostVersion": "1.7.0",
+      "versionGatePassed": false,
+      "assemblyLoaded": false,
+      "reason": "Requires host version \u003E= 1.15.0 (current: 1.7.0)"
+    },
+    {
+      "extension": "com.novalist.tts.qwen3",
+      "hostVersion": "1.14.5",
+      "versionGatePassed": false,
+      "assemblyLoaded": false,
+      "reason": "Requires host version \u003E= 1.15.0 (current: 1.14.5)"
+    },
+    {
+      "extension": "com.novalist.tts.qwen3",
+      "hostVersion": "1.15.0",
+      "versionGatePassed": true,
+      "assemblyLoaded": false,
+      "reason": "Entry assembly not found: Novalist.Extension.Tts.Qwen3.dll"
+    },
+    {
+      "extension": "com.novalist.tts.qwen3",
+      "hostVersion": "1.15-dev",
+      "versionGatePassed": true,
+      "assemblyLoaded": false,
+      "reason": "Entry assembly not found: Novalist.Extension.Tts.Qwen3.dll"
+    },
+    {
+      "extension": "com.novalist.tts.qwen3",
+      "hostVersion": "2.0.0",
+      "versionGatePassed": false,
+      "assemblyLoaded": false,
+      "reason": "Requires host version \u003C= 1.999.999 (current: 2.0.0)"
+    },
+    {
+      "extension": "com.novalist.tts.qwen3",
+      "hostVersion": "3.5.3",
+      "versionGatePassed": false,
+      "assemblyLoaded": false,
+      "reason": "Requires host version \u003C= 1.999.999 (current: 3.5.3)"
+    },
+    {
+      "extension": "com.novalist.tts.qwen3",
+      "hostVersion": "3.5.4",
+      "versionGatePassed": false,
+      "assemblyLoaded": false,
+      "reason": "Requires host version \u003C= 1.999.999 (current: 3.5.4)"
+    },
+    {
+      "extension": "com.novalist.tts.qwen3",
+      "hostVersion": "3.5.4-dev",
+      "versionGatePassed": false,
+      "assemblyLoaded": false,
+      "reason": "Requires host version \u003C= 1.999.999 (current: 3.5.4-dev)"
+    }
+  ],
+  "method": "Actual compiled ExtensionLoader.LoadExtension; current legacy manifests; intentionally absent assembly payload prevents extension execution",
+  "limitations": "Version gating only. Historical assembly loading is separately proven in legacy-historical-validation.",
+  "backendAssemblySha256": "6E1A46911DFDF571C4E51C200C35A0A1869DC2B69EB1F11BA3AF3483DD8D481F"
+}

@@ -1,0 +1,37 @@
+Linux Win11 6.18.33.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun 18 21:54:43 UTC 2026 x86_64 GNU/Linux
+distribution: Debian GNU/Linux 13 (trixie)
+user: uid=0(root) gid=0(root) groups=0(root)
+display: :0; wayland: wayland-0
+/mnt/wslg/.X11-unix:
+total 0
+srwxrwxrwx 1 1000 1000 0 Oct  6 23:30 X0
+
+/tmp/.X11-unix:
+total 0
+srwxrwxrwx 1 1000 1000 0 Oct  6 23:30 X0
+node: dotnet: curl: wget: /usr/bin/wget
+unzip: tar: /usr/bin/tar
+ldd: /usr/bin/ldd
+xvfb-run: apt-get: /usr/bin/apt-get
+apt-cache: /usr/bin/apt-cache
+dpkg-deb: /usr/bin/dpkg-deb
+PRESENT libnss3.so
+MISSING libatk-1.0.so.0
+MISSING libatk-bridge-2.0.so.0
+MISSING libcups.so.2
+MISSING libdrm.so.2
+PRESENT libX11.so.6
+MISSING libXcomposite.so.1
+MISSING libXdamage.so.1
+PRESENT libXext.so.6
+MISSING libXfixes.so.3
+MISSING libXrandr.so.2
+MISSING libgbm.so.1
+PRESENT libasound.so.2
+MISSING libpango-1.0.so.0
+MISSING libcairo.so.2
+MISSING libgtk-3.so.0
+PRESENT libglib-2.0.so.0
+PRESENT libdbus-1.so.3
+PRESENT libexpat.so.1
+MISSING libxkbcommon.so.0

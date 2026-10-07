@@ -22,6 +22,7 @@ export function useEntitySections(
   const [sections, setState] = useState<SectionRow[]>([])
   const rows = useRef<SectionRow[]>([])
   const loadedFor = useRef<string | null>(null)
+  const restoredRevision = useCodexStore((state) => state.restoredRevision)
   const pending = useRef<{ type: string; id: string; sections: SectionRow[] } | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inFlight = useRef<Promise<void> | null>(null)
@@ -53,13 +54,13 @@ export function useEntitySections(
 
   useEffect(() => {
     if (!selectedId || !record || record.id !== selectedId) return
-    const owner = `${entityType}:${selectedId}`
+    const owner = `${entityType}:${selectedId}:${restoredRevision}`
     if (loadedFor.current === owner) return
     loadedFor.current = owner
     rows.current = Array.isArray(record.sections)
       ? (record.sections as SectionRow[]).map((section) => ({ ...section })) : []
     setState(rows.current)
-  }, [entityType, selectedId, record])
+  }, [entityType, selectedId, record, restoredRevision])
 
   useEffect(() => () => {
     void flushSections().catch(() => {})

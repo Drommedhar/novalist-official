@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "elapsedSeconds": 0.109,
+  "runtime": "Actual Python3.12 process executing repository sidecar.py",
+  "network": "HF_HUB_OFFLINE=1 and TRANSFORMERS_OFFLINE=1; torch/qwen dependencies absent; no download/preparation called",
+  "messages": [
+    {
+      "type": "progress",
+      "step": "importing",
+      "id": "fatal-probe"
+    },
+    {
+      "type": "error",
+      "error": "ModuleNotFoundError",
+      "id": "fatal-probe"
+    },
+    {
+      "type": "done",
+      "id": "fatal-probe"
+    }
+  ],
+  "nextRequest": {
+    "type": "error",
+    "error": "unknown-op",
+    "id": "next-probe"
+  },
+  "workerStayedOpenAfterFatal": true,
+  "limitations": "Validates real missing-dependency fatal termination and next-request protocol only; no GPU inference or model-load test."
+}

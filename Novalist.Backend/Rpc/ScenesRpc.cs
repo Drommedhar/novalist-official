@@ -332,10 +332,10 @@ public sealed class ScenesRpc
     /// before it lands, so a wrong click at the merge dialog is recoverable.</summary>
     [JsonRpcMethod("scenes/resolveConflict")]
     public async Task<SceneWriteResultDto> ResolveConflictAsync(
-        string chapterGuid, string sceneId, string html, string plainText)
+        string chapterGuid, string sceneId, string html, string plainText, string? originalMineHtml = null)
     {
         var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
-        var hash = await _workspace.SceneConflicts.ResolveAsync(chapter, scene, html);
+        var hash = await _workspace.SceneConflicts.ResolveAsync(chapter, scene, html, originalMineHtml);
         // Re-save through the unchecked path so the word count, history and
         // manifest catch up with the resolved text.
         var wordCount = await _workspace.WriteSceneAsync(chapterGuid, sceneId, html, plainText);
@@ -345,12 +345,12 @@ public sealed class ScenesRpc
     [JsonRpcMethod("scenes/mergeRows")]
     public MergeRowDto[] MergeRows(string mineHtml, string theirsHtml)
         => [.. Core.Services.SceneConflictGuard.Rows(mineHtml, theirsHtml)
-            .Select(r => new MergeRowDto(r.Mine, r.Theirs, r.State))];
+            .Select(r => new MergeRowDto(r.Mine, r.Theirs, r.State, r.MineHtml, r.TheirsHtml))];
 }
 
 /// <summary>One row of the merge view. <c>State</c> is "equal", "changed",
 /// "mine" (only the writer has it) or "theirs" (only the file has it).</summary>
-public sealed record MergeRowDto(string? Mine, string? Theirs, string State);
+public sealed record MergeRowDto(string? Mine, string? Theirs, string State, string? MineHtml = null, string? TheirsHtml = null);
 
 public sealed record SceneContentDto(string SceneId, string Html, string Hash);
 

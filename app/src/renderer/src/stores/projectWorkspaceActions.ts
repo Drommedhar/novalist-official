@@ -37,7 +37,7 @@ export const createProjectWorkspaceActions: ProjectSlice<'applyWorkspaceSnapshot
     set((state) => {
       const editors = mapEditors(state.editors, (editor) => {
         const content = editor.sceneId ? contents.get(editor.sceneId) : null
-        return content && (!preserveDirty || !isDirty(state, editor.sceneId!)) ? { ...editor, html: content.html, plainText: stripHtml(content.html), isDirty: false } : editor
+        return content && (!preserveDirty || !isDirty(state, editor.sceneId!)) ? { ...editor, html: content.html, hash: content.hash, plainText: stripHtml(content.html), isDirty: false } : editor
       })
       return { editors, ...mirror(editors, state.activeEditorPaneId), sceneHashes: {
         ...state.sceneHashes, ...Object.fromEntries([...contents].filter(([id]) => !preserveDirty || !isDirty(state, id)).map(([id, content]) => [id, content.hash]))
@@ -51,6 +51,7 @@ export const createProjectWorkspaceActions: ProjectSlice<'applyWorkspaceSnapshot
     const prevBookId = get().activeBookId
     const prevName = get().projectName
     const projectChanged = state.projectPath !== prevPath
+    resetEditors ||= window.novalist.isMobile === true && state.activeBookId !== prevBookId
     if (projectChanged || resetEditors) {
       useShellStore.setState({ focusMode: false, focusPaneId: null, focusPanel: null, focusPanelTransient: false, focusToolsVisible: false })
       // All create/open/close paths meet here. Pane state survives ordinary
@@ -59,7 +60,7 @@ export const createProjectWorkspaceActions: ProjectSlice<'applyWorkspaceSnapshot
       autosaveTimers.clear()
     }
     set({
-      ...(projectChanged || resetEditors ? { ...clearedEditorState(), drafts: [] } : {}),
+      ...(projectChanged || resetEditors ? { ...clearedEditorState(), drafts: [], activeDraftId: null } : {}),
       isLoaded: state.isLoaded,
       projectName: state.projectName,
       projectPath: state.projectPath,
@@ -87,6 +88,7 @@ export const createProjectWorkspaceActions: ProjectSlice<'applyWorkspaceSnapshot
   switchBook: (bookId) => runSceneContext(async () => {
     await flushPendingWrites()
     await get().flushPendingSave()
+    if (get().sceneConflict || Object.values(get().dirtyMap).some(Boolean)) throw new Error(i18n.t('update.sceneWriteConflict'))
     get().applyState(await rpc.request<ProjectStateDto>('project/switchBook', [bookId]))
   }),
 
@@ -95,7 +97,9 @@ export const createProjectWorkspaceActions: ProjectSlice<'applyWorkspaceSnapshot
   }),
 
   loadDrafts: async () => {
-    set({ drafts: await rpc.request<{ id: string; name: string; isActive: boolean }[]>('project/drafts') })
+    const { projectPath, activeBookId } = get()
+    const drafts = await rpc.request<{ id: string; name: string; isActive: boolean }[]>('project/drafts')
+    if (get().projectPath === projectPath && get().activeBookId === activeBookId) set({ drafts, activeDraftId: drafts.find((draft) => draft.isActive)?.id ?? null })
   },
 
   createDraft: (name) => runSceneContext(async () => {
@@ -115,6 +119,7 @@ export const createProjectWorkspaceActions: ProjectSlice<'applyWorkspaceSnapshot
   switchDraft: (draftId) => runSceneContext(async () => {
     await flushPendingWrites()
     await get().flushPendingSave()
+    if (get().sceneConflict || Object.values(get().dirtyMap).some(Boolean)) throw new Error(i18n.t('update.sceneWriteConflict'))
     get().applyState(await rpc.request<ProjectStateDto>('project/switchDraft', [draftId]))
   }),
 

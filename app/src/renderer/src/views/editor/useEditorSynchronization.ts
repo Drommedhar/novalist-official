@@ -34,6 +34,7 @@ export function useEditorScene({ editorRef, sceneHtml, lastReportedHtmlRef, load
   useLayoutEffect(() => {
     const editor = editorRef.current
     if (!editor || sceneHtml === null) return
+    editor.setSceneContext(openSceneId ?? '')
     if (sceneHtml === lastReportedHtmlRef.current) return
     loadingRef.current = true
     editor.setContent(sceneHtml)
@@ -88,7 +89,7 @@ export function useEditorControls({ editorRef, isActiveEditor, openSceneId, sugg
   // them. Handed to the frame so they land in the menu already on screen.
   useEffect(() => {
     window.novalist.onSpellingContext((word, suggestions) => {
-      editorRef.current?.setSpellingSuggestions(word, suggestions)
+      useEditorBridge.getState().editor?.setSpellingSuggestions(word, suggestions)
     })
   }, [])
 

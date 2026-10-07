@@ -32,6 +32,10 @@ Tab actions:
 
 Novalist saves automatically **two seconds** after the last keystroke. Pending changes are also flushed when you switch to another scene and when the app closes — there is no manual save step.
 
+Each split pane keeps its own unsaved buffer. If a save detects a conflicting version, navigation keeps your edits available until you resolve the conflict. Choosing either complete version preserves its rich-text structure.
+
+On iPhone and iPad, backgrounding requests a save and retains pending edits for recovery in the same project, book and draft. Reopening uses the normal conflict check before writing recovered text. If the editor connection fails, editing pauses and a reload prompt lets you reopen saved work and retained drafts.
+
 ## Dictation
 
 Press **Dictate** (the microphone on the writing bar) or use the Dictate command in the command palette. Speech appears directly at the caret, with no preview or acceptance step. Correct it in the normal editor and use Undo as usual. A selected passage is kept; dictation starts after it. When several speech providers are available, choose one in the dictation bar.

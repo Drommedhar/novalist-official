@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="5c391abb-11df-44b8-826e-2dd9e8aa7481" name="domin@WIN11 2026-10-06 23:41:21" runUser="WIN11\domin" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-06T23:41:21.0242413+02:00" queuing="2026-10-06T23:41:21.0242414+02:00" start="2026-10-06T23:41:19.4243745+02:00" finish="2026-10-06T23:41:21.2700381+02:00" />
+  <TestSettings name="default" id="3b235315-8a2f-4eb4-b778-45d01f174ecb">
+    <Deployment runDeploymentRoot="domin_WIN11_2026-10-06_23_41_21" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="b3b118c2-80e4-49f9-82b7-892c91c29d88" testId="5bdb2f06-d9bc-03d9-19e8-c920518d43a7" testName="Novalist.Backend.Tests.ExportConcurrencyTests.BookSwitchDuringCompilationCannotChangeLaterSceneReads" computerName="WIN11" duration="00:00:00.2214749" startTime="2026-10-06T23:41:20.9915456+02:00" endTime="2026-10-06T23:41:21.2130609+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b3b118c2-80e4-49f9-82b7-892c91c29d88" />
+    <UnitTestResult executionId="5b7c6bbe-29f0-4b4e-8dc1-7d1d10b9e4cf" testId="ddd22fe1-cbcc-2c9f-9b31-19bb978cd605" testName="Novalist.Backend.Tests.SerialDispatchTests.WithoutTheGate_TheyDoOverlap" computerName="WIN11" duration="00:00:00.0511290" startTime="2026-10-06T23:41:20.6839536+02:00" endTime="2026-10-06T23:41:20.7351635+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5b7c6bbe-29f0-4b4e-8dc1-7d1d10b9e4cf" />
+    <UnitTestResult executionId="384a0d3a-2ec0-4d74-b2ab-f089b77ad756" testId="a19ca45a-7499-8a2b-e0d9-797059955929" testName="Novalist.Backend.Tests.SerialDispatchTests.FailedHandlers_AreLoggedWithoutArgumentsOrExceptionMessages" computerName="WIN11" duration="00:00:00.0337490" startTime="2026-10-06T23:41:20.9554191+02:00" endTime="2026-10-06T23:41:20.9892060+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="384a0d3a-2ec0-4d74-b2ab-f089b77ad756" />
+    <UnitTestResult executionId="bc42f864-4217-4568-bee6-7cd16bcdbdf4" testId="594dab71-d830-1d81-85e7-1db07a742d8c" testName="Novalist.Backend.Tests.SerialDispatchTests.TwoRequestsAtOnce_DoNotOverlap" computerName="WIN11" duration="00:00:00.2247463" startTime="2026-10-06T23:41:20.4508359+02:00" endTime="2026-10-06T23:41:20.6799869+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bc42f864-4217-4568-bee6-7cd16bcdbdf4" />
+    <UnitTestResult executionId="a7302980-ea7a-4764-8103-8e3a685b1c23" testId="88c2f4a6-e722-2e11-836b-4352d7ae0d67" testName="Novalist.Backend.Tests.SerialDispatchTests.AskingWhetherTheBackendIsAlive_DoesNotQueue" computerName="WIN11" duration="00:00:00.0465220" startTime="2026-10-06T23:41:20.9062039+02:00" endTime="2026-10-06T23:41:20.9527614+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a7302980-ea7a-4764-8103-8e3a685b1c23" />
+    <UnitTestResult executionId="671a74a2-c012-4785-b84d-4c392c2b91a9" testId="8db38c2b-8a37-417d-6410-06639e8d5521" testName="Novalist.Backend.Tests.SerialDispatchTests.DiagnosticMethodNames_AreLimitedToTheCompiledBackendSurface" computerName="WIN11" duration="00:00:00.0010702" startTime="2026-10-06T23:41:20.9531529+02:00" endTime="2026-10-06T23:41:20.9542601+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="671a74a2-c012-4785-b84d-4c392c2b91a9" />
+    <UnitTestResult executionId="c8118f52-4496-4e08-b7b4-3daac7bb54e1" testId="06925d83-f922-9d70-2bf9-0dd9d1ff5c3e" testName="Novalist.Backend.Tests.SerialDispatchTests.ExportProtectsItsWorkspaceUntilFinishedThenReleasesQueuedSaves(outcome: &quot;failure&quot;)" computerName="WIN11" duration="00:00:00.0619316" startTime="2026-10-06T23:41:20.7967751+02:00" endTime="2026-10-06T23:41:20.8587436+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c8118f52-4496-4e08-b7b4-3daac7bb54e1" />
+    <UnitTestResult executionId="c6720abb-4a1a-41e6-bdb3-0b7049b1be00" testId="046780e1-d8c5-6ad7-613b-0fc46158821a" testName="Novalist.Backend.Tests.SerialDispatchTests.ExportProtectsItsWorkspaceUntilFinishedThenReleasesQueuedSaves(outcome: &quot;cancel&quot;)" computerName="WIN11" duration="00:00:00.0467487" startTime="2026-10-06T23:41:20.8590363+02:00" endTime="2026-10-06T23:41:20.9058220+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c6720abb-4a1a-41e6-bdb3-0b7049b1be00" />
+    <UnitTestResult executionId="c8bf888c-d6ad-4248-bbc1-b749d380f999" testId="06c8e5fc-723d-348a-2d50-0d848fd0a6a6" testName="Novalist.Backend.Tests.SerialDispatchTests.TheCallsThatMustNotQueue_AreTheOnesThatAnswerAWaitingHandler" computerName="WIN11" duration="00:00:00.0006369" startTime="2026-10-06T23:41:20.9545134+02:00" endTime="2026-10-06T23:41:20.9551705+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c8bf888c-d6ad-4248-bbc1-b749d380f999" />
+    <UnitTestResult executionId="bbb5d2a3-0990-414e-b44a-5bdff1631847" testId="4109318b-4891-0d03-79d8-cadad77a3a28" testName="Novalist.Backend.Tests.SerialDispatchTests.ExportProtectsItsWorkspaceUntilFinishedThenReleasesQueuedSaves(outcome: &quot;success&quot;)" computerName="WIN11" duration="00:00:00.0602953" startTime="2026-10-06T23:41:20.7360828+02:00" endTime="2026-10-06T23:41:20.7964207+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bbb5d2a3-0990-414e-b44a-5bdff1631847" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="Novalist.Backend.Tests.SerialDispatchTests.DiagnosticMethodNames_AreLimitedToTheCompiledBackendSurface" storage="d:\git\novalist-official\tests\novalist.backend.tests\bin\debug\net8.0\novalist.backend.tests.dll" id="8db38c2b-8a37-417d-6410-06639e8d5521">
+      <Execution id="671a74a2-c012-4785-b84d-4c392c2b91a9" />
+      <TestMethod codeBase="D:\git\novalist-official\tests\Novalist.Backend.Tests\bin\Debug\net8.0\Novalist.Backend.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Backend.Tests.SerialDispatchTests" name="DiagnosticMethodNames_AreLimitedToTheCompiledBackendSurface" />
+    </UnitTest>
+    <UnitTest name="Novalist.Backend.Tests.SerialDispatchTests.ExportProtectsItsWorkspaceUntilFinishedThenReleasesQueuedSaves(outcome: &quot;success&quot;)" storage="d:\git\novalist-official\tests\novalist.backend.tests\bin\debug\net8.0\novalist.backend.tests.dll" id="4109318b-4891-0d03-79d8-cadad77a3a28">
+      <Execution id="bbb5d2a3-0990-414e-b44a-5bdff1631847" />
+      <TestMethod codeBase="D:\git\novalist-official\tests\Novalist.Backend.Tests\bin\Debug\net8.0\Novalist.Backend.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Backend.Tests.SerialDispatchTests" name="ExportProtectsItsWorkspaceUntilFinishedThenReleasesQueuedSaves" />
+    </UnitTest>
+    <UnitTest name="Novalist.Backend.Tests.SerialDispatchTests.TwoRequestsAtOnce_DoNotOverlap" storage="d:\git\novalist-official\tests\novalist.backend.tests\bin\debug\net8.0\novalist.backend.tests.dll" id="594dab71-d830-1d81-85e7-1db07a742d8c">
+      <Execution id="bc42f864-4217-4568-bee6-7cd16bcdbdf4" />
+      <TestMethod codeBase="D:\git\novalist-official\tests\Novalist.Backend.Tests\bin\Debug\net8.0\Novalist.Backend.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Backend.Tests.SerialDispatchTests" name="TwoRequestsAtOnce_DoNotOverlap" />
+    </UnitTest>
+    <UnitTest name="Novalist.Backend.Tests.ExportConcurrencyTests.BookSwitchDuringCompilationCannotChangeLaterSceneReads" storage="d:\git\novalist-official\tests\novalist.backend.tests\bin\debug\net8.0\novalist.backend.tests.dll" id="5bdb2f06-d9bc-03d9-19e8-c920518d43a7">
+      <Execution id="b3b118c2-80e4-49f9-82b7-892c91c29d88" />
+      <TestMethod codeBase="D:\git\novalist-official\tests\Novalist.Backend.Tests\bin\Debug\net8.0\Novalist.Backend.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Backend.Tests.ExportConcurrencyTests" name="BookSwitchDuringCompilationCannotChangeLaterSceneReads" />
+    </UnitTest>
+    <UnitTest name="Novalist.Backend.Tests.SerialDispatchTests.FailedHandlers_AreLoggedWithoutArgumentsOrExceptionMessages" storage="d:\git\novalist-official\tests\novalist.backend.tests\bin\debug\net8.0\novalist.backend.tests.dll" id="a19ca45a-7499-8a2b-e0d9-797059955929">
+      <Execution id="384a0d3a-2ec0-4d74-b2ab-f089b77ad756" />
+      <TestMethod codeBase="D:\git\novalist-official\tests\Novalist.Backend.Tests\bin\Debug\net8.0\Novalist.Backend.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Backend.Tests.SerialDispatchTests" name="FailedHandlers_AreLoggedWithoutArgumentsOrExceptionMessages" />
+    </UnitTest>
+    <UnitTest name="Novalist.Backend.Tests.SerialDispatchTests.WithoutTheGate_TheyDoOverlap" storage="d:\git\novalist-official\tests\novalist.backend.tests\bin\debug\net8.0\novalist.backend.tests.dll" id="ddd22fe1-cbcc-2c9f-9b31-19bb978cd605">
+      <Execution id="5b7c6bbe-29f0-4b4e-8dc1-7d1d10b9e4cf" />
+      <TestMethod codeBase="D:\git\novalist-official\tests\Novalist.Backend.Tests\bin\Debug\net8.0\Novalist.Backend.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Backend.Tests.SerialDispatchTests" name="WithoutTheGate_TheyDoOverlap" />
+    </UnitTest>
+    <UnitTest name="Novalist.Backend.Tests.SerialDispatchTests.TheCallsThatMustNotQueue_AreTheOnesThatAnswerAWaitingHandler" storage="d:\git\novalist-official\tests\novalist.backend.tests\bin\debug\net8.0\novalist.backend.tests.dll" id="06c8e5fc-723d-348a-2d50-0d848fd0a6a6">
+      <Execution id="c8bf888c-d6ad-4248-bbc1-b749d380f999" />
+      <TestMethod codeBase="D:\git\novalist-official\tests\Novalist.Backend.Tests\bin\Debug\net8.0\Novalist.Backend.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Backend.Tests.SerialDispatchTests" name="TheCallsThatMustNotQueue_AreTheOnesThatAnswerAWaitingHandler" />
+    </UnitTest>
+    <UnitTest name="Novalist.Backend.Tests.SerialDispatchTests.ExportProtectsItsWorkspaceUntilFinishedThenReleasesQueuedSaves(outcome: &quot;failure&quot;)" storage="d:\git\novalist-official\tests\novalist.backend.tests\bin\debug\net8.0\novalist.backend.tests.dll" id="06925d83-f922-9d70-2bf9-0dd9d1ff5c3e">
+      <Execution id="c8118f52-4496-4e08-b7b4-3daac7bb54e1" />
+      <TestMethod codeBase="D:\git\novalist-official\tests\Novalist.Backend.Tests\bin\Debug\net8.0\Novalist.Backend.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Backend.Tests.SerialDispatchTests" name="ExportProtectsItsWorkspaceUntilFinishedThenReleasesQueuedSaves" />
+    </UnitTest>
+    <UnitTest name="Novalist.Backend.Tests.SerialDispatchTests.AskingWhetherTheBackendIsAlive_DoesNotQueue" storage="d:\git\novalist-official\tests\novalist.backend.tests\bin\debug\net8.0\novalist.backend.tests.dll" id="88c2f4a6-e722-2e11-836b-4352d7ae0d67">
+      <Execution id="a7302980-ea7a-4764-8103-8e3a685b1c23" />
+      <TestMethod codeBase="D:\git\novalist-official\tests\Novalist.Backend.Tests\bin\Debug\net8.0\Novalist.Backend.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Backend.Tests.SerialDispatchTests" name="AskingWhetherTheBackendIsAlive_DoesNotQueue" />
+    </UnitTest>
+    <UnitTest name="Novalist.Backend.Tests.SerialDispatchTests.ExportProtectsItsWorkspaceUntilFinishedThenReleasesQueuedSaves(outcome: &quot;cancel&quot;)" storage="d:\git\novalist-official\tests\novalist.backend.tests\bin\debug\net8.0\novalist.backend.tests.dll" id="046780e1-d8c5-6ad7-613b-0fc46158821a">
+      <Execution id="c6720abb-4a1a-41e6-bdb3-0b7049b1be00" />
+      <TestMethod codeBase="D:\git\novalist-official\tests\Novalist.Backend.Tests\bin\Debug\net8.0\Novalist.Backend.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="Novalist.Backend.Tests.SerialDispatchTests" name="ExportProtectsItsWorkspaceUntilFinishedThenReleasesQueuedSaves" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="5bdb2f06-d9bc-03d9-19e8-c920518d43a7" executionId="b3b118c2-80e4-49f9-82b7-892c91c29d88" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ddd22fe1-cbcc-2c9f-9b31-19bb978cd605" executionId="5b7c6bbe-29f0-4b4e-8dc1-7d1d10b9e4cf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a19ca45a-7499-8a2b-e0d9-797059955929" executionId="384a0d3a-2ec0-4d74-b2ab-f089b77ad756" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="594dab71-d830-1d81-85e7-1db07a742d8c" executionId="bc42f864-4217-4568-bee6-7cd16bcdbdf4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="88c2f4a6-e722-2e11-836b-4352d7ae0d67" executionId="a7302980-ea7a-4764-8103-8e3a685b1c23" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8db38c2b-8a37-417d-6410-06639e8d5521" executionId="671a74a2-c012-4785-b84d-4c392c2b91a9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="06925d83-f922-9d70-2bf9-0dd9d1ff5c3e" executionId="c8118f52-4496-4e08-b7b4-3daac7bb54e1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="046780e1-d8c5-6ad7-613b-0fc46158821a" executionId="c6720abb-4a1a-41e6-bdb3-0b7049b1be00" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="06c8e5fc-723d-348a-2d50-0d848fd0a6a6" executionId="c8bf888c-d6ad-4248-bbc1-b749d380f999" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4109318b-4891-0d03-79d8-cadad77a3a28" executionId="bbb5d2a3-0990-414e-b44a-5bdff1631847" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="10" executed="10" passed="10" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 8.0.28)&#xD;
+[xUnit.net 00:00:00.14]   Discovering: Novalist.Backend.Tests&#xD;
+[xUnit.net 00:00:00.63]   Discovered:  Novalist.Backend.Tests&#xD;
+[xUnit.net 00:00:00.75]   Starting:    Novalist.Backend.Tests&#xD;
+[ERROR] rpc failed method=export/run type=System.IO.IOException.&#xD;
+[ERROR] rpc failed method=unknown type=System.InvalidOperationException.&#xD;
+[ERROR] rpc failed method=unknown type=System.InvalidOperationException.&#xD;
+[xUnit.net 00:00:01.54]   Finished:    Novalist.Backend.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

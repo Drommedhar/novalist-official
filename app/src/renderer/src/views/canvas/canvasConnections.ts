@@ -106,7 +106,7 @@ export function createCanvasConnection(context: CanvasConnectionContext) {
     setSelectedConnectorId(connector.id)
   }
 
-  const useConnectorHandleWithKeyboard = (
+  const handleConnectorKeyboard = (
     event: React.KeyboardEvent<HTMLButtonElement>,
     card: CanvasCard,
     side: ConnectorSide
@@ -149,7 +149,7 @@ export function createCanvasConnection(context: CanvasConnectionContext) {
         return t('canvas.connectorHandle.left', { card: cardName })
     }
   }
-  return { createConnector, useConnectorHandleWithKeyboard, connectorHandleLabel }
+  return { createConnector, handleConnectorKeyboard, connectorHandleLabel }
 }
 
 type CanvasConnectorEditingContext = Pick<ReturnType<typeof useCanvasState>, 'canvasRef' | 'editingOriginalLabel' | 'setSelectedId' | 'setKeyboardConnectFrom' | 'setSelectedConnectorId' | 'connectorInputRefs' | 'connectorLabelRefs' | 'cardMoveHandleRefs'> &

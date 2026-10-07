@@ -1,0 +1,1059 @@
+{
+  "schemaVersion": "1",
+  "cliVersion": "0.18.0",
+  "version": "0.18.0",
+  "score": 75,
+  "label": "Healthy",
+  "scoreable": true,
+  "coverage": {
+    "supportedFiles": 54,
+    "unsupportedFiles": 0,
+    "dominantUnsupported": null,
+    "scoreable": true
+  },
+  "engines": {
+    "format": {
+      "issues": 2,
+      "skipped": false,
+      "elapsed": 493.389
+    },
+    "lint": {
+      "issues": 6,
+      "skipped": false,
+      "elapsed": 489.60220000000004
+    },
+    "code-quality": {
+      "issues": 13,
+      "skipped": false,
+      "elapsed": 480.16189999999995
+    },
+    "ai-slop": {
+      "issues": 18,
+      "skipped": false,
+      "elapsed": 409.9370999999999
+    },
+    "security": {
+      "issues": 0,
+      "skipped": false,
+      "elapsed": 35.19249999999988
+    }
+  },
+  "engineDefinitions": {
+    "format": {
+      "label": "Formatting",
+      "description": "Whitespace, indentation, line wrapping, and import ordering"
+    },
+    "lint": {
+      "label": "Linting",
+      "description": "Static analysis for likely bugs and bad patterns"
+    },
+    "code-quality": {
+      "label": "Code Quality",
+      "description": "Complexity limits, dead code detection, and duplication checks"
+    },
+    "ai-slop": {
+      "label": "AI Slop",
+      "description": "Narrative comments, dead patterns, unsafe type casts, TODO stubs, generic names"
+    },
+    "architecture": {
+      "label": "Architecture",
+      "description": "Project-specific import and layering rules"
+    },
+    "security": {
+      "label": "Security",
+      "description": "Secret leaks, risky APIs, and dependency vulnerabilities"
+    }
+  },
+  "diagnostics": [
+    {
+      "filePath": "Novalist.Extensions.Speech/python/benchmark.py",
+      "engine": "format",
+      "rule": "python-formatting",
+      "severity": "warning",
+      "message": "Python file is not formatted correctly",
+      "help": "Run `aislop fix` to auto-format with ruff",
+      "line": 0,
+      "column": 0,
+      "category": "Format",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "mechanical",
+        "multiplier": 0.5,
+        "cap": 12,
+        "rationale": "Python formatter output is mechanical cleanup."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/python/mlx_backend.py",
+      "engine": "format",
+      "rule": "python-formatting",
+      "severity": "warning",
+      "message": "Python file is not formatted correctly",
+      "help": "Run `aislop fix` to auto-format with ruff",
+      "line": 0,
+      "column": 0,
+      "category": "Format",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "mechanical",
+        "multiplier": 0.5,
+        "cap": 12,
+        "rationale": "Python formatter output is mechanical cleanup."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/python/benchmark.py",
+      "engine": "lint",
+      "rule": "ruff/I001",
+      "severity": "warning",
+      "message": "Import block is un-sorted or un-formatted",
+      "help": "",
+      "line": 9,
+      "column": 1,
+      "category": "Python Lint",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "standard",
+        "multiplier": 1,
+        "rationale": "External ruff rule uses standard lint impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/python/benchmark.py",
+      "engine": "lint",
+      "rule": "ruff/I001",
+      "severity": "warning",
+      "message": "Import block is un-sorted or un-formatted",
+      "help": "",
+      "line": 43,
+      "column": 5,
+      "category": "Python Lint",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "standard",
+        "multiplier": 1,
+        "rationale": "External ruff rule uses standard lint impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/python/benchmark.py",
+      "engine": "lint",
+      "rule": "ruff/C408",
+      "severity": "warning",
+      "message": "Unnecessary `dict()` call (rewrite as a literal)",
+      "help": "",
+      "line": 64,
+      "column": 14,
+      "category": "Python Lint",
+      "fixable": false,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "standard",
+        "multiplier": 1,
+        "rationale": "External ruff rule uses standard lint impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/python/benchmark.py",
+      "engine": "lint",
+      "rule": "ruff/C408",
+      "severity": "warning",
+      "message": "Unnecessary `dict()` call (rewrite as a literal)",
+      "help": "",
+      "line": 125,
+      "column": 18,
+      "category": "Python Lint",
+      "fixable": false,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "standard",
+        "multiplier": 1,
+        "rationale": "External ruff rule uses standard lint impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/python/mlx_backend.py",
+      "engine": "lint",
+      "rule": "ruff/UP037",
+      "severity": "warning",
+      "message": "Remove quotes from type annotation",
+      "help": "",
+      "line": 27,
+      "column": 48,
+      "category": "Python Lint",
+      "fixable": true,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "standard",
+        "multiplier": 1,
+        "rationale": "External ruff rule uses standard lint impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/python/mlx_backend.py",
+      "engine": "lint",
+      "rule": "ruff/C408",
+      "severity": "warning",
+      "message": "Unnecessary `dict()` call (rewrite as a literal)",
+      "help": "",
+      "line": 83,
+      "column": 16,
+      "category": "Python Lint",
+      "fixable": false,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "standard",
+        "multiplier": 1,
+        "rationale": "External ruff rule uses standard lint impact."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Formats/Services/Manuscript.cs",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 36,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "Manuscript · 97 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Insight/InsightExtension.cs",
+      "engine": "code-quality",
+      "rule": "complexity/file-too-large",
+      "severity": "warning",
+      "message": "File too large (limit: 400, flagged above 441 lines)",
+      "help": "Consider splitting this file into partial class files or smaller modules",
+      "line": 0,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "600 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Insight/InsightExtension.cs",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 69,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "ReportController · 481 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Publish/Site/Markup.cs",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 67,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "ToHtml · 105 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/Engine/PythonEnvironment.cs",
+      "engine": "code-quality",
+      "rule": "complexity/file-too-large",
+      "severity": "warning",
+      "message": "File too large (limit: 400, flagged above 441 lines)",
+      "help": "Consider splitting this file into partial class files or smaller modules",
+      "line": 0,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "565 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/Engine/PythonEnvironment.cs",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 169,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "BuildAsync · 97 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/Engine/VoiceEngine.cs",
+      "engine": "code-quality",
+      "rule": "complexity/file-too-large",
+      "severity": "warning",
+      "message": "File too large (limit: 400, flagged above 441 lines)",
+      "help": "Consider splitting this file into partial class files or smaller modules",
+      "line": 0,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "500 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/SpeechExtension.cs",
+      "engine": "code-quality",
+      "rule": "complexity/file-too-large",
+      "severity": "warning",
+      "message": "File too large (limit: 400, flagged above 441 lines)",
+      "help": "Consider splitting this file into partial class files or smaller modules",
+      "line": 0,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "518 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/SpeechExtension.cs",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 229,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "PrepareAsync · 94 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/python/benchmark.py",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 25,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "main · 115 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/python/sidecar.py",
+      "engine": "code-quality",
+      "rule": "complexity/file-too-large",
+      "severity": "warning",
+      "message": "File too large (limit: 400, flagged above 441 lines)",
+      "help": "Consider splitting this file into smaller modules",
+      "line": 0,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "780 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Large files are reviewability pressure, but size alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/python/sidecar.py",
+      "engine": "code-quality",
+      "rule": "complexity/deep-nesting",
+      "severity": "warning",
+      "message": "Function nested too deeply (max: 5)",
+      "help": "Consider using early returns or extracting nested logic",
+      "line": 629,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "do_render · depth 6",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "Deep nesting makes behavior harder to reason about and is more actionable than pure size."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Toolkit/Services/BoardController.cs",
+      "engine": "code-quality",
+      "rule": "complexity/function-too-long",
+      "severity": "warning",
+      "message": "Function too long (limit: 80, flagged above 88 lines)",
+      "help": "Consider breaking this function into smaller pieces",
+      "line": 16,
+      "column": 0,
+      "category": "Complexity",
+      "fixable": false,
+      "detail": "BoardController · 241 lines",
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Long functions are maintainability pressure, but length alone is not a confirmed defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/python/benchmark.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/hallucinated-import",
+      "severity": "error",
+      "message": "Imports \"cProfile\" but it's not declared in requirements files, pyproject.toml, or Pipfile and isn't Python stdlib",
+      "help": "Most often this is an LLM hallucinating a plausible-sounding package name. Either add the package to your manifest, or correct the import. If your runtime provides it, list it under imports.provided in .aislop/config.yml.",
+      "line": 13,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "confirmed-defect",
+        "confidence": "high",
+        "label": "confirmed defects"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Imports missing from the manifest are high-confidence install/runtime failures."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/python/mlx_backend.py",
+      "engine": "ai-slop",
+      "rule": "ai-slop/hallucinated-import",
+      "severity": "error",
+      "message": "Imports \"tqdm\" but it's not declared in requirements files, pyproject.toml, or Pipfile and isn't Python stdlib",
+      "help": "Most often this is an LLM hallucinating a plausible-sounding package name. Either add the package to your manifest, or correct the import. If your runtime provides it, list it under imports.provided in .aislop/config.yml.",
+      "line": 116,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "confirmed-defect",
+        "confidence": "high",
+        "label": "confirmed defects"
+      },
+      "scoreImpact": {
+        "tier": "strict",
+        "multiplier": 1,
+        "rationale": "Imports missing from the manifest are high-confidence install/runtime failures."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Formats/FormatsExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/meta-comment",
+      "severity": "warning",
+      "message": "Meta/plan comment (before/after state narration)",
+      "help": "Remove — references to the build plan or before/after code state belong in PR descriptions and commit messages, not source.",
+      "line": 145,
+      "column": 0,
+      "category": "Comments",
+      "fixable": false,
+      "assessment": {
+        "kind": "style-policy",
+        "confidence": "medium",
+        "label": "style/policy"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "Process narration is cleanup noise and should not make a healthy repo look broken."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Formats/FormatsExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 34,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Formats/FormatsExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 35,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Insight/Analysis/NameDrift.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-redundant-doc-comment",
+      "severity": "warning",
+      "message": "XML-doc summary restates the member name without adding information.",
+      "help": "Delete the doc comment, or replace boilerplate (\"Gets or sets the X\") with the *why*: constraints, units, invariants a reader can't infer from the signature.",
+      "line": 5,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "XML-doc that restates the member name is a cleanup/style finding, not a defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Insight/InsightExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 35,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Insight/InsightExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 36,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Publish/PublishExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 36,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Publish/PublishExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 37,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/Engine/PythonEnvironment.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-redundant-doc-comment",
+      "severity": "warning",
+      "message": "XML-doc summary restates the member name without adding information.",
+      "help": "Delete the doc comment, or replace boilerplate (\"Gets or sets the X\") with the *why*: constraints, units, invariants a reader can't infer from the signature.",
+      "line": 30,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "XML-doc that restates the member name is a cleanup/style finding, not a defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Speech/Engine/PythonEnvironment.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-redundant-doc-comment",
+      "severity": "warning",
+      "message": "XML-doc summary restates the member name without adding information.",
+      "help": "Delete the doc comment, or replace boilerplate (\"Gets or sets the X\") with the *why*: constraints, units, invariants a reader can't infer from the signature.",
+      "line": 85,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "XML-doc that restates the member name is a cleanup/style finding, not a defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Toolkit/Services/Lookup.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 57,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Toolkit/Services/Names.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-redundant-doc-comment",
+      "severity": "warning",
+      "message": "XML-doc summary restates the member name without adding information.",
+      "help": "Delete the doc comment, or replace boilerplate (\"Gets or sets the X\") with the *why*: constraints, units, invariants a reader can't infer from the signature.",
+      "line": 188,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "XML-doc that restates the member name is a cleanup/style finding, not a defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Toolkit/Services/ReaderMode.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-redundant-doc-comment",
+      "severity": "warning",
+      "message": "XML-doc summary restates the member name without adding information.",
+      "help": "Delete the doc comment, or replace boilerplate (\"Gets or sets the X\") with the *why*: constraints, units, invariants a reader can't infer from the signature.",
+      "line": 7,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "style",
+        "multiplier": 0.5,
+        "cap": 8,
+        "rationale": "XML-doc that restates the member name is a cleanup/style finding, not a defect."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Toolkit/ToolkitExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 33,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Toolkit/ToolkitExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 35,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    },
+    {
+      "filePath": "Novalist.Extensions.Toolkit/ToolkitExtension.cs",
+      "engine": "ai-slop",
+      "rule": "ai-slop/csharp-null-forgiving",
+      "severity": "warning",
+      "message": "The null-forgiving `!` silences the nullable warning without proving the value is non-null.",
+      "help": "Handle the null case (guard, `??`, or throw with context) instead of asserting non-null. Use `!` only when non-null is provable, and say why.",
+      "line": 36,
+      "column": 1,
+      "category": "AI Slop",
+      "fixable": false,
+      "assessment": {
+        "kind": "ai-slop-indicator",
+        "confidence": "medium",
+        "label": "AI-slop indicators"
+      },
+      "scoreImpact": {
+        "tier": "maintainability",
+        "multiplier": 0.75,
+        "cap": 24,
+        "rationale": "The null-forgiving ! silences nullable safety without proving the value is non-null."
+      },
+      "forceFixable": false
+    }
+  ],
+  "findingAssessment": {
+    "rows": [
+      {
+        "kind": "style-policy",
+        "label": "style/policy",
+        "count": 22,
+        "errors": 0,
+        "warnings": 22,
+        "info": 0,
+        "fixable": 5
+      },
+      {
+        "kind": "ai-slop-indicator",
+        "label": "AI-slop indicators",
+        "count": 15,
+        "errors": 0,
+        "warnings": 15,
+        "info": 0,
+        "fixable": 0
+      },
+      {
+        "kind": "confirmed-defect",
+        "label": "confirmed defects",
+        "count": 2,
+        "errors": 2,
+        "warnings": 0,
+        "info": 0,
+        "fixable": 0
+      }
+    ],
+    "byKind": {
+      "confirmed-defect": 2,
+      "conservative-security": 0,
+      "style-policy": 22,
+      "ai-slop-indicator": 15
+    },
+    "byConfidence": {
+      "high": 2,
+      "medium": 37,
+      "low": 0
+    }
+  },
+  "summary": {
+    "errors": 2,
+    "warnings": 37,
+    "fixable": 5,
+    "files": 54,
+    "elapsed": "501ms"
+  }
+}

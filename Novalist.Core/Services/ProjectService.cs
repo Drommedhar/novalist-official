@@ -78,8 +78,11 @@ public partial class ProjectService : IProjectService
     public async Task<ProjectMetadata> CreateProjectAsync(string parentDirectory, string projectName, string firstBookName)
     {
         var projectDir = ProjectDirectory(parentDirectory, projectName);
-
-        await _fileService.CreateDirectoryAsync(projectDir);
+        var bookFolder = RequireStorageName(firstBookName, nameof(firstBookName));
+        if (bookFolder.Equals(".novalist", StringComparison.OrdinalIgnoreCase) ||
+            bookFolder.Equals(new ProjectMetadata().WorldBibleFolder, StringComparison.OrdinalIgnoreCase))
+            bookFolder += "-Book";
+        await ReserveDirectoryAsync(projectDir);
 
         var bookId = $"book-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
         var defaultDraft = new BookDraftMetadata
@@ -93,7 +96,7 @@ public partial class ProjectService : IProjectService
         {
             Id = bookId,
             Name = firstBookName,
-            FolderName = SanitizeFileName(firstBookName),
+            FolderName = bookFolder,
             CreatedAt = DateTime.UtcNow,
             Drafts = [defaultDraft],
             ActiveDraftId = defaultDraft.Id,
@@ -116,6 +119,7 @@ public partial class ProjectService : IProjectService
 
         ProjectRoot = projectDir;
         CurrentProject = metadata;
+        ProjectSettings = new ProjectSettings();
         ActiveBook = book;
         ScenesManifest = new ScenesManifest();
 
@@ -166,7 +170,7 @@ public partial class ProjectService : IProjectService
     }
 
     private string ProjectDirectory(string parentDirectory, string projectName)
-        => _fileService.CombinePath(parentDirectory, SanitizeFileName(projectName));
+        => _fileService.CombinePath(parentDirectory, RequireStorageName(projectName, nameof(projectName)));
 
     /// <summary>
     /// Whether a folder still holds a Novalist project.

@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "hostVersion": "1.7",
+  "hostTag": "v1.7",
+  "sdkCommit": "08c6e3a76bcc933841258f9889eeb98c003a7c22",
+  "extensionId": "com.novalist.pnp",
+  "extensionVersion": "0.1.0",
+  "nativeContributions": [
+    "IExtension",
+    "IRibbonContributor",
+    "ISidebarContributor",
+    "IContentViewContributor",
+    "ISettingsContributor",
+    "IEntityTypeContributor",
+    "IContextMenuContributor",
+    "IStatusBarContributor",
+    "IHotkeyContributor",
+    "IAiHook",
+    "IEditorExtension",
+    "IExportFormatContributor",
+    "IPropertyTypeContributor"
+  ],
+  "loadedUsingHistoricalLoader": true,
+  "limitation": "Historical SDK/loader exercised; extension Initialize and UI views not started."
+}

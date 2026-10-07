@@ -1,5 +1,5 @@
 import { useEditorAnnotations } from './useEditorAnnotations'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type EditorWindow } from './editorBridge'
 import { type FormattingState } from './EditorToolbar'
@@ -78,6 +78,7 @@ export function useEditorFrameModel({ paneId }: { paneId?: string }) {
   // later means never: a picture in the prose without one is invisible to a
   // reader using a screen reader and to an accessible export.
   const [pendingImage, setPendingImage] = useState<string | null>(null)
+  useEffect(() => setPendingImage(null), [openSceneId])
   const { entityIndexRef, peekScope, peek, peekRef, sceneTitleRef, pushEntityNames } = useEditorPeek(pane, openSceneId)
   const { pendingEntity, setPendingEntity, pendingAppend, setPendingAppend, createPendingEntity, cancelPendingEntity, appendSelectionToEntity } = useEditorEntityRequests(editorRef, pushEntityNames)
   const annotations = useEditorAnnotations(pane, editorRef)

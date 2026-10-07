@@ -1,4 +1,4 @@
-name: Apple speech build
+name: Apple speech and mobile build
 
 on:
   workflow_dispatch:
@@ -7,7 +7,13 @@ on:
     paths:
       - 'native/AppleSpeech/**'
       - 'Novalist.Backend/**'
+      - 'Novalist.Core/**'
+      - 'Novalist.Sdk/**'
       - 'Novalist.Mobile/**'
+      - 'app/**'
+      - 'Directory.Build.*'
+      - 'Directory.Packages.props'
+      - 'global.json'
       - '.github/workflows/apple-speech.yml'
       - 'tools/test_apple_speech_build.py'
 

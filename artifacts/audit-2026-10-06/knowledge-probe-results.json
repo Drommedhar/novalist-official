@@ -1,0 +1,16 @@
+[
+  {
+    "probe": "knowledge-apply-record",
+    "warmCache": false,
+    "completedBeforeCancel": false,
+    "completedAfterCancel": false,
+    "writes": 0
+  },
+  {
+    "probe": "knowledge-apply-record",
+    "warmCache": true,
+    "completedBeforeCancel": false,
+    "completedAfterCancel": false,
+    "writes": 0
+  }
+]

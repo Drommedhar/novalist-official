@@ -1,0 +1,81 @@
+{
+  "updated": "2026-10-07",
+  "previous_goal_turn": "progress: controlled P01 desktop measurements, M06 full renderer regression and independently reviewed M02 temporary-grant cleanup completed; current resumed turn corrects media evidence misfiled under M04 and revalidates native availability",
+  "resumed_blocked_audit": {
+    "turn": 1,
+    "date": "2026-10-07",
+    "condition": "Apple native runtime and device acceptance results are unavailable in this Windows workspace.",
+    "observations": [
+      "No native-run checks.tsv, native-result or native-acceptance artifact was found.",
+      "Neither xcodebuild nor xcrun is available.",
+      "dotnet workload list reports no installed workloads.",
+      "The resumed goal is active. Ten native findings remain pending; no completion or new blocked status is claimed on this first resumed turn."
+    ]
+  },
+  "findings": [
+    {
+      "id": "BE-10",
+      "status": "implemented-verified",
+      "implementation": ["Export compilation and export-setting mutations now share the workspace gate. Book/draft/project changes wait until compilation finishes; read-only formats/tokens and cancellation remain responsive. This bounded correction delays queued edits during export; it does not introduce the larger immutable-snapshot refactor suggested by the audit."],
+      "files": ["Novalist.Backend/SerialDispatchJsonRpc.cs", "tests/Novalist.Backend.Tests/ExportConcurrencyTests.cs", "tests/Novalist.Backend.Tests/SerialDispatchTests.cs"],
+      "tests": ["BookSwitchDuringCompilationCannotChangeLaterSceneReads uses the real BackendHost and a delayed coordinated file service: pause the second of three scene reads, queue another book, then assert every original passage and no foreign text in the actual Markdown output.", "ExportProtectsItsWorkspaceUntilFinishedThenReleasesQueuedSaves verifies gate release after success, failure and cancellation. Combined export/serialization acceptance: 10 passed."],
+      "pending": []
+    }
+  ],
+  "checks": [
+    {
+      "command": "python tools/check-source.py",
+      "status": "passed",
+      "detail": "All 8 CI source gates passed again after the final M02 native lifetime correction and Node prerequisite edits: locale, manual, manual tests, tokens, files, strict RPC, placement and editor bridge. Latest evidence: final-source-checks-native-followup.log."
+    },
+    {
+      "command": "python -m unittest tools/test_html_sources.py tools/test_file_doctor.py tools/test_changelog.py tools/test_wait_for_release_ci.py",
+      "status": "passed",
+      "detail": "39 source/release-tool regression tests passed. Evidence: source-tool-tests.log."
+    },
+    {
+      "command": "npm run test:packaging",
+      "status": "passed",
+      "detail": "9 packaging/signing patch tests passed; no app was signed or packaged."
+    },
+    {
+      "command": "python -m unittest discover -s tools -p test_apple_speech_build.py",
+      "status": "passed-with-native-skips",
+      "detail": "3 portable Apple build-graph checks passed; 2 tests require macOS and were skipped. Evidence: apple-build-regressions.log."
+    },
+    {
+      "command": "bash -n artifacts/audit-2026-10-06/verify-native.sh",
+      "status": "passed",
+      "detail": "Bash syntax rechecked in Debian WSL after adding --no-audit to dependency restoration. Execution off macOS refuses before building. The script gathers native build logs on a prepared Mac; expanded simulator/device install and fault-injection procedures are embedded in implementation.html. Native/device acceptance is still pending."
+    },
+    {
+      "command": "dotnet test Backend --no-build --no-restore",
+      "status": "passed",
+      "detail": "2058 passed, 0 failed, 0 skipped after adding the real export compilation race. Evidence: backend-acceptance-final/backend-acceptance-final.trx. Product C# source is unchanged from the 100% coverage run."
+    },
+    {
+      "command": "Elevated Aislop export acceptance test",
+      "status": "passed",
+      "detail": "Score 100, zero diagnostics. Evidence: aislop-export-acceptance.json."
+    },
+    {
+      "command": "Cached Linux Node 22.23.3: npm run test:transport",
+      "status": "passed",
+      "detail": "114/114 passed with current source and script hashes verified, including the M06 Vite transform and real microphone denial/retry path. No install, download or dependency audit. Evidence: linux-validation/node22-transport-summary.json."
+    },
+    {
+      "command": "Node prerequisite metadata consistency and Aislop",
+      "status": "checked",
+      "detail": "Package and lockfile root engines now require ^22.13.0 || >=23.2.0, matching the test loader's stripTypeScriptTypes API requirement. README and Mac handoff agree; the native script checks the API before restoration. Aislop reports no supported files or diagnostics for these JSON/Markdown-only edits, so no numerical score is claimed. Evidence: aislop-node-prerequisite.json."
+    },
+    {
+      "command": "npm audit --json",
+      "status": "approval-pending-not-run",
+      "detail": "Aislop could not launch npm (ENOENT). A direct attempt was then rejected by automatic approval review because dependency metadata would be sent to https://registry.npmjs.org/. No audit request was sent. A local inventory of 570 locked package/version entries is available in npm-audit-payload-preview.json; explicit user approval has been requested. This is separate from the 73 finding-specific acceptance results."
+    }
+  ],
+  "limitations": [
+    "Windows has no installed .NET iOS workload or Xcode. Native build/device acceptance cannot be inferred from portable Apple build-graph tests.",
+    "R17 ran in native Linux Electron under Debian WSLg with isolated portable dependencies. Only the isolated root-user test harness disables the Chromium sandbox; the application configuration is unchanged."
+  ]
+}

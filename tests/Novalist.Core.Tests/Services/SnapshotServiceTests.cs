@@ -26,6 +26,54 @@ public class SnapshotServiceTests
     private static SceneData Sc() => new() { Id = "s1", WordCount = 42 };
 
     [Fact]
+    public async Task RestoringCapturedEmptyMetadataClearsLaterValues()
+    {
+        var (sut, project, _) = Build();
+        var chapter = Ch();
+        var scene = Sc();
+        project.ReadSceneContentAsync(chapter, scene).Returns("<p>Original</p>");
+        var snapshot = await sut.TakeAsync(chapter, scene, "Empty metadata");
+        scene.Notes = "Added later";
+        scene.Synopsis = "Added later";
+        scene.Stage = "draft";
+        scene.LabelKey = "red";
+        scene.PlotlineIds = ["later"];
+        scene.AnalysisOverrides = new SceneAnalysisOverrides { Pov = "Later", Tags = ["later"] };
+
+        Assert.True(await sut.RestoreAsync(chapter, scene, snapshot.Id));
+
+        Assert.Null(scene.Notes);
+        Assert.Null(scene.Synopsis);
+        Assert.Null(scene.Stage);
+        Assert.Null(scene.LabelKey);
+        Assert.Null(scene.PlotlineIds);
+        Assert.Null(scene.AnalysisOverrides.Pov);
+        Assert.Null(scene.AnalysisOverrides.Tags);
+    }
+
+    [Fact]
+    public async Task LegacyMetadataDistinguishesExplicitNullFromAbsentFieldsEvenAfterRename()
+    {
+        var (sut, project, files) = Build();
+        var chapter = Ch();
+        var scene = Sc();
+        project.ReadSceneContentAsync(chapter, scene).Returns("<p>Current</p>");
+        var path = Path.Combine(Root, "Snapshots", scene.Id, "old.json");
+        await files.CreateDirectoryAsync(Path.GetDirectoryName(path)!);
+        await files.WriteTextAsync(path, """{"id":"old","content":"<p>Old</p>","meta":{"notes":null}}""");
+        scene.Notes = "Added later";
+        scene.Synopsis = "Keep me";
+        scene.AnalysisOverrides = new SceneAnalysisOverrides { Pov = "Keep me" };
+
+        Assert.True(await sut.RenameAsync(scene, "old", "Renamed"));
+        Assert.True(await sut.RestoreAsync(chapter, scene, "old"));
+
+        Assert.Null(scene.Notes);
+        Assert.Equal("Keep me", scene.Synopsis);
+        Assert.Equal("Keep me", scene.AnalysisOverrides.Pov);
+    }
+
+    [Fact]
     public async Task TakeAsync_WritesSnapshotFile()
     {
         var (sut, project, files) = Build();
@@ -271,8 +319,9 @@ public class SnapshotServiceTests
 
         // Every snapshot taken before this shipped looks exactly like this one.
         var path = files.Files.Keys.First();
-        files.Files[path] = files.Files[path].Replace(
-            System.Text.Json.JsonSerializer.Serialize(snap.Meta), "null");
+        var legacy = System.Text.Json.Nodes.JsonNode.Parse(files.Files[path])!;
+        legacy.AsObject().Remove("meta");
+        files.Files[path] = legacy.ToJsonString();
         sc.Synopsis = "written since";
 
         Assert.True(await sut.RestoreAsync(ch, sc, snap.Id));

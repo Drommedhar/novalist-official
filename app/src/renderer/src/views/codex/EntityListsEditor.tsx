@@ -43,6 +43,7 @@ export function EntityListsEditor({
   const entityType = useCodexStore((s) => s.entityType)
   const selectedId = useCodexStore((s) => s.selectedId)
   const record = useCodexStore((s) => s.selectedRecord)
+  const restoredRevision = useCodexStore((s) => s.restoredRevision)
   const includeRelationships =
     RELATIONSHIP_TYPES.includes(entityType) || !!customDef?.features.includeRelationships
   const [aliases, setAliases] = useState<string[]>([])
@@ -90,15 +91,16 @@ export function EntityListsEditor({
 
   useEffect(() => {
     if (!record || !selectedId) return
-    if (loadedFor.current === selectedId) return
-    loadedFor.current = selectedId
+    const owner = `${selectedId}:${restoredRevision}`
+    if (loadedFor.current === owner) return
+    loadedFor.current = owner
     setAliases(Array.isArray(record.aliases) ? (record.aliases as string[]) : [])
     setRelationships(
       Array.isArray(record.relationships)
         ? (record.relationships as RelationshipRow[]).map((r) => ({ ...r }))
         : []
     )
-  }, [selectedId, record])
+  }, [selectedId, record, restoredRevision])
 
   useEffect(() => {
     // Every type that carries relationships, not characters alone: a location

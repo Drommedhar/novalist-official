@@ -1,0 +1,14 @@
+
+Running 7 tests using 1 worker
+
+(node:31348) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 e2e\audit-research-acceptance.spec.ts:34:5 › failed research writes survive unmount, veto window close, and retry both notes (1.6s)
+  ok 2 e2e\audit-research-acceptance.spec.ts:81:5 › a delayed content save cannot revert status and rating changed afterward (2.0s)
+  ok 3 e2e\audit-research-acceptance.spec.ts:105:5 › a delayed lifecycle response preserves a later acknowledged title and content (2.1s)
+  ok 4 e2e\audit-research-acceptance.spec.ts:127:5 › delaying note A cannot overwrite note B title, Markdown and tags (1.9s)
+  ok 5 e2e\audit-research-acceptance.spec.ts:162:48 › project close flushes focused research title before reopening (1.4s)
+  ok 6 e2e\audit-research-acceptance.spec.ts:162:48 › project close flushes focused research Markdown before reopening (1.4s)
+  ok 7 e2e\audit-search-navigation.spec.ts:7:5 › a project search result waits for dirty prose before opening its book and scene (2.4s)
+
+  7 passed (13.3s)

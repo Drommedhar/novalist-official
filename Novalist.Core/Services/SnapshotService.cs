@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Novalist.Core.Models;
+using Novalist.Core.Utilities;
 
 namespace Novalist.Core.Services;
 
@@ -19,13 +20,21 @@ public sealed class SnapshotService : ISnapshotService
     public async Task<SceneSnapshot> TakeAsync(ChapterData chapter, SceneData scene, string label)
     {
         var content = await _projectService.ReadSceneContentAsync(chapter, scene);
+        return await SaveSnapshotAsync(chapter, scene, label, content, scene.WordCount);
+    }
+
+    public Task<SceneSnapshot> TakeContentAsync(ChapterData chapter, SceneData scene, string label, string content)
+        => SaveSnapshotAsync(chapter, scene, label, content, ScriptAwareCounting.Count(new HtmlSearchText(content).Text));
+
+    private async Task<SceneSnapshot> SaveSnapshotAsync(ChapterData chapter, SceneData scene, string label, string content, int wordCount)
+    {
         var snapshot = new SceneSnapshot
         {
             SceneId = scene.Id,
             ChapterGuid = chapter.Guid,
             CreatedAt = DateTime.UtcNow,
             Label = label ?? string.Empty,
-            WordCount = scene.WordCount,
+            WordCount = wordCount,
             Content = content,
             Meta = CaptureMeta(scene)
         };
@@ -45,6 +54,7 @@ public sealed class SnapshotService : ISnapshotService
     /// </summary>
     private static SceneSnapshotMeta CaptureMeta(SceneData scene) => new()
     {
+        CapturedFields = ["title", "synopsis", "notes", "pov", "stage", "labelKey", "storyDate", "plotlineIds", "tags"],
         Title = scene.Title,
         Synopsis = scene.Synopsis,
         Notes = scene.Notes,
@@ -69,7 +79,7 @@ public sealed class SnapshotService : ISnapshotService
             try
             {
                 var json = await _fileService.ReadTextAsync(file);
-                var snap = JsonSerializer.Deserialize<SceneSnapshot>(json);
+                var snap = DeserializeSnapshot(json);
                 if (snap != null)
                     result.Add(snap);
             }
@@ -86,6 +96,18 @@ public sealed class SnapshotService : ISnapshotService
     {
         var snapshots = await ListAsync(scene);
         return snapshots.FirstOrDefault(s => string.Equals(s.Id, snapshotId, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static SceneSnapshot? DeserializeSnapshot(string json)
+    {
+        var snapshot = JsonSerializer.Deserialize<SceneSnapshot>(json);
+        if (snapshot?.Meta is { CapturedFields: null } meta)
+        {
+            using var document = JsonDocument.Parse(json);
+            meta.CapturedFields = document.RootElement.GetProperty("meta")
+                .EnumerateObject().Select(property => property.Name).ToList();
+        }
+        return snapshot;
     }
 
     public async Task<bool> RestoreAsync(ChapterData chapter, SceneData scene, string snapshotId)
@@ -113,17 +135,19 @@ public sealed class SnapshotService : ISnapshotService
     {
         if (meta == null) return;
         if (meta.Title != null) scene.Title = meta.Title;
-        if (meta.Synopsis != null) scene.Synopsis = meta.Synopsis;
-        if (meta.Notes != null) scene.Notes = meta.Notes;
-        if (meta.Stage != null) scene.Stage = meta.Stage;
-        if (meta.LabelKey != null) scene.LabelKey = meta.LabelKey;
+        if (meta.CapturedFields?.Contains("synopsis") == true) scene.Synopsis = meta.Synopsis;
+        if (meta.CapturedFields?.Contains("notes") == true) scene.Notes = meta.Notes;
+        if (meta.CapturedFields?.Contains("stage") == true) scene.Stage = meta.Stage;
+        if (meta.CapturedFields?.Contains("labelKey") == true) scene.LabelKey = meta.LabelKey;
         if (meta.StoryDate != null) scene.Date = meta.StoryDate;
-        if (meta.PlotlineIds != null) scene.PlotlineIds = [.. meta.PlotlineIds];
-        if (meta.Pov != null || meta.Tags != null)
+        if (meta.CapturedFields?.Contains("plotlineIds") == true)
+            scene.PlotlineIds = meta.PlotlineIds == null ? null : [.. meta.PlotlineIds];
+        if (meta.CapturedFields?.Contains("pov") == true || meta.CapturedFields?.Contains("tags") == true)
         {
             scene.AnalysisOverrides ??= new SceneAnalysisOverrides();
-            if (meta.Pov != null) scene.AnalysisOverrides.Pov = meta.Pov;
-            if (meta.Tags != null) scene.AnalysisOverrides.Tags = [.. meta.Tags];
+            if (meta.CapturedFields?.Contains("pov") == true) scene.AnalysisOverrides.Pov = meta.Pov;
+            if (meta.CapturedFields?.Contains("tags") == true)
+                scene.AnalysisOverrides.Tags = meta.Tags == null ? null : [.. meta.Tags];
         }
     }
 
@@ -175,8 +199,7 @@ public sealed class SnapshotService : ISnapshotService
             SceneSnapshot? snapshot;
             try
             {
-                snapshot = JsonSerializer.Deserialize<SceneSnapshot>(
-                    await _fileService.ReadTextAsync(file));
+                snapshot = DeserializeSnapshot(await _fileService.ReadTextAsync(file));
             }
             catch (JsonException)
             {

@@ -25,4 +25,7 @@ public interface IStoredPathResolver
     /// there is nothing this resolver can do for it.
     /// </summary>
     string? Resolve(string storedPath);
+
+    /// <summary>Releases temporary access acquired while resolving a stored path.</summary>
+    void Release(string resolvedPath) { }
 }

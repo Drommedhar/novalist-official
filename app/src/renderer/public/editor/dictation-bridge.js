@@ -89,12 +89,25 @@ window.applyInlineActionResult = function (json) {
     try {
         var payload = typeof json === 'string' ? JSON.parse(json) : json;
         if (!payload || !window.NovalistEditorState.pendingInlineAction) return;
-        if (payload.actionId !== window.NovalistEditorState.pendingInlineAction.id) { window.NovalistEditorState.pendingInlineAction = null; return; }
+        const pending = window.NovalistEditorState.pendingInlineAction;
+        if (payload.actionId !== pending.id || (payload.requestId !== undefined && payload.requestId !== pending.requestId)) return;
+        if (payload.cancelled || payload.disposition === 'information') { window.NovalistEditorState.pendingInlineAction = null; return; }
         if (payload.error) { window.NovalistEditorState.pendingInlineAction = null; return; }
 
         const range = window.NovalistEditorState.pendingInlineAction.range;
+        if (!window.NovalistEditorState.editor.contains(range.startContainer) || range.toString() !== pending.originalText) {
+            window.NovalistEditorState.pendingInlineAction = null;
+            return;
+        }
         const disposition = payload.disposition || 'replace';
         const text = payload.text || '';
+        const insert = (value) => {
+            if (payload.asSuggestion || window.NovalistEditorState.suggestionMode) {
+                if (value) window.insertSuggested(value);
+                else window.markSelectionDeleted();
+            } else document.execCommand('insertText', false, value);
+        };
+        window.NovalistEditorState.editor.focus();
 
         const sel = window.getSelection();
         sel.removeAllRanges();
@@ -104,12 +117,12 @@ window.applyInlineActionResult = function (json) {
             // Replaces nothing. With a selection this collapses to its end,
             // which is what "carry on from here" means either way.
             range.collapse(false);
-            document.execCommand('insertText', false, text);
+            insert(text);
         } else if (disposition === 'insertAfter') {
             range.collapse(false);
-            document.execCommand('insertText', false, '\n' + text);
+            insert('\n' + text);
         } else {
-            document.execCommand('insertText', false, text);
+            insert(text);
         }
 
         window.NovalistEditorState.pendingInlineAction = null;

@@ -1,6 +1,7 @@
 import { rpc } from '../rpc/client'
 import { type EditorPaneState, type EditingSceneClaim } from './projectTypes'
-import { useProjectStore, mirror, mapEditors } from './projectStore'
+import { useProjectStore, mirror } from './projectStore'
+import { enqueueSceneWrite } from './sceneWriteQueue'
 
 const AUTOSAVE_DELAY_MS = 2000
 
@@ -12,9 +13,10 @@ export const autosaveTimers = new Map<string, ReturnType<typeof setTimeout>>()
 export const autosaveWrites = new Map<string, Promise<void>>()
 
 /** Writes a pane's unsaved edit, if it has one. */
-export async function flushEditor(editor: EditorPaneState | undefined): Promise<void> {
+export async function flushEditor(editor: EditorPaneState | undefined, paneId?: string): Promise<void> {
   if (!editor?.isDirty || !editor.chapterGuid || !editor.sceneId || editor.html === null) return
-  await saveScene(editor.chapterGuid, editor.sceneId, editor.html, editor.plainText ?? '')
+  const pane = paneId ?? Object.keys(useProjectStore.getState().editors).find((id) => useProjectStore.getState().editors[id] === editor)
+  await saveScene(pane, editor.chapterGuid, editor.sceneId, editor.html, editor.plainText ?? '', editor.hash)
 }
 
 /** Strips HTML tags and decodes entities to plain text for live statistics.
@@ -39,7 +41,7 @@ export function scheduleSave(
     pane,
     setTimeout(() => {
       autosaveTimers.delete(pane)
-      const write = saveScene(chapterGuid, sceneId, html, plainText)
+      const write = saveScene(pane, chapterGuid, sceneId, html, plainText, useProjectStore.getState().editors[pane]?.hash)
       autosaveWrites.set(pane, write)
       void write.then(
         () => {
@@ -53,74 +55,84 @@ export function scheduleSave(
   )
 }
 
-async function saveScene(
+function saveScene(
+  pane: string | undefined,
   chapterGuid: string,
   sceneId: string,
   html: string,
-  plainText: string
+  plainText: string,
+  baseHash?: string
 ): Promise<void> {
-  const result = await rpc.request<{
-    sceneId: string
-    wordCount: number
-    hash: string
-    conflicted: boolean
-    diskHtml: string | null
-  }>('scenes/write', [
-    chapterGuid,
-    sceneId,
-    html,
-    plainText,
-    useProjectStore.getState().sceneHashes[sceneId] ?? null
-  ])
+  return enqueueSceneWrite(sceneId, async () => {
+    if (useProjectStore.getState().sceneConflict?.sceneId === sceneId) return
+    const origin = pane ? useProjectStore.getState().editors[pane] : undefined
+    const result = await rpc.request<{
+      sceneId: string
+      wordCount: number
+      hash: string
+      conflicted: boolean
+      diskHtml: string | null
+    }>('scenes/write', [
+      chapterGuid,
+      sceneId,
+      html,
+      plainText,
+      (origin?.sceneId === sceneId ? origin.hash : baseHash) ?? baseHash ?? useProjectStore.getState().sceneHashes[sceneId] ?? null
+    ])
 
-  // Refused: the file changed under us and nothing was written. The scene stays
-  // dirty so the writer's text is still in the editor while they decide.
-  if (result.conflicted) {
-    useProjectStore.setState({
-      sceneConflict: {
-        chapterGuid,
-        sceneId,
-        mine: html,
-        theirs: result.diskHtml ?? '',
-        plainText
+    // Refused: the file changed under us and nothing was written. The scene stays
+    // dirty so the writer's text is still in the editor while they decide.
+    if (result.conflicted) {
+      const latest = pane ? useProjectStore.getState().editors[pane] : undefined
+      useProjectStore.setState({
+        sceneConflict: {
+          chapterGuid,
+          sceneId,
+          mine: latest?.sceneId === sceneId ? latest.html ?? html : html,
+          theirs: result.diskHtml ?? '',
+          plainText: latest?.sceneId === sceneId ? latest.plainText ?? plainText : plainText
+        }
+      })
+      return
+    }
+
+    useProjectStore.setState((state) => {
+      // Only the exact content acknowledged by the backend is clean. The writer
+      // may have typed again while this request was in flight; clearing that newer
+      // edit here would make a shutdown flush believe there was nothing to save.
+      const editors = Object.fromEntries(Object.entries(state.editors).map(([id, editor]) => {
+        if (editor.sceneId !== sceneId) return [id, editor]
+        const matches = editor.html === html && (editor.plainText ?? '') === plainText
+        if (!editor.isDirty || matches) return [id, { ...editor, html, plainText, hash: result.hash, isDirty: false }]
+        return [id, id === pane ? { ...editor, hash: result.hash } : editor]
+      }))
+      const stillDirty = Object.values(editors).some(
+        (editor) => editor.sceneId === sceneId && editor.isDirty
+      )
+      return {
+        sceneHashes: { ...state.sceneHashes, [sceneId]: result.hash },
+        editors,
+        ...mirror(editors, state.activeEditorPaneId),
+        dirtyMap:
+          state.dirtyMap[sceneId] !== stillDirty
+            ? { ...state.dirtyMap, [sceneId]: stillDirty }
+            : state.dirtyMap,
+        chapters: state.chapters.map((c) =>
+          c.guid === chapterGuid
+            ? {
+                ...c,
+                scenes: c.scenes.map((s) =>
+                  s.id === sceneId ? { ...s, wordCount: result.wordCount } : s
+                )
+              }
+            : c
+        )
       }
     })
-    return
-  }
-
-  useProjectStore.setState((state) => {
-    // Only the exact content acknowledged by the backend is clean. The writer
-    // may have typed again while this request was in flight; clearing that newer
-    // edit here would make a shutdown flush believe there was nothing to save.
-    const editors = mapEditors(state.editors, (editor) =>
-      editor.sceneId === sceneId &&
-      editor.isDirty &&
-      editor.html === html &&
-      (editor.plainText ?? '') === plainText
-        ? { ...editor, isDirty: false }
-        : editor
-    )
-    const stillDirty = Object.values(editors).some(
-      (editor) => editor.sceneId === sceneId && editor.isDirty
-    )
-    return {
-      sceneHashes: { ...state.sceneHashes, [sceneId]: result.hash },
-      editors,
-      ...mirror(editors, state.activeEditorPaneId),
-      dirtyMap:
-        state.dirtyMap[sceneId] !== stillDirty
-          ? { ...state.dirtyMap, [sceneId]: stillDirty }
-          : state.dirtyMap,
-      chapters: state.chapters.map((c) =>
-        c.guid === chapterGuid
-          ? {
-              ...c,
-              scenes: c.scenes.map((s) =>
-                s.id === sceneId ? { ...s, wordCount: result.wordCount } : s
-              )
-            }
-          : c
-      )
+    if (typeof window !== 'undefined' && window.novalist.isMobile) {
+      const { acknowledgeMobileSceneRecovery } = await import('../mobile/recovery')
+      const acknowledgedSource = pane && !useProjectStore.getState().editors[pane]?.isDirty ? `pane:${pane}` : undefined
+      acknowledgeMobileSceneRecovery(sceneId, html, undefined, acknowledgedSource)
     }
   })
 }

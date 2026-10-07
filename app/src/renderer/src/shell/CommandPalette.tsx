@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { COMMANDS } from './commands'
 import { buildDefaultHotkeys } from './hotkeys'
 import { onPluginContributionsChanged, pluginCommands } from './pluginHost'
 import { rpc } from '../rpc/client'
-import { useDialogAutoFocus } from './useDialogKeyboard'
+import { useDialogAutoFocus, useDialogKeyboard } from './useDialogKeyboard'
 
 interface CommandPaletteProps {
   onClose(): void
@@ -56,6 +56,8 @@ export function CommandPalette({ onClose }: CommandPaletteProps): React.JSX.Elem
   const inputRef = useRef<HTMLInputElement>(null)
 
   useDialogAutoFocus(inputRef)
+  const keyboard = useDialogKeyboard(onClose)
+  const listId = useId()
 
   /**
    * Novalist's own commands, read from the registry rather than from the
@@ -138,6 +140,10 @@ export function CommandPalette({ onClose }: CommandPaletteProps): React.JSX.Elem
     )
   }, [all, query, t])
 
+  useEffect(() => {
+    inputRef.current?.closest('[role="dialog"]')?.querySelector('.palette-item.active')?.scrollIntoView({ block: 'nearest' })
+  }, [index, filtered])
+
   const run = (action: PaletteEntry): void => {
     onClose()
     action.run()
@@ -145,9 +151,14 @@ export function CommandPalette({ onClose }: CommandPaletteProps): React.JSX.Elem
 
   return (
     <div className="dialog-overlay palette-overlay" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="dialog-card palette-card" role="dialog" aria-label={t('commandPalette.placeholder')}>
+      <div {...keyboard} className="dialog-card palette-card" role="dialog" aria-modal="true" aria-label={t('commandPalette.placeholder')}>
         <input
           ref={inputRef}
+          role="combobox"
+          aria-label={t('commandPalette.placeholder')}
+          aria-expanded="true"
+          aria-controls={listId}
+          aria-activedescendant={filtered[index] ? `${listId}-${index}` : undefined}
           className="dialog-input"
           placeholder={t('commandPalette.placeholder')}
           value={query}
@@ -156,16 +167,19 @@ export function CommandPalette({ onClose }: CommandPaletteProps): React.JSX.Elem
             setIndex(0)
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Escape') onClose()
-            if (e.key === 'ArrowDown') setIndex((i) => Math.min(i + 1, filtered.length - 1))
-            if (e.key === 'ArrowUp') setIndex((i) => Math.max(i - 1, 0))
+            if (e.key === 'ArrowDown') { e.preventDefault(); setIndex((i) => Math.max(0, Math.min(i + 1, filtered.length - 1))) }
+            if (e.key === 'ArrowUp') { e.preventDefault(); setIndex((i) => Math.max(i - 1, 0)) }
             if (e.key === 'Enter' && filtered[index]) run(filtered[index])
           }}
         />
-        <div className="palette-results">
+        <div className="palette-results" id={listId} role="listbox">
           {filtered.map((action, i) => (
             <button
               key={action.actionId}
+              id={`${listId}-${i}`}
+              role="option"
+              aria-selected={i === index}
+              tabIndex={-1}
               className={`palette-item${i === index ? ' active' : ''}`}
               onClick={() => run(action)}
               onPointerEnter={() => setIndex(i)}

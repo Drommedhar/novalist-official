@@ -1,0 +1,70 @@
+{
+  "repositories": [
+    {
+      "repo": "novalist-extension",
+      "branch": "dev",
+      "commit": "aba771741b7069596f48423b1bd7571e28bdbbdd",
+      "url": "https://github.com/Drommedhar/novalist-extensions/commit/aba771741b7069596f48423b1bd7571e28bdbbdd",
+      "remoteShaVerified": true,
+      "preservedDirtyFileCount": 0
+    },
+    {
+      "repo": "novalist-extension-gallery",
+      "branch": "dev",
+      "commit": "260255e28e582430a396da02165640af64dcda2a",
+      "url": "https://github.com/Drommedhar/novalist-extension-gallery/commit/260255e28e582430a396da02165640af64dcda2a",
+      "remoteShaVerified": true,
+      "preservedDirtyFileCount": 2
+    },
+    {
+      "repo": "novalist-pnp",
+      "branch": "dev",
+      "commit": "471b01142125a93ffcd1eedbe63e43612e0b788a",
+      "url": "https://github.com/Drommedhar/novalist-pnp/commit/471b01142125a93ffcd1eedbe63e43612e0b788a",
+      "remoteShaVerified": true,
+      "preservedDirtyFileCount": 177
+    },
+    {
+      "repo": "novalist-qwentts",
+      "branch": "dev",
+      "commit": "780658d6309427829f5c3067f9295ad358aafca1",
+      "url": "https://github.com/Drommedhar/novalist-qwentts/commit/780658d6309427829f5c3067f9295ad358aafca1",
+      "remoteShaVerified": true,
+      "originalWorkingDirectory": "D:/git/novalist-qwentts",
+      "originalBranch": "main",
+      "originalRemainingDirtyFiles": [
+        " M Locales/de.json",
+        " M Locales/en.json",
+        " M Python/engine.py",
+        " M Python/server.py",
+        " M Qwen3TtsExtension.cs",
+        " M README.md",
+        " M Services/PythonBootstrap.cs",
+        " M Services/Qwen3TtsProvider.cs",
+        " M Services/VoiceDesignWizard.cs",
+        " M Services/VoiceStore.cs",
+        " M ViewModels/ReadModeViewModel.cs",
+        " M ViewModels/VoiceManagerViewModel.cs",
+        " M Views/ReadModeView.axaml",
+        " M extension.json",
+        "?? Services/WavPreviewPlayer.cs",
+        "?? ViewModels/VoiceDesignWindowViewModel.cs",
+        "?? Views/VoiceDesignWindow.axaml",
+        "?? Views/VoiceDesignWindow.axaml.cs"
+      ],
+      "preservedDirtyFileCount": 0
+    },
+    {
+      "repo": "novalist-aiassistant",
+      "branch": "dev",
+      "commit": "1444256c40ea611f6113ad2f065df8c11cd5a520",
+      "url": "https://github.com/Drommedhar/novalist-aiassistant/commit/1444256c40ea611f6113ad2f065df8c11cd5a520",
+      "remoteShaVerified": true,
+      "preservedDirtyFileCount": 0
+    }
+  ],
+  "validation": "Existing414 C# /41 Python /7 browser checks; staged diff --check passed; no production change during publication.",
+  "legacyScope": "Legacy dev branches contain only README and manifest compatibility metadata. PnP untracked implementation and Qwen unpublished f321b49 plus dirty0.4 implementation were preserved locally. Qwen published manifest keeps0.3 version; historical loader evidence used local0.4 fixture and exact experimental1.15-dev host SDK, not the metadata-only branch.",
+  "releasePrerequisite": "Formats/Insight/Publish/Toolkit require host3.5.4; release SDK source remains pinned to futurev3.5.4 tag.",
+  "unchangedRemoteRefs": "No main branch, tags or releases pushed."
+}

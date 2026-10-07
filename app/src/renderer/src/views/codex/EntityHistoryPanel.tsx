@@ -24,7 +24,7 @@ export function EntityHistoryPanel({
       onRestored={(record) => {
         const current = useCodexStore.getState()
         if (current.entityType === entityType && current.selectedId === entityId) {
-          useCodexStore.setState({ selectedRecord: record as Record<string, unknown> })
+          useCodexStore.setState({ selectedRecord: record as Record<string, unknown>, restoredRevision: current.restoredRevision + 1 })
         }
       }}
     />

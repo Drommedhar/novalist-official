@@ -263,6 +263,7 @@
     "fetchingTitle": "获取中...",
     "typeAudio": "音频",
     "typeVideo": "视频",
+    "previewFailed": "无法预览此媒体文件。",
     "pdfFallback": "此 PDF 无法在此处显示。请在外部打开。",
     "status": "状态",
     "statusNone": "无状态",
@@ -550,7 +551,10 @@
       "inactive": "正文之外"
     }
   },
+  "inlineReview": {"title":"文本操作","choose":"选择结果","apply":"应用"},
+  "mobileRecovery": { "recovered": "已恢复" },
   "findReplace": {
+    "failed": "搜索或替换失败：{{message}}",
     "title": "查找与替换",
     "find": "查找",
     "replace": "替换",

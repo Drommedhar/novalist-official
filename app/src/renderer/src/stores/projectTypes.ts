@@ -82,6 +82,8 @@ export interface EditorPaneState {
   plainText: string | null
   tabs: SceneTabRef[]
   isDirty: boolean
+  /** Version this pane's document is based on, independent of other panes. */
+  hash?: string
 }
 
 export type SceneStructureMethod =

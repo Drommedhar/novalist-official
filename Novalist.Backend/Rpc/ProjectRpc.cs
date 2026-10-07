@@ -269,7 +269,7 @@ public sealed class ProjectRpc
     {
         var chapter = _workspace.ResolveChapter(chapterGuid);
         chapter.Act = act;
-        await _workspace.Projects.SaveScenesAsync();
+        await _workspace.Projects.SaveProjectAsync();
         return _workspace.BuildState();
     }
 
@@ -278,7 +278,7 @@ public sealed class ProjectRpc
     {
         var chapter = _workspace.ResolveChapter(chapterGuid);
         chapter.Status = Enum.Parse<Novalist.Core.Models.ChapterStatus>(status);
-        await _workspace.Projects.SaveScenesAsync();
+        await _workspace.Projects.SaveProjectAsync();
         return _workspace.BuildState();
     }
 

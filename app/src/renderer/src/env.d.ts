@@ -20,8 +20,10 @@ declare module 'virtual:novalist-manual-images' {
 
 interface Window {
   HybridWebView?: { SendRawMessage?: (message: string) => void }
-  __novalistRecv?: (base64: string) => void
-  __novalistHostResult?: (base64: string) => void
+  __novalistRecv?: (base64: string) => string
+  __novalistHostResult?: (base64: string) => string
+  __novalistLifecycleSave?: (requestId: number) => void
+  __novalistBridgeFailed?: () => void
   __novalistLayout?: (mode: string) => void
   __novalistTab?: (key: string) => void
   __novalistPlanSelect?: (index: number) => void
@@ -77,6 +79,7 @@ interface Window {
     // Mobile-only: read a project-relative image as a data: URI (the mobile
     // WebView has no novalist-project:// scheme handler).
     readProjectImage?(path: string): Promise<string | null>
+    readProjectAsset?(path: string): Promise<string | null>
     // Mobile-only: show/hide the native Liquid Glass Plan popover with the given
     // localized labels (selection returns via window.__novalistPlanSelect).
     setPlanningMenuOpen?(open: boolean, labels: string[]): void
@@ -141,6 +144,8 @@ interface Window {
     readClipboardImage(): Promise<string | null>
     setProjectRoot(root: string | null): void
     beginProjectAccess(path: string): Promise<boolean>
+    /** Mobile-only identity-checked relocation for durable recovery records. */
+    resolveStoredProjectPath?(path: string): Promise<string | null>
     endProjectAccess(path: string): void
     openPaneWindow(request: {
       view: string
@@ -154,6 +159,7 @@ interface Window {
     downloadAppUpdate(info: AppUpdate): Promise<AppUpdateDownloadResult>
     launchAppUpdate(token: string): Promise<void>
     onBeforeClose?(handler: (stage: import('../../shared/workspaceProtocol').CloseStage) => Promise<void>): () => void
+    onBackgroundSave?(handler: () => Promise<void>): () => void
     forwardMainCommand?(command: string): void
     retryWorkspaceRecovery?(): Promise<void>
     workspaceSnapshot?(): Promise<import('../../shared/workspaceProtocol').WorkspaceSnapshot>

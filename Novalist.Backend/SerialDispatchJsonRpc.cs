@@ -116,7 +116,9 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         "git/",
         // Backups must share the workspace queue: restore replaces files and
         // reloads models, and creation/pruning must not race that replacement.
-        "export/",
+        // Export compilation reads the current book, draft and Codex throughout
+        // the operation. Keep it on the workspace queue until those inputs can
+        // be captured independently of the live project.
         // Preparing a speech engine builds a Python environment and downloads
         // several gigabytes of model. Queued, it held the gate for the whole of
         // that: every scene save, every view, every keystroke that needed the
@@ -139,8 +141,7 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         "grammar/",
         // Local model inference must not block scene saves or cancellation.
         "dictation/",
-        // Estimating a render compiles the whole book, the same way an export
-        // does - and "export/" is on this list for exactly that reason.
+        // Estimating a render remains cancellable independently of the queue.
         "audiobook/estimate"
     ];
 
@@ -161,6 +162,8 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
     internal static bool IsReentrant(string? method)
     {
         if (method == null) return false;
+        if (method == "$/cancelRequest") return true;
+        if (method is "export/formats" or "export/tokens") return true;
         if (method is "workspace/prepared" or "workspace/applied" or "workspace/clientClosed") return true;
         if (Reentrant.Contains(method)) return true;
         foreach (var family in Unsynchronised)

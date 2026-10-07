@@ -1,0 +1,33 @@
+
+> novalist@3.3.0 build:mobile
+> node scripts/sync-editor-sanitizer.mjs && vite build --config vite.mobile.config.ts
+
+vite v7.3.6 building client environment for production...
+<script src="_framework/hybridwebview.js"> in "/index.mobile.html" can't be bundled without type="module" attribute
+
+./fonts/fonts.css doesn't exist at build time, it will remain unchanged to be resolved at runtime
+transforming...
+[plugin vite:resolve] Module "fs" has been externalized for browser compatibility, imported by "D:/git/novalist-official/app/node_modules/harper.js/dist/BinaryModule-Aj1vLnwf.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+✓ 2550 modules transformed.
+rendering chunks...
+[plugin vite:reporter]
+(!) D:/git/novalist-official/app/src/renderer/src/stores/hostBridgeStore.ts is dynamically imported by D:/git/novalist-official/app/src/renderer/src/stores/projectSceneActions.ts but also statically imported by D:/git/novalist-official/app/src/renderer/src/shell/BusyProgressHost.tsx, D:/git/novalist-official/app/src/renderer/src/shell/DetachedPane.tsx, D:/git/novalist-official/app/src/renderer/src/shell/ExtensionWizardHost.tsx, D:/git/novalist-official/app/src/renderer/src/shell/ToastHost.tsx, D:/git/novalist-official/app/src/renderer/src/shell/pluginHost.ts, D:/git/novalist-official/app/src/renderer/src/shell/useWorkspaceWindow.ts, D:/git/novalist-official/app/src/renderer/src/views/extensions/ExtensionSettings.tsx, D:/git/novalist-official/app/src/renderer/src/views/library/researchModel.ts, dynamic import will not move module into another chunk.
+
+[plugin vite:reporter]
+(!) D:/git/novalist-official/app/src/renderer/src/shell/pluginHost.ts is dynamically imported by D:/git/novalist-official/app/src/renderer/src/main.tsx, D:/git/novalist-official/app/src/renderer/src/shell/shellLifecycle.ts, D:/git/novalist-official/app/src/renderer/src/stores/extensionsStore.ts but also statically imported by D:/git/novalist-official/app/src/renderer/src/shell/CommandPalette.tsx, D:/git/novalist-official/app/src/renderer/src/shell/StatusBar.tsx, dynamic import will not move module into another chunk.
+
+[plugin vite:reporter]
+(!) D:/git/novalist-official/app/src/renderer/src/stores/manuscriptStore.ts is dynamically imported by D:/git/novalist-official/app/src/renderer/src/stores/projectEditorActions.ts, D:/git/novalist-official/app/src/renderer/src/stores/projectSceneActions.ts, D:/git/novalist-official/app/src/renderer/src/stores/projectWorkspaceActions.ts but also statically imported by D:/git/novalist-official/app/src/renderer/src/main.tsx, D:/git/novalist-official/app/src/renderer/src/shell/RestoreBackupDialog.tsx, D:/git/novalist-official/app/src/renderer/src/shell/SceneBulkBar.tsx, D:/git/novalist-official/app/src/renderer/src/shell/useWorkspaceWindow.ts, D:/git/novalist-official/app/src/renderer/src/views/manuscript/Board.tsx, D:/git/novalist-official/app/src/renderer/src/views/manuscript/Corkboard.tsx, D:/git/novalist-official/app/src/renderer/src/views/manuscript/ManuscriptFrame.tsx, D:/git/novalist-official/app/src/renderer/src/views/manuscript/ManuscriptView.tsx, D:/git/novalist-official/app/src/renderer/src/views/manuscript/Outliner.tsx, D:/git/novalist-official/app/src/renderer/src/views/settings/BackupsCard.tsx, dynamic import will not move module into another chunk.
+
+computing gzip size...
+../../../Novalist.Mobile/Resources/Raw/app/index.mobile.html                                1.45 kB │ gzip:      0.75 kB
+../../../Novalist.Mobile/Resources/Raw/app/assets/index-CMQJ8YzS.css                      368.83 kB │ gzip:     50.62 kB
+../../../Novalist.Mobile/Resources/Raw/app/assets/__vite-browser-external-BIHI7g3E.js       0.03 kB │ gzip:      0.05 kB
+../../../Novalist.Mobile/Resources/Raw/app/assets/index.mobile-c0DeTIzX.js             16,129.00 kB │ gzip: 10,569.57 kB
+../../../Novalist.Mobile/Resources/Raw/app/assets/harper-CzKkMlxI.js                   21,289.69 kB │ gzip:  9,554.18 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 6.51s

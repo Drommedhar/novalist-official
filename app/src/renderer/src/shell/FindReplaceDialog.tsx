@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
-import { useDialogAutoFocus } from './useDialogKeyboard'
+import { useDialogAutoFocus, useDialogKeyboard } from './useDialogKeyboard'
 
 interface FindMatchDto {
+  bookId: string | null
+  bookTitle: string | null
   chapterGuid: string
   chapterTitle: string
   sceneId: string
@@ -18,10 +20,18 @@ interface FindMatchDto {
 
 const SCOPES = ['CurrentScene', 'CurrentChapter', 'ActiveBook', 'Project']
 
-export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.Element {
+async function navigateToMatch(match: FindMatchDto): Promise<void> {
+  const state = useProjectStore.getState()
+  if (match.bookId && match.bookId !== state.activeBookId) await state.switchBook(match.bookId)
+  if (match.bookId && useProjectStore.getState().activeBookId !== match.bookId) return
+  await useProjectStore.getState().openScene(match.chapterGuid, match.sceneId)
+}
+
+function useFindReplace(onClose: () => void) {
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   useDialogAutoFocus(inputRef)
+  const keyboard = useDialogKeyboard(onClose)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const [pattern, setPattern] = useState('')
@@ -34,33 +44,35 @@ export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.E
   const [includeCodex, setIncludeCodex] = useState(false)
   const [matches, setMatches] = useState<FindMatchDto[] | null>(null)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const requestId = useRef(0)
+  useEffect(() => { setMatches(null); setError(null); requestId.current++ }, [pattern, matchCase, wholeWord, useRegex, scope, includeNotes, includeCodex])
   const [replacedCount, setReplacedCount] = useState<number | null>(null)
 
-  const args = (): unknown[] => [
-    pattern,
-    matchCase,
-    wholeWord,
-    useRegex,
-    scope,
-    openChapterGuid,
-    openSceneId,
-    includeNotes,
-    includeCodex
-  ]
+  const args = (): unknown[] => [pattern, matchCase, wholeWord, useRegex, scope, openChapterGuid, openSceneId, includeNotes, includeCodex]
 
   const find = async (): Promise<void> => {
-    if (!pattern) return
+    if (!pattern || busy) return
+    const request = ++requestId.current
+    setError(null)
+    setMatches(null)
     setBusy(true)
     setReplacedCount(null)
     try {
-      setMatches(await rpc.request<FindMatchDto[]>('search/find', args()))
+      const result = await rpc.request<FindMatchDto[]>('search/find', args())
+      if (request === requestId.current) setMatches(result)
+    } catch (reason) {
+      if (request === requestId.current) setError(t('findReplace.failed', { message: String(reason) }))
     } finally {
       setBusy(false)
     }
   }
 
   const replaceAll = async (): Promise<void> => {
-    if (!pattern) return
+    if (!pattern || busy) return
+    const request = ++requestId.current
+    setError(null)
+    setMatches(null)
     setBusy(true)
     try {
       const count = await rpc.request<number>('search/replaceAll', [
@@ -74,20 +86,37 @@ export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.E
         openSceneId,
         includeNotes
       ])
-      setReplacedCount(count)
+      if (request === requestId.current) setReplacedCount(count)
       setMatches(null)
       const state = useProjectStore.getState()
       if (state.openChapterGuid && state.openSceneId) {
         await state.openScene(state.openChapterGuid, state.openSceneId)
       }
+    } catch (reason) {
+      if (request === requestId.current) setError(t('findReplace.failed', { message: String(reason) }))
     } finally {
       setBusy(false)
     }
   }
 
+  const openMatch = async (match: FindMatchDto): Promise<void> => {
+    try {
+      await navigateToMatch(match)
+      onClose()
+    } catch (reason) {
+      setError(t('findReplace.failed', { message: String(reason) }))
+    }
+  }
+
+  return { t, inputRef, keyboard, pattern, setPattern, replacement, setReplacement, matchCase, setMatchCase, wholeWord, setWholeWord, useRegex, setUseRegex, scope, setScope, includeNotes, setIncludeNotes, includeCodex, setIncludeCodex, matches, busy, error, replacedCount, find, replaceAll, openMatch }
+}
+
+export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.Element {
+  const { t, inputRef, keyboard, pattern, setPattern, replacement, setReplacement, matchCase, setMatchCase, wholeWord, setWholeWord, useRegex, setUseRegex, scope, setScope, includeNotes, setIncludeNotes, includeCodex, setIncludeCodex, matches, busy, error, replacedCount, find, replaceAll, openMatch } = useFindReplace(onClose)
+
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="dialog-card findreplace-card" role="dialog" aria-label={t('findReplace.title')}>
+      <div {...keyboard} className="dialog-card findreplace-card" role="dialog" aria-modal="true" aria-label={t('findReplace.title')}>
         <div className="dialog-title">{t('findReplace.title')}</div>
         <input
           className="dialog-input"
@@ -97,7 +126,6 @@ export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.E
           onChange={(e) => setPattern(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') void find()
-            if (e.key === 'Escape') onClose()
           }}
         />
         <input
@@ -151,6 +179,7 @@ export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.E
             {t('findReplace.replaceAll')}
           </button>
         </div>
+        {error && <p role="alert">{error}</p>}
         {replacedCount !== null && (
           <p className="inspector-meta">{t('findReplace.replacedCount', { count: replacedCount })}</p>
         )}
@@ -163,13 +192,10 @@ export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.E
                 className="findreplace-result"
                 // A Codex hit has no scene behind it, so it reports and stays put.
                 disabled={!match.chapterGuid}
-                onClick={() => {
-                  onClose()
-                  void useProjectStore.getState().openScene(match.chapterGuid, match.sceneId)
-                }}
+                onClick={() => void openMatch(match)}
               >
                 <span className="codex-row-detail">
-                  {match.chapterTitle} - {match.sceneTitle}
+                  {match.bookTitle ? `${match.bookTitle} / ` : ''}{match.chapterTitle} - {match.sceneTitle}
                   {match.field !== 'prose' && (
                     <span className="findreplace-field">{t(`findReplace.field_${match.field}`)}</span>
                   )}

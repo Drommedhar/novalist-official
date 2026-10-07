@@ -1,0 +1,39 @@
+{
+  "browser": "149.0.7827.55",
+  "status": "passed",
+  "results": [
+    {
+      "check": "markup-event-injection",
+      "input": "[reader](https://example.invalid/\"onmouseover=\"window.name='executed')",
+      "status": "passed"
+    },
+    {
+      "check": "markup-event-injection",
+      "input": "[reader](https://example.invalid/&quot;onmouseover=&quot;window.name='executed')",
+      "status": "passed"
+    },
+    {
+      "check": "markup-event-injection",
+      "input": "[reader](javascript:window.name='executed')",
+      "status": "passed"
+    },
+    {
+      "check": "markup-event-injection",
+      "input": "[reader](https://example.invalid/\"autofocus=\"true\"onfocus=\"window.name='executed')",
+      "status": "passed"
+    },
+    {
+      "check": "markup-event-injection",
+      "input": "[reader](https://example.invalid/\"onmouseover=\"window.name=123)",
+      "status": "passed"
+    },
+    {
+      "check": "generated-cover-events",
+      "status": "passed"
+    },
+    {
+      "check": "serialized-controller-problem-class-and-indicator",
+      "status": "passed"
+    }
+  ]
+}

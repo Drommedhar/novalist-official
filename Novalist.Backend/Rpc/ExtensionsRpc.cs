@@ -5,7 +5,7 @@ using StreamJsonRpc;
 namespace Novalist.Backend.Rpc;
 
 /// <summary>Extension host surface: load, enumerate, and expose contributions.</summary>
-public sealed class ExtensionsRpc
+public sealed class ExtensionsRpc : IDisposable
 {
     private readonly Workspace _workspace;
     private bool _loaded;
@@ -14,6 +14,7 @@ public sealed class ExtensionsRpc
     public ExtensionsRpc(Workspace workspace)
     {
         _workspace = workspace;
+        _workspace.Disposing += Dispose;
     }
 
     /// <summary>
@@ -114,7 +115,10 @@ public sealed class ExtensionsRpc
     [JsonRpcMethod("extensions/directory")]
     public string Directory() => _workspace.ExtensionsHost.ExtensionsDirectory;
 
-    private readonly Dictionary<string, IWebViewController> _controllers = new();
+    private sealed record ControllerRegistration(IWebViewController Controller, Action<string> Posted);
+    private readonly Dictionary<(string ExtensionId, string ViewKey), ControllerRegistration> _controllers = new();
+    private Extensions.ExtensionManager? _controllerHost;
+    private bool _disposed;
 
     /// <summary>Sink for controller-initiated pushes; wired to a JSON-RPC
     /// notification by the backend host.</summary>
@@ -203,17 +207,54 @@ public sealed class ExtensionsRpc
 
     private IWebViewController? GetController(string extensionId, string viewKey)
     {
-        var cacheKey = $"{extensionId}|{viewKey}";
-        if (_controllers.TryGetValue(cacheKey, out var cached)) return cached;
-
+        if (_disposed) return null;
+        var cacheKey = (extensionId, viewKey);
         var extension = _workspace.ExtensionsHost.Extensions
             .FirstOrDefault(e => e.Manifest.Id == extensionId && e.IsEnabled);
-        if (extension?.Instance is not IWebViewContributor contributor) return null;
+        if (extension?.Instance is not IWebViewContributor contributor)
+        {
+            ReleaseControllers(extensionId);
+            return null;
+        }
+        if (_controllers.TryGetValue(cacheKey, out var cached)) return cached.Controller;
         var controller = contributor.CreateController(viewKey);
         if (controller == null) return null;
-        controller.MessagePosted += payload => WebviewPosted?.Invoke(extensionId, viewKey, payload);
-        _controllers[cacheKey] = controller;
+        if (_controllerHost == null)
+        {
+            _controllerHost = _workspace.ExtensionsHost;
+            _controllerHost.ExtensionStopping += ReleaseControllers;
+        }
+        Action<string> posted = payload =>
+        {
+            if (!_disposed && extension.IsEnabled) WebviewPosted?.Invoke(extensionId, viewKey, payload);
+        };
+        controller.MessagePosted += posted;
+        _controllers[cacheKey] = new ControllerRegistration(controller, posted);
         return controller;
+    }
+
+    private void ReleaseControllers(string extensionId)
+    {
+        foreach (var key in _controllers.Keys.Where(key => key.ExtensionId == extensionId).ToList())
+        {
+            var registration = _controllers[key];
+            _controllers.Remove(key);
+            registration.Controller.MessagePosted -= registration.Posted;
+            try { (registration.Controller as IDisposable)?.Dispose(); }
+            catch (Exception error) { Extensions.Log.Warn("Webview controller disposal failed: " + error.GetType().Name); }
+        }
+    }
+
+    void IDisposable.Dispose() => Dispose();
+
+    private void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        foreach (var id in _controllers.Keys.Select(key => key.ExtensionId).Distinct().ToList())
+            ReleaseControllers(id);
+        if (_controllerHost != null) _controllerHost.ExtensionStopping -= ReleaseControllers;
+        _workspace.Disposing -= Dispose;
     }
 
     /// <summary>Extension-contributed settings-page metadata (category + icon).

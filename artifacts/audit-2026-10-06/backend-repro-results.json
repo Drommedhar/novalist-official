@@ -1,0 +1,87 @@
+[
+  {
+    "name": "chapter-fields-persist",
+    "status": "completed",
+    "result": {
+      "expectedAct": "Act II",
+      "actualAct": "",
+      "expectedStatus": "FirstDraft",
+      "actualStatus": "Outline"
+    }
+  },
+  {
+    "name": "duplicate-book-folders",
+    "status": "completed",
+    "result": {
+      "originalFolder": "Book",
+      "duplicateFolder": "Book",
+      "duplicateChapters": [
+        "Original chapter"
+      ]
+    }
+  },
+  {
+    "name": "existing-project-overwrite",
+    "status": "completed",
+    "result": {
+      "hadNotesBefore": true,
+      "hasNotesAfter": false,
+      "rejected": false
+    }
+  },
+  {
+    "name": "box-set-after-restart",
+    "status": "completed",
+    "result": {
+      "expectedSceneCount": 2,
+      "actualSceneCount": 1,
+      "titles": [
+        "Chapter A",
+        "Book B"
+      ]
+    }
+  },
+  {
+    "name": "find-replace-inline-formatting",
+    "status": "completed",
+    "result": {
+      "found": 1,
+      "replaced": 0,
+      "content": "\u003Cp\u003EHello \u003Cstrong\u003Eworld\u003C/strong\u003E.\u003C/p\u003E"
+    }
+  },
+  {
+    "name": "snapshot-clears-unset-metadata",
+    "status": "completed",
+    "result": {
+      "expectedNotes": null,
+      "actualNotes": "Notes added later",
+      "expectedStage": null,
+      "actualStage": "finished",
+      "actualPlotlines": [
+        "later-plotline"
+      ]
+    }
+  },
+  {
+    "name": "failed-backup-is-listed",
+    "status": "completed",
+    "result": {
+      "error": "IOException",
+      "listedBackupCount": 1,
+      "dueImmediately": false,
+      "archives": [
+        22
+      ]
+    }
+  },
+  {
+    "name": "clone-draft-binary-file",
+    "status": "completed",
+    "result": {
+      "bytesPreserved": false,
+      "originalHex": "89504E4700FFFE80",
+      "copiedHex": "EFBFBD504E4700EFBFBDEFBFBDEFBFBD"
+    }
+  }
+]

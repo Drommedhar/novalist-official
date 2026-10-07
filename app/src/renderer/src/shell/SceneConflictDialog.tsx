@@ -3,11 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
 import { MotionPresence } from './MotionPresence'
+import { useDialogKeyboard } from './useDialogKeyboard'
 import './scene-conflict.css'
 
 interface MergeRow {
   mine: string | null
   theirs: string | null
+  mineHtml: string | null
+  theirsHtml: string | null
   /** "equal" | "changed" | "mine" | "theirs" */
   state: string
 }
@@ -34,8 +37,17 @@ export function SceneConflictDialog(): React.JSX.Element | null {
    *  not in here, because there is nothing to choose. */
   const [picks, setPicks] = useState<Record<number, 'mine' | 'theirs'>>({})
   const [busy, setBusy] = useState(false)
+  const [loadedFor, setLoadedFor] = useState<typeof conflict>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [retry, setRetry] = useState(0)
+  const keyboard = useDialogKeyboard(() => { if (!busy) dismiss() })
 
   useEffect(() => {
+    let cancelled = false
+    setRows([])
+    setPicks({})
+    setLoadedFor(null)
+    setError(null)
     if (!conflict) {
       setRows([])
       setPicks({})
@@ -44,7 +56,9 @@ export function SceneConflictDialog(): React.JSX.Element | null {
     void rpc
       .request<MergeRow[]>('scenes/mergeRows', [conflict.mine, conflict.theirs])
       .then((next) => {
+        if (cancelled) return
         setRows(next)
+        setLoadedFor(conflict)
         // Default to the writer's own text: they were the one typing, and a
         // default that silently prefers the other machine is the wrong surprise.
         const initial: Record<number, 'mine' | 'theirs'> = {}
@@ -53,24 +67,22 @@ export function SceneConflictDialog(): React.JSX.Element | null {
         })
         setPicks(initial)
       })
-      .catch(() => setRows([]))
-  }, [conflict])
+      .catch((reason: unknown) => { if (!cancelled) setError(String(reason)) })
+    return () => { cancelled = true }
+  }, [conflict, retry])
 
   if (!conflict) return <MotionPresence disabled={suspendMotion}>{null}</MotionPresence>
 
   const merged = (): string => {
+    if (rows.every((row, index) => row.state === 'equal' || picks[index] === 'mine')) return conflict.mine
+    if (rows.every((row, index) => row.state === 'equal' || picks[index] === 'theirs')) return conflict.theirs
     const lines: string[] = []
     rows.forEach((row, index) => {
       const side = row.state === 'equal' ? 'mine' : picks[index]
-      const text = side === 'theirs' ? row.theirs : row.mine
+      const text = side === 'theirs' ? row.theirsHtml : row.mineHtml
       if (text !== null && text !== undefined) lines.push(text)
     })
-    // Back to the paragraph markup the editor speaks. The merge view works in
-    // prose because that is what the writer is choosing between; a tag-level
-    // diff would bury the actual difference.
-    return lines
-      .map((line) => `<p>${escapeHtml(line)}</p>`)
-      .join('')
+    return lines.join('')
   }
 
   const takeAll = (side: 'mine' | 'theirs'): void => {
@@ -82,9 +94,13 @@ export function SceneConflictDialog(): React.JSX.Element | null {
   }
 
   const apply = async (): Promise<void> => {
+    if (busy || loadedFor !== conflict) return
     setBusy(true)
+    setError(null)
     try {
       await resolve(merged())
+    } catch (reason) {
+      setError(String(reason))
     } finally {
       setBusy(false)
     }
@@ -95,15 +111,18 @@ export function SceneConflictDialog(): React.JSX.Element | null {
   return (
     <MotionPresence disabled={suspendMotion}>
     <div className="dialog-overlay">
-      <div className="dialog-card scene-conflict-card" role="dialog" aria-label={t('conflict.title')}>
+      <div {...keyboard} className="dialog-card scene-conflict-card" role="dialog" aria-modal="true" aria-label={t('conflict.title')}>
         <div className="dialog-title">{t('conflict.title')}</div>
         <p className="dialog-message">{t('conflict.explain', { count: differing })}</p>
+        {loadedFor !== conflict && !error && <p role="status">{t('splash.loading')}</p>}
+        {error && <p role="alert">{error}</p>}
+        {error && loadedFor !== conflict && <button className="dialog-button" onClick={() => setRetry((value) => value + 1)}>{t('shell.retry')}</button>}
 
         <div className="scene-conflict-actions">
-          <button className="dialog-button" onClick={() => takeAll('mine')}>
+          <button className="dialog-button" disabled={busy || loadedFor !== conflict} onClick={() => takeAll('mine')}>
             {t('conflict.takeAllMine')}
           </button>
-          <button className="dialog-button" onClick={() => takeAll('theirs')}>
+          <button className="dialog-button" disabled={busy || loadedFor !== conflict} onClick={() => takeAll('theirs')}>
             {t('conflict.takeAllTheirs')}
           </button>
         </div>
@@ -123,7 +142,7 @@ export function SceneConflictDialog(): React.JSX.Element | null {
                 className={`scene-conflict-cell${
                   row.state !== 'equal' && picks[index] === 'mine' ? ' chosen' : ''
                 }`}
-                disabled={row.state === 'equal'}
+                disabled={busy || row.state === 'equal'}
                 onClick={() => setPicks({ ...picks, [index]: 'mine' })}
               >
                 {row.mine ?? ''}
@@ -132,7 +151,7 @@ export function SceneConflictDialog(): React.JSX.Element | null {
                 className={`scene-conflict-cell${
                   row.state !== 'equal' && picks[index] === 'theirs' ? ' chosen' : ''
                 }`}
-                disabled={row.state === 'equal'}
+                disabled={busy || row.state === 'equal'}
                 onClick={() => setPicks({ ...picks, [index]: 'theirs' })}
               >
                 {row.theirs ?? ''}
@@ -144,10 +163,10 @@ export function SceneConflictDialog(): React.JSX.Element | null {
         <p className="match-hint">{t('conflict.snapshotNote')}</p>
 
         <div className="dialog-actions">
-          <button className="dialog-button" onClick={dismiss}>
+          <button className="dialog-button" disabled={busy} onClick={dismiss}>
             {t('conflict.decideLater')}
           </button>
-          <button className="dialog-button danger" disabled={busy} onClick={() => void apply()}>
+          <button className="dialog-button danger" disabled={busy || loadedFor !== conflict} onClick={() => void apply()}>
             {t('conflict.save')}
           </button>
         </div>
@@ -155,11 +174,4 @@ export function SceneConflictDialog(): React.JSX.Element | null {
     </div>
     </MotionPresence>
   )
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
 }

@@ -1,0 +1,95 @@
+{
+  "findings": {
+    "EXT-014": {
+      "status": "verified",
+      "originalAcceptance": "Host channel remains open after fatal error and iterator terminates promptly.",
+      "evidence": [
+        {
+          "test": "SpeechTests.FatalRenderErrorStopsEvenIfTheWorkerKeepsItsPipeOpen",
+          "path": "../novalist-extension/tests/Novalist.Extensions.Tests/SpeechTests.cs",
+          "line": 125,
+          "assertions": "2-second deadline; open channel emits fatal OutOfMemory without done; iterator finishes with one error clip; Stop invoked; IsReady false."
+        },
+        {
+          "test": "LifecycleTests.test_fatal_render_error_still_terminates_its_protocol_response",
+          "path": "../novalist-extension/Novalist.Extensions.Speech/python/test_lifecycle.py",
+          "line": 15,
+          "assertions": "Request-level model failure emits error followed by done."
+        },
+        {
+          "artifact": "speech-real-worker-smoke/result.json",
+          "assertions": "Actual Python3.12 repository worker missing-dependency failure emits error+done in109ms with stdin kept open; subsequent request serviced."
+        }
+      ]
+    },
+    "EXT-015": {
+      "status": "verified",
+      "originalAcceptance": "Built environment with missing/partial models does not start downloads; complete cached restart works with network disabled.",
+      "evidence": [
+        {
+          "test": "SpeechAcceptanceTests.EngineListingRequiresCompleteModelsEvenWhenPackagesAreInstalled",
+          "path": "../novalist-extension/tests/Novalist.Extensions.Tests/SpeechAcceptanceTests.cs",
+          "line": 22,
+          "assertions": "3 cases use actual SpeechExtension.GetStatus and valid installed recipe; missing/partial models require download, complete models do not; no process/work directory created."
+        },
+        {
+          "test": "SpeechTests.OnlyExplicitPreparationPermitsDownloads",
+          "path": "../novalist-extension/tests/Novalist.Extensions.Tests/SpeechTests.cs",
+          "line": 161,
+          "assertions": "Automatic rendering sends download:false; explicit preparation alone sends download:true."
+        },
+        {
+          "test": "SpeechTests.ModelReadinessRequiresBothCompleteSnapshotsForTheCurrentBackend",
+          "path": "../novalist-extension/tests/Novalist.Extensions.Tests/SpeechTests.cs",
+          "line": 174,
+          "assertions": "Both complete snapshots required; wrong backend/truncated/deleted weight files refuse readiness."
+        },
+        {
+          "test": "LifecycleTests.test_complete_preparation_survives_restart_and_loads_offline",
+          "path": "../novalist-extension/Novalist.Extensions.Speech/python/test_lifecycle.py",
+          "line": 31,
+          "assertions": "Saved snapshot identity restored; socket.connect/create_connection throw if reached; downloader never called; local recorded snapshot passed to model loader; deleted snapshot file invalidates restart."
+        },
+        {
+          "test": "LifecycleTests.test_unprepared_engine_never_downloads_implicitly",
+          "path": "../novalist-extension/Novalist.Extensions.Speech/python/test_lifecycle.py",
+          "line": 25,
+          "assertions": "Missing snapshot raises models-not-prepared before downloader invocation."
+        }
+      ]
+    },
+    "EXT-016": {
+      "status": "verified",
+      "originalAcceptance": "Fake multipassage model with barrier cancels after passage1; later passages not generated; next request promptly serviced.",
+      "evidence": [
+        {
+          "test": "SpeechAcceptanceTests.CancellationAfterFirstPassageStopsLaterGenerationAndServesNextRequest",
+          "path": "../novalist-extension/tests/Novalist.Extensions.Tests/SpeechAcceptanceTests.cs",
+          "line": 55,
+          "assertions": "3-passage fake model yields passage1 and blocks before passage2; cancel stops worker; model task completes; releasing barrier cannot generate2/3; next channel renders successfully within shared3-second deadline."
+        }
+      ]
+    },
+    "EXT-018": {
+      "status": "verified-loader-contract",
+      "evidence": [
+        {
+          "artifact": "legacy-host-gating.json",
+          "assertions": "18 actual current-loader gate cases with final legacy manifests."
+        },
+        {
+          "artifact": "legacy-historical-validation/summary.json",
+          "assertions": "PnP loaded through exactv1.7/v1.14.5 historicalSDK/loaders; Qwen loaded and provider registered/unregistered through exact1.15-dev experimentalSDK/loader/registry."
+        }
+      ],
+      "limitations": "NativeUI, project workflows and model synthesis not exercised; original manifest compatibility acceptance complete."
+    }
+  },
+  "checks": {
+    "extensionCSharp": "414 passed,0 failed,0 skipped",
+    "speechPython": "41 passed",
+    "targetedAcceptance": "7 C# cases and4 Python lifecycle cases passed",
+    "aislop": "Changed-file scan88;0errors;17nonfixablewarnings;0fixable"
+  },
+  "optionalLimitation": "Actual GPU/model inference was not exercised. Missing environment/checkpoints documented in speech-runtime-prerequisites.json; hardware inference is not part of original EXT014-016 regression acceptance."
+}
