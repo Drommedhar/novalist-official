@@ -5,9 +5,10 @@ const crypto = require('node:crypto');
 const root = path.resolve(__dirname, '../../..');
 const app = path.join(root, 'app');
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
-const original = execFileSync('git', ['show', 'HEAD:app/build/manual-plugin.ts'], { cwd: root });
+const auditedRevision = 'ba8b6d328b64ded6e923baa25ce086d7e9e799e4';
+const original = execFileSync('git', ['show', `${auditedRevision}:app/build/manual-plugin.ts`], { cwd: root });
 const fixed = fs.readFileSync(path.join(app, 'build/manual-plugin.ts'));
-const metadata = { date: new Date().toISOString(), head: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(), variants: {} };
+const metadata = { date: new Date().toISOString(), auditedRevision, head: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(), variants: {} };
 for (const [variant, source] of [['original', original], ['fixed', fixed]]) {
   const dir = path.join(__dirname, variant);
   fs.mkdirSync(dir, { recursive: true });
@@ -22,6 +23,6 @@ for (const [variant, source] of [['original', original], ['fixed', fixed]]) {
   const entry = assets.find(file => /^index-.*\.js$/.test(file));
   const bytes = fs.readFileSync(path.join(dir, 'renderer/assets', entry));
   metadata.variants[variant] = { pluginSha256: sha(source), mainSha256: sha(fs.readFileSync(path.join(dir, 'main/index.js'))), preloadSha256: sha(fs.readFileSync(path.join(dir, 'preload/index.js'))), entry, entryBytes: bytes.length, entrySha256: sha(bytes), emittedPng: assets.filter(file => file.endsWith('.png')) };
-  console.log(variant, bytes.length);
+  process.stdout.write(`${variant} ${bytes.length}\n`);
 }
 fs.writeFileSync(path.join(__dirname, 'builds.json'), JSON.stringify(metadata, null, 2));
