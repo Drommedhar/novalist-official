@@ -29,3 +29,5 @@ public interface IStoredPathResolver
     /// <summary>Releases temporary access acquired while resolving a stored path.</summary>
     void Release(string resolvedPath) { }
 }
+
+// Audit M05 core-only Apple CI path-trigger probe.
