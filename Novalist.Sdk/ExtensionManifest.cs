@@ -135,3 +135,5 @@ public sealed class WebViewContribution
     [JsonPropertyName("entry")]
     public string Entry { get; set; } = string.Empty;
 }
+
+// Audit M05 sdk-only Apple CI path-trigger probe.
