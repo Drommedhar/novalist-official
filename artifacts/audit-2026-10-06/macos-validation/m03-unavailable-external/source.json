@@ -1,0 +1,7 @@
+{
+  "revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+  "production_input_count": 1314,
+  "asset_count": 203,
+  "observer_patch_sha256": "6a0b5e896afb5dadf52a9f56ea2268378c0cb40fa83a46729dc38bc0720b3f26",
+  "observer_semantics": "Record content-free results of the same bookmark then owned-path resolution order; no return-value override, no registry/recents writes."
+}

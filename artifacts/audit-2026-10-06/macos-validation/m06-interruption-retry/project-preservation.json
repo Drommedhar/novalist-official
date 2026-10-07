@@ -1,0 +1,47 @@
+{
+  "original_document_file_count": 75,
+  "all_original_hashes_unchanged": true,
+  "synthetic_project_file_count": 26,
+  "project_files_sha256": {
+    "Audit Simulator Fixture/.novalist/project.json": "a304c12da86af513f84535302484045344b8eaa6a8d8188fba301cd3050bd663",
+    "Audit Simulator Fixture/.novalist/settings.json": "1c9bfccc88863f4b219199bb18c88011b0cd71307646fb31586e8c120e9df3e6",
+    "Audit Simulator Fixture/.novalist/word-history.jsonl": "f9f593d41678f36db9b0eb93df5306c0d728600b2af7cf7251e42aa968e957e9",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/.nvindex.json": "118d138d043a106af0f257273742b592eac4a2ffb7296b177337933e4efa1c21",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/.nvchapter.json": "2852e8f23dea03e657ce437b2459e494dbd1aa7a79e1742d1c63ae7618adbd17",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-01.novalist": "0fde6f3373966615481708a8def73c24f76a9765db3a3383d690072435282ed3",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-02.novalist": "7d838cd156d0d280ffbbd1e52162815e24d03132e1e719616191fb8e3d6f707d",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-03.novalist": "984a1ddce134a2d3de28cf0bf42b4e7f2aea1be6c4f9150161b836dc3b13e057",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-04.novalist": "622c9c599ef77c6e99b10c1edc6cd59c45911e749ab150582ad23d0b3f9d97aa",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-05.novalist": "a624a489d97d1e70eb336e324c040ca9134719fb6c81bdb438c130b5a87040b7",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-06.novalist": "9c95142958b1faca9767a2702a9fc14afa49f35c8e2103949e0de2e7cc97ce95",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-07.novalist": "f7ef4368278be0b78f6e79fe4114931356a699c0156e8d8b00f73a5c3070815b",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-08.novalist": "5aff8808df23a7409244a76051de080b6c8816f3f274328dad79b91e1dc90221",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-09.novalist": "a82d23af38e253e44e7cf6e6b11f6a5bfeeb1c8dcfc7eb51120c177e70320318",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-10.novalist": "11bf2021f689e126b5a223da5d400d9444036fd1055b57bc1f1c07fafe454681",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-11.novalist": "3fffc6320dab08a2b386611f1909c51c28ead9aaed881c7c74fb3d93180d8872",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-12.novalist": "58b09a7c8ea036bfb9bd37ab025992a270fc1eb501bf79d4b95db788dd7ed51d",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-r13-image.novalist": "fa1267c98708c23bc072e22ae58ff7cb21f7ead1424d1b55a1fa8f1e1b28525f",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Maps/map-audit-r13-frames.json": "4f290f910765951211abc3eaa97803c7a5c0e5d994cb767465a7a688b6102e32",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Snapshots/d5aadcf3-382a-4c68-81a5-48766f662ffa/20261007-121717853-ffdaf86d-9617-4173-8fc4-7dee5655286f.json": "a1dc396f63fcbf4fe7eff17d2609d88c321b705f5e33404fcead89117798a25e",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Snapshots/d5aadcf3-382a-4c68-81a5-48766f662ffa/20261007-121717873-2ec0a7dd-b248-4e15-afa4-b5ec8f2eb24c.json": "3c78e9fe741e50b52976132529974e148e469c2b04195908cf88b2d0c7b7b67b",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Snapshots/d5aadcf3-382a-4c68-81a5-48766f662ffa/20261007-121717884-5248c0e2-e140-4a74-a460-c1bbea656457.json": "a22927be837b3f1d7b92afbc12b0bc05cd463b73ef5c025ca3aa47a38db41c66",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/acts.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/draft.json": "d36a6b61d00037fcc338cfdde08291e98f5a7d14c8e5985d7ef16b59fac82be4",
+    "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/scenes.json": "3f75536ebf96fd371da131caceb7603d51a4fad493610f69b3c0f56c5721fee8",
+    "Audit Simulator Fixture/Audit Book Alpha/Images/audit-quadrants.png": "436b8e84cb19dc7d7b7f7e6c9903ef8d67ba4a2171ca83a6f56b906aeb84f000"
+  },
+  "new_files": [
+    {
+      "relative_path": ".config/Novalist/Backups/Audit Simulator Fixture/9ed44405398e0e19e0a246e898c50845843d7688766559327241f3d75dc892d9/.novalist-backup-owner",
+      "sha256": "9ed44405398e0e19e0a246e898c50845843d7688766559327241f3d75dc892d9",
+      "kind": "production open-backup ownership marker"
+    },
+    {
+      "relative_path": ".config/Novalist/Backups/Audit Simulator Fixture/9ed44405398e0e19e0a246e898c50845843d7688766559327241f3d75dc892d9/20261007-131150-open.zip",
+      "sha256": "5e842f86fde90e569c326c862c4e541c347bb057123692f71827e2f9e94f8e60",
+      "kind": "production project-open ZIP backup"
+    }
+  ],
+  "private_documents_and_library_backup_preserved": true,
+  "no_project_content_added_by_test": true
+}

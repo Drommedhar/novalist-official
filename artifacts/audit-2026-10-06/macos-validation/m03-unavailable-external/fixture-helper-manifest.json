@@ -1,0 +1,9 @@
+{
+  "first_installed_on_this_simulator": true,
+  "source_sha256": "549eca29963ba26b468e5900fbe45d0ddfbd9ef3265de1cf7a2d9966612c2af5",
+  "app_files": {
+    "AuditFixtures": "93ac0043bc7cb4313dd44b1d17a7eec1e9e37d3436ac3d012fb01f2d63cf83f0",
+    "Info.plist": "d633502aacc25b5b71c00a43f124d67216c956526abe2c20e27085e6df99c438",
+    "_CodeSignature/CodeResources": "d97c449b84df5df3e690a6ea20740bb3c975ecf52c26039a645a104b57a9fe51"
+  }
+}

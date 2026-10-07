@@ -1,0 +1,45 @@
+{
+  "variant": "original",
+  "source_input_differences": {
+    "app/build/manual-plugin.ts": {
+      "expected": "039d560fed2af581876ef02427f45ca5cabf909b139a778a39ef52049f8ba301",
+      "actual": "8e6dbe4a1fcb6b736b2eaada5d9b915d0f3697722a3c2d3973fb6b36f9c253c3"
+    }
+  },
+  "renderer_entry": "./assets/index.mobile-DmIL-oFw.js",
+  "entry_bytes": 7714133,
+  "entry_sha256": "8410eeed10652009c81eab8dfded51acbfce563b6506080b7c089f9e9b692ae4",
+  "base64_image_literals_in_entry": 11,
+  "embedded_manual_image_hashes": [
+    "bcc889398e71b1f4d9e81ce944443e11ae51fd702d953ed5267a30046b59fc52",
+    "be8cfa88e31571771a62cda230b6d17c8f13ebcac4d1955d7aa7ec750f817b07",
+    "bd33875bb2565ea0e71ce2e47a1351cb7e2b5fc3847963cc16eb6725d9fed3ef",
+    "d7748a0ccfe13a71ec2e0d464bb976268a841c842be02b03e11cc76f33a26836",
+    "8d91efe86a1deb0a97f28e0eb82c5130aa91660b00709666ff9786ede1341906",
+    "f7293a5e48cab3fba7214dfd1ffcea571a1058a1cdbd1cc03692dd3a910e19a6",
+    "61029447c5ba15b03d33103307cbfa2fe3f68ebbf413a8532fbf7c26d2b9da70",
+    "318a71f9ffba14dddb6a14e8552a692a94fa502f77eff30ce7e317caa74e8d5b",
+    "ac2b614c9fabf8778bbbbcebf37fa441cf7912e5dd94358204e0b459d533d075",
+    "2342037b40fa93b74acd2c71e7cebd8b92bc29b4653a2625d9ac5dabbb5bf493",
+    "6853f326bc64e0d22c245d1875ee53bced1890ea69ed1fec24d11225fe525e2f"
+  ],
+  "manual_image_hashes": {
+    "calendar.png": "bcc889398e71b1f4d9e81ce944443e11ae51fd702d953ed5267a30046b59fc52",
+    "codex.png": "be8cfa88e31571771a62cda230b6d17c8f13ebcac4d1955d7aa7ec750f817b07",
+    "command-palette.png": "bd33875bb2565ea0e71ce2e47a1351cb7e2b5fc3847963cc16eb6725d9fed3ef",
+    "dashboard.png": "d7748a0ccfe13a71ec2e0d464bb976268a841c842be02b03e11cc76f33a26836",
+    "editor.png": "8d91efe86a1deb0a97f28e0eb82c5130aa91660b00709666ff9786ede1341906",
+    "interface-overview.png": "f7293a5e48cab3fba7214dfd1ffcea571a1058a1cdbd1cc03692dd3a910e19a6",
+    "manuscript.png": "61029447c5ba15b03d33103307cbfa2fe3f68ebbf413a8532fbf7c26d2b9da70",
+    "plot-grid.png": "318a71f9ffba14dddb6a14e8552a692a94fa502f77eff30ce7e317caa74e8d5b",
+    "relationships.png": "ac2b614c9fabf8778bbbbcebf37fa441cf7912e5dd94358204e0b459d533d075",
+    "start-screen.png": "2342037b40fa93b74acd2c71e7cebd8b92bc29b4653a2625d9ac5dabbb5bf493",
+    "timeline.png": "6853f326bc64e0d22c245d1875ee53bced1890ea69ed1fec24d11225fe525e2f"
+  },
+  "renderer_asset_count": 192,
+  "native_app_files": 560,
+  "native_app_bytes": 160633613,
+  "app_tree_sha256": "7bd4ed4ada1eb35b3b2dc9de008947235439fc19d6c21ec1628debb7d7d01bad",
+  "codesign_deep_strict_exit": 0,
+  "built_assets_equal_app_assets": true
+}

@@ -1,0 +1,14 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+ func testCleanLibraryRetainsOwnedProjectWithoutExternalRedirect() {
+  continueAfterFailure = false
+  let app = XCUIApplication(bundleIdentifier: "com.novalist.app"); app.launch()
+  XCTAssertTrue(app.buttons["Browse for Project Folder..."].firstMatch.waitForExistence(timeout: 20))
+  XCTAssertTrue(app.switches["Select M03 Unavailable Suffix — M03 Unavailable Suffix"].firstMatch.waitForExistence(timeout: 10))
+  XCTAssertFalse(app.switches["Select M03 External Proof — M03 External Unavailable"].firstMatch.exists)
+  XCTAssertFalse(app.staticTexts["Project Dashboard"].firstMatch.exists)
+  XCTAssertFalse(app.alerts["Editing paused"].exists)
+  print("M03_CLEAN_LIBRARY_LOCAL_PRESENT_EXTERNAL_PRUNED_NO_REDIRECT")
+  let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); screenshot.name = "clean-library-restored-fixture"; screenshot.lifetime = .keepAlways; add(screenshot)
+ }
+}

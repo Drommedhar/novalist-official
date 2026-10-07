@@ -85,7 +85,7 @@ def root_progress():
     add("M06", "Native permission denial travels as a stable error code and becomes the browser NotAllowedError contract used by dictation.",
         ["Novalist.Mobile/Pages/RendererHostPage.cs", "app/src/renderer/src/mobile/hostCalls.ts", "app/scripts/mobile-dictation.test.mjs"],
         ["Portable microphone tests check NotAllowedError and execute the actual shim, HostCallChannel, microphone abstraction and dictation store. Denial shows dictation.permission; permitted retry records, stops exactly once and clears the stale error. Full source suite: 114 passed.",
-         "Real simulator native permission denial, Settings grant, retry, explicit stop and background interruption passed with unchanged fixed app bytes. The permission change caused a fresh process; physical, call/route and same-process stale-error recovery remain pending. Evidence: simulator-ui/microphone-summary.json."], native)
+         "Real simulator native permission denial, Settings grant, retry, explicit stop and background interruption passed with unchanged fixed app bytes. The permission change caused a fresh process; physical, call/route and same-process permission-change recovery remain pending. Evidence: simulator-ui/microphone-summary.json."], native)
     result = {"updated": UPDATED, "findings": items, "checks": [
         {"command": "dotnet test Core --filter MobileOwnedProjectPathsTests|MobileAssetReaderTests", "status": "passed", "detail": "8 tests passed. Oversized media is rejected before allocation; preview limit is 16 MiB."},
         {"command": "node --experimental-strip-types --test --test-isolation=none scripts/mobile-host-calls.test.mjs scripts/mobile-shim.test.mjs", "status": "passed", "detail": "10 passed."},
@@ -148,11 +148,11 @@ def performance_html():
         metric = performance["metrics"][key]
         rows.append(f"<tr><td>{label}</td><td>{metric['original']['median']:.2f}</td><td>{metric['fixed']['median']:.2f}</td></tr>")
     return '''<section id="performance"><h2>Measured desktop impact</h2>
-<p>P01 removes embedded Help screenshots from the initial JavaScript bundle. This controlled Windows comparison keeps the current renderer source, backend, main process and preload identical; only the manual asset plugin changes.</p>
+<p>P01 removes embedded Help screenshots from the initial JavaScript bundle. These recorded Windows measurements predate the screenshot refresh. The comparison kept its tested renderer source, backend, main process and preload identical; only the manual asset plugin changed.</p>
 <div class="table-wrap"><table><thead><tr><th>Median metric</th><th>Original packaging</th><th>Corrected packaging</th></tr></thead><tbody>''' + ''.join(rows) + '''</tbody></table></div>
 <p>Five alternating fresh-profile timing/memory pairs and three separate tracing pairs ran in unpackaged Electron 42.11.8 with a Debug backend. OS caches were retained. The trace measures a background parsing/streaming-compile interval, not pure parser CPU time. Launcher improvement was small and one pair was slower after the change; these measurements do not establish a general cold-start guarantee or iOS performance.</p>
 <p>All 11 Help screenshots also decoded through the actual desktop Help UI from emitted local assets with the browser offline and external requests blocked. See the <a href="p01-desktop/summary.json">desktop method and raw-evidence index</a>.</p>
-<p>Separately, the iPhone 17 Pro simulator opened all 47 actual Help pages and decoded all 11 local screenshots at 1440×900 under browser-enforced HTTP(S) blocking. This instrumented WKWebView result is supporting simulator evidence, not an iOS performance measurement or physical airplane-mode result. Physical iPhone/iPad performance and offline Help remain deferred. See the <a href="macos-validation/offline-help.json">simulator Help evidence</a>.</p></section>'''
+<p>Separately, the iPhone 17 Pro simulator opened all 47 actual Help pages from source <code>af744fbd</code> and decoded all 11 refreshed local screenshots at 1440×900 under browser-enforced HTTP(S) resource/connect blocking. This instrumented WKWebView result is supporting simulator evidence, not an iOS performance measurement or physical airplane-mode result. Physical iPhone/iPad performance and offline Help remain deferred. See the <a href="macos-validation/p01-refreshed-native-full/summary.json">refreshed simulator Help evidence</a>.</p></section>'''
 
 
 def main():

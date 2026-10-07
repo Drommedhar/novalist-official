@@ -1,0 +1,12 @@
+{
+  "external_path_sha256": "6367ff881324d97d9e34624c1b333a145788a518459fb2e72e471403e24aebea",
+  "restored_to_exact_original_path": true,
+  "restored_file_count": 6,
+  "all_restored_file_hashes_match_post_open_backup": true,
+  "external_project_and_book_ids_unchanged": true,
+  "inode_after_restoration": 11319623,
+  "inode_differs_from_deleted_original": true,
+  "registry_unchanged_by_restore": true,
+  "recents_not_manually_edited": true,
+  "new_external_fixture_remains_available_in_actual_Files_provider": true
+}

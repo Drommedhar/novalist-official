@@ -1,0 +1,82 @@
+{
+  "finding": "P01",
+  "status": "controlled-refreshed-native-build-pair-passed",
+  "date": "2026-10-07",
+  "source": {
+    "revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+    "baseline_plugin_revision": "ba8b6d328b64ded6e923baa25ce086d7e9e799e4",
+    "input_count": 2051,
+    "dependency_lock_sha256": "4af5b0d05ba2f64dad9f05a48fabc4ed6a86c8576769f361999bd4c63965af96",
+    "only_source_difference": [
+      "app/build/manual-plugin.ts"
+    ],
+    "plugin_sha256": {
+      "original": "8e6dbe4a1fcb6b736b2eaada5d9b915d0f3697722a3c2d3973fb6b36f9c253c3",
+      "fixed": "039d560fed2af581876ef02427f45ca5cabf909b139a778a39ef52049f8ba301"
+    },
+    "scope": "Fresh signed simulator build pair for current refreshed manual images; no runtime or physical performance claim."
+  },
+  "same_build_settings": true,
+  "native_build_command": "dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios27.0 -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=true -p:CodesignKey=- -p:NuGetAudit=false -m:1 -nr:false",
+  "renderer_build_command": "npm --prefix app run build:mobile",
+  "native_build_configuration": "Debug, iossimulator-arm64, ad-hoc signed; NuGet auditing disabled",
+  "clean_outputs_between_variants": [
+    "Novalist.Mobile/bin",
+    "Novalist.Mobile/obj",
+    "Novalist.Backend/bin",
+    "Novalist.Backend/obj",
+    "Novalist.Core/bin",
+    "Novalist.Core/obj",
+    "Novalist.Sdk/bin",
+    "Novalist.Sdk/obj"
+  ],
+  "source_assertions": {
+    "tracked_inputs": 2051,
+    "original_differs_only_in_historical_manual_plugin": true,
+    "fixed_matches_all_committed_inputs": true,
+    "fixed_renderer_assets_match_final_R15_and_current_root": true,
+    "fixed_asset_count": 203,
+    "both_variants_native_assets_match_their_renderer_outputs": true,
+    "both_deep_strict_codesign_passed": true,
+    "both_builds_exit_code": 0
+  },
+  "variants": {
+    "original": {
+      "entry_bytes": 7714133,
+      "entry_sha256": "8410eeed10652009c81eab8dfded51acbfce563b6506080b7c089f9e9b692ae4",
+      "base64_image_literals_in_entry": 11,
+      "renderer_asset_count": 192,
+      "native_app_files": 560,
+      "native_app_bytes": 160633613,
+      "app_tree_sha256": "7bd4ed4ada1eb35b3b2dc9de008947235439fc19d6c21ec1628debb7d7d01bad"
+    },
+    "fixed": {
+      "entry_bytes": 3459458,
+      "entry_sha256": "c2228dffeab0417c159116f175fdfd162c977f07ae99450b2a1d90c2b2edae56",
+      "base64_image_literals_in_entry": 0,
+      "renderer_asset_count": 203,
+      "native_app_files": 571,
+      "native_app_bytes": 159573086,
+      "app_tree_sha256": "1fb14662276348bf3b6345ff08a7ef77f8e2efcf4fcb04e9613d22c05771cfa1"
+    }
+  },
+  "entry_bytes_removed": 4254675,
+  "manual_images": {
+    "count": 11,
+    "original_embedded_decoded_hashes_match_all_current_images": true,
+    "fixed_emitted_hashes_match_all_current_images": true
+  },
+  "harness_correction": "Initial read-only capture selected the HybridWebView framework loader instead of the renderer module; selector was restricted to the emitted index.mobile asset. No product change or build rerun resulted.",
+  "raw_log_sha256_before_path_sanitization": {
+    "original-renderer.log": "943ea151bd4cae66de9f5cd6f755e518b97c1557b5c513dfa0ba9684a6cb6ff9",
+    "original-native.log": "323f3e04d997476a458d94984e760b43c2f23e22cf7d710ca5acef8647e90ead",
+    "fixed-renderer.log": "e259aa4553424971fae8bdc6521fa8a253f49328f31d7ead23b0d877c49153ff",
+    "fixed-native.log": "becdd8b19a23e440aee89ab910d80e7380d65ddee0a3e64a88b0c1f624290dea"
+  },
+  "limitations": [
+    "Build packaging only; no physical iPhone/iPad startup, app/WebKit memory, thermal/cache or JavaScriptCore parsing result.",
+    "The two builds used identical current source and settings except manual-plugin.ts. Native generated metadata and debug path information may vary; complete app manifests are retained without claiming byte-identical binaries.",
+    "This pair supersedes the older 8489c9a3 pair only for current screenshot/source preparation; the older results retain their historical source.",
+    "No installation, runtime, network isolation or release was performed by this build-pair procedure. Full refreshed native Help traversal has separate evidence."
+  ]
+}

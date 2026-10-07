@@ -1,0 +1,72 @@
+Test Suite 'All tests' started at 2026-10-07 15:08:46.966.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 15:08:46.967.
+Test Suite 'AuditUITests' started at 2026-10-07 15:08:46.967.
+Test Case '-[AuditUITests.AuditUITests testNativeOfflineHelpScreenshotsAfterScroll]' started.
+    t =     0.00s Start Test at 2026-10-07 15:08:46.968
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Waiting 10.0s for "Search the manual…" TextField to exist
+objc[92516]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1057e0398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x106524310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.09s     Checking `Expect predicate `existsNoRetry == 1` for object "Search the manual…" TextField`
+    t =     1.09s         Checking existence of `"Search the manual…" TextField`
+    t =     1.90s Tap "Dashboard" Button
+    t =     1.90s     Wait for com.novalist.app to idle
+    t =     1.90s     Find the "Dashboard" Button
+    t =     2.71s     Check for interrupting elements affecting "Dashboard" Button
+    t =     2.75s     Synthesize event
+    t =     3.04s     Wait for com.novalist.app to idle
+    t =     3.05s Waiting 10.0s for "The project Dashboard" Image to exist
+    t =     4.12s     Checking `Expect predicate `existsNoRetry == 1` for object "The project Dashboard" Image`
+    t =     4.12s         Checking existence of `"The project Dashboard" Image`
+    t =     4.93s Find the "The project Dashboard" Image
+    t =     5.73s Press Application 'com.novalist.app'[0.78, 0.82] for 0.1 seconds, then drag to Application 'com.novalist.app'[0.78, 0.25] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     5.73s     Wait for com.novalist.app to idle
+    t =     5.73s     Find the Application 'com.novalist.app'
+    t =     5.76s     Check for interrupting elements affecting "Novalist" Application
+    t =     5.81s     Synthesize event
+    t =     5.81s         Find the Application 'com.novalist.app'
+    t =     5.85s         Find the Application 'com.novalist.app'
+    t =     5.89s         Find the Application 'com.novalist.app'
+    t =     5.92s         Find the Application 'com.novalist.app'
+    t =     5.96s         Find the Application 'com.novalist.app'
+    t =     6.75s     Wait for com.novalist.app to idle
+    t =     8.32s Find the "The project Dashboard" Image
+    t =     9.15s Find the "The project Dashboard" Image
+    t =    10.05s Added attachment named 'offline-native-dashboard'
+    t =    10.05s Tap "Editor" Button
+    t =    10.05s     Wait for com.novalist.app to idle
+    t =    10.05s     Find the "Editor" Button
+    t =    10.86s     Check for interrupting elements affecting "Editor" Button
+    t =    10.90s     Synthesize event
+    t =    10.91s         Scroll element to visible
+    t =    10.91s         Find the "Editor" Button
+    t =    11.71s         Computed hit point {153, 130} after scrolling to visible
+    t =    12.00s     Wait for com.novalist.app to idle
+    t =    12.00s Waiting 10.0s for "A scene open in the editor with the Context inspector and scene-notes dock" Image to exist
+    t =    13.09s     Checking `Expect predicate `existsNoRetry == 1` for object "A scene open in the editor with the Context inspector and scene-notes dock" Image`
+    t =    13.09s         Checking existence of `"A scene open in the editor with the Context inspector and scene-notes dock" Image`
+    t =    16.86s Find the "A scene open in the editor with the Context inspector and scene-notes dock" Image
+    t =    20.62s Find the "A scene open in the editor with the Context inspector and scene-notes dock" Image
+    t =    24.64s Added attachment named 'offline-native-editor'
+    t =    24.64s Checking existence of `"Editing paused" Alert`
+P01_NATIVE_OFFLINE_SCREENSHOTS_PASS
+    t =    28.55s Tear Down
+Test Case '-[AuditUITests.AuditUITests testNativeOfflineHelpScreenshotsAfterScroll]' passed (28.556 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 15:09:15.524.
+	 Executed 1 test, with 0 failures (0 unexpected) in 28.556 (28.557) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 15:09:15.524.
+	 Executed 1 test, with 0 failures (0 unexpected) in 28.556 (28.557) seconds
+Test Suite 'All tests' passed at 2026-10-07 15:09:15.524.
+	 Executed 1 test, with 0 failures (0 unexpected) in 28.556 (28.558) seconds
+2026-10-07 15:09:15.810 xcodebuild[92496:4097714] [MT] IDETestOperationsObserverDebug: 31.255 elapsed -- Testing started completed.
+2026-10-07 15:09:15.810 xcodebuild[92496:4097714] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 15:09:15.810 xcodebuild[92496:4097714] [MT] IDETestOperationsObserverDebug: 31.255 sec, +31.255 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-native-help>/03-help-offline-screenshots.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

@@ -1,0 +1,430 @@
+{
+  "scenario": "manuscript actual Lock, held real write, termination and recovery",
+  "simulator": "4F155C1B-8F9C-4919-8BD7-1CFAD764B61B",
+  "config": {
+    "kind": "manuscript",
+    "marker": "M01MANUSCRIPTLOCK27",
+    "bookId": "book-1791378307548",
+    "draftId": "draft-default",
+    "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+    "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+    "researchId": "46a70571-a29b-42b9-80e2-b13f9a8c35dc"
+  },
+  "source_revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+  "status": "passed-simulator-supporting-lock-recovery",
+  "baseline": {
+    "scope": {
+      "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Lock Variants",
+      "bookId": "book-1791378307548",
+      "draftId": "draft-default"
+    },
+    "view": "manuscript",
+    "manuscript": {
+      "mode": "manuscript",
+      "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+      "marker": false,
+      "domMarker": false
+    },
+    "research": {
+      "domMarker": false
+    },
+    "journal": [],
+    "gate": null
+  },
+  "baseline_disk": [],
+  "gate_installed": {
+    "expected": {
+      "kind": "manuscript",
+      "marker": "M01MANUSCRIPTLOCK27",
+      "bookId": "book-1791378307548",
+      "draftId": "draft-default",
+      "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+      "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+      "researchId": "46a70571-a29b-42b9-80e2-b13f9a8c35dc"
+    },
+    "scope": {
+      "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Lock Variants",
+      "bookId": "book-1791378307548",
+      "draftId": "draft-default"
+    }
+  },
+  "gate_installed_at": "2026-10-07T13:09:15.324229+00:00",
+  "edit_observed_at": "2026-10-07T13:09:19.014419+00:00",
+  "after_edit": {
+    "scope": {
+      "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Lock Variants",
+      "bookId": "book-1791378307548",
+      "draftId": "draft-default"
+    },
+    "view": "manuscript",
+    "manuscript": {
+      "mode": "manuscript",
+      "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+      "marker": true,
+      "domMarker": true
+    },
+    "research": {
+      "domMarker": false
+    },
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Lock Variants",
+          "bookId": "book-1791378307548",
+          "draftId": "draft-default"
+        },
+        "kind": "scene",
+        "source": "manuscript:8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+        "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+        "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "marker": true,
+        "baseContainsMarker": false
+      }
+    ],
+    "gate": {
+      "expected": {
+        "kind": "manuscript",
+        "marker": "M01MANUSCRIPTLOCK27",
+        "bookId": "book-1791378307548",
+        "draftId": "draft-default",
+        "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+        "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+        "researchId": "46a70571-a29b-42b9-80e2-b13f9a8c35dc"
+      },
+      "scope": {
+        "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Lock Variants",
+        "bookId": "book-1791378307548",
+        "draftId": "draft-default"
+      },
+      "held": [],
+      "editingClaims": [
+        {
+          "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+          "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+          "dirty": true,
+          "at": 1791378558533
+        }
+      ],
+      "otherWritesForwarded": 0
+    }
+  },
+  "native_edit_test_exit": 0,
+  "native_session_completed_at": "2026-10-07T13:09:19.389259+00:00",
+  "before_lock": {
+    "scope": {
+      "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Lock Variants",
+      "bookId": "book-1791378307548",
+      "draftId": "draft-default"
+    },
+    "view": "manuscript",
+    "manuscript": {
+      "mode": "manuscript",
+      "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+      "marker": true,
+      "domMarker": true
+    },
+    "research": {
+      "domMarker": false
+    },
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Lock Variants",
+          "bookId": "book-1791378307548",
+          "draftId": "draft-default"
+        },
+        "kind": "scene",
+        "source": "manuscript:8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+        "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+        "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "marker": true,
+        "baseContainsMarker": false
+      }
+    ],
+    "gate": {
+      "expected": {
+        "kind": "manuscript",
+        "marker": "M01MANUSCRIPTLOCK27",
+        "bookId": "book-1791378307548",
+        "draftId": "draft-default",
+        "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+        "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+        "researchId": "46a70571-a29b-42b9-80e2-b13f9a8c35dc"
+      },
+      "scope": {
+        "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Lock Variants",
+        "bookId": "book-1791378307548",
+        "draftId": "draft-default"
+      },
+      "held": [
+        {
+          "id": 119,
+          "method": "scenes/write",
+          "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+          "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+          "researchId": "46a70571-a29b-42b9-80e2-b13f9a8c35dc",
+          "marker": true,
+          "contentLength": 26,
+          "at": 1791378559332
+        }
+      ],
+      "editingClaims": [
+        {
+          "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+          "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+          "dirty": true,
+          "at": 1791378558533
+        }
+      ],
+      "otherWritesForwarded": 0
+    }
+  },
+  "disk_before_lock": [],
+  "native_before_lock": {
+    "page": "347db81149864b52a10702eaa41e4c33",
+    "bridgeFailed": 0,
+    "disposed": 0,
+    "rendererReady": true,
+    "applicationState": "Active",
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T13:03:47.773799+00:00",
+        "ticks": 166559382284125
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T13:03:48.504444+00:00",
+        "ticks": 166560112918375
+      }
+    ]
+  },
+  "lockstate_before": 0,
+  "lock_action_started_at": "2026-10-07T13:09:19.957655+00:00",
+  "lock_action_output": "{\n  \"window\": \"Novalist-Audit-iPad \\u2013 iPadOS 27.0\",\n  \"selected_target\": \"TableRow.Device.4F155C1B-8F9C-4919-8BD7-1CFAD764B61B\",\n  \"controls\": [\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Home\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Lock\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Siri\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"App Switcher\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Action Button\",\n      \"AXEnabled\": false,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Rotate Left\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Rotate Right\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Screenshot\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Record Screen\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    }\n  ]\n}\nSENDING_REAL_DEVICEHUB_LOCK\nREAL_DEVICEHUB_LOCK_SENT\n",
+  "lock_action_completed_at": "2026-10-07T13:09:20.285105+00:00",
+  "lockstate_samples": [
+    {
+      "at": "2026-10-07T13:09:20.414550+00:00",
+      "value": 0
+    },
+    {
+      "at": "2026-10-07T13:09:20.570407+00:00",
+      "value": 0
+    },
+    {
+      "at": "2026-10-07T13:09:20.717623+00:00",
+      "value": 0
+    },
+    {
+      "at": "2026-10-07T13:09:20.866950+00:00",
+      "value": 0
+    },
+    {
+      "at": "2026-10-07T13:09:21.016617+00:00",
+      "value": 0
+    },
+    {
+      "at": "2026-10-07T13:09:21.186567+00:00",
+      "value": 0
+    },
+    {
+      "at": "2026-10-07T13:09:21.357463+00:00",
+      "value": 1
+    }
+  ],
+  "native_while_locked": {
+    "page": "347db81149864b52a10702eaa41e4c33",
+    "bridgeFailed": 0,
+    "disposed": 0,
+    "rendererReady": true,
+    "applicationState": "Background",
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T13:03:47.773799+00:00",
+        "ticks": 166559382284125
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T13:03:48.504444+00:00",
+        "ticks": 166560112918375
+      },
+      {
+        "kind": "background-save-requested",
+        "detail": null,
+        "utc": "2026-10-07T13:09:21.160048+00:00",
+        "ticks": 166892767853416
+      },
+      {
+        "kind": "background-task",
+        "detail": "granted",
+        "utc": "2026-10-07T13:09:21.16103+00:00",
+        "ticks": 166892768834791
+      },
+      {
+        "kind": "background-save-requested",
+        "detail": null,
+        "utc": "2026-10-07T13:09:21.205109+00:00",
+        "ticks": 166892812914458
+      },
+      {
+        "kind": "background-save-requested",
+        "detail": null,
+        "utc": "2026-10-07T13:09:21.205481+00:00",
+        "ticks": 166892813285375
+      }
+    ]
+  },
+  "locked_observation": {
+    "scope": {
+      "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Lock Variants",
+      "bookId": "book-1791378307548",
+      "draftId": "draft-default"
+    },
+    "view": "manuscript",
+    "manuscript": {
+      "mode": "manuscript",
+      "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+      "marker": true,
+      "domMarker": true
+    },
+    "research": {
+      "domMarker": false
+    },
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Lock Variants",
+          "bookId": "book-1791378307548",
+          "draftId": "draft-default"
+        },
+        "kind": "scene",
+        "source": "manuscript:8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+        "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+        "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "marker": true,
+        "baseContainsMarker": false
+      }
+    ],
+    "gate": {
+      "expected": {
+        "kind": "manuscript",
+        "marker": "M01MANUSCRIPTLOCK27",
+        "bookId": "book-1791378307548",
+        "draftId": "draft-default",
+        "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+        "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+        "researchId": "46a70571-a29b-42b9-80e2-b13f9a8c35dc"
+      },
+      "scope": {
+        "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Lock Variants",
+        "bookId": "book-1791378307548",
+        "draftId": "draft-default"
+      },
+      "held": [
+        {
+          "id": 119,
+          "method": "scenes/write",
+          "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+          "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+          "researchId": "46a70571-a29b-42b9-80e2-b13f9a8c35dc",
+          "marker": true,
+          "contentLength": 26,
+          "at": 1791378559332
+        }
+      ],
+      "editingClaims": [
+        {
+          "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+          "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+          "dirty": true,
+          "at": 1791378558533
+        }
+      ],
+      "otherWritesForwarded": 0
+    }
+  },
+  "disk_while_locked": [],
+  "new_native_events": [
+    {
+      "kind": "background-save-requested",
+      "detail": null,
+      "utc": "2026-10-07T13:09:21.160048+00:00",
+      "ticks": 166892767853416
+    },
+    {
+      "kind": "background-task",
+      "detail": "granted",
+      "utc": "2026-10-07T13:09:21.16103+00:00",
+      "ticks": 166892768834791
+    },
+    {
+      "kind": "background-save-requested",
+      "detail": null,
+      "utc": "2026-10-07T13:09:21.205109+00:00",
+      "ticks": 166892812914458
+    },
+    {
+      "kind": "background-save-requested",
+      "detail": null,
+      "utc": "2026-10-07T13:09:21.205481+00:00",
+      "ticks": 166892813285375
+    }
+  ],
+  "termination_started_at": "2026-10-07T13:09:23.403590+00:00",
+  "terminated_at": "2026-10-07T13:09:23.527387+00:00",
+  "disk_after_termination": [],
+  "native_edit_done_epoch": 1791378559.003746,
+  "native_edit_log_sha256": "2d5441714aa712964366a90365b63898550dc2d6ae69c64bf8b4bdb78a0c90d4",
+  "native_edit_test_seconds": 6.907,
+  "recovery": {
+    "at": "2026-10-07T13:14:00.133632+00:00",
+    "observation": {
+      "scope": {
+        "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Lock Variants",
+        "bookId": "book-1791378307548",
+        "draftId": "draft-default"
+      },
+      "view": "research",
+      "journal": 0,
+      "gatePresent": false,
+      "editors": [],
+      "manuscript": [
+        {
+          "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+          "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+          "marker": true
+        }
+      ],
+      "researchDomMarker": false
+    },
+    "owner": {
+      "projectId": "project-1791378307548",
+      "projectFolder": "Audit M01 Lock Variants",
+      "bookId": "book-1791378307548",
+      "bookFolder": "Audit Lock Variants Book",
+      "draftId": "draft-default",
+      "draftFolder": "default",
+      "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+      "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+      "sceneIndexSha256": "b5cf8cbc18defd48559502d3565fab68f141f9610cd9f2b1e84e16b8077a59b4"
+    },
+    "disk": {
+      "path": "Audit M01 Lock Variants/Audit Lock Variants Book/Drafts/default/Chapters/01 - Audit Lock Variants Chapter/scene-01.novalist",
+      "sha256": "ea097c57d555911a402cb5fab7f44a6dc9bb707ee6fc4f571764d403b1af18c6",
+      "markerCount": 1,
+      "matchingLiveSceneFiles": 1
+    },
+    "native_test_passed": true,
+    "native_test_seconds": 23.883,
+    "native_log_sha256": "b7a51a9dede31532c5a6c1c9840bf21ca0cfb9b081b50ae3a1e16287a4fc6fc5"
+  }
+}

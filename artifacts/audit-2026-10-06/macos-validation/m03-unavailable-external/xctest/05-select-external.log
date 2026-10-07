@@ -1,0 +1,320 @@
+Test Suite 'All tests' started at 2026-10-07 15:26:28.508.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 15:26:28.508.
+Test Suite 'AuditUITests' started at 2026-10-07 15:26:28.508.
+Test Case '-[AuditUITests.AuditUITests testSelectActualExternalProject]' started.
+    t =     0.00s Start Test at 2026-10-07 15:26:28.510
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Tap "Browse" Button
+    t =     0.03s     Wait for com.novalist.app to idle
+    t =     0.03s     Find the "Browse" Button
+    t =     0.07s     Check for interrupting elements affecting "Browse" Button
+    t =     0.10s     Synthesize event
+    t =     0.39s     Wait for com.novalist.app to idle
+    t =     0.39s Waiting 10.0s for "On My iPhone" StaticText to exist
+objc[96879]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10449c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1051f4310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.42s     Checking `Expect predicate `existsNoRetry == 1` for object "On My iPhone" StaticText`
+    t =     1.42s         Checking existence of `"On My iPhone" StaticText`
+    t =     1.46s Tap "On My iPhone" StaticText
+    t =     1.46s     Wait for com.novalist.app to idle
+    t =     1.46s     Find the "On My iPhone" StaticText
+    t =     1.50s     Check for interrupting elements affecting "On My iPhone" StaticText
+    t =     1.54s     Synthesize event
+    t =     1.83s     Wait for com.novalist.app to idle
+    t =     1.84s Waiting 10.0s for "Audit Fixtures" StaticText to exist
+    t =     2.90s     Checking `Expect predicate `existsNoRetry == 1` for object "Audit Fixtures" StaticText`
+    t =     2.90s         Checking existence of `"Audit Fixtures" StaticText`
+    t =     2.96s Tap "Audit Fixtures" StaticText
+    t =     2.96s     Wait for com.novalist.app to idle
+    t =     2.96s     Find the "Audit Fixtures" StaticText
+    t =     3.00s     Check for interrupting elements affecting "Audit Fixtures" StaticText
+    t =     3.03s     Synthesize event
+    t =     3.32s     Wait for com.novalist.app to idle
+    t =     3.32s Waiting 10.0s for Cell (First Match) to exist
+    t =     4.39s     Checking `Expect predicate `existsNoRetry == 1` for object Cell (First Match)`
+    t =     4.39s         Checking existence of `Cell (First Match)`
+    t =     4.45s Tap Cell (First Match)[0.50, 0.25]
+    t =     4.45s     Wait for com.novalist.app to idle
+    t =     4.46s     Find the Cell (First Match)
+    t =     4.50s     Check for interrupting elements affecting "M03 Unavailable Suffix, Folder" Cell
+    t =     4.53s     Synthesize event
+    t =     4.53s         Find the "M03 Unavailable Suffix, Folder" Cell
+    t =     4.57s         Find the "M03 Unavailable Suffix, Folder" Cell
+    t =     4.61s         Find the "M03 Unavailable Suffix, Folder" Cell
+    t =     4.94s     Wait for com.novalist.app to idle
+    t =     4.94s Waiting 10.0s for "DOCPicker.actionButton" Button to exist
+    t =     6.02s     Checking `Expect predicate `existsNoRetry == 1` for object "DOCPicker.actionButton" Button`
+    t =     6.02s         Checking existence of `"DOCPicker.actionButton" Button`
+    t =     6.08s Find the "DOCPicker.actionButton" Button
+    t =     6.19s Added attachment named 'actual-external-picker'
+    t =     6.19s Tap "DOCPicker.actionButton" Button
+    t =     6.19s     Wait for com.novalist.app to idle
+    t =     6.19s     Find the "DOCPicker.actionButton" Button
+    t =     6.23s     Check for interrupting elements affecting "DOCPicker.actionButton" Button
+    t =     6.26s     Synthesize event
+    t =     6.55s     Wait for com.novalist.app to idle
+    t =     7.01s Waiting 10.0s for "DOCPicker.actionButton" Button to not exist
+    t =     8.08s     Checking `Expect predicate `existsNoRetry == 0` for object "DOCPicker.actionButton" Button`
+    t =     8.08s         Checking existence of `"DOCPicker.actionButton" Button`
+    t =     8.17s Waiting 20.0s for "Project Dashboard" StaticText to exist
+    t =     9.25s     Checking `Expect predicate `existsNoRetry == 1` for object "Project Dashboard" StaticText`
+    t =     9.25s         Checking existence of `"Project Dashboard" StaticText`
+    t =     9.32s Requesting snapshot of accessibility hierarchy for app with pid 96651
+    t =    10.04s Requesting snapshot of accessibility hierarchy for app with pid 96651
+M03_ACTUAL_EXTERNAL_PROJECT_OPEN
+Attributes: Application, 0x108e866c0, pid: 96651, label: 'Novalist'
+Element subtree:
+ →Application, 0x108e866c0, pid: 96651, label: 'Novalist'
+    Window (Main), 0x108e95f40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108e96080, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108e961c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x108e96300, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108e96440, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x108e96580, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x108e966c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x108e96800, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108e96940, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x108e96bc0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108e96d00, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x108e96e40, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x108e96f80, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x108e97e80, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist', Focused
+                            StaticText, 0x108e97d40, {{153.0, 131.0}, {95.0, 15.0}}, label: 'No banner image', value: No banner image, Focused
+                            StaticText, 0x108e97ac0, {{195.0, 162.0}, {60.0, 15.0}}, label: 'BANNER', value: BANNER, Focused
+                            Button, 0x108e97c00, {{271.0, 152.0}, {102.0, 36.0}}, label: 'Add banner', Focused
+                            StaticText, 0x108e97840, {{58.0, 289.0}, {50.0, 32.0}}, label: 'No cover image', value: No cover image, Focused
+                            Other, 0x108e97980, {{149.0, 216.0}, {218.0, 62.0}}, label: 'M03 External Unavailable', value: 1, Focused
+                              StaticText, 0x108e975c0, {{149.0, 216.0}, {167.0, 62.0}}, label: 'M03 External Unavailable', value: M03 External Unava..., Focused
+                            Other, 0x108e97700, {{149.0, 281.0}, {218.0, 21.0}}, Focused
+                              StaticText, 0x108e97480, {{149.0, 283.0}, {118.0, 17.0}}, label: 'Project Dashboard', value: Project Dashboard, Focused
+                            Other, 0x108e97340, {{149.0, 307.0}, {218.0, 36.0}}, Focused
+                              StaticText, 0x108e97200, {{149.0, 309.0}, {204.0, 32.0}}, label: 'Portrait cover shown on the welcome screen.', value: Portrait cover sho..., Focused
+                            Button, 0x108e970c0, {{149.0, 356.0}, {91.0, 35.0}}, label: 'Add cover', Focused
+                            Other, 0x108e96a80, {{35.0, 444.0}, {332.0, 34.0}}, Focused
+                              StaticText, 0x108ed0000, {{192.0, 444.0}, {18.0, 34.0}}, label: '0', value: 0, Focused
+                            Other, 0x108ed0140, {{35.0, 480.0}, {332.0, 19.0}}, Focused
+                              StaticText, 0x108ed0280, {{174.0, 482.0}, {54.0, 15.0}}, label: 'WORDS', value: WORDS, Focused
+                            Other, 0x108ed03c0, {{35.0, 552.0}, {332.0, 34.0}}, Focused
+                              StaticText, 0x108ed0500, {{192.0, 551.0}, {18.0, 34.0}}, label: '0', value: 0, Focused
+                            Other, 0x108ed0640, {{35.0, 588.0}, {332.0, 19.0}}, Focused
+                              StaticText, 0x108ed0780, {{162.0, 590.0}, {78.0, 15.0}}, label: 'CHAPTERS', value: CHAPTERS, Focused
+                            Other, 0x108ed08c0, {{35.0, 659.0}, {332.0, 34.0}}, Focused
+                              StaticText, 0x108ed0a00, {{192.0, 659.0}, {18.0, 34.0}}, label: '0', value: 0, Focused
+                            Other, 0x108ed0b40, {{35.0, 696.0}, {332.0, 18.0}}, Focused
+                              StaticText, 0x108ed0c80, {{173.0, 697.0}, {56.0, 15.0}}, label: 'SCENES', value: SCENES, Focused
+                            Other, 0x108ed0dc0, {{35.0, 767.0}, {332.0, 34.0}}, Focused
+                              StaticText, 0x108ed0f00, {{165.0, 767.0}, {72.0, 34.0}}, label: '0 min', value: 0 min, Focused
+                            Other, 0x108ed1040, {{35.0, 803.0}, {332.0, 19.0}}, Focused
+                              StaticText, 0x108ed1180, {{147.0, 805.0}, {108.0, 15.0}}, label: 'READING TIME', value: READING TIME, Focused
+                            Other, 0x108ed12c0, {{35.0, 874.0}, {332.0, 34.0}}, Focused
+                              StaticText, 0x108ed1400, {{192.0, 874.0}, {18.0, 34.0}}, label: '0', value: 0, Focused
+                            Other, 0x108ed1540, {{35.0, 911.0}, {332.0, 18.0}}, Focused
+                              StaticText, 0x108ed1680, {{152.0, 913.0}, {98.0, 15.0}}, label: 'CHARACTERS', value: CHARACTERS, Focused
+                            Other, 0x108ed17c0, {{35.0, 982.0}, {332.0, 34.0}}, Focused
+                              StaticText, 0x108ed1900, {{192.0, 982.0}, {18.0, 34.0}}, label: '0', value: 0, Focused
+                            Other, 0x108ed1a40, {{35.0, 1018.0}, {332.0, 19.0}}, Focused
+                              StaticText, 0x108ed1b80, {{159.0, 1020.0}, {84.0, 15.0}}, label: 'LOCATIONS', value: LOCATIONS, Focused
+                            Other, 0x108ed1cc0, {{35.0, 1092.0}, {332.0, 21.0}}, Focused
+                              Button, 0x108ed1e00, {{35.0, 1092.0}, {146.0, 21.0}}, label: 'DAILY PROGRESS', Focused
+                            StaticText, 0x108ed1f40, {{35.0, 1133.0}, {67.0, 19.0}}, label: '0 / 1,000', value: 0 / 1,000, Focused
+                            StaticText, 0x108ed2080, {{344.0, 1133.0}, {23.0, 19.0}}, label: '0%', value: 0%, Focused
+                            Other, 0x108ed21c0, {{35.0, 1161.0}, {332.0, 9.0}}, Focused
+                            Other, 0x108ed2300, {{35.0, 1181.0}, {332.0, 19.0}}, Focused
+                              StaticText, 0x108ed2440, {{35.0, 1183.0}, {77.0, 15.0}}, label: 'Streak: 0 days', value: Streak: 0 days, Focused
+                            Other, 0x108ed2580, {{53.0, 1235.0}, {139.0, 30.0}}, Focused
+                              StaticText, 0x108ed26c0, {{115.0, 1238.0}, {15.0, 24.0}}, label: '0', value: 0, Focused
+                            Other, 0x108ed2800, {{53.0, 1268.0}, {139.0, 19.0}}, Focused
+                              StaticText, 0x108ed2940, {{82.0, 1270.0}, {81.0, 15.0}}, label: 'Longest streak', value: Longest streak, Focused
+                            Other, 0x108ed2a80, {{210.0, 1235.0}, {139.0, 30.0}}, Focused
+                              StaticText, 0x108ed2bc0, {{263.0, 1238.0}, {33.0, 24.0}}, label: '0%', value: 0%, Focused
+                            Other, 0x108ed2d00, {{210.0, 1268.0}, {139.0, 19.0}}, Focused
+                              StaticText, 0x108ed2e40, {{241.0, 1270.0}, {77.0, 15.0}}, label: 'Days goal met', value: Days goal met, Focused
+                            Other, 0x108ed2f80, {{53.0, 1304.0}, {139.0, 31.0}}, Focused
+                              StaticText, 0x108ed30c0, {{115.0, 1307.0}, {15.0, 24.0}}, label: '0', value: 0, Focused
+                            Other, 0x108ed3200, {{53.0, 1338.0}, {139.0, 18.0}}, Focused
+                              StaticText, 0x108ed3340, {{99.0, 1339.0}, {47.0, 15.0}}, label: 'Best day', value: Best day, Focused
+                            Other, 0x108ed3480, {{210.0, 1304.0}, {139.0, 31.0}}, Focused
+                              StaticText, 0x108ed35c0, {{272.0, 1307.0}, {15.0, 24.0}}, label: '0', value: 0, Focused
+                            Other, 0x108ed3700, {{210.0, 1338.0}, {139.0, 18.0}}, Focused
+                              StaticText, 0x108ed3840, {{213.0, 1339.0}, {133.0, 15.0}}, label: 'Average per writing day', value: Average per writin..., Focused
+                            Other, 0x108ed3980, {{35.0, 1373.0}, {284.0, 23.0}}, Focused
+                              Switch, 0x108ed3ac0, {{35.0, 1373.0}, {284.0, 23.0}}, label: 'Recalculate today’s goal from what is left', value: 0, Focused
+                              StaticText, 0x108ed3c00, {{63.0, 1376.0}, {256.0, 17.0}}, label: 'Recalculate today’s goal from what is left', value: Recalculate today’..., Focused
+                            Button, 0x108ed3d40, {{35.0, 1404.0}, {54.0, 28.0}}, label: 'Mon', Focused
+                            Button, 0x108ed3e80, {{92.0, 1404.0}, {49.0, 28.0}}, label: 'Tue', Focused
+                            Button, 0x108ed8000, {{144.0, 1404.0}, {54.0, 28.0}}, label: 'Wed', Focused
+                            Button, 0x108ed8140, {{201.0, 1404.0}, {51.0, 28.0}}, label: 'Thu', Focused
+                            Button, 0x108ed8280, {{255.0, 1404.0}, {44.0, 28.0}}, label: 'Fri', Focused
+                            Button, 0x108ed83c0, {{302.0, 1404.0}, {46.0, 28.0}}, label: 'Sat', Focused
+                            Button, 0x108ed8500, {{35.0, 1435.0}, {49.0, 29.0}}, label: 'Sun', Focused
+                            Button, 0x108ed8640, {{35.0, 1475.0}, {50.0, 28.0}}, label: '30d', Focused
+                            Button, 0x108ed8780, {{90.0, 1475.0}, {49.0, 28.0}}, label: '90d', Focused
+                            Button, 0x108ed88c0, {{144.0, 1475.0}, {56.0, 28.0}}, label: '365d', Focused
+                            Image, 0x108ed8a00, {{35.0, 1514.0}, {333.0, 101.0}}, label: 'DAILY PROGRESS', Focused
+                            Other, 0x108ed8b40, {{35.0, 1670.0}, {332.0, 22.0}}, Focused
+                              Button, 0x108ed8c80, {{35.0, 1670.0}, {143.0, 22.0}}, label: 'GOAL TRACKING', Focused
+                            StaticText, 0x108ed8dc0, {{35.0, 1711.0}, {77.0, 19.0}}, label: '0 / 50,000', value: 0 / 50,000, Focused
+                            StaticText, 0x108ed8f00, {{344.0, 1711.0}, {23.0, 19.0}}, label: '0%', value: 0%, Focused
+                            Other, 0x108ed9040, {{35.0, 1740.0}, {332.0, 8.0}}, Focused
+                            Other, 0x108ed9180, {{35.0, 1804.0}, {157.0, 35.0}}, Focused
+                              StaticText, 0x108ed92c0, {{35.0, 1808.0}, {16.0, 28.0}}, label: '0', value: 0, Focused
+                            Other, 0x108ed9400, {{35.0, 1845.0}, {157.0, 18.0}}, Focused
+                              StaticText, 0x108ed9540, {{35.0, 1846.0}, {114.0, 15.0}}, label: 'Average per Chapter', value: Average per Chapter, Focused
+                            Other, 0x108ed9680, {{210.0, 1804.0}, {157.0, 35.0}}, Focused
+                              StaticText, 0x108ed97c0, {{299.0, 1808.0}, {68.0, 28.0}}, label: '0 min', value: 0 min, Focused
+                            Other, 0x108ed9900, {{210.0, 1845.0}, {157.0, 18.0}}, Focused
+                              StaticText, 0x108ed9a40, {{231.0, 1846.0}, {136.0, 15.0}}, label: 'Estimated Reading Time', value: Estimated Reading ..., Focused
+                            Other, 0x108ed9b80, {{35.0, 1918.0}, {332.0, 21.0}}, Focused
+                              StaticText, 0x108ed9cc0, {{35.0, 1920.0}, {78.0, 17.0}}, label: 'PREMISE', value: PREMISE, Focused
+                            Other, 0x108ed9e00, {{35.0, 1956.0}, {332.0, 62.0}}, Focused
+                              StaticText, 0x108ed9f40, {{35.0, 1959.0}, {331.0, 57.0}}, label: 'The book in one line, then in one paragraph, then act by act. Written before the chapters and worth re-reading when a scene stops knowing what it is for.', value: The book in one li..., Focused
+                            Other, 0x108eda080, {{35.0, 2035.0}, {332.0, 37.0}}, label: 'IN ONE SENTENCE', Focused
+                              StaticText, 0x108eda1c0, {{43.0, 2049.0}, {136.0, 15.0}}, label: 'IN ONE SENTENCE', value: IN ONE SENTENCE, Focused
+                            TextField, 0x108eda300, {{35.0, 2071.0}, {208.0, 42.0}}, label: 'IN ONE SENTENCE', placeholderValue: 'A retired thief must rob the man who framed her.', value: A retired thief mu..., Focused
+                            Other, 0x108eda440, {{35.0, 2112.0}, {332.0, 36.0}}, label: 'IN ONE PARAGRAPH', Focused
+                              StaticText, 0x108eda580, {{43.0, 2125.0}, {149.0, 15.0}}, label: 'IN ONE PARAGRAPH', value: IN ONE PARAGRAPH, Focused
+                            TextView, 0x108eda6c0, {{35.0, 2147.0}, {332.0, 73.0}}, label: 'IN ONE PARAGRAPH', placeholderValue: 'The world, the stakes, what starts it, and roughly how it ends.', value: The world, the sta..., Focused
+                              Other, 0x108eda800, {{48.0, 2156.0}, {306.0, 47.0}}, Focused
+                                StaticText, 0x108eda940, {{48.0, 2159.0}, {291.0, 42.0}}, label: 'The world, the stakes, what starts it, and roughly how it ends.', value: The world, the sta..., Focused
+                              StaticText, 0x108edaa80, {{48.0, 2159.0}, {291.0, 42.0}}, label: 'The world, the stakes, what starts it, and roughly how it ends.', value: The world, the sta..., Focused
+                            Other, 0x108edabc0, {{35.0, 2227.0}, {332.0, 41.0}}, Focused
+                              StaticText, 0x108edad00, {{35.0, 2229.0}, {313.0, 37.0}}, label: 'Give your chapters an act and each one gets a box here.', value: Give your chapters..., Focused
+                            Other, 0x108edae40, {{35.0, 2267.0}, {332.0, 21.0}}, Focused
+                              StaticText, 0x108edaf80, {{35.0, 2269.0}, {106.0, 17.0}}, label: 'WRITTEN IN', value: WRITTEN IN, Focused
+                            Other, 0x108edb0c0, {{35.0, 2305.0}, {332.0, 42.0}}, Focused
+                              StaticText, 0x108edb200, {{35.0, 2308.0}, {330.0, 37.0}}, label: 'What the book as a whole is meant to be. A scene that reads differently is pointed out in the Inspector.', value: What the book as a..., Focused
+                            Button, 0x108edb340, {{35.0, 2364.0}, {162.0, 31.0}}, label: 'Narrative person', value: Not decided, Focused
+                              Other, 0x108edb480, {{0.0, 0.0}, {0.0, 0.0}}, Focused
+                            Button, 0x108edb5c0, {{205.0, 2364.0}, {162.0, 31.0}}, label: 'Tense', value: Not decided, Focused
+                              Other, 0x108edb700, {{0.0, 0.0}, {0.0, 0.0}}, Focused
+                            Other, 0x108edb840, {{35.0, 2394.0}, {332.0, 21.0}}, Focused
+                              StaticText, 0x108edb980, {{35.0, 2396.0}, {95.0, 17.0}}, label: 'THE PITCH', value: THE PITCH, Focused
+                            Other, 0x108edbac0, {{35.0, 2432.0}, {332.0, 42.0}}, Focused
+                              StaticText, 0x108edbc00, {{35.0, 2434.0}, {331.0, 38.0}}, label: 'What a query letter, a submission form and a retailer page ask for by name.', value: What a query lette..., Focused
+                            Other, 0x108edbd40, {{35.0, 2491.0}, {332.0, 36.0}}, label: 'GENRE', Focused
+                              StaticText, 0x108edbe80, {{43.0, 2504.0}, {52.0, 15.0}}, label: 'GENRE', value: GENRE, Focused
+                            TextField, 0x108ee4000, {{35.0, 2526.0}, {208.0, 42.0}}, label: 'GENRE', placeholderValue: 'How a shop would file it', value: How a shop would f..., Focused
+                            Other, 0x108ee4140, {{35.0, 2567.0}, {332.0, 37.0}}, label: 'READERSHIP', Focused
+                              StaticText, 0x108ee4280, {{43.0, 2581.0}, {97.0, 15.0}}, label: 'READERSHIP', value: READERSHIP, Focused
+                            TextField, 0x108ee43c0, {{35.0, 2603.0}, {208.0, 42.0}}, label: 'READERSHIP', placeholderValue: 'Who it is for', value: Who it is for, Focused
+                            Other, 0x108ee4500, {{35.0, 2644.0}, {332.0, 36.0}}, label: 'COMPARABLE TITLES', Focused
+                              StaticText, 0x108ee4640, {{43.0, 2657.0}, {161.0, 15.0}}, label: 'COMPARABLE TITLES', value: COMPARABLE TITLES, Focused
+                            TextField, 0x108ee4780, {{35.0, 2679.0}, {208.0, 42.0}}, label: 'COMPARABLE TITLES', placeholderValue: 'The two or three books an agent asks for', value: The two or three b..., Focused
+                            Other, 0x108ee48c0, {{35.0, 2720.0}, {332.0, 37.0}}, label: 'SETTING', Focused
+                              StaticText, 0x108ee4a00, {{43.0, 2734.0}, {66.0, 15.0}}, label: 'SETTING', value: SETTING, Focused
+                            TextField, 0x108ee4b40, {{35.0, 2756.0}, {208.0, 42.0}}, label: 'SETTING', placeholderValue: 'Where and when', value: Where and when, Focused
+                            Other, 0x108ee4c80, {{35.0, 2797.0}, {332.0, 36.0}}, label: 'BLURB', Focused
+                              StaticText, 0x108ee4dc0, {{43.0, 2810.0}, {50.0, 15.0}}, label: 'BLURB', value: BLURB, Focused
+                            TextView, 0x108ee4f00, {{35.0, 2832.0}, {332.0, 73.0}}, label: 'BLURB', placeholderValue: 'Back-cover copy. Withhold the ending.', value: Back-cover copy. W..., Focused
+                              Other, 0x108ee5040, {{48.0, 2841.0}, {306.0, 24.0}}, Focused
+                                StaticText, 0x108ee5180, {{48.0, 2844.0}, {277.0, 19.0}}, label: 'Back-cover copy. Withhold the ending.', value: Back-cover copy. W..., Focused
+                              StaticText, 0x108ee52c0, {{48.0, 2844.0}, {277.0, 19.0}}, label: 'Back-cover copy. Withhold the ending.', value: Back-cover copy. W..., Focused
+                            Other, 0x108ee5400, {{35.0, 2912.0}, {332.0, 36.0}}, label: 'SYNOPSIS', Focused
+                              StaticText, 0x108ee5540, {{43.0, 2925.0}, {73.0, 15.0}}, label: 'SYNOPSIS', value: SYNOPSIS, Focused
+                            TextView, 0x108ee5680, {{35.0, 2947.0}, {332.0, 73.0}}, label: 'SYNOPSIS', placeholderValue: 'One page, ending included.', value: One page, ending i..., Focused
+                              Other, 0x108ee57c0, {{48.0, 2956.0}, {306.0, 24.0}}, Focused
+                                StaticText, 0x108ee5900, {{48.0, 2959.0}, {196.0, 19.0}}, label: 'One page, ending included.', value: One page, ending i..., Focused
+                              StaticText, 0x108ee5a40, {{48.0, 2959.0}, {196.0, 19.0}}, label: 'One page, ending included.', value: One page, ending i..., Focused
+                            Other, 0x108ee5b80, {{35.0, 3083.0}, {332.0, 21.0}}, Focused
+                              StaticText, 0x108ee5cc0, {{35.0, 3085.0}, {137.0, 17.0}}, label: 'WORD TARGETS', value: WORD TARGETS, Focused
+                            Other, 0x108ee5e00, {{35.0, 3121.0}, {332.0, 62.0}}, Focused
+                              StaticText, 0x108ee5f40, {{35.0, 3123.0}, {332.0, 57.0}}, label: 'A word count to aim for on one scene, one chapter or a whole act. Set one here, or right-click any row in the binder.', value: A word count to ai..., Focused
+                            Other, 0x108ee6080, {{35.0, 3200.0}, {332.0, 21.0}}, Focused
+                              StaticText, 0x108ee61c0, {{35.0, 3202.0}, {150.0, 17.0}}, label: 'No word targets set yet.', value: No word targets se..., Focused
+                            Other, 0x108ee6300, {{35.0, 3294.0}, {332.0, 21.0}}, Focused
+                              StaticText, 0x108ee6440, {{35.0, 3296.0}, {119.0, 17.0}}, label: 'SUBMISSIONS', value: SUBMISSIONS, Focused
+                            Other, 0x108ee6580, {{35.0, 3332.0}, {332.0, 21.0}}, Focused
+                              StaticText, 0x108ee66c0, {{35.0, 3334.0}, {332.0, 17.0}}, label: 'Where this book has been sent, and what came back.', value: Where this book ha..., Focused
+                            TextField, 0x108ee6800, {{35.0, 3370.0}, {201.0, 30.0}}, placeholderValue: 'Agent, publisher, magazine, contest', value: Agent, publisher, ..., Focused
+                            Button, 0x108ee6940, {{242.0, 3370.0}, {117.0, 30.0}}, label: 'Record a send', Focused, Disabled
+                            Other, 0x108ee6a80, {{35.0, 3414.0}, {332.0, 21.0}}, Focused
+                              StaticText, 0x108ee6bc0, {{35.0, 3416.0}, {139.0, 17.0}}, label: 'Nothing recorded yet.', value: Nothing recorded y..., Focused
+                            Other, 0x108ee6d00, {{35.0, 3505.0}, {332.0, 21.0}}, Focused
+                              StaticText, 0x108ee6e40, {{35.0, 3507.0}, {127.0, 17.0}}, label: 'SCENE STAGES', value: SCENE STAGES, Focused
+                            StaticText, 0x108ee6f80, {{55.0, 3546.0}, {56.0, 19.0}}, label: 'Outline', value: Outline, Focused
+                            Other, 0x108ee70c0, {{157.0, 3551.0}, {137.0, 9.0}}, Focused
+                            StaticText, 0x108ee7200, {{305.0, 3548.0}, {62.0, 15.0}}, label: '0 - 0 words', value: 0 - 0 words, Focused
+                            StaticText, 0x108ee7340, {{55.0, 3577.0}, {73.0, 19.0}}, label: 'First draft', value: First draft, Focused
+                            Other, 0x108ee7480, {{157.0, 3582.0}, {137.0, 9.0}}, Focused
+                            StaticText, 0x108ee75c0, {{305.0, 3579.0}, {62.0, 15.0}}, label: '0 - 0 words', value: 0 - 0 words, Focused
+                            StaticText, 0x108ee7700, {{55.0, 3608.0}, {56.0, 19.0}}, label: 'Revised', value: Revised, Focused
+                            Other, 0x108ee7840, {{157.0, 3613.0}, {137.0, 9.0}}, Focused
+                            StaticText, 0x108ee7980, {{305.0, 3610.0}, {62.0, 15.0}}, label: '0 - 0 words', value: 0 - 0 words, Focused
+                            StaticText, 0x108ee7ac0, {{55.0, 3639.0}, {49.0, 19.0}}, label: 'Edited', value: Edited, Focused
+                            Other, 0x108ee7c00, {{157.0, 3644.0}, {137.0, 9.0}}, Focused
+                            StaticText, 0x108ee7d40, {{305.0, 3641.0}, {62.0, 15.0}}, label: '0 - 0 words', value: 0 - 0 words, Focused
+                            StaticText, 0x108ee7e80, {{55.0, 3670.0}, {37.0, 19.0}}, label: 'Final', value: Final, Focused
+                            Other, 0x108f04000, {{157.0, 3675.0}, {137.0, 9.0}}, Focused
+                            StaticText, 0x108f04140, {{305.0, 3672.0}, {62.0, 15.0}}, label: '0 - 0 words', value: 0 - 0 words, Focused
+                  Other, 0x108f04280, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108f043c0, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x108f04500, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108f04640, {{396.0, 161.0}, {3.0, 648.0}}
+                  Other, 0x108f04780, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108f048c0, {{396.0, 161.0}, {3.0, 648.0}}
+              Other, 0x108f04a00, {{0.0, 0.0}, {402.0, 874.0}}
+              TabBar, 0x108f04b40, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                Other, 0x108f04c80, {{21.0, 791.0}, {360.0, 62.0}}
+                  Other, 0x108f04dc0, {{21.0, 791.0}, {97.4, 54.0}}
+                  Other, 0x108f04f00, {{21.0, 791.0}, {360.0, 62.0}}
+                    Button, 0x108f05040, {{25.0, 795.0}, {97.4, 54.0}}, label: 'Dashboard', Selected
+                      Image, 0x108f05180, {{60.3, 802.3}, {27.0, 25.0}}, identifier: 'square.grid.2x2', label: 'Grid view'
+                    Button, 0x108f052c0, {{102.4, 795.0}, {83.6, 54.0}}, label: 'Write'
+                      Image, 0x108f05400, {{130.1, 799.0}, {28.3, 28.3}}, identifier: 'square.and.pencil', label: 'compose'
+                    Button, 0x108f05540, {{166.1, 795.0}, {83.6, 54.0}}, label: 'Codex'
+                      Image, 0x108f05680, {{189.1, 802.3}, {37.7, 26.7}}, identifier: 'person.2', label: 'Two people'
+                    Button, 0x108f057c0, {{229.7, 795.0}, {83.6, 54.0}}, label: 'Plan'
+                      Image, 0x108f05900, {{257.0, 797.7}, {28.7, 32.0}}, identifier: 'square.stack.3d.up', label: 'hdr'
+                    Button, 0x108f05a40, {{293.4, 795.0}, {83.6, 54.0}}, label: 'Settings'
+                      Image, 0x108f05b80, {{320.7, 800.3}, {28.7, 28.7}}, identifier: 'gearshape', label: 'Gear shape'
+                  Other, 0x108f05cc0, {{21.0, 791.0}, {360.0, 62.0}}
+                  Other, 0x108f05e00, {{21.0, 791.0}, {360.0, 62.0}}
+                    Other, 0x108f05f40, {{21.0, 791.0}, {360.0, 62.0}}
+                      Other, 0x108f06080, {{21.0, 791.0}, {360.0, 62.0}}
+                        Other, 0x108f061c0, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x108f06300, {{21.0, 791.0}, {360.0, 62.0}}
+                            Other, 0x108f06440, {{21.0, 791.0}, {360.0, 62.0}}
+                        Other, 0x108f06580, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x108f066c0, {{21.0, 791.0}, {360.0, 62.0}}
+                  Other, 0x108f06800, {{25.0, 795.0}, {97.4, 54.0}}
+                    Other, 0x108f06940, {{25.0, 795.0}, {97.3, 54.0}}
+                      Other, 0x108f06a80, {{25.0, 795.0}, {97.3, 54.0}}
+                      Other, 0x108f06bc0, {{25.0, 795.0}, {97.3, 54.0}}
+                        Other, 0x108f06d00, {{25.0, 795.0}, {97.3, 54.0}}
+                          Other, 0x108f06e40, {{25.0, 795.0}, {97.3, 54.0}}
+                            Other, 0x108f06f80, {{25.0, 795.0}, {97.3, 54.0}}
+                          Other, 0x108f070c0, {{25.0, 795.0}, {97.3, 54.0}}
+                        Other, 0x108f07200, {{25.0, 795.0}, {97.3, 54.0}}
+            Other, 0x108f07340, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x108f07480, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x108f075c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108f07700, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108f07840, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x108e866c0, pid: 96651, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x108f07980, pid: 96651, label: 'Novalist'
+  }
+
+    t =    10.10s Tear Down
+Test Case '-[AuditUITests.AuditUITests testSelectActualExternalProject]' passed (10.110 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 15:26:38.620.
+	 Executed 1 test, with 0 failures (0 unexpected) in 10.110 (10.111) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 15:26:38.620.
+	 Executed 1 test, with 0 failures (0 unexpected) in 10.110 (10.112) seconds
+Test Suite 'All tests' passed at 2026-10-07 15:26:38.620.
+	 Executed 1 test, with 0 failures (0 unexpected) in 10.110 (10.112) seconds
+2026-10-07 15:26:38.909 xcodebuild[96864:4155182] [MT] IDETestOperationsObserverDebug: 12.839 elapsed -- Testing started completed.
+2026-10-07 15:26:38.909 xcodebuild[96864:4155182] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 15:26:38.909 xcodebuild[96864:4155182] [MT] IDETestOperationsObserverDebug: 12.839 sec, +12.839 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/novalist-m03-unavailable-external/05-select-external.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

@@ -1,0 +1,52 @@
+{
+  "procedures": {
+    "run-native.py": {
+      "original_sha256": "e65f38a3c3a1dbd17bcf4f261e3236f9e208bdca4eac675495e276dd3037087e",
+      "published_sha256": "e65f38a3c3a1dbd17bcf4f261e3236f9e208bdca4eac675495e276dd3037087e",
+      "changes": "Private repository default or helper path constants only; native actions, gates and assertions unchanged."
+    },
+    "inspect-simulator-ax.py": {
+      "original_sha256": "27098ab8adb832b8e95cd1455d686324eeef6a68330dd9983fb9e0210b74091c",
+      "published_sha256": "27098ab8adb832b8e95cd1455d686324eeef6a68330dd9983fb9e0210b74091c",
+      "changes": "Private repository default or helper path constants only; native actions, gates and assertions unchanged."
+    },
+    "devicehub-select.py": {
+      "original_sha256": "763547d9b413513f419da70aa5d28a36642e307545393576680c45957e822580",
+      "published_sha256": "7166b965305fed3759ca72888d827ebc020d61791ac3362a90c290ceaf87a612",
+      "changes": "Private repository default or helper path constants only; native actions, gates and assertions unchanged."
+    },
+    "devicehub-controls.py": {
+      "original_sha256": "23ac0050ef90cddff1d4a36a16f44ff775232b7af95fe5c7f9aad47d638e1be2",
+      "published_sha256": "92eda64d82970ecfd4018c35668c47950fb27f841993e1b8960f90a5bbf7df39",
+      "changes": "Private repository default or helper path constants only; native actions, gates and assertions unchanged."
+    },
+    "run-lock-variant.py": {
+      "original_sha256": "a3ccc4287ea4f66b1fdf2e55f93f1784d1e2e3668a70cf0803a61b0c6ff7979e",
+      "published_sha256": "cb8706bb33a9cc1a012a0de42ee41e8854c469e835fa9e4fe7834166d09a29c1",
+      "changes": "Private repository default or helper path constants only; native actions, gates and assertions unchanged."
+    },
+    "record-recovery.py": {
+      "original_sha256": "4c23dd8c8366eba5fc7e5ba3158f5bcce8614e9841abecd4a430698f3d42da4d",
+      "published_sha256": "dfbfacb81ca90bbd5b46cc1979b17f7081aca60df671e2b7dea8416ae4820b95",
+      "changes": "Private repository default or helper path constants only; native actions, gates and assertions unchanged."
+    },
+    "record-recovery-before-file-guard.py": {
+      "original_sha256": "62d075265e1087f5a21a6645d8339457d6899552a99ca2179c95d5cc62543b9c",
+      "published_sha256": "b286d8c82803609721694562017c4a30535324699507d4c611e80ebccd375fa1",
+      "changes": "Private repository default or helper path constants only; native actions, gates and assertions unchanged."
+    },
+    "install-clean.py": {
+      "original_sha256": "bd6a33a88a274540bac93b239ed384f2ee803afc6ec68417bcdc9741b0a2779f",
+      "published_sha256": "bd6a33a88a274540bac93b239ed384f2ee803afc6ec68417bcdc9741b0a2779f",
+      "changes": "Private repository default or helper path constants only; native actions, gates and assertions unchanged."
+    },
+    "run-clean-reopen.py": {
+      "original_sha256": "29465cc165396e449dd8aa55520937f7a4399d8c705ff3639d0f9b5f5ddbb34e",
+      "published_sha256": "29465cc165396e449dd8aa55520937f7a4399d8c705ff3639d0f9b5f5ddbb34e",
+      "changes": "Private repository default or helper path constants only; native actions, gates and assertions unchanged."
+    }
+  },
+  "manuscript_runner_note": "Manuscript ran before the Research-only observer selector was corrected from textarea/value to CodeMirror contenteditable/textContent. run-manuscript-lock-original-selector.py reconstructs that exact two-substitution difference; its Research observation was unused and false. Research ran the corrected run-lock-variant.py. Neither change touches native input, transport or persistence.",
+  "recovery_attribution_note": "The original recorder directory-guard failure was a harness error after a passing native Manuscript recovery. Final attribution ran after Research recovery on the same exact scope with the runtime transport gate absent. Its global native observer was subsequently removed for fresh clean build and acceptance.",
+  "reproduction": "The preserved procedures are bound to the recorded dedicated simulator and synthetic fixture IDs. For an independent run, create a fresh synthetic fixture through fixture-setup.swift, read its real generated IDs, and update only the explicit owner configuration and private workspace/app-data path records before running gates. No recents, registry, recovery journal or project data is manually repaired."
+}

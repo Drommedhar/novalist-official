@@ -151,6 +151,39 @@
       "dirty_diff_sha256": "144d9f95ea0d4d229c5d6d4367b13aee796452b2d2447de4e09196d098d5ab4d",
       "identity_evidence": "r15-simulator/summary.json",
       "note": "1,314 production inputs and 203 renderer assets matched; clean build, signature, installed app identity and final native UI/relaunch passed. Earlier probe and partial-fix evidence retains separate source attribution."
+    },
+    "p01-refreshed-pair": {
+      "revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+      "working_tree": "Two isolated native build variants with identical current tracked inputs and settings; only the original variant substitutes historical manual-plugin.ts from ba8b6d328b64ded6e923baa25ce086d7e9e799e4.",
+      "identity_evidence": "p01-refreshed-pair/summary.json",
+      "note": "No native observer or runtime test. Current refreshed images change the measured packaging sizes; the older pair retains its historical source scope."
+    },
+    "p01-refreshed-native-full": {
+      "revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+      "working_tree": "Frozen current production inputs plus a temporary read-only evaluation control. Added runtime document CSP; no renderer-source change. Probes removed before final clean build.",
+      "dirty_diff": "p01-refreshed-native-full/native-read-only-probe.patch",
+      "dirty_diff_sha256": "60d671aa56aaad5e0ad15e0bd4e411355a70d9105541d592bb01d0cc8c50cd34",
+      "identity_evidence": "p01-refreshed-native-full/summary.json"
+    },
+    "m06-interruption-retry": {
+      "revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+      "equivalent_product_revision": "36b9d53bc27a7dd32c0cd39365e213cf2651d102",
+      "working_tree": "Unmodified clean app from final R15 acceptance; all current production inputs and installed bytes matched. No native probes or permission changes.",
+      "identity_evidence": "m06-interruption-retry/source.json"
+    },
+    "m01-lock-variants": {
+      "revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+      "working_tree": "Frozen current source with temporary read-only state/lifecycle observation and exact-owner real-write gates. Both were removed before clean native acceptance.",
+      "dirty_diff": "m01-lock-variants/native-observer.patch",
+      "dirty_diff_sha256": "795e837ec76320b41ee00406a1982999999128a22a7e30fe84c41b09ce8d1886",
+      "identity_evidence": "m01-lock-variants/summary.json"
+    },
+    "m03-unavailable-external": {
+      "revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+      "working_tree": "Frozen current source with temporary content-free read-only observation of actual bookmark and owned-path returns. Observer removed before clean native acceptance; no return override or registry/recents edits.",
+      "dirty_diff": "m03-unavailable-external/read-only-resolver-observer.patch",
+      "dirty_diff_sha256": "6a0b5e896afb5dadf52a9f56ea2268378c0cb40fa83a46729dc38bc0720b3f26",
+      "identity_evidence": "m03-unavailable-external/summary.json"
     }
   },
   "environment": {
@@ -388,7 +421,21 @@
                 "m01-lock/summary.json",
                 "m01-lock/pending-lock.json"
               ],
-              "limit": "Scene-only supporting simulator subset with a deliberately pending write; not an uninstrumented immediate-lock timing claim. Manuscript/Research lock variants and all required physical acceptance remain unproven. XCTest app.state was stale; native OS/lifecycle observations establish locking/backgrounding."
+              "limit": "Scene-only supporting simulator subset with a deliberately pending write; not an uninstrumented immediate-lock timing claim. This earlier run did not exercise Manuscript/Research Lock; subsequent simulator variants are recorded separately. All required physical acceptance remains unproven. XCTest app.state was stale; native OS/lifecycle observations establish locking/backgrounding."
+            },
+            {
+              "status": "passed",
+              "source": "m01-lock-variants",
+              "device_model": "iPad (A16) simulator",
+              "device_os": "iPadOS 27.0",
+              "scenario": "Real Lock/termination with pending exact-owner full Manuscript and Research writes, followed by actual native recovery and clean-app reopen.",
+              "observed": "Actual iPad A16/iPadOS 27.0 Manuscript and Research Lock subsets passed at af744fbd. Lock began 0.954/0.950 seconds after native typing; each exact-owner save was held without fabricating acknowledgements. OS lockstate 1, UIApplication Background and a fresh native background task were observed, with markers absent from disk through termination. Actual native recovery/reopen restored one marker occurrence to the original scene or original project-level Research item and cleared the journal. Observers/gates were removed, all 1,314 inputs/203 assets matched, and a fresh signed clean build plus native reopen passed. All 98 original iPad files, 13 new fixture files after recovery and 105 untouched iPhone preparation files were preserved. Evidence: macos-validation/m01-lock-variants/summary.json. This is supporting interrupted-write simulator coverage, not physical/provider or uninstrumented immediate-lock timing acceptance.",
+              "evidence": [
+                "m01-lock-variants/summary.json",
+                "m01-lock-variants/manuscript-lock.json",
+                "m01-lock-variants/research-lock.json"
+              ],
+              "limit": "Two supporting tablet simulator subsets with held real writes and declared native observations. Original physical, provider/offline and full scope acceptance remains not-run."
             }
           ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
@@ -429,7 +476,21 @@
                 "m01-lock/summary.json",
                 "m01-lock/pending-lock.json"
               ],
-              "limit": "Scene-only supporting simulator subset with a deliberately pending write; not an uninstrumented immediate-lock timing claim. Manuscript/Research lock variants and all required physical acceptance remain unproven. XCTest app.state was stale; native OS/lifecycle observations establish locking/backgrounding."
+              "limit": "Scene-only supporting simulator subset with a deliberately pending write; not an uninstrumented immediate-lock timing claim. This earlier run did not exercise Manuscript/Research Lock; subsequent simulator variants are recorded separately. All required physical acceptance remains unproven. XCTest app.state was stale; native OS/lifecycle observations establish locking/backgrounding."
+            },
+            {
+              "status": "passed",
+              "source": "m01-lock-variants",
+              "device_model": "iPad (A16) simulator",
+              "device_os": "iPadOS 27.0",
+              "scenario": "Real Lock/termination with pending exact-owner full Manuscript and Research writes, followed by actual native recovery and clean-app reopen.",
+              "observed": "Actual iPad A16/iPadOS 27.0 Manuscript and Research Lock subsets passed at af744fbd. Lock began 0.954/0.950 seconds after native typing; each exact-owner save was held without fabricating acknowledgements. OS lockstate 1, UIApplication Background and a fresh native background task were observed, with markers absent from disk through termination. Actual native recovery/reopen restored one marker occurrence to the original scene or original project-level Research item and cleared the journal. Observers/gates were removed, all 1,314 inputs/203 assets matched, and a fresh signed clean build plus native reopen passed. All 98 original iPad files, 13 new fixture files after recovery and 105 untouched iPhone preparation files were preserved. Evidence: macos-validation/m01-lock-variants/summary.json. This is supporting interrupted-write simulator coverage, not physical/provider or uninstrumented immediate-lock timing acceptance.",
+              "evidence": [
+                "m01-lock-variants/summary.json",
+                "m01-lock-variants/manuscript-lock.json",
+                "m01-lock-variants/research-lock.json"
+              ],
+              "limit": "Two supporting tablet simulator subsets with held real writes and declared native observations. Original physical, provider/offline and full scope acceptance remains not-run."
             }
           ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
@@ -802,7 +863,7 @@
                 "m03-successive/summary.json",
                 "m03-successive/relocation-observations.json"
               ],
-              "limit": "Simulator support; physical relocation and genuine external Files-provider suffix case remain deferred/unproven."
+              "limit": "Supporting simulator result; this earlier run did not establish the external matching-suffix case. Later available and unavailable external simulator cases are recorded separately; physical relocation remains deferred."
             }
           ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
@@ -830,6 +891,18 @@
                 "m03-external/04-after-relocation-reopen.json"
               ],
               "limit": "Supporting simulator evidence; physical requirement remains not-run."
+            },
+            {
+              "status": "passed",
+              "source": "m03-unavailable-external",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "observed": "A genuinely deleted external fixture made its actual bookmark resolve null; owned-path fallback executed and returned null despite an existing unrelated local project with the same suffix. No local redirect occurred; production pruned only the absent external recent. Local identity and six file hashes stayed intact. External restored exactly from verified backup. Observer removed; clean build/signature/install/native relaunch and all 107 task-start document hashes passed.",
+              "evidence": [
+                "m03-unavailable-external/summary.json",
+                "m03-unavailable-external/native-missing-path-observations.json"
+              ],
+              "limit": "Supporting unavailable-external simulator branch, separate from the earlier actual relocation case; physical acceptance remains not-run. Registry byte equality applies through missing operation/restoration, before clean reinstall added normal exact owned aliases."
             }
           ],
           "blocker": "Physical-device acceptance deferred; actual simulator external matching-suffix relocation has passed."
@@ -1394,6 +1467,17 @@
                 "../simulator-ui/fixed-build-provenance.json"
               ],
               "limit": "Supporting simulator subset only. Physical-device acceptance remains deferred. Settings grant restarted process; same-process stale-error recovery not proven. Call/route interruption, actual audio quality and transcription not measured."
+            },
+            {
+              "status": "passed",
+              "source": "m06-interruption-retry",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Clean iPhone 17 Pro Max simulator acceptance passed actual Start/Listening, Home, foreground stopped state, a second Start/Listening and explicit Stop in 22.694 seconds. Six native PID/process-start checkpoints prove the same process throughout. All original 75 document files and 26 project files remained unchanged; only normal app-owned open backups were added. No probes or permission changes were used. Evidence: macos-validation/m06-interruption-retry/summary.json. This proves same-process recovery after Home, not denied-to-granted permission recovery, call/route interruption, counted native stop invocations, audio quality or physical acceptance.",
+              "evidence": [
+                "m06-interruption-retry/summary.json"
+              ],
+              "limit": "Supporting simulator evidence only; all required physical acceptance remains not-run."
             }
           ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
@@ -1874,7 +1958,19 @@
             "p01-native-pair/inputs.json",
             "p01-native-pair/summary.json"
           ],
-          "runs": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "p01-refreshed-pair",
+              "device_model": "Compiled iossimulator-arm64 target; no device execution",
+              "device_os": "iOS 27.0 build target",
+              "observed": "A new controlled native build pair uses current af744fbd source and all 11 refreshed images. Across 2,051 identical tracked inputs, only manual-plugin.ts differs: the historical plugin embeds 11 exact image byte streams; the corrected plugin emits those 11 exact files. Renderer entry shrinks from 7,714,133 to 3,459,458 bytes (4,254,675 bytes removed). Both fresh native builds pass strict signature verification and contain their exact renderer assets; the fixed 203 assets match the final validated source bundle. Evidence: macos-validation/p01-refreshed-pair/summary.json. Build packaging only; physical startup, memory and JavaScriptCore acceptance remains pending.",
+              "evidence": [
+                "p01-refreshed-pair/summary.json"
+              ],
+              "limit": "Controlled build preparation only; physical launch/memory/JavaScriptCore measurements remain not-run."
+            }
+          ],
           "blocker": null
         },
         {
@@ -1989,6 +2085,17 @@
                 "p01-refreshed-help/desktop-offline-help.json"
               ],
               "limit": "Supporting subset only. The earlier all-page native offline pass retains its historical asset/source scope; this updated native check covers two pages and bundle references, not all-page offline or physical/performance acceptance."
+            },
+            {
+              "status": "passed",
+              "source": "p01-refreshed-native-full",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "observed": "At current af744fbd source, actual WKWebView Help rendered all 47 pages through their production navigation buttons and decoded all 11 refreshed local screenshots at 1440x900. All decoded, bundled and source image hashes agree. Four HTTP/HTTPS fetch/image controls were rejected by enforced document CSP; no runtime errors or unexpected policy violations occurred. Native touch/scroll checks provided representative screenshots. The read-only native evaluator was removed; all 1,314 production inputs and 203 assets matched before clean build/signature/install/Help relaunch. Evidence: macos-validation/p01-refreshed-native-full/summary.json. This proves browser resource/connect blocking, not OS airplane mode or native networking isolation; physical/performance acceptance remains pending.",
+              "evidence": [
+                "p01-refreshed-native-full/summary.json"
+              ],
+              "limit": "Supporting simulator evidence only; all required physical acceptance remains not-run."
             }
           ],
           "blocker": null

@@ -1,0 +1,68 @@
+from pathlib import Path
+import hashlib, json, re, shutil, subprocess
+
+WORK = Path(__file__).parent
+ROOT = Path('<checkout>')
+OUT = ROOT/'artifacts/audit-2026-10-06/macos-validation/m06-interruption-retry'
+SID = 'C9BC7CC6-C48A-431D-9CE0-BEA89C791D81'
+OUT.mkdir(exist_ok=False)
+sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+def write(name, value):
+    (OUT/name).write_text(json.dumps(value,indent=2)+'\n')
+def sanitize(value):
+    return value.replace(str(ROOT),'<checkout>').replace('<local-home>','<local-home>').replace('<scratch>','<scratch>').replace('<scratch>','<scratch>').replace('<prior-r15-scratch>','<prior-r15-scratch>').replace('<prior-m01-scratch>','<prior-m01-scratch>')
+
+source = json.loads((WORK/'source.json').read_text())
+expected = json.loads((ROOT/'artifacts/audit-2026-10-06/macos-validation/r15-simulator/release-dismissal/clean-app.json').read_text())
+app = Path(subprocess.check_output(['xcrun','simctl','get_app_container',SID,'com.novalist.app','app'],text=True).strip())
+files = {str(p.relative_to(app)):sha(p) for p in sorted(app.rglob('*')) if p.is_file()}
+assert files == expected['files']
+subprocess.run(['codesign','--verify','--deep','--strict',str(app)],check=True)
+source['installed_app_still_matches_after_acceptance'] = True
+source['provenance_manifests'] = {n:{'reference':'../r15-simulator/release-dismissal/'+n,'sha256':sha(WORK/n)} for n in ('production-inputs.json','renderer-assets.json','commit-equivalence.json')}
+write('source.json',source)
+for name in ('checkpoints.json','result.json'):
+    shutil.copy2(WORK/name,OUT/name)
+shutil.copy2(WORK/'AuditUITests.swift',OUT/'native-test.swift')
+shutil.copy2(WORK/'run.py',OUT/'run.py')
+shutil.copytree(WORK/'AuditHarness.xcodeproj',OUT/'AuditHarness.xcodeproj')
+for p in (OUT/'AuditHarness.xcodeproj').rglob('*'):
+    if p.is_file() and p.suffix in ('.plist','.xcuserstate'):
+        p.unlink()
+for name in ('prepare.py','finalize.py'):
+    (OUT/(name+'.txt')).write_text(sanitize((WORK/name).read_text()))
+raw = (WORK/'retry.log').read_text()
+(OUT/'native-test.log').write_text(sanitize(raw))
+images = {
+    '01-first-native-listening.png':'53AB2B57-EF06-4DE1-8624-372FAF6393C7.png',
+    '02-foreground-stopped.png':'F6EC82EC-045F-4523-8D63-019EF6B5B7AB.png',
+    '03-retry-native-listening.png':'958E0611-A048-4973-82C9-DA5C41061CA2.png',
+    '04-explicitly-stopped.png':'FA6B34DC-23E3-441C-AB30-6954D3A47D1D.png',
+}
+for target, original in images.items(): shutil.copy2(WORK/'attachments'/original,OUT/target)
+result = json.loads((WORK/'result.json').read_text())
+assert result['status'] == 'passed'
+container = Path(subprocess.check_output(['xcrun','simctl','get_app_container',SID,'com.novalist.app','data'],text=True).strip())
+before = json.loads((WORK/'documents-before-private.json').read_text())
+after = {str(p.relative_to(container/'Documents')):sha(p) for p in sorted((container/'Documents').rglob('*')) if p.is_file()}
+assert all(after.get(p)==h for p,h in before.items())
+project = {p:h for p,h in before.items() if p.startswith('Audit Simulator Fixture/')}
+write('project-preservation.json',{'original_document_file_count':len(before),'all_original_hashes_unchanged':True,'synthetic_project_file_count':len(project),'project_files_sha256':project,'new_files':[{'relative_path':p,'sha256':h,'kind':'production open-backup ownership marker' if p.endswith('.novalist-backup-owner') else 'production project-open ZIP backup'} for p,h in after.items() if p not in before],'private_documents_and_library_backup_preserved':True,'no_project_content_added_by_test':True})
+summary = {
+ 'finding':'M06', 'scenario':'M06-04 supporting simulator extension: same-process retry after background interruption',
+ 'status':'passed-simulator-supporting-acceptance', 'date':'2026-10-07',
+ 'device':{'model':'iPhone 17 Pro Max simulator','os':'iOS 27.0','udid':SID},
+ 'source':'source.json', 'native_test':'native-test.swift','test_log':'native-test.log',
+ 'test_seconds':22.694,'xcodebuild_exit':0,
+ 'sequence':['Actual native Start reaches Listening','Actual Home backgrounds app','Foreground presents stopped controls','Actual Start again reaches Listening','Actual Stop returns stopped controls'],
+ 'observed':{'six_native_pid_checkpoints':True,'same_app_pid':93703,'same_native_process_start_at_all_checkpoints':True,'native_ui_recording_available_on_both_starts':True,'permission_and_generic_microphone_errors_absent':True,'final_recording_stopped':True,'all_original_document_hashes_unchanged':True,'production_input_hashes_match_af744':1314,'clean_installed_app_files_match_before_and_after':571,'all_four_screenshots_visually_reviewed':True,'native_probe_edits':False,'permission_mutations':False},
+ 'evidence':['checkpoints.json','result.json','project-preservation.json',*images.keys()],
+ 'raw_private_input_sha256':{n:sha(WORK/n) for n in ('prepare.py','finalize.py','retry.log','AuditUITests.swift','run.py')},
+ 'sanitization':'Native test and runner preserved byte-for-byte. Preparation/finalization script copies and native build/test log replace local user/checkout/scratch prefixes only. Full raw files and Documents/Library backup remain in private scratch.',
+ 'limitations':['Supporting simulator extension only; original physical M06 permission-denied/subsequently-enabled acceptance remains not-run.','Permission was already granted on this dedicated simulator. This case does not prove same-process denied-permission to granted-permission recovery.','Home/background interruption is proven; no AVAudioSession call interruption or route-change notification was injected or observed.','Native startup is supported by actual production Listening state after successful microphoneStart; recording waveform, signal level, audio quality and transcription are not evaluated.','Stop is observed through native UI. Native microphoneStop invocation count is not instrumented.','No product changes or native probes were used, so no new native product rebuild was required. Installed byte-exact clean source is linked to the accepted R15 build.'],
+ 'overall_audit_count_changed':False,
+}
+write('summary.json',summary)
+hashes = {str(p.relative_to(OUT)):sha(p) for p in sorted(OUT.rglob('*')) if p.is_file()}
+write('evidence-sha256.json',hashes)
+print(json.dumps({'path':str(OUT),'evidence_files_hashed':len(hashes),'bytes':sum(p.stat().st_size for p in OUT.rglob('*') if p.is_file()),'status':summary['status']},indent=2))

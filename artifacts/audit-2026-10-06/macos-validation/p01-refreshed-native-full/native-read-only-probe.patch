@@ -1,0 +1,57 @@
+--- a/Novalist.Mobile/Pages/RendererHostPage.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.cs
+@@ -78,6 +78,7 @@
+ #endif
+ 
+         _ = PumpBackendToWebAsync(_cts.Token);
++        _ = Task.Run(AuditReadOnlyLoopAsync);
+     }
+     private void OnRawMessageReceived(object? sender, HybridWebViewRawMessageReceivedEventArgs e)
+     {
+--- /dev/null
++++ b/Novalist.Mobile/Pages/RendererHostPage.AuditReadOnly.cs
+@@ -0,0 +1,44 @@
++// Temporary audit evaluator. Excluded from the clean acceptance build.
++using System.Text.Json;
++using Microsoft.Maui.ApplicationModel;
++namespace Novalist.Mobile.Pages;
++public sealed partial class RendererHostPage
++{
++    private async Task AuditReadOnlyLoopAsync()
++    {
++        var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "NovalistAudit");
++        Directory.CreateDirectory(directory);
++        try
++        {
++            await _rendererReady.Task.WaitAsync(_cts.Token).ConfigureAwait(false);
++            await File.WriteAllTextAsync(Path.Combine(directory, "ready.json"), "{\"ready\":true}", _cts.Token);
++            while (!_cts.IsCancellationRequested)
++            {
++                await Task.Delay(100, _cts.Token).ConfigureAwait(false);
++                var path = Path.Combine(directory, "command.json");
++                if (!File.Exists(path)) continue;
++                var id = "unread";
++                string? result = null;
++                string? errorType = null;
++                try
++                {
++                    var text = await File.ReadAllTextAsync(path, _cts.Token).ConfigureAwait(false);
++                    File.Delete(path);
++                    using var command = JsonDocument.Parse(text);
++                    var request = command.RootElement;
++                    id = request.GetProperty("id").GetString() ?? "missing";
++                    if (request.GetProperty("op").GetString() != "eval") throw new InvalidOperationException("Read-only evaluator only");
++                    var script = request.GetProperty("script").GetString() ?? throw new InvalidOperationException("Missing script");
++                    result = await MainThread.InvokeOnMainThreadAsync(() => EvaluateScriptAsync(script))
++                        .WaitAsync(TimeSpan.FromSeconds(10), _cts.Token).ConfigureAwait(false);
++                }
++                catch (Exception exception) { errorType = exception.GetType().Name; }
++                var response = JsonSerializer.Serialize(new { id, ok = errorType == null, errorType, result });
++                var temporary = Path.Combine(directory, "response.tmp");
++                await File.WriteAllTextAsync(temporary, response, _cts.Token).ConfigureAwait(false);
++                File.Move(temporary, Path.Combine(directory, "response.json"), true);
++            }
++        }
++        catch (OperationCanceledException) when (_cts.IsCancellationRequested) { }
++    }
++}

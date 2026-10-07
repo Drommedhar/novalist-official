@@ -1,0 +1,16 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+ func testConfirmOwnedLocalProject() {
+  continueAfterFailure = false
+  let app = XCUIApplication(bundleIdentifier: "com.novalist.app"); app.activate()
+  XCTAssertEqual(app.textFields["My Novel"].value as? String, "M03 Unavailable Suffix")
+  let dismiss = app.buttons["selected"].firstMatch
+  XCTAssertTrue(dismiss.waitForExistence(timeout: 5)); dismiss.tap()
+  XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+  let create = app.buttons["Create Project"].firstMatch
+  XCTAssertTrue(create.waitForExistence(timeout: 5)); create.tap()
+  XCTAssertTrue(app.staticTexts["Project Dashboard"].firstMatch.waitForExistence(timeout: 20))
+  XCTAssertFalse(app.alerts["Editing paused"].exists)
+  print("M03_LOCAL_PROJECT_CREATED_THROUGH_NATIVE_UI")
+ }
+}

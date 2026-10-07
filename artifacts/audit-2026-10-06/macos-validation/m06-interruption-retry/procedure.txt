@@ -1,0 +1,9 @@
+The executed sources are native-test.swift and run.py. The test used a dedicated iPhone 17 Pro Max simulator with microphone permission already granted; it changed neither iOS nor Mac permissions.
+
+For reproduction, use a fresh scratch directory and preserve its synthetic Documents/Library before installation. Resolve the path placeholders in prepare.py.txt to the recorded checkout, accepted clean app and prior standalone XCTest project. The preparation verifies the accepted app manifest, all 1,314 production inputs, signatures and original document hashes before/after installation. Copy native-test.swift to AuditUITests.swift, as referenced by AuditHarness.xcodeproj. Run run.py from that scratch directory after preparation. The generated documents-before-private.json remains private; it is deliberately not committed. Use a fresh result-bundle location for every run.
+
+The test's localhost-only checkpoint service reads launchctl for this one simulator and the corresponding process start time. It does not inject code into Novalist or modify production behavior. Six checkpoints prove the same process before recording, while recording, after Home, after foreground stopping, during retry and after explicit Stop. Startup failure is an assertion failure.
+
+The app was already a clean accepted build; there were no production probes to remove. Its complete installed manifest was rechecked after the test. The two new Documents files are normal project-open backup artifacts; all original 75 document hashes and all 26 project file hashes stayed unchanged. No recording or transcript content was read or retained.
+
+Four original native XCTest screenshots were visually inspected. No physical, permission-change, call/route interruption, audio-quality, transcription or exact native stop-call count claim is made.

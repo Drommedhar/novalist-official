@@ -1,0 +1,52 @@
+from pathlib import Path
+import hashlib, json, shutil, subprocess
+
+ROOT = Path('<checkout>')
+WORK = Path(__file__).parent
+SID = 'C9BC7CC6-C48A-431D-9CE0-BEA89C791D81'
+APPID = 'com.novalist.app'
+EVIDENCE = ROOT / 'artifacts/audit-2026-10-06/macos-validation/r15-simulator/release-dismissal'
+SOURCE_APP = Path('<prior-r15-scratch>/checkout/Novalist.Mobile/bin/Debug/net10.0-ios27.0/iossimulator-arm64/Novalist.Mobile.app')
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def manifest(path):
+    return {str(p.relative_to(path)): sha(p) for p in sorted(path.rglob('*')) if p.is_file()}
+
+def tree_hash(files):
+    return hashlib.sha256(json.dumps(files, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+def sim(*args, check=True):
+    return subprocess.run(['xcrun','simctl',*args], check=check, text=True, capture_output=True)
+
+expected = json.loads((EVIDENCE/'clean-app.json').read_text())
+files = manifest(SOURCE_APP)
+assert files == expected['files'], 'Source app differs from accepted clean app'
+assert tree_hash(files) == expected['app_sha256']
+production = json.loads((EVIDENCE/'production-inputs.json').read_text())
+assert all((ROOT/p).is_file() and sha(ROOT/p) == h for p,h in production.items())
+revision = subprocess.check_output(['git','rev-parse','HEAD'], cwd=ROOT, text=True).strip()
+assert revision == 'af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd'
+subprocess.run(['codesign','--verify','--deep','--strict',str(SOURCE_APP)], check=True)
+shutil.copytree(SOURCE_APP, WORK/'clean.app')
+sim('terminate',SID,APPID,check=False)
+data = Path(sim('get_app_container',SID,APPID,'data').stdout.strip())
+before = manifest(data/'Documents')
+for part in ('Documents','Library'):
+    shutil.copytree(data/part,WORK/'backup'/part)
+assert before == manifest(WORK/'backup/Documents')
+(WORK/'documents-before-private.json').write_text(json.dumps(before,indent=2)+'\n')
+sim('install',SID,str(WORK/'clean.app'))
+installed = Path(sim('get_app_container',SID,APPID,'app').stdout.strip())
+current_data = Path(sim('get_app_container',SID,APPID,'data').stdout.strip())
+assert manifest(installed) == files
+assert manifest(current_data/'Documents') == before
+shutil.copytree(Path('<prior-m01-scratch>/harness/AuditHarness.xcodeproj'),WORK/'AuditHarness.xcodeproj')
+project = WORK/'AuditHarness.xcodeproj/project.pbxproj'
+project.write_text(project.read_text().replace('com.novalist.audit.m01.uitests','com.novalist.audit.m06retry.uitests'))
+for name in ('production-inputs.json','renderer-assets.json','commit-equivalence.json'):
+    shutil.copy2(EVIDENCE/name, WORK/name)
+record = {'revision':revision,'equivalent_product_revision':'36b9d53bc27a7dd32c0cd39365e213cf2651d102','source_evidence':'../r15-simulator/release-dismissal/clean-app.json','native_probes':False,'production_inputs_matched':len(production),'app_tree_sha256':tree_hash(files),'app_files':len(files),'deep_strict_signature':True,'installed_matches_clean_app':True,'synthetic_document_files_backed_up':len(before),'all_documents_preserved_after_install':True,'simulator_udid':SID,'model':'iPhone 17 Pro Max simulator','runtime':'iOS 27.0','prior_and_current_container_differ':data != current_data,'permission_changes':False}
+(WORK/'source.json').write_text(json.dumps(record,indent=2)+'\n')
+print(json.dumps(record,indent=2))

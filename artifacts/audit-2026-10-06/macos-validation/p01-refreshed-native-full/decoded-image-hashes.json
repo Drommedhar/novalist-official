@@ -1,0 +1,194 @@
+{
+  "source_revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+  "image_count": 11,
+  "all_decoded_assets_match_current_source_and_bundle": true,
+  "images": [
+    {
+      "source": "docs/manual/images/calendar.png",
+      "source_sha256": "bcc889398e71b1f4d9e81ce944443e11ae51fd702d953ed5267a30046b59fc52",
+      "bundle_path": "app/assets/calendar-DdkM0wfE.png",
+      "bundle_sha256": "bcc889398e71b1f4d9e81ce944443e11ae51fd702d953ed5267a30046b59fc52",
+      "decoded_asset": "assets/calendar-DdkM0wfE.png",
+      "width": 1440,
+      "height": 900,
+      "bit_depth": 8,
+      "bytes": 180999,
+      "actual_native_decode": {
+        "width": 1440,
+        "height": 900,
+        "complete": true,
+        "alt": "The Calendar view"
+      }
+    },
+    {
+      "source": "docs/manual/images/codex.png",
+      "source_sha256": "be8cfa88e31571771a62cda230b6d17c8f13ebcac4d1955d7aa7ec750f817b07",
+      "bundle_path": "app/assets/codex-DMo_JcCi.png",
+      "bundle_sha256": "be8cfa88e31571771a62cda230b6d17c8f13ebcac4d1955d7aa7ec750f817b07",
+      "decoded_asset": "assets/codex-DMo_JcCi.png",
+      "width": 1440,
+      "height": 900,
+      "bit_depth": 8,
+      "bytes": 253775,
+      "actual_native_decode": {
+        "width": 1440,
+        "height": 900,
+        "complete": true,
+        "alt": "The Codex with a character selected"
+      }
+    },
+    {
+      "source": "docs/manual/images/command-palette.png",
+      "source_sha256": "bd33875bb2565ea0e71ce2e47a1351cb7e2b5fc3847963cc16eb6725d9fed3ef",
+      "bundle_path": "app/assets/command-palette-DjhKRw0B.png",
+      "bundle_sha256": "bd33875bb2565ea0e71ce2e47a1351cb7e2b5fc3847963cc16eb6725d9fed3ef",
+      "decoded_asset": "assets/command-palette-DjhKRw0B.png",
+      "width": 1440,
+      "height": 900,
+      "bit_depth": 8,
+      "bytes": 331149,
+      "actual_native_decode": {
+        "width": 1440,
+        "height": 900,
+        "complete": true,
+        "alt": "The command palette"
+      }
+    },
+    {
+      "source": "docs/manual/images/dashboard.png",
+      "source_sha256": "d7748a0ccfe13a71ec2e0d464bb976268a841c842be02b03e11cc76f33a26836",
+      "bundle_path": "app/assets/dashboard-CoZKBSNW.png",
+      "bundle_sha256": "d7748a0ccfe13a71ec2e0d464bb976268a841c842be02b03e11cc76f33a26836",
+      "decoded_asset": "assets/dashboard-CoZKBSNW.png",
+      "width": 1440,
+      "height": 900,
+      "bit_depth": 8,
+      "bytes": 173627,
+      "actual_native_decode": {
+        "width": 1440,
+        "height": 900,
+        "complete": true,
+        "alt": "The project Dashboard"
+      }
+    },
+    {
+      "source": "docs/manual/images/editor.png",
+      "source_sha256": "8d91efe86a1deb0a97f28e0eb82c5130aa91660b00709666ff9786ede1341906",
+      "bundle_path": "app/assets/editor-BSL7L5ZG.png",
+      "bundle_sha256": "8d91efe86a1deb0a97f28e0eb82c5130aa91660b00709666ff9786ede1341906",
+      "decoded_asset": "assets/editor-BSL7L5ZG.png",
+      "width": 1440,
+      "height": 900,
+      "bit_depth": 8,
+      "bytes": 495118,
+      "actual_native_decode": {
+        "width": 1440,
+        "height": 900,
+        "complete": true,
+        "alt": "A scene open in the editor with the Context inspector and scene-notes dock"
+      }
+    },
+    {
+      "source": "docs/manual/images/interface-overview.png",
+      "source_sha256": "f7293a5e48cab3fba7214dfd1ffcea571a1058a1cdbd1cc03692dd3a910e19a6",
+      "bundle_path": "app/assets/interface-overview-DJ-nj8dU.png",
+      "bundle_sha256": "f7293a5e48cab3fba7214dfd1ffcea571a1058a1cdbd1cc03692dd3a910e19a6",
+      "decoded_asset": "assets/interface-overview-DJ-nj8dU.png",
+      "width": 1440,
+      "height": 900,
+      "bit_depth": 8,
+      "bytes": 497556,
+      "actual_native_decode": {
+        "width": 1440,
+        "height": 900,
+        "complete": true,
+        "alt": "The Novalist workspace: the binder, the editor, and the inspector"
+      }
+    },
+    {
+      "source": "docs/manual/images/manuscript.png",
+      "source_sha256": "61029447c5ba15b03d33103307cbfa2fe3f68ebbf413a8532fbf7c26d2b9da70",
+      "bundle_path": "app/assets/manuscript-8GR9Bmvk.png",
+      "bundle_sha256": "61029447c5ba15b03d33103307cbfa2fe3f68ebbf413a8532fbf7c26d2b9da70",
+      "decoded_asset": "assets/manuscript-8GR9Bmvk.png",
+      "width": 1440,
+      "height": 900,
+      "bit_depth": 8,
+      "bytes": 441499,
+      "actual_native_decode": {
+        "width": 1440,
+        "height": 900,
+        "complete": true,
+        "alt": "The Manuscript corkboard"
+      }
+    },
+    {
+      "source": "docs/manual/images/plot-grid.png",
+      "source_sha256": "318a71f9ffba14dddb6a14e8552a692a94fa502f77eff30ce7e317caa74e8d5b",
+      "bundle_path": "app/assets/plot-grid-dqsM7MKk.png",
+      "bundle_sha256": "318a71f9ffba14dddb6a14e8552a692a94fa502f77eff30ce7e317caa74e8d5b",
+      "decoded_asset": "assets/plot-grid-dqsM7MKk.png",
+      "width": 1440,
+      "height": 900,
+      "bit_depth": 8,
+      "bytes": 229838,
+      "actual_native_decode": {
+        "width": 1440,
+        "height": 900,
+        "complete": true,
+        "alt": "The Plot Grid"
+      }
+    },
+    {
+      "source": "docs/manual/images/relationships.png",
+      "source_sha256": "ac2b614c9fabf8778bbbbcebf37fa441cf7912e5dd94358204e0b459d533d075",
+      "bundle_path": "app/assets/relationships-BdqR86RI.png",
+      "bundle_sha256": "ac2b614c9fabf8778bbbbcebf37fa441cf7912e5dd94358204e0b459d533d075",
+      "decoded_asset": "assets/relationships-BdqR86RI.png",
+      "width": 1440,
+      "height": 900,
+      "bit_depth": 8,
+      "bytes": 253251,
+      "actual_native_decode": {
+        "width": 1440,
+        "height": 900,
+        "complete": true,
+        "alt": "The Relationships graph"
+      }
+    },
+    {
+      "source": "docs/manual/images/start-screen.png",
+      "source_sha256": "2342037b40fa93b74acd2c71e7cebd8b92bc29b4653a2625d9ac5dabbb5bf493",
+      "bundle_path": "app/assets/start-screen-DKjL68mm.png",
+      "bundle_sha256": "2342037b40fa93b74acd2c71e7cebd8b92bc29b4653a2625d9ac5dabbb5bf493",
+      "decoded_asset": "assets/start-screen-DKjL68mm.png",
+      "width": 1440,
+      "height": 900,
+      "bit_depth": 8,
+      "bytes": 130890,
+      "actual_native_decode": {
+        "width": 1440,
+        "height": 900,
+        "complete": true,
+        "alt": "The Novalist window before a project is open, with recent projects"
+      }
+    },
+    {
+      "source": "docs/manual/images/timeline.png",
+      "source_sha256": "6853f326bc64e0d22c245d1875ee53bced1890ea69ed1fec24d11225fe525e2f",
+      "bundle_path": "app/assets/timeline-CXLeJ17N.png",
+      "bundle_sha256": "6853f326bc64e0d22c245d1875ee53bced1890ea69ed1fec24d11225fe525e2f",
+      "decoded_asset": "assets/timeline-CXLeJ17N.png",
+      "width": 1440,
+      "height": 900,
+      "bit_depth": 8,
+      "bytes": 203646,
+      "actual_native_decode": {
+        "width": 1440,
+        "height": 900,
+        "complete": true,
+        "alt": "The Timeline"
+      }
+    }
+  ]
+}

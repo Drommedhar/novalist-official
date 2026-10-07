@@ -1,0 +1,63 @@
+Test Suite 'All tests' started at 2026-10-07 15:21:44.564.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 15:21:44.564.
+Test Suite 'AuditUITests' started at 2026-10-07 15:21:44.564.
+Test Case '-[AuditUITests.AuditUITests testCreateLocalDraft]' started.
+    t =     0.00s Start Test at 2026-10-07 15:21:44.566
+    t =     0.02s Set Up
+    t =     0.02s Terminate com.novalist.app:0
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Launch com.novalist.app
+    t =     0.04s         Setting up automation session
+objc[96087]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1063d4398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x107158310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     2.63s         Wait for com.novalist.app to idle
+    t =     4.21s Setting device orientation to Portrait
+    t =     4.21s     Device orientation changed to Portrait
+    t =     4.23s     Interface orientation changed to Portrait
+    t =     4.23s     Wait for com.novalist.app to idle
+    t =     4.27s Waiting 25.0s for "New Project" Button to exist
+    t =     5.34s     Checking `Expect predicate `existsNoRetry == 1` for object "New Project" Button`
+    t =     5.34s         Checking existence of `"New Project" Button`
+    t =     5.40s Tap "New Project" Button
+    t =     5.40s     Wait for com.novalist.app to idle
+    t =     5.41s     Find the "New Project" Button
+    t =     5.42s Requesting snapshot of accessibility hierarchy for app with pid 96101
+/tmp/novalist-m03-unavailable-external/AuditUITests.swift:7: error: -[AuditUITests.AuditUITests testCreateLocalDraft] : Failed to tap "New Project" Button: Find single matching element. Multiple matching elements found for <XCUIElementQuery: 0x1066de7b0>.
+Sparse tree of matches:
+→Application, pid: 96101, label: 'Novalist'
+  ↳Window (Main)
+    ↳Other
+      ↳Other
+        ↳Other
+          ↳Other
+            ↳WebView
+              ↳WebView
+                ↳WebView
+                  ↳Other
+                    ↳Other
+                      ↳Other
+                        ↳Other, label: 'Novalist'
+                          ↳Other, label: 'banner'
+                          ⋅ ↳Button, label: 'New Project'
+                          ↳Other, label: 'Project library, main'
+                            ↳Button, label: 'New Project'
+    t =     5.46s Tear Down
+Test Case '-[AuditUITests.AuditUITests testCreateLocalDraft]' failed (5.697 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 15:21:50.263.
+	 Executed 1 test, with 1 failure (0 unexpected) in 5.697 (5.699) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 15:21:50.264.
+	 Executed 1 test, with 1 failure (0 unexpected) in 5.697 (5.699) seconds
+Test Suite 'All tests' failed at 2026-10-07 15:21:50.264.
+	 Executed 1 test, with 1 failure (0 unexpected) in 5.697 (5.700) seconds
+2026-10-07 15:21:50.557 xcodebuild[95933:4141491] [MT] IDETestOperationsObserverDebug: 8.577 elapsed -- Testing started completed.
+2026-10-07 15:21:50.557 xcodebuild[95933:4141491] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 15:21:50.557 xcodebuild[95933:4141491] [MT] IDETestOperationsObserverDebug: 8.577 sec, +8.577 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/novalist-m03-unavailable-external/01-create-local-draft.xcresult
+
+Failing tests:
+	AuditUITests.testCreateLocalDraft()
+
+** TEST FAILED **
+
+Testing started

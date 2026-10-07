@@ -1,0 +1,28 @@
+{
+  "variant": "fixed",
+  "source_input_differences": {},
+  "renderer_entry": "./assets/index.mobile-C1BDNHFu.js",
+  "entry_bytes": 3459458,
+  "entry_sha256": "c2228dffeab0417c159116f175fdfd162c977f07ae99450b2a1d90c2b2edae56",
+  "base64_image_literals_in_entry": 0,
+  "embedded_manual_image_hashes": [],
+  "manual_image_hashes": {
+    "calendar.png": "bcc889398e71b1f4d9e81ce944443e11ae51fd702d953ed5267a30046b59fc52",
+    "codex.png": "be8cfa88e31571771a62cda230b6d17c8f13ebcac4d1955d7aa7ec750f817b07",
+    "command-palette.png": "bd33875bb2565ea0e71ce2e47a1351cb7e2b5fc3847963cc16eb6725d9fed3ef",
+    "dashboard.png": "d7748a0ccfe13a71ec2e0d464bb976268a841c842be02b03e11cc76f33a26836",
+    "editor.png": "8d91efe86a1deb0a97f28e0eb82c5130aa91660b00709666ff9786ede1341906",
+    "interface-overview.png": "f7293a5e48cab3fba7214dfd1ffcea571a1058a1cdbd1cc03692dd3a910e19a6",
+    "manuscript.png": "61029447c5ba15b03d33103307cbfa2fe3f68ebbf413a8532fbf7c26d2b9da70",
+    "plot-grid.png": "318a71f9ffba14dddb6a14e8552a692a94fa502f77eff30ce7e317caa74e8d5b",
+    "relationships.png": "ac2b614c9fabf8778bbbbcebf37fa441cf7912e5dd94358204e0b459d533d075",
+    "start-screen.png": "2342037b40fa93b74acd2c71e7cebd8b92bc29b4653a2625d9ac5dabbb5bf493",
+    "timeline.png": "6853f326bc64e0d22c245d1875ee53bced1890ea69ed1fec24d11225fe525e2f"
+  },
+  "renderer_asset_count": 203,
+  "native_app_files": 571,
+  "native_app_bytes": 159573086,
+  "app_tree_sha256": "1fb14662276348bf3b6345ff08a7ef77f8e2efcf4fcb04e9613d22c05771cfa1",
+  "codesign_deep_strict_exit": 0,
+  "built_assets_equal_app_assets": true
+}

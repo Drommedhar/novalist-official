@@ -1,0 +1,33 @@
+{
+  "revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+  "equivalent_product_revision": "36b9d53bc27a7dd32c0cd39365e213cf2651d102",
+  "source_evidence": "../r15-simulator/release-dismissal/clean-app.json",
+  "native_probes": false,
+  "production_inputs_matched": 1314,
+  "app_tree_sha256": "14eb94930421973ec176989fe9159d95442ade4d4307d30ec22b189f3b46fc4d",
+  "app_files": 571,
+  "deep_strict_signature": true,
+  "installed_matches_clean_app": true,
+  "synthetic_document_files_backed_up": 75,
+  "all_documents_preserved_after_install": true,
+  "simulator_udid": "C9BC7CC6-C48A-431D-9CE0-BEA89C791D81",
+  "model": "iPhone 17 Pro Max simulator",
+  "runtime": "iOS 27.0",
+  "prior_and_current_container_differ": true,
+  "permission_changes": false,
+  "installed_app_still_matches_after_acceptance": true,
+  "provenance_manifests": {
+    "production-inputs.json": {
+      "reference": "../r15-simulator/release-dismissal/production-inputs.json",
+      "sha256": "34fcf3d72e88b2c03e0a79bf831fda06f7bd7d9c86efe02745879d8de65d4922"
+    },
+    "renderer-assets.json": {
+      "reference": "../r15-simulator/release-dismissal/renderer-assets.json",
+      "sha256": "1b7928af2bce56f4ed7882675a72c1c9101d80f35e450288cacec6e8e1c6113a"
+    },
+    "commit-equivalence.json": {
+      "reference": "../r15-simulator/release-dismissal/commit-equivalence.json",
+      "sha256": "e12330566e712cdb88dae3fc283d4569c44848ac7b19132356b558420a9a0f58"
+    }
+  }
+}

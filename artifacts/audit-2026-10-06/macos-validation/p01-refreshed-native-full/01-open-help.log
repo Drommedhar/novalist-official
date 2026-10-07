@@ -1,0 +1,61 @@
+Test Suite 'All tests' started at 2026-10-07 15:05:04.844.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 15:05:04.844.
+Test Suite 'AuditUITests' started at 2026-10-07 15:05:04.844.
+Test Case '-[AuditUITests.AuditUITests testOpenNativeHelp]' started.
+    t =     0.00s Start Test at 2026-10-07 15:05:04.846
+    t =     0.02s Set Up
+    t =     0.02s Terminate com.novalist.app:0
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Launch com.novalist.app
+    t =     0.04s         Wait for accessibility to load
+    t =     0.04s         Setting up automation session
+objc[91796]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1037cc398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1063a8310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     2.87s         Wait for com.novalist.app to idle
+    t =     4.59s Setting device orientation to Landscape Left
+    t =     4.59s     Device orientation changed to Landscape Left
+    t =     4.62s     Interface orientation changed to Landscape Right
+    t =     4.62s     Wait for com.novalist.app to idle
+    t =     4.63s Waiting 25.0s for "More project actions" Button to exist
+    t =     5.70s     Checking `Expect predicate `existsNoRetry == 1` for object "More project actions" Button`
+    t =     5.71s         Checking existence of `"More project actions" Button`
+    t =     5.82s Tap "More project actions" Button
+    t =     5.82s     Wait for com.novalist.app to idle
+    t =     5.83s     Find the "More project actions" Button
+    t =     5.84s     Check for interrupting elements affecting "More project actions" Button
+    t =     5.86s     Synthesize event
+    t =     6.15s     Wait for com.novalist.app to idle
+    t =     6.16s Waiting 2.0s for "Novalist Manual" Button to exist
+    t =     7.23s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist Manual" Button`
+    t =     7.23s         Checking existence of `"Novalist Manual" Button`
+    t =     7.26s Waiting 5.0s for "Novalist Manual" Button to exist
+    t =     8.34s     Checking `Expect predicate `existsNoRetry == 1` for object "Novalist Manual" Button`
+    t =     8.34s         Checking existence of `"Novalist Manual" Button`
+    t =     8.37s Tap "Novalist Manual" Button
+    t =     8.37s     Wait for com.novalist.app to idle
+    t =     8.37s     Find the "Novalist Manual" Button
+    t =     8.39s     Check for interrupting elements affecting "Novalist Manual" Button
+    t =     8.41s     Synthesize event
+    t =     8.70s     Wait for com.novalist.app to idle
+    t =     9.17s Waiting 15.0s for "Search the manual…" TextField to exist
+    t =    10.25s     Checking `Expect predicate `existsNoRetry == 1` for object "Search the manual…" TextField`
+    t =    10.25s         Checking existence of `"Search the manual…" TextField`
+    t =    10.70s Checking existence of `"Editing paused" Alert`
+P01_NATIVE_HELP_OPEN_PASS
+    t =    11.12s Tear Down
+Test Case '-[AuditUITests.AuditUITests testOpenNativeHelp]' passed (11.338 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 15:05:16.184.
+	 Executed 1 test, with 0 failures (0 unexpected) in 11.338 (11.340) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 15:05:16.185.
+	 Executed 1 test, with 0 failures (0 unexpected) in 11.338 (11.341) seconds
+Test Suite 'All tests' passed at 2026-10-07 15:05:16.186.
+	 Executed 1 test, with 0 failures (0 unexpected) in 11.338 (11.342) seconds
+2026-10-07 15:05:16.482 xcodebuild[91640:4086473] [MT] IDETestOperationsObserverDebug: 14.354 elapsed -- Testing started completed.
+2026-10-07 15:05:16.482 xcodebuild[91640:4086473] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 15:05:16.482 xcodebuild[91640:4086473] [MT] IDETestOperationsObserverDebug: 14.354 sec, +14.354 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-native-help>/01-open-help.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

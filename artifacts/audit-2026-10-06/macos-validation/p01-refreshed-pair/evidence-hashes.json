@@ -1,0 +1,19 @@
+{
+  "capture-variant.py": "59ea6281cbc2740b9970e045a868ea4d8a7a5c0bf9a9664649eeab76832a69e8",
+  "fixed-app-manifest.json": "cbf0a863c4d550518881cdd1fbef1cd49bcd24e9d770058a29fbd7fa0e1a775f",
+  "fixed-build.json": "dbb7ad765b3c139373c3d6b549c5c0a11957dde44b736de1d7b138e80e62d0d2",
+  "fixed-manual-plugin.ts": "039d560fed2af581876ef02427f45ca5cabf909b139a778a39ef52049f8ba301",
+  "fixed-native.log": "994a1480f237630b89197a64f770ab5fa5dbecd5d01b55ad68bbdc60f1f87fd2",
+  "fixed-renderer-assets.json": "1b7928af2bce56f4ed7882675a72c1c9101d80f35e450288cacec6e8e1c6113a",
+  "fixed-renderer.log": "d2c0b2c84dc1b92a01e94747e1bac7b3bd51dfecde8cc5de4cbd9aad005bee16",
+  "original-app-manifest.json": "e27933c727b038c21e921eb6378f3bfd72663232ff660d0e3d1412a06ee781f6",
+  "original-build.json": "2100edfa0fff21769486b075f9b55c51c71e0854f0e92c48eede0658b550da10",
+  "original-manual-plugin.ts": "8e6dbe4a1fcb6b736b2eaada5d9b915d0f3697722a3c2d3973fb6b36f9c253c3",
+  "original-native.log": "23027854af1a072f4485f5431bd586c0f14e277477a34b911cf6ddcd7df29777",
+  "original-renderer-assets.json": "68a76eb9cb4375f7d63492eb128fb2c7f2fdfb9ac1a153b3b1ba1f4b43349fec",
+  "original-renderer.log": "e51e1d28813cd09d1222eefef99b9491be6d2955202a6a6e2ec7dcecde4d1b98",
+  "procedure.txt": "d919f2c45bdf6065eb652486d4310daa4d52d2bf621db62aa8bc82da16e09d21",
+  "source-inputs.json": "1d35f0ec6e0d83a7d10596db49bd308a86459389ea61f8c91bcbcc10b1704b01",
+  "source.json": "925b90bf652cdcfac49ab75ca120e20be721560de82eaf530ecec473bd73ad39",
+  "summary.json": "125a7faa04e5dfd0dbfe4624348f71b30d40f33fb7dbcb49bd276eaae94962a7"
+}

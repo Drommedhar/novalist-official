@@ -1,0 +1,48 @@
+Test Suite 'All tests' started at 2026-10-07 15:07:37.674.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 15:07:37.674.
+Test Suite 'AuditUITests' started at 2026-10-07 15:07:37.674.
+Test Case '-[AuditUITests.AuditUITests testNativeOfflineHelpScreenshots]' started.
+    t =     0.00s Start Test at 2026-10-07 15:07:37.676
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Waiting 10.0s for "Search the manual…" TextField to exist
+objc[92279]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10a610398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10a748310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object "Search the manual…" TextField`
+    t =     1.08s         Checking existence of `"Search the manual…" TextField`
+    t =     2.87s Tap "Dashboard" Button
+    t =     2.87s     Wait for com.novalist.app to idle
+    t =     2.87s     Find the "Dashboard" Button
+    t =     4.71s     Check for interrupting elements affecting "Dashboard" Button
+    t =     4.77s     Synthesize event
+    t =     4.78s         Scroll element to visible
+    t =     4.78s         Find the "Dashboard" Button
+    t =     6.60s         Computed hit point {153, 130} after scrolling to visible
+    t =     6.89s     Wait for com.novalist.app to idle
+    t =     6.89s Waiting 10.0s for "The project Dashboard" Image to exist
+    t =     7.97s     Checking `Expect predicate `existsNoRetry == 1` for object "The project Dashboard" Image`
+    t =     7.97s         Checking existence of `"The project Dashboard" Image`
+    t =     8.79s Find the "The project Dashboard" Image
+<temporary-native-help>/AuditUITests.swift:13: error: -[AuditUITests.AuditUITests testNativeOfflineHelpScreenshots] : XCTAssertTrue failed
+    t =     9.62s Tear Down
+Test Case '-[AuditUITests.AuditUITests testNativeOfflineHelpScreenshots]' failed (9.623 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 15:07:47.299.
+	 Executed 1 test, with 1 failure (0 unexpected) in 9.623 (9.624) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 15:07:47.299.
+	 Executed 1 test, with 1 failure (0 unexpected) in 9.623 (9.624) seconds
+Test Suite 'All tests' failed at 2026-10-07 15:07:47.299.
+	 Executed 1 test, with 1 failure (0 unexpected) in 9.623 (9.625) seconds
+2026-10-07 15:07:47.584 xcodebuild[92258:4094562] [MT] IDETestOperationsObserverDebug: 12.321 elapsed -- Testing started completed.
+2026-10-07 15:07:47.584 xcodebuild[92258:4094562] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 15:07:47.584 xcodebuild[92258:4094562] [MT] IDETestOperationsObserverDebug: 12.321 sec, +12.321 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-native-help>/02-help-offline-screenshots.xcresult
+
+Failing tests:
+	AuditUITests.testNativeOfflineHelpScreenshots()
+
+** TEST FAILED **
+
+Testing started

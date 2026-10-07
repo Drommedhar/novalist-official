@@ -1,0 +1,170 @@
+{
+  "finding": "M01",
+  "date": "2026-10-07",
+  "status": "passed-simulator-supporting-lock-variants",
+  "finding_status_change": false,
+  "source_revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+  "environment": {
+    "model": "iPad (A16)",
+    "runtime": "iPadOS 27.0",
+    "simulator_udid": "4F155C1B-8F9C-4919-8BD7-1CFAD764B61B",
+    "orientation": "landscape",
+    "fixture": "Separate Audit M01 Lock Variants project created through actual native UI. Existing synthetic projects not opened or changed."
+  },
+  "source_attribution": {
+    "production_inputs": 1314,
+    "renderer_assets": 203,
+    "all_frozen_production_and_asset_hashes_match": true,
+    "dirty_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "native_observer_patch_sha256": "795e837ec76320b41ee00406a1982999999128a22a7e30fe84c41b09ce8d1886",
+    "probe_bundle_files": 571,
+    "probe_bundle_tree_sha256": "9f9c1871ea04712391ae4973fe4486f24e078582deb84c7552a3c68287a90969",
+    "clean_build": "clean-build.json",
+    "clean_install": "clean-install.json",
+    "final_clean_bundle_tree_sha256": "1e2036c99be9cfd2264dc96cc979e89e6196ca5cc6cc61f07952bdd1728f43dd",
+    "no_product_source_changes": true
+  },
+  "lock_control": {
+    "application": "Xcode 27 DeviceHub",
+    "exact_target_row": "TableRow.Device.4F155C1B-8F9C-4919-8BD7-1CFAD764B61B",
+    "selection_and_window_verified": true,
+    "input": "Real Controls > Lock AXPress; target rechecked immediately before action.",
+    "new_permissions_requested": false,
+    "global_keys_used": false,
+    "fabricated_notifications": false,
+    "display_power_substitution": false,
+    "observation": "Read-only com.apple.springboard.lockstate plus actual UIApplication state and the existing production BeginBackgroundTask result."
+  },
+  "cases": [
+    {
+      "kind": "manuscript",
+      "result": "passed",
+      "marker": "M01MANUSCRIPTLOCK27",
+      "before_lock": {
+        "marker_absent_on_disk": true,
+        "exact_scope_journal_entries": 1,
+        "real_target_writes_held": 1,
+        "all_held_payloads_contain_marker": true,
+        "other_writes_forwarded": 0,
+        "real_dirty_claim_forwarded": true
+      },
+      "locked": {
+        "actual_os_lockstate": 1,
+        "application_state": "Background",
+        "fresh_background_task_granted": true,
+        "save_acknowledgement_before_termination": false,
+        "marker_absent_on_disk_after_termination": true
+      },
+      "timing_seconds_after_native_edit": {
+        "native_session_completed": 0.386,
+        "real_lock_action_started": 0.954,
+        "real_lock_action_completed": 1.281,
+        "terminated": 4.524
+      },
+      "recovery": {
+        "actual_native_ui_and_reopen_passed": true,
+        "same_exact_owner": {
+          "projectId": "project-1791378307548",
+          "projectFolder": "Audit M01 Lock Variants",
+          "bookId": "book-1791378307548",
+          "bookFolder": "Audit Lock Variants Book",
+          "draftId": "draft-default",
+          "draftFolder": "default",
+          "sceneId": "8ea60cae-9bf4-4ba7-b57f-00e8831be1ee",
+          "chapterGuid": "4358bb7d-a881-444b-9008-1ae99a730cf0",
+          "sceneIndexSha256": "b5cf8cbc18defd48559502d3565fab68f141f9610cd9f2b1e84e16b8077a59b4"
+        },
+        "disk": {
+          "path": "Audit M01 Lock Variants/Audit Lock Variants Book/Drafts/default/Chapters/01 - Audit Lock Variants Chapter/scene-01.novalist",
+          "sha256": "ea097c57d555911a402cb5fab7f44a6dc9bb707ee6fc4f571764d403b1af18c6",
+          "markerCount": 1,
+          "matchingLiveSceneFiles": 1
+        },
+        "matching_recovery_journal_entries": 0,
+        "transport_gate_present": false,
+        "native_test_seconds": 23.883
+      },
+      "evidence": "manuscript-lock.json"
+    },
+    {
+      "kind": "research",
+      "result": "passed",
+      "marker": "M01RESEARCHLOCK27",
+      "before_lock": {
+        "marker_absent_on_disk": true,
+        "exact_scope_journal_entries": 1,
+        "real_target_writes_held": 1,
+        "all_held_payloads_contain_marker": true,
+        "other_writes_forwarded": 0
+      },
+      "locked": {
+        "actual_os_lockstate": 1,
+        "application_state": "Background",
+        "fresh_background_task_granted": true,
+        "save_acknowledgement_before_termination": false,
+        "marker_absent_on_disk_after_termination": true
+      },
+      "timing_seconds_after_native_edit": {
+        "native_session_completed": 0.388,
+        "real_lock_action_started": 0.95,
+        "real_lock_action_completed": 1.328,
+        "terminated": 4.198
+      },
+      "recovery": {
+        "actual_native_ui_and_reopen_passed": true,
+        "same_exact_owner": {
+          "projectId": "project-1791378307548",
+          "projectFolder": "Audit M01 Lock Variants",
+          "bookId": "book-1791378307548",
+          "bookFolder": "Audit Lock Variants Book",
+          "draftId": "draft-default",
+          "draftFolder": "default",
+          "researchId": "46a70571-a29b-42b9-80e2-b13f9a8c35dc",
+          "researchItemCount": 1,
+          "researchStoredAtProjectLevel": true
+        },
+        "disk": {
+          "path": "Audit M01 Lock Variants/.novalist/project.json",
+          "sha256": "ca2ebb0ee8d1eb740e1233d09956bf2fd8a49253f8953193b63354eac34e26c3",
+          "markerCountInLiveItem": 1,
+          "matchingResearchItems": 1
+        },
+        "matching_recovery_journal_entries": 0,
+        "transport_gate_present": false,
+        "native_test_seconds": 21.342
+      },
+      "evidence": "research-lock.json"
+    }
+  ],
+  "clean_confirmation": {
+    "native_test_seconds": 20.942,
+    "both_markers_reopened_through_actual_ui": true,
+    "all_1314_production_hashes_match": true,
+    "all_203_renderer_hashes_match": true,
+    "native_observer_removed": true,
+    "fresh_bin_obj_build_passed": true,
+    "deep_signature_install_bundle_equality_passed": true,
+    "control_directory_absent_after_native_repeat": true,
+    "all_98_existing_ipad_document_hashes_unchanged": true,
+    "all_13_new_fixture_hashes_unchanged_after_clean_reopen": true,
+    "iphone_105_document_hashes_including_82_cartographer_files_unchanged": true,
+    "details": [
+      "probe-removal.json",
+      "clean-build.json",
+      "clean-install.json",
+      "clean-native.json",
+      "preservation.json"
+    ]
+  },
+  "limitations": [
+    "Supporting simulator coverage only: all original physical-device M01 acceptance, real OS suspension policies and cloud/offline-provider conditions remain not run.",
+    "Full Manuscript and Research are exercised through the real regular-width tablet shell. The prepared iPhone was not used for these tablet-only destinations.",
+    "Each real Lock action began after XCTest released UI control. Exact-owner real save requests were withheld to keep edits pending across that delay; this is not an uninstrumented immediate-lock timing claim.",
+    "The observer adds only file-based evaluation/state access and content-free native lifecycle events in a disposable checkout. Gates return no fabricated save acknowledgement and are lost on process termination.",
+    "Locked screenshots are black because the actual Lock put the display to sleep. They do not independently prove lock; exact DeviceHub action, OS lockstate 1, UIApplication Background and native task grant provide that evidence.",
+    "The original native Manuscript screenshot attachment carries orientation/cropping metadata. Final clean simctl screenshots clearly show both actual UI markers.",
+    "The Research item is persisted at project level; recovery journal project/book/draft scope and its exact original item ID are separately checked. No duplicate item or altered original title is inferred as success.",
+    "A recorder initially read a .novalist directory as a file. This harness-only failure and correction are preserved; both native recovery tests already passed.",
+    "No physical device, real project, release, product-source edit or root ledger/status change occurred in this task. Raw logs, result bundles, app bundles and fixture backups remain private."
+  ]
+}

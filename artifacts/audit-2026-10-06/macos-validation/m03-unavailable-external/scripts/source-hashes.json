@@ -1,0 +1,47 @@
+{
+  "setup-external.py": {
+    "executed_source_sha256": "571b56b8aed9a166d40edc88eacd25bc90aaa3cf8795f51993836a2ec0c89eb1",
+    "published_source_sha256": "571b56b8aed9a166d40edc88eacd25bc90aaa3cf8795f51993836a2ec0c89eb1",
+    "paths_redacted": false
+  },
+  "make-unavailable.py": {
+    "executed_source_sha256": "bfd74ae57ff0a7d6c2fbea563ffdf6fdd0b86890a382a71acb67669dd20048b1",
+    "published_source_sha256": "bfd74ae57ff0a7d6c2fbea563ffdf6fdd0b86890a382a71acb67669dd20048b1",
+    "paths_redacted": false
+  },
+  "record-and-restore.py": {
+    "executed_source_sha256": "2db6c606dfaace364e16a33629488aea8616bcb0770590673b4d534b1ba06c5a",
+    "published_source_sha256": "2db6c606dfaace364e16a33629488aea8616bcb0770590673b4d534b1ba06c5a",
+    "paths_redacted": false
+  },
+  "clean-probe.py": {
+    "executed_source_sha256": "d2c487d765668239040159a28d84c4006ef160f5bebf5748539ef8b20815e129",
+    "published_source_sha256": "586c0caa73671ddc93d8a6a93d441044996affe2110fb8dd5489a6d7755dee58",
+    "paths_redacted": true
+  },
+  "clean-source-verify.py": {
+    "executed_source_sha256": "920e4515c9e627d62b4bd9a95d1211f33e545c4548d8d4d6c5284a21bb1ff7d6",
+    "published_source_sha256": "1e8c4655a4e287b0b53e1ddb14d5ab9a241831cc6d9817841ea4dbbb895c334b",
+    "paths_redacted": true
+  },
+  "install-clean.py": {
+    "executed_source_sha256": "2eca49504f6d9d23743da8cebbd361d388f2b060ae82c0d51f6da10826e48aef",
+    "published_source_sha256": "2eca49504f6d9d23743da8cebbd361d388f2b060ae82c0d51f6da10826e48aef",
+    "paths_redacted": false
+  },
+  "verify-final.py": {
+    "executed_source_sha256": "f6cc95089f80dd0bac8d9efebe0bc8de72d854e3cf9783ef90a1955ec6d16b1b",
+    "published_source_sha256": "a172a753890d4942687338994e29864b2a21adf5851b6bad9a68cfeb18154c02",
+    "paths_redacted": true
+  },
+  "verify-final-v2.py": {
+    "executed_source_sha256": "35edab32aaa7a4432109562ee4c07919508d7f8e423786d4406c8557bdecbf9b",
+    "published_source_sha256": "8179fdf52465499e3a9d46a468cab4e8ff5f959a5d5b707c8bcd72e9a88d09c5",
+    "paths_redacted": true
+  },
+  "run.py": {
+    "executed_source_sha256": "b2d9246980b7ade14666f8dd62d7a0f2555b5d0ce4828a9bc8fc15ed7e7648b3",
+    "published_source_sha256": "b2d9246980b7ade14666f8dd62d7a0f2555b5d0ce4828a9bc8fc15ed7e7648b3",
+    "paths_redacted": false
+  }
+}

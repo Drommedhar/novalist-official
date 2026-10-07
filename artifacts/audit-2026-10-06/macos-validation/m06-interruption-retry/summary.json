@@ -1,0 +1,64 @@
+{
+  "finding": "M06",
+  "scenario": "M06-04 supporting simulator extension: same-process retry after background interruption",
+  "status": "passed-simulator-supporting-acceptance",
+  "date": "2026-10-07",
+  "device": {
+    "model": "iPhone 17 Pro Max simulator",
+    "os": "iOS 27.0",
+    "udid": "C9BC7CC6-C48A-431D-9CE0-BEA89C791D81"
+  },
+  "source": "source.json",
+  "native_test": "native-test.swift",
+  "test_log": "native-test.log",
+  "test_seconds": 22.694,
+  "xcodebuild_exit": 0,
+  "sequence": [
+    "Actual native Start reaches Listening",
+    "Actual Home backgrounds app",
+    "Foreground presents stopped controls",
+    "Actual Start again reaches Listening",
+    "Actual Stop returns stopped controls"
+  ],
+  "observed": {
+    "six_native_pid_checkpoints": true,
+    "same_app_pid": 93703,
+    "same_native_process_start_at_all_checkpoints": true,
+    "native_ui_recording_available_on_both_starts": true,
+    "permission_and_generic_microphone_errors_absent": true,
+    "final_recording_stopped": true,
+    "all_original_document_hashes_unchanged": true,
+    "production_input_hashes_match_af744": 1314,
+    "clean_installed_app_files_match_before_and_after": 571,
+    "all_four_screenshots_visually_reviewed": true,
+    "native_probe_edits": false,
+    "permission_mutations": false
+  },
+  "evidence": [
+    "checkpoints.json",
+    "result.json",
+    "project-preservation.json",
+    "01-first-native-listening.png",
+    "02-foreground-stopped.png",
+    "03-retry-native-listening.png",
+    "04-explicitly-stopped.png"
+  ],
+  "raw_private_input_sha256": {
+    "prepare.py": "b23dfbd5fd83f3a11073c56c6b8d6ee53dec88f5185a4ef1c93986bd0068cf8c",
+    "finalize.py": "d7b2900c746f25261d282ab7b1e32b37a32733559921d1dae87fd4d1ba5a4677",
+    "retry.log": "b98eed1d34f3de85cbae71985b4d3ed7d1942221200f92d3e3cf72913bdd3d31",
+    "AuditUITests.swift": "dbd56f5830b67ef6365753630f74588626ce624bb7206e42fd99b9cded06e144",
+    "run.py": "79774507c00a976f4eba0c5b2b9c56408502ffd49d89b4a7cc36105e66536438"
+  },
+  "sanitization": "Native test and runner preserved byte-for-byte. Preparation/finalization script copies and native build/test log replace local user/checkout/scratch prefixes only. Full raw files and Documents/Library backup remain in private scratch.",
+  "limitations": [
+    "Supporting simulator extension only; original physical M06 permission-denied/subsequently-enabled acceptance remains not-run.",
+    "Permission was already granted on this dedicated simulator. This case does not prove same-process denied-permission to granted-permission recovery.",
+    "Home/background interruption is proven; no AVAudioSession call interruption or route-change notification was injected or observed.",
+    "Native startup is supported by actual production Listening state after successful microphoneStart; recording waveform, signal level, audio quality and transcription are not evaluated.",
+    "Stop is observed through native UI. Native microphoneStop invocation count is not instrumented.",
+    "No product changes or native probes were used, so no new native product rebuild was required. Installed byte-exact clean source is linked to the accepted R15 build."
+  ],
+  "overall_audit_count_changed": false,
+  "procedure": "procedure.txt"
+}

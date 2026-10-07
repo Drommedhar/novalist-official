@@ -260,7 +260,7 @@
         "On a real device: type a unique marker, immediately lock or switch away, terminate after backgrounding and reopen. Repeat with cloud-only files, offline mode, research notes and an unresolved conflict."
       ],
       "pending": [
-        "Physical-device lifecycle acceptance, offline/cloud-only behavior and the full device scope matrix remain required. Simulator old-acknowledgement, interrupted-flush, two-pane, disk-conflict, scene scope-isolation and held-write scene Lock subsets passed. Manuscript/Research Lock variants remain unproven. The journal bound is 2,000,000 JSON characters; unsaved Codex metadata uses the existing flush registry and is not journaled.",
+        "Physical-device lifecycle acceptance, offline/cloud-only behavior and the full device scope matrix remain required. Simulator old-acknowledgement, interrupted-flush, two-pane, disk-conflict, scene scope-isolation and held-write Lock subsets for scenes, full Manuscript and Research passed at their recorded sources. The journal bound is 2,000,000 JSON characters; unsaved Codex metadata uses the existing flush registry and is not journaled.",
         "Complete the remaining case-by-case Apple runtime acceptance in macos-validation/native-acceptance.json. Native compilation passed on the Mac; the current continuation uses simulators only, so required physical-device acceptance remains deferred."
       ],
       "files": [
@@ -279,6 +279,7 @@
         "artifacts/audit-2026-10-06/simulator-ui/fixed-build-provenance.json",
         "artifacts/audit-2026-10-06/macos-validation/m01-remaining/summary.json",
         "artifacts/audit-2026-10-06/macos-validation/m01-lock/summary.json",
+        "artifacts/audit-2026-10-06/macos-validation/m01-lock-variants/summary.json",
         "Novalist.Mobile/App.cs",
         "Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs",
         "app/scripts/research-persistence.test.mjs",
@@ -289,6 +290,7 @@
         "Actual XCTest scene lifecycle passed on iPhone simulator at clean native source 0558dda71a395b6ab6208dd6820cc19811a61430: Home immediately after typing, terminate, relaunch and reopen retained the synthetic marker. Research and full Manuscript lifecycle subsets also passed on dedicated iPad A16 simulator/iOS 27.0 at 0c789b29581db47d89593c897bd53fbb3fb9275c. Evidence: simulator-ui/scene-lifecycle.json, research-lifecycle.json and manuscript-lifecycle.json. At that earlier test stage, lock, two dirty panes, conflict, reordered acknowledgements and physical cases were unproven; later supporting subsets are recorded separately.",
         "After the native evaluator correction, fresh scene, Research and full Manuscript XCTest lifecycle cases all passed again: 29.743s on iPhone simulator and 21.977s/27.619s on iPad A16 simulator, iOS 27.0. Each new marker was absent before entry, survived immediate Home/termination/relaunch, and was found only in its intended on-disk scene/default draft or Research item. Source: 0c789b29581db47d89593c897bd53fbb3fb9275c plus preserved mobile diff 5f0d63d949cda5a56434bed23ba7cfdf9a6b51941271757320b1c6c32411b241 and helper hash 7b9abb8656b96a0aab6be6bd513cb8af1f01916fe6a6daad8a09f9edd7f42540. Evidence: simulator-ui/lifecycle-fixed-summary.json and fixed-build-provenance.json. This remains simulator subset coverage.",
         "Native simulator retained-edit edge cases passed at frozen 29cefb83: older acknowledgement preserves newer dirty/journal state; interrupted flush, two independent dirty panes, unresolved disk conflict and project/book/draft scene isolation recover without cross-owner writes. Actual DeviceHub scene Lock with a held write also passed, with OS lock state, native background grant/no acknowledgement, exact-owner recovery and clean-app reopen. Probe removal, clean signed builds and preserved fixtures are recorded in macos-validation/m01-remaining/summary.json and m01-lock/summary.json. These are supporting simulator subsets, not physical acceptance; later focus changes have separate source evidence.",
+        "Actual iPad A16/iPadOS 27.0 Manuscript and Research Lock subsets passed at af744fbd. Lock began 0.954/0.950 seconds after native typing; each exact-owner save was held without fabricating acknowledgements. OS lockstate 1, UIApplication Background and a fresh native background task were observed, with markers absent from disk through termination. Actual native recovery/reopen restored one marker occurrence to the original scene or original project-level Research item and cleared the journal. Observers/gates were removed, all 1,314 inputs/203 assets matched, and a fresh signed clean build plus native reopen passed. All 98 original iPad files, 13 new fixture files after recovery and 105 untouched iPhone preparation files were preserved. Evidence: macos-validation/m01-lock-variants/summary.json. This is supporting interrupted-write simulator coverage, not physical/provider or uninstrumented immediate-lock timing acceptance.",
         "Portable journal tests cover scope, retained edits and conflict-safe recovery; shim tests acknowledge only completed background saves.",
         "Research persistence regression holds an old hook's save across unmount/remount and proves its acknowledgement cannot erase the newer journal entry; all dirty notes remain retryable after a failed flush.",
         "Native compilation passed at clean revision 0558dda71a395b6ab6208dd6820cc19811a61430; case-by-case runtime results are maintained in macos-validation/native-acceptance.json. That compilation alone does not establish runtime acceptance."
@@ -309,7 +311,7 @@
       ],
       "pending": [
         "Complete the remaining case-by-case Apple runtime acceptance in macos-validation/native-acceptance.json. Native compilation passed on the Mac; the current continuation uses simulators only, so required physical-device acceptance remains deferred.",
-        "Required physical-device relocation remains deferred. Successive simulator moves and a real Files-visible external matching-suffix project are proven."
+        "Required physical-device relocation remains deferred. Successive simulator moves, real Files-visible external matching-suffix relocation and genuinely unavailable external fallback without local redirection are proven."
       ],
       "files": [
         "Novalist.Mobile/Services/OwnedProjectPaths.cs",
@@ -317,7 +319,8 @@
         "artifacts/audit-2026-10-06/macos-validation/native-acceptance.json",
         "artifacts/audit-2026-10-06/simulator-ui/container-relocation.json",
         "artifacts/audit-2026-10-06/macos-validation/m03-successive/summary.json",
-        "artifacts/audit-2026-10-06/macos-validation/m03-external/summary.json"
+        "artifacts/audit-2026-10-06/macos-validation/m03-external/summary.json",
+        "artifacts/audit-2026-10-06/macos-validation/m03-unavailable-external/summary.json"
       ],
       "tests": [
         "MobileOwnedProjectPathsTests: 9 passed, including successive container moves, concurrent registry writes, malicious paths and corrupt/missing candidate manifests.",
@@ -325,7 +328,8 @@
         "Native compilation passed at clean revision 0558dda71a395b6ab6208dd6820cc19811a61430; case-by-case runtime results are maintained in macos-validation/native-acceptance.json. That compilation alone does not establish runtime acceptance.",
         "Actual iPad A16 simulator data-container relocation passed: a verified backup was restored after reinstalling identical app bytes; the old container was removed and its UUID genuinely changed. Both restored old-path reference files updated after UI reopen, stable project/book/draft identity hashes stayed equal, and Research/Manuscript markers survived. Evidence: simulator-ui/container-relocation.json. This does not prove the external matching-suffix Files-provider case or physical-device relocation.",
         "Nine focused owned-path tests passed, including before-fix second-relocation/concurrent-loss reproductions. Two actual iPad simulator moves without opening the project between repairs retained all aliases, stable app/identity hashes and recent book details. Clean native build/signature/bookshelf UI passed. Aislop has zero errors, one nonfixable primary-constructor class-length heuristic. Evidence: macos-validation/m03-successive/summary.json.",
-        "Actual native New Project and external folder picker established distinct local/external projects with the same Documents-relative suffix. An identical-app install changed the real container and removed the old one; the actual external recent card reopened its unique marker without picker. Local aliases repaired, external stayed outside owned registry, scene hashes and identities retained; metadata only normalized its trailing newline. Evidence: macos-validation/m03-external/summary.json. Physical acceptance remains deferred."
+        "Actual native New Project and external folder picker established distinct local/external projects with the same Documents-relative suffix. An identical-app install changed the real container and removed the old one; the actual external recent card reopened its unique marker without picker. Local aliases repaired, external stayed outside owned registry, scene hashes and identities retained; metadata only normalized its trailing newline. Evidence: macos-validation/m03-external/summary.json. Physical acceptance remains deferred.",
+        "At af744fbd, an actual native-created owned local project and Files-picked external project shared the same Documents-relative suffix but distinct IDs. After verified backup, only the new external fixture was deleted; the actual bookmark returned null and owned-path fallback executed and returned null although the matching local directory existed. No local redirection occurred. Production pruned the absent external recent while preserving local identity and all six local files. The external fixture was restored at its exact original path with all six file hashes intact. Registry byte equality covers the missing-operation/restoration interval; clean reinstall subsequently added normal exact owned aliases. The read-only resolver observer was removed; all 1,314 production inputs and 203 assets matched before clean build/signature/install/native relaunch. All 107 task-start document files, including 87 earlier fixture files, were preserved. Evidence: macos-validation/m03-unavailable-external/summary.json. Supporting simulator case only; physical relocation remains deferred."
       ]
     },
     {
@@ -1360,6 +1364,8 @@
         "artifacts/audit-2026-10-06/macos-validation/p01-refreshed-help/refreshed-image-hashes.json",
         "artifacts/audit-2026-10-06/macos-validation/p01-refreshed-help/desktop-offline-help.json",
         "artifacts/audit-2026-10-06/macos-validation/p01-refreshed-help/native-help.json",
+        "artifacts/audit-2026-10-06/macos-validation/p01-refreshed-pair/summary.json",
+        "artifacts/audit-2026-10-06/macos-validation/p01-refreshed-native-full/summary.json",
         "artifacts/audit-2026-10-06/macos-validation/native-acceptance.json"
       ],
       "tests": [
@@ -1370,7 +1376,9 @@
         "On iPhone 17 Pro simulator/iOS 27.0, every one of 47 actual Help pages opened and all 11 app:// screenshots decoded at 1440x900 with browser-enforced HTTP(S) blocking; external fetch rejection was confirmed by CSP violation evidence. This is supporting simulator coverage, not physical airplane-mode or performance evidence. Source 0c789b29581db47d89593c897bd53fbb3fb9275c with probe diff 2580103702a3a67ac99bc3680b0f61b8c7a3ef9f39c55e8d5396a01fefc26ca0. Evidence: macos-validation/offline-help.json.",
         "Controlled native simulator pair built and strict-signature-verified from identical 8489c9a3 sources, lockfile and settings; only manual-plugin.ts differs, using historical ba8b6d32 for original. Original entry 16,140,902 bytes with 11 base64 images versus fixed 3,458,437 bytes with 0; reduction 12,682,465 bytes. App/source manifests preserved in macos-validation/p01-native-pair/summary.json. This proves build packaging only, not physical startup, memory or JavaScriptCore performance.",
         "Refreshed Help assets at screenshot commit 29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1: all 11 image hashes agree between committed files, docs/app-store/screenshots.json, desktop emitted assets and the installed native bundle; all 47 manual Markdown hashes also match. Existing desktop acceptance opened all 47 Help pages and decoded all 11 images at 1440x900 from local emitted URLs with the browser context offline and HTTP(S) requests blocked; 0 page errors and 0 remote requests. Test-time source was 6cdda991 plus then-uncommitted refreshed PNGs, now reconciled to 29cefb83 without repeating the runtime test. Evidence: macos-validation/p01-refreshed-help/summary.json and desktop-offline-help.json.",
-        "Refreshed Help native subset: clean production app on iPad Pro 13-inch (M5) simulator/iOS 27.0 opened the actual Manual UI and displayed the Dashboard and Editor screenshots; all 11 refreshed image hashes were present in the installed bundle and referenced by its entry script. Hashed XCTest source, two native screenshots and fixture-preservation evidence are retained in macos-validation/p01-refreshed-help/native-help.json. This adds two-page simulator rendering and full image-bundle identity only; physical, refreshed all-page native offline and performance acceptance remain unproven.",
+        "Refreshed Help native subset: clean production app on iPad Pro 13-inch (M5) simulator/iOS 27.0 opened the actual Manual UI and displayed the Dashboard and Editor screenshots; all 11 refreshed image hashes were present in the installed bundle and referenced by its entry script. Hashed XCTest source, two native screenshots and fixture-preservation evidence are retained in macos-validation/p01-refreshed-help/native-help.json. This earlier subset did not establish refreshed all-page native offline coverage; the subsequent full traversal is recorded separately. Physical/performance acceptance remains pending.",
+        "A new controlled native build pair uses current af744fbd source and all 11 refreshed images. Across 2,051 identical tracked inputs, only manual-plugin.ts differs: the historical plugin embeds 11 exact image byte streams; the corrected plugin emits those 11 exact files. Renderer entry shrinks from 7,714,133 to 3,459,458 bytes (4,254,675 bytes removed). Both fresh native builds pass strict signature verification and contain their exact renderer assets; the fixed 203 assets match the final validated source bundle. Evidence: macos-validation/p01-refreshed-pair/summary.json. Build packaging only; physical startup, memory and JavaScriptCore acceptance remains pending.",
+        "At current af744fbd source, actual WKWebView Help rendered all 47 pages through their production navigation buttons and decoded all 11 refreshed local screenshots at 1440x900. All decoded, bundled and source image hashes agree. Four HTTP/HTTPS fetch/image controls were rejected by enforced document CSP; no runtime errors or unexpected policy violations occurred. Native touch/scroll checks provided representative screenshots. The read-only native evaluator was removed; all 1,314 production inputs and 203 assets matched before clean build/signature/install/Help relaunch. Evidence: macos-validation/p01-refreshed-native-full/summary.json. This proves browser resource/connect blocking, not OS airplane mode or native networking isolation; physical/performance acceptance remains pending.",
         "Native compilation passed at clean revision 0558dda71a395b6ab6208dd6820cc19811a61430; case-by-case runtime results are maintained in macos-validation/native-acceptance.json. That compilation alone does not establish runtime acceptance."
       ]
     },
@@ -1741,7 +1749,7 @@
       "pending": [
         "Deny and subsequently enable microphone permission on an actual iOS device; portable host replies do not certify native authorization behavior.",
         "Complete the remaining case-by-case Apple runtime acceptance in macos-validation/native-acceptance.json. Native compilation passed on the Mac; the current continuation uses simulators only, so required physical-device acceptance remains deferred.",
-        "Physical microphone permission/recording acceptance, call or audio-route interruption, audio quality and same-process stale-error recovery remain unproven; simulator denial, Settings grant, retry, stop and background interruption passed."
+        "Required physical microphone acceptance remains deferred. Same-process restart after Home passed on the simulator; denied-to-granted permission recovery within one process, call/route interruption and audio quality remain unproven."
       ],
       "files": [
         "app/scripts/mobile-dictation.test.mjs",
@@ -1749,15 +1757,17 @@
         "Novalist.Mobile/Pages/RendererHostPage.cs",
         "app/src/renderer/src/mobile/hostCalls.ts",
         "artifacts/audit-2026-10-06/macos-validation/native-acceptance.json",
-        "artifacts/audit-2026-10-06/simulator-ui/microphone-summary.json"
+        "artifacts/audit-2026-10-06/simulator-ui/microphone-summary.json",
+        "artifacts/audit-2026-10-06/macos-validation/m06-interruption-retry/summary.json"
       ],
       "tests": [
         "mobile-dictation.test.mjs executes actual shim.ts, HostCallChannel, audio.openMicrophone/openSystemMicrophone and dictationStore: native denial sets dictation.permission, leaves starting/recording false, permits successful retry, reads/stops exactly once and clears stale permission error.",
         "Full portable source suite: 114/114 passed after adding a source-loader override for Vite-transformed audio.ts parameter properties. Evidence: mobile-dictation-source-tests.log.",
         "Portable microphone tests check NotAllowedError and execute the actual shim, HostCallChannel, microphone abstraction and dictation store. Denial shows dictation.permission; permitted retry records, stops exactly once and clears the stale error. Full source suite: 114 passed.",
-        "Real simulator native permission denial, Settings grant, retry, explicit stop and background interruption passed with unchanged fixed app bytes. The permission change caused a fresh process; physical, call/route and same-process stale-error recovery remain pending. Evidence: simulator-ui/microphone-summary.json.",
+        "Real simulator native permission denial, Settings grant, retry, explicit stop and background interruption passed with unchanged fixed app bytes. The permission change caused a fresh process; physical, call/route and same-process permission-change recovery remain pending. Evidence: simulator-ui/microphone-summary.json.",
         "Native compilation passed at clean revision 0558dda71a395b6ab6208dd6820cc19811a61430; case-by-case runtime results are maintained in macos-validation/native-acceptance.json. That compilation alone does not establish runtime acceptance.",
-        "Real iPhone simulator prompt denial showed the permission-specific error. Native iOS Settings changed microphone access from 0 to 1; after the resulting fresh process, retry reached Listening, Stop restored Start, and a second recording stopped on Home/foreground. Installed fixed app bytes and synthetic scene remained unchanged. Evidence: simulator-ui/microphone-summary.json. No same-process stale-error, physical-device, call, audio-route or audio-quality claim."
+        "Real iPhone simulator prompt denial showed the permission-specific error. Native iOS Settings changed microphone access from 0 to 1; after the resulting fresh process, retry reached Listening, Stop restored Start, and a second recording stopped on Home/foreground. Installed fixed app bytes and synthetic scene remained unchanged. Evidence: simulator-ui/microphone-summary.json. No same-process stale-error, physical-device, call, audio-route or audio-quality claim.",
+        "Clean iPhone 17 Pro Max simulator acceptance passed actual Start/Listening, Home, foreground stopped state, a second Start/Listening and explicit Stop in 22.694 seconds. Six native PID/process-start checkpoints prove the same process throughout. All original 75 document files and 26 project files remained unchanged; only normal app-owned open backups were added. No probes or permission changes were used. Evidence: macos-validation/m06-interruption-retry/summary.json. This proves same-process recovery after Home, not denied-to-granted permission recovery, call/route interruption, counted native stop invocations, audio quality or physical acceptance."
       ]
     },
     {
@@ -2260,6 +2270,31 @@
       "command": "Nested dialog focus and palette dismissal",
       "status": "passed",
       "detail": "Native iPhone 17 Pro simulator/iOS 27.0: the clean final app passed two nested palette open/dismiss/typing cycles in each orientation, inspector containment/dismissal and relaunch. The palette stays usable above the inert inspector and scrim dismissal restores the exact invoking To-do input. Earlier native traces and browser failures identify stale inert state, early autofocus registration and premature scrim removal; the final browser regression keeps the covered Context tab blocked until pointer release. Evidence: macos-validation/r15-simulator/summary.json. XCTest animation waits delayed the final run; this is not a performance measurement. Three focused browser regressions, desktop/mobile builds, typecheck, eight source gates and scoped Aislop passed. The preserved test-time four-file patch is byte-identical to commit 36b9d53bc27a7dd32c0cd39365e213cf2651d102."
+    },
+    {
+      "command": "Native build pair with current source and refreshed images",
+      "status": "passed",
+      "detail": "A new controlled native build pair uses current af744fbd source and all 11 refreshed images. Across 2,051 identical tracked inputs, only manual-plugin.ts differs: the historical plugin embeds 11 exact image byte streams; the corrected plugin emits those 11 exact files. Renderer entry shrinks from 7,714,133 to 3,459,458 bytes (4,254,675 bytes removed). Both fresh native builds pass strict signature verification and contain their exact renderer assets; the fixed 203 assets match the final validated source bundle. Evidence: macos-validation/p01-refreshed-pair/summary.json. Build packaging only; physical startup, memory and JavaScriptCore acceptance remains pending."
+    },
+    {
+      "command": "Full refreshed native Help traversal",
+      "status": "passed",
+      "detail": "At current af744fbd source, actual WKWebView Help rendered all 47 pages through their production navigation buttons and decoded all 11 refreshed local screenshots at 1440x900. All decoded, bundled and source image hashes agree. Four HTTP/HTTPS fetch/image controls were rejected by enforced document CSP; no runtime errors or unexpected policy violations occurred. Native touch/scroll checks provided representative screenshots. The read-only native evaluator was removed; all 1,314 production inputs and 203 assets matched before clean build/signature/install/Help relaunch. Evidence: macos-validation/p01-refreshed-native-full/summary.json. This proves browser resource/connect blocking, not OS airplane mode or native networking isolation; physical/performance acceptance remains pending."
+    },
+    {
+      "command": "Same-process native microphone restart after Home",
+      "status": "passed",
+      "detail": "Clean iPhone 17 Pro Max simulator acceptance passed actual Start/Listening, Home, foreground stopped state, a second Start/Listening and explicit Stop in 22.694 seconds. Six native PID/process-start checkpoints prove the same process throughout. All original 75 document files and 26 project files remained unchanged; only normal app-owned open backups were added. No probes or permission changes were used. Evidence: macos-validation/m06-interruption-retry/summary.json. This proves same-process recovery after Home, not denied-to-granted permission recovery, call/route interruption, counted native stop invocations, audio quality or physical acceptance."
+    },
+    {
+      "command": "Actual Manuscript and Research simulator Lock recovery",
+      "status": "passed",
+      "detail": "Actual iPad A16/iPadOS 27.0 Manuscript and Research Lock subsets passed at af744fbd. Lock began 0.954/0.950 seconds after native typing; each exact-owner save was held without fabricating acknowledgements. OS lockstate 1, UIApplication Background and a fresh native background task were observed, with markers absent from disk through termination. Actual native recovery/reopen restored one marker occurrence to the original scene or original project-level Research item and cleared the journal. Observers/gates were removed, all 1,314 inputs/203 assets matched, and a fresh signed clean build plus native reopen passed. All 98 original iPad files, 13 new fixture files after recovery and 105 untouched iPhone preparation files were preserved. Evidence: macos-validation/m01-lock-variants/summary.json. This is supporting interrupted-write simulator coverage, not physical/provider or uninstrumented immediate-lock timing acceptance."
+    },
+    {
+      "command": "Unavailable external matching-suffix native fallback",
+      "status": "passed",
+      "detail": "At af744fbd, an actual native-created owned local project and Files-picked external project shared the same Documents-relative suffix but distinct IDs. After verified backup, only the new external fixture was deleted; the actual bookmark returned null and owned-path fallback executed and returned null although the matching local directory existed. No local redirection occurred. Production pruned the absent external recent while preserving local identity and all six local files. The external fixture was restored at its exact original path with all six file hashes intact. Registry byte equality covers the missing-operation/restoration interval; clean reinstall subsequently added normal exact owned aliases. The read-only resolver observer was removed; all 1,314 production inputs and 203 assets matched before clean build/signature/install/native relaunch. All 107 task-start document files, including 87 earlier fixture files, were preserved. Evidence: macos-validation/m03-unavailable-external/summary.json. Supporting simulator case only; physical relocation remains deferred."
     }
   ],
   "limitations": [

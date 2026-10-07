@@ -1,0 +1,71 @@
+{
+  "finding": "P01",
+  "result": "passed defined refreshed native Help simulator coverage; physical/performance acceptance remains pending",
+  "revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+  "screenshot_revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+  "simulator": {
+    "udid": "6D872EE9-8FBE-4B2D-AED4-917146C77351",
+    "model": "iPhone 17 Pro",
+    "runtime": "iOS 27.0"
+  },
+  "probe": {
+    "patch": "native-read-only-probe.patch",
+    "sha256": "60d671aa56aaad5e0ad15e0bd4e411355a70d9105541d592bb01d0cc8c50cd34",
+    "changes": "One constructor hook and one temporary native evaluation partial. No renderer or transport behavior change. Removed before final clean build."
+  },
+  "actual_actions": [
+    "Native XCTest opened More project actions > Novalist Manual.",
+    "The evaluator clicked each of the 47 actual Help page buttons in WKWebView, invoking the production navigation handlers. These are DOM button actions, not 47 native touchscreen taps.",
+    "Each active page and rendered h1 was checked; every rendered image completed HTMLImageElement.decode with nonzero expected dimensions.",
+    "Separate native XCTest taps selected Dashboard and Editor; ordinary article scrolling produced supporting screenshots while the same policy remained active."
+  ],
+  "observed": {
+    "actual_pages": 47,
+    "distinct_page_titles": 47,
+    "decoded_images": 11,
+    "width": 1440,
+    "height": 900,
+    "source_png_bit_depth": 8,
+    "all_decoded_assets_match_current_source_and_bundle_hashes": true,
+    "runtime_errors": 0,
+    "unexpected_policy_violations": 0
+  },
+  "network_control": {
+    "method": "Additional enforced Content-Security-Policy meta in the current WKWebView document; existing policies remain combined.",
+    "policy": "default-src 'self' data: blob:; connect-src 'none'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; frame-src 'self' data: blob:; worker-src 'self' blob:",
+    "origin": "app://0.0.0.1",
+    "scope": "Document resource loads and connection APIs: HTTP(S) origins excluded by self/data/blob source lists; connect-src none. Local app assets remain allowed.",
+    "negative_controls": "HTTP and HTTPS fetch and image attempts each rejected with matching enforce securitypolicyviolation events.",
+    "negative_control_count": 4,
+    "policy_still_active_after_native_screenshots": true,
+    "excludes": [
+      "OS airplane mode or disabled simulator networking",
+      "Native host/backend networking",
+      "Top-level external navigation, which was not exercised"
+    ]
+  },
+  "hash_evidence": "decoded-image-hashes.json",
+  "cleanup": {
+    "production_inputs_match_current_source": 1314,
+    "mobile_assets_match_current_source": 203,
+    "probe_removed": true,
+    "cleaned_all_four_native_projects_bin_obj": true,
+    "clean_build_exit": 0,
+    "deep_strict_signature": true,
+    "clean_native_relaunch_help_test_exit": 0,
+    "clean_app_sha256": "8cd04d77d522387acff7e0f788bb87e1be798b01c12a441548e21923e1b9e931",
+    "preservation": "preservation.json"
+  },
+  "test_observations": {
+    "initial_screenshot_test_exit": 65,
+    "initial_screenshot_limitation": "Image existed and decoded; its native hit point was below the viewport. Preserved run02; run03 added ordinary scrolling and passed. Screenshots show native article views with partial image visibility, not a separate full-image visual inspection.",
+    "native_scrolled_screenshot_test_exit": 0,
+    "excluded_build": "A cleanup build accidentally ran from the main checkout and changed generated outputs only. It is excluded; clean-build-disposable.log is the actual fresh isolated build."
+  },
+  "limitations": [
+    "No physical-device, timing, memory, parsing or airplane-mode acceptance claim.",
+    "The full 47-page coverage is native WKWebView evidence; prior desktop proof is not substituted.",
+    "Original P01 physical iPhone/iPad measurement and offline acceptance remain pending."
+  ],
+  "overall_audit_count_changed": false
+}

@@ -1,0 +1,40 @@
+Test Suite 'All tests' started at 2026-10-07 15:34:25.827.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 15:34:25.827.
+Test Suite 'AuditUITests' started at 2026-10-07 15:34:25.827.
+Test Case '-[AuditUITests.AuditUITests testCleanLibraryRetainsOwnedProjectWithoutExternalRedirect]' started.
+    t =     0.00s Start Test at 2026-10-07 15:34:25.829
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Launch com.novalist.app
+    t =     0.04s         Setting up automation session
+objc[98244]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x106ba0398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10a878310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     2.71s         Wait for com.novalist.app to idle
+    t =     4.34s Waiting 20.0s for "Browse for Project Folder..." Button to exist
+    t =     5.41s     Checking `Expect predicate `existsNoRetry == 1` for object "Browse for Project Folder..." Button`
+    t =     5.41s         Checking existence of `"Browse for Project Folder..." Button`
+    t =     5.46s Waiting 10.0s for "Select M03 Unavailable Suffix — M03 Unavailable Suffix" Switch to exist
+    t =     6.54s     Checking `Expect predicate `existsNoRetry == 1` for object "Select M03 Unavailable Suffix — M03 Unavailable Suffix" Switch`
+    t =     6.54s         Checking existence of `"Select M03 Unavailable Suffix — M03 Unavailable Suffix" Switch`
+    t =     6.57s Checking existence of `"Select M03 External Proof — M03 External Unavailable" Switch`
+    t =     6.59s Checking existence of `"Project Dashboard" StaticText`
+    t =     6.60s Checking existence of `"Editing paused" Alert`
+M03_CLEAN_LIBRARY_LOCAL_PRESENT_EXTERNAL_PRUNED_NO_REDIRECT
+    t =     6.68s Added attachment named 'clean-library-restored-fixture'
+    t =     6.68s Tear Down
+Test Case '-[AuditUITests.AuditUITests testCleanLibraryRetainsOwnedProjectWithoutExternalRedirect]' passed (6.935 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 15:34:32.764.
+	 Executed 1 test, with 0 failures (0 unexpected) in 6.935 (6.937) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 15:34:32.765.
+	 Executed 1 test, with 0 failures (0 unexpected) in 6.935 (6.938) seconds
+Test Suite 'All tests' passed at 2026-10-07 15:34:32.766.
+	 Executed 1 test, with 0 failures (0 unexpected) in 6.935 (6.939) seconds
+2026-10-07 15:34:33.075 xcodebuild[98229:4174532] [MT] IDETestOperationsObserverDebug: 9.638 elapsed -- Testing started completed.
+2026-10-07 15:34:33.075 xcodebuild[98229:4174532] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 15:34:33.075 xcodebuild[98229:4174532] [MT] IDETestOperationsObserverDebug: 9.638 sec, +9.638 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/novalist-m03-unavailable-external/07-clean-library-relaunch.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

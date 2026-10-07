@@ -1,0 +1,90 @@
+{
+  "finding": "M03",
+  "result": "passed defined unavailable external matching-suffix simulator case; physical relocation acceptance remains pending",
+  "revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+  "simulator": {
+    "udid": "6D872EE9-8FBE-4B2D-AED4-917146C77351",
+    "model": "iPhone 17 Pro",
+    "runtime": "iOS 27.0"
+  },
+  "fixture": {
+    "local_creation": "Actual native New Project UI in Novalist default Documents location; genuine production ownership registration.",
+    "external_creation": "New synthetic clone in a separately installed Files-visible helper app Documents container; distinct project/book IDs; identical Documents-relative M03 Unavailable Suffix path.",
+    "external_open": "Actual native Files picker Browse > On My iPhone > Audit Fixtures > M03 Unavailable Suffix > Open; production dashboard, external recent and security bookmark observed.",
+    "registry_and_recents": "No manual edits; external remained unowned."
+  },
+  "unavailability": {
+    "method": "Terminate Novalist, freeze post-open bytes and backup, then delete only the newly created external project directory with shutil.rmtree. No rename or bookmark mutation.",
+    "genuine_missing_inode": true,
+    "backup_verified_before_removal": true,
+    "native_branch": "native-missing-path-observations.json",
+    "observed": {
+      "external_directory_exists": false,
+      "bookmark_resolved": false,
+      "owned_fallback_executed": true,
+      "owned_fallback_resolved": false,
+      "matching_local_directory_exists": true,
+      "returned_matching_local": false
+    }
+  },
+  "outcome": {
+    "native_library_launch_passed": true,
+    "no_local_redirect": true,
+    "missing_external_recent_naturally_pruned": true,
+    "local_recent_and_project_book_identity_preserved": true,
+    "all_six_local_file_hashes_unchanged": true,
+    "ownership_registry_bytes_unchanged_through_missing_operation_and_restore": true,
+    "behavior_note": "Library prunes a proven-absent external recent. A retained recent or re-prompt was not required or claimed."
+  },
+  "restoration": {
+    "exact_original_external_path": true,
+    "all_six_files_match_post_open_backup": true,
+    "same_project_and_book_ids": true,
+    "new_inode_after_restore": true,
+    "fixture_remains_in_Files_helper": true,
+    "recents_not_manually_restored": true
+  },
+  "observer": {
+    "patch": "read-only-resolver-observer.patch",
+    "sha256": "6a0b5e896afb5dadf52a9f56ea2268378c0cb40fa83a46729dc38bc0720b3f26",
+    "scope": "Content-free read-only observation of actual bookmark then owned-path return values, plus JSONL evidence writes. No return-value override, registry/recents mutation or fabricated callback.",
+    "removed_before_clean_build": true
+  },
+  "cleanup": {
+    "production_inputs_match_frozen_and_main": 1314,
+    "mobile_assets_match_frozen_and_main": 203,
+    "all_four_native_projects_bin_obj_removed": true,
+    "clean_build_exit": 0,
+    "deep_strict_signature_verified": true,
+    "clean_app_tree_sha256": "67c566162b44b628ba6d18d36f7243fe9e11f1d030e27d3771b3dc7060a11bdf",
+    "clean_app_files": 571,
+    "installed_bytes_match_clean_bundle": true,
+    "clean_native_relaunch_test_exit": 0,
+    "clean_native_relaunch_test_seconds": 6.935,
+    "observer_directory_absent": true,
+    "original_fixture_files_unchanged": 87,
+    "all_task_start_documents_files_unchanged": 107,
+    "registry_scope": "Clean reinstall changed app data container and production added its normal exact owned aliases. Registry equality claim covers the missing-operation/restoration interval before this reinstall."
+  },
+  "test_scope": {
+    "native_creation_test": "03-create-local-confirm",
+    "native_picker_tests": [
+      "04-open-external-picker",
+      "05-select-external"
+    ],
+    "native_missing_library_test": "06-launch-with-missing-external",
+    "native_clean_relaunch_test": "07-clean-library-relaunch",
+    "harness_diagnostics": [
+      "Run01 failed ambiguous New Project selector before creation.",
+      "Run02 filled actual form, then failed stale diagnostic button enumeration; run03 completed native creation.",
+      "The first cleanup verifier referenced absent app/dist-mobile. Observer had already been removed; corrected verifier checked canonical Resources/Raw/app before the fresh build.",
+      "Raw setup self-comparison was excluded from accepted evidence; actual registry byte equality was independently recorded around deletion, fallback and restoration."
+    ]
+  },
+  "limitations": [
+    "Supporting simulator-only case; no physical iPhone/iPad relocation acceptance.",
+    "No new production code change or whole-finding pass.",
+    "The read-only observer existed only for the missing-branch proof; final clean app performed library relaunch without it."
+  ],
+  "overall_audit_count_changed": false
+}

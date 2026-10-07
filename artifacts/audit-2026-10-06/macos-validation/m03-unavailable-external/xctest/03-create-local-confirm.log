@@ -1,0 +1,55 @@
+Test Suite 'All tests' started at 2026-10-07 15:23:24.995.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 15:23:24.995.
+Test Suite 'AuditUITests' started at 2026-10-07 15:23:24.995.
+Test Case '-[AuditUITests.AuditUITests testConfirmOwnedLocalProject]' started.
+    t =     0.00s Start Test at 2026-10-07 15:23:24.997
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Find the "My Novel" TextField
+    t =     0.06s Waiting 5.0s for "selected" Button to exist
+objc[96369]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x104790398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x108478310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =     1.08s         Checking existence of `"selected" Button`
+    t =     1.09s Tap "selected" Button
+    t =     1.09s     Wait for com.novalist.app to idle
+    t =     1.09s     Find the "selected" Button
+    t =     1.10s     Check for interrupting elements affecting "selected" Button
+    t =     1.12s     Synthesize event
+    t =     1.40s     Wait for com.novalist.app to idle
+    t =     1.63s Waiting 5.0s for Keyboard (First Match) to not exist
+    t =     2.70s     Checking `Expect predicate `existsNoRetry == 0` for object Keyboard (First Match)`
+    t =     2.70s         Checking existence of `Keyboard (First Match)`
+    t =     2.72s Waiting 5.0s for "Create Project" Button to exist
+    t =     3.79s     Checking `Expect predicate `existsNoRetry == 1` for object "Create Project" Button`
+    t =     3.79s         Checking existence of `"Create Project" Button`
+    t =     3.81s Tap "Create Project" Button
+    t =     3.81s     Wait for com.novalist.app to idle
+    t =     3.81s     Find the "Create Project" Button
+    t =     3.82s     Check for interrupting elements affecting "Create Project" Button
+    t =     3.84s     Synthesize event
+    t =     4.13s     Wait for com.novalist.app to idle
+    t =     4.13s Waiting 20.0s for "Project Dashboard" StaticText to exist
+    t =     5.20s     Checking `Expect predicate `existsNoRetry == 1` for object "Project Dashboard" StaticText`
+    t =     5.20s         Checking existence of `"Project Dashboard" StaticText`
+    t =     5.29s Checking existence of `"Editing paused" Alert`
+M03_LOCAL_PROJECT_CREATED_THROUGH_NATIVE_UI
+    t =     5.34s Tear Down
+Test Case '-[AuditUITests.AuditUITests testConfirmOwnedLocalProject]' passed (5.364 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 15:23:30.360.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.364 (5.365) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 15:23:30.361.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.364 (5.365) seconds
+Test Suite 'All tests' passed at 2026-10-07 15:23:30.361.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.364 (5.366) seconds
+2026-10-07 15:23:30.651 xcodebuild[96354:4146954] [MT] IDETestOperationsObserverDebug: 8.068 elapsed -- Testing started completed.
+2026-10-07 15:23:30.651 xcodebuild[96354:4146954] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 15:23:30.651 xcodebuild[96354:4146954] [MT] IDETestOperationsObserverDebug: 8.068 sec, +8.068 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/novalist-m03-unavailable-external/03-create-local-confirm.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

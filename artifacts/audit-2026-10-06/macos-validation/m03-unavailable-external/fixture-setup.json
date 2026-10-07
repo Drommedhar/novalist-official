@@ -1,0 +1,14 @@
+{
+  "local_created_through_native_ui": true,
+  "matching_documents_relative_path": "M03 Unavailable Suffix",
+  "different_project_and_book_ids": true,
+  "local_project_id_sha256": "2a369cd99ccd7630ce6eda8e50ce96bc42a3756254e8426584751c4296366e43",
+  "local_book_id_sha256": "282164d53a1f550a95abb5d92e535824b125b0886cc30175dfd53525a029f16f",
+  "external_project_id_sha256": "545b55067e867dd6c3556e2abd13962f43761f5814620902c324d0629d3231ab",
+  "external_book_id_sha256": "d2b0c8b5922f313353342b4b1d4c51a1ea93ae45dd6a7c20fed8fd13ed8febfa",
+  "local_owned": true,
+  "external_unowned": true,
+  "external_path_sha256": "6367ff881324d97d9e34624c1b333a145788a518459fb2e72e471403e24aebea",
+  "fixture_previously_absent": true,
+  "omitted_raw_field": "The raw setup record used a self-comparison for registry_unchanged_by_setup; it is not accepted evidence. Actual pre/post missing-operation registry SHA256 equality is recorded separately."
+}

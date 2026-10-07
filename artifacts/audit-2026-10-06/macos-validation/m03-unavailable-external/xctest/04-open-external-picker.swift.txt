@@ -1,0 +1,11 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+ func testOpenActualExternalFolderPicker() {
+  continueAfterFailure = false
+  let app = XCUIApplication(bundleIdentifier: "com.novalist.app"); app.terminate(); app.launch()
+  let browse = app.buttons["Browse for Project Folder..."].firstMatch
+  XCTAssertTrue(browse.waitForExistence(timeout: 20)); browse.tap()
+  XCTAssertTrue(app.buttons["DOCPicker.actionButton"].firstMatch.waitForExistence(timeout: 10))
+  print("M03_ACTUAL_PICKER_OPEN\n" + app.debugDescription)
+ }
+}

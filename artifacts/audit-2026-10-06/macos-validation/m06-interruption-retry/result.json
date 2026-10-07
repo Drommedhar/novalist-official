@@ -1,0 +1,12 @@
+{
+  "xcodebuild_exit": 0,
+  "command_seconds": 29.500798084016424,
+  "checkpoint_order_exact": true,
+  "all_checkpoints_same_pid_and_start": true,
+  "synthetic_project_files_before": 26,
+  "synthetic_project_hashes_unchanged": true,
+  "all_original_document_hashes_unchanged": true,
+  "document_file_count_after": 77,
+  "native_probes": false,
+  "status": "passed"
+}

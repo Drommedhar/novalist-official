@@ -1,0 +1,14 @@
+{
+  "record_recovery_first_attempt": {
+    "status": "failed-harness",
+    "error": "IsADirectoryError: pathlib rglob *.novalist also returned the existing .novalist metadata directory.",
+    "product_failure": false,
+    "correction": "Filter is_file before reading candidate scene files.",
+    "native_manuscript_recovery_already_passed": true,
+    "retry_after_research": "Exact-owner file attribution is repeated after the Research recovery restores a gate-free process."
+  },
+  "research_fixture_title": {
+    "actual": "Audit Research Lock Noten Title",
+    "note": "Native typing inserted the synthetic name into the initial title value. The unique existing item ID and exact initial title are preserved through acceptance; no repair to project metadata is made."
+  }
+}

@@ -1,0 +1,47 @@
+--- a/Novalist.Mobile/Services/IosStoredPathResolver.cs
++++ b/Novalist.Mobile/Services/IosStoredPathResolver.cs
+@@ -15,8 +15,10 @@
+     public string? Resolve(string storedPath)
+     {
+         if (string.IsNullOrEmpty(storedPath)) return null;
+-        return SecurityScopedFolders.ResolveCurrentPath(storedPath)
+-            ?? OwnedPaths.Resolve(storedPath);
++        var bookmarkResult = SecurityScopedFolders.ResolveCurrentPath(storedPath);
++        var ownedResult = bookmarkResult == null ? OwnedPaths.Resolve(storedPath) : null;
++        AuditMissingPathObservation.Record(storedPath, bookmarkResult, ownedResult);
++        return bookmarkResult ?? ownedResult;
+     }
+ 
+     public void Release(string resolvedPath)
+--- /dev/null
++++ b/Novalist.Mobile/Services/AuditMissingPathObservation.cs
+@@ -0,0 +1,29 @@
++// Temporary content-free observation; removed before the final clean build.
++using System.Security.Cryptography;
++using System.Text;
++using System.Text.Json;
++namespace Novalist.Mobile.Services;
++internal static class AuditMissingPathObservation
++{
++    private static readonly object Gate = new();
++    internal static void Record(string storedPath, string? bookmarkResult, string? ownedResult)
++    {
++        if (Path.GetFileName(storedPath) != "M03 Unavailable Suffix") return;
++        var candidate = Path.Combine(AppFolders.Documents, "M03 Unavailable Suffix");
++        var record = new {
++            storedPathSha256 = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(storedPath))).ToLowerInvariant(),
++            storedDirectoryExists = Directory.Exists(storedPath),
++            bookmarkReturnedNull = bookmarkResult == null,
++            ownedFallbackExecuted = bookmarkResult == null,
++            ownedFallbackReturnedNull = ownedResult == null,
++            matchingLocalDirectoryExists = Directory.Exists(candidate),
++            returnedMatchingLocal = string.Equals(bookmarkResult ?? ownedResult, candidate, StringComparison.Ordinal)
++        };
++        lock (Gate)
++        {
++            var directory = Path.Combine(AppFolders.Documents, "NovalistAudit");
++            Directory.CreateDirectory(directory);
++            File.AppendAllText(Path.Combine(directory, "m03-resolution.jsonl"), JsonSerializer.Serialize(record) + "\n");
++        }
++    }
++}

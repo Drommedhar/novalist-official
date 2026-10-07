@@ -1,0 +1,13 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+ func testMissingExternalDoesNotRedirectToOwnedProject() {
+  continueAfterFailure = false
+  let app = XCUIApplication(bundleIdentifier: "com.novalist.app"); app.launch()
+  XCTAssertTrue(app.buttons["Browse for Project Folder..."].firstMatch.waitForExistence(timeout: 20))
+  XCTAssertFalse(app.staticTexts["Project Dashboard"].firstMatch.exists)
+  XCTAssertFalse(app.alerts["Editing paused"].exists)
+  print("M03_ACTUAL_LIBRARY_AFTER_EXTERNAL_REMOVAL")
+  print(app.debugDescription)
+  let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); screenshot.name = "missing-external-library"; screenshot.lifetime = .keepAlways; add(screenshot)
+ }
+}

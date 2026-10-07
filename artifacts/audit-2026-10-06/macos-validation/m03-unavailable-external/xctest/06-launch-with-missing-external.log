@@ -1,0 +1,107 @@
+Test Suite 'All tests' started at 2026-10-07 15:31:20.911.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 15:31:20.911.
+Test Suite 'AuditUITests' started at 2026-10-07 15:31:20.911.
+Test Case '-[AuditUITests.AuditUITests testMissingExternalDoesNotRedirectToOwnedProject]' started.
+    t =     0.00s Start Test at 2026-10-07 15:31:20.912
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Launch com.novalist.app
+    t =     0.04s         Setting up automation session
+objc[97685]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x101ed4398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x105b0c310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     2.66s         Wait for com.novalist.app to idle
+    t =     4.21s Waiting 20.0s for "Browse for Project Folder..." Button to exist
+    t =     5.29s     Checking `Expect predicate `existsNoRetry == 1` for object "Browse for Project Folder..." Button`
+    t =     5.29s         Checking existence of `"Browse for Project Folder..." Button`
+    t =     5.34s Checking existence of `"Project Dashboard" StaticText`
+    t =     5.35s Checking existence of `"Editing paused" Alert`
+M03_ACTUAL_LIBRARY_AFTER_EXTERNAL_REMOVAL
+    t =     5.37s Requesting snapshot of accessibility hierarchy for app with pid 97690
+    t =     5.65s Requesting snapshot of accessibility hierarchy for app with pid 97690
+Attributes: Application, 0x102fcc3c0, pid: 97690, label: 'Novalist'
+Element subtree:
+ →Application, 0x102fcc3c0, pid: 97690, label: 'Novalist'
+    Window (Main), 0x102fccb40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102fccdc0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102fccf00, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x102fcf480, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x102fcde00, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x102fcdf40, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x102fce580, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x102fce6c0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x102fcf0c0, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x102fce940, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x102fce080, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x102fce300, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x102fcdcc0, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x102fce800, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist', Focused
+                            Other, 0x102fcd040, {{0.0, 62.0}, {402.0, 106.0}}, label: 'banner', Focused
+                              Other, 0x102fcdb80, {{18.0, 78.0}, {159.0, 28.0}}, label: 'Your bookshelf', value: 1, Focused
+                                StaticText, 0x102fcda40, {{18.0, 77.0}, {159.0, 29.0}}, label: 'Your bookshelf', value: Your bookshelf, Focused
+                              Other, 0x102fcd7c0, {{145.0, 111.0}, {36.0, 39.0}}, label: 'Scratchpad', Focused
+                              Button, 0x102fcd900, {{184.0, 111.0}, {36.0, 39.0}}, label: 'Browse for Project Folder...', Focused
+                              Button, 0x102fce1c0, {{223.0, 111.0}, {122.0, 40.0}}, label: 'New Project', Focused
+                              Other, 0x102fcd680, {{348.0, 111.0}, {36.0, 39.0}}, Focused
+                                Button, 0x102fccc80, {{348.0, 111.0}, {36.0, 39.0}}, label: 'More project actions', Focused
+                            Other, 0x102fcc000, {{18.0, 168.0}, {366.0, 37.0}}, label: 'Filter shelves, navigation', Focused
+                              Switch, 0x102fcd180, {{18.0, 168.0}, {35.0, 37.0}}, label: 'All', value: 1, Focused
+                              Switch, 0x102fcfc00, {{56.0, 168.0}, {93.0, 37.0}}, label: 'My projects', value: 0, Focused
+                              Button, 0x102fcfd40, {{151.0, 169.0}, {34.0, 34.0}}, label: 'Add shelf', Focused
+                            Other, 0x102fcfac0, {{18.0, 212.0}, {366.0, 42.0}}, Focused
+                              SearchField, 0x102fcef80, {{53.0, 221.0}, {318.0, 24.0}}, label: 'Find a project or book…', placeholderValue: 'Find a project or book…', value: Find a project or ..., Focused
+                                Other, 0x102fcf980, {{61.0, 224.0}, {303.0, 17.0}}, Focused
+                                  StaticText, 0x102fcf200, {{61.0, 224.0}, {151.0, 17.0}}, label: 'Find a project or book…', value: Find a project or ..., Focused
+                                StaticText, 0x102fcee40, {{61.0, 224.0}, {151.0, 17.0}}, label: 'Find a project or book…', value: Find a project or ..., Focused
+                            Other, 0x102fcf340, {{18.0, 268.0}, {100.0, 21.0}}, label: 'Cover size', Focused
+                              Slider, 0x102fcf700, {{44.0, 270.0}, {72.0, 17.0}}, label: 'Cover size', value: 100.00, Focused
+                                Other, 0x102fcf840, {{72.0, 270.0}, {25.0, 17.0}}, Focused
+                            Button, 0x102fcca00, {{244.0, 261.0}, {140.0, 35.0}}, label: 'Sort books', value: Shelf order, Focused
+                              Other, 0x102fced00, {{0.0, 0.0}, {0.0, 0.0}}, Focused
+                            Other, 0x102fcebc0, {{0.0, 79.0}, {1.0, 1.0}}, Focused
+                              StaticText, 0x102fcea80, {{0.0, 81.0}, {609.0, 19.0}}, label: 'Select a cover for details. Double-click to open, or use Open book in the details panel.', value: Select a cover for..., Focused
+                            Other, 0x102fcf5c0, {{0.0, 314.0}, {402.0, 527.0}}, label: 'Project library, main', Focused
+                              Other, 0x102e83700, {{18.0, 332.0}, {366.0, 246.0}}, label: 'My projects, region', Focused
+                                Other, 0x102e83340, {{18.0, 338.0}, {111.0, 27.0}}, label: 'My projects', value: 2, Focused
+                                  StaticText, 0x102e83480, {{18.0, 338.0}, {112.0, 27.0}}, label: 'My projects', value: My projects, Focused
+                                StaticText, 0x102e83200, {{141.0, 344.0}, {54.0, 15.0}}, label: '2 projects', value: 2 projects, Focused
+                                Other, 0x102e83840, {{350.0, 332.0}, {34.0, 39.0}}, Focused
+                                  Button, 0x102e835c0, {{350.0, 332.0}, {34.0, 39.0}}, label: 'Actions for shelf My projects', Focused
+                                Other, 0x102e80780, {{18.0, 388.0}, {122.0, 190.0}}, Focused
+                                  Switch, 0x102e80f00, {{24.0, 396.0}, {110.0, 164.0}}, label: 'Select The Cartographer’s Daughter — The Cartographer's Daughter', value: 0, Focused
+                                Other, 0x1065b0000, {{140.0, 388.0}, {122.0, 190.0}}, Focused
+                                  Switch, 0x1065b0140, {{146.0, 396.0}, {110.0, 164.0}}, label: 'Select M03 Unavailable Suffix — M03 Unavailable Suffix', value: 0, Focused
+                  Other, 0x1065b0280, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1065b03c0, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x1065b0500, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x1065b0640, {{396.0, 161.0}, {3.0, 648.0}}
+                  Other, 0x1065b0780, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x1065b08c0, {{396.0, 161.0}, {3.0, 648.0}}
+              Other, 0x1065b0a00, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1065b0b40, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1065b0c80, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x102fcc3c0, pid: 97690, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x1065b0dc0, pid: 97690, label: 'Novalist'
+  }
+
+    t =     5.73s Added attachment named 'missing-external-library'
+    t =     5.73s Tear Down
+Test Case '-[AuditUITests.AuditUITests testMissingExternalDoesNotRedirectToOwnedProject]' passed (5.949 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 15:31:26.863.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.949 (5.952) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 15:31:26.864.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.949 (5.953) seconds
+Test Suite 'All tests' passed at 2026-10-07 15:31:26.864.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.949 (5.954) seconds
+2026-10-07 15:31:27.160 xcodebuild[97667:4166220] [MT] IDETestOperationsObserverDebug: 9.295 elapsed -- Testing started completed.
+2026-10-07 15:31:27.160 xcodebuild[97667:4166220] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 15:31:27.160 xcodebuild[97667:4166220] [MT] IDETestOperationsObserverDebug: 9.295 sec, +9.295 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/novalist-m03-unavailable-external/06-launch-with-missing-external.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

@@ -1,0 +1,17 @@
+{
+  "at_utc": "2026-10-07T13:19:00.762082+00:00",
+  "ipad_original_files": 98,
+  "ipad_original_hashes_unchanged": true,
+  "new_fixture_files": 13,
+  "new_fixture_hashes_unchanged_across_clean_reopen": true,
+  "observer_control_directory_absent_after_native_test": true,
+  "iphone_preparation_only_files": 105,
+  "iphone_all_hashes_unchanged": true,
+  "iphone_cartographer_project_files": 82,
+  "iphone_app_not_reinstalled_or_tested": true,
+  "clean_ipad_app_terminated_after_final_success": true,
+  "native_test_passed": true,
+  "original_ipad_manifest_sha256": "ce8bba2b85a4fba88fdcc462834214c32fea6e5b4cba5da792224a725429f53d",
+  "iphone_preparation_manifest_sha256": "d565d311d92b3b4727fbb7994ac3e8fc0dbbef099c52dab99a24ccf3d6383e7a",
+  "original_fixture_manifests_and_backups_remain_private": true
+}

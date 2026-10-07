@@ -1,0 +1,83 @@
+[
+  {
+    "name": "inspect",
+    "case": "-[AuditUITests.AuditUITests testInspectDedicatedTablet]",
+    "passed": true,
+    "seconds": 1.397,
+    "raw_log_sha256": "731b1492e31ed6392b2e0317f016794f3971ca3d1425fa1e0660005428a2fe41",
+    "source_sha256": "766cb5e7073767c59e08685f76332c330b33c6c6b59cf04626b1fdc907e08d79",
+    "native_markers": []
+  },
+  {
+    "name": "fixture-setup",
+    "case": "-[AuditUITests.AuditUITests testCreateIsolatedVariantFixture]",
+    "passed": true,
+    "seconds": 39.526,
+    "raw_log_sha256": "f061ad659aea11e6e06af305a919b73a1a04ba51b5fb2e8458b728e0237962e5",
+    "source_sha256": "314936bb1dc3c1a299f8607e87d38aed3990a5c97663d3e990e14d48a42906ce",
+    "native_markers": [
+      "M01_VARIANTS_FIXTURE_CREATED 1791378340.391549"
+    ]
+  },
+  {
+    "name": "manuscript-edit",
+    "case": "-[AuditUITests.AuditUITests testActualManuscriptEditForLock]",
+    "passed": true,
+    "seconds": 6.907,
+    "raw_log_sha256": "2d5441714aa712964366a90365b63898550dc2d6ae69c64bf8b4bdb78a0c90d4",
+    "source_sha256": "e2aecdc32f1235d35baed88f1036bb4470ff702ed989fe8d819ef8b5feaad62a",
+    "native_markers": [
+      "M01_VARIANT_GATE_READY 1791378555.066808",
+      "M01_VARIANT_EDIT_DONE 1791378559.003746"
+    ]
+  },
+  {
+    "name": "manuscript-recovery",
+    "case": "-[AuditUITests.AuditUITests testRecoverExactLockedManuscriptScene]",
+    "passed": true,
+    "seconds": 23.883,
+    "raw_log_sha256": "b7a51a9dede31532c5a6c1c9840bf21ca0cfb9b081b50ae3a1e16287a4fc6fc5",
+    "source_sha256": "8d9e6e9965151c56a65041dd2c14cce0f31caac2980a07c59123c38d086baa0b",
+    "native_markers": [
+      "M01_MANUSCRIPT_LOCK_RECOVERED 1791378638.7446718",
+      "M01_MANUSCRIPT_LOCK_EXACT_SCENE_REOPENED 1791378651.368854"
+    ]
+  },
+  {
+    "name": "research-edit",
+    "case": "-[AuditUITests.AuditUITests testActualResearchEditForLock]",
+    "passed": true,
+    "seconds": 10.017,
+    "raw_log_sha256": "25be3ec7e49bb4f3aecda2ca522e46e6c36de47744561f2cdbff627b035fb165",
+    "source_sha256": "e8ccb8cdb6a48a89ba4faa97bd3bb293fc87e8c65cc9179289668d86e4db038a",
+    "native_markers": [
+      "M01_VARIANT_GATE_READY 1791378735.028911",
+      "M01_VARIANT_EDIT_DONE 1791378738.684433"
+    ]
+  },
+  {
+    "name": "research-recovery",
+    "case": "-[AuditUITests.AuditUITests testRecoverExactLockedResearchNote]",
+    "passed": true,
+    "seconds": 21.342,
+    "raw_log_sha256": "5db3df30434c808836c1223514b95a0d6b34a2b83df91b660249fbb95be4aa4f",
+    "source_sha256": "7a7abfe11962c4a4db24ad2fc43e5f8b93c8c5d2a46e2fcaf7ba36a91a44957a",
+    "native_markers": [
+      "M01_RESEARCH_LOCK_RECOVERED 1791378791.382608",
+      "M01_RESEARCH_LOCK_EXACT_NOTE_REOPENED 1791378801.2861152"
+    ]
+  },
+  {
+    "name": "clean-reopen",
+    "case": "-[AuditUITests.AuditUITests testCleanAppRetainsBothLockedMarkers]",
+    "passed": true,
+    "seconds": 20.942,
+    "raw_log_sha256": "bb0c8f2af877b9deb4619f4851f6ca6aa051a6d371a981cf4eb1d2e966136b18",
+    "source_sha256": "af354dee5c633678cdcce28aa41877d223b25d7687e904a7b4fb9b9af1102197",
+    "native_markers": [
+      "M01_CLEAN_MANUSCRIPT_READY 1791379051.005817",
+      "M01_CLEAN_RESEARCH_READY 1791379058.858272",
+      "M01_CLEAN_BOTH_LOCK_VARIANTS_REOPENED 1791379060.9888601"
+    ]
+  }
+]

@@ -325,7 +325,7 @@
       ],
       "tests": [
         "Portable microphone tests check NotAllowedError and execute the actual shim, HostCallChannel, microphone abstraction and dictation store. Denial shows dictation.permission; permitted retry records, stops exactly once and clears the stale error. Full source suite: 114 passed.",
-        "Real simulator native permission denial, Settings grant, retry, explicit stop and background interruption passed with unchanged fixed app bytes. The permission change caused a fresh process; physical, call/route and same-process stale-error recovery remain pending. Evidence: simulator-ui/microphone-summary.json."
+        "Real simulator native permission denial, Settings grant, retry, explicit stop and background interruption passed with unchanged fixed app bytes. The permission change caused a fresh process; physical, call/route and same-process permission-change recovery remain pending. Evidence: simulator-ui/microphone-summary.json."
       ],
       "pending": [
         "Complete the remaining case-by-case Apple runtime acceptance in macos-validation/native-acceptance.json. Native compilation passed on the Mac; the current continuation uses simulators only, so required physical-device acceptance remains deferred."

@@ -1,0 +1,10 @@
+{
+  "revision": "af744fbdb0e3d46a9d37be47243f6a7cb75fc9cd",
+  "dirty_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "renderer_asset_count": 203,
+  "clean_bundle_files": 571,
+  "clean_bundle_tree_sha256": "14eb94930421973ec176989fe9159d95442ade4d4307d30ec22b189f3b46fc4d",
+  "prior_clean_build": "artifacts/audit-2026-10-06/macos-validation/r15-simulator/release-dismissal/commit-equivalence.json",
+  "production_inputs": 1314,
+  "renderer_inputs": "All 203 prebuilt assets exactly match the final R15 clean build; no renderer source instrumentation or asset-only hot reload."
+}

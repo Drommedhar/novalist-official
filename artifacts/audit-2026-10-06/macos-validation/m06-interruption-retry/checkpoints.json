@@ -1,0 +1,56 @@
+[
+  {
+    "checkpoint": "before-first-start",
+    "utc": "2026-10-07T13:11:57.575096+00:00",
+    "pid": 93703,
+    "process_start": "Wed Oct  7 15:11:44 2026",
+    "native_launchctl_labels": [
+      "UIKitApplication:com.novalist.app[e797][rb-legacy]"
+    ]
+  },
+  {
+    "checkpoint": "first-listening",
+    "utc": "2026-10-07T13:11:59.405116+00:00",
+    "pid": 93703,
+    "process_start": "Wed Oct  7 15:11:44 2026",
+    "native_launchctl_labels": [
+      "UIKitApplication:com.novalist.app[e797][rb-legacy]"
+    ]
+  },
+  {
+    "checkpoint": "backgrounded",
+    "utc": "2026-10-07T13:12:00.773216+00:00",
+    "pid": 93703,
+    "process_start": "Wed Oct  7 15:11:44 2026",
+    "native_launchctl_labels": [
+      "UIKitApplication:com.novalist.app[e797][rb-legacy]"
+    ]
+  },
+  {
+    "checkpoint": "foreground-stopped",
+    "utc": "2026-10-07T13:12:02.392894+00:00",
+    "pid": 93703,
+    "process_start": "Wed Oct  7 15:11:44 2026",
+    "native_launchctl_labels": [
+      "UIKitApplication:com.novalist.app[e797][rb-legacy]"
+    ]
+  },
+  {
+    "checkpoint": "retry-listening",
+    "utc": "2026-10-07T13:12:04.278029+00:00",
+    "pid": 93703,
+    "process_start": "Wed Oct  7 15:11:44 2026",
+    "native_launchctl_labels": [
+      "UIKitApplication:com.novalist.app[e797][rb-legacy]"
+    ]
+  },
+  {
+    "checkpoint": "explicitly-stopped",
+    "utc": "2026-10-07T13:12:06.379611+00:00",
+    "pid": 93703,
+    "process_start": "Wed Oct  7 15:11:44 2026",
+    "native_launchctl_labels": [
+      "UIKitApplication:com.novalist.app[e797][rb-legacy]"
+    ]
+  }
+]

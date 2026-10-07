@@ -1,0 +1,16 @@
+{
+  "native_observation_count": 1,
+  "actual_missing_bookmark_and_unowned_fallback_proven": true,
+  "external_recent_pruned_by_production_library": true,
+  "local_recent_kept_at_original_path": true,
+  "local_project_and_book_ids_unchanged": true,
+  "local_all_file_hashes_unchanged": true,
+  "local_file_count": 6,
+  "registry_sha256_after": "13f55fad81635d67e2848a7a0ace0d19505f23bcff469ba85891f38c2e319acf",
+  "registry_bytes_unchanged": true,
+  "external_not_added_to_owned_registry": true,
+  "original_documents_file_count": 107,
+  "all_original_documents_hashes_unchanged": true,
+  "ui_native_test": "06-launch-with-missing-external",
+  "ui_stayed_on_library": true
+}

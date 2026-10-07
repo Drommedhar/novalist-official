@@ -1,0 +1,58 @@
+{
+  "policyStillInstalled": true,
+  "traversalStatus": "passed",
+  "pageCount": 47,
+  "imageCount": 11,
+  "currentHeading": "Editor",
+  "currentImages": [
+    {
+      "src": "app://0.0.0.1/assets/editor-BSL7L5ZG.png",
+      "width": 1440,
+      "height": 900,
+      "complete": true
+    }
+  ],
+  "errors": [],
+  "violations": [
+    {
+      "directive": "connect-src",
+      "uri": "http://example.invalid/novalist-audit-fetch",
+      "disposition": "enforce"
+    },
+    {
+      "directive": "connect-src",
+      "uri": "http://example.invalid/novalist-audit-fetch",
+      "disposition": "enforce"
+    },
+    {
+      "directive": "img-src",
+      "uri": "http://example.invalid/novalist-audit-image.png",
+      "disposition": "enforce"
+    },
+    {
+      "directive": "img-src",
+      "uri": "http://example.invalid/novalist-audit-image.png",
+      "disposition": "enforce"
+    },
+    {
+      "directive": "connect-src",
+      "uri": "https://example.invalid/novalist-audit-fetch",
+      "disposition": "enforce"
+    },
+    {
+      "directive": "connect-src",
+      "uri": "https://example.invalid/novalist-audit-fetch",
+      "disposition": "enforce"
+    },
+    {
+      "directive": "img-src",
+      "uri": "https://example.invalid/novalist-audit-image.png",
+      "disposition": "enforce"
+    },
+    {
+      "directive": "img-src",
+      "uri": "https://example.invalid/novalist-audit-image.png",
+      "disposition": "enforce"
+    }
+  ]
+}

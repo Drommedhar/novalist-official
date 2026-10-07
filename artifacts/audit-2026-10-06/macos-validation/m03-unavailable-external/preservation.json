@@ -1,0 +1,20 @@
+{
+  "original_fixture_files": 87,
+  "all_original_fixture_files_byte_identical": true,
+  "original_documents_files": 107,
+  "all_original_documents_present_and_byte_identical": true,
+  "local_synthetic_files": 6,
+  "all_local_synthetic_files_byte_identical_to_before_missing_operation": true,
+  "external_synthetic_files": 6,
+  "all_restored_external_synthetic_files_byte_identical_to_backup": true,
+  "observer_directory_absent": true,
+  "installed_app_matches_clean_manifest": true,
+  "production_inputs_match_main_and_frozen": 1314,
+  "mobile_assets_match_main_and_frozen": 203,
+  "external_unowned_after_clean_relaunch": true,
+  "local_owned_after_clean_relaunch": true,
+  "natural_external_recent_prune_retained": true,
+  "local_recent_resolves_to_same_local_fixture": true,
+  "clean_install_changed_app_data_container": true,
+  "registry_scope_note": "Registry bytes were unchanged through missing resolution and fixture restoration. A later clean reinstall may add an exact alias for its new app container; this is separate from the missing-path assertion."
+}

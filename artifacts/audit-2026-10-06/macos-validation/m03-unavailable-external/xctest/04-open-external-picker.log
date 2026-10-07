@@ -1,0 +1,234 @@
+Test Suite 'All tests' started at 2026-10-07 15:24:56.319.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 15:24:56.319.
+Test Suite 'AuditUITests' started at 2026-10-07 15:24:56.319.
+Test Case '-[AuditUITests.AuditUITests testOpenActualExternalFolderPicker]' started.
+    t =     0.00s Start Test at 2026-10-07 15:24:56.321
+    t =     0.02s Set Up
+    t =     0.02s Terminate com.novalist.app:96200
+objc[96637]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10578c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1064e4310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.08s Open com.novalist.app
+    t =     1.09s     Launch com.novalist.app
+    t =     1.10s         Wait for accessibility to load
+    t =     1.10s         Setting up automation session
+    t =     3.63s         Wait for com.novalist.app to idle
+    t =     5.25s Waiting 20.0s for "Browse for Project Folder..." Button to exist
+    t =     6.33s     Checking `Expect predicate `existsNoRetry == 1` for object "Browse for Project Folder..." Button`
+    t =     6.33s         Checking existence of `"Browse for Project Folder..." Button`
+    t =     6.39s Tap "Browse for Project Folder..." Button
+    t =     6.39s     Wait for com.novalist.app to idle
+    t =     6.39s     Find the "Browse for Project Folder..." Button
+    t =     6.41s     Check for interrupting elements affecting "Browse for Project Folder..." Button
+    t =     6.43s     Synthesize event
+    t =     6.72s     Wait for com.novalist.app to idle
+    t =     6.72s Waiting 10.0s for "DOCPicker.actionButton" Button to exist
+    t =     7.80s     Checking `Expect predicate `existsNoRetry == 1` for object "DOCPicker.actionButton" Button`
+    t =     7.80s         Checking existence of `"DOCPicker.actionButton" Button`
+    t =     7.81s         Capturing element debug description
+    t =     8.78s     Checking `Expect predicate `existsNoRetry == 1` for object "DOCPicker.actionButton" Button`
+    t =     8.78s         Checking existence of `"DOCPicker.actionButton" Button`
+    t =     9.07s Requesting snapshot of accessibility hierarchy for app with pid 96651
+    t =     9.43s Requesting snapshot of accessibility hierarchy for app with pid 96651
+M03_ACTUAL_PICKER_OPEN
+Attributes: Application, 0x102bd4a00, pid: 96651, label: 'Novalist'
+Element subtree:
+ →Application, 0x102bd4a00, pid: 96651, label: 'Novalist'
+    Window (Main), 0x102bd4b40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x102bd4f00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x102bd5f40, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x102bd61c0, {{-402.0, -874.0}, {1206.0, 2622.0}}
+          Other, 0x102bd5180, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x102bd5680, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x102bd5b80, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x102bd57c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x102bd5cc0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x102bd4dc0, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x102bd4000, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x102bd4500, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x102bd7d40, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x102bd75c0, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x102bd7980, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist', Focused
+                            Other, 0x102bd6bc0, {{0.0, 62.0}, {402.0, 106.0}}, label: 'banner', Focused
+                              Other, 0x102bd6d00, {{18.0, 78.0}, {159.0, 28.0}}, label: 'Your bookshelf', value: 1, Focused
+                                StaticText, 0x102bd70c0, {{18.0, 77.0}, {159.0, 29.0}}, label: 'Your bookshelf', value: Your bookshelf, Focused
+                              Other, 0x102bd5a40, {{145.0, 111.0}, {36.0, 39.0}}, label: 'Scratchpad', Focused
+                              Button, 0x102bd66c0, {{184.0, 111.0}, {36.0, 39.0}}, label: 'Browse for Project Folder...', Focused
+                              Button, 0x102bd6300, {{223.0, 111.0}, {122.0, 40.0}}, label: 'New Project', Focused
+                              Other, 0x102bd5040, {{348.0, 111.0}, {36.0, 39.0}}, Focused
+                                Button, 0x102bd6580, {{348.0, 111.0}, {36.0, 39.0}}, label: 'More project actions', Focused
+                            Other, 0x102bd5e00, {{18.0, 168.0}, {366.0, 37.0}}, label: 'Filter shelves, navigation', Focused
+                              Switch, 0x102bd6a80, {{18.0, 168.0}, {35.0, 37.0}}, label: 'All', value: 1, Focused
+                              Switch, 0x102bd6800, {{56.0, 168.0}, {93.0, 37.0}}, label: 'My projects', value: 0, Focused
+                              Button, 0x102bd6080, {{151.0, 169.0}, {34.0, 34.0}}, label: 'Add shelf', Focused
+                            Other, 0x102bd7480, {{18.0, 212.0}, {366.0, 42.0}}, Focused
+                              SearchField, 0x102bd6e40, {{53.0, 221.0}, {318.0, 24.0}}, label: 'Find a project or book…', placeholderValue: 'Find a project or book…', value: Find a project or ..., Focused
+                                Other, 0x102bd6f80, {{61.0, 224.0}, {303.0, 17.0}}, Focused
+                                  StaticText, 0x102bd7200, {{61.0, 224.0}, {151.0, 17.0}}, label: 'Find a project or book…', value: Find a project or ..., Focused
+                                StaticText, 0x102bd7700, {{61.0, 224.0}, {151.0, 17.0}}, label: 'Find a project or book…', value: Find a project or ..., Focused
+                            Other, 0x102bd7340, {{18.0, 268.0}, {100.0, 21.0}}, label: 'Cover size', Focused
+                              Slider, 0x102bd6940, {{44.0, 270.0}, {72.0, 17.0}}, label: 'Cover size', value: 100.00, Focused
+                                Other, 0x102bd7840, {{72.0, 270.0}, {25.0, 17.0}}, Focused
+                            Button, 0x102bd7c00, {{244.0, 261.0}, {140.0, 35.0}}, label: 'Sort books', value: Shelf order, Focused
+                              Other, 0x102bd7ac0, {{0.0, 0.0}, {0.0, 0.0}}, Focused
+                            Other, 0x102bd5900, {{0.0, 79.0}, {1.0, 1.0}}, Focused
+                              StaticText, 0x102bd4c80, {{0.0, 81.0}, {609.0, 19.0}}, label: 'Select a cover for details. Double-click to open, or use Open book in the details panel.', value: Select a cover for..., Focused
+                            Other, 0x102a8f0c0, {{0.0, 314.0}, {402.0, 527.0}}, label: 'Project library, main', Focused
+                              Other, 0x102a8f480, {{18.0, 332.0}, {366.0, 246.0}}, label: 'My projects, region', Focused
+                                Other, 0x102a8f340, {{18.0, 338.0}, {111.0, 27.0}}, label: 'My projects', value: 2, Focused
+                                  StaticText, 0x102a8f5c0, {{18.0, 338.0}, {112.0, 27.0}}, label: 'My projects', value: My projects, Focused
+                                StaticText, 0x102a8f840, {{141.0, 344.0}, {54.0, 15.0}}, label: '2 projects', value: 2 projects, Focused
+                                Other, 0x102a8f700, {{350.0, 332.0}, {34.0, 39.0}}, Focused
+                                  Button, 0x102a8c780, {{350.0, 332.0}, {34.0, 39.0}}, label: 'Actions for shelf My projects', Focused
+                                Other, 0x102a8cf00, {{18.0, 388.0}, {122.0, 190.0}}, Focused
+                                  Switch, 0x1061a8f00, {{24.0, 396.0}, {110.0, 164.0}}, label: 'Select The Cartographer’s Daughter — The Cartographer's Daughter', value: 0, Focused
+                                Other, 0x106224000, {{140.0, 388.0}, {122.0, 190.0}}, Focused
+                                  Switch, 0x106224140, {{146.0, 396.0}, {110.0, 164.0}}, label: 'Select M03 Unavailable Suffix — M03 Unavailable Suffix', value: 0, Focused
+                  Other, 0x106224280, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1062243c0, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x106224500, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x106224640, {{396.0, 161.0}, {3.0, 648.0}}
+                  Other, 0x106224780, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x1062248c0, {{396.0, 161.0}, {3.0, 648.0}}
+              Other, 0x106224a00, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x106224b40, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x106224c80, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x106224dc0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x106224f00, {{-402.0, -874.0}, {1206.0, 2622.0}}
+        Other, 0x106225040, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x106225180, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1062252c0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x106225400, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x106225540, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x106225680, {{126.8, 79.2}, {39.7, 41.5}}, label: 'Cancel'
+                Other, 0x1062257c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x106225900, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x106225a40, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x106225b80, {{0.0, 0.0}, {804.0, 1748.0}}
+                        Other, 0x106225cc0, {{0.0, 31.6}, {402.0, 874.0}}
+                          Other, 0x106225e00, {{0.0, 31.6}, {402.0, 874.0}}
+                            Other, 0x106225f40, {{0.0, 93.6}, {402.0, 812.0}}
+                              Image, 0x106226080, {{-150.0, -88.0}, {702.0, 1112.0}}
+                              Other, 0x1062261c0, {{0.0, 93.6}, {402.0, 812.0}}
+                                Other, 0x106226300, {{0.0, 93.6}, {402.0, 812.0}}
+                                  Other, 0x106226440, {{0.0, 93.6}, {402.0, 812.0}}
+                                    Other, 0x106226580, {{0.0, 93.6}, {402.0, 812.0}}
+                                      Other, 0x1062266c0, {{0.0, 93.6}, {402.0, 812.0}}
+                                      Other, 0x106226800, {{0.0, 93.6}, {402.0, 812.0}}
+                                        Other, 0x106226940, {{0.0, 93.6}, {402.0, 812.0}}
+                                          Other, 0x106226a80, {{0.0, 93.6}, {402.0, 812.0}}
+                                            Other, 0x106226bc0, {{0.0, 93.6}, {402.0, 812.0}}
+                                              Other, 0x106226d00, {{0.0, 93.6}, {402.0, 812.0}}, identifier: 'Browse View (Picker)'
+                                                Other, 0x106226e40, {{0.0, 93.6}, {402.0, 812.0}}
+                                                  Other, 0x106226f80, {{0.0, 86.5}, {402.0, 812.0}}
+                                                    Other, 0x1062270c0, {{0.0, 86.5}, {402.0, 812.0}}
+                                                      Other, 0x106227200, {{0.0, 86.5}, {402.0, 812.0}}
+                                                        Other, 0x106227340, {{0.0, 86.5}, {402.0, 812.0}}
+                                                        Other, 0x106227480, {{0.0, 86.5}, {402.0, 812.0}}, identifier: 'DOC.browsingRoot Source: com.apple.DocumentManager.RecentDocuments, Title: Recents'
+                                                          NavigationBar, 0x1062275c0, {{0.0, 102.5}, {402.0, 108.0}}, identifier: 'FullDocumentManagerViewControllerNavigationBar'
+                                                            Button, 0x106227700, {{18.2, 105.7}, {36.9, 37.7}}, identifier: 'DOC.navBarButton.backInHistory', label: 'Back'
+                                                            Button, 0x106227840, {{71.5, 105.7}, {36.9, 37.7}}, identifier: 'DOC.navBarButton.forwardInHistory', label: 'Forward', Disabled
+                                                            Button, 0x106227980, {{124.9, 105.7}, {37.6, 37.7}}, label: 'Cancel'
+                                                            StaticText, 0x106227ac0, {{176.7, 114.2}, {64.7, 20.7}}, label: 'Recents'
+                                                            Button, 0x106227c00, {{258.1, 105.7}, {37.7, 37.7}}, identifier: 'OverflowBarButtonItem', label: 'More'
+                                                            Button, 0x106227d40, {{313.4, 105.7}, {70.2, 37.7}}, identifier: 'DOCPicker.actionButton', label: 'Open', Disabled
+                                                            TextField, 0x106227e80, {{16.0, 156.5}, {370.0, 44.0}}, placeholderValue: 'Search'
+                                                              Image, 0x106230000, {{28.0, 168.5}, {20.7, 19.3}}, identifier: 'magnifyingglass', label: 'Search'
+                                                          Other, 0x106230140, {{0.0, 86.5}, {402.0, 812.0}}
+                                                            Other, 0x106230280, {{0.0, 86.5}, {402.0, 812.0}}
+                                                              Other, 0x1062303c0, {{0.0, 86.5}, {402.0, 812.0}}
+                                                                Other, 0x106230500, {{0.0, 86.5}, {402.0, 812.0}}
+                                                                  ScrollView, 0x106230640, {{0.0, 86.5}, {402.0, 812.0}}
+                                                                    Other, 0x106230780, {{0.0, 86.5}, {402.0, 812.0}}
+                                                                      Other, 0x1062308c0, {{0.0, 86.5}, {402.0, 110.0}}
+                                                                      Other, 0x106230a00, {{0.0, 765.5}, {402.0, 133.0}}
+                                                                    Other, 0x106230b40, {{0.0, 86.5}, {402.0, 812.0}}
+                                                                      Other, 0x106230c80, {{0.0, 765.5}, {402.0, 133.0}}
+                                                                    CollectionView, 0x106230dc0, {{0.0, 86.5}, {402.0, 812.0}}, identifier: 'File View', value: Icon Mode
+                                                                      Other, 0x106230f00, {{0.0, 81.1}, {402.0, 812.0}}
+                                                                        Other, 0x106231040, {{0.0, 81.1}, {402.0, 110.0}}
+                                                                        Other, 0x106231180, {{0.0, 760.1}, {402.0, 133.0}}
+                                                                      Other, 0x1062312c0, {{0.0, 81.1}, {402.0, 812.0}}
+                                                                      Other, 0x106231400, {{0.0, 766.1}, {402.0, 44.0}}
+                                                                      Other, 0x106231540, {{369.0, 199.1}, {30.0, 611.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                                        Other, 0x106231680, {{396.0, 862.1}, {3.0, 7.0}}
+                                                                      Other, 0x1062317c0, {{369.0, 199.1}, {30.0, 611.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                                        Other, 0x106231900, {{396.0, 862.1}, {3.0, 7.0}}
+                                                                    Other, 0x106231a40, {{369.0, 199.1}, {30.0, 611.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                                      Other, 0x106231b80, {{396.0, 862.1}, {3.0, 7.0}}
+                                                                    Other, 0x106231cc0, {{62.0, 777.1}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                                                      Other, 0x106231e00, {{392.0, 804.1}, {7.0, 3.0}}
+                                                                    Other, 0x106231f40, {{369.0, 199.1}, {30.0, 611.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                                      Other, 0x106232080, {{396.0, 862.1}, {3.0, 7.0}}
+                                                                    Other, 0x1062321c0, {{62.0, 777.1}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                                                      Other, 0x106232300, {{392.0, 804.1}, {7.0, 3.0}}
+                                                                  Other, 0x106232440, {{0.0, 81.1}, {402.0, 812.0}}
+                                                                    Other, 0x106232580, {{0.0, 81.1}, {402.0, 812.0}}
+                                                                      Image, 0x1062326c0, {{172.7, 445.1}, {56.7, 56.7}}, identifier: 'clock.fill', label: 'clock'
+                                                                      StaticText, 0x106232800, {{142.0, 516.7}, {118.0, 26.3}}, label: 'No Recents'
+                                                                      StaticText, 0x106232940, {{44.7, 546.1}, {312.7, 18.0}}, label: 'Recently opened documents will appear here.'
+                                                          Toolbar, 0x106232a80, {{0.0, 81.1}, {402.0, 812.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                                            Other, 0x106232bc0, {{0.0, 81.1}, {402.0, 812.0}}
+                                                    Toolbar, 0x106232d00, {{0.0, 76.5}, {402.0, 812.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                                      Other, 0x106232e40, {{0.0, 76.5}, {402.0, 812.0}}
+                                                Other, 0x106232f80, {{0.0, 76.5}, {402.0, 812.0}}
+                                                  Other, 0x1062330c0, {{0.0, 76.5}, {402.0, 812.0}}
+                                        Other, 0x106233200, {{0.0, 76.5}, {402.0, 812.0}}
+                                          Other, 0x106233340, {{0.0, 805.5}, {402.0, 83.0}}
+                                            Other, 0x106233480, {{0.0, 76.5}, {402.0, 812.0}}
+                                              TabBar, 0x1062335c0, {{0.0, 805.5}, {402.0, 83.0}}, identifier: 'DOC.browsingModeTabBar', label: 'Tab Bar'
+                                                Other, 0x106233700, {{64.0, 805.5}, {274.0, 62.0}}
+                                                  Other, 0x106233840, {{64.0, 805.5}, {94.0, 54.0}}
+                                                  Other, 0x106233980, {{64.0, 805.5}, {274.0, 62.0}}
+                                                    Button, 0x106233ac0, {{68.0, 809.5}, {94.0, 54.0}}, label: 'Recents', Selected
+                                                      Image, 0x106233c00, {{101.3, 815.9}, {27.3, 27.3}}, identifier: 'clock.fill', label: 'clock'
+                                                    Button, 0x106233d40, {{154.0, 809.5}, {94.0, 54.0}}, label: 'Shared'
+                                                      Image, 0x106233e80, {{182.7, 817.2}, {37.0, 26.0}}, identifier: 'person.2.fill', label: 'Two people, filled'
+                                                    Button, 0x106234000, {{240.0, 809.5}, {94.0, 54.0}}, label: 'Browse'
+                                                      Image, 0x106234140, {{271.0, 816.9}, {32.0, 25.0}}, identifier: 'folder.fill', label: 'move'
+                                                  Other, 0x106234280, {{64.0, 805.5}, {274.0, 62.0}}
+                                                  Other, 0x1062343c0, {{68.0, 809.5}, {94.0, 54.0}}
+                                                    Other, 0x106234500, {{68.0, 809.5}, {94.0, 54.0}}
+                                                      Other, 0x106234640, {{68.0, 806.2}, {94.0, 54.0}}
+                                                      Other, 0x106234780, {{68.0, 806.2}, {94.0, 54.0}}
+                                                        Other, 0x1062348c0, {{68.0, 806.2}, {94.0, 54.0}}
+                                                          Other, 0x106234a00, {{68.0, 806.2}, {94.0, 54.0}}
+                                                            Other, 0x106234b40, {{68.0, 806.2}, {94.0, 54.0}}
+                                                          Other, 0x106234c80, {{68.0, 806.2}, {94.0, 54.0}}
+                                                        Other, 0x106234dc0, {{68.0, 806.2}, {94.0, 54.0}}
+                                            Other, 0x106234f00, {{0.0, 802.2}, {402.0, 83.0}}
+                                              Other, 0x106235040, {{0.0, 802.2}, {402.0, 83.0}}
+                                                Other, 0x106235180, {{0.0, 802.2}, {402.0, 83.0}}
+                                                  Other, 0x1062352c0, {{0.0, 802.2}, {402.0, 83.0}}
+                                                    Other, 0x106235400, {{0.0, 802.2}, {402.0, 83.0}}
+                                                      Other, 0x106235540, {{0.0, 802.2}, {402.0, 83.0}}
+                                                  Other, 0x106235680, {{0.0, 802.2}, {402.0, 83.0}}
+                                                    Other, 0x1062357c0, {{0.0, 802.2}, {402.0, 83.0}}
+                          Other, 0x106235900, {{0.0, 11.2}, {402.0, 874.0}}
+    Window, 0x106235a40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x106235b80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x106235cc0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x102bd4a00, pid: 96651, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x106235e00, pid: 96651, label: 'Novalist'
+  }
+
+    t =     9.53s Tear Down
+Test Case '-[AuditUITests.AuditUITests testOpenActualExternalFolderPicker]' passed (9.774 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 15:25:06.096.
+	 Executed 1 test, with 0 failures (0 unexpected) in 9.774 (9.776) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 15:25:06.096.
+	 Executed 1 test, with 0 failures (0 unexpected) in 9.774 (9.777) seconds
+Test Suite 'All tests' passed at 2026-10-07 15:25:06.096.
+	 Executed 1 test, with 0 failures (0 unexpected) in 9.774 (9.777) seconds
+2026-10-07 15:25:06.397 xcodebuild[96622:4150903] [MT] IDETestOperationsObserverDebug: 12.523 elapsed -- Testing started completed.
+2026-10-07 15:25:06.397 xcodebuild[96622:4150903] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 15:25:06.397 xcodebuild[96622:4150903] [MT] IDETestOperationsObserverDebug: 12.523 sec, +12.523 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/novalist-m03-unavailable-external/04-open-external-picker.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

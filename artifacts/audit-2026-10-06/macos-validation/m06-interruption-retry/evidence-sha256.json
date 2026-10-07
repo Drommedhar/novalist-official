@@ -1,0 +1,19 @@
+{
+  "01-first-native-listening.png": "f89e7d753a33b957279a82ea458b0311d9de2c81f48da79564106dc5f4186e16",
+  "02-foreground-stopped.png": "19718f62d04e24f4a6cd0943f22e71b1f82a4589e0a2c07c5163f98ec7864ad6",
+  "03-retry-native-listening.png": "99f2f241263482b02e7eef3c4868fdd51bbfc1f89895da354a7295468d5c4175",
+  "04-explicitly-stopped.png": "4928bf457cbdc474de34befeb425abb829e5be6787144b606f63b4e7118a2467",
+  "AuditHarness.xcodeproj/project.pbxproj": "1063ef1ff836ef33d6103376c3d6dfe55c32d2ca8822493a96693dfb127a98d8",
+  "AuditHarness.xcodeproj/xcshareddata/xcschemes/AuditUITests.xcscheme": "5139f33ca3aaddbc0d14ee24a56a2a37275ee72da24050516ea26d8196ef6c22",
+  "checkpoints.json": "6209d43686ec86b5480905498e8654246389ac328ef0614c817600679ca49598",
+  "finalize.py.txt": "1f6198227677063bcae0c76f9ef144c6c9c740c89ce6b0e098fc767079e8334e",
+  "native-test.log": "32ba32b199944c19d7e5442d162b9777006afc3dcd123b073ad3556bcfd093ae",
+  "native-test.swift": "dbd56f5830b67ef6365753630f74588626ce624bb7206e42fd99b9cded06e144",
+  "prepare.py.txt": "8127d7bcd3a04027baae450c1f8c93498b021dfa84611e201fdfa971aa804569",
+  "procedure.txt": "2d6dec25b4ef3385e287b965fe29272f7b16aab1e72c85e999ff48820b782ba6",
+  "project-preservation.json": "5d2e5cdce6d6b9050560598f04b803c7ec770ed5ebab0a52489a2e9d2bc2976b",
+  "result.json": "281b3662bb72b6d05d9c0cd5dba5b9f46955602b9eed49fd0703bad219c4c572",
+  "run.py": "79774507c00a976f4eba0c5b2b9c56408502ffd49d89b4a7cc36105e66536438",
+  "source.json": "315b0f1aa4743ccaf7a8ef5f10ac175d62376a5b5f10e4b8eef74ea1829b5f64",
+  "summary.json": "29ba57ab0522d707b82c73134bddd575b90dc111a40029edb8a34fb28583d615"
+}

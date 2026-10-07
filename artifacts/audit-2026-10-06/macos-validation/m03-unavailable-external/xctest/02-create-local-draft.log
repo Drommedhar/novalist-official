@@ -1,0 +1,106 @@
+Test Suite 'All tests' started at 2026-10-07 15:22:16.431.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 15:22:16.431.
+Test Suite 'AuditUITests' started at 2026-10-07 15:22:16.431.
+Test Case '-[AuditUITests.AuditUITests testCreateLocalDraftUniqueButton]' started.
+    t =     0.00s Start Test at 2026-10-07 15:22:16.433
+    t =     0.02s Set Up
+    t =     0.02s Terminate com.novalist.app:96101
+objc[96191]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10220c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x103540310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.08s Open com.novalist.app
+    t =     1.08s     Launch com.novalist.app
+    t =     1.10s         Wait for accessibility to load
+    t =     1.21s         Setting up automation session
+    t =     3.73s         Wait for com.novalist.app to idle
+    t =     5.41s Setting device orientation to Portrait
+    t =     5.41s     Wait for com.novalist.app to idle
+    t =     5.42s Waiting 25.0s for "New Project" Button to exist
+    t =     6.49s     Checking `Expect predicate `existsNoRetry == 1` for object "New Project" Button`
+    t =     6.49s         Checking existence of `"New Project" Button`
+    t =     6.54s Tap "New Project" Button
+    t =     6.54s     Wait for com.novalist.app to idle
+    t =     6.54s     Find the "New Project" Button
+    t =     6.55s     Check for interrupting elements affecting "New Project" Button
+    t =     6.57s     Synthesize event
+    t =     6.87s     Wait for com.novalist.app to idle
+    t =     7.34s Waiting 10.0s for "My Novel" TextField to exist
+    t =     8.41s     Checking `Expect predicate `existsNoRetry == 1` for object "My Novel" TextField`
+    t =     8.42s         Checking existence of `"My Novel" TextField`
+    t =     8.47s Tap "My Novel" TextField
+    t =     8.47s     Wait for com.novalist.app to idle
+    t =     8.47s     Find the "My Novel" TextField
+    t =     8.49s     Check for interrupting elements affecting "My Novel" TextField
+    t =     8.52s     Synthesize event
+    t =     8.81s     Wait for com.novalist.app to idle
+    t =     8.81s Type 'M03 Unavailable Su...' into "My Novel" TextField
+    t =     8.81s     Wait for com.novalist.app to idle
+    t =     8.82s     Find the "My Novel" TextField
+    t =     8.85s     Check for interrupting elements affecting "My Novel" TextField
+    t =     8.87s     Synthesize event
+    t =     9.45s     Wait for com.novalist.app to idle
+    t =     9.45s Find the "My Novel" TextField
+M03_CREATE_FORM_READY
+    t =     9.48s Get all elements bound by index for: Descendants matching type Button
+    t =     9.49s Find the Button (Element at index 0)
+    t =     9.50s Find the Button (Element at index 1)
+    t =     9.52s Find the Button (Element at index 2)
+    t =     9.53s Find the "selected" Button
+    t =     9.54s Find the "selected" Button
+M03_BUTTON selected (349.0, 829.0, 24.0, 22.66666666666663)
+    t =     9.56s Find the Button (Element at index 3)
+    t =     9.57s Find the Button (Element at index 4)
+    t =     9.58s Find the Button (Element at index 5)
+    t =     9.60s Find the Button (Element at index 6)
+    t =     9.61s Find the Button (Element at index 7)
+    t =     9.62s Find the Button (Element at index 8)
+    t =    10.64s     Find the Button (Element at index 8) (retry 1)
+    t =    10.66s Find the Button (Element at index 9)
+    t =    10.68s Find the Button (Element at index 10)
+    t =    11.71s     Find the Button (Element at index 10) (retry 1)
+    t =    12.73s     Find the Button (Element at index 10) (retry 2)
+    t =    12.76s     Collecting debug information to assist test failure triage
+    t =    12.76s         Requesting snapshot of accessibility hierarchy for app with pid 96200
+    t =    12.81s     Requesting snapshot of accessibility hierarchy for app with pid 96200
+    t =    12.83s     Find: Descendants matching type Button
+    t =    12.83s     Find: Element at index 10
+    t =    12.86s     Requesting snapshot of accessibility hierarchy for app with pid 96200
+    t =    12.89s     Find: Descendants matching type Button
+    t =    12.89s     Find: Element at index 10
+    t =    12.89s     Requesting snapshot of accessibility hierarchy for app with pid 96200
+    t =    12.92s     Find: Descendants matching type Button
+    t =    12.92s     Requesting snapshot of accessibility hierarchy for app with pid 96200
+    t =    12.98s     Requesting snapshot of accessibility hierarchy for app with pid 96200
+/tmp/novalist-m03-unavailable-external/AuditUITests.swift:12: error: -[AuditUITests.AuditUITests testCreateLocalDraftUniqueButton] : Failed to get matching snapshot: No matches found for Element at index 10 from input {(
+    Button,
+    Button,
+    Button,
+    Button
+)}
+Possibly caused by runtime issues:
+Automation type mismatch: computed Button from legacy attributes vs Key from modern attribute. Input attributes and values: {
+    "XC_kAXXCAttributeAutomationType" = 20;
+    "XC_kAXXCAttributeElementBaseType" = UIAccessibilityElement;
+    "XC_kAXXCAttributeElementType" = UIAccessibilityElementKBKey;
+    "XC_kAXXCAttributeTraits" = 8589934641;
+}
+See test report attachments for more detail.
+    t =    13.04s Tear Down
+Test Case '-[AuditUITests.AuditUITests testCreateLocalDraftUniqueButton]' failed (13.287 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 15:22:29.720.
+	 Executed 1 test, with 1 failure (0 unexpected) in 13.287 (13.289) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 15:22:29.721.
+	 Executed 1 test, with 1 failure (0 unexpected) in 13.287 (13.289) seconds
+Test Suite 'All tests' failed at 2026-10-07 15:22:29.721.
+	 Executed 1 test, with 1 failure (0 unexpected) in 13.287 (13.290) seconds
+2026-10-07 15:22:30.022 xcodebuild[96167:4143718] [MT] IDETestOperationsObserverDebug: 15.996 elapsed -- Testing started completed.
+2026-10-07 15:22:30.022 xcodebuild[96167:4143718] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 15:22:30.022 xcodebuild[96167:4143718] [MT] IDETestOperationsObserverDebug: 15.996 sec, +15.996 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/novalist-m03-unavailable-external/02-create-local-draft.xcresult
+
+Failing tests:
+	AuditUITests.testCreateLocalDraftUniqueButton()
+
+** TEST FAILED **
+
+Testing started

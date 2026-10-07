@@ -1,0 +1,16 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+ func testCreateLocalDraft() {
+  continueAfterFailure = false
+  let app = XCUIApplication(bundleIdentifier: "com.novalist.app")
+  app.terminate(); app.launch(); XCUIDevice.shared.orientation = .portrait
+  XCTAssertTrue(app.buttons["New Project"].waitForExistence(timeout: 25)); app.buttons["New Project"].tap()
+  let name = app.textFields["My Novel"]
+  XCTAssertTrue(name.waitForExistence(timeout: 10)); name.tap(); name.typeText("M03 Unavailable Suffix")
+  XCTAssertEqual(name.value as? String, "M03 Unavailable Suffix")
+  print("M03_CREATE_FORM_READY")
+  for b in app.buttons.allElementsBoundByIndex { if ["Done", "Hide keyboard", "selected", "Create Project"].contains(b.label) { print("M03_BUTTON \(b.label) \(b.frame)") } }
+  print("M03_KEYBOARD \(app.keyboards.firstMatch.frame)")
+  let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); shot.name = "new-synthetic-project-form"; shot.lifetime = .keepAlways; add(shot)
+ }
+}

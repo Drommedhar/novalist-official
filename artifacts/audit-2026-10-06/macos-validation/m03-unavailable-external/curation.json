@@ -1,0 +1,13 @@
+{
+  "raw_workspace_kept_private": true,
+  "private_data_excluded": [
+    "Absolute simulator/app paths",
+    "Raw settings, bookmark tokens and ownership registry",
+    "Fixture backups",
+    "Raw XCTest compile environment"
+  ],
+  "scripts": "Exact execution hashes supplied; publication copies redact host paths where marked. XCTest Swift and observer patch bytes are unchanged.",
+  "xctest_logs": "Native test section retained; compile environment omitted and host/container paths replaced.",
+  "setup_record": "Non-evidentiary self-comparison field omitted with explicit note.",
+  "images": "Unmodified native XCTest attachments; all content is synthetic."
+}

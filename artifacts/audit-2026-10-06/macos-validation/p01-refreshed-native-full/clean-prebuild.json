@@ -1,0 +1,17 @@
+{
+  "production_inputs_match_main": true,
+  "production_input_count": 1314,
+  "mobile_assets_match_main": true,
+  "mobile_asset_count": 203,
+  "probe_removed": true,
+  "cleaned": [
+    "Novalist.Mobile/bin",
+    "Novalist.Mobile/obj",
+    "Novalist.Backend/bin",
+    "Novalist.Backend/obj",
+    "Novalist.Core/bin",
+    "Novalist.Core/obj",
+    "Novalist.Sdk/bin",
+    "Novalist.Sdk/obj"
+  ]
+}

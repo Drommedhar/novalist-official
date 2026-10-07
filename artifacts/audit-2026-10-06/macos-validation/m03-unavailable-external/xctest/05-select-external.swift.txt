@@ -1,0 +1,21 @@
+import XCTest
+final class AuditUITests: XCTestCase {
+ func testSelectActualExternalProject() {
+  continueAfterFailure = false
+  let app = XCUIApplication(bundleIdentifier: "com.novalist.app"); app.activate()
+  app.buttons["Browse"].firstMatch.tap()
+  let localFiles = app.staticTexts["On My iPhone"].firstMatch
+  XCTAssertTrue(localFiles.waitForExistence(timeout: 10)); localFiles.tap()
+  let provider = app.staticTexts["Audit Fixtures"].firstMatch
+  XCTAssertTrue(provider.waitForExistence(timeout: 10)); provider.tap()
+  let folder = app.cells.containing(.staticText, identifier: "M03 Unavailable Suffix").firstMatch
+  XCTAssertTrue(folder.waitForExistence(timeout: 10)); folder.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)).tap()
+  let open = app.buttons["DOCPicker.actionButton"].firstMatch
+  XCTAssertTrue(open.waitForExistence(timeout: 10)); XCTAssertTrue(open.isEnabled)
+  let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); shot.name = "actual-external-picker"; shot.lifetime = .keepAlways; add(shot)
+  open.tap()
+  XCTAssertTrue(open.waitForNonExistence(timeout: 10))
+  XCTAssertTrue(app.staticTexts["Project Dashboard"].firstMatch.waitForExistence(timeout: 20))
+  print("M03_ACTUAL_EXTERNAL_PROJECT_OPEN\n" + app.debugDescription)
+ }
+}
