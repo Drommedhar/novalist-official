@@ -2419,6 +2419,11 @@
       "command": "Report generator cleanup and scoped Aislop",
       "status": "passed",
       "detail": "Ruff lint/format passed. Temporary fixture comparison preserves generated root ledger, merged ledger, HTML and original audit byte-for-byte for active/blocked/complete states; incomplete acceptance is rejected before merged-ledger writes. Final Aislop score100, zero diagnostics across builder/verifier. Evidence: aislop-device-deferral.json."
+    },
+    {
+      "command": "Newly surfaced GitHub dependency alert64 (outside original73 findings)",
+      "status": "open-upstream",
+      "detail": "Read-only GitHub review confirms GHSA-hp3w-g68c-fv3c affects locked sprintf-js1.1.3 through electron-builder's optional development dependency chain. Advisory lists no patched version. This is an affected packaging-tool dependency, not proof of a shipped-app exploit. No npm advisory upload or dependency modification was performed. Evidence: dependency-alert-64.json."
     }
   ],
   "limitations": [
@@ -2426,7 +2431,8 @@
     "Aislop full app nonfixable lint warnings remain; the three audited complexity warnings and newly introduced long functions were resolved.",
     "Linux R17 was executed with Linux Electron and backend under WSLg, with native file picker result controlled by the test and --no-sandbox for the root-owned isolated test process. It does not validate the platform file picker, Linux packaging or native iOS behavior.",
     "Native builds, original Apple CI, M02 scope/UI, M04 recovery/nonreplay, R13 media/memory and R14 races passed at their recorded sources after probe cleanup. Six findings retain unverified physical-device acceptance, deferred at the user's request; simulator results do not certify physical behavior.",
-    "R17 ran in native Linux Electron under Debian WSLg with isolated portable dependencies. Only the isolated root-user test harness disables the Chromium sandbox; the application configuration is unchanged."
+    "R17 ran in native Linux Electron under Debian WSLg with isolated portable dependencies. Only the isolated root-user test harness disables the Chromium sandbox; the application configuration is unchanged.",
+    "GitHub dependency alert64 remains open for optional development dependency sprintf-js1.1.3 (moderate denial of service with attacker-controlled format precision); GitHub lists no patched version. It surfaced after the original73-finding audit and is tracked separately in dependency-alert-64.json. Do not interpret current-scope completion as a clean dependency-security audit."
   ],
   "delivery": {
     "branch": "dev",

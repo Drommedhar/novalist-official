@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "scope": "Newly surfaced build-tool advisory, recorded separately from the original 73 audit findings.",
+  "reviewed_revision": "001b78b5385ece0e3c043d9e16407a0b88f2edf3",
+  "alert": {
+    "number": 64,
+    "state": "open",
+    "url": "https://github.com/Drommedhar/novalist-official/security/dependabot/64",
+    "advisory_url": "https://github.com/advisories/GHSA-hp3w-g68c-fv3c",
+    "ghsa_id": "GHSA-hp3w-g68c-fv3c",
+    "cve_id": "CVE-2026-97058",
+    "severity": "medium",
+    "summary": "sprintf-js vulnerable to denial of service through unbounded precision specifiers",
+    "updated_at": "2026-10-06T16:36:41Z",
+    "vulnerable_range": "<= 1.1.3",
+    "first_patched_version": null,
+    "prerequisite": "Attacker control of a format string can supply excessive precision to JavaScript numeric formatting and cause an uncaught RangeError."
+  },
+  "locked_dependency": {
+    "manifest": "app/package-lock.json",
+    "path": "node_modules/sprintf-js",
+    "version": "1.1.3",
+    "dev": true,
+    "optional": true,
+    "current_dev_fixed": false,
+    "chain": [
+      "electron-builder@26.15.3 (root devDependency)",
+      "app-builder-lib@26.15.3",
+      "app-builder-lib/node_modules/@electron/get@3.1.0",
+      "global-agent@3.0.0 (optional dependency of @electron/get)",
+      "roarr@2.15.4",
+      "sprintf-js@1.1.3"
+    ],
+    "distinction": "The separate top-level @electron/get@5.1.0 used by Electron has optional undici rather than global-agent. The affected installed chain is the nested packaging dependency."
+  },
+  "exposure_review": {
+    "observed_use": "Build-time artifact downloading and optional proxy logging through app-builder-lib; no imports of these packages were found in application source/build scripts apart from electron-builder packaging configuration and maintenance scripts.",
+    "proxy_activation": "Nested @electron/get/dist/cjs/index.js calls initializeProxy when ELECTRON_GET_USE_PROXY is truthy. proxy.js requires global-agent only inside initializeProxy; that function is also exported for explicit callers.",
+    "logging_activation": "Installed roarr/dist/log.js uses a mock logger in Node unless ROARR_LOG is enabled. No environment values were read or recorded.",
+    "formatter_calls": "roarr/dist/factories/createLogger.js:124,131 invokes sprintf. A lone string message uses fixed %s; context-object calls treat the second argument as the format string.",
+    "inspected_callers": "All log.trace/debug/info/warn/error calls inspected in global-agent/dist/classes/Agent.js, factories/createProxyController.js, factories/createGlobalProxyAgent.js and routines/bootstrap.js use fixed literal messages. Network URLs, headers, errors and proxy settings are context properties rather than format strings.",
+    "conclusion": "The affected package is installed for development packaging. No attacker-controlled format-string path was identified in the inspected callers. This is not a universal non-exploitability claim or a reason to mark the advisory fixed."
+  },
+  "packaging_review": {
+    "configured_files": "app/electron-builder.yml selects out/** and package.json, with explicit backend/icon/extension extraResources.",
+    "dependency_copy": "Installed app-builder-lib collects production/optional dependencies separately. Its npm collector runs list with --omit dev; its fallback traversal reads dependencies and optionalDependencies, skipping devDependencies. The affected lock entries are marked dev-only.",
+    "inference": "The inspected configuration and collector exclude this development-only chain from packaged runtime node_modules. This inference is supported by source/configuration, not a current installer inventory.",
+    "local_output_observation": "Existing app/out JavaScript/JSON files contain no sprintf-js, roarr or global-agent name matches. Those outputs predate current source and do not certify a current release bundle.",
+    "release_artifact": "No app/dist packaged artifact was present to inspect. No package/build/install was performed."
+  },
+  "checks": [
+    "Read Dependabot alert 64 through gh api; advisory reports no first patched version.",
+    "Read current git HEAD package manifest/lock and installed dependency manifests; inspected chain versions match the lock.",
+    "Reviewed formatter, logger, proxy activation and direct installed log call sites.",
+    "Searched app/src, app/build, app/scripts and workflow/package configuration for package references.",
+    "Reviewed electron-builder file selection and installed production dependency collectors; searched existing local output without rebuilding."
+  ],
+  "disposition": {
+    "status": "open-upstream-build-dependency-advisory",
+    "action_taken": "Documentation only; no dependency override, upgrade, source patch or alert dismissal.",
+    "follow_up": "Reassess when upstream identifies a patched version or a compatible packaging dependency release removes this chain. Validate any actual dependency change with packaging checks.",
+    "limitations": [
+      "The advisory has no published fixed version in the inspected GitHub response; availability of every possible alternative dependency release was not surveyed.",
+      "No exploit was executed and no current release archive was inspected.",
+      "The original 73-finding acceptance ledger is unchanged by this separate newly surfaced advisory.",
+      "No npm audit, dependency-inventory upload, package installation or network dependency audit was performed."
+    ]
+  }
+}
