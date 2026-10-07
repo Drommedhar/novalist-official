@@ -1,0 +1,159 @@
+Test Suite 'All tests' started at 2026-10-07 14:42:34.645.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:42:34.645.
+Test Suite 'AuditUITests' started at 2026-10-07 14:42:34.645.
+Test Case '-[AuditUITests.AuditUITests testTargetedNativeScrimTap]' started.
+    t =     0.00s Start Test at 2026-10-07 14:42:34.647
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Waiting 5.0s for "No matching commands." StaticText to exist
+objc[84630]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x104b38398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x108828310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object "No matching commands." StaticText`
+    t =     1.08s         Checking existence of `"No matching commands." StaticText`
+    t =     1.09s Tap Application 'com.novalist.app'[0.00, 0.00] -> (80.0, 160.0)
+    t =     1.09s     Wait for com.novalist.app to idle
+    t =     1.09s     Find the Application 'com.novalist.app'
+    t =     1.11s     Check for interrupting elements affecting "Novalist" Application
+    t =     1.12s     Synthesize event
+    t =     1.12s         Find the Application 'com.novalist.app'
+    t =     1.13s         Find the Application 'com.novalist.app'
+    t =     1.14s         Find the Application 'com.novalist.app'
+    t =     1.44s     Wait for com.novalist.app to idle
+    t =     3.13s Requesting snapshot of accessibility hierarchy for app with pid 83845
+    t =     3.28s Requesting snapshot of accessibility hierarchy for app with pid 83845
+R15_TARGETED_SCRIM_AFTER
+Attributes: Application, 0x10859dcc0, pid: 83845, label: 'Novalist'
+Element subtree:
+ →Application, 0x10859dcc0, pid: 83845, label: 'Novalist'
+    Window (Main), 0x10859c000, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x10859c140, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x10859c280, {{0.0, 0.0}, {874.0, 402.0}}
+          Other, 0x10859c500, {{0.0, 0.0}, {874.0, 402.0}}
+            Other, 0x10859c640, {{0.0, 0.0}, {874.0, 402.0}}
+              WebView, 0x10859c780, {{0.0, 0.0}, {874.0, 402.0}}
+                WebView, 0x10859c8c0, {{0.0, 0.0}, {874.0, 402.0}}
+                  WebView, 0x10859cb40, {{0.0, 0.0}, {874.0, 402.0}}
+                    Other, 0x10859cf00, {{0.0, 0.0}, {874.0, 402.0}}
+                      Other, 0x10859d040, {{0.0, 0.0}, {874.0, 402.0}}
+                        Other, 0x10859d180, {{0.0, -1.0}, {874.0, 402.0}}
+                          Other, 0x10859cc80, {{0.0, -1.0}, {874.0, 402.0}}, label: 'Novalist'
+                            Other, 0x10859cdc0, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x10859ca00, {{197.0, 47.0}, {480.0, 200.0}}, label: 'Type a command name..., web dialog'
+                              TextField, 0x10859ebc0, {{230.0, 80.0}, {414.0, 42.0}}, label: 'Type a command name...', placeholderValue: 'Type a command name...', value: r15nomatchingcommand, Keyboard Focused, Focused
+                                StaticText, 0x10859ed00, {{243.0, 91.0}, {184.0, 19.0}}, label: 'r15nomatchingcommand', value: r15nomatchingcommand, Focused
+                              Other, 0x10859ee40, {{230.0, 139.0}, {414.0, 75.0}}
+                                Other, 0x10859ef80, {{230.0, 154.0}, {414.0, 45.0}}
+                                  StaticText, 0x10859f0c0, {{242.0, 168.0}, {158.0, 17.0}}, label: 'No matching commands.', value: No matching comman...
+                  Other, 0x10859f200, {{841.0, 62.0}, {30.0, 32.0}}, label: 'Vertical scroll bar, 4 pages', value: 0%
+                    Other, 0x10859f340, {{868.0, 55.0}, {3.0, 36.0}}
+                  Other, 0x10859f480, {{841.0, 62.0}, {30.0, 32.0}}, label: 'Vertical scroll bar, 4 pages', value: 0%
+                    Other, 0x10859f5c0, {{868.0, 55.0}, {3.0, 36.0}}
+              Other, 0x10859f700, {{0.0, 0.0}, {874.0, 402.0}}
+            Other, 0x10859f840, {{0.0, 0.0}, {874.0, 402.0}}
+              Other, 0x10859f980, {{0.0, 0.0}, {874.0, 402.0}}
+    Window, 0x10859fac0, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x10859fc00, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x10859fd40, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x10859fe80, {{0.0, 114.0}, {874.0, 288.0}}
+          Other, 0x104e830c0, {{0.0, 114.0}, {874.0, 64.0}}
+            Other, 0x104e83340, {{0.0, 114.0}, {874.0, 64.0}}
+              Toolbar, 0x104e83480, {{0.0, 124.0}, {874.0, 44.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Button, 0x104e83700, {{89.0, 138.7}, {24.0, 14.7}}, label: 'go up', Disabled
+                Button, 0x104e83840, {{143.0, 139.3}, {24.0, 14.7}}, label: 'go down', Disabled
+                Button, 0x104e835c0, {{761.0, 135.0}, {24.0, 22.7}}, label: 'selected'
+          Other, 0x104e80780, {{75.0, 178.0}, {724.0, 224.0}}, identifier: 'inputView'
+    Window, 0x104e80f00, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x104fccb40, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x104fccf00, {{0.0, 114.0}, {874.0, 288.0}}
+          Other, 0x104fccdc0, {{0.0, 114.0}, {874.0, 64.0}}
+          Other, 0x104fccc80, {{0.0, 178.0}, {874.0, 225.0}}
+            Other, 0x104fcd900, {{0.0, 178.0}, {874.0, 225.0}}
+              Other, 0x104fcdb80, {{0.0, 178.0}, {874.0, 225.0}}
+          Other, 0x104fcda40, {{75.0, 178.0}, {724.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x104fcd180, {{75.0, 178.0}, {724.0, 44.0}}
+              Other, 0x104fcd680, {{75.0, 178.0}, {724.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x104fcd7c0, {{75.0, -422.0}, {724.0, 1244.0}}
+                  ScrollView, 0x104fcdcc0, {{75.0, 178.0}, {724.0, 44.0}}
+                Other, 0x104fcde00, {{75.0, 178.0}, {724.0, 44.0}}
+                  Other, 0x104fce1c0, {{75.0, 178.0}, {724.0, 44.0}}
+                    Other, 0x104fce300, {{75.0, 178.0}, {724.0, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x104fce580, {{75.0, 178.0}, {724.0, 44.0}}
+                        Other, 0x104fce800, {{75.0, 178.0}, {724.0, 44.0}}
+                          Button, 0x104fce940, {{75.0, 178.0}, {241.3, 44.0}}, label: '“r15nomatchingcommand”'
+                          Button, 0x104fcdf40, {{316.3, 178.0}, {241.3, 44.0}}
+                          Button, 0x104fce6c0, {{557.7, 178.0}, {241.3, 44.0}}
+          Other, 0x104fce080, {{0.0, 222.0}, {874.0, 180.0}}
+            Button, 0x104fcebc0, {{8.5, 336.7}, {68.1, 68.7}}, label: 'Emoji'
+              StaticText, 0x104fcfd40, {{8.5, 336.7}, {0.0, 0.0}}
+            Button, 0x104fcfac0, {{797.4, 336.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x104fcc000, {{797.4, 336.4}, {0.0, 0.0}}
+            Button, 0x104fcfc00, {{797.4, 336.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x104fcf5c0, {{797.4, 336.4}, {0.0, 0.0}}
+          Other, 0x104fcd040, {{75.0, 222.0}, {724.0, 177.0}}
+            Keyboard, 0x104fcea80, {{75.0, 222.0}, {724.0, 177.0}}
+              Other, 0x104fced00, {{75.0, 222.0}, {724.0, 177.0}}
+                Other, 0x104fcee40, {{75.0, 222.0}, {724.0, 177.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x104fcf0c0, {{75.0, 222.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x104fcf200, {{75.0, 222.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x104fcf700, {{75.0, 222.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x104fcf840, {{75.0, 222.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x104fcf980, {{75.0, 222.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x104fcf340, {{75.0, 222.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x104fcf480, {{77.0, 227.0}, {72.3, 40.0}}, label: 'q'
+                  Key, 0x104fcef80, {{149.3, 227.0}, {72.0, 40.0}}, label: 'w'
+                  Key, 0x1085c4000, {{221.3, 227.0}, {72.3, 40.0}}, label: 'e'
+                  Key, 0x1085c4140, {{293.7, 227.0}, {72.0, 40.0}}, label: 'r'
+                  Key, 0x1085c4280, {{365.7, 227.0}, {72.3, 40.0}}, label: 't'
+                  Key, 0x1085c43c0, {{438.0, 227.0}, {72.3, 40.0}}, label: 'y'
+                  Key, 0x1085c4500, {{510.3, 227.0}, {72.0, 40.0}}, label: 'u'
+                  Key, 0x1085c4640, {{582.3, 227.0}, {72.3, 40.0}}, label: 'i'
+                  Key, 0x1085c4780, {{654.7, 227.0}, {72.0, 40.0}}, label: 'o'
+                  Key, 0x1085c48c0, {{726.7, 227.0}, {72.3, 40.0}}, label: 'p'
+                  Key, 0x1085c4a00, {{113.0, 267.0}, {72.3, 40.0}}, label: 'a'
+                  Key, 0x1085c4b40, {{185.3, 267.0}, {72.3, 40.0}}, label: 's'
+                  Key, 0x1085c4c80, {{257.7, 267.0}, {72.0, 40.0}}, label: 'd'
+                  Key, 0x1085c4dc0, {{329.7, 267.0}, {72.3, 40.0}}, label: 'f'
+                  Key, 0x1085c4f00, {{402.0, 267.0}, {72.0, 40.0}}, label: 'g'
+                  Key, 0x1085c5040, {{474.0, 267.0}, {72.3, 40.0}}, label: 'h'
+                  Key, 0x1085c5180, {{546.3, 267.0}, {72.3, 40.0}}, label: 'j'
+                  Key, 0x1085c52c0, {{618.7, 267.0}, {72.0, 40.0}}, label: 'k'
+                  Key, 0x1085c5400, {{690.7, 267.0}, {72.3, 40.0}}, label: 'l'
+                  Button, 0x1085c5540, {{77.0, 307.0}, {94.0, 40.0}}, identifier: 'shift', label: 'shift'
+                  Key, 0x1085c5680, {{185.3, 307.0}, {72.3, 40.0}}, label: 'z'
+                  Key, 0x1085c57c0, {{257.7, 307.0}, {72.0, 40.0}}, label: 'x'
+                  Key, 0x1085c5900, {{329.7, 307.0}, {72.3, 40.0}}, label: 'c'
+                  Key, 0x1085c5a40, {{402.0, 307.0}, {72.0, 40.0}}, label: 'v'
+                  Key, 0x1085c5b80, {{474.0, 307.0}, {72.3, 40.0}}, label: 'b'
+                  Key, 0x1085c5cc0, {{546.3, 307.0}, {72.3, 40.0}}, label: 'n'
+                  Key, 0x1085c5e00, {{618.7, 307.0}, {72.0, 40.0}}, label: 'm'
+                  Key, 0x1085c5f40, {{705.0, 307.0}, {94.0, 40.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x1085c6080, {{77.0, 347.0}, {144.3, 40.0}}, identifier: 'more', label: 'numbers'
+                  Key, 0x1085c61c0, {{221.3, 347.0}, {433.3, 40.0}}, identifier: 'space', label: 'space'
+                  Button, 0x1085c6300, {{654.7, 347.0}, {144.3, 40.0}}, identifier: 'Return', label: 'return'
+Path to element:
+ →Application, 0x10859dcc0, pid: 83845, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x1085c6440, pid: 83845, label: 'Novalist'
+  }
+
+    t =     3.31s Tear Down
+Test Case '-[AuditUITests.AuditUITests testTargetedNativeScrimTap]' passed (3.312 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 14:42:37.959.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.312 (3.314) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 14:42:37.959.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.312 (3.314) seconds
+Test Suite 'All tests' passed at 2026-10-07 14:42:37.959.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.312 (3.315) seconds
+2026-10-07 14:42:38.244 xcodebuild[84614:4008222] [MT] IDETestOperationsObserverDebug: 6.016 elapsed -- Testing started completed.
+2026-10-07 14:42:38.244 xcodebuild[84614:4008222] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:42:38.244 xcodebuild[84614:4008222] [MT] IDETestOperationsObserverDebug: 6.016 sec, +6.016 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/24-targeted-scrim-tap.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

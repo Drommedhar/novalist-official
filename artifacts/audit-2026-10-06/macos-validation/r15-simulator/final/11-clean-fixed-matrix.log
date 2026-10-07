@@ -1,0 +1,140 @@
+Test Suite 'All tests' started at 2026-10-07 14:33:04.250.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:33:04.251.
+Test Suite 'AuditUITests' started at 2026-10-07 14:33:04.251.
+Test Case '-[AuditUITests.AuditUITests testCleanFixedNestedModal]' started.
+    t =     0.00s Start Test at 2026-10-07 14:33:04.252
+    t =     0.02s Set Up
+    t =     0.02s Terminate com.novalist.app:0
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Launch com.novalist.app
+    t =     0.04s         Setting up automation session
+objc[82801]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x107088398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x107240310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     2.74s         Wait for com.novalist.app to idle
+    t =     4.36s Setting device orientation to Portrait
+    t =     4.37s     Wait for com.novalist.app to idle
+    t =     4.37s Waiting 25.0s for Any (First Match) to exist
+    t =     5.45s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =     5.45s         Checking existence of `Any (First Match)`
+    t =     5.50s         Capturing element debug description
+    t =     6.47s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =     6.47s         Checking existence of `Any (First Match)`
+    t =     6.49s Double tap Any (First Match)
+    t =     6.49s     Wait for com.novalist.app to idle
+    t =     6.49s     Find the Any (First Match)
+    t =     6.50s     Check for interrupting elements affecting "Select The Cartographer’s Daughter — The Cartographer's Daughter" Switch
+    t =     6.53s     Synthesize event
+    t =     6.88s     Wait for com.novalist.app to idle
+    t =     6.88s Waiting 20.0s for "Write" Button to exist
+    t =     7.96s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =     7.96s         Checking existence of `"Write" Button`
+    t =     8.14s Checking existence of `"Close tour" Button`
+    t =     8.24s Tap "Write" Button
+    t =     8.24s     Wait for com.novalist.app to idle
+    t =     8.24s     Find the "Write" Button
+    t =     8.33s     Check for interrupting elements affecting "Write" Button
+    t =     8.37s     Synthesize event
+    t =     8.66s     Wait for com.novalist.app to idle
+    t =    10.03s Waiting 15.0s for Button (First Match) to exist
+    t =    11.11s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    11.11s         Checking existence of `Button (First Match)`
+    t =    11.13s Tap Button (First Match)
+    t =    11.13s     Wait for com.novalist.app to idle
+    t =    11.13s     Find the Button (First Match)
+    t =    11.15s     Check for interrupting elements affecting "A Letter from Bellhaven 264" Button
+    t =    11.17s     Synthesize event
+    t =    11.46s     Wait for com.novalist.app to idle
+    t =    11.46s Waiting 15.0s for TextView (First Match) to exist
+    t =    12.54s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    12.54s         Checking existence of `TextView (First Match)`
+    t =    12.57s Waiting 3.0s for "selected" Button to exist
+    t =    13.64s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    13.64s         Checking existence of `"selected" Button`
+    t =    13.68s         Capturing element debug description
+    t =    14.65s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    14.65s         Checking existence of `"selected" Button`
+    t =    14.68s         Capturing element debug description
+    t =    15.57s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    15.57s         Checking existence of `"selected" Button`
+    t =    15.62s         Capturing element debug description
+    t =    15.62s     Checking existence of `"selected" Button`
+    t =    15.64s Collecting debug information to assist test failure triage
+    t =    15.64s     Requesting snapshot of accessibility hierarchy for app with pid 82815
+    t =    15.68s Tap "Inspector" Button
+    t =    15.68s     Wait for com.novalist.app to idle
+    t =    15.68s     Find the "Inspector" Button
+    t =    15.70s     Check for interrupting elements affecting "Inspector" Button
+    t =    15.72s     Synthesize event
+    t =    16.02s     Wait for com.novalist.app to idle
+    t =    16.02s Waiting 10.0s for "Close" Button to exist
+    t =    17.10s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =    17.10s         Checking existence of `"Close" Button`
+    t =    17.13s Find the "Close" Button
+    t =    17.15s Checking existence of `TextView (First Match)`
+    t =    17.17s Tap "To do" Button
+    t =    17.17s     Wait for com.novalist.app to idle
+    t =    17.17s     Find the "To do" Button
+    t =    17.18s     Check for interrupting elements affecting "To do" Button
+    t =    17.20s     Synthesize event
+    t =    17.50s     Wait for com.novalist.app to idle
+    t =    17.50s Waiting 5.0s for "What needs doing" TextField to exist
+    t =    18.58s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =    18.58s         Checking existence of `"What needs doing" TextField`
+    t =    18.60s Tap "What needs doing" TextField
+    t =    18.60s     Wait for com.novalist.app to idle
+    t =    18.60s     Find the "What needs doing" TextField
+    t =    18.62s     Check for interrupting elements affecting "What needs doing" TextField
+    t =    18.64s     Synthesize event
+    t =    18.93s     Wait for com.novalist.app to idle
+    t =    18.99s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    18.99s     Wait for com.novalist.app to idle
+    t =    19.35s     Find the Application 'com.novalist.app'
+    t =    19.38s     Check for interrupting elements affecting "Novalist" Application
+    t =    19.40s     Synthesize event
+    t =    19.74s     Wait for com.novalist.app to idle
+    t =    19.89s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    19.89s     Wait for com.novalist.app to idle
+    t =    19.90s     Find the Application 'com.novalist.app'
+    t =    19.91s     Check for interrupting elements affecting "Novalist" Application
+    t =    19.92s     Synthesize event
+    t =    20.27s     Wait for com.novalist.app to idle
+    t =    20.59s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    20.59s     Wait for com.novalist.app to idle
+    t =    20.60s     Find the Application 'com.novalist.app'
+    t =    20.62s     Check for interrupting elements affecting "Novalist" Application
+    t =    20.63s     Synthesize event
+    t =    20.99s     Wait for com.novalist.app to idle
+    t =    21.45s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    21.45s     Wait for com.novalist.app to idle
+    t =    21.45s     Find the Application 'com.novalist.app'
+    t =    21.47s     Check for interrupting elements affecting "Novalist" Application
+    t =    21.49s     Synthesize event
+    t =    21.84s     Wait for com.novalist.app to idle
+    t =    21.96s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    21.96s     Wait for com.novalist.app to idle
+    t =    21.96s     Find the Application 'com.novalist.app'
+    t =    21.97s     Check for interrupting elements affecting "Novalist" Application
+    t =    21.98s     Synthesize event
+    t =    22.34s     Wait for com.novalist.app to idle
+    t =    22.77s Find the "Close" Button
+<temporary-r15-harness>/AuditUITests.swift:26: error: -[AuditUITests.AuditUITests testCleanFixedNestedModal] : XCTAssertTrue failed
+    t =    22.83s Tear Down
+Test Case '-[AuditUITests.AuditUITests testCleanFixedNestedModal]' failed (23.121 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 14:33:27.374.
+	 Executed 1 test, with 1 failure (0 unexpected) in 23.121 (23.123) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 14:33:27.375.
+	 Executed 1 test, with 1 failure (0 unexpected) in 23.121 (23.124) seconds
+Test Suite 'All tests' failed at 2026-10-07 14:33:27.376.
+	 Executed 1 test, with 1 failure (0 unexpected) in 23.121 (23.125) seconds
+2026-10-07 14:33:27.675 xcodebuild[82784:3978874] [MT] IDETestOperationsObserverDebug: 25.946 elapsed -- Testing started completed.
+2026-10-07 14:33:27.675 xcodebuild[82784:3978874] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:33:27.675 xcodebuild[82784:3978874] [MT] IDETestOperationsObserverDebug: 25.946 sec, +25.946 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/11-clean-fixed-matrix.xcresult
+
+Failing tests:
+	AuditUITests.testCleanFixedNestedModal()
+
+** TEST FAILED **
+
+Testing started

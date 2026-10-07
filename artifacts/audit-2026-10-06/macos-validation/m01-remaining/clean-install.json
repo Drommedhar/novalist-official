@@ -1,0 +1,25 @@
+{
+  "app_tree_sha256": "caae2a4887aacc7a9e575d60b20627e0692dd60e95b1fce88093781405a231f4",
+  "devices": [
+    {
+      "simulator": "C9BC7CC6-C48A-431D-9CE0-BEA89C791D81",
+      "install_launch_pass": true,
+      "all_document_files_preserved": true,
+      "document_file_count": 72,
+      "before_after_document_manifest_sha256": "bfa667f78b09357647facaf74b4cb45d3f2d6133773ad693e9f3824443e88cce",
+      "installed_app_tree_matches_clean_build": true,
+      "native_control_directory_removed": true,
+      "container_relocated": true
+    },
+    {
+      "simulator": "4F155C1B-8F9C-4919-8BD7-1CFAD764B61B",
+      "install_launch_pass": true,
+      "all_document_files_preserved": true,
+      "document_file_count": 93,
+      "before_after_document_manifest_sha256": "2ff911ed8b0c38649d5976bd6c21e71332d83baf9127a33b4ba5666af59a5715",
+      "installed_app_tree_matches_clean_build": true,
+      "native_control_directory_removed": true,
+      "container_relocated": true
+    }
+  ]
+}

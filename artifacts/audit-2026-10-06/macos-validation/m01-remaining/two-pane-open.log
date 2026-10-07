@@ -1,0 +1,332 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 13:58:47.416.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 13:58:47.417.
+Test Suite 'AuditUITests' started at 2026-10-07 13:58:47.417.
+Test Case '-[AuditUITests.AuditUITests testOpenRealSplit]' started.
+    t =     0.00s Start Test at 2026-10-07 13:58:47.418
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.03s Setting device orientation to Landscape Left
+    t =     0.06s     Wait for com.novalist.app to idle
+    t =     0.06s     Wait for com.apple.springboard to idle
+    t =     0.07s Waiting 10.0s for TextView (First Match) to exist
+objc[69929]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10a38c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10b0e4310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =     1.08s         Checking existence of `TextView (First Match)`
+    t =     1.11s Tap TextView (First Match)
+    t =     1.11s     Wait for com.novalist.app to idle
+    t =     1.11s     Find the TextView (First Match)
+    t =     1.13s     Check for interrupting elements affecting "
+" TextView
+    t =     1.16s         Wait for com.apple.springboard to idle
+    t =     1.19s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     1.19s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     1.19s     Synthesize event
+    t =     1.48s     Wait for com.novalist.app to idle
+    t =     1.48s Type '→' key (XCUIKeyboardKeyRightArrow) with modifiers '⌘⌥' (0x18)
+    t =     1.48s     Wait for com.novalist.app to idle
+    t =     1.48s     Find the Application 'com.novalist.app'
+    t =     1.50s     Check for interrupting elements affecting "Novalist" Application
+    t =     1.52s         Wait for com.apple.springboard to idle
+    t =     1.53s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     1.53s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     1.53s     Synthesize event
+    t =     1.99s     Wait for com.novalist.app to idle
+M01_SPLIT_KEYBOARD_AX_BEGIN
+    t =     3.60s Requesting snapshot of accessibility hierarchy for app with pid 68195
+    t =     4.15s Requesting snapshot of accessibility hierarchy for app with pid 68195
+Attributes: Application, 0x10ae9c140, pid: 68195, label: 'Novalist'
+Element subtree:
+ →Application, 0x10ae9c140, pid: 68195, label: 'Novalist'
+    Window (Main), 0x10ae9c3c0, {{0.0, 0.0}, {1180.0, 820.0}}
+      Other, 0x10ae9c780, {{0.0, 0.0}, {1180.0, 820.0}}
+      Other, 0x10ae9c8c0, {{0.0, 0.0}, {1180.0, 820.0}}
+        Other, 0x10ae9c640, {{0.0, 0.0}, {1180.0, 820.0}}
+          Other, 0x10ae9c280, {{0.0, 0.0}, {1180.0, 820.0}}
+            Other, 0x10ae9cdc0, {{0.0, 0.0}, {1180.0, 820.0}}
+              WebView, 0x10ae9cf00, {{0.0, 0.0}, {1180.0, 820.0}}
+                WebView, 0x10ae9cc80, {{0.0, 0.0}, {1180.0, 820.0}}
+                  Other, 0x10ae9d040, {{0.0, 0.0}, {1180.0, 820.0}}
+                    Other, 0x10ae9c500, {{0.0, 0.0}, {1180.0, 72.0}}
+                  WebView, 0x10ae9d180, {{0.0, 0.0}, {1180.0, 820.0}}
+                    Other, 0x10ae9d2c0, {{0.0, 0.0}, {1180.0, 820.0}}
+                      Other, 0x10ae9d400, {{0.0, 0.0}, {1180.0, 820.0}}
+                        Other, 0x10ae9d540, {{0.0, 0.0}, {1180.0, 820.0}}
+                          Other, 0x10ae9d680, {{0.0, 0.0}, {1180.0, 820.0}}, label: 'Novalist', Focused
+                            Switch, 0x10ae9d7c0, {{76.0, 40.0}, {34.0, 34.0}}, label: 'Toggle sidebar', value: 0, Focused
+                            Switch, 0x10ae9d900, {{118.0, 40.0}, {34.0, 34.0}}, label: 'Toggle binder', value: 1, Focused
+                            StaticText, 0x10ae9da40, {{160.0, 44.0}, {67.0, 25.0}}, label: 'Editor', value: Editor, Focused
+                            Button, 0x10ae9db80, {{1134.0, 40.0}, {34.0, 34.0}}, label: 'Inspector', Focused
+                            Other, 0x10ae9dcc0, {{64.0, 83.0}, {306.0, 717.0}}, label: 'Navigation', Focused
+                              Button, 0x10ae9de00, {{76.0, 87.0}, {85.0, 33.0}}, label: 'Chapters', Focused
+                              Button, 0x10ae9df40, {{167.0, 87.0}, {96.0, 33.0}}, label: 'Smart Lists', Focused
+                              Button, 0x10ae9e080, {{269.0, 87.0}, {96.0, 33.0}}, label: 'Collections', Focused
+                              Button, 0x10ae9e1c0, {{370.0, 87.0}, {98.0, 33.0}}, label: 'Bookmarks', Focused
+                              Button, 0x10ae9e300, {{64.0, 124.0}, {306.0, 30.0}}, label: 'Which scenes to show', Focused
+                              Button, 0x10ae9e440, {{76.0, 161.0}, {129.0, 46.0}}, label: 'Chapter', Focused
+                              Button, 0x10ae9e580, {{212.0, 161.0}, {120.0, 46.0}}, label: 'Export', Focused
+                              Other, 0x10ae9e6c0, {{76.0, 227.0}, {282.0, 47.0}}, Focused
+                                Button, 0x10ae9e800, {{84.0, 240.0}, {30.0, 21.0}}, label: 'Audit Tablet Chapter', Focused
+                                Button, 0x10ae9e940, {{111.0, 247.0}, {7.0, 7.0}}, label: 'Click to cycle chapter status', Focused
+                                StaticText, 0x10ae9ea80, {{124.0, 241.0}, {140.0, 19.0}}, label: 'Audit Tablet Chapter', value: Audit Tablet Chapter, Focused
+                                Button, 0x10ae9ebc0, {{276.0, 233.0}, {34.0, 35.0}}, label: 'Scene', Focused
+                                Button, 0x10ae9ed00, {{316.0, 233.0}, {34.0, 35.0}}, label: 'Chapters', Focused
+                              Other, 0x10ae9ee40, {{76.0, 273.0}, {282.0, 141.0}}, Focused
+                                Button, 0x10ae9ef80, {{76.0, 273.0}, {248.0, 36.0}}, label: 'Audit Tablet Scene 4', Focused
+                                Button, 0x10ae9f0c0, {{324.0, 273.0}, {34.0, 35.0}}, label: 'Rename Scene', Focused
+                                Button, 0x10ae9f200, {{76.0, 308.0}, {248.0, 36.0}}, label: 'Audit Fixed Manuscript Scene 20261007 5', Focused
+                                Button, 0x10ae9f340, {{324.0, 308.0}, {34.0, 35.0}}, label: 'Rename Scene', Focused
+                                Button, 0x10ae9f480, {{76.0, 343.0}, {248.0, 36.0}}, label: 'Audit M01 Pane A', Focused
+                                Button, 0x10ae9f5c0, {{324.0, 343.0}, {34.0, 35.0}}, label: 'Rename Scene', Focused
+                                Button, 0x10ae9f700, {{76.0, 378.0}, {248.0, 36.0}}, label: 'Audit M01 Pane B', Focused
+                                Button, 0x10ae9f840, {{324.0, 378.0}, {34.0, 35.0}}, label: 'Rename Scene', Focused
+                              Other, 0x10ae9f980, {{76.0, 425.0}, {282.0, 39.0}}, Focused
+                                Button, 0x10ae9fac0, {{76.0, 432.0}, {282.0, 32.0}}, label: 'ARCHIVE', Focused
+                            Other, 0x10ae9fc00, {{377.0, 87.0}, {71.0, 29.0}}, label: 'Editor', Focused
+                            Button, 0x10ae9fd40, {{667.0, 90.0}, {23.0, 23.0}}, label: 'Split pane right', Focused
+                            Button, 0x10ae9fe80, {{693.0, 90.0}, {23.0, 23.0}}, label: 'Split pane down', Focused
+                            Button, 0x10728e580, {{719.0, 90.0}, {23.0, 23.0}}, label: 'Open in its own window', Focused
+                            Button, 0x10a464000, {{745.0, 90.0}, {23.0, 23.0}}, label: 'Close pane', Focused
+                            Other, 0x10a464140, {{383.0, 128.0}, {379.0, 130.0}}, label: 'Komplementär', Focused
+                              Other, 0x10a4666c0, {{397.0, 137.0}, {315.0, 21.0}}, Focused
+                                StaticText, 0x10a464c80, {{397.0, 139.0}, {73.0, 17.0}}, label: 'The editor', value: The editor, Focused
+                              StaticText, 0x10a465180, {{397.0, 164.0}, {297.0, 82.0}}, label: 'Where the prose goes. It saves as you type, so there is nothing to press. Select a few words for the formatting toolbar; right-click for what applies to the word under the pointer.', value: Where the prose go..., Focused
+                              Button, 0x10aeb4000, {{723.0, 137.0}, {26.0, 34.0}}, label: 'Got it', Focused
+                            Other, 0x10aeb4140, {{371.0, 257.0}, {403.0, 543.0}}, label: 'Inhalt', Focused
+                              Other, 0x10aeb4280, {{371.0, 257.0}, {403.0, 30.0}}, Focused
+                                Button, 0x10aeb43c0, {{371.0, 257.0}, {169.0, 29.0}}, label: 'Audit M01 Pane A Close tab', Focused
+                                Button, 0x10aeb4500, {{539.0, 257.0}, {169.0, 29.0}}, label: 'Audit M01 Pane B Close tab', Focused, Selected
+                              Other, 0x10aeb4640, {{371.0, 286.0}, {403.0, 40.0}}, label: 'Editor commands', Focused
+                                Button, 0x10aeb4780, {{383.0, 292.0}, {106.0, 28.0}}, label: 'Paragraph style', value: Body, Focused
+                                  Other, 0x10aeb48c0, {{0.0, 0.0}, {0.0, 0.0}}, Focused
+                                Switch, 0x10aeb4a00, {{499.0, 292.0}, {31.0, 28.0}}, label: 'Bulleted list', value: 0, Focused
+                                Switch, 0x10aeb4b40, {{534.0, 292.0}, {31.0, 28.0}}, label: 'Numbered list', value: 0, Focused
+                                Switch, 0x10aeb4c80, {{569.0, 292.0}, {31.0, 28.0}}, label: 'Align left', value: 1, Focused
+                                Switch, 0x10aeb4dc0, {{604.0, 292.0}, {31.0, 28.0}}, label: 'Centre', value: 0, Focused
+                                Switch, 0x10aeb4f00, {{639.0, 292.0}, {31.0, 28.0}}, label: 'Align right', value: 0, Focused
+                                Switch, 0x10aeb5040, {{674.0, 292.0}, {31.0, 28.0}}, label: 'Justify', value: 0, Focused
+                                Switch, 0x10aeb5180, {{713.0, 292.0}, {31.0, 28.0}}, label: 'Dictate', value: 0, Focused
+                                Button, 0x10aeb52c0, {{748.0, 292.0}, {31.0, 28.0}}, label: 'Scene snapshots', Focused
+                                Switch, 0x10aeb5400, {{783.0, 292.0}, {31.0, 28.0}}, label: 'Suggest edits instead of making them', value: 0, Focused
+                                Button, 0x10aeb5540, {{818.0, 292.0}, {31.0, 28.0}}, label: 'Writing options', Focused
+                              Other, 0x10aeb5680, {{371.0, 326.0}, {403.0, 475.0}}, label: 'editor', Focused
+                                Other, 0x10aeb57c0, {{371.0, 326.0}, {403.0, 473.0}}, Focused
+                                  Other, 0x10aeb5900, {{371.0, 326.0}, {403.0, 473.5}}, label: 'editor', Focused
+                                    TextView, 0x10aeb5a40, {{371.0, 326.0}, {403.0, 1017.0}}, value: 
+, Focused
+                                    Other, 0x10aeb5b80, {{712.0, 762.4}, {14.0, 14.0}}, Focused
+                            Other, 0x10aeb5cc0, {{773.0, 83.0}, {5.0, 717.0}}, label: 'Resize panes', Focused
+                            Other, 0x10aeb5e00, {{783.0, 87.0}, {72.0, 29.0}}, label: 'Editor', Focused
+                            Button, 0x10aeb5f40, {{1074.0, 90.0}, {22.0, 23.0}}, label: 'Split pane right', Focused
+                            Button, 0x10aeb6080, {{1100.0, 90.0}, {22.0, 23.0}}, label: 'Split pane down', Focused
+                            Button, 0x10aeb61c0, {{1126.0, 90.0}, {22.0, 23.0}}, label: 'Open in its own window', Focused
+                            Button, 0x10aeb6300, {{1152.0, 90.0}, {22.0, 23.0}}, label: 'Close pane', Focused
+                            Other, 0x10aeb6440, {{789.0, 128.0}, {379.0, 130.0}}, label: 'Komplementär', Focused
+                              Other, 0x10aeb6580, {{803.0, 137.0}, {315.0, 21.0}}, Focused
+                                StaticText, 0x10aeb66c0, {{803.0, 139.0}, {73.0, 17.0}}, label: 'The editor', value: The editor, Focused
+                              StaticText, 0x10aeb6800, {{803.0, 164.0}, {298.0, 82.0}}, label: 'Where the prose goes. It saves as you type, so there is nothing to press. Select a few words for the formatting toolbar; right-click for what applies to the word under the pointer.', value: Where the prose go..., Focused
+                              Button, 0x10aeb6940, {{1130.0, 137.0}, {25.0, 34.0}}, label: 'Got it', Focused
+                            Other, 0x10aeb6a80, {{777.0, 257.0}, {403.0, 543.0}}, label: 'Inhalt', Focused
+                              Other, 0x10aeb6bc0, {{933.0, 494.0}, {91.0, 39.0}}, label: 'Editor', value: 1, Focused
+                                StaticText, 0x10aeb6d00, {{933.0, 494.0}, {91.0, 39.0}}, label: 'Editor', value: Editor, Focused
+                              Other, 0x10aeb6e40, {{819.0, 537.0}, {320.0, 24.0}}, Focused
+                                StaticText, 0x10aeb6f80, {{819.0, 539.0}, {320.0, 19.0}}, label: 'Choose a scene in the binder to write it here.', value: Choose a scene in ..., Focused
+                  Other, 0x10aeb70c0, {{0.0, 0.0}, {1180.0, 820.0}}
+                    Other, 0x10aeb7200, {{0.0, 0.0}, {1180.0, 72.0}}
+                  Other, 0x10aeb7340, {{1147.0, 25.0}, {30.0, 353.0}}, label: 'Vertical scroll bar, 3 pages', value: 0 %
+                    Other, 0x10aeb7480, {{1174.0, 28.0}, {3.0, 229.0}}
+                  Other, 0x10aeb75c0, {{1147.0, 25.0}, {30.0, 353.0}}, label: 'Vertical scroll bar, 3 pages', value: 0 %
+                    Other, 0x10aeb7700, {{1174.0, 28.0}, {3.0, 229.0}}
+              Other, 0x10aeb7840, {{0.0, 0.0}, {64.0, 820.0}}
+                ScrollView, 0x10aeb7980, {{0.0, 40.0}, {64.0, 752.0}}
+                  Other, 0x10aeb7ac0, {{8.0, 40.0}, {48.0, 734.0}}
+                    Other, 0x10aeb7c00, {{8.0, 40.0}, {48.0, 44.0}}
+                      Image, 0x10aeb7d40, {{21.0, 51.5}, {22.0, 20.5}}, identifier: 'square.grid.2x2', label: 'Grid view'
+                    Other, 0x10aeb7e80, {{8.0, 86.0}, {48.0, 44.0}}, Selected
+                      Image, 0x10aee0000, {{21.0, 95.0}, {22.0, 23.0}}, identifier: 'square.and.pencil', label: 'compose'
+                    Other, 0x10aee0140, {{8.0, 132.0}, {48.0, 44.0}}
+                      Image, 0x10aee0280, {{21.0, 143.5}, {22.0, 20.5}}, identifier: 'rectangle.split.1x2', label: 'Rectangle split one by two'
+                    Other, 0x10aee03c0, {{8.0, 178.0}, {48.0, 8.0}}
+                    Other, 0x10aee0500, {{8.0, 188.0}, {48.0, 1.0}}
+                    Other, 0x10aee0640, {{8.0, 191.0}, {48.0, 8.0}}
+                    Other, 0x10aee0780, {{8.0, 201.0}, {48.0, 44.0}}
+                      Image, 0x10aee08c0, {{21.0, 212.5}, {22.0, 20.5}}, identifier: 'chart.bar.xaxis', label: 'Bar chart with an X axis'
+                    Other, 0x10aee0a00, {{8.0, 247.0}, {48.0, 44.0}}
+                      Image, 0x10aee0b40, {{21.0, 258.5}, {22.0, 20.5}}, identifier: 'tablecells', label: 'table'
+                    Other, 0x10aee0c80, {{8.0, 293.0}, {48.0, 44.0}}
+                      Image, 0x10aee0dc0, {{21.0, 304.5}, {22.0, 20.5}}, identifier: 'calendar', label: 'calendar'
+                    Other, 0x10aee0f00, {{8.0, 339.0}, {48.0, 44.0}}
+                      Image, 0x10aee1040, {{21.0, 351.0}, {22.0, 19.5}}, identifier: 'point.3.connected.trianglepath.dotted', label: 'Three connected points with a dotted triangular path'
+                    Other, 0x10aee1180, {{8.0, 385.0}, {48.0, 8.0}}
+                    Other, 0x10aee12c0, {{8.0, 395.0}, {48.0, 1.0}}
+                    Other, 0x10aee1400, {{8.0, 398.0}, {48.0, 8.0}}
+                    Other, 0x10aee1540, {{8.0, 408.0}, {48.0, 44.0}}
+                      Image, 0x10aee1680, {{21.0, 419.5}, {22.0, 22.0}}, identifier: 'person.2', label: 'Two people'
+                    Other, 0x10aee17c0, {{8.0, 454.0}, {48.0, 44.0}}
+                      Image, 0x10aee1900, {{21.0, 464.5}, {22.0, 23.0}}, identifier: 'newspaper', label: 'Newspaper'
+                    Other, 0x10aee1a40, {{8.0, 500.0}, {48.0, 44.0}}
+                      Image, 0x10aee1b80, {{21.0, 511.0}, {22.0, 21.5}}, identifier: 'map', label: 'show map'
+                    Other, 0x10aee1cc0, {{8.0, 546.0}, {48.0, 44.0}}
+                      Image, 0x10aee1e00, {{21.0, 556.5}, {22.0, 23.0}}, identifier: 'doc.text', label: 'plain text document'
+                    Other, 0x10aee1f40, {{8.0, 592.0}, {48.0, 44.0}}
+                      Image, 0x10aee2080, {{21.0, 603.0}, {22.0, 22.0}}, identifier: 'photo.on.rectangle', label: 'Photo on a rectangle'
+                    Other, 0x10aee21c0, {{8.0, 638.0}, {48.0, 8.0}}
+                    Other, 0x10aee2300, {{8.0, 648.0}, {48.0, 1.0}}
+                    Other, 0x10aee2440, {{8.0, 651.0}, {48.0, 8.0}}
+                    Other, 0x10aee2580, {{8.0, 661.0}, {48.0, 44.0}}
+                      Image, 0x10aee26c0, {{21.0, 672.0}, {22.0, 22.5}}, identifier: 'paperplane', label: 'send'
+                    Other, 0x10aee2800, {{8.0, 707.0}, {48.0, 8.0}}
+                    Other, 0x10aee2940, {{8.0, 717.0}, {48.0, 1.0}}
+                    Other, 0x10aee2a80, {{8.0, 720.0}, {48.0, 8.0}}
+                    Other, 0x10aee2bc0, {{8.0, 730.0}, {48.0, 44.0}}
+                      Image, 0x10aee2d00, {{21.0, 740.5}, {22.0, 23.0}}, identifier: 'gearshape', label: 'Gear shape'
+                  Other, 0x10aee2e40, {{31.0, 40.0}, {30.0, 752.0}}, label: 'Vertical scroll bar, 1 page', value: 0 %
+                    Other, 0x10aee2f80, {{58.0, 1.0}, {3.0, 36.0}}
+                  Other, 0x10aee30c0, {{0.0, 759.0}, {64.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                    Other, 0x10aee3200, {{-39.0, 786.0}, {36.0, 3.0}}
+                  Other, 0x10aee3340, {{31.0, 40.0}, {30.0, 752.0}}, label: 'Vertical scroll bar, 1 page', value: 0 %
+                    Other, 0x10aee3480, {{58.0, 1.0}, {3.0, 36.0}}
+                  Other, 0x10aee35c0, {{0.0, 759.0}, {64.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0 %
+                    Other, 0x10aee3700, {{-39.0, 786.0}, {36.0, 3.0}}
+              Other, 0x10aee3840, {{0.0, 0.0}, {1180.0, 820.0}}
+            Other, 0x10aee3980, {{0.0, 0.0}, {1180.0, 820.0}}
+              Other, 0x10aee3ac0, {{0.0, 0.0}, {1180.0, 820.0}}
+      Other, 0x10aee3c00, {{0.0, 0.0}, {1180.0, 820.0}}
+    Window, 0x10aee3d40, {{0.0, 0.0}, {1180.0, 820.0}}
+      Other, 0x10aee3e80, {{0.0, 0.0}, {1180.0, 820.0}}
+        Other, 0x10aee8000, {{0.0, 0.0}, {1180.0, 820.0}}
+        Other, 0x10aee8140, {{0.0, 398.0}, {1180.0, 422.0}}
+          Other, 0x10aee8280, {{0.0, 398.0}, {1180.0, 422.0}}, identifier: 'inputView'
+      Other, 0x10aee83c0, {{0.0, 0.0}, {1180.0, 820.0}}
+        Other, 0x10aee8500, {{20.0, 32.0}, {83.0, 44.0}}
+          Other, 0x10aee8640, {{20.0, 32.0}, {91.0, 44.0}}
+            Other, 0x10aee8780, {{20.0, 32.0}, {83.0, 44.0}}
+              Other, 0x10aee88c0, {{24.0, 32.0}, {83.0, 44.0}}
+                CollectionView, 0x10aee8a00, {{20.0, 32.0}, {91.0, 44.0}}
+                  MenuItem, 0x10aee8b40, {{24.0, 32.0}, {83.0, 44.0}}, label: 'AutoFill'
+                    Other, 0x10aee8c80, {{40.0, 45.0}, {51.0, 18.0}}
+                      StaticText, 0x10aee8dc0, {{40.0, 45.0}, {51.0, 18.0}}, label: 'AutoFill'
+              Button, 0x10aee8f00, {{-11.0, 36.0}, {36.0, 36.0}}, label: 'Previous Page'
+              Button, 0x10aee9040, {{107.0, 36.0}, {36.0, 36.0}}, label: 'Next Page'
+              Other, 0x10aee9180, {{20.0, 32.0}, {0.0, 0.0}}
+                Other, 0x10aee92c0, {{20.0, 32.0}, {0.0, 0.0}}
+            Other, 0x10aee9400, {{20.0, 32.0}, {91.0, 44.0}}
+              Other, 0x10aee9540, {{20.0, 32.0}, {91.0, 44.0}}
+                Other, 0x10aee9680, {{20.0, 32.0}, {91.0, 44.0}}
+                  Other, 0x10aee97c0, {{20.0, 32.0}, {91.0, 44.0}}
+                    Other, 0x10aee9900, {{20.0, 32.0}, {91.0, 44.0}}
+                      Other, 0x10aee9a40, {{20.0, 32.0}, {91.0, 44.0}}
+                  Other, 0x10aee9b80, {{20.0, 32.0}, {91.0, 44.0}}
+                    Other, 0x10aee9cc0, {{20.0, 32.0}, {91.0, 44.0}}
+    Window, 0x10aee9e00, {{0.0, 0.0}, {1180.0, 820.0}}
+      Other, 0x10aee9f40, {{0.0, 0.0}, {1180.0, 820.0}}
+        Other, 0x10aeea080, {{0.0, 398.0}, {1180.0, 422.0}}
+          Other, 0x10aeea1c0, {{0.0, 398.0}, {1180.0, 55.0}}, identifier: 'inputAssistantView'
+            Other, 0x10aeea300, {{0.0, 398.0}, {1180.0, 55.0}}
+              Other, 0x10aeea440, {{0.0, 398.0}, {178.0, 49.0}}, identifier: 'LeftButtonBar'
+                Other, 0x10aeea580, {{28.0, 398.0}, {150.0, 49.0}}
+                  Other, 0x10aeea6c0, {{28.0, 399.0}, {114.0, 49.0}}
+                    Other, 0x10aeea800, {{28.0, 399.0}, {22.0, 49.0}}
+                      Button, 0x10aeea940, {{28.0, 399.0}, {22.0, 49.0}}, identifier: 'assistantUndo', label: 'undo', Disabled
+                    Other, 0x10aeeaa80, {{74.0, 399.0}, {22.0, 49.0}}
+                      Button, 0x10aeeabc0, {{74.0, 399.0}, {22.0, 49.0}}, identifier: 'assistantRedo', label: 'Redo', Disabled
+                    Other, 0x10aeead00, {{120.0, 399.0}, {22.0, 49.0}}
+                      Button, 0x10aeeae40, {{120.0, 399.0}, {22.0, 49.0}}, identifier: 'assistantPaste:forEvent:', label: 'Paste', Disabled
+              Other, 0x10aeeaf80, {{178.0, 404.0}, {824.0, 49.0}}, identifier: 'CenterPageView'
+                Other, 0x10aeeb0c0, {{178.0, -196.0}, {824.0, 1249.0}}
+                  ScrollView, 0x10aeeb200, {{178.0, 404.0}, {824.0, 49.0}}
+                Other, 0x10aeeb340, {{178.0, 404.0}, {824.0, 49.0}}
+                  Other, 0x10aeeb480, {{178.0, 404.0}, {824.0, 49.0}}
+                    Other, 0x10aeeb5c0, {{178.0, 404.0}, {824.0, 49.0}}, label: 'Typing Predictions'
+                      Other, 0x10aeeb700, {{178.0, 404.0}, {824.0, 49.0}}
+                        Other, 0x10aeeb840, {{178.0, 404.0}, {824.0, 49.0}}
+                          Button, 0x10aeeb980, {{178.0, 404.0}, {274.7, 49.0}}, label: 'Ich'
+                          Button, 0x10aeebac0, {{452.7, 404.0}, {274.7, 49.0}}, label: 'Ja'
+                          Button, 0x10aeebc00, {{727.3, 404.0}, {274.7, 49.0}}, label: 'Das'
+              Other, 0x10aeebd40, {{1002.0, 398.0}, {178.0, 49.0}}, identifier: 'RightButtonBar'
+                Other, 0x10aeebe80, {{1002.0, 398.0}, {150.0, 49.0}}
+                  Other, 0x10aef0000, {{1084.0, 399.0}, {68.0, 49.0}}
+                    Other, 0x10aef0140, {{1084.0, 399.0}, {22.0, 49.0}}
+                      Button, 0x10aef0280, {{1084.0, 399.0}, {22.0, 49.0}}, identifier: '_previousTapped', label: 'go up'
+                    Other, 0x10aef03c0, {{1130.0, 399.0}, {22.0, 49.0}}
+                      Button, 0x10aef0500, {{1130.0, 399.0}, {22.0, 49.0}}, identifier: '_nextTapped', label: 'go down', Disabled
+          Other, 0x10aef0640, {{0.0, 398.0}, {1180.0, 423.0}}
+            Other, 0x10aef0780, {{0.0, 398.0}, {1180.0, 423.0}}
+              Other, 0x10aef08c0, {{0.0, 398.0}, {1180.0, 423.0}}
+          Other, 0x10aef0a00, {{0.0, 453.0}, {1180.0, 364.0}}, identifier: 'inputView'
+            Keyboard, 0x10aef0b40, {{0.0, 453.0}, {1180.0, 364.0}}
+              Other, 0x10aef0c80, {{0.0, 453.0}, {1180.0, 364.0}}
+                Other, 0x10aef0dc0, {{0.0, 453.0}, {1180.0, 364.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Button, 0x10aef0f00, {{12.0, 463.0}, {84.5, 84.5}}, identifier: 'tab', label: 'Tab'
+                  Key, 0x10aef1040, {{96.5, 463.0}, {85.0, 84.5}}, label: 'Q'
+                  Key, 0x10aef1180, {{181.5, 463.0}, {84.5, 84.5}}, label: 'W'
+                  Key, 0x10aef12c0, {{266.0, 463.0}, {84.5, 84.5}}, label: 'E'
+                  Key, 0x10aef1400, {{350.5, 463.0}, {85.0, 84.5}}, label: 'R'
+                  Key, 0x10aef1540, {{435.5, 463.0}, {84.5, 84.5}}, label: 'T'
+                  Key, 0x10aef1680, {{520.0, 463.0}, {84.5, 84.5}}, label: 'Z'
+                  Key, 0x10aef17c0, {{604.5, 463.0}, {84.5, 84.5}}, label: 'U'
+                  Key, 0x10aef1900, {{689.0, 463.0}, {85.0, 84.5}}, label: 'I'
+                  Key, 0x10aef1a40, {{774.0, 463.0}, {84.5, 84.5}}, label: 'O'
+                  Key, 0x10aef1b80, {{858.5, 463.0}, {84.5, 84.5}}, label: 'P'
+                  Key, 0x10aef1cc0, {{943.0, 463.0}, {85.0, 84.5}}, label: 'Ü'
+                  Key, 0x10aef1e00, {{1028.0, 463.0}, {148.0, 84.5}}, identifier: 'delete', label: 'Löschen'
+                  Key, 0x10aef1f40, {{12.0, 547.5}, {110.0, 84.0}}, identifier: 'caps-lock', label: 'Caps Lock'
+                  Key, 0x10aef2080, {{122.0, 547.5}, {84.5, 84.0}}, label: 'A'
+                  Key, 0x10aef21c0, {{206.5, 547.5}, {85.0, 84.0}}, label: 'S'
+                  Key, 0x10aef2300, {{291.5, 547.5}, {84.5, 84.0}}, label: 'D'
+                  Key, 0x10aef2440, {{376.0, 547.5}, {84.5, 84.0}}, label: 'F'
+                  Key, 0x10aef2580, {{460.5, 547.5}, {85.0, 84.0}}, label: 'G'
+                  Key, 0x10aef26c0, {{545.5, 547.5}, {84.5, 84.0}}, label: 'H'
+                  Key, 0x10aef2800, {{630.0, 547.5}, {84.5, 84.0}}, label: 'J'
+                  Key, 0x10aef2940, {{714.5, 547.5}, {85.0, 84.0}}, label: 'K'
+                  Key, 0x10aef2a80, {{799.5, 547.5}, {84.5, 84.0}}, label: 'L'
+                  Key, 0x10aef2bc0, {{884.0, 547.5}, {84.5, 84.0}}, label: 'Ö'
+                  Key, 0x10aef2d00, {{968.5, 547.5}, {85.0, 84.0}}, label: 'Ä'
+                  Button, 0x10aef2e40, {{1053.5, 547.5}, {122.5, 84.0}}, identifier: 'Return', label: 'Return'
+                  Button, 0x10aef2f80, {{12.0, 631.5}, {148.0, 84.5}}, identifier: 'shift', label: 'Umschalt', Selected
+                  Key, 0x10aef30c0, {{160.0, 631.5}, {85.0, 84.5}}, label: 'Y'
+                  Key, 0x10aef3200, {{245.0, 631.5}, {84.5, 84.5}}, label: 'X'
+                  Key, 0x10aef3340, {{329.5, 631.5}, {84.5, 84.5}}, label: 'C'
+                  Key, 0x10aef3480, {{414.0, 631.5}, {85.0, 84.5}}, label: 'V'
+                  Key, 0x10aef35c0, {{499.0, 631.5}, {84.5, 84.5}}, label: 'B'
+                  Key, 0x10aef3700, {{583.5, 631.5}, {84.5, 84.5}}, label: 'N'
+                  Key, 0x10aef3840, {{668.0, 631.5}, {84.5, 84.5}}, label: 'M'
+                  Key, 0x10aef3980, {{752.5, 631.5}, {85.0, 84.5}}, label: ','
+                  Key, 0x10aef3ac0, {{837.5, 631.5}, {84.5, 84.5}}, label: '.'
+                  Key, 0x10aef3c00, {{922.0, 631.5}, {84.5, 84.5}}, label: 'SS'
+                  Key, 0x10aef3d40, {{1006.5, 631.5}, {169.5, 84.5}}, label: 'Umschalt', Selected
+                  Button, 0x10aef3e80, {{12.0, 716.0}, {94.0, 84.0}}, identifier: 'emoji', label: 'Next keyboard', value: English (US)
+                  Key, 0x10aef8000, {{106.0, 716.0}, {94.0, 84.0}}, identifier: 'more', label: 'Zahlen'
+                  Button, 0x10aef8140, {{200.0, 716.0}, {94.0, 84.0}}, identifier: 'dictation', label: 'Diktieren'
+                  Key, 0x10aef8280, {{294.0, 716.0}, {615.0, 84.0}}, label: 'space'
+                  Key, 0x10aef83c0, {{909.0, 716.0}, {133.5, 84.0}}, identifier: 'more', label: 'Zahlen'
+                  Button, 0x10aef8500, {{1042.5, 716.0}, {133.5, 84.0}}, label: 'Hide keyboard'
+Path to element:
+ →Application, 0x10ae9c140, pid: 68195, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x10aef8640, pid: 68195, label: 'Novalist'
+  }
+
+M01_SPLIT_KEYBOARD_AX_END
+    t =     4.21s Tear Down
+Test Case '-[AuditUITests.AuditUITests testOpenRealSplit]' passed (4.216 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 13:58:51.634.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.216 (4.217) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 13:58:51.634.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.216 (4.217) seconds
+Test Suite 'All tests' passed at 2026-10-07 13:58:51.634.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.216 (4.218) seconds
+2026-10-07 13:58:51.918 xcodebuild[69907:3821544] [MT] IDETestOperationsObserverDebug: 6.935 elapsed -- Testing started completed.
+2026-10-07 13:58:51.918 xcodebuild[69907:3821544] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 13:58:51.918 xcodebuild[69907:3821544] [MT] IDETestOperationsObserverDebug: 6.935 sec, +6.935 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/two-pane-open.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

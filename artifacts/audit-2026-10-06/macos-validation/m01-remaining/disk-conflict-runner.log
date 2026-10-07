@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "<audit-scratch>/run-disk-conflict.py", line 34, in <module>
+    waitlog('M01_CONFLICT_READY_GATE');assert js((work/'hold-scene-writes.js').read_text())
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<audit-scratch>/run-disk-conflict.py", line 30, in waitlog
+    if p.poll() is not None or "Test Suite 'All tests' failed" in text:raise RuntimeError('XCTest exited before '+marker)
+                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: XCTest exited before M01_CONFLICT_READY_GATE

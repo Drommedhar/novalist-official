@@ -1,0 +1,9 @@
+{
+  "build_exit_code": 0,
+  "warnings": 15,
+  "strict_deep_codesign": true,
+  "installed_simulator": "C9BC7CC6-C48A-431D-9CE0-BEA89C791D81",
+  "app_tree_sha256": "ed9a4fd75de32b2afeb7f34afbc69b191f7745376ecf3536e0290d76425b582b",
+  "hash_method": "SHA256 compact sorted relative-path:file-SHA256 JSON",
+  "synthetic_documents_backup_complete": true
+}

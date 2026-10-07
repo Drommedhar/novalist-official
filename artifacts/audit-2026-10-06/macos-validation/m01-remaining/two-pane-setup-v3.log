@@ -1,0 +1,102 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 13:57:45.121.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 13:57:45.122.
+Test Suite 'AuditUITests' started at 2026-10-07 13:57:45.122.
+Test Case '-[AuditUITests.AuditUITests testPrepareTwoIndependentPanes]' started.
+    t =     0.00s Start Test at 2026-10-07 13:57:45.125
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Setting device orientation to Landscape Left
+    t =     0.04s     Wait for com.novalist.app to idle
+    t =     0.04s     Wait for com.apple.springboard to idle
+    t =     0.05s Checking existence of `"OK" Button`
+    t =     0.07s Tap "OK" Button
+    t =     0.07s     Wait for com.novalist.app to idle
+    t =     0.07s     Find the "OK" Button
+    t =     0.10s     Check for interrupting elements affecting "OK" Button
+    t =     0.12s         Wait for com.apple.springboard to idle
+    t =     0.14s     Synthesize event
+objc[69698]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10a1ac398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10a428310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.42s     Wait for com.novalist.app to idle
+    t =     0.42s Tap "Scene" Button
+    t =     0.42s     Wait for com.novalist.app to idle
+    t =     0.43s     Find the "Scene" Button
+    t =     0.52s     Check for interrupting elements affecting "Scene" Button
+    t =     0.57s         Wait for com.apple.springboard to idle
+    t =     0.58s     Synthesize event
+    t =     0.87s     Wait for com.novalist.app to idle
+    t =     1.15s Type 'Audit M01 Pane B' into "Enter scene title..." TextField
+    t =     1.15s     Wait for com.novalist.app to idle
+    t =     1.16s     Find the "Enter scene title..." TextField
+    t =     1.19s     Check for interrupting elements affecting "Enter scene title..." TextField
+    t =     1.21s         Wait for com.apple.springboard to idle
+    t =     1.56s     Synthesize event
+    t =     2.03s     Wait for com.novalist.app to idle
+    t =     2.03s Checking existence of `"Hide keyboard" Button`
+    t =     2.05s Tap "OK" Button
+    t =     2.05s     Wait for com.novalist.app to idle
+    t =     2.05s     Find the "OK" Button
+    t =     2.07s     Check for interrupting elements affecting "OK" Button
+    t =     2.09s         Wait for com.apple.springboard to idle
+    t =     2.10s     Synthesize event
+    t =     2.39s     Wait for com.novalist.app to idle
+    t =     2.64s Waiting 10.0s for Button (First Match) to exist
+    t =     3.71s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     3.71s         Checking existence of `Button (First Match)`
+    t =     3.80s Tap Button (First Match)
+    t =     3.80s     Wait for com.novalist.app to idle
+    t =     3.80s     Find the Button (First Match)
+    t =     3.87s     Check for interrupting elements affecting "Audit M01 Pane A" Button
+    t =     3.91s         Wait for com.apple.springboard to idle
+    t =     3.92s     Synthesize event
+    t =     4.20s     Wait for com.novalist.app to idle
+    t =     4.58s Press Button (First Match) for 1.2 seconds
+    t =     4.58s     Wait for com.novalist.app to idle
+    t =     4.59s     Find the Button (First Match)
+    t =     4.63s     Check for interrupting elements affecting "Audit M01 Pane B" Button
+    t =     4.66s         Wait for com.apple.springboard to idle
+    t =     5.01s     Synthesize event
+    t =     6.43s     Wait for com.novalist.app to idle
+    t =     6.85s Waiting 5.0s for "Open in split" Button to exist
+    t =     7.93s     Checking `Expect predicate `existsNoRetry == 1` for object "Open in split" Button`
+    t =     7.93s         Checking existence of `"Open in split" Button`
+    t =     7.97s         Capturing element debug description
+    t =     8.94s     Checking `Expect predicate `existsNoRetry == 1` for object "Open in split" Button`
+    t =     8.94s         Checking existence of `"Open in split" Button`
+    t =     8.98s         Capturing element debug description
+    t =     9.95s     Checking `Expect predicate `existsNoRetry == 1` for object "Open in split" Button`
+    t =     9.95s         Checking existence of `"Open in split" Button`
+    t =     9.99s         Capturing element debug description
+    t =    10.86s     Checking `Expect predicate `existsNoRetry == 1` for object "Open in split" Button`
+    t =    10.86s         Checking existence of `"Open in split" Button`
+    t =    10.91s         Capturing element debug description
+    t =    11.86s     Checking `Expect predicate `existsNoRetry == 1` for object "Open in split" Button`
+    t =    11.86s         Checking existence of `"Open in split" Button`
+    t =    11.89s         Capturing element debug description
+    t =    11.90s     Checking existence of `"Open in split" Button`
+    t =    11.92s Collecting debug information to assist test failure triage
+    t =    11.92s     Requesting snapshot of accessibility hierarchy for app with pid 68195
+<audit-scratch>/ipad-harness/AuditUITests.swift:19: error: -[AuditUITests.AuditUITests testPrepareTwoIndependentPanes] : XCTAssertTrue failed
+    t =    11.99s Tear Down
+Test Case '-[AuditUITests.AuditUITests testPrepareTwoIndependentPanes]' failed (12.032 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 13:57:57.158.
+	 Executed 1 test, with 1 failure (0 unexpected) in 12.032 (12.036) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 13:57:57.158.
+	 Executed 1 test, with 1 failure (0 unexpected) in 12.032 (12.036) seconds
+Test Suite 'All tests' failed at 2026-10-07 13:57:57.158.
+	 Executed 1 test, with 1 failure (0 unexpected) in 12.032 (12.037) seconds
+2026-10-07 13:57:57.449 xcodebuild[69678:3817626] [MT] IDETestOperationsObserverDebug: 14.780 elapsed -- Testing started completed.
+2026-10-07 13:57:57.449 xcodebuild[69678:3817626] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 13:57:57.449 xcodebuild[69678:3817626] [MT] IDETestOperationsObserverDebug: 14.780 sec, +14.780 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/two-pane-setup-v3.xcresult
+
+Failing tests:
+	AuditUITests.testPrepareTwoIndependentPanes()
+
+** TEST FAILED **
+
+Testing started

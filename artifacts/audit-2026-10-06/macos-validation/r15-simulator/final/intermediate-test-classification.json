@@ -1,0 +1,56 @@
+{
+  "14-final-nested-return": {
+    "exit": 65,
+    "classification": "test-expectation failure",
+    "detail": "The restored input received trusted q; iOS auto-capitalized its value to Q. Delayed DOM activeElement remained the invoking To-do input."
+  },
+  "15-final-nested-return-digit": {
+    "exit": 65,
+    "classification": "test-input limitation",
+    "detail": "XCTest typeKey Delete emitted no DOM key event and did not clear Q; trusted digit 7 was delivered to the restored input, resulting in Q7."
+  },
+  "16-final-nested-return-trusted-digit": {
+    "exit": 0,
+    "classification": "pass",
+    "detail": "Asserts the restored invoking input has native focus and contains Q7 from the two actual delivered keys, with the nested palette closed. No task was submitted."
+  },
+  "browser-field-before.log": {
+    "excluded": true,
+    "reason": "Earlier harness timing failure, not evidence of product behavior."
+  },
+  "11-clean-fixed-matrix": {
+    "exit": 65,
+    "classification": "fixed-count navigation assertion failed before nested regression",
+    "detail": "Five native Shift-Tab inputs ended at the optional List field, not Close. Preserved exact run; replaced fixed count with bounded endpoint navigation in variant18. No nested fix pass inferred from this run."
+  },
+  "17-clean-tab-diagnostic": {
+    "exit": 0,
+    "classification": "observation only",
+    "detail": "Actual native backward Tab traversal cycles through both inputs and a non-text-input state; accessibility focus can be inherited by multiple elements. This does not replace DOM focus evidence for final nested return."
+  },
+  "18-clean-fixed-matrix": {
+    "exit": 65,
+    "classification": "landscape dismissal under investigation",
+    "detail": "Two portrait nested cycles and first landscape cycle passed. Second landscape scrim tap closed the palette but selected underlying Context, removing To-do input. Clean native source and exact tests preserved; follow-up trusted pointer observation required."
+  },
+  "21-pointer-observer-cycles": {
+    "exit": 0,
+    "classification": "native event diagnosis",
+    "detail": "Two genuine landscape scrim touches: trusted pointerdown targeted overlay, closed palette before release, pointerup targeted HTML; no click events and no Context activation in this observer repetition."
+  },
+  "22-targeted-scrim-open": {
+    "exit": 65,
+    "classification": "test-input limitation",
+    "detail": "XCTest could not tap offscreen To-do tab after keyboard changed visual viewport offset."
+  },
+  "23-targeted-scrim-open": {
+    "exit": 0,
+    "classification": "setup",
+    "detail": "Opened palette directly from current focused To-do input via actual Cmd-Shift-P."
+  },
+  "24-targeted-scrim-tap": {
+    "exit": 0,
+    "classification": "no delivered DOM input",
+    "detail": "Absolute-offset native tap emitted no pointer event and left palette open. This does not prove native click-through."
+  }
+}

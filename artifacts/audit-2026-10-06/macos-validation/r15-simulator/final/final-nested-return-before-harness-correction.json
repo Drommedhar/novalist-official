@@ -1,0 +1,2295 @@
+{
+  "active": {
+    "tag": "INPUT",
+    "id": "",
+    "classes": "dialog-input",
+    "role": null,
+    "label": null,
+    "placeholder": "What needs doing",
+    "inert": false,
+    "sheet": true
+  },
+  "events": [
+    {
+      "type": "click",
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "BUTTON",
+        "id": "",
+        "classes": "mobile-sheet-tab",
+        "role": null,
+        "label": null,
+        "placeholder": null,
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "BODY",
+        "id": "",
+        "classes": "",
+        "role": null,
+        "label": null,
+        "placeholder": null,
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "BODY",
+        "id": "",
+        "classes": "",
+        "role": null,
+        "label": null,
+        "placeholder": null,
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "focusin",
+      "trusted": true,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "keydown",
+      "key": "p",
+      "code": "KeyP",
+      "keyCode": 80,
+      "trusted": true,
+      "shift": true,
+      "meta": true,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": true,
+      "dialogs": 2
+    },
+    {
+      "type": "focusin",
+      "trusted": true,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "r",
+      "code": "KeyR",
+      "keyCode": 82,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "1",
+      "code": "Digit1",
+      "keyCode": 49,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "r",
+      "code": "KeyR",
+      "keyCode": 82,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "5",
+      "code": "Digit5",
+      "keyCode": 53,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "n",
+      "code": "KeyN",
+      "keyCode": 78,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "1",
+      "code": "Digit1",
+      "keyCode": 49,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "5",
+      "code": "Digit5",
+      "keyCode": 53,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "Shift",
+      "code": "ShiftLeft",
+      "keyCode": 16,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "n",
+      "code": "KeyN",
+      "keyCode": 78,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "o",
+      "code": "KeyO",
+      "keyCode": 79,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "o",
+      "code": "KeyO",
+      "keyCode": 79,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "m",
+      "code": "KeyM",
+      "keyCode": 77,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "m",
+      "code": "KeyM",
+      "keyCode": 77,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "a",
+      "code": "KeyA",
+      "keyCode": 65,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "a",
+      "code": "KeyA",
+      "keyCode": 65,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "t",
+      "code": "KeyT",
+      "keyCode": 84,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "t",
+      "code": "KeyT",
+      "keyCode": 84,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "c",
+      "code": "KeyC",
+      "keyCode": 67,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "c",
+      "code": "KeyC",
+      "keyCode": 67,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "h",
+      "code": "KeyH",
+      "keyCode": 72,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "h",
+      "code": "KeyH",
+      "keyCode": 72,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "i",
+      "code": "KeyI",
+      "keyCode": 73,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "i",
+      "code": "KeyI",
+      "keyCode": 73,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "n",
+      "code": "KeyN",
+      "keyCode": 78,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "n",
+      "code": "KeyN",
+      "keyCode": 78,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "g",
+      "code": "KeyG",
+      "keyCode": 71,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "g",
+      "code": "KeyG",
+      "keyCode": 71,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "c",
+      "code": "KeyC",
+      "keyCode": 67,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "c",
+      "code": "KeyC",
+      "keyCode": 67,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "o",
+      "code": "KeyO",
+      "keyCode": 79,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "o",
+      "code": "KeyO",
+      "keyCode": 79,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "m",
+      "code": "KeyM",
+      "keyCode": 77,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "m",
+      "code": "KeyM",
+      "keyCode": 77,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "m",
+      "code": "KeyM",
+      "keyCode": 77,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "m",
+      "code": "KeyM",
+      "keyCode": 77,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "a",
+      "code": "KeyA",
+      "keyCode": 65,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "a",
+      "code": "KeyA",
+      "keyCode": 65,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "n",
+      "code": "KeyN",
+      "keyCode": 78,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "n",
+      "code": "KeyN",
+      "keyCode": 78,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "d",
+      "code": "KeyD",
+      "keyCode": 68,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "d",
+      "code": "KeyD",
+      "keyCode": 68,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "Shift",
+      "code": "ShiftLeft",
+      "keyCode": 16,
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "Tab",
+      "code": "Tab",
+      "keyCode": 9,
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": true,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "Tab",
+      "code": "Tab",
+      "keyCode": 9,
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "Shift",
+      "code": "ShiftLeft",
+      "keyCode": 16,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keydown",
+      "key": "Tab",
+      "code": "Tab",
+      "keyCode": 9,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": true,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "Tab",
+      "code": "Tab",
+      "keyCode": 9,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "keyup",
+      "key": "Shift",
+      "code": "ShiftLeft",
+      "keyCode": 16,
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 2
+    },
+    {
+      "type": "focusin",
+      "trusted": true,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "keydown",
+      "key": "q",
+      "code": "KeyQ",
+      "keyCode": 81,
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "keyup",
+      "key": "q",
+      "code": "KeyQ",
+      "keyCode": 81,
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    }
+  ],
+  "dialogs": [
+    {
+      "label": null,
+      "inert": false
+    }
+  ]
+}

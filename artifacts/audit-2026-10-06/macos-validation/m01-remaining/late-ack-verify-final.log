@@ -1,0 +1,55 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 13:52:58.535.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 13:52:58.535.
+Test Suite 'AuditUITests' started at 2026-10-07 13:52:58.535.
+Test Case '-[AuditUITests.AuditUITests testVerifyAutomaticallyRecoveredScene]' started.
+    t =     0.00s Start Test at 2026-10-07 13:52:58.539
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.04s Waiting 10.0s for TextView (First Match) to exist
+objc[68337]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10a1e0398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10a318310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.10s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =     1.11s         Checking existence of `TextView (First Match)`
+    t =     1.12s Find the TextView (First Match)
+    t =     1.14s Tap "Manuscript" Button
+    t =     1.14s     Wait for com.novalist.app to idle
+    t =     1.14s     Find the "Manuscript" Button
+    t =     1.15s     Check for interrupting elements affecting "Manuscript" Button
+    t =     1.17s     Synthesize event
+    t =     1.46s     Wait for com.novalist.app to idle
+    t =     1.46s Waiting 10.0s for Button (First Match) to exist
+    t =     2.48s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     2.48s         Checking existence of `Button (First Match)`
+    t =     2.51s Tap Button (First Match)
+    t =     2.51s     Wait for com.novalist.app to idle
+    t =     2.51s     Find the Button (First Match)
+    t =     2.54s     Check for interrupting elements affecting "Audit M01 late acknowledgement A 1" Button
+    t =     2.56s     Synthesize event
+    t =     2.85s     Wait for com.novalist.app to idle
+    t =     2.86s Waiting 10.0s for "M01OLDA26M01NEWB26" TextView to exist
+    t =     3.93s     Checking `Expect predicate `existsNoRetry == 1` for object "M01OLDA26M01NEWB26" TextView`
+    t =     3.93s         Checking existence of `"M01OLDA26M01NEWB26" TextView`
+    t =     3.94s Find the "M01OLDA26M01NEWB26" TextView
+M01_AUTOMATIC_RECOVERY_EXACT_SCENE_VERIFIED
+    t =     3.96s Find the Application 'com.novalist.app'
+    t =     4.04s Added attachment named 'late-ack-recovered-scene'
+    t =     4.04s Tear Down
+Test Case '-[AuditUITests.AuditUITests testVerifyAutomaticallyRecoveredScene]' passed (4.055 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 13:53:02.593.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.055 (4.058) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 13:53:02.594.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.055 (4.058) seconds
+Test Suite 'All tests' passed at 2026-10-07 13:53:02.594.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.055 (4.059) seconds
+2026-10-07 13:53:02.881 xcodebuild[68318:3799824] [MT] IDETestOperationsObserverDebug: 9.083 elapsed -- Testing started completed.
+2026-10-07 13:53:02.881 xcodebuild[68318:3799824] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 13:53:02.881 xcodebuild[68318:3799824] [MT] IDETestOperationsObserverDebug: 9.083 sec, +9.083 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/late-ack-verify-final.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

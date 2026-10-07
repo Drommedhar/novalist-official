@@ -1,0 +1,138 @@
+Test Suite 'All tests' started at 2026-10-07 14:39:43.044.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:39:43.044.
+Test Suite 'AuditUITests' started at 2026-10-07 14:39:43.045.
+Test Case '-[AuditUITests.AuditUITests testObserveNativePointerDismissal]' started.
+    t =     0.00s Start Test at 2026-10-07 14:39:43.049
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.04s Type 'p' key with modifiers '⌘⇧' (0x12)
+    t =     0.04s     Wait for com.novalist.app to idle
+    t =     0.04s     Find the Application 'com.novalist.app'
+    t =     0.05s     Check for interrupting elements affecting "Novalist" Application
+    t =     0.07s     Synthesize event
+    t =     0.43s     Wait for com.novalist.app to idle
+objc[84077]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10a9e8398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10aadc310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.77s Waiting 5.0s for Any (First Match) to exist
+    t =     1.79s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =     1.79s         Checking existence of `Any (First Match)`
+    t =     1.86s Checking existence of `"What needs doing" TextField`
+    t =     1.90s Checking existence of `"Close" Button`
+    t =     1.93s Type 'r15nomatchingcomma...' into Application 'com.novalist.app'
+    t =     1.93s     Wait for com.novalist.app to idle
+    t =     1.93s     Find the Application 'com.novalist.app'
+    t =     1.96s     Check for interrupting elements affecting "Novalist" Application
+    t =     1.98s     Synthesize event
+    t =     2.54s     Wait for com.novalist.app to idle
+    t =     2.54s Waiting 5.0s for "No matching commands." StaticText to exist
+    t =     3.61s     Checking `Expect predicate `existsNoRetry == 1` for object "No matching commands." StaticText`
+    t =     3.61s         Checking existence of `"No matching commands." StaticText`
+    t =     3.63s Type '⇥' key (XCUIKeyboardKeyTab) with no modifiers
+    t =     3.63s     Wait for com.novalist.app to idle
+    t =     3.94s     Find the Application 'com.novalist.app'
+    t =     3.96s     Check for interrupting elements affecting "Novalist" Application
+    t =     3.97s     Synthesize event
+    t =     4.33s     Wait for com.novalist.app to idle
+    t =     4.77s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     4.77s     Wait for com.novalist.app to idle
+    t =     4.78s     Find the Application 'com.novalist.app'
+    t =     4.79s     Check for interrupting elements affecting "Novalist" Application
+    t =     4.81s     Synthesize event
+    t =     5.17s     Wait for com.novalist.app to idle
+    t =     5.70s Added attachment named 'fixed-clean-landscape-pointer-0'
+    t =     5.70s Tap Application 'com.novalist.app'[0.02, 0.25]
+    t =     5.70s     Wait for com.novalist.app to idle
+    t =     5.70s     Find the Application 'com.novalist.app'
+    t =     5.71s     Check for interrupting elements affecting "Novalist" Application
+    t =     5.73s     Synthesize event
+    t =     5.73s         Find the Application 'com.novalist.app'
+    t =     5.74s         Find the Application 'com.novalist.app'
+    t =     5.75s         Find the Application 'com.novalist.app'
+    t =     6.05s     Wait for com.novalist.app to idle
+    t =     6.07s Waiting 5.0s for "What needs doing" TextField to exist
+    t =     7.15s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =     7.15s         Checking existence of `"What needs doing" TextField`
+    t =     7.18s Find the "What needs doing" TextField
+    t =     7.20s Checking existence of `"No matching commands." StaticText`
+    t =     8.23s Type '7' key with no modifiers
+    t =     8.23s     Wait for com.novalist.app to idle
+    t =     8.23s     Find the Application 'com.novalist.app'
+    t =     8.24s     Check for interrupting elements affecting "Novalist" Application
+    t =     8.26s     Synthesize event
+    t =     8.61s     Wait for com.novalist.app to idle
+    t =     9.08s Find the "What needs doing" TextField
+R15_CLEAN_FIXED_landscape-pointer_NESTED_0_PASS
+    t =     9.11s Type 'p' key with modifiers '⌘⇧' (0x12)
+    t =     9.11s     Wait for com.novalist.app to idle
+    t =     9.11s     Find the Application 'com.novalist.app'
+    t =     9.12s     Check for interrupting elements affecting "Novalist" Application
+    t =     9.14s     Synthesize event
+    t =     9.50s     Wait for com.novalist.app to idle
+    t =     9.95s Waiting 5.0s for Any (First Match) to exist
+    t =    11.03s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =    11.03s         Checking existence of `Any (First Match)`
+    t =    11.10s Checking existence of `"What needs doing" TextField`
+    t =    11.14s Checking existence of `"Close" Button`
+    t =    11.17s Type 'r15nomatchingcomma...' into Application 'com.novalist.app'
+    t =    11.17s     Wait for com.novalist.app to idle
+    t =    11.17s     Find the Application 'com.novalist.app'
+    t =    11.19s     Check for interrupting elements affecting "Novalist" Application
+    t =    11.21s     Synthesize event
+    t =    11.75s     Wait for com.novalist.app to idle
+    t =    11.75s Waiting 5.0s for "No matching commands." StaticText to exist
+    t =    12.83s     Checking `Expect predicate `existsNoRetry == 1` for object "No matching commands." StaticText`
+    t =    12.83s         Checking existence of `"No matching commands." StaticText`
+    t =    12.85s Type '⇥' key (XCUIKeyboardKeyTab) with no modifiers
+    t =    12.85s     Wait for com.novalist.app to idle
+    t =    13.17s     Find the Application 'com.novalist.app'
+    t =    13.19s     Check for interrupting elements affecting "Novalist" Application
+    t =    13.21s     Synthesize event
+    t =    13.56s     Wait for com.novalist.app to idle
+    t =    14.01s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    14.01s     Wait for com.novalist.app to idle
+    t =    14.01s     Find the Application 'com.novalist.app'
+    t =    14.03s     Check for interrupting elements affecting "Novalist" Application
+    t =    14.05s     Synthesize event
+    t =    14.41s     Wait for com.novalist.app to idle
+    t =    14.83s Added attachment named 'fixed-clean-landscape-pointer-1'
+    t =    14.83s Tap Application 'com.novalist.app'[0.02, 0.25]
+    t =    14.83s     Wait for com.novalist.app to idle
+    t =    14.83s     Find the Application 'com.novalist.app'
+    t =    14.84s     Check for interrupting elements affecting "Novalist" Application
+    t =    14.86s     Synthesize event
+    t =    14.86s         Find the Application 'com.novalist.app'
+    t =    14.87s         Find the Application 'com.novalist.app'
+    t =    14.88s         Find the Application 'com.novalist.app'
+    t =    15.17s     Wait for com.novalist.app to idle
+    t =    15.19s Waiting 5.0s for "What needs doing" TextField to exist
+    t =    16.26s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =    16.26s         Checking existence of `"What needs doing" TextField`
+    t =    16.29s Find the "What needs doing" TextField
+    t =    16.31s Checking existence of `"No matching commands." StaticText`
+    t =    17.33s Type '7' key with no modifiers
+    t =    17.33s     Wait for com.novalist.app to idle
+    t =    17.33s     Find the Application 'com.novalist.app'
+    t =    17.35s     Check for interrupting elements affecting "Novalist" Application
+    t =    17.37s     Synthesize event
+    t =    17.72s     Wait for com.novalist.app to idle
+    t =    18.09s Find the "What needs doing" TextField
+R15_CLEAN_FIXED_landscape-pointer_NESTED_1_PASS
+    t =    18.12s Tear Down
+Test Case '-[AuditUITests.AuditUITests testObserveNativePointerDismissal]' passed (18.162 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 14:40:01.210.
+	 Executed 1 test, with 0 failures (0 unexpected) in 18.162 (18.166) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 14:40:01.211.
+	 Executed 1 test, with 0 failures (0 unexpected) in 18.162 (18.166) seconds
+Test Suite 'All tests' passed at 2026-10-07 14:40:01.211.
+	 Executed 1 test, with 0 failures (0 unexpected) in 18.162 (18.167) seconds
+2026-10-07 14:40:01.502 xcodebuild[84060:3998508] [MT] IDETestOperationsObserverDebug: 20.954 elapsed -- Testing started completed.
+2026-10-07 14:40:01.502 xcodebuild[84060:3998508] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:40:01.502 xcodebuild[84060:3998508] [MT] IDETestOperationsObserverDebug: 20.954 sec, +20.954 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/21-pointer-observer-cycles.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

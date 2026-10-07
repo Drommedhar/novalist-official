@@ -1,0 +1,45 @@
+
+Running 1 test using 1 worker
+
+(node:71117) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 e2e/audit-renderer-regressions.spec.ts:270:5 › the mobile inspector traps focus through nested palettes and restores its trigger (6.7s)
+
+
+  1) e2e/audit-renderer-regressions.spec.ts:270:5 › the mobile inspector traps focus through nested palettes and restores its trigger 
+
+    Error: expect(locator).toBeFocused() failed
+
+    Locator:  locator('.palette-card').getByRole('combobox')
+    Expected: focused
+    Received: inactive
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeFocused" with timeout 5000ms
+      - waiting for locator('.palette-card').getByRole('combobox')
+        14 × locator resolved to <input value="" role="combobox" aria-expanded="true" class="dialog-input" aria-controls="_r_5_" aria-activedescendant="_r_5_-0" aria-label="Type a command name..." placeholder="Type a command name..."/>
+           - unexpected value "inactive"
+
+
+      295 |       const palette = h.page.locator('.palette-card')
+      296 |       await expect(palette).toBeVisible()
+    > 297 |       await expect(palette.getByRole('combobox')).toBeFocused()
+          |                                                   ^
+      298 |       expect(await sheet.evaluate((element) => !!element.closest('[inert]'))).toBe(true)
+      299 |       await h.page.keyboard.press('Escape')
+      300 |       await expect(palette).toHaveCount(0)
+        at <repository>/app/e2e/audit-renderer-regressions.spec.ts:297:51
+
+    Error Context: test-results/audit-renderer-regressions-23b35-es-and-restores-its-trigger/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/audit-renderer-regressions-23b35-es-and-restores-its-trigger/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/audit-renderer-regressions-23b35-es-and-restores-its-trigger/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    e2e/audit-renderer-regressions.spec.ts:270:5 › the mobile inspector traps focus through nested palettes and restores its trigger 

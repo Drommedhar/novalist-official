@@ -1,0 +1,7 @@
+{
+  "revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+  "clean_root_at_snapshot": true,
+  "production_input_count": 1314,
+  "renderer": "Byte-identical current main generated mobile assets copied; no renderer source changes.",
+  "instrumentation": "Disposable native control only plus content-free lifecycle request/background-task/ack event recording."
+}

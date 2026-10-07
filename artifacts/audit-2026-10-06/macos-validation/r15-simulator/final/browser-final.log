@@ -1,0 +1,10 @@
+
+Running 3 tests using 1 worker
+
+(node:78082) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/audit-renderer-regressions.spec.ts:164:5 › palette keyboard navigation scrolls selected results and restores focus (2.3s)
+  ✓  2 e2e/audit-renderer-regressions.spec.ts:270:5 › the mobile inspector traps focus through nested palettes and restores its trigger (2.1s)
+  ✓  3 e2e/overlay-motion.spec.ts:47:5 › a snapshot label prompt exits without closing or disabling its parent dialog (1.8s)
+
+  3 passed (6.4s)

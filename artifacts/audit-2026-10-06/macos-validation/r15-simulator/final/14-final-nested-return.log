@@ -1,0 +1,57 @@
+Test Suite 'All tests' started at 2026-10-07 14:27:19.434.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:27:19.434.
+Test Suite 'AuditUITests' started at 2026-10-07 14:27:19.434.
+Test Case '-[AuditUITests.AuditUITests testFixedNativeNestedReturn]' started.
+    t =     0.00s Start Test at 2026-10-07 14:27:19.436
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Waiting 5.0s for "No matching commands." StaticText to exist
+objc[81489]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x108140398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x108278310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object "No matching commands." StaticText`
+    t =     1.08s         Checking existence of `"No matching commands." StaticText`
+    t =     1.10s Tap Application 'com.novalist.app'[0.02, 0.25]
+    t =     1.10s     Wait for com.novalist.app to idle
+    t =     1.10s     Find the Application 'com.novalist.app'
+    t =     1.11s     Check for interrupting elements affecting "Novalist" Application
+    t =     1.12s     Synthesize event
+    t =     1.12s         Find the Application 'com.novalist.app'
+    t =     1.13s         Find the Application 'com.novalist.app'
+    t =     1.15s         Find the Application 'com.novalist.app'
+    t =     1.44s     Wait for com.novalist.app to idle
+    t =     1.48s Waiting 5.0s for "What needs doing" TextField to exist
+    t =     2.54s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =     2.54s         Checking existence of `"What needs doing" TextField`
+    t =     2.57s Find the "What needs doing" TextField
+    t =     2.60s Checking existence of `"No matching commands." StaticText`
+    t =     2.61s Checking existence of `"Close" Button`
+    t =     3.64s Type 'q' key with no modifiers
+    t =     3.64s     Wait for com.novalist.app to idle
+    t =     3.65s     Find the Application 'com.novalist.app'
+    t =     3.67s     Check for interrupting elements affecting "Novalist" Application
+    t =     3.70s     Synthesize event
+    t =     4.04s     Wait for com.novalist.app to idle
+    t =     4.50s Find the "What needs doing" TextField
+<temporary-r15-harness>/AuditUITests.swift:15: error: -[AuditUITests.AuditUITests testFixedNativeNestedReturn] : XCTAssertEqual failed: ("Optional("Q")") is not equal to ("Optional("q")")
+    t =     4.69s Tear Down
+Test Case '-[AuditUITests.AuditUITests testFixedNativeNestedReturn]' failed (4.722 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 14:27:24.158.
+	 Executed 1 test, with 1 failure (0 unexpected) in 4.722 (4.724) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 14:27:24.158.
+	 Executed 1 test, with 1 failure (0 unexpected) in 4.722 (4.724) seconds
+Test Suite 'All tests' failed at 2026-10-07 14:27:24.159.
+	 Executed 1 test, with 1 failure (0 unexpected) in 4.722 (4.725) seconds
+2026-10-07 14:27:24.449 xcodebuild[81472:3962441] [MT] IDETestOperationsObserverDebug: 7.442 elapsed -- Testing started completed.
+2026-10-07 14:27:24.449 xcodebuild[81472:3962441] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:27:24.449 xcodebuild[81472:3962441] [MT] IDETestOperationsObserverDebug: 7.442 sec, +7.442 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/14-final-nested-return.xcresult
+
+Failing tests:
+	AuditUITests.testFixedNativeNestedReturn()
+
+** TEST FAILED **
+
+Testing started

@@ -1,0 +1,219 @@
+{
+  "dialogs": [
+    [
+      {
+        "tag": "DIV",
+        "classes": "mobile-sheet",
+        "inert": false,
+        "role": "dialog",
+        "presence": null
+      },
+      {
+        "tag": "DIV",
+        "classes": "mobile-sheet-overlay",
+        "inert": false,
+        "role": null,
+        "presence": null
+      },
+      {
+        "tag": "DIV",
+        "classes": "mobile-shell",
+        "inert": false,
+        "role": null,
+        "presence": null
+      },
+      {
+        "tag": "DIV",
+        "classes": "shell-body",
+        "inert": true,
+        "role": null,
+        "presence": null
+      },
+      {
+        "tag": "DIV",
+        "classes": "shell shell-capacity-compact mobile",
+        "inert": false,
+        "role": null,
+        "presence": null
+      },
+      {
+        "tag": "DIV",
+        "classes": "",
+        "inert": false,
+        "role": null,
+        "presence": null
+      },
+      {
+        "tag": "BODY",
+        "classes": "",
+        "inert": false,
+        "role": null,
+        "presence": null
+      },
+      {
+        "tag": "HTML",
+        "classes": "",
+        "inert": false,
+        "role": null,
+        "presence": null
+      }
+    ],
+    [
+      {
+        "tag": "DIV",
+        "classes": "dialog-card palette-card",
+        "inert": false,
+        "role": "dialog",
+        "presence": null
+      },
+      {
+        "tag": "DIV",
+        "classes": "dialog-overlay palette-overlay",
+        "inert": false,
+        "role": null,
+        "presence": null
+      },
+      {
+        "tag": "DIV",
+        "classes": "motion-presence",
+        "inert": true,
+        "role": null,
+        "presence": "open"
+      },
+      {
+        "tag": "DIV",
+        "classes": "shell shell-capacity-compact mobile",
+        "inert": false,
+        "role": null,
+        "presence": null
+      },
+      {
+        "tag": "DIV",
+        "classes": "",
+        "inert": false,
+        "role": null,
+        "presence": null
+      },
+      {
+        "tag": "BODY",
+        "classes": "",
+        "inert": false,
+        "role": null,
+        "presence": null
+      },
+      {
+        "tag": "HTML",
+        "classes": "",
+        "inert": false,
+        "role": null,
+        "presence": null
+      }
+    ]
+  ],
+  "focused": [
+    {
+      "tag": "BODY",
+      "classes": "",
+      "inert": false,
+      "role": null,
+      "presence": null
+    },
+    {
+      "tag": "HTML",
+      "classes": "",
+      "inert": false,
+      "role": null,
+      "presence": null
+    }
+  ],
+  "inert": [
+    {
+      "tag": "HEAD",
+      "classes": ""
+    },
+    {
+      "tag": "DIV",
+      "classes": "shell-body"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    },
+    {
+      "tag": "DIV",
+      "classes": "motion-presence"
+    }
+  ],
+  "state": {
+    "projectLoaded": true,
+    "commandPaletteOpen": true
+  }
+}

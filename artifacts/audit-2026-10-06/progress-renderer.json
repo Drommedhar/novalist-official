@@ -224,15 +224,20 @@
     {
       "id": "R15",
       "status": "implemented-validation-limited",
-      "summary": "Mobile inspector sheet has a named modal dialog contract and uses shared focus containment/return.",
+      "summary": "Mobile inspector sheets use named dialogs and shared focus containment. Nested palettes preserve active-layer interactivity and invoking-field focus; scrim dismissal waits for pointer release.",
       "files": [
         "app/src/renderer/src/shell/MobileSheet.tsx",
-        "app/src/renderer/src/shell/modalFocus.ts"
+        "app/src/renderer/src/shell/modalFocus.ts",
+        "app/src/renderer/src/shell/CommandPalette.tsx",
+        "app/e2e/audit-renderer-regressions.spec.ts",
+        "artifacts/audit-2026-10-06/macos-validation/r15-simulator/summary.json"
       ],
       "tests": [
-        "audit-renderer-regressions.spec.ts forced-mobile inspector: named modal, focused Close control, Shift+Tab containment, inert background, Escape and trigger focus return passed"
+        "audit-renderer-regressions.spec.ts forced-mobile inspector: named modal, focused Close control, Shift+Tab containment, inert background, Escape and trigger focus return passed",
+        "Native iPhone 17 Pro simulator/iOS 27.0: the clean final app passed two nested palette open/dismiss/typing cycles in each orientation, inspector containment/dismissal and relaunch. The palette stays usable above the inert inspector and scrim dismissal restores the exact invoking To-do input. Earlier native traces and browser failures identify stale inert state, early autofocus registration and premature scrim removal; the final browser regression keeps the covered Context tab blocked until pointer release. Evidence: macos-validation/r15-simulator/summary.json. XCTest animation waits delayed the final run; this is not a performance measurement.",
+        "Three focused Electron regressions passed: palette selection scrolling/focus return, mobile inspector nested palettes with Escape and covered-tab pointer release, and desktop nested snapshot dialogs. Desktop/mobile builds, typecheck, eight source gates and scoped Aislop (100, zero findings) passed at the final source patch."
       ],
-      "pending": "Physical iPhone VoiceOver and iPad hardware-keyboard acceptance is deferred by the current simulator-only direction; nested dialogs, focus return and both orientations remain required."
+      "pending": "Physical iPhone VoiceOver and iPad hardware-keyboard acceptance, including native Escape and focus return in both orientations, remains deferred. XCTest Escape/Return did not emit DOM key events in the recorded iPhone simulator checks. The native pass covers XCTest navigation, nested scrim dismissal and invoking-field return; browser Escape and outer-trigger return are separate evidence."
     },
     {
       "id": "R16",
@@ -291,7 +296,11 @@
       "files": [
         "app/build/manual-plugin.ts",
         "artifacts/audit-2026-10-06/macos-validation/offline-help.json",
-        "artifacts/audit-2026-10-06/macos-validation/p01-native-pair/summary.json"
+        "artifacts/audit-2026-10-06/macos-validation/p01-native-pair/summary.json",
+        "artifacts/audit-2026-10-06/macos-validation/p01-refreshed-help/summary.json",
+        "artifacts/audit-2026-10-06/macos-validation/p01-refreshed-help/refreshed-image-hashes.json",
+        "artifacts/audit-2026-10-06/macos-validation/p01-refreshed-help/desktop-offline-help.json",
+        "artifacts/audit-2026-10-06/macos-validation/p01-refreshed-help/native-help.json"
       ],
       "tests": [
         "Desktop and mobile builds passed; final mobile entry 3,475.34 kB / gzip 1,115.55 kB versus audited 16,129 kB / gzip 10,569 kB; 11 standalone screenshots",
@@ -299,7 +308,9 @@
         "Three separate Chromium trace runs each: entry-module v8.parseOnBackground median duration 67.858 ms to 46.683 ms. This is a background parsing/streaming-compile event duration, not pure parser CPU time. Raw metrics, traces, build hashes and method: artifacts/audit-2026-10-06/p01-desktop/summary.json.",
         "Untimed desktop Help acceptance: all 11 screenshots decode with nonzero natural dimensions from emitted local file asset URLs while browser offline and HTTP(S)/WS requests blocked.",
         "On iPhone 17 Pro simulator/iOS 27.0, every one of 47 actual Help pages opened and all 11 app:// screenshots decoded at 1440x900 with browser-enforced HTTP(S) blocking; external fetch rejection was confirmed by CSP violation evidence. This is supporting simulator coverage, not physical airplane-mode or performance evidence. Source 0c789b29581db47d89593c897bd53fbb3fb9275c with probe diff 2580103702a3a67ac99bc3680b0f61b8c7a3ef9f39c55e8d5396a01fefc26ca0. Evidence: macos-validation/offline-help.json.",
-        "Controlled native simulator pair built and strict-signature-verified from identical 8489c9a3 sources, lockfile and settings; only manual-plugin.ts differs, using historical ba8b6d32 for original. Original entry 16,140,902 bytes with 11 base64 images versus fixed 3,458,437 bytes with 0; reduction 12,682,465 bytes. App/source manifests preserved in macos-validation/p01-native-pair/summary.json. This proves build packaging only, not physical startup, memory or JavaScriptCore performance."
+        "Controlled native simulator pair built and strict-signature-verified from identical 8489c9a3 sources, lockfile and settings; only manual-plugin.ts differs, using historical ba8b6d32 for original. Original entry 16,140,902 bytes with 11 base64 images versus fixed 3,458,437 bytes with 0; reduction 12,682,465 bytes. App/source manifests preserved in macos-validation/p01-native-pair/summary.json. This proves build packaging only, not physical startup, memory or JavaScriptCore performance.",
+        "Refreshed Help assets at screenshot commit 29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1: all 11 image hashes agree between committed files, docs/app-store/screenshots.json, desktop emitted assets and the installed native bundle; all 47 manual Markdown hashes also match. Existing desktop acceptance opened all 47 Help pages and decoded all 11 images at 1440x900 from local emitted URLs with the browser context offline and HTTP(S) requests blocked; 0 page errors and 0 remote requests. Test-time source was 6cdda991 plus then-uncommitted refreshed PNGs, now reconciled to 29cefb83 without repeating the runtime test. Evidence: macos-validation/p01-refreshed-help/summary.json and desktop-offline-help.json.",
+        "Refreshed Help native subset: clean production app on iPad Pro 13-inch (M5) simulator/iOS 27.0 opened the actual Manual UI and displayed the Dashboard and Editor screenshots; all 11 refreshed image hashes were present in the installed bundle and referenced by its entry script. Hashed XCTest source, two native screenshots and fixture-preservation evidence are retained in macos-validation/p01-refreshed-help/native-help.json. This adds two-page simulator rendering and full image-bundle identity only; physical, refreshed all-page native offline and performance acceptance remain unproven."
       ],
       "pending": "Physical iPhone/iPad launch, memory, JavaScriptCore trace and offline Help-image acceptance is deferred by the current simulator-only direction. Desktop measurements used fresh processes/profiles with existing OS caches, unpackaged Electron and a Debug backend; they do not establish OS-cold-cache or installed-package startup performance."
     },
@@ -355,14 +366,17 @@
         "artifacts/audit-2026-10-06/simulator-ui/research-lifecycle.json",
         "artifacts/audit-2026-10-06/simulator-ui/manuscript-lifecycle.json",
         "artifacts/audit-2026-10-06/simulator-ui/lifecycle-fixed-summary.json",
-        "artifacts/audit-2026-10-06/simulator-ui/fixed-build-provenance.json"
+        "artifacts/audit-2026-10-06/simulator-ui/fixed-build-provenance.json",
+        "artifacts/audit-2026-10-06/macos-validation/m01-remaining/summary.json",
+        "artifacts/audit-2026-10-06/macos-validation/m01-lock/summary.json"
       ],
       "tests": [
         "mobile-recovery.test.mjs: 14 portable regression cases",
-        "Actual XCTest scene lifecycle passed on iPhone simulator at clean native source 0558dda71a395b6ab6208dd6820cc19811a61430: Home immediately after typing, terminate, relaunch and reopen retained the synthetic marker. Research and full Manuscript lifecycle subsets also passed on dedicated iPad A16 simulator/iOS 27.0 at 0c789b29581db47d89593c897bd53fbb3fb9275c. Evidence: simulator-ui/scene-lifecycle.json, research-lifecycle.json and manuscript-lifecycle.json. Lock, two dirty panes, conflict, reordered acknowledgements and required physical cases remain unproven.",
-        "After the native evaluator correction, fresh scene, Research and full Manuscript XCTest lifecycle cases all passed again: 29.743s on iPhone simulator and 21.977s/27.619s on iPad A16 simulator, iOS 27.0. Each new marker was absent before entry, survived immediate Home/termination/relaunch, and was found only in its intended on-disk scene/default draft or Research item. Source: 0c789b29581db47d89593c897bd53fbb3fb9275c plus preserved mobile diff 5f0d63d949cda5a56434bed23ba7cfdf9a6b51941271757320b1c6c32411b241 and helper hash 7b9abb8656b96a0aab6be6bd513cb8af1f01916fe6a6daad8a09f9edd7f42540. Evidence: simulator-ui/lifecycle-fixed-summary.json and fixed-build-provenance.json. This remains simulator subset coverage."
+        "Actual XCTest scene lifecycle passed on iPhone simulator at clean native source 0558dda71a395b6ab6208dd6820cc19811a61430: Home immediately after typing, terminate, relaunch and reopen retained the synthetic marker. Research and full Manuscript lifecycle subsets also passed on dedicated iPad A16 simulator/iOS 27.0 at 0c789b29581db47d89593c897bd53fbb3fb9275c. Evidence: simulator-ui/scene-lifecycle.json, research-lifecycle.json and manuscript-lifecycle.json. At that earlier test stage, lock, two dirty panes, conflict, reordered acknowledgements and physical cases were unproven; later supporting subsets are recorded separately.",
+        "After the native evaluator correction, fresh scene, Research and full Manuscript XCTest lifecycle cases all passed again: 29.743s on iPhone simulator and 21.977s/27.619s on iPad A16 simulator, iOS 27.0. Each new marker was absent before entry, survived immediate Home/termination/relaunch, and was found only in its intended on-disk scene/default draft or Research item. Source: 0c789b29581db47d89593c897bd53fbb3fb9275c plus preserved mobile diff 5f0d63d949cda5a56434bed23ba7cfdf9a6b51941271757320b1c6c32411b241 and helper hash 7b9abb8656b96a0aab6be6bd513cb8af1f01916fe6a6daad8a09f9edd7f42540. Evidence: simulator-ui/lifecycle-fixed-summary.json and fixed-build-provenance.json. This remains simulator subset coverage.",
+        "Native simulator retained-edit edge cases passed at frozen 29cefb83: older acknowledgement preserves newer dirty/journal state; interrupted flush, two independent dirty panes, unresolved disk conflict and project/book/draft scene isolation recover without cross-owner writes. Actual DeviceHub scene Lock with a held write also passed, with OS lock state, native background grant/no acknowledgement, exact-owner recovery and clean-app reopen. Probe removal, clean signed builds and preserved fixtures are recorded in macos-validation/m01-remaining/summary.json and m01-lock/summary.json. These are supporting simulator subsets, not physical acceptance; later focus changes have separate source evidence."
       ],
-      "pending": "Physical-device lifecycle acceptance remains deferred. Lock, two dirty panes, disk conflict and newer-edit/older-acknowledgement native cases remain pending; scene/Research/full Manuscript Home-terminate-relaunch subsets passed again with the native evaluator fix. Journal bound is 2,000,000 JSON characters; quota errors preserve prior journal and still attempt flush. Deleted scenes stay journaled without blocking other recovery. Unsaved Codex metadata is flushed through the existing registry but is not added to the durable journal."
+      "pending": "Physical-device lifecycle acceptance, offline/cloud-only behavior and the full device scope matrix remain required. Simulator old-acknowledgement, interrupted-flush, two-pane, disk-conflict, scene scope-isolation and held-write scene Lock subsets passed. Manuscript/Research Lock variants remain unproven. The journal bound is 2,000,000 JSON characters; unsaved Codex metadata uses the existing flush registry and is not journaled."
     }
   ],
   "checks": [

@@ -1,0 +1,386 @@
+{
+  "scenario": "Real DeviceHub lock with exact-scene write held, termination and recovery",
+  "simulator": "BE6B8D09-298D-4C2A-AA28-CF5946F951B3",
+  "marker": "M01REALLOCKPENDING26",
+  "source": "probe-source.json",
+  "status": "passed-real-lock-simulator-subset",
+  "gate_installed": {
+    "pane": "pane-1",
+    "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+    "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+    "scope": {
+      "projectPath": "<simulator-app-data>/Documents/Audit M01 Lock Fixture",
+      "bookId": "book-1791375078213",
+      "draftId": "draft-default"
+    }
+  },
+  "gate_installed_at": 1791375298.456982,
+  "edit_observed_at": 1791375301.881449,
+  "after_edit": {
+    "scope": {
+      "projectPath": "<simulator-app-data>/Documents/Audit M01 Lock Fixture",
+      "bookId": "book-1791375078213",
+      "draftId": "draft-default"
+    },
+    "pane": "pane-1",
+    "editor": {
+      "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+      "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+      "isDirty": true,
+      "marker": true,
+      "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "dirtyMapValue": true,
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<simulator-app-data>/Documents/Audit M01 Lock Fixture",
+          "bookId": "book-1791375078213",
+          "draftId": "draft-default"
+        },
+        "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+        "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+        "source": "pane:pane-1",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "marker": true
+      }
+    ],
+    "gate": {
+      "pane": "pane-1",
+      "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+      "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+      "scope": {
+        "projectPath": "<simulator-app-data>/Documents/Audit M01 Lock Fixture",
+        "bookId": "book-1791375078213",
+        "draftId": "draft-default"
+      },
+      "held": [],
+      "otherSceneWritesForwarded": 0
+    }
+  },
+  "native_edit_test_exit": 0,
+  "native_session_completed_at": 1791375302.2549639,
+  "before_lock": {
+    "scope": {
+      "projectPath": "<simulator-app-data>/Documents/Audit M01 Lock Fixture",
+      "bookId": "book-1791375078213",
+      "draftId": "draft-default"
+    },
+    "pane": "pane-1",
+    "editor": {
+      "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+      "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+      "isDirty": true,
+      "marker": true,
+      "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "dirtyMapValue": true,
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<simulator-app-data>/Documents/Audit M01 Lock Fixture",
+          "bookId": "book-1791375078213",
+          "draftId": "draft-default"
+        },
+        "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+        "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+        "source": "pane:pane-1",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "marker": true
+      }
+    ],
+    "gate": {
+      "pane": "pane-1",
+      "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+      "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+      "scope": {
+        "projectPath": "<simulator-app-data>/Documents/Audit M01 Lock Fixture",
+        "bookId": "book-1791375078213",
+        "draftId": "draft-default"
+      },
+      "held": [
+        {
+          "id": 64,
+          "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+          "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+          "marker": true,
+          "htmlLength": 27
+        }
+      ],
+      "otherSceneWritesForwarded": 0
+    }
+  },
+  "disk_before_lock": [],
+  "native_before_lock": {
+    "page": "0cd7237828934b598421e0ea7db2cf4f",
+    "bridgeFailed": 0,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": false,
+    "evaluatorFault": 0,
+    "assetReads": 0,
+    "assetHeld": false,
+    "projectGeneration": 0,
+    "webProcessId": 75829,
+    "nativeEditingPausedAlert": false,
+    "nativeReloadAvailable": false,
+    "nativeLaterAvailable": false,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T12:13:37.875665+00:00",
+        "ticks": 163549487425458
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T12:13:38.365086+00:00",
+        "ticks": 163549976837416
+      }
+    ]
+  },
+  "lockstate_before": 0,
+  "lock_action_started_at": 1791375304.4039261,
+  "lock_action_output": "{\n  \"window\": \"Novalist-Screenshots-iPhone-2026-10-07 \\u2013 iOS 27.0\",\n  \"selected_target\": \"TableRow.Device.BE6B8D09-298D-4C2A-AA28-CF5946F951B3\",\n  \"controls\": [\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Home\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Lock\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Siri\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"App Switcher\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Action Button\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Rotate Left\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Rotate Right\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Screenshot\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    },\n    {\n      \"AXRole\": \"AXMenuItem\",\n      \"AXTitle\": \"Record Screen\",\n      \"AXIdentifier\": \"menuAction:\",\n      \"AXEnabled\": true,\n      \"AXFocused\": false,\n      \"AXMain\": false,\n      \"AXSelected\": false\n    }\n  ]\n}\nSENDING_REAL_DEVICEHUB_LOCK\nREAL_DEVICEHUB_LOCK_SENT\n",
+  "lock_action_completed_at": 1791375304.7495208,
+  "lockstate_samples": [
+    {
+      "time": 1791375304.869827,
+      "value": 0
+    },
+    {
+      "time": 1791375305.019904,
+      "value": 0
+    },
+    {
+      "time": 1791375305.17437,
+      "value": 0
+    },
+    {
+      "time": 1791375305.327104,
+      "value": 0
+    },
+    {
+      "time": 1791375305.49262,
+      "value": 0
+    },
+    {
+      "time": 1791375305.650624,
+      "value": 0
+    },
+    {
+      "time": 1791375305.800791,
+      "value": 0
+    },
+    {
+      "time": 1791375305.9427001,
+      "value": 0
+    },
+    {
+      "time": 1791375306.094838,
+      "value": 0
+    },
+    {
+      "time": 1791375306.2399309,
+      "value": 0
+    },
+    {
+      "time": 1791375306.402886,
+      "value": 0
+    },
+    {
+      "time": 1791375306.557236,
+      "value": 0
+    },
+    {
+      "time": 1791375306.7055821,
+      "value": 0
+    },
+    {
+      "time": 1791375306.8860512,
+      "value": 1
+    }
+  ],
+  "native_while_locked": {
+    "page": "0cd7237828934b598421e0ea7db2cf4f",
+    "bridgeFailed": 0,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": false,
+    "evaluatorFault": 0,
+    "assetReads": 0,
+    "assetHeld": false,
+    "projectGeneration": 0,
+    "webProcessId": 75829,
+    "nativeEditingPausedAlert": false,
+    "nativeReloadAvailable": false,
+    "nativeLaterAvailable": false,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T12:13:37.875665+00:00",
+        "ticks": 163549487425458
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T12:13:38.365086+00:00",
+        "ticks": 163549976837416
+      },
+      {
+        "kind": "background-save-requested",
+        "detail": null,
+        "utc": "2026-10-07T12:15:05.373143+00:00",
+        "ticks": 163636984564208
+      },
+      {
+        "kind": "background-task",
+        "detail": "granted",
+        "utc": "2026-10-07T12:15:05.374299+00:00",
+        "ticks": 163636985720208
+      },
+      {
+        "kind": "background-save-requested",
+        "detail": null,
+        "utc": "2026-10-07T12:15:06.729705+00:00",
+        "ticks": 163638341121833
+      },
+      {
+        "kind": "background-save-requested",
+        "detail": null,
+        "utc": "2026-10-07T12:15:06.746654+00:00",
+        "ticks": 163638358069375
+      }
+    ]
+  },
+  "locked_observation": {
+    "scope": {
+      "projectPath": "<simulator-app-data>/Documents/Audit M01 Lock Fixture",
+      "bookId": "book-1791375078213",
+      "draftId": "draft-default"
+    },
+    "pane": "pane-1",
+    "editor": {
+      "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+      "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+      "isDirty": true,
+      "marker": true,
+      "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    },
+    "dirtyMapValue": true,
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<simulator-app-data>/Documents/Audit M01 Lock Fixture",
+          "bookId": "book-1791375078213",
+          "draftId": "draft-default"
+        },
+        "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+        "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+        "source": "pane:pane-1",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "marker": true
+      }
+    ],
+    "gate": {
+      "pane": "pane-1",
+      "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+      "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+      "scope": {
+        "projectPath": "<simulator-app-data>/Documents/Audit M01 Lock Fixture",
+        "bookId": "book-1791375078213",
+        "draftId": "draft-default"
+      },
+      "held": [
+        {
+          "id": 64,
+          "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+          "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+          "marker": true,
+          "htmlLength": 27
+        }
+      ],
+      "otherSceneWritesForwarded": 0
+    }
+  },
+  "disk_while_locked": [],
+  "new_native_events": [
+    {
+      "kind": "background-save-requested",
+      "detail": null,
+      "utc": "2026-10-07T12:15:05.373143+00:00",
+      "ticks": 163636984564208
+    },
+    {
+      "kind": "background-task",
+      "detail": "granted",
+      "utc": "2026-10-07T12:15:05.374299+00:00",
+      "ticks": 163636985720208
+    },
+    {
+      "kind": "background-save-requested",
+      "detail": null,
+      "utc": "2026-10-07T12:15:06.729705+00:00",
+      "ticks": 163638341121833
+    },
+    {
+      "kind": "background-save-requested",
+      "detail": null,
+      "utc": "2026-10-07T12:15:06.746654+00:00",
+      "ticks": 163638358069375
+    }
+  ],
+  "termination_started_at": 1791375307.807574,
+  "terminated_at": 1791375307.9453309,
+  "disk_after_termination": [],
+  "after_recovery": {
+    "scope": {
+      "projectPath": "<simulator-app-data>/Documents/Audit M01 Lock Fixture",
+      "bookId": "book-1791375078213",
+      "draftId": "draft-default"
+    },
+    "pane": "pane-1",
+    "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+    "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+    "isDirty": false,
+    "dirtyMapValue": false,
+    "marker": true,
+    "journal": 0,
+    "gatePresent": false
+  },
+  "disk_after_recovery": {
+    "path": "Audit M01 Lock Fixture/Audit M01 Lock Book/Drafts/default/Chapters/01 - Audit Lock Chapter/scene-01.novalist",
+    "sha256": "dd068c01ad578d6c35c5ed5a2b6a805d3f29518a1ca85a4c6d072052dbb03417",
+    "header_scene_id_matches": true,
+    "marker_count": 1
+  },
+  "exact_owner": {
+    "projectId": "project-1791375078213",
+    "project_relative": "Audit M01 Lock Fixture",
+    "bookId": "book-1791375078213",
+    "bookFolder": "Audit M01 Lock Book",
+    "draftId": "draft-default",
+    "draftFolder": "default",
+    "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+    "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+    "sceneFile": "scene-01.novalist",
+    "project_metadata_sha256": "9372b332a010221d2aa3236d5d9988a6bb1e3483ea95e878488622ef8932d8be",
+    "scene_index_sha256": "e991f9d0bcd0de45f9bf8567cf19606f2a0d7e4c590f09dbfc149c9d85c74356"
+  },
+  "original_fixture_files": 82,
+  "original_fixture_hashes_unchanged": true,
+  "recovery_native_test_passed": true,
+  "clean_repeat": {
+    "clean_source_revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+    "clean_bundle_byte_identical_to_frozen_597_files": true,
+    "tree_sha256": "e3af065b470c43ac10f4433fdf84ddcae48e7d0a8637e7617e1c35578e0fbac0",
+    "probe_control_directory_absent": true,
+    "original_fixture_files": 82,
+    "original_fixture_hashes_unchanged": true,
+    "audit_fixture_hashes_unchanged_after_clean_repeat": true,
+    "scene_path_and_sha256_unchanged": true,
+    "clean_native_reopen_passed": true
+  }
+}

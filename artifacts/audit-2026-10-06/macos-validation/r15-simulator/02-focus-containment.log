@@ -1,0 +1,574 @@
+Test Suite 'All tests' started at 2026-10-07 13:50:24.830.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 13:50:24.830.
+Test Suite 'AuditUITests' started at 2026-10-07 13:50:24.830.
+Test Case '-[AuditUITests.AuditUITests testNativeFocusContainment]' started.
+    t =     0.00s Start Test at 2026-10-07 13:50:24.831
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.03s Setting device orientation to Portrait
+    t =     0.03s     Wait for com.novalist.app to idle
+    t =     0.04s Waiting 10.0s for "Inspector" Button to exist
+objc[67642]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10b11c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10b254310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.09s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =     1.09s         Checking existence of `"Inspector" Button`
+    t =     1.11s Tap "Inspector" Button
+    t =     1.11s     Wait for com.novalist.app to idle
+    t =     1.11s     Find the "Inspector" Button
+    t =     1.14s     Check for interrupting elements affecting "Inspector" Button
+    t =     1.16s     Synthesize event
+    t =     1.44s     Wait for com.novalist.app to idle
+    t =     1.45s Waiting 10.0s for "Close" Button to exist
+    t =     2.47s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =     2.47s         Checking existence of `"Close" Button`
+    t =     2.49s Find the "Close" Button
+    t =     2.52s Tap "To do" Button
+    t =     2.52s     Wait for com.novalist.app to idle
+    t =     2.52s     Find the "To do" Button
+    t =     2.54s     Check for interrupting elements affecting "To do" Button
+    t =     2.55s     Synthesize event
+    t =     2.85s     Wait for com.novalist.app to idle
+    t =     2.85s Waiting 5.0s for "What needs doing" TextField to exist
+    t =     3.92s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =     3.92s         Checking existence of `"What needs doing" TextField`
+    t =     3.93s Tap "What needs doing" TextField
+    t =     3.93s     Wait for com.novalist.app to idle
+    t =     3.94s     Find the "What needs doing" TextField
+    t =     3.94s     Check for interrupting elements affecting "What needs doing" TextField
+    t =     3.96s     Synthesize event
+    t =     4.25s     Wait for com.novalist.app to idle
+    t =     4.53s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     4.53s     Wait for com.novalist.app to idle
+    t =     4.53s     Find the Application 'com.novalist.app'
+    t =     4.56s     Check for interrupting elements affecting "Novalist" Application
+    t =     4.58s     Synthesize event
+    t =     4.93s     Wait for com.novalist.app to idle
+    t =     5.05s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     5.05s     Wait for com.novalist.app to idle
+    t =     5.05s     Find the Application 'com.novalist.app'
+    t =     5.06s     Check for interrupting elements affecting "Novalist" Application
+    t =     5.07s     Synthesize event
+    t =     5.42s     Wait for com.novalist.app to idle
+    t =     5.44s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     5.44s     Wait for com.novalist.app to idle
+    t =     5.44s     Find the Application 'com.novalist.app'
+    t =     5.45s     Check for interrupting elements affecting "Novalist" Application
+    t =     5.47s     Synthesize event
+    t =     5.83s     Wait for com.novalist.app to idle
+    t =     5.84s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     5.84s     Wait for com.novalist.app to idle
+    t =     5.84s     Find the Application 'com.novalist.app'
+    t =     5.85s     Check for interrupting elements affecting "Novalist" Application
+    t =     5.86s     Synthesize event
+    t =     6.22s     Wait for com.novalist.app to idle
+    t =     6.23s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     6.23s     Wait for com.novalist.app to idle
+    t =     6.23s     Find the Application 'com.novalist.app'
+    t =     6.24s     Check for interrupting elements affecting "Novalist" Application
+    t =     6.25s     Synthesize event
+    t =     6.61s     Wait for com.novalist.app to idle
+    t =     6.63s Find the "Close" Button
+R15_portrait_FIRST_CLOSE_FOCUSED=true
+    t =     6.64s Find the "Close" Button
+    t =     6.65s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     6.65s     Wait for com.novalist.app to idle
+    t =     6.66s     Find the Application 'com.novalist.app'
+    t =     6.66s     Check for interrupting elements affecting "Novalist" Application
+    t =     6.67s     Synthesize event
+    t =     7.03s     Wait for com.novalist.app to idle
+    t =     7.05s Find the "List (optional)" TextField
+R15_portrait_BACKWARD_WRAP_LAST_FOCUSED=true
+    t =     7.06s Find the "List (optional)" TextField
+    t =     7.08s Type '⇥' key (XCUIKeyboardKeyTab) with no modifiers
+    t =     7.08s     Wait for com.novalist.app to idle
+    t =     7.08s     Find the Application 'com.novalist.app'
+    t =     7.09s     Check for interrupting elements affecting "Novalist" Application
+    t =     7.10s     Synthesize event
+    t =     7.45s     Wait for com.novalist.app to idle
+    t =     7.48s Find the "Close" Button
+R15_portrait_FORWARD_WRAP_FIRST_FOCUSED=true
+    t =     7.49s Find the "Close" Button
+    t =     7.50s Checking existence of `"Inspector" Button`
+    t =     7.52s Type '↩' key (XCUIKeyboardKeyReturn) with no modifiers
+    t =     7.52s     Wait for com.novalist.app to idle
+    t =     7.52s     Find the Application 'com.novalist.app'
+    t =     7.53s     Check for interrupting elements affecting "Novalist" Application
+    t =     7.54s     Synthesize event
+    t =     7.76s     Wait for com.novalist.app to idle
+    t =     7.78s Waiting 3.0s for "Inspector" Button to exist
+    t =     8.86s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =     8.86s         Checking existence of `"Inspector" Button`
+    t =     8.88s         Capturing element debug description
+    t =     8.88s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =     8.90s             Find: Descendants matching type Button
+    t =     8.90s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =     8.90s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =     8.91s             Find: Descendants matching type Button
+    t =     8.91s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =     9.81s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =     9.81s         Checking existence of `"Inspector" Button`
+    t =     9.84s         Capturing element debug description
+    t =     9.84s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =     9.86s             Find: Descendants matching type Button
+    t =     9.86s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =     9.86s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =     9.87s             Find: Descendants matching type Button
+    t =     9.87s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    10.78s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    10.78s         Checking existence of `"Inspector" Button`
+    t =    10.80s         Capturing element debug description
+    t =    10.80s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    10.81s             Find: Descendants matching type Button
+    t =    10.81s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    10.81s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    10.82s             Find: Descendants matching type Button
+    t =    10.82s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    10.86s     Checking existence of `"Inspector" Button`
+    t =    10.87s Collecting debug information to assist test failure triage
+    t =    10.87s     Requesting snapshot of accessibility hierarchy for app with pid 66805
+R15_portrait_RETURN_ACTIVATES_CLOSE=false triggerFocused=false
+    t =    10.89s Tap "Close" Button
+    t =    10.89s     Wait for com.novalist.app to idle
+    t =    10.89s     Find the "Close" Button
+    t =    10.90s     Check for interrupting elements affecting "Close" Button
+    t =    10.91s     Synthesize event
+    t =    11.20s     Wait for com.novalist.app to idle
+    t =    11.20s Waiting 5.0s for "Inspector" Button to exist
+    t =    12.27s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    12.27s         Checking existence of `"Inspector" Button`
+    t =    12.32s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    12.32s     Wait for com.novalist.app to idle
+    t =    12.32s     Find the Application 'com.novalist.app'
+    t =    12.34s     Check for interrupting elements affecting "Novalist" Application
+    t =    12.35s     Synthesize event
+    t =    12.71s     Wait for com.novalist.app to idle
+    t =    12.72s Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    13.17s Requesting snapshot of accessibility hierarchy for app with pid 66805
+R15_portrait_AFTER_CLOSE_SHIFT_TAB
+Attributes: Application, 0x1077ca6c0, pid: 66805, label: 'Novalist'
+Element subtree:
+ →Application, 0x1077ca6c0, pid: 66805, label: 'Novalist'
+    Window (Main), 0x1077c8a00, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1077ca300, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1077cb0c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1077cbc00, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1077c9040, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x1077c8000, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x1077ca940, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1077cb5c0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1077c9f40, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x1077c9680, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1077c9cc0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1077caf80, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1077c9900, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1077c9180, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist'
+                            Button, 0x1077ca080, {{12.0, 70.0}, {119.0, 39.0}}, label: 'Manuscript'
+                            Button, 0x1077ca580, {{350.0, 72.0}, {40.0, 35.0}}, label: 'Inspector'
+                            Other, 0x1077c9e00, {{0.0, 118.0}, {402.0, 39.0}}, label: 'Editor commands'
+                              Button, 0x1077ca800, {{12.0, 124.0}, {106.0, 27.0}}, label: 'Paragraph style', value: Body
+                                Other, 0x1077cabc0, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                              Switch, 0x1077c8c80, {{128.0, 124.0}, {31.0, 27.0}}, label: 'Bulleted list', value: 0
+                              Switch, 0x1077caa80, {{163.0, 124.0}, {31.0, 27.0}}, label: 'Numbered list', value: 0
+                              Switch, 0x1077c97c0, {{198.0, 124.0}, {31.0, 27.0}}, label: 'Align left', value: 1
+                              Switch, 0x1077c8b40, {{233.0, 124.0}, {31.0, 27.0}}, label: 'Centre', value: 0
+                              Switch, 0x1077c8500, {{268.0, 124.0}, {31.0, 27.0}}, label: 'Align right', value: 0
+                              Switch, 0x10767f700, {{303.0, 124.0}, {31.0, 27.0}}, label: 'Justify', value: 0
+                              Switch, 0x10add8b40, {{342.0, 124.0}, {31.0, 27.0}}, label: 'Dictate', value: 0
+                              Button, 0x10ade21c0, {{377.0, 124.0}, {31.0, 27.0}}, label: 'Scene snapshots'
+                              Switch, 0x10ade3200, {{412.0, 124.0}, {31.0, 27.0}}, label: 'Suggest edits instead of making them', value: 0
+                              Button, 0x10ade3e80, {{447.0, 124.0}, {31.0, 27.0}}, label: 'Writing options'
+                            Other, 0x10ade3d40, {{0.0, 158.0}, {402.0, 599.0}}, label: 'editor'
+                              Other, 0x10ade3340, {{0.0, 158.0}, {402.0, 599.0}}
+                                Other, 0x10ade3980, {{0.0, 158.0}, {402.0, 599.0}}, label: 'editor', Focused
+                                  TextView, 0x10ade2800, {{0.0, 158.0}, {402.0, 3252.0}}, value: The letter came on..., Focused
+                                    Other, 0x10ade3480, {{119.0, 258.0}, {164.0, 434.0}}, Focused
+                                      StaticText, 0x10ade3ac0, {{119.0, 263.0}, {163.0, 77.0}}, label: 'The letter came on a Thursday, which Mira would', value: The letter came on..., Focused
+                                      StaticText, 0x10ade2f80, {{167.0, 321.0}, {77.0, 19.0}}, label: 'afterwards', value: afterwards, Focused
+                                      StaticText, 0x10ade30c0, {{119.0, 321.0}, {164.0, 365.0}}, label: 'think was the cruelty of it. Thursdays were for the ledger. Thursdays were for reconciling what the shop had sold against what the shop had promised, and for discovering, as she did every week, that the two had never once agreed.', value:  think was the cru..., Focused
+                                    StaticText, 0x10ade2940, {{119.0, 263.0}, {163.0, 77.0}}, label: 'The letter came on a Thursday, which Mira would', value: The letter came on..., Focused
+                                    StaticText, 0x10ade2e40, {{167.0, 321.0}, {77.0, 19.0}}, label: 'afterwards', value: afterwards, Focused
+                                    StaticText, 0x10ade3c00, {{119.0, 321.0}, {164.0, 365.0}}, label: 'think was the cruelty of it. Thursdays were for the ledger. Thursdays were for reconciling what the shop had sold against what the shop had promised, and for discovering, as she did every week, that the two had never once agreed.', value:  think was the cru..., Focused
+                                    Other, 0x10ade2bc0, {{119.0, 691.0}, {164.0, 434.0}}, Focused
+                                      StaticText, 0x10ade35c0, {{119.0, 696.0}, {166.0, 250.0}}, label: 'She knew the hand before she knew the seal. Eleven months of probate and condolence and the slow administrative business of being made an orphan, and still her body', value: She knew the hand ..., Focused
+                                      StaticText, 0x10ade3700, {{119.0, 956.0}, {78.0, 19.0}}, label: 'recognised', value: recognised, Focused
+                                      StaticText, 0x113489180, {{119.0, 956.0}, {166.0, 48.0}}, label: 'her father’s writing the way it', value:  her father’s writ..., Focused
+                                      StaticText, 0x11348e800, {{119.0, 1014.0}, {78.0, 19.0}}, label: 'recognised', value: recognised, Focused
+                                      StaticText, 0x11348e940, {{119.0, 1014.0}, {147.0, 106.0}}, label: 'a stair in the dark — before thought, and faster than it.', value:  a stair in the da..., Focused
+                                    StaticText, 0x11348ea80, {{119.0, 696.0}, {166.0, 250.0}}, label: 'She knew the hand before she knew the seal. Eleven months of probate and condolence and the slow administrative business of being made an orphan, and still her body', value: She knew the hand ..., Focused
+                                    StaticText, 0x11348ebc0, {{119.0, 956.0}, {78.0, 19.0}}, label: 'recognised', value: recognised, Focused
+                                    StaticText, 0x11348ed00, {{119.0, 956.0}, {166.0, 48.0}}, label: 'her father’s writing the way it', value:  her father’s writ..., Focused
+                                    StaticText, 0x11348ee40, {{119.0, 1014.0}, {78.0, 19.0}}, label: 'recognised', value: recognised, Focused
+                                    StaticText, 0x11348ef80, {{119.0, 1014.0}, {147.0, 106.0}}, label: 'a stair in the dark — before thought, and faster than it.', value:  a stair in the da..., Focused
+                                    Other, 0x11348f0c0, {{119.0, 1124.0}, {164.0, 608.0}}, Focused
+                                      StaticText, 0x11348f200, {{119.0, 1130.0}, {158.0, 279.0}}, label: 'The paper was cheap. That was the first wrong thing. Silas Aldencourt had held opinions about paper the way other men held opinions about God, and none of them would have permitted this', value: The paper was chea..., Focused
+                                      StaticText, 0x11348f480, {{225.0, 1390.0}, {32.0, 19.0}}, label: 'grey', value: grey, Focused
+                                      StaticText, 0x11348f5c0, {{119.0, 1390.0}, {163.0, 336.0}}, label: ', fibrous, ill-sized sheet. The second wrong thing was the smell. She lifted it to the lamp and breathed in and there it was, unmistakable beneath the tallow and the road: salt, and the particular green rot of a', value: , fibrous, ill-siz..., Focused
+                                      StaticText, 0x11348f700, {{130.0, 1707.0}, {59.0, 19.0}}, label: 'harbour', value: harbour, Focused
+                                      StaticText, 0x11348f840, {{188.0, 1707.0}, {84.0, 19.0}}, label: 'at low tide.', value:  at low tide., Focused
+                                    StaticText, 0x11348fc00, {{119.0, 1130.0}, {158.0, 279.0}}, label: 'The paper was cheap. That was the first wrong thing. Silas Aldencourt had held opinions about paper the way other men held opinions about God, and none of them would have permitted this', value: The paper was chea..., Focused
+                                    StaticText, 0x11348fd40, {{225.0, 1390.0}, {32.0, 19.0}}, label: 'grey', value: grey, Focused
+                                    StaticText, 0x11348fe80, {{119.0, 1390.0}, {163.0, 336.0}}, label: ', fibrous, ill-sized sheet. The second wrong thing was the smell. She lifted it to the lamp and breathed in and there it was, unmistakable beneath the tallow and the road: salt, and the particular green rot of a', value: , fibrous, ill-siz..., Focused
+                                    StaticText, 0x11348fac0, {{130.0, 1707.0}, {59.0, 19.0}}, label: 'harbour', value: harbour, Focused
+                                    StaticText, 0x11348f980, {{188.0, 1707.0}, {84.0, 19.0}}, label: 'at low tide.', value:  at low tide., Focused
+                                    Other, 0x11348f340, {{119.0, 1731.0}, {164.0, 145.0}}, Focused
+                                      StaticText, 0x113490000, {{119.0, 1736.0}, {167.0, 77.0}}, label: 'Mira, it said. Do not believe the chart. Do not sell the chart.', value: Mira, it said. Do ..., Focused
+                                      StaticText, 0x113490140, {{211.0, 1794.0}, {22.0, 19.0}}, label: 'Do', value: Do, Focused
+                                      StaticText, 0x113490280, {{119.0, 1794.0}, {164.0, 77.0}}, label: 'not let Crane know the chart exists.', value:  not let Crane kno..., Focused
+                                    StaticText, 0x1134903c0, {{119.0, 1736.0}, {167.0, 77.0}}, label: 'Mira, it said. Do not believe the chart. Do not sell the chart.', value: Mira, it said. Do ..., Focused
+                                    StaticText, 0x113490500, {{211.0, 1794.0}, {22.0, 19.0}}, label: 'Do', value: Do, Focused
+                                    StaticText, 0x113490640, {{119.0, 1794.0}, {164.0, 77.0}}, label: 'not let Crane know the chart exists.', value:  not let Crane kno..., Focused
+                                    Other, 0x113490780, {{119.0, 1875.0}, {164.0, 435.0}}, Focused
+                                      StaticText, 0x1134908c0, {{119.0, 1881.0}, {164.0, 423.0}}, label: 'There was no signature. There was, instead, a small figure inked in the lower corner — a compass rose with its north arm broken — and Mira sat for a long time with her thumb over it, in the shop that was no longer her father’s, listening to the gulls that had no business being this far inland.', value: There was no signa..., Focused
+                                    StaticText, 0x113490a00, {{119.0, 1881.0}, {164.0, 423.0}}, label: 'There was no signature. There was, instead, a small figure inked in the lower corner — a compass rose with its north arm broken — and Mira sat for a long time with her thumb over it, in the shop that was no longer her father’s, listening to the gulls that had no business being this far inland.', value: There was no signa..., Focused
+                                    Other, 0x113490b40, {{119.0, 2493.0}, {164.0, 116.0}}, Focused
+                                      StaticText, 0x113490c80, {{119.0, 2498.0}, {162.0, 106.0}}, label: 'She was on the eastbound mail coach before the lamps were lit.', value: She was on the eas..., Focused
+                                    StaticText, 0x113490dc0, {{119.0, 2498.0}, {162.0, 106.0}}, label: 'She was on the eastbound mail coach before the lamps were lit.', value: She was on the eas..., Focused
+                                  Other, 0x113490f00, {{281.0, 716.0}, {39.0, 18.0}}, Focused
+                                    StaticText, 0x113491040, {{305.0, 718.0}, {9.0, 14.0}}, label: '2', value: 2, Focused
+                                  Other, 0x113491180, {{327.0, 716.0}, {39.0, 18.0}}, Focused
+                                    StaticText, 0x1134912c0, {{351.0, 718.0}, {8.0, 14.0}}, label: '4', value: 4, Focused
+                  Other, 0x113491400, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x113491540, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x113491680, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x1134917c0, {{396.0, 65.0}, {3.0, 744.0}}
+                  Other, 0x113491900, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x113491a40, {{396.0, 65.0}, {3.0, 744.0}}
+              Other, 0x113491b80, {{0.0, 0.0}, {402.0, 874.0}}
+              TabBar, 0x113491cc0, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                Other, 0x113491e00, {{21.0, 791.0}, {360.0, 62.0}}
+                  Other, 0x113491f40, {{21.0, 791.0}, {83.6, 54.0}}
+                  Other, 0x113492080, {{21.0, 791.0}, {360.0, 62.0}}
+                    Button, 0x1134921c0, {{25.0, 795.0}, {97.4, 54.0}}, label: 'Dashboard'
+                      Image, 0x113492300, {{60.3, 802.3}, {27.0, 25.0}}, identifier: 'square.grid.2x2', label: 'Grid view'
+                    Button, 0x113492440, {{102.4, 795.0}, {83.6, 54.0}}, label: 'Write', Selected
+                      Image, 0x113492580, {{130.1, 799.0}, {28.3, 28.3}}, identifier: 'square.and.pencil', label: 'compose'
+                    Button, 0x1134926c0, {{166.1, 795.0}, {83.6, 54.0}}, label: 'Codex'
+                      Image, 0x113492800, {{189.1, 802.3}, {37.7, 26.7}}, identifier: 'person.2', label: 'Two people'
+                    Button, 0x113492940, {{229.7, 795.0}, {83.6, 54.0}}, label: 'Plan'
+                      Image, 0x113492a80, {{257.0, 797.7}, {28.7, 32.0}}, identifier: 'square.stack.3d.up', label: 'hdr'
+                    Button, 0x113492bc0, {{293.4, 795.0}, {83.6, 54.0}}, label: 'Settings'
+                      Image, 0x113492d00, {{320.7, 800.3}, {28.7, 28.7}}, identifier: 'gearshape', label: 'Gear shape'
+                  Other, 0x113492e40, {{21.0, 791.0}, {360.0, 62.0}}
+                  Other, 0x113492f80, {{21.0, 791.0}, {360.0, 62.0}}
+                    Other, 0x1134930c0, {{21.0, 791.0}, {360.0, 62.0}}
+                      Other, 0x113493200, {{21.0, 791.0}, {360.0, 62.0}}
+                        Other, 0x113493340, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x113493480, {{21.0, 791.0}, {360.0, 62.0}}
+                            Other, 0x1134935c0, {{21.0, 791.0}, {360.0, 62.0}}
+                        Other, 0x113493700, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x113493840, {{21.0, 791.0}, {360.0, 62.0}}
+                  Other, 0x113493980, {{102.4, 795.0}, {83.6, 54.0}}
+                    Other, 0x113493ac0, {{102.4, 795.0}, {83.3, 54.0}}
+                      Other, 0x113493c00, {{102.4, 795.0}, {83.3, 54.0}}
+                      Other, 0x113493d40, {{102.4, 795.0}, {83.3, 54.0}}
+                        Other, 0x113493e80, {{102.4, 795.0}, {83.3, 54.0}}
+                          Other, 0x1134b0000, {{102.4, 795.0}, {83.3, 54.0}}
+                            Other, 0x1134b0140, {{102.4, 795.0}, {83.3, 54.0}}
+                          Other, 0x1134b0280, {{102.4, 795.0}, {83.3, 54.0}}
+                        Other, 0x1134b03c0, {{102.4, 795.0}, {83.3, 54.0}}
+            Other, 0x1134b0500, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1134b0640, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x1134b0780, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1134b08c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1134b0a00, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x1077ca6c0, pid: 66805, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x1134b0b40, pid: 66805, label: 'Novalist'
+  }
+
+    t =    13.20s Setting device orientation to Landscape Left
+    t =    13.20s     Device orientation changed to Landscape Left
+    t =    13.24s     Interface orientation changed to Landscape Right
+    t =    13.24s     Wait for com.novalist.app to idle
+    t =    13.57s Waiting 10.0s for "Inspector" Button to exist
+    t =    14.64s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    14.64s         Checking existence of `"Inspector" Button`
+    t =    14.69s Tap "Inspector" Button
+    t =    14.69s     Wait for com.novalist.app to idle
+    t =    14.69s     Find the "Inspector" Button
+    t =    14.72s     Check for interrupting elements affecting "Inspector" Button
+    t =    14.74s     Synthesize event
+    t =    15.03s     Wait for com.novalist.app to idle
+    t =    15.03s Waiting 10.0s for "Close" Button to exist
+    t =    16.11s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =    16.11s         Checking existence of `"Close" Button`
+    t =    16.15s Find the "Close" Button
+    t =    16.17s Tap "To do" Button
+    t =    16.17s     Wait for com.novalist.app to idle
+    t =    16.17s     Find the "To do" Button
+    t =    16.19s     Check for interrupting elements affecting "To do" Button
+    t =    16.20s     Synthesize event
+    t =    16.50s     Wait for com.novalist.app to idle
+    t =    16.50s Waiting 5.0s for "What needs doing" TextField to exist
+    t =    17.58s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =    17.58s         Checking existence of `"What needs doing" TextField`
+    t =    17.60s Tap "What needs doing" TextField
+    t =    17.60s     Wait for com.novalist.app to idle
+    t =    17.60s     Find the "What needs doing" TextField
+    t =    17.62s     Check for interrupting elements affecting "What needs doing" TextField
+    t =    17.63s     Synthesize event
+    t =    17.92s     Wait for com.novalist.app to idle
+    t =    18.19s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    18.19s     Wait for com.novalist.app to idle
+    t =    18.19s     Find the Application 'com.novalist.app'
+    t =    18.21s     Check for interrupting elements affecting "Novalist" Application
+    t =    18.23s     Synthesize event
+    t =    18.58s     Wait for com.novalist.app to idle
+    t =    18.70s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    18.70s     Wait for com.novalist.app to idle
+    t =    18.71s     Find the Application 'com.novalist.app'
+    t =    18.71s     Check for interrupting elements affecting "Novalist" Application
+    t =    18.73s     Synthesize event
+    t =    19.09s     Wait for com.novalist.app to idle
+    t =    19.10s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    19.10s     Wait for com.novalist.app to idle
+    t =    19.11s     Find the Application 'com.novalist.app'
+    t =    19.12s     Check for interrupting elements affecting "Novalist" Application
+    t =    19.13s     Synthesize event
+    t =    19.49s     Wait for com.novalist.app to idle
+    t =    19.51s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    19.51s     Wait for com.novalist.app to idle
+    t =    19.51s     Find the Application 'com.novalist.app'
+    t =    19.52s     Check for interrupting elements affecting "Novalist" Application
+    t =    19.53s     Synthesize event
+    t =    19.89s     Wait for com.novalist.app to idle
+    t =    19.91s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    19.91s     Wait for com.novalist.app to idle
+    t =    19.91s     Find the Application 'com.novalist.app'
+    t =    19.93s     Check for interrupting elements affecting "Novalist" Application
+    t =    19.94s     Synthesize event
+    t =    20.29s     Wait for com.novalist.app to idle
+    t =    20.32s Find the "Close" Button
+R15_landscape_FIRST_CLOSE_FOCUSED=true
+    t =    20.33s Find the "Close" Button
+    t =    20.34s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    20.34s     Wait for com.novalist.app to idle
+    t =    20.34s     Find the Application 'com.novalist.app'
+    t =    20.35s     Check for interrupting elements affecting "Novalist" Application
+    t =    20.36s     Synthesize event
+    t =    20.72s     Wait for com.novalist.app to idle
+    t =    20.73s Find the "List (optional)" TextField
+R15_landscape_BACKWARD_WRAP_LAST_FOCUSED=true
+    t =    20.74s Find the "List (optional)" TextField
+    t =    20.75s Type '⇥' key (XCUIKeyboardKeyTab) with no modifiers
+    t =    20.75s     Wait for com.novalist.app to idle
+    t =    20.75s     Find the Application 'com.novalist.app'
+    t =    20.76s     Check for interrupting elements affecting "Novalist" Application
+    t =    20.77s     Synthesize event
+    t =    21.12s     Wait for com.novalist.app to idle
+    t =    21.14s Find the "Close" Button
+R15_landscape_FORWARD_WRAP_FIRST_FOCUSED=true
+    t =    21.16s Find the "Close" Button
+    t =    21.17s Checking existence of `"Inspector" Button`
+    t =    21.18s Type '↩' key (XCUIKeyboardKeyReturn) with no modifiers
+    t =    21.18s     Wait for com.novalist.app to idle
+    t =    21.18s     Find the Application 'com.novalist.app'
+    t =    21.19s     Check for interrupting elements affecting "Novalist" Application
+    t =    21.20s     Synthesize event
+    t =    21.42s     Wait for com.novalist.app to idle
+    t =    21.44s Waiting 3.0s for "Inspector" Button to exist
+    t =    22.51s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    22.51s         Checking existence of `"Inspector" Button`
+    t =    22.53s         Capturing element debug description
+    t =    22.53s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    22.55s             Find: Descendants matching type Button
+    t =    22.55s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    22.55s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    22.56s             Find: Descendants matching type Button
+    t =    22.57s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    23.47s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    23.47s         Checking existence of `"Inspector" Button`
+    t =    23.49s         Capturing element debug description
+    t =    23.49s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    23.51s             Find: Descendants matching type Button
+    t =    23.51s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    23.51s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    23.52s             Find: Descendants matching type Button
+    t =    23.52s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    24.44s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    24.44s         Checking existence of `"Inspector" Button`
+    t =    24.47s         Capturing element debug description
+    t =    24.47s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    24.49s             Find: Descendants matching type Button
+    t =    24.49s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    24.49s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    24.50s             Find: Descendants matching type Button
+    t =    24.50s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    24.55s     Checking existence of `"Inspector" Button`
+    t =    24.56s Collecting debug information to assist test failure triage
+    t =    24.56s     Requesting snapshot of accessibility hierarchy for app with pid 66805
+R15_landscape_RETURN_ACTIVATES_CLOSE=false triggerFocused=false
+    t =    24.57s Tap "Close" Button
+    t =    24.57s     Wait for com.novalist.app to idle
+    t =    24.57s     Find the "Close" Button
+    t =    24.58s     Check for interrupting elements affecting "Close" Button
+    t =    24.60s     Synthesize event
+    t =    24.89s     Wait for com.novalist.app to idle
+    t =    24.89s Waiting 5.0s for "Inspector" Button to exist
+    t =    25.96s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    25.96s         Checking existence of `"Inspector" Button`
+    t =    26.00s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    26.00s     Wait for com.novalist.app to idle
+    t =    26.01s     Find the Application 'com.novalist.app'
+    t =    26.02s     Check for interrupting elements affecting "Novalist" Application
+    t =    26.04s     Synthesize event
+    t =    26.40s     Wait for com.novalist.app to idle
+    t =    26.42s Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    26.85s Requesting snapshot of accessibility hierarchy for app with pid 66805
+R15_landscape_AFTER_CLOSE_SHIFT_TAB
+Attributes: Application, 0x1134b2f80, pid: 66805, label: 'Novalist'
+Element subtree:
+ →Application, 0x1134b2f80, pid: 66805, label: 'Novalist'
+    Window (Main), 0x1134b3200, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x1134b3340, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x1134b3480, {{0.0, 0.0}, {874.0, 402.0}}
+          Other, 0x1134b3700, {{0.0, 0.0}, {874.0, 402.0}}
+            Other, 0x1134b35c0, {{0.0, 0.0}, {874.0, 402.0}}
+              WebView, 0x1134b3c00, {{0.0, 0.0}, {874.0, 402.0}}
+                WebView, 0x1134b3980, {{0.0, 0.0}, {874.0, 402.0}}
+                  WebView, 0x1134b3ac0, {{0.0, 0.0}, {874.0, 402.0}}
+                    Other, 0x1134b3d40, {{0.0, 0.0}, {874.0, 402.0}}
+                      Other, 0x1134b3e80, {{0.0, 0.0}, {874.0, 402.0}}
+                        Other, 0x1134b30c0, {{0.0, 0.0}, {874.0, 402.0}}
+                          Other, 0x1134b2e40, {{0.0, 0.0}, {874.0, 402.0}}, label: 'Novalist'
+                            Button, 0x1134b2d00, {{74.0, 8.0}, {119.0, 39.0}}, label: 'Manuscript'
+                            Button, 0x1134b2580, {{760.0, 10.0}, {40.0, 35.0}}, label: 'Inspector'
+                            Other, 0x1134b2bc0, {{62.0, 56.0}, {750.0, 39.0}}, label: 'Editor commands'
+                              Button, 0x1134b2a80, {{74.0, 62.0}, {106.0, 27.0}}, label: 'Paragraph style', value: Body
+                                Other, 0x1134b2940, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                              Switch, 0x1134b2800, {{190.0, 62.0}, {31.0, 27.0}}, label: 'Bulleted list', value: 0
+                              Switch, 0x1134b26c0, {{225.0, 62.0}, {31.0, 27.0}}, label: 'Numbered list', value: 0
+                              Switch, 0x1134b2440, {{260.0, 62.0}, {31.0, 27.0}}, label: 'Align left', value: 1
+                              Switch, 0x1134b2300, {{295.0, 62.0}, {31.0, 27.0}}, label: 'Centre', value: 0
+                              Switch, 0x1134b21c0, {{330.0, 62.0}, {31.0, 27.0}}, label: 'Align right', value: 0
+                              Switch, 0x1134b2080, {{365.0, 62.0}, {31.0, 27.0}}, label: 'Justify', value: 0
+                              Switch, 0x1134b0500, {{664.0, 62.0}, {31.0, 27.0}}, label: 'Dictate', value: 0
+                              Button, 0x11348c140, {{699.0, 62.0}, {31.0, 27.0}}, label: 'Scene snapshots'
+                              Switch, 0x1077c8f00, {{734.0, 62.0}, {31.0, 27.0}}, label: 'Suggest edits instead of making them', value: 0
+                              Button, 0x1077cb480, {{769.0, 62.0}, {31.0, 27.0}}, label: 'Writing options'
+                            Other, 0x1077cad00, {{62.0, 96.0}, {750.0, 203.0}}, label: 'editor'
+                              Other, 0x1077cae40, {{62.0, 96.0}, {750.0, 203.0}}
+                                Other, 0x10ae0fc00, {{62.0, 96.0}, {750.0, 203.0}}, label: 'editor', Focused
+                                  TextView, 0x10ae0d040, {{62.0, 96.0}, {750.0, 1067.0}}, value: The letter came on..., Focused
+                                    Other, 0x10ae0df40, {{233.0, 196.0}, {408.0, 174.0}}, Focused
+                                      StaticText, 0x10ae0c640, {{233.0, 201.0}, {361.0, 19.0}}, label: 'The letter came on a Thursday, which Mira would', value: The letter came on..., Focused
+                                      StaticText, 0x10ae0ea80, {{233.0, 230.0}, {77.0, 19.0}}, label: 'afterwards', value: afterwards, Focused
+                                      StaticText, 0x10ad8c780, {{233.0, 230.0}, {399.0, 134.0}}, label: 'think was the cruelty of it. Thursdays were for the ledger. Thursdays were for reconciling what the shop had sold against what the shop had promised, and for discovering, as she did every week, that the two had never once agreed.', value:  think was the cru..., Focused
+                                    StaticText, 0x10ade35c0, {{233.0, 201.0}, {361.0, 19.0}}, label: 'The letter came on a Thursday, which Mira would', value: The letter came on..., Focused
+                                    StaticText, 0x10ade0c80, {{233.0, 230.0}, {77.0, 19.0}}, label: 'afterwards', value: afterwards, Focused
+                                    StaticText, 0x10ade3980, {{233.0, 230.0}, {399.0, 134.0}}, label: 'think was the cruelty of it. Thursdays were for the ledger. Thursdays were for reconciling what the shop had sold against what the shop had promised, and for discovering, as she did every week, that the two had never once agreed.', value:  think was the cru..., Focused
+                                    Other, 0x10ade3480, {{233.0, 369.0}, {408.0, 174.0}}, Focused
+                                      StaticText, 0x10ade0000, {{233.0, 374.0}, {391.0, 106.0}}, label: 'She knew the hand before she knew the seal. Eleven months of probate and condolence and the slow administrative business of being made an orphan, and still her body', value: She knew the hand ..., Focused
+                                      StaticText, 0x113489900, {{330.0, 461.0}, {78.0, 19.0}}, label: 'recognised', value: recognised, Focused
+                                      StaticText, 0x113489a40, {{407.0, 461.0}, {220.0, 19.0}}, label: 'her father’s writing the way it', value:  her father’s writ..., Focused
+                                      StaticText, 0x113489b80, {{233.0, 490.0}, {78.0, 19.0}}, label: 'recognised', value: recognised, Focused
+                                      StaticText, 0x113489cc0, {{233.0, 490.0}, {372.0, 48.0}}, label: 'a stair in the dark — before thought, and faster than it.', value:  a stair in the da..., Focused
+                                    StaticText, 0x113489e00, {{233.0, 374.0}, {391.0, 106.0}}, label: 'She knew the hand before she knew the seal. Eleven months of probate and condolence and the slow administrative business of being made an orphan, and still her body', value: She knew the hand ..., Focused
+                                    StaticText, 0x113489f40, {{330.0, 461.0}, {78.0, 19.0}}, label: 'recognised', value: recognised, Focused
+                                    StaticText, 0x11348a080, {{407.0, 461.0}, {220.0, 19.0}}, label: 'her father’s writing the way it', value:  her father’s writ..., Focused
+                                    StaticText, 0x11348a1c0, {{233.0, 490.0}, {78.0, 19.0}}, label: 'recognised', value: recognised, Focused
+                                    StaticText, 0x11348a300, {{233.0, 490.0}, {372.0, 48.0}}, label: 'a stair in the dark — before thought, and faster than it.', value:  a stair in the da..., Focused
+                                    Other, 0x11348a580, {{233.0, 542.0}, {408.0, 232.0}}, Focused
+                                      StaticText, 0x11348a6c0, {{233.0, 548.0}, {405.0, 105.0}}, label: 'The paper was cheap. That was the first wrong thing. Silas Aldencourt had held opinions about paper the way other men held opinions about God, and none of them would have permitted this', value: The paper was chea..., Focused
+                                      StaticText, 0x11348a800, {{424.0, 634.0}, {32.0, 19.0}}, label: 'grey', value: grey, Focused
+                                      StaticText, 0x11348a940, {{233.0, 634.0}, {406.0, 135.0}}, label: ', fibrous, ill-sized sheet. The second wrong thing was the smell. She lifted it to the lamp and breathed in and there it was, unmistakable beneath the tallow and the road: salt, and the particular green rot of a', value: , fibrous, ill-siz..., Focused
+                                      StaticText, 0x11348bd40, {{333.0, 750.0}, {59.0, 19.0}}, label: 'harbour', value: harbour, Focused
+                                      StaticText, 0x11348be80, {{391.0, 750.0}, {83.0, 19.0}}, label: 'at low tide.', value:  at low tide., Focused
+                                    StaticText, 0x11348ad00, {{233.0, 548.0}, {405.0, 105.0}}, label: 'The paper was cheap. That was the first wrong thing. Silas Aldencourt had held opinions about paper the way other men held opinions about God, and none of them would have permitted this', value: The paper was chea..., Focused
+                                    StaticText, 0x11348bc00, {{424.0, 634.0}, {32.0, 19.0}}, label: 'grey', value: grey, Focused
+                                    StaticText, 0x11348bac0, {{233.0, 634.0}, {406.0, 135.0}}, label: ', fibrous, ill-sized sheet. The second wrong thing was the smell. She lifted it to the lamp and breathed in and there it was, unmistakable beneath the tallow and the road: salt, and the particular green rot of a', value: , fibrous, ill-siz..., Focused
+                                    StaticText, 0x11348b980, {{333.0, 750.0}, {59.0, 19.0}}, label: 'harbour', value: harbour, Focused
+                                    StaticText, 0x11348b840, {{391.0, 750.0}, {83.0, 19.0}}, label: 'at low tide.', value:  at low tide., Focused
+                                    Other, 0x11348b700, {{233.0, 773.0}, {408.0, 59.0}}, Focused
+                                      StaticText, 0x11348b5c0, {{233.0, 779.0}, {404.0, 19.0}}, label: 'Mira, it said. Do not believe the chart. Do not sell the chart.', value: Mira, it said. Do ..., Focused
+                                      StaticText, 0x11348b480, {{233.0, 808.0}, {21.0, 19.0}}, label: 'Do', value: Do, Focused
+                                      StaticText, 0x11348b340, {{253.0, 808.0}, {243.0, 19.0}}, label: 'not let Crane know the chart exists.', value:  not let Crane kno..., Focused
+                                    StaticText, 0x11348b200, {{233.0, 779.0}, {404.0, 19.0}}, label: 'Mira, it said. Do not believe the chart. Do not sell the chart.', value: Mira, it said. Do ..., Focused
+                                    StaticText, 0x11348b0c0, {{233.0, 808.0}, {21.0, 19.0}}, label: 'Do', value: Do, Focused
+                                    StaticText, 0x11348ae40, {{253.0, 808.0}, {243.0, 19.0}}, label: 'not let Crane know the chart exists.', value:  not let Crane kno..., Focused
+                                    Other, 0x11348af80, {{233.0, 831.0}, {408.0, 174.0}}, Focused
+                                      StaticText, 0x11348abc0, {{233.0, 837.0}, {408.0, 163.0}}, label: 'There was no signature. There was, instead, a small figure inked in the lower corner — a compass rose with its north arm broken — and Mira sat for a long time with her thumb over it, in the shop that was no longer her father’s, listening to the gulls that had no business being this far inland.', value: There was no signa..., Focused
+                                    StaticText, 0x11348aa80, {{233.0, 837.0}, {408.0, 163.0}}, label: 'There was no signature. There was, instead, a small figure inked in the lower corner — a compass rose with its north arm broken — and Mira sat for a long time with her thumb over it, in the shop that was no longer her father’s, listening to the gulls that had no business being this far inland.', value: There was no signa..., Focused
+                                    Other, 0x11348a440, {{233.0, 1004.0}, {408.0, 59.0}}, Focused
+                                      StaticText, 0x113490000, {{233.0, 1010.0}, {393.0, 48.0}}, label: 'She was on the eastbound mail coach before the lamps were lit.', value: She was on the eas..., Focused
+                                    StaticText, 0x113490140, {{233.0, 1010.0}, {393.0, 48.0}}, label: 'She was on the eastbound mail coach before the lamps were lit.', value: She was on the eas..., Focused
+                                  Other, 0x113490280, {{691.0, 258.0}, {39.0, 18.0}}, Focused
+                                    StaticText, 0x1134903c0, {{715.0, 260.0}, {9.0, 14.0}}, label: '2', value: 2, Focused
+                                  Other, 0x113490500, {{737.0, 258.0}, {39.0, 18.0}}, Focused
+                                    StaticText, 0x113490640, {{761.0, 260.0}, {8.0, 14.0}}, label: '4', value: 4, Focused
+                  Other, 0x113490780, {{841.0, 62.0}, {30.0, 278.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x1134908c0, {{868.0, 65.0}, {3.0, 272.0}}
+                  Other, 0x113490a00, {{841.0, 62.0}, {30.0, 278.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x113490b40, {{868.0, 65.0}, {3.0, 272.0}}
+              Other, 0x113490c80, {{0.0, 0.0}, {874.0, 402.0}}
+              TabBar, 0x113490dc0, {{0.0, 319.0}, {874.0, 83.0}}, label: 'Tab Bar'
+                Other, 0x113490f00, {{205.3, 338.0}, {463.7, 44.0}}
+                  Other, 0x113491040, {{205.3, 338.0}, {77.0, 36.0}}
+                  Other, 0x113491180, {{205.3, 338.0}, {463.7, 44.0}}
+                    Button, 0x1134912c0, {{209.3, 342.0}, {107.3, 36.0}}, label: 'Dashboard'
+                      Image, 0x113491400, {{215.3, 351.0}, {19.7, 18.3}}, identifier: 'square.grid.2x2', label: 'Grid view'
+                    Button, 0x113491540, {{320.7, 342.0}, {77.0, 36.0}}, label: 'Write', Selected
+                      Image, 0x113491680, {{326.7, 348.7}, {21.0, 20.7}}, identifier: 'square.and.pencil', label: 'compose'
+                    Button, 0x1134917c0, {{401.7, 342.0}, {89.7, 36.0}}, label: 'Codex'
+                      Image, 0x113491900, {{407.7, 351.0}, {27.7, 19.7}}, identifier: 'person.2', label: 'Two people'
+                    Button, 0x113491a40, {{495.3, 342.0}, {71.7, 36.0}}, label: 'Plan'
+                      Image, 0x113491b80, {{501.3, 347.7}, {21.3, 23.0}}, identifier: 'square.stack.3d.up', label: 'hdr'
+                    Button, 0x113491cc0, {{571.0, 342.0}, {94.0, 36.0}}, label: 'Settings'
+                      Image, 0x113491e00, {{577.0, 350.0}, {21.0, 20.7}}, identifier: 'gearshape', label: 'Gear shape'
+                  Other, 0x113491f40, {{205.3, 338.0}, {463.7, 44.0}}
+                  Other, 0x113492080, {{205.3, 338.0}, {463.7, 44.0}}
+                    Other, 0x1134921c0, {{205.3, 338.0}, {463.7, 44.0}}
+                      Other, 0x113492300, {{205.3, 338.0}, {463.7, 44.0}}
+                        Other, 0x113492440, {{205.3, 338.0}, {463.7, 44.0}}
+                          Other, 0x113492580, {{205.3, 338.0}, {463.7, 44.0}}
+                            Other, 0x1134926c0, {{205.3, 338.0}, {463.7, 44.0}}
+                        Other, 0x113492800, {{205.3, 338.0}, {463.7, 44.0}}
+                          Other, 0x113492940, {{205.3, 338.0}, {463.7, 44.0}}
+                  Other, 0x113492a80, {{320.7, 342.0}, {77.0, 36.0}}
+                    Other, 0x113492bc0, {{320.7, 342.0}, {77.0, 36.0}}
+                      Other, 0x113492d00, {{320.7, 342.0}, {77.0, 36.0}}
+                      Other, 0x113492e40, {{320.7, 342.0}, {77.0, 36.0}}
+                        Other, 0x113492f80, {{320.7, 342.0}, {77.0, 36.0}}
+                          Other, 0x1134930c0, {{320.7, 342.0}, {77.0, 36.0}}
+                            Other, 0x113493200, {{320.7, 342.0}, {77.0, 36.0}}
+                          Other, 0x113493340, {{320.7, 342.0}, {77.0, 36.0}}
+                        Other, 0x113493480, {{320.7, 342.0}, {77.0, 36.0}}
+            Other, 0x1134935c0, {{0.0, 0.0}, {874.0, 402.0}}
+              Other, 0x113493700, {{0.0, 0.0}, {874.0, 402.0}}
+    Window, 0x113493840, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x113493980, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x113493ac0, {{0.0, 0.0}, {874.0, 402.0}}
+Path to element:
+ →Application, 0x1134b2f80, pid: 66805, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x113493c00, pid: 66805, label: 'Novalist'
+  }
+
+    t =    26.88s Setting device orientation to Portrait
+    t =    26.88s     Device orientation changed to Portrait
+    t =    26.92s     Interface orientation changed to Portrait
+    t =    26.92s     Wait for com.novalist.app to idle
+    t =    27.24s Tear Down
+Test Case '-[AuditUITests.AuditUITests testNativeFocusContainment]' passed (27.269 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 13:50:52.100.
+	 Executed 1 test, with 0 failures (0 unexpected) in 27.269 (27.270) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 13:50:52.101.
+	 Executed 1 test, with 0 failures (0 unexpected) in 27.269 (27.271) seconds
+Test Suite 'All tests' passed at 2026-10-07 13:50:52.101.
+	 Executed 1 test, with 0 failures (0 unexpected) in 27.269 (27.271) seconds
+2026-10-07 13:50:52.392 xcodebuild[67626:3790308] [MT] IDETestOperationsObserverDebug: 30.013 elapsed -- Testing started completed.
+2026-10-07 13:50:52.392 xcodebuild[67626:3790308] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 13:50:52.392 xcodebuild[67626:3790308] [MT] IDETestOperationsObserverDebug: 30.013 sec, +30.013 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/02-focus-containment.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

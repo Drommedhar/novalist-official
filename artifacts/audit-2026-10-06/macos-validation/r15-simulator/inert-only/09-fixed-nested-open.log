@@ -1,0 +1,203 @@
+Test Suite 'All tests' started at 2026-10-07 14:11:47.231.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:11:47.231.
+Test Suite 'AuditUITests' started at 2026-10-07 14:11:47.232.
+Test Case '-[AuditUITests.AuditUITests testFixedNativeNestedOpen]' started.
+    t =     0.00s Start Test at 2026-10-07 14:11:47.233
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Waiting 10.0s for "Close" Button to exist
+objc[75377]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1084ac398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10866c310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =     1.08s         Checking existence of `"Close" Button`
+    t =     1.10s Tap "To do" Button
+    t =     1.10s     Wait for com.novalist.app to idle
+    t =     1.10s     Find the "To do" Button
+    t =     1.12s     Check for interrupting elements affecting "To do" Button
+    t =     1.13s     Synthesize event
+    t =     1.42s     Wait for com.novalist.app to idle
+    t =     1.42s Waiting 5.0s for "What needs doing" TextField to exist
+    t =     2.43s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =     2.43s         Checking existence of `"What needs doing" TextField`
+    t =     2.44s Tap "What needs doing" TextField
+    t =     2.44s     Wait for com.novalist.app to idle
+    t =     2.44s     Find the "What needs doing" TextField
+    t =     2.45s     Check for interrupting elements affecting "What needs doing" TextField
+    t =     2.47s     Synthesize event
+    t =     2.76s     Wait for com.novalist.app to idle
+    t =     2.79s Type 'p' key with modifiers '⌘⇧' (0x12)
+    t =     2.79s     Wait for com.novalist.app to idle
+    t =     3.15s     Find the Application 'com.novalist.app'
+    t =     3.18s     Check for interrupting elements affecting "Novalist" Application
+    t =     3.20s     Synthesize event
+    t =     3.55s     Wait for com.novalist.app to idle
+    t =     4.00s Waiting 5.0s for Any (First Match) to exist
+    t =     5.08s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =     5.08s         Checking existence of `Any (First Match)`
+    t =     5.14s Checking existence of `"What needs doing" TextField`
+    t =     5.17s Checking existence of `"Close" Button`
+    t =     5.20s Type 'r15nomatchingcomma...' into Application 'com.novalist.app'
+    t =     5.20s     Wait for com.novalist.app to idle
+    t =     5.20s     Find the Application 'com.novalist.app'
+    t =     5.22s     Check for interrupting elements affecting "Novalist" Application
+    t =     5.24s     Synthesize event
+    t =     5.79s     Wait for com.novalist.app to idle
+    t =     5.79s Waiting 5.0s for "No matching commands." StaticText to exist
+    t =     6.86s     Checking `Expect predicate `existsNoRetry == 1` for object "No matching commands." StaticText`
+    t =     6.86s         Checking existence of `"No matching commands." StaticText`
+    t =     6.88s Type '⇥' key (XCUIKeyboardKeyTab) with no modifiers
+    t =     6.88s     Wait for com.novalist.app to idle
+    t =     7.19s     Find the Application 'com.novalist.app'
+    t =     7.21s     Check for interrupting elements affecting "Novalist" Application
+    t =     7.23s     Synthesize event
+    t =     7.58s     Wait for com.novalist.app to idle
+    t =     8.02s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     8.02s     Wait for com.novalist.app to idle
+    t =     8.03s     Find the Application 'com.novalist.app'
+    t =     8.05s     Check for interrupting elements affecting "Novalist" Application
+    t =     8.07s     Synthesize event
+    t =     8.42s     Wait for com.novalist.app to idle
+    t =     8.76s Requesting snapshot of accessibility hierarchy for app with pid 75205
+    t =     8.89s Requesting snapshot of accessibility hierarchy for app with pid 75205
+R15_FIXED_NATIVE_NESTED_OPEN_PASS
+Attributes: Application, 0x1082fcc80, pid: 75205, label: 'Novalist'
+Element subtree:
+ →Application, 0x1082fcc80, pid: 75205, label: 'Novalist'
+    Window (Main), 0x1082fcdc0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1082fcf00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1082fd040, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1082fd180, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1082fd2c0, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x1082fd900, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x1082fda40, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1082fd540, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1082fd680, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x1082fdb80, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1082fdcc0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1082fdf40, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1082fe300, {{0.0, -68.0}, {402.0, 874.0}}
+                          Other, 0x1082fe440, {{0.0, -68.0}, {402.0, 874.0}}, label: 'Novalist'
+                            Other, 0x1082fe580, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x1082fe080, {{20.0, 36.0}, {362.0, 177.0}}, label: 'Type a command name..., web dialog'
+                              TextField, 0x1082fe1c0, {{41.0, 57.0}, {320.0, 42.0}}, label: 'Type a command name...', placeholderValue: 'Type a command name...', value: r15nomatchingcommand, Keyboard Focused, Focused
+                                StaticText, 0x1082fde00, {{54.0, 69.0}, {184.0, 19.0}}, label: 'r15nomatchingcommand', value: r15nomatchingcommand, Focused
+                              Other, 0x1082fd7c0, {{41.0, 116.0}, {320.0, 76.0}}
+                                Other, 0x1082fe6c0, {{41.0, 131.0}, {320.0, 46.0}}
+                                  StaticText, 0x1082fe800, {{53.0, 145.0}, {158.0, 17.0}}, label: 'No matching commands.', value: No matching comman...
+                  Other, 0x1082fe940, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1082fea80, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x1082febc0, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 17%
+                    Other, 0x1082fed00, {{396.0, 85.0}, {3.0, 258.7}}
+                  Other, 0x1082fee40, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 17%
+                    Other, 0x1082fef80, {{396.0, 85.0}, {3.0, 258.7}}
+              Other, 0x1082ff0c0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1082ff200, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1082ff340, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x1082ff480, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1082ff5c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1082ff700, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1082ff840, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x1082ff980, {{0.0, 478.0}, {402.0, 68.0}}
+            Other, 0x1082ffac0, {{0.0, 478.0}, {402.0, 68.0}}
+              Toolbar, 0x1082ffc00, {{0.0, 488.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Button, 0x1082ffd40, {{29.0, 504.7}, {24.0, 14.7}}, label: 'go up', Disabled
+                Button, 0x1082ffe80, {{83.0, 505.3}, {24.0, 14.7}}, label: 'go down'
+                Button, 0x104a83840, {{349.0, 501.0}, {24.0, 22.7}}, label: 'selected'
+          Other, 0x104bcf980, {{0.0, 546.0}, {402.0, 328.0}}, identifier: 'inputView'
+    Window, 0x104bcfac0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x104bcf840, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x104bccc80, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x104bcf700, {{0.0, 478.0}, {402.0, 68.0}}
+          Other, 0x104bcdf40, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x104bcd180, {{0.0, 546.0}, {402.0, 44.0}}
+              Other, 0x104bcda40, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x104bcf5c0, {{0.0, -54.0}, {402.0, 1244.0}}
+                  ScrollView, 0x108188140, {{0.0, 546.0}, {402.0, 44.0}}
+                Other, 0x108188280, {{0.0, 546.0}, {402.0, 44.0}}
+                  Other, 0x108188640, {{0.0, 546.0}, {402.0, 44.0}}
+                    Other, 0x108188500, {{0.0, 546.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x1081883c0, {{0.0, 546.0}, {402.0, 44.0}}
+                        Other, 0x108188b40, {{0.0, 546.0}, {402.0, 44.0}}
+                          Button, 0x108188c80, {{0.0, 546.0}, {134.0, 44.0}}
+                          Button, 0x108188f00, {{134.0, 546.0}, {134.0, 44.0}}
+                          Button, 0x108189040, {{268.0, 546.0}, {134.0, 44.0}}
+          Other, 0x108188dc0, {{0.0, 546.0}, {402.0, 329.0}}
+            Other, 0x1081888c0, {{0.0, 546.0}, {402.0, 329.0}}
+              Other, 0x108188780, {{0.0, 546.0}, {402.0, 329.0}}
+          Other, 0x1082f0000, {{0.0, 590.0}, {402.0, 226.0}}
+            Keyboard, 0x1082f0140, {{0.0, 590.0}, {402.0, 226.0}}
+              Other, 0x1082f0280, {{0.0, 590.0}, {402.0, 226.0}}
+                Other, 0x1082f03c0, {{0.0, 590.0}, {402.0, 226.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x1082f0500, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1082f0640, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x1082f0780, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1082f08c0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x1082f0a00, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1082f0b40, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x1082f0c80, {{4.7, 597.0}, {39.3, 54.0}}, label: 'q'
+                  Key, 0x1082f0dc0, {{44.0, 597.0}, {39.7, 54.0}}, label: 'w'
+                  Key, 0x1082f0f00, {{83.7, 597.0}, {39.3, 54.0}}, label: 'e'
+                  Key, 0x1082f1040, {{123.0, 597.0}, {39.7, 54.0}}, label: 'r'
+                  Key, 0x1082f1180, {{162.7, 597.0}, {39.3, 54.0}}, label: 't'
+                  Key, 0x1082f12c0, {{202.0, 597.0}, {39.7, 54.0}}, label: 'y'
+                  Key, 0x1082f1400, {{241.7, 597.0}, {39.3, 54.0}}, label: 'u'
+                  Key, 0x1082f1540, {{281.0, 597.0}, {39.7, 54.0}}, label: 'i'
+                  Key, 0x1082f1680, {{320.7, 597.0}, {39.3, 54.0}}, label: 'o'
+                  Key, 0x1082f17c0, {{360.0, 597.0}, {39.7, 54.0}}, label: 'p'
+                  Key, 0x1082f1900, {{24.3, 651.0}, {39.3, 54.0}}, label: 'a'
+                  Key, 0x1082f1a40, {{63.7, 651.0}, {39.7, 54.0}}, label: 's'
+                  Key, 0x1082f1b80, {{103.3, 651.0}, {39.3, 54.0}}, label: 'd'
+                  Key, 0x1082f1cc0, {{142.7, 651.0}, {39.7, 54.0}}, label: 'f'
+                  Key, 0x1082f1e00, {{182.3, 651.0}, {39.3, 54.0}}, label: 'g'
+                  Key, 0x1082f1f40, {{221.7, 651.0}, {39.7, 54.0}}, label: 'h'
+                  Key, 0x1082f2080, {{261.3, 651.0}, {39.3, 54.0}}, label: 'j'
+                  Key, 0x1082f21c0, {{300.7, 651.0}, {39.7, 54.0}}, label: 'k'
+                  Key, 0x1082f2300, {{340.3, 651.0}, {39.3, 54.0}}, label: 'l'
+                  Button, 0x1082f2440, {{4.7, 705.0}, {51.3, 54.0}}, identifier: 'shift', label: 'shift'
+                  Key, 0x1082f2580, {{63.7, 705.0}, {39.7, 54.0}}, label: 'z'
+                  Key, 0x1082f26c0, {{103.3, 705.0}, {39.3, 54.0}}, label: 'x'
+                  Key, 0x1082f2800, {{142.7, 705.0}, {39.7, 54.0}}, label: 'c'
+                  Key, 0x1082f2940, {{182.3, 705.0}, {39.3, 54.0}}, label: 'v'
+                  Key, 0x1082f2a80, {{221.7, 705.0}, {39.7, 54.0}}, label: 'b'
+                  Key, 0x1082f2bc0, {{261.3, 705.0}, {39.3, 54.0}}, label: 'n'
+                  Key, 0x1082f2d00, {{300.7, 705.0}, {39.7, 54.0}}, label: 'm'
+                  Key, 0x1082f2e40, {{348.0, 705.0}, {51.7, 54.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x1082f2f80, {{4.7, 759.0}, {98.7, 54.0}}, identifier: 'more', label: 'numbers'
+                  Key, 0x1082f30c0, {{103.3, 759.0}, {197.3, 54.0}}, identifier: 'space', label: 'space'
+                  Button, 0x1082f3200, {{300.7, 759.0}, {99.0, 54.0}}, identifier: 'Return', label: 'return'
+          Other, 0x1082f3340, {{0.0, 590.0}, {402.0, 284.0}}
+            Button, 0x1082f3480, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Emoji'
+              StaticText, 0x1082f35c0, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x1082f3700, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x1082f3840, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x1082f3980, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x1082f3ac0, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x1082fcc80, pid: 75205, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x1082f3c00, pid: 75205, label: 'Novalist'
+  }
+
+    t =     8.91s Find the Application 'com.novalist.app'
+    t =     8.99s Added attachment named 'fixed-native-nested'
+    t =     8.99s Tear Down
+Test Case '-[AuditUITests.AuditUITests testFixedNativeNestedOpen]' passed (8.997 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 14:11:56.231.
+	 Executed 1 test, with 0 failures (0 unexpected) in 8.997 (8.999) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 14:11:56.231.
+	 Executed 1 test, with 0 failures (0 unexpected) in 8.997 (8.999) seconds
+Test Suite 'All tests' passed at 2026-10-07 14:11:56.231.
+	 Executed 1 test, with 0 failures (0 unexpected) in 8.997 (9.000) seconds
+2026-10-07 14:11:56.518 xcodebuild[75361:3888551] [MT] IDETestOperationsObserverDebug: 11.707 elapsed -- Testing started completed.
+2026-10-07 14:11:56.518 xcodebuild[75361:3888551] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:11:56.518 xcodebuild[75361:3888551] [MT] IDETestOperationsObserverDebug: 11.707 sec, +11.707 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/09-fixed-nested-open.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

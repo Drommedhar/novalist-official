@@ -1,0 +1,50 @@
+{
+  "hash": "SHA256",
+  "scope": "Every other file in this evidence directory; this manifest excludes itself.",
+  "files": {
+    "desktop-offline-help.json": {
+      "sha256": "edc0df986a58f73cf799b0e2329ca67772b08aa6a38c992b5a7ae9371dd1e5ab",
+      "bytes": 10351
+    },
+    "desktop-offline-help.log": {
+      "sha256": "4e3caace4b507c5d8fca1b8c08753f3f317ae8c5de5a2efc52c3b4be0ccc67fc",
+      "bytes": 76
+    },
+    "native-help-bundle-images.json": {
+      "sha256": "ca0c2eddfefafc46b0b19e582ff9a557afd69a64def3e3185686670a1bfac686",
+      "bytes": 5220
+    },
+    "native-help-dashboard.png": {
+      "sha256": "b20dea31488120c09a0337cdda6a6032b0f75777fac1a03c58554bc3e1a82767",
+      "bytes": 682941
+    },
+    "native-help-editor.png": {
+      "sha256": "c0c7aa725ffa56ae9688159fb60136c29abb9f5ca8725444c7b9b0ce6be1b844",
+      "bytes": 1235430
+    },
+    "native-help-project-preserved.json": {
+      "sha256": "ee27afc0e12fa326c326a9a5dbbe811761adcf1d2974bf03ba00188c1b23c41d",
+      "bytes": 115
+    },
+    "native-help.json": {
+      "sha256": "0f0f359870c042a96a8664479e5a8a10b12ea60ded202b17984dc442d7962a1d",
+      "bytes": 8601
+    },
+    "native-help.swift": {
+      "sha256": "6878e15fec4132203dbb8c2caa2eeda045e80c81edff903712838e7db26eb380",
+      "bytes": 1569
+    },
+    "refreshed-image-hashes.json": {
+      "sha256": "5f5af3fcfc5a4c95446694528f8e6b499890b428b5c94c4d001a38a73adf8fe1",
+      "bytes": 6931
+    },
+    "summary.json": {
+      "sha256": "f95372de212037b695f389bedd66137700b748cd44514cf010579c1c6d53e649",
+      "bytes": 5360
+    },
+    "verify-desktop-help.mjs": {
+      "sha256": "af6d968fd334c63f11805c87fb644be62bc2d0f2e9ac4207bf06029b840d6562",
+      "bytes": 4731
+    }
+  }
+}

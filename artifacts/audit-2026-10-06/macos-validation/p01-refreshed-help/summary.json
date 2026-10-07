@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "finding": "P01",
+  "date": "2026-10-07",
+  "result": "passed-refreshed-help-subset",
+  "finding_status": "implemented-validation-limited",
+  "scope": "Reconciliation of already completed refreshed Help acceptance; no runtime tests were repeated for this evidence import.",
+  "source": {
+    "screenshot_commit": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+    "test_time_source_revision": "6cdda9918f188f966b7e4996b80e49fe9193d173",
+    "test_time_worktree_note": "The checks ran on the recorded source revision with refreshed manual PNGs then uncommitted. The eleven tested images and all 47 manual Markdown files now match the screenshot commit exactly. This is source attribution, not a claim that tests were rerun after that commit.",
+    "manifest": "docs/app-store/screenshots.json",
+    "manifest_sha256": "2f7565392ecb19d1ef6eee414ca6adf637352b7209bd0d69a750599b038b9667",
+    "manual_image_count": 11,
+    "manual_page_count": 47,
+    "current_and_commit_hashes_match_recorded_inputs": true,
+    "image_manifest": "refreshed-image-hashes.json",
+    "manual_page_hashes": "desktop-offline-help.json"
+  },
+  "desktop": {
+    "status": "passed",
+    "manual_pages_opened": 47,
+    "images_decoded": 11,
+    "image_dimensions": [
+      1440,
+      900
+    ],
+    "local_emitted_asset_urls": true,
+    "source_and_emitted_hashes_match": true,
+    "network_control": "Playwright browser context offline; HTTP(S) request routing aborted remote requests during Help traversal.",
+    "page_errors": 0,
+    "remote_requests": 0,
+    "evidence": "desktop-offline-help.json",
+    "success_log": "desktop-offline-help.log",
+    "procedure": "verify-desktop-help.mjs"
+  },
+  "native": {
+    "status": "passed-targeted-simulator-check",
+    "model": "iPad Pro 13-inch (M5)",
+    "runtime": "iOS27.0",
+    "production_app_without_runtime_probes": true,
+    "actual_ui_navigation": true,
+    "rendered_pages": [
+      "Dashboard",
+      "Editor"
+    ],
+    "refreshed_images_present_in_installed_bundle": 11,
+    "refreshed_images_referenced_by_entry_script": 11,
+    "installed_bundle_matches_built_bundle": true,
+    "installed_bundle_tree_sha256": "e3af065b470c43ac10f4433fdf84ddcae48e7d0a8637e7617e1c35578e0fbac0",
+    "synthetic_fixture_files_preserved": 82,
+    "evidence": "native-help.json",
+    "procedure": "native-help.swift",
+    "screenshots": [
+      "native-help-dashboard.png",
+      "native-help-editor.png"
+    ]
+  },
+  "preservation": {
+    "desktop_record_copied_byte_for_byte": true,
+    "desktop_final_success_log_copied_byte_for_byte": true,
+    "native_record_changes": "Removed simulator.udid and simulator.name only; model, runtime, original source identity, results and evidence hashes retained.",
+    "desktop_procedure_changes": "Only the two private absolute repo/work path constants were replaced with NOVALIST_REPO/current-directory and NOVALIST_HELP_EVIDENCE_DIR/temporary-directory defaults. Test operations unchanged.",
+    "native_procedure_and_attachments_copied_byte_for_byte": true,
+    "original_input_sha256": {
+      "help-verification.json": "edc0df986a58f73cf799b0e2329ca67772b08aa6a38c992b5a7ae9371dd1e5ab",
+      "help-verification-final-8bit.log": "4e3caace4b507c5d8fca1b8c08753f3f317ae8c5de5a2efc52c3b4be0ccc67fc",
+      "verify-desktop-help.mjs": "afbd9bd96b5dda5343e484a3d6830bb697ba21ccf1144fb56dc94d739bd6fc76",
+      "ipad-evidence/native-help.json": "af453c62cc50b6063747d6fde402d26b2bd8b4e322c07579e53c5ade1fcccc0c"
+    },
+    "logs_note": "The compact final desktop success line is preserved. Raw native XCTest logs and result bundles are not published; their targeted result is retained in the native record with its hashed test source and two synthetic screenshots.",
+    "privacy": "Only synthetic demonstration content appears in the native screenshots. Evidence contains no user-home paths, simulator instance identifiers or real writing projects."
+  },
+  "reproduction": {
+    "desktop": "After preparing the repository desktop build and dependencies, run node <evidence-directory>/verify-desktop-help.mjs from the repository root. Optional NOVALIST_REPO and NOVALIST_HELP_EVIDENCE_DIR choose the repository and output locations.",
+    "native": "Use native-help.swift as the XCTest UI test source targeting com.novalist.app on a dedicated iPad simulator with the synthetic demonstration project and the clean refreshed Help build. It opens the real Manual UI and checks Dashboard/Editor image accessibility and native screenshot attachments.",
+    "not_rerun_during_reconciliation": true
+  },
+  "limitations": [
+    "P01 remains implemented-validation-limited; the overall audit finding count is unchanged.",
+    "This new native check covers two rendered pages and hashes/references for all eleven bundled images. It does not establish an all-page native traversal or native offline/airplane-mode acceptance for the refreshed images.",
+    "No physical iPhone/iPad acceptance, OS-cold launch, memory comparison, JavaScriptCore trace, distribution or release evidence is added.",
+    "The recorded 44.1-second native test duration is functional test elapsed time, not startup or performance acceptance.",
+    "Earlier P01 desktop measurements, simulator traversal and controlled native build pair remain historical evidence for their original source and asset versions."
+  ]
+}

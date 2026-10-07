@@ -1,0 +1,124 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 14:03:09.968.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:03:09.968.
+Test Suite 'AuditUITests' started at 2026-10-07 14:03:09.968.
+Test Case '-[AuditUITests.AuditUITests testDiskConflictRemainsRecoverable]' started.
+    t =     0.00s Start Test at 2026-10-07 14:03:09.970
+    t =     0.02s Set Up
+    t =     0.02s Terminate com.novalist.app:69180
+objc[70978]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1022cc398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1031f4310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.05s Open com.novalist.app
+    t =     1.05s     Launch com.novalist.app
+    t =     1.07s         Setting up automation session
+    t =     3.66s         Wait for com.novalist.app to idle
+    t =     5.26s Setting device orientation to Portrait
+    t =     5.27s     Wait for com.novalist.app to idle
+    t =     5.27s Waiting 20.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =     6.35s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     6.35s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     6.43s Double tap "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     6.43s     Wait for com.novalist.app to idle
+    t =     6.44s     Find the "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     6.45s     Check for interrupting elements affecting "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     6.47s     Synthesize event
+    t =     6.81s     Wait for com.novalist.app to idle
+    t =     6.81s Waiting 15.0s for "Write" Button to exist
+    t =     7.89s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =     7.89s         Checking existence of `"Write" Button`
+    t =     8.00s Tap "Write" Button
+    t =     8.00s     Wait for com.novalist.app to idle
+    t =     8.00s     Find the "Write" Button
+    t =     8.07s     Check for interrupting elements affecting "Write" Button
+    t =     8.11s     Synthesize event
+    t =     8.40s     Wait for com.novalist.app to idle
+    t =     9.86s Tap "Scene" Button
+    t =     9.86s     Wait for com.novalist.app to idle
+    t =     9.86s     Find the "Scene" Button
+    t =     9.89s     Check for interrupting elements affecting "Scene" Button
+    t =     9.91s     Synthesize event
+    t =    10.19s     Wait for com.novalist.app to idle
+    t =    10.27s Type 'Audit M01 disk con...' into "Enter scene title..." TextField
+    t =    10.27s     Wait for com.novalist.app to idle
+    t =    10.64s     Find the "Enter scene title..." TextField
+    t =    10.68s     Check for interrupting elements affecting "Enter scene title..." TextField
+    t =    10.70s     Synthesize event
+    t =    11.33s     Wait for com.novalist.app to idle
+    t =    11.33s Checking existence of `"selected" Button`
+    t =    11.35s Find the "selected" Button
+    t =    11.38s Tap "selected" Button
+    t =    11.38s     Wait for com.novalist.app to idle
+    t =    11.38s     Find the "selected" Button
+    t =    11.40s     Check for interrupting elements affecting "selected" Button
+    t =    11.42s     Synthesize event
+    t =    11.71s     Wait for com.novalist.app to idle
+    t =    11.97s Tap "OK" Button
+    t =    11.97s     Wait for com.novalist.app to idle
+    t =    11.98s     Find the "OK" Button
+    t =    11.99s     Check for interrupting elements affecting "OK" Button
+    t =    12.01s     Synthesize event
+    t =    12.31s     Wait for com.novalist.app to idle
+    t =    12.31s Waiting 10.0s for "Audit M01 disk conflict A" Button to exist
+    t =    13.39s     Checking `Expect predicate `existsNoRetry == 1` for object "Audit M01 disk conflict A" Button`
+    t =    13.39s         Checking existence of `"Audit M01 disk conflict A" Button`
+    t =    13.43s Tap "Audit M01 disk conflict A" Button
+    t =    13.43s     Wait for com.novalist.app to idle
+    t =    13.43s     Find the "Audit M01 disk conflict A" Button
+    t =    13.45s     Check for interrupting elements affecting "Audit M01 disk conflict A" Button
+    t =    13.47s     Synthesize event
+    t =    13.76s     Wait for com.novalist.app to idle
+    t =    15.21s Waiting 10.0s for TextView (First Match) to exist
+    t =    16.29s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    16.29s         Checking existence of `TextView (First Match)`
+    t =    16.32s         Capturing element debug description
+    t =    17.28s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    17.28s         Checking existence of `TextView (First Match)`
+    t =    17.31s         Capturing element debug description
+    t =    18.28s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    18.28s         Checking existence of `TextView (First Match)`
+    t =    18.30s         Capturing element debug description
+    t =    19.27s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    19.27s         Checking existence of `TextView (First Match)`
+    t =    19.29s         Capturing element debug description
+    t =    20.26s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    20.26s         Checking existence of `TextView (First Match)`
+    t =    20.28s         Capturing element debug description
+    t =    21.25s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    21.25s         Checking existence of `TextView (First Match)`
+    t =    21.27s         Capturing element debug description
+    t =    22.23s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    22.23s         Checking existence of `TextView (First Match)`
+    t =    22.25s         Capturing element debug description
+    t =    23.22s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    23.22s         Checking existence of `TextView (First Match)`
+    t =    23.25s         Capturing element debug description
+    t =    24.22s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    24.22s         Checking existence of `TextView (First Match)`
+    t =    24.25s         Capturing element debug description
+    t =    25.22s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    25.22s         Checking existence of `TextView (First Match)`
+    t =    25.25s         Capturing element debug description
+    t =    25.25s     Checking existence of `TextView (First Match)`
+    t =    25.27s Collecting debug information to assist test failure triage
+    t =    25.27s     Requesting snapshot of accessibility hierarchy for app with pid 70997
+<audit-scratch>/harness/AuditUITests.swift:23: error: -[AuditUITests.AuditUITests testDiskConflictRemainsRecoverable] : XCTAssertTrue failed
+    t =    25.32s Tear Down
+Test Case '-[AuditUITests.AuditUITests testDiskConflictRemainsRecoverable]' failed (25.550 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 14:03:35.521.
+	 Executed 1 test, with 1 failure (0 unexpected) in 25.550 (25.553) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 14:03:35.522.
+	 Executed 1 test, with 1 failure (0 unexpected) in 25.550 (25.554) seconds
+Test Suite 'All tests' failed at 2026-10-07 14:03:35.522.
+	 Executed 1 test, with 1 failure (0 unexpected) in 25.550 (25.555) seconds
+2026-10-07 14:03:35.824 xcodebuild[70960:3838848] [MT] IDETestOperationsObserverDebug: 28.308 elapsed -- Testing started completed.
+2026-10-07 14:03:35.824 xcodebuild[70960:3838848] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:03:35.824 xcodebuild[70960:3838848] [MT] IDETestOperationsObserverDebug: 28.308 sec, +28.308 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/disk-conflict.xcresult
+
+Failing tests:
+	AuditUITests.testDiskConflictRemainsRecoverable()
+
+** TEST FAILED **
+
+Testing started

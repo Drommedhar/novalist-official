@@ -1,0 +1,76 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 211b2409..e208c2bb 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -34,7 +34,7 @@ could encounter in a previously released version.
+ - Image-only scenes retain their content, spelling actions reach the correct split editor, and inline extension actions retain their alternatives and suggested-edit behavior.
+ - Inserted images keep their chosen paragraph after a prose rebuild, including in page view.
+ - 3D maps fit the visible area on high-resolution displays instead of appearing cropped or blank.
+-- Dialogs contain keyboard focus and return it when closed; command and quick-open palettes keep the selected result visible while scrolling.
++- Dialogs keep the active layer usable when nested, contain keyboard focus and return it when closed; command and quick-open palettes keep the selected result visible while scrolling.
+ - Disabling an extension retires its open web panels and pending controller calls.
+ 
+ ### Security
+diff --git a/app/e2e/audit-renderer-regressions.spec.ts b/app/e2e/audit-renderer-regressions.spec.ts
+index efe974c2..d3aa1812 100644
+--- a/app/e2e/audit-renderer-regressions.spec.ts
++++ b/app/e2e/audit-renderer-regressions.spec.ts
+@@ -267,7 +267,7 @@ test('conflict choices preserve complete original and mixed block HTML', async (
+   } finally { await h.close() }
+ })
+ 
+-test('the mobile inspector traps keyboard focus and restores its trigger', async () => {
++test('the mobile inspector traps focus through nested palettes and restores its trigger', async () => {
+   const h = await launchApp('nl-audit-mobile-sheet-', { NOVALIST_FORCE_MOBILE: '1' })
+   try {
+     await seedBook(h, { One: ['A'] })
+@@ -288,6 +288,22 @@ test('the mobile inspector traps keyboard focus and restores its trigger', async
+     await h.page.keyboard.press('Shift+Tab')
+     expect(await sheet.evaluate((element) => element.contains(document.activeElement))).toBe(true)
+     expect(await trigger.evaluate((element) => !!element.closest('[inert]'))).toBe(true)
++    const close = sheet.getByRole('button', { name: 'Close', exact: true })
++    await close.focus()
++    for (let opening = 0; opening < 2; opening++) {
++      await h.page.keyboard.press('ControlOrMeta+Shift+p')
++      const palette = h.page.locator('.palette-card')
++      await expect(palette).toBeVisible()
++      await expect(palette.getByRole('combobox')).toBeFocused()
++      expect(await sheet.evaluate((element) => !!element.closest('[inert]'))).toBe(true)
++      await h.page.keyboard.press('Escape')
++      await expect(palette).toHaveCount(0)
++      await expect(close).toBeFocused()
++      expect(await sheet.evaluate((element) => !!element.closest('[inert]'))).toBe(false)
++      expect(await h.page.locator('[data-motion-presence="closing"]').evaluateAll(
++        (elements) => elements.every((element) => element.hasAttribute('inert'))
++      )).toBe(true)
++    }
+     await h.page.keyboard.press('Escape')
+     await expect(sheet).toHaveCount(0)
+     await expect(trigger).toBeFocused()
+diff --git a/app/src/renderer/src/shell/modalFocus.ts b/app/src/renderer/src/shell/modalFocus.ts
+index 9f2a6806..05386ebc 100644
+--- a/app/src/renderer/src/shell/modalFocus.ts
++++ b/app/src/renderer/src/shell/modalFocus.ts
+@@ -11,9 +11,9 @@ function controls(dialog: HTMLElement): HTMLElement[] {
+ export function installModalFocus(): () => void {
+   let lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
+   let stack: { dialog: HTMLElement; previous: HTMLElement | null }[] = []
+-  const background = new Map<HTMLElement, boolean>()
++  const background = new Set<HTMLElement>()
+   const restoreBackground = (): void => {
+-    for (const [element, inert] of background) element.inert = inert
++    for (const element of background) element.inert = false
+     background.clear()
+   }
+   const focus = (dialog: HTMLElement): void => {
+@@ -40,8 +40,8 @@ export function installModalFocus(): () => void {
+     let branch: HTMLElement = active
+     while (branch.parentElement) {
+       for (const sibling of branch.parentElement.children) {
+-        if (!(sibling instanceof HTMLElement) || sibling === branch) continue
+-        background.set(sibling, sibling.inert)
++        if (!(sibling instanceof HTMLElement) || sibling === branch || sibling.inert) continue
++        background.add(sibling)
+         sibling.inert = true
+       }
+       branch = branch.parentElement

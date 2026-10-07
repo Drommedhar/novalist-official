@@ -1,0 +1,105 @@
+{
+  "method": "SHA256 for every other file in this directory; excludes itself.",
+  "files": {
+    "app-inputs.json": {
+      "sha256": "2444dd326e75409543aeff9fab5a4244e72cfd2abc571ade90024d51fc89da14",
+      "bytes": 62670
+    },
+    "app-source.json": {
+      "sha256": "500fc40b81d1be3d8c5ad3815ee018813aeea57f7439f39e274bc3747308123d",
+      "bytes": 321
+    },
+    "clean-removal.json": {
+      "sha256": "51c2e308b6fee371bcb21a39e55c8aba90f1784aa69f500b36b4ff1f95ed2ee7",
+      "bytes": 479
+    },
+    "clean-reopen.swift": {
+      "sha256": "fde2a373894cc3e1196a96644888bcc5f435dee1b17f42dd995ed591afb5f682",
+      "bytes": 1489
+    },
+    "clean-reopened-screen.png": {
+      "sha256": "14621d2c63d295abc5043aed87a3c0c59fd9053c8f0b91b01c29f99764f78ba9",
+      "bytes": 344379
+    },
+    "devicehub-controls.py": {
+      "sha256": "38250fdc39907302520afd3f0f4da6547172c25329a8920f697a80914054a0de",
+      "bytes": 1455
+    },
+    "devicehub-select.py": {
+      "sha256": "b50e363be1a4596c415e8e3b5b0268a74ff5b1328115b20da034c58db1b2c7bf",
+      "bytes": 2070
+    },
+    "fixture-setup.swift": {
+      "sha256": "656bc696ca830a4e4c175f3be149722060df1516b9a9f3b57474a81f1a354edf",
+      "bytes": 1623
+    },
+    "hold-scene-write.js": {
+      "sha256": "132b119ef331b30922835f60bff0e81e0ffc92185b644c8dd49c7a3ab3b3e740",
+      "bytes": 1467
+    },
+    "inspect-simulator-ax.py": {
+      "sha256": "27098ab8adb832b8e95cd1455d686324eeef6a68330dd9983fb9e0210b74091c",
+      "bytes": 2402
+    },
+    "observer-mismatch.json": {
+      "sha256": "8cf691ba1c6fde83f7fe5830bc60008c319f8fd456b504906a895a8c645bda1a",
+      "bytes": 1537
+    },
+    "pending-edit.swift": {
+      "sha256": "dd537b795801c9278b43101a4c8ef192c210102a7c01476bb108773b4d949f6e",
+      "bytes": 1066
+    },
+    "pending-lock.json": {
+      "sha256": "40287ecfac017f79fb935efebeb446b590afc5a03d6693994de4a3e55643dd2a",
+      "bytes": 13767
+    },
+    "pending-locked-screen.png": {
+      "sha256": "72b65a5abe579112b5143c19adf82a06d7335f7bd01f497e6e8d6d2ec8e2d686",
+      "bytes": 5020696
+    },
+    "pending-recovered-screen.png": {
+      "sha256": "a5d81c569d32e1ddd83f47a4d8e99f93ff6159abf9c04a65d3e10cfcb57c7190",
+      "bytes": 344347
+    },
+    "probe-app-inputs.json": {
+      "sha256": "79b45c830452f5d131aac7710d1522f3617100463d3ca7be97e0f3d44a048f7e",
+      "bytes": 59864
+    },
+    "probe-native-control-lifecycle.patch": {
+      "sha256": "be3ef8b1a638d49bd9548ce5eb22820e5608a44f3a52741f0809bfe2b794ed13",
+      "bytes": 11865
+    },
+    "probe-production-inputs.json": {
+      "sha256": "db1c92b5ee60de3879e13f123c78362e2f884da75dac36be7424947c34d0990e",
+      "bytes": 155485
+    },
+    "probe-renderer-assets.json": {
+      "sha256": "c5aefce06de5c2f7f1c090fdc87d1386fc1db06a62fe3951f8a5b50c99d4deba",
+      "bytes": 20349
+    },
+    "probe-source.json": {
+      "sha256": "5254e2aae93256ff4416523c9451d03e534b26b0ebbe19226c062ce9ed36bed3",
+      "bytes": 362
+    },
+    "record-recovery.py": {
+      "sha256": "c15bc7c5d26b11dc1e0b67d7f7b8140ba1cd4bb916d0974f279da0b9b1eb9139",
+      "bytes": 3555
+    },
+    "recovery.swift": {
+      "sha256": "7854ce68f3944ea0bdf439726634b6c23aa8a2c2707cf1d4afd61488af67ef2b",
+      "bytes": 1294
+    },
+    "run-native.py": {
+      "sha256": "7f8b148e7c43fee9ac165641c170e4c7f916a8a46fe2d68be033bf417525ec81",
+      "bytes": 694
+    },
+    "run-pending-lock.py": {
+      "sha256": "0aed0dfe7581febf58bd7260072cecd3628f2adfb3a08d26c69edad64db39e54",
+      "bytes": 5497
+    },
+    "summary.json": {
+      "sha256": "7f37df1c403bfa453d66f347476c78c30c6feb6f823735d67850a4620941b4ee",
+      "bytes": 10422
+    }
+  }
+}

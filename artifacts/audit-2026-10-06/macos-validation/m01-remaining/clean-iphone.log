@@ -1,0 +1,83 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 14:19:20.289.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:19:20.289.
+Test Suite 'AuditUITests' started at 2026-10-07 14:19:20.289.
+Test Case '-[AuditUITests.AuditUITests testCleanBuildRecoveredScene]' started.
+    t =     0.00s Start Test at 2026-10-07 14:19:20.293
+    t =     0.02s Set Up
+    t =     0.03s Terminate com.novalist.app:77398
+objc[77681]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x109094398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1091cc310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.03s Open com.novalist.app
+    t =     1.03s     Launch com.novalist.app
+    t =     1.05s         Wait for accessibility to load
+    t =     1.05s         Setting up automation session
+    t =     3.78s         Wait for com.novalist.app to idle
+    t =     5.44s Setting device orientation to Portrait
+    t =     5.44s     Wait for com.novalist.app to idle
+    t =     5.44s Waiting 20.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =     6.52s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     6.52s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     6.57s Double tap "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     6.57s     Wait for com.novalist.app to idle
+    t =     6.58s     Find the "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     6.59s     Check for interrupting elements affecting "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     6.61s     Synthesize event
+    t =     6.95s     Wait for com.novalist.app to idle
+    t =     6.95s Tap "Write" Button
+    t =     6.95s     Wait for com.novalist.app to idle
+    t =     6.96s     Find the "Write" Button
+    t =     7.99s         Find the "Write" Button (retry 1)
+    t =     8.10s     Check for interrupting elements affecting "Write" Button
+    t =     8.13s     Synthesize event
+    t =     8.42s     Wait for com.novalist.app to idle
+    t =     9.89s Waiting 10.0s for Button (First Match) to exist
+    t =    10.97s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    10.97s         Checking existence of `Button (First Match)`
+    t =    11.00s Find the Button (First Match)
+    t =    11.13s Find the Application 'com.novalist.app'
+    t =    11.15s Press Application 'com.novalist.app'[0.50, 0.75] for 0.1 seconds, then drag to Application 'com.novalist.app'[0.50, 0.30] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    11.15s     Wait for com.novalist.app to idle
+    t =    11.15s     Find the Application 'com.novalist.app'
+    t =    11.17s     Check for interrupting elements affecting "Novalist" Application
+    t =    11.18s     Synthesize event
+    t =    11.19s         Find the Application 'com.novalist.app'
+    t =    11.20s         Find the Application 'com.novalist.app'
+    t =    11.21s         Find the Application 'com.novalist.app'
+    t =    11.22s         Find the Application 'com.novalist.app'
+    t =    11.23s         Find the Application 'com.novalist.app'
+    t =    12.40s     Wait for com.novalist.app to idle
+    t =    12.84s Find the "Audit M01 late acknowledgement B 1" Button
+    t =    12.88s Find the Application 'com.novalist.app'
+    t =    12.89s Find the "Audit M01 late acknowledgement B 1" Button
+    t =    12.92s Tap "Audit M01 late acknowledgement B 1" Button
+    t =    12.92s     Wait for com.novalist.app to idle
+    t =    12.93s     Find the "Audit M01 late acknowledgement B 1" Button
+    t =    12.95s     Check for interrupting elements affecting "Audit M01 late acknowledgement B 1" Button
+    t =    12.97s     Synthesize event
+    t =    13.27s     Wait for com.novalist.app to idle
+    t =    13.27s Waiting 10.0s for TextView (First Match) to exist
+    t =    14.35s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    14.35s         Checking existence of `TextView (First Match)`
+    t =    14.37s Find the TextView (First Match)
+    t =    14.38s Checking existence of `"Editing paused" StaticText`
+M01_CLEAN_IPHONE_RECOVERED_PROSE_PASS
+    t =    14.40s Find the Application 'com.novalist.app'
+    t =    14.50s Added attachment named 'clean-iphone-recovered-prose'
+    t =    14.50s Tear Down
+Test Case '-[AuditUITests.AuditUITests testCleanBuildRecoveredScene]' passed (14.716 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 14:19:35.010.
+	 Executed 1 test, with 0 failures (0 unexpected) in 14.716 (14.720) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 14:19:35.010.
+	 Executed 1 test, with 0 failures (0 unexpected) in 14.716 (14.721) seconds
+Test Suite 'All tests' passed at 2026-10-07 14:19:35.010.
+	 Executed 1 test, with 0 failures (0 unexpected) in 14.716 (14.722) seconds
+2026-10-07 14:19:35.294 xcodebuild[77597:3917527] [MT] IDETestOperationsObserverDebug: 19.800 elapsed -- Testing started completed.
+2026-10-07 14:19:35.294 xcodebuild[77597:3917527] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:19:35.294 xcodebuild[77597:3917527] [MT] IDETestOperationsObserverDebug: 19.800 sec, +19.800 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/clean-iphone.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

@@ -1,0 +1,168 @@
+{
+  "source": "source.json",
+  "scenario": "M01-11 recovery remains confined to original project/book/draft",
+  "marker": "M01SCOPE26",
+  "simulator": "4F155C1B-8F9C-4919-8BD7-1CFAD764B61B",
+  "setup": {
+    "status": "ready",
+    "originalBookId": "book-1791362612224",
+    "originalDraftId": "draft-default",
+    "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+    "alternateDraft": {
+      "id": "draft-1791374878921",
+      "name": "Audit M01 Alternate Draft",
+      "isActive": false
+    },
+    "otherBookId": "book-56b6c1595d8a4f33b038dfe0e72c28d8"
+  },
+  "original_dirty_scope": {
+    "scope": {
+      "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+      "bookId": "book-1791362612224",
+      "draftId": "draft-default"
+    },
+    "editors": [
+      {
+        "paneId": "pane-1",
+        "sceneId": "8ce91808-31aa-4c5a-9199-a9d7ee1aecf6",
+        "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+        "isDirty": true,
+        "dirtyMap": true,
+        "hasMarker": true
+      }
+    ],
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+          "bookId": "book-1791362612224",
+          "draftId": "draft-default"
+        },
+        "source": "pane:pane-1",
+        "sceneId": "8ce91808-31aa-4c5a-9199-a9d7ee1aecf6",
+        "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709"
+      }
+    ],
+    "gate": {
+      "writes": [
+        {
+          "id": 209,
+          "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+          "sceneId": "8ce91808-31aa-4c5a-9199-a9d7ee1aecf6",
+          "hasMarker": true
+        }
+      ],
+      "forwardedReturns": [
+        "accepted",
+        "accepted",
+        "accepted"
+      ]
+    },
+    "disk": []
+  },
+  "fixture_configuration": {
+    "originalProjectId": "project-1791362612225",
+    "copyProjectId": "e798a4b3-2b91-47ba-81e5-91d252c780d0",
+    "sameBookSceneDraftIdsInCopy": true,
+    "copyRelativePath": "Audit M01 Scope Copy",
+    "alternateDraftIncludesEmptySameScene": true
+  },
+  "other_book": {
+    "scope": {
+      "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+      "bookId": "book-56b6c1595d8a4f33b038dfe0e72c28d8",
+      "draftId": "draft-default"
+    },
+    "editors": [],
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+          "bookId": "book-1791362612224",
+          "draftId": "draft-default"
+        },
+        "source": "pane:pane-1",
+        "sceneId": "8ce91808-31aa-4c5a-9199-a9d7ee1aecf6",
+        "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709"
+      }
+    ],
+    "gate": null,
+    "disk": []
+  },
+  "other_project_same_book_and_draft": {
+    "scope": {
+      "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit M01 Scope Copy",
+      "bookId": "book-1791362612224",
+      "draftId": "draft-default"
+    },
+    "editors": [],
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+          "bookId": "book-1791362612224",
+          "draftId": "draft-default"
+        },
+        "source": "pane:pane-1",
+        "sceneId": "8ce91808-31aa-4c5a-9199-a9d7ee1aecf6",
+        "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709"
+      }
+    ],
+    "gate": null,
+    "disk": []
+  },
+  "other_draft_same_project_and_book": {
+    "scope": {
+      "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+      "bookId": "book-1791362612224",
+      "draftId": "draft-1791374878921"
+    },
+    "editors": [],
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+          "bookId": "book-1791362612224",
+          "draftId": "draft-default"
+        },
+        "source": "pane:pane-1",
+        "sceneId": "8ce91808-31aa-4c5a-9199-a9d7ee1aecf6",
+        "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709"
+      }
+    ],
+    "gate": null,
+    "disk": []
+  },
+  "returned_to_exact_owner": {
+    "scope": {
+      "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+      "bookId": "book-1791362612224",
+      "draftId": "draft-default"
+    },
+    "editors": [
+      {
+        "paneId": "pane-1",
+        "sceneId": "8ce91808-31aa-4c5a-9199-a9d7ee1aecf6",
+        "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+        "isDirty": false,
+        "dirtyMap": false,
+        "hasMarker": true
+      }
+    ],
+    "journal": [],
+    "gate": null,
+    "disk": [
+      {
+        "relative_path": "Audit Tablet Fixture/Audit Tablet Book/Drafts/default/Chapters/01 - Audit Tablet Chapter/scene-05.novalist",
+        "sha256": "0a17e1c1b3fa6ea71a4f087a59e96be7aea80a50704735387aa8725cd47dcc5c",
+        "sceneId": "8ce91808-31aa-4c5a-9199-a9d7ee1aecf6"
+      }
+    ]
+  },
+  "xcodebuild_exit_code": 0,
+  "status": "passed-simulator-supporting-acceptance"
+}

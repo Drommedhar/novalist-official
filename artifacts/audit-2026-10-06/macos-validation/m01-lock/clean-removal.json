@@ -1,0 +1,11 @@
+{
+  "clean_source_revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+  "clean_bundle_byte_identical_to_frozen_597_files": true,
+  "tree_sha256": "e3af065b470c43ac10f4433fdf84ddcae48e7d0a8637e7617e1c35578e0fbac0",
+  "probe_control_directory_absent": true,
+  "original_fixture_files": 82,
+  "original_fixture_hashes_unchanged": true,
+  "audit_fixture_hashes_unchanged_after_clean_repeat": true,
+  "scene_path_and_sha256_unchanged": true,
+  "clean_native_reopen_passed": true
+}

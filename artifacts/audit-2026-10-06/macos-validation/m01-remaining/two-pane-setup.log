@@ -1,0 +1,91 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 13:54:17.461.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 13:54:17.462.
+Test Suite 'AuditUITests' started at 2026-10-07 13:54:17.462.
+Test Case '-[AuditUITests.AuditUITests testPrepareTwoIndependentPanes]' started.
+    t =     0.00s Start Test at 2026-10-07 13:54:17.466
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.07s Setting device orientation to Landscape Left
+    t =     0.07s     Device orientation changed to Landscape Left
+    t =     0.08s     Interface orientation changed to Landscape Right
+    t =     0.14s     Wait for com.novalist.app to idle
+objc[68751]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1057a0398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x106534310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.54s     Wait for com.apple.springboard to idle
+    t =     0.56s Waiting 20.0s for "Select Audit Tablet Book — Audit Tablet Fixture" Switch to exist
+    t =     1.56s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =     1.56s         Checking existence of `"Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =     1.62s Double tap "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     1.62s     Wait for com.novalist.app to idle
+    t =     1.62s     Find the "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     1.63s     Check for interrupting elements affecting "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     1.66s         Wait for com.apple.springboard to idle
+    t =     1.67s     Synthesize event
+    t =     2.01s     Wait for com.novalist.app to idle
+    t =     2.01s Checking existence of `"Editor" StaticText`
+    t =     2.04s Tap "Toggle sidebar" Switch
+    t =     2.04s     Wait for com.novalist.app to idle
+    t =     2.04s     Find the "Toggle sidebar" Switch
+    t =     3.07s         Find the "Toggle sidebar" Switch (retry 1)
+    t =     3.19s     Check for interrupting elements affecting "Toggle sidebar" Switch
+    t =     3.23s         Wait for com.apple.springboard to idle
+    t =     3.24s     Synthesize event
+    t =     3.53s     Wait for com.novalist.app to idle
+    t =     3.58s Waiting 10.0s for "Editor" StaticText to exist
+    t =     4.65s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =     4.65s         Checking existence of `"Editor" StaticText`
+    t =     4.76s         Capturing element debug description
+    t =     5.62s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =     5.62s         Checking existence of `"Editor" StaticText`
+    t =     5.73s         Capturing element debug description
+    t =     6.59s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =     6.59s         Checking existence of `"Editor" StaticText`
+    t =     6.70s         Capturing element debug description
+    t =     7.67s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =     7.67s         Checking existence of `"Editor" StaticText`
+    t =     7.78s         Capturing element debug description
+    t =     8.64s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =     8.64s         Checking existence of `"Editor" StaticText`
+    t =     8.75s         Capturing element debug description
+    t =     9.61s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =     9.61s         Checking existence of `"Editor" StaticText`
+    t =     9.72s         Capturing element debug description
+    t =    10.59s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =    10.59s         Checking existence of `"Editor" StaticText`
+    t =    10.70s         Capturing element debug description
+    t =    11.66s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =    11.66s         Checking existence of `"Editor" StaticText`
+    t =    11.75s         Capturing element debug description
+    t =    12.61s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =    12.61s         Checking existence of `"Editor" StaticText`
+    t =    12.70s         Capturing element debug description
+    t =    13.58s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =    13.58s         Checking existence of `"Editor" StaticText`
+    t =    13.66s         Capturing element debug description
+    t =    13.66s     Checking existence of `"Editor" StaticText`
+    t =    13.75s Collecting debug information to assist test failure triage
+    t =    13.75s     Requesting snapshot of accessibility hierarchy for app with pid 68195
+<audit-scratch>/ipad-harness/AuditUITests.swift:18: error: -[AuditUITests.AuditUITests testPrepareTwoIndependentPanes] : XCTAssertTrue failed
+    t =    13.89s Tear Down
+Test Case '-[AuditUITests.AuditUITests testPrepareTwoIndependentPanes]' failed (13.896 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 13:54:31.362.
+	 Executed 1 test, with 1 failure (0 unexpected) in 13.896 (13.900) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 13:54:31.362.
+	 Executed 1 test, with 1 failure (0 unexpected) in 13.896 (13.900) seconds
+Test Suite 'All tests' failed at 2026-10-07 13:54:31.362.
+	 Executed 1 test, with 1 failure (0 unexpected) in 13.896 (13.901) seconds
+2026-10-07 13:54:31.650 xcodebuild[68597:3804775] [MT] IDETestOperationsObserverDebug: 17.025 elapsed -- Testing started completed.
+2026-10-07 13:54:31.650 xcodebuild[68597:3804775] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 13:54:31.650 xcodebuild[68597:3804775] [MT] IDETestOperationsObserverDebug: 17.025 sec, +17.025 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/two-pane-setup.xcresult
+
+Failing tests:
+	AuditUITests.testPrepareTwoIndependentPanes()
+
+** TEST FAILED **
+
+Testing started

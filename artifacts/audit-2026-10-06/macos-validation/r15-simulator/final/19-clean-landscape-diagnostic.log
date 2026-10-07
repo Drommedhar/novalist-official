@@ -1,0 +1,110 @@
+Test Suite 'All tests' started at 2026-10-07 14:37:05.300.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:37:05.300.
+Test Suite 'AuditUITests' started at 2026-10-07 14:37:05.300.
+Test Case '-[AuditUITests.AuditUITests testInspectCleanLandscapeAfterDismiss]' started.
+    t =     0.00s Start Test at 2026-10-07 14:37:05.301
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Requesting snapshot of accessibility hierarchy for app with pid 83211
+    t =     0.27s Requesting snapshot of accessibility hierarchy for app with pid 83211
+R15_LANDSCAPE_AFTER_DISMISS
+Attributes: Application, 0x103682bc0, pid: 83211, label: 'Novalist'
+Element subtree:
+ →Application, 0x103682bc0, pid: 83211, label: 'Novalist'
+    Window (Main), 0x103682e40, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x103682d00, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x103682f80, {{0.0, 0.0}, {874.0, 402.0}}
+          Other, 0x103683200, {{0.0, 0.0}, {874.0, 402.0}}
+            Other, 0x103683340, {{0.0, 0.0}, {874.0, 402.0}}
+              WebView, 0x103683480, {{0.0, 0.0}, {874.0, 402.0}}
+                WebView, 0x1036835c0, {{0.0, 0.0}, {874.0, 402.0}}
+                  WebView, 0x103683840, {{0.0, 0.0}, {874.0, 402.0}}
+                    Other, 0x103683700, {{0.0, 0.0}, {874.0, 402.0}}
+                      Other, 0x103680780, {{0.0, 0.0}, {874.0, 402.0}}
+                        Other, 0x103680f00, {{0.0, -119.0}, {874.0, 402.0}}
+                          Other, 0x1037c8500, {{0.0, -119.0}, {874.0, 402.4}}, label: 'Novalist', Focused
+                            Other, 0x1037c9900, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x1037c8a00, {{0.0, -38.9}, {874.0, 323.3}}, label: 'A Letter from Bellhaven, web dialog', Focused
+                              Other, 0x1037c8b40, {{419.0, -30.9}, {36.0, 5.0}}, Focused
+                              Other, 0x1037c8c80, {{18.0, -20.9}, {798.0, 36.0}}, Focused
+                                StaticText, 0x1037c8f00, {{297.0, -16.9}, {280.0, 28.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell..., Focused
+                              Button, 0x1037c8dc0, {{824.0, -19.9}, {32.0, 33.0}}, label: 'Close', Focused
+                              Button, 0x1037c9040, {{18.0, 22.1}, {415.0, 42.0}}, label: 'Context', Focused
+                              Button, 0x1037c9180, {{441.0, 22.1}, {415.0, 42.0}}, label: 'Footnotes', Focused
+                              Button, 0x1037c9680, {{18.0, 71.2}, {415.0, 42.0}}, label: 'SCENE NOTES', Focused
+                              Button, 0x1037c97c0, {{441.0, 71.2}, {415.0, 42.0}}, label: 'To do', Focused
+                              Other, 0x1037c9b80, {{18.0, 120.2}, {838.0, 39.0}}, Focused
+                                StaticText, 0x1037c9a40, {{26.0, 122.2}, {90.0, 22.0}}, label: '264 words', value: 264 words, Focused
+                              Other, 0x1037c9cc0, {{18.0, 158.3}, {838.0, 42.0}}, Focused
+                                Button, 0x1037c9f40, {{18.0, 158.3}, {121.0, 42.0}}, label: 'Collapse all', Focused
+                              Button, 0x1037ca1c0, {{18.0, 211.3}, {838.0, 28.0}}, label: 'CHARACTERS', Focused
+                              Other, 0x1037c9e00, {{18.0, 242.4}, {838.0, 203.2}}, Focused
+                                Button, 0x1037ca300, {{18.0, 242.4}, {838.0, 102.1}}, label: 'Mira Aldencourt Protagonist Aldencourt & Co. Gender Female
+Age 26', Focused
+                                Button, 0x1037ca080, {{18.0, 343.5}, {838.0, 102.1}}, label: 'Silas Aldencourt The missing man Aldencourt & Co. Gender Male
+Age 58', Focused
+                              Button, 0x1037ca6c0, {{18.0, 456.6}, {838.0, 29.0}}, label: 'MENTION FREQUENCY', Focused
+                              Other, 0x1037ca580, {{18.0, 490.6}, {83.0, 36.0}}, Focused
+                                StaticText, 0x1037ca800, {{18.0, 490.6}, {83.0, 15.0}}, label: 'Mira Aldencourt', value: Mira Aldencourt, Focused
+                                StaticText, 0x1037caa80, {{18.0, 511.6}, {81.0, 15.0}}, label: 'Silas Aldencourt', value: Silas Aldencourt, Focused
+                              Button, 0x1037cabc0, {{18.0, 539.7}, {838.0, 29.0}}, label: 'SCENE ANALYSIS', Focused
+                              Other, 0x1037ca940, {{18.0, 571.7}, {838.0, 315.3}}, Focused
+                                StaticText, 0x1037cad00, {{18.0, 587.7}, {27.0, 15.0}}, label: 'POV', value: POV, Focused
+                                Button, 0x1037caf80, {{96.0, 571.7}, {734.0, 48.0}}, value: Mira Aldencourt, Focused
+                                  Other, 0x1037cb0c0, {{0.0, 0.0}, {0.0, 0.0}}, Focused
+                                Button, 0x1037cae40, {{836.0, 584.7}, {20.0, 21.0}}, label: 'Reset override', Focused
+                                StaticText, 0x1037cb200, {{18.0, 634.8}, {49.0, 15.0}}, label: 'Emotion', value: Emotion, Focused
+                                Button, 0x1037cb480, {{96.0, 618.7}, {734.0, 48.0}}, label: 'Select emotion', value: Hopeful, Focused
+                                  Other, 0x1037cb5c0, {{0.0, 0.0}, {0.0, 0.0}}, Focused
+                                Button, 0x1037cb340, {{836.0, 631.8}, {20.0, 21.0}}, label: 'Reset override', Focused
+                                StaticText, 0x1037cb700, {{18.0, 678.8}, {50.0, 15.0}}, label: 'Intensity', value: Intensity, Focused
+                                TextField, 0x1037cb840, {{774.0, 665.8}, {54.0, 42.0}}, label: '-10 to 10', value: -2, Focused
+                                Button, 0x1037cbac0, {{836.0, 675.8}, {20.0, 21.0}}, label: 'Reset override', Focused
+                                StaticText, 0x1037cbc00, {{18.0, 707.8}, {45.0, 15.0}}, label: 'Conflict', value: Conflict, Focused
+                                TextField, 0x1037cbd40, {{18.0, 727.8}, {812.0, 42.0}}, placeholderValue: 'Conflict', value: Conflict, Focused
+                                Button, 0x1037cb980, {{836.0, 738.9}, {20.0, 20.0}}, label: 'Reset override', Focused
+                                StaticText, 0x1037c8000, {{18.0, 770.9}, {25.0, 15.0}}, label: 'Tags', value: Tags, Focused
+                                TextField, 0x106c40000, {{18.0, 790.9}, {812.0, 42.0}}, placeholderValue: 'Comma-separated tags', value: Hopeful, Focused
+                                Button, 0x106c40140, {{836.0, 800.9}, {20.0, 21.0}}, label: 'Reset override', Focused
+                                StaticText, 0x106c40280, {{30.0, 838.0}, {53.0, 17.0}}, label: 'Hopeful', value: Hopeful, Focused
+                                Other, 0x106c403c0, {{18.0, 860.0}, {838.0, 27.0}}, Focused
+                                  StaticText, 0x106c40500, {{18.0, 862.0}, {356.0, 22.0}}, label: '264 words · 0% dialogue · 16 avg sentence', value: 264 words · 0% dia..., Focused
+                  Other, 0x106c40640, {{841.0, 62.0}, {30.0, 278.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x106c40780, {{868.0, 183.3}, {3.0, 153.7}}
+                  Other, 0x106c408c0, {{841.0, 62.0}, {30.0, 278.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x106c40a00, {{868.0, 183.3}, {3.0, 153.7}}
+              Other, 0x106c40b40, {{0.0, 0.0}, {874.0, 402.0}}
+            Other, 0x106c40c80, {{0.0, 0.0}, {874.0, 402.0}}
+              Other, 0x106c40dc0, {{0.0, 0.0}, {874.0, 402.0}}
+    Window, 0x106c40f00, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x106c41040, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x106c41180, {{0.0, 0.0}, {874.0, 402.0}}
+Path to element:
+ →Application, 0x103682bc0, pid: 83211, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x106c412c0, pid: 83211, label: 'Novalist'
+  }
+
+    t =     0.38s Added attachment named 'landscape-after-dismiss'
+    t =     0.38s Tear Down
+Test Case '-[AuditUITests.AuditUITests testInspectCleanLandscapeAfterDismiss]' passed (0.387 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 14:37:05.689.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.387 (0.389) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 14:37:05.689.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.387 (0.389) seconds
+Test Suite 'All tests' passed at 2026-10-07 14:37:05.689.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.387 (0.390) seconds
+2026-10-07 14:37:05.975 xcodebuild[83448:3990259] [MT] IDETestOperationsObserverDebug: 3.075 elapsed -- Testing started completed.
+2026-10-07 14:37:05.976 xcodebuild[83448:3990259] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:37:05.976 xcodebuild[83448:3990259] [MT] IDETestOperationsObserverDebug: 3.076 sec, +3.075 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/19-clean-landscape-diagnostic.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

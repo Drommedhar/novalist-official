@@ -1,0 +1,312 @@
+{
+  "active": {
+    "tag": "INPUT",
+    "classes": "dialog-input",
+    "role": "combobox",
+    "label": "Type a command name...",
+    "placeholder": "Type a command name...",
+    "text": null
+  },
+  "events": [
+    {
+      "type": "focusin",
+      "trusted": true,
+      "target": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "text": null
+      },
+      "active": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "text": null
+      },
+      "dialogs": 2,
+      "after": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "text": null
+      },
+      "prevented": false,
+      "dialogsAfter": 2
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "target": {
+        "tag": "DIV",
+        "classes": "dialog-overlay palette-overlay",
+        "role": null,
+        "label": null,
+        "placeholder": null,
+        "text": null
+      },
+      "active": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "text": null
+      },
+      "x": 17.333333333333332,
+      "y": 100.33333333333337,
+      "pointerType": "touch",
+      "dialogs": 2,
+      "after": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "text": null
+      },
+      "prevented": true,
+      "dialogsAfter": 1
+    },
+    {
+      "type": "focusin",
+      "trusted": true,
+      "target": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "text": null
+      },
+      "active": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "text": null
+      },
+      "dialogs": 1,
+      "after": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "text": null
+      },
+      "prevented": false,
+      "dialogsAfter": 1
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "target": {
+        "tag": "HTML",
+        "classes": "",
+        "role": null,
+        "label": null,
+        "placeholder": null,
+        "text": null
+      },
+      "active": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "text": null
+      },
+      "x": 17.333333333333332,
+      "y": 100.33333333333337,
+      "pointerType": "touch",
+      "dialogs": 1,
+      "after": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "text": null
+      },
+      "prevented": false,
+      "dialogsAfter": 1
+    },
+    {
+      "type": "focusin",
+      "trusted": true,
+      "target": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "text": null
+      },
+      "active": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "text": null
+      },
+      "dialogs": 2,
+      "after": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "text": null
+      },
+      "prevented": false,
+      "dialogsAfter": 2
+    },
+    {
+      "type": "pointerdown",
+      "trusted": true,
+      "target": {
+        "tag": "DIV",
+        "classes": "dialog-overlay palette-overlay",
+        "role": null,
+        "label": null,
+        "placeholder": null,
+        "text": null
+      },
+      "active": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "text": null
+      },
+      "x": 17.333333333333332,
+      "y": 100.33333333333337,
+      "pointerType": "touch",
+      "dialogs": 2,
+      "after": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "text": null
+      },
+      "prevented": true,
+      "dialogsAfter": 1
+    },
+    {
+      "type": "focusin",
+      "trusted": true,
+      "target": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "text": null
+      },
+      "active": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "text": null
+      },
+      "dialogs": 1,
+      "after": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "text": null
+      },
+      "prevented": false,
+      "dialogsAfter": 1
+    },
+    {
+      "type": "pointerup",
+      "trusted": true,
+      "target": {
+        "tag": "HTML",
+        "classes": "",
+        "role": null,
+        "label": null,
+        "placeholder": null,
+        "text": null
+      },
+      "active": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "text": null
+      },
+      "x": 17.333333333333332,
+      "y": 100.33333333333337,
+      "pointerType": "touch",
+      "dialogs": 1,
+      "after": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "text": null
+      },
+      "prevented": false,
+      "dialogsAfter": 1
+    },
+    {
+      "type": "focusin",
+      "trusted": true,
+      "target": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "text": null
+      },
+      "active": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "text": null
+      },
+      "dialogs": 2,
+      "after": {
+        "tag": "INPUT",
+        "classes": "dialog-input",
+        "role": "combobox",
+        "label": "Type a command name...",
+        "placeholder": "Type a command name...",
+        "text": null
+      },
+      "prevented": false,
+      "dialogsAfter": 2
+    }
+  ],
+  "hasTodoInput": true,
+  "dialogs": [
+    {
+      "inert": true
+    },
+    {
+      "inert": false
+    }
+  ]
+}

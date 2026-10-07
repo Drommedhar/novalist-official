@@ -1,0 +1,212 @@
+{
+  "source": "source.json",
+  "scenario": "M01-08 two genuinely dirty native editor panes through background/termination/recovery",
+  "markers": [
+    "M01LEFT26",
+    "M01RIGHT26"
+  ],
+  "simulator": "4F155C1B-8F9C-4919-8BD7-1CFAD764B61B",
+  "both_dirty_before_background": {
+    "scope": {
+      "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+      "bookId": "book-1791362612224",
+      "draftId": "draft-default"
+    },
+    "editors": [
+      {
+        "paneId": "pane-1",
+        "isDirty": true,
+        "dirtyMap": true,
+        "sceneId": "a4845ae1-abeb-4145-b359-0cb69a891190",
+        "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+        "hash": "sha1:e9d8375aad3cd9abda49ab575aae531ec0ed8d0e",
+        "markers": [
+          "M01LEFT26"
+        ]
+      },
+      {
+        "paneId": "pane-2",
+        "isDirty": true,
+        "dirtyMap": true,
+        "sceneId": "250dd914-5ad5-4348-80ed-7c3ef33a3e92",
+        "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+        "hash": "sha1:e9d8375aad3cd9abda49ab575aae531ec0ed8d0e",
+        "markers": [
+          "M01RIGHT26"
+        ]
+      }
+    ],
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+          "bookId": "book-1791362612224",
+          "draftId": "draft-default"
+        },
+        "source": "pane:pane-1",
+        "sceneId": "a4845ae1-abeb-4145-b359-0cb69a891190",
+        "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+        "hash": "sha1:e9d8375aad3cd9abda49ab575aae531ec0ed8d0e",
+        "markers": [
+          "M01LEFT26"
+        ]
+      },
+      {
+        "scope": {
+          "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+          "bookId": "book-1791362612224",
+          "draftId": "draft-default"
+        },
+        "source": "pane:pane-2",
+        "sceneId": "250dd914-5ad5-4348-80ed-7c3ef33a3e92",
+        "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+        "hash": "sha1:e9d8375aad3cd9abda49ab575aae531ec0ed8d0e",
+        "markers": [
+          "M01RIGHT26"
+        ]
+      }
+    ],
+    "gate": {
+      "writes": [
+        {
+          "id": 164,
+          "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+          "sceneId": "a4845ae1-abeb-4145-b359-0cb69a891190",
+          "markers": [
+            "M01LEFT26"
+          ]
+        },
+        {
+          "id": 166,
+          "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+          "sceneId": "250dd914-5ad5-4348-80ed-7c3ef33a3e92",
+          "markers": [
+            "M01RIGHT26"
+          ]
+        }
+      ],
+      "released": [],
+      "replies": [],
+      "forwardedReturns": [
+        "accepted",
+        "accepted",
+        "accepted",
+        "accepted"
+      ]
+    },
+    "disk": []
+  },
+  "native_before_home": {
+    "page": "4ec11a6d7e974cabb8cd435a769d9ca4",
+    "bridgeFailed": 0,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": false,
+    "evaluatorFault": 0,
+    "assetReads": 0,
+    "assetHeld": false,
+    "projectGeneration": 0,
+    "webProcessId": 68202,
+    "nativeEditingPausedAlert": false,
+    "nativeReloadAvailable": false,
+    "nativeLaterAvailable": false,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T11:52:23.164127+00:00",
+        "ticks": 162274780752041
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T11:52:23.666716+00:00",
+        "ticks": 162275283322291
+      }
+    ]
+  },
+  "native_background_state": {
+    "page": "4ec11a6d7e974cabb8cd435a769d9ca4",
+    "bridgeFailed": 0,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": false,
+    "evaluatorFault": 0,
+    "assetReads": 0,
+    "assetHeld": false,
+    "projectGeneration": 0,
+    "webProcessId": 68202,
+    "nativeEditingPausedAlert": false,
+    "nativeReloadAvailable": false,
+    "nativeLaterAvailable": false,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T11:52:23.164127+00:00",
+        "ticks": 162274780752041
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T11:52:23.666716+00:00",
+        "ticks": 162275283322291
+      },
+      {
+        "kind": "background-save-requested",
+        "detail": null,
+        "utc": "2026-10-07T12:01:44.829876+00:00",
+        "ticks": 162836444346208
+      },
+      {
+        "kind": "background-task",
+        "detail": "granted",
+        "utc": "2026-10-07T12:01:44.831979+00:00",
+        "ticks": 162836446449291
+      }
+    ]
+  },
+  "disk_after_termination": [],
+  "status": "failed",
+  "error": "RuntimeError: XCTest exited before M01_TWO_RESTORED_PASS",
+  "failure_observation": {
+    "scope": {
+      "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/4F155C1B-8F9C-4919-8BD7-1CFAD764B61B/data/Containers/Data/Application/C0261AED-D0CD-4465-B4CA-E9FC331B6B80/Documents/Audit Tablet Fixture",
+      "bookId": "book-1791362612224",
+      "draftId": "draft-default"
+    },
+    "editors": [
+      {
+        "paneId": "pane-1",
+        "isDirty": false,
+        "dirtyMap": false,
+        "sceneId": "250dd914-5ad5-4348-80ed-7c3ef33a3e92",
+        "chapterGuid": "29e44f4a-8e42-4df2-a6ac-f911deb3730b",
+        "hash": "sha1:8f5a8f091e52c9b04e3e7fb8ee5d011b8961173b",
+        "markers": [
+          "M01RIGHT26"
+        ]
+      }
+    ],
+    "journal": [],
+    "gate": null,
+    "disk": [
+      {
+        "relative_path": "Audit Tablet Fixture/Audit Tablet Book/Drafts/default/Chapters/01 - Audit Tablet Chapter/scene-03.novalist",
+        "sha256": "8caf5fb9ed706a4db1189e80d0e95492a8747be5ddd36306ad7ddd7be97eeaa1",
+        "sceneId": "250dd914-5ad5-4348-80ed-7c3ef33a3e92",
+        "markers": [
+          "M01RIGHT26"
+        ]
+      },
+      {
+        "relative_path": "Audit Tablet Fixture/Audit Tablet Book/Drafts/default/Chapters/01 - Audit Tablet Chapter/scene-04.novalist",
+        "sha256": "10a63e6a02f65429834201848d9a9452c6f5b25ccb8ec579d0f5175ca896d0c8",
+        "sceneId": "a4845ae1-abeb-4145-b359-0cb69a891190",
+        "markers": [
+          "M01LEFT26"
+        ]
+      }
+    ]
+  }
+}

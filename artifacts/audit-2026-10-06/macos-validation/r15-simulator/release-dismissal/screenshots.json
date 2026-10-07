@@ -1,0 +1,26 @@
+[
+  {
+    "file": "fixed-clean-landscape-1.png",
+    "sha256": "5025295679ae2c5bec50cd6d8a329044e9ea05e55530d39eedee6308cab7e5b3",
+    "native_test": "AuditUITests/testReleaseDismissalCleanNativeMatrix()",
+    "visually_reviewed": true
+  },
+  {
+    "file": "fixed-clean-landscape-0.png",
+    "sha256": "d4433f4bb578fb7ef0e230ba8c2e156901065f7e4af7bbab7b41b6c0e17e8ee8",
+    "native_test": "AuditUITests/testReleaseDismissalCleanNativeMatrix()",
+    "visually_reviewed": true
+  },
+  {
+    "file": "fixed-clean-portrait-1.png",
+    "sha256": "0978d8fbd5a158510e42f51c974e027b157c63a6c1d886187390f1c10a0accfc",
+    "native_test": "AuditUITests/testReleaseDismissalCleanNativeMatrix()",
+    "visually_reviewed": true
+  },
+  {
+    "file": "fixed-clean-portrait-0.png",
+    "sha256": "b9dd73757a94f9c28d84c8faeb96ab5e07cbd0ec8480e3d0dc4be6e3b41d72bd",
+    "native_test": "AuditUITests/testReleaseDismissalCleanNativeMatrix()",
+    "visually_reviewed": true
+  }
+]

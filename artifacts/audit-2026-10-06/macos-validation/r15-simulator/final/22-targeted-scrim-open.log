@@ -1,0 +1,57 @@
+Test Suite 'All tests' started at 2026-10-07 14:41:16.870.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:41:16.871.
+Test Suite 'AuditUITests' started at 2026-10-07 14:41:16.871.
+Test Case '-[AuditUITests.AuditUITests testOpenForTargetedScrim]' started.
+    t =     0.00s Start Test at 2026-10-07 14:41:16.872
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.03s Waiting 10.0s for "Close" Button to exist
+objc[84349]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1043b0398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x105354310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =     1.08s         Checking existence of `"Close" Button`
+    t =     1.10s Tap "To do" Button
+    t =     1.10s     Wait for com.novalist.app to idle
+    t =     1.10s     Find the "To do" Button
+    t =     1.12s     Check for interrupting elements affecting "To do" Button
+    t =     1.13s     Synthesize event
+    t =     1.15s         Failed: Failed to compute hit point for Button, {{441.0, -8.0}, {415.0, 42.0}}, label: 'To do': Activation point invalid and no suggested hit points based on element frame
+    t =     1.15s         Requesting snapshot of accessibility hierarchy for app with pid 83845
+    t =     2.19s     Retrying `Tap "To do" Button` (attempt #2)
+    t =     2.19s         Wait for com.novalist.app to idle
+    t =     2.20s         Find the "To do" Button
+    t =     2.22s         Check for interrupting elements affecting "To do" Button
+    t =     2.24s         Synthesize event
+    t =     2.26s             Failed: Failed to compute hit point for Button, {{441.0, -8.0}, {415.0, 42.0}}, label: 'To do': Activation point invalid and no suggested hit points based on element frame
+    t =     2.26s             Requesting snapshot of accessibility hierarchy for app with pid 83845
+    t =     3.30s     Retrying `Tap "To do" Button` (attempt #3)
+    t =     3.30s         Wait for com.novalist.app to idle
+    t =     3.31s         Find the "To do" Button
+    t =     3.34s         Check for interrupting elements affecting "To do" Button
+    t =     3.36s         Synthesize event
+    t =     3.38s             Failed: Failed to compute hit point for Button, {{441.0, -8.0}, {415.0, 42.0}}, label: 'To do': Activation point invalid and no suggested hit points based on element frame
+    t =     3.38s             Requesting snapshot of accessibility hierarchy for app with pid 83845
+    t =     3.41s Requesting snapshot of accessibility hierarchy for app with pid 83845
+<temporary-r15-harness>/AuditUITests.swift:8: error: -[AuditUITests.AuditUITests testOpenForTargetedScrim] : Failed to failed to compute hit point for Button, {{441.0, -8.0}, {415.0, 42.0}}, label: 'To do': Activation point invalid and no suggested hit points based on element frame. (Underlying Error: Activation point invalid and no suggested hit points based on element frame)
+    t =     3.46s Tear Down
+Test Case '-[AuditUITests.AuditUITests testOpenForTargetedScrim]' failed (3.501 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 14:41:20.373.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.501 (3.502) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 14:41:20.373.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.501 (3.503) seconds
+Test Suite 'All tests' failed at 2026-10-07 14:41:20.373.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.501 (3.503) seconds
+2026-10-07 14:41:20.654 xcodebuild[84329:4003303] [MT] IDETestOperationsObserverDebug: 6.433 elapsed -- Testing started completed.
+2026-10-07 14:41:20.654 xcodebuild[84329:4003303] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:41:20.654 xcodebuild[84329:4003303] [MT] IDETestOperationsObserverDebug: 6.433 sec, +6.433 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/22-targeted-scrim-open.xcresult
+
+Failing tests:
+	AuditUITests.testOpenForTargetedScrim()
+
+** TEST FAILED **
+
+Testing started

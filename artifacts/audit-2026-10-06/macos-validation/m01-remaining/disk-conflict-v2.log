@@ -1,0 +1,190 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 14:04:54.138.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:04:54.139.
+Test Suite 'AuditUITests' started at 2026-10-07 14:04:54.139.
+Test Case '-[AuditUITests.AuditUITests testDiskConflictRemainsRecoverable]' started.
+    t =     0.00s Start Test at 2026-10-07 14:04:54.140
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Setting device orientation to Portrait
+    t =     0.04s     Wait for com.novalist.app to idle
+    t =     0.04s Tap "Write" Button
+    t =     0.04s     Wait for com.novalist.app to idle
+    t =     0.04s     Find the "Write" Button
+    t =     0.06s     Check for interrupting elements affecting "Write" Button
+    t =     0.07s     Synthesize event
+    t =     0.36s     Wait for com.novalist.app to idle
+objc[71502]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x102fd8398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x106ce4310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.81s Waiting 10.0s for Button (First Match) to exist
+    t =     2.86s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     2.86s         Checking existence of `Button (First Match)`
+    t =     2.90s Find the Button (First Match)
+    t =     2.93s Find the Application 'com.novalist.app'
+    t =     2.94s Press Application 'com.novalist.app'[0.50, 0.75] for 0.1 seconds, then drag to Application 'com.novalist.app'[0.50, 0.30] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     2.94s     Wait for com.novalist.app to idle
+    t =     2.94s     Find the Application 'com.novalist.app'
+    t =     2.95s     Check for interrupting elements affecting "Novalist" Application
+    t =     2.97s     Synthesize event
+    t =     2.97s         Find the Application 'com.novalist.app'
+    t =     2.98s         Find the Application 'com.novalist.app'
+    t =     2.99s         Find the Application 'com.novalist.app'
+    t =     3.00s         Find the Application 'com.novalist.app'
+    t =     3.01s         Find the Application 'com.novalist.app'
+    t =     4.18s     Wait for com.novalist.app to idle
+    t =     4.62s Find the "Audit M01 disk conflict A" Button
+    t =     4.67s Find the Application 'com.novalist.app'
+    t =     4.68s Press Application 'com.novalist.app'[0.50, 0.75] for 0.1 seconds, then drag to Application 'com.novalist.app'[0.50, 0.30] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     4.68s     Wait for com.novalist.app to idle
+    t =     4.68s     Find the Application 'com.novalist.app'
+    t =     4.69s     Check for interrupting elements affecting "Novalist" Application
+    t =     4.70s     Synthesize event
+    t =     4.71s         Find the Application 'com.novalist.app'
+    t =     4.72s         Find the Application 'com.novalist.app'
+    t =     4.73s         Find the Application 'com.novalist.app'
+    t =     4.74s         Find the Application 'com.novalist.app'
+    t =     4.75s         Find the Application 'com.novalist.app'
+    t =     5.91s     Wait for com.novalist.app to idle
+    t =     6.37s Find the "Audit M01 disk conflict A" Button
+    t =     6.41s Find the Application 'com.novalist.app'
+    t =     6.42s Press Application 'com.novalist.app'[0.50, 0.75] for 0.1 seconds, then drag to Application 'com.novalist.app'[0.50, 0.30] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     6.42s     Wait for com.novalist.app to idle
+    t =     6.42s     Find the Application 'com.novalist.app'
+    t =     6.43s     Check for interrupting elements affecting "Novalist" Application
+    t =     6.45s     Synthesize event
+    t =     6.45s         Find the Application 'com.novalist.app'
+    t =     6.46s         Find the Application 'com.novalist.app'
+    t =     6.47s         Find the Application 'com.novalist.app'
+    t =     6.48s         Find the Application 'com.novalist.app'
+    t =     6.49s         Find the Application 'com.novalist.app'
+    t =     7.65s     Wait for com.novalist.app to idle
+    t =     8.10s Find the "Audit M01 disk conflict A" Button
+    t =     8.13s Find the Application 'com.novalist.app'
+    t =     8.14s Press Application 'com.novalist.app'[0.50, 0.75] for 0.1 seconds, then drag to Application 'com.novalist.app'[0.50, 0.30] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     8.14s     Wait for com.novalist.app to idle
+    t =     8.14s     Find the Application 'com.novalist.app'
+    t =     8.16s     Check for interrupting elements affecting "Novalist" Application
+    t =     8.17s     Synthesize event
+    t =     8.17s         Find the Application 'com.novalist.app'
+    t =     8.18s         Find the Application 'com.novalist.app'
+    t =     8.19s         Find the Application 'com.novalist.app'
+    t =     8.20s         Find the Application 'com.novalist.app'
+    t =     8.22s         Find the Application 'com.novalist.app'
+    t =     9.38s     Wait for com.novalist.app to idle
+    t =     9.84s Find the "Audit M01 disk conflict A" Button
+    t =     9.87s Find the Application 'com.novalist.app'
+    t =     9.88s Press Application 'com.novalist.app'[0.50, 0.75] for 0.1 seconds, then drag to Application 'com.novalist.app'[0.50, 0.30] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     9.88s     Wait for com.novalist.app to idle
+    t =     9.88s     Find the Application 'com.novalist.app'
+    t =     9.89s     Check for interrupting elements affecting "Novalist" Application
+    t =     9.91s     Synthesize event
+    t =     9.91s         Find the Application 'com.novalist.app'
+    t =     9.92s         Find the Application 'com.novalist.app'
+    t =     9.94s         Find the Application 'com.novalist.app'
+    t =     9.95s         Find the Application 'com.novalist.app'
+    t =     9.96s         Find the Application 'com.novalist.app'
+    t =    11.12s     Wait for com.novalist.app to idle
+    t =    11.57s Find the "Audit M01 disk conflict A" Button
+    t =    11.60s Find the Application 'com.novalist.app'
+    t =    11.61s Press Application 'com.novalist.app'[0.50, 0.75] for 0.1 seconds, then drag to Application 'com.novalist.app'[0.50, 0.30] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    11.61s     Wait for com.novalist.app to idle
+    t =    11.61s     Find the Application 'com.novalist.app'
+    t =    11.62s     Check for interrupting elements affecting "Novalist" Application
+    t =    11.64s     Synthesize event
+    t =    11.64s         Find the Application 'com.novalist.app'
+    t =    11.65s         Find the Application 'com.novalist.app'
+    t =    11.67s         Find the Application 'com.novalist.app'
+    t =    11.68s         Find the Application 'com.novalist.app'
+    t =    11.69s         Find the Application 'com.novalist.app'
+    t =    12.85s     Wait for com.novalist.app to idle
+    t =    13.30s Tap "Audit M01 disk conflict A" Button
+    t =    13.30s     Wait for com.novalist.app to idle
+    t =    13.31s     Find the "Audit M01 disk conflict A" Button
+    t =    13.33s     Check for interrupting elements affecting "Audit M01 disk conflict A" Button
+    t =    13.35s     Synthesize event
+    t =    13.64s     Wait for com.novalist.app to idle
+    t =    13.64s Waiting 10.0s for TextView (First Match) to exist
+    t =    14.72s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    14.72s         Checking existence of `TextView (First Match)`
+    t =    14.74s Tap TextView (First Match)
+    t =    14.74s     Wait for com.novalist.app to idle
+    t =    14.74s     Find the TextView (First Match)
+    t =    14.75s     Check for interrupting elements affecting "
+" TextView
+    t =    14.77s     Synthesize event
+    t =    15.06s     Wait for com.novalist.app to idle
+M01_CONFLICT_READY_GATE
+    t =    18.36s Type 'M01LOCAL26' into "
+" TextView
+    t =    18.36s     Wait for com.novalist.app to idle
+    t =    18.36s     Find the "
+" TextView
+    t =    18.39s     Check for interrupting elements affecting "
+" TextView
+    t =    18.41s     Synthesize event
+    t =    18.79s     Wait for com.novalist.app to idle
+M01_CONFLICT_LOCAL_TYPED
+    t =    18.87s Waiting 12.0s for "Take all of mine" Button to exist
+    t =    19.95s     Checking `Expect predicate `existsNoRetry == 1` for object "Take all of mine" Button`
+    t =    19.95s         Checking existence of `"Take all of mine" Button`
+    t =    19.98s         Capturing element debug description
+    t =    20.94s     Checking `Expect predicate `existsNoRetry == 1` for object "Take all of mine" Button`
+    t =    20.94s         Checking existence of `"Take all of mine" Button`
+    t =    20.97s         Capturing element debug description
+    t =    21.94s     Checking `Expect predicate `existsNoRetry == 1` for object "Take all of mine" Button`
+    t =    21.94s         Checking existence of `"Take all of mine" Button`
+    t =    21.96s Waiting 10.0s for Button (First Match) to exist
+    t =    23.03s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    23.04s         Checking existence of `Button (First Match)`
+    t =    23.05s Waiting 10.0s for Button (First Match) to exist
+    t =    24.12s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    24.12s         Checking existence of `Button (First Match)`
+M01_CONFLICT_VISIBLE
+M01_CONFLICT_BEFORE_HOME
+    t =    27.15s Pressing Home button
+    t =    29.14s Terminate com.novalist.app:70997
+M01_CONFLICT_TERMINATED
+    t =    30.16s Open com.novalist.app
+    t =    30.16s     Launch com.novalist.app
+    t =    30.19s         Setting up automation session
+    t =    32.76s         Wait for com.novalist.app to idle
+    t =    34.36s Waiting 20.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =    35.41s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    35.41s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    35.46s Double tap "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =    35.46s     Wait for com.novalist.app to idle
+    t =    35.46s     Find the "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =    35.48s     Check for interrupting elements affecting "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =    35.50s     Synthesize event
+    t =    35.84s     Wait for com.novalist.app to idle
+    t =    35.85s Waiting 12.0s for "Take all of mine" Button to exist
+    t =    36.90s     Checking `Expect predicate `existsNoRetry == 1` for object "Take all of mine" Button`
+    t =    36.90s         Checking existence of `"Take all of mine" Button`
+    t =    36.93s Waiting 10.0s for Button (First Match) to exist
+    t =    37.99s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    37.99s         Checking existence of `Button (First Match)`
+    t =    38.02s Waiting 10.0s for Button (First Match) to exist
+    t =    39.08s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    39.08s         Checking existence of `Button (First Match)`
+M01_CONFLICT_RESTORED_PASS
+    t =    39.10s Find the Application 'com.novalist.app'
+    t =    39.19s Added attachment named 'disk-conflict-after-relaunch'
+    t =    39.20s Tear Down
+Test Case '-[AuditUITests.AuditUITests testDiskConflictRemainsRecoverable]' passed (39.449 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 14:05:33.589.
+	 Executed 1 test, with 0 failures (0 unexpected) in 39.449 (39.450) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 14:05:33.590.
+	 Executed 1 test, with 0 failures (0 unexpected) in 39.449 (39.451) seconds
+Test Suite 'All tests' passed at 2026-10-07 14:05:33.590.
+	 Executed 1 test, with 0 failures (0 unexpected) in 39.449 (39.452) seconds
+2026-10-07 14:05:33.877 xcodebuild[71482:3846266] [MT] IDETestOperationsObserverDebug: 42.200 elapsed -- Testing started completed.
+2026-10-07 14:05:33.877 xcodebuild[71482:3846266] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:05:33.877 xcodebuild[71482:3846266] [MT] IDETestOperationsObserverDebug: 42.200 sec, +42.200 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/disk-conflict-v2.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

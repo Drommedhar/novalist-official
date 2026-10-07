@@ -1,0 +1,249 @@
+{
+  "status": "passed simulator supporting acceptance; original physical-device M01 remains pending",
+  "finding": "M01",
+  "source_revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+  "source_manifest": "production-inputs.json",
+  "production_inputs": 1314,
+  "renderer_manifest": "renderer-assets.json",
+  "renderer_assets": 203,
+  "source_scope": "Frozen clean29cefb83 snapshot. No product changes from these cases. Later R15 modalFocus change is outside this snapshot and has separate combined integration evidence.",
+  "probe_patch": "native-control-lifecycle.patch",
+  "probe_patch_sha256": "be3ef8b1a638d49bd9548ce5eb22820e5608a44f3a52741f0809bfe2b794ed13",
+  "instrumentation": "Disposable native control evaluates observations and injects transport gates. Three native files plus one new control partial; records background request/task grant/ack events. Runtime gates withhold actual scenes/write requests or an actual matching reply; no fabricated persistence replies. Actual native XCTest creates and types the synthetic prose. Probe-free cleanup verified separately.",
+  "devices": [
+    {
+      "model": "iPhone17ProMax",
+      "runtime": "iOS27.0",
+      "udid": "C9BC7CC6-C48A-431D-9CE0-BEA89C791D81"
+    },
+    {
+      "model": "iPadA16",
+      "runtime": "iOS27.0",
+      "udid": "4F155C1B-8F9C-4919-8BD7-1CFAD764B61B"
+    }
+  ],
+  "cases": [
+    {
+      "scenario_ids": [
+        "M01-10",
+        "M01-05"
+      ],
+      "status": "passed simulator supporting subset",
+      "record": "late-ack-v2.json",
+      "native_test": "late-ack-v2.swift",
+      "log": "late-ack-v2.log",
+      "driver": "run-late-ack-v2.py",
+      "gate": "late-ack-gate.js",
+      "checks": [
+        "Old native save really reaches disk; its actual matching reply is held.",
+        "Newer real native UI edit exists before older reply release.",
+        "Older reply cannot clear newer exact-owner journal or isDirty/dirtyMap; editor hash advances to acknowledged old version.",
+        "Exactly two recorded writes refer to same scene/chapter; second real write with newer text is held before backend.",
+        "Fresh native background task granted; no fresh acknowledgement before termination; newer marker still absent from disk.",
+        "Relaunch recovers both markers only in exact original scene; journal clears after successful save."
+      ],
+      "limit": "The OS grant is observed; this deliberately interrupted workload does not claim physical suspension timing or denied-budget behavior."
+    },
+    {
+      "scenario_ids": [
+        "M01-08"
+      ],
+      "status": "passed simulator supporting subset with separate final native verification",
+      "record": "two-pane.json",
+      "native_test": "two-pane.swift",
+      "log": "two-pane.log",
+      "driver": "run-two-pane.py",
+      "gate": "hold-scene-writes.js",
+      "final_native_verification": [
+        "two-pane-verify.swift",
+        "two-pane-verify.log"
+      ],
+      "checks": [
+        "Actual Command-Option-Right native keyboard split and native binder selection establish two independent panes.",
+        "Both exact pane/scene buffers are isDirty and dirtyMap true, with two distinct journal entries and two held real requests.",
+        "Both new markers absent from disk before and after termination; fresh background grant and no acknowledgement observed.",
+        "Relaunch persists each marker in its correct scene file and clears both journal entries.",
+        "Separate actual native binder taps verify both restored TextView values."
+      ],
+      "harness_correction": "Main test failed only its post-recovery predicate selector even though disk and journal observations already showed successful recovery. Separate native verification uses direct TextView.value and passes; original failed record/log preserved."
+    },
+    {
+      "scenario_ids": [
+        "M01-09"
+      ],
+      "status": "passed simulator supporting subset",
+      "record": "disk-conflict-v2.json",
+      "native_test": "disk-conflict-v2.swift",
+      "log": "disk-conflict-v2.log",
+      "driver": "run-disk-conflict-v2.py",
+      "gate": "hold-scene-writes.js",
+      "checks": [
+        "Fresh native UI edit held before real backend write.",
+        "Atomic synthetic external disk change retains original scene ID header.",
+        "Released actual write returns conflicted=true, without error.",
+        "Actual native conflict dialog exposes local and external prose.",
+        "Home/termination/relaunch retains exact-owner local journal and conflict UI while external disk hash remains unchanged."
+      ],
+      "cleanup": "After evidence capture, conflict-cleanup.swift explicitly chooses local version and saves through actual UI; no unresolved test journal is discarded."
+    },
+    {
+      "scenario_ids": [
+        "M01-11"
+      ],
+      "status": "passed simulator supporting subset",
+      "record": "scope.json",
+      "native_test": "scope.swift",
+      "log": "scope.log",
+      "driver": "run-scope.py",
+      "gate": "hold-scene-writes.js",
+      "checks": [
+        "Fresh native UI edit/journal and held actual write belong to one exact project/book/draft/scene.",
+        "After termination, a different book opens through native bookshelf UI without recovering the journal.",
+        "Production openProject action navigates a synthetic copy with distinct project ID/path but same book/draft/scene IDs; journal retained, no marker leaks into disk or editor.",
+        "Production openProject action opens original project/book on alternate draft containing the same empty scene ID; journal retained, no marker leaks.",
+        "Production switchDraft returns exact original owner; only correct default-draft scene persists marker and journal clears.",
+        "Actual native TextView verifies recovered marker."
+      ],
+      "fixture_method": "Alternate book/draft created using production actions. While app is terminated, only newly created synthetic test draft/copy metadata and files are configured. Context changes after initial native bookshelf action use existing production store/RPC actions; no direct editor/store mutation or synthetic recovery entries."
+    }
+  ],
+  "prior_harness_failures": [
+    {
+      "files": [
+        "clean-ipad.swift",
+        "clean-ipad.log",
+        "clean-ipad-v2.swift",
+        "clean-ipad-v2.log"
+      ],
+      "cause": "Initial cleanup test expected a sidebar text item after toggling an icon rail. Second attempt selected a dashboard recent-activity row while editor was hidden. Final native check first selects visible Editor icon, then exact binder rows and TextView values."
+    },
+    {
+      "files": [
+        "late-ack.json",
+        "late-ack.log",
+        "late-ack.swift",
+        "late-ack-verify-first.swift",
+        "late-ack-verify.log"
+      ],
+      "cause": "Initial test expected outline after recovery, but recovery correctly opened editor; first follow-up used visible Chapters text instead of accessible Manuscript label. Corrected v2 full native test passes."
+    },
+    {
+      "files": [
+        "two-pane-setup.swift",
+        "two-pane-setup.log",
+        "two-pane-setup-v2.swift",
+        "two-pane-setup-v2.log",
+        "two-pane-setup-v3.swift",
+        "two-pane-setup-v3.log"
+      ],
+      "cause": "Setup navigation/hittability/context-menu assumptions. Actual native keyboard split plus pane focus and binder selection succeeded in two-pane-open/load."
+    },
+    {
+      "files": [
+        "disk-conflict.swift",
+        "disk-conflict.log",
+        "disk-conflict.json"
+      ],
+      "cause": "Offscreen scene accessibility row tap reached bottom tab bar; no local edit or gate occurred. Corrected v2 scrolls row into native visible bounds and passes."
+    },
+    {
+      "files": [
+        "clean-build-parallel-failed.log"
+      ],
+      "cause": "First fresh build used parallel default and hit GenerateDepsFile output contention in shared project graph; prepared serial -m:1/-nr:false flags passed after clearing all four bin/obj again."
+    }
+  ],
+  "clean_build": "clean-build.json",
+  "clean_install": "clean-install.json",
+  "physical_and_remaining_limits": [
+    "No physical device used; all original physical-required M01 statuses remain pending.",
+    "No offline or cloud-only provider claim.",
+    "Actual simulator lock case is owned by separate m01-lock evidence, not claimed here.",
+    "These are focused scene/pane ownership and recovery cases; earlier native Research/manuscript lifecycle evidence remains separate."
+  ],
+  "sanitization": "XCTest build preambles omitted; execution/assertion output retained. Local home/repository/worktree paths replaced with placeholders in logs, JSON observations and Python runners. Swift, JS gates and native patch retain exact bytes. All data and screenshots are synthetic. Raw private input SHA256 recorded below; xcresult bundles remain private.",
+  "private_raw_file_sha256": {
+    "clean-build-parallel-failed.log": "33aaaf58e770367943e20c4b29f8678b259c286cccbc9a72c9cfe1d69c02e2a9",
+    "clean-build.json": "4b825cae430049c26e347e84c68cb727a5f289db3c0219832ab839ea3b3a5cce",
+    "clean-build.log": "fab28ba08f1fac837acb42c6b2154636c0ffbb0330639670f45da5aa5493e1df",
+    "clean-build.py": "6cd19e3639467f7d8fe0bc31b8d6afc52bf892ff6ad0750d935a8f2d66c98b47",
+    "clean-install.json": "6ee0e0a2965f3a8555e17d0d8507a3f8a9757d305c144babcd5d4652d382008b",
+    "clean-install.log": "78f2dbb66cdb6a3e11295a7df75b0def7fca32878573694b6b0c1984245d3634",
+    "clean-ipad-v2.log": "1e379b8aa35d9a8cd55fbfc4a70051099c78074741ce4f03ab9594d29eafee40",
+    "clean-ipad-v2.swift": "1dab3448f448c9fda3b22c80cf46a9922284a5202e76d66b20bd38ddff00d61e",
+    "clean-ipad-v3.log": "de7c089ab8d5d0bf2ad80d010e09cb315ee0731e4ae429f30297bcde124f3bfb",
+    "clean-ipad-v3.swift": "a018ff39e975b0086d08aca56952d899a7b59cc983325c2e3baaaa85b9c9b34e",
+    "clean-ipad.log": "7e4ed0518ffe6ac22828762f60f90428dbe130da85a6ea15c82d7cd3083cc286",
+    "clean-ipad.swift": "a30574b888123c4d5e68006a6dba10dd5cb3f6895dae6c31808d032684ef2823",
+    "clean-iphone.log": "3b8bb8baf087325e63f9b7d071a40e5b18d73f65b8b135215ad7997969541657",
+    "clean-iphone.swift": "1aa965fcf5a90f2f6b32170e13564f35a4f72cef1fa6a8240dcc4031aae60a1c",
+    "conflict-cleanup.log": "6bd2dc9d7cdb2ea5abf3b6da9e5a2c942579a6ceb93a0094f313f565cb20c263",
+    "conflict-cleanup.swift": "4023ef276f982c37f638990a7a7286aa7d4cfa4d940978d38fba770cd3c26d17",
+    "disk-conflict-runner.log": "3471e5e3e0548a8bd92a432c70f02ca650f29a41eae3534bffe74c8c76a6a581",
+    "disk-conflict-v2-runner.log": "6f6104bee890d358fdb4d726d645ab716699c3f426ae5f74f66f239e70be6a71",
+    "disk-conflict-v2.json": "4fa74db216f183df68e1e53e23b0397984ad16d8cbdfb499b4e55db6765d4be8",
+    "disk-conflict-v2.log": "5af81c13963a5074869cdfff48e296b67c4ee5e49b4f3e5dd17484c00f8e875d",
+    "disk-conflict-v2.swift": "e16c202dd1fd533bfe6f4c628c1c8f1a0ecc10e4644e77e5b0db3fb2185ddff2",
+    "disk-conflict.json": "03535ce6f1f468cc7c218c72e42ca7337a3d0d87af2080256488e516320358b9",
+    "disk-conflict.log": "07d323a25b254201e0facc85e02bcbcabc8c0b84388a67a5890eb4bd257c2783",
+    "disk-conflict.swift": "cfb7d8071a298e19519d819590519818762b6680bad9ca7ced2b36924a14a4e1",
+    "hold-scene-writes.js": "dab3d11045fc4c5d0761df6997c6b39719860fe021b259e4a4c9ba98be23db3f",
+    "install-clean.py": "6129ef46c42efea483e224f6c708b00998242aaf072081a05549af00bc2d1747",
+    "late-ack-gate.js": "dae673df32143ecb0854398743e1fefef5c4424bd655f148d0eb6c03dee3e1ba",
+    "late-ack-runner.log": "adc7b4aa5bc57da006e9bbc9241a98ed0618f4e22f612b8b63fee306fa80566f",
+    "late-ack-v2-runner.log": "f33bd5c42ec869acbc66f63aa9107975bbfe52b89596dabc60f8beb43d11e02b",
+    "late-ack-v2.json": "639dab8ed229f66fbeee4f98050225def67d5d71c7dac0a7abaa92cd0df62177",
+    "late-ack-v2.log": "f857c6198db566012207678fee2686dac6f163aabed03727d6aba0ff725f4f3b",
+    "late-ack-v2.swift": "343eb2dd35c2ce097f376cab5dda0ece04f0ea22a70f4aed9164abdd8d0b6352",
+    "late-ack-verify-final.log": "2d85122ea56d92bfd76cde5a9e5d3202ec44602557903a1dfad3e439c67f2071",
+    "late-ack-verify-first.swift": "7c152d78248590897bbb94a36a19190e599ccf7e4147489a3dd7bf3493953313",
+    "late-ack-verify.log": "5edbc5f967075ee0566000d0ad110af278917fbb542739dc3ab0696143162097",
+    "late-ack-verify.swift": "6dd6f804bac100db5b37650b0c8f2bd6746d92b1bc5ced71ad86e73947948970",
+    "late-ack.json": "dcf55ff3a37ed396a103d4366544c6140018f92be3f4e9234439c88992bc3840",
+    "late-ack.log": "e7d883e0577f21aaec38925c4e8b666b3ae77ed90f6d6172f149c8a84342d066",
+    "late-ack.swift": "1b02f4a98bbe7c9247ab85b090e0fe80251a80029733d9baa1706dfd22f33531",
+    "native-control-lifecycle.patch": "be3ef8b1a638d49bd9548ce5eb22820e5608a44f3a52741f0809bfe2b794ed13",
+    "probe-build.json": "6c35afa109c36c1d166c98634150825d654228cd5f36119ae91d1844713004af",
+    "probe-build.log": "3df4c427a69ea84dc504af5facc86f9fb7d10fb78c0e0e4f7d149035c1795f23",
+    "production-inputs.json": "db1c92b5ee60de3879e13f123c78362e2f884da75dac36be7424947c34d0990e",
+    "renderer-assets.json": "c5aefce06de5c2f7f1c090fdc87d1386fc1db06a62fe3951f8a5b50c99d4deba",
+    "reused-native-control.patch": "dac65ffeb20d3a162435aea6b9f629d3751722c29e51d6be5eb2a4c06d01a788",
+    "run-disk-conflict-v2.py": "448c8a7a8ea649de403b0c95a1a1a498484d35557fb4df26dd3af040918e1584",
+    "run-disk-conflict.py": "2bb0e3dd1fd7eaf65293b81b1fcb06f092e44b27944908b830954de8b7d467b0",
+    "run-late-ack-v2.py": "78fb833d45dbead0c32e46c9073ca530bae7a62616ce99ef369c23c84bddff0a",
+    "run-late-ack.py": "a9d70b2f5067837c34595e79deb57007c85d899f06f9febbdf945e9e15b39dbb",
+    "run-scope.py": "c3c713482a26f8f6d3d71cc128ff8a864aed27742edc4ac0e0ca0c2c288c366c",
+    "run-two-pane.py": "993d4c4245a75b9b5cd7e326c4dc2b22876bad9ad6c6c9edba3cb107f37a1bc2",
+    "scope-runner.log": "6f6104bee890d358fdb4d726d645ab716699c3f426ae5f74f66f239e70be6a71",
+    "scope.json": "008a772b8b788ad2f19443bfc7d98c9cb050d7b96d1e00be9863b321898a096a",
+    "scope.log": "02d0c76d527dec4b71ee14a163cbc6e5940155750691f16872c34e4b3d647534",
+    "scope.swift": "e2c2dadc0f616670cb7d62b607f136fe8b84f772aa8ea9184ada7b3629799901",
+    "source.json": "5254e2aae93256ff4416523c9451d03e534b26b0ebbe19226c062ce9ed36bed3",
+    "two-pane-load.log": "0125c477d0a0a1df0928d5a9b667e3ae46ee564ca92d067df6fb6c20c546f72e",
+    "two-pane-load.swift": "f36d3691e08ccf73d5144faf0a17ffa48be6944ef872644fcb25e513cd190a08",
+    "two-pane-open.log": "2fd9a33bd208f158898309dbc9841be88f689d12614ed1da55ba506d160bc535",
+    "two-pane-open.swift": "518b727264de7ffe6ff5729c635e525c46278130119c60a4ad7de315b1b100ee",
+    "two-pane-runner.log": "11ef2673fc89868af5a7e25058292f560d928beb53c97444af8c2eeb4be57850",
+    "two-pane-setup-v2.log": "7bf84ee59656078d7f56ca4f313cda653c5ae87921ce2cb7a608e2264bb1290e",
+    "two-pane-setup-v2.swift": "f2c25eb4cfb52410d64a50a5b43e5c4db28d4dae058969b0dea26cb819ab867a",
+    "two-pane-setup-v3.log": "1f2c0cfad12eca7112b219e346c29882f35ae0158cc466667ae1b09a1c042b38",
+    "two-pane-setup-v3.swift": "46b07cc4dc7b1995019c51d78a3d3af79f19d79c4e8372f13ddf08e3977cab50",
+    "two-pane-setup.log": "91794e411e8a8e5c9337528eac3f6d598bb22c231e916d3601c256f86c119995",
+    "two-pane-setup.swift": "82fe8c56305046d3e7dfe3e2c4f406e68acd2fc52cd366de3120f18c41b970cc",
+    "two-pane-verify.log": "0109d834082b9463482598d5bacea17d538588be10188d1a077ab73700a15d74",
+    "two-pane-verify.swift": "f4cd7986cd7840983a3dd934a6458fa94df328fb575ca5edf8ec190314f8b892",
+    "two-pane.json": "543ebba9329b5bcaf077713147f44b004a289292b57ef53c0ba07c2c55d92d11",
+    "two-pane.log": "7abc487f74bb4597a2daf5ae47416f0d31e5c7b45da8dea0caafb3e524c95aaf",
+    "two-pane.swift": "ffd53ad822aff318c0e6bc2403fd585986479471296ea719568a6248b25f9968"
+  },
+  "clean_iphone": {
+    "passed": true,
+    "log": "clean-iphone.log",
+    "source": "clean-iphone.swift"
+  },
+  "clean_ipad_v3": {
+    "passed": true,
+    "log": "clean-ipad-v3.log",
+    "source": "clean-ipad-v3.swift"
+  }
+}

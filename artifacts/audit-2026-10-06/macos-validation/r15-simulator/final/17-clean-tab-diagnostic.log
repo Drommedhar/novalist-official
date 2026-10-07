@@ -1,0 +1,1182 @@
+Test Suite 'All tests' started at 2026-10-07 14:34:01.272.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:34:01.273.
+Test Suite 'AuditUITests' started at 2026-10-07 14:34:01.273.
+Test Case '-[AuditUITests.AuditUITests testInspectCleanTabOrder]' started.
+    t =     0.00s Start Test at 2026-10-07 14:34:01.274
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Requesting snapshot of accessibility hierarchy for app with pid 82815
+    t =     0.22s Requesting snapshot of accessibility hierarchy for app with pid 82815
+R15_TAB_DIAGNOSTIC_STEP_0
+Attributes: Application, 0x10567ed00, pid: 82815, label: 'Novalist'
+Element subtree:
+ →Application, 0x10567ed00, pid: 82815, label: 'Novalist'
+    Window (Main), 0x10567ee40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10567ebc0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10567ef80, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x10567f0c0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x10567f340, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x10567f480, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x10567f700, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10567f840, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10567f5c0, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x10567c780, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10567cf00, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1057c83c0, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1057c97c0, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1057c8a00, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist'
+                            Other, 0x1057c8b40, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x1057c8dc0, {{0.0, 459.0}, {402.0, 416.0}}, label: 'A Letter from Bellhaven, web dialog'
+                              Other, 0x1057c8f00, {{183.0, 467.0}, {36.0, 5.0}}
+                              Other, 0x1057c8c80, {{18.0, 478.0}, {326.0, 30.0}}
+                                StaticText, 0x1057c9040, {{82.0, 481.0}, {238.0, 24.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell...
+                              Button, 0x1057c9180, {{352.0, 477.0}, {32.0, 33.0}}, label: 'Close'
+                              Button, 0x1057c9680, {{18.0, 517.0}, {179.0, 42.0}}, label: 'Context'
+                              Button, 0x1057c9a40, {{205.0, 517.0}, {179.0, 42.0}}, label: 'Footnotes'
+                              Button, 0x1057c9b80, {{18.0, 566.0}, {179.0, 42.0}}, label: 'SCENE NOTES'
+                              Button, 0x1057c9900, {{205.0, 566.0}, {179.0, 42.0}}, label: 'To do'
+                              Other, 0x1057c9cc0, {{18.0, 615.0}, {366.0, 36.0}}
+                                StaticText, 0x1057c9e00, {{26.0, 628.0}, {48.0, 15.0}}, label: 'TO DO', value: TO DO
+                              TextField, 0x1057ca1c0, {{18.0, 654.0}, {366.0, 42.0}}, placeholderValue: 'What needs doing', value: What needs doing
+                              TextField, 0x1057ca080, {{18.0, 703.0}, {314.0, 45.0}}, placeholderValue: 'List (optional)', value: List (optional), Keyboard Focused, Focused
+                              Button, 0x1057ca300, {{340.0, 703.0}, {44.0, 45.0}}, Disabled
+                              Other, 0x1057c9f40, {{18.0, 766.0}, {366.0, 42.0}}
+                                StaticText, 0x1057ca6c0, {{18.0, 768.0}, {359.0, 37.0}}, label: 'Nothing to do yet. A todo comment belongs to a passage; these belong to the book.', value: Nothing to do yet....
+                  Other, 0x1057ca580, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1057ca800, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x1057ca940, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                    Other, 0x1057cabc0, {{396.0, 65.0}, {3.0, 258.7}}
+                  Other, 0x1057caa80, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                    Other, 0x1057cad00, {{396.0, 65.0}, {3.0, 258.7}}
+              Other, 0x1057caf80, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1057cb0c0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1057cae40, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x1057cb200, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1057cb480, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1057cb5c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1057cb340, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x1057cb700, {{0.0, 478.0}, {402.0, 68.0}}
+            Other, 0x1057cb840, {{0.0, 478.0}, {402.0, 68.0}}
+              Toolbar, 0x1057cbac0, {{0.0, 488.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Button, 0x1057cbc00, {{29.0, 504.7}, {24.0, 14.7}}, label: 'go up'
+                Button, 0x1057cbd40, {{83.0, 505.3}, {24.0, 14.7}}, label: 'go down', Disabled
+                Button, 0x1057cb980, {{349.0, 501.0}, {24.0, 22.7}}, label: 'selected'
+          Other, 0x1057c8000, {{0.0, 546.0}, {402.0, 328.0}}, identifier: 'inputView'
+    Window, 0x108c3c000, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c3c140, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c3c280, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x108c3c3c0, {{0.0, 478.0}, {402.0, 68.0}}
+          Other, 0x108c3c500, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x108c3c640, {{0.0, 546.0}, {402.0, 44.0}}
+              Other, 0x108c3c780, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x108c3c8c0, {{0.0, -54.0}, {402.0, 1244.0}}
+                  ScrollView, 0x108c3ca00, {{0.0, 546.0}, {402.0, 44.0}}
+                Other, 0x108c3cb40, {{0.0, 546.0}, {402.0, 44.0}}
+                  Other, 0x108c3cc80, {{0.0, 546.0}, {402.0, 44.0}}
+                    Other, 0x108c3cdc0, {{0.0, 546.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x108c3cf00, {{0.0, 546.0}, {402.0, 44.0}}
+                        Other, 0x108c3d040, {{0.0, 546.0}, {402.0, 44.0}}
+                          Button, 0x108c3d180, {{0.0, 546.0}, {134.0, 44.0}}, label: 'I'
+                          Button, 0x108c3d2c0, {{134.0, 546.0}, {134.0, 44.0}}, label: 'The'
+                          Button, 0x108c3d400, {{268.0, 546.0}, {134.0, 44.0}}, label: 'R'
+          Other, 0x108c3d540, {{0.0, 546.0}, {402.0, 329.0}}
+            Other, 0x108c3d680, {{0.0, 546.0}, {402.0, 329.0}}
+              Other, 0x108c3d7c0, {{0.0, 546.0}, {402.0, 329.0}}
+          Other, 0x108c3d900, {{0.0, 590.0}, {402.0, 226.0}}
+            Keyboard, 0x108c3da40, {{0.0, 590.0}, {402.0, 226.0}}
+              Other, 0x108c3db80, {{0.0, 590.0}, {402.0, 226.0}}
+                Other, 0x108c3dcc0, {{0.0, 590.0}, {402.0, 226.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x108c3de00, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x108c3df40, {{4.7, 597.0}, {39.3, 54.0}}, label: 'Q'
+                  Key, 0x108c3e080, {{44.0, 597.0}, {39.7, 54.0}}, label: 'W'
+                  Key, 0x108c3e1c0, {{83.7, 597.0}, {39.3, 54.0}}, label: 'E'
+                  Key, 0x108c3e300, {{123.0, 597.0}, {39.7, 54.0}}, label: 'R'
+                  Key, 0x108c3e440, {{162.7, 597.0}, {39.3, 54.0}}, label: 'T'
+                  Key, 0x108c3e580, {{202.0, 597.0}, {39.7, 54.0}}, label: 'Y'
+                  Key, 0x108c3e6c0, {{241.7, 597.0}, {39.3, 54.0}}, label: 'U'
+                  Key, 0x108c3e800, {{281.0, 597.0}, {39.7, 54.0}}, label: 'I'
+                  Key, 0x108c3e940, {{320.7, 597.0}, {39.3, 54.0}}, label: 'O'
+                  Key, 0x108c3ea80, {{360.0, 597.0}, {39.7, 54.0}}, label: 'P'
+                  Key, 0x108c3ebc0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x108c3ed00, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x108c3ee40, {{24.3, 651.0}, {39.3, 54.0}}, label: 'A'
+                  Key, 0x108c3ef80, {{63.7, 651.0}, {39.7, 54.0}}, label: 'S'
+                  Key, 0x108c3f0c0, {{103.3, 651.0}, {39.3, 54.0}}, label: 'D'
+                  Key, 0x108c3f200, {{142.7, 651.0}, {39.7, 54.0}}, label: 'F'
+                  Key, 0x108c3f340, {{182.3, 651.0}, {39.3, 54.0}}, label: 'G'
+                  Key, 0x108c3f480, {{221.7, 651.0}, {39.7, 54.0}}, label: 'H'
+                  Key, 0x108c3f5c0, {{261.3, 651.0}, {39.3, 54.0}}, label: 'J'
+                  Key, 0x108c3f700, {{300.7, 651.0}, {39.7, 54.0}}, label: 'K'
+                  Key, 0x108c3f840, {{340.3, 651.0}, {39.3, 54.0}}, label: 'L'
+                  Key, 0x108c3f980, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Button, 0x108c3fac0, {{4.7, 705.0}, {51.3, 54.0}}, identifier: 'shift', label: 'shift', Selected
+                  Key, 0x108c3fc00, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x108c3fd40, {{63.7, 705.0}, {39.7, 54.0}}, label: 'Z'
+                  Key, 0x108c3fe80, {{103.3, 705.0}, {39.3, 54.0}}, label: 'X'
+                  Key, 0x108c40000, {{142.7, 705.0}, {39.7, 54.0}}, label: 'C'
+                  Key, 0x108c40140, {{182.3, 705.0}, {39.3, 54.0}}, label: 'V'
+                  Key, 0x108c40280, {{221.7, 705.0}, {39.7, 54.0}}, label: 'B'
+                  Key, 0x108c403c0, {{261.3, 705.0}, {39.3, 54.0}}, label: 'N'
+                  Key, 0x108c40500, {{300.7, 705.0}, {39.7, 54.0}}, label: 'M'
+                  Key, 0x108c40640, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x108c40780, {{348.0, 705.0}, {51.7, 54.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x108c408c0, {{4.7, 759.0}, {98.7, 54.0}}, identifier: 'more', label: 'numbers'
+                  Key, 0x108c40a00, {{103.3, 759.0}, {197.3, 54.0}}, identifier: 'space', label: 'space'
+                  Button, 0x108c40b40, {{300.7, 759.0}, {99.0, 54.0}}, identifier: 'Return', label: 'return'
+          Other, 0x108c40c80, {{0.0, 590.0}, {402.0, 284.0}}
+            Button, 0x108c40dc0, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Emoji'
+              StaticText, 0x108c40f00, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x108c41040, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x108c41180, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x108c412c0, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x108c41400, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x10567ed00, pid: 82815, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x108c41540, pid: 82815, label: 'Novalist'
+  }
+
+    t =     0.25s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     0.25s     Wait for com.novalist.app to idle
+    t =     0.25s     Find the Application 'com.novalist.app'
+    t =     0.26s     Check for interrupting elements affecting "Novalist" Application
+    t =     0.28s     Synthesize event
+objc[82987]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x108338398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x109998310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.62s     Wait for com.novalist.app to idle
+    t =     1.07s Requesting snapshot of accessibility hierarchy for app with pid 82815
+    t =     1.23s Requesting snapshot of accessibility hierarchy for app with pid 82815
+R15_TAB_DIAGNOSTIC_STEP_1
+Attributes: Application, 0x1057cb980, pid: 82815, label: 'Novalist'
+Element subtree:
+ →Application, 0x1057cb980, pid: 82815, label: 'Novalist'
+    Window (Main), 0x1057cb480, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1057cb200, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1057cb840, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1057cbac0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1057cb340, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x1057caa80, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x1057cad00, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1057cae40, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1057caf80, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x1057ca940, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1057cabc0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1057ca580, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1057ca800, {{0.0, -211.0}, {402.0, 874.0}}
+                          Other, 0x1057c83c0, {{0.0, -211.0}, {402.0, 874.0}}, label: 'Novalist'
+                            Other, 0x1057c97c0, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x1057c8a00, {{0.0, 248.0}, {402.0, 416.0}}, label: 'A Letter from Bellhaven, web dialog'
+                              Other, 0x1057c8dc0, {{183.0, 256.0}, {36.0, 5.0}}
+                              Other, 0x1057c9f40, {{18.0, 267.0}, {326.0, 30.0}}
+                                StaticText, 0x1057ca6c0, {{82.0, 270.0}, {238.0, 24.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell...
+                              Button, 0x1057ca300, {{352.0, 266.0}, {32.0, 33.0}}, label: 'Close'
+                              Button, 0x1057ca080, {{18.0, 306.0}, {179.0, 42.0}}, label: 'Context'
+                              Button, 0x1057ca1c0, {{205.0, 306.0}, {179.0, 42.0}}, label: 'Footnotes'
+                              Button, 0x1057c9cc0, {{18.0, 355.0}, {179.0, 42.0}}, label: 'SCENE NOTES'
+                              Button, 0x1057c9e00, {{205.0, 355.0}, {179.0, 42.0}}, label: 'To do'
+                              Other, 0x1057c9900, {{18.0, 404.0}, {366.0, 36.0}}
+                                StaticText, 0x1057c9b80, {{26.0, 417.0}, {48.0, 15.0}}, label: 'TO DO', value: TO DO
+                              TextField, 0x1057c9a40, {{18.0, 443.0}, {366.0, 42.0}}, placeholderValue: 'What needs doing', value: What needs doing, Keyboard Focused, Focused
+                              TextField, 0x1057c9680, {{18.0, 492.0}, {314.0, 45.0}}, placeholderValue: 'List (optional)', value: List (optional)
+                              Button, 0x1057c9180, {{340.0, 492.0}, {44.0, 45.0}}, Disabled
+                              Other, 0x1057c8c80, {{18.0, 555.0}, {366.0, 42.0}}
+                                StaticText, 0x1057c9040, {{18.0, 557.0}, {359.0, 37.0}}, label: 'Nothing to do yet. A todo comment belongs to a passage; these belong to the book.', value: Nothing to do yet....
+                  Other, 0x1057c8f00, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1057c8b40, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x108c42300, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 53%
+                    Other, 0x108c40c80, {{396.0, 127.7}, {3.0, 258.7}}
+                  Other, 0x108c412c0, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 53%
+                    Other, 0x108c41400, {{396.0, 127.7}, {3.0, 258.7}}
+              Other, 0x108c41040, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108c41180, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x108c40dc0, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x108c40f00, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c40b40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c408c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c40780, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x108c40640, {{0.0, 478.0}, {402.0, 68.0}}
+            Other, 0x108c40500, {{0.0, 478.0}, {402.0, 68.0}}
+              Toolbar, 0x108c40280, {{0.0, 488.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Button, 0x108c40000, {{29.0, 504.7}, {24.0, 14.7}}, label: 'go up', Disabled
+                Button, 0x108c42080, {{83.0, 505.3}, {24.0, 14.7}}, label: 'go down'
+                Button, 0x108c40140, {{349.0, 501.0}, {24.0, 22.7}}, label: 'selected'
+          Other, 0x108c403c0, {{0.0, 546.0}, {402.0, 328.0}}, identifier: 'inputView'
+    Window, 0x108c40a00, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10567ed00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10567ee40, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x10567ebc0, {{0.0, 478.0}, {402.0, 68.0}}
+          Other, 0x10567ef80, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x10567f0c0, {{0.0, 546.0}, {402.0, 44.0}}
+              Other, 0x10567f340, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x10567f480, {{0.0, -54.0}, {402.0, 1244.0}}
+                  ScrollView, 0x10567f700, {{0.0, 546.0}, {402.0, 44.0}}
+                Other, 0x10567c780, {{0.0, 546.0}, {402.0, 44.0}}
+                  Other, 0x10567cf00, {{0.0, 546.0}, {402.0, 44.0}}
+                    Other, 0x10567f840, {{0.0, 546.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x10567f5c0, {{0.0, 546.0}, {402.0, 44.0}}
+                        Other, 0x108c3c000, {{0.0, 546.0}, {402.0, 44.0}}
+                          Button, 0x108c3c140, {{0.0, 546.0}, {134.0, 44.0}}, label: 'I'
+                          Button, 0x108c3c280, {{134.0, 546.0}, {134.0, 44.0}}, label: 'The'
+                          Button, 0x108c3c3c0, {{268.0, 546.0}, {134.0, 44.0}}, label: 'R'
+          Other, 0x108c3c500, {{0.0, 546.0}, {402.0, 329.0}}
+            Other, 0x108c3c640, {{0.0, 546.0}, {402.0, 329.0}}
+              Other, 0x108c3c780, {{0.0, 546.0}, {402.0, 329.0}}
+          Other, 0x108c3c8c0, {{0.0, 590.0}, {402.0, 226.0}}
+            Keyboard, 0x108c3ca00, {{0.0, 590.0}, {402.0, 226.0}}
+              Other, 0x108c3cb40, {{0.0, 590.0}, {402.0, 226.0}}
+                Other, 0x108c3cc80, {{0.0, 590.0}, {402.0, 226.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x108c3cdc0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x108c3cf00, {{4.7, 597.0}, {39.3, 54.0}}, label: 'Q'
+                  Key, 0x108c3d040, {{44.0, 597.0}, {39.7, 54.0}}, label: 'W'
+                  Key, 0x108c3d180, {{83.7, 597.0}, {39.3, 54.0}}, label: 'E'
+                  Key, 0x108c3d2c0, {{123.0, 597.0}, {39.7, 54.0}}, label: 'R'
+                  Key, 0x108c3d400, {{162.7, 597.0}, {39.3, 54.0}}, label: 'T'
+                  Key, 0x108c3d540, {{202.0, 597.0}, {39.7, 54.0}}, label: 'Y'
+                  Key, 0x108c3d680, {{241.7, 597.0}, {39.3, 54.0}}, label: 'U'
+                  Key, 0x108c3d7c0, {{281.0, 597.0}, {39.7, 54.0}}, label: 'I'
+                  Key, 0x108c3d900, {{320.7, 597.0}, {39.3, 54.0}}, label: 'O'
+                  Key, 0x108c3da40, {{360.0, 597.0}, {39.7, 54.0}}, label: 'P'
+                  Key, 0x108c3db80, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x108c3dcc0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x108c3de00, {{24.3, 651.0}, {39.3, 54.0}}, label: 'A'
+                  Key, 0x108c3df40, {{63.7, 651.0}, {39.7, 54.0}}, label: 'S'
+                  Key, 0x108c3e080, {{103.3, 651.0}, {39.3, 54.0}}, label: 'D'
+                  Key, 0x108c3e1c0, {{142.7, 651.0}, {39.7, 54.0}}, label: 'F'
+                  Key, 0x108c3e300, {{182.3, 651.0}, {39.3, 54.0}}, label: 'G'
+                  Key, 0x108c3e440, {{221.7, 651.0}, {39.7, 54.0}}, label: 'H'
+                  Key, 0x108c3e580, {{261.3, 651.0}, {39.3, 54.0}}, label: 'J'
+                  Key, 0x108c3e6c0, {{300.7, 651.0}, {39.7, 54.0}}, label: 'K'
+                  Key, 0x108c3e800, {{340.3, 651.0}, {39.3, 54.0}}, label: 'L'
+                  Key, 0x108c3e940, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Button, 0x108c3ea80, {{4.7, 705.0}, {51.3, 54.0}}, identifier: 'shift', label: 'shift', Selected
+                  Key, 0x108c3ebc0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x108c3ed00, {{63.7, 705.0}, {39.7, 54.0}}, label: 'Z'
+                  Key, 0x108c3ee40, {{103.3, 705.0}, {39.3, 54.0}}, label: 'X'
+                  Key, 0x108c3ef80, {{142.7, 705.0}, {39.7, 54.0}}, label: 'C'
+                  Key, 0x108c3f0c0, {{182.3, 705.0}, {39.3, 54.0}}, label: 'V'
+                  Key, 0x108c3f200, {{221.7, 705.0}, {39.7, 54.0}}, label: 'B'
+                  Key, 0x108c3f340, {{261.3, 705.0}, {39.3, 54.0}}, label: 'N'
+                  Key, 0x108c3f480, {{300.7, 705.0}, {39.7, 54.0}}, label: 'M'
+                  Key, 0x108c3f5c0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x108c3f700, {{348.0, 705.0}, {51.7, 54.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x108c3f840, {{4.7, 759.0}, {98.7, 54.0}}, identifier: 'more', label: 'numbers'
+                  Key, 0x108c3f980, {{103.3, 759.0}, {197.3, 54.0}}, identifier: 'space', label: 'space'
+                  Button, 0x108c3fac0, {{300.7, 759.0}, {99.0, 54.0}}, identifier: 'Return', label: 'return'
+          Other, 0x108c3fc00, {{0.0, 590.0}, {402.0, 284.0}}
+            Button, 0x108c3fd40, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Emoji'
+              StaticText, 0x108c3fe80, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x1093f8000, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x1093f8140, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x1093f8280, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x1093f83c0, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x1057cb980, pid: 82815, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x1093f8500, pid: 82815, label: 'Novalist'
+  }
+
+    t =     1.26s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     1.26s     Wait for com.novalist.app to idle
+    t =     1.26s     Find the Application 'com.novalist.app'
+    t =     1.27s     Check for interrupting elements affecting "Novalist" Application
+    t =     1.29s     Synthesize event
+    t =     1.64s     Wait for com.novalist.app to idle
+    t =     1.76s Requesting snapshot of accessibility hierarchy for app with pid 82815
+    t =     1.87s Requesting snapshot of accessibility hierarchy for app with pid 82815
+R15_TAB_DIAGNOSTIC_STEP_2
+Attributes: Application, 0x1093f8280, pid: 82815, label: 'Novalist'
+Element subtree:
+ →Application, 0x1093f8280, pid: 82815, label: 'Novalist'
+    Window (Main), 0x1093f83c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1093f8000, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1093f8140, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1093fb840, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1093fb980, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x1093fbd40, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x1093fbe80, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1093f8640, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1093f8780, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x1093f88c0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1093f8a00, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1093fb700, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1093f9540, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1093f9680, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist', Focused
+                            Other, 0x1093f9400, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x1093f92c0, {{0.0, 459.0}, {402.0, 416.0}}, label: 'A Letter from Bellhaven, web dialog', Focused
+                              Other, 0x1093f9180, {{183.0, 467.0}, {36.0, 5.0}}, Focused
+                              Other, 0x1093fad00, {{18.0, 478.0}, {326.0, 30.0}}, Focused
+                                StaticText, 0x1093fae40, {{82.0, 481.0}, {238.0, 24.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell..., Focused
+                              Button, 0x1093fb0c0, {{352.0, 477.0}, {32.0, 33.0}}, label: 'Close', Focused
+                              Button, 0x1093faf80, {{18.0, 517.0}, {179.0, 42.0}}, label: 'Context', Focused
+                              Button, 0x1093fb340, {{205.0, 517.0}, {179.0, 42.0}}, label: 'Footnotes', Focused
+                              Button, 0x1093fb200, {{18.0, 566.0}, {179.0, 42.0}}, label: 'SCENE NOTES', Focused
+                              Button, 0x1093f8dc0, {{205.0, 566.0}, {179.0, 42.0}}, label: 'To do', Focused
+                              Other, 0x1093fb480, {{18.0, 615.0}, {366.0, 36.0}}, Focused
+                                StaticText, 0x1093f8c80, {{26.0, 628.0}, {48.0, 15.0}}, label: 'TO DO', value: TO DO, Focused
+                              TextField, 0x1093f8b40, {{18.0, 654.0}, {366.0, 42.0}}, placeholderValue: 'What needs doing', value: What needs doing, Focused
+                              TextField, 0x1093fb5c0, {{18.0, 703.0}, {314.0, 45.0}}, placeholderValue: 'List (optional)', value: List (optional), Focused
+                              Button, 0x1093fbac0, {{340.0, 703.0}, {44.0, 45.0}}, Focused, Disabled
+                              Other, 0x1093f9900, {{18.0, 766.0}, {366.0, 42.0}}, Focused
+                                StaticText, 0x1093faa80, {{18.0, 768.0}, {359.0, 37.0}}, label: 'Nothing to do yet. A todo comment belongs to a passage; these belong to the book.', value: Nothing to do yet...., Focused
+                  Other, 0x1093fabc0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1093fa940, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x1093fa800, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x1093fa6c0, {{396.0, 65.0}, {3.0, 744.0}}
+                  Other, 0x1093fa440, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x1093fa580, {{396.0, 65.0}, {3.0, 744.0}}
+              Other, 0x1093fa300, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1093fa1c0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1093fa080, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x1093f9f40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1093f9e00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1093f9b80, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x1093f8280, pid: 82815, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x1093f8500, pid: 82815, label: 'Novalist'
+  }
+
+    t =     1.89s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     1.89s     Wait for com.novalist.app to idle
+    t =     1.89s     Find the Application 'com.novalist.app'
+    t =     1.90s     Check for interrupting elements affecting "Novalist" Application
+    t =     1.91s     Synthesize event
+    t =     2.26s     Wait for com.novalist.app to idle
+    t =     2.68s Requesting snapshot of accessibility hierarchy for app with pid 82815
+    t =     2.85s Requesting snapshot of accessibility hierarchy for app with pid 82815
+R15_TAB_DIAGNOSTIC_STEP_3
+Attributes: Application, 0x1093fb980, pid: 82815, label: 'Novalist'
+Element subtree:
+ →Application, 0x1093fb980, pid: 82815, label: 'Novalist'
+    Window (Main), 0x1093fa1c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1093fb840, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1093fa300, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1093fa080, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1093f8000, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x1093f9b80, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x1093f9e00, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1093f8140, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1093f83c0, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x1093f9f40, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1093f8280, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1093fbd40, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1093fbe80, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1093fa440, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist'
+                            Other, 0x1093fa580, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x1093fa800, {{0.0, 459.0}, {402.0, 416.0}}, label: 'A Letter from Bellhaven, web dialog'
+                              Other, 0x1093fa6c0, {{183.0, 467.0}, {36.0, 5.0}}
+                              Other, 0x1093fabc0, {{18.0, 478.0}, {326.0, 30.0}}
+                                StaticText, 0x1093fa940, {{82.0, 481.0}, {238.0, 24.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell...
+                              Button, 0x1093f88c0, {{352.0, 477.0}, {32.0, 33.0}}, label: 'Close'
+                              Button, 0x1093f8a00, {{18.0, 517.0}, {179.0, 42.0}}, label: 'Context'
+                              Button, 0x1093fb700, {{205.0, 517.0}, {179.0, 42.0}}, label: 'Footnotes'
+                              Button, 0x1093f9540, {{18.0, 566.0}, {179.0, 42.0}}, label: 'SCENE NOTES'
+                              Button, 0x1093f9680, {{205.0, 566.0}, {179.0, 42.0}}, label: 'To do'
+                              Other, 0x1093f92c0, {{18.0, 615.0}, {366.0, 36.0}}
+                                StaticText, 0x1093f9900, {{26.0, 628.0}, {48.0, 15.0}}, label: 'TO DO', value: TO DO
+                              TextField, 0x1093faa80, {{18.0, 654.0}, {366.0, 42.0}}, placeholderValue: 'What needs doing', value: What needs doing
+                              TextField, 0x1093fbac0, {{18.0, 703.0}, {314.0, 45.0}}, placeholderValue: 'List (optional)', value: List (optional), Keyboard Focused, Focused
+                              Button, 0x1093fb5c0, {{340.0, 703.0}, {44.0, 45.0}}, Disabled
+                              Other, 0x1093f8b40, {{18.0, 766.0}, {366.0, 42.0}}
+                                StaticText, 0x1093fb480, {{18.0, 768.0}, {359.0, 37.0}}, label: 'Nothing to do yet. A todo comment belongs to a passage; these belong to the book.', value: Nothing to do yet....
+                  Other, 0x1093f8c80, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1093f8dc0, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x1093fb200, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                    Other, 0x1093fb340, {{396.0, 65.0}, {3.0, 258.7}}
+                  Other, 0x1093faf80, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                    Other, 0x1093fb0c0, {{396.0, 65.0}, {3.0, 258.7}}
+              Other, 0x1093fad00, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1093fae40, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1093f9180, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x1093f9400, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1093f8640, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1093f8780, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1093f8500, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x1093f9cc0, {{0.0, 478.0}, {402.0, 68.0}}
+            Other, 0x1093f9a40, {{0.0, 478.0}, {402.0, 68.0}}
+              Toolbar, 0x1093f97c0, {{0.0, 488.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Button, 0x1093f8f00, {{29.0, 504.7}, {24.0, 14.7}}, label: 'go up'
+                Button, 0x1093f9040, {{83.0, 505.3}, {24.0, 14.7}}, label: 'go down', Disabled
+                Button, 0x108c417c0, {{349.0, 501.0}, {24.0, 22.7}}, label: 'selected'
+          Other, 0x108c40f00, {{0.0, 546.0}, {402.0, 328.0}}, identifier: 'inputView'
+    Window, 0x108c40b40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c40780, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c403c0, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x108c40640, {{0.0, 478.0}, {402.0, 68.0}}
+          Other, 0x108c40500, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x108c40280, {{0.0, 546.0}, {402.0, 44.0}}
+              Other, 0x108c40140, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x108c40000, {{0.0, -54.0}, {402.0, 1244.0}}
+                  ScrollView, 0x108c408c0, {{0.0, 546.0}, {402.0, 44.0}}
+                Other, 0x108c41180, {{0.0, 546.0}, {402.0, 44.0}}
+                  Other, 0x108c40dc0, {{0.0, 546.0}, {402.0, 44.0}}
+                    Other, 0x108c412c0, {{0.0, 546.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x108c42300, {{0.0, 546.0}, {402.0, 44.0}}
+                        Other, 0x108c40c80, {{0.0, 546.0}, {402.0, 44.0}}
+                          Button, 0x108c41400, {{0.0, 546.0}, {134.0, 44.0}}, label: 'I'
+                          Button, 0x108c41040, {{134.0, 546.0}, {134.0, 44.0}}, label: 'The'
+                          Button, 0x108c42080, {{268.0, 546.0}, {134.0, 44.0}}, label: 'R'
+          Other, 0x10567ed00, {{0.0, 546.0}, {402.0, 329.0}}
+            Other, 0x10567ee40, {{0.0, 546.0}, {402.0, 329.0}}
+              Other, 0x10567f340, {{0.0, 546.0}, {402.0, 329.0}}
+          Other, 0x10567c780, {{0.0, 590.0}, {402.0, 226.0}}
+            Keyboard, 0x10567cf00, {{0.0, 590.0}, {402.0, 226.0}}
+              Other, 0x10567f840, {{0.0, 590.0}, {402.0, 226.0}}
+                Other, 0x10567f5c0, {{0.0, 590.0}, {402.0, 226.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x10567f700, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10567ebc0, {{4.7, 597.0}, {39.3, 54.0}}, label: 'Q'
+                  Key, 0x10567f480, {{44.0, 597.0}, {39.7, 54.0}}, label: 'W'
+                  Key, 0x10567ef80, {{83.7, 597.0}, {39.3, 54.0}}, label: 'E'
+                  Key, 0x10567f0c0, {{123.0, 597.0}, {39.7, 54.0}}, label: 'R'
+                  Key, 0x1057c8000, {{162.7, 597.0}, {39.3, 54.0}}, label: 'T'
+                  Key, 0x1057cb980, {{202.0, 597.0}, {39.7, 54.0}}, label: 'Y'
+                  Key, 0x1057cb480, {{241.7, 597.0}, {39.3, 54.0}}, label: 'U'
+                  Key, 0x1057cb200, {{281.0, 597.0}, {39.7, 54.0}}, label: 'I'
+                  Key, 0x1057cb840, {{320.7, 597.0}, {39.3, 54.0}}, label: 'O'
+                  Key, 0x1057cbac0, {{360.0, 597.0}, {39.7, 54.0}}, label: 'P'
+                  Key, 0x1057cb340, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x1057caa80, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1057cad00, {{24.3, 651.0}, {39.3, 54.0}}, label: 'A'
+                  Key, 0x1057c8f00, {{63.7, 651.0}, {39.7, 54.0}}, label: 'S'
+                  Key, 0x1057c8b40, {{103.3, 651.0}, {39.3, 54.0}}, label: 'D'
+                  Key, 0x1057ca940, {{142.7, 651.0}, {39.7, 54.0}}, label: 'F'
+                  Key, 0x1057cabc0, {{182.3, 651.0}, {39.3, 54.0}}, label: 'G'
+                  Key, 0x1057ca580, {{221.7, 651.0}, {39.7, 54.0}}, label: 'H'
+                  Key, 0x1057ca800, {{261.3, 651.0}, {39.3, 54.0}}, label: 'J'
+                  Key, 0x1057c83c0, {{300.7, 651.0}, {39.7, 54.0}}, label: 'K'
+                  Key, 0x1057c8a00, {{340.3, 651.0}, {39.3, 54.0}}, label: 'L'
+                  Key, 0x1057c8c80, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Button, 0x1057c9040, {{4.7, 705.0}, {51.3, 54.0}}, identifier: 'shift', label: 'shift', Selected
+                  Key, 0x1057c9180, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1057c9680, {{63.7, 705.0}, {39.7, 54.0}}, label: 'Z'
+                  Key, 0x1057c9a40, {{103.3, 705.0}, {39.3, 54.0}}, label: 'X'
+                  Key, 0x1057c9900, {{142.7, 705.0}, {39.7, 54.0}}, label: 'C'
+                  Key, 0x1057c9b80, {{182.3, 705.0}, {39.3, 54.0}}, label: 'V'
+                  Key, 0x1057c9e00, {{221.7, 705.0}, {39.7, 54.0}}, label: 'B'
+                  Key, 0x1057c9cc0, {{261.3, 705.0}, {39.3, 54.0}}, label: 'N'
+                  Key, 0x1057ca1c0, {{300.7, 705.0}, {39.7, 54.0}}, label: 'M'
+                  Key, 0x1057ca080, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x1057ca300, {{348.0, 705.0}, {51.7, 54.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x1057c9f40, {{4.7, 759.0}, {98.7, 54.0}}, identifier: 'more', label: 'numbers'
+                  Key, 0x1057ca6c0, {{103.3, 759.0}, {197.3, 54.0}}, identifier: 'space', label: 'space'
+                  Button, 0x1057c8dc0, {{300.7, 759.0}, {99.0, 54.0}}, identifier: 'Return', label: 'return'
+          Other, 0x1057c97c0, {{0.0, 590.0}, {402.0, 284.0}}
+            Button, 0x1057cae40, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Emoji'
+              StaticText, 0x1057caf80, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x108c3c000, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x108c3c140, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x108c3c280, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x108c3c3c0, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x1093fb980, pid: 82815, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x108c3c500, pid: 82815, label: 'Novalist'
+  }
+
+    t =     2.88s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     2.88s     Wait for com.novalist.app to idle
+    t =     2.88s     Find the Application 'com.novalist.app'
+    t =     2.89s     Check for interrupting elements affecting "Novalist" Application
+    t =     2.91s     Synthesize event
+    t =     3.26s     Wait for com.novalist.app to idle
+    t =     3.70s Requesting snapshot of accessibility hierarchy for app with pid 82815
+    t =     3.87s Requesting snapshot of accessibility hierarchy for app with pid 82815
+R15_TAB_DIAGNOSTIC_STEP_4
+Attributes: Application, 0x108c3c280, pid: 82815, label: 'Novalist'
+Element subtree:
+ →Application, 0x108c3c280, pid: 82815, label: 'Novalist'
+    Window (Main), 0x108c3c140, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c3f840, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c3c3c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x108c3c000, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108c3f980, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x108c3c640, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x108c3c780, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x108c3fd40, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c3fe80, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x108c3c8c0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c3ca00, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x108c3f700, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x108c3d540, {{0.0, -68.0}, {402.0, 874.0}}
+                          Other, 0x108c3d680, {{0.0, -68.0}, {402.0, 874.0}}, label: 'Novalist'
+                            Other, 0x108c3d400, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x108c3d2c0, {{0.0, 391.0}, {402.0, 416.0}}, label: 'A Letter from Bellhaven, web dialog'
+                              Other, 0x108c3d180, {{183.0, 399.0}, {36.0, 5.0}}
+                              Other, 0x108c3ed00, {{18.0, 410.0}, {326.0, 30.0}}
+                                StaticText, 0x108c3ee40, {{82.0, 413.0}, {238.0, 24.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell...
+                              Button, 0x108c3f0c0, {{352.0, 409.0}, {32.0, 33.0}}, label: 'Close'
+                              Button, 0x108c3ef80, {{18.0, 449.0}, {179.0, 42.0}}, label: 'Context'
+                              Button, 0x108c3f340, {{205.0, 449.0}, {179.0, 42.0}}, label: 'Footnotes'
+                              Button, 0x108c3f200, {{18.0, 498.0}, {179.0, 42.0}}, label: 'SCENE NOTES'
+                              Button, 0x108c3cdc0, {{205.0, 498.0}, {179.0, 42.0}}, label: 'To do'
+                              Other, 0x108c3f480, {{18.0, 547.0}, {366.0, 36.0}}
+                                StaticText, 0x108c3cc80, {{26.0, 560.0}, {48.0, 15.0}}, label: 'TO DO', value: TO DO
+                              TextField, 0x108c3cb40, {{18.0, 586.0}, {366.0, 42.0}}, placeholderValue: 'What needs doing', value: What needs doing, Keyboard Focused, Focused
+                              TextField, 0x108c3f5c0, {{18.0, 635.0}, {314.0, 45.0}}, placeholderValue: 'List (optional)', value: List (optional)
+                              Button, 0x108c3fac0, {{340.0, 635.0}, {44.0, 45.0}}, Disabled
+                              Other, 0x108c3d900, {{18.0, 698.0}, {366.0, 42.0}}
+                                StaticText, 0x108c3ea80, {{18.0, 700.0}, {359.0, 37.0}}, label: 'Nothing to do yet. A todo comment belongs to a passage; these belong to the book.', value: Nothing to do yet....
+                  Other, 0x108c3ebc0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c3e940, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x108c3e800, {{369.0, 62.0}, {30.0, 710.0}}, label: 'Vertical scroll bar, 2 pages', value: 100%
+                    Other, 0x108c3e6c0, {{396.0, 115.7}, {3.0, 653.3}}
+                  Other, 0x108c3e440, {{369.0, 62.0}, {30.0, 710.0}}, label: 'Vertical scroll bar, 2 pages', value: 100%
+                    Other, 0x108c3e580, {{396.0, 115.7}, {3.0, 653.3}}
+              Other, 0x108c3e300, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108c3e1c0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x108c3e080, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x108c3df40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c3de00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c3db80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c3dcc0, {{0.0, 806.0}, {402.0, 68.0}}
+          Other, 0x108c3da40, {{0.0, 806.0}, {402.0, 68.0}}
+            Other, 0x108c3d7c0, {{0.0, 806.0}, {402.0, 68.0}}
+              Toolbar, 0x108c3cf00, {{0.0, 816.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Button, 0x108c3d040, {{29.0, 832.7}, {24.0, 14.7}}, label: 'go up', Disabled
+                Button, 0x1057c97c0, {{83.0, 833.3}, {24.0, 14.7}}, label: 'go down'
+                Button, 0x1057cae40, {{349.0, 829.0}, {24.0, 22.7}}, label: 'selected'
+    Window, 0x1057caf80, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1057c8dc0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1057ca6c0, {{0.0, 806.0}, {402.0, 338.0}}
+          Other, 0x1057c9f40, {{0.0, 806.0}, {402.0, 68.0}}
+          Other, 0x1057ca300, {{0.0, 874.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x1057ca080, {{0.0, 874.0}, {402.0, 44.0}}
+              Other, 0x1057ca1c0, {{0.0, 874.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x1057c9cc0, {{0.0, 274.0}, {402.0, 1244.0}}
+                  ScrollView, 0x1057c9e00, {{0.0, 874.0}, {402.0, 44.0}}
+                Other, 0x1057c9b80, {{0.0, 874.0}, {402.0, 44.0}}
+                  Other, 0x1057c9900, {{0.0, 874.0}, {402.0, 44.0}}
+                    Other, 0x1057c9a40, {{0.0, 874.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x1057c9680, {{0.0, 874.0}, {402.0, 44.0}}
+                        Other, 0x1057c9180, {{0.0, 874.0}, {402.0, 44.0}}
+                          Button, 0x1057c9040, {{0.0, 874.0}, {134.0, 44.0}}, label: 'I'
+                          Button, 0x1057c8c80, {{134.0, 874.0}, {134.0, 44.0}}, label: 'The'
+                          Button, 0x1057c8a00, {{268.0, 874.0}, {134.0, 44.0}}, label: 'R'
+          Other, 0x1057c83c0, {{0.0, 874.0}, {402.0, 271.0}}
+            Other, 0x1057ca800, {{0.0, 874.0}, {402.0, 271.0}}
+              Other, 0x1057ca580, {{0.0, 874.0}, {402.0, 271.0}}
+          Other, 0x1057cabc0, {{0.0, 918.0}, {402.0, 226.0}}
+            Keyboard, 0x1057ca940, {{0.0, 918.0}, {402.0, 226.0}}
+              Other, 0x1057c8b40, {{0.0, 918.0}, {402.0, 226.0}}
+                Other, 0x1057c8f00, {{0.0, 918.0}, {402.0, 226.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x1057cad00, {{0.0, 918.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1057caa80, {{4.7, 925.0}, {39.3, 54.0}}, label: 'Q'
+                  Key, 0x1057cb340, {{44.0, 925.0}, {39.7, 54.0}}, label: 'W'
+                  Key, 0x1057cbac0, {{83.7, 925.0}, {39.3, 54.0}}, label: 'E'
+                  Key, 0x1057cb840, {{123.0, 925.0}, {39.7, 54.0}}, label: 'R'
+                  Key, 0x1057cb200, {{162.7, 925.0}, {39.3, 54.0}}, label: 'T'
+                  Key, 0x1057cb480, {{202.0, 925.0}, {39.7, 54.0}}, label: 'Y'
+                  Key, 0x1057cb980, {{241.7, 925.0}, {39.3, 54.0}}, label: 'U'
+                  Key, 0x1057c8000, {{281.0, 925.0}, {39.7, 54.0}}, label: 'I'
+                  Key, 0x10567c780, {{320.7, 925.0}, {39.3, 54.0}}, label: 'O'
+                  Key, 0x10567cf00, {{360.0, 925.0}, {39.7, 54.0}}, label: 'P'
+                  Key, 0x10567f840, {{0.0, 918.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10567f5c0, {{0.0, 918.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10567f0c0, {{24.3, 979.0}, {39.3, 54.0}}, label: 'A'
+                  Key, 0x10567ef80, {{63.7, 979.0}, {39.7, 54.0}}, label: 'S'
+                  Key, 0x10567f480, {{103.3, 979.0}, {39.3, 54.0}}, label: 'D'
+                  Key, 0x10567ebc0, {{142.7, 979.0}, {39.7, 54.0}}, label: 'F'
+                  Key, 0x10567f700, {{182.3, 979.0}, {39.3, 54.0}}, label: 'G'
+                  Key, 0x10567ed00, {{221.7, 979.0}, {39.7, 54.0}}, label: 'H'
+                  Key, 0x10567ee40, {{261.3, 979.0}, {39.3, 54.0}}, label: 'J'
+                  Key, 0x10567f340, {{300.7, 979.0}, {39.7, 54.0}}, label: 'K'
+                  Key, 0x108c43840, {{340.3, 979.0}, {39.3, 54.0}}, label: 'L'
+                  Key, 0x108c40b40, {{0.0, 918.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Button, 0x108c40780, {{4.7, 1033.0}, {51.3, 54.0}}, identifier: 'shift', label: 'shift', Selected
+                  Key, 0x108c403c0, {{0.0, 918.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x108c40500, {{63.7, 1033.0}, {39.7, 54.0}}, label: 'Z'
+                  Key, 0x108c40280, {{103.3, 1033.0}, {39.3, 54.0}}, label: 'X'
+                  Key, 0x108c40140, {{142.7, 1033.0}, {39.7, 54.0}}, label: 'C'
+                  Key, 0x108c41180, {{182.3, 1033.0}, {39.3, 54.0}}, label: 'V'
+                  Key, 0x108c40dc0, {{221.7, 1033.0}, {39.7, 54.0}}, label: 'B'
+                  Key, 0x108c412c0, {{261.3, 1033.0}, {39.3, 54.0}}, label: 'N'
+                  Key, 0x108c42300, {{300.7, 1033.0}, {39.7, 54.0}}, label: 'M'
+                  Key, 0x108c40c80, {{0.0, 918.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x108c42080, {{348.0, 1033.0}, {51.7, 54.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x108c41040, {{4.7, 1087.0}, {98.7, 54.0}}, identifier: 'more', label: 'numbers'
+                  Key, 0x108c41400, {{103.3, 1087.0}, {197.3, 54.0}}, identifier: 'space', label: 'space'
+                  Button, 0x108c40000, {{300.7, 1087.0}, {99.0, 54.0}}, identifier: 'Return', label: 'return'
+Path to element:
+ →Application, 0x108c3c280, pid: 82815, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x108c43c00, pid: 82815, label: 'Novalist'
+  }
+
+    t =     3.90s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     3.90s     Wait for com.novalist.app to idle
+    t =     3.90s     Find the Application 'com.novalist.app'
+    t =     3.91s     Check for interrupting elements affecting "Novalist" Application
+    t =     3.93s     Synthesize event
+    t =     4.28s     Wait for com.novalist.app to idle
+    t =     4.43s Requesting snapshot of accessibility hierarchy for app with pid 82815
+    t =     4.57s Requesting snapshot of accessibility hierarchy for app with pid 82815
+R15_TAB_DIAGNOSTIC_STEP_5
+Attributes: Application, 0x10567f840, pid: 82815, label: 'Novalist'
+Element subtree:
+ →Application, 0x10567f840, pid: 82815, label: 'Novalist'
+    Window (Main), 0x10567f0c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10567ef80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10567cf00, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x10567f5c0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x10567ebc0, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x10567ee40, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x10567f340, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10567f700, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10567ed00, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x10567c780, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c417c0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x108c40000, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x108c41400, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x108c41040, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist', Focused
+                            Other, 0x108c42080, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x108c40c80, {{0.0, 459.0}, {402.0, 416.0}}, label: 'A Letter from Bellhaven, web dialog', Focused
+                              Other, 0x108c42300, {{183.0, 467.0}, {36.0, 5.0}}, Focused
+                              Other, 0x108c412c0, {{18.0, 478.0}, {326.0, 30.0}}, Focused
+                                StaticText, 0x108c40dc0, {{82.0, 481.0}, {238.0, 24.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell..., Focused
+                              Button, 0x108c40140, {{352.0, 477.0}, {32.0, 33.0}}, label: 'Close', Focused
+                              Button, 0x108c40280, {{18.0, 517.0}, {179.0, 42.0}}, label: 'Context', Focused
+                              Button, 0x108c40500, {{205.0, 517.0}, {179.0, 42.0}}, label: 'Footnotes', Focused
+                              Button, 0x108c403c0, {{18.0, 566.0}, {179.0, 42.0}}, label: 'SCENE NOTES', Focused
+                              Button, 0x108c40b40, {{205.0, 566.0}, {179.0, 42.0}}, label: 'To do', Focused
+                              Other, 0x108c43700, {{18.0, 615.0}, {366.0, 36.0}}, Focused
+                                StaticText, 0x108c42d00, {{26.0, 628.0}, {48.0, 15.0}}, label: 'TO DO', value: TO DO, Focused
+                              TextField, 0x108c43480, {{18.0, 654.0}, {366.0, 42.0}}, placeholderValue: 'What needs doing', value: What needs doing, Focused
+                              TextField, 0x108c43840, {{18.0, 703.0}, {314.0, 45.0}}, placeholderValue: 'List (optional)', value: List (optional), Focused
+                              Button, 0x108c40780, {{340.0, 703.0}, {44.0, 45.0}}, Focused, Disabled
+                              Other, 0x108c41180, {{18.0, 766.0}, {366.0, 42.0}}, Focused
+                                StaticText, 0x1057caf80, {{18.0, 768.0}, {359.0, 37.0}}, label: 'Nothing to do yet. A todo comment belongs to a passage; these belong to the book.', value: Nothing to do yet...., Focused
+                  Other, 0x1057c8dc0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1057ca6c0, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x1057cabc0, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x1057ca940, {{396.0, 65.0}, {3.0, 744.0}}
+                  Other, 0x1057c8b40, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x1057c8f00, {{396.0, 65.0}, {3.0, 744.0}}
+              Other, 0x1057c8000, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1057cb980, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1057cb480, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x1057cb200, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1057cb840, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1057cbac0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x10567f840, pid: 82815, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x1057cb340, pid: 82815, label: 'Novalist'
+  }
+
+    t =     4.59s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     4.59s     Wait for com.novalist.app to idle
+    t =     4.59s     Find the Application 'com.novalist.app'
+    t =     4.60s     Check for interrupting elements affecting "Novalist" Application
+    t =     4.61s     Synthesize event
+    t =     4.97s     Wait for com.novalist.app to idle
+    t =     5.40s Requesting snapshot of accessibility hierarchy for app with pid 82815
+    t =     5.58s Requesting snapshot of accessibility hierarchy for app with pid 82815
+R15_TAB_DIAGNOSTIC_STEP_6
+Attributes: Application, 0x1057cb200, pid: 82815, label: 'Novalist'
+Element subtree:
+ →Application, 0x1057cb200, pid: 82815, label: 'Novalist'
+    Window (Main), 0x1057cb980, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1057cb480, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1057cb840, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1057cbac0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1057c8000, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x1057c8dc0, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x1057ca6c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1057c8f00, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1057cabc0, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x1057caf80, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1057cad00, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1057ca800, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1057c9cc0, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1057c8c80, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist'
+                            Other, 0x1057c9f40, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x1057c9e00, {{0.0, 459.0}, {402.0, 416.0}}, label: 'A Letter from Bellhaven, web dialog'
+                              Other, 0x1057cae40, {{183.0, 467.0}, {36.0, 5.0}}
+                              Other, 0x1057c9040, {{18.0, 478.0}, {326.0, 30.0}}
+                                StaticText, 0x1057c97c0, {{82.0, 481.0}, {238.0, 24.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell...
+                              Button, 0x1057c8a00, {{352.0, 477.0}, {32.0, 33.0}}, label: 'Close'
+                              Button, 0x1057c9180, {{18.0, 517.0}, {179.0, 42.0}}, label: 'Context'
+                              Button, 0x1057c9680, {{205.0, 517.0}, {179.0, 42.0}}, label: 'Footnotes'
+                              Button, 0x1057c9a40, {{18.0, 566.0}, {179.0, 42.0}}, label: 'SCENE NOTES'
+                              Button, 0x1057c9900, {{205.0, 566.0}, {179.0, 42.0}}, label: 'To do'
+                              Other, 0x1057ca300, {{18.0, 615.0}, {366.0, 36.0}}
+                                StaticText, 0x1057ca080, {{26.0, 628.0}, {48.0, 15.0}}, label: 'TO DO', value: TO DO
+                              TextField, 0x1057ca580, {{18.0, 654.0}, {366.0, 42.0}}, placeholderValue: 'What needs doing', value: What needs doing
+                              TextField, 0x1057c83c0, {{18.0, 703.0}, {314.0, 45.0}}, placeholderValue: 'List (optional)', value: List (optional), Keyboard Focused, Focused
+                              Button, 0x1057ca940, {{340.0, 703.0}, {44.0, 45.0}}, Disabled
+                              Other, 0x1057ca1c0, {{18.0, 766.0}, {366.0, 42.0}}
+                                StaticText, 0x1057c9b80, {{18.0, 768.0}, {359.0, 37.0}}, label: 'Nothing to do yet. A todo comment belongs to a passage; these belong to the book.', value: Nothing to do yet....
+                  Other, 0x108c42f80, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c417c0, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x108c40000, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                    Other, 0x108c41400, {{396.0, 65.0}, {3.0, 258.7}}
+                  Other, 0x108c41040, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                    Other, 0x108c40c80, {{396.0, 65.0}, {3.0, 258.7}}
+              Other, 0x108c41180, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108c40780, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x108c43840, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x108c43480, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c43700, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c42d00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c40b40, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x108c403c0, {{0.0, 478.0}, {402.0, 68.0}}
+            Other, 0x108c40500, {{0.0, 478.0}, {402.0, 68.0}}
+              Toolbar, 0x108c40280, {{0.0, 488.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Button, 0x108c40140, {{29.0, 504.7}, {24.0, 14.7}}, label: 'go up'
+                Button, 0x108c412c0, {{83.0, 505.3}, {24.0, 14.7}}, label: 'go down', Disabled
+                Button, 0x108c40dc0, {{349.0, 501.0}, {24.0, 22.7}}, label: 'selected'
+          Other, 0x108c42300, {{0.0, 546.0}, {402.0, 328.0}}, identifier: 'inputView'
+    Window, 0x108c42080, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10567f480, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10567f840, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x10567f0c0, {{0.0, 478.0}, {402.0, 68.0}}
+          Other, 0x10567ef80, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x10567cf00, {{0.0, 546.0}, {402.0, 44.0}}
+              Other, 0x10567f5c0, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x10567ebc0, {{0.0, -54.0}, {402.0, 1244.0}}
+                  ScrollView, 0x10567ee40, {{0.0, 546.0}, {402.0, 44.0}}
+                Other, 0x10567f340, {{0.0, 546.0}, {402.0, 44.0}}
+                  Other, 0x10567c780, {{0.0, 546.0}, {402.0, 44.0}}
+                    Other, 0x10567f700, {{0.0, 546.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x10567ed00, {{0.0, 546.0}, {402.0, 44.0}}
+                        Other, 0x108c3c000, {{0.0, 546.0}, {402.0, 44.0}}
+                          Button, 0x108c3c140, {{0.0, 546.0}, {134.0, 44.0}}, label: 'I'
+                          Button, 0x108c3c280, {{134.0, 546.0}, {134.0, 44.0}}, label: 'The'
+                          Button, 0x108c3c3c0, {{268.0, 546.0}, {134.0, 44.0}}, label: 'R'
+          Other, 0x108c3c500, {{0.0, 546.0}, {402.0, 329.0}}
+            Other, 0x108c3c640, {{0.0, 546.0}, {402.0, 329.0}}
+              Other, 0x108c3c780, {{0.0, 546.0}, {402.0, 329.0}}
+          Other, 0x108c3c8c0, {{0.0, 590.0}, {402.0, 226.0}}
+            Keyboard, 0x108c3ca00, {{0.0, 590.0}, {402.0, 226.0}}
+              Other, 0x108c3cb40, {{0.0, 590.0}, {402.0, 226.0}}
+                Other, 0x108c3cc80, {{0.0, 590.0}, {402.0, 226.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x108c3cdc0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x108c3cf00, {{4.7, 597.0}, {39.3, 54.0}}, label: 'Q'
+                  Key, 0x108c3d040, {{44.0, 597.0}, {39.7, 54.0}}, label: 'W'
+                  Key, 0x108c3d180, {{83.7, 597.0}, {39.3, 54.0}}, label: 'E'
+                  Key, 0x108c3d2c0, {{123.0, 597.0}, {39.7, 54.0}}, label: 'R'
+                  Key, 0x108c3d400, {{162.7, 597.0}, {39.3, 54.0}}, label: 'T'
+                  Key, 0x108c3d540, {{202.0, 597.0}, {39.7, 54.0}}, label: 'Y'
+                  Key, 0x108c3d680, {{241.7, 597.0}, {39.3, 54.0}}, label: 'U'
+                  Key, 0x108c3d7c0, {{281.0, 597.0}, {39.7, 54.0}}, label: 'I'
+                  Key, 0x108c3d900, {{320.7, 597.0}, {39.3, 54.0}}, label: 'O'
+                  Key, 0x108c3da40, {{360.0, 597.0}, {39.7, 54.0}}, label: 'P'
+                  Key, 0x108c3db80, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x108c3dcc0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x108c3de00, {{24.3, 651.0}, {39.3, 54.0}}, label: 'A'
+                  Key, 0x108c3df40, {{63.7, 651.0}, {39.7, 54.0}}, label: 'S'
+                  Key, 0x108c3e080, {{103.3, 651.0}, {39.3, 54.0}}, label: 'D'
+                  Key, 0x108c3e1c0, {{142.7, 651.0}, {39.7, 54.0}}, label: 'F'
+                  Key, 0x108c3e300, {{182.3, 651.0}, {39.3, 54.0}}, label: 'G'
+                  Key, 0x108c3e440, {{221.7, 651.0}, {39.7, 54.0}}, label: 'H'
+                  Key, 0x108c3e580, {{261.3, 651.0}, {39.3, 54.0}}, label: 'J'
+                  Key, 0x108c3e6c0, {{300.7, 651.0}, {39.7, 54.0}}, label: 'K'
+                  Key, 0x108c3e800, {{340.3, 651.0}, {39.3, 54.0}}, label: 'L'
+                  Key, 0x108c3e940, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Button, 0x108c3ea80, {{4.7, 705.0}, {51.3, 54.0}}, identifier: 'shift', label: 'shift', Selected
+                  Key, 0x108c3ebc0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x108c3ed00, {{63.7, 705.0}, {39.7, 54.0}}, label: 'Z'
+                  Key, 0x108c3ee40, {{103.3, 705.0}, {39.3, 54.0}}, label: 'X'
+                  Key, 0x108c3ef80, {{142.7, 705.0}, {39.7, 54.0}}, label: 'C'
+                  Key, 0x108c3f0c0, {{182.3, 705.0}, {39.3, 54.0}}, label: 'V'
+                  Key, 0x108c3f200, {{221.7, 705.0}, {39.7, 54.0}}, label: 'B'
+                  Key, 0x108c3f340, {{261.3, 705.0}, {39.3, 54.0}}, label: 'N'
+                  Key, 0x108c3f480, {{300.7, 705.0}, {39.7, 54.0}}, label: 'M'
+                  Key, 0x108c3f5c0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x108c3f700, {{348.0, 705.0}, {51.7, 54.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x108c3f840, {{4.7, 759.0}, {98.7, 54.0}}, identifier: 'more', label: 'numbers'
+                  Key, 0x108c3f980, {{103.3, 759.0}, {197.3, 54.0}}, identifier: 'space', label: 'space'
+                  Button, 0x108c3fac0, {{300.7, 759.0}, {99.0, 54.0}}, identifier: 'Return', label: 'return'
+          Other, 0x108c3fc00, {{0.0, 590.0}, {402.0, 284.0}}
+            Button, 0x108c3fd40, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Emoji'
+              StaticText, 0x108c3fe80, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x1093f8000, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x1093f8140, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x1093f8280, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x1093f83c0, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x1057cb200, pid: 82815, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x1093f8500, pid: 82815, label: 'Novalist'
+  }
+
+    t =     5.61s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     5.61s     Wait for com.novalist.app to idle
+    t =     5.61s     Find the Application 'com.novalist.app'
+    t =     5.62s     Check for interrupting elements affecting "Novalist" Application
+    t =     5.64s     Synthesize event
+    t =     5.99s     Wait for com.novalist.app to idle
+    t =     6.45s Requesting snapshot of accessibility hierarchy for app with pid 82815
+    t =     6.63s Requesting snapshot of accessibility hierarchy for app with pid 82815
+R15_TAB_DIAGNOSTIC_STEP_7
+Attributes: Application, 0x1093f8280, pid: 82815, label: 'Novalist'
+Element subtree:
+ →Application, 0x1093f8280, pid: 82815, label: 'Novalist'
+    Window (Main), 0x1093f8140, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1093fb840, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1093f83c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1093f8000, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1093fb980, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x1093f8640, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x1093f8780, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1093fbd40, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1093fbe80, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x1093f88c0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1093f8a00, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1093fb700, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1093f9540, {{0.0, -211.0}, {402.0, 874.0}}
+                          Other, 0x1093f9680, {{0.0, -211.0}, {402.0, 874.0}}, label: 'Novalist'
+                            Other, 0x1093f9400, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x1093f92c0, {{0.0, 248.0}, {402.0, 416.0}}, label: 'A Letter from Bellhaven, web dialog'
+                              Other, 0x1093f9180, {{183.0, 256.0}, {36.0, 5.0}}
+                              Other, 0x1093fad00, {{18.0, 267.0}, {326.0, 30.0}}
+                                StaticText, 0x1093fae40, {{82.0, 270.0}, {238.0, 24.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell...
+                              Button, 0x1093fb0c0, {{352.0, 266.0}, {32.0, 33.0}}, label: 'Close'
+                              Button, 0x1093faf80, {{18.0, 306.0}, {179.0, 42.0}}, label: 'Context'
+                              Button, 0x1093fb340, {{205.0, 306.0}, {179.0, 42.0}}, label: 'Footnotes'
+                              Button, 0x1093fb200, {{18.0, 355.0}, {179.0, 42.0}}, label: 'SCENE NOTES'
+                              Button, 0x1093f8dc0, {{205.0, 355.0}, {179.0, 42.0}}, label: 'To do'
+                              Other, 0x1093fb480, {{18.0, 404.0}, {366.0, 36.0}}
+                                StaticText, 0x1093f8c80, {{26.0, 417.0}, {48.0, 15.0}}, label: 'TO DO', value: TO DO
+                              TextField, 0x1093f8b40, {{18.0, 443.0}, {366.0, 42.0}}, placeholderValue: 'What needs doing', value: What needs doing, Keyboard Focused, Focused
+                              TextField, 0x1093fb5c0, {{18.0, 492.0}, {314.0, 45.0}}, placeholderValue: 'List (optional)', value: List (optional)
+                              Button, 0x1093fbac0, {{340.0, 492.0}, {44.0, 45.0}}, Disabled
+                              Other, 0x1093f9900, {{18.0, 555.0}, {366.0, 42.0}}
+                                StaticText, 0x1093faa80, {{18.0, 557.0}, {359.0, 37.0}}, label: 'Nothing to do yet. A todo comment belongs to a passage; these belong to the book.', value: Nothing to do yet....
+                  Other, 0x1093fabc0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1093fa940, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x1093fa800, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 53%
+                    Other, 0x1093fa6c0, {{396.0, 127.7}, {3.0, 258.7}}
+                  Other, 0x1093fa440, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 53%
+                    Other, 0x1093fa580, {{396.0, 127.7}, {3.0, 258.7}}
+              Other, 0x1093fa300, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1093fa1c0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1093fa080, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x1093f9f40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1093f9e00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1093f9b80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1093f9cc0, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x1093f9a40, {{0.0, 478.0}, {402.0, 68.0}}
+            Other, 0x1093f97c0, {{0.0, 478.0}, {402.0, 68.0}}
+              Toolbar, 0x1093f8f00, {{0.0, 488.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Button, 0x1093f9040, {{29.0, 504.7}, {24.0, 14.7}}, label: 'go up', Disabled
+                Button, 0x10567f480, {{83.0, 505.3}, {24.0, 14.7}}, label: 'go down'
+                Button, 0x10567f840, {{349.0, 501.0}, {24.0, 22.7}}, label: 'selected'
+          Other, 0x10567ef80, {{0.0, 546.0}, {402.0, 328.0}}, identifier: 'inputView'
+    Window, 0x10567cf00, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10567f5c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10567f340, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x10567c780, {{0.0, 478.0}, {402.0, 68.0}}
+          Other, 0x10567f700, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x10567ed00, {{0.0, 546.0}, {402.0, 44.0}}
+              Other, 0x10567ebc0, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x10567ee40, {{0.0, -54.0}, {402.0, 1244.0}}
+                  ScrollView, 0x10567f0c0, {{0.0, 546.0}, {402.0, 44.0}}
+                Other, 0x108c43c00, {{0.0, 546.0}, {402.0, 44.0}}
+                  Other, 0x108c42080, {{0.0, 546.0}, {402.0, 44.0}}
+                    Other, 0x108c43480, {{0.0, 546.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x108c43700, {{0.0, 546.0}, {402.0, 44.0}}
+                        Other, 0x108c40b40, {{0.0, 546.0}, {402.0, 44.0}}
+                          Button, 0x108c42300, {{0.0, 546.0}, {134.0, 44.0}}, label: 'I'
+                          Button, 0x108c403c0, {{134.0, 546.0}, {134.0, 44.0}}, label: 'The'
+                          Button, 0x108c40500, {{268.0, 546.0}, {134.0, 44.0}}, label: 'R'
+          Other, 0x108c40280, {{0.0, 546.0}, {402.0, 329.0}}
+            Other, 0x108c40dc0, {{0.0, 546.0}, {402.0, 329.0}}
+              Other, 0x108c412c0, {{0.0, 546.0}, {402.0, 329.0}}
+          Other, 0x108c40140, {{0.0, 590.0}, {402.0, 226.0}}
+            Keyboard, 0x108c42d00, {{0.0, 590.0}, {402.0, 226.0}}
+              Other, 0x108c40780, {{0.0, 590.0}, {402.0, 226.0}}
+                Other, 0x108c43840, {{0.0, 590.0}, {402.0, 226.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x108c41180, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x108c41040, {{4.7, 597.0}, {39.3, 54.0}}, label: 'Q'
+                  Key, 0x108c40c80, {{44.0, 597.0}, {39.7, 54.0}}, label: 'W'
+                  Key, 0x108c40000, {{83.7, 597.0}, {39.3, 54.0}}, label: 'E'
+                  Key, 0x108c41400, {{123.0, 597.0}, {39.7, 54.0}}, label: 'R'
+                  Key, 0x108c42f80, {{162.7, 597.0}, {39.3, 54.0}}, label: 'T'
+                  Key, 0x108c417c0, {{202.0, 597.0}, {39.7, 54.0}}, label: 'Y'
+                  Key, 0x1057c8b40, {{241.7, 597.0}, {39.3, 54.0}}, label: 'U'
+                  Key, 0x1057cb200, {{281.0, 597.0}, {39.7, 54.0}}, label: 'I'
+                  Key, 0x1057cb980, {{320.7, 597.0}, {39.3, 54.0}}, label: 'O'
+                  Key, 0x1057cb480, {{360.0, 597.0}, {39.7, 54.0}}, label: 'P'
+                  Key, 0x1057cb840, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x1057cbac0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1057c8000, {{24.3, 651.0}, {39.3, 54.0}}, label: 'A'
+                  Key, 0x1057c8dc0, {{63.7, 651.0}, {39.7, 54.0}}, label: 'S'
+                  Key, 0x1057ca6c0, {{103.3, 651.0}, {39.3, 54.0}}, label: 'D'
+                  Key, 0x1057caf80, {{142.7, 651.0}, {39.7, 54.0}}, label: 'F'
+                  Key, 0x1057cad00, {{182.3, 651.0}, {39.3, 54.0}}, label: 'G'
+                  Key, 0x1057ca800, {{221.7, 651.0}, {39.7, 54.0}}, label: 'H'
+                  Key, 0x1057c9cc0, {{261.3, 651.0}, {39.3, 54.0}}, label: 'J'
+                  Key, 0x1057c8c80, {{300.7, 651.0}, {39.7, 54.0}}, label: 'K'
+                  Key, 0x1057c9e00, {{340.3, 651.0}, {39.3, 54.0}}, label: 'L'
+                  Key, 0x1057ca1c0, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Button, 0x1057c9b80, {{4.7, 705.0}, {51.3, 54.0}}, identifier: 'shift', label: 'shift', Selected
+                  Key, 0x1057ca940, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1057c83c0, {{63.7, 705.0}, {39.7, 54.0}}, label: 'Z'
+                  Key, 0x1057ca580, {{103.3, 705.0}, {39.3, 54.0}}, label: 'X'
+                  Key, 0x1057ca300, {{142.7, 705.0}, {39.7, 54.0}}, label: 'C'
+                  Key, 0x1057ca080, {{182.3, 705.0}, {39.3, 54.0}}, label: 'V'
+                  Key, 0x1057c9900, {{221.7, 705.0}, {39.7, 54.0}}, label: 'B'
+                  Key, 0x1057c9a40, {{261.3, 705.0}, {39.3, 54.0}}, label: 'N'
+                  Key, 0x1057c9680, {{300.7, 705.0}, {39.7, 54.0}}, label: 'M'
+                  Key, 0x1057c9180, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x1057c8a00, {{348.0, 705.0}, {51.7, 54.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x1057c9040, {{4.7, 759.0}, {98.7, 54.0}}, identifier: 'more', label: 'numbers'
+                  Key, 0x1057c97c0, {{103.3, 759.0}, {197.3, 54.0}}, identifier: 'space', label: 'space'
+                  Button, 0x1057cae40, {{300.7, 759.0}, {99.0, 54.0}}, identifier: 'Return', label: 'return'
+          Other, 0x1057c9f40, {{0.0, 590.0}, {402.0, 284.0}}
+            Button, 0x1057c8f00, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Emoji'
+              StaticText, 0x1057cabc0, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x108c3c000, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x108c3c140, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x108c3c280, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x108c3c3c0, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x1093f8280, pid: 82815, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x108c3c500, pid: 82815, label: 'Novalist'
+  }
+
+    t =     6.65s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     6.65s     Wait for com.novalist.app to idle
+    t =     6.65s     Find the Application 'com.novalist.app'
+    t =     6.67s     Check for interrupting elements affecting "Novalist" Application
+    t =     6.68s     Synthesize event
+    t =     7.03s     Wait for com.novalist.app to idle
+    t =     7.15s Requesting snapshot of accessibility hierarchy for app with pid 82815
+    t =     7.27s Requesting snapshot of accessibility hierarchy for app with pid 82815
+R15_TAB_DIAGNOSTIC_STEP_8
+Attributes: Application, 0x108c3c280, pid: 82815, label: 'Novalist'
+Element subtree:
+ →Application, 0x108c3c280, pid: 82815, label: 'Novalist'
+    Window (Main), 0x108c3c140, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c3f840, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c3c3c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x108c3c000, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108c3f980, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x108c3c640, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x108c3c780, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x108c3fd40, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c3fe80, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x108c3c8c0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c3ca00, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x108c3f700, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x108c3d540, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x108c3d680, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist', Focused
+                            Other, 0x108c3d400, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x108c3d2c0, {{0.0, 459.0}, {402.0, 416.0}}, label: 'A Letter from Bellhaven, web dialog', Focused
+                              Other, 0x108c3d180, {{183.0, 467.0}, {36.0, 5.0}}, Focused
+                              Other, 0x108c3ed00, {{18.0, 478.0}, {326.0, 30.0}}, Focused
+                                StaticText, 0x108c3ee40, {{82.0, 481.0}, {238.0, 24.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell..., Focused
+                              Button, 0x108c3f0c0, {{352.0, 477.0}, {32.0, 33.0}}, label: 'Close', Focused
+                              Button, 0x108c3ef80, {{18.0, 517.0}, {179.0, 42.0}}, label: 'Context', Focused
+                              Button, 0x108c3f340, {{205.0, 517.0}, {179.0, 42.0}}, label: 'Footnotes', Focused
+                              Button, 0x108c3f200, {{18.0, 566.0}, {179.0, 42.0}}, label: 'SCENE NOTES', Focused
+                              Button, 0x108c3cdc0, {{205.0, 566.0}, {179.0, 42.0}}, label: 'To do', Focused
+                              Other, 0x108c3f480, {{18.0, 615.0}, {366.0, 36.0}}, Focused
+                                StaticText, 0x108c3cc80, {{26.0, 628.0}, {48.0, 15.0}}, label: 'TO DO', value: TO DO, Focused
+                              TextField, 0x108c3cb40, {{18.0, 654.0}, {366.0, 42.0}}, placeholderValue: 'What needs doing', value: What needs doing, Focused
+                              TextField, 0x108c3f5c0, {{18.0, 703.0}, {314.0, 45.0}}, placeholderValue: 'List (optional)', value: List (optional), Focused
+                              Button, 0x108c3fac0, {{340.0, 703.0}, {44.0, 45.0}}, Focused, Disabled
+                              Other, 0x108c3d900, {{18.0, 766.0}, {366.0, 42.0}}, Focused
+                                StaticText, 0x108c3ea80, {{18.0, 768.0}, {359.0, 37.0}}, label: 'Nothing to do yet. A todo comment belongs to a passage; these belong to the book.', value: Nothing to do yet...., Focused
+                  Other, 0x108c3ebc0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c3e940, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x108c3e800, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108c3e6c0, {{396.0, 65.0}, {3.0, 744.0}}
+                  Other, 0x108c3e440, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108c3e580, {{396.0, 65.0}, {3.0, 744.0}}
+              Other, 0x108c3e300, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108c3e1c0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x108c3e080, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x108c3df40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c3de00, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c3db80, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x108c3c280, pid: 82815, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x108c3c500, pid: 82815, label: 'Novalist'
+  }
+
+    t =     7.28s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     7.28s     Wait for com.novalist.app to idle
+    t =     7.28s     Find the Application 'com.novalist.app'
+    t =     7.29s     Check for interrupting elements affecting "Novalist" Application
+    t =     7.30s     Synthesize event
+    t =     7.64s     Wait for com.novalist.app to idle
+    t =     7.97s Requesting snapshot of accessibility hierarchy for app with pid 82815
+    t =     8.16s Requesting snapshot of accessibility hierarchy for app with pid 82815
+R15_TAB_DIAGNOSTIC_STEP_9
+Attributes: Application, 0x108c3f980, pid: 82815, label: 'Novalist'
+Element subtree:
+ →Application, 0x108c3f980, pid: 82815, label: 'Novalist'
+    Window (Main), 0x108c3e1c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c3c000, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c3e300, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x108c3e080, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108c3f840, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x108c3db80, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x108c3de00, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x108c3c3c0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c3c140, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x108c3df40, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c3c280, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x108c3c640, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x108c3c780, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x108c3e440, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist'
+                            Other, 0x108c3e580, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x108c3e800, {{0.0, 459.0}, {402.0, 416.0}}, label: 'A Letter from Bellhaven, web dialog'
+                              Other, 0x108c3e6c0, {{183.0, 467.0}, {36.0, 5.0}}
+                              Other, 0x108c3ebc0, {{18.0, 478.0}, {326.0, 30.0}}
+                                StaticText, 0x108c3e940, {{82.0, 481.0}, {238.0, 24.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell...
+                              Button, 0x108c3c8c0, {{352.0, 477.0}, {32.0, 33.0}}, label: 'Close'
+                              Button, 0x108c3ca00, {{18.0, 517.0}, {179.0, 42.0}}, label: 'Context'
+                              Button, 0x108c3f700, {{205.0, 517.0}, {179.0, 42.0}}, label: 'Footnotes'
+                              Button, 0x108c3d540, {{18.0, 566.0}, {179.0, 42.0}}, label: 'SCENE NOTES'
+                              Button, 0x108c3d680, {{205.0, 566.0}, {179.0, 42.0}}, label: 'To do'
+                              Other, 0x108c3d2c0, {{18.0, 615.0}, {366.0, 36.0}}
+                                StaticText, 0x108c3d900, {{26.0, 628.0}, {48.0, 15.0}}, label: 'TO DO', value: TO DO
+                              TextField, 0x108c3ea80, {{18.0, 654.0}, {366.0, 42.0}}, placeholderValue: 'What needs doing', value: What needs doing
+                              TextField, 0x108c3fac0, {{18.0, 703.0}, {314.0, 45.0}}, placeholderValue: 'List (optional)', value: List (optional), Keyboard Focused, Focused
+                              Button, 0x108c3f5c0, {{340.0, 703.0}, {44.0, 45.0}}, Disabled
+                              Other, 0x108c3cb40, {{18.0, 766.0}, {366.0, 42.0}}
+                                StaticText, 0x108c3f480, {{18.0, 768.0}, {359.0, 37.0}}, label: 'Nothing to do yet. A todo comment belongs to a passage; these belong to the book.', value: Nothing to do yet....
+                  Other, 0x108c3cc80, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c3cdc0, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x108c3f200, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                    Other, 0x108c3f340, {{396.0, 65.0}, {3.0, 258.7}}
+                  Other, 0x108c3ef80, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                    Other, 0x108c3f0c0, {{396.0, 65.0}, {3.0, 258.7}}
+              Other, 0x108c3ed00, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108c3ee40, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x108c3d180, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x108c3d400, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c3fd40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c3fe80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c3c500, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x108c3dcc0, {{0.0, 478.0}, {402.0, 68.0}}
+            Other, 0x108c3da40, {{0.0, 478.0}, {402.0, 68.0}}
+              Toolbar, 0x108c3d7c0, {{0.0, 488.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Button, 0x108c3cf00, {{29.0, 504.7}, {24.0, 14.7}}, label: 'go up'
+                Button, 0x108c3d040, {{83.0, 505.3}, {24.0, 14.7}}, label: 'go down', Disabled
+                Button, 0x108c40f00, {{349.0, 501.0}, {24.0, 22.7}}, label: 'selected'
+          Other, 0x108c417c0, {{0.0, 546.0}, {402.0, 328.0}}, identifier: 'inputView'
+    Window, 0x108c42f80, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c41400, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c40000, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x108c40c80, {{0.0, 478.0}, {402.0, 68.0}}
+          Other, 0x108c41040, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x108c41180, {{0.0, 546.0}, {402.0, 44.0}}
+              Other, 0x108c40280, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x108c412c0, {{0.0, -54.0}, {402.0, 1244.0}}
+                  ScrollView, 0x108c43c00, {{0.0, 546.0}, {402.0, 44.0}}
+                Other, 0x108c42080, {{0.0, 546.0}, {402.0, 44.0}}
+                  Other, 0x108c43480, {{0.0, 546.0}, {402.0, 44.0}}
+                    Other, 0x108c40b40, {{0.0, 546.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x108c403c0, {{0.0, 546.0}, {402.0, 44.0}}
+                        Other, 0x108c42300, {{0.0, 546.0}, {402.0, 44.0}}
+                          Button, 0x108c40500, {{0.0, 546.0}, {134.0, 44.0}}, label: 'I'
+                          Button, 0x108c43700, {{134.0, 546.0}, {134.0, 44.0}}, label: 'The'
+                          Button, 0x108c40dc0, {{268.0, 546.0}, {134.0, 44.0}}, label: 'R'
+          Other, 0x1057cb200, {{0.0, 546.0}, {402.0, 329.0}}
+            Other, 0x1057c8b40, {{0.0, 546.0}, {402.0, 329.0}}
+              Other, 0x1057cb980, {{0.0, 546.0}, {402.0, 329.0}}
+          Other, 0x1057caa80, {{0.0, 590.0}, {402.0, 226.0}}
+            Keyboard, 0x1057cb340, {{0.0, 590.0}, {402.0, 226.0}}
+              Other, 0x1057cb840, {{0.0, 590.0}, {402.0, 226.0}}
+                Other, 0x1057cb480, {{0.0, 590.0}, {402.0, 226.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x1057c8000, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1057cbac0, {{4.7, 597.0}, {39.3, 54.0}}, label: 'Q'
+                  Key, 0x1057ca6c0, {{44.0, 597.0}, {39.7, 54.0}}, label: 'W'
+                  Key, 0x1057c8dc0, {{83.7, 597.0}, {39.3, 54.0}}, label: 'E'
+                  Key, 0x1057cabc0, {{123.0, 597.0}, {39.7, 54.0}}, label: 'R'
+                  Key, 0x1057cae40, {{162.7, 597.0}, {39.3, 54.0}}, label: 'T'
+                  Key, 0x1057c97c0, {{202.0, 597.0}, {39.7, 54.0}}, label: 'Y'
+                  Key, 0x1057c9040, {{241.7, 597.0}, {39.3, 54.0}}, label: 'U'
+                  Key, 0x1057c8a00, {{281.0, 597.0}, {39.7, 54.0}}, label: 'I'
+                  Key, 0x1057c9680, {{320.7, 597.0}, {39.3, 54.0}}, label: 'O'
+                  Key, 0x1057cad00, {{360.0, 597.0}, {39.7, 54.0}}, label: 'P'
+                  Key, 0x1057caf80, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x1057ca800, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1057c9cc0, {{24.3, 651.0}, {39.3, 54.0}}, label: 'A'
+                  Key, 0x1057c8c80, {{63.7, 651.0}, {39.7, 54.0}}, label: 'S'
+                  Key, 0x1057ca1c0, {{103.3, 651.0}, {39.3, 54.0}}, label: 'D'
+                  Key, 0x1057c9e00, {{142.7, 651.0}, {39.7, 54.0}}, label: 'F'
+                  Key, 0x1057c9b80, {{182.3, 651.0}, {39.3, 54.0}}, label: 'G'
+                  Key, 0x1057ca940, {{221.7, 651.0}, {39.7, 54.0}}, label: 'H'
+                  Key, 0x1057c83c0, {{261.3, 651.0}, {39.3, 54.0}}, label: 'J'
+                  Key, 0x1057ca580, {{300.7, 651.0}, {39.7, 54.0}}, label: 'K'
+                  Key, 0x1057ca300, {{340.3, 651.0}, {39.3, 54.0}}, label: 'L'
+                  Key, 0x1057c9900, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Button, 0x1057ca080, {{4.7, 705.0}, {51.3, 54.0}}, identifier: 'shift', label: 'shift', Selected
+                  Key, 0x1057c9a40, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x1057c9180, {{63.7, 705.0}, {39.7, 54.0}}, label: 'Z'
+                  Key, 0x1057c9f40, {{103.3, 705.0}, {39.3, 54.0}}, label: 'X'
+                  Key, 0x1057c8f00, {{142.7, 705.0}, {39.7, 54.0}}, label: 'C'
+                  Key, 0x10567cf00, {{182.3, 705.0}, {39.3, 54.0}}, label: 'V'
+                  Key, 0x10567f5c0, {{221.7, 705.0}, {39.7, 54.0}}, label: 'B'
+                  Key, 0x10567f340, {{261.3, 705.0}, {39.3, 54.0}}, label: 'N'
+                  Key, 0x10567f700, {{300.7, 705.0}, {39.7, 54.0}}, label: 'M'
+                  Key, 0x10567ed00, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10567ebc0, {{348.0, 705.0}, {51.7, 54.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x10567ee40, {{4.7, 759.0}, {98.7, 54.0}}, identifier: 'more', label: 'numbers'
+                  Key, 0x10567f0c0, {{103.3, 759.0}, {197.3, 54.0}}, identifier: 'space', label: 'space'
+                  Button, 0x10567c780, {{300.7, 759.0}, {99.0, 54.0}}, identifier: 'Return', label: 'return'
+          Other, 0x10567ef80, {{0.0, 590.0}, {402.0, 284.0}}
+            Button, 0x10567f840, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Emoji'
+              StaticText, 0x10567f480, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x1093f8000, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x1093f8140, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x1093f8280, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x1093f83c0, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x108c3f980, pid: 82815, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x1093f8500, pid: 82815, label: 'Novalist'
+  }
+
+    t =     8.19s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     8.19s     Wait for com.novalist.app to idle
+    t =     8.19s     Find the Application 'com.novalist.app'
+    t =     8.20s     Check for interrupting elements affecting "Novalist" Application
+    t =     8.22s     Synthesize event
+    t =     8.57s     Wait for com.novalist.app to idle
+    t =     9.03s Tear Down
+Test Case '-[AuditUITests.AuditUITests testInspectCleanTabOrder]' passed (9.080 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 14:34:10.354.
+	 Executed 1 test, with 0 failures (0 unexpected) in 9.080 (9.082) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 14:34:10.355.
+	 Executed 1 test, with 0 failures (0 unexpected) in 9.080 (9.082) seconds
+Test Suite 'All tests' passed at 2026-10-07 14:34:10.355.
+	 Executed 1 test, with 0 failures (0 unexpected) in 9.080 (9.083) seconds
+2026-10-07 14:34:10.650 xcodebuild[82968:3981858] [MT] IDETestOperationsObserverDebug: 11.805 elapsed -- Testing started completed.
+2026-10-07 14:34:10.650 xcodebuild[82968:3981858] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:34:10.650 xcodebuild[82968:3981858] [MT] IDETestOperationsObserverDebug: 11.805 sec, +11.805 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/17-clean-tab-diagnostic.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

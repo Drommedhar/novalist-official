@@ -1,0 +1,87 @@
+{
+  "finding": "R15",
+  "result": "simulator regression passed; original physical acceptance remains pending",
+  "test_date": "2026-10-07",
+  "simulator": {
+    "udid": "6D872EE9-8FBE-4B2D-AED4-917146C77351",
+    "model": "iPhone 17 Pro",
+    "runtime": "iOS 27.0",
+    "synthetic_fixture": true
+  },
+  "accepted_source": {
+    "revision_at_build": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+    "patch": "release-dismissal/source.patch",
+    "patch_sha256": "144d9f95ea0d4d229c5d6d4367b13aee796452b2d2447de4e09196d098d5ab4d",
+    "equivalent_product_commit": "36b9d53bc27a7dd32c0cd39365e213cf2651d102",
+    "production_inputs": "release-dismissal/production-inputs.json",
+    "mobile_assets": "release-dismissal/renderer-assets.json"
+  },
+  "native_acceptance": {
+    "exit_code": 0,
+    "test": "25-release-dismissal-clean-matrix.swift",
+    "evidence_directory": "release-dismissal",
+    "test_elapsed_seconds": 389.733,
+    "manually_imposed_whole_test_limit_seconds": 600,
+    "completed_before_limit": true,
+    "xctest_missing_animation_notification_waits": 5,
+    "orientations": [
+      "portrait",
+      "landscape"
+    ],
+    "nested_cycles_per_orientation": 2,
+    "proven": [
+      "Actual native Cmd-Shift-P opens the real production Command Palette from the Inspector To-do input.",
+      "The palette accepts native text input while the covered inspector controls are absent from native accessibility.",
+      "Native Tab and Shift-Tab are exercised with bounded navigation.",
+      "Actual scrim tap closes the palette and restores the invoking To-do input; after one second a native digit is appended to that input. Repeated per orientation.",
+      "Inspector touch-close restores the editor view in both orientations; app terminates and cleanly relaunches."
+    ],
+    "raw_test_source_preserved": true,
+    "all_four_screenshots_visually_reviewed": true
+  },
+  "native_diagnostic_evidence": {
+    "original_baseline": "before-summary.json",
+    "inert_only_candidate": "inert-only/",
+    "superseded_pointerdown_candidate": "final/",
+    "trusted_pointer_sequence": "final/pointer-observation-first.json",
+    "sequence": "Actual touch pointerdown on palette overlay removes the nested dialog before pointerup, which then targets HTML. Native Context activation seen in a separate clean run was not reproduced in the event trace and is not asserted as proven click-through.",
+    "browser_counterexample": "release-dismissal/browser-covered-scrim-before-v2.log"
+  },
+  "browser_validation": {
+    "focused_regressions_passed": 3,
+    "log": "release-dismissal/browser-dismissal.log",
+    "coverage": [
+      "ordinary command palette",
+      "mobile nested inspector with invoking-input Escape and covered-control scrim press/release",
+      "desktop nested snapshots"
+    ],
+    "typecheck": true,
+    "source_gates_passed": 8,
+    "desktop_renderer_build": true,
+    "mobile_renderer_build": true,
+    "scoped_aislop_issues": 0
+  },
+  "cleanup": {
+    "probe_removed": true,
+    "four_native_projects_bin_obj_cleared_before_build": true,
+    "clean_build_exit": 0,
+    "deep_strict_signature_verified": true,
+    "app_manifest": "release-dismissal/clean-app.json",
+    "installed_bundle_matches_built": true,
+    "installed_bundle_file_count": 571,
+    "production_inputs_matched": 1314,
+    "mobile_assets_matched": 203,
+    "audit_control_directory_absent": true,
+    "original_project_files_unchanged": 82,
+    "original_backup_files_unchanged": 5,
+    "synthetic_task_submitted": false
+  },
+  "limitations": [
+    "Original R15-01, R15-02, R15-03 and R15-04 require physical iPhone/iPad acceptance and remain not-run.",
+    "No VoiceOver or physical hardware keyboard acceptance is claimed.",
+    "XCTest typeKey Escape, Return and Delete emitted no DOM key events in the recorded native diagnostic; native Escape/Return behavior is unproven. Browser Escape evidence is separate.",
+    "Native accessibility hasFocus is not equivalent to DOM activeElement; the observer records delayed DOM focus separately.",
+    "Native XCTest incurred five missing-animation-completion idle waits but completed all assertions and cleanup before the imposed limit. This is not a performance acceptance claim."
+  ],
+  "overall_audit_count_changed": false
+}

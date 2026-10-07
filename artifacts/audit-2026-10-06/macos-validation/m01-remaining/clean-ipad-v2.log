@@ -1,0 +1,73 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 14:21:36.796.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:21:36.797.
+Test Suite 'AuditUITests' started at 2026-10-07 14:21:36.797.
+Test Case '-[AuditUITests.AuditUITests testCleanBuildRecoveredScenes]' started.
+    t =     0.00s Start Test at 2026-10-07 14:21:36.799
+    t =     0.02s Set Up
+    t =     0.02s Terminate com.novalist.app:77696
+objc[80360]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x108c0c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x108d44310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.03s Open com.novalist.app
+    t =     1.03s     Launch com.novalist.app
+    t =     1.05s         Setting up automation session
+    t =     3.98s         Wait for com.novalist.app to idle
+    t =     5.58s Setting device orientation to Landscape Left
+    t =     5.59s     Wait for com.novalist.app to idle
+    t =     5.59s     Wait for com.apple.springboard to idle
+    t =     5.59s Waiting 20.0s for "Select Audit Tablet Book — Audit Tablet Fixture" Switch to exist
+    t =     6.67s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =     6.67s         Checking existence of `"Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =     6.75s Double tap "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     6.75s     Wait for com.novalist.app to idle
+    t =     6.75s     Find the "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     6.77s     Check for interrupting elements affecting "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     6.78s         Wait for com.apple.springboard to idle
+    t =     6.80s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     6.80s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     6.80s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     6.80s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     6.80s     Synthesize event
+    t =     7.15s     Wait for com.novalist.app to idle
+    t =     7.16s Waiting 10.0s for Button (First Match) to exist
+    t =     8.23s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     8.23s         Checking existence of `Button (First Match)`
+    t =     8.34s Tap Button (First Match)
+    t =     8.34s     Wait for com.novalist.app to idle
+    t =     8.34s     Find the Button (First Match)
+    t =     8.40s     Check for interrupting elements affecting "Audit M01 Pane A Audit Tablet Chapter 2026-10-07 14:01" Button
+    t =     8.45s         Wait for com.apple.springboard to idle
+    t =     8.46s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     8.46s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     8.46s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     8.46s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     8.47s     Synthesize event
+    t =     8.47s         Scroll element to visible
+    t =     8.47s         Find the "Audit M01 Pane A Audit Tablet Chapter 2026-10-07 14:01" Button
+    t =     8.54s         Computed hit point {332, 776} after scrolling to visible
+    t =     8.83s     Wait for com.novalist.app to idle
+    t =     8.87s Waiting 10.0s for TextView (First Match) to exist
+    t =     9.95s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =     9.95s         Checking existence of `TextView (First Match)`
+    t =    10.00s Find the TextView (First Match)
+<audit-scratch>/ipad-harness/AuditUITests.swift:10: error: -[AuditUITests.AuditUITests testCleanBuildRecoveredScenes] : XCTAssertTrue failed
+    t =    10.07s Tear Down
+Test Case '-[AuditUITests.AuditUITests testCleanBuildRecoveredScenes]' failed (10.290 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 14:21:47.089.
+	 Executed 1 test, with 1 failure (0 unexpected) in 10.290 (10.293) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 14:21:47.090.
+	 Executed 1 test, with 1 failure (0 unexpected) in 10.290 (10.293) seconds
+Test Suite 'All tests' failed at 2026-10-07 14:21:47.091.
+	 Executed 1 test, with 1 failure (0 unexpected) in 10.290 (10.295) seconds
+2026-10-07 14:21:47.390 xcodebuild[80340:3944834] [MT] IDETestOperationsObserverDebug: 13.943 elapsed -- Testing started completed.
+2026-10-07 14:21:47.390 xcodebuild[80340:3944834] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:21:47.390 xcodebuild[80340:3944834] [MT] IDETestOperationsObserverDebug: 13.943 sec, +13.943 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/clean-ipad-v2.xcresult
+
+Failing tests:
+	AuditUITests.testCleanBuildRecoveredScenes()
+
+** TEST FAILED **
+
+Testing started

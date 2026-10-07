@@ -1,0 +1,12 @@
+{
+  "status": "inert-ownership-fixed-return-still-under-investigation",
+  "nested_open_native_accessible": true,
+  "palette_receives_native_typing": true,
+  "native_Tab_ShiftTab_containment": true,
+  "DOM_top_palette_active_not_inert": true,
+  "DOM_underlying_inspector_inert": true,
+  "scrim_close_XCUI_original_input_hasFocus": true,
+  "scrim_close_delayed_DOM_active": "BODY",
+  "scrim_close_transient_DOM_focus": "Close",
+  "native_Escape_not_delivered": "No acceptance claim; do not treat XCUI.hasFocus alone as DOM focus restoration."
+}

@@ -17,7 +17,7 @@
     "current_user_direction": "Use simulators only for now.",
     "physical_device_acceptance": "Deferred by the current simulator-only direction; required physical acceptance remains not-run and prevents completion.",
     "release_publication": "Not authorized; no release is part of this validation.",
-    "delivery": "Validated fixes 0c789b29, 8489c9a3, dd9817e3, 624533d8, af9f44d3 and 9ec4bcf2 pushed to dev. Original CI probes complete and closed without merge; no release.",
+    "delivery": "Validated fixes 0c789b29, 8489c9a3, dd9817e3, 624533d8, af9f44d3 and 9ec4bcf2 pushed to dev. Original CI probes complete and closed without merge; no release. Nested-dialog fix 36b9d53b and documentation screenshots 29cefb83 also pushed to dev.",
     "currently_verified": 67
   },
   "sources": {
@@ -119,6 +119,38 @@
       "helper_sha256": "781778b7425a12700dd3528afe6951db38180a958af69d22ab68b2ec1f246e8a",
       "evidence": "r13-memory/source-provenance.json",
       "note": "Controlled workload snapshot excludes later native export/map edits. Separate native-ownership-final integration includes all current production changes."
+    },
+    "refreshed-help": {
+      "revision": "6cdda9918f188f966b7e4996b80e49fe9193d173",
+      "working_tree": "Current source with then-uncommitted refreshed manual PNGs; no product or runtime probe edits.",
+      "committed_revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+      "identity_evidence": "p01-refreshed-help/summary.json",
+      "note": "All eleven tested image hashes and forty-seven Markdown hashes match the screenshot commit. Desktop all-page offline and native two-page/bundle checks have distinct scopes."
+    },
+    "m01-remaining": {
+      "revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+      "working_tree": "Frozen clean source plus declared native observation controls and runtime transport gates; no product changes.",
+      "identity_evidence": "m01-remaining/summary.json",
+      "dirty_diff": "m01-remaining/native-control-lifecycle.patch",
+      "dirty_diff_sha256": "be3ef8b1a638d49bd9548ce5eb22820e5608a44f3a52741f0809bfe2b794ed13",
+      "note": "1314 production inputs and 203 renderer assets; probes removed, fresh signed build and clean iPhone/iPad native reopen passed. Later R15 focus changes have separate evidence."
+    },
+    "m01-lock": {
+      "revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+      "working_tree": "Independent copy of same native control/lifecycle probe plus exact-scene write gate; final clean app restored.",
+      "identity_evidence": "m01-lock/summary.json",
+      "dirty_diff": "m01-lock/probe-native-control-lifecycle.patch",
+      "dirty_diff_sha256": "be3ef8b1a638d49bd9548ce5eb22820e5608a44f3a52741f0809bfe2b794ed13",
+      "note": "Actual scoped DeviceHub Lock with native lifecycle observations; clean app hash e3af065b470c43ac10f4433fdf84ddcae48e7d0a8637e7617e1c35578e0fbac0 and original 82 fixture files preserved."
+    },
+    "r15-final": {
+      "revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+      "equivalent_committed_revision": "36b9d53bc27a7dd32c0cd39365e213cf2651d102",
+      "working_tree": "Frozen source plus the four-file dialog fix/test/changelog patch; native observer removed for final clean acceptance.",
+      "dirty_diff": "r15-simulator/release-dismissal/source.patch",
+      "dirty_diff_sha256": "144d9f95ea0d4d229c5d6d4367b13aee796452b2d2447de4e09196d098d5ab4d",
+      "identity_evidence": "r15-simulator/summary.json",
+      "note": "1,314 production inputs and 203 renderer assets matched; clean build, signature, installed app identity and final native UI/relaunch passed. Earlier probe and partial-fix evidence retains separate source attribution."
     }
   },
   "environment": {
@@ -344,7 +376,21 @@
           "expected": "Immediately lock after editing, terminate after backgrounding, then reopen; scene, manuscript and Research markers are saved or offered for recovery.",
           "observed": null,
           "evidence": [],
-          "runs": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "m01-lock",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Actual DeviceHub Lock after native scene editing, with only the exact scene write deliberately held; terminate while locked and reopen.",
+              "observed": "Lock action started 2.55 seconds after native typing completed. SpringBoard lockstate changed 0\u21921, native background task was granted without acknowledgement, and marker stayed absent from disk through termination. Real UI recovery restored one marker occurrence in the original project/book/draft/scene; clean-app reopen passed.",
+              "evidence": [
+                "m01-lock/summary.json",
+                "m01-lock/pending-lock.json"
+              ],
+              "limit": "Scene-only supporting simulator subset with a deliberately pending write; not an uninstrumented immediate-lock timing claim. Manuscript/Research lock variants and all required physical acceptance remain unproven. XCTest app.state was stale; native OS/lifecycle observations establish locking/backgrounding."
+            }
+          ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
         },
         {
@@ -358,7 +404,34 @@
           "expected": "Interrupt the flush before acknowledgement and terminate/relaunch; retained edits recover. Record whether the OS granted background execution.",
           "observed": null,
           "evidence": [],
-          "runs": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "m01-remaining",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Interrupted background flush after an older acknowledgement; newer real scene write held before backend.",
+              "observed": "Fresh native background task granted without acknowledgement; newer marker absent on disk at termination and recovered to exact owner after relaunch.",
+              "evidence": [
+                "m01-remaining/summary.json",
+                "m01-remaining/late-ack-v2.json"
+              ],
+              "limit": "Supporting simulator subset with declared transport gates. Required physical-device acceptance remains not-run; source is frozen 29cefb83 before the later focus correction."
+            },
+            {
+              "status": "passed",
+              "source": "m01-lock",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Actual DeviceHub Lock after native scene editing, with only the exact scene write deliberately held; terminate while locked and reopen.",
+              "observed": "Lock action started 2.55 seconds after native typing completed. SpringBoard lockstate changed 0\u21921, native background task was granted without acknowledgement, and marker stayed absent from disk through termination. Real UI recovery restored one marker occurrence in the original project/book/draft/scene; clean-app reopen passed.",
+              "evidence": [
+                "m01-lock/summary.json",
+                "m01-lock/pending-lock.json"
+              ],
+              "limit": "Scene-only supporting simulator subset with a deliberately pending write; not an uninstrumented immediate-lock timing claim. Manuscript/Research lock variants and all required physical acceptance remain unproven. XCTest app.state was stale; native OS/lifecycle observations establish locking/backgrounding."
+            }
+          ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
         },
         {
@@ -400,7 +473,21 @@
           "expected": "Keep two independent panes dirty, background/terminate/relaunch, then recover both exact buffers without crossing ownership.",
           "observed": null,
           "evidence": [],
-          "runs": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "m01-remaining",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Two independent native split panes dirty with two real scene writes held.",
+              "observed": "Both exact-owner buffers and journal entries survived termination; both scene files and reopened native TextViews contained their own markers. Main test selector failure is preserved; separate final native verification passed.",
+              "evidence": [
+                "m01-remaining/summary.json",
+                "m01-remaining/two-pane.json"
+              ],
+              "limit": "Supporting simulator subset with declared transport gates. Required physical-device acceptance remains not-run; source is frozen 29cefb83 before the later focus correction."
+            }
+          ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
         },
         {
@@ -414,7 +501,21 @@
           "expected": "Retain an unresolved disk conflict through background/termination; newer disk content is not silently overwritten and local markers remain recoverable.",
           "observed": null,
           "evidence": [],
-          "runs": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "m01-remaining",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Unresolved conflict between a native local edit and atomic external change to the same synthetic scene.",
+              "observed": "Real checked write returned conflicted=true. Native conflict UI and local journal survived Home/termination/relaunch while the external file hash stayed unchanged.",
+              "evidence": [
+                "m01-remaining/summary.json",
+                "m01-remaining/disk-conflict-v2.json"
+              ],
+              "limit": "Supporting simulator subset with declared transport gates. Required physical-device acceptance remains not-run; source is frozen 29cefb83 before the later focus correction."
+            }
+          ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
         },
         {
@@ -428,7 +529,21 @@
           "expected": "Let a newer edit arrive before an older save acknowledgement; the older acknowledgement cannot clear the newer dirty buffer or journal entry.",
           "observed": null,
           "evidence": [],
-          "runs": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "m01-remaining",
+              "device_model": "iPhone 17 Pro Max simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "New real native edit arrives before the older saved version is acknowledged.",
+              "observed": "After older reply release, newer buffer remains isDirty/dirtyMap true with its exact-owner journal; acknowledged base hash advances. Interrupted next write then recovers after relaunch.",
+              "evidence": [
+                "m01-remaining/summary.json",
+                "m01-remaining/late-ack-v2.json"
+              ],
+              "limit": "Supporting simulator subset with declared transport gates. Required physical-device acceptance remains not-run; source is frozen 29cefb83 before the later focus correction."
+            }
+          ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
         },
         {
@@ -452,7 +567,20 @@
               "evidence": [
                 "../simulator-ui/lifecycle-fixed-summary.json"
               ],
-              "limit": "Supporting ownership subset; multiple drafts and retained recovery remain unproven."
+              "limit": "This earlier run did not exercise multiple drafts or retained recovery; later scene-scope coverage is recorded below."
+            },
+            {
+              "status": "passed",
+              "source": "m01-remaining",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Scene recovery across distinct project, book and draft contexts, including matching scene IDs.",
+              "observed": "Wrong book/project/draft retain the journal without receiving its marker; returning to exact original scope recovers only the correct scene. Initial bookshelf selection and final TextView check are native UI; other context switches use existing production actions.",
+              "evidence": [
+                "m01-remaining/summary.json",
+                "m01-remaining/scope.json"
+              ],
+              "limit": "Supporting simulator subset with declared transport gates. Required physical-device acceptance remains not-run; source is frozen 29cefb83 before the later focus correction."
             }
           ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
@@ -1411,7 +1539,7 @@
           "runs": [
             {
               "status": "failed",
-              "observed": "Initial69-preview workload kept conservative cache accounting at28,326,744bytes but native app footprint grew across equal batches (~453→609→774→911MiB), with901MiB after final idle. Diagnosis and narrow correction in progress; no memory pass claimed.",
+              "observed": "Initial69-preview workload kept conservative cache accounting at28,326,744bytes but native app footprint grew across equal batches (~453\u2192609\u2192774\u2192911MiB), with901MiB after final idle. Diagnosis and narrow correction in progress; no memory pass claimed.",
               "evidence": [
                 "r13-memory/before/cache-observations.json",
                 "r13-memory/before/native-footprint-samples.json"
@@ -1628,7 +1756,7 @@
     {
       "id": "R15",
       "title": "Native focus and accessibility",
-      "status": "not-run",
+      "status": "incomplete",
       "scenarios": [
         {
           "id": "R15-01",
@@ -1655,7 +1783,20 @@
           "expected": "Use a real iPad hardware keyboard for Tab, Shift+Tab and Escape; focus enters and stays within the sheet and returns to the invoking inspector control.",
           "observed": null,
           "evidence": [],
-          "runs": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "r15-final",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Supporting iPhone simulator keyboard navigation through the inspector and real nested-palette shortcut.",
+              "observed": "Native XCTest Tab/Shift+Tab and Cmd+Shift+P navigation passed. Escape/Return produced no DOM key events in diagnostic runs; no iPad hardware-keyboard acceptance is implied.",
+              "evidence": [
+                "r15-simulator/summary.json"
+              ],
+              "limit": "Supporting simulator subset only. Required physical VoiceOver/iPad hardware-keyboard acceptance remains not-run. Browser Escape/outer-trigger focus return and native invoking-field return have separate evidence. XCTest animation waits are not product performance measurements."
+            }
+          ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
         },
         {
@@ -1669,7 +1810,20 @@
           "expected": "Exercise nested dialogs with VoiceOver on iPhone and hardware keyboard on iPad; only the top dialog receives focus and closing layers restores the correct invoking control.",
           "observed": null,
           "evidence": [],
-          "runs": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "r15-final",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Actual nested palette opened from the inspector To-do input, dismissed by native scrim touch, then real native typing into the restored field.",
+              "observed": "Two complete cycles passed in each orientation with the clean final app. The palette remained accessible above the covered inspector; dismissal returned to the original field and left To do selected.",
+              "evidence": [
+                "r15-simulator/summary.json"
+              ],
+              "limit": "Supporting simulator subset only. Required physical VoiceOver/iPad hardware-keyboard acceptance remains not-run. Browser Escape/outer-trigger focus return and native invoking-field return have separate evidence. XCTest animation waits are not product performance measurements."
+            }
+          ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
         },
         {
@@ -1683,7 +1837,20 @@
           "expected": "Repeat the VoiceOver and hardware-keyboard focus scenarios in portrait and landscape; covered editor remains inaccessible and focus return remains correct.",
           "observed": null,
           "evidence": [],
-          "runs": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "r15-final",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Repeat clean native nested-dialog navigation and dismissal in portrait and landscape.",
+              "observed": "Both orientations passed twice, followed by inspector dismissal and clean relaunch. Source, asset and installed app hashes match; original synthetic project files and backups were preserved.",
+              "evidence": [
+                "r15-simulator/summary.json"
+              ],
+              "limit": "Supporting simulator subset only. Required physical VoiceOver/iPad hardware-keyboard acceptance remains not-run. Browser Escape/outer-trigger focus return and native invoking-field return have separate evidence. XCTest animation waits are not product performance measurements."
+            }
+          ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
         }
       ]
@@ -1808,7 +1975,22 @@
             "offline-help.json",
             "offline-help-probe.js"
           ],
-          "runs": [],
+          "runs": [
+            {
+              "status": "passed",
+              "source": "refreshed-help",
+              "device_model": "iPad Pro 13-inch (M5) simulator",
+              "device_os": "iOS 27.0",
+              "scenario": "Refreshed Help subset: actual Manual \u2192 Dashboard and Editor; all eleven current PNG hashes present in installed bundle and referenced by its entry script.",
+              "observed": "Both updated screenshots decoded in the native UI. All eleven source/bundled image hashes matched. Separate desktop Electron check traversed all47 pages offline with all11 images decoded and zero page errors/remote requests.",
+              "evidence": [
+                "p01-refreshed-help/summary.json",
+                "p01-refreshed-help/native-help.json",
+                "p01-refreshed-help/desktop-offline-help.json"
+              ],
+              "limit": "Supporting subset only. The earlier all-page native offline pass retains its historical asset/source scope; this updated native check covers two pages and bundle references, not all-page offline or physical/performance acceptance."
+            }
+          ],
           "blocker": null
         }
       ]

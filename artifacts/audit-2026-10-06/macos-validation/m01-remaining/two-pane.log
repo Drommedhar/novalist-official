@@ -1,0 +1,185 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 14:01:32.868.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:01:32.868.
+Test Suite 'AuditUITests' started at 2026-10-07 14:01:32.868.
+Test Case '-[AuditUITests.AuditUITests testTwoDirtyPaneRecovery]' started.
+    t =     0.00s Start Test at 2026-10-07 14:01:32.873
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.04s Setting device orientation to Landscape Left
+    t =     0.05s     Wait for com.novalist.app to idle
+    t =     0.05s     Wait for com.apple.springboard to idle
+    t =     0.06s Get number of matches for: Descendants matching type TextView
+    t =     0.09s Get all elements bound by index for: Descendants matching type TextView
+    t =     0.12s Find the TextView (Element at index 1)
+    t =     0.16s Find the TextView (Element at index 0)
+    t =     0.20s Find the "
+" TextView
+    t =     0.23s Find the "
+" TextView
+M01_TWO_READY_GATE
+objc[70555]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x104184398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x104f8c310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     3.31s Tap "
+" TextView[0.50, 0.05]
+    t =     3.31s     Wait for com.novalist.app to idle
+    t =     3.31s     Find the "
+" TextView
+    t =     3.35s     Check for interrupting elements affecting "
+" TextView
+    t =     3.38s         Wait for com.apple.springboard to idle
+    t =     3.40s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     3.40s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     3.40s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     3.40s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     3.41s     Synthesize event
+    t =     3.41s         Find the "
+" TextView
+    t =     3.44s         Find the "
+" TextView
+    t =     3.47s         Find the "
+" TextView
+    t =     3.79s     Wait for com.novalist.app to idle
+    t =     3.94s Type 'M01LEFT26' into "
+" TextView
+    t =     3.94s     Wait for com.novalist.app to idle
+    t =     3.94s     Find the "
+" TextView
+    t =     3.98s     Check for interrupting elements affecting "
+" TextView
+    t =     4.01s         Wait for com.apple.springboard to idle
+    t =     4.07s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     4.08s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     4.08s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     4.08s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     4.08s     Synthesize event
+    t =     4.44s     Wait for com.novalist.app to idle
+    t =     4.83s Tap "
+" TextView[0.50, 0.05]
+    t =     4.83s     Wait for com.novalist.app to idle
+    t =     4.83s     Find the "
+" TextView
+    t =     4.86s     Check for interrupting elements affecting "
+" TextView
+    t =     4.90s         Wait for com.apple.springboard to idle
+    t =     4.92s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     4.92s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     4.92s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     4.92s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     4.92s     Synthesize event
+    t =     4.92s         Find the "
+" TextView
+    t =     4.96s         Find the "
+" TextView
+    t =     4.99s         Find the "
+" TextView
+    t =     5.31s     Wait for com.novalist.app to idle
+    t =     5.49s Type 'M01RIGHT26' into "
+" TextView
+    t =     5.49s     Wait for com.novalist.app to idle
+    t =     5.49s     Find the "
+" TextView
+    t =     5.52s     Check for interrupting elements affecting "
+" TextView
+    t =     5.56s         Wait for com.apple.springboard to idle
+    t =     5.57s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     5.58s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     5.58s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     5.58s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     5.58s     Synthesize event
+    t =     5.95s     Wait for com.novalist.app to idle
+M01_TWO_TYPED
+M01_TWO_BEFORE_HOME
+    t =    11.69s Pressing Home button
+    t =    13.67s Terminate com.novalist.app:68195
+M01_TWO_TERMINATED
+    t =    14.68s Open com.novalist.app
+    t =    14.68s     Launch com.novalist.app
+    t =    14.71s         Setting up automation session
+    t =    17.26s         Wait for com.novalist.app to idle
+    t =    18.93s Waiting 20.0s for "Select Audit Tablet Book — Audit Tablet Fixture" Switch to exist
+    t =    20.01s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =    20.01s         Checking existence of `"Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =    20.08s Double tap "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =    20.08s     Wait for com.novalist.app to idle
+    t =    20.08s     Find the "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =    20.10s     Check for interrupting elements affecting "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =    20.11s         Wait for com.apple.springboard to idle
+    t =    20.13s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =    20.13s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =    20.13s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =    20.13s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =    20.13s     Synthesize event
+    t =    20.49s     Wait for com.novalist.app to idle
+    t =    23.50s Checking existence of `Button (First Match)`
+    t =    23.55s Waiting 10.0s for Button (First Match) to exist
+    t =    24.62s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    24.63s         Checking existence of `Button (First Match)`
+    t =    24.67s Tap Button (First Match)
+    t =    24.67s     Wait for com.novalist.app to idle
+    t =    24.68s     Find the Button (First Match)
+    t =    24.71s     Check for interrupting elements affecting "Audit M01 Pane A 1" Button
+    t =    24.74s         Wait for com.apple.springboard to idle
+    t =    24.75s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =    24.75s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =    24.75s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =    24.76s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =    24.76s     Synthesize event
+    t =    25.05s     Wait for com.novalist.app to idle
+    t =    25.09s Waiting 10.0s for TextView (First Match) to exist
+    t =    26.17s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    26.17s         Checking existence of `TextView (First Match)`
+    t =    26.22s         Capturing element debug description
+    t =    27.18s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    27.18s         Checking existence of `TextView (First Match)`
+    t =    27.22s         Capturing element debug description
+    t =    28.19s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    28.19s         Checking existence of `TextView (First Match)`
+    t =    28.22s         Capturing element debug description
+    t =    29.18s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    29.18s         Checking existence of `TextView (First Match)`
+    t =    29.21s         Capturing element debug description
+    t =    30.17s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    30.18s         Checking existence of `TextView (First Match)`
+    t =    30.20s         Capturing element debug description
+    t =    31.15s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    31.15s         Checking existence of `TextView (First Match)`
+    t =    31.18s         Capturing element debug description
+    t =    32.15s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    32.15s         Checking existence of `TextView (First Match)`
+    t =    32.17s         Capturing element debug description
+    t =    33.15s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    33.15s         Checking existence of `TextView (First Match)`
+    t =    33.18s         Capturing element debug description
+    t =    34.12s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    34.12s         Checking existence of `TextView (First Match)`
+    t =    34.16s         Capturing element debug description
+    t =    35.10s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    35.10s         Checking existence of `TextView (First Match)`
+    t =    35.13s         Capturing element debug description
+    t =    35.13s     Checking existence of `TextView (First Match)`
+    t =    35.15s Collecting debug information to assist test failure triage
+    t =    35.15s     Requesting snapshot of accessibility hierarchy for app with pid 70692
+<audit-scratch>/ipad-harness/AuditUITests.swift:26: error: -[AuditUITests.AuditUITests testTwoDirtyPaneRecovery] : XCTAssertTrue failed
+    t =    35.22s Tear Down
+Test Case '-[AuditUITests.AuditUITests testTwoDirtyPaneRecovery]' failed (35.472 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 14:02:08.346.
+	 Executed 1 test, with 1 failure (0 unexpected) in 35.472 (35.477) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 14:02:08.346.
+	 Executed 1 test, with 1 failure (0 unexpected) in 35.472 (35.478) seconds
+Test Suite 'All tests' failed at 2026-10-07 14:02:08.347.
+	 Executed 1 test, with 1 failure (0 unexpected) in 35.472 (35.479) seconds
+2026-10-07 14:02:08.634 xcodebuild[70531:3832227] [MT] IDETestOperationsObserverDebug: 38.283 elapsed -- Testing started completed.
+2026-10-07 14:02:08.634 xcodebuild[70531:3832227] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:02:08.634 xcodebuild[70531:3832227] [MT] IDETestOperationsObserverDebug: 38.283 sec, +38.283 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/two-pane.xcresult
+
+Failing tests:
+	AuditUITests.testTwoDirtyPaneRecovery()
+
+** TEST FAILED **
+
+Testing started

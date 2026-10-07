@@ -1,0 +1,14 @@
+{
+  "installed": true,
+  "active": {
+    "tag": "BUTTON",
+    "id": "",
+    "classes": "mobile-sheet-close",
+    "role": null,
+    "label": "Close",
+    "placeholder": null,
+    "inert": false,
+    "sheet": true
+  },
+  "sheet": true
+}

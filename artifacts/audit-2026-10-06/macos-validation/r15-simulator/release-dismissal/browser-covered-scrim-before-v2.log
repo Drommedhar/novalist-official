@@ -1,0 +1,43 @@
+
+Running 1 test using 1 worker
+
+(node:84556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 e2e/audit-renderer-regressions.spec.ts:270:5 › the mobile inspector traps focus through nested palettes and restores its trigger (7.0s)
+
+
+  1) e2e/audit-renderer-regressions.spec.ts:270:5 › the mobile inspector traps focus through nested palettes and restores its trigger 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.palette-card')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('.palette-card')
+
+
+      315 |         await h.page.mouse.down()
+      316 |         try {
+    > 317 |           await expect(palette).toBeVisible()
+          |                                 ^
+      318 |           await expect(palette.getByRole('combobox')).toBeFocused()
+      319 |           expect(await sheet.evaluate((element) => !!element.closest('[inert]'))).toBe(true)
+      320 |         } finally { await h.page.mouse.up() }
+        at <repository>/app/e2e/audit-renderer-regressions.spec.ts:317:33
+
+    Error Context: test-results/audit-renderer-regressions-23b35-es-and-restores-its-trigger/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/audit-renderer-regressions-23b35-es-and-restores-its-trigger/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/audit-renderer-regressions-23b35-es-and-restores-its-trigger/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    e2e/audit-renderer-regressions.spec.ts:270:5 › the mobile inspector traps focus through nested palettes and restores its trigger 

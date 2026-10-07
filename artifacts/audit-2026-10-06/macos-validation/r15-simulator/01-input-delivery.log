@@ -1,0 +1,656 @@
+Test Suite 'All tests' started at 2026-10-07 13:47:27.673.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 13:47:27.674.
+Test Suite 'AuditUITests' started at 2026-10-07 13:47:27.674.
+Test Case '-[AuditUITests.AuditUITests testNativeInspectorInput]' started.
+    t =     0.00s Start Test at 2026-10-07 13:47:27.675
+    t =     0.02s Set Up
+    t =     0.02s Terminate com.novalist.app:0
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Launch com.novalist.app
+    t =     0.04s         Setting up automation session
+objc[66796]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10a584398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10a6bc310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     2.70s         Wait for com.novalist.app to idle
+    t =     4.25s Setting device orientation to Portrait
+    t =     4.25s     Wait for com.novalist.app to idle
+    t =     4.25s Waiting 25.0s for Any (First Match) to exist
+    t =     5.33s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =     5.33s         Checking existence of `Any (First Match)`
+    t =     5.38s         Capturing element debug description
+    t =     6.34s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =     6.34s         Checking existence of `Any (First Match)`
+    t =     6.37s Double tap Any (First Match)
+    t =     6.37s     Wait for com.novalist.app to idle
+    t =     6.37s     Find the Any (First Match)
+    t =     6.38s     Check for interrupting elements affecting "Select The Cartographer’s Daughter — The Cartographer's Daughter" Switch
+    t =     6.41s     Synthesize event
+    t =     6.75s     Wait for com.novalist.app to idle
+    t =     6.76s Waiting 20.0s for "Write" Button to exist
+    t =     7.83s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =     7.83s         Checking existence of `"Write" Button`
+    t =     7.93s Checking existence of `"Close tour" Button`
+    t =     8.14s Tap "Write" Button
+    t =     8.14s     Wait for com.novalist.app to idle
+    t =     8.14s     Find the "Write" Button
+    t =     8.23s     Check for interrupting elements affecting "Write" Button
+    t =     8.27s     Synthesize event
+    t =     8.56s     Wait for com.novalist.app to idle
+    t =    10.02s Waiting 15.0s for Button (First Match) to exist
+    t =    11.09s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    11.10s         Checking existence of `Button (First Match)`
+    t =    11.14s Tap Button (First Match)
+    t =    11.14s     Wait for com.novalist.app to idle
+    t =    11.14s     Find the Button (First Match)
+    t =    11.16s     Check for interrupting elements affecting "A Letter from Bellhaven 264" Button
+    t =    11.19s     Synthesize event
+    t =    11.47s     Wait for com.novalist.app to idle
+    t =    11.94s Waiting 15.0s for TextView (First Match) to exist
+    t =    13.02s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    13.02s         Checking existence of `TextView (First Match)`
+    t =    13.06s Waiting 3.0s for "selected" Button to exist
+    t =    14.13s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    14.13s         Checking existence of `"selected" Button`
+    t =    14.18s Tap "selected" Button
+    t =    14.18s     Wait for com.novalist.app to idle
+    t =    14.18s     Find the "selected" Button
+    t =    14.21s     Check for interrupting elements affecting "selected" Button
+    t =    14.23s     Synthesize event
+    t =    14.53s     Wait for com.novalist.app to idle
+    t =    14.76s Setting device orientation to Portrait
+    t =    14.76s     Wait for com.novalist.app to idle
+    t =    14.76s Waiting 10.0s for "Inspector" Button to exist
+    t =    15.84s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    15.84s         Checking existence of `"Inspector" Button`
+    t =    15.88s Tap "Inspector" Button
+    t =    15.88s     Wait for com.novalist.app to idle
+    t =    15.89s     Find the "Inspector" Button
+    t =    15.91s     Check for interrupting elements affecting "Inspector" Button
+    t =    15.93s     Synthesize event
+    t =    16.22s     Wait for com.novalist.app to idle
+    t =    16.22s Waiting 10.0s for "Close" Button to exist
+    t =    17.29s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =    17.29s         Checking existence of `"Close" Button`
+    t =    17.31s Find the "Close" Button
+    t =    17.33s Checking existence of `TextView (First Match)`
+    t =    17.34s Checking existence of `"Inspector" Button`
+R15_portrait_OPEN closeFocused=true editorVisible=false triggerVisible=false
+    t =    17.36s Find the Application 'com.novalist.app'
+    t =    17.42s Added attachment named 'inspector-portrait'
+    t =    17.42s Type '⎋' key (XCUIKeyboardKeyEscape) with no modifiers
+    t =    17.42s     Wait for com.novalist.app to idle
+    t =    17.43s     Find the Application 'com.novalist.app'
+    t =    17.44s     Check for interrupting elements affecting "Novalist" Application
+    t =    17.45s     Synthesize event
+    t =    17.76s     Wait for com.novalist.app to idle
+    t =    17.78s Waiting 3.0s for "Inspector" Button to exist
+    t =    18.85s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    18.85s         Checking existence of `"Inspector" Button`
+    t =    18.89s         Capturing element debug description
+    t =    18.89s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    18.91s             Find: Descendants matching type Button
+    t =    18.91s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    18.91s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    18.93s             Find: Descendants matching type Button
+    t =    18.94s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    19.80s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    19.80s         Checking existence of `"Inspector" Button`
+    t =    19.83s         Capturing element debug description
+    t =    19.83s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    19.86s             Find: Descendants matching type Button
+    t =    19.86s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    19.86s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    19.88s             Find: Descendants matching type Button
+    t =    19.88s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    20.79s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    20.79s         Checking existence of `"Inspector" Button`
+    t =    20.82s         Capturing element debug description
+    t =    20.82s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    20.85s             Find: Descendants matching type Button
+    t =    20.85s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    20.85s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    20.87s             Find: Descendants matching type Button
+    t =    20.87s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    20.98s     Checking existence of `"Inspector" Button`
+    t =    21.00s Collecting debug information to assist test failure triage
+    t =    21.00s     Requesting snapshot of accessibility hierarchy for app with pid 66805
+R15_portrait_INITIAL_ESCAPE dismissed=false triggerFocused=false
+    t =    21.02s Tap "To do" Button
+    t =    21.02s     Wait for com.novalist.app to idle
+    t =    21.02s     Find the "To do" Button
+    t =    21.04s     Check for interrupting elements affecting "To do" Button
+    t =    21.06s     Synthesize event
+    t =    21.35s     Wait for com.novalist.app to idle
+    t =    21.35s Waiting 5.0s for "What needs doing" TextField to exist
+    t =    22.43s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =    22.43s         Checking existence of `"What needs doing" TextField`
+    t =    22.45s Tap "What needs doing" TextField
+    t =    22.45s     Wait for com.novalist.app to idle
+    t =    22.46s     Find the "What needs doing" TextField
+    t =    22.47s     Check for interrupting elements affecting "What needs doing" TextField
+    t =    22.49s     Synthesize event
+    t =    22.78s     Wait for com.novalist.app to idle
+    t =    23.04s Type 'r' key with no modifiers
+    t =    23.04s     Wait for com.novalist.app to idle
+    t =    23.04s     Find the Application 'com.novalist.app'
+    t =    23.06s     Check for interrupting elements affecting "Novalist" Application
+    t =    23.08s     Synthesize event
+    t =    23.44s     Wait for com.novalist.app to idle
+    t =    23.49s Find the "What needs doing" TextField
+    t =    23.51s Find the "What needs doing" TextField
+R15_portrait_KEY_DELIVERY r=true inputFocused=true
+    t =    23.53s Type '⌫' key (XCUIKeyboardKeyDelete) with no modifiers
+    t =    23.53s     Wait for com.novalist.app to idle
+    t =    23.53s     Find the Application 'com.novalist.app'
+    t =    23.54s     Check for interrupting elements affecting "Novalist" Application
+    t =    23.56s     Synthesize event
+    t =    23.77s     Wait for com.novalist.app to idle
+    t =    23.81s Type '⇥' key (XCUIKeyboardKeyTab) with no modifiers
+    t =    23.81s     Wait for com.novalist.app to idle
+    t =    23.81s     Find the Application 'com.novalist.app'
+    t =    23.82s     Check for interrupting elements affecting "Novalist" Application
+    t =    23.84s     Synthesize event
+    t =    24.19s     Wait for com.novalist.app to idle
+    t =    24.24s Find the "What needs doing" TextField
+    t =    24.26s Find the "List (optional)" TextField
+R15_portrait_TAB inputFocused=false listFocused=true
+    t =    24.27s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    24.27s     Wait for com.novalist.app to idle
+    t =    24.27s     Find the Application 'com.novalist.app'
+    t =    24.29s     Check for interrupting elements affecting "Novalist" Application
+    t =    24.30s     Synthesize event
+    t =    24.65s     Wait for com.novalist.app to idle
+    t =    24.71s Find the "What needs doing" TextField
+    t =    24.72s Find the "List (optional)" TextField
+R15_portrait_SHIFT_TAB inputFocused=true listFocused=false
+    t =    24.74s Type '⎋' key (XCUIKeyboardKeyEscape) with no modifiers
+    t =    24.74s     Wait for com.novalist.app to idle
+    t =    24.74s     Find the Application 'com.novalist.app'
+    t =    24.75s     Check for interrupting elements affecting "Novalist" Application
+    t =    24.77s     Synthesize event
+    t =    24.99s     Wait for com.novalist.app to idle
+    t =    25.03s Waiting 3.0s for "Inspector" Button to exist
+    t =    26.10s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    26.10s         Checking existence of `"Inspector" Button`
+    t =    26.13s         Capturing element debug description
+    t =    26.13s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    26.16s             Find: Descendants matching type Button
+    t =    26.16s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    26.17s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    26.19s             Find: Descendants matching type Button
+    t =    26.19s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    27.11s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    27.11s         Checking existence of `"Inspector" Button`
+    t =    27.14s         Capturing element debug description
+    t =    27.14s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    27.16s             Find: Descendants matching type Button
+    t =    27.16s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    27.16s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    27.19s             Find: Descendants matching type Button
+    t =    27.19s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    28.04s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    28.04s         Checking existence of `"Inspector" Button`
+    t =    28.07s         Capturing element debug description
+    t =    28.07s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    28.10s             Find: Descendants matching type Button
+    t =    28.10s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    28.10s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    28.13s             Find: Descendants matching type Button
+    t =    28.13s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    28.20s     Checking existence of `"Inspector" Button`
+    t =    28.22s Collecting debug information to assist test failure triage
+    t =    28.22s     Requesting snapshot of accessibility hierarchy for app with pid 66805
+R15_portrait_FOCUSED_ESCAPE dismissed=false triggerFocused=false
+    t =    28.24s Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    28.40s Requesting snapshot of accessibility hierarchy for app with pid 66805
+R15_portrait_HIERARCHY
+Attributes: Application, 0x113848140, pid: 66805, label: 'Novalist'
+Element subtree:
+ →Application, 0x113848140, pid: 66805, label: 'Novalist'
+    Window (Main), 0x113848280, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1138483c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x113848500, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x113848640, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x113848780, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x1138488c0, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x113848a00, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x113848b40, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x113848c80, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x113848dc0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x113848f00, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x113849040, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x113849180, {{0.0, -396.0}, {402.0, 874.0}}
+                          Other, 0x1138492c0, {{0.0, -396.0}, {402.0, 874.0}}, label: 'Novalist'
+                            Other, 0x113849400, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x113849540, {{0.0, 63.0}, {402.0, 416.0}}, label: 'A Letter from Bellhaven, web dialog'
+                              Other, 0x113849680, {{183.0, 71.0}, {36.0, 5.0}}
+                              Other, 0x1138497c0, {{18.0, 82.0}, {326.0, 30.0}}
+                                StaticText, 0x113849900, {{82.0, 85.0}, {238.0, 24.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell...
+                              Button, 0x113849a40, {{352.0, 81.0}, {32.0, 33.0}}, label: 'Close'
+                              Button, 0x113849b80, {{18.0, 121.0}, {179.0, 42.0}}, label: 'Context'
+                              Button, 0x113849cc0, {{205.0, 121.0}, {179.0, 42.0}}, label: 'Footnotes'
+                              Button, 0x113849e00, {{18.0, 170.0}, {179.0, 42.0}}, label: 'SCENE NOTES'
+                              Button, 0x113849f40, {{205.0, 170.0}, {179.0, 42.0}}, label: 'To do'
+                              Other, 0x11384a080, {{18.0, 219.0}, {366.0, 36.0}}
+                                StaticText, 0x11384a1c0, {{26.0, 232.0}, {48.0, 15.0}}, label: 'TO DO', value: TO DO
+                              TextField, 0x11384a300, {{18.0, 258.0}, {366.0, 42.0}}, placeholderValue: 'What needs doing', value: r, Keyboard Focused, Focused
+                              TextField, 0x11384a440, {{18.0, 307.0}, {314.0, 45.0}}, placeholderValue: 'List (optional)', value: List (optional)
+                              Button, 0x11384a580, {{340.0, 307.0}, {44.0, 45.0}}
+                              Other, 0x11384a6c0, {{18.0, 370.0}, {366.0, 42.0}}
+                                StaticText, 0x11384a800, {{18.0, 372.0}, {359.0, 37.0}}, label: 'Nothing to do yet. A todo comment belongs to a passage; these belong to the book.', value: Nothing to do yet....
+                  Other, 0x11384a940, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x11384aa80, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x11384abc0, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 100%
+                    Other, 0x11384ad00, {{396.0, 182.3}, {3.0, 258.7}}
+                  Other, 0x11384ae40, {{369.0, 62.0}, {30.0, 382.0}}, label: 'Vertical scroll bar, 2 pages', value: 100%
+                    Other, 0x11384af80, {{396.0, 182.3}, {3.0, 258.7}}
+              Other, 0x11384b0c0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x11384b200, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x11384b340, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x11384b480, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x11384b5c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x11384b700, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x11384b840, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x11384b980, {{0.0, 478.0}, {402.0, 68.0}}
+            Other, 0x11384bac0, {{0.0, 478.0}, {402.0, 68.0}}
+              Toolbar, 0x11384bc00, {{0.0, 488.0}, {402.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Button, 0x11384bd40, {{29.0, 504.7}, {24.0, 14.7}}, label: 'go up', Disabled
+                Button, 0x11384be80, {{83.0, 505.3}, {24.0, 14.7}}, label: 'go down'
+                Button, 0x10a322800, {{349.0, 501.0}, {24.0, 22.7}}, label: 'selected'
+          Other, 0x10a3675c0, {{0.0, 546.0}, {402.0, 328.0}}, identifier: 'inputView'
+    Window, 0x10a367840, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x10a366a80, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10a367340, {{0.0, 478.0}, {402.0, 396.0}}
+          Other, 0x10a366bc0, {{0.0, 478.0}, {402.0, 68.0}}
+          Other, 0x10a35e940, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x10a35f5c0, {{0.0, 546.0}, {402.0, 44.0}}
+              Other, 0x10a35e1c0, {{0.0, 546.0}, {402.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x10a35c280, {{0.0, -54.0}, {402.0, 1244.0}}
+                  ScrollView, 0x10a35e6c0, {{0.0, 546.0}, {402.0, 44.0}}
+                Other, 0x10a35ed00, {{0.0, 546.0}, {402.0, 44.0}}
+                  Other, 0x10a35ebc0, {{0.0, 546.0}, {402.0, 44.0}}
+                    Other, 0x10a35e580, {{0.0, 546.0}, {402.0, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x10a35df40, {{0.0, 546.0}, {402.0, 44.0}}
+                        Other, 0x10a35f480, {{0.0, 546.0}, {402.0, 44.0}}
+                          Button, 0x10a35f840, {{0.0, 546.0}, {134.0, 44.0}}, label: '“r”'
+                          Button, 0x10a35fac0, {{134.0, 546.0}, {134.0, 44.0}}, label: 'right'
+                          Button, 0x10a35c8c0, {{268.0, 546.0}, {134.0, 44.0}}, label: 'really'
+          Other, 0x10a35c640, {{0.0, 546.0}, {402.0, 329.0}}
+            Other, 0x10a35f340, {{0.0, 546.0}, {402.0, 329.0}}
+              Other, 0x10a35e800, {{0.0, 546.0}, {402.0, 329.0}}
+          Other, 0x10a35e300, {{0.0, 590.0}, {402.0, 226.0}}
+            Keyboard, 0x10a35c140, {{0.0, 590.0}, {402.0, 226.0}}
+              Other, 0x10a35fe80, {{0.0, 590.0}, {402.0, 226.0}}
+                Other, 0x10a35e080, {{0.0, 590.0}, {402.0, 226.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x10a35c000, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10a35f980, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10a35c500, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10a35e440, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x113890000, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x113890140, {{0.0, 590.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x113890280, {{4.7, 597.0}, {39.3, 54.0}}, label: 'q'
+                  Key, 0x1138903c0, {{44.0, 597.0}, {39.7, 54.0}}, label: 'w'
+                  Key, 0x113890500, {{83.7, 597.0}, {39.3, 54.0}}, label: 'e'
+                  Key, 0x113890640, {{123.0, 597.0}, {39.7, 54.0}}, label: 'r'
+                  Key, 0x113890780, {{162.7, 597.0}, {39.3, 54.0}}, label: 't'
+                  Key, 0x1138908c0, {{202.0, 597.0}, {39.7, 54.0}}, label: 'y'
+                  Key, 0x113890a00, {{241.7, 597.0}, {39.3, 54.0}}, label: 'u'
+                  Key, 0x113890b40, {{281.0, 597.0}, {39.7, 54.0}}, label: 'i'
+                  Key, 0x113890c80, {{320.7, 597.0}, {39.3, 54.0}}, label: 'o'
+                  Key, 0x113890dc0, {{360.0, 597.0}, {39.7, 54.0}}, label: 'p'
+                  Key, 0x113890f00, {{24.3, 651.0}, {39.3, 54.0}}, label: 'a'
+                  Key, 0x113891040, {{63.7, 651.0}, {39.7, 54.0}}, label: 's'
+                  Key, 0x113891180, {{103.3, 651.0}, {39.3, 54.0}}, label: 'd'
+                  Key, 0x1138912c0, {{142.7, 651.0}, {39.7, 54.0}}, label: 'f'
+                  Key, 0x113891400, {{182.3, 651.0}, {39.3, 54.0}}, label: 'g'
+                  Key, 0x113891540, {{221.7, 651.0}, {39.7, 54.0}}, label: 'h'
+                  Key, 0x113891680, {{261.3, 651.0}, {39.3, 54.0}}, label: 'j'
+                  Key, 0x1138917c0, {{300.7, 651.0}, {39.7, 54.0}}, label: 'k'
+                  Key, 0x113891900, {{340.3, 651.0}, {39.3, 54.0}}, label: 'l'
+                  Button, 0x113891a40, {{4.7, 705.0}, {51.3, 54.0}}, identifier: 'shift', label: 'shift'
+                  Key, 0x113891b80, {{63.7, 705.0}, {39.7, 54.0}}, label: 'z'
+                  Key, 0x113891cc0, {{103.3, 705.0}, {39.3, 54.0}}, label: 'x'
+                  Key, 0x113891e00, {{142.7, 705.0}, {39.7, 54.0}}, label: 'c'
+                  Key, 0x113891f40, {{182.3, 705.0}, {39.3, 54.0}}, label: 'v'
+                  Key, 0x113892080, {{221.7, 705.0}, {39.7, 54.0}}, label: 'b'
+                  Key, 0x1138921c0, {{261.3, 705.0}, {39.3, 54.0}}, label: 'n'
+                  Key, 0x113892300, {{300.7, 705.0}, {39.7, 54.0}}, label: 'm'
+                  Key, 0x113892440, {{348.0, 705.0}, {51.7, 54.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x113892580, {{4.7, 759.0}, {98.7, 54.0}}, identifier: 'more', label: 'numbers'
+                  Key, 0x1138926c0, {{103.3, 759.0}, {197.3, 54.0}}, identifier: 'space', label: 'space'
+                  Button, 0x113892800, {{300.7, 759.0}, {99.0, 54.0}}, identifier: 'Return', label: 'return'
+          Other, 0x113892940, {{0.0, 590.0}, {402.0, 284.0}}
+            Button, 0x113892a80, {{8.5, 805.7}, {68.1, 68.7}}, label: 'Emoji'
+              StaticText, 0x113892bc0, {{8.5, 805.7}, {0.0, 0.0}}
+            Button, 0x113892d00, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x113892e40, {{325.4, 805.4}, {0.0, 0.0}}
+            Button, 0x113892f80, {{325.4, 805.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x1138930c0, {{325.4, 805.4}, {0.0, 0.0}}
+Path to element:
+ →Application, 0x113848140, pid: 66805, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x113893200, pid: 66805, label: 'Novalist'
+  }
+
+    t =    28.43s Tap "Close" Button
+    t =    28.43s     Wait for com.novalist.app to idle
+    t =    28.43s     Find the "Close" Button
+    t =    28.45s     Check for interrupting elements affecting "Close" Button
+    t =    28.47s     Synthesize event
+    t =    28.76s     Wait for com.novalist.app to idle
+    t =    28.99s Waiting 5.0s for "Inspector" Button to exist
+    t =    30.06s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    30.06s         Checking existence of `"Inspector" Button`
+    t =    30.10s Find the "Inspector" Button
+R15_portrait_CLOSE_RETURN triggerFocused=false
+    t =    30.13s Setting device orientation to Landscape Left
+    t =    30.13s     Device orientation changed to Landscape Left
+    t =    30.16s     Interface orientation changed to Landscape Right
+    t =    30.16s     Wait for com.novalist.app to idle
+    t =    30.18s Waiting 10.0s for "Inspector" Button to exist
+    t =    31.24s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    31.25s         Checking existence of `"Inspector" Button`
+    t =    31.29s Tap "Inspector" Button
+    t =    31.29s     Wait for com.novalist.app to idle
+    t =    31.29s     Find the "Inspector" Button
+    t =    31.32s     Check for interrupting elements affecting "Inspector" Button
+    t =    31.34s     Synthesize event
+    t =    31.63s     Wait for com.novalist.app to idle
+    t =    31.63s Waiting 10.0s for "Close" Button to exist
+    t =    32.71s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =    32.71s         Checking existence of `"Close" Button`
+    t =    32.73s Find the "Close" Button
+    t =    32.75s Checking existence of `TextView (First Match)`
+    t =    32.76s Checking existence of `"Inspector" Button`
+R15_landscape_OPEN closeFocused=true editorVisible=false triggerVisible=false
+    t =    32.78s Find the Application 'com.novalist.app'
+    t =    32.84s Added attachment named 'inspector-landscape'
+    t =    32.84s Type '⎋' key (XCUIKeyboardKeyEscape) with no modifiers
+    t =    32.85s     Wait for com.novalist.app to idle
+    t =    32.85s     Find the Application 'com.novalist.app'
+    t =    32.86s     Check for interrupting elements affecting "Novalist" Application
+    t =    32.87s     Synthesize event
+    t =    33.09s     Wait for com.novalist.app to idle
+    t =    33.11s Waiting 3.0s for "Inspector" Button to exist
+    t =    34.19s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    34.19s         Checking existence of `"Inspector" Button`
+    t =    34.22s         Capturing element debug description
+    t =    34.22s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    34.24s             Find: Descendants matching type Button
+    t =    34.25s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    34.25s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    34.27s             Find: Descendants matching type Button
+    t =    34.27s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    35.12s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    35.12s         Checking existence of `"Inspector" Button`
+    t =    35.16s         Capturing element debug description
+    t =    35.16s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    35.18s             Find: Descendants matching type Button
+    t =    35.18s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    35.18s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    35.20s             Find: Descendants matching type Button
+    t =    35.21s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    36.12s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    36.12s         Checking existence of `"Inspector" Button`
+    t =    36.14s         Capturing element debug description
+    t =    36.14s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    36.16s             Find: Descendants matching type Button
+    t =    36.17s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    36.17s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    36.19s             Find: Descendants matching type Button
+    t =    36.19s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    36.30s     Checking existence of `"Inspector" Button`
+    t =    36.32s Collecting debug information to assist test failure triage
+    t =    36.32s     Requesting snapshot of accessibility hierarchy for app with pid 66805
+R15_landscape_INITIAL_ESCAPE dismissed=false triggerFocused=false
+    t =    36.34s Tap "To do" Button
+    t =    36.34s     Wait for com.novalist.app to idle
+    t =    36.34s     Find the "To do" Button
+    t =    36.36s     Check for interrupting elements affecting "To do" Button
+    t =    36.37s     Synthesize event
+    t =    36.67s     Wait for com.novalist.app to idle
+    t =    36.67s Waiting 5.0s for "What needs doing" TextField to exist
+    t =    37.72s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =    37.72s         Checking existence of `"What needs doing" TextField`
+    t =    37.74s Tap "What needs doing" TextField
+    t =    37.74s     Wait for com.novalist.app to idle
+    t =    37.74s     Find the "What needs doing" TextField
+    t =    37.75s     Check for interrupting elements affecting "What needs doing" TextField
+    t =    37.76s     Synthesize event
+    t =    38.05s     Wait for com.novalist.app to idle
+    t =    38.35s Type 'r' key with no modifiers
+    t =    38.35s     Wait for com.novalist.app to idle
+    t =    38.36s     Find the Application 'com.novalist.app'
+    t =    38.38s     Check for interrupting elements affecting "Novalist" Application
+    t =    38.40s     Synthesize event
+    t =    38.75s     Wait for com.novalist.app to idle
+    t =    38.79s Find the "What needs doing" TextField
+    t =    38.81s Find the "What needs doing" TextField
+R15_landscape_KEY_DELIVERY r=true inputFocused=true
+    t =    38.83s Type '⌫' key (XCUIKeyboardKeyDelete) with no modifiers
+    t =    38.83s     Wait for com.novalist.app to idle
+    t =    38.83s     Find the Application 'com.novalist.app'
+    t =    38.84s     Check for interrupting elements affecting "Novalist" Application
+    t =    38.86s     Synthesize event
+    t =    39.08s     Wait for com.novalist.app to idle
+    t =    39.12s Type '⇥' key (XCUIKeyboardKeyTab) with no modifiers
+    t =    39.12s     Wait for com.novalist.app to idle
+    t =    39.12s     Find the Application 'com.novalist.app'
+    t =    39.14s     Check for interrupting elements affecting "Novalist" Application
+    t =    39.15s     Synthesize event
+    t =    39.50s     Wait for com.novalist.app to idle
+    t =    39.55s Find the "What needs doing" TextField
+    t =    39.57s Find the "List (optional)" TextField
+R15_landscape_TAB inputFocused=false listFocused=true
+    t =    39.59s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =    39.59s     Wait for com.novalist.app to idle
+    t =    39.59s     Find the Application 'com.novalist.app'
+    t =    39.60s     Check for interrupting elements affecting "Novalist" Application
+    t =    39.62s     Synthesize event
+    t =    39.96s     Wait for com.novalist.app to idle
+    t =    40.01s Find the "What needs doing" TextField
+    t =    40.03s Find the "List (optional)" TextField
+R15_landscape_SHIFT_TAB inputFocused=true listFocused=false
+    t =    40.05s Type '⎋' key (XCUIKeyboardKeyEscape) with no modifiers
+    t =    40.05s     Wait for com.novalist.app to idle
+    t =    40.05s     Find the Application 'com.novalist.app'
+    t =    40.06s     Check for interrupting elements affecting "Novalist" Application
+    t =    40.08s     Synthesize event
+    t =    40.30s     Wait for com.novalist.app to idle
+    t =    40.34s Waiting 3.0s for "Inspector" Button to exist
+    t =    41.41s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    41.41s         Checking existence of `"Inspector" Button`
+    t =    41.44s         Capturing element debug description
+    t =    41.44s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    41.47s             Find: Descendants matching type Button
+    t =    41.47s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    41.48s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    41.50s             Find: Descendants matching type Button
+    t =    41.50s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    42.39s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    42.39s         Checking existence of `"Inspector" Button`
+    t =    42.43s         Capturing element debug description
+    t =    42.43s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    42.46s             Find: Descendants matching type Button
+    t =    42.46s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    42.46s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    42.48s             Find: Descendants matching type Button
+    t =    42.48s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    43.35s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    43.35s         Checking existence of `"Inspector" Button`
+    t =    43.38s         Capturing element debug description
+    t =    43.38s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    43.41s             Find: Descendants matching type Button
+    t =    43.41s             Find: Elements matching predicate '"Inspector" IN identifiers'
+    t =    43.41s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    43.44s             Find: Descendants matching type Button
+    t =    43.44s             Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    43.49s     Checking existence of `"Inspector" Button`
+    t =    43.50s Collecting debug information to assist test failure triage
+    t =    43.50s     Requesting snapshot of accessibility hierarchy for app with pid 66805
+R15_landscape_FOCUSED_ESCAPE dismissed=false triggerFocused=false
+    t =    43.53s Requesting snapshot of accessibility hierarchy for app with pid 66805
+    t =    43.65s Requesting snapshot of accessibility hierarchy for app with pid 66805
+R15_landscape_HIERARCHY
+Attributes: Application, 0x10a34e940, pid: 66805, label: 'Novalist'
+Element subtree:
+ →Application, 0x10a34e940, pid: 66805, label: 'Novalist'
+    Window (Main), 0x10a34c500, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x10a34c640, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x10a34d900, {{0.0, 0.0}, {874.0, 402.0}}
+          Other, 0x10a34c140, {{0.0, 0.0}, {874.0, 402.0}}
+            Other, 0x10a34c000, {{0.0, 0.0}, {874.0, 402.0}}
+              WebView, 0x10a34c780, {{0.0, 0.0}, {874.0, 402.0}}
+                WebView, 0x10a34cb40, {{0.0, 0.0}, {874.0, 402.0}}
+                  WebView, 0x10a34cc80, {{0.0, 0.0}, {874.0, 402.0}}
+                    Other, 0x10a34c8c0, {{0.0, 0.0}, {874.0, 402.0}}
+                      Other, 0x10a34ca00, {{0.0, 0.0}, {874.0, 402.0}}
+                        Other, 0x10a34c3c0, {{0.0, -244.0}, {874.0, 402.0}}
+                          Other, 0x1138926c0, {{0.0, -244.0}, {874.0, 402.0}}, label: 'Novalist'
+                            Other, 0x113892080, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                            Other, 0x10a316440, {{0.0, -164.0}, {874.0, 323.0}}, label: 'A Letter from Bellhaven, web dialog'
+                              Other, 0x10a316080, {{419.0, -156.0}, {36.0, 5.0}}
+                              Other, 0x10a316300, {{18.0, -146.0}, {798.0, 36.0}}
+                                StaticText, 0x10a314640, {{297.0, -142.0}, {280.0, 28.0}}, label: 'A Letter from Bellhaven', value: A Letter from Bell...
+                              Button, 0x10a3148c0, {{824.0, -145.0}, {32.0, 33.0}}, label: 'Close'
+                              Button, 0x10a314780, {{18.0, -103.0}, {415.0, 42.0}}, label: 'Context'
+                              Button, 0x10a314500, {{441.0, -103.0}, {415.0, 42.0}}, label: 'Footnotes'
+                              Button, 0x10a314140, {{18.0, -54.0}, {415.0, 42.0}}, label: 'SCENE NOTES'
+                              Button, 0x10a314000, {{441.0, -54.0}, {415.0, 42.0}}, label: 'To do'
+                              Other, 0x10a316e40, {{18.0, -5.0}, {838.0, 37.0}}
+                                StaticText, 0x10a316f80, {{26.0, 9.0}, {48.0, 15.0}}, label: 'TO DO', value: TO DO
+                              TextField, 0x10a316bc0, {{18.0, 34.0}, {838.0, 42.0}}, placeholderValue: 'What needs doing', value: r, Keyboard Focused, Focused
+                              TextField, 0x10a316940, {{18.0, 83.0}, {802.0, 30.0}}, placeholderValue: 'List (optional)', value: List (optional)
+                              Button, 0x10a3170c0, {{828.0, 83.0}, {28.0, 30.0}}
+                              Other, 0x10a316a80, {{18.0, 131.0}, {838.0, 21.0}}
+                                StaticText, 0x10a315900, {{18.0, 133.0}, {521.0, 17.0}}, label: 'Nothing to do yet. A todo comment belongs to a passage; these belong to the book.', value: Nothing to do yet....
+                  Other, 0x10a315a40, {{841.0, 62.0}, {30.0, 28.0}}, label: 'Vertical scroll bar, 4 pages', value: 84%
+                    Other, 0x10a315cc0, {{868.0, 51.0}, {3.0, 36.0}}
+                  Other, 0x10a315e00, {{841.0, 62.0}, {30.0, 28.0}}, label: 'Vertical scroll bar, 4 pages', value: 84%
+                    Other, 0x10a3166c0, {{868.0, 51.0}, {3.0, 36.0}}
+              Other, 0x10a314a00, {{0.0, 0.0}, {874.0, 402.0}}
+            Other, 0x10a314dc0, {{0.0, 0.0}, {874.0, 402.0}}
+              Other, 0x10a315f40, {{0.0, 0.0}, {874.0, 402.0}}
+    Window, 0x10a3161c0, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x10a314f00, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x10a316580, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x10a314b40, {{0.0, 110.0}, {874.0, 292.0}}
+          Other, 0x10a310000, {{0.0, 110.0}, {874.0, 68.0}}
+            Other, 0x10a310140, {{0.0, 110.0}, {874.0, 68.0}}
+              Toolbar, 0x10a310280, {{0.0, 120.0}, {874.0, 48.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                Button, 0x10a3103c0, {{89.0, 134.7}, {24.0, 14.7}}, label: 'go up', Disabled
+                Button, 0x10a310500, {{143.0, 135.3}, {24.0, 14.7}}, label: 'go down'
+                Button, 0x10a310640, {{761.0, 131.0}, {24.0, 22.7}}, label: 'selected'
+          Other, 0x10a310780, {{75.0, 178.0}, {724.0, 224.0}}, identifier: 'inputView'
+    Window, 0x10a3108c0, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x10a310a00, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x10a310b40, {{0.0, 110.0}, {874.0, 292.0}}
+          Other, 0x10a310c80, {{0.0, 110.0}, {874.0, 68.0}}
+          Other, 0x10a310dc0, {{0.0, 178.0}, {874.0, 225.0}}
+            Other, 0x10a310f00, {{0.0, 178.0}, {874.0, 225.0}}
+              Other, 0x10a311040, {{0.0, 178.0}, {874.0, 225.0}}
+          Other, 0x10a311180, {{75.0, 178.0}, {724.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x10a3112c0, {{75.0, 178.0}, {724.0, 44.0}}
+              Other, 0x10a311400, {{75.0, 178.0}, {724.0, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x10a311540, {{75.0, -422.0}, {724.0, 1244.0}}
+                  ScrollView, 0x10a311680, {{75.0, 178.0}, {724.0, 44.0}}
+                Other, 0x10a3117c0, {{75.0, 178.0}, {724.0, 44.0}}
+                  Other, 0x10a311900, {{75.0, 178.0}, {724.0, 44.0}}
+                    Other, 0x10a311a40, {{75.0, 178.0}, {724.0, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x10a311b80, {{75.0, 178.0}, {724.0, 44.0}}
+                        Other, 0x10a311cc0, {{75.0, 178.0}, {724.0, 44.0}}
+                          Button, 0x10a311e00, {{75.0, 178.0}, {241.3, 44.0}}, label: '“r”'
+                          Button, 0x10a311f40, {{316.3, 178.0}, {241.3, 44.0}}, label: 'right'
+                          Button, 0x10a312080, {{557.7, 178.0}, {241.3, 44.0}}, label: 'really'
+          Other, 0x10a3121c0, {{0.0, 222.0}, {874.0, 180.0}}
+            Button, 0x10a312300, {{8.5, 336.7}, {68.1, 68.7}}, label: 'Emoji'
+              StaticText, 0x10a312440, {{8.5, 336.7}, {0.0, 0.0}}
+            Button, 0x10a312580, {{797.4, 336.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x10a3126c0, {{797.4, 336.4}, {0.0, 0.0}}
+            Button, 0x10a312800, {{797.4, 336.4}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate'
+              StaticText, 0x10a312940, {{797.4, 336.4}, {0.0, 0.0}}
+          Other, 0x10a312a80, {{75.0, 222.0}, {724.0, 177.0}}
+            Keyboard, 0x10a312bc0, {{75.0, 222.0}, {724.0, 177.0}}
+              Other, 0x10a312d00, {{75.0, 222.0}, {724.0, 177.0}}
+                Other, 0x10a312e40, {{75.0, 222.0}, {724.0, 177.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x10a312f80, {{75.0, 222.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10a3130c0, {{75.0, 222.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10a313200, {{75.0, 222.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10a313340, {{75.0, 222.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10a313480, {{75.0, 222.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10a3135c0, {{75.0, 222.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10a313700, {{77.0, 227.0}, {72.3, 40.0}}, label: 'q'
+                  Key, 0x10a313840, {{149.3, 227.0}, {72.0, 40.0}}, label: 'w'
+                  Key, 0x10a313980, {{221.3, 227.0}, {72.3, 40.0}}, label: 'e'
+                  Key, 0x10a313ac0, {{293.7, 227.0}, {72.0, 40.0}}, label: 'r'
+                  Key, 0x10a313c00, {{365.7, 227.0}, {72.3, 40.0}}, label: 't'
+                  Key, 0x10a313d40, {{438.0, 227.0}, {72.3, 40.0}}, label: 'y'
+                  Key, 0x10a313e80, {{510.3, 227.0}, {72.0, 40.0}}, label: 'u'
+                  Key, 0x10a358000, {{582.3, 227.0}, {72.3, 40.0}}, label: 'i'
+                  Key, 0x10a358140, {{654.7, 227.0}, {72.0, 40.0}}, label: 'o'
+                  Key, 0x10a358280, {{726.7, 227.0}, {72.3, 40.0}}, label: 'p'
+                  Key, 0x10a3583c0, {{113.0, 267.0}, {72.3, 40.0}}, label: 'a'
+                  Key, 0x10a358500, {{185.3, 267.0}, {72.3, 40.0}}, label: 's'
+                  Key, 0x10a358640, {{257.7, 267.0}, {72.0, 40.0}}, label: 'd'
+                  Key, 0x10a358780, {{329.7, 267.0}, {72.3, 40.0}}, label: 'f'
+                  Key, 0x10a3588c0, {{402.0, 267.0}, {72.0, 40.0}}, label: 'g'
+                  Key, 0x10a358a00, {{474.0, 267.0}, {72.3, 40.0}}, label: 'h'
+                  Key, 0x10a358b40, {{546.3, 267.0}, {72.3, 40.0}}, label: 'j'
+                  Key, 0x10a358c80, {{618.7, 267.0}, {72.0, 40.0}}, label: 'k'
+                  Key, 0x10a358dc0, {{690.7, 267.0}, {72.3, 40.0}}, label: 'l'
+                  Button, 0x10a358f00, {{77.0, 307.0}, {94.0, 40.0}}, identifier: 'shift', label: 'shift'
+                  Key, 0x10a359040, {{185.3, 307.0}, {72.3, 40.0}}, label: 'z'
+                  Key, 0x10a359180, {{257.7, 307.0}, {72.0, 40.0}}, label: 'x'
+                  Key, 0x10a3592c0, {{329.7, 307.0}, {72.3, 40.0}}, label: 'c'
+                  Key, 0x10a359400, {{402.0, 307.0}, {72.0, 40.0}}, label: 'v'
+                  Key, 0x10a359540, {{474.0, 307.0}, {72.3, 40.0}}, label: 'b'
+                  Key, 0x10a359680, {{546.3, 307.0}, {72.3, 40.0}}, label: 'n'
+                  Key, 0x10a3597c0, {{618.7, 307.0}, {72.0, 40.0}}, label: 'm'
+                  Key, 0x10a359900, {{705.0, 307.0}, {94.0, 40.0}}, identifier: 'delete', label: 'delete'
+                  Key, 0x10a359a40, {{77.0, 347.0}, {144.3, 40.0}}, identifier: 'more', label: 'numbers'
+                  Key, 0x10a359b80, {{221.3, 347.0}, {433.3, 40.0}}, identifier: 'space', label: 'space'
+                  Button, 0x10a359cc0, {{654.7, 347.0}, {144.3, 40.0}}, identifier: 'Return', label: 'return'
+Path to element:
+ →Application, 0x10a34e940, pid: 66805, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x10a359e00, pid: 66805, label: 'Novalist'
+  }
+
+    t =    43.67s Tap "Close" Button
+    t =    43.67s     Wait for com.novalist.app to idle
+    t =    43.67s     Find the "Close" Button
+    t =    43.69s     Check for interrupting elements affecting "Close" Button
+    t =    43.70s     Synthesize event
+    t =    43.71s         Scroll element to visible
+    t =    43.71s         Find the "Close" Button
+    t =    43.73s         Computed hit point {347, 840} after scrolling to visible
+    t =    44.02s     Wait for com.novalist.app to idle
+    t =    44.23s Waiting 5.0s for "Inspector" Button to exist
+    t =    45.27s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =    45.27s         Checking existence of `"Inspector" Button`
+    t =    45.32s Find the "Inspector" Button
+R15_landscape_CLOSE_RETURN triggerFocused=false
+    t =    45.35s Setting device orientation to Portrait
+    t =    45.35s     Device orientation changed to Portrait
+    t =    45.37s     Interface orientation changed to Portrait
+    t =    45.37s     Wait for com.novalist.app to idle
+    t =    45.39s Tear Down
+Test Case '-[AuditUITests.AuditUITests testNativeInspectorInput]' passed (45.634 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 13:48:13.310.
+	 Executed 1 test, with 0 failures (0 unexpected) in 45.634 (45.636) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 13:48:13.310.
+	 Executed 1 test, with 0 failures (0 unexpected) in 45.634 (45.636) seconds
+Test Suite 'All tests' passed at 2026-10-07 13:48:13.310.
+	 Executed 1 test, with 0 failures (0 unexpected) in 45.634 (45.637) seconds
+2026-10-07 13:48:13.611 xcodebuild[66619:3779914] [MT] IDETestOperationsObserverDebug: 48.362 elapsed -- Testing started completed.
+2026-10-07 13:48:13.611 xcodebuild[66619:3779914] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 13:48:13.611 xcodebuild[66619:3779914] [MT] IDETestOperationsObserverDebug: 48.362 sec, +48.362 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/01-input-delivery.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

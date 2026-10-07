@@ -1,0 +1,301 @@
+Test Suite 'All tests' started at 2026-10-07 14:01:16.970.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:01:16.971.
+Test Suite 'AuditUITests' started at 2026-10-07 14:01:16.971.
+Test Case '-[AuditUITests.AuditUITests testCleanNestedModal]' started.
+    t =     0.00s Start Test at 2026-10-07 14:01:16.972
+    t =     0.02s Set Up
+    t =     0.02s Terminate com.novalist.app:0
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Launch com.novalist.app
+    t =     0.04s         Wait for accessibility to load
+    t =     0.04s         Setting up automation session
+objc[70473]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x108d1c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x108e54310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     2.83s         Wait for com.novalist.app to idle
+    t =     4.41s Setting device orientation to Portrait
+    t =     4.42s     Wait for com.novalist.app to idle
+    t =     4.42s Waiting 25.0s for Any (First Match) to exist
+    t =     5.49s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =     5.49s         Checking existence of `Any (First Match)`
+    t =     5.55s         Capturing element debug description
+    t =     6.51s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =     6.51s         Checking existence of `Any (First Match)`
+    t =     6.55s Double tap Any (First Match)
+    t =     6.55s     Wait for com.novalist.app to idle
+    t =     6.55s     Find the Any (First Match)
+    t =     6.57s     Check for interrupting elements affecting "Select The Cartographer’s Daughter — The Cartographer's Daughter" Switch
+    t =     6.60s     Synthesize event
+    t =     6.94s     Wait for com.novalist.app to idle
+    t =     6.95s Waiting 20.0s for "Write" Button to exist
+    t =     8.02s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =     8.02s         Checking existence of `"Write" Button`
+    t =     8.21s Checking existence of `"Close tour" Button`
+    t =     8.31s Tap "Write" Button
+    t =     8.31s     Wait for com.novalist.app to idle
+    t =     8.31s     Find the "Write" Button
+    t =     8.40s     Check for interrupting elements affecting "Write" Button
+    t =     8.44s     Synthesize event
+    t =     8.72s     Wait for com.novalist.app to idle
+    t =    10.18s Waiting 15.0s for Button (First Match) to exist
+    t =    11.25s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    11.25s         Checking existence of `Button (First Match)`
+    t =    11.28s Tap Button (First Match)
+    t =    11.28s     Wait for com.novalist.app to idle
+    t =    11.28s     Find the Button (First Match)
+    t =    11.30s     Check for interrupting elements affecting "A Letter from Bellhaven 264" Button
+    t =    11.32s     Synthesize event
+    t =    11.61s     Wait for com.novalist.app to idle
+    t =    11.61s Waiting 15.0s for TextView (First Match) to exist
+    t =    12.69s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    12.69s         Checking existence of `TextView (First Match)`
+    t =    12.71s Waiting 3.0s for "selected" Button to exist
+    t =    13.79s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    13.79s         Checking existence of `"selected" Button`
+    t =    13.81s         Capturing element debug description
+    t =    14.78s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    14.79s         Checking existence of `"selected" Button`
+    t =    14.81s         Capturing element debug description
+    t =    15.71s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    15.71s         Checking existence of `"selected" Button`
+    t =    15.74s         Capturing element debug description
+    t =    15.74s     Checking existence of `"selected" Button`
+    t =    15.77s Collecting debug information to assist test failure triage
+    t =    15.77s     Requesting snapshot of accessibility hierarchy for app with pid 70483
+    t =    15.80s Tap "Inspector" Button
+    t =    15.80s     Wait for com.novalist.app to idle
+    t =    15.80s     Find the "Inspector" Button
+    t =    15.83s     Check for interrupting elements affecting "Inspector" Button
+    t =    15.85s     Synthesize event
+    t =    16.14s     Wait for com.novalist.app to idle
+    t =    16.14s Waiting 10.0s for "Close" Button to exist
+    t =    17.22s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =    17.22s         Checking existence of `"Close" Button`
+    t =    17.24s Tap "To do" Button
+    t =    17.24s     Wait for com.novalist.app to idle
+    t =    17.24s     Find the "To do" Button
+    t =    17.26s     Check for interrupting elements affecting "To do" Button
+    t =    17.28s     Synthesize event
+    t =    17.57s     Wait for com.novalist.app to idle
+    t =    17.57s Waiting 5.0s for "What needs doing" TextField to exist
+    t =    18.65s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =    18.65s         Checking existence of `"What needs doing" TextField`
+    t =    18.67s Tap "What needs doing" TextField
+    t =    18.67s     Wait for com.novalist.app to idle
+    t =    18.68s     Find the "What needs doing" TextField
+    t =    18.69s     Check for interrupting elements affecting "What needs doing" TextField
+    t =    18.71s     Synthesize event
+    t =    19.00s     Wait for com.novalist.app to idle
+    t =    19.06s Type 'p' key with modifiers '⌘⇧' (0x12)
+    t =    19.07s     Wait for com.novalist.app to idle
+    t =    19.44s     Find the Application 'com.novalist.app'
+    t =    19.46s     Check for interrupting elements affecting "Novalist" Application
+    t =    19.47s     Synthesize event
+    t =    19.82s     Wait for com.novalist.app to idle
+    t =    20.99s Checking existence of `Any (First Match)`
+    t =    21.01s Checking existence of `"Close" Button`
+R15_CLEAN_portrait_PALETTE_ACCESSIBLE=false inspectorCloseAccessible=false
+    t =    21.02s Requesting snapshot of accessibility hierarchy for app with pid 70483
+    t =    21.06s Requesting snapshot of accessibility hierarchy for app with pid 70483
+R15_CLEAN_portrait_HIERARCHY
+Attributes: Application, 0x108aaaf80, pid: 70483, label: 'Novalist'
+Element subtree:
+ →Application, 0x108aaaf80, pid: 70483, label: 'Novalist'
+    Window (Main), 0x108aa8000, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108aa83c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108aab0c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x108aa97c0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108aaa580, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x108aaa6c0, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x108aabe80, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x108aaa800, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108aabd40, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x108aabac0, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108aa8140, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x108aaa300, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x108aa8500, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x108aabc00, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist', Focused
+                            Other, 0x108aaabc0, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                  Other, 0x108aa8280, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108aa8780, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x108aaaa80, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108aa8640, {{396.0, 65.0}, {3.0, 744.0}}
+                  Other, 0x108aa8b40, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108aa88c0, {{396.0, 65.0}, {3.0, 744.0}}
+              Other, 0x108aa8a00, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108aa8c80, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x108aa9900, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x108aa9b80, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108aa9cc0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108aa9a40, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x108aaaf80, pid: 70483, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x108aa92c0, pid: 70483, label: 'Novalist'
+  }
+
+    t =    21.07s Find the Application 'com.novalist.app'
+    t =    21.14s Added attachment named 'clean-nested-portrait'
+    t =    21.14s Terminate com.novalist.app:70483
+    t =    22.15s Open com.novalist.app
+    t =    22.15s     Launch com.novalist.app
+    t =    22.17s         Setting up automation session
+    t =    24.81s         Wait for com.novalist.app to idle
+    t =    26.37s Setting device orientation to Landscape Left
+    t =    26.37s     Device orientation changed to Landscape Left
+    t =    26.40s     Interface orientation changed to Landscape Right
+    t =    26.40s     Wait for com.novalist.app to idle
+    t =    26.42s Waiting 25.0s for Any (First Match) to exist
+    t =    27.48s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =    27.48s         Checking existence of `Any (First Match)`
+    t =    27.52s         Capturing element debug description
+    t =    28.49s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =    28.49s         Checking existence of `Any (First Match)`
+    t =    28.51s Double tap Any (First Match)
+    t =    28.51s     Wait for com.novalist.app to idle
+    t =    28.51s     Find the Any (First Match)
+    t =    28.53s     Check for interrupting elements affecting "Select The Cartographer’s Daughter — The Cartographer's Daughter" Switch
+    t =    28.56s     Synthesize event
+    t =    28.57s         Scroll element to visible
+    t =    28.57s         Find the "Select The Cartographer’s Daughter — The Cartographer's Daughter" Switch
+    t =    28.59s         Computed hit point {73, 209} after scrolling to visible
+    t =    28.92s     Wait for com.novalist.app to idle
+    t =    28.93s Waiting 20.0s for "Write" Button to exist
+    t =    29.99s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =    29.99s         Checking existence of `"Write" Button`
+    t =    30.10s Checking existence of `"Close tour" Button`
+    t =    30.18s Tap "Write" Button
+    t =    30.18s     Wait for com.novalist.app to idle
+    t =    30.18s     Find the "Write" Button
+    t =    30.39s     Check for interrupting elements affecting "Write" Button
+    t =    30.43s     Synthesize event
+    t =    30.72s     Wait for com.novalist.app to idle
+    t =    32.03s Waiting 15.0s for Button (First Match) to exist
+    t =    33.10s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    33.10s         Checking existence of `Button (First Match)`
+    t =    33.13s Tap Button (First Match)
+    t =    33.13s     Wait for com.novalist.app to idle
+    t =    33.13s     Find the Button (First Match)
+    t =    33.15s     Check for interrupting elements affecting "A Letter from Bellhaven 264" Button
+    t =    33.18s     Synthesize event
+    t =    33.18s         Scroll element to visible
+    t =    33.18s         Find the "A Letter from Bellhaven 264" Button
+    t =    33.21s         Computed hit point {20, 420} after scrolling to visible
+    t =    33.50s     Wait for com.novalist.app to idle
+    t =    33.51s Waiting 15.0s for TextView (First Match) to exist
+    t =    34.58s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    34.58s         Checking existence of `TextView (First Match)`
+    t =    34.60s Waiting 3.0s for "selected" Button to exist
+    t =    35.67s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    35.67s         Checking existence of `"selected" Button`
+    t =    35.69s         Capturing element debug description
+    t =    36.66s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    36.66s         Checking existence of `"selected" Button`
+    t =    36.69s         Capturing element debug description
+    t =    37.61s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    37.61s         Checking existence of `"selected" Button`
+    t =    37.65s         Capturing element debug description
+    t =    37.65s     Checking existence of `"selected" Button`
+    t =    37.68s Collecting debug information to assist test failure triage
+    t =    37.68s     Requesting snapshot of accessibility hierarchy for app with pid 70599
+    t =    37.71s Tap "Inspector" Button
+    t =    37.71s     Wait for com.novalist.app to idle
+    t =    37.72s     Find the "Inspector" Button
+    t =    37.74s     Check for interrupting elements affecting "Inspector" Button
+    t =    37.76s     Synthesize event
+    t =    38.05s     Wait for com.novalist.app to idle
+    t =    38.05s Waiting 10.0s for "Close" Button to exist
+    t =    39.08s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =    39.08s         Checking existence of `"Close" Button`
+    t =    39.12s Tap "To do" Button
+    t =    39.12s     Wait for com.novalist.app to idle
+    t =    39.12s     Find the "To do" Button
+    t =    39.14s     Check for interrupting elements affecting "To do" Button
+    t =    39.16s     Synthesize event
+    t =    39.45s     Wait for com.novalist.app to idle
+    t =    39.46s Waiting 5.0s for "What needs doing" TextField to exist
+    t =    40.53s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =    40.53s         Checking existence of `"What needs doing" TextField`
+    t =    40.55s Tap "What needs doing" TextField
+    t =    40.55s     Wait for com.novalist.app to idle
+    t =    40.56s     Find the "What needs doing" TextField
+    t =    40.57s     Check for interrupting elements affecting "What needs doing" TextField
+    t =    40.59s     Synthesize event
+    t =    40.88s     Wait for com.novalist.app to idle
+    t =    40.95s Type 'p' key with modifiers '⌘⇧' (0x12)
+    t =    40.95s     Wait for com.novalist.app to idle
+    t =    41.32s     Find the Application 'com.novalist.app'
+    t =    41.34s     Check for interrupting elements affecting "Novalist" Application
+    t =    41.36s     Synthesize event
+    t =    41.70s     Wait for com.novalist.app to idle
+    t =    42.85s Checking existence of `Any (First Match)`
+    t =    42.87s Checking existence of `"Close" Button`
+R15_CLEAN_landscape_PALETTE_ACCESSIBLE=false inspectorCloseAccessible=false
+    t =    42.88s Requesting snapshot of accessibility hierarchy for app with pid 70599
+    t =    42.92s Requesting snapshot of accessibility hierarchy for app with pid 70599
+R15_CLEAN_landscape_HIERARCHY
+Attributes: Application, 0x108ac7c00, pid: 70599, label: 'Novalist'
+Element subtree:
+ →Application, 0x108ac7c00, pid: 70599, label: 'Novalist'
+    Window (Main), 0x108ac6940, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x108ac61c0, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x108ac6440, {{0.0, 0.0}, {874.0, 402.0}}
+          Other, 0x108ac6580, {{0.0, 0.0}, {874.0, 402.0}}
+            Other, 0x108ac4f00, {{0.0, 0.0}, {874.0, 402.0}}
+              WebView, 0x108ac6e40, {{0.0, 0.0}, {874.0, 402.0}}
+                WebView, 0x108ac6d00, {{0.0, 0.0}, {874.0, 402.0}}
+                  WebView, 0x108ac6a80, {{0.0, 0.0}, {874.0, 402.0}}
+                    Other, 0x108ac6800, {{0.0, 0.0}, {874.0, 402.0}}
+                      Other, 0x108ac5540, {{0.0, 0.0}, {874.0, 402.0}}
+                        Other, 0x108ac57c0, {{0.0, 0.0}, {874.0, 402.0}}
+                          Other, 0x108ac6080, {{0.0, 0.0}, {874.0, 402.0}}, label: 'Novalist', Focused
+                            Other, 0x108ac52c0, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                  Other, 0x108ac66c0, {{841.0, 62.0}, {30.0, 278.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108ac5900, {{868.0, 65.0}, {3.0, 272.0}}
+                  Other, 0x108ac5b80, {{841.0, 62.0}, {30.0, 278.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108ac5180, {{868.0, 65.0}, {3.0, 272.0}}
+              Other, 0x108ac5a40, {{0.0, 0.0}, {874.0, 402.0}}
+            Other, 0x108ac5e00, {{0.0, 0.0}, {874.0, 402.0}}
+              Other, 0x108ac6f80, {{0.0, 0.0}, {874.0, 402.0}}
+    Window, 0x108ac7700, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x108ac5cc0, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x108ac5680, {{0.0, 0.0}, {874.0, 402.0}}
+Path to element:
+ →Application, 0x108ac7c00, pid: 70599, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x108ac5400, pid: 70599, label: 'Novalist'
+  }
+
+    t =    42.93s Find the Application 'com.novalist.app'
+    t =    42.98s Added attachment named 'clean-nested-landscape'
+    t =    42.98s Terminate com.novalist.app:70599
+    t =    43.13s     Interface orientation changed to Portrait
+    t =    43.99s Open com.novalist.app
+    t =    44.00s     Launch com.novalist.app
+    t =    44.03s         Setting up automation session
+    t =    44.15s             Interface orientation changed to Landscape Right
+    t =    46.51s         Wait for com.novalist.app to idle
+    t =    48.13s Setting device orientation to Portrait
+    t =    48.13s     Device orientation changed to Portrait
+    t =    48.16s     Interface orientation changed to Portrait
+    t =    48.16s     Wait for com.novalist.app to idle
+    t =    48.18s Tear Down
+Test Case '-[AuditUITests.AuditUITests testCleanNestedModal]' passed (48.425 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 14:02:05.398.
+	 Executed 1 test, with 0 failures (0 unexpected) in 48.425 (48.427) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 14:02:05.398.
+	 Executed 1 test, with 0 failures (0 unexpected) in 48.425 (48.427) seconds
+Test Suite 'All tests' passed at 2026-10-07 14:02:05.398.
+	 Executed 1 test, with 0 failures (0 unexpected) in 48.425 (48.428) seconds
+2026-10-07 14:02:05.687 xcodebuild[70457:3831026] [MT] IDETestOperationsObserverDebug: 51.181 elapsed -- Testing started completed.
+2026-10-07 14:02:05.687 xcodebuild[70457:3831026] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:02:05.687 xcodebuild[70457:3831026] [MT] IDETestOperationsObserverDebug: 51.181 sec, +51.181 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/07-clean-nested.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

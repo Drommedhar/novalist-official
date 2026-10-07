@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "screenshot_commit": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+  "manifest": "docs/app-store/screenshots.json",
+  "image_count": 11,
+  "all_hash_sources_agree": true,
+  "images": [
+    {
+      "path": "docs/manual/images/calendar.png",
+      "sha256": "bcc889398e71b1f4d9e81ce944443e11ae51fd702d953ed5267a30046b59fc52",
+      "previous_sha256": "f8ea16049ff843c81bc88abfaa83ef2f83e85a3e1b5a9a4910ce648dd5f76fce",
+      "bytes": 180999,
+      "width": 1440,
+      "height": 900,
+      "screenshot_commit_matches": true,
+      "desktop_source_and_emitted_asset_match": true,
+      "desktop_decoded_local_asset": true,
+      "native_bundle_paths": [
+        "app/assets/calendar-DdkM0wfE.png"
+      ],
+      "native_bundle_matches": true,
+      "native_entry_references_asset": true
+    },
+    {
+      "path": "docs/manual/images/codex.png",
+      "sha256": "be8cfa88e31571771a62cda230b6d17c8f13ebcac4d1955d7aa7ec750f817b07",
+      "previous_sha256": "7719187a6c093651f67a87dd557305e52fd03c6b6a20e3bf2a7af5d2706272b6",
+      "bytes": 253775,
+      "width": 1440,
+      "height": 900,
+      "screenshot_commit_matches": true,
+      "desktop_source_and_emitted_asset_match": true,
+      "desktop_decoded_local_asset": true,
+      "native_bundle_paths": [
+        "app/assets/codex-DMo_JcCi.png"
+      ],
+      "native_bundle_matches": true,
+      "native_entry_references_asset": true
+    },
+    {
+      "path": "docs/manual/images/command-palette.png",
+      "sha256": "bd33875bb2565ea0e71ce2e47a1351cb7e2b5fc3847963cc16eb6725d9fed3ef",
+      "previous_sha256": "59fd56cc04c8c967b9a5439dc20b008a52d94744acf70ac37019fd771ced38dd",
+      "bytes": 331149,
+      "width": 1440,
+      "height": 900,
+      "screenshot_commit_matches": true,
+      "desktop_source_and_emitted_asset_match": true,
+      "desktop_decoded_local_asset": true,
+      "native_bundle_paths": [
+        "app/assets/command-palette-DjhKRw0B.png"
+      ],
+      "native_bundle_matches": true,
+      "native_entry_references_asset": true
+    },
+    {
+      "path": "docs/manual/images/dashboard.png",
+      "sha256": "d7748a0ccfe13a71ec2e0d464bb976268a841c842be02b03e11cc76f33a26836",
+      "previous_sha256": "9d182aa840efab5d1c612a39dc3e40cbf730be0e53bbbdd4ff23d4b535142c8b",
+      "bytes": 173627,
+      "width": 1440,
+      "height": 900,
+      "screenshot_commit_matches": true,
+      "desktop_source_and_emitted_asset_match": true,
+      "desktop_decoded_local_asset": true,
+      "native_bundle_paths": [
+        "app/assets/dashboard-CoZKBSNW.png"
+      ],
+      "native_bundle_matches": true,
+      "native_entry_references_asset": true
+    },
+    {
+      "path": "docs/manual/images/editor.png",
+      "sha256": "8d91efe86a1deb0a97f28e0eb82c5130aa91660b00709666ff9786ede1341906",
+      "previous_sha256": "27f656d353c27ee4804209b4ff0882c229a00c0aa06ce64346ef96c127e7e2b4",
+      "bytes": 495118,
+      "width": 1440,
+      "height": 900,
+      "screenshot_commit_matches": true,
+      "desktop_source_and_emitted_asset_match": true,
+      "desktop_decoded_local_asset": true,
+      "native_bundle_paths": [
+        "app/assets/editor-BSL7L5ZG.png"
+      ],
+      "native_bundle_matches": true,
+      "native_entry_references_asset": true
+    },
+    {
+      "path": "docs/manual/images/interface-overview.png",
+      "sha256": "f7293a5e48cab3fba7214dfd1ffcea571a1058a1cdbd1cc03692dd3a910e19a6",
+      "previous_sha256": "15501b28bac71d405e1f5574e3a9f21c806f2e676b4b1e35fc9b2e58b52323de",
+      "bytes": 497556,
+      "width": 1440,
+      "height": 900,
+      "screenshot_commit_matches": true,
+      "desktop_source_and_emitted_asset_match": true,
+      "desktop_decoded_local_asset": true,
+      "native_bundle_paths": [
+        "app/assets/interface-overview-DJ-nj8dU.png"
+      ],
+      "native_bundle_matches": true,
+      "native_entry_references_asset": true
+    },
+    {
+      "path": "docs/manual/images/manuscript.png",
+      "sha256": "61029447c5ba15b03d33103307cbfa2fe3f68ebbf413a8532fbf7c26d2b9da70",
+      "previous_sha256": "80da42b92ab9fc75554ed552becde7b146752369a02d89d125c602f9101043d3",
+      "bytes": 441499,
+      "width": 1440,
+      "height": 900,
+      "screenshot_commit_matches": true,
+      "desktop_source_and_emitted_asset_match": true,
+      "desktop_decoded_local_asset": true,
+      "native_bundle_paths": [
+        "app/assets/manuscript-8GR9Bmvk.png"
+      ],
+      "native_bundle_matches": true,
+      "native_entry_references_asset": true
+    },
+    {
+      "path": "docs/manual/images/plot-grid.png",
+      "sha256": "318a71f9ffba14dddb6a14e8552a692a94fa502f77eff30ce7e317caa74e8d5b",
+      "previous_sha256": "fa8cc2d570b8c1e91f32c25932b67b9bc4e4343df92b6fb363a398917083fa22",
+      "bytes": 229838,
+      "width": 1440,
+      "height": 900,
+      "screenshot_commit_matches": true,
+      "desktop_source_and_emitted_asset_match": true,
+      "desktop_decoded_local_asset": true,
+      "native_bundle_paths": [
+        "app/assets/plot-grid-dqsM7MKk.png"
+      ],
+      "native_bundle_matches": true,
+      "native_entry_references_asset": true
+    },
+    {
+      "path": "docs/manual/images/relationships.png",
+      "sha256": "ac2b614c9fabf8778bbbbcebf37fa441cf7912e5dd94358204e0b459d533d075",
+      "previous_sha256": "92a971a8271ce4ed890cc69159afa370c2c4d7674cc844cdeba2ba837d095872",
+      "bytes": 253251,
+      "width": 1440,
+      "height": 900,
+      "screenshot_commit_matches": true,
+      "desktop_source_and_emitted_asset_match": true,
+      "desktop_decoded_local_asset": true,
+      "native_bundle_paths": [
+        "app/assets/relationships-BdqR86RI.png"
+      ],
+      "native_bundle_matches": true,
+      "native_entry_references_asset": true
+    },
+    {
+      "path": "docs/manual/images/start-screen.png",
+      "sha256": "2342037b40fa93b74acd2c71e7cebd8b92bc29b4653a2625d9ac5dabbb5bf493",
+      "previous_sha256": "48896ea5a9304daa03931fef7bde288e32c8b964d748e8d1d0544e75ea3a7cbf",
+      "bytes": 130890,
+      "width": 1440,
+      "height": 900,
+      "screenshot_commit_matches": true,
+      "desktop_source_and_emitted_asset_match": true,
+      "desktop_decoded_local_asset": true,
+      "native_bundle_paths": [
+        "app/assets/start-screen-DKjL68mm.png"
+      ],
+      "native_bundle_matches": true,
+      "native_entry_references_asset": true
+    },
+    {
+      "path": "docs/manual/images/timeline.png",
+      "sha256": "6853f326bc64e0d22c245d1875ee53bced1890ea69ed1fec24d11225fe525e2f",
+      "previous_sha256": "bc405066c7d2235c4e44f167be9f304675c02fde814970e96eaf3231a2d37e52",
+      "bytes": 203646,
+      "width": 1440,
+      "height": 900,
+      "screenshot_commit_matches": true,
+      "desktop_source_and_emitted_asset_match": true,
+      "desktop_decoded_local_asset": true,
+      "native_bundle_paths": [
+        "app/assets/timeline-CXLeJ17N.png"
+      ],
+      "native_bundle_matches": true,
+      "native_entry_references_asset": true
+    }
+  ]
+}

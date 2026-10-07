@@ -1,0 +1,84 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 14:19:19.711.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:19:19.711.
+Test Suite 'AuditUITests' started at 2026-10-07 14:19:19.711.
+Test Case '-[AuditUITests.AuditUITests testCleanBuildRecoveredScenes]' started.
+    t =     0.00s Start Test at 2026-10-07 14:19:19.715
+    t =     0.02s Set Up
+    t =     0.02s Terminate com.novalist.app:77456
+objc[77674]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x105a9c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x109698310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.02s Open com.novalist.app
+    t =     1.02s     Launch com.novalist.app
+    t =     1.04s         Setting up automation session
+    t =     3.73s         Wait for com.novalist.app to idle
+    t =     5.33s Setting device orientation to Landscape Left
+    t =     5.34s     Wait for com.novalist.app to idle
+    t =     5.34s     Wait for com.apple.springboard to idle
+    t =     5.34s Waiting 20.0s for "Select Audit Tablet Book — Audit Tablet Fixture" Switch to exist
+    t =     6.42s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =     6.42s         Checking existence of `"Select Audit Tablet Book — Audit Tablet Fixture" Switch`
+    t =     6.48s Double tap "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     6.48s     Wait for com.novalist.app to idle
+    t =     6.48s     Find the "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     6.50s     Check for interrupting elements affecting "Select Audit Tablet Book — Audit Tablet Fixture" Switch
+    t =     6.52s         Wait for com.apple.springboard to idle
+    t =     6.53s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     6.53s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     6.53s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     6.53s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     6.54s     Synthesize event
+    t =     6.88s     Wait for com.novalist.app to idle
+    t =     6.89s Checking existence of `"Editor" StaticText`
+    t =     6.92s Tap "Toggle sidebar" Switch
+    t =     6.92s     Wait for com.novalist.app to idle
+    t =     6.92s     Find the "Toggle sidebar" Switch
+    t =     7.96s         Find the "Toggle sidebar" Switch (retry 1)
+    t =     8.07s     Check for interrupting elements affecting "Toggle sidebar" Switch
+    t =     8.11s         Wait for com.apple.springboard to idle
+    t =     8.13s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     8.13s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     8.13s Ignoring failure to get hierarchy for remote element in process 69725 (Error getting main window kAXErrorServerNotFound)
+    t =     8.13s Ignoring failure to get hierarchy for remote element in process 70238 (Error getting main window kAXErrorServerNotFound)
+    t =     8.14s     Synthesize event
+    t =     8.42s     Wait for com.novalist.app to idle
+    t =     8.47s Waiting 5.0s for "Editor" StaticText to exist
+    t =     9.55s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =     9.55s         Checking existence of `"Editor" StaticText`
+    t =     9.66s         Capturing element debug description
+    t =    10.52s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =    10.52s         Checking existence of `"Editor" StaticText`
+    t =    10.64s         Capturing element debug description
+    t =    11.50s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =    11.50s         Checking existence of `"Editor" StaticText`
+    t =    11.62s         Capturing element debug description
+    t =    12.48s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =    12.48s         Checking existence of `"Editor" StaticText`
+    t =    12.57s         Capturing element debug description
+    t =    13.48s     Checking `Expect predicate `existsNoRetry == 1` for object "Editor" StaticText`
+    t =    13.48s         Checking existence of `"Editor" StaticText`
+    t =    13.58s         Capturing element debug description
+    t =    13.58s     Checking existence of `"Editor" StaticText`
+    t =    13.68s Collecting debug information to assist test failure triage
+    t =    13.68s     Requesting snapshot of accessibility hierarchy for app with pid 77696
+<audit-scratch>/ipad-harness/AuditUITests.swift:10: error: -[AuditUITests.AuditUITests testCleanBuildRecoveredScenes] : XCTAssertTrue failed
+    t =    13.86s Tear Down
+Test Case '-[AuditUITests.AuditUITests testCleanBuildRecoveredScenes]' failed (14.080 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 14:19:33.795.
+	 Executed 1 test, with 1 failure (0 unexpected) in 14.080 (14.084) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 14:19:33.796.
+	 Executed 1 test, with 1 failure (0 unexpected) in 14.080 (14.085) seconds
+Test Suite 'All tests' failed at 2026-10-07 14:19:33.797.
+	 Executed 1 test, with 1 failure (0 unexpected) in 14.080 (14.086) seconds
+2026-10-07 14:19:34.087 xcodebuild[77649:3918068] [MT] IDETestOperationsObserverDebug: 17.107 elapsed -- Testing started completed.
+2026-10-07 14:19:34.087 xcodebuild[77649:3918068] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:19:34.087 xcodebuild[77649:3918068] [MT] IDETestOperationsObserverDebug: 17.107 sec, +17.107 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/clean-ipad.xcresult
+
+Failing tests:
+	AuditUITests.testCleanBuildRecoveredScenes()
+
+** TEST FAILED **
+
+Testing started

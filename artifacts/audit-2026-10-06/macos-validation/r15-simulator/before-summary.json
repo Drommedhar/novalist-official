@@ -1,0 +1,41 @@
+{
+  "status": "concrete-nested-modal-failure-reproduced",
+  "revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+  "simulator": "iPhone 17 Pro / iOS27.0",
+  "physical_acceptance": "Not performed; all R15-01..04 requirements remain pending.",
+  "clean_app_sha256": "e3af065b470c43ac10f4433fdf84ddcae48e7d0a8637e7617e1c35578e0fbac0",
+  "clean_app_matches_root": true,
+  "clean_native_observations": {
+    "orientations": [
+      "portrait",
+      "landscape"
+    ],
+    "initial_close_native_focus": true,
+    "underlying_editor_hidden_from_native_accessibility": true,
+    "native_Tab_ShiftTab_first_last_wrapping": true,
+    "Escape_and_Return_dismissal": false,
+    "touch_close_trigger_hasFocus": false
+  },
+  "input_observer": {
+    "native_source": "XCTest typeKey",
+    "trusted_r_Tab_ShiftTab_observed": true,
+    "Escape_or_Return_DOM_events_observed": false,
+    "synthetic_keyboard_events": false,
+    "focus_return_limitation": "Touch invocation does not establish keyboard invocation; Tab from body did not reach inspector in attempted native sequence."
+  },
+  "nested_failure": {
+    "trigger": "Real native Cmd+Shift+P from focused Inspector To-do input",
+    "trusted_KeyP_meta_shift": true,
+    "visible_palette": true,
+    "palette_accessible_in_clean_app": false,
+    "inspector_accessible_in_clean_app": false,
+    "both_dialog_ancestors_inert": true,
+    "activeElement": "BODY",
+    "clean_reproduction_orientations": [
+      "portrait",
+      "landscape"
+    ],
+    "source_cause": "modalFocus restores stale inert=true onto a MotionPresence sibling that React has just opened."
+  },
+  "xctest_exit_zero_explanation": "Baseline diagnostic methods log observations without asserting failing acceptance outcomes; zero exit is not acceptance pass."
+}

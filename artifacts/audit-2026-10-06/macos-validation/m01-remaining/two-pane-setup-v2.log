@@ -1,0 +1,82 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 13:56:32.525.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 13:56:32.525.
+Test Suite 'AuditUITests' started at 2026-10-07 13:56:32.526.
+Test Case '-[AuditUITests.AuditUITests testPrepareTwoIndependentPanes]' started.
+    t =     0.00s Start Test at 2026-10-07 13:56:32.530
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.03s Setting device orientation to Landscape Left
+    t =     0.04s     Wait for com.novalist.app to idle
+    t =     0.04s     Wait for com.apple.springboard to idle
+    t =     0.05s Tap "Scene" Button
+    t =     0.05s     Wait for com.novalist.app to idle
+    t =     0.05s     Find the "Scene" Button
+    t =     0.14s     Check for interrupting elements affecting "Scene" Button
+    t =     0.18s         Wait for com.apple.springboard to idle
+    t =     0.19s     Synthesize event
+objc[69373]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1069f0398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x106c78310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.48s     Wait for com.novalist.app to idle
+    t =     0.58s Type 'Audit M01 Pane A' into "Enter scene title..." TextField
+    t =     0.58s     Wait for com.novalist.app to idle
+    t =     0.58s     Find the "Enter scene title..." TextField
+    t =     0.61s     Check for interrupting elements affecting "Enter scene title..." TextField
+    t =     0.63s         Wait for com.apple.springboard to idle
+    t =     0.64s     Synthesize event
+    t =     1.12s     Wait for com.novalist.app to idle
+    t =     1.12s Checking existence of `"Hide keyboard" Button`
+    t =     1.14s Tap "Hide keyboard" Button
+    t =     1.14s     Wait for com.novalist.app to idle
+    t =     1.15s     Find the "Hide keyboard" Button
+    t =     1.17s     Check for interrupting elements affecting "Hide keyboard" Button
+    t =     1.19s         Wait for com.apple.springboard to idle
+    t =     1.21s     Synthesize event
+    t =     1.21s         Scroll element to visible
+    t =     1.21s         Find the "Hide keyboard" Button
+    t =     1.24s         Computed hit point {-1, -1} after scrolling to visible
+    t =     1.24s         Failed: Failed to scroll to visible (by AX action) Button, {{1042.5, 1083.0}, {133.5, 84.0}}, label: 'Hide keyboard', error: Error kAXErrorFailure performing AXAction kAXScrollToVisibleAction on element AX element pid: 68195, elementOrHash.elementID: 481091024800.140
+    t =     2.25s     Retrying `Tap "Hide keyboard" Button` (attempt #2)
+    t =     2.25s         Wait for com.novalist.app to idle
+    t =     2.25s         Find the "Hide keyboard" Button
+    t =     2.27s         Check for interrupting elements affecting "Hide keyboard" Button
+    t =     2.30s             Wait for com.apple.springboard to idle
+    t =     2.31s         Synthesize event
+    t =     2.32s             Scroll element to visible
+    t =     2.32s             Find the "Hide keyboard" Button
+    t =     2.35s             Computed hit point {-1, -1} after scrolling to visible
+    t =     2.35s             Failed: Failed to scroll to visible (by AX action) Button, {{1042.5, 1083.0}, {133.5, 84.0}}, label: 'Hide keyboard', error: Error kAXErrorFailure performing AXAction kAXScrollToVisibleAction on element AX element pid: 68195, elementOrHash.elementID: 481091024800.140
+    t =     3.35s     Retrying `Tap "Hide keyboard" Button` (attempt #3)
+    t =     3.35s         Wait for com.novalist.app to idle
+    t =     3.36s         Find the "Hide keyboard" Button
+    t =     3.38s         Check for interrupting elements affecting "Hide keyboard" Button
+    t =     3.40s             Wait for com.apple.springboard to idle
+    t =     3.42s         Synthesize event
+    t =     3.42s             Scroll element to visible
+    t =     3.42s             Find the "Hide keyboard" Button
+    t =     3.46s             Computed hit point {-1, -1} after scrolling to visible
+    t =     3.46s             Failed: Failed to scroll to visible (by AX action) Button, {{1042.5, 1083.0}, {133.5, 84.0}}, label: 'Hide keyboard', error: Error kAXErrorFailure performing AXAction kAXScrollToVisibleAction on element AX element pid: 68195, elementOrHash.elementID: 481091024800.140
+    t =     3.46s Requesting snapshot of accessibility hierarchy for app with pid 68195
+<audit-scratch>/ipad-harness/AuditUITests.swift:7: error: -[AuditUITests.AuditUITests testPrepareTwoIndependentPanes] : Failed to failed to scroll to visible (by AX action) Button, {{1042.5, 1083.0}, {133.5, 84.0}}, label: 'Hide keyboard', error: Error kAXErrorFailure performing AXAction kAXScrollToVisibleAction on element AX element pid: 68195, elementOrHash.elementID: 481091024800.140. (Underlying Error: Error kAXErrorFailure performing AXAction kAXScrollToVisibleAction on element AX element pid: 68195, elementOrHash.elementID: 481091024800.140)
+    t =     3.52s Tear Down
+Test Case '-[AuditUITests.AuditUITests testPrepareTwoIndependentPanes]' failed (3.534 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 13:56:36.064.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.534 (3.538) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 13:56:36.064.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.534 (3.538) seconds
+Test Suite 'All tests' failed at 2026-10-07 13:56:36.064.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.534 (3.539) seconds
+2026-10-07 13:56:36.344 xcodebuild[69356:3813268] [MT] IDETestOperationsObserverDebug: 6.247 elapsed -- Testing started completed.
+2026-10-07 13:56:36.344 xcodebuild[69356:3813268] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 13:56:36.344 xcodebuild[69356:3813268] [MT] IDETestOperationsObserverDebug: 6.247 sec, +6.247 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/two-pane-setup-v2.xcresult
+
+Failing tests:
+	AuditUITests.testPrepareTwoIndependentPanes()
+
+** TEST FAILED **
+
+Testing started

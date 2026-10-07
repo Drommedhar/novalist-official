@@ -1,0 +1,11 @@
+{
+  "installed": true,
+  "active": {
+    "tag": "INPUT",
+    "classes": "dialog-input",
+    "role": null,
+    "label": null,
+    "placeholder": "What needs doing",
+    "text": null
+  }
+}

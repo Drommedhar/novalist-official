@@ -1,0 +1,102 @@
+Test Suite 'All tests' started at 2026-10-07 13:58:05.163.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 13:58:05.163.
+Test Suite 'AuditUITests' started at 2026-10-07 13:58:05.163.
+Test Case '-[AuditUITests.AuditUITests testNativeNestedShortcut]' started.
+    t =     0.00s Start Test at 2026-10-07 13:58:05.165
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Checking existence of `"Close" Button`
+    t =     0.06s Tap "Inspector" Button
+    t =     0.06s     Wait for com.novalist.app to idle
+    t =     0.06s     Find the "Inspector" Button
+    t =     0.08s     Check for interrupting elements affecting "Inspector" Button
+    t =     0.10s     Synthesize event
+    t =     0.39s     Wait for com.novalist.app to idle
+    t =     0.40s Waiting 10.0s for "Close" Button to exist
+objc[69770]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x109094398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1091cc310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.43s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =     1.43s         Checking existence of `"Close" Button`
+    t =     1.45s Tap "To do" Button
+    t =     1.45s     Wait for com.novalist.app to idle
+    t =     1.45s     Find the "To do" Button
+    t =     1.47s     Check for interrupting elements affecting "To do" Button
+    t =     1.49s     Synthesize event
+    t =     1.78s     Wait for com.novalist.app to idle
+    t =     1.78s Waiting 5.0s for "What needs doing" TextField to exist
+    t =     2.85s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =     2.85s         Checking existence of `"What needs doing" TextField`
+    t =     2.87s Tap "What needs doing" TextField
+    t =     2.87s     Wait for com.novalist.app to idle
+    t =     2.88s     Find the "What needs doing" TextField
+    t =     2.89s     Check for interrupting elements affecting "What needs doing" TextField
+    t =     2.91s     Synthesize event
+    t =     3.20s     Wait for com.novalist.app to idle
+    t =     3.47s Type 'p' key with modifiers '⌘⇧' (0x12)
+    t =     3.47s     Wait for com.novalist.app to idle
+    t =     3.48s     Find the Application 'com.novalist.app'
+    t =     3.50s     Check for interrupting elements affecting "Novalist" Application
+    t =     3.52s     Synthesize event
+    t =     3.87s     Wait for com.novalist.app to idle
+    t =     5.00s Requesting snapshot of accessibility hierarchy for app with pid 68379
+    t =     5.06s Requesting snapshot of accessibility hierarchy for app with pid 68379
+R15_NESTED_AFTER_COMMAND
+Attributes: Application, 0x108c41900, pid: 68379, label: 'Novalist'
+Element subtree:
+ →Application, 0x108c41900, pid: 68379, label: 'Novalist'
+    Window (Main), 0x108c41a40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c417c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c41cc0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x108c41f40, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108c41b80, {{0.0, 0.0}, {402.0, 874.0}}
+              WebView, 0x108c42580, {{0.0, 0.0}, {402.0, 874.0}}
+                WebView, 0x108c42300, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x108c41e00, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c42440, {{0.0, 0.0}, {402.0, 102.0}}
+                  WebView, 0x108c42800, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c43980, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x108c43ac0, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x108c43840, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x108c43700, {{0.0, 0.0}, {402.0, 874.0}}, label: 'Novalist', Focused
+                            Other, 0x108c435c0, {{0.0, 0.0}, {0.0, 0.0}}, Disabled
+                  Other, 0x108c43340, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108c43480, {{0.0, 0.0}, {402.0, 102.0}}
+                  Other, 0x108c43200, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108c430c0, {{396.0, 65.0}, {3.0, 744.0}}
+                  Other, 0x108c42f80, {{369.0, 62.0}, {30.0, 750.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x108c42e40, {{396.0, 65.0}, {3.0, 744.0}}
+              Other, 0x108c42d00, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108c42a80, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x108c42bc0, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x108c42940, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108c426c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108c42080, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x108c41900, pid: 68379, label: 'Novalist'
+Query chain:
+ →Find: Application 'com.novalist.app'
+  Output: {
+    Application, 0x108c40140, pid: 68379, label: 'Novalist'
+  }
+
+    t =     5.07s Find the Application 'com.novalist.app'
+    t =     5.13s Added attachment named 'native-nested-command'
+    t =     5.13s Tear Down
+Test Case '-[AuditUITests.AuditUITests testNativeNestedShortcut]' passed (5.156 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 13:58:10.321.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.156 (5.158) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 13:58:10.321.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.156 (5.158) seconds
+Test Suite 'All tests' passed at 2026-10-07 13:58:10.321.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.156 (5.158) seconds
+2026-10-07 13:58:10.606 xcodebuild[69752:3819194] [MT] IDETestOperationsObserverDebug: 7.854 elapsed -- Testing started completed.
+2026-10-07 13:58:10.606 xcodebuild[69752:3819194] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 13:58:10.606 xcodebuild[69752:3819194] [MT] IDETestOperationsObserverDebug: 7.854 sec, +7.854 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/06-native-nested.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

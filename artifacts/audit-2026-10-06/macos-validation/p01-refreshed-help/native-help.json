@@ -1,0 +1,251 @@
+{
+  "status": "pass",
+  "date": "2026-10-07",
+  "source_revision": "6cdda9918f188f966b7e4996b80e49fe9193d173",
+  "source_note": "Clean production code with current uncommitted refreshed manual PNGs; no runtime probes or product edits for capture.",
+  "simulator": {
+    "model": "iPad Pro 13-inch (M5)",
+    "runtime": "iOS27.0",
+    "new_dedicated_simulator": true
+  },
+  "bundle": {
+    "installed_tree_sha256": "e3af065b470c43ac10f4433fdf84ddcae48e7d0a8637e7617e1c35578e0fbac0",
+    "installed_matches_root_build": true,
+    "hash_method": "SHA256 of compact sorted JSON mapping bundle-relative file paths to SHA256",
+    "file_count": 597,
+    "entry_scripts": [
+      "./assets/index.mobile-B1MmiCY0.js"
+    ]
+  },
+  "checks": [
+    {
+      "name": "Actual bookshelf More project actions → Novalist Manual → Dashboard UI",
+      "status": "pass",
+      "image_alt": "The project Dashboard",
+      "visual_result": "Current Cartographer dashboard screenshot decoded and visible with word totals, goal tracking and writing-history chart."
+    },
+    {
+      "name": "Actual Manual → Editor UI",
+      "status": "pass",
+      "image_alt": "A scene open in the editor with the Context inspector and scene-notes dock",
+      "visual_result": "Current Cartographer editor screenshot decoded and visible with selected scene prose, outline, Context inspector and notes dock."
+    },
+    {
+      "name": "All11 current manual image hashes in installed native bundle and referenced by its entry JS",
+      "status": "pass",
+      "images": [
+        {
+          "manual_image": "calendar.png",
+          "sha256": "bcc889398e71b1f4d9e81ce944443e11ae51fd702d953ed5267a30046b59fc52",
+          "native_bundle_paths": [
+            "app/assets/calendar-DdkM0wfE.png"
+          ],
+          "png": {
+            "width": 1440,
+            "height": 900,
+            "bit_depth": 8,
+            "color_type": 2,
+            "compression": 0,
+            "filter": 0,
+            "interlace": 0
+          },
+          "referenced_by_current_entry": true
+        },
+        {
+          "manual_image": "codex.png",
+          "sha256": "be8cfa88e31571771a62cda230b6d17c8f13ebcac4d1955d7aa7ec750f817b07",
+          "native_bundle_paths": [
+            "app/assets/codex-DMo_JcCi.png"
+          ],
+          "png": {
+            "width": 1440,
+            "height": 900,
+            "bit_depth": 8,
+            "color_type": 2,
+            "compression": 0,
+            "filter": 0,
+            "interlace": 0
+          },
+          "referenced_by_current_entry": true
+        },
+        {
+          "manual_image": "command-palette.png",
+          "sha256": "bd33875bb2565ea0e71ce2e47a1351cb7e2b5fc3847963cc16eb6725d9fed3ef",
+          "native_bundle_paths": [
+            "app/assets/command-palette-DjhKRw0B.png"
+          ],
+          "png": {
+            "width": 1440,
+            "height": 900,
+            "bit_depth": 8,
+            "color_type": 2,
+            "compression": 0,
+            "filter": 0,
+            "interlace": 0
+          },
+          "referenced_by_current_entry": true
+        },
+        {
+          "manual_image": "dashboard.png",
+          "sha256": "d7748a0ccfe13a71ec2e0d464bb976268a841c842be02b03e11cc76f33a26836",
+          "native_bundle_paths": [
+            "app/assets/dashboard-CoZKBSNW.png"
+          ],
+          "png": {
+            "width": 1440,
+            "height": 900,
+            "bit_depth": 8,
+            "color_type": 2,
+            "compression": 0,
+            "filter": 0,
+            "interlace": 0
+          },
+          "referenced_by_current_entry": true
+        },
+        {
+          "manual_image": "editor.png",
+          "sha256": "8d91efe86a1deb0a97f28e0eb82c5130aa91660b00709666ff9786ede1341906",
+          "native_bundle_paths": [
+            "app/assets/editor-BSL7L5ZG.png"
+          ],
+          "png": {
+            "width": 1440,
+            "height": 900,
+            "bit_depth": 8,
+            "color_type": 2,
+            "compression": 0,
+            "filter": 0,
+            "interlace": 0
+          },
+          "referenced_by_current_entry": true
+        },
+        {
+          "manual_image": "interface-overview.png",
+          "sha256": "f7293a5e48cab3fba7214dfd1ffcea571a1058a1cdbd1cc03692dd3a910e19a6",
+          "native_bundle_paths": [
+            "app/assets/interface-overview-DJ-nj8dU.png"
+          ],
+          "png": {
+            "width": 1440,
+            "height": 900,
+            "bit_depth": 8,
+            "color_type": 2,
+            "compression": 0,
+            "filter": 0,
+            "interlace": 0
+          },
+          "referenced_by_current_entry": true
+        },
+        {
+          "manual_image": "manuscript.png",
+          "sha256": "61029447c5ba15b03d33103307cbfa2fe3f68ebbf413a8532fbf7c26d2b9da70",
+          "native_bundle_paths": [
+            "app/assets/manuscript-8GR9Bmvk.png"
+          ],
+          "png": {
+            "width": 1440,
+            "height": 900,
+            "bit_depth": 8,
+            "color_type": 2,
+            "compression": 0,
+            "filter": 0,
+            "interlace": 0
+          },
+          "referenced_by_current_entry": true
+        },
+        {
+          "manual_image": "plot-grid.png",
+          "sha256": "318a71f9ffba14dddb6a14e8552a692a94fa502f77eff30ce7e317caa74e8d5b",
+          "native_bundle_paths": [
+            "app/assets/plot-grid-dqsM7MKk.png"
+          ],
+          "png": {
+            "width": 1440,
+            "height": 900,
+            "bit_depth": 8,
+            "color_type": 2,
+            "compression": 0,
+            "filter": 0,
+            "interlace": 0
+          },
+          "referenced_by_current_entry": true
+        },
+        {
+          "manual_image": "relationships.png",
+          "sha256": "ac2b614c9fabf8778bbbbcebf37fa441cf7912e5dd94358204e0b459d533d075",
+          "native_bundle_paths": [
+            "app/assets/relationships-BdqR86RI.png"
+          ],
+          "png": {
+            "width": 1440,
+            "height": 900,
+            "bit_depth": 8,
+            "color_type": 2,
+            "compression": 0,
+            "filter": 0,
+            "interlace": 0
+          },
+          "referenced_by_current_entry": true
+        },
+        {
+          "manual_image": "start-screen.png",
+          "sha256": "2342037b40fa93b74acd2c71e7cebd8b92bc29b4653a2625d9ac5dabbb5bf493",
+          "native_bundle_paths": [
+            "app/assets/start-screen-DKjL68mm.png"
+          ],
+          "png": {
+            "width": 1440,
+            "height": 900,
+            "bit_depth": 8,
+            "color_type": 2,
+            "compression": 0,
+            "filter": 0,
+            "interlace": 0
+          },
+          "referenced_by_current_entry": true
+        },
+        {
+          "manual_image": "timeline.png",
+          "sha256": "6853f326bc64e0d22c245d1875ee53bced1890ea69ed1fec24d11225fe525e2f",
+          "native_bundle_paths": [
+            "app/assets/timeline-CXLeJ17N.png"
+          ],
+          "png": {
+            "width": 1440,
+            "height": 900,
+            "bit_depth": 8,
+            "color_type": 2,
+            "compression": 0,
+            "filter": 0,
+            "interlace": 0
+          },
+          "referenced_by_current_entry": true
+        }
+      ]
+    },
+    {
+      "name": "Synthetic fixture preservation",
+      "status": "pass",
+      "file_count": 82,
+      "all_file_hashes_unchanged_after_reinstall_and_help": true
+    },
+    {
+      "name": "App Store iPad captures remain frozen",
+      "status": "pass",
+      "all9_match_frozen_hashes": true
+    }
+  ],
+  "native_test_seconds": 44.1,
+  "navigation_note": "Initial accessibility activation did not expose the HTML summary menu; native touch with one retry opened it. The successful test then used real page buttons. No product correction needed.",
+  "evidence": {
+    "native-help.swift": "6878e15fec4132203dbb8c2caa2eeda045e80c81edff903712838e7db26eb380",
+    "native-help-dashboard.png": "b20dea31488120c09a0337cdda6a6032b0f75777fac1a03c58554bc3e1a82767",
+    "native-help-editor.png": "c0c7aa725ffa56ae9688159fb60136c29abb9f5ca8725444c7b9b0ce6be1b844",
+    "native-help-bundle-images.json": "ca0c2eddfefafc46b0b19e582ff9a557afd69a64def3e3185686670a1bfac686",
+    "native-help-project-preserved.json": "ee27afc0e12fa326c326a9a5dbbe811761adcf1d2974bf03ba00188c1b23c41d"
+  },
+  "limitations": [
+    "Targeted simulator rendering check; full47-page and11-image offline traversal is recorded separately by desktop validation.",
+    "No physical-device, performance, distribution or release claim."
+  ]
+}

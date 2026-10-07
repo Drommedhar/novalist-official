@@ -1,0 +1,445 @@
+{
+  "events": [
+    {
+      "type": "click",
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "BUTTON",
+        "id": "",
+        "classes": "mobile-sheet-tab",
+        "role": null,
+        "label": null,
+        "placeholder": null,
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "BODY",
+        "id": "",
+        "classes": "",
+        "role": null,
+        "label": null,
+        "placeholder": null,
+        "inert": false,
+        "sheet": false
+      },
+      "after": {
+        "tag": "BODY",
+        "id": "",
+        "classes": "",
+        "role": null,
+        "label": null,
+        "placeholder": null,
+        "inert": false,
+        "sheet": false
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "focusin",
+      "trusted": true,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "click",
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "keydown",
+      "key": "r",
+      "code": "KeyR",
+      "keyCode": 82,
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "keyup",
+      "key": "r",
+      "code": "KeyR",
+      "keyCode": 82,
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "keydown",
+      "key": "Tab",
+      "code": "Tab",
+      "keyCode": 9,
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "inspector-input tasks-list-name",
+        "role": null,
+        "label": null,
+        "placeholder": "List (optional)",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "focusin",
+      "trusted": true,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "inspector-input tasks-list-name",
+        "role": null,
+        "label": null,
+        "placeholder": "List (optional)",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "inspector-input tasks-list-name",
+        "role": null,
+        "label": null,
+        "placeholder": "List (optional)",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "inspector-input tasks-list-name",
+        "role": null,
+        "label": null,
+        "placeholder": "List (optional)",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "keyup",
+      "key": "Tab",
+      "code": "Tab",
+      "keyCode": 9,
+      "trusted": true,
+      "shift": false,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "inspector-input tasks-list-name",
+        "role": null,
+        "label": null,
+        "placeholder": "List (optional)",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "inspector-input tasks-list-name",
+        "role": null,
+        "label": null,
+        "placeholder": "List (optional)",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "inspector-input tasks-list-name",
+        "role": null,
+        "label": null,
+        "placeholder": "List (optional)",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "keydown",
+      "key": "Tab",
+      "code": "Tab",
+      "keyCode": 9,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "inspector-input tasks-list-name",
+        "role": null,
+        "label": null,
+        "placeholder": "List (optional)",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "inspector-input tasks-list-name",
+        "role": null,
+        "label": null,
+        "placeholder": "List (optional)",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "focusin",
+      "trusted": true,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    },
+    {
+      "type": "keyup",
+      "key": "Tab",
+      "code": "Tab",
+      "keyCode": 9,
+      "trusted": true,
+      "shift": true,
+      "meta": false,
+      "target": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "active": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "after": {
+        "tag": "INPUT",
+        "id": "",
+        "classes": "dialog-input",
+        "role": null,
+        "label": null,
+        "placeholder": "What needs doing",
+        "inert": false,
+        "sheet": true
+      },
+      "prevented": false,
+      "dialogs": 1
+    }
+  ],
+  "active": {
+    "tag": "INPUT",
+    "id": "",
+    "classes": "dialog-input",
+    "role": null,
+    "label": null,
+    "placeholder": "What needs doing",
+    "inert": false,
+    "sheet": true
+  },
+  "sheet": true
+}

@@ -1,0 +1,16 @@
+{
+  "result": "Initial observer test failed; no product failure inferred",
+  "xctest_reported_app_state": 4,
+  "xctest_wait_seconds": 25,
+  "real_action_time_utc": "2026-10-07T12:06:50.889707+00:00",
+  "os_background_and_suspension_records": [
+    "2026-10-07 14:06:53.702 Df runningboardd[51276:3b19d7] [com.apple.runningboard:ttl] [app<com.novalist.app((null))>:71442] Set darwin role to: Background",
+    "2026-10-07 14:06:53.702 Df runningboardd[51276:3b19cb] [com.apple.runningboard:monitor] Calculated state for app<com.novalist.app((null))>: running-active (role: Background) (endowments: {(",
+    "2026-10-07 14:06:55.007 Df runningboardd[51276:3b19cb] [com.apple.runningboard:ttl] [app<com.novalist.app((null))>:71442] Suspending task.",
+    "2026-10-07 14:06:55.007 Df runningboardd[51276:3b1a47] [com.apple.runningboard:monitor] Calculated state for app<com.novalist.app((null))>: running-suspended (role: None) (endowments: {("
+  ],
+  "actual_locked_state_after": 1,
+  "explanation": "The XCTest state query reported foreground during a true lock. RunningBoard records show background and suspension before the test ended, so this was not a lock deferred until test completion. The successful pending-edit case uses actual SpringBoard lock-state polling, a lock-screen image and native lifecycle/grant events instead.",
+  "original_raw_log_sha256": "a93c8395bad0c348e444441e121b41a76400be7da8a4982306c0ebde7b349d1a",
+  "original_failed_xctest_log_sha256": "e39c41b8f6c384eb6e6ad8a8db397cb86bedb6b7a2f113ccd242669c7df8af8f"
+}

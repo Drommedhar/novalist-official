@@ -1,0 +1,51 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 14:17:16.224.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:17:16.224.
+Test Suite 'AuditUITests' started at 2026-10-07 14:17:16.224.
+Test Case '-[AuditUITests.AuditUITests testExplicitlyResolveSyntheticConflict]' started.
+    t =     0.00s Start Test at 2026-10-07 14:17:16.229
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.03s Setting device orientation to Portrait
+    t =     0.04s     Wait for com.novalist.app to idle
+    t =     0.04s Waiting 10.0s for "Take all of mine" Button to exist
+objc[77023]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x104a40398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x107ae8310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.12s     Checking `Expect predicate `existsNoRetry == 1` for object "Take all of mine" Button`
+    t =     1.12s         Checking existence of `"Take all of mine" Button`
+    t =     1.15s Tap "Take all of mine" Button
+    t =     1.15s     Wait for com.novalist.app to idle
+    t =     1.15s     Find the "Take all of mine" Button
+    t =     1.16s     Check for interrupting elements affecting "Take all of mine" Button
+    t =     1.18s     Synthesize event
+    t =     1.47s     Wait for com.novalist.app to idle
+    t =     1.48s Tap "Save this version" Button
+    t =     1.48s     Wait for com.novalist.app to idle
+    t =     1.48s     Find the "Save this version" Button
+    t =     1.50s     Check for interrupting elements affecting "Save this version" Button
+    t =     1.52s     Synthesize event
+    t =     1.81s     Wait for com.novalist.app to idle
+    t =     1.81s Waiting 15.0s for "Take all of mine" Button to not exist
+    t =     2.87s     Checking `Expect predicate `existsNoRetry == 0` for object "Take all of mine" Button`
+    t =     2.87s         Checking existence of `"Take all of mine" Button`
+    t =     2.97s Checking existence of `"Editing paused" StaticText`
+M01_SYNTHETIC_CONFLICT_EXPLICITLY_RESOLVED
+    t =     3.04s Tear Down
+Test Case '-[AuditUITests.AuditUITests testExplicitlyResolveSyntheticConflict]' passed (3.047 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 14:17:19.276.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.047 (3.052) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 14:17:19.277.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.047 (3.053) seconds
+Test Suite 'All tests' passed at 2026-10-07 14:17:19.277.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.047 (3.053) seconds
+2026-10-07 14:17:19.565 xcodebuild[76983:3908469] [MT] IDETestOperationsObserverDebug: 8.791 elapsed -- Testing started completed.
+2026-10-07 14:17:19.565 xcodebuild[76983:3908469] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:17:19.565 xcodebuild[76983:3908469] [MT] IDETestOperationsObserverDebug: 8.791 sec, +8.791 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/conflict-cleanup.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

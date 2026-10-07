@@ -1,0 +1,90 @@
+Test Suite 'All tests' started at 2026-10-07 14:10:53.465.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:10:53.466.
+Test Suite 'AuditUITests' started at 2026-10-07 14:10:53.466.
+Test Case '-[AuditUITests.AuditUITests testNativeInspectorInput]' started.
+    t =     0.00s Start Test at 2026-10-07 14:10:53.471
+    t =     0.02s Set Up
+    t =     0.02s Terminate com.novalist.app:0
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Launch com.novalist.app
+    t =     0.04s         Wait for accessibility to load
+    t =     0.04s         Setting up automation session
+objc[75196]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x104e3c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x107f54310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     2.71s         Wait for com.novalist.app to idle
+    t =     4.27s Setting device orientation to Portrait
+    t =     4.27s     Wait for com.novalist.app to idle
+    t =     4.28s Waiting 25.0s for Any (First Match) to exist
+    t =     5.35s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =     5.35s         Checking existence of `Any (First Match)`
+    t =     5.40s         Capturing element debug description
+    t =     6.37s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =     6.37s         Checking existence of `Any (First Match)`
+    t =     6.40s Double tap Any (First Match)
+    t =     6.40s     Wait for com.novalist.app to idle
+    t =     6.40s     Find the Any (First Match)
+    t =     6.42s     Check for interrupting elements affecting "Select The Cartographer’s Daughter — The Cartographer's Daughter" Switch
+    t =     6.45s     Synthesize event
+    t =     6.80s     Wait for com.novalist.app to idle
+    t =     6.80s Waiting 20.0s for "Write" Button to exist
+    t =     7.88s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =     7.88s         Checking existence of `"Write" Button`
+    t =     8.00s Checking existence of `"Close tour" Button`
+    t =     8.19s Tap "Write" Button
+    t =     8.19s     Wait for com.novalist.app to idle
+    t =     8.20s     Find the "Write" Button
+    t =     8.29s     Check for interrupting elements affecting "Write" Button
+    t =     8.33s     Synthesize event
+    t =     8.62s     Wait for com.novalist.app to idle
+    t =    10.00s Waiting 15.0s for Button (First Match) to exist
+    t =    11.08s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    11.08s         Checking existence of `Button (First Match)`
+    t =    11.11s Tap Button (First Match)
+    t =    11.11s     Wait for com.novalist.app to idle
+    t =    11.11s     Find the Button (First Match)
+    t =    11.13s     Check for interrupting elements affecting "A Letter from Bellhaven 264" Button
+    t =    11.15s     Synthesize event
+    t =    11.43s     Wait for com.novalist.app to idle
+    t =    11.44s Waiting 15.0s for TextView (First Match) to exist
+    t =    12.52s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    12.52s         Checking existence of `TextView (First Match)`
+    t =    12.54s Waiting 3.0s for "selected" Button to exist
+    t =    13.61s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    13.61s         Checking existence of `"selected" Button`
+    t =    13.64s         Capturing element debug description
+    t =    14.61s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    14.61s         Checking existence of `"selected" Button`
+    t =    14.64s         Capturing element debug description
+    t =    15.55s     Checking `Expect predicate `existsNoRetry == 1` for object "selected" Button`
+    t =    15.55s         Checking existence of `"selected" Button`
+    t =    15.58s         Capturing element debug description
+    t =    15.58s     Checking existence of `"selected" Button`
+    t =    15.60s Collecting debug information to assist test failure triage
+    t =    15.60s     Requesting snapshot of accessibility hierarchy for app with pid 75205
+    t =    15.64s Tap "Inspector" Button
+    t =    15.64s     Wait for com.novalist.app to idle
+    t =    15.64s     Find the "Inspector" Button
+    t =    15.66s     Check for interrupting elements affecting "Inspector" Button
+    t =    15.68s     Synthesize event
+    t =    15.98s     Wait for com.novalist.app to idle
+    t =    15.98s Waiting 10.0s for "Close" Button to exist
+    t =    17.05s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =    17.06s         Checking existence of `"Close" Button`
+R15_OBSERVER_READY
+    t =    17.08s Tear Down
+Test Case '-[AuditUITests.AuditUITests testNativeInspectorInput]' passed (17.311 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 14:11:10.782.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.311 (17.316) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 14:11:10.782.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.311 (17.316) seconds
+Test Suite 'All tests' passed at 2026-10-07 14:11:10.783.
+	 Executed 1 test, with 0 failures (0 unexpected) in 17.311 (17.317) seconds
+2026-10-07 14:11:11.078 xcodebuild[75176:3884904] [MT] IDETestOperationsObserverDebug: 20.983 elapsed -- Testing started completed.
+2026-10-07 14:11:11.078 xcodebuild[75176:3884904] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:11:11.078 xcodebuild[75176:3884904] [MT] IDETestOperationsObserverDebug: 20.983 sec, +20.983 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/08-fixed-observer-open.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

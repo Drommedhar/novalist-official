@@ -1,0 +1,8 @@
+{
+  "source_revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+  "file_count": 597,
+  "tree_sha256": "e3af065b470c43ac10f4433fdf84ddcae48e7d0a8637e7617e1c35578e0fbac0",
+  "method": "SHA256 of compact sorted JSON of app-relative file paths to SHA256",
+  "frozen_copy_byte_identical": true,
+  "runtime_probes": false
+}

@@ -1,0 +1,9 @@
+{
+  "test_snapshot_revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+  "test_snapshot_patch_sha256": "144d9f95ea0d4d229c5d6d4367b13aee796452b2d2447de4e09196d098d5ab4d",
+  "subsequent_product_commit": "36b9d53bc27a7dd32c0cd39365e213cf2651d102",
+  "production_input_count": 1314,
+  "all_production_input_hashes_match_committed_current_source": true,
+  "binary_rebuilt_after_commit": false,
+  "explanation": "Native acceptance ran the pre-commit snapshot plus exact frozen patch. The subsequent commit changes no tested production bytes."
+}

@@ -1,0 +1,198 @@
+{
+  "finding": "M01",
+  "supporting_checks": [
+    "M01-04 scene lock/termination subset",
+    "M01-05 interrupted pending flush subset"
+  ],
+  "status": "passed-simulator-supporting-acceptance",
+  "finding_status_change": false,
+  "date": "2026-10-07",
+  "source_revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+  "environment": {
+    "model": "iPhone 17 Pro Max",
+    "os": "iOS 27.0",
+    "simulator_udid": "BE6B8D09-298D-4C2A-AA28-CF5946F951B3",
+    "dedicated_existing_synthetic_screenshot_simulator": true,
+    "other_audit_simulators_operated": false
+  },
+  "source_attribution": {
+    "clean_bundle_tree_sha256": "e3af065b470c43ac10f4433fdf84ddcae48e7d0a8637e7617e1c35578e0fbac0",
+    "clean_bundle_files": 597,
+    "probe_bundle_tree_sha256": "ed9a4fd75de32b2afeb7f34afbc69b191f7745376ecf3536e0290d76425b582b",
+    "probe_bundle_files": 571,
+    "probe_patch_sha256": "be3ef8b1a638d49bd9548ce5eb22820e5608a44f3a52741f0809bfe2b794ed13",
+    "production_input_manifest": "probe-production-inputs.json",
+    "renderer_asset_manifest": "probe-renderer-assets.json",
+    "probe_note": "Independent byte-identical copy of existing M01 control/lifecycle probe build; no new product source edits. Clean build frozen before concurrent source work and restored for final native reopen."
+  },
+  "lock_control": {
+    "application": "Xcode 27 DeviceHub",
+    "target": "AX row with identifier TableRow.Device.BE6B8D09-298D-4C2A-AA28-CF5946F951B3",
+    "action": "Select exact row; verify window title and selection; open Controls menu; assert Lock enabled; AXPress Lock menu item.",
+    "existing_accessibility_permission": true,
+    "new_permissions_requested": false,
+    "global_keys_used": false,
+    "display_power_substitution": false,
+    "notifications_posted": false,
+    "read_only_os_observation": "simctl spawn <exact simulator> notifyutil -g com.apple.springboard.lockstate",
+    "status_clock_note": "Previously configured 9:41 status override is visible in lock-screen captures; event timings below come from host/native timestamps, not the displayed clock."
+  },
+  "pending_write_case": {
+    "input": "Native XCTest typed M01REALLOCKPENDING26 into the newly created separate Audit M01 Lock Fixture scene.",
+    "fault": "Temporary transport gate withholds only real scenes/write requests whose chapter/scene IDs equal that exact editor. Other scene writes and all other messages remain forwarded; no edit or lock notification is synthesized.",
+    "before_lock": {
+      "editor_is_dirty": true,
+      "dirty_map_true": true,
+      "exact_scope_journal_entries": 1,
+      "real_scene_writes_held": 1,
+      "unrelated_scene_writes_forwarded": 0,
+      "marker_found_on_disk": false
+    },
+    "locked": {
+      "springboard_lockstate": 1,
+      "native_background_granted": true,
+      "background_acknowledgement_before_termination": false,
+      "editor_and_journal_retain_marker": true,
+      "marker_found_on_disk": false
+    },
+    "after_termination_marker_found_on_disk": false,
+    "after_recovery": {
+      "actual_ui_recovered_and_reopened_exact_scene": true,
+      "marker_file_count": 1,
+      "marker_count_in_file": 1,
+      "same_project_book_draft_chapter_scene": true,
+      "journal_entries": 0,
+      "editor_dirty": false,
+      "gate_present": false
+    },
+    "exact_owner": {
+      "projectId": "project-1791375078213",
+      "project_relative": "Audit M01 Lock Fixture",
+      "bookId": "book-1791375078213",
+      "bookFolder": "Audit M01 Lock Book",
+      "draftId": "draft-default",
+      "draftFolder": "default",
+      "chapterGuid": "6344ebbf-a951-4c55-9696-ea67b33f2e6d",
+      "sceneId": "38d01085-e6cb-4fad-a631-4e4a8df22d9b",
+      "sceneFile": "scene-01.novalist",
+      "project_metadata_sha256": "9372b332a010221d2aa3236d5d9988a6bb1e3483ea95e878488622ef8932d8be",
+      "scene_index_sha256": "e991f9d0bcd0de45f9bf8567cf19606f2a0d7e4c590f09dbfc149c9d85c74356"
+    },
+    "disk_after_recovery": {
+      "path": "Audit M01 Lock Fixture/Audit M01 Lock Book/Drafts/default/Chapters/01 - Audit Lock Chapter/scene-01.novalist",
+      "sha256": "dd068c01ad578d6c35c5ed5a2b6a805d3f29518a1ca85a4c6d072052dbb03417",
+      "header_scene_id_matches": true,
+      "marker_count": 1
+    }
+  },
+  "timing_utc": {
+    "native_edit_done": "2026-10-07T12:15:01.856902+00:00",
+    "native_test_session_completed": "2026-10-07T12:15:02.254964+00:00",
+    "real_lock_action_started": "2026-10-07T12:15:04.403926+00:00",
+    "real_lock_action_completed": "2026-10-07T12:15:04.749521+00:00",
+    "background_task_granted": "2026-10-07T12:15:05.374299+00:00",
+    "first_observed_locked": "2026-10-07T12:15:06.886051+00:00",
+    "termination_started": "2026-10-07T12:15:07.807574+00:00",
+    "termination_completed": "2026-10-07T12:15:07.945331+00:00"
+  },
+  "validation": {
+    "fixture-setup": {
+      "passed": true,
+      "test_seconds": 26.674,
+      "raw_log_sha256": "69cabeaf0c6074e16d4d4840fb8678c86c992d4622b48cb1bc3525daf141d47a",
+      "swift_sha256": "656bc696ca830a4e4c175f3be149722060df1516b9a9f3b57474a81f1a354edf"
+    },
+    "pending-edit": {
+      "passed": true,
+      "test_seconds": 11.22,
+      "raw_log_sha256": "f7b4f699e6634c76b6fe65d422fb9f1a5cc72170a5fb6e338877ff59df52ebcc",
+      "swift_sha256": "dd537b795801c9278b43101a4c8ef192c210102a7c01476bb108773b4d949f6e"
+    },
+    "recovery": {
+      "passed": true,
+      "test_seconds": 14.306,
+      "raw_log_sha256": "0a17df2059318fe5abdce0e7f970a4abd1b2a3d80110352f2fcc095090b0d626",
+      "swift_sha256": "7854ce68f3944ea0bdf439726634b6c23aa8a2c2707cf1d4afd61488af67ef2b"
+    },
+    "clean-reopen": {
+      "passed": true,
+      "test_seconds": 16.416,
+      "raw_log_sha256": "4c232fafc7c610fd00bb56af1eaacff9835314d37ae54123b417d651687a2ce8",
+      "swift_sha256": "fde2a373894cc3e1196a96644888bcc5f435dee1b17f42dd995ed591afb5f682"
+    }
+  },
+  "clean_removal": {
+    "clean_source_revision": "29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1",
+    "clean_bundle_byte_identical_to_frozen_597_files": true,
+    "tree_sha256": "e3af065b470c43ac10f4433fdf84ddcae48e7d0a8637e7617e1c35578e0fbac0",
+    "probe_control_directory_absent": true,
+    "original_fixture_files": 82,
+    "original_fixture_hashes_unchanged": true,
+    "audit_fixture_hashes_unchanged_after_clean_repeat": true,
+    "scene_path_and_sha256_unchanged": true,
+    "clean_native_reopen_passed": true
+  },
+  "evidence": {
+    "detailed_record": "pending-lock.json",
+    "lock_screen": "pending-locked-screen.png",
+    "recovered_scene": "pending-recovered-screen.png",
+    "clean_reopened_scene": "clean-reopened-screen.png",
+    "initial_observer_limitation": "observer-mismatch.json",
+    "native_test_sources": [
+      "fixture-setup.swift",
+      "pending-edit.swift",
+      "recovery.swift",
+      "clean-reopen.swift"
+    ],
+    "transport_gate": "hold-scene-write.js",
+    "native_probe_diff": "probe-native-control-lifecycle.patch"
+  },
+  "preservation": {
+    "original_cartographer_files": 82,
+    "all_original_cartographer_hashes_unchanged": true,
+    "original_fixture_manifest_sha256": "c0ceb0a440c3cf06d3e3f817aa49586718de9141cd9fec1dc34e7debafe55c02",
+    "separate_audit_project_created_via_actual_native_ui": true,
+    "audit_project_unchanged_after_clean_reinstall_and_reopen": true,
+    "clean_app_restored": true,
+    "temporary_control_directory_removed": true
+  },
+  "procedure_sanitization": {
+    "inspect-simulator-ax.py": {
+      "original_sha256": "27098ab8adb832b8e95cd1455d686324eeef6a68330dd9983fb9e0210b74091c",
+      "published_sha256": "27098ab8adb832b8e95cd1455d686324eeef6a68330dd9983fb9e0210b74091c",
+      "change": "Only private working-directory/repository constants replaced with script-directory or NOVALIST_REPO references; assertions/actions unchanged."
+    },
+    "devicehub-select.py": {
+      "original_sha256": "f3a698c8fc3850c6c6bfc6c3d25d98d6dc7b6b75f98a38891208ab8087569639",
+      "published_sha256": "b50e363be1a4596c415e8e3b5b0268a74ff5b1328115b20da034c58db1b2c7bf",
+      "change": "Only private working-directory/repository constants replaced with script-directory or NOVALIST_REPO references; assertions/actions unchanged."
+    },
+    "devicehub-controls.py": {
+      "original_sha256": "7d8ee61fac128fb0615278ae1260bc3c79199026a0b028fb935e326aeddf9b3c",
+      "published_sha256": "38250fdc39907302520afd3f0f4da6547172c25329a8920f697a80914054a0de",
+      "change": "Only private working-directory/repository constants replaced with script-directory or NOVALIST_REPO references; assertions/actions unchanged."
+    },
+    "run-native.py": {
+      "original_sha256": "7f8b148e7c43fee9ac165641c170e4c7f916a8a46fe2d68be033bf417525ec81",
+      "published_sha256": "7f8b148e7c43fee9ac165641c170e4c7f916a8a46fe2d68be033bf417525ec81",
+      "change": "Only private working-directory/repository constants replaced with script-directory or NOVALIST_REPO references; assertions/actions unchanged."
+    },
+    "run-pending-lock.py": {
+      "original_sha256": "142fe1d0607040a6db996df0f7539c63c4710892f3046891ea0dead31bd2275a",
+      "published_sha256": "0aed0dfe7581febf58bd7260072cecd3628f2adfb3a08d26c69edad64db39e54",
+      "change": "Only private working-directory/repository constants replaced with script-directory or NOVALIST_REPO references; assertions/actions unchanged."
+    },
+    "record-recovery.py": {
+      "original_sha256": "a14642cdb17d9259e1395e03ceb19aef289c64bf7ed08dcf0a334899d183bfe7",
+      "published_sha256": "c15bc7c5d26b11dc1e0b67d7f7b8140ba1cd4bb916d0974f279da0b9b1eb9139",
+      "change": "Only private working-directory/repository constants replaced with script-directory or NOVALIST_REPO references; assertions/actions unchanged."
+    }
+  },
+  "limitations": [
+    "Supporting simulator scene coverage only; no physical-device acceptance or finding promotion.",
+    "Actual lock occurred after the native editing test ended, with the real scene write deliberately pending. This is not an uninstrumented immediate-lock timing claim.",
+    "This case does not validate lock recovery for Manuscript or Research, physical OS background policy, cloud-only storage or offline-provider behavior.",
+    "No product source, audit ledger, HTML report, commit or release was changed by this task.",
+    "Raw native logs, result bundles, frozen app bundles and fixture backups remain private; compact records, source hashes and synthetic screenshots are the publication candidates."
+  ]
+}

@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "<audit-scratch>/run-late-ack.py", line 98, in <module>
+    waitlog('M01_REOPENED_NEW_BUFFER_PASS')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<audit-scratch>/run-late-ack.py", line 59, in waitlog
+    raise RuntimeError('XCTest exited before ' + marker)
+RuntimeError: XCTest exited before M01_REOPENED_NEW_BUFFER_PASS

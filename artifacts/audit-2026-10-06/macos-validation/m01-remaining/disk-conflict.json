@@ -1,0 +1,19 @@
+{
+  "source": "source.json",
+  "scenario": "M01-09 real external disk modification and unresolved conflict through Home/termination/relaunch",
+  "simulator": "C9BC7CC6-C48A-431D-9CE0-BEA89C791D81",
+  "status": "failed",
+  "error": "RuntimeError: XCTest exited before M01_CONFLICT_READY_GATE",
+  "failure_observation": {
+    "scope": {
+      "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/C9BC7CC6-C48A-431D-9CE0-BEA89C791D81/data/Containers/Data/Application/B1D95138-427C-48F7-9650-ABB0EA8257EE/Documents/Audit Simulator Fixture",
+      "bookId": "book-1791361828422",
+      "draftId": "draft-default"
+    },
+    "editors": [],
+    "conflict": null,
+    "journal": [],
+    "gate": null,
+    "disk": null
+  }
+}

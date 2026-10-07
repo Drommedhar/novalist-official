@@ -1,0 +1,98 @@
+Test Suite 'All tests' started at 2026-10-07 13:54:12.248.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 13:54:12.248.
+Test Suite 'AuditUITests' started at 2026-10-07 13:54:12.248.
+Test Case '-[AuditUITests.AuditUITests testObserveNativeKeys]' started.
+    t =     0.00s Start Test at 2026-10-07 13:54:12.253
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.04s Waiting 10.0s for "Close" Button to exist
+objc[68588]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10194c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x105754310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.04s     Checking `Expect predicate `existsNoRetry == 1` for object "Close" Button`
+    t =     1.04s         Checking existence of `"Close" Button`
+    t =     1.06s Type '⎋' key (XCUIKeyboardKeyEscape) with no modifiers
+    t =     1.06s     Wait for com.novalist.app to idle
+    t =     1.06s     Find the Application 'com.novalist.app'
+    t =     1.07s     Check for interrupting elements affecting "Novalist" Application
+    t =     1.09s     Synthesize event
+    t =     1.31s     Wait for com.novalist.app to idle
+    t =     1.32s Type '↩' key (XCUIKeyboardKeyReturn) with no modifiers
+    t =     1.32s     Wait for com.novalist.app to idle
+    t =     1.32s     Find the Application 'com.novalist.app'
+    t =     1.34s     Check for interrupting elements affecting "Novalist" Application
+    t =     1.35s     Synthesize event
+    t =     1.57s     Wait for com.novalist.app to idle
+    t =     1.58s Checking existence of `"Close" Button`
+R15_CLOSE_STILL_OPEN=true
+    t =     1.59s Tap "To do" Button
+    t =     1.59s     Wait for com.novalist.app to idle
+    t =     1.60s     Find the "To do" Button
+    t =     1.61s     Check for interrupting elements affecting "To do" Button
+    t =     1.63s     Synthesize event
+    t =     1.92s     Wait for com.novalist.app to idle
+    t =     1.93s Waiting 5.0s for "What needs doing" TextField to exist
+    t =     3.00s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =     3.00s         Checking existence of `"What needs doing" TextField`
+    t =     3.02s Tap "What needs doing" TextField
+    t =     3.02s     Wait for com.novalist.app to idle
+    t =     3.02s     Find the "What needs doing" TextField
+    t =     3.03s     Check for interrupting elements affecting "What needs doing" TextField
+    t =     3.04s     Synthesize event
+    t =     3.33s     Wait for com.novalist.app to idle
+    t =     3.42s Type 'r' key with no modifiers
+    t =     3.42s     Wait for com.novalist.app to idle
+    t =     3.77s     Find the Application 'com.novalist.app'
+    t =     3.79s     Check for interrupting elements affecting "Novalist" Application
+    t =     3.81s     Synthesize event
+    t =     4.15s     Wait for com.novalist.app to idle
+    t =     4.19s Find the "What needs doing" TextField
+    t =     4.21s Type '⌫' key (XCUIKeyboardKeyDelete) with no modifiers
+    t =     4.21s     Wait for com.novalist.app to idle
+    t =     4.21s     Find the Application 'com.novalist.app'
+    t =     4.23s     Check for interrupting elements affecting "Novalist" Application
+    t =     4.24s     Synthesize event
+    t =     4.46s     Wait for com.novalist.app to idle
+    t =     4.50s Type '⇥' key (XCUIKeyboardKeyTab) with no modifiers
+    t =     4.50s     Wait for com.novalist.app to idle
+    t =     4.50s     Find the Application 'com.novalist.app'
+    t =     4.52s     Check for interrupting elements affecting "Novalist" Application
+    t =     4.53s     Synthesize event
+    t =     4.89s     Wait for com.novalist.app to idle
+    t =     4.93s Type '⇥' key (XCUIKeyboardKeyTab) with modifiers '⇧' (0x02)
+    t =     4.93s     Wait for com.novalist.app to idle
+    t =     4.93s     Find the Application 'com.novalist.app'
+    t =     4.95s     Check for interrupting elements affecting "Novalist" Application
+    t =     4.96s     Synthesize event
+    t =     5.32s     Wait for com.novalist.app to idle
+    t =     5.37s Type '⎋' key (XCUIKeyboardKeyEscape) with no modifiers
+    t =     5.37s     Wait for com.novalist.app to idle
+    t =     5.37s     Find the Application 'com.novalist.app'
+    t =     5.39s     Check for interrupting elements affecting "Novalist" Application
+    t =     5.40s     Synthesize event
+    t =     5.62s     Wait for com.novalist.app to idle
+    t =     5.66s Type '↩' key (XCUIKeyboardKeyReturn) with no modifiers
+    t =     5.66s     Wait for com.novalist.app to idle
+    t =     5.66s     Find the Application 'com.novalist.app'
+    t =     5.67s     Check for interrupting elements affecting "Novalist" Application
+    t =     5.69s     Synthesize event
+    t =     5.91s     Wait for com.novalist.app to idle
+R15_KEYS_COMPLETE
+    t =     5.94s Tear Down
+Test Case '-[AuditUITests.AuditUITests testObserveNativeKeys]' passed (5.989 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 13:54:18.242.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.989 (5.994) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 13:54:18.242.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.989 (5.994) seconds
+Test Suite 'All tests' passed at 2026-10-07 13:54:18.242.
+	 Executed 1 test, with 0 failures (0 unexpected) in 5.989 (5.995) seconds
+2026-10-07 13:54:18.528 xcodebuild[68562:3804127] [MT] IDETestOperationsObserverDebug: 8.870 elapsed -- Testing started completed.
+2026-10-07 13:54:18.528 xcodebuild[68562:3804127] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 13:54:18.528 xcodebuild[68562:3804127] [MT] IDETestOperationsObserverDebug: 8.870 sec, +8.870 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/04-observed-keys.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

@@ -1,0 +1,50 @@
+Test Suite 'All tests' started at 2026-10-07 14:31:15.017.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 14:31:15.018.
+Test Suite 'AuditUITests' started at 2026-10-07 14:31:15.018.
+Test Case '-[AuditUITests.AuditUITests testFixedNativeNestedReturnDigit]' started.
+    t =     0.00s Start Test at 2026-10-07 14:31:15.019
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.02s         Wait for com.novalist.app to idle
+    t =     0.03s Waiting 5.0s for "What needs doing" TextField to exist
+objc[82293]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x107b8c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x108924310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =     1.08s         Checking existence of `"What needs doing" TextField`
+    t =     1.10s Find the "What needs doing" TextField
+    t =     1.11s Find the "What needs doing" TextField
+    t =     1.13s Type '⌫' key (XCUIKeyboardKeyDelete) with no modifiers
+    t =     1.13s     Wait for com.novalist.app to idle
+    t =     1.13s     Find the Application 'com.novalist.app'
+    t =     1.15s     Check for interrupting elements affecting "Novalist" Application
+    t =     1.16s     Synthesize event
+    t =     1.37s     Wait for com.novalist.app to idle
+    t =     2.41s Type '7' key with no modifiers
+    t =     2.42s     Wait for com.novalist.app to idle
+    t =     2.42s     Find the Application 'com.novalist.app'
+    t =     2.43s     Check for interrupting elements affecting "Novalist" Application
+    t =     2.45s     Synthesize event
+    t =     2.79s     Wait for com.novalist.app to idle
+    t =     3.25s Find the "What needs doing" TextField
+<temporary-r15-harness>/AuditUITests.swift:13: error: -[AuditUITests.AuditUITests testFixedNativeNestedReturnDigit] : XCTAssertEqual failed: ("Optional("Q7")") is not equal to ("Optional("7")")
+    t =     3.31s Tear Down
+Test Case '-[AuditUITests.AuditUITests testFixedNativeNestedReturnDigit]' failed (3.324 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 14:31:18.343.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.324 (3.326) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 14:31:18.344.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.324 (3.326) seconds
+Test Suite 'All tests' failed at 2026-10-07 14:31:18.344.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.324 (3.326) seconds
+2026-10-07 14:31:18.632 xcodebuild[82272:3972085] [MT] IDETestOperationsObserverDebug: 6.051 elapsed -- Testing started completed.
+2026-10-07 14:31:18.632 xcodebuild[82272:3972085] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 14:31:18.632 xcodebuild[82272:3972085] [MT] IDETestOperationsObserverDebug: 6.051 sec, +6.051 sec -- end
+
+Test session results, code coverage, and logs:
+	<temporary-r15-harness>/15-final-nested-return-digit.xcresult
+
+Failing tests:
+	AuditUITests.testFixedNativeNestedReturnDigit()
+
+** TEST FAILED **
+
+Testing started

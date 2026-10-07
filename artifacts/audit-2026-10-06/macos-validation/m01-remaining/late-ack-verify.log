@@ -1,0 +1,49 @@
+Xcode build preamble omitted; raw file SHA256 is recorded in summary.json.
+Test Suite 'All tests' started at 2026-10-07 13:51:11.471.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 13:51:11.471.
+Test Suite 'AuditUITests' started at 2026-10-07 13:51:11.471.
+Test Case '-[AuditUITests.AuditUITests testVerifyAutomaticallyRecoveredScene]' started.
+    t =     0.00s Start Test at 2026-10-07 13:51:11.473
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.03s Waiting 10.0s for TextView (First Match) to exist
+objc[67872]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x109bc0398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10a8e0310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.09s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =     1.09s         Checking existence of `TextView (First Match)`
+    t =     1.11s Find the TextView (First Match)
+    t =     1.13s Tap "Chapters" Button
+    t =     1.13s     Wait for com.novalist.app to idle
+    t =     1.13s     Find the "Chapters" Button
+    t =     2.16s         Find the "Chapters" Button (retry 1)
+    t =     3.20s         Find the "Chapters" Button (retry 2)
+    t =     3.23s Requesting snapshot of accessibility hierarchy for app with pid 67523
+<audit-scratch>/harness/AuditUITests.swift:10: error: -[AuditUITests.AuditUITests testVerifyAutomaticallyRecoveredScene] : Failed to tap "Chapters" Button: No matches found for Elements matching predicate '"Chapters" IN identifiers' from input {(
+    Button, label: 'Manuscript',
+    Button, label: 'Inspector',
+    Button, label: 'Paragraph style', value: Body,
+    Button, label: 'Scene snapshots',
+    Button, label: 'Writing options'
+)}
+    t =     3.28s Tear Down
+Test Case '-[AuditUITests.AuditUITests testVerifyAutomaticallyRecoveredScene]' failed (3.289 seconds).
+Test Suite 'AuditUITests' failed at 2026-10-07 13:51:14.762.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.289 (3.290) seconds
+Test Suite 'AuditUITests.xctest' failed at 2026-10-07 13:51:14.762.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.289 (3.291) seconds
+Test Suite 'All tests' failed at 2026-10-07 13:51:14.762.
+	 Executed 1 test, with 1 failure (0 unexpected) in 3.289 (3.291) seconds
+2026-10-07 13:51:15.048 xcodebuild[67840:3793612] [MT] IDETestOperationsObserverDebug: 8.158 elapsed -- Testing started completed.
+2026-10-07 13:51:15.048 xcodebuild[67840:3793612] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 13:51:15.048 xcodebuild[67840:3793612] [MT] IDETestOperationsObserverDebug: 8.158 sec, +8.158 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-scratch>/late-ack-verify.xcresult
+
+Failing tests:
+	AuditUITests.testVerifyAutomaticallyRecoveredScene()
+
+** TEST FAILED **
+
+Testing started

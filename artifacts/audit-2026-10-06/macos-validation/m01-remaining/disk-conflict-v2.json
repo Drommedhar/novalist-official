@@ -1,0 +1,210 @@
+{
+  "source": "source.json",
+  "scenario": "M01-09 real external disk modification and unresolved conflict through Home/termination/relaunch",
+  "simulator": "C9BC7CC6-C48A-431D-9CE0-BEA89C791D81",
+  "before_external_change": {
+    "scope": {
+      "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/C9BC7CC6-C48A-431D-9CE0-BEA89C791D81/data/Containers/Data/Application/B1D95138-427C-48F7-9650-ABB0EA8257EE/Documents/Audit Simulator Fixture",
+      "bookId": "book-1791361828422",
+      "draftId": "draft-default"
+    },
+    "editors": [
+      {
+        "paneId": "pane-1",
+        "isDirty": true,
+        "sceneId": "d5aadcf3-382a-4c68-81a5-48766f662ffa",
+        "chapterGuid": "1cac6d71-9006-42f7-b18f-5e7ff9a3200c",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "local": true,
+        "external": false
+      }
+    ],
+    "conflict": null,
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/C9BC7CC6-C48A-431D-9CE0-BEA89C791D81/data/Containers/Data/Application/B1D95138-427C-48F7-9650-ABB0EA8257EE/Documents/Audit Simulator Fixture",
+          "bookId": "book-1791361828422",
+          "draftId": "draft-default"
+        },
+        "source": "pane:pane-1",
+        "sceneId": "d5aadcf3-382a-4c68-81a5-48766f662ffa",
+        "chapterGuid": "1cac6d71-9006-42f7-b18f-5e7ff9a3200c",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "local": true,
+        "external": false
+      }
+    ],
+    "gate": {
+      "writes": [
+        {
+          "id": 78,
+          "sceneId": "d5aadcf3-382a-4c68-81a5-48766f662ffa",
+          "chapterGuid": "1cac6d71-9006-42f7-b18f-5e7ff9a3200c",
+          "local": true,
+          "external": false
+        }
+      ],
+      "released": [],
+      "replies": [],
+      "forwardedReturns": [
+        "accepted",
+        "accepted"
+      ]
+    },
+    "disk": {
+      "relative_path": "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-12.novalist",
+      "sha256": "3ea291e921477e7c361a49da31c0861062f91caa5a72aa24fafd6fc4894c1592",
+      "local_marker": false,
+      "external_marker": false
+    }
+  },
+  "external_disk_before_release": {
+    "relative_path": "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-12.novalist",
+    "sha256": "1871f3ea6c52a05b17fa8263884105c258d291d34588567d21dd555da97f9a09",
+    "local_marker": false,
+    "external_marker": true
+  },
+  "conflict_before_home": {
+    "scope": {
+      "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/C9BC7CC6-C48A-431D-9CE0-BEA89C791D81/data/Containers/Data/Application/B1D95138-427C-48F7-9650-ABB0EA8257EE/Documents/Audit Simulator Fixture",
+      "bookId": "book-1791361828422",
+      "draftId": "draft-default"
+    },
+    "editors": [
+      {
+        "paneId": "pane-1",
+        "isDirty": true,
+        "sceneId": "d5aadcf3-382a-4c68-81a5-48766f662ffa",
+        "chapterGuid": "1cac6d71-9006-42f7-b18f-5e7ff9a3200c",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "local": true,
+        "external": false
+      }
+    ],
+    "conflict": {
+      "sceneId": "d5aadcf3-382a-4c68-81a5-48766f662ffa",
+      "chapterGuid": "1cac6d71-9006-42f7-b18f-5e7ff9a3200c",
+      "mine": {
+        "local": true,
+        "external": false
+      },
+      "theirs": {
+        "local": false,
+        "external": true
+      }
+    },
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/C9BC7CC6-C48A-431D-9CE0-BEA89C791D81/data/Containers/Data/Application/B1D95138-427C-48F7-9650-ABB0EA8257EE/Documents/Audit Simulator Fixture",
+          "bookId": "book-1791361828422",
+          "draftId": "draft-default"
+        },
+        "source": "pane:pane-1",
+        "sceneId": "d5aadcf3-382a-4c68-81a5-48766f662ffa",
+        "chapterGuid": "1cac6d71-9006-42f7-b18f-5e7ff9a3200c",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "local": true,
+        "external": false
+      }
+    ],
+    "gate": {
+      "writes": [
+        {
+          "id": 78,
+          "sceneId": "d5aadcf3-382a-4c68-81a5-48766f662ffa",
+          "chapterGuid": "1cac6d71-9006-42f7-b18f-5e7ff9a3200c",
+          "local": true,
+          "external": false
+        }
+      ],
+      "released": [
+        0
+      ],
+      "replies": [
+        {
+          "id": 78,
+          "hasError": false,
+          "sceneId": "d5aadcf3-382a-4c68-81a5-48766f662ffa",
+          "hash": "sha1:d67c3120bf268c8832d0083a305c84eb2c182d3e",
+          "conflicted": true
+        }
+      ],
+      "forwardedReturns": [
+        "accepted",
+        "accepted",
+        "accepted",
+        "accepted",
+        "accepted",
+        "accepted"
+      ]
+    },
+    "disk": {
+      "relative_path": "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-12.novalist",
+      "sha256": "1871f3ea6c52a05b17fa8263884105c258d291d34588567d21dd555da97f9a09",
+      "local_marker": false,
+      "external_marker": true
+    }
+  },
+  "disk_after_termination": {
+    "relative_path": "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-12.novalist",
+    "sha256": "1871f3ea6c52a05b17fa8263884105c258d291d34588567d21dd555da97f9a09",
+    "local_marker": false,
+    "external_marker": true
+  },
+  "after_relaunch": {
+    "scope": {
+      "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/C9BC7CC6-C48A-431D-9CE0-BEA89C791D81/data/Containers/Data/Application/B1D95138-427C-48F7-9650-ABB0EA8257EE/Documents/Audit Simulator Fixture",
+      "bookId": "book-1791361828422",
+      "draftId": "draft-default"
+    },
+    "editors": [
+      {
+        "paneId": "pane-1",
+        "isDirty": true,
+        "sceneId": "d5aadcf3-382a-4c68-81a5-48766f662ffa",
+        "chapterGuid": "1cac6d71-9006-42f7-b18f-5e7ff9a3200c",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "local": true,
+        "external": false
+      }
+    ],
+    "conflict": {
+      "sceneId": "d5aadcf3-382a-4c68-81a5-48766f662ffa",
+      "chapterGuid": "1cac6d71-9006-42f7-b18f-5e7ff9a3200c",
+      "mine": {
+        "local": true,
+        "external": false
+      },
+      "theirs": {
+        "local": false,
+        "external": true
+      }
+    },
+    "journal": [
+      {
+        "scope": {
+          "projectPath": "<local-home>/Library/Developer/CoreSimulator/Devices/C9BC7CC6-C48A-431D-9CE0-BEA89C791D81/data/Containers/Data/Application/B1D95138-427C-48F7-9650-ABB0EA8257EE/Documents/Audit Simulator Fixture",
+          "bookId": "book-1791361828422",
+          "draftId": "draft-default"
+        },
+        "source": "pane:pane-1",
+        "sceneId": "d5aadcf3-382a-4c68-81a5-48766f662ffa",
+        "chapterGuid": "1cac6d71-9006-42f7-b18f-5e7ff9a3200c",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "local": true,
+        "external": false
+      }
+    ],
+    "gate": null,
+    "disk": {
+      "relative_path": "Audit Simulator Fixture/Audit Book Alpha/Drafts/default/Chapters/01 - Audit Chapter Alpha/scene-12.novalist",
+      "sha256": "1871f3ea6c52a05b17fa8263884105c258d291d34588567d21dd555da97f9a09",
+      "local_marker": false,
+      "external_marker": true
+    }
+  },
+  "xcodebuild_exit_code": 0,
+  "status": "passed-simulator-supporting-acceptance"
+}

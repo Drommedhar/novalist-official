@@ -1,0 +1,66 @@
+  Wiederherzustellende Projekte werden ermittelt...
+  "<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj" wiederhergestellt (in 410 ms.).
+  "<audit-scratch>/checkout/Novalist.Core/Novalist.Core.csproj" wiederhergestellt (in 432 ms.).
+  "<audit-scratch>/checkout/Novalist.Backend/Novalist.Backend.csproj" wiederhergestellt (in 434 ms.).
+  "<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj" wiederhergestellt (in 452 ms.).
+<audit-scratch>/checkout/native/AppleSpeech/AppleMicrophone.swift(44,23): warning GB4A519A8: 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration] [<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj]
+   42 |     init() throws {
+   43 |         let session = AVAudioSession.sharedInstance()
+   44 |         guard session.recordPermission == .granted else { throw CaptureFailure.permission }
+EXEC : |                       `- warning : 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration] [<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj]
+   45 |         try session.setCategory(.record, mode: .measurement)
+   46 |         try session.setActive(true)
+  
+<audit-scratch>/checkout/native/AppleSpeech/AppleMicrophone.swift(44,44): warning GB2BC2907: 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration] [<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj]
+   42 |     init() throws {
+   43 |         let session = AVAudioSession.sharedInstance()
+   44 |         guard session.recordPermission == .granted else { throw CaptureFailure.permission }
+EXEC : |                                            |- warning : 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration] [<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj]
+      |                                            `- note: use 'AVAudioApplication.recordPermission.granted' instead
+   45 |         try session.setCategory(.record, mode: .measurement)
+   46 |         try session.setActive(true)
+  
+<audit-scratch>/checkout/native/AppleSpeech/AppleMicrophone.swift(55,15): warning GC5A8E076: 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration] [<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj]
+   53 |               let target = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16000, channels: 1, interleaved: false),
+   54 |               let converter = AVAudioConverter(from: format, to: target) else { throw CaptureFailure.format }
+   55 |         input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
+EXEC : |               `- warning : 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration] [<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj]
+   56 |             guard let self else { return }
+   57 |             let capacity = AVAudioFrameCount(ceil(Double(buffer.frameLength) * 16000 / format.sampleRate)) + 256
+  
+  [#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018: Unerwarteter Fehler bei der GenerateDepsFile-Aufgabe. [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018: System.IO.IOException: The process cannot access the file '<audit-scratch>/checkout/Novalist.Sdk/bin/Debug/net8.0/Novalist.Sdk.deps.json' because it is being used by another process. [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at Microsoft.Win32.SafeHandles.SafeFileHandle.Init(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Int64& fileLength, UnixFileMode& filePermissions) [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException) [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode) [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at System.IO.File.Create(String path) [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at Microsoft.NET.Build.Tasks.GenerateDepsFile.WriteDepsFile(String depsFilePath) [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at Microsoft.NET.Build.Tasks.TaskBase.Execute() [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at Microsoft.Build.BackEnd.TaskExecutionHost.Execute() [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at Microsoft.Build.BackEnd.TaskBuilder.ExecuteInstantiatedTask(TaskExecutionHost taskExecutionHost, TaskLoggingContext taskLoggingContext, TaskHost taskHost, ItemBucket bucket, TaskExecutionMode howToExecuteTask) [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+  Novalist.Sdk -> <audit-scratch>/checkout/Novalist.Sdk/bin/Debug/net8.0/Novalist.Sdk.dll
+  Novalist.Core -> <audit-scratch>/checkout/Novalist.Core/bin/Debug/net8.0/Novalist.Core.dll
+
+Fehler beim Buildvorgang.
+
+<audit-scratch>/checkout/native/AppleSpeech/AppleMicrophone.swift(44,23): warning GB4A519A8: 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration] [<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj]
+EXEC : |                       `- warning : 'recordPermission' was deprecated in iOS 17.0: Please use AVAudioApplication recordPermission [#DeprecatedDeclaration] [<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj]
+<audit-scratch>/checkout/native/AppleSpeech/AppleMicrophone.swift(44,44): warning GB2BC2907: 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration] [<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj]
+EXEC : |                                            |- warning : 'granted' was deprecated in iOS 17.0: renamed to 'AVAudioApplication.recordPermission.granted' [#DeprecatedDeclaration] [<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj]
+<audit-scratch>/checkout/native/AppleSpeech/AppleMicrophone.swift(55,15): warning GC5A8E076: 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration] [<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj]
+EXEC : |               `- warning : 'installTap(onBus:bufferSize:format:block:)' was deprecated in iOS 27.0 [#DeprecatedDeclaration] [<audit-scratch>/checkout/Novalist.Mobile/Novalist.Mobile.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018: Unerwarteter Fehler bei der GenerateDepsFile-Aufgabe. [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018: System.IO.IOException: The process cannot access the file '<audit-scratch>/checkout/Novalist.Sdk/bin/Debug/net8.0/Novalist.Sdk.deps.json' because it is being used by another process. [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at Microsoft.Win32.SafeHandles.SafeFileHandle.Init(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Int64& fileLength, UnixFileMode& filePermissions) [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException) [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode) [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at System.IO.File.Create(String path) [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at Microsoft.NET.Build.Tasks.GenerateDepsFile.WriteDepsFile(String depsFilePath) [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at Microsoft.NET.Build.Tasks.TaskBase.Execute() [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at Microsoft.Build.BackEnd.TaskExecutionHost.Execute() [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error MSB4018:    at Microsoft.Build.BackEnd.TaskBuilder.ExecuteInstantiatedTask(TaskExecutionHost taskExecutionHost, TaskLoggingContext taskLoggingContext, TaskHost taskHost, ItemBucket bucket, TaskExecutionMode howToExecuteTask) [<audit-scratch>/checkout/Novalist.Sdk/Novalist.Sdk.csproj]
+    6 Warnung(en)
+    1 Fehler
+
+Verstrichene Zeit 00:00:03.89

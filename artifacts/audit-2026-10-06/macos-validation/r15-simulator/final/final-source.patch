@@ -1,0 +1,111 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 211b2409..e208c2bb 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -34,7 +34,7 @@ could encounter in a previously released version.
+ - Image-only scenes retain their content, spelling actions reach the correct split editor, and inline extension actions retain their alternatives and suggested-edit behavior.
+ - Inserted images keep their chosen paragraph after a prose rebuild, including in page view.
+ - 3D maps fit the visible area on high-resolution displays instead of appearing cropped or blank.
+-- Dialogs contain keyboard focus and return it when closed; command and quick-open palettes keep the selected result visible while scrolling.
++- Dialogs keep the active layer usable when nested, contain keyboard focus and return it when closed; command and quick-open palettes keep the selected result visible while scrolling.
+ - Disabling an extension retires its open web panels and pending controller calls.
+ 
+ ### Security
+diff --git a/app/e2e/audit-renderer-regressions.spec.ts b/app/e2e/audit-renderer-regressions.spec.ts
+index efe974c2..c2d6472e 100644
+--- a/app/e2e/audit-renderer-regressions.spec.ts
++++ b/app/e2e/audit-renderer-regressions.spec.ts
+@@ -267,7 +267,7 @@ test('conflict choices preserve complete original and mixed block HTML', async (
+   } finally { await h.close() }
+ })
+ 
+-test('the mobile inspector traps keyboard focus and restores its trigger', async () => {
++test('the mobile inspector traps focus through nested palettes and restores its trigger', async () => {
+   const h = await launchApp('nl-audit-mobile-sheet-', { NOVALIST_FORCE_MOBILE: '1' })
+   try {
+     await seedBook(h, { One: ['A'] })
+@@ -286,8 +286,26 @@ test('the mobile inspector traps keyboard focus and restores its trigger', async
+     await expect(sheet).toHaveAccessibleName('A')
+     await expect(sheet.getByRole('button', { name: 'Close', exact: true })).toBeFocused()
+     await h.page.keyboard.press('Shift+Tab')
+-    expect(await sheet.evaluate((element) => element.contains(document.activeElement))).toBe(true)
++    await expect.poll(() => sheet.evaluate((element) => element.contains(document.activeElement))).toBe(true)
+     expect(await trigger.evaluate((element) => !!element.closest('[inert]'))).toBe(true)
++    await sheet.getByRole('button', { name: 'To do', exact: true }).click()
++    const invokingField = sheet.locator('.tasks-add input').first()
++    await invokingField.focus()
++    for (let opening = 0; opening < 2; opening++) {
++      await h.page.keyboard.press('ControlOrMeta+Shift+p')
++      const palette = h.page.locator('.palette-card')
++      await expect(palette).toBeVisible()
++      await expect(palette.getByRole('combobox')).toBeFocused()
++      expect(await sheet.evaluate((element) => !!element.closest('[inert]'))).toBe(true)
++      if (opening === 0) await h.page.keyboard.press('Escape')
++      else await h.page.locator('.palette-overlay').click({ position: { x: 1, y: 1 } })
++      await expect(palette).toHaveCount(0)
++      await expect(invokingField).toBeFocused()
++      expect(await sheet.evaluate((element) => !!element.closest('[inert]'))).toBe(false)
++      expect(await h.page.locator('[data-motion-presence="closing"]').evaluateAll(
++        (elements) => elements.every((element) => element.hasAttribute('inert'))
++      )).toBe(true)
++    }
+     await h.page.keyboard.press('Escape')
+     await expect(sheet).toHaveCount(0)
+     await expect(trigger).toBeFocused()
+diff --git a/app/src/renderer/src/shell/CommandPalette.tsx b/app/src/renderer/src/shell/CommandPalette.tsx
+index 7ea4aa2d..ad1fa5b4 100644
+--- a/app/src/renderer/src/shell/CommandPalette.tsx
++++ b/app/src/renderer/src/shell/CommandPalette.tsx
+@@ -150,7 +150,11 @@ export function CommandPalette({ onClose }: CommandPaletteProps): React.JSX.Elem
+   }
+ 
+   return (
+-    <div className="dialog-overlay palette-overlay" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
++    <div className="dialog-overlay palette-overlay" onPointerDown={(e) => {
++      if (e.target !== e.currentTarget) return
++      e.preventDefault()
++      onClose()
++    }}>
+       <div {...keyboard} className="dialog-card palette-card" role="dialog" aria-modal="true" aria-label={t('commandPalette.placeholder')}>
+         <input
+           ref={inputRef}
+diff --git a/app/src/renderer/src/shell/modalFocus.ts b/app/src/renderer/src/shell/modalFocus.ts
+index 9f2a6806..436c7625 100644
+--- a/app/src/renderer/src/shell/modalFocus.ts
++++ b/app/src/renderer/src/shell/modalFocus.ts
+@@ -11,9 +11,9 @@ function controls(dialog: HTMLElement): HTMLElement[] {
+ export function installModalFocus(): () => void {
+   let lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
+   let stack: { dialog: HTMLElement; previous: HTMLElement | null }[] = []
+-  const background = new Map<HTMLElement, boolean>()
++  const background = new Set<HTMLElement>()
+   const restoreBackground = (): void => {
+-    for (const [element, inert] of background) element.inert = inert
++    for (const element of background) element.inert = false
+     background.clear()
+   }
+   const focus = (dialog: HTMLElement): void => {
+@@ -40,8 +40,8 @@ export function installModalFocus(): () => void {
+     let branch: HTMLElement = active
+     while (branch.parentElement) {
+       for (const sibling of branch.parentElement.children) {
+-        if (!(sibling instanceof HTMLElement) || sibling === branch) continue
+-        background.set(sibling, sibling.inert)
++        if (!(sibling instanceof HTMLElement) || sibling === branch || sibling.inert) continue
++        background.add(sibling)
+         sibling.inert = true
+       }
+       branch = branch.parentElement
+@@ -59,10 +59,11 @@ export function installModalFocus(): () => void {
+     }
+   }
+   const onFocus = (event: FocusEvent): void => {
++    const owner = event.target instanceof HTMLElement ? event.target.closest(MODAL) : null
++    if (owner && !stack.some((entry) => entry.dialog === owner)) refresh()
+     const dialog = stack.at(-1)?.dialog
+     if (dialog && event.target instanceof Node && !dialog.contains(event.target)) { focus(dialog); return }
+     if (event.target instanceof HTMLElement) {
+-      const owner = event.target.closest(MODAL)
+       if (!owner || stack.some((entry) => entry.dialog === owner)) lastFocused = event.target
+     }
+   }

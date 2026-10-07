@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "<audit-scratch>/run-two-pane.py", line 60, in <module>
+    waitlog('M01_TWO_RESTORED_PASS');record['after_relaunch']=observe();save()
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<audit-scratch>/run-two-pane.py", line 33, in waitlog
+    if p.poll() is not None or "Test Suite 'All tests' failed" in text:raise RuntimeError('XCTest exited before '+marker)
+                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: XCTest exited before M01_TWO_RESTORED_PASS

@@ -1,0 +1,76 @@
+{
+  "viewport": {
+    "width": 874,
+    "height": 401,
+    "offsetTop": 1,
+    "offsetLeft": 0
+  },
+  "controls": [
+    {
+      "text": "Context",
+      "rect": {
+        "x": 18,
+        "y": 140.5,
+        "width": 415,
+        "height": 40.9375,
+        "top": 140.5,
+        "right": 433,
+        "bottom": 181.4375,
+        "left": 18
+      }
+    },
+    {
+      "text": "To do",
+      "rect": {
+        "x": 441,
+        "y": 189.4375,
+        "width": 415,
+        "height": 40.9375,
+        "top": 189.4375,
+        "right": 856,
+        "bottom": 230.375,
+        "left": 441
+      }
+    }
+  ],
+  "overlays": [
+    {
+      "x": 0,
+      "y": -1,
+      "width": 874,
+      "height": 402,
+      "top": -1,
+      "right": 874,
+      "bottom": 401,
+      "left": 0
+    }
+  ],
+  "dialogs": [
+    {
+      "class": "mobile-sheet",
+      "rect": {
+        "x": 0,
+        "y": 79.40625,
+        "width": 874,
+        "height": 321.59375,
+        "top": 79.40625,
+        "right": 874,
+        "bottom": 401,
+        "left": 0
+      }
+    },
+    {
+      "class": "dialog-card palette-card",
+      "rect": {
+        "x": 197,
+        "y": 47.234375,
+        "width": 480,
+        "height": 199.1875,
+        "top": 47.234375,
+        "right": 677,
+        "bottom": 246.421875,
+        "left": 197
+      }
+    }
+  ]
+}

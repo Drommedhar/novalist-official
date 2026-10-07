@@ -1,0 +1,4 @@
+
+> novalist@3.3.0 typecheck
+> tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.e2e.json
+
