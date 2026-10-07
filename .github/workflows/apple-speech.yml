@@ -63,7 +63,7 @@ jobs:
       - name: Build mobile renderer
         working-directory: app
         run: |
-          npm ci
+          npm ci --no-audit
           npm run build:mobile
       - name: Build iOS simulator and compile device archive
         shell: bash
