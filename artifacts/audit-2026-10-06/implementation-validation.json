@@ -1,11 +1,22 @@
 {
   "result": "passed",
   "findings": 73,
+  "goalScope": "complete",
+  "deviceDeferredFindings": [
+    "M01",
+    "M03",
+    "M05",
+    "M06",
+    "P01",
+    "R15"
+  ],
   "checks": [
     "downloaded ledger matches source with original acceptance for all 73 findings",
+    "deferred device cases remain not-run outside current scope",
+    "completion requires passing nondeferred native scenarios",
     "performance table",
     "Mac compile/simulator/device handoff",
-    "status filter",
+    "all status filters",
     "search",
     "expand/collapse",
     "deep links",

@@ -200,7 +200,7 @@
         "Actual iPad Research PDF/image rendering, WAV/MP4 play through ended, visible accessible 16 MiB rejection and unchanged five relative references/media hashes passed. Fixed mobile media CSP and stale visible/accessibility errors. Nine focused tests and six repeated native asset/race cases passed; probes removed and final clean build/signature/install/Research UI passed. Evidence: macos-validation/r13/summary.json.",
         "Actual WKWebView nested scene/map and programmatic 3D rendering passed. Native diagnostic confirmed high-DPI clipping; two CSS sizing properties fixed the shared canvas. Real Three renderer/browser DPR 1/2/3 regression failed two cases before and passes3/3 after in landscape and portrait. Fresh clean snapshot, strict signature and actual native 3D UI passed with probes absent. Evidence: macos-validation/r13-frames/summary.json. Native memory is proven separately in r13-memory/summary.json.",
         "The defined 69-preview iPad simulator workload passed without forced GC: app footprint settled at 259.50 MiB (259.41 MiB after warmup), versus 901.11 MiB before the native string-ownership correction. All 145 cache observations remained within 32 MiB (maximum 28,326,744 bytes); 67 native reads and two hits proved LRU behavior. No retained large CFString buffers remained. Native app peak was 346.05 MiB; this is not a whole-app 32 MiB cap or physical/endurance claim. Six native media/race checks and clean probe removal/build/signature/install/Research UI passed. Evidence: macos-validation/r13-memory/summary.json.",
-        "The final native ownership helper passed real NSError and actual associated WebContent termination on the iPhone simulator. Scene/Manuscript markers journaled but absent from disk before Reload were restored and persisted; exactly one actual To do mutation remained in disk/UI. Probes were removed and all 1,257 current production inputs matched before fresh renderer/native build, strict signature, installation and actual 3D UI acceptance. Evidence: macos-validation/r13-memory/evaluator-regressions/summary.json. The killed JavaScript context cannot report its Promise rejection."
+        "The final native ownership helper passed real NSError and actual associated WebContent termination on the iPhone simulator. Scene/Manuscript markers journaled but absent from disk before Reload were restored and persisted; exactly one actual To do mutation remained in disk/UI. Probes were removed and all 1,257 then-current production inputs matched before fresh renderer/native build, strict signature, installation and actual 3D UI acceptance. Evidence: macos-validation/r13-memory/evaluator-regressions/summary.json. The killed JavaScript context cannot report its Promise rejection."
       ],
       "pending": []
     },
@@ -223,7 +223,7 @@
     },
     {
       "id": "R15",
-      "status": "implemented-validation-limited",
+      "status": "device-deferred",
       "summary": "Mobile inspector sheets use named dialogs and shared focus containment. Nested palettes preserve active-layer interactivity and invoking-field focus; scrim dismissal waits for pointer release.",
       "files": [
         "app/src/renderer/src/shell/MobileSheet.tsx",
@@ -237,7 +237,10 @@
         "Native iPhone 17 Pro simulator/iOS 27.0: the clean final app passed two nested palette open/dismiss/typing cycles in each orientation, inspector containment/dismissal and relaunch. The palette stays usable above the inert inspector and scrim dismissal restores the exact invoking To-do input. Earlier native traces and browser failures identify stale inert state, early autofocus registration and premature scrim removal; the final browser regression keeps the covered Context tab blocked until pointer release. Evidence: macos-validation/r15-simulator/summary.json. XCTest animation waits delayed the final run; this is not a performance measurement.",
         "Three focused Electron regressions passed: palette selection scrolling/focus return, mobile inspector nested palettes with Escape and covered-tab pointer release, and desktop nested snapshot dialogs. Desktop/mobile builds, typecheck, eight source gates and scoped Aislop (100, zero findings) passed at the final source patch."
       ],
-      "pending": "Physical iPhone VoiceOver and iPad hardware-keyboard acceptance, including native Escape and focus return in both orientations, remains deferred. XCTest Escape/Return did not emit DOM key events in the recorded iPhone simulator checks. The native pass covers XCTest navigation, nested scrim dismissal and invoking-field return; browser Escape and outer-trigger return are separate evidence."
+      "pending": [],
+      "deferred": [
+        "Physical iPhone VoiceOver and iPad hardware-keyboard containment, nested dialogs, Escape, focus return and both orientations are deferred and unverified. Native simulator nested dismissal/typing/orientation and browser keyboard regressions passed. XCTest Escape/Return did not emit DOM key events; browser evidence is separate."
+      ]
     },
     {
       "id": "R16",
@@ -291,7 +294,7 @@
     },
     {
       "id": "P01",
-      "status": "implemented-validation-limited",
+      "status": "device-deferred",
       "summary": "Help screenshots use emitted asset URLs rather than base64 strings embedded in the entry module.",
       "files": [
         "app/build/manual-plugin.ts",
@@ -305,18 +308,21 @@
         "artifacts/audit-2026-10-06/macos-validation/p01-refreshed-native-full/summary.json"
       ],
       "tests": [
-        "Desktop and mobile builds passed; final mobile entry 3,475.34 kB / gzip 1,115.55 kB versus audited 16,129 kB / gzip 10,569 kB; 11 standalone screenshots",
-        "Controlled desktop comparison: same current source, original HEAD manual plugin vs fixed plugin; identical main/preload bytes and normalized remaining renderer entry. Five alternating fresh-profile runs each: median renderer peak working set 197.95 MiB to 123.05 MiB; navigation-to-shell/backend-ready 305.9 ms to 287.2 ms. Launcher-observed medians 437.6 ms to 427.3 ms, with one pair slower after the change.",
+        "Historical Windows desktop/mobile builds before the screenshot refresh passed; mobile entry 3,475.34 kB / gzip 1,115.55 kB versus audited 16,129 kB / gzip 10,569 kB; 11 standalone screenshots",
+        "Controlled desktop comparison: same source at the historical Windows comparison, original manual plugin vs fixed plugin; identical main/preload bytes and normalized remaining renderer entry. Five alternating fresh-profile runs each: median renderer peak working set 197.95 MiB to 123.05 MiB; navigation-to-shell/backend-ready 305.9 ms to 287.2 ms. Launcher-observed medians 437.6 ms to 427.3 ms, with one pair slower after the change.",
         "Three separate Chromium trace runs each: entry-module v8.parseOnBackground median duration 67.858 ms to 46.683 ms. This is a background parsing/streaming-compile event duration, not pure parser CPU time. Raw metrics, traces, build hashes and method: artifacts/audit-2026-10-06/p01-desktop/summary.json.",
         "Untimed desktop Help acceptance: all 11 screenshots decode with nonzero natural dimensions from emitted local file asset URLs while browser offline and HTTP(S)/WS requests blocked.",
         "On iPhone 17 Pro simulator/iOS 27.0, every one of 47 actual Help pages opened and all 11 app:// screenshots decoded at 1440x900 with browser-enforced HTTP(S) blocking; external fetch rejection was confirmed by CSP violation evidence. This is supporting simulator coverage, not physical airplane-mode or performance evidence. Source 0c789b29581db47d89593c897bd53fbb3fb9275c with probe diff 2580103702a3a67ac99bc3680b0f61b8c7a3ef9f39c55e8d5396a01fefc26ca0. Evidence: macos-validation/offline-help.json.",
         "Controlled native simulator pair built and strict-signature-verified from identical 8489c9a3 sources, lockfile and settings; only manual-plugin.ts differs, using historical ba8b6d32 for original. Original entry 16,140,902 bytes with 11 base64 images versus fixed 3,458,437 bytes with 0; reduction 12,682,465 bytes. App/source manifests preserved in macos-validation/p01-native-pair/summary.json. This proves build packaging only, not physical startup, memory or JavaScriptCore performance.",
         "Refreshed Help assets at screenshot commit 29cefb83d25c1fbdaa0da519f4f27d1f5f050ad1: all 11 image hashes agree between committed files, docs/app-store/screenshots.json, desktop emitted assets and the installed native bundle; all 47 manual Markdown hashes also match. Existing desktop acceptance opened all 47 Help pages and decoded all 11 images at 1440x900 from local emitted URLs with the browser context offline and HTTP(S) requests blocked; 0 page errors and 0 remote requests. Test-time source was 6cdda991 plus then-uncommitted refreshed PNGs, now reconciled to 29cefb83 without repeating the runtime test. Evidence: macos-validation/p01-refreshed-help/summary.json and desktop-offline-help.json.",
-        "Refreshed Help native subset: clean production app on iPad Pro 13-inch (M5) simulator/iOS 27.0 opened the actual Manual UI and displayed the Dashboard and Editor screenshots; all 11 refreshed image hashes were present in the installed bundle and referenced by its entry script. Hashed XCTest source, two native screenshots and fixture-preservation evidence are retained in macos-validation/p01-refreshed-help/native-help.json. This earlier subset did not establish refreshed all-page native offline coverage; the subsequent full traversal is recorded separately. Physical/performance acceptance remains pending.",
-        "A new controlled native build pair uses current af744fbd source and all 11 refreshed images. Across 2,051 identical tracked inputs, only manual-plugin.ts differs: the historical plugin embeds 11 exact image byte streams; the corrected plugin emits those 11 exact files. Renderer entry shrinks from 7,714,133 to 3,459,458 bytes (4,254,675 bytes removed). Both fresh native builds pass strict signature verification and contain their exact renderer assets; the fixed 203 assets match the final validated source bundle. Evidence: macos-validation/p01-refreshed-pair/summary.json. Build packaging only; physical startup, memory and JavaScriptCore acceptance remains pending.",
-        "At current af744fbd source, actual WKWebView Help rendered all 47 pages through their production navigation buttons and decoded all 11 refreshed local screenshots at 1440x900. All decoded, bundled and source image hashes agree. Four HTTP/HTTPS fetch/image controls were rejected by enforced document CSP; no runtime errors or unexpected policy violations occurred. Native touch/scroll checks provided representative screenshots. The read-only native evaluator was removed; all 1,314 production inputs and 203 assets matched before clean build/signature/install/Help relaunch. Evidence: macos-validation/p01-refreshed-native-full/summary.json. This proves browser resource/connect blocking, not OS airplane mode or native networking isolation; physical/performance acceptance remains pending."
+        "Refreshed Help native subset: clean production app on iPad Pro 13-inch (M5) simulator/iOS 27.0 opened the actual Manual UI and displayed the Dashboard and Editor screenshots; all 11 refreshed image hashes were present in the installed bundle and referenced by its entry script. Hashed XCTest source, two native screenshots and fixture-preservation evidence are retained in macos-validation/p01-refreshed-help/native-help.json. This earlier subset did not establish refreshed all-page native offline coverage; the subsequent full traversal is recorded separately. Physical/performance acceptance remains deferred and unverified.",
+        "A new controlled native build pair uses af744fbd source and all 11 refreshed images. Across 2,051 identical tracked inputs, only manual-plugin.ts differs: the historical plugin embeds 11 exact image byte streams; the corrected plugin emits those 11 exact files. Renderer entry shrinks from 7,714,133 to 3,459,458 bytes (4,254,675 bytes removed). Both fresh native builds pass strict signature verification and contain their exact renderer assets; the fixed 203 assets match the final validated source bundle. Evidence: macos-validation/p01-refreshed-pair/summary.json. Build packaging only; physical startup, memory and JavaScriptCore acceptance remains deferred and unverified.",
+        "At af744fbd source, actual WKWebView Help rendered all 47 pages through their production navigation buttons and decoded all 11 refreshed local screenshots at 1440x900. All decoded, bundled and source image hashes agree. Four HTTP/HTTPS fetch/image controls were rejected by enforced document CSP; no runtime errors or unexpected policy violations occurred. Native touch/scroll checks provided representative screenshots. The read-only native evaluator was removed; all 1,314 production inputs and 203 assets matched before clean build/signature/install/Help relaunch. Evidence: macos-validation/p01-refreshed-native-full/summary.json. This proves browser resource/connect blocking, not OS airplane mode or native networking isolation; physical/performance acceptance remains deferred and unverified."
       ],
-      "pending": "Physical iPhone/iPad launch, memory, JavaScriptCore trace and offline Help-image acceptance is deferred by the current simulator-only direction. Desktop measurements used fresh processes/profiles with existing OS caches, unpackaged Electron and a Debug backend; they do not establish OS-cold-cache or installed-package startup performance."
+      "pending": [],
+      "deferred": [
+        "Physical iPhone/iPad launch, resident memory, JavaScriptCore parsing and offline Help acceptance are deferred and unverified. Desktop fresh-process measurements retained OS caches and used unpackaged Electron with a Debug backend; no OS-cold-cache or installed-package claim. Native simulator all-page Help/image checks and controlled build pairs passed; they establish neither physical performance nor OS airplane-mode behavior."
+      ]
     },
     {
       "id": "Q01",
@@ -355,7 +361,7 @@
     },
     {
       "id": "M01",
-      "status": "implemented-validation-limited",
+      "status": "device-deferred",
       "summary": "Background save captures editor buffers synchronously into a bounded durable journal before awaiting pending writes; scenes restore through checked writes/conflicts and Research concurrent changes become recovered copies. Exact acknowledgement matching preserves newer journal entries. Trusted native relocation remaps matching book/draft scopes atomically. Manuscript acknowledgement rechecks pending-save identity after the awaited journal import so a newer capture cannot be cleared by stale state.",
       "files": [
         "app/src/renderer/src/mobile/recovery.ts",
@@ -384,7 +390,10 @@
         "Actual iPad A16/iPadOS 27.0 Manuscript and Research Lock subsets passed at af744fbd. Lock began 0.954/0.950 seconds after native typing; each exact-owner save was held without fabricating acknowledgements. OS lockstate 1, UIApplication Background and a fresh native background task were observed, with markers absent from disk through termination. Actual native recovery/reopen restored one marker occurrence to the original scene or original project-level Research item and cleared the journal. Observers/gates were removed, all 1,314 inputs/203 assets matched, and a fresh signed clean build plus native reopen passed. All 98 original iPad files, 13 new fixture files after recovery and 105 untouched iPhone preparation files were preserved. Evidence: macos-validation/m01-lock-variants/summary.json. This is supporting interrupted-write simulator coverage, not physical/provider or uninstrumented immediate-lock timing acceptance.",
         "At 560839ac on iPad A16/iPadOS 27.0, actual native full-Manuscript and Research edits produced real held writes and original-scope journals before termination. Wrong book, wrong project and wrong draft each preserved the exact journal and matching-resource disk baselines without displaying the marker. Returning to the original context recovered each marker exactly once and cleared its journal. Research retained its original item ID/title/count and correctly remained visible across books and drafts within the original project after recovery. Temporary observers were removed; all 1,314 production inputs and 203 assets matched before a fresh signed clean build and native reopen. All 117 original files and 60 new fixture files were preserved across clean reopen, along with five wrong-owner scene baselines and the other-project Research payload. Evidence: macos-validation/m01-scope-variants/summary.json. Supporting simulator scope coverage only; original physical/provider acceptance remains pending."
       ],
-      "pending": "Physical-device lifecycle acceptance, offline/cloud-only behavior and the full device scope matrix remain required. Supporting simulator cases passed old-acknowledgement, interrupted flush, two dirty panes and disk conflict; scenes, full Manuscript and Research each passed ownership isolation and held-write Lock at their recorded sources. The journal bound is 2,000,000 JSON characters; unsaved Codex metadata uses the existing flush registry and is not journaled."
+      "pending": [],
+      "deferred": [
+        "Physical lifecycle, lock/termination, offline/cloud-only files, conflicts and ownership matrix are deferred and unverified. Offline and cloud-only cases have no runtime evidence. Simulator scene, Manuscript and Research lifecycle, held-write Lock, interrupted flush, old acknowledgement, two panes, conflict and ownership subsets passed at their recorded sources."
+      ]
     }
   ],
   "checks": [
@@ -460,7 +469,7 @@
     }
   ],
   "limitations": [
-    "R13 native media integration and bounded preview workload, plus R14 source/project/dismissal races, passed with probes removed and clean builds. Required physical-device acceptance remains deferred under the simulator-only direction.",
+    "R13 native media/bounded memory and R14 source/project/dismissal races passed after probe removal and clean builds. Physical acceptance for M01, R15 and P01 remains unverified and is deferred outside current completion scope at the user's request.",
     "Aislop full app nonfixable lint warnings remain; the three audited complexity warnings and newly introduced long functions were resolved.",
     "Linux R17 was executed with Linux Electron and backend under WSLg, with native file picker result controlled by the test and --no-sandbox for the root-owned isolated test process. It does not validate the platform file picker, Linux packaging or native iOS behavior."
   ]

@@ -29,8 +29,29 @@ const { chromium } = require('../../app/node_modules/@playwright/test');
     assert.equal(await page.locator('#native pre').count(), 3);
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: path.join(__dirname, 'implementation-desktop.png') });
-    await page.locator('#status').selectOption('native-pending');
-    assert.equal(await page.locator('.finding:visible').count(), ledger.findings.filter(item => item.status === 'native-pending').length);
+    for (const status of ['verified', 'device-deferred', 'native-pending', 'verification-pending']) {
+      await page.locator('#status').selectOption(status);
+      assert.equal(await page.locator('.finding:visible').count(), ledger.findings.filter(item => item.status === status).length);
+    }
+    const nativeCases = JSON.parse(readFileSync(path.join(__dirname, 'macos-validation/native-acceptance.json'), 'utf8'));
+    const deferredIds = ledger.findings.filter(item => item.status === 'device-deferred').map(item => item.id).sort();
+    assert.deepEqual(deferredIds, ledger.acceptance_scope.device_deferred_findings.toSorted());
+    assert.deepEqual(deferredIds, nativeCases.scope.device_deferred_findings.toSorted());
+    for (const finding of nativeCases.findings) {
+      for (const scenario of finding.scenarios) {
+        if (scenario.acceptance_disposition === 'deferred') {
+          assert.equal(scenario.status, 'not-run');
+          assert.equal(scenario.required_for_current_scope, false);
+          assert.ok(scenario.required_environment.startsWith('physical-'));
+        } else if (ledger.goal_status === 'complete') {
+          assert.equal(scenario.status, 'passed', `${scenario.id} must pass before completion`);
+        }
+      }
+    }
+    if (ledger.goal_status === 'complete') {
+      assert.ok(ledger.findings.every(item => ['verified', 'device-deferred'].includes(item.status) && item.pending.length === 0));
+      assert.equal(nativeCases.overall_status, 'complete-with-device-deferrals');
+    }
     await page.locator('#status').selectOption('');
     await page.locator('#search').fill('A12');
     assert.equal(await page.locator('.finding:visible').count(), 1);
@@ -52,8 +73,8 @@ const { chromium } = require('../../app/node_modules/@playwright/test');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
     assert.deepEqual(errors, []);
     assert.deepEqual(requests, []);
-    writeFileSync(path.join(__dirname, 'implementation-validation.json'), JSON.stringify({ result: 'passed', findings: 73, checks: ['downloaded ledger matches source with original acceptance for all 73 findings', 'performance table', 'Mac compile/simulator/device handoff', 'status filter', 'search', 'expand/collapse', 'deep links', 'print expansion/restoration', '390px layout', 'no horizontal overflow', 'no JS errors', 'offline report'] }, null, 2));
-    console.log('Implementation report validated in Chromium at desktop and mobile sizes.');
+    writeFileSync(path.join(__dirname, 'implementation-validation.json'), JSON.stringify({ result: 'passed', findings: 73, goalScope: ledger.goal_status, deviceDeferredFindings: deferredIds, checks: ['downloaded ledger matches source with original acceptance for all 73 findings', 'deferred device cases remain not-run outside current scope', 'completion requires passing nondeferred native scenarios', 'performance table', 'Mac compile/simulator/device handoff', 'all status filters', 'search', 'expand/collapse', 'deep links', 'print expansion/restoration', '390px layout', 'no horizontal overflow', 'no JS errors', 'offline report'] }, null, 2));
+    process.stdout.write('Implementation report validated in Chromium at desktop and mobile sizes.\n');
   } finally {
     await browser.close();
   }

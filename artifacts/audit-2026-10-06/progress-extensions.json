@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-06",
+  "updatedAt": "2026-10-07",
   "findings": [
     {
       "id": "EXT-001",
@@ -13,16 +13,20 @@
         "Novalist.Sdk/Services/IExtensionProjectService.cs",
         "Novalist.Backend/Extensions/HostServices.ProjectAccess.cs",
         "tests/Novalist.Backend.Tests/HostServicesTests.cs",
-        "D:/git/novalist-extension/tests/Novalist.Extensions.Tests/ExportImportAcceptanceTests.cs"
+        "D:/git/novalist-extension/tests/Novalist.Extensions.Tests/ExportImportAcceptanceTests.cs",
+        "D:/git/novalist-extension/.github/workflows/ci.yml",
+        "D:/git/novalist-extension/README.md"
       ],
       "tests": [
         "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
         "Backend full suite2057/2057 passed including actual SDK scene/entity/map projection tests; SDK61/61 passed",
-        "EveryContributedFormatOmitsInactiveAndExcludedContent: all9 actual format export handlers passed; prose/outline public markers present, withheld/inactive prose and identities absent; ODT content.xml inspected."
+        "EveryContributedFormatOmitsInactiveAndExcludedContent: all9 actual format export handlers passed; prose/outline public markers present, withheld/inactive prose and identities absent; ODT content.xml inspected.",
+        "2026-10-07 extension-ci-sdk-validation.json: 23 static YAML, checkout-layout, trigger, API, manifest, deployment-suppression and SDK-tree identity checks passed. Existing 414/414 extension results cover the identical SDK source; no production extension source changed and no remote workflow dispatched."
       ],
       "pending": [],
       "notes": [
-        "Formats/Insight/Publish/Toolkit manifests require host3.5.4 for the new SDK contracts; hosts through3.5.3 remain excluded. README/manual and release SDK v3.5.4 source pin document required next desktop release."
+        "Formats/Insight/Publish/Toolkit manifests require host3.5.4 for the new SDK contracts; hosts through3.5.3 remain excluded. README/manual and release SDK v3.5.4 source pin document required next desktop release.",
+        "CI SDK compatibility follow-through: PR/main CI now pins published host audit commit 9feaf6f9624ffd22aba765b71327f41f3376b2e1, whose SDK tree exactly matches current host dev 614973bb. The default host branch lacks the added contracts. Release remains pinned to the future v3.5.4 tag, and all affected minimums remain 3.5.4. Change is local, not committed or pushed."
       ]
     },
     {
@@ -69,15 +73,19 @@
         "D:/git/novalist-official/Novalist.Backend/Rpc/ExtensionContribRpc.cs",
         "D:/git/novalist-official/app/src/renderer/public/editor/dictation-bridge.js",
         "D:/git/novalist-aiassistant/Services/InlineRewriteService.cs",
-        "Novalist.Sdk/Hooks/IInlineActionContributor.cs"
+        "Novalist.Sdk/Hooks/IInlineActionContributor.cs",
+        "D:/git/novalist-extension/.github/workflows/ci.yml",
+        "D:/git/novalist-extension/README.md"
       ],
       "tests": [
         "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
-        "Renderer owner final Windows Electron audit-regression E2E9/9: information dialog read-only, alternatives require selection, cancel preserves text, chosen replacement marks original deletion and chosen insertion through extensionsStore registration."
+        "Renderer owner final Windows Electron audit-regression E2E9/9: information dialog read-only, alternatives require selection, cancel preserves text, chosen replacement marks original deletion and chosen insertion through extensionsStore registration.",
+        "2026-10-07 extension-ci-sdk-validation.json: 23 static YAML, checkout-layout, trigger, API, manifest, deployment-suppression and SDK-tree identity checks passed. Existing 414/414 extension results cover the identical SDK source; no production extension source changed and no remote workflow dispatched."
       ],
       "pending": [],
       "notes": [
-        "Formats/Insight/Publish/Toolkit manifests require host3.5.4 for the new SDK contracts; hosts through3.5.3 remain excluded. README/manual and release SDK v3.5.4 source pin document required next desktop release."
+        "Formats/Insight/Publish/Toolkit manifests require host3.5.4 for the new SDK contracts; hosts through3.5.3 remain excluded. README/manual and release SDK v3.5.4 source pin document required next desktop release.",
+        "CI SDK compatibility follow-through: PR/main CI now pins published host audit commit 9feaf6f9624ffd22aba765b71327f41f3376b2e1, whose SDK tree exactly matches current host dev 614973bb. The default host branch lacks the added contracts. Release remains pinned to the future v3.5.4 tag, and all affected minimums remain 3.5.4. Change is local, not committed or pushed."
       ]
     },
     {
@@ -168,17 +176,21 @@
         "D:/git/novalist-official/Novalist.Sdk/Services/IExtensionEntityService.cs",
         "Novalist.Sdk/Services/IExtensionEntityService.cs",
         "Novalist.Backend/Extensions/HostServices.EntityAccess.cs",
-        "tests/Novalist.Backend.Tests/HostServicesTests.cs"
+        "tests/Novalist.Backend.Tests/HostServicesTests.cs",
+        "D:/git/novalist-extension/.github/workflows/ci.yml",
+        "D:/git/novalist-extension/README.md"
       ],
       "tests": [
         "Final extension C# suite414/414 passed (49 new cases), deployment disabled",
         "SDK61 passed; actual Backend entity/map projection tests passed in backend full run",
         "Backend full suite2057/2057 passed including actual SDK scene/entity/map projection tests; SDK61/61 passed",
-        "AllEntityKindsPublishBodiesAndContinuityDetectsContentOnlyEdits:character/location/item/lore/custom faction bodies+sections appear in actual generated sites; editing only section content independently flags the referenced scene for every kind, without renaming."
+        "AllEntityKindsPublishBodiesAndContinuityDetectsContentOnlyEdits:character/location/item/lore/custom faction bodies+sections appear in actual generated sites; editing only section content independently flags the referenced scene for every kind, without renaming.",
+        "2026-10-07 extension-ci-sdk-validation.json: 23 static YAML, checkout-layout, trigger, API, manifest, deployment-suppression and SDK-tree identity checks passed. Existing 414/414 extension results cover the identical SDK source; no production extension source changed and no remote workflow dispatched."
       ],
       "pending": [],
       "notes": [
-        "Formats/Insight/Publish/Toolkit manifests require host3.5.4 for the new SDK contracts; hosts through3.5.3 remain excluded. README/manual and release SDK v3.5.4 source pin document required next desktop release."
+        "Formats/Insight/Publish/Toolkit manifests require host3.5.4 for the new SDK contracts; hosts through3.5.3 remain excluded. README/manual and release SDK v3.5.4 source pin document required next desktop release.",
+        "CI SDK compatibility follow-through: PR/main CI now pins published host audit commit 9feaf6f9624ffd22aba765b71327f41f3376b2e1, whose SDK tree exactly matches current host dev 614973bb. The default host branch lacks the added contracts. Release remains pinned to the future v3.5.4 tag, and all affected minimums remain 3.5.4. Change is local, not committed or pushed."
       ]
     },
     {
@@ -342,7 +354,8 @@
     "Final acceptance follow-through: extension414/414; Speech Python41/41; real offline fatal subprocess error+done and nextrequest passed109ms; changed-file Aislop87/0errors/17nonfixablewarnings/0fixable.",
     "Final acceptance follow-through:extension414/414 C# tests;21 focused export/import/entity integration cases;Chromium7/7 browser checks;Aislop88 with0 errors,17nonfixable warnings,0fixable across56 changed supported files.",
     "Historical loader probes passed:Qwen0.4.0 on exact untagged1.15-dev/8ffe1bf1 SDK+loader+registry;PnP0.1.0 built from preserved working copy againstv1.7/08c6e3a7 and loaded byv1.7 plus last nativev1.14.5/8827483e exact loaders. See legacy-historical-validation; no nativeUI/model execution.",
-    "EXT018 complete:18 current gate cases plus3 historical actual-loader smokes; PnPminimum narrowed to1.7.0 with exact tested endpoints documented. legacy-historical-validation/summary.json."
+    "EXT018 complete:18 current gate cases plus3 historical actual-loader smokes; PnPminimum narrowed to1.7.0 with exact tested endpoints documented. legacy-historical-validation/summary.json.",
+    "2026-10-07 CI follow-through: 23 checks passed; CI selects immutable compatible SDK source 9feaf6f9; release remains v3.5.4; AI retains independent 3.5.3-compatible pin ba8b6d3. Existing triggers preserved. Aislop --changes returned 0 diagnostics; changed files are YAML/Markdown, so YAML/configuration checks provide the relevant validation. See extension-ci-sdk-validation.json and aislop-extension-ci-sdk.json."
   ],
   "notes": [
     "Legacy pnp and qwentts worktrees were dirty before modifications; only manifests maxHostVersion and README legacy notice edited; all pre-existing source work retained. Pnp extension.json was already untracked.",

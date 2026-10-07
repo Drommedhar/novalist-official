@@ -2,11 +2,17 @@
   "schema_version": 1,
   "updated": "2026-10-07",
   "purpose": "Per-scenario acceptance evidence for the ten original Apple runtime findings. Native compilation is recorded separately from simulator, physical-device and CI acceptance.",
-  "overall_status": "incomplete",
+  "overall_status": "complete-with-device-deferrals",
   "scope": {
     "total_original_findings": 73,
     "previously_verified": 63,
-    "pending_findings": [
+    "pending_findings": [],
+    "current_user_direction": "The mac agent did what it could. I cant test on physical hardware right now, so continue without it",
+    "physical_device_acceptance": "Complete all remaining feasible work. Physical-device acceptance is deferred, remains unverified and is not required for current-scope completion. Original criteria and recorded results are preserved.",
+    "release_publication": "Not authorized; no release is part of this validation.",
+    "delivery": "Validated fixes 0c789b29, 8489c9a3, dd9817e3, 624533d8, af9f44d3 and 9ec4bcf2 pushed to dev. Original CI probes complete and closed without merge; no release. Nested-dialog fix 36b9d53b and documentation screenshots 29cefb83 also pushed to dev.",
+    "currently_verified": 67,
+    "device_deferred_findings": [
       "M01",
       "M03",
       "M05",
@@ -14,11 +20,20 @@
       "R15",
       "P01"
     ],
-    "current_user_direction": "Use simulators only for now.",
-    "physical_device_acceptance": "Deferred by the current simulator-only direction; required physical acceptance remains not-run and prevents completion.",
-    "release_publication": "Not authorized; no release is part of this validation.",
-    "delivery": "Validated fixes 0c789b29, 8489c9a3, dd9817e3, 624533d8, af9f44d3 and 9ec4bcf2 pushed to dev. Original CI probes complete and closed without merge; no release. Nested-dialog fix 36b9d53b and documentation screenshots 29cefb83 also pushed to dev.",
-    "currently_verified": 67
+    "acceptance_scope": {
+      "updated": "2026-10-07",
+      "user_instruction": "The mac agent did what it could. I cant test on physical hardware right now, so continue without it",
+      "decision": "Complete all remaining feasible work. Physical-device acceptance is deferred, remains unverified and is not required for current-scope completion. Original criteria and recorded results are preserved.",
+      "device_deferred_findings": [
+        "M01",
+        "M03",
+        "M05",
+        "M06",
+        "R15",
+        "P01"
+      ],
+      "physical_device_pass_claimed": false
+    }
   },
   "sources": {
     "native-clean": {
@@ -288,13 +303,14 @@
     "source_reference": "Each scenario initially names native-clean; each observed run must record the actual source reference or revision, dirty diff evidence/hash, device model and OS, observed outcome and compact evidence filenames.",
     "physical_cases": "Supporting simulator runs may be appended to physical-required cases, but their acceptance status cannot become passed until the specified physical acceptance is proven.",
     "privacy": "Only synthetic fixture markers and compact nonprivate diagnostics; exclude manuscript content, personal paths, credentials, project names and identities from committed evidence.",
-    "probes": "Temporary scope counters and asynchronous fault gates must be removed; preserve probe diff hashes and clean-build evidence without claiming probes are final source."
+    "probes": "Temporary scope counters and asynchronous fault gates must be removed; preserve probe diff hashes and clean-build evidence without claiming probes are final source.",
+    "current_scope": "Physical cases retain status not-run and gain acceptance_disposition deferred plus required_for_current_scope false. They are never converted to passed by a scope change."
   },
   "findings": [
     {
       "id": "M01",
       "title": "Retained edits",
-      "status": "incomplete",
+      "status": "device-deferred",
       "scenarios": [
         {
           "id": "M01-01",
@@ -337,7 +353,10 @@
               "limit": "Supporting simulator result. Compiled source differs from final source only by removed decorative comment; tested exact source preserved in fixed-mobile-source.patch. Original physical acceptance remains deferred."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M01-02",
@@ -366,7 +385,10 @@
               "limit": "Supporting simulator result. Compiled source differs from final source only by removed decorative comment; tested exact source preserved in fixed-mobile-source.patch. Original physical acceptance remains deferred."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M01-03",
@@ -408,7 +430,10 @@
               "limit": "Supporting simulator result. Compiled source differs from final source only by removed decorative comment; tested exact source preserved in fixed-mobile-source.patch. Original physical acceptance remains deferred."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M01-04",
@@ -428,7 +453,7 @@
               "device_model": "iPhone 17 Pro Max simulator",
               "device_os": "iOS 27.0",
               "scenario": "Actual DeviceHub Lock after native scene editing, with only the exact scene write deliberately held; terminate while locked and reopen.",
-              "observed": "Lock action started 2.55 seconds after native typing completed. SpringBoard lockstate changed 0\u21921, native background task was granted without acknowledgement, and marker stayed absent from disk through termination. Real UI recovery restored one marker occurrence in the original project/book/draft/scene; clean-app reopen passed.",
+              "observed": "Lock action started 2.55 seconds after native typing completed. SpringBoard lockstate changed 0→1, native background task was granted without acknowledgement, and marker stayed absent from disk through termination. Real UI recovery restored one marker occurrence in the original project/book/draft/scene; clean-app reopen passed.",
               "evidence": [
                 "m01-lock/summary.json",
                 "m01-lock/pending-lock.json"
@@ -450,7 +475,10 @@
               "limit": "Two supporting tablet simulator subsets with held real writes and declared native observations. Original physical, provider/offline and full scope acceptance remains not-run."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M01-05",
@@ -483,7 +511,7 @@
               "device_model": "iPhone 17 Pro Max simulator",
               "device_os": "iOS 27.0",
               "scenario": "Actual DeviceHub Lock after native scene editing, with only the exact scene write deliberately held; terminate while locked and reopen.",
-              "observed": "Lock action started 2.55 seconds after native typing completed. SpringBoard lockstate changed 0\u21921, native background task was granted without acknowledgement, and marker stayed absent from disk through termination. Real UI recovery restored one marker occurrence in the original project/book/draft/scene; clean-app reopen passed.",
+              "observed": "Lock action started 2.55 seconds after native typing completed. SpringBoard lockstate changed 0→1, native background task was granted without acknowledgement, and marker stayed absent from disk through termination. Real UI recovery restored one marker occurrence in the original project/book/draft/scene; clean-app reopen passed.",
               "evidence": [
                 "m01-lock/summary.json",
                 "m01-lock/pending-lock.json"
@@ -505,7 +533,10 @@
               "limit": "Two supporting tablet simulator subsets with held real writes and declared native observations. Original physical, provider/offline and full scope acceptance remains not-run."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M01-06",
@@ -519,7 +550,10 @@
           "observed": null,
           "evidence": [],
           "runs": [],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M01-07",
@@ -533,7 +567,10 @@
           "observed": null,
           "evidence": [],
           "runs": [],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M01-08",
@@ -561,7 +598,10 @@
               "limit": "Supporting simulator subset with declared transport gates. Required physical-device acceptance remains not-run; source is frozen 29cefb83 before the later focus correction."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M01-09",
@@ -589,7 +629,10 @@
               "limit": "Supporting simulator subset with declared transport gates. Required physical-device acceptance remains not-run; source is frozen 29cefb83 before the later focus correction."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M01-10",
@@ -617,7 +660,10 @@
               "limit": "Supporting simulator subset with declared transport gates. Required physical-device acceptance remains not-run; source is frozen 29cefb83 before the later focus correction."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M01-11",
@@ -670,9 +716,13 @@
               "limit": "Two supporting simulator scope matrices. Initial edit and editor reopens use actual native input; other-project/draft switches use existing production actions through the declared evaluator. Only new stopped fixtures receive declared activation-pointer and matching-resource setup; no journal/recents/registry repair or fake acknowledgements. No Lock/background repetition or physical/provider acceptance is claimed."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         }
-      ]
+      ],
+      "deferral": "Physical lifecycle, lock/termination, offline/cloud-only files, conflicts and ownership matrix are deferred and unverified. Offline and cloud-only cases have no runtime evidence. Simulator scene, Manuscript and Research lifecycle, held-write Lock, interrupted flush, old acknowledgement, two panes, conflict and ownership subsets passed at their recorded sources."
     },
     {
       "id": "M02",
@@ -853,7 +903,7 @@
     {
       "id": "M03",
       "title": "Container relocation",
-      "status": "incomplete",
+      "status": "device-deferred",
       "scenarios": [
         {
           "id": "M03-01",
@@ -892,7 +942,10 @@
               "limit": "Supporting simulator result; this earlier run did not establish the external matching-suffix case. Later available and unavailable external simulator cases are recorded separately; physical relocation remains deferred."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M03-02",
@@ -931,9 +984,13 @@
               "limit": "Supporting unavailable-external simulator branch, separate from the earlier actual relocation case; physical acceptance remains not-run. Registry byte equality applies through missing operation/restoration, before clean reinstall added normal exact owned aliases."
             }
           ],
-          "blocker": "Physical-device acceptance deferred; actual simulator external matching-suffix relocation has passed."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         }
-      ]
+      ],
+      "deferral": "Physical upgrade/container relocation and external matching-suffix acceptance are deferred and unverified. Resolver tests and actual successive simulator relocations, available external relocation and unavailable-external fallback passed."
     },
     {
       "id": "M04",
@@ -1169,7 +1226,7 @@
     {
       "id": "M05",
       "title": "Apple CI and native smoke",
-      "status": "incomplete",
+      "status": "device-deferred",
       "scenarios": [
         {
           "id": "M05-01",
@@ -1326,7 +1383,10 @@
           "observed": null,
           "evidence": [],
           "runs": [],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M05-08",
@@ -1340,7 +1400,10 @@
           "observed": null,
           "evidence": [],
           "runs": [],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M05-09",
@@ -1382,12 +1445,13 @@
           ],
           "blocker": null
         }
-      ]
+      ],
+      "deferral": "Signed physical-device create/edit/relaunch/import/share smoke is deferred and unverified. Actual Apple CI trigger, negative compiler and clean recovery cases passed; native simulator create/import/edit/relaunch/share and permission exercises passed."
     },
     {
       "id": "M06",
       "title": "Microphone permission and interruption",
-      "status": "incomplete",
+      "status": "device-deferred",
       "scenarios": [
         {
           "id": "M06-01",
@@ -1414,7 +1478,10 @@
               "limit": "Supporting simulator subset only. Physical-device acceptance remains deferred. Settings grant restarted process; same-process stale-error recovery not proven. Call/route interruption, actual audio quality and transcription not measured."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M06-02",
@@ -1441,7 +1508,10 @@
               "limit": "Supporting simulator subset only. Physical-device acceptance remains deferred. Settings grant restarted process; same-process stale-error recovery not proven. Call/route interruption, actual audio quality and transcription not measured."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M06-03",
@@ -1481,7 +1551,10 @@
               "limit": "Input-isolation limitation for this attempted simulator experiment only; no product failure, exact native Stop count or physical acceptance is established."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "M06-04",
@@ -1519,9 +1592,13 @@
               "limit": "Supporting simulator evidence only; all required physical acceptance remains not-run."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         }
-      ]
+      ],
+      "deferral": "Physical microphone denial/grant/retry and interruption behavior are deferred and unverified. Actual-shim tests and simulator denial, Settings grant with a fresh process, retry/Stop and same-process Home restart passed. Same-process denied-to-granted recovery, native Stop counts, call/audio-route interruption and audio quality are unproven; these expanded checks are not additional completion blockers."
     },
     {
       "id": "R13",
@@ -1662,7 +1739,7 @@
           "runs": [
             {
               "status": "failed",
-              "observed": "Initial69-preview workload kept conservative cache accounting at28,326,744bytes but native app footprint grew across equal batches (~453\u2192609\u2192774\u2192911MiB), with901MiB after final idle. Diagnosis and narrow correction in progress; no memory pass claimed.",
+              "observed": "Initial69-preview workload kept conservative cache accounting at28,326,744bytes but native app footprint grew across equal batches (~453→609→774→911MiB), with901MiB after final idle. Diagnosis and narrow correction in progress; no memory pass claimed.",
               "evidence": [
                 "r13-memory/before/cache-observations.json",
                 "r13-memory/before/native-footprint-samples.json"
@@ -1879,7 +1956,7 @@
     {
       "id": "R15",
       "title": "Native focus and accessibility",
-      "status": "incomplete",
+      "status": "device-deferred",
       "scenarios": [
         {
           "id": "R15-01",
@@ -1893,7 +1970,10 @@
           "observed": null,
           "evidence": [],
           "runs": [],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "R15-02",
@@ -1920,7 +2000,10 @@
               "limit": "Supporting simulator subset only. Required physical VoiceOver/iPad hardware-keyboard acceptance remains not-run. Browser Escape/outer-trigger focus return and native invoking-field return have separate evidence. XCTest animation waits are not product performance measurements."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "R15-03",
@@ -1947,7 +2030,10 @@
               "limit": "Supporting simulator subset only. Required physical VoiceOver/iPad hardware-keyboard acceptance remains not-run. Browser Escape/outer-trigger focus return and native invoking-field return have separate evidence. XCTest animation waits are not product performance measurements."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "R15-04",
@@ -1974,14 +2060,18 @@
               "limit": "Supporting simulator subset only. Required physical VoiceOver/iPad hardware-keyboard acceptance remains not-run. Browser Escape/outer-trigger focus return and native invoking-field return have separate evidence. XCTest animation waits are not product performance measurements."
             }
           ],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         }
-      ]
+      ],
+      "deferral": "Physical iPhone VoiceOver and iPad hardware-keyboard containment, nested dialogs, Escape, focus return and both orientations are deferred and unverified. Native simulator nested dismissal/typing/orientation and browser keyboard regressions passed. XCTest Escape/Return did not emit DOM key events; browser evidence is separate."
     },
     {
       "id": "P01",
       "title": "Manual image packaging performance",
-      "status": "incomplete",
+      "status": "device-deferred",
       "scenarios": [
         {
           "id": "P01-01",
@@ -2024,7 +2114,10 @@
           "observed": null,
           "evidence": [],
           "runs": [],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "P01-03",
@@ -2038,7 +2131,10 @@
           "observed": null,
           "evidence": [],
           "runs": [],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "P01-04",
@@ -2052,7 +2148,10 @@
           "observed": null,
           "evidence": [],
           "runs": [],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "P01-05",
@@ -2066,7 +2165,10 @@
           "observed": null,
           "evidence": [],
           "runs": [],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "P01-06",
@@ -2080,7 +2182,10 @@
           "observed": null,
           "evidence": [],
           "runs": [],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "P01-07",
@@ -2094,7 +2199,10 @@
           "observed": null,
           "evidence": [],
           "runs": [],
-          "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
+          "blocker": null,
+          "acceptance_disposition": "deferred",
+          "required_for_current_scope": false,
+          "deferral_reason": "Physical hardware unavailable; user explicitly requested continuation without it on 2026-10-07. This case remains unverified."
         },
         {
           "id": "P01-08",
@@ -2116,7 +2224,7 @@
               "source": "refreshed-help",
               "device_model": "iPad Pro 13-inch (M5) simulator",
               "device_os": "iOS 27.0",
-              "scenario": "Refreshed Help subset: actual Manual \u2192 Dashboard and Editor; all eleven current PNG hashes present in installed bundle and referenced by its entry script.",
+              "scenario": "Refreshed Help subset: actual Manual → Dashboard and Editor; all eleven current PNG hashes present in installed bundle and referenced by its entry script.",
               "observed": "Both updated screenshots decoded in the native UI. All eleven source/bundled image hashes matched. Separate desktop Electron check traversed all47 pages offline with all11 images decoded and zero page errors/remote requests.",
               "evidence": [
                 "p01-refreshed-help/summary.json",
@@ -2139,13 +2247,15 @@
           ],
           "blocker": null
         }
-      ]
+      ],
+      "deferral": "Physical iPhone/iPad launch, resident memory, JavaScriptCore parsing and offline Help acceptance are deferred and unverified. Desktop fresh-process measurements retained OS caches and used unpackaged Electron with a Debug backend; no OS-cold-cache or installed-package claim. Native simulator all-page Help/image checks and controlled build pairs passed; they establish neither physical performance nor OS airplane-mode behavior."
     }
   ],
   "limitations": [
-    "Native compilation, original Apple CI acceptance, complete M02 simulator scope/UI, M04 fault recovery/nonreplay, R13 media/memory and R14 native races passed. Six original findings remain pending.",
-    "Required physical acceptance remains deferred under simulator-only direction. Simulator evidence does not waive original physical or associated edge-case acceptance.",
+    "Native compilation, original Apple CI, complete M02 simulator scope/UI, M04 recovery/nonreplay, R13 media/memory and R14 races passed. Six implemented findings retain unverified device acceptance, explicitly deferred outside current completion scope.",
+    "The user requested continuation without physical hardware on 2026-10-07. Physical cases remain not-run; original criteria and supporting simulator evidence are unchanged.",
     "The 32 MiB limit applies to conservative cache accounting. Native memory acceptance covers the defined simulator workload; no physical-device or indefinite endurance claim.",
     "Desktop performance and simulator Help do not establish physical iOS memory, timing or JavaScriptCore results."
-  ]
+  ],
+  "original_acceptance_status": "incomplete-physical-device-cases-not-run"
 }

@@ -1,0 +1,148 @@
+{
+  "date": "2026-10-07",
+  "scope": "EXT-001/EXT-005/EXT-012 CI compatibility follow-through",
+  "changedFiles": [
+    ".github/workflows/ci.yml",
+    "README.md"
+  ],
+  "checks": [
+    {
+      "name": "CI SDK pin",
+      "status": "passed",
+      "detail": "9feaf6f9624ffd22aba765b71327f41f3376b2e1"
+    },
+    {
+      "name": "CI adjacent source layout",
+      "status": "passed",
+      "detail": "Sibling checkout paths preserved for UseLocalSdk=true"
+    },
+    {
+      "name": "CI triggers unchanged",
+      "status": "passed",
+      "detail": "main push and pull_request; no additional dev trigger"
+    },
+    {
+      "name": "Restore source SDK selection",
+      "status": "passed",
+      "detail": "dotnet restore -p:UseLocalSdk=true"
+    },
+    {
+      "name": "Build source SDK selection",
+      "status": "passed",
+      "detail": "dotnet build -c Release --no-restore -p:UseLocalSdk=true -p:ExtensionFolder="
+    },
+    {
+      "name": "Build deployment suppression",
+      "status": "passed",
+      "detail": "dotnet build -c Release --no-restore -p:UseLocalSdk=true -p:ExtensionFolder="
+    },
+    {
+      "name": "Test source SDK selection",
+      "status": "passed",
+      "detail": "dotnet test -c Release --no-build -p:UseLocalSdk=true -p:ExtensionFolder="
+    },
+    {
+      "name": "Test deployment suppression",
+      "status": "passed",
+      "detail": "dotnet test -c Release --no-build -p:UseLocalSdk=true -p:ExtensionFolder="
+    },
+    {
+      "name": "Release host prerequisite preserved",
+      "status": "passed",
+      "detail": "Future host v3.5.4 tag remains mandatory for release"
+    },
+    {
+      "name": "Release file unchanged",
+      "status": "passed",
+      "detail": "No release workflow changes"
+    },
+    {
+      "name": "AI SDK minimum independent",
+      "status": "passed",
+      "detail": "AI retains existing host 3.5.3-compatible source pin"
+    },
+    {
+      "name": "Exact SDK tree equality",
+      "status": "passed",
+      "detail": {
+        "pinned": "1b2f82b2bf7ac2e50f05f2988331993f231ec046",
+        "current": "1b2f82b2bf7ac2e50f05f2988331993f231ec046",
+        "officialHead": "614973bbcff64c4c473a2fae04506d25b152685e"
+      }
+    },
+    {
+      "name": "Pin published on host dev",
+      "status": "passed",
+      "detail": "Ancestor of origin/dev"
+    },
+    {
+      "name": "Required API: Novalist.Sdk/Services/IExtensionProjectService.cs",
+      "status": "passed",
+      "detail": [
+        "Inactive",
+        "ExcludeFromExport"
+      ]
+    },
+    {
+      "name": "Required API: Novalist.Sdk/Services/IExtensionEntityService.cs",
+      "status": "passed",
+      "detail": [
+        "GetEntityContentAsync"
+      ]
+    },
+    {
+      "name": "Required API: Novalist.Sdk/Services/MapInfo.cs",
+      "status": "passed",
+      "detail": [
+        "ImagePaths"
+      ]
+    },
+    {
+      "name": "Required API: Novalist.Sdk/Hooks/IInlineActionContributor.cs",
+      "status": "passed",
+      "detail": [
+        "ShowInformation"
+      ]
+    },
+    {
+      "name": "Formats host minimum preserved",
+      "status": "passed",
+      "detail": "3.5.4"
+    },
+    {
+      "name": "Insight host minimum preserved",
+      "status": "passed",
+      "detail": "3.5.4"
+    },
+    {
+      "name": "Publish host minimum preserved",
+      "status": "passed",
+      "detail": "3.5.4"
+    },
+    {
+      "name": "Toolkit host minimum preserved",
+      "status": "passed",
+      "detail": "3.5.4"
+    },
+    {
+      "name": "README documents matching CI pin",
+      "status": "passed",
+      "detail": "9feaf6f9624ffd22aba765b71327f41f3376b2e1"
+    },
+    {
+      "name": "Whitespace check",
+      "status": "passed",
+      "detail": "git diff --check"
+    }
+  ],
+  "limitations": [
+    "Static YAML/configuration and SDK identity checks; no remote workflow dispatched.",
+    "Existing 414/414 extension tests used the identical SDK tree. No extension production source changed.",
+    "Release still requires the future v3.5.4 host tag; no release or optional workflow dispatch performed. The reviewed CI fix was committed and pushed to dev; see delivery."
+  ],
+  "delivery": {
+    "branch": "dev",
+    "commit": "d48b636c2d6e0a0d3746cb8821cb57ad46d35594",
+    "remote_sha_verified": true
+  }
+}

@@ -397,7 +397,7 @@
     },
     {
       "id": "M06",
-      "status": "native-pending",
+      "status": "device-deferred",
       "implementation": [
         "The existing permission-denied reply maps to NotAllowedError through HostCallChannel and the real mobile shim; the microphone abstraction propagates it into dictation.permission. No production change was needed for this follow-through."
       ],
@@ -409,8 +409,9 @@
         "mobile-dictation.test.mjs executes actual shim.ts, HostCallChannel, audio.openMicrophone/openSystemMicrophone and dictationStore: native denial sets dictation.permission, leaves starting/recording false, permits successful retry, reads/stops exactly once and clears stale permission error.",
         "Full portable source suite: 114/114 passed after adding a source-loader override for Vite-transformed audio.ts parameter properties. Evidence: mobile-dictation-source-tests.log."
       ],
-      "pending": [
-        "Deny and subsequently enable microphone permission on an actual iOS device; portable host replies do not certify native authorization behavior."
+      "pending": [],
+      "deferred": [
+        "Physical iOS deny/enable microphone acceptance is deferred and unverified at the user's request on 2026-10-07. Portable and simulator results retain their recorded scope."
       ]
     },
     {
@@ -567,7 +568,7 @@
           "column": 0,
           "category": "Complexity",
           "fixable": false,
-          "detail": "GenerateCompatibleAsync \u00b7 122 lines",
+          "detail": "GenerateCompatibleAsync · 122 lines",
           "changeContext": "changed-line",
           "assessment": {
             "kind": "style-policy",
@@ -593,7 +594,7 @@
           "column": 0,
           "category": "Complexity",
           "fixable": false,
-          "detail": "ProcessToken \u00b7 7 params",
+          "detail": "ProcessToken · 7 params",
           "changeContext": "existing-file-context",
           "assessment": {
             "kind": "style-policy",
@@ -619,7 +620,7 @@
           "column": 0,
           "category": "Complexity",
           "fixable": false,
-          "detail": "AnalyseChapterWholeAsync \u00b7 9 params",
+          "detail": "AnalyseChapterWholeAsync · 9 params",
           "changeContext": "existing-file-context",
           "assessment": {
             "kind": "style-policy",
@@ -671,7 +672,7 @@
           "column": 0,
           "category": "Complexity",
           "fixable": false,
-          "detail": "LogEnvironmentProbeAsync \u00b7 90 lines",
+          "detail": "LogEnvironmentProbeAsync · 90 lines",
           "changeContext": "existing-file-context",
           "assessment": {
             "kind": "style-policy",

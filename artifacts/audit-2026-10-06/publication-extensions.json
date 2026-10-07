@@ -3,10 +3,11 @@
     {
       "repo": "novalist-extension",
       "branch": "dev",
-      "commit": "aba771741b7069596f48423b1bd7571e28bdbbdd",
-      "url": "https://github.com/Drommedhar/novalist-extensions/commit/aba771741b7069596f48423b1bd7571e28bdbbdd",
+      "commit": "d48b636c2d6e0a0d3746cb8821cb57ad46d35594",
+      "url": "https://github.com/Drommedhar/novalist-extensions/commit/d48b636c2d6e0a0d3746cb8821cb57ad46d35594",
       "remoteShaVerified": true,
-      "preservedDirtyFileCount": 0
+      "preservedDirtyFileCount": 0,
+      "previous_audit_commit": "aba771741b7069596f48423b1bd7571e28bdbbdd"
     },
     {
       "repo": "novalist-extension-gallery",
