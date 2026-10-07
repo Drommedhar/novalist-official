@@ -35,10 +35,10 @@ for src in "$IN"/*.png; do
   backdrop "$w" "$h" "$bg"
   if [ -n "$W" ]; then
     magick "$bg" "$src" -compose over -composite -resize "${W}x${H}!" \
-      -strip -define png:color-type=2 "$OUT/$name"
+      -strip -depth 8 -define png:color-type=2 "$OUT/$name"
   else
     magick "$bg" "$src" -compose over -composite \
-      -strip -define png:color-type=2 "$OUT/$name"
+      -strip -depth 8 -define png:color-type=2 "$OUT/$name"
   fi
   rm -f "$bg"
   echo "  $name"

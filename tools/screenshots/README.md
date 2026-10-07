@@ -1,127 +1,157 @@
 # Screenshot pipeline
 
-Reproducible App Store and user-manual screenshots for all three targets: macOS,
-iPhone and iPad. Everything is shot from the real apps against a generated demo
-project, so no personal writing ever appears in a published image.
+Current screenshots come from real macOS, iPhone and iPad apps using the fictional
+*The Cartographer's Daughter* project. The manual uses the direct-download Mac
+edition; Mac App Store images use the existing App Store edition flag so they do
+not advertise extensions.
 
-macOS only — it drives Electron through Playwright, the iOS Simulator through
-`simctl`, and composites with ImageMagick.
-
-## Why the demo project exists
-
-Screenshots of a real project leak the author's book, and screenshots of an empty
-project make every view look broken. `demo-content.mjs` is the single source of
-truth for a fictional novel — *The Cartographer's Daughter* — sized so that every
-view has something to show: three chapters over three acts, ten scenes of prose,
-eight characters with relationships, six locations, four items, three lore
-entries, four plotlines, twelve timeline events, and story dates that put scenes
-on the Calendar.
+Published assets live in `docs/manual/images/` and `docs/app-store/images/`.
+Capture provenance and output hashes are in `docs/app-store/screenshots.json`.
+The scripts prepare images; they do not upload metadata or publish a release.
 
 ## Prerequisites
 
-- `npm --prefix app run build` (the capture scripts launch `app/out/main/index.js`)
-- a debug build of `Novalist.Backend` — the dev backend path the main process resolves
-- `brew install imagemagick` and `brew install cliclick` (the latter only for the
-  iOS captures, which drive the Simulator by clicking it)
-- for iOS: full Xcode, the `maui-ios` workload, and
-  `dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios -c Debug -p:RuntimeIdentifier=iossimulator-arm64`
-
-## macOS
+Run on macOS with Xcode and the iOS 27 simulator runtime, the repository's pinned
+.NET SDK and MAUI workload, Node and the installed `app` dependencies. ImageMagick
+is required for framing; `cliclick` is only needed for optional manual simulator
+taps. Use dedicated screenshot simulators and isolated Electron profiles.
 
 ```sh
-WORK=~/nl-shots
-node tools/screenshots/make-demo-project.mjs "$WORK/Novalist/The Cartographer's Daughter"
+npm --prefix app run build
+npm --prefix app run build:mobile
+dotnet build Novalist.Backend/Novalist.Backend.csproj -p:NuGetAudit=false
+dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios27.0 \
+  -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=true \
+  -p:CodesignKey=- -p:NuGetAudit=false -m:1 -nr:false
+```
+
+The simulator build is locally ad-hoc signed. No physical device, distribution
+certificate or App Store upload is needed to capture screenshots.
+
+## Generate the demo
+
+Use a fresh scratch directory. `make-demo-project.mjs` refuses to replace an
+existing project destination.
+
+```sh
+WORK="$(mktemp -d /private/tmp/novalist-screenshots.XXXXXX)"
+DEMO="$WORK/Novalist/The Cartographer's Daughter"
+node tools/screenshots/make-demo-project.mjs "$DEMO"
 tools/screenshots/make-art.sh "$WORK/art"
-node tools/screenshots/enrich-demo.mjs "$WORK/Novalist/The Cartographer's Daughter" "$WORK/art"
-node tools/screenshots/capture-desktop.mjs "$WORK/Novalist/The Cartographer's Daughter" "$WORK/raw/macos"
+node tools/screenshots/enrich-demo.mjs "$DEMO" "$WORK/art"
 ```
 
-`make-art.sh` generates the demo book's cover and banner (abstract bathymetric
-contours in the app's palette) so the Dashboard and welcome screen are not full
-of empty image placeholders.
+The current backend's RPC creates the project structure. The demo contains three
+chapters, ten scenes, eight characters, locations, items, lore, relationships,
+plotlines and timeline events. Enrichment supplies locally generated cover/banner
+art, Research notes, a map, scene dates and synthetic writing history. It is
+fictional fixture data, not a real author's project or performance measurement.
 
-### The Liquid Glass transparency fix
-
-On macOS 26 the app launches its window with `transparent: true` so the native
-`NSGlassEffectView` can show through the chrome — see `app/src/main/glass.ts`. A
-Playwright screenshot captures only the web layer, so the chrome comes out at
-60–72% alpha with nothing behind it, which reads as washed-out grey.
-
-`composite.sh` flattens each capture onto a neutral desktop backdrop. That is
-what the user actually sees when the window sits on a plain wallpaper: the chrome
-stays translucent, but it now has something to be translucent against. Raw
-captures deliberately keep their alpha so this step can be re-tuned without
-re-shooting.
-
-## iOS
-
-On iOS a project folder can only be reached through a security-scoped bookmark,
-and only the system document picker can mint one — so the demo project cannot
-just be copied into the app container. The flow works around that without any
-app change:
-
-1. `tools/screenshots/sim-setup.sh "iPhone 17 Pro Max"` — boots, installs, and
-   pins the status bar to 9:41 with full bars
-2. in the app, tap **Browse for Project Folder…** and pick **On My iPhone**
-   (navigate up if the picker opens inside another folder). This stores a
-   bookmark for that folder.
-3. `tools/screenshots/sim-seed.sh <udid> <demo-project-dir>` — copies the demo
-   project into the bookmarked folder and writes a recents entry pointing at it,
-   then relaunches
-
-Step 3 works because `SecurityScopedFolders.BeginAccess` walks ancestors, so the
-bookmark on the parent authorises the project subfolder. `sim-seed.sh` replaces
-`settings.json` wholesale, which also clears any real projects from that
-simulator's recents — worth knowing if you use the same simulator for
-development.
-
-From there, `tapshot.sh` taps a screen coordinate and saves both a clean device
-screenshot (the deliverable) and a capture of the Simulator window, which is what
-you read to work out the next tap:
+## Capture macOS
 
 ```sh
-export NL_WIN_RECT=766,33,455,974   # from: osascript -e 'tell application "System Events" \
-                                    #   to tell process "Simulator" to get {position, size} of window 1'
-export NL_ROTATE=-90                # landscape iPad only; simctl writes the framebuffer unrotated
-tools/screenshots/tapshot.sh 924 938 "$WORK/raw/iphone/02-write.png"
+node tools/screenshots/capture-desktop.mjs "$DEMO" "$WORK/raw/macos"
+NOVALIST_FORCE_MAS=1 node tools/screenshots/capture-desktop.mjs \
+  "$DEMO" "$WORK/raw/macos-mas"
 ```
 
-iPad screenshots are taken in landscape (rotate with Cmd+Left) so the two-pane
-layout is visible.
+The script launches the actual Electron app at 1440×900 points and 2× scale,
+using isolated settings and browser storage. It opens populated views, dismisses
+the first-run tour, and records the captured edition/views. Normal view selection
+and scrolling position the content; the application UI is not replaced or mocked.
 
-## Assembling
+The manual's `manuscript.png` shows the corkboard to match its existing caption.
+The App Store's manuscript image shows continuous prose. The editor manual image
+includes both the Context inspector and the scene-notes dock.
+
+Raw captures preserve the window's alpha. `composite.sh` places them on a neutral
+backdrop before framing, retaining translucent desktop chrome without washed-out
+transparent pixels in the exported image.
+
+## Capture iPhone and iPad
+
+Create dedicated simulators with `xcrun simctl create`, then supply each exact
+UDID. Use iPhone 17 Pro Max, iPhone 17 Pro and iPad Pro 13-inch on iOS 27 for the
+current sets. The setup script touches only the selected simulator.
+It restarts that simulator once to apply an English (US) native locale.
 
 ```sh
-tools/screenshots/build-all.sh "$WORK" ~/Desktop/Novalist-Screenshots
+tools/screenshots/sim-setup.sh "$SHOT_UDID"
+tools/screenshots/sim-seed.sh "$SHOT_UDID" "$DEMO"
 ```
 
-Writes upload-ready store screenshots at Apple's exact sizes — macOS
-2880×1800, iPhone 6.9" 1320×2868, iPhone 6.5" 1284×2778, iPad 13" 2752×2064
-landscape — each framed by `frame.sh` with a headline over a gradient drawn from
-the app's colour tokens.
+An optional second setup argument selects an already-built `.app`. The seed
+script copies the demo into the app's Documents directory, where the current app
+supports local projects without a security-scoped picker grant. It derives the
+recent project's ID and cover path from current metadata, preserves existing
+settings/recents, and refuses to overwrite an existing demo destination.
 
-Both phone classes come from the same captures. Because the device screenshot is
-inset in the frame rather than full-bleed, a new phone aspect ratio only needs a
-re-run of the framing step — never a re-shoot, and nothing is ever stretched.
-
-It also writes the 1440×900 manual set; copy that into place:
+Use native XCTest navigation or interact with the dedicated Simulator window.
+The iPhone runner captures each screen after its XCTest session exits:
 
 ```sh
-cp ~/Desktop/Novalist-Screenshots/Manual/*.png docs/manual/images/
-npm --prefix app run build:mobile   # the mobile bundle inlines these as base64
+python3 tools/screenshots/capture-iphone.py "$IPHONE_UDID" "$WORK/raw/iphone"
+python3 tools/screenshots/capture-iphone.py "$MEDIUM_IPHONE_UDID" "$WORK/raw/iphone-medium"
 ```
 
-That last step matters: `app/vite.mobile.config.ts` embeds `docs/manual/images/`
-into the mobile bundle for the in-app manual, so refreshed screenshots need a
-bundle rebuild to reach the phone.
+`capture-ipad.swift` contains the corresponding native iPad UI steps for a
+standalone XCTest target. Run `testCaptureViews` followed by
+`testDashboardFraming`, then export the named PNG attachments with
+`xcrun xcresulttool export attachments`; the latter dashboard capture replaces
+the initial one. Normalize their orientation before checking the landscape size.
 
-## Gotchas
+Capture actual app screens after images, fonts and content have settled, with
+onboarding dismissed and no keyboard covering the editor. Keep iPhone portrait
+and iPad landscape. Setup pins the native status bar to 9:41 and full reception.
+Use `xcrun simctl io "$SHOT_UDID" screenshot <file>` for the final framebuffer.
 
-- ImageMagick: screening an opaque `radial-gradient:` over a background swamps
-  the whole canvas instead of tinting it. Both the cover art and the store frames
-  avoid it.
-- Rounding corners needs `-compose DstIn` against a white rounded-rect mask.
-  `copyopacity` on an `-alpha off` source silently does nothing, leaving a square
-  image whose drop shadow then swallows it.
-- `magick identify -format '%w %h'` emits no trailing newline, so `read` exits
-  non-zero and kills a `set -e` script. Use `'%w %h\n'`.
+For optional manual tapping, set `NL_SIMULATOR_UDID` and `NL_WIN_RECT` (the
+Simulator window's `x,y,width,height`). `tapshot.sh` saves the device framebuffer
+and a separate scratch window capture. Set `NL_ROTATE` only if the framebuffer
+is sideways; inspect dimensions before rotating.
+
+Required raw filenames:
+
+- `raw/iphone/` and `raw/iphone-medium/`: `00-welcome`, `01-dashboard`,
+  `02-write`, `03-editor`, `04-codex`, `05-codex-entity`, `06-wiki`,
+  `06-wiki-article`, `07-plan-menu`, `08-timeline` (all `.png`).
+- `raw/ipad/`: `00-welcome`, `01-dashboard`, `02-editor`, `03-manuscript`,
+  `04-timeline`, `05-relationships`, `06-codex`, `07-wiki`, `08-plotgrid`.
+
+The dashboard capture should show actual progress metrics. Keep entity details,
+wiki articles and scene prose populated. Review each frame, not just the output
+file count.
+
+## Assemble and replace the images
+
+```sh
+tools/screenshots/build-all.sh "$WORK" "$WORK/deliverables"
+cp "$WORK/deliverables/Manual/"*.png docs/manual/images/
+mkdir -p docs/app-store/images
+cp -R "$WORK/deliverables/App Store/". docs/app-store/images/
+npm --prefix app run build
+npm --prefix app run build:mobile
+```
+
+The final set contains all 11 manual images and 49 App Store images. Existing
+output files are regenerated without deleting unrelated files in the output
+folder. The mobile manual uses separately emitted image assets, not base64 in
+the entry JavaScript; rebuild and reinstall the native app when checking the
+updated in-app Help on a simulator.
+
+The store canvases match [Apple's screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications),
+checked on 2026-10-07:
+
+| Folder | Pixels | Images |
+| --- | --- | --- |
+| macOS | 2880×1800 | 10 |
+| iPhone 6.3 | 1206×2622 | 10 |
+| iPhone 6.9 | 1320×2868 | 10 |
+| iPhone 6.5 | 1284×2778 | 10 |
+| iPad 13 | 2752×2064 | 9 |
+
+The medium Dynamic Island iPhone set has its own native captures. The large
+Dynamic Island captures also supply the optional older Face ID canvas; framing
+fits the original screenshot proportionally without stretching it. All store
+outputs are opaque 8-bit RGB PNGs, with at most ten per size. Retain original raw
+captures separately while reviewing the framed results.

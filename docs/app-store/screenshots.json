@@ -1,0 +1,616 @@
+{
+  "schema_version": 1,
+  "captured_on": "2026-10-07",
+  "source_revision": "6cdda9918f188f966b7e4996b80e49fe9193d173",
+  "native_capture_production_revision": "9ec4bcf2cf57eac8bcc3c0751da70b67263fe8d0",
+  "native_capture_source_verification": {
+    "production_inputs": 1257,
+    "differences": []
+  },
+  "demo": "The Cartographer's Daughter: generated fictional manuscript, world data, art and writing history; no personal project data",
+  "appearance": "English, dark; mobile native locale en_US; simulator status bar 9:41 and full reception/battery",
+  "capture": {
+    "desktop": {
+      "method": "Real current Electron renderer/backend, synthetic project generated through production RPC; existing NOVALIST_FORCE_MAS=1 used for App Store edition. Isolated backend settings and Chromium profiles.",
+      "manual_edition": "direct download",
+      "store_edition": "Mac App Store mode",
+      "scale": 2,
+      "window_points": [
+        1440,
+        900
+      ]
+    },
+    "iphone": {
+      "method": "Native XCTest navigation on dedicated new simulators; simctl framebuffer capture after each navigation test exits. No product source changes, probes, JavaScript injection, image compositing, or user data.",
+      "devices": [
+        {
+          "model": "iPhone 17 Pro Max",
+          "runtime": "iOS 27.0 (24A434)",
+          "pixels": [
+            1320,
+            2868
+          ]
+        },
+        {
+          "model": "iPhone 17 Pro",
+          "runtime": "iOS 27.0 (24A434)",
+          "pixels": [
+            1206,
+            2622
+          ]
+        }
+      ],
+      "navigation_tests_passed": 20
+    },
+    "ipad": {
+      "method": "Native XCTest navigation and XCUIScreen screenshot attachments; actual uninstrumented Novalist app. Lossless orientation normalization only.",
+      "model": "iPad Pro 13-inch (M5)",
+      "runtime": "iOS27.0",
+      "pixels": [
+        2752,
+        2064
+      ],
+      "orientation": "landscape",
+      "views": 9
+    }
+  },
+  "assembly": {
+    "pipeline": "tools/screenshots/build-all.sh",
+    "format": "opaque 8-bit RGB PNG",
+    "manual_images": 11,
+    "app_store_images": 49,
+    "optional_face_id_set": "Large iPhone capture fitted proportionally into the 1284x2778 canvas; no stretching",
+    "visual_review": "All source views and all final platform contact sheets inspected"
+  },
+  "validation": {
+    "desktop_help": {
+      "status": "passed",
+      "pages": 47,
+      "decoded_images": 11,
+      "emitted_asset_hashes_match": true,
+      "offline": true,
+      "page_errors": 0,
+      "remote_requests": 0
+    },
+    "native_ipad_help": {
+      "status": "pass",
+      "rendered_pages": [
+        "Dashboard",
+        "Editor"
+      ],
+      "all_11_image_hashes_present_and_referenced": true,
+      "bundle": {
+        "installed_tree_sha256": "e3af065b470c43ac10f4433fdf84ddcae48e7d0a8637e7617e1c35578e0fbac0",
+        "installed_matches_root_build": true,
+        "hash_method": "SHA256 of compact sorted JSON mapping bundle-relative file paths to SHA256",
+        "file_count": 597,
+        "entry_scripts": [
+          "./assets/index.mobile-B1MmiCY0.js"
+        ]
+      },
+      "synthetic_project_files_preserved": 82
+    },
+    "builds": {
+      "desktop_renderer": "passed",
+      "mobile_renderer": "passed",
+      "native_ios_simulator": "passed (8 warnings, 0 errors)"
+    },
+    "source_gates": {
+      "command": "python3 tools/check-source.py",
+      "passed": 8
+    },
+    "scoped_aislop": {
+      "scope": "tools/screenshots/**",
+      "score": 100,
+      "errors": 0,
+      "warnings": 0,
+      "limits": "Swift unsupported; ruff unavailable. Native Swift execution and script syntax checks performed separately. Dependency audit and telemetry disabled."
+    }
+  },
+  "evidence_sha256": {
+    "desktop-capture-provenance.json": "c4e64f7d0d8b405e48322bd8fc13352bdea2b8e06fa35886c7638a3b5fe45fc9",
+    "iphone-capture/summary.json": "dbea3cfc237b1a063f98d7146b775fbcb80e9771b35ecc0bbca309c9faa77668",
+    "ipad-evidence/summary.json": "673bad4cd926a17bac8589dd623d3f0a98878766f4d06d517086365de4c0a492",
+    "help-verification.json": "edc0df986a58f73cf799b0e2329ca67772b08aa6a38c992b5a7ae9371dd1e5ab",
+    "ipad-evidence/native-help.json": "af453c62cc50b6063747d6fde402d26b2bd8b4e322c07579e53c5ade1fcccc0c",
+    "aislop.json": "5461a6682f0eeb09ad59047c5101ac108774e6cb6ff764a5fbba61c2416dc90e"
+  },
+  "evidence_note": "Raw captures, native test results and validation logs are retained in the local screenshot work directory. The package includes final images and this manifest.",
+  "publication": {
+    "app_store_connect_uploaded": false,
+    "release_published": false
+  },
+  "files": [
+    {
+      "path": "docs/manual/images/calendar.png",
+      "package_path": "Manual/calendar.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 180999,
+      "sha256": "bcc889398e71b1f4d9e81ce944443e11ae51fd702d953ed5267a30046b59fc52",
+      "previous_sha256": "f8ea16049ff843c81bc88abfaa83ef2f83e85a3e1b5a9a4910ce648dd5f76fce"
+    },
+    {
+      "path": "docs/manual/images/codex.png",
+      "package_path": "Manual/codex.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 253775,
+      "sha256": "be8cfa88e31571771a62cda230b6d17c8f13ebcac4d1955d7aa7ec750f817b07",
+      "previous_sha256": "7719187a6c093651f67a87dd557305e52fd03c6b6a20e3bf2a7af5d2706272b6"
+    },
+    {
+      "path": "docs/manual/images/command-palette.png",
+      "package_path": "Manual/command-palette.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 331149,
+      "sha256": "bd33875bb2565ea0e71ce2e47a1351cb7e2b5fc3847963cc16eb6725d9fed3ef",
+      "previous_sha256": "59fd56cc04c8c967b9a5439dc20b008a52d94744acf70ac37019fd771ced38dd"
+    },
+    {
+      "path": "docs/manual/images/dashboard.png",
+      "package_path": "Manual/dashboard.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 173627,
+      "sha256": "d7748a0ccfe13a71ec2e0d464bb976268a841c842be02b03e11cc76f33a26836",
+      "previous_sha256": "9d182aa840efab5d1c612a39dc3e40cbf730be0e53bbbdd4ff23d4b535142c8b"
+    },
+    {
+      "path": "docs/manual/images/editor.png",
+      "package_path": "Manual/editor.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 495118,
+      "sha256": "8d91efe86a1deb0a97f28e0eb82c5130aa91660b00709666ff9786ede1341906",
+      "previous_sha256": "27f656d353c27ee4804209b4ff0882c229a00c0aa06ce64346ef96c127e7e2b4"
+    },
+    {
+      "path": "docs/manual/images/interface-overview.png",
+      "package_path": "Manual/interface-overview.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 497556,
+      "sha256": "f7293a5e48cab3fba7214dfd1ffcea571a1058a1cdbd1cc03692dd3a910e19a6",
+      "previous_sha256": "15501b28bac71d405e1f5574e3a9f21c806f2e676b4b1e35fc9b2e58b52323de"
+    },
+    {
+      "path": "docs/manual/images/manuscript.png",
+      "package_path": "Manual/manuscript.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 441499,
+      "sha256": "61029447c5ba15b03d33103307cbfa2fe3f68ebbf413a8532fbf7c26d2b9da70",
+      "previous_sha256": "80da42b92ab9fc75554ed552becde7b146752369a02d89d125c602f9101043d3"
+    },
+    {
+      "path": "docs/manual/images/plot-grid.png",
+      "package_path": "Manual/plot-grid.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 229838,
+      "sha256": "318a71f9ffba14dddb6a14e8552a692a94fa502f77eff30ce7e317caa74e8d5b",
+      "previous_sha256": "fa8cc2d570b8c1e91f32c25932b67b9bc4e4343df92b6fb363a398917083fa22"
+    },
+    {
+      "path": "docs/manual/images/relationships.png",
+      "package_path": "Manual/relationships.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 253251,
+      "sha256": "ac2b614c9fabf8778bbbbcebf37fa441cf7912e5dd94358204e0b459d533d075",
+      "previous_sha256": "92a971a8271ce4ed890cc69159afa370c2c4d7674cc844cdeba2ba837d095872"
+    },
+    {
+      "path": "docs/manual/images/start-screen.png",
+      "package_path": "Manual/start-screen.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 130890,
+      "sha256": "2342037b40fa93b74acd2c71e7cebd8b92bc29b4653a2625d9ac5dabbb5bf493",
+      "previous_sha256": "48896ea5a9304daa03931fef7bde288e32c8b964d748e8d1d0544e75ea3a7cbf"
+    },
+    {
+      "path": "docs/manual/images/timeline.png",
+      "package_path": "Manual/timeline.png",
+      "width": 1440,
+      "height": 900,
+      "bytes": 203646,
+      "sha256": "6853f326bc64e0d22c245d1875ee53bced1890ea69ed1fec24d11225fe525e2f",
+      "previous_sha256": "bc405066c7d2235c4e44f167be9f304675c02fde814970e96eaf3231a2d37e52"
+    },
+    {
+      "path": "docs/app-store/images/macOS/01-interface-overview.png",
+      "package_path": "App Store/macOS/01-interface-overview.png",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 967019,
+      "sha256": "640cbbfaa9ae33478475fcd696d3adf98e43ab7e7cf36a02d304cfa163ad49ce"
+    },
+    {
+      "path": "docs/app-store/images/macOS/02-dashboard.png",
+      "package_path": "App Store/macOS/02-dashboard.png",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 394587,
+      "sha256": "aac9363f6b697bece263b41aa9dd6cea3f3cd7667f1c0ac7f1899e2637dd97f9"
+    },
+    {
+      "path": "docs/app-store/images/macOS/03-manuscript.png",
+      "package_path": "App Store/macOS/03-manuscript.png",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 1030092,
+      "sha256": "b99877e5e3e4872272fa59a0b37b4e7facb032e4ada18f4f0724d4382d473b43"
+    },
+    {
+      "path": "docs/app-store/images/macOS/04-corkboard.png",
+      "package_path": "App Store/macOS/04-corkboard.png",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 867661,
+      "sha256": "4b9dbfb035059b88a1d28a292eab223c98aac9e945836cd6624ccedec13d9f96"
+    },
+    {
+      "path": "docs/app-store/images/macOS/05-codex.png",
+      "package_path": "App Store/macOS/05-codex.png",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 517204,
+      "sha256": "6dad26a44655a693ca7c3a5452a03a1565335bc961b216bcb745ac8647070913"
+    },
+    {
+      "path": "docs/app-store/images/macOS/06-wiki.png",
+      "package_path": "App Store/macOS/06-wiki.png",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 686975,
+      "sha256": "20b8f115d22b37e6798628debb7f8269f56a4ee54d6f51780d1e52e0e2082867"
+    },
+    {
+      "path": "docs/app-store/images/macOS/07-timeline.png",
+      "package_path": "App Store/macOS/07-timeline.png",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 420693,
+      "sha256": "b5bf819c2082cbc32c7e890e2e4e84759baea1c8d6f90e095a74af052e145f4c"
+    },
+    {
+      "path": "docs/app-store/images/macOS/08-plot-grid.png",
+      "package_path": "App Store/macOS/08-plot-grid.png",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 473805,
+      "sha256": "ecee473a458e57f39958617aa626dedc980ce31c756a9d9b3219d6c4d84262b3"
+    },
+    {
+      "path": "docs/app-store/images/macOS/09-relationships.png",
+      "package_path": "App Store/macOS/09-relationships.png",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 515375,
+      "sha256": "1e55323d5015cb718de80b1bf6ffbc80275e12c529f4d4f60c2bef2dc6cc4652"
+    },
+    {
+      "path": "docs/app-store/images/macOS/10-command-palette.png",
+      "package_path": "App Store/macOS/10-command-palette.png",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 648511,
+      "sha256": "e65c7797a83eea34bec8b06299a088dcb7d55d88a0ab9ee7ff1e2e88109c863b"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.3/01.png",
+      "package_path": "App Store/iPhone 6.3/01.png",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 439811,
+      "sha256": "ca0938a67e1a25599128f2caa9f762a5874d7ad029c8ec787534e44cd48e4ae0"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.3/02.png",
+      "package_path": "App Store/iPhone 6.3/02.png",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 405353,
+      "sha256": "b34d5157545c63386f9003815f2f64430544588dc9ec9ed78573731cccc09ecc"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.3/03.png",
+      "package_path": "App Store/iPhone 6.3/03.png",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 431830,
+      "sha256": "53657eb430ac0fb53c95059f5bc3d674ecdc398359116c51a90050321d4f934b"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.3/04.png",
+      "package_path": "App Store/iPhone 6.3/04.png",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 425491,
+      "sha256": "81cad735843c075dbcd191a6757ed814ce2f264c2567bd3e17c1fd31f3c88bf9"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.3/05.png",
+      "package_path": "App Store/iPhone 6.3/05.png",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 339664,
+      "sha256": "77e23e61efbf8cc9292dff52c595c74288fafdcd75a47570c547f1cdbcce0a30"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.3/06.png",
+      "package_path": "App Store/iPhone 6.3/06.png",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 432189,
+      "sha256": "cff543ff9fcca61f3bdd17e0be80da9ec803265f3bfbb24c2d7c39f30d6ab0ae"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.3/07.png",
+      "package_path": "App Store/iPhone 6.3/07.png",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 428159,
+      "sha256": "eff452dd138cbeb87506d61a11d0a3658de5b886a8a3195d7e28ae853b6372af"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.3/08.png",
+      "package_path": "App Store/iPhone 6.3/08.png",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 462850,
+      "sha256": "a7fa797b2777be821758eb9190523268dc9a2142aeacb626b3167e99719a5e10"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.3/09.png",
+      "package_path": "App Store/iPhone 6.3/09.png",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 395930,
+      "sha256": "4ab758deadb1aaa597b6e9087595221fd8b326e52298067ce9034747cd0bfa62"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.3/10.png",
+      "package_path": "App Store/iPhone 6.3/10.png",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 376215,
+      "sha256": "a9f77068fee0ac77b2d6dc3ba3fd84c77ff33ac520516172e551fe98fdd1b485"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.9/01.png",
+      "package_path": "App Store/iPhone 6.9/01.png",
+      "width": 1320,
+      "height": 2868,
+      "bytes": 566664,
+      "sha256": "4046a6f710855f8960d576810f4ca270c4459876dc358147dea030f75134c8af"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.9/02.png",
+      "package_path": "App Store/iPhone 6.9/02.png",
+      "width": 1320,
+      "height": 2868,
+      "bytes": 458731,
+      "sha256": "5f9cf3b4a68060e7062bef69fed5d365eefbbb7eb0bfaa5d89fecf17ef952239"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.9/03.png",
+      "package_path": "App Store/iPhone 6.9/03.png",
+      "width": 1320,
+      "height": 2868,
+      "bytes": 485481,
+      "sha256": "934d5088b3656c3847893b75387b77a7559ff2a40f7c1ec44903682b35f555fc"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.9/04.png",
+      "package_path": "App Store/iPhone 6.9/04.png",
+      "width": 1320,
+      "height": 2868,
+      "bytes": 477260,
+      "sha256": "1d4eb5b63bb8970f068c7bb07251d026b3a471a79dc2ca53db6681997c17d559"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.9/05.png",
+      "package_path": "App Store/iPhone 6.9/05.png",
+      "width": 1320,
+      "height": 2868,
+      "bytes": 373662,
+      "sha256": "df9e495830495c482ae415e602541158fda236e23af636a9e3ce36c4f93c20ea"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.9/06.png",
+      "package_path": "App Store/iPhone 6.9/06.png",
+      "width": 1320,
+      "height": 2868,
+      "bytes": 527738,
+      "sha256": "c7d189e84d7ace2d4a2698cec0d972ca0cf7bda834068886519f35c7473e5d20"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.9/07.png",
+      "package_path": "App Store/iPhone 6.9/07.png",
+      "width": 1320,
+      "height": 2868,
+      "bytes": 478739,
+      "sha256": "19e0de0fee456d11007b33e3589b4319d9e1e6ce0ec72b979a2166d4e26a9beb"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.9/08.png",
+      "package_path": "App Store/iPhone 6.9/08.png",
+      "width": 1320,
+      "height": 2868,
+      "bytes": 546448,
+      "sha256": "c51e42f2ecebfb36e9cd498309e5c6594252ecdd6ed0634596c92733eaaa9982"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.9/09.png",
+      "package_path": "App Store/iPhone 6.9/09.png",
+      "width": 1320,
+      "height": 2868,
+      "bytes": 434501,
+      "sha256": "6fd32407d29044725551404ec859c928e8a3a98c0e040ddaa0ca7406d3c3b2af"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.9/10.png",
+      "package_path": "App Store/iPhone 6.9/10.png",
+      "width": 1320,
+      "height": 2868,
+      "bytes": 394817,
+      "sha256": "003aacd2ebbb6d21c5d21d93ab4f6f99ff5436d24d85e7d0b6a2604e995af21c"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.5/01.png",
+      "package_path": "App Store/iPhone 6.5/01.png",
+      "width": 1284,
+      "height": 2778,
+      "bytes": 536281,
+      "sha256": "f8fbd9c9875379c6f29bd26b8502b817eb24a1eae4e77362f772292704f25b25"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.5/02.png",
+      "package_path": "App Store/iPhone 6.5/02.png",
+      "width": 1284,
+      "height": 2778,
+      "bytes": 432310,
+      "sha256": "d7c0fa88f8e93acba9ca058667cd7b3ec619c912dc6374d55151322e21bb52cb"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.5/03.png",
+      "package_path": "App Store/iPhone 6.5/03.png",
+      "width": 1284,
+      "height": 2778,
+      "bytes": 456967,
+      "sha256": "26596ac9fe919f32df9ef6e969f7f4d6b99fc7d9a8c5db1204513d2d6d992d2b"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.5/04.png",
+      "package_path": "App Store/iPhone 6.5/04.png",
+      "width": 1284,
+      "height": 2778,
+      "bytes": 448603,
+      "sha256": "1f75347d6fff8f03a31d116d1030c0a951d075d7f27317f76f23f45105be25f4"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.5/05.png",
+      "package_path": "App Store/iPhone 6.5/05.png",
+      "width": 1284,
+      "height": 2778,
+      "bytes": 350105,
+      "sha256": "3ace2dbc39f5e2f017d89595c48293958714a000c103427e210ae543284fc89a"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.5/06.png",
+      "package_path": "App Store/iPhone 6.5/06.png",
+      "width": 1284,
+      "height": 2778,
+      "bytes": 499694,
+      "sha256": "de9b7365781043394d90c68dc4078bfe0528fc43e8959ff7566acdf1f83919e4"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.5/07.png",
+      "package_path": "App Store/iPhone 6.5/07.png",
+      "width": 1284,
+      "height": 2778,
+      "bytes": 450540,
+      "sha256": "c0fc4ee4e95104741596f85cecad74495bb7139aa0533857181c3ce6fcc23e60"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.5/08.png",
+      "package_path": "App Store/iPhone 6.5/08.png",
+      "width": 1284,
+      "height": 2778,
+      "bytes": 518332,
+      "sha256": "6fa39ed5f4599fe26a4eaa178d26dc1ddab94a64551d2224c8d6800776d5e2d3"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.5/09.png",
+      "package_path": "App Store/iPhone 6.5/09.png",
+      "width": 1284,
+      "height": 2778,
+      "bytes": 408740,
+      "sha256": "533421292a64b006cb20142da9c22d5e1d1c1a1fd5a2243720eba7ff25d0ab11"
+    },
+    {
+      "path": "docs/app-store/images/iPhone 6.5/10.png",
+      "package_path": "App Store/iPhone 6.5/10.png",
+      "width": 1284,
+      "height": 2778,
+      "bytes": 360683,
+      "sha256": "1431af6f2b0a42d8d9d6f5cb229664617d8ec6c3a1b69f8b6d7f732c94bd594d"
+    },
+    {
+      "path": "docs/app-store/images/iPad 13/01.png",
+      "package_path": "App Store/iPad 13/01.png",
+      "width": 2752,
+      "height": 2064,
+      "bytes": 929546,
+      "sha256": "f3528e9f7e357e052de004c6a9504ccc48f90dbd208d72beabdecb8072c2ca94"
+    },
+    {
+      "path": "docs/app-store/images/iPad 13/02.png",
+      "package_path": "App Store/iPad 13/02.png",
+      "width": 2752,
+      "height": 2064,
+      "bytes": 415390,
+      "sha256": "1df60b818af3168379836c1c184215bccd303ae3c349e07112d475e1314af1d7"
+    },
+    {
+      "path": "docs/app-store/images/iPad 13/03.png",
+      "package_path": "App Store/iPad 13/03.png",
+      "width": 2752,
+      "height": 2064,
+      "bytes": 864962,
+      "sha256": "9356415b195d19d7bc20def8a1c2ebe10d51886cb2b33ddbcbeac8ee051d75c1"
+    },
+    {
+      "path": "docs/app-store/images/iPad 13/04.png",
+      "package_path": "App Store/iPad 13/04.png",
+      "width": 2752,
+      "height": 2064,
+      "bytes": 664520,
+      "sha256": "0c39b4013d440aa3e1285888e4729238a17073efb4aac5da76d645d065dbaea3"
+    },
+    {
+      "path": "docs/app-store/images/iPad 13/05.png",
+      "package_path": "App Store/iPad 13/05.png",
+      "width": 2752,
+      "height": 2064,
+      "bytes": 827984,
+      "sha256": "3a0ae1a43ee61399e5eb823cc8c11437447c756eb32e92446424266110caec86"
+    },
+    {
+      "path": "docs/app-store/images/iPad 13/06.png",
+      "package_path": "App Store/iPad 13/06.png",
+      "width": 2752,
+      "height": 2064,
+      "bytes": 528866,
+      "sha256": "ea6023cb167b500a5245cf98e0fe560ee4cb2fee0931569bda8d1aa64ef0aec2"
+    },
+    {
+      "path": "docs/app-store/images/iPad 13/07.png",
+      "package_path": "App Store/iPad 13/07.png",
+      "width": 2752,
+      "height": 2064,
+      "bytes": 449729,
+      "sha256": "fd6242890d02296faaee67b6c260c802a2648e4405b5322d6c917ae6e76a88bf"
+    },
+    {
+      "path": "docs/app-store/images/iPad 13/08.png",
+      "package_path": "App Store/iPad 13/08.png",
+      "width": 2752,
+      "height": 2064,
+      "bytes": 612960,
+      "sha256": "50ee8ed03a0a3b38de2732899262c292a1d187562c02a4582f44cd38eb4ec5a7"
+    },
+    {
+      "path": "docs/app-store/images/iPad 13/09.png",
+      "package_path": "App Store/iPad 13/09.png",
+      "width": 2752,
+      "height": 2064,
+      "bytes": 379447,
+      "sha256": "d011b570992eec33df5042650b09b1069eea568de8a9c77560658994e334a4a8"
+    }
+  ]
+}

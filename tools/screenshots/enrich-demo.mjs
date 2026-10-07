@@ -1,3 +1,4 @@
+// aislop-ignore-file ai-slop/console-leftover -- Demo enrichment CLI reports completed fixture setup to its invoking terminal.
 /**
  * Second pass over the generated demo project. Fills in everything that would
  * otherwise leave a view looking empty in a screenshot:
@@ -8,7 +9,8 @@
  *
  * Usage: node tools/screenshots/enrich-demo.mjs <project-dir> <art-dir>
  */
-import { _electron as electron } from 'playwright'
+import { createRequire } from 'node:module'
+const { _electron: electron } = createRequire(new URL('../../app/package.json', import.meta.url))('@playwright/test')
 import { writeFileSync, readFileSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname, resolve } from 'node:path'
@@ -28,7 +30,7 @@ const env = Object.fromEntries(
 env.NOVALIST_SETTINGS_DIR = settingsDir
 env.NOVALIST_NO_SPLASH = '1'
 
-const app = await electron.launch({ args: [join(APP_DIR, 'out/main/index.js')], cwd: APP_DIR, env })
+const app = await electron.launch({ args: [join(APP_DIR, 'out/main/index.js'), `--user-data-dir=${join(settingsDir, 'electron')}`], cwd: APP_DIR, env })
 const page = await app.firstWindow()
 await page.locator('.status-backend.connected').waitFor({ timeout: 60_000 })
 
@@ -56,6 +58,22 @@ for (const ch of state.chapters) {
 }
 await rpc('calendar/setAnchor', [CALENDAR_ANCHOR])
 console.log(`  dated ${dated} scenes, calendar anchored at ${CALENDAR_ANCHOR}`)
+
+console.log('adding research and a working map...')
+const research = await rpc('research/list')
+for (const [title, content, tags] of [
+  ['Reading the hidden chart', 'The northern coastline appears only when the paper is warmed. Mira tests the ink beside a candle, keeping the flame clear of the brittle margin.\n\nThe broken north arm of the compass rose matches the mark on her father’s letter. Compare the soundings with the keeper’s ledger before the Meridian leaves Bellhaven.', ['charts', 'clues']],
+  ['Bellhaven harbour notes', 'Quay Street faces the old tidal basin. Auction rooms occupy the warehouses above the steps; the Guild keeps its registry in the stone building beside the signal mast.\n\nLow water exposes a causeway to Cormorant Light. The crossing must happen before the evening tide.', ['places', 'Bellhaven']],
+  ['Life aboard the Meridian', 'Three watches divide the night. Roake checks the glass at each change; Tamsin copies the soundings before turning in.\n\nKeep the shipboard vocabulary consistent: lead line, chart table, companionway, third bell.', ['ships', 'reference']]
+]) {
+  const existing = research.find((item) => item.title === title)
+  await rpc('research/save', [existing?.id ?? null, title, 'Note', content, tags])
+}
+const maps = await rpc('maps/list')
+if (!maps.some((map) => map.name === 'The Northern Approaches')) {
+  const map = await rpc('maps/create', ['The Northern Approaches'])
+  await rpc('maps/generateTerrain', [map.id, 1848, 1200, 800, 0.55, 3, 4, 5])
+}
 
 const bookId = state.activeBookId
 const sceneIds = state.chapters.flatMap((c) => c.scenes.map((s) => s.id))

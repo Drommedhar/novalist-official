@@ -28,7 +28,7 @@ const APP_DIR = resolve(HERE, '..', '..', 'app')
 
 const outDir = process.argv[2]
 if (!outDir) throw new Error('usage: make-demo-project.mjs <output-dir>')
-if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true })
+if (existsSync(outDir)) throw new Error(`Refusing to replace an existing project: ${outDir}`)
 
 const settingsDir = mkdtempSync(join(tmpdir(), 'nl-demo-settings-'))
 const env = Object.fromEntries(
@@ -37,7 +37,7 @@ const env = Object.fromEntries(
 env.NOVALIST_SETTINGS_DIR = settingsDir
 env.NOVALIST_NO_SPLASH = '1'
 
-const app = await electron.launch({ args: [join(APP_DIR, 'out/main/index.js')], cwd: APP_DIR, env })
+const app = await electron.launch({ args: [join(APP_DIR, 'out/main/index.js'), `--user-data-dir=${join(settingsDir, 'electron')}`], cwd: APP_DIR, env })
 const page = await app.firstWindow()
 await page.locator('.status-backend.connected').waitFor({ timeout: 60_000 })
 

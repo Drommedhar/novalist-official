@@ -1,43 +1,35 @@
 #!/usr/bin/env bash
-#
-# Prepares an iOS simulator for screenshots: boots it, installs the app, and
-# pins the status bar to Apple's marketing standard (9:41, full bars).
-#
-# The demo project cannot simply be dropped into the container: on iOS the app
-# reaches a project folder through a security-scoped bookmark, and only the
-# system document picker can mint one. So the flow is:
-#
-#   1. this script boots + installs + launches
-#   2. the operator picks "On My iPhone" once in the document picker, which
-#      stores a bookmark for that folder
-#   3. sim-seed.sh copies the demo project INTO that bookmarked folder and
-#      writes a recents entry pointing at it
-#
-# Step 3 works because SecurityScopedFolders.BeginAccess walks ancestors, so the
-# bookmark on the parent authorises the project subfolder.
-#
-# Usage: sim-setup.sh "<device name>"
+# Installs the current app on one dedicated screenshot simulator and pins its
+# status bar to 9:41. Other simulators and their projects are left alone.
+# Usage: sim-setup.sh <simulator-udid> [app-bundle]
 set -euo pipefail
-DEVICE="${1:?usage: sim-setup.sh \"<device name>\"}"
+UDID="${1:?usage: sim-setup.sh <simulator-udid> [app-bundle]}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
-APP="$REPO/Novalist.Mobile/bin/Debug/net10.0-ios/iossimulator-arm64/Novalist.Mobile.app"
+APP="${2:-$REPO/Novalist.Mobile/bin/Debug/net10.0-ios27.0/iossimulator-arm64/Novalist.Mobile.app}"
+[ -d "$APP" ] || { echo "Build the simulator app first: $APP" >&2; exit 1; }
+APP_ID="$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$APP/Info.plist")"
 
-UDID="$(xcrun simctl list devices available | grep -F "$DEVICE (" | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')"
-[ -n "$UDID" ] || { echo "device not found: $DEVICE" >&2; exit 1; }
-echo "device: $DEVICE ($UDID)"
-
-# Shut every other device down so `booted` is unambiguous for the capture step.
-xcrun simctl shutdown all >/dev/null 2>&1 || true
+STATE="$(xcrun simctl list devices available -j | python3 -c '
+import json, sys
+matches = [d for devices in json.load(sys.stdin)["devices"].values() for d in devices if d["udid"] == sys.argv[1]]
+if len(matches) != 1:
+    raise SystemExit("Expected one available simulator UDID")
+print(matches[0]["state"])
+' "$UDID")"
+[ "$STATE" = "Booted" ] || xcrun simctl boot "$UDID"
+xcrun simctl bootstatus "$UDID" -b
+# These dedicated captures use English system dates and the 9:41 clock format.
+# SpringBoard needs a restart before changes to the native locale take effect.
+xcrun simctl spawn "$UDID" defaults write NSGlobalDomain AppleLanguages -array en
+xcrun simctl spawn "$UDID" defaults write NSGlobalDomain AppleLocale -string en_US
+xcrun simctl shutdown "$UDID"
 xcrun simctl boot "$UDID"
-xcrun simctl bootstatus "$UDID" -b >/dev/null 2>&1 || true
-open -a Simulator
-sleep 4
-
+xcrun simctl bootstatus "$UDID" -b
 xcrun simctl install "$UDID" "$APP"
 xcrun simctl status_bar "$UDID" override \
   --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 \
   --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
-xcrun simctl launch "$UDID" com.novalist.mobile
-sleep 6
-echo "$UDID"
+xcrun simctl ui "$UDID" appearance dark
+xcrun simctl launch "$UDID" "$APP_ID"
+echo "Ready: $UDID ($APP_ID)"

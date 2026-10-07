@@ -68,5 +68,5 @@ fi
 
 magick "$TMP/cap.png" "$TMP/shadow.png" \
   -gravity north -geometry "+0+$BAND" -compose over -composite \
-  -resize "${CW}x${CH}!" -strip -define png:color-type=2 "$OUT"
+  -resize "${CW}x${CH}!" -strip -depth 8 -define png:color-type=2 "$OUT"
 echo "  framed $(basename "$OUT")"
