@@ -1,0 +1,8 @@
+{
+  "base_revision": "af9f44d3ce81477d9fca8ea168844383074cc889",
+  "helper_sha256": "781778b7425a12700dd3528afe6951db38180a958af69d22ab68b2ec1f246e8a",
+  "production_inputs": 1257,
+  "production_manifest_sha256": "037a51c5b71419a6116464b2c17ce54896a2a98c83b00983d6f51eb63f42d459",
+  "native_control_patch_sha256": "dac65ffeb20d3a162435aea6b9f629d3751722c29e51d6be5eb2a4c06d01a788",
+  "helper_status": "candidate; actual ownership fix, separate from main freeze"
+}

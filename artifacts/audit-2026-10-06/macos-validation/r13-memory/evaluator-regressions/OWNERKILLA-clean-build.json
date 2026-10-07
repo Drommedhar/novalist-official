@@ -1,0 +1,10 @@
+{
+  "mode": "clean",
+  "case": "OWNERKILLA",
+  "build_exit_code": 0,
+  "log_sha256": "b4cad01f75d401a5604ae621a80b8fdfc7c885462b5ed8e7dcb4a78b018cd682",
+  "codesign_exit_code": 0,
+  "app_tree_sha256": "52bc14fa0b48f93ab13885d204ff9e475ce2bb1ed6c13194470e82d83aa34b48",
+  "installed": true,
+  "launched": true
+}

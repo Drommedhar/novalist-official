@@ -1,0 +1,28 @@
+{
+  "production_base": "8489c9a3fa3b14b3cc695cef1b6d162b3d9aa3ab",
+  "production_delta": "production-fixes.patch",
+  "production_delta_scope": "Owned project relocation, recovery/media fixes and the shareExport renderer deadline already present in copied source; later viewport and native export changes are separate acceptance.",
+  "fix": "ownership-fix.patch",
+  "helper_sha256": "781778b7425a12700dd3528afe6951db38180a958af69d22ab68b2ec1f246e8a",
+  "instrumentation_recipe": [
+    "git archive 0c789b29581db47d89593c897bd53fbb3fb9275c",
+    "apply ../audit-control-fixed.patch (includes original awaited evaluator)",
+    "apply production-fixes.patch",
+    "apply ownership-fix.patch (fixed run only)",
+    "add read-only cache-snapshot.patch",
+    "add gc-diagnostic-probe.patch (diagnostic and subsequent runs; GC command invoked only in gc-diagnostic.json)"
+  ],
+  "instrumented_input_count": 1245,
+  "inputs": "instrumented-inputs.json",
+  "app_tree_sha256": "b1346aec7e77f7441049c08ab297347135b2ad53292d14124a473f68f9863a14",
+  "app_tree_hash_method": "SHA256 compact sorted JSON mapping relative app file paths to SHA256 file bytes",
+  "environment": {
+    "host": "macOS27.0.1",
+    "xcode": "27.0",
+    "dotnet": "10.0.401",
+    "ios_sdk": "27.0.10722",
+    "simulator": "dedicated iPad A16 / iOS27.0 / arm64"
+  },
+  "forced_gc_in_acceptance": false,
+  "malloc_stack_logging_in_acceptance": false
+}

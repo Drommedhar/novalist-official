@@ -1,0 +1,58 @@
+--- a/Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs
+@@ -1,4 +1,5 @@
+ #if IOS
++using Foundation;
+ using WebKit;
+ #endif
+ 
+@@ -20,4 +21,24 @@
+         return await _web.EvaluateJavaScriptAsync(script);
+ #endif
+     }
++
++    private async Task<string?> CallRendererCallbackAsync(string callback, string payload)
++    {
++#if IOS
++        if (_web.Handler?.PlatformView is not WKWebView webView)
++            throw new InvalidOperationException("The editor is not ready.");
++
++        using var callbackKey = new NSString("callback");
++        using var payloadKey = new NSString("payload");
++        using var callbackValue = new NSString(callback);
++        using var payloadValue = new NSString(payload);
++        using var arguments = new NSDictionary<NSString, NSObject>(
++            [callbackKey, payloadKey], [callbackValue, payloadValue]);
++        using var result = await webView.CallAsyncJavaScriptAsync(
++            "return window[callback]?.(payload);", arguments, null, WKContentWorld.Page);
++        return result?.ToString();
++#else
++        return await EvaluateScriptAsync($"window.{callback}?.('{payload}')");
++#endif
++    }
+ }
+--- a/Novalist.Mobile/Pages/RendererHostPage.Transport.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.Transport.cs
+@@ -11,9 +11,9 @@
+     private int _bridgeFailed;
+     private int _disposed;
+ 
+-    private async Task DeliverCallbackAsync(string script)
++    private async Task DeliverCallbackAsync(string callback, string payload)
+     {
+-        var result = await MainThread.InvokeOnMainThreadAsync(() => EvaluateScriptAsync(script))
++        var result = await MainThread.InvokeOnMainThreadAsync(() => CallRendererCallbackAsync(callback, payload))
+             .WaitAsync(TimeSpan.FromSeconds(15), _cts.Token).ConfigureAwait(false);
+         if (result?.Trim('"') != "accepted") throw new IOException("The editor did not accept its response.");
+     }
+@@ -64,7 +64,9 @@
+     private sealed class WebProcessObserver(RendererHostPage owner) : WKNavigationDelegate
+     {
+         public override void ContentProcessDidTerminate(WKWebView webView)
+-            => _ = owner.FailBridgeAsync(new IOException("WebKit content process terminated."));
++            {
++            _ = owner.FailBridgeAsync(new IOException("WebKit content process terminated."));
++        }
+     }
+ #endif
+ }

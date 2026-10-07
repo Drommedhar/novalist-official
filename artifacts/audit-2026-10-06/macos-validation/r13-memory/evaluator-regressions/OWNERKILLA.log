@@ -1,0 +1,406 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project __WORKDIR__/harness/AuditHarness.xcodeproj -scheme AuditUITests -destination "platform=iOS Simulator,id=C9BC7CC6-C48A-431D-9CE0-BEA89C791D81" -derivedDataPath __WORKDIR__/harness/DerivedData -parallel-testing-enabled NO -resultBundlePath __WORKDIR__/OWNERKILLA.xcresult CODE_SIGNING_ALLOWED=NO
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+Writing result bundle at path:
+	__WORKDIR__/OWNERKILLA.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'AuditUITests' in project 'AuditHarness' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk __WORKDIR__/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd __WORKDIR__/harness/AuditHarness.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o __WORKDIR__/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+warning: Traditional headermap style is no longer supported; please migrate to using separate headermaps and set 'ALWAYS_SEARCH_USER_PATHS' to NO. (in target 'AuditUITests' from project 'AuditHarness')
+SwiftDriver AuditUITests normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AuditUITests -O @__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftFileList -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target x86_64-apple-ios27.0-simulator -g -module-cache-path __WORKDIR__/harness/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc __WORKDIR__/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path __WORKDIR__/harness/DerivedData/ModuleCache.noindex -sdk-module-cache-path __WORKDIR__/harness/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file __WORKDIR__/harness/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_const_extract_protocols.json -Xcc -iquote -Xcc __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap -Xcc -iquote -Xcc __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources-normal/x86_64 -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/x86_64 -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources -emit-objc-header -emit-objc-header-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-Swift.h -working-directory __WORKDIR__/harness -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver AuditUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AuditUITests -O @__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftFileList -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path __WORKDIR__/harness/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc __WORKDIR__/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path __WORKDIR__/harness/DerivedData/ModuleCache.noindex -sdk-module-cache-path __WORKDIR__/harness/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file __WORKDIR__/harness/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_const_extract_protocols.json -Xcc -iquote -Xcc __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap -Xcc -iquote -Xcc __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources-normal/arm64 -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/arm64 -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources -emit-objc-header -emit-objc-header-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-Swift.h -working-directory __WORKDIR__/harness -experimental-emit-module-separately -disable-cmo
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ AuditUITests (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftCompile normal arm64 (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    
+
+SwiftCompile normal arm64 Compiling\ AuditUITests.swift __WORKDIR__/harness/AuditUITests.swift (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftCompile normal arm64 __WORKDIR__/harness/AuditUITests.swift (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-SwiftPerFileCompile AuditUITests.swift
+
+SwiftEmitModule normal x86_64 Emitting\ module\ for\ AuditUITests (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftCompile normal x86_64 (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    
+
+SwiftCompile normal x86_64 Compiling\ AuditUITests.swift __WORKDIR__/harness/AuditUITests.swift (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftCompile normal x86_64 __WORKDIR__/harness/AuditUITests.swift (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-SwiftPerFileCompile AuditUITests.swift
+
+SwiftDriverJobDiscovery normal x86_64 Compiling AuditUITests.swift (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftDriver\ Compilation AuditUITests normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AuditUITests -O @__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftFileList -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target x86_64-apple-ios27.0-simulator -g -module-cache-path __WORKDIR__/harness/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc __WORKDIR__/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path __WORKDIR__/harness/DerivedData/ModuleCache.noindex -sdk-module-cache-path __WORKDIR__/harness/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file __WORKDIR__/harness/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_const_extract_protocols.json -Xcc -iquote -Xcc __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap -Xcc -iquote -Xcc __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources-normal/x86_64 -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/x86_64 -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources -emit-objc-header -emit-objc-header-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-Swift.h -working-directory __WORKDIR__/harness -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling AuditUITests.swift (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftDriver\ Compilation AuditUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AuditUITests -O @__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftFileList -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path __WORKDIR__/harness/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc __WORKDIR__/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path __WORKDIR__/harness/DerivedData/ModuleCache.noindex -sdk-module-cache-path __WORKDIR__/harness/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file __WORKDIR__/harness/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_const_extract_protocols.json -Xcc -iquote -Xcc __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap -Xcc -iquote -Xcc __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources-normal/arm64 -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/arm64 -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources -emit-objc-header -emit-objc-header-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-Swift.h -working-directory __WORKDIR__/harness -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for AuditUITests (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftDriverJobDiscovery normal x86_64 Emitting module for AuditUITests (in target 'AuditUITests' from project 'AuditHarness')
+
+SwiftDriver\ Compilation\ Requirements AuditUITests normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AuditUITests -O @__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftFileList -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target x86_64-apple-ios27.0-simulator -g -module-cache-path __WORKDIR__/harness/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc __WORKDIR__/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path __WORKDIR__/harness/DerivedData/ModuleCache.noindex -sdk-module-cache-path __WORKDIR__/harness/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file __WORKDIR__/harness/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_const_extract_protocols.json -Xcc -iquote -Xcc __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap -Xcc -iquote -Xcc __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources-normal/x86_64 -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/x86_64 -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources -emit-objc-header -emit-objc-header-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests-Swift.h -working-directory __WORKDIR__/harness -experimental-emit-module-separately -disable-cmo
+
+SwiftDriver\ Compilation\ Requirements AuditUITests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name AuditUITests -O @__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftFileList -module-alias Testing\=_Testing_Unavailable -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -target arm64-apple-ios27.0-simulator -g -module-cache-path __WORKDIR__/harness/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -parse-as-library -c -j18 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc __WORKDIR__/harness/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache -output-file-map __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path __WORKDIR__/harness/DerivedData/ModuleCache.noindex -sdk-module-cache-path __WORKDIR__/harness/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file __WORKDIR__/harness/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_const_extract_protocols.json -Xcc -iquote -Xcc __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-generated-files.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-own-target-headers.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-all-target-headers.hmap -Xcc -iquote -Xcc __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests-project-headers.hmap -Xcc -I__WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/include -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources-normal/arm64 -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources/arm64 -Xcc -I__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/DerivedSources -emit-objc-header -emit-objc-header-path __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests-Swift.h -working-directory __WORKDIR__/harness -experimental-emit-module-separately -disable-cmo
+
+Copy __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/x86_64-apple-ios-simulator.swiftmodule __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftmodule (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftmodule __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/x86_64-apple-ios-simulator.swiftmodule
+
+Copy __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/x86_64-apple-ios-simulator.abi.json __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.abi.json (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.abi.json __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/x86_64-apple-ios-simulator.abi.json
+
+Copy __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/arm64-apple-ios-simulator.swiftmodule __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftmodule (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftmodule __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/arm64-apple-ios-simulator.abi.json __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.abi.json (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.abi.json __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftsourceinfo (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftsourceinfo __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+Copy __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/Project/x86_64-apple-ios-simulator.swiftsourceinfo __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftsourceinfo (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftsourceinfo __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests.swiftmodule/Project/x86_64-apple-ios-simulator.swiftsourceinfo
+
+Ld __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/Binary/AuditUITests normal arm64 (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios27.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -Os -Xlinker -no_warn_duplicate_libraries -L__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L__WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F__WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -filelist __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_lto.o -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport -o __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/Binary/AuditUITests
+
+Ld __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/Binary/AuditUITests normal x86_64 (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target x86_64-apple-ios27.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -Os -Xlinker -no_warn_duplicate_libraries -L__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L__WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F__WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F__WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk/Developer/Library/Frameworks -filelist __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_lto.o -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport -o __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/Binary/AuditUITests
+
+CreateUniversalBinary __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/AuditUITests normal arm64\ x86_64 (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/Binary/AuditUITests __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/Binary/AuditUITests -output __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/AuditUITests
+
+ExtractAppIntentsMetadata (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name AuditUITests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk --xcode-version 27A266a --platform-family iOS --deployment-target 27.0 --bundle-identifier com.novalist.audit.uitests --output __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest --target-triple arm64-apple-ios27.0-simulator --target-triple x86_64-apple-ios27.0-simulator --binary-file __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/AuditUITests --dependency-file __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests_dependency_info.dat --dependency-file __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests_dependency_info.dat --stringsdata-file __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --stringsdata-file __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftFileList --source-file-list __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftFileList --metadata-file-list __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests.DependencyMetadataFileList --static-metadata-file-list __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/AuditUITests.DependencyStaticMetadataFileList --swift-const-vals-list __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/arm64/AuditUITests.SwiftConstValuesFileList --swift-const-vals-list __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/Objects-normal/x86_64/AuditUITests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-10-07 12:46:51.500 appintentsmetadataprocessor[40710:3506006] Starting appintentsmetadataprocessor export
+2026-10-07 12:46:51.502 appintentsmetadataprocessor[40710:3506006] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+CopySwiftLibs __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    builtin-swiftStdLibTool --copy --verbose --scan-executable __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/AuditUITests --scan-folder __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/Frameworks --scan-folder __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/PlugIns --scan-folder __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/SystemExtensions --scan-folder __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/AuditHarness.build/Debug-iphonesimulator/AuditUITests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+GenerateDSYMFile __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest.dSYM __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/AuditUITests (in target 'AuditUITests' from project 'AuditHarness')
+    cd __WORKDIR__/harness
+    export PATH\=/Applications/Xcode.app/Contents/SharedFrameworks/SwiftBuild.framework/Versions/A/PlugIns/SWBBuildService.bundle/Contents/PlugIns/SWBUniversalPlatformPlugin.bundle/Contents/Frameworks/SWBUniversalPlatform.framework/Resources:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/bin:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/libexec:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/local/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/local/bin:/Applications/Xcode.app/Contents/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/usr/local/bin:__HOME__/.antigravity-ide/antigravity-ide/bin:__HOME__/.local/bin:/Library/Frameworks/Python.framework/Versions/3.14/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/usr/local/share/dotnet:__HOME__/.codex/tmp/arg0/codex-arg0hUkZUN:__HOME__/.cargo/bin:__HOME__/.lmstudio/bin:__HOME__/.vscode/extensions/openai.chatgpt-26.930.51102-darwin-arm64/bin/macos-aarch64
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/dsymutil __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest/AuditUITests -o __WORKDIR__/harness/DerivedData/Build/Products/Debug-iphonesimulator/AuditUITests-Runner.app/PlugIns/AuditUITests.xctest.dSYM
+
+PruneExplicitPrecompiledModules __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules __WORKDIR__/harness/DerivedData/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules __WORKDIR__/harness/DerivedData/SDKExplicitPrecompiledModules
+
+2026-10-07 12:46:52.356793+0200 AuditUITests-Runner[40713:3506101] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'All tests' started at 2026-10-07 12:46:54.203.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 12:46:54.203.
+Test Suite 'AuditUITests' started at 2026-10-07 12:46:54.203.
+Test Case '-[AuditUITests.AuditUITests testActualUnsavedRecoveryAndMutationNonreplay]' started.
+    t =     0.00s Start Test at 2026-10-07 12:46:54.208
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.06s Setting device orientation to Portrait
+    t =     0.06s     Wait for com.novalist.app to idle
+    t =     0.06s Waiting 20.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+objc[40713]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10778c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1084e4310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.08s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     1.08s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =     1.13s Double tap "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     1.13s     Wait for com.novalist.app to idle
+    t =     1.14s     Find the "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     1.15s     Check for interrupting elements affecting "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =     1.17s     Synthesize event
+    t =     1.51s     Wait for com.novalist.app to idle
+    t =     1.51s Waiting 15.0s for "Write" Button to exist
+    t =     2.54s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =     2.54s         Checking existence of `"Write" Button`
+    t =     2.67s Tap "Write" Button
+    t =     2.67s     Wait for com.novalist.app to idle
+    t =     2.67s     Find the "Write" Button
+    t =     2.75s     Check for interrupting elements affecting "Write" Button
+    t =     2.78s     Synthesize event
+    t =     3.07s     Wait for com.novalist.app to idle
+    t =     4.54s Tap "Scene" Button
+    t =     4.54s     Wait for com.novalist.app to idle
+    t =     4.55s     Find the "Scene" Button
+    t =     4.58s     Check for interrupting elements affecting "Scene" Button
+    t =     4.61s     Synthesize event
+    t =     4.89s     Wait for com.novalist.app to idle
+    t =     4.97s Type 'Audit M04 OWNERKIL...' into "Enter scene title..." TextField
+    t =     4.97s     Wait for com.novalist.app to idle
+    t =     5.34s     Find the "Enter scene title..." TextField
+    t =     5.39s     Check for interrupting elements affecting "Enter scene title..." TextField
+    t =     5.42s     Synthesize event
+    t =     5.96s     Wait for com.novalist.app to idle
+    t =     5.96s Checking existence of `"selected" Button`
+    t =     6.00s Find the "selected" Button
+    t =     6.03s Tap "selected" Button
+    t =     6.03s     Wait for com.novalist.app to idle
+    t =     6.03s     Find the "selected" Button
+    t =     6.06s     Check for interrupting elements affecting "selected" Button
+    t =     6.08s     Synthesize event
+    t =     6.36s     Wait for com.novalist.app to idle
+    t =     6.61s Tap "OK" Button
+    t =     6.61s     Wait for com.novalist.app to idle
+    t =     6.61s     Find the "OK" Button
+    t =     6.63s     Check for interrupting elements affecting "OK" Button
+    t =     6.65s     Synthesize event
+    t =     6.94s     Wait for com.novalist.app to idle
+    t =     6.94s Waiting 10.0s for "Audit M04 OWNERKILLA" Button to exist
+    t =     7.98s     Checking `Expect predicate `existsNoRetry == 1` for object "Audit M04 OWNERKILLA" Button`
+    t =     7.98s         Checking existence of `"Audit M04 OWNERKILLA" Button`
+    t =     8.01s Tap "Audit M04 OWNERKILLA" Button
+    t =     8.01s     Wait for com.novalist.app to idle
+    t =     8.01s     Find the "Audit M04 OWNERKILLA" Button
+    t =     8.03s     Check for interrupting elements affecting "Audit M04 OWNERKILLA" Button
+    t =     8.06s     Synthesize event
+    t =     8.34s     Wait for com.novalist.app to idle
+    t =     8.35s Waiting 10.0s for "Inspector" Button to exist
+    t =     9.38s     Checking `Expect predicate `existsNoRetry == 1` for object "Inspector" Button`
+    t =     9.39s         Checking existence of `"Inspector" Button`
+    t =     9.41s Tap "Inspector" Button
+    t =     9.42s     Wait for com.novalist.app to idle
+    t =     9.42s     Find the "Inspector" Button
+    t =     9.44s     Check for interrupting elements affecting "Inspector" Button
+    t =     9.46s     Synthesize event
+    t =     9.74s     Wait for com.novalist.app to idle
+    t =     9.75s Tap "To do" Button
+    t =     9.75s     Wait for com.novalist.app to idle
+    t =     9.75s     Find the "To do" Button
+    t =     9.76s     Check for interrupting elements affecting "To do" Button
+    t =     9.77s     Synthesize event
+    t =    10.06s     Wait for com.novalist.app to idle
+    t =    10.06s Waiting 10.0s for "What needs doing" TextField to exist
+    t =    11.10s     Checking `Expect predicate `existsNoRetry == 1` for object "What needs doing" TextField`
+    t =    11.10s         Checking existence of `"What needs doing" TextField`
+    t =    11.13s Tap "What needs doing" TextField
+    t =    11.13s     Wait for com.novalist.app to idle
+    t =    11.13s     Find the "What needs doing" TextField
+    t =    11.15s     Check for interrupting elements affecting "What needs doing" TextField
+    t =    11.17s     Synthesize event
+    t =    11.46s     Wait for com.novalist.app to idle
+    t =    11.71s Type 'Audit M04 task OWN...' into "What needs doing" TextField
+    t =    11.71s     Wait for com.novalist.app to idle
+    t =    11.71s     Find the "What needs doing" TextField
+    t =    11.75s     Check for interrupting elements affecting "What needs doing" TextField
+    t =    11.78s     Synthesize event
+    t =    12.42s     Wait for com.novalist.app to idle
+AUDIT_M04_TASK_SUBMITTED
+    t =    12.42s Checking existence of `"selected" Button`
+    t =    12.46s Find the "selected" Button
+    t =    12.50s Tap "selected" Button
+    t =    12.50s     Wait for com.novalist.app to idle
+    t =    12.50s     Find the "selected" Button
+    t =    12.52s     Check for interrupting elements affecting "selected" Button
+    t =    12.54s     Synthesize event
+    t =    12.83s     Wait for com.novalist.app to idle
+    t =    13.08s Tap "Close" Button
+    t =    13.08s     Wait for com.novalist.app to idle
+    t =    13.08s     Find the "Close" Button
+    t =    13.10s     Check for interrupting elements affecting "Close" Button
+    t =    13.12s     Synthesize event
+    t =    13.41s     Wait for com.novalist.app to idle
+    t =    13.41s Setting device orientation to Landscape Left
+    t =    13.41s     Device orientation changed to Landscape Left
+    t =    13.45s     Interface orientation changed to Landscape Right
+    t =    13.45s     Wait for com.novalist.app to idle
+    t =    13.49s Checking existence of `"Manuscript" StaticText`
+    t =    13.51s Waiting 10.0s for "Manuscript" StaticText to exist
+    t =    14.55s     Checking `Expect predicate `existsNoRetry == 1` for object "Manuscript" StaticText`
+    t =    14.55s         Checking existence of `"Manuscript" StaticText`
+    t =    14.57s Tap "Manuscript" StaticText
+    t =    14.57s     Wait for com.novalist.app to idle
+    t =    14.57s     Find the "Manuscript" StaticText
+    t =    14.58s     Check for interrupting elements affecting "Manuscript" StaticText
+    t =    14.61s     Synthesize event
+    t =    14.90s     Wait for com.novalist.app to idle
+    t =    14.94s Waiting 10.0s for "Corkboard" Button to exist
+    t =    15.98s     Checking `Expect predicate `existsNoRetry == 1` for object "Corkboard" Button`
+    t =    15.98s         Checking existence of `"Corkboard" Button`
+    t =    16.04s Get number of matches for: Descendants matching type TextView
+    t =    16.06s Find the TextView (Element at index 9)
+    t =    16.08s Swipe up WebView (First Match)
+    t =    16.08s     Wait for com.novalist.app to idle
+    t =    16.08s     Find the WebView (First Match)
+    t =    16.09s     Check for interrupting elements affecting WebView
+    t =    16.11s     Synthesize event
+    t =    16.54s     Wait for com.novalist.app to idle
+    t =    18.64s Find the "
+" TextView
+    t =    18.68s Swipe up WebView (First Match)
+    t =    18.68s     Wait for com.novalist.app to idle
+    t =    18.68s     Find the WebView (First Match)
+    t =    18.69s     Check for interrupting elements affecting WebView
+    t =    18.71s     Synthesize event
+    t =    19.14s     Wait for com.novalist.app to idle
+    t =    19.82s Find the "
+" TextView
+    t =    19.85s Waiting 10.0s for "
+" TextView to exist
+    t =    20.88s     Checking `Expect predicate `existsNoRetry == 1` for object "
+" TextView`
+    t =    20.89s         Checking existence of `"
+" TextView`
+    t =    20.92s Find the "
+" TextView
+    t =    20.95s Tap "
+" TextView
+    t =    20.95s     Wait for com.novalist.app to idle
+    t =    21.10s     Find the "
+" TextView
+    t =    21.12s     Check for interrupting elements affecting "
+" TextView
+    t =    21.15s     Synthesize event
+    t =    21.44s     Wait for com.novalist.app to idle
+AUDIT_M04_ARM_NOW
+    t =    23.76s Type 'M04OWNERKILLA26' into "
+" TextView
+    t =    23.76s     Wait for com.novalist.app to idle
+    t =    23.76s     Find the "
+" TextView
+    t =    23.80s     Check for interrupting elements affecting "
+" TextView
+    t =    23.85s     Synthesize event
+    t =    24.29s     Wait for com.novalist.app to idle
+AUDIT_M04_TYPED
+    t =    24.58s Waiting 25.0s for "Editing paused" Alert to exist
+    t =    25.62s     Checking `Expect predicate `existsNoRetry == 1` for object "Editing paused" Alert`
+    t =    25.62s         Checking existence of `"Editing paused" Alert`
+    t =    25.65s Checking existence of `"Reload" Button`
+    t =    25.67s Checking existence of `"Later" Button`
+AUDIT_M04_BEFORE_ACTUAL_RELOAD
+    t =    28.69s Tap "Reload" Button
+    t =    28.69s     Wait for com.novalist.app to idle
+    t =    28.70s     Find the "Reload" Button
+    t =    28.71s     Check for interrupting elements affecting "Reload" Button
+    t =    28.74s     Synthesize event
+    t =    29.02s     Wait for com.novalist.app to idle
+    t =    29.33s Setting device orientation to Portrait
+    t =    29.33s     Device orientation changed to Portrait
+    t =    29.36s     Interface orientation changed to Portrait
+    t =    29.36s     Wait for com.novalist.app to idle
+    t =    29.38s Waiting 20.0s for "Select Audit Book Alpha — Audit Simulator Fixture" Switch to exist
+    t =    30.41s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    30.41s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    30.42s         Capturing element debug description
+    t =    31.45s     Checking `Expect predicate `existsNoRetry == 1` for object "Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    31.45s         Checking existence of `"Select Audit Book Alpha — Audit Simulator Fixture" Switch`
+    t =    31.47s Double tap "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =    31.47s     Wait for com.novalist.app to idle
+    t =    31.47s     Find the "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =    31.48s     Check for interrupting elements affecting "Select Audit Book Alpha — Audit Simulator Fixture" Switch
+    t =    31.50s     Synthesize event
+    t =    31.84s     Wait for com.novalist.app to idle
+    t =    31.85s Waiting 15.0s for "Write" Button to exist
+    t =    32.88s     Checking `Expect predicate `existsNoRetry == 1` for object "Write" Button`
+    t =    32.89s         Checking existence of `"Write" Button`
+    t =    32.97s Tap "Write" Button
+    t =    32.97s     Wait for com.novalist.app to idle
+    t =    32.97s     Find the "Write" Button
+    t =    33.05s     Check for interrupting elements affecting "Write" Button
+    t =    33.09s     Synthesize event
+    t =    33.38s     Wait for com.novalist.app to idle
+    t =    34.84s Checking existence of `Button (First Match)`
+    t =    34.86s Waiting 10.0s for TextView (First Match) to exist
+    t =    35.88s     Checking `Expect predicate `existsNoRetry == 1` for object TextView (First Match)`
+    t =    35.88s         Checking existence of `TextView (First Match)`
+    t =    35.90s Find the TextView (First Match)
+AUDIT_M04_MARKER_AFTER_ACTUAL_RELOAD=true
+    t =    35.91s Tap "Inspector" Button
+    t =    35.91s     Wait for com.novalist.app to idle
+    t =    35.91s     Find the "Inspector" Button
+    t =    35.93s     Check for interrupting elements affecting "Inspector" Button
+    t =    35.95s     Synthesize event
+    t =    36.24s     Wait for com.novalist.app to idle
+    t =    36.24s Tap "To do" Button
+    t =    36.24s     Wait for com.novalist.app to idle
+    t =    36.24s     Find the "To do" Button
+    t =    36.26s     Check for interrupting elements affecting "To do" Button
+    t =    36.28s     Synthesize event
+    t =    36.57s     Wait for com.novalist.app to idle
+    t =    36.57s Waiting 10.0s for "Audit M04 task OWNERKILLA" Switch to exist
+    t =    37.59s     Checking `Expect predicate `existsNoRetry == 1` for object "Audit M04 task OWNERKILLA" Switch`
+    t =    37.59s         Checking existence of `"Audit M04 task OWNERKILLA" Switch`
+    t =    37.61s Get number of matches for: Elements matching predicate 'label == "Audit M04 task OWNERKILLA"'
+AUDIT_M04_SINGLE_TASK_AFTER_RELOAD_PASS
+    t =    37.62s Tap "Close" Button
+    t =    37.62s     Wait for com.novalist.app to idle
+    t =    37.62s     Find the "Close" Button
+    t =    37.64s     Check for interrupting elements affecting "Close" Button
+    t =    37.66s     Synthesize event
+    t =    37.94s     Wait for com.novalist.app to idle
+    t =    37.95s Tear Down
+Test Case '-[AuditUITests.AuditUITests testActualUnsavedRecoveryAndMutationNonreplay]' passed (38.002 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 12:47:32.210.
+	 Executed 1 test, with 0 failures (0 unexpected) in 38.002 (38.006) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 12:47:32.210.
+	 Executed 1 test, with 0 failures (0 unexpected) in 38.002 (38.007) seconds
+Test Suite 'All tests' passed at 2026-10-07 12:47:32.211.
+	 Executed 1 test, with 0 failures (0 unexpected) in 38.002 (38.008) seconds
+2026-10-07 12:47:32.492 xcodebuild[40693:3505758] [MT] IDETestOperationsObserverDebug: 40.927 elapsed -- Testing started completed.
+2026-10-07 12:47:32.492 xcodebuild[40693:3505758] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 12:47:32.492 xcodebuild[40693:3505758] [MT] IDETestOperationsObserverDebug: 40.927 sec, +40.927 sec -- end
+
+Test session results, code coverage, and logs:
+	__WORKDIR__/OWNERKILLA.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

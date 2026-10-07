@@ -1,0 +1,14 @@
+{
+  "all_original_png_bytes_retained": true,
+  "relative_references_retained": true,
+  "source_files": [
+    ".novalist/project.json"
+  ],
+  "files": {
+    "preview-1.png": true,
+    "preview-2.png": true,
+    "preview-3.png": true,
+    "preview-4.png": true
+  },
+  "stage": "After all69previews,6races and clean app install/native navigation"
+}

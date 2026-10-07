@@ -1,0 +1,10 @@
+{
+  "mode": "probe",
+  "case": "OWNERKILLA",
+  "build_exit_code": 0,
+  "log_sha256": "d39ecfe787dbf470c985923229824d3e64f1406d314d4ccbd5b76141a1ab95da",
+  "codesign_exit_code": 0,
+  "app_tree_sha256": "c67353f22815fae0e8c7172bf942d8b5eff761783691f134778f722879133cf4",
+  "installed": true,
+  "launched": true
+}

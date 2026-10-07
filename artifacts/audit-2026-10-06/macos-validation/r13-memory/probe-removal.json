@@ -1,0 +1,45 @@
+{
+  "status": "passed",
+  "removed": [
+    "native audit control/GC operations/asset gates",
+    "renderer read-only cache snapshot"
+  ],
+  "removed_build_directories": [
+    "Novalist.Mobile/bin",
+    "Novalist.Mobile/obj",
+    "Novalist.Core/bin",
+    "Novalist.Core/obj",
+    "Novalist.Backend/bin",
+    "Novalist.Backend/obj",
+    "Novalist.Sdk/bin",
+    "Novalist.Sdk/obj"
+  ],
+  "clean_source_recipe": "production_base8489 + production-fixes.patch + ownership-fix.patch",
+  "helper_sha256": "781778b7425a12700dd3528afe6951db38180a958af69d22ab68b2ec1f246e8a",
+  "clean_source_inputs": "clean-inputs.json",
+  "source_inputs_verified": 1244,
+  "native_build": {
+    "status": "passed",
+    "warnings": 14,
+    "errors": 0,
+    "log": "clean-native.log"
+  },
+  "renderer_build": {
+    "status": "passed",
+    "log": "clean-renderer.log"
+  },
+  "deep_strict_codesign": "passed",
+  "clean_simulator_install_and_launch": "passed",
+  "native_ui": {
+    "status": "passed",
+    "seconds": 11.662,
+    "flow": "Actual native book open, Research navigation,5.3MBImage tap, image accessibility/visiblepixels, Note tap to dispose; no Editing paused alert",
+    "test": "clean-navigation.swift",
+    "log": "clean-navigation.log",
+    "screenshot": "clean-preview.png"
+  },
+  "app_tree_sha256": "8b6b713d772afe4dbcb1bed983befc8d9ba262bb064ef60a688b3ffe6e84ab39",
+  "app_tree_hash_method": "SHA256 compact sorted JSON mapping relative app file paths to SHA256 file contents",
+  "app_files": 571,
+  "fixture_retention": "after/fixture-retention.json"
+}

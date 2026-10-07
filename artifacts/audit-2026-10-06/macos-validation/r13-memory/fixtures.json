@@ -1,0 +1,40 @@
+{
+  "origin": "Separate clone of synthetic Audit Research Media; original fixture left unchanged. Deterministic real RGBA PNG files generated locally; alpha and RGB bytes seeded.",
+  "files": {
+    "preview-1.png": {
+      "bytes": 5311246,
+      "sha256": "d6774f011e2fbc3044d7d71a09463542e5e794c28b0d84e4c1f66d5a4175d21a",
+      "width": 1152,
+      "height": 1152,
+      "seed": 1305
+    },
+    "preview-2.png": {
+      "bytes": 5311246,
+      "sha256": "3593346c339c5c26167f291380c68a3a0a81592af4f200842ea450c01de83455",
+      "width": 1152,
+      "height": 1152,
+      "seed": 1306
+    },
+    "preview-3.png": {
+      "bytes": 5311246,
+      "sha256": "bb6a5a7d5f2bdbf58848d285e71396d4cc0dcb9d39bc998143e427c63d21e268",
+      "width": 1152,
+      "height": 1152,
+      "seed": 1307
+    },
+    "preview-4.png": {
+      "bytes": 5311246,
+      "sha256": "c3257896f558c0e82e3e1cf369872edce41b5818405fe57f8e8678f9bc86747a",
+      "width": 1152,
+      "height": 1152,
+      "seed": 1308
+    }
+  },
+  "relative_references": {
+    "audit-memory-1": "memory/preview-1.png",
+    "audit-memory-2": "memory/preview-2.png",
+    "audit-memory-3": "memory/preview-3.png",
+    "audit-memory-4": "memory/preview-4.png",
+    "audit-memory-note": "AUDIT_MEMORY_DISPOSAL"
+  }
+}

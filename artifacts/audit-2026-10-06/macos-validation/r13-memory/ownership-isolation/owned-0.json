@@ -1,0 +1,73 @@
+{
+  "response": {
+    "id": "e5ad3ae7-1db8-4f19-9082-6486f19833d5",
+    "page": "4c137df4e34f4b68aa569e0bbfac0129",
+    "started": "2026-10-07T10:42:18.690626+00:00",
+    "finished": "2026-10-07T10:42:18.693919+00:00",
+    "ok": true,
+    "errorType": null,
+    "result": {
+      "page": "4c137df4e34f4b68aa569e0bbfac0129",
+      "bridgeFailed": 0,
+      "disposed": 0,
+      "rendererReady": true,
+      "bridgeCancellation": false,
+      "evaluatorFault": 0,
+      "assetReads": 0,
+      "assetHeld": false,
+      "projectGeneration": 0,
+      "webProcessId": 33290,
+      "nativeEditingPausedAlert": false,
+      "nativeReloadAvailable": false,
+      "nativeLaterAvailable": false,
+      "events": [
+        {
+          "kind": "control-started",
+          "detail": null,
+          "utc": "2026-10-07T10:42:15.032611+00:00",
+          "ticks": 158066663773958
+        },
+        {
+          "kind": "renderer-ready",
+          "detail": null,
+          "utc": "2026-10-07T10:42:15.536334+00:00",
+          "ticks": 158067167483208
+        }
+      ]
+    }
+  },
+  "process_id": 33283,
+  "cfstring_lines": [
+    "13        208      16.0   CFString (Storage)                                C       CoreFoundation",
+    "65       2080      32.0   CFString (Storage)                                C       CoreFoundation",
+    "19        912      48.0   CFString (Storage)                                C       CoreFoundation",
+    "5        320      64.0   CFString (Storage)                                C       CoreFoundation",
+    "10        800      80.0   CFString (Storage)                                C       CoreFoundation",
+    "3        288      96.0   CFString (Storage)                                C       CoreFoundation",
+    "1        192     192.0   CFString (Storage)                                C       CoreFoundation",
+    "2        448     224.0   CFString (Storage)                                C       CoreFoundation",
+    "4562    1167872     256.0   CFString (Storage)                                C       CoreFoundation",
+    "859     274880     320.0   CFString (Storage)                                C       CoreFoundation",
+    "1       5120    5120.0   CFString (Storage)                                C       CoreFoundation",
+    "1     131072  131072.0   CFString (Storage)                                C       CoreFoundation",
+    "6444     206208      32.0   CFString                                          ObjC    CoreFoundation",
+    "2042      98016      48.0   CFString                                          ObjC    CoreFoundation",
+    "1254      80256      64.0   CFString                                          ObjC    CoreFoundation",
+    "182      14560      80.0   CFString                                          ObjC    CoreFoundation",
+    "32       3072      96.0   CFString                                          ObjC    CoreFoundation",
+    "34       3808     112.0   CFString                                          ObjC    CoreFoundation",
+    "55       7040     128.0   CFString                                          ObjC    CoreFoundation",
+    "37       5920     160.0   CFString                                          ObjC    CoreFoundation",
+    "12       2304     192.0   CFString                                          ObjC    CoreFoundation",
+    "21       4704     224.0   CFString                                          ObjC    CoreFoundation",
+    "11       2816     256.0   CFString                                          ObjC    CoreFoundation",
+    "54      17280     320.0   CFString                                          ObjC    CoreFoundation",
+    "8       3072     384.0   CFString                                          ObjC    CoreFoundation",
+    "1        768     768.0   CFString                                          ObjC    CoreFoundation",
+    "1       1024    1024.0   CFString                                          ObjC    CoreFoundation"
+  ],
+  "footprint_lines": [
+    "Physical footprint:         104.4M",
+    "Physical footprint (peak):  106.1M"
+  ]
+}

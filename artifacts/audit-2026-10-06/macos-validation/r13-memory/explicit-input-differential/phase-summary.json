@@ -1,0 +1,36 @@
+{
+  "status": "failed-native-memory-bound",
+  "phases": {
+    "baseline": {
+      "app_median_bytes": 141962288.0,
+      "webkit_median_bytes": 73599784.0
+    },
+    "warmup-idle": {
+      "app_median_bytes": 315133096.0,
+      "webkit_median_bytes": 84954064.0
+    },
+    "settled-1": {
+      "app_median_bytes": 478563664.0,
+      "webkit_median_bytes": 88583192.0
+    },
+    "settled-2": {
+      "app_median_bytes": 621645304.0,
+      "webkit_median_bytes": 89640032.0
+    },
+    "settled-3": {
+      "app_median_bytes": 785419864.0,
+      "webkit_median_bytes": 89164896.0
+    },
+    "settled-4": {
+      "app_median_bytes": 948621056.0,
+      "webkit_median_bytes": 89197664.0
+    },
+    "final-idle": {
+      "app_median_bytes": 948571904.0,
+      "webkit_median_bytes": 88706144.0
+    }
+  },
+  "app_peak_bytes": 1029164824,
+  "webkit_peak_bytes": 144395144,
+  "samples": 325
+}

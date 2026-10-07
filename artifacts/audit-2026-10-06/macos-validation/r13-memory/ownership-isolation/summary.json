@@ -1,0 +1,71 @@
+{
+  "status": "cause isolated on actual iOS 27 simulator; production fix and full media acceptance remain separate",
+  "source_revision": "af9f44d3ce81477d9fca8ea168844383074cc889",
+  "ios_sdk_runtime_pack": "Microsoft.iOS.Runtime.ios.net10.0_27.0/27.0.10722",
+  "platform": "dedicated iPhone simulator arm64; no physical device",
+  "synthetic_payload_characters": 10190000,
+  "sampling": "Fresh process for each allocation variant; native main-thread 12 allocations per batch, two batches. No WebKit evaluation in allocation cases. Two-second settling before heap --showSizes --sortBySize and vmmap -summary. No forced GC.",
+  "diagnostic_source_sha256": "7161e0f859ea925241111701ea9bcc4627d6df9450376bc69548c100ae346348",
+  "baseline_helper_sha256": "7b9abb8656b96a0aab6be6bd513cb8af1f01916fe6a6daad8a09f9edd7f42540",
+  "assertions": {
+    "constructor_has_retain_count_two": true,
+    "owned_has_retain_count_one": true,
+    "all_disposed_handles_zero": true,
+    "constructor_large_buffers": [
+      0,
+      12,
+      24
+    ],
+    "owned_large_buffers": [
+      0,
+      0,
+      0
+    ],
+    "swift24_result": {
+      "accepted": 24,
+      "errors": 0,
+      "finished": true,
+      "iterations": 24,
+      "pid": 29273,
+      "ready": true
+    }
+  },
+  "constructor_footprint_mib": [
+    103.5,
+    220.6,
+    337.5
+  ],
+  "owned_footprint_mib": [
+    104.4,
+    104.4,
+    104.6
+  ],
+  "swift_control": "Separate Swift/UIKit app directly evaluated24unique10MBJavaScript sources successfully with0errors. Nativefootprint15.6MiB at0/12/24; no retainedlargeCFString storage. Finalstate24 is authoritative; intermediate12state acceptedfield was overwritten with latest boolean by diagnostic recorder.",
+  "conclusion": "On installed SDK, new NSString(string) leaves an extra native ownership reference independent of WKWebView. Explicit CreateNative + Runtime.GetNSObject<NSString>(handle, owns:true) transfers ownership correctly and releases native storage on Dispose. This is measured, not inferred solely from upstream source.",
+  "limits": [
+    "Allocation-only validates ownership mechanism, not production media behavior or final helper regression.",
+    "Swift control disproves reproduction in this direct native path; it does not establish that every WebKit scenario is leak-free.",
+    "Private raw heap/vmmap logs retain local paths and are hashed below, not copied into repository.",
+    "Runner paths are redacted placeholders; diagnostic C# and Swift source are exact executed bytes."
+  ],
+  "private_raw_log_sha256": {
+    "constructor-24-vmmap.txt": "f0e48755525628fcd9068b137d3f40cbbc90e156f67941f0c6c5dec1b97f1c42",
+    "owned-24-heap.txt": "152dd13b4a9061c78bd35f1a2df9de593ec695979fe2fa5a262a57ee3e42ed84",
+    "constructor-24-heap.txt": "4bbcd93a395ad94df06897aa0c362063c1de9e20057a0553605d981afe2d7694",
+    "constructor-0-heap.txt": "60bf402f7765ddd73c4de7c77452ed00de2ef21db776216c6b7ff970ef87f9a7",
+    "owned-24-vmmap.txt": "22168383d8bba497a9b14a821528d27ca933cc4ccaf699924e29656262053f4c",
+    "owned-0-vmmap.txt": "5442eb02ef697e8b358f045d8ec19e659043605750e6d40a8eaef5a15057311a",
+    "constructor-12-heap.txt": "3ee3dcc3a12fe14ffb7ef59b242d71859267102349b885c87e7ecfaa5b003a7f",
+    "owned-12-vmmap.txt": "10414072c1dad742e618a4f51051105b7a36e3154eebcae225cd46f3cf045a7e",
+    "owned-0-heap.txt": "84c3303539bb83f1a6d099f3cb3e1ee4c5d0c28ca7f72d8a0364d2ccbd24a684",
+    "owned-12-heap.txt": "fcca8109e96d6c1894f5a29a4f926f56a9c0301fa25ace26ac57009351a7ad21",
+    "constructor-0-vmmap.txt": "3ce3eb3a273ca0484b4561b2c6d2797eb66c937c5faeec69e62418231f0f51be",
+    "constructor-12-vmmap.txt": "892ca4c3652566eb05c71f76d10560f0fedd8b2b9cab2c5d62fdd921e335acfe",
+    "pure-eval-24-heap.txt": "7db78b5c73a07be398bfcbc13fe1f00948d828ddc6bf9a2b8d896f3d51c2ba7b",
+    "pure-eval-12-vmmap.txt": "bb61c75b9774147eba67722a0436f530ca0ccce1baf8804b58aff07817406d96",
+    "pure-eval-0-vmmap.txt": "a365bdb47af68df3fca87e5ed17258563b198e89e6d41cbeee201a6fe3891a3b",
+    "pure-eval-24-vmmap.txt": "a7dfd9b07f9684290d619938ebde78f4bb51000d00abdaab8a91de3528f1e9de",
+    "pure-eval-12-heap.txt": "4b360c101730deeb6cd096257fd81f8a242f69ff50ccb458ba4fea73b375bc2a",
+    "pure-eval-0-heap.txt": "2b2b6176923c90efe3e5d208a322e16a94168913ce6de7ac31a35ebcc16c019f"
+  }
+}

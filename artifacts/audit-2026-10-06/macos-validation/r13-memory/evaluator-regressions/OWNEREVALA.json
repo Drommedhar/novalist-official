@@ -1,0 +1,108 @@
+{
+  "case": "evaluator-native-failure",
+  "tag": "OWNEREVALA",
+  "marker": "M04OWNEREVALA26",
+  "task_label": "Audit M04 task OWNEREVALA",
+  "scene_label": "Audit M04 OWNEREVALA",
+  "source": "source.json",
+  "runtime_gate_sha256": "5d48ea99ed388905a587cd836a6f9113946d992672decbcbb0879721080cc6e2",
+  "runtime_gate_file": "replay-gate-with-scene-hold.js",
+  "xcodebuild_pid": 39695,
+  "beforeArm": {
+    "markerInEditor": false,
+    "journalContainsMarker": false,
+    "journalSourceKinds": [],
+    "workspaceInert": false,
+    "replay": {
+      "taskRequestCount": 1,
+      "taskReplyHeld": 1,
+      "taskId": 70,
+      "backendRejected": 0,
+      "sceneWritesHeld": 0
+    },
+    "markerOnDisk": false,
+    "taskCountOnDisk": 1
+  },
+  "nativeFailureState": {
+    "page": "ee7ec9b95ee345b1a094eb51a3ac8157",
+    "bridgeFailed": 1,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": true,
+    "evaluatorFault": 0,
+    "assetReads": 0,
+    "assetHeld": false,
+    "projectGeneration": 0,
+    "webProcessId": 39655,
+    "nativeEditingPausedAlert": true,
+    "nativeReloadAvailable": true,
+    "nativeLaterAvailable": true,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T10:45:10.179353+00:00",
+        "ticks": 158241810018083
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T10:45:10.704131+00:00",
+        "ticks": 158242334786875
+      },
+      {
+        "kind": "evaluator-native-failure-armed",
+        "detail": null,
+        "utc": "2026-10-07T10:45:36.238507+00:00",
+        "ticks": 158267869091875
+      },
+      {
+        "kind": "evaluator-native-failure-consumed",
+        "detail": null,
+        "utc": "2026-10-07T10:45:36.942467+00:00",
+        "ticks": 158268573048833
+      },
+      {
+        "kind": "bridge-failed",
+        "detail": "NSErrorException",
+        "utc": "2026-10-07T10:45:36.951073+00:00",
+        "ticks": 158268581654750
+      },
+      {
+        "kind": "native-alert-presenting",
+        "detail": null,
+        "utc": "2026-10-07T10:45:36.952056+00:00",
+        "ticks": 158268582637833
+      }
+    ]
+  },
+  "beforeReload": {
+    "markerInEditor": true,
+    "journalContainsMarker": true,
+    "journalSourceKinds": [
+      "pane"
+    ],
+    "workspaceInert": true,
+    "replay": {
+      "taskRequestCount": 1,
+      "taskReplyHeld": 1,
+      "taskId": 70,
+      "backendRejected": 1,
+      "sceneWritesHeld": 0
+    },
+    "markerOnDisk": false,
+    "taskCountOnDisk": 1
+  },
+  "afterReload": {
+    "markerInEditor": true,
+    "journalContainsMarker": false,
+    "journalSourceKinds": [],
+    "workspaceInert": false,
+    "replay": null,
+    "markerOnDisk": true,
+    "taskCountOnDisk": 1
+  },
+  "healthyAfterReload": true,
+  "status": "passed",
+  "xcodebuild_exit_code": 0
+}

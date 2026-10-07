@@ -1,0 +1,3606 @@
+[
+  {
+    "seconds": 3.409,
+    "phase": "baseline",
+    "step": 0,
+    "label": "empty-start",
+    "cache": {
+      "bytes": 0,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": []
+    },
+    "native_asset_reads": 0
+  },
+  {
+    "seconds": 4.543,
+    "phase": "lru-check",
+    "step": 1,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 14163372,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 1
+  },
+  {
+    "seconds": 5.377,
+    "phase": "lru-check",
+    "step": 1,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 14163372,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 1
+  },
+  {
+    "seconds": 6.517,
+    "phase": "lru-check",
+    "step": 2,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 2
+  },
+  {
+    "seconds": 7.335,
+    "phase": "lru-check",
+    "step": 2,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 2
+  },
+  {
+    "seconds": 8.246,
+    "phase": "lru-check",
+    "step": 3,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 2
+  },
+  {
+    "seconds": 9.064,
+    "phase": "lru-check",
+    "step": 3,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 2
+  },
+  {
+    "seconds": 10.183,
+    "phase": "lru-check",
+    "step": 4,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 3
+  },
+  {
+    "seconds": 11.0,
+    "phase": "lru-check",
+    "step": 4,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 3
+  },
+  {
+    "seconds": 12.145,
+    "phase": "lru-check",
+    "step": 5,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 4
+  },
+  {
+    "seconds": 12.962,
+    "phase": "lru-check",
+    "step": 5,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 4
+  },
+  {
+    "seconds": 18.382,
+    "phase": "warmup-idle",
+    "step": 5,
+    "label": "warmup-settled",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 4
+  },
+  {
+    "seconds": 19.509,
+    "phase": "batch-1",
+    "step": 6,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 5
+  },
+  {
+    "seconds": 20.342,
+    "phase": "batch-1",
+    "step": 6,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 5
+  },
+  {
+    "seconds": 21.18,
+    "phase": "batch-1",
+    "step": 7,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 5
+  },
+  {
+    "seconds": 22.015,
+    "phase": "batch-1",
+    "step": 7,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 5
+  },
+  {
+    "seconds": 23.147,
+    "phase": "batch-1",
+    "step": 8,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 6
+  },
+  {
+    "seconds": 23.968,
+    "phase": "batch-1",
+    "step": 8,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 6
+  },
+  {
+    "seconds": 25.11,
+    "phase": "batch-1",
+    "step": 9,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 7
+  },
+  {
+    "seconds": 25.937,
+    "phase": "batch-1",
+    "step": 9,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 7
+  },
+  {
+    "seconds": 27.068,
+    "phase": "batch-1",
+    "step": 10,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 8
+  },
+  {
+    "seconds": 27.905,
+    "phase": "batch-1",
+    "step": 10,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 8
+  },
+  {
+    "seconds": 29.053,
+    "phase": "batch-1",
+    "step": 11,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 9
+  },
+  {
+    "seconds": 29.877,
+    "phase": "batch-1",
+    "step": 11,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 9
+  },
+  {
+    "seconds": 31.026,
+    "phase": "batch-1",
+    "step": 12,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 10
+  },
+  {
+    "seconds": 31.852,
+    "phase": "batch-1",
+    "step": 12,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 10
+  },
+  {
+    "seconds": 33.193,
+    "phase": "batch-1",
+    "step": 13,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 11
+  },
+  {
+    "seconds": 34.025,
+    "phase": "batch-1",
+    "step": 13,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 11
+  },
+  {
+    "seconds": 35.156,
+    "phase": "batch-1",
+    "step": 14,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 12
+  },
+  {
+    "seconds": 35.977,
+    "phase": "batch-1",
+    "step": 14,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 12
+  },
+  {
+    "seconds": 37.333,
+    "phase": "batch-1",
+    "step": 15,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 13
+  },
+  {
+    "seconds": 38.158,
+    "phase": "batch-1",
+    "step": 15,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 13
+  },
+  {
+    "seconds": 39.409,
+    "phase": "batch-1",
+    "step": 16,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 14
+  },
+  {
+    "seconds": 40.237,
+    "phase": "batch-1",
+    "step": 16,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 14
+  },
+  {
+    "seconds": 41.477,
+    "phase": "batch-1",
+    "step": 17,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 15
+  },
+  {
+    "seconds": 42.299,
+    "phase": "batch-1",
+    "step": 17,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 15
+  },
+  {
+    "seconds": 43.442,
+    "phase": "batch-1",
+    "step": 18,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 16
+  },
+  {
+    "seconds": 44.266,
+    "phase": "batch-1",
+    "step": 18,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 16
+  },
+  {
+    "seconds": 45.61,
+    "phase": "batch-1",
+    "step": 19,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 17
+  },
+  {
+    "seconds": 46.442,
+    "phase": "batch-1",
+    "step": 19,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 17
+  },
+  {
+    "seconds": 47.693,
+    "phase": "batch-1",
+    "step": 20,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 18
+  },
+  {
+    "seconds": 48.527,
+    "phase": "batch-1",
+    "step": 20,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 18
+  },
+  {
+    "seconds": 49.849,
+    "phase": "batch-1",
+    "step": 21,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 19
+  },
+  {
+    "seconds": 50.679,
+    "phase": "batch-1",
+    "step": 21,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 19
+  },
+  {
+    "seconds": 56.106,
+    "phase": "settled-1",
+    "step": 21,
+    "label": "batch-settled",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 19
+  },
+  {
+    "seconds": 57.246,
+    "phase": "batch-2",
+    "step": 22,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 20
+  },
+  {
+    "seconds": 58.074,
+    "phase": "batch-2",
+    "step": 22,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 20
+  },
+  {
+    "seconds": 59.193,
+    "phase": "batch-2",
+    "step": 23,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 21
+  },
+  {
+    "seconds": 60.019,
+    "phase": "batch-2",
+    "step": 23,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 21
+  },
+  {
+    "seconds": 61.168,
+    "phase": "batch-2",
+    "step": 24,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 22
+  },
+  {
+    "seconds": 61.976,
+    "phase": "batch-2",
+    "step": 24,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 22
+  },
+  {
+    "seconds": 63.093,
+    "phase": "batch-2",
+    "step": 25,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 23
+  },
+  {
+    "seconds": 63.906,
+    "phase": "batch-2",
+    "step": 25,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 23
+  },
+  {
+    "seconds": 65.052,
+    "phase": "batch-2",
+    "step": 26,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 24
+  },
+  {
+    "seconds": 65.879,
+    "phase": "batch-2",
+    "step": 26,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 24
+  },
+  {
+    "seconds": 66.997,
+    "phase": "batch-2",
+    "step": 27,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 25
+  },
+  {
+    "seconds": 67.826,
+    "phase": "batch-2",
+    "step": 27,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 25
+  },
+  {
+    "seconds": 68.96,
+    "phase": "batch-2",
+    "step": 28,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 26
+  },
+  {
+    "seconds": 69.776,
+    "phase": "batch-2",
+    "step": 28,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 26
+  },
+  {
+    "seconds": 71.018,
+    "phase": "batch-2",
+    "step": 29,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 27
+  },
+  {
+    "seconds": 71.835,
+    "phase": "batch-2",
+    "step": 29,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 27
+  },
+  {
+    "seconds": 73.3,
+    "phase": "batch-2",
+    "step": 30,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 28
+  },
+  {
+    "seconds": 74.127,
+    "phase": "batch-2",
+    "step": 30,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 28
+  },
+  {
+    "seconds": 75.388,
+    "phase": "batch-2",
+    "step": 31,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 29
+  },
+  {
+    "seconds": 76.218,
+    "phase": "batch-2",
+    "step": 31,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 29
+  },
+  {
+    "seconds": 77.346,
+    "phase": "batch-2",
+    "step": 32,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 30
+  },
+  {
+    "seconds": 78.177,
+    "phase": "batch-2",
+    "step": 32,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 30
+  },
+  {
+    "seconds": 79.319,
+    "phase": "batch-2",
+    "step": 33,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 31
+  },
+  {
+    "seconds": 80.138,
+    "phase": "batch-2",
+    "step": 33,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 31
+  },
+  {
+    "seconds": 81.493,
+    "phase": "batch-2",
+    "step": 34,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 32
+  },
+  {
+    "seconds": 82.328,
+    "phase": "batch-2",
+    "step": 34,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 32
+  },
+  {
+    "seconds": 83.451,
+    "phase": "batch-2",
+    "step": 35,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 33
+  },
+  {
+    "seconds": 84.277,
+    "phase": "batch-2",
+    "step": 35,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 33
+  },
+  {
+    "seconds": 85.413,
+    "phase": "batch-2",
+    "step": 36,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 34
+  },
+  {
+    "seconds": 86.237,
+    "phase": "batch-2",
+    "step": 36,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 34
+  },
+  {
+    "seconds": 87.484,
+    "phase": "batch-2",
+    "step": 37,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 35
+  },
+  {
+    "seconds": 88.3,
+    "phase": "batch-2",
+    "step": 37,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 35
+  },
+  {
+    "seconds": 93.721,
+    "phase": "settled-2",
+    "step": 37,
+    "label": "batch-settled",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 35
+  },
+  {
+    "seconds": 94.851,
+    "phase": "batch-3",
+    "step": 38,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 36
+  },
+  {
+    "seconds": 95.671,
+    "phase": "batch-3",
+    "step": 38,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 36
+  },
+  {
+    "seconds": 96.81,
+    "phase": "batch-3",
+    "step": 39,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 37
+  },
+  {
+    "seconds": 97.643,
+    "phase": "batch-3",
+    "step": 39,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 37
+  },
+  {
+    "seconds": 98.777,
+    "phase": "batch-3",
+    "step": 40,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 38
+  },
+  {
+    "seconds": 99.58,
+    "phase": "batch-3",
+    "step": 40,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 38
+  },
+  {
+    "seconds": 100.818,
+    "phase": "batch-3",
+    "step": 41,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 39
+  },
+  {
+    "seconds": 101.649,
+    "phase": "batch-3",
+    "step": 41,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 39
+  },
+  {
+    "seconds": 102.902,
+    "phase": "batch-3",
+    "step": 42,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 40
+  },
+  {
+    "seconds": 103.729,
+    "phase": "batch-3",
+    "step": 42,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 40
+  },
+  {
+    "seconds": 104.873,
+    "phase": "batch-3",
+    "step": 43,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 41
+  },
+  {
+    "seconds": 105.691,
+    "phase": "batch-3",
+    "step": 43,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 41
+  },
+  {
+    "seconds": 106.934,
+    "phase": "batch-3",
+    "step": 44,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 42
+  },
+  {
+    "seconds": 107.868,
+    "phase": "batch-3",
+    "step": 44,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 42
+  },
+  {
+    "seconds": 109.015,
+    "phase": "batch-3",
+    "step": 45,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 43
+  },
+  {
+    "seconds": 109.84,
+    "phase": "batch-3",
+    "step": 45,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 43
+  },
+  {
+    "seconds": 111.084,
+    "phase": "batch-3",
+    "step": 46,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 44
+  },
+  {
+    "seconds": 112.016,
+    "phase": "batch-3",
+    "step": 46,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 44
+  },
+  {
+    "seconds": 113.168,
+    "phase": "batch-3",
+    "step": 47,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 45
+  },
+  {
+    "seconds": 113.993,
+    "phase": "batch-3",
+    "step": 47,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 45
+  },
+  {
+    "seconds": 115.121,
+    "phase": "batch-3",
+    "step": 48,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 46
+  },
+  {
+    "seconds": 115.952,
+    "phase": "batch-3",
+    "step": 48,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 46
+  },
+  {
+    "seconds": 117.093,
+    "phase": "batch-3",
+    "step": 49,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 47
+  },
+  {
+    "seconds": 117.914,
+    "phase": "batch-3",
+    "step": 49,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 47
+  },
+  {
+    "seconds": 119.159,
+    "phase": "batch-3",
+    "step": 50,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 48
+  },
+  {
+    "seconds": 119.977,
+    "phase": "batch-3",
+    "step": 50,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 48
+  },
+  {
+    "seconds": 121.336,
+    "phase": "batch-3",
+    "step": 51,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 49
+  },
+  {
+    "seconds": 122.161,
+    "phase": "batch-3",
+    "step": 51,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 49
+  },
+  {
+    "seconds": 123.399,
+    "phase": "batch-3",
+    "step": 52,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 50
+  },
+  {
+    "seconds": 124.225,
+    "phase": "batch-3",
+    "step": 52,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 50
+  },
+  {
+    "seconds": 125.375,
+    "phase": "batch-3",
+    "step": 53,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 51
+  },
+  {
+    "seconds": 126.196,
+    "phase": "batch-3",
+    "step": 53,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 51
+  },
+  {
+    "seconds": 131.61,
+    "phase": "settled-3",
+    "step": 53,
+    "label": "batch-settled",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 51
+  },
+  {
+    "seconds": 132.736,
+    "phase": "batch-4",
+    "step": 54,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 52
+  },
+  {
+    "seconds": 133.546,
+    "phase": "batch-4",
+    "step": 54,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 52
+  },
+  {
+    "seconds": 134.677,
+    "phase": "batch-4",
+    "step": 55,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 53
+  },
+  {
+    "seconds": 135.488,
+    "phase": "batch-4",
+    "step": 55,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 53
+  },
+  {
+    "seconds": 136.634,
+    "phase": "batch-4",
+    "step": 56,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 54
+  },
+  {
+    "seconds": 137.468,
+    "phase": "batch-4",
+    "step": 56,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 54
+  },
+  {
+    "seconds": 138.618,
+    "phase": "batch-4",
+    "step": 57,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 55
+  },
+  {
+    "seconds": 139.452,
+    "phase": "batch-4",
+    "step": 57,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 55
+  },
+  {
+    "seconds": 140.571,
+    "phase": "batch-4",
+    "step": 58,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 56
+  },
+  {
+    "seconds": 141.388,
+    "phase": "batch-4",
+    "step": 58,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 56
+  },
+  {
+    "seconds": 142.617,
+    "phase": "batch-4",
+    "step": 59,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 57
+  },
+  {
+    "seconds": 143.45,
+    "phase": "batch-4",
+    "step": 59,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 57
+  },
+  {
+    "seconds": 144.81,
+    "phase": "batch-4",
+    "step": 60,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 58
+  },
+  {
+    "seconds": 145.627,
+    "phase": "batch-4",
+    "step": 60,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 58
+  },
+  {
+    "seconds": 146.868,
+    "phase": "batch-4",
+    "step": 61,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 59
+  },
+  {
+    "seconds": 147.813,
+    "phase": "batch-4",
+    "step": 61,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 59
+  },
+  {
+    "seconds": 149.057,
+    "phase": "batch-4",
+    "step": 62,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 60
+  },
+  {
+    "seconds": 149.884,
+    "phase": "batch-4",
+    "step": 62,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 60
+  },
+  {
+    "seconds": 151.033,
+    "phase": "batch-4",
+    "step": 63,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 61
+  },
+  {
+    "seconds": 151.851,
+    "phase": "batch-4",
+    "step": 63,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 61
+  },
+  {
+    "seconds": 152.976,
+    "phase": "batch-4",
+    "step": 64,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 62
+  },
+  {
+    "seconds": 153.926,
+    "phase": "batch-4",
+    "step": 64,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 62
+  },
+  {
+    "seconds": 155.06,
+    "phase": "batch-4",
+    "step": 65,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 63
+  },
+  {
+    "seconds": 155.991,
+    "phase": "batch-4",
+    "step": 65,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 63
+  },
+  {
+    "seconds": 157.118,
+    "phase": "batch-4",
+    "step": 66,
+    "label": "preview-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 64
+  },
+  {
+    "seconds": 157.94,
+    "phase": "batch-4",
+    "step": 66,
+    "label": "disposed-1",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 64
+  },
+  {
+    "seconds": 159.41,
+    "phase": "batch-4",
+    "step": 67,
+    "label": "preview-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 65
+  },
+  {
+    "seconds": 160.243,
+    "phase": "batch-4",
+    "step": 67,
+    "label": "disposed-2",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-1.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 65
+  },
+  {
+    "seconds": 161.374,
+    "phase": "batch-4",
+    "step": 68,
+    "label": "preview-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 66
+  },
+  {
+    "seconds": 162.191,
+    "phase": "batch-4",
+    "step": 68,
+    "label": "disposed-3",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-2.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 66
+  },
+  {
+    "seconds": 163.361,
+    "phase": "batch-4",
+    "step": 69,
+    "label": "preview-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 67
+  },
+  {
+    "seconds": 164.18,
+    "phase": "batch-4",
+    "step": 69,
+    "label": "disposed-4",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 67
+  },
+  {
+    "seconds": 169.587,
+    "phase": "settled-4",
+    "step": 69,
+    "label": "batch-settled",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 67
+  },
+  {
+    "seconds": 185.008,
+    "phase": "final-idle",
+    "step": 69,
+    "label": "final-settled",
+    "cache": {
+      "bytes": 28326744,
+      "maximumBytes": 33554432,
+      "pending": 0,
+      "generation": 2,
+      "entries": [
+        {
+          "path": "memory/preview-3.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        },
+        {
+          "path": "memory/preview-4.png",
+          "bytes": 14163372,
+          "uriBytes": 14163372
+        }
+      ]
+    },
+    "native_asset_reads": 67
+  }
+]

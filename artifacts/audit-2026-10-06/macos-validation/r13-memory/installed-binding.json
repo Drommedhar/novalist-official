@@ -1,0 +1,14 @@
+{
+  "assembly": "Microsoft.iOS.dll bundled in measured app",
+  "sha256": "190b7288e6fa2a9e891415af67092c96997e4902c1ee741410a4e279511e031d",
+  "sdk": "Microsoft.iOS27.0.10722",
+  "method": "Mono.Cecil read-only IL from actual app bundle, not inferred solely from upstream main",
+  "extractor": "inspect-binding.cs",
+  "evidence": "installed-binding-il.txt",
+  "upstream_context": [
+    "https://github.com/dotnet/macios/blob/main/src/Foundation/NSString.cs",
+    "https://github.com/dotnet/macios/blob/main/src/Foundation/NSObject2.cs",
+    "https://github.com/dotnet/macios/blob/main/src/CoreFoundation/CFString.cs"
+  ],
+  "historical_hypothesis_not_confirmed_cause": "https://bugs.webkit.org/show_bug.cgi?id=215729"
+}

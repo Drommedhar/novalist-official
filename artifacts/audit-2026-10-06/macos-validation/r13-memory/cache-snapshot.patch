@@ -1,0 +1,18 @@
+diff --git aSOURCE/app/src/renderer/src/mobile/projectImages.ts bPROBE/app/src/renderer/src/mobile/projectImages.ts
+index 8aa474f3..fb6a2a5b 100644
+--- aSOURCE/app/src/renderer/src/mobile/projectImages.ts
++++ bPROBE/app/src/renderer/src/mobile/projectImages.ts
+@@ -10,6 +10,13 @@ const documents = new Map<Document, MutationObserver>()
+ const frames = new WeakSet<HTMLIFrameElement>()
+ let generation = 0
+ 
++// TEMPORARY READ-ONLY AUDIT SNAPSHOT. Removed before final clean build.
++Object.defineProperty(window, '__novalistAuditAssetCache', { value: () => ({
++  bytes: cacheBytes, maximumBytes: MAX_CACHE_BYTES, pending: pending.size, generation,
++  entries: [...cache.entries()].map(([path, value]) => ({ path, bytes: value.bytes, uriBytes: value.uri.length * 2 }))
++}) })
++
++
+ export function clearProjectImageCache(): void {
+   generation++
+   cache.clear()

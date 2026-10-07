@@ -1,0 +1,38 @@
+{
+  "status": "passed-for-measured-simulator-workload",
+  "phases": {
+    "baseline": {
+      "app_median_bytes": 139643904,
+      "webkit_median_bytes": 73435944
+    },
+    "warmup-idle": {
+      "app_median_bytes": 272010336,
+      "webkit_median_bytes": 89361360
+    },
+    "settled-1": {
+      "app_median_bytes": 282250360.0,
+      "webkit_median_bytes": 90950728.0
+    },
+    "settled-2": {
+      "app_median_bytes": 282283128,
+      "webkit_median_bytes": 106810464
+    },
+    "settled-3": {
+      "app_median_bytes": 312839288,
+      "webkit_median_bytes": 91114616
+    },
+    "settled-4": {
+      "app_median_bytes": 272108664.0,
+      "webkit_median_bytes": 91180152.0
+    },
+    "final-idle": {
+      "app_median_bytes": 272108664,
+      "webkit_median_bytes": 90803320
+    }
+  },
+  "app_peak_bytes": 362859688,
+  "webkit_peak_bytes": 147278824,
+  "samples": 332,
+  "elapsed_seconds": 185.009,
+  "retained_large_cfstring_buffers": 0
+}

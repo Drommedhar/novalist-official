@@ -1,0 +1,217 @@
+diff --git a/Novalist.Mobile/Services/OwnedProjectPaths.cs b/Novalist.Mobile/Services/OwnedProjectPaths.cs
+index cd012f4e..dd6e8d45 100644
+--- a/Novalist.Mobile/Services/OwnedProjectPaths.cs
++++ b/Novalist.Mobile/Services/OwnedProjectPaths.cs
+@@ -1,6 +1,5 @@
+ using System.Text.Json;
+ using Novalist.Core.Models;
+-using Novalist.Core.Services;
+ 
+ namespace Novalist.Mobile.Services;
+ 
+@@ -9,31 +8,66 @@ public sealed class OwnedProjectPaths(string documents, string storePath)
+ {
+     private sealed record Entry(string RelativePath, string ProjectId);
+     private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
++    private static readonly object RegistryGate = new();
+ 
+-    public async Task RecordAsync(string projectPath)
++    public Task RecordAsync(string projectPath) => Task.Run(() =>
+     {
+         if (!Contained(documents, projectPath)) return;
+         var id = ReadId(projectPath);
+         if (string.IsNullOrEmpty(id)) return;
+-        var entries = Load();
+-        entries[projectPath] = new Entry(Path.GetRelativePath(documents, projectPath), id);
+-        await new FileService().WriteTextAsync(storePath, JsonSerializer.Serialize(entries, Json));
+-    }
++        lock (RegistryGate)
++        {
++            var entries = Load();
++            entries[projectPath] = new Entry(Path.GetRelativePath(documents, projectPath), id);
++            Save(entries);
++        }
++    });
+ 
+     public string? Resolve(string storedPath)
+     {
+-        if (!Load().TryGetValue(storedPath, out var entry)
+-            || entry is not { RelativePath.Length: > 0, ProjectId.Length: > 0 }) return null;
+-        try
++        lock (RegistryGate)
+         {
+-            var candidate = Path.GetFullPath(Path.Combine(documents, entry.RelativePath));
+-            if (!Contained(documents, candidate) || string.Equals(candidate, storedPath, StringComparison.Ordinal)) return null;
+-            return string.Equals(ReadId(candidate), entry.ProjectId, StringComparison.Ordinal) ? candidate : null;
++            var entries = Load();
++            if (!entries.TryGetValue(storedPath, out var entry)
++                || entry is not { RelativePath.Length: > 0, ProjectId.Length: > 0 }) return null;
++            try
++            {
++                var candidate = Path.GetFullPath(Path.Combine(documents, entry.RelativePath));
++                if (!Contained(documents, candidate) || string.Equals(candidate, storedPath, StringComparison.Ordinal)
++                    || !string.Equals(ReadId(candidate), entry.ProjectId, StringComparison.Ordinal)) return null;
++                // Recents can publish this path without opening the book. Persist its
++                // exact authorization first, so another container move can resolve it.
++                if (!entries.TryGetValue(candidate, out var existing) || existing != entry)
++                {
++                    entries[candidate] = entry;
++                    Save(entries);
++                }
++                return candidate;
++            }
++            catch (Exception error) when (error is ArgumentException or NotSupportedException or IOException or UnauthorizedAccessException)
++            {
++                return null;
++            }
+         }
+-        catch (Exception error) when (error is ArgumentException or NotSupportedException or IOException)
++    }
++
++    private void Save(Dictionary<string, Entry> entries)
++    {
++        var directory = Path.GetDirectoryName(Path.GetFullPath(storePath))
++            ?? throw new IOException("The owned-project registry must name a file.");
++        Directory.CreateDirectory(directory);
++        var temporary = Path.Combine(directory, ".novalist-owned-" + Guid.NewGuid().ToString("N") + ".tmp");
++        try
+         {
+-            return null;
++            using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
++            {
++                JsonSerializer.Serialize(output, entries, Json);
++                output.Flush(flushToDisk: true);
++            }
++            if (File.Exists(storePath)) File.Replace(temporary, storePath, null);
++            else File.Move(temporary, storePath);
+         }
++        finally { File.Delete(temporary); }
+     }
+ 
+     private Dictionary<string, Entry> Load()
+diff --git a/app/src/renderer/index.mobile.html b/app/src/renderer/index.mobile.html
+index 47736243..b9b5ceba 100644
+--- a/app/src/renderer/index.mobile.html
++++ b/app/src/renderer/index.mobile.html
+@@ -8,7 +8,7 @@
+     />
+     <meta
+       http-equiv="Content-Security-Policy"
+-      content="default-src 'self'; script-src 'self' 'unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-src 'self' data:; connect-src 'self' data:"
++      content="default-src 'self'; script-src 'self' 'unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data:; frame-src 'self' data:; connect-src 'self' data:"
+     />
+     <!-- MAUI HybridWebView (.NET 10) serves its JS bridge library here but does
+          NOT auto-inject it; the page must reference it. This defines
+diff --git a/app/src/renderer/src/mobile/recovery.ts b/app/src/renderer/src/mobile/recovery.ts
+index 991082b3..0ba38765 100644
+--- a/app/src/renderer/src/mobile/recovery.ts
++++ b/app/src/renderer/src/mobile/recovery.ts
+@@ -3,7 +3,7 @@ import { rpc } from '../rpc/client'
+ import { useProjectStore } from '../stores/projectStore'
+ import { pendingManuscriptRecovery, hasPendingManuscriptWrites } from '../stores/manuscriptStore'
+ import { useHostBridgeStore } from '../stores/hostBridgeStore'
+-import { readRecoveryJournal, recordRecovery, removeRecovery, remapRecoveryEntry, sameRecoveryScope, sameResearchValue, type RecoveryEntry, type RecoveryScope, type ResearchRecoveryValue } from './recoveryJournal'
++import { readRecoveryJournal, recordRecovery, removeRecovery, remapRecoveryEntry, sameRecoveryScope, sameResearchValue, type RecoveryEntry, type RecoveryScope, type ResearchRecoveryValue, type SceneRecovery } from './recoveryJournal'
+ 
+ let restoring = false
+ let startupJournal: RecoveryEntry[] | null = null
+@@ -23,6 +23,15 @@ export function registerResearchRecovery(capture: () => void): () => void {
+   return () => { researchCaptures.delete(capture) }
+ }
+ 
++export function retainMobileSceneRecovery(scene: Omit<SceneRecovery, 'kind'>): void {
++  if (!window.novalist.isMobile) return
++  try {
++    const scope = mobileRecoveryScope()
++    if (!scope) throw new Error(i18n.t('update.workspaceBusy'))
++    recordRecovery({ ...scene, kind: 'scene', scope })
++  } catch (error) { reportRecoveryError(error) }
++}
++
+ export function captureMobileRecovery(): RecoveryEntry[] {
+   if (!window.novalist.isMobile) return []
+   const scope = mobileRecoveryScope()
+diff --git a/app/src/renderer/src/mobile/shim.ts b/app/src/renderer/src/mobile/shim.ts
+index 623c40ef..bfd8ff21 100644
+--- a/app/src/renderer/src/mobile/shim.ts
++++ b/app/src/renderer/src/mobile/shim.ts
+@@ -105,7 +105,8 @@ window.__novalistHostResult = (base64: string) => {
+ }
+ 
+ function hostCall<T>(method: string, args: unknown[]): Promise<T> {
+-  const timeout = method.startsWith('pick') ? 600_000 : method === 'readProjectAsset' ? 120_000 : 30_000
++  const timeout = method.startsWith('pick') || method === 'shareExport'
++    ? 600_000 : method === 'readProjectAsset' ? 120_000 : 30_000
+   return hostCalls.request<T>(method, args, timeout)
+ }
+ 
+diff --git a/app/src/renderer/src/stores/manuscriptStore.ts b/app/src/renderer/src/stores/manuscriptStore.ts
+index d52994bc..520776b5 100644
+--- a/app/src/renderer/src/stores/manuscriptStore.ts
++++ b/app/src/renderer/src/stores/manuscriptStore.ts
+@@ -4,6 +4,7 @@ import { useProjectStore, reportManuscriptEditing, type ChapterDto, type Project
+ import { useFilterStore } from './filterStore'
+ import type { ColourDimension } from '../views/manuscript/sceneColour'
+ import i18n from '../i18n'
++import { retainMobileSceneRecovery } from '../mobile/recovery'
+ 
+ export interface ManuscriptSceneDto {
+   sceneId: string
+@@ -320,6 +321,7 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
+       })
+     }, MANUSCRIPT_AUTOSAVE_MS)
+     saveTimers.set(sceneId, save)
++    retainMobileSceneRecovery({ source: `manuscript:${sceneId}`, chapterGuid: save.chapterGuid, sceneId, html, plainText, hash: save.expectedHash })
+     reportManuscriptClaims()
+   },
+ 
+diff --git a/app/src/renderer/src/stores/projectEditorActions.ts b/app/src/renderer/src/stores/projectEditorActions.ts
+index 7610373c..1a3a0603 100644
+--- a/app/src/renderer/src/stores/projectEditorActions.ts
++++ b/app/src/renderer/src/stores/projectEditorActions.ts
+@@ -6,6 +6,7 @@ import { runSceneContext } from './projectSceneActions'
+ import { type ProjectSlice } from './projectTypes'
+ import { capturePendingWrites } from './pendingWrites'
+ import { enqueueSceneWrite } from './sceneWriteQueue'
++import { retainMobileSceneRecovery } from '../mobile/recovery'
+ 
+ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn' | 'openSceneInSplit' | 'resolveSceneConflict' | 'dismissSceneConflict' | 'closeTab' | 'moveTabToOtherPane' | 'onEditorContentChanged' | 'syncEditorPanes' | 'flushPane' | 'flushPendingSave' | 'applyManuscriptSceneWrite'> = (set, get) => ({
+   openScene: async (chapterGuid, sceneId) => {
+@@ -174,6 +175,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
+       ...patchEditor(s, paneId, { html, plainText, isDirty: true }),
+       dirtyMap: { ...s.dirtyMap, [sceneId]: true }
+     }))
++    retainMobileSceneRecovery({ source: `pane:${paneId}`, chapterGuid, sceneId, html, plainText, hash: editor.hash ?? '' })
+     scheduleSave(paneId, chapterGuid, sceneId, html, plainText)
+   },
+ 
+diff --git a/app/src/renderer/src/views/library/ResearchEditor.tsx b/app/src/renderer/src/views/library/ResearchEditor.tsx
+index 13955dd4..999956a8 100644
+--- a/app/src/renderer/src/views/library/ResearchEditor.tsx
++++ b/app/src/renderer/src/views/library/ResearchEditor.tsx
+@@ -218,10 +218,23 @@ function ResearchMetadata({ t, selected, setLifecycle, patchSelected, save, remo
+ 
+ export function ResearchEditor({ selected, t, fetchingTitle, fetchLinkTitle, setConfirmDelete, isInbox, setFiling, markFiled, patchSelected, save, setLifecycle, removeTag, newTag, setNewTag, addTag, entityNames, unlinkEntity, linkEntity, allEntities, items, setSelectedId, toggleRelated, setItems }: { selected: NonNullable<ResearchViewState['selected']>; t: ResearchViewState['t']; fetchingTitle: ResearchViewState['fetchingTitle']; fetchLinkTitle: ResearchViewState['fetchLinkTitle']; setConfirmDelete: ResearchViewState['setConfirmDelete']; isInbox: ResearchViewState['isInbox']; setFiling: ResearchViewState['setFiling']; markFiled: ResearchViewState['markFiled']; patchSelected: ResearchViewState['patchSelected']; save: ResearchViewState['save']; setLifecycle: ResearchViewState['setLifecycle']; removeTag: ResearchViewState['removeTag']; newTag: ResearchViewState['newTag']; setNewTag: ResearchViewState['setNewTag']; addTag: ResearchViewState['addTag']; entityNames: ResearchViewState['entityNames']; unlinkEntity: ResearchViewState['unlinkEntity']; linkEntity: ResearchViewState['linkEntity']; allEntities: ResearchViewState['allEntities']; items: ResearchViewState['items']; setSelectedId: ResearchViewState['setSelectedId']; toggleRelated: ResearchViewState['toggleRelated']; setItems: ResearchViewState['setItems'] }): React.JSX.Element {
+   const [previewError, setPreviewError] = useState<{ id: string; message: string } | null>(null)
++  const previewLoaded = (event: React.SyntheticEvent): void => {
++    const target = event.target as HTMLElement
++    if (!target.matches('.research-preview img, .research-embed, .research-audio')) return
++    if (window.novalist.isMobile) {
++      target.removeAttribute('aria-description')
++      target.removeAttribute('title')
++    }
++    setPreviewError(null)
++  }
+   return (
+-    <div className="research-editor" onErrorCapture={(event) => {
++    <div className="research-editor" onLoadCapture={previewLoaded} onLoadedDataCapture={previewLoaded} onErrorCapture={(event) => {
+       const target = event.target as HTMLElement
+-      setPreviewError({ id: selected.id, message: target.getAttribute('aria-description') || t('research.previewFailed') })
++      const reason = target.getAttribute('aria-description')
++      const source = target.getAttribute(target.tagName === 'OBJECT' ? 'data' : 'src')
++      // WebKit may reject the project URL before the mobile host resolves it.
++      if (window.novalist.isMobile && !reason && source?.startsWith('novalist-project://')) return
++      setPreviewError({ id: selected.id, message: reason || t('research.previewFailed') })
+     }}>
+       {previewError?.id === selected.id && <p role="alert" className="settings-hint">{previewError.message}</p>}
+       <div className="codex-detail-actions">

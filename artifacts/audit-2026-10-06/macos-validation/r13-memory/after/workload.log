@@ -1,0 +1,5 @@
+{"batch": 1, "previews": 21, "cache_bytes": 28326744, "native_asset_reads": 19, "samples": 101}
+{"batch": 2, "previews": 37, "cache_bytes": 28326744, "native_asset_reads": 35, "samples": 168}
+{"batch": 3, "previews": 53, "cache_bytes": 28326744, "native_asset_reads": 51, "samples": 236}
+{"batch": 4, "previews": 69, "cache_bytes": 28326744, "native_asset_reads": 67, "samples": 305}
+{"status": "workload-and-cache-checks-passed; native-footprint-requires-separate-analysis", "previews": 69, "cache_observations": 145, "native_samples": 332, "elapsed_seconds": 185.009}

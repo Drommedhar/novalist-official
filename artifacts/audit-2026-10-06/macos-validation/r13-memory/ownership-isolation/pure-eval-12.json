@@ -1,0 +1,39 @@
+{
+  "state": {
+    "accepted": true,
+    "error": false,
+    "errors": 0,
+    "iterations": 12,
+    "pid": 29273,
+    "ready": true
+  },
+  "large_cfstring_lines": [
+    "13        208      16.0   CFString (Storage)                                C       CoreFoundation",
+    "39       1248      32.0   CFString (Storage)                                C       CoreFoundation",
+    "14        672      48.0   CFString (Storage)                                C       CoreFoundation",
+    "4        256      64.0   CFString (Storage)                                C       CoreFoundation",
+    "6        480      80.0   CFString (Storage)                                C       CoreFoundation",
+    "3        288      96.0   CFString (Storage)                                C       CoreFoundation",
+    "1        192     192.0   CFString (Storage)                                C       CoreFoundation",
+    "1        224     224.0   CFString (Storage)                                C       CoreFoundation",
+    "4562    1167872     256.0   CFString (Storage)                                C       CoreFoundation",
+    "858     274560     320.0   CFString (Storage)                                C       CoreFoundation",
+    "6173     197536      32.0   CFString                                          ObjC    CoreFoundation",
+    "1363      65424      48.0   CFString                                          ObjC    CoreFoundation",
+    "612      39168      64.0   CFString                                          ObjC    CoreFoundation",
+    "137      10960      80.0   CFString                                          ObjC    CoreFoundation",
+    "23       2208      96.0   CFString                                          ObjC    CoreFoundation",
+    "12       1344     112.0   CFString                                          ObjC    CoreFoundation",
+    "44       5632     128.0   CFString                                          ObjC    CoreFoundation",
+    "28       4480     160.0   CFString                                          ObjC    CoreFoundation",
+    "11       2112     192.0   CFString                                          ObjC    CoreFoundation",
+    "14       3136     224.0   CFString                                          ObjC    CoreFoundation",
+    "6       1536     256.0   CFString                                          ObjC    CoreFoundation",
+    "40      12800     320.0   CFString                                          ObjC    CoreFoundation",
+    "8       3072     384.0   CFString                                          ObjC    CoreFoundation"
+  ],
+  "footprint_lines": [
+    "Physical footprint:         15.6M",
+    "Physical footprint (peak):  35.1M"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "mode": "probe",
+  "case": "OWNERKILLA",
+  "native_bin_obj_cleared": true,
+  "probe_source_present": true,
+  "production_input_differences": [
+    "Novalist.Mobile/Pages/RendererHostPage.Transport.cs",
+    "Novalist.Mobile/Pages/RendererHostPage.cs"
+  ]
+}

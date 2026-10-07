@@ -1,0 +1,22 @@
+--- a/Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs
+@@ -1,4 +1,6 @@
+ #if IOS
++using Foundation;
++using ObjCRuntime;
+ using WebKit;
+ #endif
+ 
+@@ -14,7 +16,11 @@
+ 
+         // MAUI's async-void evaluation handler can throw outside the caller's
+         // task. Await WebKit directly so process failures reach our recovery path.
+-        using var result = await webView.EvaluateJavaScriptAsync(script);
++        // Transfer the created string reference to the wrapper. The string
++        // constructor retains an extra native reference in the current binding.
++        using var source = Runtime.GetNSObject<NSString>(NSString.CreateNative(script), owns: true)
++            ?? throw new InvalidOperationException("The editor response could not be prepared.");
++        using var result = await webView.EvaluateJavaScriptAsync(source);
+         return result?.ToString();
+ #else
+         return await _web.EvaluateJavaScriptAsync(script);

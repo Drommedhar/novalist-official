@@ -1,0 +1,10 @@
+{
+  "mode": "clean",
+  "case": "OWNEREVALA",
+  "build_exit_code": 0,
+  "log_sha256": "be768e7c7035e1b0ad617f1fd94d976a69473681e18989cce02fdaf22f3506e2",
+  "codesign_exit_code": 0,
+  "app_tree_sha256": "55113bc373610789e8cd5ad951b67ff7da64738c11aa8aaa63747f0b42b7f206",
+  "installed": true,
+  "launched": true
+}

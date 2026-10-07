@@ -1,0 +1,83 @@
+{
+  "status": "passed; frozen ownership helper regression and final clean integration complete",
+  "source_base_revision": "af9f44d3ce81477d9fca8ea168844383074cc889",
+  "source_delta": "candidate-helper.patch; identical to frozen main RendererHostPage.JavaScript.cs",
+  "helper_sha256": "781778b7425a12700dd3528afe6951db38180a958af69d22ab68b2ec1f246e8a",
+  "production_manifest": "production-inputs.json",
+  "production_inputs": 1257,
+  "production_manifest_sha256": "037a51c5b71419a6116464b2c17ce54896a2a98c83b00983d6f51eb63f42d459",
+  "all_current_main_production_inputs_match": true,
+  "platform": "dedicated iPhone17ProMax iOS27 arm64 simulator; no physical device",
+  "cases": [
+    {
+      "case": "evaluator-native-failure",
+      "result": "passed",
+      "record": "OWNEREVALA.json",
+      "test_source": "OWNEREVALA.swift",
+      "test_log": "OWNEREVALA.log",
+      "native_failure_event": {
+        "kind": "bridge-failed",
+        "detail": "NSErrorException",
+        "utc": "2026-10-07T10:45:36.951073+00:00",
+        "ticks": 158268581654750
+      },
+      "unsaved_marker_absent_disk_before_reload": true,
+      "real_ui_reload_restores_marker": true,
+      "exactly_one_committed_task_before_and_after": true,
+      "probe_removal_source": "OWNEREVALA-clean-source.json",
+      "probe_removal_build": "OWNEREVALA-clean-build.json"
+    },
+    {
+      "case": "webcontent-termination",
+      "result": "passed",
+      "record": "OWNERKILLA.json",
+      "test_source": "OWNERKILLA.swift",
+      "test_log": "OWNERKILLA.log",
+      "native_failure_event": {
+        "kind": "bridge-failed",
+        "detail": "IOException",
+        "utc": "2026-10-07T10:47:19.26039+00:00",
+        "ticks": 158370890683916
+      },
+      "unsaved_marker_absent_disk_before_reload": true,
+      "real_ui_reload_restores_marker": true,
+      "exactly_one_committed_task_before_and_after": true,
+      "probe_removal_source": "OWNERKILLA-clean-source.json",
+      "probe_removal_build": "OWNERKILLA-clean-build.json"
+    }
+  ],
+  "instrumentation": "Disposable native control patch plus runtime RPC reply gate. Production protocol unchanged. To do mutation is performed through actual UI and persisted in backend before reply is held. Unique new scene/manuscript marker is entered through actual UI and absent from disk before fault/reload.",
+  "nonreplay_limit": "Killed JavaScript context cannot report pending Promise rejection; exact one backend task before/after and one actual UI row prove no duplicate mutation replay. Native NSError case also observes pending promise rejection and inert workspace.",
+  "test_durations_seconds": {
+    "native_nserror": 31.647,
+    "webcontent_sigkill": 38.002,
+    "final_clean_ui": 12.107
+  },
+  "final_clean_integration": {
+    "regenerated_mobile_renderer": true,
+    "all_four_native_bin_obj_directories_deleted_before_build": true,
+    "native_probe_source_absent": true,
+    "production_input_differences": [],
+    "native_build_exit_code": 0,
+    "strict_deep_codesign_exit_code": 0,
+    "installed_and_launched": true,
+    "app_tree_sha256": "52bc14fa0b48f93ab13885d204ff9e475ce2bb1ed6c13194470e82d83aa34b48",
+    "real_ui_synthetic_book_reopen_and_3d_map_passed": true,
+    "visible_quadrant_texture_confirmed_in_screenshot": "final-clean-ui.png",
+    "temporary_control_channel_removed": true,
+    "separate_swift_diagnostic_app_uninstalled": true,
+    "synthetic_novalist_projects_preserved": true
+  },
+  "coverage_scope": "Meaningful regression of new Foundation input ownership for native NSError and actual WebContent termination. Original four-case full M04 matrix remains separate at simulator-ui/m04-full. This does not rerun original timeout/backend failure cases or physical-device acceptance.",
+  "sanitization": "Build/XCTest logs and runner paths replace local home/worktree paths with placeholders. Swift test sources, native helper, patches, gate and manifest are exact bytes. Raw logs remain private and are hashed below. The executed runner is reconstructed by removing a readiness-only setup improvement made after both Python processes loaded it; case Swift mtimes10:45:13/10:46:50 UTC precede runner edit10:46:59.",
+  "private_raw_log_sha256": {
+    "OWNEREVALA.log": "7592d6b3d00b6adc56fe087fca4ef5b79ba76bdde0a113a621276b47bd136efd",
+    "OWNEREVALA-probe-build.log": "1850ea8dfa4b1a650d58cced2f8a71683b81c33f376d3bbfdc27f5f00b3d176c",
+    "OWNEREVALA-clean-build.log": "be768e7c7035e1b0ad617f1fd94d976a69473681e18989cce02fdaf22f3506e2",
+    "OWNERKILLA.log": "701085ed9c5dccc77b14f3b60ff1d1ab8eec9909eb1309781917a1d5a0d0e194",
+    "OWNERKILLA-probe-build.log": "d39ecfe787dbf470c985923229824d3e64f1406d314d4ccbd5b76141a1ab95da",
+    "OWNERKILLA-clean-build.log": "b4cad01f75d401a5604ae621a80b8fdfc7c885462b5ed8e7dcb4a78b018cd682",
+    "final-renderer-build.log": "3b9da2f00749ff2266c3bae414569e9faf68c58a78143edc48357a2c6b0f62b7",
+    "final-clean-ui.log": "8985a251f293b39258c74c11bd4050d4d41d7d66c4968b625fd6595ddcd28a0f"
+  }
+}

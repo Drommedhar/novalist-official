@@ -1,0 +1,7 @@
+{
+  "base_revision": "af9f44d3ce81477d9fca8ea168844383074cc889",
+  "helper_sha256": "7b9abb8656b96a0aab6be6bd513cb8af1f01916fe6a6daad8a09f9edd7f42540",
+  "production_inputs": 1257,
+  "production_manifest_sha256": "182e4dd10e249a20424d550d6714a7a1d19d8399993bb313f8289ff217f0f8bb",
+  "native_control_patch_sha256": "dac65ffeb20d3a162435aea6b9f629d3751722c29e51d6be5eb2a4c06d01a788"
+}

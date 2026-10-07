@@ -1,0 +1,106 @@
+{
+  "finding": "R13-05",
+  "status": "passed",
+  "device": "Dedicated iPad A16 simulator, iOS27.0; no physical device",
+  "source": "source-provenance.json",
+  "workload": {
+    "real_research_previews": 69,
+    "native_asset_reads": 67,
+    "cache_hits": 2,
+    "equal_stress_batches": 4,
+    "previews_per_batch": 16,
+    "initial_lru_probe_order": [
+      1,
+      2,
+      1,
+      3,
+      2
+    ],
+    "stress_order_per_batch": [
+      1,
+      2,
+      3,
+      4,
+      1,
+      2,
+      3,
+      4,
+      1,
+      2,
+      3,
+      4,
+      1,
+      2,
+      3,
+      4
+    ],
+    "fixture_png_bytes_each": 5311246,
+    "dimensions": "1152x1152 RGBA",
+    "preview_disposal": "Select actual Research Note after every decoded Image; actual preview img must be absent",
+    "cache_snapshots": 145,
+    "native_samples": 332,
+    "elapsed_seconds": 185.009,
+    "forced_gc": false,
+    "allocation_stack_logging": false,
+    "measurement": "macOS footprint physical footprint for exact native app and associated WKWebContent only; 0.5-second sampling; 5-second batch settling and 15-second final idle"
+  },
+  "cache": {
+    "limit_bytes": 33554432,
+    "maximum_observed_bytes": 28326744,
+    "maximum_entries": 2,
+    "accounting": "Exact sum of two-byte JS URI string lengths checked in all 145 snapshots; no pending reads; native read count verifies LRU hit/eviction",
+    "status": "passed"
+  },
+  "native_memory": {
+    "status": "passed-for-observed-repeated-preview-workload",
+    "before": "before/phase-summary.json",
+    "after": "after/phase-summary.json",
+    "before_app_settled_mib": [
+      452.99,
+      608.86,
+      774.43,
+      910.85
+    ],
+    "after_app_settled_mib": [
+      269.17,
+      269.21,
+      298.35,
+      259.5
+    ],
+    "before_final_idle_mib": 901.11,
+    "after_final_idle_mib": 259.5,
+    "after_warmup_idle_mib": 259.41,
+    "after_app_peak_mib": 346.05,
+    "after_webkit_peak_mib": 140.46,
+    "retained_large_cfstring_blocks_before": 67,
+    "retained_large_cfstring_blocks_after": 0,
+    "interpretation": "Fixed native app returns to warmup footprint after 67 actual reads; no per-read native storage accumulation. Remaining process footprint includes normal managed/runtime/UI allocations. Native heap and independent allocation isolation establish the corrected ownership fault; no forced GC used for acceptance."
+  },
+  "cause": {
+    "evidence": [
+      "installed-binding.json",
+      "installed-binding-il.txt",
+      "ownership-isolation/summary.json",
+      "allocation-stack.txt",
+      "gc-diagnostic.json"
+    ],
+    "observed": "Installed SDK NSString(string) constructor produces native retain count 2; Dispose clears managed handle but leaves native buffer. Explicit CreateNative + Runtime.GetNSObject<NSString>(owns:true) produces retain count 1 and releases storage. Independent Swift direct WebKit eval has no equivalent retention.",
+    "correction": "Single native evaluator helper explicitly transfers created input string ownership to a using-scoped wrapper and awaits the NSString overload through native completion. Original callback protocol, acceptance checks and deadlines remain unchanged.",
+    "disproven_candidates": [
+      "explicit-input-differential/phase-summary.json",
+      "arguments-differential/phase-summary.json"
+    ],
+    "gc_diagnostic_limit": "Forced collection used only to separate managed allocations from native retention; it is never pass evidence."
+  },
+  "regressions": {
+    "native_media_and_races": "native-media-races.json:6 passed",
+    "source_quality": "aislop.json:score 100, 0 findings",
+    "native_fault_recovery": "evaluator-regressions/summary.json: native NSError and real WebContent termination, retained-edit recovery/nonreplay, latest integrated clean build passed"
+  },
+  "probe_removal": "probe-removal.json",
+  "limitations": [
+    "Measured simulator Debug build and defined 69-preview workload; no physical-device or indefinite endurance claim.",
+    "Temporary cache/control/GC probes removed; exact controlled source snapshot clean-built and native preview smoke passed. Independent evaluator regression also clean-built the latest integrated main source.",
+    "Later root export/map changes are excluded from this controlled source snapshot and validated separately."
+  ]
+}

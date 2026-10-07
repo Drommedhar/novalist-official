@@ -1,0 +1,18 @@
+--- a/Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs
+@@ -1,4 +1,5 @@
+ #if IOS
++using Foundation;
+ using WebKit;
+ #endif
+ 
+@@ -14,7 +15,8 @@
+ 
+         // MAUI's async-void evaluation handler can throw outside the caller's
+         // task. Await WebKit directly so process failures reach our recovery path.
+-        using var result = await webView.EvaluateJavaScriptAsync(script);
++        using var source = new NSString(script);
++        using var result = await webView.EvaluateJavaScriptAsync(source);
+         return result?.ToString();
+ #else
+         return await _web.EvaluateJavaScriptAsync(script);

@@ -1,0 +1,16 @@
+--- a/Novalist.Mobile/Pages/RendererHostPage.AuditControl.cs
++++ b/Novalist.Mobile/Pages/RendererHostPage.AuditControl.cs
+@@ -108,6 +108,13 @@
+                     .WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+             case "state":
+                 return await MainThread.InvokeOnMainThreadAsync(AuditState);
++            case "memory-state":
++                return new { managedBytes = GC.GetTotalMemory(false), collections = new[] { GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2) } };
++            case "diagnostic-gc":
++                GC.Collect();
++                GC.WaitForPendingFinalizers();
++                GC.Collect();
++                return new { managedBytes = GC.GetTotalMemory(false), collections = new[] { GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2) } };
+             case "evaluator-failure":
+                 Interlocked.Exchange(ref _auditEvaluatorFault, 1);
+                 AuditRecord("evaluator-failure-armed");

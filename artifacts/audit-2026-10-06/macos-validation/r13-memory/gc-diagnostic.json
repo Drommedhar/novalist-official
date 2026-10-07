@@ -1,0 +1,75 @@
+{
+  "scope": "Diagnostic only; explicit full GC/finalizer drain is not production acceptance. Clean fresh process using unfixed input-string ownership and temporary GC operations.",
+  "native_asset_reads": 12,
+  "snapshots": [
+    {
+      "label": "baseline",
+      "managed": {
+        "managedBytes": 21702600,
+        "collections": [
+          131,
+          7,
+          7
+        ]
+      },
+      "native": [
+        {
+          "name": "Novalist.Mobile",
+          "phys_footprint_peak": 139774976,
+          "phys_footprint": 139037696
+        },
+        {
+          "name": "com.apple.WebKit.WebContent",
+          "phys_footprint_peak": 96521024,
+          "phys_footprint": 74271552
+        }
+      ]
+    },
+    {
+      "label": "after-12-real-previews",
+      "managed": {
+        "managedBytes": 265665464,
+        "collections": [
+          131,
+          34,
+          34
+        ]
+      },
+      "native": [
+        {
+          "name": "Novalist.Mobile",
+          "phys_footprint_peak": 444140808,
+          "phys_footprint": 414551280
+        },
+        {
+          "name": "com.apple.WebKit.WebContent",
+          "phys_footprint_peak": 166104064,
+          "phys_footprint": 96865304
+        }
+      ]
+    },
+    {
+      "label": "after-diagnostic-only-GC",
+      "managed": {
+        "managedBytes": 20084968,
+        "collections": [
+          131,
+          36,
+          36
+        ]
+      },
+      "native": [
+        {
+          "name": "Novalist.Mobile",
+          "phys_footprint_peak": 444140808,
+          "phys_footprint": 313740456
+        },
+        {
+          "name": "com.apple.WebKit.WebContent",
+          "phys_footprint_peak": 166104064,
+          "phys_footprint": 96767000
+        }
+      ]
+    }
+  ]
+}

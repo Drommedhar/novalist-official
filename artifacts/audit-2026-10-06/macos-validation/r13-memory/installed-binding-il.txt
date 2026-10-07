@@ -1,0 +1,246 @@
+System.Void Foundation.NSString::.ctor(System.String)
+IL_0000: ldarg.0
+IL_0001: ldarg.1
+IL_0002: ldstr "str"
+IL_0007: call T ObjCRuntime.ThrowHelper::ThrowIfNull<System.String>(T,System.String)
+IL_000c: call ObjCRuntime.NativeHandle CoreFoundation.CFString::CreateNative(System.String)
+IL_0011: call System.Void Foundation.NSObject::.ctor(ObjCRuntime.NativeHandle)
+IL_0016: ret
+System.Void Foundation.NSObject::.ctor(ObjCRuntime.NativeHandle)
+IL_0000: ldarg.0
+IL_0001: ldarg.1
+IL_0002: ldc.i4.0
+IL_0003: call System.Void Foundation.NSObject::.ctor(ObjCRuntime.NativeHandle,System.Boolean)
+IL_0008: ret
+System.Void Foundation.NSObject::.ctor(ObjCRuntime.NativeHandle,System.Boolean)
+IL_0000: ldarg.0
+IL_0001: call System.Void System.Object::.ctor()
+IL_0006: ldarg.0
+IL_0007: ldarg.1
+IL_0008: call System.Void Foundation.NSObject::set_handle(ObjCRuntime.NativeHandle)
+IL_000d: ldarg.0
+IL_000e: ldarg.2
+IL_000f: call System.Void Foundation.NSObject::InitializeObject(System.Boolean)
+IL_0014: ret
+ObjCRuntime.NativeHandle Foundation.NSObject::InitializeObject()
+IL_0000: call System.Boolean ObjCRuntime.Runtime::get_IsCoreCLR()
+IL_0005: brtrue.s IL_0011
+IL_0007: newobj System.Void System.Runtime.CompilerServices.ConditionalWeakTable`2<Foundation.NSObject,Foundation.NSObjectDataHandle>::.ctor()
+IL_000c: stsfld System.Runtime.CompilerServices.ConditionalWeakTable`2<Foundation.NSObject,Foundation.NSObjectDataHandle> Foundation.NSObject::data_table
+IL_0011: newobj System.Void System.Runtime.CompilerServices.ConditionalWeakTable`2<Foundation.NSObject,Foundation.TrackedMemory>::.ctor()
+IL_0016: stsfld System.Runtime.CompilerServices.ConditionalWeakTable`2<Foundation.NSObject,Foundation.TrackedMemory> Foundation.NSObject::super_map
+IL_001b: ldsfld ObjCRuntime.NativeHandle Foundation.NSObject::class_ptr
+IL_0020: ret
+System.Void Foundation.NSObject::InitializeObject(System.Boolean)
+IL_0000: ldarg.1
+IL_0001: brfalse IL_00ee
+IL_0006: ldarg.0
+IL_0007: call ObjCRuntime.NativeHandle Foundation.NSObject::get_handle()
+IL_000c: ldsfld ObjCRuntime.NativeHandle ObjCRuntime.NativeHandle::Zero
+IL_0011: call System.Boolean ObjCRuntime.NativeHandle::op_Equality(ObjCRuntime.NativeHandle,ObjCRuntime.NativeHandle)
+IL_0016: brfalse IL_00ee
+IL_001b: ldsfld System.Boolean ObjCRuntime.Class::ThrowOnInitFailure
+IL_0020: brfalse IL_00ee
+IL_0025: ldarg.0
+IL_0026: callvirt ObjCRuntime.NativeHandle Foundation.NSObject::get_ClassHandle()
+IL_002b: ldsfld ObjCRuntime.NativeHandle ObjCRuntime.NativeHandle::Zero
+IL_0030: call System.Boolean ObjCRuntime.NativeHandle::op_Equality(ObjCRuntime.NativeHandle,ObjCRuntime.NativeHandle)
+IL_0035: brfalse.s IL_0090
+IL_0037: ldloca.s V_3
+IL_0039: ldc.i4.s 90
+IL_003b: ldc.i4.2
+IL_003c: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::.ctor(System.Int32,System.Int32)
+IL_0041: ldloca.s V_3
+IL_0043: ldstr "Could not create an native instance of the type '"
+IL_0048: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendLiteral(System.String)
+IL_004d: ldloca.s V_3
+IL_004f: ldarg.0
+IL_0050: call System.Type System.Object::GetType()
+IL_0055: callvirt System.String System.Type::get_FullName()
+IL_005a: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendFormatted(System.String)
+IL_005f: ldloca.s V_3
+IL_0061: ldstr "': the native class hasn't been loaded.
+"
+IL_0066: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendLiteral(System.String)
+IL_006b: ldloca.s V_3
+IL_006d: ldstr "It is possible to ignore this condition by setting ObjCRuntime.Class.ThrowOnInitFailure to false"
+IL_0072: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendFormatted(System.String)
+IL_0077: ldloca.s V_3
+IL_0079: ldstr "."
+IL_007e: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendLiteral(System.String)
+IL_0083: ldloca.s V_3
+IL_0085: call System.String System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::ToStringAndClear()
+IL_008a: newobj System.Void System.Exception::.ctor(System.String)
+IL_008f: throw
+IL_0090: ldloca.s V_4
+IL_0092: ldc.i4.s 53
+IL_0094: ldc.i4.2
+IL_0095: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::.ctor(System.Int32,System.Int32)
+IL_009a: ldloca.s V_4
+IL_009c: ldstr "Could not create an native instance of the type '"
+IL_00a1: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendLiteral(System.String)
+IL_00a6: ldloca.s V_4
+IL_00a8: ldarg.0
+IL_00a9: callvirt ObjCRuntime.NativeHandle Foundation.NSObject::get_ClassHandle()
+IL_00ae: newobj System.Void ObjCRuntime.Class::.ctor(ObjCRuntime.NativeHandle)
+IL_00b3: call System.String ObjCRuntime.Class::get_Name()
+IL_00b8: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendFormatted(System.String)
+IL_00bd: ldloca.s V_4
+IL_00bf: ldstr "'.
+"
+IL_00c4: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendLiteral(System.String)
+IL_00c9: ldloca.s V_4
+IL_00cb: ldstr "It is possible to ignore this condition by setting ObjCRuntime.Class.ThrowOnInitFailure to false"
+IL_00d0: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendFormatted(System.String)
+IL_00d5: ldloca.s V_4
+IL_00d7: ldstr "."
+IL_00dc: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendLiteral(System.String)
+IL_00e1: ldloca.s V_4
+IL_00e3: call System.String System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::ToStringAndClear()
+IL_00e8: newobj System.Void System.Exception::.ctor(System.String)
+IL_00ed: throw
+IL_00ee: ldarg.0
+IL_00ef: ldarg.0
+IL_00f0: call System.Type System.Object::GetType()
+IL_00f5: callvirt System.Reflection.Assembly System.Type::get_Assembly()
+IL_00fa: ldsfld System.Reflection.Assembly Foundation.NSObject::PlatformAssembly
+IL_00ff: call System.Boolean System.Reflection.Assembly::op_Equality(System.Reflection.Assembly,System.Reflection.Assembly)
+IL_0104: call System.Void Foundation.NSObject::set_IsDirectBinding(System.Boolean)
+IL_0109: ldarg.0
+IL_010a: call Foundation.NSObject/Flags Foundation.NSObject::get_flags()
+IL_010f: ldc.i4.2
+IL_0110: and
+IL_0111: ldc.i4.2
+IL_0112: ceq
+IL_0114: stloc.0
+IL_0115: ldarg.0
+IL_0116: call ObjCRuntime.NativeHandle Foundation.NSObject::get_handle()
+IL_011b: call System.IntPtr ObjCRuntime.NativeHandle::op_Implicit(ObjCRuntime.NativeHandle)
+IL_0120: ldloca.s V_1
+IL_0122: ldloca.s V_2
+IL_0124: call System.Boolean ObjCRuntime.Runtime::TryGetIsUserType(System.IntPtr,System.Boolean&,System.String&)
+IL_0129: brtrue.s IL_0190
+IL_012b: ldloca.s V_5
+IL_012d: ldc.i4 137
+IL_0132: ldc.i4.3
+IL_0133: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::.ctor(System.Int32,System.Int32)
+IL_0138: ldloca.s V_5
+IL_013a: ldstr "Unable to create a managed reference for the pointer "
+IL_013f: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendLiteral(System.String)
+IL_0144: ldloca.s V_5
+IL_0146: ldarg.0
+IL_0147: call ObjCRuntime.NativeHandle Foundation.NSObject::get_handle()
+IL_014c: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendFormatted<ObjCRuntime.NativeHandle>(!!0)
+IL_0151: ldloca.s V_5
+IL_0153: ldstr " whose managed type is "
+IL_0158: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendLiteral(System.String)
+IL_015d: ldloca.s V_5
+IL_015f: ldarg.0
+IL_0160: call System.Type System.Object::GetType()
+IL_0165: callvirt System.String System.Type::get_FullName()
+IL_016a: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendFormatted(System.String)
+IL_016f: ldloca.s V_5
+IL_0171: ldstr " because it wasn't possible to get the class of the pointer: "
+IL_0176: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendLiteral(System.String)
+IL_017b: ldloca.s V_5
+IL_017d: ldloc.2
+IL_017e: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendFormatted(System.String)
+IL_0183: ldloca.s V_5
+IL_0185: call System.String System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::ToStringAndClear()
+IL_018a: newobj System.Void System.InvalidOperationException::.ctor(System.String)
+IL_018f: throw
+IL_0190: ldarg.1
+IL_0191: brfalse.s IL_019d
+IL_0193: ldloc.1
+IL_0194: brfalse.s IL_019d
+IL_0196: call System.Boolean ObjCRuntime.Runtime::get_RegisterObjectsBeforeInit()
+IL_019b: brfalse.s IL_01af
+IL_019d: ldarg.0
+IL_019e: ldarg.0
+IL_019f: call ObjCRuntime.NativeHandle Foundation.NSObject::get_handle()
+IL_01a4: call System.IntPtr ObjCRuntime.NativeHandle::op_Implicit(ObjCRuntime.NativeHandle)
+IL_01a9: ldc.i4.0
+IL_01aa: call System.Void ObjCRuntime.Runtime::RegisterNSObject(Foundation.NSObject,System.IntPtr,System.Boolean)
+IL_01af: ldarg.0
+IL_01b0: ldloc.1
+IL_01b1: ldarg.1
+IL_01b2: ldc.i4.0
+IL_01b3: ceq
+IL_01b5: ldloc.0
+IL_01b6: or
+IL_01b7: call System.Void Foundation.NSObject::CreateManagedRef(System.Boolean,System.Boolean)
+IL_01bc: ret
+System.Void Foundation.NSObject::CreateManagedRef(System.Boolean,System.Boolean)
+IL_0000: ldarg.0
+IL_0001: ldc.i4.1
+IL_0002: call System.Void Foundation.NSObject::set_HasManagedRef(System.Boolean)
+IL_0007: ldarg.1
+IL_0008: brfalse.s IL_0077
+IL_000a: ldc.i4.6
+IL_000b: stloc.0
+IL_000c: ldarg.0
+IL_000d: ldc.i4.1
+IL_000e: call System.Runtime.InteropServices.GCHandle System.Runtime.InteropServices.GCHandle::Alloc(System.Object,System.Runtime.InteropServices.GCHandleType)
+IL_0013: stloc.1
+IL_0014: ldloc.1
+IL_0015: call System.IntPtr System.Runtime.InteropServices.GCHandle::ToIntPtr(System.Runtime.InteropServices.GCHandle)
+IL_001a: stloc.2
+IL_001b: ldarg.0
+IL_001c: call ObjCRuntime.NativeHandle Foundation.NSObject::get_handle()
+IL_0021: call System.IntPtr ObjCRuntime.NativeHandle::op_Implicit(ObjCRuntime.NativeHandle)
+IL_0026: ldloc.2
+IL_0027: ldloc.0
+IL_0028: ldarg.0
+IL_0029: call Foundation.NSObjectData* Foundation.NSObject::GetData()
+IL_002e: call System.Byte Foundation.NSObject::xamarin_set_gchandle_with_flags_safe(System.IntPtr,System.IntPtr,Foundation.NSObject/XamarinGCHandleFlags,System.IntPtr)
+IL_0033: brtrue.s IL_0077
+IL_0035: ldloca.s V_3
+IL_0037: ldc.i4.s 96
+IL_0039: ldc.i4.1
+IL_003a: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::.ctor(System.Int32,System.Int32)
+IL_003f: ldloca.s V_3
+IL_0041: ldstr "Tried to create a managed reference from an object that already has a managed reference (type: "
+IL_0046: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendLiteral(System.String)
+IL_004b: ldloca.s V_3
+IL_004d: ldarg.0
+IL_004e: call System.Type System.Object::GetType()
+IL_0053: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendFormatted<System.Type>(!!0)
+IL_0058: ldloca.s V_3
+IL_005a: ldstr ")"
+IL_005f: call System.Void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::AppendLiteral(System.String)
+IL_0064: ldloca.s V_3
+IL_0066: call System.String System.Runtime.CompilerServices.DefaultInterpolatedStringHandler::ToStringAndClear()
+IL_006b: call System.Void ObjCRuntime.Runtime::NSLog(System.String)
+IL_0070: ldloca.s V_1
+IL_0072: call System.Void System.Runtime.InteropServices.GCHandle::Free()
+IL_0077: ldarg.2
+IL_0078: brfalse.s IL_0081
+IL_007a: ldarg.0
+IL_007b: call Foundation.NSObject Foundation.NSObject::DangerousRetain()
+IL_0080: pop
+IL_0081: ret
+ObjCRuntime.NativeHandle CoreFoundation.CFString::CreateNative(System.String)
+IL_0000: ldarg.0
+IL_0001: brtrue.s IL_0009
+IL_0003: ldsfld ObjCRuntime.NativeHandle ObjCRuntime.NativeHandle::Zero
+IL_0008: ret
+IL_0009: ldloca.s V_0
+IL_000b: ldarg.0
+IL_000c: ldc.i4.3
+IL_000d: call System.Void ObjCRuntime.TransientString::.ctor(System.String,ObjCRuntime.TransientString/Encoding)
+IL_0012: ldsfld System.IntPtr System.IntPtr::Zero
+IL_0017: ldloc.0
+IL_0018: call System.IntPtr ObjCRuntime.TransientString::op_Implicit(ObjCRuntime.TransientString)
+IL_001d: ldarg.0
+IL_001e: callvirt System.Int32 System.String::get_Length()
+IL_0023: conv.i
+IL_0024: call System.IntPtr CoreFoundation.CFString::CFStringCreateWithCharacters(System.IntPtr,System.IntPtr,System.IntPtr)
+IL_0029: call ObjCRuntime.NativeHandle ObjCRuntime.NativeHandle::op_Implicit(System.IntPtr)
+IL_002e: stloc.1
+IL_002f: leave.s IL_003f
+IL_0031: ldloca.s V_0
+IL_0033: constrained. ObjCRuntime.TransientString
+IL_0039: callvirt System.Void System.IDisposable::Dispose()
+IL_003e: endfinally
+IL_003f: ldloc.1
+IL_0040: ret
