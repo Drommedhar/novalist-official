@@ -1,0 +1,93 @@
+{
+  "at_utc": "2026-10-07T14:14:56.343765+00:00",
+  "original_files": 117,
+  "all_original_hashes_unchanged": true,
+  "new_fixture_files": 60,
+  "all_new_fixture_hashes_unchanged_across_clean_reopen": true,
+  "all_five_wrong_scene_files_match_initial_baseline": true,
+  "unchanged_scene_paths": [
+    "Audit M01 Scope Variants/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+    "Audit M01 Scope Variants/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+    "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+    "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+    "Audit M01 Scope Variants Copy/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist"
+  ],
+  "other_project_research_payload_matches_initial_baseline": true,
+  "unchanged_research_project": [
+    "047f7547-9147-4734-9235-7d0d162df02a"
+  ],
+  "manuscript_exact_owner_marker_count": 1,
+  "research_exact_existing_item_marker_count": 1,
+  "research_existing_id_title_and_count_preserved": true,
+  "final_scene_files": [
+    {
+      "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+      "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+      "marker_count": 0
+    },
+    {
+      "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+      "sha256": "752728487d515a2981252da373d57957c94643b2e19ac69db3ae8e63f156c533",
+      "marker_count": 1
+    },
+    {
+      "path": "Audit M01 Scope Variants/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+      "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+      "marker_count": 0
+    },
+    {
+      "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+      "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+      "marker_count": 0
+    },
+    {
+      "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+      "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+      "marker_count": 0
+    },
+    {
+      "path": "Audit M01 Scope Variants Copy/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+      "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+      "marker_count": 0
+    }
+  ],
+  "final_research_payloads": [
+    {
+      "path": "Audit M01 Scope Variants/.novalist/project.json",
+      "projectId": "project-1791381165372",
+      "researchId": "aedf0aae-aa99-4388-89dc-1e396cda4c76",
+      "item_count": 1,
+      "payload_sha256": "511a00a5386b84366e15177cf7ba17fbc3eac7b8f3b4029f583d8f4fc626b00b",
+      "marker_count": 1,
+      "payload": {
+        "id": "aedf0aae-aa99-4388-89dc-1e396cda4c76",
+        "title": "Audit Research Scope NoteTitle",
+        "type": "Note",
+        "content": "M01RSCOPE28",
+        "tags": [],
+        "entityRefs": []
+      }
+    },
+    {
+      "path": "Audit M01 Scope Variants Copy/.novalist/project.json",
+      "projectId": "047f7547-9147-4734-9235-7d0d162df02a",
+      "researchId": "aedf0aae-aa99-4388-89dc-1e396cda4c76",
+      "item_count": 1,
+      "payload_sha256": "5cda1b11175c84288861edaeaba0b23b8637cdac6c927f7603c560c355ae8086",
+      "marker_count": 0,
+      "payload": {
+        "id": "aedf0aae-aa99-4388-89dc-1e396cda4c76",
+        "title": "Audit Research Scope NoteTitle",
+        "type": "Note",
+        "content": "",
+        "tags": [],
+        "entityRefs": []
+      }
+    }
+  ],
+  "observer_control_directory_absent": true,
+  "clean_app_terminated_after_final_success": true,
+  "native_clean_reopen_passed": true,
+  "original_documents_manifest_sha256": "c3808f580ea4d8e6497c93b1127fc133033db625f78982a14369f31f6f9ed1d1",
+  "original_manifest_and_complete_backups_retained_privately": true
+}

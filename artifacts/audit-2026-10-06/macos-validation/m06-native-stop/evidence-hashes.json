@@ -1,0 +1,17 @@
+{
+  "curation.json": "c2c6ccbf833527794e5307520773bca930b3895a0d6d407c984845b1e98dc557",
+  "final-state.json": "8081d3c7414ef4321882540fda898fff179691d1a254441f65a29b18d519f582",
+  "input-before.json": "10e47dea46862fe0e6cba7186c812d3ce218129776995b4aa496fe793d56c150",
+  "preservation-hashes.json": "0c6b4ddd93567f6c7f27e5eb687ef9b46dc97b9db3133e6eeca63a738172a248",
+  "procedure.txt": "6054eb9ec07ba24041d823776c3f4cd3b9578243fff800007c631aab09ac7997",
+  "script-source-hashes.json": "4e454dcaf23aba25d34454f57257e63ccd42838dd7ed2d6ebf4c0b3677c06f51",
+  "scripts/ax-read.py": "c2a336ee8e4c34bc245433531385cd2ba8e4da24332c939411516c5d68c321fd",
+  "scripts/devicehub-input-v2.py": "1cdf5a1f2bd8bea7a4241e02014d862fd2ea2a8999c0dc7cd85d32d399afcf44",
+  "scripts/devicehub-input-visible.py": "4be049174df412724a8658bc183757d78b706b2eb846d8895f1b388c8aa5f696",
+  "scripts/devicehub-input.py": "03b4b0aae9ed662f228a764468665883f0224032a33320d436471159226218f1",
+  "scripts/final-read-only-check.py": "2966b71fbc6dd752ec4462011879db3318a0cf275db7ad71462fac684935427f",
+  "scripts/prepare.py": "e63c14e29a08d52b430412948de4a8d5e23a08cba0577577f553acbb0b9e477d",
+  "scripts/preservation-map.py": "ffbed1bad78a510942917082f2619b470d4368892c82d29be69886d1b79ea5c0",
+  "source.json": "ca42b48c57b4e96887955573f7133e07c254f4f9464e9d16fba2af698f875291",
+  "summary.json": "4602fd9707d4e9476e758b0edcdc50bb98a9eda344b9b16820d04fff21391f57"
+}

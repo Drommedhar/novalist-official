@@ -1,0 +1,13 @@
+{
+  "source_revision": "560839ac27746ec31c948d19c91ae3813eb5ec37",
+  "exit_code": 0,
+  "raw_log_sha256": "f5843205dcb223626e515b78c6e75cfc5b7251f9c32bbb4163fa72334aeebe1e",
+  "summary": [
+    "    14 Warnung(en)",
+    "    0 Fehler",
+    "",
+    "Verstrichene Zeit 00:00:10.18"
+  ],
+  "deep_signature_verified_before_install": true,
+  "temporary_observer_patch_sha256": "795e837ec76320b41ee00406a1982999999128a22a7e30fe84c41b09ce8d1886"
+}

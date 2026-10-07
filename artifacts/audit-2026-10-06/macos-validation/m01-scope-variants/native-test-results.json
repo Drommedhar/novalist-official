@@ -1,0 +1,94 @@
+[
+  {
+    "name": "fixture-setup",
+    "case": "-[AuditUITests.AuditUITests testCreateIsolatedVariantFixture]",
+    "passed": true,
+    "seconds": 36.502,
+    "raw_log_sha256": "78e4c417533e7a0ab0abab7cbfdafaf2f176c53e9f49bcbec0c87196e3d4967b",
+    "source_sha256": "22e19493cb08fc4586f75ee551e886fd758bb14c8bbb4b8e4dd319d83179d8e8",
+    "native_markers": [
+      "M01_SCOPE_FIXTURE_CREATED 1791381195.749786"
+    ]
+  },
+  {
+    "name": "manuscript-edit",
+    "case": "-[AuditUITests.AuditUITests testActualManuscriptScopeEdit]",
+    "passed": true,
+    "seconds": 15.07,
+    "raw_log_sha256": "dfd32603c5c95bc1bbf145a2d9262ce6a48f68b28c3f9762b1df3ff44a7fd3f7",
+    "source_sha256": "bc9b008e2dc1e61808273c2f2b3a546e9585d9aa5d8764feb82b13518555a13a",
+    "native_markers": [
+      "M01_SCOPE_GATE_READY 1791381739.235516",
+      "M01_SCOPE_EDIT_DONE 1791381743.079049"
+    ]
+  },
+  {
+    "name": "manuscript-wrong-book",
+    "case": "-[AuditUITests.AuditUITests testOpenWrongBookForManuscriptRecovery]",
+    "passed": true,
+    "seconds": 10.928,
+    "raw_log_sha256": "6efa7a2e84871c7ec2d6abc9d1886159e691a0999aef642ce19682f4aa697ed0",
+    "source_sha256": "a839a3ba89f8ec7c3579bf70ecd4b9e2028ce7ff0f587b3e4393c977a81bd524",
+    "native_markers": [
+      "M01_SCOPE_WRONG_BOOK_NATIVE_READY 1791381867.049629"
+    ]
+  },
+  {
+    "name": "manuscript-recovery",
+    "case": "-[AuditUITests.AuditUITests testActualManuscriptExactOwnerReopen]",
+    "passed": true,
+    "seconds": 12.878,
+    "raw_log_sha256": "774ea9180cd76ca7c5fb9c0f2ee8f1e748424446f399d7dc2e35905254f2041b",
+    "source_sha256": "b0c2e34a4192cb4139ca19505a096269fb7f3f33988bc6d2b4511cbe1363e1d7",
+    "native_markers": [
+      "M01_SCOPE_EXACT_OWNER_NATIVE_REOPENED 1791381894.20751"
+    ]
+  },
+  {
+    "name": "research-edit",
+    "case": "-[AuditUITests.AuditUITests testActualResearchScopeEdit]",
+    "passed": true,
+    "seconds": 10.439,
+    "raw_log_sha256": "382b39b7849249a635af4d6a6b33d0c48f90daff5dcd7ba15aa59598711f6a33",
+    "source_sha256": "474558c27ff53123cf3117357828a992d161f58b94aaa2c5c4b59d15aa1019b3",
+    "native_markers": [
+      "M01_SCOPE_GATE_READY 1791382095.07124",
+      "M01_SCOPE_EDIT_DONE 1791382099.1246362"
+    ]
+  },
+  {
+    "name": "research-wrong-book",
+    "case": "-[AuditUITests.AuditUITests testOpenWrongBookForResearchRecovery]",
+    "passed": true,
+    "seconds": 11.316,
+    "raw_log_sha256": "c8519d4ec5afe3b90471ed025e9f9a6f63f966528d1645281f760f3cfd1b540a",
+    "source_sha256": "b69ccec7729417185e3d997a627017668661608c4b6bb480da85b77d9d824add",
+    "native_markers": [
+      "M01_SCOPE_WRONG_BOOK_NATIVE_READY 1791382126.9735398"
+    ]
+  },
+  {
+    "name": "research-recovery",
+    "case": "-[AuditUITests.AuditUITests testActualResearchExactOwnerReopen]",
+    "passed": true,
+    "seconds": 14.705,
+    "raw_log_sha256": "d7526ec870c2399585a2bc2634c978817bbb5afeaadd2a9c32b9fe8fac654249",
+    "source_sha256": "a86ac0ca247f13b21e52c760103a9093e9ad4167a3cea3d8d55d382457f3f2e1",
+    "native_markers": [
+      "M01_SCOPE_EXACT_OWNER_NATIVE_REOPENED 1791382155.7585158"
+    ]
+  },
+  {
+    "name": "clean-reopen",
+    "case": "-[AuditUITests.AuditUITests testCleanAppRetainsBothScopedRecoveries]",
+    "passed": true,
+    "seconds": 20.777,
+    "raw_log_sha256": "e97cde3f8e1a289d4ab2ada71d58b0c3b7494566fb5a989f1021c116929af6c7",
+    "source_sha256": "635f16ad3d711bb7390b085c4ba3f349a0fff8b2b9ca6a02289cc45d0950190c",
+    "native_markers": [
+      "M01_CLEAN_MANUSCRIPT_READY 1791382331.108681",
+      "M01_CLEAN_RESEARCH_READY 1791382338.9470959",
+      "M01_CLEAN_BOTH_SCOPE_VARIANTS_REOPENED 1791382341.0888019"
+    ]
+  }
+]

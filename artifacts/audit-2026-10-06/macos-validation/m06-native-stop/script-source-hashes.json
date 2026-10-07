@@ -1,0 +1,37 @@
+{
+  "prepare.py": {
+    "executed_source_sha256": "b3a11a610671dca8951858e2cffe6e2449fdbbbf78418472c2defd216c20f03a",
+    "published_source_sha256": "e63c14e29a08d52b430412948de4a8d5e23a08cba0577577f553acbb0b9e477d",
+    "host_path_redaction": true
+  },
+  "ax-read.py": {
+    "executed_source_sha256": "c2a336ee8e4c34bc245433531385cd2ba8e4da24332c939411516c5d68c321fd",
+    "published_source_sha256": "c2a336ee8e4c34bc245433531385cd2ba8e4da24332c939411516c5d68c321fd",
+    "host_path_redaction": false
+  },
+  "devicehub-input.py": {
+    "executed_source_sha256": "03b4b0aae9ed662f228a764468665883f0224032a33320d436471159226218f1",
+    "published_source_sha256": "03b4b0aae9ed662f228a764468665883f0224032a33320d436471159226218f1",
+    "host_path_redaction": false
+  },
+  "devicehub-input-v2.py": {
+    "executed_source_sha256": "1cdf5a1f2bd8bea7a4241e02014d862fd2ea2a8999c0dc7cd85d32d399afcf44",
+    "published_source_sha256": "1cdf5a1f2bd8bea7a4241e02014d862fd2ea2a8999c0dc7cd85d32d399afcf44",
+    "host_path_redaction": false
+  },
+  "devicehub-input-visible.py": {
+    "executed_source_sha256": "4be049174df412724a8658bc183757d78b706b2eb846d8895f1b388c8aa5f696",
+    "published_source_sha256": "4be049174df412724a8658bc183757d78b706b2eb846d8895f1b388c8aa5f696",
+    "host_path_redaction": false
+  },
+  "final-read-only-check.py": {
+    "executed_source_sha256": "8785a4d546c5c1e1c0412df9a7061b9bbcabf0f89451add8ea59bd907fc5df0d",
+    "published_source_sha256": "2966b71fbc6dd752ec4462011879db3318a0cf275db7ad71462fac684935427f",
+    "host_path_redaction": true
+  },
+  "preservation-map.py": {
+    "executed_source_sha256": "ffbed1bad78a510942917082f2619b470d4368892c82d29be69886d1b79ea5c0",
+    "published_source_sha256": "ffbed1bad78a510942917082f2619b470d4368892c82d29be69886d1b79ea5c0",
+    "host_path_redaction": false
+  }
+}

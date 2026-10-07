@@ -1,0 +1,9 @@
+{
+  "revision": "560839ac27746ec31c948d19c91ae3813eb5ec37",
+  "simulator": "6D872EE9-8FBE-4B2D-AED4-917146C77351",
+  "production_inputs": 1314,
+  "mobile_assets": 203,
+  "original_documents": 117,
+  "planned_scope": "Native explicit stop count with simulator Input=None; no capture contents or transcript observations.",
+  "actual_scope": "Feasibility only: simulator Input=None could not be verified; no recording, observer, build or install was started."
+}

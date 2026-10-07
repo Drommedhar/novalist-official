@@ -1,0 +1,19 @@
+{
+  "purpose": "Preserve reviewable content-free evidence; procedure sources are not directly runnable from the publication layout.",
+  "raw_curation_source_sha256": "19088fd74f18ae2bdf2d2ddc2c2abc7e641f0026ec4e0b913395721903950501",
+  "script_hash_manifest": "script-source-hashes.json",
+  "preservation_baseline_manifest_sha256": "b96d8ccfac3914ca0ff33698f0c35ccbfb32fe458abbd039520662e71f7e3c29",
+  "source_transformations": [
+    "Executed procedure source bytes retained in the private workspace.",
+    "Published script copies replace host repository and prior private-workspace path strings only, where marked.",
+    "Initial source.json scope was labelled planned_scope and supplemented with actual stopped-before-recording scope.",
+    "Supplementary preservation map hashes relative paths before publication; project names and raw paths are omitted."
+  ],
+  "excluded_private_material": [
+    "Absolute app-container paths",
+    "Full document path manifest and file backups",
+    "Personal audio-device labels",
+    "Raw DeviceHub accessibility tree"
+  ],
+  "no_runtime_repeat_or_simulator_ui_change_for_supplement": true
+}

@@ -1,0 +1,19 @@
+{
+  "started_utc": "2026-10-07T14:11:56.678865+00:00",
+  "screenshots": [
+    {
+      "kind": "manuscript",
+      "at_utc": "2026-10-07T14:12:12.549483+00:00",
+      "sha256": "6a81aca7b6c72eb2b4123d6dd1d038d8b2f34833729568f7e7fb79cddfc2a678"
+    },
+    {
+      "kind": "research",
+      "at_utc": "2026-10-07T14:12:20.357725+00:00",
+      "sha256": "b62ffe3c93c251e51d083e428640f309f7671b373323a0bc3b31bd62b8a956c5"
+    }
+  ],
+  "exit_code": 0,
+  "result": "clean-reopen 0\n",
+  "raw_log_sha256": "e97cde3f8e1a289d4ab2ada71d58b0c3b7494566fb5a989f1021c116929af6c7",
+  "all_screenshots_captured": true
+}

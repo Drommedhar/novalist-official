@@ -1,0 +1,15 @@
+{
+  "fixture_setup_initial_assertion": {
+    "status": "failed-harness-assumption",
+    "cause": "Creating a book preserves the selected book; setup incorrectly assumed automatic activation.",
+    "correction": "Read the actual newly created book ID from production state/metadata. No book or draft was created twice.",
+    "product_failure": false
+  },
+  "final_preservation_initial_path": {
+    "status": "failed-harness-stale-container-path",
+    "cause": "Clean simulator installation moved the data container. The first final checker reused the prior probe-only container path for a read-only disk lookup, after successfully checking 117 originals and both fixture maps from the new container.",
+    "correction": "Remap only the checker in-memory owner path prefixes and relative-path root to the actual clean simulator container. Production fixture files, journal and registry remain untouched.",
+    "original_checker_sha256": "a09729b3536575a0671ad20f2fe85d940fd689ebc8ed44d21c947514715c5a52",
+    "product_failure": false
+  }
+}

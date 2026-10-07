@@ -184,6 +184,18 @@
       "dirty_diff": "m03-unavailable-external/read-only-resolver-observer.patch",
       "dirty_diff_sha256": "6a0b5e896afb5dadf52a9f56ea2268378c0cb40fa83a46729dc38bc0720b3f26",
       "identity_evidence": "m03-unavailable-external/summary.json"
+    },
+    "m06-native-stop": {
+      "revision": "560839ac27746ec31c948d19c91ae3813eb5ec37",
+      "working_tree": "Unmodified source snapshot; input-isolation preflight stopped before recording or instrumentation. No native Stop runtime test, build or install occurred. Existing installed app still matched the prior clean M03 bundle.",
+      "identity_evidence": "m06-native-stop/summary.json"
+    },
+    "m01-scope-variants": {
+      "revision": "560839ac27746ec31c948d19c91ae3813eb5ec37",
+      "working_tree": "Frozen current source with temporary native state observer/evaluator and disclosed exact-resource real-write gates. Native edits and existing production navigation actions generate all journal/recovery state. Observers removed before fresh clean build and native reopen.",
+      "dirty_diff": "m01-scope-variants/native-observer.patch",
+      "dirty_diff_sha256": "795e837ec76320b41ee00406a1982999999128a22a7e30fe84c41b09ce8d1886",
+      "identity_evidence": "m01-scope-variants/summary.json"
     }
   },
   "environment": {
@@ -642,6 +654,20 @@
                 "m01-remaining/scope.json"
               ],
               "limit": "Supporting simulator subset with declared transport gates. Required physical-device acceptance remains not-run; source is frozen 29cefb83 before the later focus correction."
+            },
+            {
+              "status": "passed",
+              "source": "m01-scope-variants",
+              "device_model": "iPad A16 simulator",
+              "device_os": "iPadOS 27.0",
+              "observed": "At 560839ac on iPad A16/iPadOS 27.0, actual native full-Manuscript and Research edits produced real held writes and original-scope journals before termination. Wrong book, wrong project and wrong draft each preserved the exact journal and matching-resource disk baselines without displaying the marker. Returning to the original context recovered each marker exactly once and cleared its journal. Research retained its original item ID/title/count and correctly remained visible across books and drafts within the original project after recovery. Temporary observers were removed; all 1,314 production inputs and 203 assets matched before a fresh signed clean build and native reopen. All 117 original files and 60 new fixture files were preserved across clean reopen, along with five wrong-owner scene baselines and the other-project Research payload. Evidence: macos-validation/m01-scope-variants/summary.json. Supporting simulator scope coverage only; original physical/provider acceptance remains pending.",
+              "evidence": [
+                "m01-scope-variants/summary.json",
+                "m01-scope-variants/manuscript-scope.json",
+                "m01-scope-variants/research-scope.json",
+                "m01-scope-variants/preservation.json"
+              ],
+              "limit": "Two supporting simulator scope matrices. Initial edit and editor reopens use actual native input; other-project/draft switches use existing production actions through the declared evaluator. Only new stopped fixtures receive declared activation-pointer and matching-resource setup; no journal/recents/registry repair or fake acknowledgements. No Lock/background repetition or physical/provider acceptance is claimed."
             }
           ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."
@@ -1440,6 +1466,19 @@
                 "../simulator-ui/fixed-build-provenance.json"
               ],
               "limit": "Supporting simulator subset only. Physical-device acceptance remains deferred. Settings grant restarted process; same-process stale-error recovery not proven. Call/route interruption, actual audio quality and transcription not measured."
+            },
+            {
+              "status": "not-run",
+              "source": "m06-native-stop",
+              "device_model": "iPhone 17 Pro simulator",
+              "device_os": "iOS 27.0",
+              "observed": "Preflight could not positively select simulator Sound Input None after three bounded attempts. Use System Settings remained marked; no recording, observer, test build/install or native Stop-count test occurred. All 117 task-start files and the clean installed app were unchanged.",
+              "evidence": [
+                "m06-native-stop/summary.json",
+                "m06-native-stop/final-state.json",
+                "m06-native-stop/preservation-hashes.json"
+              ],
+              "limit": "Input-isolation limitation for this attempted simulator experiment only; no product failure, exact native Stop count or physical acceptance is established."
             }
           ],
           "blocker": "Required physical-device acceptance deferred by the current simulator-only direction."

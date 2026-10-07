@@ -1,0 +1,17 @@
+{
+  "at_utc": "2026-10-07T14:11:38.847763+00:00",
+  "source_revision": "560839ac27746ec31c948d19c91ae3813eb5ec37",
+  "deep_signature_verified": true,
+  "production_input_count": 1314,
+  "all_production_input_hashes_match": true,
+  "renderer_assets_count": 203,
+  "all_renderer_hashes_match": true,
+  "clean_bundle_files": 571,
+  "clean_bundle_tree_sha256": "3d17042c1791a1eef32e1e96883095f7a093baed5df631fa2c777d8b9dc7186b",
+  "installed_equals_built": true,
+  "native_observer_source_and_symbols_absent": true,
+  "control_directory_removed": true,
+  "original_document_files": 117,
+  "original_document_hashes_unchanged": true,
+  "both_fixture_hashes_unchanged_across_install": true
+}

@@ -1,0 +1,10 @@
+{
+  "revision": "560839ac27746ec31c948d19c91ae3813eb5ec37",
+  "production_inputs": 1314,
+  "renderer_assets": 203,
+  "same_production_bytes_as_af744_lock_variant_build": true,
+  "native_observer_patch_sha256": "795e837ec76320b41ee00406a1982999999128a22a7e30fe84c41b09ce8d1886",
+  "renderer_inputs": "All 203 prebuilt renderer assets match the preceding clean af744/560839 production-equivalent build. No renderer source or asset instrumentation.",
+  "original_production_manifest_sha256": "34fcf3d72e88b2c03e0a79bf831fda06f7bd7d9c86efe02745879d8de65d4922",
+  "original_renderer_manifest_sha256": "1b7928af2bce56f4ed7882675a72c1c9101d80f35e450288cacec6e8e1c6113a"
+}

@@ -1,0 +1,205 @@
+{
+  "finding": "M01",
+  "acceptance_gap": "M01-11 Manuscript and Research journal context isolation",
+  "status": "passed-simulator-supporting-scope-variants",
+  "finding_status_change": false,
+  "date": "2026-10-07",
+  "source_revision": "560839ac27746ec31c948d19c91ae3813eb5ec37",
+  "environment": {
+    "model": "iPad (A16)",
+    "runtime": "iPadOS 27.0",
+    "simulator_udid": "4F155C1B-8F9C-4919-8BD7-1CFAD764B61B",
+    "orientation": "landscape",
+    "fixture": "Two new, explicitly synthetic Audit M01 Scope Variants projects; all 117 existing document files preserved."
+  },
+  "source_attribution": {
+    "production_inputs": 1314,
+    "renderer_assets": 203,
+    "all_frozen_production_and_asset_hashes_match": true,
+    "native_observer_patch_sha256": "795e837ec76320b41ee00406a1982999999128a22a7e30fe84c41b09ce8d1886",
+    "probe_bundle_files": 571,
+    "probe_bundle_tree_sha256": "a957235c9d54d32bbfb170f000e5f9cdb8a04b07397e8e3563c19c15e77b83ac",
+    "final_clean_bundle_tree_sha256": "3d17042c1791a1eef32e1e96883095f7a093baed5df631fa2c777d8b9dc7186b",
+    "no_product_source_changes": true
+  },
+  "method": {
+    "edit_input": "Actual native XCTest typing into full Manuscript and Research editors.",
+    "write_gate": "Exact resource production RPC is held after the actual UI edit; all unrelated messages are forwarded. Captures the actual project/book/draft state at outgoing write. No fake replies or invented journals.",
+    "process_termination": "Actual simctl terminate after durable journal observation and proof the edit was absent from all relevant live files. Gate is lost with the process.",
+    "stopped_fixture_setup": "Only activeBookId and the original book activeDraftId in the new fixture metadata were selected while stopped, ensuring cold launch visits a wrong context before the original owner. No journal, recents or registry repair.",
+    "wrong_contexts": "Native bookshelf opens wrong book first. Other-project and alternate-draft transitions invoke normal production project-store actions through the declared temporary evaluator. Each real editor renders, followed by another observation after at least 1.1 seconds.",
+    "nonvacuous_resources": "All six draft scene files retain the same chapter/scene IDs; both projects retain the same Research item ID and book/draft IDs. Rejection cannot be attributed to an absent target resource.",
+    "correct_owner": "Normal production switchDraft returns to original journal tuple; native XCTest independently reopens the actual editor.",
+    "research_semantics": "Journal restoration uses the exact active project/book/draft tuple. The existing Research item persists at project level and is legitimately visible from another book or draft only after correct-context recovery."
+  },
+  "cases": [
+    {
+      "kind": "manuscript",
+      "result": "passed",
+      "marker": "M01MSCOPE28",
+      "journal_original_scope": {
+        "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+        "bookId": "book-1791381165372",
+        "draftId": "draft-default"
+      },
+      "journal_source": "manuscript:4068cc62-640d-4577-b8de-67458f4ed184",
+      "real_writes_held": 1,
+      "marker_absent_from_all_live_targets_before_termination": true,
+      "target_count": 6,
+      "wrong_contexts": [
+        {
+          "label": "same-project-other-book",
+          "scope": {
+            "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+            "bookId": "book-ca4cde6a017d470791f2022187102b6f",
+            "draftId": "draft-default"
+          },
+          "exact_journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508",
+          "disk_baseline_unchanged": true,
+          "actual_editor_present_without_marker": true
+        },
+        {
+          "label": "other-project-same-book-draft-resource-ids",
+          "scope": {
+            "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants Copy",
+            "bookId": "book-1791381165372",
+            "draftId": "draft-default"
+          },
+          "exact_journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508",
+          "disk_baseline_unchanged": true,
+          "actual_editor_present_without_marker": true
+        },
+        {
+          "label": "same-project-book-other-draft",
+          "scope": {
+            "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+            "bookId": "book-1791381165372",
+            "draftId": "draft-1791381275115"
+          },
+          "exact_journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508",
+          "disk_baseline_unchanged": true,
+          "actual_editor_present_without_marker": true
+        }
+      ],
+      "original_owner_recovery": {
+        "scope": {
+          "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+          "bookId": "book-1791381165372",
+          "draftId": "draft-default"
+        },
+        "journal_entries_remaining": 0,
+        "marked_targets": 1,
+        "total_marker_count": 1,
+        "actual_native_reopen_passed": true
+      },
+      "evidence": "manuscript-scope.json"
+    },
+    {
+      "kind": "research",
+      "result": "passed",
+      "marker": "M01RSCOPE28",
+      "journal_original_scope": {
+        "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+        "bookId": "book-1791381165372",
+        "draftId": "draft-default"
+      },
+      "journal_source": "aedf0aae-aa99-4388-89dc-1e396cda4c76",
+      "real_writes_held": 1,
+      "marker_absent_from_all_live_targets_before_termination": true,
+      "target_count": 2,
+      "wrong_contexts": [
+        {
+          "label": "same-project-other-book",
+          "scope": {
+            "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+            "bookId": "book-ca4cde6a017d470791f2022187102b6f",
+            "draftId": "draft-default"
+          },
+          "exact_journal_hash": "0591c20c1ba79d5b69c6ca667373c3d7145761fbcdbe532724691dac94f83cc1",
+          "disk_baseline_unchanged": true,
+          "actual_editor_present_without_marker": true
+        },
+        {
+          "label": "other-project-same-book-draft-resource-ids",
+          "scope": {
+            "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants Copy",
+            "bookId": "book-1791381165372",
+            "draftId": "draft-default"
+          },
+          "exact_journal_hash": "0591c20c1ba79d5b69c6ca667373c3d7145761fbcdbe532724691dac94f83cc1",
+          "disk_baseline_unchanged": true,
+          "actual_editor_present_without_marker": true
+        },
+        {
+          "label": "same-project-book-other-draft",
+          "scope": {
+            "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+            "bookId": "book-1791381165372",
+            "draftId": "draft-1791381275115"
+          },
+          "exact_journal_hash": "0591c20c1ba79d5b69c6ca667373c3d7145761fbcdbe532724691dac94f83cc1",
+          "disk_baseline_unchanged": true,
+          "actual_editor_present_without_marker": true
+        }
+      ],
+      "original_owner_recovery": {
+        "scope": {
+          "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+          "bookId": "book-1791381165372",
+          "draftId": "draft-default"
+        },
+        "journal_entries_remaining": 0,
+        "marked_targets": 1,
+        "total_marker_count": 1,
+        "actual_native_reopen_passed": true
+      },
+      "evidence": "research-scope.json",
+      "legitimate_project_level_visibility_after_recovery": [
+        {
+          "context": "other-book",
+          "scope": {
+            "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+            "bookId": "book-ca4cde6a017d470791f2022187102b6f",
+            "draftId": "draft-default"
+          },
+          "visible": true,
+          "journal_entries": 0,
+          "disk_matches_correct_recovery": true
+        },
+        {
+          "context": "other-draft",
+          "scope": {
+            "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+            "bookId": "book-1791381165372",
+            "draftId": "draft-1791381275115"
+          },
+          "visible": true,
+          "journal_entries": 0,
+          "disk_matches_correct_recovery": true
+        }
+      ]
+    }
+  ],
+  "clean_confirmation": {
+    "fresh_four_project_bin_obj_build": "clean-build.json",
+    "deep_signature_and_installed_bundle_equality": "clean-install.json",
+    "both_markers_actual_native_ui_reopen": "clean-native.json",
+    "all_117_original_files_unchanged": true,
+    "all_new_fixture_hashes_unchanged_across_clean_reopen": true,
+    "five_wrong_owner_scene_files_and_other_project_research_payload_unchanged": true,
+    "native_observer_source_symbols_and_control_directory_removed": true,
+    "preservation": "preservation.json",
+    "native_test_seconds": 20.777
+  },
+  "limitations": [
+    "Simulator supporting evidence only; original physical-device M01 acceptance remains not run. No claim of physical OS suspension, provider, hardware or cloud behavior.",
+    "Manuscript and Research were exercised in the real tablet shell. No lock/background repetition was performed in these scope cases.",
+    "The temporary evaluator observes state and invokes existing production navigation actions; it also installs the disclosed exact-write withholding gate. It does not fabricate save acknowledgements, keyboard events, journal records or recovery results.",
+    "Only new synthetic fixture setup modifies activation pointers and clones baseline resources; this is declared fixture setup rather than evidence of user-driven book/draft selection while the process is stopped.",
+    "Full journal and disk comparisons cover each marker-specific pending entry and matching resource IDs. Unrelated recovery entries are outside this scoped fixture test.",
+    "Research item ID, original title and item count remain exact. Shared same-project visibility after recovery is expected project-level behavior, not an ownership leak.",
+    "The initial inline createBook setup assertion was a harness assumption; creating a book preserves selected-book state. It is recorded in harness-observations.json and was not treated as a product defect.",
+    "Clean installation relocated the simulator data container. An initial read-only final checker retained the old path; its failure and corrected in-memory path mapping are preserved, with no fixture or product change.",
+    "Native tests, raw build logs, simulator paths, result bundles, app bundles and complete fixture backups remain private; only sanitized compact records, procedural source, manifests and synthetic UI images are published. No physical device, real project, product source, root ledger, release or finding status was changed."
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "path": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+  "bookId": "book-1791381165372",
+  "draftId": "draft-default",
+  "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+  "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+  "projectId": "project-1791381165372",
+  "otherBookId": "book-ca4cde6a017d470791f2022187102b6f",
+  "otherDraftId": "draft-1791381275115",
+  "researchId": "aedf0aae-aa99-4388-89dc-1e396cda4c76",
+  "researchTitle": "Audit Research Scope NoteTitle",
+  "bookFolder": "Audit Scope Book A",
+  "otherBookFolder": "Audit Scope Book B",
+  "draftFolder": "default",
+  "otherDraftFolder": "Audit Scope Other Draft",
+  "copyPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants Copy",
+  "copyProjectId": "047f7547-9147-4734-9235-7d0d162df02a"
+}

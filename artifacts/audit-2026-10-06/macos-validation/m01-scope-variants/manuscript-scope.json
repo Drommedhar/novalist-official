@@ -1,0 +1,761 @@
+{
+  "source_revision": "560839ac27746ec31c948d19c91ae3813eb5ec37",
+  "kind": "manuscript",
+  "config": {
+    "path": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+    "bookId": "book-1791381165372",
+    "draftId": "draft-default",
+    "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+    "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+    "projectId": "project-1791381165372",
+    "otherBookId": "book-ca4cde6a017d470791f2022187102b6f",
+    "otherDraftId": "draft-1791381275115",
+    "researchId": "aedf0aae-aa99-4388-89dc-1e396cda4c76",
+    "researchTitle": "Audit Research Scope NoteTitle",
+    "bookFolder": "Audit Scope Book A",
+    "otherBookFolder": "Audit Scope Book B",
+    "draftFolder": "default",
+    "otherDraftFolder": "Audit Scope Other Draft",
+    "copyPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants Copy",
+    "copyProjectId": "047f7547-9147-4734-9235-7d0d162df02a",
+    "kind": "manuscript",
+    "marker": "M01MSCOPE28"
+  },
+  "status": "passed-simulator-supporting-scope-isolation",
+  "baseline_disk": [
+    {
+      "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+      "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+      "marker_count": 0
+    },
+    {
+      "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+      "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+      "marker_count": 0
+    },
+    {
+      "path": "Audit M01 Scope Variants/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+      "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+      "marker_count": 0
+    },
+    {
+      "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+      "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+      "marker_count": 0
+    },
+    {
+      "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+      "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+      "marker_count": 0
+    },
+    {
+      "path": "Audit M01 Scope Variants Copy/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+      "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+      "marker_count": 0
+    }
+  ],
+  "gate_installed": {
+    "expected": {
+      "path": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+      "bookId": "book-1791381165372",
+      "draftId": "draft-default",
+      "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+      "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+      "projectId": "project-1791381165372",
+      "otherBookId": "book-ca4cde6a017d470791f2022187102b6f",
+      "otherDraftId": "draft-1791381275115",
+      "researchId": "aedf0aae-aa99-4388-89dc-1e396cda4c76",
+      "researchTitle": "Audit Research Scope NoteTitle",
+      "bookFolder": "Audit Scope Book A",
+      "otherBookFolder": "Audit Scope Book B",
+      "draftFolder": "default",
+      "otherDraftFolder": "Audit Scope Other Draft",
+      "copyPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants Copy",
+      "copyProjectId": "047f7547-9147-4734-9235-7d0d162df02a",
+      "kind": "manuscript",
+      "marker": "M01MSCOPE28"
+    },
+    "scope": {
+      "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+      "bookId": "book-1791381165372",
+      "draftId": "draft-default"
+    }
+  },
+  "edit_observed_at": "2026-10-07T14:02:23.120082+00:00",
+  "native_edit_exit": 0,
+  "held_edit": {
+    "scope": {
+      "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+      "bookId": "book-1791381165372",
+      "draftId": "draft-default"
+    },
+    "view": "manuscript",
+    "workspaceBusy": false,
+    "gate": {
+      "expected": {
+        "path": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+        "bookId": "book-1791381165372",
+        "draftId": "draft-default",
+        "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+        "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+        "projectId": "project-1791381165372",
+        "otherBookId": "book-ca4cde6a017d470791f2022187102b6f",
+        "otherDraftId": "draft-1791381275115",
+        "researchId": "aedf0aae-aa99-4388-89dc-1e396cda4c76",
+        "researchTitle": "Audit Research Scope NoteTitle",
+        "bookFolder": "Audit Scope Book A",
+        "otherBookFolder": "Audit Scope Book B",
+        "draftFolder": "default",
+        "otherDraftFolder": "Audit Scope Other Draft",
+        "copyPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants Copy",
+        "copyProjectId": "047f7547-9147-4734-9235-7d0d162df02a",
+        "kind": "manuscript",
+        "marker": "M01MSCOPE28"
+      },
+      "scope": {
+        "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+        "bookId": "book-1791381165372",
+        "draftId": "draft-default"
+      },
+      "held": [
+        {
+          "scopeAtWrite": {
+            "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+            "bookId": "book-1791381165372",
+            "draftId": "draft-default"
+          },
+          "id": 70,
+          "method": "scenes/write",
+          "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+          "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+          "researchId": "aedf0aae-aa99-4388-89dc-1e396cda4c76",
+          "marker": true,
+          "contentLength": 18,
+          "at": 1791381743403
+        }
+      ],
+      "editingClaims": [
+        {
+          "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+          "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+          "dirty": true,
+          "at": 1791381742604
+        }
+      ],
+      "otherWritesForwarded": 0
+    },
+    "manuscript": {
+      "present": true,
+      "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+      "domMarker": true,
+      "storeMatches": [
+        {
+          "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+          "marker": true
+        }
+      ]
+    },
+    "research": {
+      "present": false,
+      "domMarker": false
+    },
+    "journal": [
+      {
+        "source": "manuscript:4068cc62-640d-4577-b8de-67458f4ed184",
+        "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+        "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+        "html": "<p>M01MSCOPE28</p>",
+        "plainText": "M01MSCOPE28",
+        "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+        "kind": "scene",
+        "scope": {
+          "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+          "bookId": "book-1791381165372",
+          "draftId": "draft-default"
+        }
+      }
+    ],
+    "journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508",
+    "disk": [
+      {
+        "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+        "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+        "marker_count": 0
+      },
+      {
+        "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+        "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+        "marker_count": 0
+      },
+      {
+        "path": "Audit M01 Scope Variants/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+        "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+        "marker_count": 0
+      },
+      {
+        "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+        "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+        "marker_count": 0
+      },
+      {
+        "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+        "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+        "marker_count": 0
+      },
+      {
+        "path": "Audit M01 Scope Variants Copy/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+        "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+        "marker_count": 0
+      }
+    ],
+    "observed_at": "2026-10-07T14:02:23.886967+00:00"
+  },
+  "terminated_at": "2026-10-07T14:02:23.887259+00:00",
+  "stopped_fixture_activation": {
+    "before": {
+      "activeBookId": "book-1791381165372",
+      "activeDraftId": "draft-default"
+    },
+    "after": {
+      "activeBookId": "book-ca4cde6a017d470791f2022187102b6f",
+      "activeDraftId": "draft-1791381275115"
+    },
+    "only_fixture_active_pointers_changed": true,
+    "journal_and_registry_changed": false
+  },
+  "wrong_contexts": [
+    {
+      "label": "same-project-other-book",
+      "first": {
+        "scope": {
+          "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+          "bookId": "book-ca4cde6a017d470791f2022187102b6f",
+          "draftId": "draft-default"
+        },
+        "view": "manuscript",
+        "workspaceBusy": false,
+        "gate": null,
+        "manuscript": {
+          "present": true,
+          "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+          "domMarker": false,
+          "storeMatches": [
+            {
+              "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+              "marker": false
+            }
+          ]
+        },
+        "research": {
+          "present": false,
+          "domMarker": false
+        },
+        "journal": [
+          {
+            "source": "manuscript:4068cc62-640d-4577-b8de-67458f4ed184",
+            "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+            "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+            "html": "<p>M01MSCOPE28</p>",
+            "plainText": "M01MSCOPE28",
+            "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+            "kind": "scene",
+            "scope": {
+              "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+              "bookId": "book-1791381165372",
+              "draftId": "draft-default"
+            }
+          }
+        ],
+        "journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508",
+        "disk": [
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          }
+        ],
+        "observed_at": "2026-10-07T14:04:28.824465+00:00"
+      },
+      "stable_after_1_1_seconds": {
+        "scope": {
+          "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+          "bookId": "book-ca4cde6a017d470791f2022187102b6f",
+          "draftId": "draft-default"
+        },
+        "view": "manuscript",
+        "workspaceBusy": false,
+        "gate": null,
+        "manuscript": {
+          "present": true,
+          "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+          "domMarker": false,
+          "storeMatches": [
+            {
+              "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+              "marker": false
+            }
+          ]
+        },
+        "research": {
+          "present": false,
+          "domMarker": false
+        },
+        "journal": [
+          {
+            "source": "manuscript:4068cc62-640d-4577-b8de-67458f4ed184",
+            "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+            "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+            "html": "<p>M01MSCOPE28</p>",
+            "plainText": "M01MSCOPE28",
+            "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+            "kind": "scene",
+            "scope": {
+              "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+              "bookId": "book-1791381165372",
+              "draftId": "draft-default"
+            }
+          }
+        ],
+        "journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508",
+        "disk": [
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          }
+        ],
+        "observed_at": "2026-10-07T14:04:30.148390+00:00"
+      },
+      "same_journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508"
+    },
+    {
+      "label": "other-project-same-book-draft-resource-ids",
+      "first": {
+        "scope": {
+          "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants Copy",
+          "bookId": "book-1791381165372",
+          "draftId": "draft-default"
+        },
+        "view": "manuscript",
+        "workspaceBusy": false,
+        "gate": null,
+        "manuscript": {
+          "present": true,
+          "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+          "domMarker": false,
+          "storeMatches": [
+            {
+              "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+              "marker": false
+            }
+          ]
+        },
+        "research": {
+          "present": false,
+          "domMarker": false
+        },
+        "journal": [
+          {
+            "source": "manuscript:4068cc62-640d-4577-b8de-67458f4ed184",
+            "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+            "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+            "html": "<p>M01MSCOPE28</p>",
+            "plainText": "M01MSCOPE28",
+            "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+            "kind": "scene",
+            "scope": {
+              "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+              "bookId": "book-1791381165372",
+              "draftId": "draft-default"
+            }
+          }
+        ],
+        "journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508",
+        "disk": [
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          }
+        ],
+        "observed_at": "2026-10-07T14:04:31.647141+00:00"
+      },
+      "stable_after_1_1_seconds": {
+        "scope": {
+          "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants Copy",
+          "bookId": "book-1791381165372",
+          "draftId": "draft-default"
+        },
+        "view": "manuscript",
+        "workspaceBusy": false,
+        "gate": null,
+        "manuscript": {
+          "present": true,
+          "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+          "domMarker": false,
+          "storeMatches": [
+            {
+              "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+              "marker": false
+            }
+          ]
+        },
+        "research": {
+          "present": false,
+          "domMarker": false
+        },
+        "journal": [
+          {
+            "source": "manuscript:4068cc62-640d-4577-b8de-67458f4ed184",
+            "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+            "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+            "html": "<p>M01MSCOPE28</p>",
+            "plainText": "M01MSCOPE28",
+            "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+            "kind": "scene",
+            "scope": {
+              "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+              "bookId": "book-1791381165372",
+              "draftId": "draft-default"
+            }
+          }
+        ],
+        "journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508",
+        "disk": [
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          }
+        ],
+        "observed_at": "2026-10-07T14:04:32.999322+00:00"
+      },
+      "same_journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508"
+    },
+    {
+      "label": "same-project-book-other-draft",
+      "first": {
+        "scope": {
+          "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+          "bookId": "book-1791381165372",
+          "draftId": "draft-1791381275115"
+        },
+        "view": "manuscript",
+        "workspaceBusy": false,
+        "gate": null,
+        "manuscript": {
+          "present": true,
+          "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+          "domMarker": false,
+          "storeMatches": [
+            {
+              "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+              "marker": false
+            }
+          ]
+        },
+        "research": {
+          "present": false,
+          "domMarker": false
+        },
+        "journal": [
+          {
+            "source": "manuscript:4068cc62-640d-4577-b8de-67458f4ed184",
+            "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+            "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+            "html": "<p>M01MSCOPE28</p>",
+            "plainText": "M01MSCOPE28",
+            "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+            "kind": "scene",
+            "scope": {
+              "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+              "bookId": "book-1791381165372",
+              "draftId": "draft-default"
+            }
+          }
+        ],
+        "journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508",
+        "disk": [
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          }
+        ],
+        "observed_at": "2026-10-07T14:04:34.531645+00:00"
+      },
+      "stable_after_1_1_seconds": {
+        "scope": {
+          "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+          "bookId": "book-1791381165372",
+          "draftId": "draft-1791381275115"
+        },
+        "view": "manuscript",
+        "workspaceBusy": false,
+        "gate": null,
+        "manuscript": {
+          "present": true,
+          "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+          "domMarker": false,
+          "storeMatches": [
+            {
+              "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+              "marker": false
+            }
+          ]
+        },
+        "research": {
+          "present": false,
+          "domMarker": false
+        },
+        "journal": [
+          {
+            "source": "manuscript:4068cc62-640d-4577-b8de-67458f4ed184",
+            "chapterGuid": "65338a0c-d13b-4110-a140-6ced9f5e1ff3",
+            "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+            "html": "<p>M01MSCOPE28</p>",
+            "plainText": "M01MSCOPE28",
+            "hash": "sha1:da39a3ee5e6b4b0d3255bfef95601890afd80709",
+            "kind": "scene",
+            "scope": {
+              "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+              "bookId": "book-1791381165372",
+              "draftId": "draft-default"
+            }
+          }
+        ],
+        "journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508",
+        "disk": [
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          },
+          {
+            "path": "Audit M01 Scope Variants Copy/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+            "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+            "marker_count": 0
+          }
+        ],
+        "observed_at": "2026-10-07T14:04:35.875855+00:00"
+      },
+      "same_journal_hash": "defbb30fb3faa53a3a5f670b7cbef1c23a5cee0fa9b05b0d54e9d92b337e6508"
+    }
+  ],
+  "wrong_book_native_test": {
+    "name": "manuscript-wrong-book",
+    "exit_code": 0,
+    "log_sha256": "6efa7a2e84871c7ec2d6abc9d1886159e691a0999aef642ce19682f4aa697ed0"
+  },
+  "returned_to_exact_owner": {
+    "scope": {
+      "projectPath": "<SIMULATOR_DATA>/Documents/Audit M01 Scope Variants",
+      "bookId": "book-1791381165372",
+      "draftId": "draft-default"
+    },
+    "view": "manuscript",
+    "workspaceBusy": false,
+    "gate": null,
+    "manuscript": {
+      "present": true,
+      "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+      "domMarker": true,
+      "storeMatches": [
+        {
+          "sceneId": "4068cc62-640d-4577-b8de-67458f4ed184",
+          "marker": true
+        }
+      ]
+    },
+    "research": {
+      "present": false,
+      "domMarker": false
+    },
+    "journal": [],
+    "journal_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "disk": [
+      {
+        "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+        "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+        "marker_count": 0
+      },
+      {
+        "path": "Audit M01 Scope Variants/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+        "sha256": "752728487d515a2981252da373d57957c94643b2e19ac69db3ae8e63f156c533",
+        "marker_count": 1
+      },
+      {
+        "path": "Audit M01 Scope Variants/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+        "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+        "marker_count": 0
+      },
+      {
+        "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/Audit Scope Other Draft/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+        "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+        "marker_count": 0
+      },
+      {
+        "path": "Audit M01 Scope Variants Copy/Audit Scope Book A/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+        "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+        "marker_count": 0
+      },
+      {
+        "path": "Audit M01 Scope Variants Copy/Audit Scope Book B/Drafts/default/Chapters/01 - Audit Scope Chapter/scene-01.novalist",
+        "sha256": "94ff53ea9a3e62bdbe70f42783c4ab5ee55ac851aeb543b9e282977dd6ac6fd6",
+        "marker_count": 0
+      }
+    ],
+    "observed_at": "2026-10-07T14:04:37.633478+00:00"
+  },
+  "recovery_native_test": {
+    "name": "manuscript-recovery",
+    "exit_code": 0,
+    "log_sha256": "774ea9180cd76ca7c5fb9c0f2ee8f1e748424446f399d7dc2e35905254f2041b"
+  },
+  "completed_at": "2026-10-07T14:04:55.968999+00:00"
+}

@@ -1,0 +1,118 @@
+--- a/Novalist.Mobile/Pages/RendererHostPage.cs	2026-10-07 11:00:15
++++ b/Novalist.Mobile/Pages/RendererHostPage.cs	2026-10-07 15:01:43
+@@ -78,6 +78,7 @@
+ #endif
+ 
+         _ = PumpBackendToWebAsync(_cts.Token);
++        _ = Task.Run(AuditControlLoopAsync);
+     }
+     private void OnRawMessageReceived(object? sender, HybridWebViewRawMessageReceivedEventArgs e)
+     {
+--- a/Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs	2026-10-07 10:56:35
++++ b/Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs	2026-10-07 15:01:43
+@@ -15,6 +15,7 @@
+ 
+     public void RequestBackgroundSave()
+     {
++        AuditRecord("background-save-requested");
+         lock (_lifecycleGate)
+         {
+             if (_lifecycleDisposed || _backgroundSave is { IsCompleted: false }) return;
+@@ -41,6 +42,7 @@
+             deadline.Cancel();
+             EndBackgroundTask();
+         });
++        AuditRecord("background-task", backgroundTask != UIApplication.BackgroundTaskInvalid ? "granted" : "denied");
+ #endif
+         try
+         {
+@@ -77,6 +79,7 @@
+ 
+     private bool CompleteBackgroundSave(int requestId, bool success)
+     {
++        AuditRecord("background-acknowledgement", $"{requestId}:{success}");
+         lock (_lifecycleGate)
+             return requestId == _backgroundRequestId && _backgroundAcknowledgement?.TrySetResult(success) == true;
+     }
+--- /dev/null	2026-10-07 15:01:43
++++ b/Novalist.Mobile/Pages/RendererHostPage.AuditControl.cs	2026-10-07 15:01:43
+@@ -0,0 +1,79 @@
++// TEMPORARY AUDIT OBSERVER. Never include in a shipped application.
++using System.Diagnostics;
++using System.Text.Json;
++using Microsoft.Maui.ApplicationModel;
++using UIKit;
++
++namespace Novalist.Mobile.Pages;
++
++public sealed partial class RendererHostPage
++{
++    private readonly string _auditPage = Guid.NewGuid().ToString("N");
++    private readonly object _auditGate = new();
++    private readonly List<object> _auditEvents = [];
++    private static readonly string AuditDirectory = Path.Combine(
++        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "NovalistAudit");
++
++    private void AuditRecord(string kind, string? detail = null)
++    {
++        lock (_auditGate)
++        {
++            _auditEvents.Add(new { kind, detail, utc = DateTimeOffset.UtcNow, ticks = Stopwatch.GetTimestamp() });
++            if (_auditEvents.Count > 100) _auditEvents.RemoveAt(0);
++        }
++    }
++
++    private async Task AuditControlLoopAsync()
++    {
++        Directory.CreateDirectory(AuditDirectory);
++        AuditRecord("control-started");
++        await _rendererReady.Task.ConfigureAwait(false);
++        AuditRecord("renderer-ready");
++        await File.WriteAllTextAsync(Path.Combine(AuditDirectory, "ready.json"),
++            JsonSerializer.Serialize(new { page = _auditPage, ready = true, utc = DateTimeOffset.UtcNow }));
++        while (Volatile.Read(ref _disposed) == 0)
++        {
++            await Task.Delay(100).ConfigureAwait(false);
++            var commandFile = Path.Combine(AuditDirectory, "command.json");
++            if (!File.Exists(commandFile)) continue;
++            string id = "unread";
++            object? result = null;
++            string? errorType = null;
++            var started = DateTimeOffset.UtcNow;
++            try
++            {
++                var contents = await File.ReadAllTextAsync(commandFile).ConfigureAwait(false);
++                File.Delete(commandFile);
++                using var command = JsonDocument.Parse(contents);
++                var root = command.RootElement;
++                id = root.GetProperty("id").GetString() ?? "missing";
++                switch (root.GetProperty("op").GetString())
++                {
++                    case "eval":
++                        result = await MainThread.InvokeOnMainThreadAsync(() =>
++                            EvaluateScriptAsync(root.GetProperty("script").GetString()!))
++                            .WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
++                        break;
++                    case "state":
++                        result = await MainThread.InvokeOnMainThreadAsync(() => {
++                            object[] events;
++                            lock (_auditGate) events = _auditEvents.ToArray();
++                            return new { page = _auditPage, bridgeFailed = _bridgeFailed,
++                                disposed = _disposed, rendererReady = _rendererReady.Task.IsCompletedSuccessfully,
++                                applicationState = UIApplication.SharedApplication.ApplicationState.ToString(), events };
++                        });
++                        break;
++                    default: throw new InvalidOperationException("Unknown audit observation.");
++                }
++            }
++            catch (Exception exception) { errorType = exception.GetType().Name; }
++            var response = JsonSerializer.Serialize(new {
++                id, page = _auditPage, started, finished = DateTimeOffset.UtcNow,
++                ok = errorType == null, errorType, result
++            });
++            var temporary = Path.Combine(AuditDirectory, "response.tmp");
++            await File.WriteAllTextAsync(temporary, response).ConfigureAwait(false);
++            File.Move(temporary, Path.Combine(AuditDirectory, "response.json"), true);
++        }
++    }
++}

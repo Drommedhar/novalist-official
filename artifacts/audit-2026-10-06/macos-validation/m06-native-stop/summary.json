@@ -1,0 +1,86 @@
+{
+  "finding": "M06",
+  "scenario": "M06-03 exact native Stop count feasibility",
+  "status": "not-run-input-isolation-unproven",
+  "revision": "560839ac27746ec31c948d19c91ae3813eb5ec37",
+  "simulator": {
+    "udid": "6D872EE9-8FBE-4B2D-AED4-917146C77351",
+    "model": "iPhone 17 Pro",
+    "runtime": "iOS27.0"
+  },
+  "assessment": {
+    "native_counting_feasible_in_principle": "An isolated Swift observer could count MicrophoneAccess.stop, SystemMicrophone.halt, engine.stop and tap removal separately around an actual UI Stop. No observer was added and none of these counters ran.",
+    "semantic_limit": "Background/interruption halt followed by renderer polling cleanup may call halt again; duplicate no-op cleanup would not by itself prove a defect in an explicit single Stop.",
+    "safe_input_prerequisite": "Positive isolation from personal microphone input was required before actual Start. Presence of an Input None menu option did not prove that isolation."
+  },
+  "bounded_input_attempts": [
+    {
+      "action": "AXPress on exact Input None item",
+      "observed": "Fresh menu readback retained Use System Settings; isolation not proven."
+    },
+    {
+      "action": "Opened Device and Sound menus, AXPick on Input None",
+      "observed": "Fresh menu readback retained Use System Settings; isolation not proven."
+    },
+    {
+      "action": "One click at exact visible Input None accessibility rectangle",
+      "observed": "Fresh menu readback retained Use System Settings; isolation not proven."
+    }
+  ],
+  "target_scope": {
+    "exact_6D_device_selected": true,
+    "final_read_verified_selected_row_before_and_after": true,
+    "controls_used": "DeviceHub simulator Sound Input menu only. No Mac audio settings or microphone permissions changed.",
+    "scope_limit": "Because no input selection change was observed, per-device versus shared simulator input-setting scope was not independently established. This is not an OS input-isolation proof."
+  },
+  "final_state": {
+    "simulator_input": "Use System Settings",
+    "same_as_before": true,
+    "additional_restoration_action_unnecessary": "Final marked input already matched the preserved prior selection.",
+    "recording_started": false,
+    "native_stop_test_executed": false,
+    "observer_added": false,
+    "new_build_or_install": false,
+    "original_documents_unchanged": 117,
+    "installed_clean_app_unchanged": true,
+    "installed_clean_app_tree_sha256": "67c566162b44b628ba6d18d36f7243fe9e11f1d030e27d3771b3dc7060a11bdf",
+    "installed_app_source": "../m03-unavailable-external/clean-app.json",
+    "no_new_probe_cleanup_needed": true,
+    "preservation_hashes": "preservation-hashes.json"
+  },
+  "source_provenance": {
+    "production_input_count": 1314,
+    "all_inputs_match_current_source_and_disposable_snapshot": true,
+    "input_manifest": "../m03-unavailable-external/production-inputs.json",
+    "input_manifest_sha256": "34fcf3d72e88b2c03e0a79bf831fda06f7bd7d9c86efe02745879d8de65d4922"
+  },
+  "M06-04_assessment": {
+    "cross_session_attempted": false,
+    "current_simulator_interruption_support_proven": false,
+    "reason": "No supported genuine cross-process interruption route was established. Opening another foreground app would also trigger existing background cleanup, so that alone could not isolate AVAudioSession interruption.",
+    "fabricated_notifications": false,
+    "historical_guidance_limit": "Apple archive dated2017 describes simulator interruption limitations; this is historical guidance, not proof about this iOS27 runtime."
+  },
+  "documentation": [
+    {
+      "url": "https://developer.apple.com/documentation/xcode/configuring-the-environment-of-a-simulated-device",
+      "supports": "Current DeviceHub simulator Sound Input/Output controls; does not establish a successful None selection."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/avfaudio/handling-audio-interruptions",
+      "supports": "Actual audio-session notifications and system-versus-app deactivation distinction; no simulator result claimed."
+    },
+    {
+      "url": "https://developer.apple.com/library/archive/documentation/Audio/Conceptual/AudioSessionProgrammingGuide/OptimizingForDeviceHardware/OptimizingForDeviceHardware.html",
+      "supports": "Historical2017 simulator restrictions only."
+    }
+  ],
+  "limitations": [
+    "No pass or product-failure claim for exact native Stop counting.",
+    "No personal audio or transcript captured/logged; no recording was started.",
+    "No current cross-session interruption or physical-device acceptance claim.",
+    "The runtime safe-input gate stopped the experiment before instrumented build; prior clean installed app identity was verified instead of claiming a new clean build."
+  ],
+  "overall_audit_count_changed": false,
+  "procedure_sources": "procedure.txt"
+}

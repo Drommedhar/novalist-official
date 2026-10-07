@@ -1,6 +1,6 @@
 {
   "updated": "2026-10-07",
-  "previous_goal_turn": "macOS simulator continuation added full Manuscript/Research Lock recovery, unavailable-external-path rejection, same-process microphone restart, full refreshed native Help traversal and a current-source native packaging pair. Required physical acceptance remains deferred; the overall goal is incomplete.",
+  "previous_goal_turn": "macOS simulator continuation proved full Manuscript and Research recovery isolation across wrong project/book/draft contexts, then exactly-once recovery into the original owner and clean native reopen. A bounded native microphone Stop-count preflight ended before recording because isolated input could not be verified. Required physical acceptance remains deferred; the overall goal is incomplete.",
   "findings": [
     {
       "id": "BE-10",
@@ -32,17 +32,19 @@
         "artifacts/audit-2026-10-06/simulator-ui/fixed-build-provenance.json",
         "artifacts/audit-2026-10-06/macos-validation/m01-remaining/summary.json",
         "artifacts/audit-2026-10-06/macos-validation/m01-lock/summary.json",
-        "artifacts/audit-2026-10-06/macos-validation/m01-lock-variants/summary.json"
+        "artifacts/audit-2026-10-06/macos-validation/m01-lock-variants/summary.json",
+        "artifacts/audit-2026-10-06/macos-validation/m01-scope-variants/summary.json"
       ],
       "tests": [
         "Native compilation passed at clean revision 0558dda71a395b6ab6208dd6820cc19811a61430; case-by-case runtime results are maintained in macos-validation/native-acceptance.json. That compilation alone does not establish runtime acceptance.",
         "Actual XCTest scene lifecycle passed on iPhone simulator at clean native source 0558dda71a395b6ab6208dd6820cc19811a61430: Home immediately after typing, terminate, relaunch and reopen retained the synthetic marker. Research and full Manuscript lifecycle subsets also passed on dedicated iPad A16 simulator/iOS 27.0 at 0c789b29581db47d89593c897bd53fbb3fb9275c. Evidence: simulator-ui/scene-lifecycle.json, research-lifecycle.json and manuscript-lifecycle.json. At that earlier test stage, lock, two dirty panes, conflict, reordered acknowledgements and physical cases were unproven; later supporting subsets are recorded separately.",
         "After the native evaluator correction, fresh scene, Research and full Manuscript XCTest lifecycle cases all passed again: 29.743s on iPhone simulator and 21.977s/27.619s on iPad A16 simulator, iOS 27.0. Each new marker was absent before entry, survived immediate Home/termination/relaunch, and was found only in its intended on-disk scene/default draft or Research item. Source: 0c789b29581db47d89593c897bd53fbb3fb9275c plus preserved mobile diff 5f0d63d949cda5a56434bed23ba7cfdf9a6b51941271757320b1c6c32411b241 and helper hash 7b9abb8656b96a0aab6be6bd513cb8af1f01916fe6a6daad8a09f9edd7f42540. Evidence: simulator-ui/lifecycle-fixed-summary.json and fixed-build-provenance.json. This remains simulator subset coverage.",
         "Native simulator retained-edit edge cases passed at frozen 29cefb83: older acknowledgement preserves newer dirty/journal state; interrupted flush, two independent dirty panes, unresolved disk conflict and project/book/draft scene isolation recover without cross-owner writes. Actual DeviceHub scene Lock with a held write also passed, with OS lock state, native background grant/no acknowledgement, exact-owner recovery and clean-app reopen. Probe removal, clean signed builds and preserved fixtures are recorded in macos-validation/m01-remaining/summary.json and m01-lock/summary.json. These are supporting simulator subsets, not physical acceptance; later focus changes have separate source evidence.",
-        "Actual iPad A16/iPadOS 27.0 Manuscript and Research Lock subsets passed at af744fbd. Lock began 0.954/0.950 seconds after native typing; each exact-owner save was held without fabricating acknowledgements. OS lockstate 1, UIApplication Background and a fresh native background task were observed, with markers absent from disk through termination. Actual native recovery/reopen restored one marker occurrence to the original scene or original project-level Research item and cleared the journal. Observers/gates were removed, all 1,314 inputs/203 assets matched, and a fresh signed clean build plus native reopen passed. All 98 original iPad files, 13 new fixture files after recovery and 105 untouched iPhone preparation files were preserved. Evidence: macos-validation/m01-lock-variants/summary.json. This is supporting interrupted-write simulator coverage, not physical/provider or uninstrumented immediate-lock timing acceptance."
+        "Actual iPad A16/iPadOS 27.0 Manuscript and Research Lock subsets passed at af744fbd. Lock began 0.954/0.950 seconds after native typing; each exact-owner save was held without fabricating acknowledgements. OS lockstate 1, UIApplication Background and a fresh native background task were observed, with markers absent from disk through termination. Actual native recovery/reopen restored one marker occurrence to the original scene or original project-level Research item and cleared the journal. Observers/gates were removed, all 1,314 inputs/203 assets matched, and a fresh signed clean build plus native reopen passed. All 98 original iPad files, 13 new fixture files after recovery and 105 untouched iPhone preparation files were preserved. Evidence: macos-validation/m01-lock-variants/summary.json. This is supporting interrupted-write simulator coverage, not physical/provider or uninstrumented immediate-lock timing acceptance.",
+        "At 560839ac on iPad A16/iPadOS 27.0, actual native full-Manuscript and Research edits produced real held writes and original-scope journals before termination. Wrong book, wrong project and wrong draft each preserved the exact journal and matching-resource disk baselines without displaying the marker. Returning to the original context recovered each marker exactly once and cleared its journal. Research retained its original item ID/title/count and correctly remained visible across books and drafts within the original project after recovery. Temporary observers were removed; all 1,314 production inputs and 203 assets matched before a fresh signed clean build and native reopen. All 117 original files and 60 new fixture files were preserved across clean reopen, along with five wrong-owner scene baselines and the other-project Research payload. Evidence: macos-validation/m01-scope-variants/summary.json. Supporting simulator scope coverage only; original physical/provider acceptance remains pending."
       ],
       "pending": [
-        "Physical-device lifecycle acceptance, offline/cloud-only behavior and the full device scope matrix remain required. Simulator old-acknowledgement, interrupted-flush, two-pane, disk-conflict, scene scope-isolation and held-write Lock subsets for scenes, full Manuscript and Research passed at their recorded sources. The journal bound is 2,000,000 JSON characters; unsaved Codex metadata uses the existing flush registry and is not journaled."
+        "Physical-device lifecycle acceptance, offline/cloud-only behavior and the full device scope matrix remain required. Supporting simulator cases passed old-acknowledgement, interrupted flush, two dirty panes and disk conflict; scenes, full Manuscript and Research each passed ownership isolation and held-write Lock at their recorded sources. The journal bound is 2,000,000 JSON characters; unsaved Codex metadata uses the existing flush registry and is not journaled."
       ]
     },
     {
@@ -163,12 +165,14 @@
       "files": [
         "artifacts/audit-2026-10-06/macos-validation/native-acceptance.json",
         "artifacts/audit-2026-10-06/simulator-ui/microphone-summary.json",
-        "artifacts/audit-2026-10-06/macos-validation/m06-interruption-retry/summary.json"
+        "artifacts/audit-2026-10-06/macos-validation/m06-interruption-retry/summary.json",
+        "artifacts/audit-2026-10-06/macos-validation/m06-native-stop/summary.json"
       ],
       "tests": [
         "Native compilation passed at clean revision 0558dda71a395b6ab6208dd6820cc19811a61430; case-by-case runtime results are maintained in macos-validation/native-acceptance.json. That compilation alone does not establish runtime acceptance.",
         "Real iPhone simulator prompt denial showed the permission-specific error. Native iOS Settings changed microphone access from 0 to 1; after the resulting fresh process, retry reached Listening, Stop restored Start, and a second recording stopped on Home/foreground. Installed fixed app bytes and synthetic scene remained unchanged. Evidence: simulator-ui/microphone-summary.json. No same-process stale-error, physical-device, call, audio-route or audio-quality claim.",
-        "Clean iPhone 17 Pro Max simulator acceptance passed actual Start/Listening, Home, foreground stopped state, a second Start/Listening and explicit Stop in 22.694 seconds. Six native PID/process-start checkpoints prove the same process throughout. All original 75 document files and 26 project files remained unchanged; only normal app-owned open backups were added. No probes or permission changes were used. Evidence: macos-validation/m06-interruption-retry/summary.json. This proves same-process recovery after Home, not denied-to-granted permission recovery, call/route interruption, counted native stop invocations, audio quality or physical acceptance."
+        "Clean iPhone 17 Pro Max simulator acceptance passed actual Start/Listening, Home, foreground stopped state, a second Start/Listening and explicit Stop in 22.694 seconds. Six native PID/process-start checkpoints prove the same process throughout. All original 75 document files and 26 project files remained unchanged; only normal app-owned open backups were added. No probes or permission changes were used. Evidence: macos-validation/m06-interruption-retry/summary.json. This proves same-process recovery after Home, not denied-to-granted permission recovery, call/route interruption, counted native stop invocations, audio quality or physical acceptance.",
+        "A bounded native Stop-count preflight at 560839ac ended before recording: three simulator Sound Input None selections could not be verified; fresh readback retained Use System Settings. No native observer, recording, test build or app install occurred. All 117 task-start files and the existing clean installed app remained byte-identical. Simulator-input setting scope itself was not independently established. Evidence: macos-validation/m06-native-stop/summary.json. This is an unrun test with an input-isolation limitation, not a Novalist failure or native stop-count pass; physical acceptance remains deferred."
       ],
       "pending": [
         "Required physical microphone acceptance remains deferred. Same-process restart after Home passed on the simulator; denied-to-granted permission recovery within one process, call/route interruption and audio quality remain unproven."
@@ -457,6 +461,16 @@
       "command": "Unavailable external matching-suffix native fallback",
       "status": "passed",
       "detail": "At af744fbd, an actual native-created owned local project and Files-picked external project shared the same Documents-relative suffix but distinct IDs. After verified backup, only the new external fixture was deleted; the actual bookmark returned null and owned-path fallback executed and returned null although the matching local directory existed. No local redirection occurred. Production pruned the absent external recent while preserving local identity and all six local files. The external fixture was restored at its exact original path with all six file hashes intact. Registry byte equality covers the missing-operation/restoration interval; clean reinstall subsequently added normal exact owned aliases. The read-only resolver observer was removed; all 1,314 production inputs and 203 assets matched before clean build/signature/install/native relaunch. All 107 task-start document files, including 87 earlier fixture files, were preserved. Evidence: macos-validation/m03-unavailable-external/summary.json. Supporting simulator case only; physical relocation remains deferred."
+    },
+    {
+      "command": "Native Stop-count input-isolation preflight",
+      "status": "not-run",
+      "detail": "A bounded native Stop-count preflight at 560839ac ended before recording: three simulator Sound Input None selections could not be verified; fresh readback retained Use System Settings. No native observer, recording, test build or app install occurred. All 117 task-start files and the existing clean installed app remained byte-identical. Simulator-input setting scope itself was not independently established. Evidence: macos-validation/m06-native-stop/summary.json. This is an unrun test with an input-isolation limitation, not a Novalist failure or native stop-count pass; physical acceptance remains deferred."
+    },
+    {
+      "command": "Manuscript and Research recovery ownership",
+      "status": "passed",
+      "detail": "At 560839ac on iPad A16/iPadOS 27.0, actual native full-Manuscript and Research edits produced real held writes and original-scope journals before termination. Wrong book, wrong project and wrong draft each preserved the exact journal and matching-resource disk baselines without displaying the marker. Returning to the original context recovered each marker exactly once and cleared its journal. Research retained its original item ID/title/count and correctly remained visible across books and drafts within the original project after recovery. Temporary observers were removed; all 1,314 production inputs and 203 assets matched before a fresh signed clean build and native reopen. All 117 original files and 60 new fixture files were preserved across clean reopen, along with five wrong-owner scene baselines and the other-project Research payload. Evidence: macos-validation/m01-scope-variants/summary.json. Supporting simulator scope coverage only; original physical/provider acceptance remains pending."
     }
   ],
   "limitations": [
@@ -587,6 +601,8 @@
     "refreshed_native_help_full": "macos-validation/p01-refreshed-native-full/summary.json",
     "native_microphone_interruption_retry": "macos-validation/m06-interruption-retry/summary.json",
     "manuscript_research_lock": "macos-validation/m01-lock-variants/summary.json",
-    "unavailable_external_matching_suffix": "macos-validation/m03-unavailable-external/summary.json"
+    "unavailable_external_matching_suffix": "macos-validation/m03-unavailable-external/summary.json",
+    "native_stop_count_preflight": "macos-validation/m06-native-stop/summary.json",
+    "manuscript_research_scope": "macos-validation/m01-scope-variants/summary.json"
   }
 }

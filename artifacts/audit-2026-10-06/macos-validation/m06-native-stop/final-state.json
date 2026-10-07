@@ -1,0 +1,16 @@
+{
+  "selected_simulator": "6D872EE9-8FBE-4B2D-AED4-917146C77351",
+  "selected_device_verified_before_and_after_input_read": true,
+  "simulator_input_selection": "Use System Settings",
+  "simulator_input_same_as_prior": true,
+  "original_documents_count": 117,
+  "all_original_documents_byte_identical": true,
+  "observer_directory_absent": true,
+  "native_app_unchanged_from_prior_clean_m03_manifest": true,
+  "native_app_tree_sha256": "67c566162b44b628ba6d18d36f7243fe9e11f1d030e27d3771b3dc7060a11bdf",
+  "native_app_file_count": 571,
+  "production_inputs_match_frozen_and_main": 1314,
+  "observer_never_added": true,
+  "no_new_native_build_install_or_recording_started": true,
+  "host_microphone_permission_or_audio_setting_changes": false
+}

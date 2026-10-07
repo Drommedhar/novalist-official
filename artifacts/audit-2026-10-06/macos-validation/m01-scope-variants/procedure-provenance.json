@@ -1,0 +1,67 @@
+{
+  "procedures": {
+    "control.py": {
+      "original_sha256": "5bc412f28c9ac153598444a85f97feb37faf4a266ff54c243411f5d5488c7d38",
+      "published_sha256": "f11db76a83428cc874046d64d8970c67791311f0d77bda1fdd47b21a0204951b",
+      "changes": "Repository default path replaced with current working directory where present; native actions, gates, observations and assertions unchanged."
+    },
+    "scope-lib.py": {
+      "original_sha256": "20648fc2ff0a5bf27d918804e050dd3b33a7e37b2dbbb55a6389f45036efd03f",
+      "published_sha256": "20648fc2ff0a5bf27d918804e050dd3b33a7e37b2dbbb55a6389f45036efd03f",
+      "changes": "Repository default path replaced with current working directory where present; native actions, gates, observations and assertions unchanged."
+    },
+    "run-native.py": {
+      "original_sha256": "e65f38a3c3a1dbd17bcf4f261e3236f9e208bdca4eac675495e276dd3037087e",
+      "published_sha256": "e65f38a3c3a1dbd17bcf4f261e3236f9e208bdca4eac675495e276dd3037087e",
+      "changes": "Repository default path replaced with current working directory where present; native actions, gates, observations and assertions unchanged."
+    },
+    "configure-baselines.py": {
+      "original_sha256": "c98ffd55df5c9ba82aac69f98f12a0e18f137c5b8b836cc4d24c7e46a0ecc689",
+      "published_sha256": "c98ffd55df5c9ba82aac69f98f12a0e18f137c5b8b836cc4d24c7e46a0ecc689",
+      "changes": "Repository default path replaced with current working directory where present; native actions, gates, observations and assertions unchanged."
+    },
+    "run-held-edit.py": {
+      "original_sha256": "d8bea7cb6ec2de3a7aeece7821bf88a76271e1365b6f78d5daaac473bd8c9bba",
+      "published_sha256": "d8bea7cb6ec2de3a7aeece7821bf88a76271e1365b6f78d5daaac473bd8c9bba",
+      "changes": "Repository default path replaced with current working directory where present; native actions, gates, observations and assertions unchanged."
+    },
+    "run-scope-contexts.py": {
+      "original_sha256": "b15a7d2af569cf8061bb651d96063fc23f24a46c2a25cbcce4b15e513af12cbb",
+      "published_sha256": "b15a7d2af569cf8061bb651d96063fc23f24a46c2a25cbcce4b15e513af12cbb",
+      "changes": "Repository default path replaced with current working directory where present; native actions, gates, observations and assertions unchanged."
+    },
+    "restore-build-clean.py": {
+      "original_sha256": "690cafb99ff40f9b95374b9262c270d539359640efa27941b179d50d25bf8732",
+      "published_sha256": "b02d10e3ea2af0c7d1403072413f59f9f3bceae87d09c3b59365ed6cd9e225a5",
+      "changes": "Repository default path replaced with current working directory where present; native actions, gates, observations and assertions unchanged."
+    },
+    "install-clean.py": {
+      "original_sha256": "2695f21b7a6f8b10783af412119f2d05e5445efc66ea0c91d607b4c6679f3db9",
+      "published_sha256": "2695f21b7a6f8b10783af412119f2d05e5445efc66ea0c91d607b4c6679f3db9",
+      "changes": "Repository default path replaced with current working directory where present; native actions, gates, observations and assertions unchanged."
+    },
+    "run-clean-reopen.py": {
+      "original_sha256": "29465cc165396e449dd8aa55520937f7a4399d8c705ff3639d0f9b5f5ddbb34e",
+      "published_sha256": "29465cc165396e449dd8aa55520937f7a4399d8c705ff3639d0f9b5f5ddbb34e",
+      "changes": "Repository default path replaced with current working directory where present; native actions, gates, observations and assertions unchanged."
+    },
+    "verify-final-preservation.py": {
+      "original_sha256": "bd114b76c11612c4abbdbeedfc0569017cd002b9c76328b7be8938c33de157fa",
+      "published_sha256": "bd114b76c11612c4abbdbeedfc0569017cd002b9c76328b7be8938c33de157fa",
+      "changes": "Repository default path replaced with current working directory where present; native actions, gates, observations and assertions unchanged."
+    },
+    "verify-final-preservation-before-container-remap.py": {
+      "original_sha256": "a09729b3536575a0671ad20f2fe85d940fd689ebc8ed44d21c947514715c5a52",
+      "published_sha256": "a09729b3536575a0671ad20f2fe85d940fd689ebc8ed44d21c947514715c5a52",
+      "changes": "Repository default path replaced with current working directory where present; native actions, gates, observations and assertions unchanged."
+    }
+  },
+  "private_case_record_hashes": {
+    "manuscript-scope.json": "538d789f21313f6d73be0e4add78458eb2844d8ce61f2e48035839d25b30dc14",
+    "research-scope.json": "fb6061babb9b733424e539b1cb5f3c6146c689822a82bd3604ab319adac001cd",
+    "owner.json": "0b3fa45d918afdb4df045a9ff5b81e762b8b981bc267801d3c02f0f3265b5d4f"
+  },
+  "record_sanitization": "Absolute simulator data-container prefix replaced with <SIMULATOR_DATA>; no synthetic content, IDs, journal entries, recorded hashes or assertions removed. Embedded journal_hash values refer to the exact original private record including its original path; use private_case_record_hashes for original record identity.",
+  "fixture_setup_note": "Project, first book, chapter, scene and Research item were created by the preserved native XCTest. Alternate draft used the production clone action and the second book used the production createBook action. The first inline setup assertion incorrectly expected automatic book activation; it was corrected by reading the already-created book ID, with no duplicate create. configure-baselines.py then clones only the new synthetic baseline while the app is stopped.",
+  "owner_runtime_input": "For reproduction obtain new actual resource IDs from the new fixture, write owner.json and local app-data-probe.txt, then run the included procedures. The published owner.json is sanitized evidence rather than an executable local path."
+}

@@ -1,0 +1,23 @@
+{
+  "source_revision": "560839ac27746ec31c948d19c91ae3813eb5ec37",
+  "started_utc": "2026-10-07T14:10:41.869380+00:00",
+  "exit_code": 0,
+  "seconds": 11.316,
+  "command": [
+    "dotnet",
+    "build",
+    "Novalist.Mobile/Novalist.Mobile.csproj",
+    "-f",
+    "net10.0-ios27.0",
+    "-p:RuntimeIdentifier=iossimulator-arm64",
+    "-p:EnableCodeSigning=true",
+    "-p:CodesignKey=-",
+    "-m:1",
+    "-nr:false"
+  ],
+  "raw_log_sha256": "b5b4410e784e5c0c154ff04c307c2b262ed415242edb841339ba491c2c6c066e",
+  "temporary_observer_removed": true,
+  "four_projects_built_from_cleared_bin_obj": true,
+  "production_input_hashes_match": 1314,
+  "renderer_asset_hashes_match": 203
+}
