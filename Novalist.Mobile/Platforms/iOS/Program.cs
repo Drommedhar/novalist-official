@@ -13,3 +13,5 @@ public class Program
         UIApplication.Main(args, null, typeof(AppDelegate));
     }
 }
+
+#error NOVALIST_AUDIT_M05_INVALID_IOS_SYMBOL
