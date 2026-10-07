@@ -124,8 +124,6 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
         catch (Exception exception) { await FailBridgeAsync(exception).ConfigureAwait(false); }
     }
 
-    // ---- Host bridge (window.novalist) --------------------------------------
-
     private async Task HandleHostCallAsync(string json)
     {
         var id = 0;
@@ -166,7 +164,7 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
     private Task EvalOnMainAsync(string js) =>
         MainThread.InvokeOnMainThreadAsync(async () =>
         {
-            try { await _web.EvaluateJavaScriptAsync(js); }
+            try { await EvaluateScriptAsync(js); }
             catch (Exception ex)
             {
                 // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Reports evaluation failure type without exposing script or response contents.

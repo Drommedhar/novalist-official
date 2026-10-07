@@ -1,0 +1,21 @@
+<repo>/Novalist.Core/Novalist.Core.csproj : warning NU1900: Fehler beim Abrufen von Paketsicherheitsrisikodaten: Der Dienstindex für die Quelle "https://api.nuget.org/v3/index.json" konnte nicht geladen werden.
+<repo>/Novalist.Sdk/Novalist.Sdk.csproj : warning NU1900: Fehler beim Abrufen von Paketsicherheitsrisikodaten: Der Dienstindex für die Quelle "https://api.nuget.org/v3/index.json" konnte nicht geladen werden.
+  Novalist.Sdk -> <repo>/Novalist.Sdk/bin/Debug/net8.0/Novalist.Sdk.dll
+  Novalist.Core -> <repo>/Novalist.Core/bin/Debug/net8.0/Novalist.Core.dll
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error NETSDK1047: Die Ressourcendatei "<repo>/Novalist.Backend/obj/project.assets.json" verfügt über kein Ziel für "net8.0/iossimulator-arm64". Stellen Sie sicher, dass die Wiederherstellung ausgeführt wurde, und dass Sie "net8.0" in die TargetFrameworks für Ihr Projekt aufgenommen haben. Unter Umständen müssen Sie auch "iossimulator-arm64" in die RuntimeIdentifiers Ihres Projekts aufnehmen. [<repo>/Novalist.Backend/Novalist.Backend.csproj]
+<repo>/Novalist.Core/Novalist.Core.csproj : warning NU1900: Fehler beim Abrufen von Paketsicherheitsrisikodaten: Der Dienstindex für die Quelle "https://api.nuget.org/v3/index.json" konnte nicht geladen werden.
+<repo>/Novalist.Sdk/Novalist.Sdk.csproj : warning NU1900: Fehler beim Abrufen von Paketsicherheitsrisikodaten: Der Dienstindex für die Quelle "https://api.nuget.org/v3/index.json" konnte nicht geladen werden.
+  Novalist.Sdk -> <repo>/Novalist.Sdk/bin/Debug/net8.0/Novalist.Sdk.dll
+  Novalist.Core -> <repo>/Novalist.Core/bin/Debug/net8.0/Novalist.Core.dll
+
+Fehler beim Buildvorgang.
+
+<repo>/Novalist.Core/Novalist.Core.csproj : warning NU1900: Fehler beim Abrufen von Paketsicherheitsrisikodaten: Der Dienstindex für die Quelle "https://api.nuget.org/v3/index.json" konnte nicht geladen werden.
+<repo>/Novalist.Sdk/Novalist.Sdk.csproj : warning NU1900: Fehler beim Abrufen von Paketsicherheitsrisikodaten: Der Dienstindex für die Quelle "https://api.nuget.org/v3/index.json" konnte nicht geladen werden.
+<repo>/Novalist.Core/Novalist.Core.csproj : warning NU1900: Fehler beim Abrufen von Paketsicherheitsrisikodaten: Der Dienstindex für die Quelle "https://api.nuget.org/v3/index.json" konnte nicht geladen werden.
+<repo>/Novalist.Sdk/Novalist.Sdk.csproj : warning NU1900: Fehler beim Abrufen von Paketsicherheitsrisikodaten: Der Dienstindex für die Quelle "https://api.nuget.org/v3/index.json" konnte nicht geladen werden.
+/usr/local/share/dotnet/sdk/10.0.401/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.targets(308,5): error NETSDK1047: Die Ressourcendatei "<repo>/Novalist.Backend/obj/project.assets.json" verfügt über kein Ziel für "net8.0/iossimulator-arm64". Stellen Sie sicher, dass die Wiederherstellung ausgeführt wurde, und dass Sie "net8.0" in die TargetFrameworks für Ihr Projekt aufgenommen haben. Unter Umständen müssen Sie auch "iossimulator-arm64" in die RuntimeIdentifiers Ihres Projekts aufnehmen. [<repo>/Novalist.Backend/Novalist.Backend.csproj]
+    4 Warnung(en)
+    1 Fehler
+
+Verstrichene Zeit 00:00:03.02

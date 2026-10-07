@@ -1,0 +1,71 @@
+{
+  "scenario": "evaluator-timeout",
+  "status": "transport-subset-passed",
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "probe_diff_sha256": "2d88274ef724e09d0bdfc0bd3a4885112d88f7d80002594cc5730a6f431795e8",
+  "device": "iPhone 17 Pro simulator",
+  "os": "iOS 27.0",
+  "native_state": {
+    "page": "3ff0488f9f9d4f178c6da8b6e14d3518",
+    "bridgeFailed": 1,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": true,
+    "evaluatorFault": 0,
+    "assetReads": 0,
+    "assetHeld": false,
+    "projectGeneration": 1,
+    "webProcessId": 77134,
+    "nativeEditingPausedAlert": true,
+    "nativeReloadAvailable": true,
+    "nativeLaterAvailable": true,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T09:05:43.78607+00:00",
+        "ticks": 152275434824500
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T09:05:45.162971+00:00",
+        "ticks": 152276811723291
+      },
+      {
+        "kind": "evaluator-timeout-armed",
+        "detail": null,
+        "utc": "2026-10-07T09:06:14.773816+00:00",
+        "ticks": 152306422530750
+      },
+      {
+        "kind": "evaluator-timeout-consumed",
+        "detail": null,
+        "utc": "2026-10-07T09:06:14.982359+00:00",
+        "ticks": 152306631075375
+      },
+      {
+        "kind": "bridge-failed",
+        "detail": "TimeoutException",
+        "utc": "2026-10-07T09:06:29.985344+00:00",
+        "ticks": 152321634044208
+      },
+      {
+        "kind": "native-alert-presenting",
+        "detail": null,
+        "utc": "2026-10-07T09:06:29.989912+00:00",
+        "ticks": 152321638611375
+      }
+    ]
+  },
+  "pending_host_call": {
+    "status": "rejected",
+    "message": "The mobile connection stopped. Reopen Novalist before retrying changes."
+  },
+  "wall_seconds_until_alert": 15.088966499984963,
+  "timeout_ticks": 15002968833,
+  "limits": [
+    "Native Reload action and post-reload production health are recorded separately.",
+    "This transport subset does not prove retained edit recovery or no replay of a mutation."
+  ]
+}

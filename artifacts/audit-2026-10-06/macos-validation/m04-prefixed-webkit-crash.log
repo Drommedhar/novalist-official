@@ -1,0 +1,19 @@
+Timestamp               Ty Process[PID:TID]
+2026-10-07 10:52:32.945 Df Novalist.Mobile[63216:2b84b2] (libxamarin-dotnet-debug.dylib)
+Unhandled Exception:
+Foundation.NSErrorException: Error Domain=WKErrorDomain Code=5 "JavaScript execution returned a result of an unsupported type" UserInfo={NSLocalizedDescription=JavaScript execution returned a result of an unsupported type}
+   at Microsoft.Maui.Platform.WebViewExtensions.EvaluateJavaScript(WKWebView webView, String script)
+   at Microsoft.Maui.TaskExtensions.<RunAndReport>d__6`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+   at Microsoft.Maui.Handlers.HybridWebViewHandler.MapEvaluateJavaScriptAsync(IHybridWebViewHandler handler, IHybridWebView hybridWebView, Object arg)
+   at System.Threading.Tasks.Task.<>c.<ThrowAsync>b__124_0(Object state)
+   at Foundation.NSAsyncSynchronizationContextDispatcher.Apply() in <build-host>/vss/_work/1/s/macios/src/Foundation/NSAction.cs:line 165
+--- End of stack trace from previous location ---
+   at ObjCRuntime.Runtime.ThrowException(IntPtr gchandle) in <build-host>
+2026-10-07 10:52:32.946 Df Novalist.Mobile[63216:2b84b2] (libxamarin-dotnet-debug.dylib) Unhandled managed exception: Error Domain=WKErrorDomain Code=5 "JavaScript execution returned a result of an unsupported type" UserInfo={NSLocalizedDescription=JavaScript execution returned a result of an unsupported type} (Foundation.NSErrorException)
+   at Microsoft.Maui.Platform.WebViewExtensions.EvaluateJavaScript(WKWebView webView, String script)
+   at Microsoft.Maui.TaskExtensions.<RunAndReport>d__6`1[[System.String, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+   at Microsoft.Maui.Handlers.HybridWebViewHandler.MapEvaluateJavaScriptAsync(IHybridWebViewHandler handler, IHybridWebView hybridWebView, Object arg)
+   at System.Threading.Tasks.Task.<>c.<ThrowAsync>b__124_0(Object state)
+   at Foundation.NSAsyncSynchronizationContextDispatcher.Apply() in <build-host>/vss/_work/1/s/macios/src/Foundation/NSAction.cs:line 165
+--- End of stack trace from previous location ---
+   at ObjCRuntime.Runtime.ThrowException(IntPtr gchandle) in <build-host>

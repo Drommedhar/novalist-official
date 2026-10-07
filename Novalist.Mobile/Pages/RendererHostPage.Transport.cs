@@ -13,7 +13,7 @@ public sealed partial class RendererHostPage
 
     private async Task DeliverCallbackAsync(string script)
     {
-        var result = await MainThread.InvokeOnMainThreadAsync(() => _web.EvaluateJavaScriptAsync(script))
+        var result = await MainThread.InvokeOnMainThreadAsync(() => EvaluateScriptAsync(script))
             .WaitAsync(TimeSpan.FromSeconds(15), _cts.Token).ConfigureAwait(false);
         if (result?.Trim('"') != "accepted") throw new IOException("The editor did not accept its response.");
     }
@@ -28,7 +28,7 @@ public sealed partial class RendererHostPage
         {
             try
             {
-                await _web.EvaluateJavaScriptAsync("window.__novalistBridgeFailed?.()")
+                await EvaluateScriptAsync("window.__novalistBridgeFailed?.()")
                     .WaitAsync(TimeSpan.FromSeconds(2));
             }
             catch (Exception) { /* A terminated WebKit process cannot receive the failure notification. */ }

@@ -1,0 +1,107 @@
+{
+  "scenario": "evaluator-failure",
+  "status": "transport-subset-passed",
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "probe_diff_sha256": "2580103702a3a67ac99bc3680b0f61b8c7a3ef9f39c55e8d5396a01fefc26ca0",
+  "device": "iPhone 17 Pro simulator",
+  "os": "iOS 27.0",
+  "native_state": {
+    "page": "e2089becd51741c0a1a7a1a1c64bee73",
+    "bridgeFailed": 1,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": true,
+    "evaluatorFault": 0,
+    "assetReads": 6,
+    "assetHeld": false,
+    "projectGeneration": 7,
+    "webProcessId": 65786,
+    "nativeEditingPausedAlert": true,
+    "nativeReloadAvailable": true,
+    "nativeLaterAvailable": true,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T08:43:35.097528+00:00",
+        "ticks": 150946755610708
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T08:43:36.434529+00:00",
+        "ticks": 150948092617416
+      },
+      {
+        "kind": "asset-reply-held",
+        "detail": "3",
+        "utc": "2026-10-07T08:46:45.399226+00:00",
+        "ticks": 151137058087333
+      },
+      {
+        "kind": "asset-reply-released",
+        "detail": "3",
+        "utc": "2026-10-07T08:46:46.210056+00:00",
+        "ticks": 151137868921500
+      },
+      {
+        "kind": "asset-reply-held",
+        "detail": "4",
+        "utc": "2026-10-07T08:46:47.547521+00:00",
+        "ticks": 151139206390916
+      },
+      {
+        "kind": "asset-reply-released",
+        "detail": "5",
+        "utc": "2026-10-07T08:46:48.765657+00:00",
+        "ticks": 151140424532375
+      },
+      {
+        "kind": "asset-reply-held",
+        "detail": "6",
+        "utc": "2026-10-07T08:46:50.61767+00:00",
+        "ticks": 151142276552250
+      },
+      {
+        "kind": "asset-reply-released",
+        "detail": "6",
+        "utc": "2026-10-07T08:46:51.224207+00:00",
+        "ticks": 151142883091833
+      },
+      {
+        "kind": "evaluator-failure-armed",
+        "detail": null,
+        "utc": "2026-10-07T08:48:31.278916+00:00",
+        "ticks": 151242938210166
+      },
+      {
+        "kind": "evaluator-failure-consumed",
+        "detail": null,
+        "utc": "2026-10-07T08:48:31.488859+00:00",
+        "ticks": 151243148154208
+      },
+      {
+        "kind": "bridge-failed",
+        "detail": "IOException",
+        "utc": "2026-10-07T08:48:31.489074+00:00",
+        "ticks": 151243148369041
+      },
+      {
+        "kind": "native-alert-presenting",
+        "detail": null,
+        "utc": "2026-10-07T08:48:31.489903+00:00",
+        "ticks": 151243149198000
+      }
+    ]
+  },
+  "pending_host_call": {
+    "status": "rejected",
+    "message": "The mobile connection stopped. Reopen Novalist before retrying changes."
+  },
+  "wall_seconds_until_alert": 0.21680395799921826,
+  "timeout_ticks": null,
+  "limits": [
+    "Native Reload action and post-reload production health are recorded separately.",
+    "This transport subset does not prove retained edit recovery or no replay of a mutation."
+  ]
+}

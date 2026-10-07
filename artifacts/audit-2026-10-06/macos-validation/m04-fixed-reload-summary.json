@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "runtime": "iPhone 17 Pro simulator / iOS 27.0",
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "probe_diff_sha256": "2d88274ef724e09d0bdfc0bd3a4885112d88f7d80002594cc5730a6f431795e8",
+  "cases": [
+    {
+      "scenario": "native-exception",
+      "native_reload_button": "passed",
+      "evidence": "m04-fixed-native-exception-reload.log"
+    },
+    {
+      "scenario": "webcontent",
+      "native_reload_button": "passed",
+      "evidence": "m04-fixed-webcontent-reload.log"
+    },
+    {
+      "scenario": "evaluator-timeout",
+      "native_reload_button": "passed",
+      "evidence": "m04-fixed-evaluator-timeout-reload.log"
+    },
+    {
+      "scenario": "backend-failure",
+      "native_reload_button": "passed",
+      "evidence": "m04-fixed-backend-failure-reload.log"
+    }
+  ],
+  "post_reload_production_host_call": {
+    "webcontent": "passed",
+    "evaluator-timeout": "passed",
+    "backend-failure": "passed"
+  },
+  "limits": [
+    "Fresh defaultProjectRoot host call confirms reconnection after Reload; does not establish dirty-edit recovery or mutation nonreplay."
+  ]
+}

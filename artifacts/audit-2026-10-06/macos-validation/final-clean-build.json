@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "final_source_diff": "final-mobile-source.patch",
+  "final_source_diff_sha256": "e1be8f17101ec55093aadd2c7c47a2f0e063f7ffd3295977756eec9f5052b2b4",
+  "probe_removal": "Restored all modified native host source files from main final production source, removed RendererHostPage.AuditControl.cs, compared 568 production source inputs, removed disposable bin/obj, then rebuilt.",
+  "source_input_evidence": "final-source-inputs.json",
+  "clean_build_log": "final-clean-build.log",
+  "command": "dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios27.0 -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=true -p:CodesignKey=- -p:NuGetAudit=false -m:1 -nr:false",
+  "codesign_verify_deep_strict": true,
+  "simulator": "iPhone 17 Pro / iOS 27.0",
+  "launch_exit_code": 0,
+  "process_id": 81533,
+  "warnings": 14,
+  "errors": 0,
+  "limitations": [
+    "Simulator clean build/signature/launch does not substitute for remaining scenario or physical-device acceptance."
+  ],
+  "real_ui_smoke": {
+    "status": "passed",
+    "evidence": "final-clean-launch.log",
+    "source": "CleanFinalLaunchTests.swift",
+    "observed": "New Project and Browse for Project Folder controls present/hittable; no Editing paused alert.",
+    "test_setup_correction": "Initial test used a nonexistent Open Folder label. Corrected only the test selector to the actual Browse for Project Folder... label; no product change."
+  }
+}

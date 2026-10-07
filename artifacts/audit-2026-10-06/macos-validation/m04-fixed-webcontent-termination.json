@@ -1,0 +1,68 @@
+{
+  "scenario": "webcontent-termination",
+  "status": "transport-subset-passed",
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "probe_diff_sha256": "2d88274ef724e09d0bdfc0bd3a4885112d88f7d80002594cc5730a6f431795e8",
+  "device": "iPhone 17 Pro simulator",
+  "os": "iOS 27.0",
+  "native_state": {
+    "page": "0be9e72c02174ed4bf8bf65a90fb96ca",
+    "bridgeFailed": 1,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": true,
+    "evaluatorFault": 0,
+    "assetReads": 1,
+    "assetHeld": true,
+    "projectGeneration": 3,
+    "webProcessId": 0,
+    "nativeEditingPausedAlert": true,
+    "nativeReloadAvailable": true,
+    "nativeLaterAvailable": true,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T09:00:25.108603+00:00",
+        "ticks": 151956770815208
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T09:00:26.403111+00:00",
+        "ticks": 151958065328625
+      },
+      {
+        "kind": "asset-reply-held",
+        "detail": "3",
+        "utc": "2026-10-07T09:01:22.892928+00:00",
+        "ticks": 152014555377583
+      },
+      {
+        "kind": "content-process-did-terminate",
+        "detail": null,
+        "utc": "2026-10-07T09:01:23.19004+00:00",
+        "ticks": 152014852489958
+      },
+      {
+        "kind": "bridge-failed",
+        "detail": "IOException",
+        "utc": "2026-10-07T09:01:23.190096+00:00",
+        "ticks": 152014852545375
+      },
+      {
+        "kind": "native-alert-presenting",
+        "detail": null,
+        "utc": "2026-10-07T09:01:23.190412+00:00",
+        "ticks": 152014852861708
+      }
+    ]
+  },
+  "pending_host_call": null,
+  "wall_seconds_until_alert": 0.23449187498772517,
+  "timeout_ticks": null,
+  "limits": [
+    "Native Reload action and post-reload production health are recorded separately.",
+    "This transport subset does not prove retained edit recovery or no replay of a mutation."
+  ]
+}

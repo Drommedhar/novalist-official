@@ -1,0 +1,51 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -project <audit-ui>/AuditHarness.xcodeproj -scheme AuditUITests -destination "platform=iOS Simulator,id=8B32F399-4EC3-42BF-BAB3-51CDE4E64460" -derivedDataPath <audit-ui>/DerivedData -parallel-testing-enabled NO
+
+2026-10-07 11:07:40.392290+0200 AuditUITests-Runner[78307:3000541] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'All tests' started at 2026-10-07 11:07:42.131.
+Test Suite 'AuditUITests.xctest' started at 2026-10-07 11:07:42.131.
+Test Suite 'AuditUITests' started at 2026-10-07 11:07:42.131.
+Test Case '-[AuditUITests.AuditUITests testNativeReload]' started.
+    t =     0.00s Start Test at 2026-10-07 11:07:42.135
+    t =     0.02s Set Up
+    t =     0.02s Open com.novalist.app
+    t =     0.02s     Activate com.novalist.app
+    t =     0.03s         Wait for com.novalist.app to idle
+    t =     0.04s Waiting 10.0s for "Editing paused" Alert to exist
+objc[78307]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1046bc398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.748jjR/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x107ee8310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     1.06s     Checking `Expect predicate `existsNoRetry == 1` for object "Editing paused" Alert`
+    t =     1.06s         Checking existence of `"Editing paused" Alert`
+    t =     1.08s Checking existence of `"Later" Button`
+    t =     1.10s Find the "Reload" Button
+    t =     1.12s Tap "Reload" Button
+    t =     1.12s     Wait for com.novalist.app to idle
+    t =     1.12s     Find the "Reload" Button
+    t =     1.13s     Check for interrupting elements affecting "Reload" Button
+    t =     1.15s     Synthesize event
+    t =     1.44s     Wait for com.novalist.app to idle
+    t =     1.73s Waiting 10.0s for "Editing paused" Alert to not exist
+    t =     2.75s     Checking `Expect predicate `existsNoRetry == 0` for object "Editing paused" Alert`
+    t =     2.76s         Checking existence of `"Editing paused" Alert`
+    t =     2.76s Waiting 15.0s for WebView (First Match) to exist
+    t =     3.84s     Checking `Expect predicate `existsNoRetry == 1` for object WebView (First Match)`
+    t =     3.84s         Checking existence of `WebView (First Match)`
+AUDIT_NATIVE_RELOAD_BUTTON_PASS
+    t =     3.85s Tear Down
+Test Case '-[AuditUITests.AuditUITests testNativeReload]' passed (3.871 seconds).
+Test Suite 'AuditUITests' passed at 2026-10-07 11:07:46.006.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.871 (3.875) seconds
+Test Suite 'AuditUITests.xctest' passed at 2026-10-07 11:07:46.006.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.871 (3.875) seconds
+Test Suite 'All tests' passed at 2026-10-07 11:07:46.007.
+	 Executed 1 test, with 0 failures (0 unexpected) in 3.871 (3.876) seconds
+2026-10-07 11:07:46.303 xcodebuild[78301:3000217] [MT] IDETestOperationsObserverDebug: 8.720 elapsed -- Testing started completed.
+2026-10-07 11:07:46.303 xcodebuild[78301:3000217] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-07 11:07:46.303 xcodebuild[78301:3000217] [MT] IDETestOperationsObserverDebug: 8.720 sec, +8.720 sec -- end
+
+Test session results, code coverage, and logs:
+	<audit-ui>/DerivedData/Logs/Test/Test-AuditUITests-2026.10.07_11-07-37-+0200.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

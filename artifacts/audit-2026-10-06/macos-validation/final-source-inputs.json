@@ -1,0 +1,2279 @@
+{
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "scope": "Cleaned disposable simulator checkout equals final production source. New awaited native evaluator is retained; all audit fault/gate/control code removed.",
+  "matched_files": 568,
+  "files": [
+    {
+      "path": "Novalist.Backend/Appearance/UserAssetsService.cs",
+      "sha256": "ad6e4792875ce8186440db7ae230924185b388cc8c22259dd8249946f0853000"
+    },
+    {
+      "path": "Novalist.Backend/BackendHost.cs",
+      "sha256": "8e45237d1c22a09def5f91c32277173e4de0e0a9eaef403714dae9a8c7546c7f"
+    },
+    {
+      "path": "Novalist.Backend/CommandLine.cs",
+      "sha256": "85f868e6eb5e9ff66ae67da4a68d83c088940276ff91cc39336c781801872bcd"
+    },
+    {
+      "path": "Novalist.Backend/DataMigration.cs",
+      "sha256": "b6910415b99c1a7f33b708f3edac3bd4e82a04a43b697a7243bfd5fe2dcc0df4"
+    },
+    {
+      "path": "Novalist.Backend/Dictation/AppleSpeechBridge.cs",
+      "sha256": "b2baea130f1e7728509ffbad9e481d0b01e46a1f71fd5d3462eaa2c12f52b657"
+    },
+    {
+      "path": "Novalist.Backend/Dictation/ISystemDictation.cs",
+      "sha256": "0bd04c80dfe7e296d5b0ed8b99e1c09adce4873e0a9439c36952960beaea617f"
+    },
+    {
+      "path": "Novalist.Backend/Dictation/SystemDictation.cs",
+      "sha256": "aceee9ccba414abd928864fdcbad0974c54e741a030d020492bc4abc62be11ab"
+    },
+    {
+      "path": "Novalist.Backend/Dictation/WindowsVoiceTyping.cs",
+      "sha256": "fe616262820bc6f866bc92b34f1ef95f43ac68fbb2f08d23f5c15fb2600348d5"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/DiagnosticLog.cs",
+      "sha256": "323d9a1cdcba062effe19efe02f417b66cc8619748bb945bfef351276920b49a"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/ExtensionLoadContext.cs",
+      "sha256": "f73ab0c5647e4859a06ec423ed00dd7b04edc0fc7b24755296f162025b62512f"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/ExtensionLoader.cs",
+      "sha256": "ea464244cccae25fdf9a0eaed508d55a8e72b1c1b4c6efca487d637914533247"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/ExtensionLocalizationService.cs",
+      "sha256": "9a43c705176e17e8eae81dd8e921ce53642776f6f1a23ba94d25237c8b6431e9"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/ExtensionManager.Contributions.cs",
+      "sha256": "4fc0cc8cbd98d75a44c45422aec69f4a3b442624dac822100425c07079495fde"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/ExtensionManager.Installation.cs",
+      "sha256": "ca3ecdea28a1a82f7a3ec01cbdb0e8a578d6a9ed8e7f64a2cc67748468d2442c"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/ExtensionManager.cs",
+      "sha256": "3c490bbb602e2619cc668425981c7d90300d3eb17f4b0249c8d6bd8c24e631e5"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/HostNotifications.cs",
+      "sha256": "4b89ca26914969b8f6ee55fd09a77c38168a532c5f9610aa6dac81818762b6bb"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/HostServices.Archive.cs",
+      "sha256": "3169440d6f91e22f08b9ed1786df75395295942c239e81ac5911ac8c77e771a8"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/HostServices.EntityAccess.cs",
+      "sha256": "9fd2b747c38618c0f1007bb6cc46492037239dad46373089a586a5ee03cb93ae"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/HostServices.EntityEditing.cs",
+      "sha256": "938813b8ac420753984469ca4be7103b8b7d7889118724f8a7a3b024c9135bf7"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/HostServices.Extended.cs",
+      "sha256": "15e35c551fea2a2d11ead5eac92f0df812ac597d72fd7855dd64c496ec970876"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/HostServices.ProjectAccess.cs",
+      "sha256": "65bf8c285036172c62787b752dae4051128204d72d34741cbdcf4d2f9ab62767"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/HostServices.Research.cs",
+      "sha256": "c2f9e98d3aa8f6feb4bf1fc6e7809fd74c5cc9743134ce4d8678f603a4a61227"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/HostServices.Review.cs",
+      "sha256": "a30e707171e80a57fbd392b72a01ebb3ee4437750433c50bacb84128e5c1e6f4"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/HostServices.Story.cs",
+      "sha256": "bec4435c91e726241f741f1c4d233d6bf8d08bbbe55bdd1744d96aea2eb54894"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/HostServices.cs",
+      "sha256": "2c1f6ae668d6a9e6ef88c36fd38393a25b494712e61d68a4a0808c2861a78359"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/HostShims.cs",
+      "sha256": "f2904cd5e705a9f21d06f5e4dcc08146a4c571a66a5d04ce1109b7d99032528b"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/LogFileSink.cs",
+      "sha256": "303405bc257b6ebf4761746aa78d2eb62c04543b241978612e591245366c720b"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/LogRedactor.cs",
+      "sha256": "07479a8f3a579644cd31cc2c9e48743c00f80bfd70f9de2b8bbf18c7e0c5f4b9"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/UiBridge.cs",
+      "sha256": "1e831df24e02701113db5ced92d65c66d08810d87d0d454dca0f568d2dd1ebb1"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/UiPump.cs",
+      "sha256": "190ba66a23df39dea4c9188d6ce7448507ad0d100d1c9de15b41485e148f0b04"
+    },
+    {
+      "path": "Novalist.Backend/Extensions/WizardMapper.cs",
+      "sha256": "5de306643f0ceea22a6e80bb7483b9448b1895c5c1bd311e569dd070b8ff3ceb"
+    },
+    {
+      "path": "Novalist.Backend/ImportApi/LocalImportApi.cs",
+      "sha256": "8db8f72e865ac13a51f34af61c93c8d6885ac800e5b914a4bac4be61105a348b"
+    },
+    {
+      "path": "Novalist.Backend/Novalist.Backend.csproj",
+      "sha256": "c6a1690e7dd73a0ac21dbbfe21ab09088b3f32fd409a9a8eb262435886610c51"
+    },
+    {
+      "path": "Novalist.Backend/Program.cs",
+      "sha256": "47afc841073104218ac8fbf75b79d5057afa5cbbd6cdd82ed4e4ebaed97c86ea"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/AnalyticsRpc.cs",
+      "sha256": "f503375dc570f0ffdfb9ad78fe6b0ff8e23beb214c2d6111794568046abc251f"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/AppearanceRpc.cs",
+      "sha256": "95cac474c296979750c6b24bc351ce04fb0d3c7b799a65b50d5e1afacfceb5fd"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ArcRpc.cs",
+      "sha256": "db4549fc1fe49daaf85ff8cabf39f56704a7a5e08b769d05d34319208ee26a95"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/AttachmentsRpc.cs",
+      "sha256": "250a839c5ad243fc9820e385d72587004798df7fbc2d68daad5d85a17caafbea"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/AudiobookRpc.Rendering.cs",
+      "sha256": "2ed003c8f023e526c1c0f083151b0e713583182d678f9eec7f49c2b824f12b89"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/AudiobookRpc.cs",
+      "sha256": "3238f9ce649784ec7c11a3c8c1f0f0a066f7a0d6f18c5635e1348b25c41e9a96"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/BackupRpc.cs",
+      "sha256": "c02b16c62064046cb2ec963b24a821046ba748174ce42ef5a8152dd077a57cd0"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/BinderRpc.cs",
+      "sha256": "16eeb12b6764c912dd5bc4408ac0a0c54f772cde1ddaa1d2a4ba6429b4d73f5a"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/BookmarksRpc.cs",
+      "sha256": "586130f3a9d8db01c9b8e24d9a78946151ee1636aab80336f88846ca211a12ea"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/CalendarRpc.cs",
+      "sha256": "7a11e253be67ba2b4413378974f3b6a5bf080325e768544fae894b4d8a2c629d"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/CanvasRpc.cs",
+      "sha256": "20453ddc7e5be603c0b5c4be23c0a9760aa00115791265860bb470c9f3d7d31d"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/CleanupRpc.cs",
+      "sha256": "40e4570a018453c1fe14a8936550aafa40867ae96f9ab5e2bd3743b3bebe670a"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/CollectionsRpc.cs",
+      "sha256": "c58f23a33b0c48b2c79449928a3de77aa56360953f9a9a1205e8c07be4301ab3"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/CompletionRpc.cs",
+      "sha256": "a388782ff2cfdabffa5e78617684f6b66cd90116c6141f3af7f15188c35d7a8a"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ConlangRpc.cs",
+      "sha256": "8316868823a3484b376fdee3275366e038c3e57736fecd5899e3aeef52631133"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ContextRpc.Analysis.cs",
+      "sha256": "17bc2b57bd137719dec15d0ca999a81befcb6fa44fd11208063bc7c430cb3cca"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ContextRpc.Matching.cs",
+      "sha256": "c3501ed35098a65d2adaa4efd2fc8e1ebe1e7644944c80dd88a277bcde800794"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ContextRpc.cs",
+      "sha256": "7b60f10f55b7ba40c4fa2223290b9df37e155d6545b0c81160d51d6488390a5d"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/CorkboardRpc.cs",
+      "sha256": "0fe8747cd8f9a763ac4793e4abf9bd3cdbd97ea86f5be6512b3321d65191e823"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/CraftRpc.cs",
+      "sha256": "468de60e297ab23e23fa476b4f6b7f7e3ecd111a6fcd14a26d5faa376666b1cc"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/DarlingsRpc.cs",
+      "sha256": "f9bd75e745d28a4e8a68b862e916845e9081426328ce16fc7c1a693f8449b973"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/DashboardRpc.Echoes.cs",
+      "sha256": "13e945ec129dea07c939aa82306804215df4f32231f2e0742a089eeac77f0dce"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/DashboardRpc.Images.cs",
+      "sha256": "2a0f9fe3763306df178f40aab100fedee6a5350b657a4b42c194c5a309d79838"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/DashboardRpc.Progress.cs",
+      "sha256": "fd17ee720e39ed668ca6ebd4ff8afe1f2d51305513c0bf5a34720f58717296a7"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/DashboardRpc.cs",
+      "sha256": "4453bcab1df21014fc2bede8fe8d837f0a6efd07d8fce119380d7f4ba6b9c317"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/DialogueRpc.cs",
+      "sha256": "4a0ed4bc9e02541b2088787710683e948c94652bed3749f7945031a9757e3f63"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/DictationRpc.cs",
+      "sha256": "262c4207739359f3307ff974ec02b208cafdf5d60a9a9e270af566940ff87308"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/DraftCompareRpc.cs",
+      "sha256": "49fc66b7b877e205b95aaa5e08968da61c69eca291d558014779dc3be234ff47"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/DraftsRpc.cs",
+      "sha256": "f47b4120cdb146099965195df8fe7e4945b9cf77012e72dd54ef31d13889b1c6"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntitiesRpc.Editing.cs",
+      "sha256": "a6d81e81c25e9235b99db75fedf6ca78e7ecceff8d35a17e61d9365b2d7a1a11"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntitiesRpc.Extraction.cs",
+      "sha256": "e55c9146862cfb816f3c6d2ab6c12a5cfd66eced0c36eda890d0d1ff75ab89f3"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntitiesRpc.Images.cs",
+      "sha256": "84a5be62a4864e8d7dd81187e46cbfab847f458bcd3be6be6c7dc3765dee2e2d"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntitiesRpc.Lifecycle.cs",
+      "sha256": "1c5084101ef4134bd66c96aeeff28b72c938e5df385e090f72f777da29f518d2"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntitiesRpc.Overrides.cs",
+      "sha256": "b6d5a49db9e53a129f469b32fddd4f15bb1a8893c001637024603c26ccd7bb0d"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntitiesRpc.Peek.cs",
+      "sha256": "480f2fc826d5bf357aff5232f8c58f85ab7fcfcbefed20dd1f7630767d6e343d"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntitiesRpc.PeekCharacters.cs",
+      "sha256": "726bb88cbc73f36b71c40167d010e77623aad3d78e15a7591707616eeb82155e"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntitiesRpc.Policies.cs",
+      "sha256": "7b70a521782ba93362a8ead31724ccba7201a5eb491cbfc670b9be8aabaa6b10"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntitiesRpc.Templates.cs",
+      "sha256": "4075d08d4e95ffe8f2ebe433bc0c3f7b439ab18f79e6f4d58be031ea7015ea5a"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntitiesRpc.cs",
+      "sha256": "7b48e74d4e0357d63e0e9395ca8875142036e5f48b0eae7c96ffe02e6f1689d5"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntityContracts.cs",
+      "sha256": "d40461f611b935f4266fecca91366759f1bf2c7f060625d7fccd9fa00344dfd2"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntityImageImporter.cs",
+      "sha256": "3b4194982bc5eaa4b89586072b654b0d9ed770671e366bd461e0f87287159cad"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/EntitySheetRpc.cs",
+      "sha256": "1bc9394ef0a4a8616e09831e0434e4653b8a9cc227090f8110c88b5f7e6b8e01"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ExportPresetRpc.cs",
+      "sha256": "5141d901dba291f66cda65c73f87dff57fced49734089006b6dd3302fcd0e57d"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ExportRpc.cs",
+      "sha256": "3c25befb42490a20ad60f2e38094108d2a0b6ce787f501a3f4a9c093cc90fb1b"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ExposeRpc.cs",
+      "sha256": "d9a8976c7e0d555872c3aae64e3dbe57b9ef4eaeffd0ba5957bde4824708e358"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ExtensionContribRpc.cs",
+      "sha256": "ce2bbf10663bc1e9f7054ef9f5d848bf4c85456cfdf35e63735bfb3c21a5ca35"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ExtensionStoreRpc.cs",
+      "sha256": "c840a9e224df9b92fbc1619d906de9e72f6964b0bbabeb1e860e17a4c205e092"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ExtensionsRpc.cs",
+      "sha256": "1b7e246fbfd85e346f093b6b3050378eb928de857636e90454752db320c4e995"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/FolderImportRpc.cs",
+      "sha256": "bc8a043cfba0cfd80e703978f2590d0af48b9f4a62248ba5ec8ba8d7ced55b61"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/GitRpc.cs",
+      "sha256": "c59ae425d1404ad2bfd34264e23e27cfcc55317cf598cd76111993ddd3fd2c41"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/GrammarRpc.cs",
+      "sha256": "09ec3ec67de2ada11d95347c9b1d4672ac1de3a9b2497856eb54efa6be6b91ca"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/GroupsRpc.cs",
+      "sha256": "9d303ab6305dc748fd3f0580c142bf1caffeed340cb60308e6dceb7b8cc3379c"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ImportApiRpc.cs",
+      "sha256": "91e3d57cdcb49b678c3720f0ff241906bc4fe101214a73fb21d34e6a5d90464a"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ImportRpc.cs",
+      "sha256": "1723676a92b458e21a083fda5834b3a7a870c76986dba02da376d5b8a52a86fb"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/InboxRpc.cs",
+      "sha256": "7ee643ec3f35036c8e1e146993cfbfdf6157b46ef27ece1c8d8d6d23533f9a64"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/LibraryRpc.cs",
+      "sha256": "eecc8a03907633d4403938f029da5a678be9ca9b74d60f494a392be156f27ab9"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/LinksRpc.cs",
+      "sha256": "110a4ec7808433d0cf8852d4c037dda2fc33664deb2ab8badb5392aba6977239"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ManuscriptImportRpc.Metadata.cs",
+      "sha256": "a3f89a425135d1ff8c445dc359a7043f7ffac3a7bf1c68ab1407a6eff6739d9d"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ManuscriptImportRpc.ScrivenerPlans.cs",
+      "sha256": "686da324bc296f0737f169d99e5f24add090621b39d4bec33192839ae235a24b"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ManuscriptImportRpc.Writing.cs",
+      "sha256": "5150051a7ed06765b067789078667c7c65be8c75fbfc6d480e222246d67c5dfa"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ManuscriptImportRpc.cs",
+      "sha256": "adc3fdd5baacb075224e582e9a631a2504452dd2c74353419d136039e3e28ffe"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ManuscriptPropertyRpc.cs",
+      "sha256": "614e4c506d8ebdd636557ad39a65f4f4394564370d61f26be9c6b6a3fa8f4258"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ManuscriptRpc.cs",
+      "sha256": "a0c310eb58b44bcbf8ebcf0f2d1479852859a547a8b3f6930895ee436807dd99"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/MapsRpc.cs",
+      "sha256": "b9af11b67a5a84eb72eee3349f725e713c845af1a2009067a8b936bff1a0d7ba"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/MatterRpc.cs",
+      "sha256": "38df01a6c0ace227bd27e07580694144df7febb8325db695af92c6fc044a460d"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/NamesRpc.cs",
+      "sha256": "0897f74e62aea5c2a31f8f657bf104d1474e7aa0ab4ee194008f26ff3b276c1a"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/NarrationRpc.Book.cs",
+      "sha256": "8589f398415a8192ca02331de7f54fd0302ae9deb2406a870981598a0e0cf80d"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/NarrationRpc.cs",
+      "sha256": "cbe314300fc729a2d91025d1d21da58b4ff689a42b42d587676b13f57545f4c2"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/PlotRpc.cs",
+      "sha256": "a4a5b925714c2ba5fe58094bb54a8214f6b39d23cb0f42cc5a5b0172f5710350"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/PremiseRpc.cs",
+      "sha256": "f3b27e7db63f5b6c62e05342a36f32d5acac903348aa80e080eff0951d9cea54"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ProjectRpc.cs",
+      "sha256": "da8165d67d9bda939b8b2ae69dfbf5b0496f3af23a63f2a642400082cf06de4a"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/PromiseRpc.cs",
+      "sha256": "a0b419b4c50c13d45fd97c2c47f93ce0bbdd93f363e1bdce2dcb9a38db3fcb71"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/PublishingRpc.cs",
+      "sha256": "b5f73496e26966a71bcd889281e7bc84fb2529dd168bf0be4560ee430aeebb39"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/RelationshipsRpc.cs",
+      "sha256": "e7236a3885af4f3329a082af96908dfecc9dc71a3e91f44efb165c98dbe71154"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ReviewRpc.cs",
+      "sha256": "3480aea1f64a5d411077073c222df8831076d02342f004c64ed75c170863f163"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/RubricRpc.cs",
+      "sha256": "15e5f105fb61af1718834449b62c5e4f1a368399e4694c6e12666885c7b8852d"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SceneBulkRpc.cs",
+      "sha256": "bb44623d703f2be53208b85bd3022d5d05809298eb31725f4be02253024337c0"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SceneLabelRpc.cs",
+      "sha256": "fe55ffb27bbedb8e5faf53bfe2a70283d2bd5bcde8298578d7d511edd89b5e16"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SceneSplitRpc.cs",
+      "sha256": "c08e3f779bec9d1de35d385a7bf80a3dfb9284d3e87e651545fe87e7af4fe441"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SceneStageRpc.cs",
+      "sha256": "01c5a4cadab8b82a8b52372fdf2df3d54cc23d2a42a29c77f824c56fd96c848b"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SceneTemplateRpc.cs",
+      "sha256": "482109c29049e53a048d54b0e38774bbbc262634a72ebd500bb852080e2b5dbd"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/ScenesRpc.cs",
+      "sha256": "30b47ec3a8eb60a3a1a7bf492803fd04f3df9d0f6db543a42bd0649cab9bc3b6"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SearchRpc.cs",
+      "sha256": "8edcea8a2e21fc90cf4b50ac7e2facf3680386bebec00ae5fac1a2cd35117847"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SeriesRpc.cs",
+      "sha256": "4752e69b22dd2952c5b792b34093d177afcfff7e428391ba492b571336c11c16"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SettingsRpc.Diagnostics.cs",
+      "sha256": "04599698be9c43a3c5a2ba4ff176e72585c75568821ed764e163ecb4f47a383e"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SettingsRpc.Overrides.cs",
+      "sha256": "ac54cbebeda62796c763b113a7f86e517c32f4192fa0a5f623bcde4441e78dab"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SettingsRpc.cs",
+      "sha256": "47a104c4a565d751877a205d13a8f50751703450c2ddddc2a54215f7bc05da7e"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SmartListsRpc.cs",
+      "sha256": "681e7be982ffce799ff35b906e421abda253311b636cdde3929bbe2fed2444fb"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SnapshotsRpc.cs",
+      "sha256": "95ca0b8aae8b2697822abc1382534d2b8dcb7875442b609c8f74f311b93b256f"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SpellRpc.cs",
+      "sha256": "5e8b10e92dfa0bac22fcc0c24ca2d17bb084c88952030d3304d3fb0d54dc27e4"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SprintRpc.cs",
+      "sha256": "1d9d9bdaa00065c0d3bd5793796d854007a9aef40891d6e220cb7604dd9b54a7"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/StructureRpc.cs",
+      "sha256": "577f4a83e91cc13c130d3581254252bf612660571a6d9cf954d34318f08f5868"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/StyleRpc.cs",
+      "sha256": "f87273384347e8649a3fc39bfeb43a39677811f870e34c492d055f146f437ce1"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SubmissionsRpc.cs",
+      "sha256": "0b0c14880cd6f742ea79e28cd2690778ffdcc2a451a3f926c0bfa173d330907c"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SuggestionsRpc.cs",
+      "sha256": "a2b40432f35f0f902b1b8825b2e548cefb9c9dbe8f1b754173836d52056899f3"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/SystemRpc.cs",
+      "sha256": "0b3688a5ab5de413ceb8470318f3240f364363d5716d78219e6f011a800fa0d2"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/TagsRpc.cs",
+      "sha256": "d7956c0df04dfdcc459d97e52c101285ad141b5d628e096ecb4ece018cf25157"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/TasksRpc.cs",
+      "sha256": "02b9368b073df54250248b10eab8d584823afda47284f271d080c3f84f6a2c9b"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/TemplatesRpc.cs",
+      "sha256": "c4793228ceb83ce8256a5ea30232cfdd5b32b9e09761802c7cd75d0a25b119d4"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/TimelineRpc.Editing.cs",
+      "sha256": "b64f632ce7c13b197e3a6f9444fc091b46f5dc223025ebb314891779c822add1"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/TimelineRpc.Grouping.cs",
+      "sha256": "81df19e36067f0c26b94e2babf776945dcd97f94b759d06ffd27ae9a5627d259"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/TimelineRpc.cs",
+      "sha256": "93e25f8061010d10c9dc2abaec4a897db600997603a9a5c9f014c65c00610327"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/UiBridgeRpc.cs",
+      "sha256": "454c3169bb865c1c75204f7243b05a52c37e1d69ffef45a3e346883050275709"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/UnlinkedMentionRpc.cs",
+      "sha256": "23bafc6973d4c5045b70a7e1c2f67697a57ddd4d32d5093d08d2d0300369e81b"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/VoiceEngineRpc.Audition.cs",
+      "sha256": "0c5d605d6a0a2e622c3ba9a4551d2fcb08510fb4a9b1125d773600d554e65304"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/VoiceEngineRpc.Design.cs",
+      "sha256": "c50929f6241161b2bb7c5346f3a8f065b24db5b03d9a2dcbdb039dd1c958dcf2"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/VoiceEngineRpc.Readiness.cs",
+      "sha256": "a59a6511927510fca87d47d8ffcc96f37ea5a150b4cbc2a98f404b7b71d18c8a"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/VoiceEngineRpc.Rendering.cs",
+      "sha256": "f3ffdbaec19f12e164329055c9bc2529cb947c6b61c9dbaf61d7823825967e03"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/VoiceEngineRpc.cs",
+      "sha256": "f8e98aef3a6797f7115b59de50f1ba3c29fd37addcaae6f634de2fcc3d30d298"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/VoicesRpc.cs",
+      "sha256": "2a1d8b99630f4d0e358222702bb026a41abf71200aec523f7695cc49a3ffc784"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/WikiPagesRpc.cs",
+      "sha256": "3a5f6f283b800301648af0015e23fbfbf3d016082a7134c7087a0ccd94246584"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/WikiRpc.Entries.cs",
+      "sha256": "1953d35f070b04ce14ccabd4227728939a0bf3380b63e2e3d9bb57dc6a571eaf"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/WikiRpc.Generation.cs",
+      "sha256": "ddcbf71bc6f02575ac06edf3a9002af8c3fda06d25319a1b5ec17894346076af"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/WikiRpc.References.cs",
+      "sha256": "30a48d28efdf741b2f9266a84d0e3bd7b0cdb12e4190c19d573894763ed639ea"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/WikiRpc.cs",
+      "sha256": "cb09987ae2ca3a8e818d4201caedd746e67fe74fd2d2e5b9a41b1457db3f40d4"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/WordTargetRpc.cs",
+      "sha256": "f2ac219f0455ef6b974cfe247748118bbfb4e07ab78a870c61e89fe69f4b4a67"
+    },
+    {
+      "path": "Novalist.Backend/Rpc/WorkspaceCoordinationRpc.cs",
+      "sha256": "e8420916dbe654645c1a0bad5171d8f40d4dc4a74701c1b24a989ee6100fd2bd"
+    },
+    {
+      "path": "Novalist.Backend/SerialDispatchJsonRpc.cs",
+      "sha256": "26fa3cceeced7430f6e3c352da9b86c28ac89418ba193fd8015d8469f28f8693"
+    },
+    {
+      "path": "Novalist.Backend/Speech/CommandVoices.cs",
+      "sha256": "ff214d0a893c637e1639284c29ba229695c6682d81c0dc5697a9b5d84614bb55"
+    },
+    {
+      "path": "Novalist.Backend/Speech/SystemVoices.cs",
+      "sha256": "ca225d191f7b3220d9708e17db794eee9eda84d88270f22850001644e61f2f8c"
+    },
+    {
+      "path": "Novalist.Backend/Speech/VoiceCatalog.cs",
+      "sha256": "9e1c96963cd44c7ab5bb55cbfaa21fe26257995f727ad9b08ea3ebf9480eb207"
+    },
+    {
+      "path": "Novalist.Backend/Workspace.Extensions.cs",
+      "sha256": "292a248b9d602f515faa762ebc397d902b39de1e54ddebeee40b92301e11f42e"
+    },
+    {
+      "path": "Novalist.Backend/Workspace.Library.cs",
+      "sha256": "1f3777c6f80f03909230d82e140c354395f3f3a7cbaf0cc50c909af74adb3985"
+    },
+    {
+      "path": "Novalist.Backend/Workspace.State.cs",
+      "sha256": "a613e04ae14b257c1a97bb98e7ef25b06c76c622e9bb4a16a6b33159622ea55b"
+    },
+    {
+      "path": "Novalist.Backend/Workspace.cs",
+      "sha256": "d80b967b2754bb1653b0acf05f97ce5be51fb93f9a284586aefebf86df04a87b"
+    },
+    {
+      "path": "Novalist.Backend/WorkspaceCoordinator.cs",
+      "sha256": "65032ac58df7e7b040e487ac246b10628524f0c2904b92fc2a34a6df53a7e521"
+    },
+    {
+      "path": "Novalist.Backend/WorkspaceRequestContext.cs",
+      "sha256": "a6d94edf1375c88f4fbaa28ab3832aba0e1ff830969d8f94428d28dd540f6131"
+    },
+    {
+      "path": "Novalist.Core/Models/ActData.cs",
+      "sha256": "5c68fdbf4df240514d218d8bf4436ee9e7bc769bcf401fd00270e8c00f2a33a0"
+    },
+    {
+      "path": "Novalist.Core/Models/ActivityItem.cs",
+      "sha256": "43c15d62aef4060bdb253700ae253f74c3bd3258ef34210a6979c71e0207f94d"
+    },
+    {
+      "path": "Novalist.Core/Models/AppSettings.cs",
+      "sha256": "12d120170bf2f2543a06b24a058b77c5bca780328d1bd9e086bc3c66cf6f3930"
+    },
+    {
+      "path": "Novalist.Core/Models/AutoReplacementPair.cs",
+      "sha256": "3471544ceb24f1d4e9a0662794a12a785339f1c57e94e86a87d4836a240b6db8"
+    },
+    {
+      "path": "Novalist.Core/Models/BackupInfo.cs",
+      "sha256": "df04cb0172f6ef99720c37ee0ce4aa88c5f6ecf79b81fa6ec4449cee1eb823fc"
+    },
+    {
+      "path": "Novalist.Core/Models/BookData.cs",
+      "sha256": "f61fda3621727ca1b09b1a7eee58bf7f38109c7f72239cdc8a0185ee78bf2358"
+    },
+    {
+      "path": "Novalist.Core/Models/BookDraftData.cs",
+      "sha256": "3ca0bfc4b53c1386d8bd81dbef4276f60958c14acfbe7066ea06ea6ca8888e23"
+    },
+    {
+      "path": "Novalist.Core/Models/BookMatter.cs",
+      "sha256": "e25322471a3805297b0b573db3c4ca05042a9451dffc39bdda20412f25a0b0d4"
+    },
+    {
+      "path": "Novalist.Core/Models/Bookmark.cs",
+      "sha256": "9f37ac56dec99d72c6712109a44b3adfa6606e23f3bde7fe0ccaa8254ce3cea5"
+    },
+    {
+      "path": "Novalist.Core/Models/CanvasData.cs",
+      "sha256": "7ef0f5352dd47ef88b7cd340ba073ad23826ba3e9879ad94cf46e9a4d8d23e26"
+    },
+    {
+      "path": "Novalist.Core/Models/ChapterData.cs",
+      "sha256": "2fca06c8d30a6399f77fa47cbfdbda2811479fbff5aed44b7f5284ebe64ce9e0"
+    },
+    {
+      "path": "Novalist.Core/Models/ChapterMarker.cs",
+      "sha256": "ead9186eb77fb241ab023d00ea339afdf618fcb34abd4786f89f4f4bb503c547"
+    },
+    {
+      "path": "Novalist.Core/Models/CharacterArc.cs",
+      "sha256": "516699750e3943d1bffeb49b3fb4b50a8dd53d0ec82885562d65d4d6fe05343e"
+    },
+    {
+      "path": "Novalist.Core/Models/CharacterData.cs",
+      "sha256": "2ffeb50b46846d23990290ab2f5124526427362b3ccae7c3da64bf409559ae70"
+    },
+    {
+      "path": "Novalist.Core/Models/CompletionList.cs",
+      "sha256": "d1d77046db1848e3ae7d01af015d52e00e0319ce3b03e80e5f7a1bccf37b5ff8"
+    },
+    {
+      "path": "Novalist.Core/Models/ConlangData.cs",
+      "sha256": "82328e89fce39d1aeac325719df74348a87067066e7eea26ef727ffd6a528ce6"
+    },
+    {
+      "path": "Novalist.Core/Models/CustomEntityData.cs",
+      "sha256": "67523e89b30512acefcb845c6d574adeeb75a3697abe4b36246f749f15146e22"
+    },
+    {
+      "path": "Novalist.Core/Models/CustomEntityTypeDefinition.cs",
+      "sha256": "93e3713a1d4826b02dada81d0f3c13e3cec0b41d2c5ced9f36307c92d049e918"
+    },
+    {
+      "path": "Novalist.Core/Models/DraftIndex.cs",
+      "sha256": "288badacfd48fbdc52b34b52278f90cbb3704676e8d96cca7513435bed6d6793"
+    },
+    {
+      "path": "Novalist.Core/Models/EntityAttachment.cs",
+      "sha256": "2ce2e999e4cfeb3869626c6f23e5010f03a20ba703caca624d5fa285cd122ff2"
+    },
+    {
+      "path": "Novalist.Core/Models/EntityCommon.cs",
+      "sha256": "4527fb9548e0a6453cf58a4667768b3998a779880383f4701ad6a9436e14a8f9"
+    },
+    {
+      "path": "Novalist.Core/Models/EntityGroup.cs",
+      "sha256": "6eb09db8fa18bb16b9dab0f250e1f7f82333e3e4d8208af140ee19a207de4392"
+    },
+    {
+      "path": "Novalist.Core/Models/EntitySheet.cs",
+      "sha256": "d0a2df4226cf425bb67731de104e03615a5e8b2bf2313854d53d7a1e2bd1cd2b"
+    },
+    {
+      "path": "Novalist.Core/Models/EntityStateOverride.cs",
+      "sha256": "4ee2e937428866f769367461ac51b9d46232ada8035b613166cc65e660b9ceda"
+    },
+    {
+      "path": "Novalist.Core/Models/EntityTemplate.cs",
+      "sha256": "f8a05e1589ef4b67c4405d670fcf88b0e80c1279ed0b7150167932479370c072"
+    },
+    {
+      "path": "Novalist.Core/Models/ExportPreset.cs",
+      "sha256": "3f939f215a3359602a5fc8e5f7baac77eb6fe2d88a0d2e4272223115efc2e0ab"
+    },
+    {
+      "path": "Novalist.Core/Models/ExportReplacement.cs",
+      "sha256": "ea3db638fa6d31647eb265ed0f2739ca0ecc164f5fe891e28f038edf277daa29"
+    },
+    {
+      "path": "Novalist.Core/Models/ExtensionGallery.cs",
+      "sha256": "11733cd0b3722b5f523261434ccc326e76efec45957df02f3f5bca0b3cce5b05"
+    },
+    {
+      "path": "Novalist.Core/Models/FileFrontMatter.cs",
+      "sha256": "37b30570246800f4f01873731583404a1e8dcad929b7bc1b6552943829ef6653"
+    },
+    {
+      "path": "Novalist.Core/Models/FindReplace.cs",
+      "sha256": "0bdf75e5e26eb871d89b911bd59a07ea40e815171675bdef3e1020a11a98b6ba"
+    },
+    {
+      "path": "Novalist.Core/Models/GitModels.cs",
+      "sha256": "0a78c03d0696432e2865442a1c6fc262cbe6e2cba5cc1e7c5c8bcbe41f9db5d6"
+    },
+    {
+      "path": "Novalist.Core/Models/InWorldCalendar.cs",
+      "sha256": "d212162c145e0f0a088351ae56b6fcb1442267a77ba4a72d271178abd438a5af"
+    },
+    {
+      "path": "Novalist.Core/Models/ItemData.cs",
+      "sha256": "3151a204d93bbfbd5f0d3d5d51cd807a4650271fca2e0ce666c9bdba348eed8d"
+    },
+    {
+      "path": "Novalist.Core/Models/LocationData.cs",
+      "sha256": "3f1325bd0ba5810e1cd9b99a60cf43afa1dfaeb69bd1fde5b1fd19f9eff23d20"
+    },
+    {
+      "path": "Novalist.Core/Models/LoreData.cs",
+      "sha256": "d67cd8606cc10d3d4daeb9e531f8a0f854379293e71aeb31b6eb3ea3f8184b8a"
+    },
+    {
+      "path": "Novalist.Core/Models/ManuscriptProperty.cs",
+      "sha256": "69d70578643d0a73ce323feebe4ea9c501f093244a284a65f111948c2b527177"
+    },
+    {
+      "path": "Novalist.Core/Models/MapBuilding.cs",
+      "sha256": "0faeec0bd6628b3c351e45557e134a50b59b05db0ba70704eac9eff2ab7ad1ce"
+    },
+    {
+      "path": "Novalist.Core/Models/MapData.cs",
+      "sha256": "84b0d6fd3262155a33681c6092a0934b11a71bf183a706b5c186a0dee27235f5"
+    },
+    {
+      "path": "Novalist.Core/Models/MapGeometry.cs",
+      "sha256": "cece4d7f29db1d566dfe26abf1930eb4f7b14d1189a708233caac609558969fb"
+    },
+    {
+      "path": "Novalist.Core/Models/MapProfile.cs",
+      "sha256": "4152d8bd622dc3f5d126527fd51a906d3375e71520052134dc87468fd1bf9c56"
+    },
+    {
+      "path": "Novalist.Core/Models/NovalistProject.cs",
+      "sha256": "808be0f7d66b561c85ebf3bc3aa97668e2c5579a92326a5b9139b7b2529bd350"
+    },
+    {
+      "path": "Novalist.Core/Models/PlotlineData.cs",
+      "sha256": "fedacdcccc056c1008331e0dee32f5f9cf3a46d22096e3407c6204854dde75dd"
+    },
+    {
+      "path": "Novalist.Core/Models/PrintSpec.cs",
+      "sha256": "160218535453ba21f4c5c9dc24471e7ba94a16cc8ff4b43cdd885b8973825976"
+    },
+    {
+      "path": "Novalist.Core/Models/ProjectMetadata.cs",
+      "sha256": "adfc7fbac2d87a9205bebcb36d30916007988c1d50df12494f2830591ffedd5c"
+    },
+    {
+      "path": "Novalist.Core/Models/ProjectSettings.cs",
+      "sha256": "b5b1d66bf25ee4026f408cf6c0c9ce274a5eb72e3e628f44326291e2e47ecc14"
+    },
+    {
+      "path": "Novalist.Core/Models/ProjectTag.cs",
+      "sha256": "135487522717712c27adfea76c65c99802b85cc772440ba43c2fba0fbaff68a6"
+    },
+    {
+      "path": "Novalist.Core/Models/ProjectTask.cs",
+      "sha256": "68c5eb43d6a688e92f915d8f52557c7999661e607a3210c95a39600e349bba46"
+    },
+    {
+      "path": "Novalist.Core/Models/ProjectTemplate.cs",
+      "sha256": "aa3ea218f85d49eefc58ac0beb4c244106f3e8dc75778bd0a28b591b9ec0362c"
+    },
+    {
+      "path": "Novalist.Core/Models/PublishingMetadata.cs",
+      "sha256": "ebffea38e44407e0fc2ae4ddcb9560ae6e2627ea8f50ef10526c47bc101ab4da"
+    },
+    {
+      "path": "Novalist.Core/Models/RelativeStoryTime.cs",
+      "sha256": "330a44427402630201ca7b02a492fda7817a31e46619e65f016f57dd2016ab9e"
+    },
+    {
+      "path": "Novalist.Core/Models/ResearchData.cs",
+      "sha256": "4158a0eefbb2d776acfc34470b6659c7519dfa328c74dd3e565bb505749e01c9"
+    },
+    {
+      "path": "Novalist.Core/Models/RetailerLink.cs",
+      "sha256": "644c15b42848df25a3ad6bbaef667c240a65697698b8a50ee475974a107b6e98"
+    },
+    {
+      "path": "Novalist.Core/Models/SceneAnnotations.cs",
+      "sha256": "75d141dd57ffee01669ef897eb516c4cc615d98637af397f97f39e39ae212a3f"
+    },
+    {
+      "path": "Novalist.Core/Models/SceneCollection.cs",
+      "sha256": "fed2f1ede06187bbfb93174b1eaf3d6b77f29d58913ba4c7c749209b16e8a001"
+    },
+    {
+      "path": "Novalist.Core/Models/SceneData.cs",
+      "sha256": "0027a885554f1edf42155e508acee2fc48ea1162beb094bf5ceebfaa741cd399"
+    },
+    {
+      "path": "Novalist.Core/Models/SceneLabel.cs",
+      "sha256": "7aab55d9d9118ce4f2d8dd95198fa2561a2fa543750df34002c9b76f5f4c216e"
+    },
+    {
+      "path": "Novalist.Core/Models/SceneLink.cs",
+      "sha256": "b86e3ed2acba375d568d546443ed7c91e92f232af4c34db7507a09ad60fe8856"
+    },
+    {
+      "path": "Novalist.Core/Models/SceneSnapshot.cs",
+      "sha256": "f8319d022504dc23b00bfe66e3ae2add72f0143a7e75f13f674e900816cf428d"
+    },
+    {
+      "path": "Novalist.Core/Models/SceneStage.cs",
+      "sha256": "205816e58d412453e90ecf9d8c88932c7ebc5b3fe6d1aa6420405437c3590264"
+    },
+    {
+      "path": "Novalist.Core/Models/SceneTemplate.cs",
+      "sha256": "f9bb8178aa31e725dbe112fce3c75e4d562b2bf188d750cb395dbc413f147fe0"
+    },
+    {
+      "path": "Novalist.Core/Models/SectionType.cs",
+      "sha256": "6f210a00cd16910f860a7e196ef6aeeab37f17baf3ec7f31c72f7e4ba05e7c05"
+    },
+    {
+      "path": "Novalist.Core/Models/SettingsOverrides.cs",
+      "sha256": "f064003a85cb7e5ca84788a6fcb0b562c8fdc50604113bbb094d8e4393d00efd"
+    },
+    {
+      "path": "Novalist.Core/Models/SmartList.cs",
+      "sha256": "a1f668e3193522ec28edbfaa3d8eedf660c106dc2b85262dc5bafcfaa0bb63b3"
+    },
+    {
+      "path": "Novalist.Core/Models/StoryDateRange.cs",
+      "sha256": "a59cebd4702d7d9853bf5e58c66781afe80ef60e1cb6d25769eacd43a1cd195f"
+    },
+    {
+      "path": "Novalist.Core/Models/StoryPremise.cs",
+      "sha256": "bbfa9f9b6adb64470ebbac25d196c75a8884b0a70475a5d783ab4f05fec6f598"
+    },
+    {
+      "path": "Novalist.Core/Models/StoryStructureTemplate.cs",
+      "sha256": "16bae9a189f271b7c35aeaf185c9c76b3e33f12f6c1f80a2302815e8cc45f930"
+    },
+    {
+      "path": "Novalist.Core/Models/Submission.cs",
+      "sha256": "dba6534a7dd3f91aa535e919c848de3918708a874f2e98fb00fd730f7ca1647f"
+    },
+    {
+      "path": "Novalist.Core/Models/TimelineData.cs",
+      "sha256": "30bd7f6df1da1de82dd5db092095956d459337afe2e39a5f03c2a80a9910357f"
+    },
+    {
+      "path": "Novalist.Core/Models/WellKnownPropertyTypes.cs",
+      "sha256": "03462c9ce86ec66dc27c79fa78d60f5f347a9c496c9d781a26dca10fafcf25d3"
+    },
+    {
+      "path": "Novalist.Core/Models/WikiPage.cs",
+      "sha256": "ca1d81681d6ca5cfcfa5f54b59b05009e6266e2dec68e9531b943f5563dc7ef6"
+    },
+    {
+      "path": "Novalist.Core/Models/WordHistoryEntry.cs",
+      "sha256": "54e2de87f48306f74aa1936468fd80e14418678b20b6a4dc05e103bfd50f5259"
+    },
+    {
+      "path": "Novalist.Core/Models/WritingSprint.cs",
+      "sha256": "1deefe706ed0a634d34728817bc8d655979f9a0459b410ca6cdff8d1aa305ae0"
+    },
+    {
+      "path": "Novalist.Core/Novalist.Core.csproj",
+      "sha256": "212d78bcc9bd244cfdb48f67e00680351a7958bdc90039406bc91ca24f9389e5"
+    },
+    {
+      "path": "Novalist.Core/Resources/Analysis/analysis.de.json",
+      "sha256": "8004249f2746fee90473ffc52906028ea879f933678c23ff78b533eb5a0f27a4"
+    },
+    {
+      "path": "Novalist.Core/Resources/Analysis/analysis.en.json",
+      "sha256": "80cfce6cfc634de3fadf21b6c6f6f1b5e76c7f3c8fb40d46a91626b11a0b5f60"
+    },
+    {
+      "path": "Novalist.Core/Resources/Analysis/analysis.zh-CN.json",
+      "sha256": "7ac4d797624e310a4c2d963079026f62ec5e37f76d53bdf8c5a0585a989cd6e9"
+    },
+    {
+      "path": "Novalist.Core/Services/AiContextPolicy.cs",
+      "sha256": "668e0048ae923c49690f38b31e16ff90b6d4a863c32ad3d49257963630545b3a"
+    },
+    {
+      "path": "Novalist.Core/Services/AppearanceIndexService.cs",
+      "sha256": "054e20651eed93770007525f4d0d00824aed615c3c1558981bc5f66ce932a491"
+    },
+    {
+      "path": "Novalist.Core/Services/ArchiveService.cs",
+      "sha256": "92c389d9578d9bfacf9d2736778142f64d74933ff880f38cbe3dde6edd2b5909"
+    },
+    {
+      "path": "Novalist.Core/Services/AssetWatchCoordinator.cs",
+      "sha256": "32102ebd0773062bd34daf12cbd4b532c5f9a28ea13f92a74e3e829b8acff9c4"
+    },
+    {
+      "path": "Novalist.Core/Services/AssetWatchService.cs",
+      "sha256": "670b711be9774b0b2aff7266783e37eefb945efe1bd9d5edb5fb4c269dc39d04"
+    },
+    {
+      "path": "Novalist.Core/Services/Audiobook.cs",
+      "sha256": "7fc8d7443b87c4e69b36a4a401c1f5fcde12232522577110ea4f3c1f9eb3ebde"
+    },
+    {
+      "path": "Novalist.Core/Services/AutoReplacementRules.cs",
+      "sha256": "9a3986cc762018151023785f101d772ce44bff716904e5c8634c899b1215e7e1"
+    },
+    {
+      "path": "Novalist.Core/Services/BackupService.cs",
+      "sha256": "04e93ea1752e93bfd4a8509028c9e139a08cce2f23f6c64392d3c809bd115b55"
+    },
+    {
+      "path": "Novalist.Core/Services/BackupStorage.cs",
+      "sha256": "7173724933b3442000f5d4ba8cf31826fc4e58b8d4bbd586ccd35e06dbbb7f05"
+    },
+    {
+      "path": "Novalist.Core/Services/BookAnalyticsService.cs",
+      "sha256": "c9886b7792180b6a61b309430e547f20fe24f374fe8460084c89a91b8f4901f5"
+    },
+    {
+      "path": "Novalist.Core/Services/BookmarkPreview.cs",
+      "sha256": "08f3dc5c4ac7889c27abea402edcf541458dd83d21180176b052838dc275186c"
+    },
+    {
+      "path": "Novalist.Core/Services/CanvasService.cs",
+      "sha256": "2d039773a6f317861abb38320b5d452127e455b97de66047666f79aec608f976"
+    },
+    {
+      "path": "Novalist.Core/Services/CastAbsence.cs",
+      "sha256": "13ffbdcc26933210664661fc67b950e4a52149448105fa3817ac3b52b82c16c4"
+    },
+    {
+      "path": "Novalist.Core/Services/CleanupService.cs",
+      "sha256": "511a41aba7cf31c53a54485463be03b19d742883116876ae65272af05feb5f5d"
+    },
+    {
+      "path": "Novalist.Core/Services/ConlangService.cs",
+      "sha256": "58fa4309218aa4672b3988e86f89f5cc066894bdaebc347c4dfae82422469289"
+    },
+    {
+      "path": "Novalist.Core/Services/ContentHasher.cs",
+      "sha256": "99aabb697ad9c4d8eb2f359a6bff5bf2b023d5f8739cf51a0260ceaf4820214e"
+    },
+    {
+      "path": "Novalist.Core/Services/ContinuityGates.cs",
+      "sha256": "b619377bb9454950546029c4b16b977baf49939b7e80d509d7b27f0f999f99fd"
+    },
+    {
+      "path": "Novalist.Core/Services/CoordinatedFileService.cs",
+      "sha256": "c3c8f14b87435e89551417e3582580a50768fff4687c85714e0fcdde3d164823"
+    },
+    {
+      "path": "Novalist.Core/Services/CorkboardService.cs",
+      "sha256": "3f54d32feaa4975f4fbe8a473fd04143f3d15423b17c0aedd11f21fc122d254e"
+    },
+    {
+      "path": "Novalist.Core/Services/CraftLibrary.cs",
+      "sha256": "7d255c439efe02e995d5349f92869359836dce55a1915ae83394dcf5a5efaa08"
+    },
+    {
+      "path": "Novalist.Core/Services/DarlingsService.cs",
+      "sha256": "ac5921209af61ab9057933fe671f67c53d4acd163f56bc1440c8304afce5836a"
+    },
+    {
+      "path": "Novalist.Core/Services/DataExport.cs",
+      "sha256": "734168426c2b06e713ef5b398d3d0dc9ba74d4ad0f43d52a08b9afd4f35bfb6d"
+    },
+    {
+      "path": "Novalist.Core/Services/DialogueAttributor.Speakers.cs",
+      "sha256": "2304c785592381771c5755a32080eef888e51bda9f152a3ec57c14798cad5126"
+    },
+    {
+      "path": "Novalist.Core/Services/DialogueAttributor.cs",
+      "sha256": "bc82a6e5a2e76a1bc9f744bf25b51bcc5b5eec067770d4ffd1fb5ad4df275f04"
+    },
+    {
+      "path": "Novalist.Core/Services/DialogueIndexService.cs",
+      "sha256": "555f00d501af816461aa155eb46a93f836152621f40782e82110d170ca447194"
+    },
+    {
+      "path": "Novalist.Core/Services/DirectionCode.cs",
+      "sha256": "1fd12d4134ea7275a1b9da30503c44e50bd91320e94090dc38dfe2bba6ab8fd4"
+    },
+    {
+      "path": "Novalist.Core/Services/DocxReviewReader.cs",
+      "sha256": "f2b6019e4093bc86e8b2c0e056ad88fe4ad4988a581bb88d189f0b04b975d5c7"
+    },
+    {
+      "path": "Novalist.Core/Services/DraftCompareService.cs",
+      "sha256": "fdb3ca6376452002ec68b757c7d3d741cbb2586f9dafaf9aef1cc9fd1f3c5a3c"
+    },
+    {
+      "path": "Novalist.Core/Services/DraftTransferService.cs",
+      "sha256": "746b6b84f933eb2b46a8813b8a680035fd603856fae80168880c66ca98115754"
+    },
+    {
+      "path": "Novalist.Core/Services/DraftWatchCoordinator.cs",
+      "sha256": "32792487fcd9884645261aedc107abc0e503c9bb74de83cd7bfa532baade2d59"
+    },
+    {
+      "path": "Novalist.Core/Services/DraftWatchService.cs",
+      "sha256": "425163a81525a45ba952757556330d0b291a18c9c4d7cb24c73a9af71502bda3"
+    },
+    {
+      "path": "Novalist.Core/Services/EffectiveSettings.cs",
+      "sha256": "c49e8d4459ac65bd2f58c75197269a72b10daa98aaa2745229f296e04bc8c4da"
+    },
+    {
+      "path": "Novalist.Core/Services/EmotionDirector.cs",
+      "sha256": "dd2ce9baa9e80fc4a1dd467f736039ac8822c510ab8c0df80d2eceae7cd636ef"
+    },
+    {
+      "path": "Novalist.Core/Services/EntityHistory.cs",
+      "sha256": "909ac736dfdb819a7bc43c7d2a12a6e208316d12c8855c8d4535d445a39bbfe8"
+    },
+    {
+      "path": "Novalist.Core/Services/EntityRenameService.cs",
+      "sha256": "113e23b7904f50c2ec815a45d3cfcb4c072b882d2cfb56d52bcc8bc81e5973a6"
+    },
+    {
+      "path": "Novalist.Core/Services/EntityResolveIndex.cs",
+      "sha256": "6cca4d3900793ad77128272d858bddd2f141f28af9fcaae2afd3b887933b350c"
+    },
+    {
+      "path": "Novalist.Core/Services/EntityService.Attachments.cs",
+      "sha256": "096f30feadd214318bdea58e039f60b9555e49d9b0b7b0a9c0cf396b3621ce8c"
+    },
+    {
+      "path": "Novalist.Core/Services/EntityService.Images.cs",
+      "sha256": "adcf3ced2b53ace48300821f11472605ddcba06a6c693a1e5cbfa406068f801e"
+    },
+    {
+      "path": "Novalist.Core/Services/EntityService.Storage.cs",
+      "sha256": "29a25d43487e690c1640c8fa0b281fc38778ce12dea6d069fe410a0ad3c70774"
+    },
+    {
+      "path": "Novalist.Core/Services/EntityService.cs",
+      "sha256": "0c26073bc3b7cf65b712b97d6a9439aae5aa0e36187221f4703465475a222c7a"
+    },
+    {
+      "path": "Novalist.Core/Services/EntityStateResolver.cs",
+      "sha256": "e8df9f9c17189c1ffaeef0182c0e651f40b255e4f062c53a286c0c6b7e9807ba"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportArchive.cs",
+      "sha256": "0a2718e9ce199bb39b407ee028ea825d71b2cf567736d269f3da302c11e89940"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportBlock.cs",
+      "sha256": "b65117caa8e7f62458b06b7beef12dbe5a0a3a310370b640521244bba7aba78f"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportContracts.cs",
+      "sha256": "5d097ccba9c6eb4b374739384811d6343edad31d1fd570fea636475c19c8bf50"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportPresetService.cs",
+      "sha256": "90e73ce5e866dc19f72d507bac5c8fd58fd191b0e956256ca7f25795431b089d"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportProse.cs",
+      "sha256": "65de7f8d7bda41ac8e274bc233420270131102de6304a4c39a553e260f9dc83d"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.Codex.cs",
+      "sha256": "25455a5c174b5d6a102c577a6f009d36608caab38c5e4d02751d7d6ad000873c"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.CodexPdf.cs",
+      "sha256": "453bce79639d25ce5d5420829e54763fb38a4ca3ed088c7bcbd555da5e512f93"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.CodexProse.cs",
+      "sha256": "c6406077ba173e3f16dc46f0e7ffbc184301b5cf35aea24a238bf39070a2f4c8"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.Compile.cs",
+      "sha256": "291bea218b98d9e4713a86c5500f0951d6a58c86bf89b2c979da84b83f7c3324"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.Data.cs",
+      "sha256": "e30bde0c0773d9d642aa489ddd1b6f445d13287aef03a759455be5217a88dfe4"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.Docx.cs",
+      "sha256": "c7eafad7794b3b73a6e9b41b586ba2bb25fc8b824089926e2a81854574dc6dd8"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.DocxAnnotations.cs",
+      "sha256": "3da1c4bcf9f822b80a326603e066f260d7a9d14b1e0c84495b3bcabf1bebe714"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.DocxImages.cs",
+      "sha256": "ec875afdbdedbe5d7b79f56ad19294e2024b8879ab8f2f115bb02da2fdd0d4f7"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.DocxStyles.cs",
+      "sha256": "4796719da2e300c5169767a9f1a0d4cc8fb99742384eb017cb1f2ecf23a63b17"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.Epub.cs",
+      "sha256": "08c0229807e8ae9673676fc7d02a00e8623eea92e9d93ff0c2614c9cac74a688"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.EpubContent.cs",
+      "sha256": "363dbb32ca3508c3e655febb6a9c5072c0c6b212b065618425d8058e7b81144f"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.EpubMetadata.cs",
+      "sha256": "76ca5c97ca4e359d644dca465e204baef1509db1320c9cb0df5d1d7015cce907"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.EpubNavigation.cs",
+      "sha256": "7b4c2df18104efd41dbda7c1e293a2e13514dd173c6fba95a842863c6c7bf12f"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.EpubStyles.cs",
+      "sha256": "5b773b1c186a25b69d8c37d37e89bc36368b0819f6c39bc2c16cbaddf0c65ccd"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.NormseitenDocx.cs",
+      "sha256": "8312a5b2db97935b07be5a3950bc0b52c38138f2872d2f99932bfe19ba5f1dda"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.Pdf.cs",
+      "sha256": "10f674af10f9caba83c7a965cc077ed5ad197208a3f35bcada9d942e6e179bb6"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.PdfLayout.cs",
+      "sha256": "f7493368899db3e8cde263e541f662ce964f1ad20a68d76f8ae7b91627cb9391"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.Preview.cs",
+      "sha256": "310da1b4709d70c041e3d202969f7a3c9c770553a70a894f98985516a438dc40"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.Text.cs",
+      "sha256": "44d763a4910580b413b9a74a1431aab261647b4dc18c24f6dac2998c6de29f16"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportService.cs",
+      "sha256": "64c2dc24af7b0f44fbaf95c0b401da56cd6fe6e075593f2030f73217ba78f689"
+    },
+    {
+      "path": "Novalist.Core/Services/ExportTokens.cs",
+      "sha256": "5368b17d647f9a23f362823becc983dd6ff2114cd31071c96619901f754ee009"
+    },
+    {
+      "path": "Novalist.Core/Services/ExposeService.cs",
+      "sha256": "a9aaea4e0a599e13092f43d415a416da15dcf7e523de6c5f8c7211bf39a64f0c"
+    },
+    {
+      "path": "Novalist.Core/Services/ExtensionGalleryService.Compatibility.cs",
+      "sha256": "6633054847df8e7ed94c4cb54c77adb5adc42c57f430e0f6ddd2bb8b0afff984"
+    },
+    {
+      "path": "Novalist.Core/Services/ExtensionGalleryService.Install.cs",
+      "sha256": "910a83be466897b0d0caf697375278c9c1207e1695de56b9972284eabff4d9c8"
+    },
+    {
+      "path": "Novalist.Core/Services/ExtensionGalleryService.cs",
+      "sha256": "97090c9c1153b28533064029a675d2c265be5475b971a86ecfa73d8688cf85b4"
+    },
+    {
+      "path": "Novalist.Core/Services/FileService.cs",
+      "sha256": "9968827040347105bba869bb1ce61a21133571d58c9b755f3bee77e503673818"
+    },
+    {
+      "path": "Novalist.Core/Services/FilesystemMigrator.cs",
+      "sha256": "91f20ab94004d7bdd7a948e1d9bfebe1b2a6d18e70f4dc229d54a32bf8c1901a"
+    },
+    {
+      "path": "Novalist.Core/Services/FindReplaceService.cs",
+      "sha256": "2d942b3271b963a38eaeef7b288a1ceb69d367559fcda42d03c8547221638015"
+    },
+    {
+      "path": "Novalist.Core/Services/FolderImportMarkdown.cs",
+      "sha256": "f6359960717cdf485f50079e9f3517867914a6a71c6e6aa53bef4b837f01efd0"
+    },
+    {
+      "path": "Novalist.Core/Services/FolderImportParser.Values.cs",
+      "sha256": "217fe873f1199e017dd77f6b67e1f1c1fa09d75eeaae55a6bda29066ffab86ec"
+    },
+    {
+      "path": "Novalist.Core/Services/FolderImportParser.cs",
+      "sha256": "7c95cb649e979e3ce07b7b53f564b0b9758518d9bc3e46af4cb6a66307454a5c"
+    },
+    {
+      "path": "Novalist.Core/Services/FolderImportSchema.cs",
+      "sha256": "904283f7178ff3b73498d2f6602d43b5eda99f18554707c69989ed4804151f4d"
+    },
+    {
+      "path": "Novalist.Core/Services/FolderImportService.Images.cs",
+      "sha256": "8424f9cfdfea4d325943457adffd030b5afd4e6b1049a3cb6019eefb9ecbbcb1"
+    },
+    {
+      "path": "Novalist.Core/Services/FolderImportService.cs",
+      "sha256": "aabd3d59ce9ab025da8c6cec48b63b99c200392f76ffcc71fabd8ac940def311"
+    },
+    {
+      "path": "Novalist.Core/Services/GenreTypePacks.cs",
+      "sha256": "6875cfcbc8a1212c7499389140650a4626c8f73c07743ae05be72b5fa3044b51"
+    },
+    {
+      "path": "Novalist.Core/Services/GitService.cs",
+      "sha256": "bedadb53b165c74350f47452758e2a170fd53b44e4000f240b47b303426d49c3"
+    },
+    {
+      "path": "Novalist.Core/Services/GlobalSearchService.cs",
+      "sha256": "877ab17e49d3a57db34d6e94035e1cf3897cce2f07b9584e780e5b3f7ca354c5"
+    },
+    {
+      "path": "Novalist.Core/Services/GrammarCheckService.cs",
+      "sha256": "1ef753b900dc1dcdc8d834d17f80a80f7e042d920b607347117842cb216b4b28"
+    },
+    {
+      "path": "Novalist.Core/Services/IArchiveService.cs",
+      "sha256": "2c372f6050a2ff9a56a8d832857c7c02551f2e4dcd5f84a36f7418b402782440"
+    },
+    {
+      "path": "Novalist.Core/Services/IBackupService.cs",
+      "sha256": "30e24150c9a28dccb615cfc8ad30b6d43b4892309a30e8258dac1fc58ee2557d"
+    },
+    {
+      "path": "Novalist.Core/Services/IEffectiveSettings.cs",
+      "sha256": "550b232fb462797cecb352341360cb365f0fb62b783a190b696c2fd654c0f9e1"
+    },
+    {
+      "path": "Novalist.Core/Services/IEntityRenameService.cs",
+      "sha256": "428383d5f7720ee96c15c4904ac4b1062a27c828f6e3be30c45f830a14118015"
+    },
+    {
+      "path": "Novalist.Core/Services/IEntityService.cs",
+      "sha256": "a574e60da5b6ac7657783cb73a8fff5876ed13b87306090be2d61418a5940cc3"
+    },
+    {
+      "path": "Novalist.Core/Services/IFileAccessCoordinator.cs",
+      "sha256": "fc102ba2e14b9b844f089aab1f9923f7f26ec7a006930ce5440b0d0f5e86056a"
+    },
+    {
+      "path": "Novalist.Core/Services/IFileService.cs",
+      "sha256": "a8ba693bb21b241ca55ed45cd998c18272d59ce4167984fcfbb59fe079482536"
+    },
+    {
+      "path": "Novalist.Core/Services/IFindReplaceService.cs",
+      "sha256": "ec99d4417c02adebb7db3274896a8c74fe40fb33e9bacf2c3d4b24f23407658c"
+    },
+    {
+      "path": "Novalist.Core/Services/IGitService.cs",
+      "sha256": "fa1a9a9d7b9e5966d968f7cfe8416765696a23f8f67b0417033f1dd66e37f701"
+    },
+    {
+      "path": "Novalist.Core/Services/IInWorldCalendarService.cs",
+      "sha256": "cfd5a465f5aab2da1dc1336e23c9931262d4af25c040afeb197f9ee50753f6a0"
+    },
+    {
+      "path": "Novalist.Core/Services/IMapService.cs",
+      "sha256": "e655092c5bfc3a129e6c136d0e9dd9903861ffb99c08aef3c1403daa7279c67c"
+    },
+    {
+      "path": "Novalist.Core/Services/IPlotlineService.cs",
+      "sha256": "8a6f97dff182604cbfb33d2e6fd52cf96536cb62ef0a15b830b8bd512212be3f"
+    },
+    {
+      "path": "Novalist.Core/Services/IProcessRunner.cs",
+      "sha256": "180cbda8faf4abe6491d736279be1d5d8f8e10224ec4af4dcf1582d5534a70cf"
+    },
+    {
+      "path": "Novalist.Core/Services/IProjectService.cs",
+      "sha256": "88d2b3528351127526ec4f80305a3399eb880aaf01b832cd42d322459803d47f"
+    },
+    {
+      "path": "Novalist.Core/Services/IProjectTemplateService.cs",
+      "sha256": "2c338024a8fc46be2457f8a6ee296b46d63453d5cd18d0a77ae67df7162c70b8"
+    },
+    {
+      "path": "Novalist.Core/Services/IPropertyTypeRegistry.cs",
+      "sha256": "5848199fd03bb4dcc1b3fb0165bac8ab3e5c5d41f2ea68ee53d9091b8b670ccf"
+    },
+    {
+      "path": "Novalist.Core/Services/IRecentActivityService.cs",
+      "sha256": "32958a83eb29634d0a39761023f4f90be7e90c427ecbfbd7fdbbd68aec081dd0"
+    },
+    {
+      "path": "Novalist.Core/Services/IResearchService.cs",
+      "sha256": "119a5e1c136a6124eb36ccb52c2ff613f88f699d31e933ec7fcf9b6db2aa6746"
+    },
+    {
+      "path": "Novalist.Core/Services/ISceneBulkService.cs",
+      "sha256": "ec1f07b1ab856ebc6b34723aae0ae11f422868187421437b753d6a35636f30fa"
+    },
+    {
+      "path": "Novalist.Core/Services/ISettingsService.cs",
+      "sha256": "e19d63359c12866074064e4e06d235e775f54b16ee84dcc0c18e040d8057e7c3"
+    },
+    {
+      "path": "Novalist.Core/Services/ISmartListService.cs",
+      "sha256": "31bbcf52d7ce86709064bbd9392ff6d7acbf60232e5fb60c00be0bf41268bc86"
+    },
+    {
+      "path": "Novalist.Core/Services/ISnapshotService.cs",
+      "sha256": "83b9a8992ba7341a9cb1514c3a57fe274033e8612420773049ef9f07414cc00e"
+    },
+    {
+      "path": "Novalist.Core/Services/IStoredPathResolver.cs",
+      "sha256": "7f001a5ef1457531c06647a303566c7da18189691c50463e634ed129eb3cacfa"
+    },
+    {
+      "path": "Novalist.Core/Services/IWordHistoryService.cs",
+      "sha256": "c70b9ad66d765c2b113be569c803eaf079626bb0a99ef0198ad4fbe4ad0711e9"
+    },
+    {
+      "path": "Novalist.Core/Services/ImportImageStore.cs",
+      "sha256": "19f6f97248d612fa2de8cfbb6d5ff4dda010a2f9a212f7d29d8a9dd32e3e8521"
+    },
+    {
+      "path": "Novalist.Core/Services/InWorldCalendarService.cs",
+      "sha256": "6f0ae38d8606b52e40297f491ab1d1fa99a5572fee0bf64a96fda32aa6a5adcc"
+    },
+    {
+      "path": "Novalist.Core/Services/Kinship.cs",
+      "sha256": "c1ae88abd3ae588c9dd87a8f6491886243be25df39ac204b795e34a94bb53861"
+    },
+    {
+      "path": "Novalist.Core/Services/LinkTitleService.cs",
+      "sha256": "505af1742b864414d0a77004ef44c0f6197b55183b39b1d8484f0546903f4bd0"
+    },
+    {
+      "path": "Novalist.Core/Services/LinuxDependencyService.cs",
+      "sha256": "7d3e853c1d97a26cb0fbca9576a397de42d3b953d9f81e7beabc9dfbc955cf4f"
+    },
+    {
+      "path": "Novalist.Core/Services/ManuscriptPropertyService.cs",
+      "sha256": "74b631ea0d089b8e4905f902be92dac84953ddbbe9008bba0920b186263459c2"
+    },
+    {
+      "path": "Novalist.Core/Services/ManuscriptReader.cs",
+      "sha256": "2c41d86eddd384803cf3124fb6c900f2c4620ffb2f3c3e9c68aefbfa6c513d5d"
+    },
+    {
+      "path": "Novalist.Core/Services/ManuscriptSplitter.cs",
+      "sha256": "4f39311767f70a904ba0d66060eb073c1ab254ba606271ea26e8038e407c0e31"
+    },
+    {
+      "path": "Novalist.Core/Services/MapService.cs",
+      "sha256": "51dd6760a74e54f0f2194094ac287114f0f92c0b160a1b2d1aabc2676527917f"
+    },
+    {
+      "path": "Novalist.Core/Services/MarkdownVaultImport.cs",
+      "sha256": "8e5a1a33759bc608312bbbb4602166e6b3a0a02fefc08ddc5fbd3e90f9180b0a"
+    },
+    {
+      "path": "Novalist.Core/Services/NameGenerator.cs",
+      "sha256": "3b5f65a543553797ebc79c689d109c5082abf014e956704ede594960f17145b1"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationClipCache.cs",
+      "sha256": "ff798004cff501c8b2142586145f98849d76c88ef62fe4c3595997feb62853ce"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationEstimate.cs",
+      "sha256": "675b634d9b0e74986f8510f739caf6f8a1fab472bdc353a9ff020aa43c033985"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationFileCleanup.cs",
+      "sha256": "e72da91360a35049391cc21de5cf84b0f2a67d1b381f7d12682a0fe8f1327635"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationProse.cs",
+      "sha256": "c65ce22c56e03469bd37fefc6abb64d738719245530dc43c03912e7428b205ae"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationRecipe.cs",
+      "sha256": "e6de5ebf4e4b0140435c1d4a5e027095ba727ba55e58f94a0daa2bc9d77b5c6b"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationRender.cs",
+      "sha256": "fd9453f81eff387596dd1cb80a91c0431d2c76163fbdf109ba373d93c8a82e9e"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationRenderContext.cs",
+      "sha256": "17176910165aa53e90dc27e7195f744acea24d90a92264edae9cd8d538cef1d4"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationRenderJob.Chapters.cs",
+      "sha256": "a48c38979717cc7e4740a46e03ad94703a12ab64d62c9ae0053231f2c16c49a1"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationRenderJob.Manifest.cs",
+      "sha256": "a45f0a48c2db1d6468af6dffa403219bcad21e0054d216796cec3f16c5ea5e31"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationRenderJob.cs",
+      "sha256": "18df09e9c5891b236a6318d6db7d2df5673b4e3c2b9cb6a7cf749a955a59d26d"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationScript.Utterances.cs",
+      "sha256": "1409df15a53338b6634fd3b5fd0739d3d882432041f3f5b630602d3c09ea8d54"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationScript.cs",
+      "sha256": "e5ddefeaafa0185420ed11c46fb7a14f35c4fb56eab2ff51e78fda444a83c3c1"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrationScriptContext.cs",
+      "sha256": "471f93c75ce08233b943e9cc39e1f60b1a4e28cbff2fa726024b93b3a08b55c7"
+    },
+    {
+      "path": "Novalist.Core/Services/NarrativeVoiceService.cs",
+      "sha256": "87acf050988f5064fd44b352ece9d33011e0f4ba58d9b3c640d45f17e0d61f48"
+    },
+    {
+      "path": "Novalist.Core/Services/PageEstimate.cs",
+      "sha256": "ba4535d702cbe3eb259d2e0d79a09e861fde6f846a66ea9d0d01a96d328ec069"
+    },
+    {
+      "path": "Novalist.Core/Services/PictureCatalogService.cs",
+      "sha256": "c81b9ea11e4ea15513d076ca443a8ff8547c039d6409d7f831a6925fef873eb9"
+    },
+    {
+      "path": "Novalist.Core/Services/PlaceHierarchy.cs",
+      "sha256": "d9bdcbd5355e1412015da97e42a3c9d284d512ac586c5e16a4e4f6d6315b8d4f"
+    },
+    {
+      "path": "Novalist.Core/Services/PlotlineService.cs",
+      "sha256": "d3210fa825e994c9657d38bef25de4bd7ba7c0ef9d452c72c31cf504400e2383"
+    },
+    {
+      "path": "Novalist.Core/Services/PluginImportResult.cs",
+      "sha256": "88970b539b9e994bd6f1974d2e8375a1beced9c1b65ba122dc52e90272154e43"
+    },
+    {
+      "path": "Novalist.Core/Services/PluginImportService.Content.cs",
+      "sha256": "59798b9924c16ce69885957de4e59fd45c62ba0f34b8bfec6b25755288fb771d"
+    },
+    {
+      "path": "Novalist.Core/Services/PluginImportService.Entities.cs",
+      "sha256": "d8c6ccf425a12255e581959ecbd7ab3fe594e8ce20a02802befbb27c0c150696"
+    },
+    {
+      "path": "Novalist.Core/Services/PluginImportService.Markdown.cs",
+      "sha256": "f1630cbfcf12566712eb93ccc0e96c3991c2e0424fb2ac0a98e2ba8431a134be"
+    },
+    {
+      "path": "Novalist.Core/Services/PluginImportService.Templates.cs",
+      "sha256": "0f2108893e5449363f72721a100965344088a3e5d35c1b9cce7207adc303b2d5"
+    },
+    {
+      "path": "Novalist.Core/Services/PluginImportService.cs",
+      "sha256": "42bb216d80aa6a5d8b6f2f9e957821fd41f6598d206f3fb03b42860715364e80"
+    },
+    {
+      "path": "Novalist.Core/Services/PovConsistency.cs",
+      "sha256": "e99a4c7599e11e0bdf92c7b990cf287ce9edc24096f720d5cb38bba364a797fd"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectFiles.cs",
+      "sha256": "306cba0626a8aa88162e31d85c7d16a95fa6a7ddba795d2e006fb94d2516374d"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectPresence.cs",
+      "sha256": "4b019fcf31b3971127c58ddda8b5f593f042e7f3f21184b7bb76dbc48535f923"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectReconciler.cs",
+      "sha256": "5c6e6ebf12739a648139b0fb301f7791dea696128eff5d50dcef518278701d58"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectService.Archive.cs",
+      "sha256": "7f556ebcd90a2a85bc2377850644775013f20640d67ec77e0eb5e73a73cc1ce2"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectService.Books.cs",
+      "sha256": "6748cdb7a8ea0ffb3d9c795c8b10db3b7570ad428d0474306b60bd1048d2f3f3"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectService.Chapters.cs",
+      "sha256": "fa833e20ddfd49364a0e71614e7ee084a7c791496c7c9312fd01d4ccbf624ce0"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectService.Content.cs",
+      "sha256": "db350266694ea021f08da45f617543fcf239f0cdb573478a6ea67f0eff75505f"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectService.Drafts.cs",
+      "sha256": "b03910af7412429a94b510e35b40c35c0789db277396b905ec48ecc5bfeafc0d"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectService.Migrations.cs",
+      "sha256": "857369a806f90b5a785fddc5abcce3c1c9e51db722ae4e16001cc5b461c4a102"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectService.Persistence.cs",
+      "sha256": "6277e62e66ca2670b5ae9fb76f39146799ed04567c2325966edb93d4cd6f98bf"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectService.Scenes.cs",
+      "sha256": "c83d3bcc8dd181d00fcdcde201dc404aefeb7efcf3173fb758809cc1156636fc"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectService.Storage.cs",
+      "sha256": "8f62129963572f5dde01a94609e93e38a29c38d04c92fba758cf75cb8b389632"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectService.cs",
+      "sha256": "691a18487be0afde4b6652b26969a949fb47ef0b5ab0e3fadc7a253e8225ad36"
+    },
+    {
+      "path": "Novalist.Core/Services/ProjectTemplateService.cs",
+      "sha256": "40c4aced436bd2e299b926ee32c32fa55c93db73595c1b37b018621a3cb34853"
+    },
+    {
+      "path": "Novalist.Core/Services/PromiseService.cs",
+      "sha256": "129f5da49393670127bfd58b40152306ff22e623efd97ff4b6b024f275724176"
+    },
+    {
+      "path": "Novalist.Core/Services/ProseCleanup.cs",
+      "sha256": "9d03691dbc761e55cdd0b218f2aa59ce1affb561d7538888121a53acddd055ed"
+    },
+    {
+      "path": "Novalist.Core/Services/ProseStyleAnalyzer.Findings.cs",
+      "sha256": "0ac95eba59c293f22904150c2d338c39193dd9c7ca19cf26c22fe126ffe833bc"
+    },
+    {
+      "path": "Novalist.Core/Services/ProseStyleAnalyzer.cs",
+      "sha256": "915e740851bb6aff3c425daa7b9d9139fce6b3127a0fd80386ef95a9c7156d4a"
+    },
+    {
+      "path": "Novalist.Core/Services/RecentActivityService.cs",
+      "sha256": "fa4dd31f11731789cb8baf55baf625741ad17592b4e7981b6641c85e2785e2de"
+    },
+    {
+      "path": "Novalist.Core/Services/RecentProjectPath.cs",
+      "sha256": "4a7eb279ebc2ea1d393cf16a4eb7ee2a1f4cfedd0509dd6bee3fc722ad80b339"
+    },
+    {
+      "path": "Novalist.Core/Services/RelationshipWriter.cs",
+      "sha256": "ebcb192876a6617196d680b552e39e6f87d3f40e75648e518955324d221dd2be"
+    },
+    {
+      "path": "Novalist.Core/Services/ReportBuilder.cs",
+      "sha256": "c80d22574cb82d7e29cf738afc8cb17ccec254d84bb43d423aa498c278946b7d"
+    },
+    {
+      "path": "Novalist.Core/Services/ResearchService.cs",
+      "sha256": "666f3b4fe3c01e843e7e12987aedf30a8fdd6d80723fbe0ff81cb7c0b031ad51"
+    },
+    {
+      "path": "Novalist.Core/Services/RichTextImport.cs",
+      "sha256": "56962c52e101587203befe2f011f2bf790f07ed0f525151c96dd94c7a5b63ef0"
+    },
+    {
+      "path": "Novalist.Core/Services/RtfDocumentReader.Controls.cs",
+      "sha256": "f2670d4a7d6df299c33fb380352bbdbf69c58faaf8ad6ba47e5b49d146316f65"
+    },
+    {
+      "path": "Novalist.Core/Services/RtfDocumentReader.Text.cs",
+      "sha256": "e977d327c83bd46fce0c9d17e94d18234e31cbe0bf6bf3cc8bab913c77ef837f"
+    },
+    {
+      "path": "Novalist.Core/Services/RtfDocumentReader.cs",
+      "sha256": "e3e4a7b1ce91befd4ee6f8d6f9d3d4cf31797f9425f9377beed98db849ca5c65"
+    },
+    {
+      "path": "Novalist.Core/Services/SceneAnalysisLexicon.Loading.cs",
+      "sha256": "53a9f6346b2a6212e8c164a2db96771061867788774a5a4bb6721ef728553713"
+    },
+    {
+      "path": "Novalist.Core/Services/SceneAnalysisLexicon.cs",
+      "sha256": "18a47d2b2725812af31dc5e95aa8f982c07ad3e498536a3a8ec59e5a923fd86d"
+    },
+    {
+      "path": "Novalist.Core/Services/SceneAnalysisStore.cs",
+      "sha256": "ccab6e00f8b8e03696b6aeb6c125b42cff0fe54b6b86a1e3b9d10e4dec6cb55e"
+    },
+    {
+      "path": "Novalist.Core/Services/SceneAnnotationTransfer.cs",
+      "sha256": "d7187039192869a75c92551c91a03e188bd50d4e03d54c90e58437b7394cd31e"
+    },
+    {
+      "path": "Novalist.Core/Services/SceneBulkService.cs",
+      "sha256": "e62de1154f961622e68627055037d49ddfff73a0e4d2cbae93e344dd5792673e"
+    },
+    {
+      "path": "Novalist.Core/Services/SceneConflictGuard.cs",
+      "sha256": "2eef55e6e91d53244cf5f4af694358302f0271966d84b8f83e8e66f230f9be76"
+    },
+    {
+      "path": "Novalist.Core/Services/SceneEditingState.cs",
+      "sha256": "36af4f6e7b7878535307470d7974a8e87549819cf06b6794231031d597e8151c"
+    },
+    {
+      "path": "Novalist.Core/Services/SceneResearch.cs",
+      "sha256": "c3665820848a69e5d7e886f26ab585c41176235c3ac109518147b0ef400901d1"
+    },
+    {
+      "path": "Novalist.Core/Services/SceneRubric.cs",
+      "sha256": "547bfdc2319a733c01eec7af1939d53b85fb7258c3f39637a9e80212d4c7dfc0"
+    },
+    {
+      "path": "Novalist.Core/Services/SceneSplitService.cs",
+      "sha256": "a6536e78c5fa12de7c76f1b8ff5b345c95ae7b580206a5164cefde181a4e3da3"
+    },
+    {
+      "path": "Novalist.Core/Services/SceneStageService.cs",
+      "sha256": "ae76df5021113210c8d9c92c37d973fa4a72142cbee4e36272d283187deaf647"
+    },
+    {
+      "path": "Novalist.Core/Services/ScratchpadService.cs",
+      "sha256": "42d6a6b970c76faef13b94b8e67abe29fc096886216117ea95a1f081dd4cf9a9"
+    },
+    {
+      "path": "Novalist.Core/Services/ScrivenerProject.cs",
+      "sha256": "9bec9070ebda5cd9d4087f576d729a5cd96758f61641dc94ad8ccd64fda0cc93"
+    },
+    {
+      "path": "Novalist.Core/Services/ScrivenerReader.Binder.cs",
+      "sha256": "f5da806a1ada7641776f13e42166564963b492973e14b91b7618df4cb109ba77"
+    },
+    {
+      "path": "Novalist.Core/Services/ScrivenerReader.Content.cs",
+      "sha256": "74b0b3e0483a17257a1bb2eb0c808b6f2aa4faf775af966e305db7e18a86fe7d"
+    },
+    {
+      "path": "Novalist.Core/Services/ScrivenerReader.Context.cs",
+      "sha256": "a3d7e9892cb81ba51ce6cc80f36d792ecd85f7beb99c5f67bcae73c3123d1f73"
+    },
+    {
+      "path": "Novalist.Core/Services/ScrivenerReader.Formatting.cs",
+      "sha256": "167ce991ccb715800c6f48a28d80c6c1e1957d24ecbbc925107976fc59d70fcd"
+    },
+    {
+      "path": "Novalist.Core/Services/ScrivenerReader.cs",
+      "sha256": "4c6a97cab65a75689431f32b6af3966d07f32bed701dbae054f68f43d40d6393"
+    },
+    {
+      "path": "Novalist.Core/Services/SearchQuery.cs",
+      "sha256": "dad87a86edcee60f5d8c696b961343565c0671760b5e93c25e655824fb136b9b"
+    },
+    {
+      "path": "Novalist.Core/Services/SettingsService.cs",
+      "sha256": "576f429caf48ff0f7f1612571e142ba9e08bcdde232fb5582a7191897c734588"
+    },
+    {
+      "path": "Novalist.Core/Services/SmartListService.cs",
+      "sha256": "f322ba0f60bfdbb173f141a0d204328bf31c4e76507920b71c6a2fb2d31d4fe2"
+    },
+    {
+      "path": "Novalist.Core/Services/SnapshotService.cs",
+      "sha256": "208722d614d35dea5df476eace606c40c21e5c3f9f93ea37fe7af4e6a1ec290c"
+    },
+    {
+      "path": "Novalist.Core/Services/SpellCheckLanguages.cs",
+      "sha256": "b30ad8390dc825cc7c084a4a6c5bdbed944270add581a0bce4e36cde8bf2e030"
+    },
+    {
+      "path": "Novalist.Core/Services/SprintService.cs",
+      "sha256": "6518bdc369dffca5bcc3996190043b1b16974023443fa5d1f28abdb5507fa5d8"
+    },
+    {
+      "path": "Novalist.Core/Services/StoryClock.cs",
+      "sha256": "491e503b0fc8297226ae6a13d4a1fe32bb47bb698474dc9820b89b72ca7f8c01"
+    },
+    {
+      "path": "Novalist.Core/Services/StoryStructureService.cs",
+      "sha256": "6c132c2e22194d9979fcae423f22ed816c579c76a30e8e2ced592bf2d08d2429"
+    },
+    {
+      "path": "Novalist.Core/Services/StructuredImportService.cs",
+      "sha256": "5b70865f977648ed696e541a85e4b05968bf3b41ff1c1388bb3d7863b749e318"
+    },
+    {
+      "path": "Novalist.Core/Services/TagService.cs",
+      "sha256": "f3a17adcaa9f19d86116183f8d63eb15076c746fac85a163bddffd13703f277e"
+    },
+    {
+      "path": "Novalist.Core/Services/TerrainGenerator.cs",
+      "sha256": "0b6460f7e45d3cc34c4704b28010c6cf4a58f7afd50794a61cbc7388bdedd160"
+    },
+    {
+      "path": "Novalist.Core/Services/TimelineDependencies.cs",
+      "sha256": "9783d4387b935ea70373f5f1842b209bc6ae10a75dbff06bcc012712068b125b"
+    },
+    {
+      "path": "Novalist.Core/Services/UnlinkedMentionService.cs",
+      "sha256": "7582df041e769cba86fbbf5a0d88eedf4c5efca03c12acc0f95164aeeff5edc6"
+    },
+    {
+      "path": "Novalist.Core/Services/UpdateService.cs",
+      "sha256": "e9edb1272202397cf35eb741495cd7b2a6580e2f266a67646c2d3631e0c1ec6f"
+    },
+    {
+      "path": "Novalist.Core/Services/VoiceBriefBuilder.cs",
+      "sha256": "f16735b5a79e964d74f3dbd8682fac90b46aa35134d1fe2ca89688cb0abbadfd"
+    },
+    {
+      "path": "Novalist.Core/Services/VoiceCast.cs",
+      "sha256": "9e8e56433538ae00aa7b8eb72cb403e0f0af461ab0ab2e7774e4c266bbb73395"
+    },
+    {
+      "path": "Novalist.Core/Services/VoiceStore.cs",
+      "sha256": "373c6ce325cdb390d6362be45709e23bfe1bf0c096486246886f1c166c9ce9b1"
+    },
+    {
+      "path": "Novalist.Core/Services/WikiArticleCache.cs",
+      "sha256": "191f5d9f3da3fdb50ff35e35c0c207d4f4d1811a4eefc93f5093efd29a365c5b"
+    },
+    {
+      "path": "Novalist.Core/Services/WikiPageService.cs",
+      "sha256": "f0ea6bd5162055a01f3cf31fbba8f388c0b703e55b996fea2be382e39437ccff"
+    },
+    {
+      "path": "Novalist.Core/Services/WikiProseLinker.cs",
+      "sha256": "e1c936c3c8a4736764aa41b1e8a7fad1c968846d6ad784cc9de6a059a7418dd8"
+    },
+    {
+      "path": "Novalist.Core/Services/WordHistoryService.cs",
+      "sha256": "82c13f96c2cc8dcec65f06a5f2e845b58b95f0b3b352d07feba759132efebb5f"
+    },
+    {
+      "path": "Novalist.Core/Services/WordTargetService.cs",
+      "sha256": "ecfb8789e7a801fe2a324298d0c3cdea39fd91fba280f220c634da3673541a24"
+    },
+    {
+      "path": "Novalist.Core/Services/WorldArchive.cs",
+      "sha256": "67cbfa3fba8b0017d1a3eee035e57470c67a31f3a1ea4c7d78c74cfc20930f03"
+    },
+    {
+      "path": "Novalist.Core/Utilities/AgeComputation.cs",
+      "sha256": "aebcf79b7da331e37f7b6d1f235dfa39ad3b20631cd4c01fa39e83e227b0c324"
+    },
+    {
+      "path": "Novalist.Core/Utilities/DialogueScanner.cs",
+      "sha256": "c73865216f05a14b07f0acc39cbe3f6266d92747edfbb072ad44fbfd4d5ab415"
+    },
+    {
+      "path": "Novalist.Core/Utilities/HtmlMergeBlocks.cs",
+      "sha256": "22039e0732a97c3e082e0dd83056fe52d1a092874eabb89b8f0d4b4cad5d5a97"
+    },
+    {
+      "path": "Novalist.Core/Utilities/HtmlSearchText.cs",
+      "sha256": "20277ea3f12df0a25177e00c36ad4145e4a3c68f23b570fa8e6d88d332c7e4df"
+    },
+    {
+      "path": "Novalist.Core/Utilities/NormseitenRenderer.cs",
+      "sha256": "737eca3edc6e3a761861893f0a9b3b6ba624583e575cd82f14a404431a7de0c3"
+    },
+    {
+      "path": "Novalist.Core/Utilities/PovDetector.cs",
+      "sha256": "7f85fd370c1973ded5377d35ef389c827cef235cc91a0799f0b9dd13b1400194"
+    },
+    {
+      "path": "Novalist.Core/Utilities/SceneStoryDate.cs",
+      "sha256": "67e97b131cb908019089ea14c503109c92ec246110586068020ac7b5816db1fa"
+    },
+    {
+      "path": "Novalist.Core/Utilities/ScriptAwareCounting.cs",
+      "sha256": "0c55e2862da929b71f1eda9bacc0531d998dfd6e11062d63390909a32836f1e1"
+    },
+    {
+      "path": "Novalist.Core/Utilities/StoryDateFormatter.cs",
+      "sha256": "dcb5bb7b83fcd32edc74a4a2ca5a2fcb12a6e0ad1c95830d51909b9cc44d3271"
+    },
+    {
+      "path": "Novalist.Core/Utilities/StoryDateResolver.cs",
+      "sha256": "4b5d08a8a38971b2a8767059eb8180ebc0021f3a9abcf615743a9adc9347d839"
+    },
+    {
+      "path": "Novalist.Core/Utilities/TextDiff.cs",
+      "sha256": "82d60ffdf2f30e96a9b3004b97e10ece401533503afa719f29ac157623c0c3e2"
+    },
+    {
+      "path": "Novalist.Core/Utilities/TextStatistics.cs",
+      "sha256": "bd072853a5b7ff6423588bb4251faa30a4fa8026799756ca56d764ec0c1d424c"
+    },
+    {
+      "path": "Novalist.Core/Utilities/TrackedChanges.cs",
+      "sha256": "5cb141c0031d7378bf8a9149009359c223964ff6992104b1940213527b306446"
+    },
+    {
+      "path": "Novalist.Core/Utilities/WaveAudio.cs",
+      "sha256": "9e79bc302c3fbd8530cde6f07f760e91ac9c88f2a2a52817dd8dda9fadf24ad7"
+    },
+    {
+      "path": "Novalist.Core/VersionInfo.cs",
+      "sha256": "0d7aba5e4ba27e0d8fb7b63b409e870d7d4fc4e4aad6f4c5a91721324c4356ca"
+    },
+    {
+      "path": "Novalist.Core/Wizards/CharacterInterviewWizard.cs",
+      "sha256": "89437ea9e1d64255b67088baf04656c1eeb8e504dfba57f6d07341b5e90b7dcf"
+    },
+    {
+      "path": "Novalist.Core/Wizards/EntityGuidedWizard.cs",
+      "sha256": "837106d369f09d12e4ef787aa366ffa660be1ce7e7103519039aeb76c2dc3348"
+    },
+    {
+      "path": "Novalist.Core/Wizards/ProjectSnowflakeWizard.cs",
+      "sha256": "2dae059b28f4a232f970acd30eef04e4e8c348ea5dddae8ef1d288444628d895"
+    },
+    {
+      "path": "Novalist.Mobile/.gitignore",
+      "sha256": "9aa0d80a33eca439f14005f500a7df5078cf94eb88eba74a2eb34b5a414bfc35"
+    },
+    {
+      "path": "Novalist.Mobile/App.cs",
+      "sha256": "b11138ebb1dabc6d598f1bf21c5904888c1f739eeae4e31c4a516d64a54d1748"
+    },
+    {
+      "path": "Novalist.Mobile/MauiProgram.cs",
+      "sha256": "5c4fb8a0c6fc342141240656f25ba1581f6b744eaca63e514c643a4aa719f728"
+    },
+    {
+      "path": "Novalist.Mobile/Novalist.Mobile.csproj",
+      "sha256": "3df33b5cb1a70ff6ebba0e71d41ca14fd2cdc51e767d862e56db4cc0c406297c"
+    },
+    {
+      "path": "Novalist.Mobile/Pages/EditorSpikePage.cs",
+      "sha256": "2077596e8b557f983362dfff5ae20f13399e0e382aeca25e17ae15e5c4f4728f"
+    },
+    {
+      "path": "Novalist.Mobile/Pages/RendererHostPage.HostCalls.cs",
+      "sha256": "0e990baf3a8476420f25440cdb71003cf5882608e7f5cdc50eda407744bcf1ea"
+    },
+    {
+      "path": "Novalist.Mobile/Pages/RendererHostPage.Layout.cs",
+      "sha256": "0753934edd68ce39c2bd443c3c8967c7175731e9f2443e55a9223bc99c01d347"
+    },
+    {
+      "path": "Novalist.Mobile/Pages/RendererHostPage.Lifecycle.cs",
+      "sha256": "762bcd8008e59df8b3296d3ef43ae087642e1685d8067925709c98f22029f606"
+    },
+    {
+      "path": "Novalist.Mobile/Pages/RendererHostPage.NavigationCalls.cs",
+      "sha256": "c041f89ed4699e27d8cbb385594115a8da42b5a7a1d8973a04685ee2efa93db0"
+    },
+    {
+      "path": "Novalist.Mobile/Pages/RendererHostPage.Sidebar.cs",
+      "sha256": "f7bb92d2ef5ad4c79f30b44bfae511a0563e5afc79362b5b9732e5f72be32f86"
+    },
+    {
+      "path": "Novalist.Mobile/Pages/RendererHostPage.SidebarRows.cs",
+      "sha256": "b390a64c131829a330304453d2418e894f9bf7731ca5ffcb252600a475fcf817"
+    },
+    {
+      "path": "Novalist.Mobile/Pages/RendererHostPage.TabBar.cs",
+      "sha256": "2856c9af03c5c38dcd004afd5f639d2222772b1168349c64d4ced79b29114766"
+    },
+    {
+      "path": "Novalist.Mobile/Pages/RendererHostPage.Transport.cs",
+      "sha256": "bdaa9a8e225e61dfa5ba72e9b5de82536cfc5ecb634033f129a46bc8cb0cf616"
+    },
+    {
+      "path": "Novalist.Mobile/Pages/RendererHostPage.cs",
+      "sha256": "3df4b2a85c97390a3eb7cdf743e6d9a5c842af08bc903978a8e907b6224acb1e"
+    },
+    {
+      "path": "Novalist.Mobile/Pages/SeamPage.cs",
+      "sha256": "bdaf7c40450025e6af65e5c82925659eb11b5a7e05aa25b75b1d3f37481af983"
+    },
+    {
+      "path": "Novalist.Mobile/Platforms/iOS/AppDelegate.cs",
+      "sha256": "3ca5eda8ebd5899e58b2f29bb545c927b1126f3cfccc3faf0b550559c786d2df"
+    },
+    {
+      "path": "Novalist.Mobile/Platforms/iOS/Info.plist",
+      "sha256": "7940c2ea26bf3ed9a6531d8c21069276a46c8067a92935fe268e714e0c9f27e8"
+    },
+    {
+      "path": "Novalist.Mobile/Platforms/iOS/Program.cs",
+      "sha256": "ec1335794d6358c1f7f7c3a8ce68aafdf7a3af3c41e905bfbb9ac6ed201625a1"
+    },
+    {
+      "path": "Novalist.Mobile/Platforms/iOS/SceneDelegate.cs",
+      "sha256": "aa367fd998fc98cdf45b550a48fa6bc5f8cda055ea4158c5b47c6d2d48565453"
+    },
+    {
+      "path": "Novalist.Mobile/Resources/AppIcon/appicon.png",
+      "sha256": "3e5be7c39421c3bab1aa271dd525cd64b801166248b38ffabc299fa2a205f44d"
+    },
+    {
+      "path": "Novalist.Mobile/Resources/Splash/splash.png",
+      "sha256": "3e5be7c39421c3bab1aa271dd525cd64b801166248b38ffabc299fa2a205f44d"
+    },
+    {
+      "path": "Novalist.Mobile/Services/AppFolders.cs",
+      "sha256": "51143d60431e2570f95b9f697691ef636c9538dca12325e9d3f45dde09bc5b62"
+    },
+    {
+      "path": "Novalist.Mobile/Services/ExportFiles.cs",
+      "sha256": "d7da0b9289013533791a75ec3ddac5ca99c12e6982ccac5bcece472cb5bd78a6"
+    },
+    {
+      "path": "Novalist.Mobile/Services/ExportSharing.cs",
+      "sha256": "1a9493885877e67875bfa9f431a5299625fe35258efad493bd8c19b80f50c336"
+    },
+    {
+      "path": "Novalist.Mobile/Services/ImagePicking.cs",
+      "sha256": "a7bac68a68756099107674910abb4b644fb262b0de5868e237fa86f643479d90"
+    },
+    {
+      "path": "Novalist.Mobile/Services/IosFileAccessCoordinator.cs",
+      "sha256": "f4e477281cdb87e6fb20841b3dd7bea68c52d54772b1fd4a8ec8f9510a1125de"
+    },
+    {
+      "path": "Novalist.Mobile/Services/IosStoredPathResolver.cs",
+      "sha256": "e4067b75b6a6ae1f9455ebc5c90a90d18327724f53d9607922758b0114e4531c"
+    },
+    {
+      "path": "Novalist.Mobile/Services/MobileAssetReader.cs",
+      "sha256": "c818bbb5a2ef091a32e7dec8c4f80b68a88e262902cc16f43dff18f77c7df24d"
+    },
+    {
+      "path": "Novalist.Mobile/Services/OwnedProjectPaths.cs",
+      "sha256": "3d263d1e461cef16df30a3ace08a6910f4473e273435e20abc3d3b17d3892b3c"
+    },
+    {
+      "path": "Novalist.Mobile/Services/SeamProbe.cs",
+      "sha256": "26d342162f9a56602aff81dc03eacc8aeb56aa80e6511baeb2243499c9c6c88a"
+    },
+    {
+      "path": "Novalist.Mobile/Services/SecurityScopedFolders.Manuscripts.cs",
+      "sha256": "54fbe670931c321594bf36a084fde8d72688d0a4e00e97a8725e8abb228b0bb4"
+    },
+    {
+      "path": "Novalist.Mobile/Services/SecurityScopedFolders.cs",
+      "sha256": "6bae32b526a26d14ce7dbcb305aa27616285cc2084b0cef354dc23e8835e85fd"
+    },
+    {
+      "path": "Novalist.Mobile/Services/SystemMicrophone.cs",
+      "sha256": "4b37b1b448435aa42b6123d4b5d9012484e4377c9416a4df0bf73920ef9d07a8"
+    },
+    {
+      "path": "Novalist.Mobile/Services/TemporaryAccessRegistry.cs",
+      "sha256": "fcc92fae9ed86ee80faf882230dab0dea245354348fcaeda7c9a1a14c2c73bc0"
+    },
+    {
+      "path": "Novalist.Mobile/dev-reload-sim.sh",
+      "sha256": "3fbfff13d64cbeca0c95779647dab07c7d253eb3485eea725dc9eab86532dbcf"
+    },
+    {
+      "path": "Novalist.Sdk/ExtensionManifest.cs",
+      "sha256": "950aecbbf28f1f7e7dc0bda54fd82e011d9e1332b04f5747077065d934f0331c"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IAiHook.cs",
+      "sha256": "90c7584db0ed0dfc0ed0ea9f0cfb9e743b5518cc40108cd1c482b5166340ed5f"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IArticleGeneratorContributor.cs",
+      "sha256": "87b9551b20fa17562e32b307fa9cebbf8221330edbedb016461eb4e910b7af70"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IContextMenuContributor.cs",
+      "sha256": "84477ef0d844b4a498b1bbfa1256890852e791efe11d0669762e167edc36375d"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IDictationContributor.cs",
+      "sha256": "ce87cc97bac6b0d1759d1dd1e5a26dbed28d539787055ffff31cb48e0d412c49"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IEditorExtension.cs",
+      "sha256": "5613f32903508c2106f6907a4973ffe99f713e88bad2da737ec60b49fd2799c2"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IEntityExtractionContributor.cs",
+      "sha256": "d44bbacbc68116a329985601ba2fe190bc239a3785c67c8d32002b61bd6669db"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IEntityTypeContributor.cs",
+      "sha256": "e68c0f4c7d3ad283c7d1642362980f3472e3c51dcbd9e74c4f72a6aae1380f03"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IExportFormatContributor.cs",
+      "sha256": "38081568f552336827a7a91799c9b61ed37e22d0a8a99c2cebac9935c77e9a72"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IExportPostProcessor.cs",
+      "sha256": "208fd589f54f6ab92b8e710498c1e21985a30d29358d44e277a8fd12be50611a"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IGrammarCheckContributor.cs",
+      "sha256": "4abd045fc2a008c39ded1c8a33ec7260add047974d6817d38874c69bfb9bb747"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IHotkeyContributor.cs",
+      "sha256": "ca771f0db87f79487760bc2cedc1e06a7041293a5db7bb8f77693ded775a6985"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IInlineActionContributor.cs",
+      "sha256": "d05f6575635f24721d459a827a1a1d23772472779840cb27a5f2fe4b29a7a48c"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IPropertyTypeContributor.cs",
+      "sha256": "a173c5e4e33ae8eb5e66a87853c312f941ee2bea49f5c9664c9a5e8ce862b749"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IRibbonContributor.cs",
+      "sha256": "f1f6dfb8e6b7316ffecfb3ea05317f8d1c294cf8ef9ebc540d0aba849171906d"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/ISettingsContributor.cs",
+      "sha256": "5d83243ae74e436c84d18192a59c94532da5ffddc4af996da1a4eef61f2610bb"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/ISettingsSchemaContributor.cs",
+      "sha256": "724211c2476ee4464b7be887ed42fbc47b8b225ea252dca66073b211c4ecd091"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IStatusBarContributor.cs",
+      "sha256": "f110e48771c20690eee07d952618734695cad31ddb8a6c4e78a72602e15b8024"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IThemeContributor.cs",
+      "sha256": "df6c67090b45b02379972900dbbb60b044469c8397b0ddd51c2669af7c9368b7"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IVoiceEngineContributor.cs",
+      "sha256": "1ec160c8799bf33957d8ab30b0af12a6ba37031eff816df1fb5f3f2f859acba5"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IWebViewContributor.cs",
+      "sha256": "1c045dd5cdb0bb86aa7284a2c16b8533770c5a9b0adc58709a3d758267b039e1"
+    },
+    {
+      "path": "Novalist.Sdk/Hooks/IWizardContributor.cs",
+      "sha256": "1fb439a520c14190381bc91615e910c9159d017bee715ca962dc0d7664d20280"
+    },
+    {
+      "path": "Novalist.Sdk/IExtension.cs",
+      "sha256": "2b0f6ac56a7f1640a990dce105236dc14c3c46a425b13c6d9b54c855d3e566bd"
+    },
+    {
+      "path": "Novalist.Sdk/Models/ActivityBarItem.cs",
+      "sha256": "a3455a7f55a4aca26565dc835725ba4e993f92335f0ee03f3c7b9f4196d05fd4"
+    },
+    {
+      "path": "Novalist.Sdk/Models/AiFinding.cs",
+      "sha256": "b7d9ec3886ef67b435f8e406f1b1a55a7849449c5a49da69bce90bc9f67f73f2"
+    },
+    {
+      "path": "Novalist.Sdk/Models/AiPromptContext.cs",
+      "sha256": "4050a7a458a0a652cd3227e61f5126a81a79222b4c8b0f407f0e03aaa989e88d"
+    },
+    {
+      "path": "Novalist.Sdk/Models/AiSettings.cs",
+      "sha256": "0fd6779261f02cbaf1d1b5f37708b6cac65405deb4206fca4e6acca05b68b457"
+    },
+    {
+      "path": "Novalist.Sdk/Models/ContextMenuItem.cs",
+      "sha256": "89af56df54302baca64e2c170ca99e3842c98f0c7c79594b93f140fcedf28081"
+    },
+    {
+      "path": "Novalist.Sdk/Models/EntityTypeDescriptor.cs",
+      "sha256": "bd78ed1d1483fa52cb9ea62c7d2db942543771f871e155b04c0204f6223fb289"
+    },
+    {
+      "path": "Novalist.Sdk/Models/ExportFormatDescriptor.cs",
+      "sha256": "bbe694bcbad8a8ae5b894b647e378812921eb8bfc0820d2840a6a12919757b8c"
+    },
+    {
+      "path": "Novalist.Sdk/Models/HostCommandInfo.cs",
+      "sha256": "dfb641e851aa15a2b8e13a2e9df8d4c045f5c376c78041b366c8b295003656ad"
+    },
+    {
+      "path": "Novalist.Sdk/Models/HotkeyDescriptor.cs",
+      "sha256": "9bc8a908cd823feae2670d6d2271e79179eef7031a9496c6952c1710dbadb7b7"
+    },
+    {
+      "path": "Novalist.Sdk/Models/Narration/VoiceEngineModels.cs",
+      "sha256": "c07fd4a2102b3b11faf09fce02ddc2dc7eefc3621b509c86371fb1e90df02b13"
+    },
+    {
+      "path": "Novalist.Sdk/Models/PropertyTypeDescriptor.cs",
+      "sha256": "37c9bb7095e06519e372fea9018ecd47344c36a882aaaac901407071da183ddb"
+    },
+    {
+      "path": "Novalist.Sdk/Models/RibbonItem.cs",
+      "sha256": "ee81f1fea36e15606255f3014f7df648ba733bc4bd9741e1627aacf9d5a3a45a"
+    },
+    {
+      "path": "Novalist.Sdk/Models/SceneAnalysisRecord.cs",
+      "sha256": "6aed64ebc65472b61b93d8296c3dea52fd3a4f9fffe6f56403959dec6b3b4270"
+    },
+    {
+      "path": "Novalist.Sdk/Models/SettingsPage.cs",
+      "sha256": "7955320addf4fa7e0a7e637b974bc2e6657a80880ee4e0166ee73c72fe786779"
+    },
+    {
+      "path": "Novalist.Sdk/Models/SettingsSchema.cs",
+      "sha256": "157bb938f091cca2bcc7d373cd7cc981cb1203298e81000a109618098e93d005"
+    },
+    {
+      "path": "Novalist.Sdk/Models/StatusBarItem.cs",
+      "sha256": "fb00ad86a95e8bd18a155800b2a05b5172d88722e5aa9773d22319a81f98ac4a"
+    },
+    {
+      "path": "Novalist.Sdk/Models/ThemeOverride.cs",
+      "sha256": "70722d6203c72e2c8052d35c5e89b9b15f770eae17b6d34f18242fb8ac154745"
+    },
+    {
+      "path": "Novalist.Sdk/Models/Wizards/WizardDefinition.cs",
+      "sha256": "1bd8c11f3d456690a73f21f17d58764ad5108d3a9c57828512c274eec0609d74"
+    },
+    {
+      "path": "Novalist.Sdk/Models/Wizards/WizardResult.cs",
+      "sha256": "cd17865e86f6f7f87bef686e08a4ca2d9e5db3522a76878d37acb0518cf275cf"
+    },
+    {
+      "path": "Novalist.Sdk/Novalist.Sdk.csproj",
+      "sha256": "339db9a540445f3130a1ed6f89c62a72de5e103f07cce645d3245b73b82b3aab"
+    },
+    {
+      "path": "Novalist.Sdk/README.md",
+      "sha256": "d4c894194e52401d2db5b0b81b3a42dea5ab89b082104ad0766feaeedf941851"
+    },
+    {
+      "path": "Novalist.Sdk/Services/BookDetailInfo.cs",
+      "sha256": "dab6b84fe0b8a5c8fe7c9fea9fb5ad9310307747735a09a419d909681ec2bd6a"
+    },
+    {
+      "path": "Novalist.Sdk/Services/BusyProgress.cs",
+      "sha256": "2567ac9bb34663cac946639a9ba44320d812d26d10d4ad89f2050136ec2757e4"
+    },
+    {
+      "path": "Novalist.Sdk/Services/IAiService.cs",
+      "sha256": "41aa10e29fa7416d2751f985220ea6a084f9226997af76990f55a53906420479"
+    },
+    {
+      "path": "Novalist.Sdk/Services/IExtensionArchiveService.cs",
+      "sha256": "2d3650d072b1a2b9fa816ca33c4cdb1e03034ffbc10b89f14e640a668acb5798"
+    },
+    {
+      "path": "Novalist.Sdk/Services/IExtensionEntityService.cs",
+      "sha256": "6761e020aad7ea963e6ceba16e69b3bd5460a9ed5fa5edbd84c0aa37d647a019"
+    },
+    {
+      "path": "Novalist.Sdk/Services/IExtensionFileService.cs",
+      "sha256": "0f8f77ec5e667327cd1ca4da8a1efeaf6aef6af634b98caba2f5177d31c6d2ac"
+    },
+    {
+      "path": "Novalist.Sdk/Services/IExtensionLocalization.cs",
+      "sha256": "28ff808c12292a1769d6128f2536226f739376b88a5d0038977fa59fb4a04b70"
+    },
+    {
+      "path": "Novalist.Sdk/Services/IExtensionProjectService.cs",
+      "sha256": "42df451f66b8b926cbfcd274d3bfa0fd01c2918beba105f62e32a9bf7c90f1a1"
+    },
+    {
+      "path": "Novalist.Sdk/Services/IExtensionResearchService.cs",
+      "sha256": "218be6dc9f80d6490354d0545323f3de9f93f05736fe84d3b58e726e01b437a9"
+    },
+    {
+      "path": "Novalist.Sdk/Services/IExtensionReviewService.cs",
+      "sha256": "aa6f2f3de9009b00fd216966b96075319597ee1574f43617f5b4d7c70df9320e"
+    },
+    {
+      "path": "Novalist.Sdk/Services/IExtensionStoryService.cs",
+      "sha256": "77193b1078e966a1c44cf008f05970e5cf7a3cd159d0efa298777bda080787e7"
+    },
+    {
+      "path": "Novalist.Sdk/Services/IHostServices.cs",
+      "sha256": "bf76e5ca85863e7b19404ee35c7de3142c2ea7d827bbffbb5a1583b05816a20a"
+    },
+    {
+      "path": "Novalist.Sdk/Services/MapInfo.cs",
+      "sha256": "b75cf81a4cdd5ace0c586a3a2472d8e1a433377bbc044ad994ae4444f377f9cd"
+    },
+    {
+      "path": "Novalist.Sdk/Services/SceneDetailInfo.cs",
+      "sha256": "76c2f2b4bd5a880a2222bf92b736a3bab7d811f283296d5f649361b1c6931ddc"
+    },
+    {
+      "path": "Novalist.Sdk/Services/SmartListInfo.cs",
+      "sha256": "2ea6338256eb09076805612778c2be54416ff763bb336b03bbd67c21b0bc26f6"
+    },
+    {
+      "path": "Novalist.Sdk/build/Novalist.Sdk.targets",
+      "sha256": "57e076f3bc79022b3a474199fd2919ddabc47642278df79aef5e71616a773457"
+    },
+    {
+      "path": "native/AppleSpeech/AppleMicrophone.swift",
+      "sha256": "8eb826e7a99ed88a04f2c7fbe7d0dfbd38d0667cde73ff6e366d53826089ef96"
+    },
+    {
+      "path": "native/AppleSpeech/AppleSpeech.Mac.targets",
+      "sha256": "ed2019e87a086999807466b8260dfdd30ec7b927317cb08106ca0ab06d067b01"
+    },
+    {
+      "path": "native/AppleSpeech/AppleSpeech.iOS.targets",
+      "sha256": "a44ac4fbbf9b220902c4188fc54bf62d38ffc57d44dfcc8fae3552487e784c6f"
+    },
+    {
+      "path": "native/AppleSpeech/NovalistSpeech.swift",
+      "sha256": "cba403a97b7db1d29bc8f6bac0a0160352038288bcbae2489c35333513bfb349"
+    },
+    {
+      "path": "native/AppleSpeech/build.sh",
+      "sha256": "e339c0d9332f0747d4e07c15d2c71c9bf44fe9b6cd45f211d6a974fcdd8ff882"
+    },
+    {
+      "path": "Novalist.Mobile/Pages/RendererHostPage.JavaScript.cs",
+      "sha256": "7b9abb8656b96a0aab6be6bd513cb8af1f01916fe6a6daad8a09f9edd7f42540"
+    }
+  ]
+}

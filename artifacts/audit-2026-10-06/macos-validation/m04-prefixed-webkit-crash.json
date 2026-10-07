@@ -1,0 +1,18 @@
+{
+  "status": "failed",
+  "scenario": "Real associated WebContent process termination before evaluator correction",
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "probe_diff_sha256": "2580103702a3a67ac99bc3680b0f61b8c7a3ef9f39c55e8d5396a01fefc26ca0",
+  "device": "iPhone17Pro simulator",
+  "os": "iOS27.0",
+  "observed": "Native host aborted (EXC_CRASH/SIGABRT) after an unhandled NSErrorException escaped MAUI async-void JavaScript evaluation. Native recovery alert unavailable; XCTest activation relaunched a fresh process, which is not successful recovery.",
+  "evidence": [
+    "m04-prefixed-webkit-crash.log"
+  ],
+  "root_cause": {
+    "maui_version": "10.0.110",
+    "maui_revision": "6c379bf1dc24461a985a093be3fd8a3e9bc6fc00",
+    "source": "https://github.com/dotnet/maui/blob/6c379bf1dc24461a985a093be3fd8a3e9bc6fc00/src/Core/src/Handlers/HybridWebView/HybridWebViewHandler.cs#L385",
+    "explanation": "MapEvaluateJavaScriptAsync is async void and awaits the faulted inner request without catching it before settling the outer request. Caller try/catch cannot intercept this main-thread exception."
+  }
+}

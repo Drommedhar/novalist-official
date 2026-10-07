@@ -46,7 +46,7 @@ public sealed partial class RendererHostPage
         {
             var script = $"typeof window.__novalistLifecycleSave === 'function' ? "
                 + $"(window.__novalistLifecycleSave({requestId}), 'requested') : 'unavailable'";
-            var state = await MainThread.InvokeOnMainThreadAsync(() => _web.EvaluateJavaScriptAsync(script))
+            var state = await MainThread.InvokeOnMainThreadAsync(() => EvaluateScriptAsync(script))
                 .WaitAsync(deadline.Token).ConfigureAwait(false);
             if (state?.Trim('"') != "requested") return;
             if (!await acknowledgement.WaitAsync(deadline.Token).ConfigureAwait(false))

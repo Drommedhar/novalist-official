@@ -1,0 +1,27 @@
+{
+  "scope": "Temporary instrumentation artifact only; never installed in a working user device or copied to production source. Remove and rebuild after acceptance.",
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "probe_diff_sha256": "2d88274ef724e09d0bdfc0bd3a4885112d88f7d80002594cc5730a6f431795e8",
+  "probe_diff_file": "audit-control-fixed.patch",
+  "control_source_file": "audit-control-fixed-source.cs",
+  "runtime": "iPhone 17 Pro simulator / iOS 27.0",
+  "simulator_name": "Novalist-Audit-Probes",
+  "operations": [
+    "eval",
+    "state",
+    "evaluator-failure",
+    "evaluator-timeout",
+    "backend-failure",
+    "asset-hold",
+    "asset-release",
+    "reload",
+    "evaluator-native-failure"
+  ],
+  "channel": "Documents/NovalistAudit/command.json -> response.json; ready.json written after native bridge readiness",
+  "protocol": "One JSON command at a time: {\"id\":\"unique synthetic ID\",\"op\":\"eval\",\"script\":\"JSON.stringify({ready:document.readyState})\"}. Write to a temporary file and rename atomically. Poll response.json until id matches. Evaluations execute on MainThread in actual WKWebView; asynchronous JS should store synthetic results on window and be polled separately.",
+  "fault_deadlines": "DeliverCallbackAsync retains original 15-second WaitAsync and bridge failure retains 2-second notification deadline. Poll thread stays responsive.",
+  "process_association": "state returns private debug-only _webProcessIdentifier when supported; no process is terminated by the harness.",
+  "acceptance": "Native NSError, 15-second evaluator deadline, backend failure and actual associated WebContent termination produced real native recovery alerts; each real Reload button test passed. Retained edit recovery and mutation nonreplay remain unproven.",
+  "launch_preparation": "Unsigned app and manual deep ad-hoc signing both died before managed code with CODESIGNING Invalid Page. Rebuilt with EnableCodeSigning=true and CodesignKey=- using MSBuild; codesign verification and dedicated simulator launch then succeeded.",
+  "signed_build_command": "dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-ios27.0 -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=true -p:CodesignKey=- --no-restore -m:1 -nr:false"
+}

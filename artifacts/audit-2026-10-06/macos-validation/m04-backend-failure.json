@@ -1,0 +1,68 @@
+{
+  "scenario": "backend-failure",
+  "status": "transport-subset-passed",
+  "source_revision": "0c789b29581db47d89593c897bd53fbb3fb9275c",
+  "probe_diff_sha256": "2580103702a3a67ac99bc3680b0f61b8c7a3ef9f39c55e8d5396a01fefc26ca0",
+  "device": "iPhone 17 Pro simulator",
+  "os": "iOS 27.0",
+  "native_state": {
+    "page": "360bf1dc9f344645ba29d8aa2ebf567e",
+    "bridgeFailed": 1,
+    "disposed": 0,
+    "rendererReady": true,
+    "bridgeCancellation": true,
+    "evaluatorFault": 0,
+    "assetReads": 1,
+    "assetHeld": true,
+    "projectGeneration": 2,
+    "webProcessId": 69392,
+    "nativeEditingPausedAlert": true,
+    "nativeReloadAvailable": true,
+    "nativeLaterAvailable": true,
+    "events": [
+      {
+        "kind": "control-started",
+        "detail": null,
+        "utc": "2026-10-07T08:51:06.698545+00:00",
+        "ticks": 151398358475041
+      },
+      {
+        "kind": "renderer-ready",
+        "detail": null,
+        "utc": "2026-10-07T08:51:07.966506+00:00",
+        "ticks": 151399626440708
+      },
+      {
+        "kind": "asset-reply-held",
+        "detail": "2",
+        "utc": "2026-10-07T08:51:49.828173+00:00",
+        "ticks": 151441488279125
+      },
+      {
+        "kind": "backend-dispose",
+        "detail": null,
+        "utc": "2026-10-07T08:51:50.227694+00:00",
+        "ticks": 151441887801875
+      },
+      {
+        "kind": "bridge-failed",
+        "detail": "InvalidOperationException",
+        "utc": "2026-10-07T08:51:50.229935+00:00",
+        "ticks": 151441890042625
+      },
+      {
+        "kind": "native-alert-presenting",
+        "detail": null,
+        "utc": "2026-10-07T08:51:50.231382+00:00",
+        "ticks": 151441891490208
+      }
+    ]
+  },
+  "pending_host_call": "rejected",
+  "wall_seconds_until_alert": 0.21026995801366866,
+  "timeout_ticks": null,
+  "limits": [
+    "Native Reload action and post-reload production health are recorded separately.",
+    "This transport subset does not prove retained edit recovery or no replay of a mutation."
+  ]
+}
