@@ -21,6 +21,12 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.5.5] - 2026-10-08
+
 ### Changed
 
 - Desktop navigation stays above the scene list in narrow windows on every platform, including when restoring an older undocked layout. The shared sidebar gives space back to the editor as the window shrinks; hiding and showing navigation keeps it in the sidebar.
@@ -1748,7 +1754,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.5.3...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.5.5...HEAD
+[3.5.5]: https://github.com/Drommedhar/novalist-official/compare/v3.5.3...v3.5.5
 [3.5.3]: https://github.com/Drommedhar/novalist-official/compare/v3.5.1...v3.5.3
 [3.5.1]: https://github.com/Drommedhar/novalist-official/compare/v3.5...v3.5.1
 [3.5]: https://github.com/Drommedhar/novalist-official/compare/v3.4.2...v3.5
