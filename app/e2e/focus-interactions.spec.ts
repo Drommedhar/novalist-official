@@ -1,5 +1,24 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Locator } from '@playwright/test'
 import { dismissTour, launchApp, resizeWindow, seedBook } from './harness'
+
+async function alignedFocusBounds(frame: Locator) {
+  const measure = () => frame.evaluate((element) => {
+    const bounds = element.getBoundingClientRect()
+    const edge = document.querySelector('.focus-edge-left')!.getBoundingClientRect()
+    return {
+      frame: { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height },
+      hoverWidth: edge.width,
+      edgeRight: edge.right,
+      viewportWidth: window.innerWidth
+    }
+  })
+  let bounds = await measure()
+  await expect.poll(async () => {
+    bounds = await measure()
+    return bounds.edgeRight - bounds.frame.x
+  }).toBeCloseTo(0, 0)
+  return bounds
+}
 
 test('F11 works in prose and panel fields, and focus width follows editor zoom', async () => {
   const h = await launchApp('nl-focus-zoom-')
@@ -31,11 +50,10 @@ test('F11 works in prose and panel fields, and focus width follows editor zoom',
       })).toEqual({ accelerator: '', registered: false })
     }
 
-    const initialWidth = (await frame.boundingBox())!.width
-    const initialHoverWidth = (await h.page.locator('.focus-edge-left').boundingBox())!.width
+    const initialBounds = await alignedFocusBounds(frame)
+    const initialWidth = initialBounds.frame.width
+    const initialHoverWidth = initialBounds.hoverWidth
     expect(initialHoverWidth).toBeGreaterThan(24)
-    expect(await h.page.locator('.focus-edge-left').evaluate((element) => element.getBoundingClientRect().right))
-      .toBeCloseTo((await frame.boundingBox())!.x, 0)
     const paper = h.page.frameLocator('iframe.editor-frame').locator('.nv-page').first()
     const initialPaperWidth = (await paper.boundingBox())!.width
     await editor.evaluate((element) => element.dispatchEvent(new WheelEvent('wheel', { ctrlKey: true, deltaY: -100, bubbles: true, cancelable: true })))
@@ -46,7 +64,8 @@ test('F11 works in prose and panel fields, and focus width follows editor zoom',
     await h.page.evaluate(() => window.novalistStores.settings.getState().update('global', { editorFontSize: 30 }))
     await expect.poll(async () => (await frame.boundingBox())!.width).toBeGreaterThan(zoomedWidth)
     await expect.poll(async () => (await h.page.locator('.focus-edge-left').boundingBox())!.width).toBeLessThan(initialHoverWidth)
-    expect(await frame.evaluate((element) => element.getBoundingClientRect().right <= window.innerWidth)).toBe(true)
+    const zoomedBounds = await alignedFocusBounds(frame)
+    expect(zoomedBounds.frame.x + zoomedBounds.frame.width <= zoomedBounds.viewportWidth).toBe(true)
     await expect(editor).toHaveAttribute('data-focus-probe', 'retained')
     await expect(editor).toContainText('A page with room to grow.')
     await h.page.screenshot({ path: 'test-results/focus-zoom.png' })
@@ -79,7 +98,7 @@ test('edge hover reveals overlay panels without taking the caret or resizing the
       .toContain('The caret stays here.')
     await h.page.keyboard.press('F11')
     await expect.poll(() => h.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isFullScreen())).toBe(true)
-    const bounds = (await frame.boundingBox())!
+    const bounds = (await alignedFocusBounds(frame)).frame
     const returnToPage = (): Promise<void> => h.page.mouse.move(bounds.x + bounds.width / 2, bounds.y + 100)
 
     await h.page.locator('.focus-edge-left').hover()
@@ -87,7 +106,7 @@ test('edge hover reveals overlay panels without taking the caret or resizing the
     await expect(binder).toBeVisible()
     await expect(binder).toHaveAttribute('aria-modal', 'false')
     await expect(editor).toBeFocused()
-    expect(await frame.boundingBox()).toEqual(bounds)
+    await expect.poll(() => frame.boundingBox()).toEqual(bounds)
     await binder.hover()
     await expect(binder.locator('.binder-scene-row')).toHaveCount(1)
     await returnToPage()
@@ -98,7 +117,7 @@ test('edge hover reveals overlay panels without taking the caret or resizing the
     const inspector = h.page.getByRole('dialog', { name: 'Scene context' })
     await expect(inspector).toBeVisible()
     await expect(editor).toBeFocused()
-    expect(await frame.boundingBox()).toEqual(bounds)
+    await expect.poll(() => frame.boundingBox()).toEqual(bounds)
     const conflict = inspector.getByPlaceholder('Conflict', { exact: true })
     await conflict.fill('Keep this edit while the pointer moves away.')
     await returnToPage()

@@ -65,6 +65,7 @@ test('focus keeps the page, caret and split layout while its tools are tucked aw
     await expect(h.page.getByRole('dialog', { name: 'Chapters and scenes' })).toBeVisible()
     await h.page.keyboard.press('Escape')
     await expect(h.page.locator('.focus-panel-open')).toHaveCount(0)
+    await expect(editor).toBeFocused()
     await h.page.keyboard.press('Control+Alt+i')
     await expect(h.page.getByRole('dialog', { name: 'Scene context' })).toBeVisible()
     await h.page.keyboard.press('Escape')
