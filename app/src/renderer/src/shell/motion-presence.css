@@ -24,7 +24,7 @@
   animation: surface-presence-enter var(--nl-motion-normal) var(--nl-motion-ease);
 }
 
-:root[data-shell='desktop'] .motion-presence[data-motion-presence='open'] > :is(.binder, .mode-panel, .inspector, .notes-dock, .mode-panel-scrim) {
+:root[data-shell='desktop'] .motion-presence[data-motion-presence='open'] > :is(.binder, .mode-panel, .inspector, .notes-dock) {
   animation: surface-presence-enter var(--nl-motion-panel) var(--nl-motion-ease);
 }
 

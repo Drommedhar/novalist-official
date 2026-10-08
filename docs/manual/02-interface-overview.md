@@ -71,7 +71,7 @@ Below the navigation row, the mode panel lists the views of the mode you are in.
 - Views contributed by extensions sit in their own group, **From extensions**, always last — so installing something never reorders a view you already knew where to find.
 - Past **ten** views, the panel grows a **filter** box. It is an accelerator, never the way something becomes reachable: every view is in the list whether or not you are filtering. While you filter, the group labels go, because they describe an order the filtered list no longer has.
 
-**Hiding and showing it.** **View → Show the mode panel** docks or undocks it. In a narrow window it is an overlay instead of a column: picking a mode from the rail raises it, choosing a view closes it again, and clicking outside dismisses it. The rows and their order are the same either way.
+**Hiding and showing it.** **View → Show the mode panel** hides or restores the list. On desktop, it stays above the scene list even in a narrow window, on both Windows and macOS. Picking a mode from the navigation row restores the list if it was hidden. Older saved undocked layouts also reopen with the list above the scenes.
 
 The panel is not shown on the Dashboard, in Settings, in Extensions or in About — none of those belongs to a mode.
 
@@ -101,7 +101,7 @@ The layout also responds to how much room it actually has, measured from the win
 
 - **Wide** — the mode panel and binder share a left column, with the main area and inspector alongside it.
 - **Medium** — the inspector becomes a drawer you open when you want it, and secondary toolbar commands collect under the **More** menu.
-- **Compact** — the mode panel and the binder become overlays over the main area rather than columns beside it, so the editor keeps a usable width instead of being squeezed out.
+- **Compact** — the mode panel stays above the binder in a shared left column. That column takes at most 40% of the window, leaving the rest for the editor; the inspector remains a drawer. **View → Toggle binder** hides or restores the scene list at every desktop width.
 
 The width you drag a panel to is remembered as a preference, not as a demand: on a narrower window a panel is capped so the editor stays usable, and your stored width comes back when there is room for it again.
 

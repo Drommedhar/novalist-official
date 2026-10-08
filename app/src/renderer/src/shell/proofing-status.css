@@ -1,0 +1,61 @@
+.status-left:has(.status-proofing) {
+  max-width: 100%;
+}
+
+.status-proofing {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: var(--nl-space-tightest);
+}
+
+.status-proofing > span,
+.status-proofing > button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+}
+
+.status-proofing > button {
+  padding: 0 var(--nl-space-hairline);
+  border: none;
+  border-radius: var(--nl-radius-sm);
+  background: transparent;
+  color: var(--nl-warning);
+  font: inherit;
+  font-family: var(--nl-font-mono);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.status-proofing > button:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.status-proofing > button:focus-visible {
+  outline: var(--nl-rule-width) solid var(--nl-accent);
+  outline-offset: var(--nl-space-hairline);
+}
+
+.status-proofing svg {
+  width: var(--nl-font-ui);
+  height: var(--nl-font-ui);
+  flex: none;
+}
+
+.status-proofing-clear {
+  color: var(--nl-success);
+}
+
+.status-proofing-checking svg {
+  animation: proofing-check-spin calc(var(--nl-motion-normal) * 6) linear infinite;
+}
+
+@keyframes proofing-check-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-proofing-checking svg { animation: none; }
+}

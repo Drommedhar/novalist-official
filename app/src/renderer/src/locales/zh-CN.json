@@ -620,6 +620,10 @@
     "smartLists": "列表"
   },
   "statusBar": {
+    "proofingChecking": "正在检查语言…",
+    "proofingClear": "未发现语言问题",
+    "proofingGrammar": "语法：{{count}}。显示下一处问题。",
+    "proofingSpelling": "拼写和文体：{{count}}。显示下一处问题。",
     "openSceneHint": "打开场景以查看实时统计信息",
     "dailyPercent": "今日 {0}%",
     "projectPercent": "项目 {0}%",

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { launchApp, seedBook } from './harness'
+import { enterWriting, launchApp, seedBook } from './harness'
 
 async function closeTourIfOffered(page: import('@playwright/test').Page): Promise<void> {
   const tour = page.locator('.tour-card')
@@ -43,7 +43,9 @@ test('the desktop shell responds to usable width and removes irrelevant chrome',
 
   await h.page.setViewportSize({ width: 800, height: 650 })
   await expect(h.page.locator('.shell')).toHaveAttribute('data-shell-capacity', 'compact')
-  await expect(h.page.locator('.binder')).toHaveCount(0)
+  await expect(h.page.locator('.binder')).toBeVisible()
+  await expect(h.page.locator('.mode-panel:not(.overlay)')).toBeVisible()
+  await expect(h.page.locator('.mode-panel-scrim')).toHaveCount(0)
   await expect(h.page.locator('.inspector')).toHaveCount(0)
   await expect(h.page.locator('.toolbar-more')).toBeVisible()
 
@@ -54,10 +56,25 @@ test('the desktop shell responds to usable width and removes irrelevant chrome',
   await expect(h.page.getByRole('button', { name: 'Clean up the manuscript' })).toBeVisible()
   await expect(h.page.getByRole('button', { name: 'Toggle binder' })).toHaveCount(0)
 
-  // Panels become temporary drawers, raised by the gesture the View menu names.
-  // Opening one must not take width away from the manuscript. (Ctrl+Alt+B: the
-  // binder gave Ctrl+B back to bold, which is what it means everywhere else.)
-  await h.page.keyboard.press('Control+Alt+B')
+  await h.page.locator('.toolbar-more > summary').click()
+  // Desktop navigation remains a single column above scenes at narrow widths.
+  // The sidebar gives the editor at least sixty percent even when UI scaling
+  // leaves a viewport smaller than the normal desktop minimum window width.
+  await h.page.setViewportSize({ width: 510, height: 650 })
+  const layout = await h.page.evaluate(() => {
+    const panel = document.querySelector('.mode-panel')!.getBoundingClientRect()
+    const binder = document.querySelector('.binder')!.getBoundingClientRect()
+    const main = document.querySelector('.shell-main')!.getBoundingClientRect()
+    return { panelBottom: panel.bottom, binderTop: binder.top, sidebarRight: binder.right, mainLeft: main.left, mainWidth: main.width, viewportWidth: window.innerWidth }
+  })
+  expect(layout.panelBottom).toBeLessThanOrEqual(layout.binderTop + 1)
+  expect(layout.sidebarRight).toBeLessThanOrEqual(layout.mainLeft + 1)
+  expect(layout.mainWidth).toBeGreaterThanOrEqual(layout.viewportWidth * 0.6 - 1)
+
+  // Hide and restore the binder through the same desktop command at any width.
+  await h.page.evaluate(() => window.novalistStores.shell.getState().toggleBinder())
+  await expect(h.page.locator('.binder')).toHaveCount(0)
+  await h.page.evaluate(() => window.novalistStores.shell.getState().toggleBinder())
   await expect(h.page.locator('.binder')).toBeVisible()
   const widths = await h.page.evaluate(() => {
     const shell = document.querySelector('.shell') as HTMLElement
@@ -68,8 +85,17 @@ test('the desktop shell responds to usable width and removes irrelevant chrome',
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
     }
   })
-  expect(widths.main).toBeGreaterThan(widths.shell * 0.7)
+  expect(widths.main).toBeGreaterThanOrEqual(widths.shell * 0.6 - 1)
   expect(widths.overflow).toBeLessThanOrEqual(0)
+
+  // Hiding the panel is a visibility preference, never an overlay layout.
+  await h.page.evaluate(() => window.novalistStores.shell.getState().toggleModePanelVisible())
+  await expect(h.page.locator('.mode-panel')).toHaveCount(0)
+  await h.page.setViewportSize({ width: 1080, height: 750 })
+  await expect(h.page.locator('.mode-panel')).toHaveCount(0)
+  await h.page.evaluate(() => window.novalistStores.shell.getState().toggleModePanelVisible())
+  await expect(h.page.locator('.mode-panel:not(.overlay)')).toBeVisible()
+  await expect(h.page.locator('.mode-panel-scrim')).toHaveCount(0)
 
   // Settings is a system task. Project tree, scene inspector, project status,
   // and writing overflow actions are all unrelated and therefore absent.
@@ -86,6 +112,67 @@ test('the desktop shell responds to usable width and removes irrelevant chrome',
   ).toBeLessThanOrEqual(0)
 
   await h.close()
+})
+
+test('legacy undocked profiles migrate to navigation above scenes and remember real visibility', async () => {
+  const h = await launchApp('nl-navigation-upgrade-')
+  try {
+    await h.page.emulateMedia({ reducedMotion: 'reduce' })
+    // Exercise module initialization with an actual saved pre-upgrade profile.
+    // Mutating the live store would miss the migration that existing users need.
+    await h.page.evaluate(() => {
+      localStorage.setItem('nl.shell.panels', JSON.stringify({
+        modePanelDocked: false,
+        binderWidth: 340,
+        inspectorWidth: 360
+      }))
+      localStorage.setItem('nl.tour.seen', '1')
+    })
+    await h.page.reload()
+    await h.page.waitForFunction(() => Boolean(window.novalistStores?.shell.getState().backendVersion))
+    expect(await h.page.evaluate(() => window.novalistStores.shell.getState().modePanelVisible)).toBe(true)
+    const book = await seedBook(h, { Opening: ['Arrival'] })
+    await closeTourIfOffered(h.page)
+    await enterWriting(h.page)
+    await h.page.evaluate(chapter => window.novalistStores.project.getState().openScene(chapter.guid, chapter.scenes[0].id), book.chapters[0])
+    await expect(h.page.locator('.editor-frame')).toBeVisible()
+
+    for (const width of [1400, 800]) {
+      await h.page.setViewportSize({ width, height: 850 })
+      await h.page.locator('.mode-rail-item[data-mode="plan"]').click()
+      await expect(h.page.locator('.mode-panel')).toBeVisible()
+      await expect(h.page.locator('.mode-panel.overlay, .mode-panel-scrim')).toHaveCount(0)
+      await h.page.locator('.mode-rail-item[data-mode="write"]').click()
+      await expect(h.page.locator('.workspace-sidebar .mode-panel')).toBeVisible()
+      await expect(h.page.locator('.workspace-sidebar .binder')).toBeVisible()
+      const geometry = await h.page.evaluate(() => {
+        const panel = document.querySelector('.mode-panel')!.getBoundingClientRect()
+        const binder = document.querySelector('.binder')!.getBoundingClientRect()
+        return { panelBottom: panel.bottom, binderTop: binder.top, panelLeft: panel.left, binderLeft: binder.left }
+      })
+      expect(geometry.panelBottom).toBeLessThanOrEqual(geometry.binderTop + 1)
+      expect(geometry.panelLeft).toBeCloseTo(geometry.binderLeft, 0)
+      await expect(h.page.locator('.mode-panel.overlay, .mode-panel-scrim')).toHaveCount(0)
+    }
+
+    // New hide/show intent takes precedence over the legacy undocking value.
+    await h.page.evaluate(() => window.novalistStores.shell.getState().toggleModePanelVisible())
+    await expect(h.page.locator('.mode-panel')).toHaveCount(0)
+    const saved = await h.page.evaluate(() => JSON.parse(localStorage.getItem('nl.shell.panels') || '{}'))
+    expect(saved).toMatchObject({ modePanelVisible: false, binderWidth: 340, inspectorWidth: 360 })
+    await h.page.reload()
+    await h.page.waitForFunction(() => window.novalistStores?.project.getState().isLoaded)
+    await enterWriting(h.page)
+    expect(await h.page.evaluate(() => window.novalistStores.shell.getState().modePanelVisible)).toBe(false)
+    await expect(h.page.locator('.mode-panel')).toHaveCount(0)
+    await expect(h.page.locator('.binder')).toBeVisible()
+    await h.page.locator('.mode-rail-item[data-mode="write"]').click()
+    await expect(h.page.locator('.workspace-sidebar .mode-panel')).toBeVisible()
+    await expect(h.page.locator('.mode-panel.overlay, .mode-panel-scrim')).toHaveCount(0)
+    expect(await h.page.evaluate(() => JSON.parse(localStorage.getItem('nl.shell.panels') || '{}').modePanelVisible)).toBe(true)
+  } finally {
+    await h.close()
+  }
 })
 
 test('project status is concise until its details are requested', async () => {

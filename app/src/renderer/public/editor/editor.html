@@ -49,6 +49,17 @@
     --chrome-font: 15px;
     --chrome-font-sm: 13px;
     --chrome-gap: 6px;
+    /* Mirror the shell spacing scale: chrome spacing stays fixed when prose
+       is zoomed, including inside this independently loaded frame. */
+    --nl-space-hairline: 2px;
+    --nl-space-tightest: 4px;
+    --nl-space-tighter: 6px;
+    --nl-space-sm: 8px;
+    --nl-space-md: 12px;
+    --nl-space-lg: 18px;
+    --nl-space-xl: 24px;
+    --nl-space-xxl: 32px;
+    --nl-radius-sm: 6px;
     /* Chrome, not prose: editor font size must never widen this gutter. */
     --comment-gutter-width: clamp(180px, 26vw, 320px);
 }
@@ -585,26 +596,28 @@ body.typewriter-on #editor::after {
     --page-fg: #1c1a18;
 }
 body.page-view #editor-wrapper {
+    container-type: inline-size;
     background: color-mix(in srgb, var(--bg) 70%, black 30%);
-    /* em-based so paper + padding scale with editor font size / zoom.
-       Width is clamped to the visible viewport so big zoom levels do not
-       push the page off-screen. */
+    /* Keep the book proportions when they fit. In a narrow pane, spend the
+       available width on prose before paper margins. Container units include
+       the space taken by comments and any configured book-width limit. */
     --page-target-width: 32em;
-    --page-h-padding: 4em;
+    --page-outer-gap: min(var(--nl-space-xl), 2cqw);
+    --page-h-padding: clamp(var(--nl-space-md), calc((100cqw - var(--page-outer-gap) * 2 - 24em) / 2), 4em);
     --page-v-padding: 4em;
-    --page-width: min(var(--page-target-width), calc(100vw - 6em));
+    --page-width: min(var(--page-target-width), calc(100cqw - var(--page-outer-gap) * 2));
     --page-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.15);
 }
 body.page-view #editor {
     background: transparent;
     color: inherit;
-    padding: 32px 0;
+    padding: var(--nl-space-xxl) 0;
     margin: 0;
     max-width: none;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 48px;
+    gap: calc(var(--nl-space-xl) * 2);
 }
 body.page-view .nv-page {
     background: var(--page-bg);
@@ -612,9 +625,9 @@ body.page-view .nv-page {
     caret-color: var(--page-fg);
     padding: var(--page-v-padding) var(--page-h-padding);
     box-shadow: var(--page-shadow);
-    border-radius: 2px;
+    border-radius: var(--nl-space-hairline);
     width: var(--page-width);
-    max-width: calc(100% - 4em);
+    max-width: 100%;
     box-sizing: border-box;
     /* Full page height = content budget (48em, mirrored in repaginatePageView)
        + vertical padding (2 × 4em). All pages are sized to this height so the
@@ -656,6 +669,29 @@ body.page-view.typewriter-on #editor { padding-top: 70vh; }
     transform: translateY(0);
     pointer-events: auto;
 }
+/* On a phone the prose reaches the viewport edge. Keep proofing in its own
+   footer so it cannot cover words, even midway through a scene or when the
+   keyboard shortens the editor. Hiding proofing returns its space to writing. */
+body.mobile {
+    flex-direction: column;
+    align-items: center;
+}
+body.mobile #editor-wrapper {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+}
+body.mobile .grammar-status-bar {
+    position: static;
+    flex: none;
+    align-self: flex-end;
+    display: none;
+    margin: var(--nl-space-sm) var(--nl-space-xl);
+    transform: none;
+}
+body.mobile .grammar-status-bar.visible { display: flex; }
+/* Desktop publishes the same status in the shell's status bar. */
+body.proofing-status-hosted #grammar-status-bar { display: none; }
 .status-throbber {
     display: none;
     width: 14px;

@@ -46,6 +46,103 @@ const issue = (offset: number, length: number, replacement: string) => ({
   offset, length, type: 'grammar', message: 'Fixture correction', replacements: [replacement]
 })
 
+test('hosted proofing publishes live status and keeps issue navigation available', async ({ page }) => {
+  await content(page, '<p>Ths is teh odd end.</p>')
+  await issues(page, [
+    issue(0, 3, 'This'),
+    { ...issue(7, 3, 'the'), type: 'spelling' },
+    { ...issue(11, 3, 'good'), type: 'style' }
+  ])
+  await expect(page.locator('#grammar-status-bar')).toBeVisible()
+  const status = await page.evaluate(() => {
+    const w = window as unknown as EditorWindow
+    w.setProofingStatusHosted(true)
+    return w.getProofingStatus()
+  })
+  expect(status).toEqual({ enabled: true, checking: false, grammarCount: 1, spellingCount: 2 })
+  await expect(page.locator('#grammar-status-bar')).toBeHidden()
+  await page.evaluate(() => (window as unknown as EditorWindow).scrollToNextIssue('punctuation'))
+  await expect(page.locator('.gp-suggestion', { hasText: /^the$/ })).toBeVisible()
+
+  await page.evaluate(() => {
+    const w = window as unknown as ProofingWindow
+    w.proofingRequests = []
+    w.setGrammarCheckEnabled(false)
+  })
+  expect(await page.evaluate(() => (window as unknown as EditorWindow).getProofingStatus()))
+    .toEqual({ enabled: false, checking: false, grammarCount: 0, spellingCount: 0 })
+  expect(await page.evaluate(() => (window as unknown as ProofingWindow).proofingRequests))
+    .toContainEqual({ type: 'grammarStatusChanged' })
+
+  await page.evaluate(() => {
+    const w = window as unknown as EditorWindow
+    w.setProofingStatusHosted(false)
+    w.setGrammarCheckEnabled(true)
+  })
+  await expect(page.locator('#grammar-status-bar')).toBeVisible()
+  await expect.poll(() => page.evaluate(() => (window as unknown as EditorWindow).getProofingStatus().checking)).toBe(true)
+})
+
+test('proofing counts reset immediately for replacement content and identical-text scene switches', async ({ page }) => {
+  await page.evaluate(() => (window as unknown as EditorWindow).setSceneContext('first'))
+  await content(page, '<p>Ths is wrong.</p>')
+  await issues(page, [issue(0, 3, 'This')])
+  await content(page, '<p>Another scene.</p>')
+  expect(await page.evaluate(() => (window as unknown as EditorWindow).getProofingStatus().grammarCount)).toBe(0)
+
+  await issues(page, [issue(0, 7, 'Other')])
+  await page.evaluate(() => (window as unknown as EditorWindow).setSceneContext('second'))
+  expect(await page.evaluate(() => (window as unknown as EditorWindow).getProofingStatus()))
+    .toEqual({ enabled: true, checking: false, grammarCount: 0, spellingCount: 0 })
+  await expect(page.locator('.grammar-issue')).toHaveCount(0)
+  await expect(page.locator('#editor')).toHaveText('Another scene.')
+})
+
+for (const pageView of [false, true]) {
+  test(`mobile proofing stays outside the writing viewport (pages=${pageView})`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 640 })
+    await content(page, '<p>Ths is teh start.</p>' + '<p>More writing fills the scene.</p>'.repeat(24)
+      + '<p id="last-words">The last words remain visible.</p>')
+    await page.evaluate((pages) => {
+      const w = window as unknown as EditorWindow
+      w.setMobile(true)
+      w.setFont('Georgia', 32)
+      w.setPageView(pages)
+    }, pageView)
+    await issues(page, [issue(0, 3, 'This'), { ...issue(7, 3, 'the'), type: 'spelling' }])
+    await expect(page.locator('#status-grammar-count')).toHaveText('1')
+    await expect(page.locator('#status-punctuation-count')).toHaveText('1')
+
+    // A keyboard can leave only a short writing viewport. The footer must
+    // remain outside the scrollable prose at either height, including its end.
+    for (const height of [640, 260]) {
+      await page.setViewportSize({ width: 390, height })
+      const geometry = await page.evaluate(() => {
+        const last = document.getElementById('last-words')!
+        last.scrollIntoView({ block: 'end' })
+        const range = document.createRange()
+        range.selectNodeContents(last)
+        const words = Array.from(range.getClientRects()).at(-1)!
+        const writing = document.getElementById('editor-wrapper')!.getBoundingClientRect()
+        const status = document.getElementById('grammar-status-bar')!.getBoundingClientRect()
+        return {
+          writingTop: writing.top, writingBottom: writing.bottom,
+          wordsTop: words.top, wordsBottom: words.bottom,
+          statusTop: status.top, statusBottom: status.bottom
+        }
+      })
+      expect(geometry.writingBottom).toBeLessThanOrEqual(geometry.statusTop)
+      expect(geometry.statusBottom).toBeLessThanOrEqual(height)
+      expect(geometry.wordsTop).toBeGreaterThanOrEqual(geometry.writingTop)
+      expect(geometry.wordsBottom).toBeLessThanOrEqual(geometry.writingBottom + 1)
+    }
+
+    await page.evaluate(() => (window as unknown as EditorWindow).setGrammarCheckEnabled(false))
+    await expect(page.locator('#grammar-status-bar')).toBeHidden()
+    expect(await page.locator('#editor-wrapper').evaluate((el) => el.clientHeight)).toBe(260)
+  })
+}
+
 test('spelling corrects the clicked occurrence after the caret moves, with one undo', async ({ page }) => {
   await content(page, '<p>teh first. <b id="target">teh</b> second.</p><p id="elsewhere">Elsewhere.</p>')
   await page.locator('#target').click({ button: 'right' })
@@ -245,7 +342,11 @@ test('typing deep in page view keeps the paragraph and viewport stable after pag
   await page.evaluate(() => (window as unknown as EditorWindow).setPageView(true))
   await page.waitForTimeout(250)
   await page.locator('#line-100').click()
-  await page.keyboard.press('End')
+  // End starts native viewport scrolling on macOS, which races the pagination
+  // this test measures. Place the caret explicitly on every platform.
+  await page.locator('#line-100').evaluate((el) => {
+    window.getSelection()!.setPosition(el.firstChild, el.textContent!.length)
+  })
   const before = await page.locator('#line-100').evaluate(el => el.getBoundingClientRect().top)
   await page.keyboard.type(' HELLO')
   await page.waitForTimeout(350)

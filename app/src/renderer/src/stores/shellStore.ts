@@ -91,8 +91,9 @@ export const useShellStore = create<ShellState>((set, get) => ({
   binderVisible: true,
   binderWidth: initialPanelSize(storedPanels.binderWidth, 0.17, BINDER_MIN, BINDER_MAX, screenW),
   binderOverlayOpen: false,
-  modePanelDocked: storedPanels.modePanelDocked !== false,
-  modePanelOpen: false,
+  // Old profiles could request an undocked overlay. Visibility is a new
+  // preference so those profiles reopen with the navigation above scenes.
+  modePanelVisible: storedPanels.modePanelVisible !== false,
   inspectorVisible: true,
   inspectorWidth: initialPanelSize(
     storedPanels.inspectorWidth,
@@ -205,15 +206,11 @@ export const useShellStore = create<ShellState>((set, get) => ({
 
   goHome: () => get().guardLeave(() => set((s) => showView(s, HOME_VIEW))),
 
-  setModePanelOpen: (modePanelOpen) =>
-    set(modePanelOpen ? { modePanelOpen, binderOverlayOpen: false } : { modePanelOpen }),
-
-  toggleModePanelDocked: () =>
+  toggleModePanelVisible: () =>
     set((s) => {
-      const modePanelDocked = !s.modePanelDocked
-      savePanelSize({ modePanelDocked })
-      // Undocking while it is on screen should not leave the overlay behind it.
-      return { modePanelDocked, modePanelOpen: false }
+      const modePanelVisible = !s.modePanelVisible
+      savePanelSize({ modePanelVisible })
+      return { modePanelVisible }
     }),
 
   setActivePane: (activePaneId) =>
@@ -371,10 +368,10 @@ export const useShellStore = create<ShellState>((set, get) => ({
     set((s) =>
       s.focusMode && s.mainView === 'write'
         ? { focusPanel: s.focusPanel === 'binder' ? null : 'binder', focusPanelTransient: false }
-        : s.shellCapacity === 'compact'
+        : window.novalist.isMobile && s.shellCapacity === 'compact'
         ? // One drawer at a time. Two of them stack against the same edge, so
           // opening the second would put it over the first.
-          { binderOverlayOpen: !s.binderOverlayOpen, inspectorOverlayOpen: false, modePanelOpen: false }
+          { binderOverlayOpen: !s.binderOverlayOpen, inspectorOverlayOpen: false }
         : { binderVisible: !s.binderVisible }
     )
   },
@@ -420,9 +417,8 @@ export const useShellStore = create<ShellState>((set, get) => ({
       return {
         shellWidth,
         shellCapacity,
-        // A docked panel that is still flagged open would reopen as an overlay
-        // the moment the window narrowed again.
-        ...(shellCapacity !== 'compact' ? { binderOverlayOpen: false, modePanelOpen: false } : {}),
+        // Desktop navigation stays in the layout at every width.
+        ...(!window.novalist.isMobile || shellCapacity !== 'compact' ? { binderOverlayOpen: false } : {}),
         ...(shellCapacity === 'wide' ? { inspectorOverlayOpen: false } : {}),
         // Crossing between constrained modes should never leave two drawers
         // stacked over the manuscript.

@@ -585,6 +585,10 @@
     "smartLists": "Lists"
   },
   "statusBar": {
+    "proofingChecking": "Checking language…",
+    "proofingClear": "No language issues found",
+    "proofingGrammar": "Grammar: {{count}}. Show next issue.",
+    "proofingSpelling": "Spelling and style: {{count}}. Show next issue.",
     "openSceneHint": "Open a scene to see live statistics",
     "dailyPercent": "Daily {0}%",
     "projectPercent": "Project {0}%",

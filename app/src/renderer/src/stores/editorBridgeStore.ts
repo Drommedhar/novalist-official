@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { EditorWindow } from '../views/editor/editorBridge'
+import type { EditorWindow, ProofingStatus } from '../views/editor/editorBridge'
 
 interface EditorBridgeState {
   /**
@@ -20,6 +20,7 @@ interface EditorBridgeState {
   sceneId: string | null
   hasSelection: boolean
   entityAtCaret: boolean
+  proofingStatus: ProofingStatus | null
 
   /**
    * The two editor commands the frame around the editor owns rather than the
@@ -47,6 +48,8 @@ interface EditorBridgeState {
   suggestionsRevision: number
 
   register(editor: EditorWindow | null, sceneId: string | null): void
+  /** Ignore notifications from inactive panes and read the current scene live. */
+  updateProofingStatus(editor: EditorWindow): void
   /** Says the scene's annotations moved; every list of them reloads. */
   annotationsChanged(): void
   /** Says the scene's suggested edits moved; every list of them reloads. */
@@ -67,13 +70,27 @@ export const useEditorBridge = create<EditorBridgeState>((set, get) => ({
   sceneId: null,
   hasSelection: false,
   entityAtCaret: false,
+  proofingStatus: null,
   requestLink: null,
   toggleReadAloud: null,
   annotationsRevision: 0,
   suggestionsRevision: 0,
 
   register: (editor, sceneId) =>
-    set({ editor, sceneId, ...(editor ? {} : { hasSelection: false, entityAtCaret: false }) }),
+    set({
+      editor, sceneId,
+      proofingStatus: editor && sceneId ? editor.getProofingStatus() : null,
+      ...(editor ? {} : { hasSelection: false, entityAtCaret: false })
+    }),
+  updateProofingStatus: (editor) => {
+    const state = get()
+    if (state.editor !== editor || !state.sceneId) return
+    const next = editor.getProofingStatus()
+    const previous = state.proofingStatus
+    if (previous?.enabled === next.enabled && previous.checking === next.checking &&
+      previous.grammarCount === next.grammarCount && previous.spellingCount === next.spellingCount) return
+    set({ proofingStatus: next })
+  },
   setContext: (context) => set(context),
   setFrameCommands: (commands) => set(commands),
   annotationsChanged: () => set((s) => ({ annotationsRevision: s.annotationsRevision + 1 })),

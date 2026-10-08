@@ -43,10 +43,8 @@ export function AppShell(): React.JSX.Element {
   useBackupScheduler()
   useSpellCheck()
   const binderVisible = useShellStore((s) => s.binderVisible)
-  const binderOverlayOpen = useShellStore((s) => s.binderOverlayOpen)
   const binderWidth = useShellStore((s) => panelWidthForShell(s.binderWidth, s.shellWidth, BINDER_MIN, BINDER_MAX))
-  const modePanelOpen = useShellStore((s) => s.modePanelOpen)
-  const modePanelDocked = useShellStore((s) => s.modePanelDocked)
+  const modePanelVisible = useShellStore((s) => s.modePanelVisible)
   useRecentProjects()
 
   const focusMode = useShellStore((s) => s.focusMode)
@@ -84,24 +82,22 @@ export function AppShell(): React.JSX.Element {
   const showBinder =
     isLoaded &&
     chrome.binder &&
-    (shellCapacity === 'compact' ? binderOverlayOpen : binderVisible)
+    binderVisible
   // The panel lists the views of a mode, so it is shown while the writer is in
   // one. The Dashboard is the screen before you have chosen what to do today
   // and is allowed to talk about all five modes at once; Settings and About
   // belong to no mode at all. Both get the window.
   //
-  // Otherwise: docked wherever there is room and the writer wants it, an
-  // overlay where there is not, and the same list in the same order either way.
+  // Desktop navigation stays above the scenes as the window narrows. Hiding
+  // the panel removes it from the layout; showing it always restores a column.
   // Settings, Extensions and About are about the application rather than about
   // a book, which is what lets them open before a project has been - the reason
   // Settings no longer needs its own without-a-project special case.
   const appScopedView =
     mainView === 'settings' || mainView === 'extensions' || mainView === 'about'
   const inAMode = modeOf(mainView) !== null
-  const canDock = shellCapacity !== 'compact' && modePanelDocked
-  const showModePanel = inAMode && (canDock || modePanelOpen)
-  const modePanelOverlay = showModePanel && !canDock
-  const combinedSidebar = showModePanel && !modePanelOverlay && showBinder
+  const showModePanel = inAMode && modePanelVisible
+  const combinedSidebar = showModePanel && showBinder
   const showInspector =
     isLoaded &&
     chrome.inspector &&
@@ -157,24 +153,15 @@ export function AppShell(): React.JSX.Element {
           ) : null
         ) : (
           <>
-            {/* The mode's views share a column with the binder when docked,
-                an overlay when there is not - the same rows either way. */}
-            <div className={combinedSidebar ? 'workspace-sidebar' : 'workspace-navigation'} style={{ width: binderWidth }}>
+            {/* The mode's views share a column with the binder at every desktop width. */}
+            <div className={combinedSidebar && !focused ? 'workspace-sidebar' : 'workspace-navigation'} style={{ width: binderWidth }}>
               <MotionPresence disabled={disablePanelMotion}>
-                {!focused && isLoaded && showModePanel && <ModePanel overlay={modePanelOverlay} />}
+                {!focused && isLoaded && showModePanel && <ModePanel />}
               </MotionPresence>
               <MotionPresence disabled={disablePanelMotion}>
                 {showBinder && !focused && <Binder />}
               </MotionPresence>
             </div>
-            <MotionPresence disabled={disablePanelMotion}>
-              {!focused && isLoaded && modePanelOverlay && (
-                <div
-                  className="mode-panel-scrim"
-                  onPointerDown={() => useShellStore.getState().setModePanelOpen(false)}
-                />
-              )}
-            </MotionPresence>
             <div className="shell-main">
               {isLoaded || appScopedView ? (
                 <MainArea />

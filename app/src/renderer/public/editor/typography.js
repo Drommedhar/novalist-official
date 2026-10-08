@@ -29,6 +29,8 @@ function setFont(family, size) {
     const f = family ? "'" + family + "', sans-serif" : 'var(--font-family)';
     const sz = size ? size + 'px' : 'var(--font-size)';
     s.textContent = '#editor, #editor * { font-family: ' + f + ' !important; font-size: ' + sz + ' !important; }';
+    window.schedulePageViewRepaginate();
+    window.scheduleCommentRender();
 }
 
 function setBookWidth(enabled, widthPx) {

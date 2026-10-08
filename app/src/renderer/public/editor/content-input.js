@@ -7,6 +7,17 @@ function setSceneContext(id) {
     sceneIdentity = id;
     window.NovalistEditorState.imageTargetBlock = null;
     window.NovalistEditorState.pendingInlineAction = null;
+    // Two scenes can have identical HTML, in which case the host does not call
+    // setContent. Invalidate the old result and counts on identity alone too.
+    window.NovalistEditorState.grammarIssues = [];
+    window.NovalistEditorState.grammarChecking = false;
+    window.NovalistEditorState.pendingGrammarRequest = null;
+    if (window.NovalistEditorState.grammarCheckTimer) clearTimeout(window.NovalistEditorState.grammarCheckTimer);
+    window.NovalistEditorState.grammarCheckTimer = null;
+    window.applyGrammarHighlights();
+    window.hideGrammarPopup();
+    window.requestGrammarCheck();
+    window.updateGrammarStatusBar();
 }
 
 function imageBlocks() {

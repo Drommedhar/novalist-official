@@ -5,7 +5,7 @@
     transition-timing-function: var(--nl-motion-ease);
   }
 
-  :root[data-shell='desktop'] :is(.dialog-overlay, .help-overlay, .mode-panel-scrim) {
+  :root[data-shell='desktop'] :is(.dialog-overlay, .help-overlay) {
     animation: nl-fade-in var(--nl-motion-fast) var(--nl-motion-ease);
   }
 

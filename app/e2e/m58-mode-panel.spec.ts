@@ -90,12 +90,12 @@ test('a mode lists every view it holds, at any window size', async () => {
   await page.locator('.mode-panel-row', { hasText: 'Contributed 11' }).click()
   await expect(page.locator('.mode-panel-row[aria-current="true"]')).toContainText('Contributed 11')
 
-  // Squeezed to almost nothing, the panel becomes an overlay holding the same
-  // rows in the same order. Settings stays reachable at the bottom of the rail,
-  // including while the mode panel's overlay is open.
+  // A narrow desktop keeps the panel docked with the same rows in the same
+  // order. Settings remains reachable in the navigation row.
   await page.setViewportSize({ width: 780, height: 500 })
   await expect(page.locator('.shell')).toHaveAttribute('data-shell-capacity', 'compact')
-  await page.evaluate(() => window.novalistStores.shell.getState().setModePanelOpen(true))
+  await expect(page.locator('.mode-panel:not(.overlay)')).toBeVisible()
+  await expect(page.locator('.mode-panel-scrim')).toHaveCount(0)
   await expect(rows).toHaveCount(18)
   await page.locator('.mode-rail').getByRole('button', { name: 'Settings', exact: true }).click()
   await expect(page.locator('#set-theme')).toBeVisible({ timeout: 15_000 })

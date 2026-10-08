@@ -101,7 +101,7 @@ export interface PanelSizes {
   inspectorWidth?: number
   notesDockHeight?: number
   /** Not a size, but the same kind of thing: view state, remembered per machine. */
-  modePanelDocked?: boolean
+  modePanelVisible?: boolean
 }
 
 /**
@@ -161,20 +161,8 @@ export interface ShellState {
   binderWidth: number
   /** A compact-shell drawer. Kept separate from the wide-layout preference. */
   binderOverlayOpen: boolean
-  /**
-   * Whether the mode panel is docked beside the rail. A remembered preference:
-   * in Write the panel lists two views beside a binder that is already a list,
-   * and a writer who wants the window back should be able to have it without
-   * losing the switcher - the rail still changes mode, and the panel comes back
-   * as an overlay.
-   */
-  modePanelDocked: boolean
-  /**
-   * The mode panel as an overlay: always how it appears in a window too narrow
-   * to dock it, and how it appears at any width once undocked. The same rows in
-   * the same order - a different arrangement of one list, not a second one.
-   */
-  modePanelOpen: boolean
+  /** Whether desktop navigation is shown. When visible it stays above scenes. */
+  modePanelVisible: boolean
   inspectorVisible: boolean
   inspectorWidth: number
   /** Inspector drawer used when there is not room for a persistent sidebar. */
@@ -271,8 +259,7 @@ export interface ShellState {
   guardLeave(proceed: () => void): void
   /** The writer's answer to that prompt. */
   resolveLeave(action: 'cancel' | 'discard' | 'save'): Promise<void>
-  setModePanelOpen(open: boolean): void
-  toggleModePanelDocked(): void
+  toggleModePanelVisible(): void
   setActivePane(id: string): void
   /** Points one pane at a view without moving the writer into it. */
   setPaneView(id: string, view: MainView): void

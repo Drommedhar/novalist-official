@@ -505,25 +505,6 @@
   font-size: var(--nl-font-ui);
 }
 
-/* Undocked - by the writer, or because the window is too narrow to dock it -
-   the panel becomes an overlay holding the same rows in the same order, rather
-   than a second, shorter list. */
-.mode-panel.overlay {
-  position: absolute;
-  left: var(--nl-mode-rail-width);
-  top: 0;
-  bottom: 0;
-  z-index: 31;
-  box-shadow: var(--nl-elevation-high);
-}
-
-.mode-panel-scrim {
-  position: absolute;
-  inset: 0;
-  z-index: 30;
-  background: var(--nl-scrim);
-}
-
 /* At constrained widths side panels become drawers. The wide-layout
    preferences remain in the store and return unchanged on a larger monitor. */
 .shell-capacity-compact .binder,

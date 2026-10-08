@@ -5,6 +5,14 @@
  * window.parent.postMessage as { novalistEditor: jsonString }.
  */
 
+export interface ProofingStatus {
+  enabled: boolean
+  checking: boolean
+  grammarCount: number
+  /** Spelling and typography/style issues, matching the editor's second group. */
+  spellingCount: number
+}
+
 /** The editor page's global functions the host is allowed to call. */
 export interface EditorWindow extends Window {
   setContent(html: string): void
@@ -85,6 +93,11 @@ export interface EditorWindow extends Window {
   setExtensionContextMenuItems(itemsJson: string): void
   applyInlineActionResult(resultJson: string): void
   setGrammarCheckEnabled(enabled: boolean): void
+  /** Current status for the active scene, read when a notification arrives. */
+  getProofingStatus(): ProofingStatus
+  /** Desktop shows proofing in the shell; mobile keeps its in-frame footer. */
+  setProofingStatusHosted(enabled: boolean): void
+  scrollToNextIssue(type: 'grammar' | 'punctuation'): void
   /** Echo the request ID so results for earlier text or scenes are ignored. */
   setGrammarIssues(issuesJson: string, requestId?: number): void
   addCommentToSelection(id: string): void

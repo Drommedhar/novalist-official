@@ -132,18 +132,27 @@ test('panel transitions preserve the editor document and caret across desktop si
       await h.page.setViewportSize({ width, height: 850 })
       await expect(h.page.locator('.shell')).toHaveAttribute('data-shell-capacity', width === 800 ? 'compact' : 'wide')
       await h.page.evaluate(() => window.novalistStores.shell.getState().toggleBinder())
-      await expect(h.page.locator('.binder')).toHaveCount(width === 800 ? 1 : 0)
+      await expect(h.page.locator('.binder')).toHaveCount(0)
       if (width === 800) {
         const widths = await h.page.locator('.shell-main').evaluate(element => ({ main: element.getBoundingClientRect().width, viewport: document.documentElement.clientWidth, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth }))
-        expect(widths.main).toBeGreaterThan(widths.viewport * 0.7)
+        expect(widths.main).toBeGreaterThanOrEqual(widths.viewport * 0.6 - 1)
         expect(widths.overflow).toBeLessThanOrEqual(0)
       }
       await h.page.evaluate(() => window.novalistStores.shell.getState().toggleBinder())
-      await expect(h.page.locator('.binder')).toHaveCount(width === 800 ? 0 : 1)
+      await expect(h.page.locator('.binder')).toHaveCount(1)
       expect(await caret.evaluate(({ element, text }) => ({ connected: element.isConnected, sameAnchor: element.ownerDocument.getSelection()?.anchorNode === text, offset: element.ownerDocument.getSelection()?.anchorOffset }))).toEqual({ connected: true, sameAnchor: true, offset: 4 })
     }
     await h.page.keyboard.type('bright ')
     await expect(editor).toHaveText('The bright lantern lights the room.')
+    await h.page.evaluate(() => window.novalistStores.shell.getState().toggleFocusMode())
+    await expect(h.page.locator('.shell')).toHaveClass(/shell-focus/)
+    await expect(h.page.locator('.workspace-sidebar')).toHaveCount(0)
+    const focusWidth = await h.page.locator('.shell-main').evaluate(element => ({
+      main: element.getBoundingClientRect().width,
+      viewport: document.documentElement.clientWidth
+    }))
+    expect(focusWidth.main).toBeCloseTo(focusWidth.viewport, 0)
+    await h.page.evaluate(() => window.novalistStores.shell.getState().toggleFocusMode())
     await h.page.setViewportSize({ width: 1420, height: 900 })
     await h.page.evaluate(() => window.novalistStores.shell.getState().toggleNotesDock())
     await h.page.locator('#dock-synopsis').fill('Synopsis saved while the dock closes.')

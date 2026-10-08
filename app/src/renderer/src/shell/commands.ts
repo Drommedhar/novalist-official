@@ -130,7 +130,7 @@ const APPLICATION_COMMANDS: CommandDef[] = [
     categoryKey: 'hotkeys.category.panels',
     scope: 'application',
     available: projectOpen,
-    run: () => shell().toggleModePanelDocked()
+    run: () => shell().toggleModePanelVisible()
   },
   {
     id: 'app.toggleSceneNotes',

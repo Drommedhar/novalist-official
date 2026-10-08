@@ -255,6 +255,8 @@ When all selected **Dictionaries** belong to one language, grammar checking uses
 
 The provider choice can be overridden per project with the Writing assistance override switch. Switching to Harper keeps your LanguageTool settings for later; Harper does not use that server or account.
 
+On desktop, the spelling and grammar counts and checking progress appear in the status bar below the workspace. Click a count to open an issue in the active scene; in split view, the counts follow the focused editor. On mobile, the counts sit below the writing area so they stay visible without covering your text.
+
 ## Slash commands
 
 Typing **`/`** at the start of an empty line opens a menu of extension actions that work with nothing selected — chiefly, with the AI Assistant installed, continuing the prose from where you stopped or writing towards a beat you describe. Type to filter, arrow to choose, Enter to run; Escape closes it and leaves what you typed alone. See [Extensions](24-extensions.md#writing-from-the-caret-slash-commands).
@@ -306,7 +308,7 @@ When **Dialogue Punctuation Correction** is enabled in Settings → Writing assi
 In [Settings](23-settings.md) → Editor:
 
 - **Typewriter Scrolling** keeps the active line at a fixed vertical position (top, middle, or bottom) so you never write at the bottom edge of the window.
-- **Page View** renders the editor as a book-style page (also toggleable under **Writing options** on the writing bar).
+- **Page View** renders the editor as a book-style page (also toggleable under **Writing options** on the writing bar). Margins shrink when the writing pane is narrow or the text is enlarged, including when margin comments are visible, so the prose uses the available width.
 - **Book Page Width** constrains the text column to a printed page width, with selectable page formats, and **Book Font** / **Book Font Size** set the typeface for that mode.
 - **Book Paragraph Spacing** adds book-like vertical spacing.
 - **Font Family** and **Font Size** control the regular editing view. New projects start on Newsreader at 17px — the app's own text face, bundled so it is always available — but the field takes any family installed on your machine.
@@ -327,6 +329,7 @@ While a scene is open, the left of the status bar shows live figures for that sc
 - Estimated **reading time** in minutes.
 - A **readability badge** — a 0–100 score with a colour-coded label (Very easy, Easy, Moderate, Difficult, Very difficult). The score adapts to the writing language selected under Settings → Writing assistance.
 - The **scene title**.
+- **Language check** progress and issue counts when Grammar & Spelling Check is enabled. Click a count to open an issue; a checkmark means the check found no issues.
 
 The centre of the status bar shows whole-project totals (words, chapters, scenes); click it for a project overview popover. The right side shows daily and project goal progress when goals are set (see [Dashboard](11-dashboard.md)).
 

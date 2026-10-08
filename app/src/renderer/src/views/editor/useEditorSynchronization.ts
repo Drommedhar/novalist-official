@@ -99,8 +99,14 @@ export function useEditorControls({ editorRef, isActiveEditor, openSceneId, sugg
   // marker out of the wrong one.
   useEffect(() => {
     if (!isActiveEditor) return
+    // Capture the frame identity even before its ready event. Cleanup of a
+    // departing pane must not clear another pane's newly registered status.
+    const frameWindow = iframeRef.current?.contentWindow
     useEditorBridge.getState().register(editorRef.current, openSceneId)
-    return () => useEditorBridge.getState().register(null, null)
+    return () => {
+      if (useEditorBridge.getState().editor === frameWindow)
+        useEditorBridge.getState().register(null, null)
+    }
   }, [isActiveEditor, openSceneId])
 
 // Suggestion mode belongs to the writing view rather than to the button that

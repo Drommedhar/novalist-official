@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { BarChart3, GitBranch, Headphones, Timer } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { ExtensionStatusItems } from './ExtensionStatusItems'
+import { ProofingStatus } from './ProofingStatus'
 import { useShellStore } from '../stores/shellStore'
 import { useBookScope, useProjectStore } from '../stores/projectStore'
 import { loadBookScoped } from '../stores/bookScopedLoad'
@@ -160,6 +161,7 @@ export function StatusBar(): React.JSX.Element {
             )}
           </span>
         )}
+        <ProofingStatus />
         <ExtensionStatusItems />
         <AudiobookProgress />
       </span>

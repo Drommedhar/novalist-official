@@ -49,18 +49,37 @@
   height: auto;
   margin: var(--nl-space-sm) var(--nl-space-tightest);
 }
-:root[data-shell='desktop'] .mode-panel.overlay,
-:root[data-shell='desktop'] .shell-capacity-compact .binder {
-  left: 0;
+/* Keep the navigation above scenes even in narrow desktop windows. The saved
+   sidebar width yields space to the editor when interface scaling leaves less
+   room, without changing the writer's preference for larger windows. */
+:root[data-shell='desktop'] .binder {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  box-shadow: none;
+  min-width: 0;
+  max-width: 40vw;
+}
+:root[data-shell='desktop'] .mode-panel {
+  min-width: 0;
+  max-width: 40vw;
+}
+:root[data-shell='desktop'] .shell-capacity-compact .binder .panel-resizer {
+  display: block;
+}
+:root[data-shell='desktop'] .binder-tabs {
+  flex-wrap: wrap;
 }
 .workspace-navigation {
   display: contents;
 }
-.shell:not(.shell-capacity-compact) .workspace-sidebar,
-.shell:not(.shell-capacity-compact) .workspace-navigation:has(> .motion-presence > .binder):has(> .motion-presence > .mode-panel:not(.overlay)) {
+.workspace-sidebar,
+.workspace-navigation:has(> .motion-presence > .binder):has(> .motion-presence > .mode-panel) {
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
+  min-width: 0;
+  max-width: 40%;
   min-height: 0;
   background: var(--nl-surface-sidebar);
 

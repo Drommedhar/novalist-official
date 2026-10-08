@@ -14,6 +14,18 @@ window.addEventListener('resize', () => {
     if (pageViewEnabled) window.schedulePageViewRepaginate();
 });
 
+// Comments and book-width changes resize the writing surface without resizing
+// the frame. Watch its width too, so page breaks follow the available prose.
+let pageLayoutWidth = window.NovalistEditorState.wrapper.clientWidth;
+const pageLayoutObserver = new ResizeObserver(() => {
+    const width = window.NovalistEditorState.wrapper.clientWidth;
+    if (width === pageLayoutWidth) return;
+    pageLayoutWidth = width;
+    window.schedulePageViewRepaginate();
+    window.scheduleCommentRender();
+});
+pageLayoutObserver.observe(window.NovalistEditorState.wrapper);
+
 /**
  * Dims everything but the paragraph the caret is in.
  *

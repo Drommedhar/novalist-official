@@ -2,6 +2,7 @@ import { editorWindow, pushEditorTheme } from './editorBridge'
 import { useEditorBridge } from '../../stores/editorBridgeStore'
 import { editorPane, useProjectStore } from '../../stores/projectStore'
 import { useSettingsStore } from '../../stores/settingsStore'
+import { useShellStore } from '../../stores/shellStore'
 import { rpc } from '../../rpc/client'
 import { pushEditorSettings, pushEditorConfig } from './editorConfiguration'
 import type { EditorHandlerContext, EditorMessageHandlers } from './editorMessageContext'
@@ -18,7 +19,8 @@ export function createEditorReadyMessages(context: EditorHandlerContext): Editor
       const live = editorWindow(iframe)
       if (!live) return
       editorRef.current = live
-      if (useProjectStore.getState().activeEditorPaneId === pane) {
+      const shell = useShellStore.getState()
+      if (useProjectStore.getState().activeEditorPaneId === pane && shell.mainView === 'write' && !shell.extView) {
         useEditorBridge
           .getState()
           .register(live, editorPane(useProjectStore.getState(), pane).sceneId)
@@ -27,6 +29,7 @@ export function createEditorReadyMessages(context: EditorHandlerContext): Editor
       live.setLanguage(i18n.language.startsWith('de') ? 'de' : 'en')
       // Mobile: full-width text (no 18em comment gutter) + touch-sized toolbar.
       live.setMobile(window.novalist.isMobile === true)
+      live.setProofingStatusHosted(window.novalist.isMobile !== true)
       // Content loads synchronously so typing can never race a deferred
       // setContent; the settings push is made non-destructive instead.
       const initialHtml = editorPane(useProjectStore.getState(), pane).html

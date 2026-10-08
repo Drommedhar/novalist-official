@@ -50,6 +50,9 @@ function setContent(html) {
 
     // Trigger grammar check for the new content
     window.requestGrammarCheck();
+    // Counts belonged to the previous content. Publish their reset immediately,
+    // even while the new scene's check is waiting for its debounce.
+    window.updateGrammarStatusBar();
     // A different scene needs its own grading; the old marks belong to prose
     // that is no longer on screen, so they must not be repainted either.
     window.NovalistEditorState.lastReadabilityGrading = null;

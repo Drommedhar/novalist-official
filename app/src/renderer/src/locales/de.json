@@ -456,6 +456,10 @@
     "smartLists": "Listen"
   },
   "statusBar": {
+    "proofingChecking": "Sprache wird geprüft…",
+    "proofingClear": "Keine sprachlichen Probleme gefunden",
+    "proofingGrammar": "Grammatik: {{count}}. Nächsten Hinweis anzeigen.",
+    "proofingSpelling": "Rechtschreibung und Stil: {{count}}. Nächsten Hinweis anzeigen.",
     "openSceneHint": "Öffne eine Szene, um Live-Statistiken zu sehen",
     "dailyPercent": "Täglich {0}%",
     "projectPercent": "Projekt {0}%",

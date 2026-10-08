@@ -1,10 +1,28 @@
 'use strict';
 
+function getProofingStatus() {
+    const state = window.NovalistEditorState;
+    return {
+        enabled: state.grammarEnabled,
+        checking: state.grammarChecking,
+        grammarCount: state.grammarIssues.filter(i => i.type === 'grammar').length,
+        spellingCount: state.grammarIssues.filter(i => i.type === 'spelling' || i.type === 'style').length
+    };
+}
+
+function setProofingStatusHosted(enabled) {
+    document.body.classList.toggle('proofing-status-hosted', !!enabled);
+}
+
 function updateGrammarStatusBar() {
+    // The shell reads the live snapshot when this queued notification arrives,
+    // so a result from a previous scene cannot restore stale status counts.
+    window.sendMessage({ type: 'grammarStatusChanged' });
     if (!window.NovalistEditorState.grammarStatusBar) return;
+    const status = getProofingStatus();
     window.logToHost("updateGrammarStatusBar: grammarEnabled=" + window.NovalistEditorState.grammarEnabled + ", grammarChecking=" + window.NovalistEditorState.grammarChecking + ", issues count=" + window.NovalistEditorState.grammarIssues.length);
 
-    if (!window.NovalistEditorState.grammarEnabled) {
+    if (!status.enabled) {
         window.NovalistEditorState.grammarStatusBar.classList.remove('visible');
         return;
     }
@@ -19,7 +37,7 @@ function updateGrammarStatusBar() {
     const punctuationCountSpan = document.getElementById('status-punctuation-count');
 
     // Throbber state
-    if (window.NovalistEditorState.grammarChecking) {
+    if (status.checking) {
         throbber.classList.add('active');
         doneIcon.classList.remove('active');
     } else {
@@ -27,11 +45,11 @@ function updateGrammarStatusBar() {
     }
 
     // Compute counts
-    const grammarCount = window.NovalistEditorState.grammarIssues.filter(i => i.type === 'grammar').length;
-    const punctuationCount = window.NovalistEditorState.grammarIssues.filter(i => i.type === 'spelling' || i.type === 'style').length;
+    const grammarCount = status.grammarCount;
+    const punctuationCount = status.spellingCount;
 
     // Show checkmark done only when not checking and counts are 0
-    if (!window.NovalistEditorState.grammarChecking && grammarCount === 0 && punctuationCount === 0) {
+    if (!status.checking && grammarCount === 0 && punctuationCount === 0) {
         doneIcon.classList.add('active');
     } else {
         doneIcon.classList.remove('active');
@@ -109,6 +127,8 @@ function updateFloatingToolbar() {
 }
 
 Object.assign(window, {
+    getProofingStatus,
+    setProofingStatusHosted,
     updateGrammarStatusBar,
     scrollToNextIssue,
     updateFloatingToolbar

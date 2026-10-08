@@ -74,9 +74,12 @@ function renderCommentGutter() {
         const id = s.getAttribute('data-comment-id');
         if (!id || !window.NovalistEditorState.commentsState.has(id) || liveIds.has(id)) return;
         liveIds.add(id);
-        const r = s.getBoundingClientRect();
-        items.push({ id, top: r.top });
+        items.push({ id, anchor: s });
     });
+    // Reserve the gutter before measuring anchors: adding the first comment
+    // can reflow its own paragraph and every paragraph below it.
+    document.body.classList.toggle('has-comments', liveIds.size > 0);
+    items.forEach(item => { item.top = item.anchor.getBoundingClientRect().top; });
     items.sort((a, b) => a.top - b.top);
 
     const have = new Map();
@@ -104,7 +107,6 @@ function renderCommentGutter() {
         prevBottom = desired + card.offsetHeight;
     });
 
-    document.body.classList.toggle('has-comments', liveIds.size > 0);
 }
 
 Object.assign(window, {

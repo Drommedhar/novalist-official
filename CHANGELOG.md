@@ -21,6 +21,11 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+### Changed
+
+- Desktop navigation stays above the scene list in narrow windows on every platform, including when restoring an older undocked layout. The shared sidebar gives space back to the editor as the window shrinks; hiding and showing navigation keeps it in the sidebar.
+- Desktop spelling and grammar counts and checking progress now appear in the status bar, keeping the writing area clear. Click a count to open an issue in the active editor, including in split view.
+
 ### Fixed
 
 - Creating a project or book now protects existing folders with the same name.
@@ -33,6 +38,8 @@ could encounter in a previously released version.
 - Splitting scenes preserves export exclusions; splitting and merging retains comments, suggestions and footnotes. Exports finish against a stable book and draft.
 - Image-only scenes retain their content, spelling actions reach the correct split editor, and inline extension actions retain their alternatives and suggested-edit behavior.
 - Inserted images keep their chosen paragraph after a prose rebuild, including in page view.
+- Zooming in or adding comments in a narrow editor reduces page margins to keep the writing column readable, and page breaks follow the available text width.
+- Focus Mode no longer leaves an empty sidebar margin beside the writing area.
 - 3D maps fit the visible area on high-resolution displays instead of appearing cropped or blank.
 - Dialogs keep the active layer usable when nested, contain keyboard focus and return it when closed; command and quick-open palettes keep the selected result visible while scrolling.
 - Disabling an extension retires its open web panels and pending controller calls.

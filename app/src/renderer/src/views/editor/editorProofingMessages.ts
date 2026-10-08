@@ -1,4 +1,5 @@
 import { useSettingsStore } from '../../stores/settingsStore'
+import { useEditorBridge } from '../../stores/editorBridgeStore'
 import { learnWord } from '../../shell/useSpellCheck'
 import { rpc } from '../../rpc/client'
 import { checkGrammar } from '../../proofing/grammar'
@@ -8,6 +9,10 @@ import type { EditorHandlerContext, EditorMessageHandlers } from './editorMessag
 export function createEditorProofingMessages(context: EditorHandlerContext): EditorMessageHandlers {
   const { editorRef } = context
   return {
+    grammarStatusChanged: () => {
+      const editor = editorRef.current
+      if (editor) useEditorBridge.getState().updateProofingStatus(editor)
+    },
     grammarCheckRequest: (message) => {
       const editor = editorRef.current
       if (!editor) return

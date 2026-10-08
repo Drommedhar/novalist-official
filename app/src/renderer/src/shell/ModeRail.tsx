@@ -33,14 +33,13 @@ export function ModeRail(): React.JSX.Element {
   // after opening one - which is the whole reason the start screen folded into
   // this window rather than replacing it.
   const isLoaded = useProjectStore((s) => s.isLoaded)
-  const capacity = useShellStore((s) => s.shellCapacity)
-  const docked = useShellStore((s) => s.modePanelDocked)
-  const setModePanelOpen = useShellStore((s) => s.setModePanelOpen)
+  const modePanelVisible = useShellStore((s) => s.modePanelVisible)
+  const toggleModePanelVisible = useShellStore((s) => s.toggleModePanelVisible)
 
-  /** Where the panel is not docked it is an overlay, so picking a mode raises it. */
+  /** Picking a mode reveals its views in the column if the list was hidden. */
   const pick = (entry: Mode): void => {
     setMode(entry)
-    if (capacity === 'compact' || !docked) setModePanelOpen(true)
+    if (!modePanelVisible) toggleModePanelVisible()
   }
 
   // Settings, Extensions and About open before a project does, and with no

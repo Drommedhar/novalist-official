@@ -54,8 +54,7 @@ import { useShellStore, type MainView } from '../stores/shellStore'
  *   is what the activity bar did and why things could not be found;
  * - counts sit right-aligned in the computed-value face;
  * - the mode head and the filter stay pinned while the list scrolls;
- * - at compact width the panel becomes an overlay holding the same rows in the
- *   same order.
+ * - the panel stays docked at every desktop width.
  */
 
 type IconComponent = React.ComponentType<{ size?: number; strokeWidth?: number }>
@@ -103,14 +102,13 @@ interface Group {
   rows: Row[]
 }
 
-export function ModePanel({ overlay }: { overlay: boolean }): React.JSX.Element {
+export function ModePanel(): React.JSX.Element {
   const { t } = useTranslation()
   const mode = useShellStore((s) => s.mode)
   const mainView = useShellStore((s) => s.mainView)
   const extView = useShellStore((s) => s.extView)
   const setMainView = useShellStore((s) => s.setMainView)
   const setExtView = useShellStore((s) => s.setExtView)
-  const closeModePanel = useShellStore((s) => s.setModePanelOpen)
   const extViews = useExtensionsStore((s) => s.views)
   const codexCount = useCodexStore((s) => s.entities.length)
   const sceneCount = useProjectStore((s) =>
@@ -175,7 +173,6 @@ export function ModePanel({ overlay }: { overlay: boolean }): React.JSX.Element 
   const open = (row: Row): void => {
     if (row.view) setMainView(row.view)
     else if (row.extension) setExtView(row.extension)
-    if (overlay) closeModePanel(false)
   }
 
   const isCurrent = (row: Row): boolean =>
@@ -184,7 +181,7 @@ export function ModePanel({ overlay }: { overlay: boolean }): React.JSX.Element 
       : !extView && mainView === row.view
 
   return (
-    <nav className={`mode-panel${overlay ? ' overlay' : ''}`} aria-label={t(`modes.${mode}`)}>
+    <nav className="mode-panel" aria-label={t(`modes.${mode}`)}>
       <div className="mode-panel-head">
         <h2 title={t(`modes.${mode}`)}>{t(`modes.${mode}`)}</h2>
         <span className="mode-panel-count">{t('modes.viewCount', { count: total })}</span>

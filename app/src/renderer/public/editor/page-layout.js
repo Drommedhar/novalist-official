@@ -89,19 +89,31 @@ function repaginatePageView() {
     window.NovalistEditorState.pageViewRepaginating = true;
     if (window.NovalistEditorState.pageViewMutationObserver) window.NovalistEditorState.pageViewMutationObserver.disconnect();
     const savedDictation = window.captureDictationPosition();
+    const savedScrollTop = window.NovalistEditorState.wrapper.scrollTop;
     try {
         const savedSelection = captureSelectionForRepaginate();
 
         // Unwrap any existing pages so we can re-measure flat content.
         unwrapPages();
 
-        const children = Array.from(window.NovalistEditorState.editor.children);
+        // Imported HTML can contain text between or after block elements.
+        // Move every node in order, not just elements, to preserve that prose.
+        const children = Array.from(window.NovalistEditorState.editor.childNodes);
         if (children.length === 0) return;
 
-        // Force layout, then snapshot heights so wrapping does not invalidate
-        // measurements mid-pass.
-        void window.NovalistEditorState.editor.offsetHeight;
-        const heights = children.map(el => Math.max(1, el.offsetHeight));
+        // Measure at the same text width as the finished pages. Measuring the
+        // unwrapped blocks uses the whole editor width and undercounts lines,
+        // especially after zooming, resizing, or opening the comment gutter.
+        const measuringPage = document.createElement('div');
+        measuringPage.className = 'nv-page';
+        window.NovalistEditorState.editor.appendChild(measuringPage);
+        children.forEach(el => measuringPage.appendChild(el));
+        const heights = children.map(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) return Math.max(1, node.offsetHeight);
+            const range = document.createRange();
+            range.selectNode(node);
+            return Math.max(1, range.getBoundingClientRect().height);
+        });
 
         // Content budget per page measured in current em so it scales with font / zoom.
         const emPx = parseFloat(getComputedStyle(window.NovalistEditorState.editor).fontSize) || 16;
@@ -127,14 +139,17 @@ function repaginatePageView() {
         groups.forEach(group => {
             const page = document.createElement('div');
             page.className = 'nv-page';
-            const first = group[0];
-            window.NovalistEditorState.editor.insertBefore(page, first);
+            window.NovalistEditorState.editor.insertBefore(page, measuringPage);
             group.forEach(el => page.appendChild(el));
         });
+        measuringPage.remove();
 
         restoreSelectionForRepaginate(savedSelection);
     } finally {
         window.restoreDictationPosition(savedDictation);
+        // Moving blocks between wrappers temporarily changes the scrollable
+        // height. Do not let scroll clamping/anchoring move the writing viewport.
+        window.NovalistEditorState.wrapper.scrollTop = savedScrollTop;
         window.NovalistEditorState.pageViewRepaginating = false;
         if (window.NovalistEditorState.pageViewMutationObserver && window.NovalistEditorState.pageViewEnabled) {
             window.NovalistEditorState.pageViewMutationObserver.observe(window.NovalistEditorState.editor, { childList: true, characterData: true, subtree: true });

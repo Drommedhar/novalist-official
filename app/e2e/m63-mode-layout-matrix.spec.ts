@@ -14,8 +14,7 @@ import { dismissTour, enterWriting, launchApp, seedBook } from './harness'
  * test. The rules being asserted:
  *
  * - the mode rail is in every one of them, because it is how you leave;
- * - the mode panel is docked wherever the window can hold it, and an overlay
- *   where it cannot - never absent, and never a shorter list;
+ * - the mode panel stays docked at every desktop width, above scenes in Write;
  * - the binder and the inspector belong to Write and to nothing else;
  * - the project bar is there wherever the mode is about the open book, which is
  *   every mode but Series;
@@ -81,11 +80,7 @@ test('every mode owns its layout, at every width', async () => {
     await expect(page.locator('.shell')).toHaveAttribute('data-shell-capacity', capacity.name)
 
     for (const mode of MODES) {
-      // Clicked directly, with the overlay panel and its scrim still up: the
-      // rail is how you leave a mode, so it stays reachable through the scrim.
-      // It did not, once - the scrim covered it, and switching modes in a
-      // narrow window took two clicks, the first of which looked like it had
-      // done nothing.
+      // The navigation row stays reachable at every desktop width.
       await page.locator(`.mode-rail-item[data-mode="${mode}"]`).click()
       // A pane that stops being an editor lets its scene go, so leaving Write
       // for any other mode closes it. The scene is opened again on the way
@@ -100,18 +95,15 @@ test('every mode owns its layout, at every width', async () => {
         )
         await expect(page.locator('.editor-frame')).toBeVisible({ timeout: 20_000 })
       }
-      // The panel is an overlay at compact, and picking a mode raises it.
-      if (capacity.name === 'compact') {
-        await expect(page.locator('.mode-panel')).toBeVisible({ timeout: 10_000 })
-      }
+      await expect(page.locator('.mode-panel:not(.overlay)')).toBeVisible({ timeout: 10_000 })
 
       const where = `${mode} @ ${capacity.name}`
       // Exiting panels remain inert in the DOM until their fade completes.
       await expect.poll(read, { message: where }).toEqual({
         rail: 1,
         modePanel: 1,
-        modePanelOverlay: capacity.name === 'compact' ? 1 : 0,
-        binder: mode === 'write' && capacity.name !== 'compact' ? 1 : 0,
+        modePanelOverlay: 0,
+        binder: mode === 'write' ? 1 : 0,
         inspector: mode === 'write' && capacity.name === 'wide' ? 1 : 0,
         status: 1,
         projectActions: mode === 'series' ? 0 : capacity.name === 'compact' ? 1 : 2
