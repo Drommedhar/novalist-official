@@ -4,6 +4,8 @@ import { type PeekScope, type HoverCard, type EntityPeekController } from './pee
 import { PeekCard } from './PeekCard'
 import { MotionPresence } from '../../shell/MotionPresence'
 import { useProjectStore } from '../../stores/projectStore'
+import { useSettingsStore } from '../../stores/settingsStore'
+import { focusPeekDelay } from '../../stores/focusPreferences'
 
 /** Rounded to the pixel: sub-pixel jitter from a reflow is not a new anchor. */
 function sameAnchor(a: PeekAnchor, b: PeekAnchor): boolean {
@@ -25,6 +27,8 @@ export function useEntityPeek(opts: {
   onOpen: (type: string, id: string) => void
 }): EntityPeekController {
   const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
+  const enabled = useSettingsStore((s) => s.view?.global.focusPeekEnabled !== false)
+  const delay = useSettingsStore((s) => focusPeekDelay(s.view?.global.focusPeekDelayMs))
   const [hoverCard, setHoverCard] = useState<HoverCard | null>(null)
   // A pinned card ignores hover changes and stays until explicitly closed.
   const [pinned, setPinned] = useState(false)
@@ -33,6 +37,11 @@ export function useEntityPeek(opts: {
   const pinnedRef = useRef(false)
   pinnedRef.current = pinned
   const hoverHideRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hoverShowRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const clearShow = (): void => {
+    if (hoverShowRef.current !== null) clearTimeout(hoverShowRef.current)
+    hoverShowRef.current = null
+  }
   // True while the pointer is over the card itself. Hover-source events (the
   // editor's entityExit message arrives asynchronously via postMessage; a
   // sidebar card's mouseleave fires just before the card's mouseenter) can land
@@ -72,6 +81,7 @@ export function useEntityPeek(opts: {
     }
   }
   const scheduleHide = (): void => {
+    clearShow()
     if (pinnedRef.current || pointerIsOverCard()) return
     clearHide()
     hoverHideRef.current = setTimeout(() => {
@@ -85,6 +95,7 @@ export function useEntityPeek(opts: {
     }, 260)
   }
   const hide = (): void => {
+    clearShow()
     // A pinned card survives (matches the desktop: a click in the editor does not
     // dismiss a pinned peek).
     if (pinnedRef.current) return
@@ -92,7 +103,7 @@ export function useEntityPeek(opts: {
     shownKeyRef.current = null
     setHoverCard(null)
   }
-  const showAt = (
+  const reveal = (
     target: { entityType: string; entityId: string },
     anchor: PeekAnchor,
     prefer: 'below' | 'beside' = 'below'
@@ -117,7 +128,21 @@ export function useEntityPeek(opts: {
         : { anchor, prefer, entityType: target.entityType, entityId: target.entityId }
     )
   }
+  const showAt: EntityPeekController['showAt'] = (target, anchor, prefer = 'below', immediate = false): void => {
+    clearShow()
+    if (pinnedRef.current || (!enabled && !immediate)) return
+    clearHide()
+    if (immediate || shownKeyRef.current === `${target.entityType}:${target.entityId}`) {
+      reveal(target, anchor, prefer)
+    } else {
+      hoverShowRef.current = setTimeout(() => {
+        hoverShowRef.current = null
+        reveal(target, anchor, prefer)
+      }, delay)
+    }
+  }
   const closeCard = (): void => {
+    clearShow()
     clearHide()
     setPinned(false)
     shownKeyRef.current = null
@@ -125,7 +150,8 @@ export function useEntityPeek(opts: {
   }
 
   // Clear any pending timer if the host unmounts.
-  useEffect(() => clearHide, [])
+  useEffect(() => () => { clearHide(); clearShow() }, [])
+  useEffect(() => { closeCard() }, [enabled, delay, opts.scope.sceneId, suspendMotion])
 
   useEffect(() => {
     const track = (event: PointerEvent): void => {

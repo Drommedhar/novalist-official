@@ -103,7 +103,8 @@ export interface EntityPeekController {
   showAt(
     target: { entityType: string; entityId: string },
     anchor: PeekAnchor,
-    prefer?: 'below' | 'beside'
+    prefer?: 'below' | 'beside',
+    immediate?: boolean
   ): void
   /** Debounced hide — cancelled if the pointer reaches the card (or it is pinned),
    * so moving onto the card never dismisses it. */

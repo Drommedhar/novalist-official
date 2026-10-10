@@ -219,6 +219,8 @@ You never leave the page or lose your place. If you cancel the type chooser, the
 
 ## Entity hover cards
 
+In **Settings → Focus**, turn off **Show Focus Peek on hover** to stop automatic cards, or adjust **Hover delay (milliseconds)** (500 ms by default). This applies to both prose and Inspector cards. The context-menu command **Peek at entity under caret** and `Ctrl+Shift+E` remain available when hover is off.
+
 When you hover over the name or alias of a codex entity in your prose (or over an inserted mention), an enriched **hover card** appears with, as available:
 
 - The entity's **image** and **name**, plus a **type** label (Character / Location / Item / Lore).
@@ -367,6 +369,8 @@ Stop it by pressing the button again (it becomes a stop square while reading), b
 The highlight is painted without touching the document, so listening to a chapter never marks it as edited.
 
 ## Focus mode
+
+**Settings → Focus** lets you choose the page and surround colours or add a background image. **Use theme colour** resets a colour, and **Remove background image** restores the surround colour. These preferences apply only in Focus Mode and never affect exports.
 
 `F11` fills the screen with the active page and hides the title and menu bars, navigation, scene tabs, pane headers and formatting tools. Other split panes keep their state. Reveal **Writing tools** at the top when needed; typing tucks the tools away again. Active writing-mode indicators remain visible. Zooming with `Ctrl` and the mouse wheel widens the page with the text, up to the available window width.
 

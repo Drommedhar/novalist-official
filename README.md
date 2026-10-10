@@ -55,7 +55,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 - WYSIWYG editor with inline formatting, paragraph styles (heading, subheading, block quote, verse), bulleted and numbered lists, inline comments, and numbered footnotes — every style carried through to DOCX, EPUB, Markdown and LaTeX.
 - Auto-save with per-scene **snapshot history** and a side-by-side compare view — revert a single scene without touching the rest of the project.
-- **Focus Mode** (`F11`) fills the screen with a centered page that widens as you zoom and hides the title and menu bars. Hover areas grow with the space beside the page; prepared binder and context panels slide in gently. Panels and notes overlay the page; your caret, split layout and previous window state survive the round trip.
+- **Focus Mode** (`F11`) fills the screen with a centered page that widens as you zoom and hides the title and menu bars. Hover areas grow with the space beside the page; prepared binder and context panels slide in gently. Panels and notes overlay the page; your caret, split layout and previous window state survive the round trip. Choose page and surround colours or a background image in Settings → Focus.
 - **Project bookshelf** fills the workspace with covers on open shelves, shelf filters, search, adjustable cover size and sorting. Select a cover for its details, related books, World Bible and Series actions; double-click or choose **Open book** to open it. A project's books stay together when arranging shelves. Generated title covers and uploaded artwork share book shading, gently open at the spine on hover or keyboard focus, and stay open while selected. Remove individual books or whole projects without deleting files, and restore them from the library menu.
 - **Scratchpad** stays within reach in the bookshelf header, even while scrolling. Jot down ideas without opening a project and file saved notes into a project's Research inbox later.
 - **Split panes** — divide the main area as many times as you like, each pane showing any view, and tear one off into its own window. Windows share the active project, book and draft, and save pending edits together before switching context or quitting.
@@ -90,7 +90,7 @@ English and German **dictation** writes directly at the editor caret. Built-in s
 - **Templates** per entity type with default sections, custom properties, and field defaults.
 - **Sections** of long-form content per entity, written in a formatted text box: headings, bold, lists, and links are styled as you type and their syntax stays hidden until you edit the line, with a toolbar so you never need to learn it. Stored as plain Markdown.
 - **Relationships** with auto-learned inverse-role pairs and inverse-prompting on new relationships.
-- **Focus peek** card on entity hover inside the editor.
+- **Focus peek** cards in the editor and Inspector, with an off switch and configurable hover delay in Settings → Focus.
 - **Wiki** — a read-only, Wikipedia-style reader over the whole Codex: one cross-linked article per entity with a lead descriptor, table of contents, infobox and image gallery, sections, relationships and reverse "referenced by", an at-a-glance stats strip, "appears with", plotlines, map pins, a per-entity Appearances timeline built from the scenes that mention it, and an optional on-demand AI summary (when an AI extension is installed).
 
 ### Planning & visualization

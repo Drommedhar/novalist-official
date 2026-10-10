@@ -128,6 +128,13 @@
   --nl-focus-hover-left: var(--nl-focus-edge-width);
   --nl-focus-hover-right: var(--nl-focus-edge-width);
   --nl-focus-slide-duration: 220ms;
+  --nl-focus-ink-dark: #000000;
+  --nl-focus-ink-light: #ffffff;
+  --nl-focus-default-surround: color-mix(in srgb, var(--nl-surface-editor) 70%, var(--nl-focus-ink-dark) 30%);
+  --nl-focus-background: var(--nl-focus-default-surround);
+  --nl-focus-image: none;
+  --nl-focus-page: var(--nl-surface-card);
+  --nl-focus-ink: var(--nl-text);
   --nl-shelf-cover-width: 180px;
   --nl-shelf-cover-height: 240px;
   /* Printed-cover palettes retain their identity across app themes. Related

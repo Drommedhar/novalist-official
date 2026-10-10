@@ -1,0 +1,16 @@
+html:has(> body.focus-appearance),
+body.focus-appearance,
+body.focus-appearance #editor-wrapper,
+body.focus-appearance.page-view #editor-wrapper {
+    background: transparent;
+}
+body.focus-appearance:not(.page-view) #editor,
+body.focus-appearance.page-view .nv-page {
+    background: var(--nl-focus-page);
+    color: var(--nl-focus-ink);
+    caret-color: var(--nl-focus-ink);
+}
+body.focus-appearance {
+    --page-bg: var(--nl-focus-page);
+    --page-fg: var(--nl-focus-ink);
+}

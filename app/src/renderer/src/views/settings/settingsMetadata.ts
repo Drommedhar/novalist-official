@@ -10,6 +10,7 @@ export const SETTINGS_SECTION_KEYS = [
   'accessibility',
   'hotkeys',
   'editor',
+  'focus',
   'writingAssistance',
   'writingGoals',
   'completion',

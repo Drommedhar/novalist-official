@@ -21,7 +21,7 @@ export function useEditorMessages(context: EditorMessageContext): void {
     })
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-theme']
+      attributeFilter: ['data-theme', 'style']
     })
 
     // Live-apply settings changes (font, typewriter, page view, config) to the editor.
@@ -29,6 +29,12 @@ export function useEditorMessages(context: EditorMessageContext): void {
       if (editorRef.current) {
         pushEditorSettings(editorRef.current)
         pushEditorConfig(editorRef.current, t)
+        pushEditorTheme(editorRef.current)
+      }
+    })
+    const unsubscribeShell = useShellStore.subscribe((state, previous) => {
+      if (editorRef.current && (state.focusMode !== previous.focusMode || state.mainView !== previous.mainView || state.extView !== previous.extView)) {
+        pushEditorTheme(editorRef.current)
       }
     })
 
@@ -45,6 +51,7 @@ export function useEditorMessages(context: EditorMessageContext): void {
       dispose()
       observer.disconnect()
       unsubscribeSettings()
+      unsubscribeShell()
       peekRef.current.clearHide()
       editorRef.current = null
     }
@@ -61,7 +68,7 @@ function createHandlerContext(context: EditorMessageContext, iframe: HTMLIFrameE
       shell.setActivePane(pane)
     }
   }
-  const showHoverCard: EditorHandlerContext['showHoverCard'] = (hit, x, y, wordRect): void => {
+  const showHoverCard: EditorHandlerContext['showHoverCard'] = (hit, x, y, wordRect, immediate): void => {
     if (!iframeRef.current) return
     // Keep the anchor on the word while translating into parent coordinates.
     const frame = iframeRef.current.getBoundingClientRect()
@@ -73,7 +80,7 @@ function createHandlerContext(context: EditorMessageContext, iframe: HTMLIFrameE
           bottom: frame.top + wordRect.bottom
         }
       : { left: frame.left + x, top: frame.top + y, right: frame.left + x, bottom: frame.top + y }
-    peekRef.current.showAt({ entityType: hit.type, entityId: hit.id }, anchor)
+    peekRef.current.showAt({ entityType: hit.type, entityId: hit.id }, anchor, 'below', immediate)
   }
   return { ...context, iframe, activatePane, showHoverCard }
 }

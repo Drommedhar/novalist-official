@@ -520,6 +520,18 @@
     "createWithWizard": "Geführte Einrichtung (Assistent)"
   },
   "settings": {
+    "focus": "Fokus",
+    "focusPeekEnabled": "Focus Peek beim Verweilen anzeigen",
+    "focusPeekEnabledDesc": "Eintragskarten im Editor und Inspektor nach kurzem Verweilen mit der Maus anzeigen. Ausschalten verhindert automatische Popups; die Vorschau am Cursor bleibt über das Kontextmenü oder die Tastatur erreichbar.",
+    "focusPeekDelay": "Verzögerung beim Verweilen (Millisekunden)",
+    "focusAppearanceDesc": "Diese Farben und das Hintergrundbild gelten nur im Fokusmodus. Die Einstellungen gelten für alle Projekte auf diesem Gerät.",
+    "focusPageColor": "Seitenfarbe",
+    "focusBackgroundColor": "Umgebungsfarbe",
+    "focusUseTheme": "Designfarbe verwenden",
+    "focusBackgroundImage": "Hintergrundbild",
+    "focusBackgroundImageDesc": "Wählen Sie ein PNG-, JPEG- oder WebP-Bild bis 5 MB. Eine Kopie wird auf diesem Gerät gespeichert und füllt den Bereich um die Seite.",
+    "focusRemoveImage": "Hintergrundbild entfernen",
+    "focusBackgroundImageError": "Das Bild konnte nicht gespeichert werden. Wählen Sie eine gültige PNG-, JPEG- oder WebP-Datei bis 5 MB und versuchen Sie es erneut.",
     "title": "Einstellungen",
     "searchPlaceholder": "Einstellungen durchsuchen...",
     "searchClear": "Einstellungssuche löschen",

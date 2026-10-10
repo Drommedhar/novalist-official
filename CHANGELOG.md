@@ -21,7 +21,14 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Focus preferences** — turn automatic entity hover cards off or choose a hover delay. Focus Mode supports custom page and surround colours and a local background image.
+
+### Fixed
+
+- Check for Updates remains usable when another dialog is open, including its Check again and Close buttons.
+- Focus Mode uses a continuous background around the page, removing the contrasting outer border in light themes.
 
 ---
 

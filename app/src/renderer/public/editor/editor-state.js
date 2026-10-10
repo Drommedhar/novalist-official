@@ -29,7 +29,6 @@ let lastHoveredAlias = null;
 
 let lastHoveredMentionId = null;
 
-let entityExitTimer = null;
 
 let dialogueCorrectionConfig = null;
 
@@ -171,7 +170,6 @@ Object.defineProperties(window.NovalistEditorState, {
     autoReplacements: { get() { return autoReplacements; }, set(value) { autoReplacements = value; } },
     dialogueCorrectionConfig: { get() { return dialogueCorrectionConfig; }, set(value) { dialogueCorrectionConfig = value; } },
     dialogueCorrectionTimer: { get() { return dialogueCorrectionTimer; }, set(value) { dialogueCorrectionTimer = value; } },
-    entityExitTimer: { get() { return entityExitTimer; }, set(value) { entityExitTimer = value; } },
     lastHoveredMentionId: { get() { return lastHoveredMentionId; }, set(value) { lastHoveredMentionId = value; } },
     lastHoveredAlias: { get() { return lastHoveredAlias; }, set(value) { lastHoveredAlias = value; } },
     isFocusing: { get() { return isFocusing; }, set(value) { isFocusing = value; } }

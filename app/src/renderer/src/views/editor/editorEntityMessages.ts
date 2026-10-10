@@ -10,7 +10,8 @@ export function createEditorEntityMessages(context: EditorHandlerContext): Edito
       hit,
       Number(message.x ?? 0),
       Number(message.y ?? 0),
-      (message as { rect?: { left: number; top: number; right: number; bottom: number } }).rect ?? null
+      (message as { rect?: { left: number; top: number; right: number; bottom: number } }).rect ?? null,
+      message.requested === true
     )
     useOnboardingStore.getState().completeTip('focus-peek')
   }

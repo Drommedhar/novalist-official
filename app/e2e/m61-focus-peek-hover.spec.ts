@@ -212,6 +212,40 @@ async function seedNamedScene(h: Harness): Promise<Book> {
   return book
 }
 
+test('hover delay, cancellation and the off switch preserve deliberate keyboard peeks', async () => {
+  const h = await launchApp('nl-peek-preferences-')
+  try {
+    await seedNamedScene(h)
+    const page = h.page
+    const card = page.locator('.peek-card-anchor')
+    await page.mouse.move(0, 0)
+    await page.evaluate(() => window.novalistStores.settings.getState().update('global', { focusPeekDelayMs: 1200 }))
+    const name = centre(await wordBox(page, NAME))
+    await page.mouse.move(name.x, name.y)
+    await page.waitForTimeout(300)
+    await expect(card).toHaveCount(0)
+    await page.mouse.move(0, 0)
+    await page.waitForTimeout(1300)
+    await expect(card).toHaveCount(0)
+    await page.mouse.move(name.x, name.y)
+    await expect(card).toBeVisible()
+    await page.evaluate(() => window.novalistStores.settings.getState().update('global', { focusPeekEnabled: false }))
+    await expect(card).toHaveCount(0)
+    await page.mouse.move(0, 0)
+    await page.mouse.move(name.x, name.y)
+    await page.waitForTimeout(1300)
+    await expect(card).toHaveCount(0)
+    await page.mouse.click(name.x, name.y)
+    await page.keyboard.press('Control+Shift+E')
+    await expect(card).toBeVisible()
+    await page.evaluate(() => window.novalistStores.settings.getState().update('global', { focusPeekEnabled: true, focusPeekDelayMs: 100 }))
+    await expect(card).toHaveCount(0)
+    await page.mouse.move(0, 0)
+    await page.mouse.move(name.x, name.y)
+    await expect(card).toBeVisible()
+  } finally { await h.close() }
+})
+
 test('a hovered name keeps its Focus Peek open instead of flickering', async () => {
   test.setTimeout(180_000)
   const h = await launchApp('nl-peek-hover-')
@@ -365,6 +399,7 @@ test('a hovered entity row in the inspector holds its Focus Peek still', async (
 
   const row = page.locator('.ctx-card').first()
   await expect(row).toBeVisible({ timeout: 30_000 })
+  await row.hover({ trial: true })
   const rowBox = await row.boundingBox()
   expect(rowBox, 'the entity row should be on screen').not.toBeNull()
 

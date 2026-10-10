@@ -5,6 +5,8 @@
  * window.parent.postMessage as { novalistEditor: jsonString }.
  */
 
+import { applyFocusAppearance } from './focusAppearance'
+
 export interface ProofingStatus {
   enabled: boolean
   checking: boolean
@@ -302,4 +304,5 @@ export function pushEditorTheme(editor: EditorWindow): void {
     token('--nl-scrollbar-thumb-hover'),
     token('--nl-scrollbar-thumb-active')
   )
+  applyFocusAppearance(editor, token)
 }

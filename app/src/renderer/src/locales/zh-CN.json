@@ -684,6 +684,18 @@
     "newProject": "新建项目"
   },
   "settings": {
+    "focus": "专注",
+    "focusPeekEnabled": "悬停时显示焦点速览",
+    "focusPeekEnabledDesc": "悬停片刻后在编辑器和检查器中显示条目卡片。关闭可停止自动弹出；仍可通过右键菜单或键盘查看光标处的条目。",
+    "focusPeekDelay": "悬停延迟（毫秒）",
+    "focusAppearanceDesc": "这些颜色和背景图仅用于专注模式。这些偏好设置适用于此设备上的所有项目。",
+    "focusPageColor": "页面颜色",
+    "focusBackgroundColor": "周围区域颜色",
+    "focusUseTheme": "使用主题颜色",
+    "focusBackgroundImage": "背景图",
+    "focusBackgroundImageDesc": "选择不超过 5 MB 的 PNG、JPEG 或 WebP 图片。副本会保存在此设备上，并填充页面周围的区域。",
+    "focusRemoveImage": "移除背景图",
+    "focusBackgroundImageError": "无法保存图片。请选择不超过 5 MB 的有效 PNG、JPEG 或 WebP 文件，然后重试。",
     "title": "设置",
     "searchPlaceholder": "搜索设置...",
     "searchClear": "清除设置搜索",
