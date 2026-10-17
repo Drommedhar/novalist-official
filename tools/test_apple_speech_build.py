@@ -111,7 +111,7 @@ class AppleSpeechBuildTests(unittest.TestCase):
                         for key, value in graph["projects"].items()
                         if Path(key).resolve() == backend.resolve()
                     )
-                    references = entry["frameworks"]["net8.0"]["frameworkReferences"]
+                    references = entry["frameworks"]["net10.0"]["frameworkReferences"]
                     self.assertEqual(
                         "Microsoft.AspNetCore.App" in references,
                         not rid.startswith("ios"),
@@ -126,7 +126,7 @@ class AppleSpeechBuildTests(unittest.TestCase):
             project = Path(directory) / "Probe.csproj"
             project.write_text(f'''<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <Import Project="{escape(str(ROOT / "native" / "AppleSpeech" / f"AppleSpeech.{platform}.targets"))}" />
 </Project>''')
@@ -163,7 +163,7 @@ class AppleSpeechBuildTests(unittest.TestCase):
                         properties["_SpeechLibrary"].replace("\\", "/"),
                         f"{intermediate}apple-speech/{arch}/libNovalistSpeech.dylib",
                     )
-                    self.assertIn(f"/{configuration}/net8.0/{rid}/", intermediate)
+                    self.assertIn(f"/{configuration}/net10.0/{rid}/", intermediate)
                     self.assertEqual(properties["_SpeechArch"], arch)
                     outputs.add(properties["_SpeechLibrary"])
         self.assertEqual(len(outputs), 4)

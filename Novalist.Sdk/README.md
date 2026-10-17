@@ -1,11 +1,13 @@
 # Novalist.Sdk
 
-SDK for building extensions for [Novalist](https://github.com/Drommedhar/novalist-official), a novel writing assistant built with Avalonia.
+SDK for building extensions for [Novalist](https://github.com/Drommedhar/novalist-official), a novel writing assistant.
+
+SDK 15 targets .NET 10 and requires Novalist 3.6.0 or later. Extensions built with this SDK must set `minHostVersion` to at least `3.6.0` in `extension.json`.
 
 ## Quick Start
 
 ```bash
-dotnet new classlib -n MyExtension -f net8.0
+dotnet new classlib -n MyExtension -f net10.0
 dotnet add package Novalist.Sdk
 ```
 

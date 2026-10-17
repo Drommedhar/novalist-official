@@ -12,7 +12,7 @@ on:
         default: false
 
 env:
-  DOTNET_VERSION: 8.0.x
+  DOTNET_VERSION: 10.0.x
   NODE_VERSION: "22"
 
 jobs:
@@ -652,14 +652,15 @@ jobs:
         run: dotnet build Novalist.Sdk/Novalist.Sdk.csproj -c Release
 
       # ── SDK change detection (API comparison) ─────────────────────
-      # Only publish a new SDK NuGet when the public API surface changes.
+      # Publish SDK framework changes even when the public API is unchanged.
       # Implementation-only changes ship via the host app, not the NuGet.
-      - name: Check SDK API changes
+      - name: Check SDK framework and API changes
         id: sdk_check
         shell: bash
         run: |
           set -euo pipefail
-          CURRENT_DLL="Novalist.Sdk/bin/Release/net8.0/Novalist.Sdk.dll"
+          CURRENT_TFM=$(dotnet msbuild Novalist.Sdk/Novalist.Sdk.csproj -getProperty:TargetFramework)
+          CURRENT_DLL="Novalist.Sdk/bin/Release/$CURRENT_TFM/Novalist.Sdk.dll"
 
           if [ "${{ steps.baseline.outputs.has_baseline }}" != "true" ]; then
             echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
@@ -669,6 +670,13 @@ jobs:
           fi
 
           BASELINE_DLL="${{ steps.baseline.outputs.baseline_dll }}"
+          BASELINE_TFM=$(basename "$(dirname "$BASELINE_DLL")")
+          if [ "$BASELINE_TFM" != "$CURRENT_TFM" ]; then
+            echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
+            echo "bump_type=major" >> "$GITHUB_OUTPUT"
+            echo "SDK target framework changed: $BASELINE_TFM -> $CURRENT_TFM"
+            exit 0
+          fi
 
           # Pass 1: check for breaking changes
           if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" --noWarn CP0003 2>&1; then
@@ -797,7 +805,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          out="Novalist.Sdk.Example/bin/Release/net8.0"
+          out="Novalist.Sdk.Example/bin/Release/net10.0"
           staging="${GITHUB_WORKSPACE}/ext-staging"
           mkdir -p "${staging}/Themes" "${staging}/Locales"
           cp "${out}/Novalist.Sdk.Example.dll" "${staging}/"

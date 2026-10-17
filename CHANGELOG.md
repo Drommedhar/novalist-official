@@ -21,7 +21,9 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- New official extension releases require Novalist 3.6.0 or later. Older Novalist versions can continue using earlier compatible extension releases.
 
 ---
 

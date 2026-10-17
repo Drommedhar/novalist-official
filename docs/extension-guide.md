@@ -1,8 +1,10 @@
 # Extension Developer Guide
 
-Novalist is extensible: an extension is a .NET 8 class library that the core process loads at startup, plus a manifest that describes it. Extensions add views, panels, export formats, entity types, editor actions, themes, wizards, and AI providers — everything Novalist itself does not do.
+Novalist is extensible: an extension is a .NET 10 class library that the core process loads at startup, plus a manifest that describes it. Extensions add views, panels, export formats, entity types, editor actions, themes, wizards, and AI providers — everything Novalist itself does not do.
 
 This guide covers building one, what the SDK gives you, packaging it, and submitting it to the extension gallery. For using extensions, see the manual's [Extensions page](manual/24-extensions.md).
+
+SDK 15 targets .NET 10 and requires Novalist 3.6.0 or later. Set `minHostVersion` to at least `3.6.0` for extensions built with SDK 15. The desktop app bundles the runtime; extension authors need the .NET 10 SDK to build.
 
 ## Contents
 
@@ -35,7 +37,7 @@ Extensions are discovered at startup from the user extensions folder, and instal
 ## Your first extension
 
 ```bash
-dotnet new classlib -n MyExtension -f net8.0
+dotnet new classlib -n MyExtension -f net10.0
 cd MyExtension
 dotnet add package Novalist.Sdk
 ```
@@ -83,7 +85,7 @@ Every extension folder needs an `extension.json` beside the DLL:
   "version": "1.0.0",
   "author": "Your Name",
   "entryAssembly": "MyExtension.dll",
-  "minHostVersion": "3.0.0",
+  "minHostVersion": "3.6.0",
   "maxHostVersion": "",
   "tags": ["analysis"],
   "icon": "icon.png",

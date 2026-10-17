@@ -20,7 +20,7 @@ jobs:
         include:
           - target: desktop
             os: ubuntu-latest
-            dotnet: 8.0.x
+            dotnet: 10.0.x
             project: novalist-official.sln
           - target: ios
             os: macos-latest

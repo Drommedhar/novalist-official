@@ -23,7 +23,7 @@
 
 ## What is Novalist?
 
-Novalist is an offline-first desktop application for writing novels. It handles the full scope of a writing project — manuscript editing, worldbuilding, plotting, timelines, exporting, and version control — in a single, self-contained tool. It runs on Windows, macOS, and Linux: an Electron + React interface in front of a bundled .NET 8 core process that owns all project logic.
+Novalist is an offline-first desktop application for writing novels. It handles the full scope of a writing project — manuscript editing, worldbuilding, plotting, timelines, exporting, and version control — in a single, self-contained tool. It runs on Windows, macOS, and Linux: an Electron + React interface in front of a bundled .NET 10 core process that owns all project logic.
 
 Rather than scattering notes across separate apps, browser tabs, and Markdown files, Novalist keeps everything about a project in one folder of plain files: chapters and scenes as HTML, entities and metadata as JSON, images and research alongside. The folder is yours — back it up, sync it, version-control it, edit it with any text editor when Novalist is closed.
 
@@ -187,7 +187,9 @@ Novalist has a plugin architecture through the **Novalist SDK**. Extensions can 
 - AI integration hooks (prompt building, response processing)
 - Colour themes (a design-token map or a stylesheet), listed in the Settings theme picker
 
-Extensions are .NET 8 class libraries loaded by the core process at runtime from the user extensions folder; their UI is delivered as sandboxed webviews. The bundled AI Assistant is the reference example, contributing the AI Chat, Character Chat, and Story Analysis panels. See the `Novalist.Sdk.Example` project for a working implementation.
+Extensions are .NET 10 class libraries loaded by the core process at runtime from the user extensions folder; their UI is delivered as sandboxed webviews. The bundled AI Assistant is the reference example, contributing the AI Chat, Character Chat, and Story Analysis panels. See the `Novalist.Sdk.Example` project for a working implementation.
+
+SDK 15 and new official extension releases require Novalist 3.6.0 or later. Earlier app versions can continue using older compatible extension releases. The desktop app bundles the .NET runtime.
 
 The Extensions view has a built-in **store**: browse the online extension gallery, read each extension's README and release notes, and install or update extensions in place (with download progress and a cancel option) without leaving the app. It can also check installed extensions for updates on startup.
 
@@ -197,9 +199,9 @@ The **Mac App Store edition has no extension feature** - no gallery, no installi
 
 ## Building
 
-Novalist is an Electron + React front end over a bundled .NET 8 core process (`Novalist.Backend`).
+Novalist is an Electron + React front end over a bundled .NET 10 core process (`Novalist.Backend`).
 
-Building and running the checks requires the .NET 8 SDK and Node.js 22.13+ on the 22 LTS line, or Node.js 23.2+. The renderer tests use Node's TypeScript stripping API. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
+Building and running the checks requires the .NET 10 SDK and Node.js 22.13+ on the 22 LTS line, or Node.js 23.2+. The renderer tests use Node's TypeScript stripping API. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
 
 ```
 # build the backend the app spawns, then run the app in development
@@ -222,7 +224,7 @@ After a successful stable desktop release, the release workflow commits the rele
 
 ```
 app/                  Electron + React front end — renderer, main, preload
-Novalist.Backend      .NET 8 core process the app spawns (JSON-RPC over stdio)
+Novalist.Backend      .NET 10 core process the app spawns (JSON-RPC over stdio)
 Novalist.Core         Core library — models, services, serialization, localization, utilities
 Novalist.Sdk          Extension SDK — public interfaces, hooks, host-service contracts, descriptor models
 Novalist.Sdk.Example  Reference extension demonstrating the hook types

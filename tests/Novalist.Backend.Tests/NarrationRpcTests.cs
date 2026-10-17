@@ -160,6 +160,22 @@ public sealed class NarrationRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Book_ReadsScenesInTheirOrder()
+    {
+        var (chapter, first) = await SceneAsync("One", "First", "<p>First.</p>");
+        var second = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Second");
+        await _workspace.Projects.WriteSceneContentAsync(chapter, second, "<p>Second.</p>");
+        first.Order = 2;
+        second.Order = 1;
+        await _workspace.Projects.SaveScenesAsync();
+
+        var book = await _rpc.BookAsync();
+
+        Assert.Equal(["Second", "First"],
+            Assert.Single(book.Chapters).Scenes.Select(scene => scene.SceneTitle));
+    }
+
+    [Fact]
     public async Task Book_MarksTheProseUpWhereItStands()
     {
         await CastAsync();

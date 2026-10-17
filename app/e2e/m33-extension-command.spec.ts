@@ -34,7 +34,7 @@ test('an extension command is listed in the palette and runs', async () => {
   mkdirSync(extensionDir, { recursive: true })
 
   const candidates = [
-    join(process.cwd(), '..', 'Novalist.Sdk.Example', 'bin', 'Debug', 'net8.0', 'Novalist.Sdk.Example.dll'),
+    join(process.cwd(), '..', 'Novalist.Sdk.Example', 'bin', 'Debug', 'net10.0', 'Novalist.Sdk.Example.dll'),
     join(process.cwd(), 'out', 'backend', 'Novalist.Sdk.Example.dll')
   ]
   const assembly = candidates.find((c) => existsSync(c)) ?? candidates[0]

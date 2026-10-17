@@ -1,3 +1,4 @@
+using NSubstitute;
 using Novalist.Backend;
 using Novalist.Backend.Extensions;
 using Novalist.Backend.Rpc;
@@ -400,6 +401,25 @@ public sealed class ExtensionContribRpcTests : IDisposable
     {
         Assert.Equal(string.Empty, ExtensionContribRpc.Safe(() => throw new InvalidOperationException()));
         Assert.Equal("ok", ExtensionContribRpc.Safe(() => "ok"));
+    }
+
+    [Fact]
+    public void StatusBar_SortsItemsAcrossContributors()
+    {
+        var extension = Substitute.For<Novalist.Sdk.IExtension, IStatusBarContributor>();
+        ((IStatusBarContributor)extension).GetStatusBarItems().Returns(new StatusBarItem[]
+        {
+            new() { Id = "late", Order = 90 },
+            new() { Id = "early", Order = 10 }
+        });
+        _workspace.ExtensionsHost.Extensions.Add(new ExtensionInfo
+        {
+            Manifest = new Novalist.Sdk.ExtensionManifest { Id = "test.status-order" },
+            Instance = extension,
+            IsLoaded = true
+        });
+
+        Assert.Equal([10, 50, 90], _rpc.StatusBarItems().Select(item => item.Order));
     }
 
     // ── Settings schema ─────────────────────────────────────────────

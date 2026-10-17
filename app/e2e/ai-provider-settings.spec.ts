@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path'
 import { launchApp, seedBook } from './harness'
 
 test('AI services are providers, update their address, and discover models at the edited endpoint', async () => {
-  const build = process.env.NOVALIST_AIASSISTANT_BUILD ?? resolve('..', '..', 'novalist-aiassistant', 'bin', 'Debug', 'net8.0')
+  const build = process.env.NOVALIST_AIASSISTANT_BUILD ?? resolve('..', '..', 'novalist-aiassistant', 'bin', 'Debug', 'net10.0')
   test.skip(!existsSync(join(build, 'Novalist.Extensions.AiAssistant.dll')), 'AI Assistant extension must be built')
   const settings = mkdtempSync(join(tmpdir(), 'nl-ai-provider-settings-'))
   const extension = join(settings, 'Extensions', 'AiAssistant')

@@ -103,7 +103,9 @@ public sealed class SmartListsRpcTests : IDisposable
     public async Task Fields_OfferThisBooksOwnVocabulary()
     {
         var chapter = await _workspace.Projects.CreateChapterAsync("C");
-        chapter.Act = "Act One";
+        chapter.Act = "Act Two";
+        var firstActChapter = await _workspace.Projects.CreateChapterAsync("Earlier act");
+        firstActChapter.Act = "Act One";
         _workspace.Projects.ActiveBook!.Plotlines.Add(
             new Novalist.Core.Models.PlotlineData { Id = "p1", Name = "The heist" });
         var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
@@ -123,7 +125,7 @@ public sealed class SmartListsRpcTests : IDisposable
         // The tags and acts actually used in this book, plus the writer's own
         // fields - none of which the renderer could know by itself.
         Assert.Equal(["action", "quiet"], fields.Single(f => f.Field == "tag").Options);
-        Assert.Equal(["Act One"], fields.Single(f => f.Field == "act").Options);
+        Assert.Equal(["Act One", "Act Two"], fields.Single(f => f.Field == "act").Options);
         Assert.Equal(["p1"], fields.Single(f => f.Field == "plotline").Options);
         // Everyone any scene says is present, deduped and in order - the focus
         // is one of them rather than a separate list.

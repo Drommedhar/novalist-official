@@ -1,5 +1,7 @@
 # Extensions
 
+New official extension releases require Novalist 3.6.0 or later. Earlier Novalist versions can continue using older compatible extension releases. The app includes its .NET runtime, so installing .NET separately is unnecessary.
+
 AI Assistant's automatic Codex spelling hints and speech-only model loading require matching updated versions of Novalist and AI Assistant. Existing speech extensions continue to transcribe without vocabulary hints. See [Dictation](05-editor.md#dictation) for recording modes, spoken commands, and microphone controls.
 
 Novalist is extensible. An extension is a small .NET assembly that runs inside the Novalist core process and contributes new panels, export formats, entity types, AI integrations, grammar checkers, or property types. Anyone can install one; anyone can write one.
@@ -228,7 +230,7 @@ Refer to the extension's README for specifics; AI extensions are not part of the
 
 See the [Extension Guide](https://github.com/Drommedhar/novalist-official/blob/main/docs/extension-guide.md). In short:
 
-1. Create a .NET 8 class library.
+1. Create a .NET 10 class library.
 2. Reference the `Novalist.Sdk` package.
 3. Implement `IExtension` and any hook interfaces you want to contribute. For a UI panel, declare it in `extension.json` under `contributes.views` and implement `IWebViewContributor` for its message handling.
 4. Add an `extension.json` manifest.

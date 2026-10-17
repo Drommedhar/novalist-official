@@ -200,5 +200,5 @@ function resolveBackendPath(): string {
   // Dev: the debug build produced by `dotnet build` at the repo root.
   // __dirname is app/out/main, so the repo root is three levels up.
   const name = process.platform === 'win32' ? 'Novalist.Backend.exe' : 'Novalist.Backend'
-  return join(__dirname, '..', '..', '..', 'Novalist.Backend', 'bin', 'Debug', 'net8.0', name)
+  return join(__dirname, '..', '..', '..', 'Novalist.Backend', 'bin', 'Debug', 'net10.0', name)
 }

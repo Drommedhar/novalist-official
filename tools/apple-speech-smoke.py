@@ -157,7 +157,7 @@ def main():
     parser.add_argument(
         "--backend",
         type=Path,
-        default=Path("Novalist.Backend/bin/Debug/net8.0/Novalist.Backend"),
+        default=Path("Novalist.Backend/bin/Debug/net10.0/Novalist.Backend"),
     )
     parser.add_argument("--prepare", action="store_true")
     args = parser.parse_args()

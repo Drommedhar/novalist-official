@@ -83,7 +83,7 @@ test('Apple system dictation inserts German text at the caret without dialogue i
 
 async function setup(): Promise<Harness> {
   const h = await launchApp('nl-dictation-', {
-    NOVALIST_BACKEND_PATH: resolve('../Novalist.Backend/bin/Debug/net8.0/Novalist.Backend' + (process.platform === 'win32' ? '.exe' : ''))
+    NOVALIST_BACKEND_PATH: resolve('../Novalist.Backend/bin/Debug/net10.0/Novalist.Backend' + (process.platform === 'win32' ? '.exe' : ''))
   })
   const book = await seedBook(h, { Chapter: ['First', 'Second'] })
   await h.page.evaluate(async (chapter) => {

@@ -6,7 +6,7 @@ import { launchApp } from './harness'
 
 test('system language preparation is available without any extension', async () => {
   const h = await launchApp('nl-system-dictation-settings-', {
-    NOVALIST_BACKEND_PATH: resolve('../Novalist.Backend/bin/Debug/net8.0/Novalist.Backend' + (process.platform === 'win32' ? '.exe' : ''))
+    NOVALIST_BACKEND_PATH: resolve('../Novalist.Backend/bin/Debug/net10.0/Novalist.Backend' + (process.platform === 'win32' ? '.exe' : ''))
   })
   try {
     await h.page.evaluate(() => {
@@ -39,7 +39,7 @@ test('system language preparation is available without any extension', async () 
 })
 
 test('real AI Assistant exposes local dictation first, independently of chat configuration', async () => {
-  const build = process.env.NOVALIST_AIASSISTANT_BUILD ?? resolve('../../novalist-aiassistant/bin/Debug/net8.0')
+  const build = process.env.NOVALIST_AIASSISTANT_BUILD ?? resolve('../../novalist-aiassistant/bin/Debug/net10.0')
   test.skip(!existsSync(join(build, 'Novalist.Extensions.AiAssistant.dll')), 'Requires the separately built AI Assistant repository')
   const settings = mkdtempSync(join(tmpdir(), 'nl-dictation-settings-'))
   const extension = join(settings, 'Extensions', 'AiAssistant')
@@ -50,7 +50,7 @@ test('real AI Assistant exposes local dictation first, independently of chat con
   cpSync(join(build, 'Locales'), join(extension, 'Locales'), { recursive: true })
   const h = await launchApp('nl-dictation-settings-ui-', {
     NOVALIST_SETTINGS_DIR: settings,
-    NOVALIST_BACKEND_PATH: resolve('../Novalist.Backend/bin/Debug/net8.0/Novalist.Backend' + (process.platform === 'win32' ? '.exe' : ''))
+    NOVALIST_BACKEND_PATH: resolve('../Novalist.Backend/bin/Debug/net10.0/Novalist.Backend' + (process.platform === 'win32' ? '.exe' : ''))
   })
   try {
     expect(await h.rpc('extensions/load')).toEqual(expect.arrayContaining([

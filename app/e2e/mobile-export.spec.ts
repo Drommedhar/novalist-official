@@ -11,7 +11,7 @@ import { dismissTour, type Book } from './harness'
 async function mobileHost(page: Page, layout: 'phone' | 'tablet') {
   const root = mkdtempSync(join(tmpdir(), 'nl-mobile-export-'))
   const bundle = resolve('../Novalist.Mobile/Resources/Raw/app')
-  const backend = spawn('dotnet', [resolve('../Novalist.Backend/bin/Debug/net8.0/Novalist.Backend.dll')], {
+  const backend = spawn('dotnet', [resolve('../Novalist.Backend/bin/Debug/net10.0/Novalist.Backend.dll')], {
     env: { ...process.env, NOVALIST_SETTINGS_DIR: join(root, 'settings') },
     stdio: ['pipe', 'pipe', 'pipe']
   })

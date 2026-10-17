@@ -44,9 +44,7 @@ jobs:
           echo "DEVELOPER_DIR=$selected" >> "$GITHUB_ENV"
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: |
-            8.0.x
-            10.0.401
+          dotnet-version: 10.0.401
       - uses: actions/setup-node@v4
         with:
           node-version: 22

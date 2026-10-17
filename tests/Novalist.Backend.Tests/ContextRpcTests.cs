@@ -291,6 +291,7 @@ public sealed class ContextRpcTests : IDisposable
                 new CharacterOverride { Chapter = "zzz", Scene = "zzz", Act = "zzz" }
             ]
         });
+        await Entities.SaveCharacterAsync(new CharacterData { Name = "Ada" });
 
         var chapter = await _workspace.Projects.CreateChapterAsync("Solo Chapter");
         chapter.Act = "Act Z";
@@ -313,7 +314,7 @@ public sealed class ContextRpcTests : IDisposable
         Assert.Equal(0, analysis.WordCount);
         Assert.Empty(analysis.Tags);
         // POV fallback lists every character when the scene matched none.
-        Assert.Contains("Ghost", analysis.PovOptions);
+        Assert.Equal(["Ada", "Ghost"], analysis.PovOptions);
     }
 
     [Fact]
