@@ -21,6 +21,12 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.5.7] - 2026-10-17
+
 ### Added
 
 - **External update management** — disable application update checks, downloads and installation with `NOVALIST_DISABLE_SELF_UPDATE=1`. Application-update controls are hidden from the Help menu, About and Settings, including Settings search, while startup extension checks and extension updates remain available.
@@ -1782,7 +1788,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.5.6...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.5.7...HEAD
+[3.5.7]: https://github.com/Drommedhar/novalist-official/compare/v3.5.6...v3.5.7
 [3.5.6]: https://github.com/Drommedhar/novalist-official/compare/v3.5.5...v3.5.6
 [3.5.5]: https://github.com/Drommedhar/novalist-official/compare/v3.5.3...v3.5.5
 [3.5.3]: https://github.com/Drommedhar/novalist-official/compare/v3.5.1...v3.5.3
