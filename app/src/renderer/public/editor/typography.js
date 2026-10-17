@@ -35,7 +35,7 @@ function setFont(family, size) {
 
 function setBookWidth(enabled, widthPx) {
     const root = document.documentElement;
-    root.style.setProperty('--book-width', enabled ? widthPx + 'px' : 'none');
+    root.style.setProperty('--book-width', enabled ? 'calc(' + widthPx + 'px + 2 * var(--padding-h))' : 'none');
 }
 
 function setPadding(horizontal, vertical) {

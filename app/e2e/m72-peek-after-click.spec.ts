@@ -40,7 +40,7 @@ async function hover(page: Page, measure: () => Promise<Box>): Promise<Box> {
     const x = box.x + box.width / 2
     const y = box.y + box.height / 2
     await page.mouse.move(x, y)
-    await page.waitForTimeout(200)
+    await page.waitForTimeout(700)
     await page.mouse.move(x + 2, y)
     // A visible card alone is insufficient: Chromium can hit-test the nearest
     // name even when pagination moved it away from the old pointer position.

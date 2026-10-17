@@ -58,6 +58,34 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public async Task FocusPreferences_UpgradeDefaultsAndRoundTrip()
+    {
+        using var dir = new TempDir();
+        await File.WriteAllTextAsync(Path.Combine(dir.Path, "settings.json"), "{}");
+        var sut = new SettingsService(dir.Path);
+        await sut.LoadAsync();
+        Assert.True(sut.Settings.FocusPeekEnabled);
+        Assert.Equal(500, sut.Settings.FocusPeekDelayMs);
+        Assert.Null(sut.Settings.FocusPageColor);
+        Assert.Null(sut.Settings.FocusBackgroundColor);
+        Assert.Null(sut.Settings.FocusBackgroundImage);
+        sut.Settings.FocusPeekEnabled = false;
+        sut.Settings.FocusPeekDelayMs = 1500;
+        sut.Settings.FocusPageColor = "#abcdef";
+        sut.Settings.FocusBackgroundColor = "#123456";
+        sut.Settings.FocusBackgroundImage = "data:image/png;base64,AAAA";
+        await sut.SaveAsync();
+
+        var reloaded = new SettingsService(dir.Path);
+        await reloaded.LoadAsync();
+        Assert.False(reloaded.Settings.FocusPeekEnabled);
+        Assert.Equal(1500, reloaded.Settings.FocusPeekDelayMs);
+        Assert.Equal("#abcdef", reloaded.Settings.FocusPageColor);
+        Assert.Equal("#123456", reloaded.Settings.FocusBackgroundColor);
+        Assert.Equal("data:image/png;base64,AAAA", reloaded.Settings.FocusBackgroundImage);
+    }
+
+    [Fact]
     public void AddRecentProject_InsertsNewestFirst_AndDeduplicates()
     {
         using var dir = new TempDir();

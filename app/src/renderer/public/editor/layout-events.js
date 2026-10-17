@@ -54,7 +54,8 @@ document.addEventListener('mouseup', () => {
 }, true);
 
 // Mouse-wheel / trackpad scroll: respect user's chosen position briefly.
-window.NovalistEditorState.wrapper.addEventListener('wheel', () => {
+window.NovalistEditorState.wrapper.addEventListener('wheel', (event) => {
+    if (event.ctrlKey) return;
     window.NovalistEditorState.typewriterSuspendUntil = Date.now() + 1200;
 }, { passive: true });
 

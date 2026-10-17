@@ -649,6 +649,18 @@
     "newProject": "New Project"
   },
   "settings": {
+    "focus": "Focus",
+    "focusPeekEnabled": "Show Focus Peek on hover",
+    "focusPeekEnabledDesc": "Show entity cards in the editor and Inspector after hovering. Turn this off to stop automatic popups; Peek at entity under caret still works from the context menu or keyboard.",
+    "focusPeekDelay": "Hover delay (milliseconds)",
+    "focusAppearanceDesc": "These colours and the background image apply only in Focus Mode. Preferences apply to all projects on this device.",
+    "focusPageColor": "Page colour",
+    "focusBackgroundColor": "Surround colour",
+    "focusUseTheme": "Use theme colour",
+    "focusBackgroundImage": "Background image",
+    "focusBackgroundImageDesc": "Choose a PNG, JPEG or WebP image up to 5 MB. A copy is saved on this device and fills the area around the page.",
+    "focusRemoveImage": "Remove background image",
+    "focusBackgroundImageError": "Could not save the image. Choose a valid PNG, JPEG or WebP file up to 5 MB and try again.",
     "title": "Settings",
     "searchPlaceholder": "Search settings...",
     "searchClear": "Clear settings search",

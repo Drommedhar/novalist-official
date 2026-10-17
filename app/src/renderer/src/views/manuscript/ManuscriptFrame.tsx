@@ -3,6 +3,8 @@ import { useManuscriptStore } from '../../stores/manuscriptStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { registerPendingWrite } from '../../stores/pendingWrites'
+import { pushWritingTypography } from '../editor/writingTypography'
+import { useWritingZoomStore } from '../../stores/writingZoomStore'
 
 // How many chapter blocks are built up front. Everything past this waits until
 // it is scrolled near, which is what keeps a fifty-chapter book openable.
@@ -23,6 +25,8 @@ interface ManuscriptWindow extends Window {
     scrollbarThumbActive?: string
   ): void
   setFont(family: string, size: number): void
+  setBookWidth(enabled: boolean, widthPx: number): void
+  setWritingZoom(factor: number, typewriterAnchor?: string | null): void
   setReadingComfort(lineHeight: number, letterSpacing: number, firstLineIndent: number): void
   flushPendingChanges(): Array<{
     sceneId: string
@@ -38,6 +42,7 @@ export function ManuscriptFrame(): React.JSX.Element {
   const readyRef = useRef(false)
   const sections = useManuscriptStore((s) => s.sections)
   const effective = useSettingsStore((s) => s.view?.effective)
+  const zoomPercent = useWritingZoomStore((s) => s.percent)
   const sectionsRef = useRef(sections)
   const effectiveRef = useRef(effective)
   sectionsRef.current = sections
@@ -48,6 +53,11 @@ export function ManuscriptFrame(): React.JSX.Element {
     if (!win || !readyRef.current) return
     const style = getComputedStyle(document.documentElement)
     const token = (name: string): string => style.getPropertyValue(name).trim()
+    for (const name of style) {
+      if (name.startsWith('--nl-') || name.startsWith('--nv-')) {
+        win.document.documentElement.style.setProperty(name, token(name))
+      }
+    }
     win.setTheme(
       token('--nl-surface-editor'),
       token('--nl-text'),
@@ -65,7 +75,7 @@ export function ManuscriptFrame(): React.JSX.Element {
     // writer's own face and leading rather than the page's defaults.
     const eff = effectiveRef.current
     if (eff) {
-      win.setFont(eff.editorFontFamily, eff.editorFontSize)
+      pushWritingTypography(win, eff)
       win.setReadingComfort(
         eff.editorLineHeight,
         eff.editorLetterSpacing,
@@ -113,6 +123,9 @@ export function ManuscriptFrame(): React.JSX.Element {
         return
       }
       switch (message.type) {
+        case 'zoom':
+          useWritingZoomStore.getState().change(Number(message.delta ?? 0))
+          break
         case 'ready':
           readyRef.current = true
           push()
@@ -181,7 +194,7 @@ export function ManuscriptFrame(): React.JSX.Element {
   useEffect(() => {
     pushPresentation()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effective])
+  }, [effective, zoomPercent])
 
   return (
     <iframe

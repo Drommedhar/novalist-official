@@ -16,6 +16,17 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("theme")]
     public string Theme { get; set; } = "system";
 
+    [JsonPropertyName("focusPeekEnabled")]
+    public bool FocusPeekEnabled { get; set; } = true;
+    [JsonPropertyName("focusPeekDelayMs")]
+    public double FocusPeekDelayMs { get; set; } = 500;
+    [JsonPropertyName("focusPageColor")]
+    public string? FocusPageColor { get; set; }
+    [JsonPropertyName("focusBackgroundColor")]
+    public string? FocusBackgroundColor { get; set; }
+    [JsonPropertyName("focusBackgroundImage")]
+    public string? FocusBackgroundImage { get; set; }
+
     [JsonPropertyName("recentProjects")]
     public List<RecentProject> RecentProjects { get; set; } = new();
 

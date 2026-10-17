@@ -91,6 +91,7 @@ export const SETTINGS_HELP_TARGETS: Record<SettingsSectionKey, ManualTarget> = {
   accessibility: { file: '39-accessibility.md', anchor: 'settings--accessibility' },
   hotkeys: { file: '26-hotkeys.md' },
   editor: { file: '23-settings.md', anchor: 'editor' },
+  focus: { file: '23-settings.md', anchor: 'focus' },
   writingAssistance: { file: '23-settings.md', anchor: 'writing-assistance' },
   writingGoals: { file: '23-settings.md', anchor: 'writing-goals' },
   completion: { file: '23-settings.md', anchor: 'word-completion' },

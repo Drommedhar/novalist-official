@@ -1,4 +1,4 @@
-const MODAL = '[role="dialog"], [role="alertdialog"]'
+const MODAL = 'dialog:modal, [role="dialog"], [role="alertdialog"]'
 const OVERLAY = '.dialog-overlay, .help-overlay, .mobile-sheet-overlay, [aria-modal="true"]'
 const FOCUSABLE = 'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href], [tabindex]:not([tabindex="-1"]), [contenteditable="true"]'
 
@@ -23,7 +23,7 @@ export function installModalFocus(): () => void {
   const refresh = (): void => {
     restoreBackground()
     const dialogs = [...document.querySelectorAll<HTMLElement>(MODAL)].filter((dialog) =>
-      dialog.closest(OVERLAY) && !dialog.closest('[data-motion-presence="closing"], [hidden]') && dialog.getClientRects().length > 0)
+      (dialog.matches('dialog:modal') || dialog.closest(OVERLAY)) && !dialog.closest('[data-motion-presence="closing"], [hidden]') && dialog.getClientRects().length > 0)
     const removed = stack.filter((entry) => !dialogs.includes(entry.dialog))
     stack = stack.filter((entry) => dialogs.includes(entry.dialog))
     for (const entry of removed.reverse()) {
@@ -35,6 +35,8 @@ export function installModalFocus(): () => void {
       dialog.setAttribute('aria-modal', 'true')
       if (!dialog.contains(document.activeElement)) focus(dialog)
     }
+    // Native dialogs occupy the browser's top layer, regardless of DOM order.
+    stack.sort((a, b) => Number(a.dialog.matches('dialog:modal')) - Number(b.dialog.matches('dialog:modal')))
     const active = stack.at(-1)?.dialog
     if (!active) return
     let branch: HTMLElement = active
@@ -68,7 +70,7 @@ export function installModalFocus(): () => void {
     }
   }
   const observer = new MutationObserver(refresh)
-  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'data-motion-presence'] })
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'open', 'data-motion-presence'] })
   document.addEventListener('keydown', onKey, true)
   document.addEventListener('focusin', onFocus)
   refresh()

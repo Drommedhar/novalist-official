@@ -13,6 +13,7 @@ import { SectionBodyDef } from './settingsViewTypes'
 import { TagsCard } from './TagsCard'
 import { TemplatesCard } from './TemplatesCard'
 import { ThemeTokensCard } from './ThemeTokensCard'
+import { FocusSettings } from './FocusSettings'
 
 import { accessibilitySettingsBody } from './accessibilitySettingsBody'
 import { appearanceSettingsBody } from './appearanceSettingsBody'
@@ -37,6 +38,10 @@ const sectionFactories = [
   {
     key: 'editor',
     body: (context: SettingsBodyContext) => editorSettingsBody(context)
+  },
+  {
+    key: 'focus',
+    body: () => <FocusSettings />
   },
   {
     key: 'accessibility',

@@ -139,6 +139,7 @@ function peekEntityAtCaret() {
     if (!alias || !rect) return false;
     window.sendMessage({
         type: 'entityHover',
+        requested: true,
         alias: alias,
         x: rect.left + Math.max(1, rect.width / 2),
         y: rect.bottom,

@@ -110,6 +110,17 @@ Every number box here — and everywhere else in Settings — takes what you typ
 
   Restart Novalist after installing either kind.
 
+## Focus
+
+These desktop preferences apply to all projects on this device.
+
+- **Show Focus Peek on hover** controls automatic entity cards in the editor and Inspector. Turn it off to stop hover popups. **Peek at entity under caret** in the context menu or `Ctrl+Shift+E` still opens a card deliberately.
+- **Hover delay (milliseconds)** sets how long the pointer must stay over an entity, from 0 to 5000 ms. The default is 500 ms. Leaving the name cancels the pending card.
+- **Page colour** and **Surround colour** customise Focus Mode (`F11`). Text on a custom page automatically uses a contrasting colour. **Use theme colour** resets each colour separately.
+- **Background image** accepts PNG, JPEG or WebP files up to 5 MB. A copy is stored in this device's settings and fills the area around the page. **Remove background image** restores the chosen surround colour.
+
+These appearance choices affect Focus Mode only and do not change exported documents.
+
 ## Writing Goals
 
 Per-project targets that feed the Dashboard's goal cards.

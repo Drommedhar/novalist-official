@@ -128,6 +128,21 @@ export const SETTINGS_REGISTRY: readonly SettingsSectionMetadata[] = [
     ]
   },
   {
+    key: 'focus',
+    category: 'writing',
+    titleKey: 'settings.focus',
+    scope: 'global',
+    desktopOnly: true,
+    keywords: ['focus', 'peek', 'hover', 'delay', 'background', 'image', 'colour', 'color', 'tags'],
+    controls: [
+      control('peek', 'settings.focusPeekEnabled', 'set-focus-peek', ['settings.focusPeekEnabledDesc']),
+      control('peek-delay', 'settings.focusPeekDelay', 'set-focus-peek-delay'),
+      control('page-color', 'settings.focusPageColor', 'set-focus-page-color'),
+      control('background-color', 'settings.focusBackgroundColor', 'set-focus-background-color'),
+      control('background-image', 'settings.focusBackgroundImage', 'set-focus-background-image', ['settings.focusBackgroundImageDesc'])
+    ]
+  },
+  {
     key: 'writingAssistance',
     category: 'writing',
     titleKey: 'settings.writingAssistance',

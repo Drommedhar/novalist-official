@@ -7,8 +7,15 @@
 .shell-focus .view-intro { display: none; }
 .shell-focus .pane-slot { flex-basis: 100% !important; }
 .shell-focus .pane-leaf.active { outline: none; box-shadow: none; }
-.shell-focus .editor-pane { padding-block: var(--nl-space-xxl); background: var(--nl-surface-editor); }
-.shell-focus .editor-frame { max-width: min(calc(100% - 2 * var(--nl-focus-edge-width)), calc(var(--nl-focus-page-width) * var(--nl-focus-page-scale))); margin-inline: auto; min-height: 0; }
+.shell-focus .editor-pane {
+  padding-block: var(--nl-space-xxl);
+  background-color: var(--nl-focus-background);
+  background-image: var(--nl-focus-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.shell-focus .editor-frame { max-width: min(calc(100% - 2 * var(--nl-focus-edge-width)), calc(var(--nl-focus-page-width) * var(--nl-focus-page-scale))); margin-inline: auto; min-height: 0; background: transparent; }
 .shell-focus .editor-toolbar {
   position: absolute;
   inset: var(--nl-focus-bar-height) var(--nl-space-lg) auto;

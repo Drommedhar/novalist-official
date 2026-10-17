@@ -1,87 +1,41 @@
 'use strict';
 
-window.NovalistEditorState.editor.addEventListener('mousemove', (e) => {
-    // First, check if the cursor is over an `nv-entity-mention` span — preferred
-    // because it carries a stable entity ID immune to renames.
-    const target = e.target;
-    let mention = null;
-    if (target && target.closest) mention = target.closest('.nv-entity-mention');
-    if (mention) {
-        const id = mention.getAttribute('data-entity-id') || '';
-        if (window.NovalistEditorState.entityExitTimer) { clearTimeout(window.NovalistEditorState.entityExitTimer); window.NovalistEditorState.entityExitTimer = null; }
-        if (id && id !== window.NovalistEditorState.lastHoveredMentionId) {
-            window.NovalistEditorState.lastHoveredMentionId = id;
-            window.NovalistEditorState.lastHoveredAlias = null;
-            // The span, not the pointer. An explicit mention was the one entity
-            // reference still anchored to a point: the card cleared the pixel
-            // under the cursor and covered the rest of the name, which is the
-            // condition the whole hide/show flicker loop grows out of.
-            const box = mention.getBoundingClientRect();
-            window.sendMessage({
-                type: 'entityMentionHover',
-                entityId: id,
-                x: e.clientX,
-                y: e.clientY,
-                rect: { left: box.left, top: box.top, right: box.right, bottom: box.bottom }
-            });
-        }
+function leaveEntity() {
+    const state = window.NovalistEditorState;
+    if (!state.lastHoveredAlias && !state.lastHoveredMentionId) return;
+    state.lastHoveredAlias = null;
+    state.lastHoveredMentionId = null;
+    window.sendMessage({ type: 'entityExit' });
+}
+
+window.NovalistEditorState.editor.addEventListener('mousemove', (event) => {
+    const state = window.NovalistEditorState;
+    const mention = event.target.closest?.('.nv-entity-mention');
+    const id = mention?.getAttribute('data-entity-id');
+    if (id) {
+        if (state.lastHoveredMentionId === id) return;
+        state.lastHoveredMentionId = id;
+        state.lastHoveredAlias = null;
+        const rect = mention.getBoundingClientRect();
+        window.sendMessage({
+            type: 'entityMentionHover', entityId: id,
+            rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom }
+        });
         return;
     }
-    if (window.NovalistEditorState.lastHoveredMentionId) {
-        // Left a mention span — debounce exit
-        if (!window.NovalistEditorState.entityExitTimer) {
-            window.NovalistEditorState.entityExitTimer = setTimeout(() => {
-                window.NovalistEditorState.entityExitTimer = null;
-                window.NovalistEditorState.lastHoveredMentionId = null;
-                window.NovalistEditorState.lastHoveredAlias = null;
-                window.sendMessage({ type: 'entityExit' });
-            }, 200);
-        }
-        return;
-    }
-
-    if (!window.NovalistEditorState.entityRegex) return;
-    const hit = window.findEntityAtPoint(e.clientX, e.clientY);
-    if (hit) {
-        // Found an entity — cancel any pending exit and notify if alias changed
-        if (window.NovalistEditorState.entityExitTimer) { clearTimeout(window.NovalistEditorState.entityExitTimer); window.NovalistEditorState.entityExitTimer = null; }
-        if (hit.alias !== window.NovalistEditorState.lastHoveredAlias) {
-            window.NovalistEditorState.lastHoveredAlias = hit.alias;
-            window.sendMessage({
-                type: 'entityHover',
-                alias: hit.alias,
-                x: e.clientX,
-                y: e.clientY,
-                rect: hit.rect
-            });
-        }
-    } else if (window.NovalistEditorState.lastHoveredAlias) {
-        // Lost entity match — debounce the exit so small pixel jitter doesn't kill the peek
-        if (!window.NovalistEditorState.entityExitTimer) {
-            window.NovalistEditorState.entityExitTimer = setTimeout(() => {
-                window.NovalistEditorState.entityExitTimer = null;
-                window.NovalistEditorState.lastHoveredAlias = null;
-                window.sendMessage({ type: 'entityExit' });
-            }, 200);
-        }
-    }
+    const hit = state.entityRegex && window.findEntityAtPoint(event.clientX, event.clientY);
+    if (!hit) { leaveEntity(); return; }
+    if (state.lastHoveredAlias === hit.alias) return;
+    state.lastHoveredMentionId = null;
+    state.lastHoveredAlias = hit.alias;
+    window.sendMessage({ type: 'entityHover', alias: hit.alias, rect: hit.rect });
 });
 
-window.NovalistEditorState.editor.addEventListener('mouseleave', () => {
-    if (window.NovalistEditorState.entityExitTimer) { clearTimeout(window.NovalistEditorState.entityExitTimer); window.NovalistEditorState.entityExitTimer = null; }
-    if (window.NovalistEditorState.lastHoveredAlias || window.NovalistEditorState.lastHoveredMentionId) {
-        window.NovalistEditorState.lastHoveredAlias = null;
-        window.NovalistEditorState.lastHoveredMentionId = null;
-        window.sendMessage({ type: 'entityExit' });
-    }
-});
-
+// Cancel pending hover immediately; the host owns dismissal debounce.
+window.NovalistEditorState.editor.addEventListener('mouseleave', leaveEntity);
 window.NovalistEditorState.editor.addEventListener('mousedown', () => {
+    leaveEntity();
     window.sendMessage({ type: 'pointerPressed' });
-    // A click hides the card; allow the next pointer move to reopen it.
-    if (window.NovalistEditorState.entityExitTimer) { clearTimeout(window.NovalistEditorState.entityExitTimer); window.NovalistEditorState.entityExitTimer = null; }
-    window.NovalistEditorState.lastHoveredMentionId = null;
-    window.NovalistEditorState.lastHoveredAlias = null;
 });
 
 window.NovalistEditorState.editor.addEventListener('keydown', (e) => {

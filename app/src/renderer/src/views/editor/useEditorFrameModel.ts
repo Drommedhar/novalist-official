@@ -10,6 +10,8 @@ import { useShellStore } from '../../stores/shellStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useEditorEntityRequests } from './useEditorEntityRequests'
 import { useEditorPeek } from './useEditorPeek'
+import { writingFontSize } from './writingTypography'
+import { useWritingZoomStore } from '../../stores/writingZoomStore'
 
 const DEFAULT_FORMATTING: FormattingState = {
   bold: false,
@@ -49,7 +51,9 @@ export function useEditorFrameModel({ paneId }: { paneId?: string }) {
   const [formatting, setFormatting] = useState<FormattingState>(DEFAULT_FORMATTING)
   const [speaking, setSpeaking] = useState(false)
   const suggestionMode = useShellStore((s) => s.suggestionMode)
-  const editorFontSize = useSettingsStore((s) => s.view?.effective.editorFontSize ?? 17)
+  const baseFontSize = useSettingsStore((s) => s.view ? writingFontSize(s.view.effective) : 17)
+  const zoomPercent = useWritingZoomStore((s) => s.percent)
+  const editorFontSize = baseFontSize * zoomPercent / 100
   // A suggested edit somebody asked to be shown, waiting for its scene.
   const pendingSuggestion = useShellStore((s) => s.pendingSuggestion)
   // Bumped by whoever writes the scene's footnotes or comments, this pane

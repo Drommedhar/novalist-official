@@ -39,6 +39,28 @@ public sealed class SettingsRpcTests : IDisposable
         JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json)!;
 
     [Fact]
+    public async Task FocusPreferences_PersistAndResetAcrossWorkspaces()
+    {
+        var initial = (await _rpc.GetAsync()).GetProperty("global");
+        Assert.True(initial.GetProperty("focusPeekEnabled").GetBoolean());
+        Assert.Equal(500, initial.GetProperty("focusPeekDelayMs").GetInt32());
+        Assert.Equal(JsonValueKind.Null, initial.GetProperty("focusPageColor").ValueKind);
+        Assert.Equal(JsonValueKind.Null, initial.GetProperty("focusBackgroundColor").ValueKind);
+        Assert.Equal(JsonValueKind.Null, initial.GetProperty("focusBackgroundImage").ValueKind);
+        var patch = Patch("""{"focusPeekEnabled":false,"focusPeekDelayMs":1500,"focusPageColor":"#faf0dc","focusBackgroundColor":"#556677","focusBackgroundImage":"data:image/png;base64,AAAA"}""");
+        await _rpc.UpdateGlobalAsync(patch);
+        using var reopened = new Workspace(Path.Combine(_root, "settings"));
+        var rpc = new SettingsRpc(reopened);
+        var saved = (await rpc.GetAsync()).GetProperty("global");
+        foreach (var (key, value) in patch)
+            Assert.Equal(value.ToString(), saved.GetProperty(key).ToString());
+        var reset = (await rpc.UpdateGlobalAsync(Patch("""{"focusPageColor":null,"focusBackgroundColor":null,"focusBackgroundImage":null}"""))).GetProperty("global");
+        Assert.Equal(JsonValueKind.Null, reset.GetProperty("focusPageColor").ValueKind);
+        Assert.Equal(JsonValueKind.Null, reset.GetProperty("focusBackgroundColor").ValueKind);
+        Assert.Equal(JsonValueKind.Null, reset.GetProperty("focusBackgroundImage").ValueKind);
+    }
+
+    [Fact]
     public async Task GrammarProvider_PersistsAndRespectsProjectScope()
     {
         var view = await _rpc.UpdateGlobalAsync(Patch(

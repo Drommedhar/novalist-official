@@ -78,6 +78,7 @@ window.NovalistEditorState.editor.addEventListener('mousedown', (e) => {
         const rect = mention.getBoundingClientRect();
         if (id) window.sendMessage({
             type: 'entityMentionHover',
+            requested: true,
             entityId: id,
             x: rect.left,
             y: rect.bottom,
@@ -92,6 +93,7 @@ window.NovalistEditorState.editor.addEventListener('mousedown', (e) => {
         e.preventDefault();
         window.sendMessage({
             type: 'entityHover',
+            requested: true,
             alias: tapped.alias,
             x: e.clientX,
             y: e.clientY,

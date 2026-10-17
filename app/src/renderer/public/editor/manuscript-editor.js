@@ -1,10 +1,17 @@
 'use strict';
 
-const wrapper = document.getElementById('manuscript-wrapper');
+const wrapper = document.getElementById('manuscript-content');
 let isSettingContent = false;
 let bookSpacingEnabled = false;
 let contentChangeTimers = {};
 let lastHtmlMap = {};
+let renderedSections = null;
+
+document.addEventListener('wheel', (event) => {
+    if (!event.ctrlKey || event.deltaY === 0) return;
+    event.preventDefault();
+    sendMessage({ type: 'zoom', delta: event.deltaY < 0 ? 1 : -1 });
+}, { passive: false });
 
 // ── C# ↔ JS Bridge ─────────────────────────────────────────────
 
@@ -27,12 +34,15 @@ function sendMessage(msg) {
 // ── Manuscript Loading ──────────────────────────────────────────
 
 function setManuscript(sectionsJson) {
+    let sections;
+    try { sections = JSON.parse(sectionsJson); } catch { sections = []; }
+    // Local edits are already displayed. Their save acknowledgements must not
+    // rebuild the editable nodes and discard the caret or undo history.
+    if (JSON.stringify(sections) === JSON.stringify(renderedSections)) return;
+    renderedSections = sections;
     isSettingContent = true;
     wrapper.innerHTML = '';
     lastHtmlMap = {};
-
-    let sections;
-    try { sections = JSON.parse(sectionsJson); } catch { sections = []; }
 
     for (const section of sections) {
         const sectionEl = document.createElement('div');
@@ -150,6 +160,12 @@ function captureSceneChange(editor) {
     lastHtmlMap[sceneId] = html;
     const plainText = editor.innerText || '';
     const wordCount = countWords(plainText);
+    const scene = renderedSections?.find(section => section.chapterGuid === chapterGuid)
+        ?.scenes.find(scene => scene.sceneId === sceneId);
+    if (scene) {
+        scene.html = html;
+        scene.wordCount = wordCount;
+    }
 
     // Update inline word count
     const wcEl = document.getElementById('wc-' + sceneId);
@@ -210,6 +226,7 @@ function updateFooter() {
 // ── Update single scene content from C# ─────────────────────────
 
 function updateSceneContent(sceneId, html) {
+    renderedSections = null;
     isSettingContent = true;
     const editor = wrapper.querySelector('.scene-editor[data-scene-id="' + sceneId + '"]');
     if (editor) {
@@ -267,6 +284,11 @@ function setBookParagraphSpacing(enabled) {
         if (enabled) ed.classList.add('book-spacing');
         else ed.classList.remove('book-spacing');
     }
+}
+
+function setBookWidth(enabled, widthPx) {
+    document.documentElement.style.setProperty(
+        '--book-width', enabled ? 'calc(' + widthPx + 'px + 2 * var(--nl-space-xxl))' : 'none');
 }
 
 function setLanguage(lang) {
@@ -361,6 +383,7 @@ Object.assign(window, {
     setTheme,
     setReadingComfort,
     setFont,
+    setBookWidth,
     setBookParagraphSpacing,
     setLanguage
 });

@@ -1,0 +1,45 @@
+#editor-wrapper,
+#manuscript-wrapper {
+    overflow-x: auto;
+    scrollbar-gutter: stable;
+    overflow-anchor: none;
+}
+
+.writing-zoom-surface {
+    overflow: clip;
+    margin-inline: auto;
+}
+
+#editor,
+#manuscript-content {
+    margin-inline: 0;
+    transform-origin: top left;
+}
+
+#manuscript-wrapper { padding: 0; }
+#manuscript-content { padding: var(--nl-space-xl) var(--nl-space-xxl); }
+
+body.zoom-typewriter #manuscript-content {
+    padding-block: calc(70vh / var(--writing-zoom-scale, 1));
+}
+
+body.typewriter-on #editor,
+body.page-view.typewriter-on #editor {
+    padding-top: calc(70vh / var(--writing-zoom-scale, 1));
+}
+
+body.typewriter-on #editor::after {
+    height: calc(70vh / var(--writing-zoom-scale, 1));
+}
+
+@media print {
+    #editor-wrapper,
+    #manuscript-wrapper { max-width: none !important; scrollbar-gutter: auto; }
+    .writing-zoom-surface { width: auto !important; height: auto !important; overflow: visible; }
+    #editor,
+    #manuscript-content { transform: none !important; width: auto !important; min-height: 0 !important; }
+    body.zoom-typewriter #manuscript-content { padding-block: 0; }
+    body.typewriter-on #editor,
+    body.page-view.typewriter-on #editor { padding-top: 0; }
+    body.typewriter-on #editor::after { display: none; }
+}

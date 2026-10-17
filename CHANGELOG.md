@@ -21,7 +21,23 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Focus preferences** — turn automatic entity hover cards off or choose a hover delay in the editor and Inspector; manual previews remain available. Focus Mode supports custom page and surround colours and a local background image.
+
+### Changed
+
+- Ctrl+mousewheel zooms the scene editor and Manuscript view from 50% to 300%, scaling text and page width together to preserve line breaks, including in Page view and Focus Mode. Zoom follows the caret, honors the Typewriter Scrolling position and allows horizontal scrolling when the page exceeds the pane. The zoom level is shared between writing views for the current session and leaves font settings unchanged.
+- Manuscript headings, scene labels, status badges and spacing follow the application's theme and text sizes.
+
+### Fixed
+
+- Check for Updates remains usable when another dialog is open, including its Check again and Close buttons.
+- Focus Mode uses a continuous background around the page, removing the contrasting outer border in light themes.
+- Manuscript and scene editors follow Book Page Width, page format, custom text width and book font settings; turning Book Page Width off restores the available width and editor font.
+- Manuscript autosave preserves the caret and undo history instead of rebuilding the text after local edits.
+- Automatic quote replacement distinguishes apostrophes inside words from dialogue using the surrounding text, including accented letters and inline formatting. The replacement-rule preview follows the same behavior.
+- Printing omits the extra blank space used by Typewriter Scrolling.
 
 ---
 

@@ -32,7 +32,8 @@ export interface EditorHandlerContext extends EditorMessageContext {
   activatePane(): void
   showHoverCard(
     hit: { id: string; type: string }, x: number, y: number,
-    wordRect?: { left: number; top: number; right: number; bottom: number } | null
+    wordRect?: { left: number; top: number; right: number; bottom: number } | null,
+    immediate?: boolean
   ): void
 }
 
