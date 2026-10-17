@@ -12,23 +12,24 @@
     color-scheme: dark;
     /* Identity defaults, used for the frame's first paint only - setTheme
        replaces them with the live host tokens as soon as the bridge is up. */
-    --bg: #0F1219;
-    --fg: #ECE5D2;
-    --caret: #ECE5D2;
-    --selection-bg: rgb(210 167 79 / 0.3);
-    --accent: #D2A74F;
-    --subtle: #756F62;
-    --divider: rgb(237 230 211 / 0.1);
-    --font-family: 'Newsreader', Georgia, serif;
-    --font-size: 17px;
+    --bg: var(--nl-surface-editor);
+    --fg: var(--nl-text);
+    --caret: var(--nl-text);
+    --selection-bg: var(--nl-surface-selected);
+    --accent: var(--nl-accent);
+    --subtle: var(--nl-text-subtle);
+    --divider: var(--nl-border);
+    --font-family: var(--nl-font-family);
+    --font-size: var(--nl-font-body);
+    --book-width: none;
     --first-line-indent: 0em;
     /* Scrollbar colours mirror the host's --nl-scrollbar-* tokens; setTheme
        overwrites them whenever the app theme changes. */
-    --scrollbar-size: 10px;
+    --scrollbar-size: var(--nl-scrollbar-size);
     --scrollbar-track: transparent;
-    --scrollbar-thumb: rgb(255 255 255 / 0.16);
-    --scrollbar-thumb-hover: rgb(255 255 255 / 0.3);
-    --scrollbar-thumb-active: rgb(255 255 255 / 0.42);
+    --scrollbar-thumb: var(--nl-scrollbar-thumb);
+    --scrollbar-thumb-hover: var(--nl-scrollbar-thumb-hover);
+    --scrollbar-thumb-active: var(--nl-scrollbar-thumb-active);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
@@ -42,11 +43,11 @@ html, body {
 body { display: flex; justify-content: center; }
 #manuscript-wrapper {
     width: 100%;
-    max-width: 760px;
+    max-width: var(--book-width);
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 24px 32px;
+    padding: var(--nl-space-xl) var(--nl-space-xxl);
 }
 
 /* Themed scrollbars for every scroller in this document, matching the host shell. */
@@ -55,26 +56,26 @@ body { display: flex; justify-content: center; }
 ::-webkit-scrollbar-corner { background: var(--scrollbar-track); }
 ::-webkit-scrollbar-thumb {
     background-color: var(--scrollbar-thumb);
-    border: 2px solid transparent;
+    border: var(--nl-space-hairline) solid transparent;
     background-clip: padding-box;
-    border-radius: 999px;
+    border-radius: var(--nl-radius-pill);
 }
 ::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover); }
 ::-webkit-scrollbar-thumb:active { background-color: var(--scrollbar-thumb-active); }
 ::-webkit-scrollbar-button { display: none; }
 .chapter-section {
-    margin-bottom: 32px;
+    margin-bottom: var(--nl-space-xxl);
 }
 .chapter-header {
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--divider);
+    margin-bottom: var(--nl-space-lg);
+    padding-bottom: var(--nl-space-sm);
+    border-bottom: var(--nl-rule-width) solid var(--divider);
 }
 .chapter-act {
-    font-size: 12px;
+    font-size: var(--nl-font-caption);
     font-weight: 700;
     color: var(--accent);
-    margin-bottom: 2px;
+    margin-bottom: var(--nl-space-hairline);
 }
 .chapter-title-row {
     display: flex;
@@ -82,17 +83,17 @@ body { display: flex; justify-content: center; }
     justify-content: space-between;
 }
 .chapter-title {
-    font-size: 28px;
+    font-size: var(--nl-font-title);
     font-weight: 700;
     color: var(--fg);
 }
 .chapter-status {
-    font-size: 10px;
+    font-size: var(--nl-font-caption);
     font-weight: 600;
     color: var(--subtle);
     background: var(--divider);
-    padding: 3px 8px;
-    border-radius: 4px;
+    padding: var(--nl-space-tightest) var(--nl-space-sm);
+    border-radius: var(--nl-radius-sm);
     cursor: pointer;
     user-select: none;
 }
@@ -100,16 +101,16 @@ body { display: flex; justify-content: center; }
     opacity: 0.8;
 }
 .scene-block {
-    margin-bottom: 20px;
+    margin-bottom: var(--nl-space-lg);
 }
 .scene-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 4px;
+    margin-bottom: var(--nl-space-tightest);
 }
 .scene-title {
-    font-size: 14px;
+    font-size: var(--nl-font-ui);
     font-weight: 600;
     color: var(--accent);
     cursor: pointer;
@@ -118,15 +119,15 @@ body { display: flex; justify-content: center; }
     text-decoration: underline;
 }
 .scene-wordcount {
-    font-size: 11px;
+    font-size: var(--nl-font-caption);
     color: var(--subtle);
 }
 /* ===== Print =====
    Manuscript mode is the whole book in one document, which is exactly what
    printing it should produce. */
 @media print {
-    html, body { height: auto; overflow: visible; background: #fff; color: #000; }
-    .scene-editor, .chapter-title, .scene-title { color: #000; }
+    html, body { height: auto; overflow: visible; background: var(--nl-focus-ink-light); color: var(--nl-focus-ink-dark); }
+    .scene-editor, .chapter-title, .scene-title { color: var(--nl-focus-ink-dark); }
     .scene-wordcount { display: none !important; }
 }
 
@@ -138,11 +139,11 @@ body { display: flex; justify-content: center; }
     word-wrap: break-word;
     overflow-wrap: break-word;
     white-space: pre-wrap;
-    padding: 4px 0;
+    padding: var(--nl-space-tightest) 0;
     min-height: 1.6em;
-    border-left: 2px solid transparent;
-    padding-left: 8px;
-    transition: border-color 0.2s;
+    border-left: var(--nl-space-hairline) solid transparent;
+    padding-left: var(--nl-space-sm);
+    transition: border-color var(--nl-motion-normal);
 }
 .scene-editor:focus {
     border-left-color: var(--accent);
@@ -173,20 +174,22 @@ body { display: flex; justify-content: center; }
 
 .manuscript-footer {
     text-align: center;
-    padding: 16px;
-    margin-top: 16px;
-    margin-bottom: 32px;
-    font-size: 12px;
+    padding: var(--nl-space-lg);
+    margin-top: var(--nl-space-lg);
+    margin-bottom: var(--nl-space-xxl);
+    font-size: var(--nl-font-caption);
     color: var(--subtle);
     background: var(--divider);
-    border-radius: 6px;
+    border-radius: var(--nl-radius-sm);
 }
 </style>
+<link rel="stylesheet" href="writing-zoom.css">
 </head>
 <body>
-<div id="manuscript-wrapper"></div>
+<div id="manuscript-wrapper"><div id="manuscript-content"></div></div>
 <script src="purify.min.js"></script>
 <script src="scene-html.js"></script>
+<script src="writing-zoom.js"></script>
 <script src="manuscript-editor.js"></script>
 </body>
 </html>

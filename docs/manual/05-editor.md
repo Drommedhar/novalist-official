@@ -273,6 +273,8 @@ As you type, certain character sequences are converted automatically based on th
 - `...` becomes an ellipsis.
 - Straight quotes become the curly quotes of the selected preset (English curly quotes, German low quotes, French guillemets, and others).
 
+Paired quote rules use word boundaries: an apostrophe between letters or numbers stays as typed, including inside dialogue. Opening quotes follow a gap or opening punctuation; closing quotes follow the quoted text and precede a gap, closing punctuation or the paragraph end. If the next letter reveals a contraction such as `don't`, a just-converted closing quote returns to an apostrophe. Accented letters and inline formatting are supported.
+
 Replacements only fire as you type; pasted text is left alone.
 
 ### Your own rules
@@ -311,7 +313,7 @@ In [Settings](23-settings.md) → Editor:
 
 - **Typewriter Scrolling** keeps the active line at a fixed vertical position (top, middle, or bottom) so you never write at the bottom edge of the window.
 - **Page View** renders the editor as a book-style page (also toggleable under **Writing options** on the writing bar). Margins shrink when the writing pane is narrow or the text is enlarged, including when margin comments are visible, so the prose uses the available width.
-- **Book Page Width** constrains the text column to a printed page width, with selectable page formats, and **Book Font** / **Book Font Size** set the typeface for that mode.
+- **Book Page Width** constrains the text column to a printed page width, with selectable page formats or a custom text width, and **Book Font** / **Book Font Size** set the typeface for that mode. This applies to both the scene editor and Manuscript view. Turning it off restores the editor font and available column width; Page view keeps its paginated layout.
 - **Book Paragraph Spacing** adds book-like vertical spacing.
 - **Font Family** and **Font Size** control the regular editing view. New projects start on Newsreader at 17px — the app's own text face, bundled so it is always available — but the field takes any family installed on your machine.
 
@@ -321,7 +323,9 @@ All of this is purely visual — it doesn't change what gets exported. For expor
 
 The editor participates fully in the app's keyboard shortcuts even while the caret is inside the text: a global gesture (for example the command palette, focus mode, or find & replace) fires whether or not the editor has focus, so you never have to click out of the page first. See [Hotkeys](26-hotkeys.md) for the full list.
 
-Hold `Ctrl` and scroll the mouse wheel over the page to **zoom** the editor font up or down (clamped to a sensible range). The zoom adjusts the editor font size, the same value exposed in [Settings](23-settings.md) → Editor.
+Hold `Ctrl` and scroll the mouse wheel over the page to **zoom** in either the scene editor or Manuscript view, from 50% to 300%. Text, images, spacing and column width scale together, preserving the characters on each line, including in Page view and with Book Page Width on or off. If the enlarged page exceeds the pane, scroll horizontally to reach its edges. Zoom is shared between the writing views for the current session; it does not change your editor font, book font or page-format settings.
+
+Zoom keeps the caret visible horizontally and preserves its vertical screen position where scrolling allows. With **Typewriter Scrolling** enabled, it places the caret at your chosen top, middle or bottom position instead, including in Focus Mode. Normal scrolling remains under your control.
 
 ## Status bar statistics
 

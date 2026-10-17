@@ -12,8 +12,8 @@ window.NovalistEditorState.editor.addEventListener('paste', (e) => {
 
 // ── Scroll Zoom (Ctrl+Wheel) ───────────────────────────────────
 
-window.NovalistEditorState.wrapper.addEventListener('wheel', (e) => {
-    if (!e.ctrlKey) return;
+document.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey || e.deltaY === 0) return;
     e.preventDefault();
     const delta = e.deltaY < 0 ? 1 : -1;
     window.sendMessage({ type: 'zoom', delta: delta });

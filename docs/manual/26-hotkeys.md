@@ -78,6 +78,8 @@ Every other view — Wiki, Maps, Languages, Gallery, Dialogue, Planning board, S
 
 **Comment** and **Peek at entity under caret** both need something to act on — a selection, and a linked Codex name under the caret — and do nothing without it.
 
+In the scene editor and Manuscript view, hold `Ctrl` while scrolling the mouse wheel to zoom text and column width together, preserving line breaks. Zoom follows the caret and honors the Typewriter Scrolling position when enabled. This mouse gesture uses `Ctrl` on every platform, works with Book Page Width on or off, and leaves font settings unchanged.
+
 ## General
 
 | Command | Gesture |

@@ -112,7 +112,8 @@ function repaginatePageView() {
             if (node.nodeType === Node.ELEMENT_NODE) return Math.max(1, node.offsetHeight);
             const range = document.createRange();
             range.selectNode(node);
-            return Math.max(1, range.getBoundingClientRect().height);
+            const zoom = Number(getComputedStyle(window.NovalistEditorState.editor).zoom) || 1;
+            return Math.max(1, range.getBoundingClientRect().height / zoom);
         });
 
         // Content budget per page measured in current em so it scales with font / zoom.
@@ -157,6 +158,7 @@ function repaginatePageView() {
         // Every paragraph just moved into a new page wrapper, which collapses
         // the readability ranges that were inside them.
         window.reapplyReadability();
+        window.restoreWritingZoomCaret?.();
     }
 }
 

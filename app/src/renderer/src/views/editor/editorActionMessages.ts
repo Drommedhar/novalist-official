@@ -1,7 +1,7 @@
 import { reviewInlineAction } from './InlineActionDialog'
 import { runInlineAction } from './editorBridge'
 import { useProjectStore, type ProjectStateDto } from '../../stores/projectStore'
-import { useSettingsStore } from '../../stores/settingsStore'
+import { useWritingZoomStore } from '../../stores/writingZoomStore'
 import { dispatchForwardedHotkey } from '../../shell/hotkeys'
 import { rpc } from '../../rpc/client'
 import type { EditorHandlerContext, EditorMessageHandlers } from './editorMessageContext'
@@ -79,15 +79,7 @@ export function createEditorActionMessages(context: EditorHandlerContext): Edito
       }
     },
     zoom: (message) => {
-      const settings = useSettingsStore.getState()
-      const view = settings.view
-      if (!view) return
-      const current = view.effective.editorFontSize
-      const next = Math.min(36, Math.max(8, current + Number(message.delta ?? 0)))
-      if (next === current) return
-      const scope =
-        view.overrides && view.overrides.editorFontSize != null ? 'project' : 'global'
-      void settings.update(scope, { editorFontSize: next })
+      useWritingZoomStore.getState().change(Number(message.delta ?? 0))
     }
   }
 }

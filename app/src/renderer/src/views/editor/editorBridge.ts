@@ -40,6 +40,8 @@ export interface EditorWindow extends Window {
     scrollbarThumbActive?: string
   ): void
   setFont(family: string, size: number): void
+  setBookWidth(enabled: boolean, widthPx: number): void
+  setWritingZoom(factor: number, typewriterAnchor?: string | null): void
   /** Where a book-relative image path hangs off, for display in the frame. */
   setImageBase(base: string): void
   /** Places an image on its own line after the caret's paragraph. */

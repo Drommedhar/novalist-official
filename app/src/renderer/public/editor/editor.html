@@ -602,10 +602,10 @@ body.page-view #editor-wrapper {
        available width on prose before paper margins. Container units include
        the space taken by comments and any configured book-width limit. */
     --page-target-width: 32em;
-    --page-outer-gap: min(var(--nl-space-xl), 2cqw);
-    --page-h-padding: clamp(var(--nl-space-md), calc((100cqw - var(--page-outer-gap) * 2 - 24em) / 2), 4em);
+    --page-outer-gap: min(var(--nl-space-xl), calc(var(--writing-layout-width, 100cqw) * 0.02));
+    --page-h-padding: clamp(var(--nl-space-md), calc((var(--writing-layout-width, 100cqw) - var(--page-outer-gap) * 2 - 24em) / 2), 4em);
     --page-v-padding: 4em;
-    --page-width: min(var(--page-target-width), calc(100cqw - var(--page-outer-gap) * 2));
+    --page-width: min(var(--page-target-width), calc(var(--writing-layout-width, 100cqw) - var(--page-outer-gap) * 2));
     --page-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.15);
 }
 body.page-view #editor {
@@ -773,6 +773,7 @@ body.proofing-status-hosted #grammar-status-bar { display: none; }
 }
 </style>
 <link rel="stylesheet" href="editor-motion.css">
+<link rel="stylesheet" href="writing-zoom.css">
 </head>
 <body>
 <div id="editor-wrapper">
@@ -845,6 +846,7 @@ body.proofing-status-hosted #grammar-status-bar { display: none; }
 <script src="typewriter-scroll.js"></script>
 <script src="mentions.js"></script>
 <script src="entity-hit-testing.js"></script>
+<script src="quote-context.js"></script>
 <script src="auto-replacements.js"></script>
 <script src="dialogue-input.js"></script>
 <script src="content-input.js"></script>
@@ -877,6 +879,7 @@ body.proofing-status-hosted #grammar-status-bar { display: none; }
 <script src="suggestion-events.js"></script>
 <script src="inline-action-state.js"></script>
 <script src="dictation-bridge.js"></script>
+<script src="writing-zoom.js"></script>
 <script src="editor-ready.js"></script>
 </body>
 </html>

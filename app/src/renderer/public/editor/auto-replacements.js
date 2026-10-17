@@ -1,6 +1,9 @@
 'use strict';
 
+let pendingQuote = null;
+
 function setAutoReplacements(pairsJson) {
+    pendingQuote = null;
     let parsed;
     try {
         parsed = JSON.parse(pairsJson);
@@ -51,39 +54,36 @@ function getContainingBlock(node) {
     return null;
 }
 
-function tryAutoReplace(inputText) {
-    if (window.NovalistEditorState.autoReplacements.length === 0 || !inputText) return null;
-
+function getReplacementContext() {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return null;
     const range = sel.getRangeAt(0);
-    if (!range.collapsed) return null;
+    const editor = window.NovalistEditorState.editor;
+    if (!range.collapsed || !editor.contains(range.startContainer)) return null;
+    const paraEl = getContainingBlock(range.startContainer) || editor;
+    const preRange = document.createRange();
+    preRange.selectNodeContents(paraEl);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    const postRange = document.createRange();
+    postRange.selectNodeContents(paraEl);
+    postRange.setStart(range.startContainer, range.startOffset);
+    return { paraEl, textBeforePara: preRange.toString(), textAfterPara: postRange.toString() };
+}
 
-    const textNode = range.startContainer;
-
-    // Find the block element containing the caret
-    const paraEl = getContainingBlock(textNode) || window.NovalistEditorState.editor;
-
-    // Get the text of the paragraph before the caret
-    let textBeforePara = '';
-    try {
-        const preRange = document.createRange();
-        preRange.selectNodeContents(paraEl);
-        preRange.setEnd(range.startContainer, range.startOffset);
-        textBeforePara = preRange.toString();
-    } catch {
-        // Fallback to text node if range calculation fails
-        if (textNode.nodeType === Node.TEXT_NODE) {
-            const text = textNode.textContent || '';
-            const offset = range.startOffset;
-            textBeforePara = text.slice(0, offset);
-        } else {
-            textBeforePara = '';
-        }
+function tryAutoReplace(inputText) {
+    if (window.NovalistEditorState.autoReplacements.length === 0 || !inputText) return null;
+    const context = getReplacementContext();
+    if (!context) {
+        pendingQuote = null;
+        return null;
     }
-
-    // Text as it will appear after insertion up to the caret
+    const { paraEl, textBeforePara, textAfterPara } = context;
     const lineText = textBeforePara + inputText;
+    const continued = pendingQuote?.block === paraEl && !textAfterPara
+        ? window.NovalistQuoteContext.continueWord(pendingQuote, textBeforePara, inputText)
+        : null;
+    pendingQuote = null;
+    if (continued) return continued;
 
     for (const pair of window.NovalistEditorState.autoReplacements) {
         if (pair.regex) {
@@ -111,20 +111,16 @@ function tryAutoReplace(inputText) {
             continue;
         }
 
-        // Paired quotes: same trigger, different open/close
-        if (pair.start === pair.end && pair.startReplace !== pair.endReplace) {
-            if (lineText.endsWith(pair.end)) {
-                // Count quotes excluding those surrounded by alphabet characters on both sides
-                // (e.g., apostrophes in "it's", "don't")
-                const opens = countOccurrences(lineText, pair.startReplace, true);
-                const closes = countOccurrences(lineText, pair.endReplace, true);
-                if (opens > closes) {
-                    return {
-                        replacement: pair.endReplace,
-                        backtrack: pair.end.length - inputText.length
-                    };
-                }
+        const quote = window.NovalistQuoteContext.replace(pair, textBeforePara, inputText, textAfterPara);
+        if (quote) {
+            if (quote.provisional) {
+                pendingQuote = {
+                    block: paraEl,
+                    before: textBeforePara + quote.replacement,
+                    length: quote.replacement.length
+                };
             }
+            return quote;
         }
 
         if (lineText.endsWith(pair.start)) {
@@ -137,23 +133,18 @@ function tryAutoReplace(inputText) {
     return null;
 }
 
-function countOccurrences(text, token, skipIfSurroundedByAlpha = false) {
-    if (!token) return 0;
-    let count = 0, idx = 0;
-    while ((idx = text.indexOf(token, idx)) >= 0) {
-        const before = text[idx - 1];
-        const after = text[idx + token.length];
-        const surroundedByAlpha = skipIfSurroundedByAlpha && before && after && /[a-z]/i.test(before) && /[a-z]/i.test(after);
-        if (!surroundedByAlpha) count++;
-        idx += token.length;
-    }
-    return count;
-}
-
 Object.assign(window, {
     setAutoReplacements,
     expandCaptures,
     getContainingBlock,
-    tryAutoReplace,
-    countOccurrences
+    tryAutoReplace
+});
+
+for (const event of ['pointerdown', 'blur', 'compositionstart']) {
+    document.getElementById('editor').addEventListener(event, () => { pendingQuote = null; });
+}
+document.getElementById('editor').addEventListener('keydown', (event) => {
+    if (event.ctrlKey || event.metaKey || /^(Arrow|Home|End|Page|Backspace|Delete|Enter|Tab|Escape)/.test(event.key)) {
+        pendingQuote = null;
+    }
 });

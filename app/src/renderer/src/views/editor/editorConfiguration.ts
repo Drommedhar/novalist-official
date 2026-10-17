@@ -2,6 +2,7 @@ import type { TFunction } from 'i18next'
 import { inlineActionDescriptorsJson, extensionContextMenuItemsJson, type EditorWindow } from './editorBridge'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { rpc } from '../../rpc/client'
+import { pushWritingTypography } from './writingTypography'
 
 /**
  * The two hard bands of the readability ramp, as a wash rather than a fill -
@@ -23,7 +24,7 @@ export function pushEditorSettings(editor: EditorWindow, initial = false): void 
   const view = useSettingsStore.getState().view
   if (!view) return
   const eff = view.effective
-  editor.setFont(eff.editorFontFamily, eff.editorFontSize)
+  pushWritingTypography(editor, eff)
   editor.setReadingComfort(
     eff.editorLineHeight,
     eff.editorLetterSpacing,

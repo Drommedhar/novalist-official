@@ -1,0 +1,38 @@
+#editor-wrapper,
+#manuscript-wrapper {
+    overflow-x: auto;
+    scrollbar-gutter: stable;
+    overflow-anchor: none;
+}
+
+#editor,
+#manuscript-content {
+    margin-inline: auto;
+}
+
+#manuscript-wrapper { padding: 0; }
+#manuscript-content { padding: var(--nl-space-xl) var(--nl-space-xxl); }
+
+body.zoom-typewriter #manuscript-content {
+    padding-block: calc(70vh / var(--writing-zoom-scale, 1));
+}
+
+body.typewriter-on #editor,
+body.page-view.typewriter-on #editor {
+    padding-top: calc(70vh / var(--writing-zoom-scale, 1));
+}
+
+body.typewriter-on #editor::after {
+    height: calc(70vh / var(--writing-zoom-scale, 1));
+}
+
+@media print {
+    #editor-wrapper,
+    #manuscript-wrapper { max-width: none !important; scrollbar-gutter: auto; }
+    #editor,
+    #manuscript-content { zoom: 1 !important; width: auto !important; }
+    body.zoom-typewriter #manuscript-content { padding-block: 0; }
+    body.typewriter-on #editor,
+    body.page-view.typewriter-on #editor { padding-top: 0; }
+    body.typewriter-on #editor::after { display: none; }
+}

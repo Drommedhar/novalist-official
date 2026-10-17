@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { listenToEditor, editorWindow, pushEditorTheme } from './editorBridge'
 import { useShellStore } from '../../stores/shellStore'
 import { useSettingsStore } from '../../stores/settingsStore'
+import { useWritingZoomStore } from '../../stores/writingZoomStore'
 import { pushEditorSettings, pushEditorConfig } from './editorConfiguration'
 import type { EditorMessageContext, EditorHandlerContext } from './editorMessageContext'
 import { createEditorMessageHandlers } from './editorMessageHandlers'
@@ -32,6 +33,9 @@ export function useEditorMessages(context: EditorMessageContext): void {
         pushEditorTheme(editorRef.current)
       }
     })
+    const unsubscribeZoom = useWritingZoomStore.subscribe(({ percent }) => {
+      editorRef.current?.setWritingZoom(percent / 100)
+    })
     const unsubscribeShell = useShellStore.subscribe((state, previous) => {
       if (editorRef.current && (state.focusMode !== previous.focusMode || state.mainView !== previous.mainView || state.extView !== previous.extView)) {
         pushEditorTheme(editorRef.current)
@@ -51,6 +55,7 @@ export function useEditorMessages(context: EditorMessageContext): void {
       dispose()
       observer.disconnect()
       unsubscribeSettings()
+      unsubscribeZoom()
       unsubscribeShell()
       peekRef.current.clearHide()
       editorRef.current = null

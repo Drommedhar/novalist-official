@@ -1,14 +1,12 @@
 import type { ReplacementRule } from './AutoReplacementsCard'
+import '../../../public/editor/quote-context.js'
+import type { PendingQuote } from '../../../public/editor/quote-context.js'
 
 /**
  * What one rule would do to a sample, as the writer types it.
  *
- * This is a port of tryAutoReplace in the editor page, which cannot be imported
- * from here: it lives in a standalone HTML document loaded into an iframe, with
- * no bundler between them. A preview that disagreed with the editor would be
- * worse than none - the writer would tune a rule against a lie - so the two are
- * held together by an end-to-end test that types the same sample into the real
- * editor and compares what lands with what this produced.
+ * Quote context is shared with the standalone editor; literal and regex rules
+ * mirror its caret-based matching. Browser tests compare the preview to typing.
  *
  * Typing-time behaviour, not cleanup behaviour: a rule fires where its match
  * ends, because that is the moment the characters exist. Running the pattern
@@ -47,27 +45,13 @@ export function expandCaptures(template: string, match: RegExpExecArray): string
   )
 }
 
-function countOccurrences(text: string, token: string, skipIfSurroundedByAlpha = false): number {
-  if (!token) return 0
-  let count = 0
-  let at = text.indexOf(token)
-  while (at !== -1) {
-    const before = text[at - 1]
-    const after = text[at + token.length]
-    const surroundedByAlpha = skipIfSurroundedByAlpha && before && after && /[a-z]/i.test(before) && /[a-z]/i.test(after)
-    if (!surroundedByAlpha) count += 1
-    at = text.indexOf(token, at + token.length)
-  }
-  return count
-}
-
 /** One keystroke's worth of the editor's decision, or null for "type it as-is". */
 function attempt(
   rule: ReplacementRule,
   regex: RegExp | null,
   lineText: string,
   typed: string
-): { replacement: string; backtrack: number; match: RegExpExecArray | null } | null {
+): { replacement: string; backtrack: number; match: RegExpExecArray | null; provisional?: boolean } | null {
   if (regex) {
     const tail = lineText.length > REGEX_LOOKBEHIND ? lineText.slice(-REGEX_LOOKBEHIND) : lineText
     const match = regex.exec(tail)
@@ -81,23 +65,8 @@ function attempt(
     return null
   }
 
-  // The alternating form: one trigger, an opening and a closing replacement,
-  // chosen by which of the two the line is already carrying more of.
-  if (rule.start === rule.end && rule.startReplace !== rule.endReplace) {
-    if (rule.end && lineText.endsWith(rule.end)) {
-      // Count quotes excluding those surrounded by alphabet characters on both sides
-      // (e.g., apostrophes in "it's", "don't")
-      const opens = countOccurrences(lineText, rule.startReplace, true)
-      const closes = countOccurrences(lineText, rule.endReplace, true)
-      if (opens > closes) {
-        return {
-          replacement: rule.endReplace,
-          backtrack: rule.end.length - typed.length,
-          match: null
-        }
-      }
-    }
-  }
+  const quote = globalThis.NovalistQuoteContext.replace(rule, lineText.slice(0, -typed.length), typed, '')
+  if (quote) return { ...quote, match: null }
   if (rule.start && lineText.endsWith(rule.start)) {
     return {
       replacement: rule.startReplace,
@@ -129,17 +98,21 @@ export function previewRule(rule: ReplacementRule, sample: string): RulePreview 
   let out = ''
   let matched: string | null = null
   let groups: string[] = []
+  let pending: PendingQuote | null = null
 
   for (const character of sample.slice(0, MAX_SAMPLE)) {
     if (performance.now() - started > BUDGET_MS) {
       return { result: out, matched, groups, error: 'tooSlow' }
     }
-    const fired = attempt(rule, regex, out + character, character)
-    if (!fired) {
+    const continued = globalThis.NovalistQuoteContext.continueWord(pending, out, character)
+    pending = null
+    const fired = continued ? { ...continued, match: null } : attempt(rule, regex, out + character, character)
+    if (!fired || (fired.replacement === character && fired.backtrack === 0)) {
       out += character
       continue
     }
     out = out.slice(0, out.length - fired.backtrack) + fired.replacement
+    if (fired.provisional) pending = { before: out, length: fired.replacement.length }
     if (matched === null) {
       matched = fired.match ? fired.match[0] : rule.start
       groups = fired.match ? fired.match.slice(1).map((g) => g ?? '') : []

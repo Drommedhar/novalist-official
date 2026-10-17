@@ -38,6 +38,10 @@ A footer at the end of the document totals what is currently visible (respecting
 
 Use this mode for read-throughs and light line edits without leaving the flow of the book.
 
+The column follows **Settings → Editor → Book Page Width**, including the selected page format, custom text width and book font. With Book Page Width off, it fills the available pane and uses your editor font. Changes apply while the manuscript is open. Hold `Ctrl` and scroll the mouse wheel to zoom the text and column together, preserving line breaks. Zoom is shared with the scene editor for the current session and leaves font and page settings unchanged. An enlarged column can be scrolled horizontally.
+
+Zoom follows the caret and keeps it visible. With **Typewriter Scrolling** enabled, zoom places it at the selected top, middle or bottom position; otherwise it preserves its vertical screen position where scrolling allows.
+
 ## Corkboard mode
 
 Each scene becomes a card on a board, grouped under its chapter title. Each card shows:
