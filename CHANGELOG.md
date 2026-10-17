@@ -21,6 +21,12 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.5.6] - 2026-10-17
+
 ### Added
 
 - **Focus preferences** — turn automatic entity hover cards off or choose a hover delay in the editor and Inspector; manual previews remain available. Focus Mode supports custom page and surround colours and a local background image.
@@ -1770,7 +1776,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.5.5...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.5.6...HEAD
+[3.5.6]: https://github.com/Drommedhar/novalist-official/compare/v3.5.5...v3.5.6
 [3.5.5]: https://github.com/Drommedhar/novalist-official/compare/v3.5.3...v3.5.5
 [3.5.3]: https://github.com/Drommedhar/novalist-official/compare/v3.5.1...v3.5.3
 [3.5.1]: https://github.com/Drommedhar/novalist-official/compare/v3.5...v3.5.1
