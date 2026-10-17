@@ -21,6 +21,12 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.6.0] - 2026-10-17
+
 ### Changed
 
 - New official extension releases require Novalist 3.6.0 or later. Older Novalist versions can continue using earlier compatible extension releases.
@@ -1790,7 +1796,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.5.7...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.6.0...HEAD
+[3.6.0]: https://github.com/Drommedhar/novalist-official/compare/v3.5.7...v3.6.0
 [3.5.7]: https://github.com/Drommedhar/novalist-official/compare/v3.5.6...v3.5.7
 [3.5.6]: https://github.com/Drommedhar/novalist-official/compare/v3.5.5...v3.5.6
 [3.5.5]: https://github.com/Drommedhar/novalist-official/compare/v3.5.3...v3.5.5
