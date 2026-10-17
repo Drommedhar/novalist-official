@@ -1,6 +1,6 @@
 {
   "name": "novalist",
-  "version": "3.3.0",
+  "version": "3.5.6",
   "description": "Novalist - a writing app for novelists",
   "main": "./out/main/index.js",
   "private": true,

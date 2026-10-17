@@ -191,6 +191,8 @@ Extensions are .NET 8 class libraries loaded by the core process at runtime from
 
 The Extensions view has a built-in **store**: browse the online extension gallery, read each extension's README and release notes, and install or update extensions in place (with download progress and a cancel option) without leaving the app. It can also check installed extensions for updates on startup.
 
+Externally managed installations can set `NOVALIST_DISABLE_SELF_UPDATE=1` before launching Novalist to block all app self-updates and hide their controls in Help, About and Settings, while retaining startup extension checks and extension updates. See [Updates & Integrations](docs/manual/23-settings.md#updates--integrations).
+
 The **Mac App Store edition has no extension feature** - no gallery, no installing from a folder, and no extension loaded. An extension is code the app downloads and runs to add features, which App Store rules do not permit and the sandbox would not load. The directly downloaded builds (macOS `.dmg`, Windows, Linux) are unaffected. Projects are identical across editions. See [`docs/manual/24-extensions.md`](docs/manual/24-extensions.md).
 
 ## Building
@@ -213,6 +215,8 @@ To produce distributable installers for the current platform:
 cd app
 npm run package
 ```
+
+After a successful stable desktop release, the release workflow commits the released version to `app/package.json` and `app/package-lock.json` together with `CHANGELOG.md`. External tools can read `app/package.json` on the default branch for the latest stable release version. Prereleases and local builds do not advance this value.
 
 ## Project structure
 

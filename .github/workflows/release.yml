@@ -918,13 +918,19 @@ jobs:
             release-assets/*.nupkg
             release-assets/*.zip
 
-      # Stamp the section that was just published with this tag's version and date,
-      # open a fresh Unreleased section, and push it back to the default branch.
+      - name: Setup Node for release metadata
+        if: ${{ !contains(github.ref_name, '-') }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Stamp the published section and package version together on the default
+      # branch so external tools can read the latest stable version from either.
       # [skip ci] keeps this bookkeeping commit from starting another CI run.
       #
       # Stable tags only: a prerelease reads the Unreleased section but must not
       # consume it, so the entries are still there when the real release is cut.
-      - name: Stamp the changelog with the released version
+      - name: Stamp the changelog and package version
         if: ${{ !contains(github.ref_name, '-') }}
         shell: bash
         run: |
@@ -934,7 +940,7 @@ jobs:
           git fetch origin "$DEFAULT_BRANCH"
           git checkout -B "$DEFAULT_BRANCH" "origin/$DEFAULT_BRANCH"
           if python3 tools/changelog.py extract --version "$VER" >/dev/null 2>&1; then
-            echo "Changelog already has a $VER section — nothing to stamp."
+            echo "Release $VER is already recorded — nothing to stamp."
             exit 0
           fi
           python3 tools/changelog.py release \
@@ -942,11 +948,15 @@ jobs:
             --date "${{ steps.version.outputs.date }}" \
             --tag "${GITHUB_REF_NAME}" \
             --previous-tag "${{ steps.version.outputs.previous_tag }}"
+          # Match the full semver used by the packaged app, including v3.5 → 3.5.0.
+          IFS='.' read -r a b c <<< "$VER"
+          PACKAGE_VERSION="${a:-0}.${b:-0}.${c:-0}"
+          (cd app && npm version "$PACKAGE_VERSION" --no-git-tag-version --allow-same-version --ignore-scripts)
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md
+          git add CHANGELOG.md app/package.json app/package-lock.json
           if git diff --cached --quiet; then
-            echo "No changelog change to commit."
+            echo "No release metadata change to commit."
           else
             git commit -m "docs(changelog): release ${VER} [skip ci]"
             git push origin "HEAD:${DEFAULT_BRANCH}"

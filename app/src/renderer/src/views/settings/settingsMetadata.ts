@@ -42,6 +42,7 @@ export interface SettingsControlMetadata {
   keywords?: readonly string[]
   /** Prefer a real form control when it has a stable DOM id. */
   targetId?: string
+  requiresSelfUpdate?: boolean
 }
 
 export interface SettingsSectionMetadata {

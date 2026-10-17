@@ -113,7 +113,8 @@ function useSettingsRouting(data: ReturnType<typeof useSettingsData>) {
     () =>
       settingsSectionsForContext({
         hasProject: view?.hasProject === true,
-        isMobile
+        isMobile,
+        selfUpdateDisabled: window.novalist.selfUpdateDisabled
       }),
     [isMobile, view?.hasProject]
   )

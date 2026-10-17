@@ -96,6 +96,7 @@ interface Window {
     requestLayout?(): void
     isMas: boolean
     autoUpdate: boolean
+    selfUpdateDisabled: boolean
     requestBackendPort(): void
     setFocusWindow?(enabled: boolean): Promise<void>
     pickFolder(title: string): Promise<string | null>

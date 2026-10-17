@@ -16,8 +16,10 @@ export async function runUpdateCheck(state: AppUpdateState, manual: boolean): Pr
   const errors: string[] = []
   let app: AppUpdate | null = null
   let ext: StoreUpdate[] = []
-  try { app = await window.novalist.checkAppUpdate() }
-  catch { errors.push('desktopRefresh.checkAppFailed') }
+  if (!window.novalist.selfUpdateDisabled) {
+    try { app = await window.novalist.checkAppUpdate() }
+    catch { errors.push('desktopRefresh.checkAppFailed') }
+  }
   try {
     await useExtensionsStore.getState().checkStoreUpdates()
     ext = useExtensionsStore.getState().storeUpdates

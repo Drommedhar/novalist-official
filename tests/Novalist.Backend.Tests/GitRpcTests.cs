@@ -106,6 +106,31 @@ public sealed class GitRpcTests : IDisposable
         Assert.NotNull(await _rpc.PullAsync());
     }
 
+    [Theory]
+    [InlineData("Chapter 1 — Night.txt", true)]
+    [InlineData("Chapter 1 — Night.txt", false)]
+    [InlineData("Ältere Kapitel/章节.txt", true)]
+    [InlineData("The Throne/Drafts/e/Chapters/03 - Chapter 1 — The Night That Changed It All/.nvchapter.json", true)]
+    public async Task Commit_UsesExactPathsFromStatus(string relativePath, bool quotePaths)
+    {
+        RunGit($"config core.quotePath {quotePaths.ToString().ToLowerInvariant()}");
+        var path = Path.Combine(_workspace.Projects.ProjectRoot!, relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        await File.WriteAllTextAsync(path, "chapter");
+
+        var status = await _rpc.StatusAsync();
+        Assert.NotNull(status);
+        var files = status.ChangedFiles.Select(f => f.RelativePath).ToArray();
+
+        Assert.Null(await _rpc.CommitAsync(files, "Commit chapter"));
+        Assert.Contains(relativePath, files);
+        Assert.Empty((await _rpc.StatusAsync())!.ChangedFiles);
+
+        var sha = (await _rpc.LogAsync(1))[0].Sha;
+        Assert.Contains(relativePath, await _rpc.CommitFilesAsync(sha));
+        Assert.Contains("chapter", await _rpc.DiffAsync(sha, relativePath));
+    }
+
     [Fact]
     public async Task IsInstalled_ReturnsTrue()
     {

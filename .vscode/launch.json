@@ -24,7 +24,8 @@
         // older version (e.g. "1.0.0") to make the app detect the latest GitHub
         // release as an update and exercise the self-update flow. Empty = use the
         // real build version (no forcing).
-        "NOVALIST_FORCE_VERSION": "3.3.0"
+        "NOVALIST_FORCE_VERSION": "3.3.0",
+        "NOVALIST_DISABLE_SELF_UPDATE": "1"
       }
     },
     {

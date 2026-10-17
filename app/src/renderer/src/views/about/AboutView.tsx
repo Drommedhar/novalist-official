@@ -212,9 +212,7 @@ export function AboutView(): React.JSX.Element {
           </a>
         </p>
         <div className="about-actions">
-          {/* The Mac App Store delivers its own updates and forbids self-update,
-              so the check is absent there rather than present and failing. */}
-          {!window.novalist.isMas && (
+          {!window.novalist.selfUpdateDisabled && (
             <button type="button" className="dialog-button" onClick={checkForUpdates}>
               {t('about.checkUpdates')}
             </button>
