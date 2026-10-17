@@ -251,9 +251,18 @@ test('narration fills its pane and binder scene selection stays in the reading',
     await h.page.evaluate(() => window.novalistStores.shell.getState().setMainView('narration'))
     const frame = h.page.frameLocator('.narration-frame')
     await expect(frame.locator('.nl-scene')).toHaveCount(3)
+    // Its exit animation retains the inspector's width until it unmounts.
+    await expect(h.page.locator('.inspector')).toHaveCount(0)
     for (const maximized of [true, false]) {
       if (maximized) {
-        await h.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].maximize())
+        if (process.platform === 'linux' && process.env.CI) {
+          // Xvfb has no window manager to handle maximize().
+          await resizeWindow(h, 1440, 900)
+        } else {
+          await h.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].maximize())
+          await expect.poll(() => h.app.evaluate(({ BrowserWindow }) =>
+            BrowserWindow.getAllWindows()[0].isMaximized())).toBe(true)
+        }
       } else {
         await resizeWindow(h, 1280, 900)
       }
