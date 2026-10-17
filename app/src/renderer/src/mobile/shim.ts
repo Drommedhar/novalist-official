@@ -141,6 +141,7 @@ const novalist: Window['novalist'] = {
   isMobile: true,
   isMas: false,
   autoUpdate: false,
+  selfUpdateDisabled: true,
   requestBackendPort,
   pickFolder: (title) => hostCall<string | null>('pickFolder', [title]),
   defaultProjectRoot: () => hostCall<string | null>('defaultProjectRoot', []),

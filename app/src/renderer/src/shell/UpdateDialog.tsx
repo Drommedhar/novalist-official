@@ -64,7 +64,8 @@ export function UpdateDialog({
     return () => { dialog.close(); previous?.focus() }
   }, [])
   const nothing = !appUpdate && extUpdates.length === 0
-  const heading = checking ? t('desktopRefresh.checking') : error && nothing ? t('desktopRefresh.checkFailed') : nothing ? t('update.upToDate') : t('update.available')
+  const upToDate = t(window.novalist.selfUpdateDisabled ? 'extensions.store.upToDate' : 'update.upToDate')
+  const heading = checking ? t('desktopRefresh.checking') : error && nothing ? t('desktopRefresh.checkFailed') : nothing ? upToDate : t('update.available')
 
   const versionLine = appUpdate
     ? t('update.versionInfo').replace('{0}', currentVersion ?? '').replace('{1}', appUpdate.version)
@@ -87,7 +88,7 @@ export function UpdateDialog({
         }
       }}>
         <div className="dialog-title" id="update-heading">{heading}</div>
-        {nothing && !checking && !error && <p className="dialog-message">{t('update.upToDateDetail')}</p>}
+        {nothing && !checking && !error && <p className="dialog-message">{t(window.novalist.selfUpdateDisabled ? 'extensions.store.upToDate' : 'update.upToDateDetail')}</p>}
         {error && <p className="update-error" role="alert">{error}</p>}
         {checking && <p role="status">{t('desktopRefresh.checking')}</p>}
 

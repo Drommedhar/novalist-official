@@ -26,6 +26,8 @@ Runs the same check as **Help → Check for Updates**: Novalist asks whether a n
 
 The button is **absent in the Mac App Store build**, which is updated by the store itself and cannot update itself.
 
+This button is also absent when Novalist is launched with `NOVALIST_DISABLE_SELF_UPDATE=1`. Application updates must be managed externally; startup extension checks and updates through the **Extensions** store remain available. See [Updates & Integrations](23-settings.md#updates--integrations).
+
 ## What's new
 
 The changelog, rendered inside the app, newest release first. It is the same file published with each release, minus the notes for whoever edits it, so it answers "what changed" and "should I update" without leaving the app. Links inside it open in your browser.

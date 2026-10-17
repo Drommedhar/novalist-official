@@ -46,7 +46,9 @@ export function useShellCommands(updates: AppUpdateState): void {
         if (installingRef.current || useProjectStore.getState().workspaceBusy || useProjectStore.getState().changingSceneStructure || (updateOpenRef.current && data.command !== 'help:checkUpdates')) return
         // Every menu item but the updater is a registry command, so the menu
         // bar cannot offer anything the palette does not also have.
-        if (data.command === 'help:checkUpdates') void runUpdateCheck(updates, true)
+        if (data.command === 'help:checkUpdates') {
+          if (!window.novalist.selfUpdateDisabled) void runUpdateCheck(updates, true)
+        }
         else if (data.command.startsWith(OPEN_RECENT)) {
           void useProjectStore.getState().openProject(data.command.slice(OPEN_RECENT.length))
         } else runCommand(data.command)

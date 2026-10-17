@@ -2,9 +2,8 @@ import type { MenuNode, MenuLabels } from '../shared/menuProtocol'
 export type { MenuNode, MenuLabels } from '../shared/menuProtocol'
 import { app, BrowserWindow, Menu, shell, type MenuItemConstructorOptions } from 'electron'
 
-// Mac App Store build: the store delivers updates and self-update is disabled, so
-// the manual "Check for Updates…" item is omitted there.
 const isMas = (process as NodeJS.Process & { mas?: boolean }).mas === true
+const selfUpdateDisabled = isMas || process.env.NOVALIST_DISABLE_SELF_UPDATE === '1'
 
 /** Relays a menu command to the renderer, which runs it through the registry. */
 function sendCommand(command: string): void {
@@ -114,7 +113,7 @@ function fileTail(name: string, labels: MenuLabels): MenuItemConstructorOptions[
 function helpTail(labels: MenuLabels): MenuItemConstructorOptions[] {
   return [
     { type: 'separator' },
-    ...(isMas
+    ...(selfUpdateDisabled
       ? []
       : [
           {

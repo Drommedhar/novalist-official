@@ -21,7 +21,9 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **External update management** — disable application update checks, downloads and installation with `NOVALIST_DISABLE_SELF_UPDATE=1`. Application-update controls are hidden from the Help menu, About and Settings, including Settings search, while startup extension checks and extension updates remain available.
 
 ---
 

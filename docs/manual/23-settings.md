@@ -242,6 +242,8 @@ The default bindings are listed in [Hotkeys](26-hotkeys.md).
 
 Startup update availability appears in a dismissible banner. Choose **Review update** to read release notes; **Help → Check for Updates** opens the same review. Failed checks show an error and **Check again**, without claiming the application is current.
 
+For installations updated by an external tool or package manager, set `NOVALIST_DISABLE_SELF_UPDATE=1` in Novalist's environment before launching it. This blocks application update checks, downloads and installation, including manual requests. It hides **Help → Check for Updates**, the update button in **About**, and the application-update setting and its search result. Startup extension checks, extension settings and updates through the **Extensions** store remain available. Unset the variable or set it to `0`, then restart Novalist to restore application updates. Unlike `NOVALIST_NO_SPLASH`, this option leaves the splash screen and startup extension checks enabled.
+
 Choose **Download update** to download in the background. **Continue writing** or Escape closes the review while the download continues. Once ready, choose **Install and restart** separately. Novalist finishes pending editor, manuscript, map, planning-board, book-matter and extension-settings saves, creates the normal close backup, starts the operating system's installer, then closes itself. Resolve save conflicts and close detached panes before installing. If a save or installer handoff fails, Novalist stays open and explains why. Platforms requiring manual installation open the downloaded file's folder instead.
 
 ## Narration

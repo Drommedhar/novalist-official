@@ -10,13 +10,17 @@ export function isSettingsSectionKey(value: string): value is SettingsSectionKey
 export function settingsSectionsForContext(context: {
   hasProject: boolean
   isMobile: boolean
+  selfUpdateDisabled: boolean
 }): readonly SettingsSectionMetadata[] {
   return SETTINGS_REGISTRY.filter(
     (section) =>
       (!section.requiresProject || context.hasProject) &&
       (!section.desktopOnly || !context.isMobile) &&
       (!section.mobileOnly || context.isMobile)
-  )
+  ).map((section) => ({
+    ...section,
+    controls: section.controls?.filter((item) => !item.requiresSelfUpdate || !context.selfUpdateDisabled)
+  }))
 }
 
 function normalized(value: string): string {

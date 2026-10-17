@@ -338,9 +338,12 @@ export const SETTINGS_REGISTRY: readonly SettingsSectionMetadata[] = [
     desktopOnly: true,
     keywords: ['update', 'extension', 'github', 'token', 'integration'],
     controls: [
-      control('application-updates', 'update.checkForUpdates', 'set-check-updates', [
-        'update.checkForUpdatesDesc'
-      ]),
+      {
+        ...control('application-updates', 'update.checkForUpdates', 'set-check-updates', [
+          'update.checkForUpdatesDesc'
+        ]),
+        requiresSelfUpdate: true
+      },
       control('extension-updates', 'settings.checkForExtensionUpdates', 'set-extension-updates', [
         'settings.checkForExtensionUpdatesDesc'
       ]),

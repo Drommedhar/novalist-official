@@ -18,16 +18,17 @@ export function registerUpdateHandlers(
   // Disabled in the Mac App Store build: Apple prohibits self-updating, so even a
   // manual trigger must do nothing there (updates arrive via the App Store).
   const isMasBuild = (process as NodeJS.Process & { mas?: boolean }).mas === true
+  const selfUpdateDisabled = isMasBuild || process.env.NOVALIST_DISABLE_SELF_UPDATE === '1'
   const pendingAppUpdates = new Map<
     number,
     { token: string; update: DownloadedAppUpdate }
   >()
-  ipcMain.handle('novalist:check-app-update', () => (isMasBuild ? null : checkAppUpdate()))
+  ipcMain.handle('novalist:check-app-update', () => (selfUpdateDisabled ? null : checkAppUpdate()))
   ipcMain.handle('novalist:has-detached-panes', () =>
     BrowserWindow.getAllWindows().some((candidate) => candidate !== getMainWindow() && !candidate.isDestroyed())
   )
   ipcMain.handle('novalist:download-app-update', async (event, info) => {
-    if (isMasBuild) throw new Error('Self-update is disabled in the App Store build.')
+    if (selfUpdateDisabled) throw new Error('Self-update is disabled in this build.')
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win) throw new Error('No window for update download.')
     const update = await downloadAppUpdate(info, win)
@@ -40,7 +41,7 @@ export function registerUpdateHandlers(
     return { filePath: update.filePath, launchToken: token }
   })
   ipcMain.handle('novalist:launch-app-update', async (event, token: string) => {
-    if (isMasBuild) throw new Error('Self-update is disabled in the App Store build.')
+    if (selfUpdateDisabled) throw new Error('Self-update is disabled in this build.')
     const pending = pendingAppUpdates.get(event.sender.id)
     if (!pending || typeof token !== 'string' || pending.token !== token) {
       throw new Error('The downloaded update is no longer available. Download it again.')

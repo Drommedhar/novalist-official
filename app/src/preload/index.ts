@@ -51,6 +51,7 @@ contextBridge.exposeInMainWorld('novalist', {
   // never pops a modal that blocks tests. Also off in the Mac App Store build,
   // where self-updating is prohibited.
   autoUpdate: !process.env.NOVALIST_NO_SPLASH && !isMas,
+  selfUpdateDisabled: isMas || process.env.NOVALIST_DISABLE_SELF_UPDATE === '1',
   requestBackendPort(): void {
     ipcRenderer.send('novalist:request-backend-port')
   },
