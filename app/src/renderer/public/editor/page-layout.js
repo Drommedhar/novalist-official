@@ -112,7 +112,7 @@ function repaginatePageView() {
             if (node.nodeType === Node.ELEMENT_NODE) return Math.max(1, node.offsetHeight);
             const range = document.createRange();
             range.selectNode(node);
-            const zoom = Number(getComputedStyle(window.NovalistEditorState.editor).zoom) || 1;
+            const zoom = Number(getComputedStyle(window.NovalistEditorState.editor).getPropertyValue('--writing-zoom-scale')) || 1;
             return Math.max(1, range.getBoundingClientRect().height / zoom);
         });
 

@@ -63,6 +63,10 @@ for (const mode of ['scene', 'pages', 'manuscript'] as const) {
         await h.page.mouse.wheel(0, 100)
         await expect.poll(async () => (await readLines(editor)).glyphHeight).toBeCloseTo(before.glyphHeight, 1)
         await expect.poll(async () => (await readLines(editor)).lines).toEqual(before.lines)
+        for (let step = 0; step < 5; step++) await h.page.mouse.wheel(0, 100)
+        await expect.poll(async () => (await readLines(editor)).glyphHeight).toBeCloseTo(before.glyphHeight / 2, 1)
+        await expect.poll(async () => (await readLines(editor)).lines).toEqual(before.lines)
+        expect(await scroller.evaluate(element => element.scrollWidth)).toBe(await scroller.evaluate(element => element.clientWidth))
         await h.page.keyboard.up('Control')
       } finally {
         await h.close()

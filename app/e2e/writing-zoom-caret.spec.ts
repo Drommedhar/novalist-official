@@ -55,7 +55,11 @@ for (const mode of ['scene', 'pages', 'focus', 'manuscript'] as const) {
           await expect(h.page.locator('.shell-focus')).toBeVisible()
         }
         if (mode === 'pages' || mode === 'focus') await expect(frame.locator('.nv-page').first()).toBeVisible()
-        await h.page.waitForTimeout(250)
+        await editor.focus()
+        await expect.poll(() => editor.evaluate(() => {
+          const state = (window as Window & { NovalistEditorState?: { isFocusing: boolean } }).NovalistEditorState
+          return state?.isFocusing ?? false
+        })).toBe(false)
         await editor.evaluate(element => {
           const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
           const nodes: Node[] = []
@@ -75,7 +79,6 @@ for (const mode of ['scene', 'pages', 'focus', 'manuscript'] as const) {
           }
           range.setStart(node, offset)
           range.collapse(true)
-          element.focus({ preventScroll: true })
           window.getSelection()!.setPosition(node, offset)
           const wrapper = document.querySelector('#editor-wrapper, #manuscript-wrapper')!
           wrapper.scrollTop += range.getBoundingClientRect().top - wrapper.getBoundingClientRect().top - 150

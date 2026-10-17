@@ -23,7 +23,8 @@ for (const type of ['character', 'faction']) {
       }
       await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('templates'))
       const groups = h.page.locator('.templates-card .template-group')
-      await (type === 'character' ? groups.first() : groups.last()).locator('.binder-rail-item').click()
+      const groupName = type === 'character' ? 'Character Templates' : 'Factions'
+      await groups.filter({ has: h.page.getByText(groupName, { exact: true }) }).locator('.binder-rail-item').click()
       const dialog = h.page.locator('.type-manager-card')
       await dialog.locator('input.dialog-input').first().fill('Custom field template')
       for (const [key, value] of [['Motto', 'We hold'], ['Secret', '']]) {

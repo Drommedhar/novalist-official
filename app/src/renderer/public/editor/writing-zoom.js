@@ -3,6 +3,10 @@
 (() => {
     const wrapper = document.querySelector('#editor-wrapper, #manuscript-wrapper');
     const content = document.querySelector('#editor, #manuscript-content');
+    const surface = document.createElement('div');
+    surface.className = 'writing-zoom-surface';
+    content.before(surface);
+    surface.append(content);
     let scale = 1;
     let appliedScale = 1;
     let layoutWidth = 0;
@@ -29,6 +33,8 @@
     function captureCaretAnchor() {
         const caret = caretPosition();
         if (!caret) return null;
+        // Repeated wheel steps must not accumulate scroll rounding error.
+        if (caretAnchor?.node === caret.node && caretAnchor.offset === caret.offset) return caretAnchor;
         const viewport = wrapper.getBoundingClientRect();
         return { node: caret.node, offset: caret.offset, x: caret.rect.left - viewport.left, y: caret.rect.top - viewport.top };
     }
@@ -52,10 +58,16 @@
     }
 
     function clearLayout() {
-        content.style.removeProperty('zoom');
+        content.style.removeProperty('transform');
         content.style.removeProperty('width');
+        surface.style.removeProperty('width');
+        surface.style.removeProperty('height');
         wrapper.style.removeProperty('max-width');
         wrapper.style.removeProperty('--writing-layout-width');
+    }
+
+    function resizeSurface() {
+        if (scale !== 1) surface.style.height = content.getBoundingClientRect().height + 'px';
     }
 
     function refresh() {
@@ -77,9 +89,13 @@
             const scrollbar = wrapper.offsetWidth - wrapper.clientWidth;
             wrapper.style.maxWidth = (layoutWidth * scale + scrollbar) + 'px';
             wrapper.style.setProperty('--writing-layout-width', layoutWidth + 'px');
+            surface.style.width = (layoutWidth * scale) + 'px';
             content.style.width = layoutWidth + 'px';
-            content.style.zoom = String(scale);
+            // CSS zoom reshapes glyphs at the scaled font size and can rewrap lines.
+            content.style.transform = 'scale(' + scale + ')';
         }
+        content.style.minHeight = (wrapper.clientHeight / scale) + 'px';
+        resizeSurface();
         layoutKey = key;
         appliedScale = scale;
         wrapper.scrollTop = scrollTop * ratio;
@@ -120,5 +136,6 @@
     const observer = new MutationObserver(scheduleRefresh);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
     observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    new ResizeObserver(resizeSurface).observe(content);
     window.addEventListener('resize', scheduleRefresh);
 })();

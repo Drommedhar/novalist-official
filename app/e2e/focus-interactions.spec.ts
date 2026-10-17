@@ -55,10 +55,11 @@ test('F11 works in prose and panel fields, and focus width follows editor zoom',
     const initialHoverWidth = initialBounds.hoverWidth
     expect(initialHoverWidth).toBeGreaterThan(24)
     const paper = h.page.frameLocator('iframe.editor-frame').locator('.nv-page').first()
-    const initialPaperWidth = (await paper.boundingBox())!.width
+    const paperWidth = () => paper.evaluate(element => element.getBoundingClientRect().width)
+    const initialPaperWidth = await paperWidth()
     await editor.evaluate((element) => element.dispatchEvent(new WheelEvent('wheel', { ctrlKey: true, deltaY: -100, bubbles: true, cancelable: true })))
     await expect.poll(async () => (await frame.boundingBox())!.width).toBeGreaterThan(initialWidth)
-    await expect.poll(async () => (await paper.boundingBox())!.width).toBeGreaterThan(initialPaperWidth)
+    await expect.poll(paperWidth).toBeGreaterThan(initialPaperWidth)
     expect(await h.page.evaluate(() => window.novalistStores.settings.getState().view?.effective.editorFontSize)).toBe(17)
     const zoomedWidth = (await frame.boundingBox())!.width
     await h.page.evaluate(() => window.novalistStores.settings.getState().update('global', { editorFontSize: 30 }))
