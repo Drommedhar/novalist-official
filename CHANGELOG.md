@@ -25,6 +25,10 @@ could encounter in a previously released version.
 
 - **External update management** — disable application update checks, downloads and installation with `NOVALIST_DISABLE_SELF_UPDATE=1`. Application-update controls are hidden from the Help menu, About and Settings, including Settings search, while startup extension checks and extension updates remain available.
 
+### Fixed
+
+- Git commits no longer fail with a “pathspec did not match any files” error when chapter or file names contain em dashes, accented letters or other non-ASCII characters. These paths also display correctly in commit history.
+
 ---
 
 ## [3.5.6] - 2026-10-17

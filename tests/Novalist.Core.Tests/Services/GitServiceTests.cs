@@ -77,7 +77,7 @@ public class GitServiceTests
             "branch" => (0, "main\n", ""),
             "remote" => (0, "origin\n", ""),
             "rev-list" => (0, "3\t2\n", ""),       // behind=3 ahead=2
-            "status" => (0, "M  a.txt\n?? b.txt\n", ""),
+            "status" => (0, "M  a.txt\0?? b.txt\0", ""),
             _ => (0, "", "")
         });
         var sut = await InitializedRepo(runner);
@@ -152,7 +152,7 @@ public class GitServiceTests
     }
 
     [Fact]
-    public async Task GetStatusAsync_ParsesRenamesQuotesAndSkipsShortLines()
+    public async Task GetStatusAsync_ParsesNullDelimitedRecordsAndSkipsShortRecords()
     {
         var runner = new FakeProcessRunner(args => args[0] switch
         {
@@ -161,16 +161,66 @@ public class GitServiceTests
             "branch" => (0, "main", ""),
             "remote" => (0, "", ""),
             "rev-list" => (0, "0\t0", ""),
-            "status" => (0, "R  old.txt -> new.txt\nA  \"quoted file.txt\"\nXY\n D del.txt\n", ""),
+            "status" => (0, "R  new.txt\0old.txt\0A  quoted file.txt\0XY\0 D del.txt\0", ""),
             _ => (0, "", "")
         });
         var sut = await InitializedRepo(runner);
         var info = await sut.GetStatusAsync();
 
+        Assert.Equal(3, info!.ChangedFiles.Count);
         Assert.Contains(info!.ChangedFiles, f => f.RelativePath == "new.txt");
         Assert.Contains(info.ChangedFiles, f => f.RelativePath == "quoted file.txt");
         Assert.Contains(info.ChangedFiles, f => f.RelativePath == "del.txt");
         Assert.DoesNotContain(info.ChangedFiles, f => f.RelativePath == "XY");
+    }
+
+    [Theory]
+    [InlineData("Chapter 1 — The Night.txt")]
+    [InlineData("Ältere Kapitel/章节.txt")]
+    [InlineData("Cafe\u0301.txt")]
+    [InlineData(" leading and trailing spaces ")]
+    [InlineData("chapter -> ending.txt")]
+    [InlineData("\"quoted chapter\".txt")]
+    [InlineData("chapter\\notes.txt")]
+    [InlineData("chapter\twith\nline\rbreaks.txt")]
+    public async Task GetStatusAsync_PreservesPathCharacters(string path)
+    {
+        var runner = new FakeProcessRunner(args => args[0] == "status"
+            ? (0, $" M {path}\0", "")
+            : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        var info = await sut.GetStatusAsync();
+
+        Assert.NotNull(info);
+        var file = Assert.Single(info.ChangedFiles);
+        Assert.Equal(path, file.RelativePath);
+        Assert.Equal(GitFileStatus.Modified, file.WorkTreeStatus);
+        Assert.Contains(runner.Calls, args => args[0] == "status" && args.Contains("-z"));
+    }
+
+    [Theory]
+    [InlineData("R ", GitFileStatus.Renamed)]
+    [InlineData(" R", GitFileStatus.Renamed)]
+    [InlineData("C ", GitFileStatus.Added)]
+    [InlineData(" C", GitFileStatus.Added)]
+    public async Task GetStatusAsync_RenamesAndCopiesConsumeTheSourcePath(string status, GitFileStatus expected)
+    {
+        var runner = new FakeProcessRunner(args => args[0] == "status"
+            ? (0, $"{status} new — chapter.txt\0old -> chapter.txt\0 M next.txt\0", "")
+            : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        var info = await sut.GetStatusAsync();
+
+        Assert.NotNull(info);
+        Assert.Collection(info.ChangedFiles,
+            file =>
+            {
+                Assert.Equal("new — chapter.txt", file.RelativePath);
+                Assert.Equal(expected, file.DisplayStatus);
+            },
+            file => Assert.Equal("next.txt", file.RelativePath));
     }
 
     [Fact]
@@ -297,14 +347,14 @@ public class GitServiceTests
             "branch" => (0, "main", ""),
             "remote" => (0, "", ""),
             "rev-list" => (0, "0\t0", ""),
-            "status" => (0, "M  a.txt\n", ""),
+            "status" => (0, "M  chapter — one.txt\0", ""),
             _ => (0, "", "")
         });
         var sut = new GitService(runner);
         await sut.InitializeAsync("/repo");
         await sut.GetStatusAsync(); // populates cache
 
-        Assert.Equal(GitFileStatus.Modified, sut.GetFileStatus("a.txt"));
+        Assert.Equal(GitFileStatus.Modified, sut.GetFileStatus("chapter — one.txt"));
         Assert.Equal(GitFileStatus.Unmodified, sut.GetFileStatus("missing.txt"));
     }
 
@@ -354,7 +404,7 @@ public class GitServiceTests
             "branch" => (0, "main", ""),
             "remote" => (0, "", ""),
             "rev-list" => (0, "0\t0", ""),
-            "status" => (0, "?? new.txt\n", ""),
+            "status" => (0, "?? new.txt\0", ""),
             "clean" => (0, "", ""),
             _ => (0, "", "")
         });
@@ -376,7 +426,7 @@ public class GitServiceTests
             "branch" => (0, "main", ""),
             "remote" => (0, "", ""),
             "rev-list" => (0, "0\t0", ""),
-            "status" => (0, "?? new.txt\n", ""),
+            "status" => (0, "?? new.txt\0", ""),
             "clean" => (1, "", "boom"),
             _ => (0, "", "")
         });
@@ -413,7 +463,7 @@ public class GitServiceTests
             "branch" => (0, "main", ""),
             "remote" => (0, "", ""),
             "rev-list" => (0, "0\t0", ""),
-            "status" => (0, statusLine + "\n", ""),
+            "status" => (0, statusLine + "\0", ""),
             _ => (0, "", "")
         });
         var sut = new GitService(runner);
@@ -480,10 +530,23 @@ public class GitServiceTests
     public async Task GetCommitFilesAsync_ListsThePathsTouched()
     {
         var runner = new FakeProcessRunner(args =>
-            args[0] == "show" ? (0, "Books/one.html\nBooks/two.html\n", "") : DefaultResponder(args));
+            args[0] == "show" ? (0, "Books/one.html\0Books/two.html\0", "") : DefaultResponder(args));
         var sut = await InitializedRepo(runner);
 
         Assert.Equal(["Books/one.html", "Books/two.html"], await sut.GetCommitFilesAsync("abc"));
+    }
+
+    [Fact]
+    public async Task GetCommitFilesAsync_PreservesPathCharacters()
+    {
+        string[] paths = ["Books/Chapter — One.html", "Books/章节.html", "\"quotes\"\\tabs\tand\nnewlines\r", " spaces "];
+        var runner = new FakeProcessRunner(args => args[0] == "show"
+            ? (0, string.Join('\0', paths) + "\0", "")
+            : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        Assert.Equal(paths, await sut.GetCommitFilesAsync("abc"));
+        Assert.Contains(runner.Calls, args => args[0] == "show" && args.Contains("-z"));
     }
 
     [Fact]

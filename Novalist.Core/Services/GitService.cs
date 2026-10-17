@@ -189,13 +189,10 @@ public class GitService : IGitService
         if (_repoRoot == null || string.IsNullOrWhiteSpace(sha)) return [];
 
         var (exitCode, output, _) = await RunGitAsync(
-            _repoRoot, "show", "--name-only", "--pretty=format:", sha);
+            _repoRoot, "show", "--name-only", "--pretty=format:", "-z", sha);
         if (exitCode != 0) return [];
 
-        return [.. output
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-            .Select(l => l.TrimEnd('\r'))
-            .Where(l => l.Length > 0)];
+        return output.Split('\0', StringSplitOptions.RemoveEmptyEntries);
     }
 
     public async Task<string> GetDiffAsync(string? sha, string relativePath)
@@ -292,29 +289,27 @@ public class GitService : IGitService
 
     private async Task<IReadOnlyList<GitFileEntry>> GetChangedFilesAsync(string repoRoot)
     {
-        var (exitCode, output, _) = await RunGitAsync(repoRoot, "status", "--porcelain=v1", "-uall");
+        var (exitCode, output, _) = await RunGitAsync(repoRoot, "status", "--porcelain=v1", "-z", "-uall");
         if (exitCode != 0)
             return Array.Empty<GitFileEntry>();
 
         var entries = new List<GitFileEntry>();
         _statusCache.Clear();
 
-        foreach (var line in output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        var records = output.Split('\0', StringSplitOptions.RemoveEmptyEntries);
+        for (var i = 0; i < records.Length; i++)
         {
-            if (line.Length < 4)
+            var record = records[i];
+            if (record.Length < 4)
                 continue;
 
-            var indexChar = line[0];
-            var workTreeChar = line[1];
-            var path = line[3..].Trim();
+            var indexChar = record[0];
+            var workTreeChar = record[1];
+            var path = record[3..];
 
-            // Handle renames: "R  old -> new"
-            if (path.Contains(" -> "))
-                path = path[(path.IndexOf(" -> ", StringComparison.Ordinal) + 4)..];
-
-            // Remove surrounding quotes if present
-            if (path.StartsWith('"') && path.EndsWith('"'))
-                path = path[1..^1];
+            // With -z, renames/copies give the destination first, then a separate source path.
+            if (indexChar is 'R' or 'C' || workTreeChar is 'R' or 'C')
+                i++;
 
             var indexStatus = ParseStatusChar(indexChar);
             var workTreeStatus = ParseStatusChar(workTreeChar);
