@@ -97,3 +97,11 @@ test-results/
 # Python bytecode from the tools/ scripts.
 __pycache__/
 *.pyc
+
+# Local devenv and direnv state; keep devenv.lock tracked.
+/.devenv/
+/.direnv/
+/devenv.local.nix
+
+# Rider configuration
+.idea/
