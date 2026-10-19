@@ -102,7 +102,7 @@ const VIEW = [
   'app.uiScaleReset'
 ]
 
-const HELP = ['app.manual', 'app.tour', '-', 'app.about']
+const HELP = ['app.manual', 'app.tour', '-', 'app.support', 'app.about']
 // placement-container: end
 
 /** Every application-scoped command the menu bar is expected to carry. */

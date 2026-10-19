@@ -1,4 +1,14 @@
 {
+  "support": {
+    "title": "Support Novalist",
+    "noticeTitle": "Help Novalist grow",
+    "noticeMessage": "Novalist is free and open source. If it helps your writing, consider supporting its development.",
+    "remindLater": "Remind me in a month",
+    "neverAgain": "Don’t show again",
+    "dialogMessage": "Your support helps fund Novalist’s continued development. Thank you.",
+    "optional": "Support is entirely optional. These links open in your browser.",
+    "openFailed": "The link could not be opened. Please try again."
+  },
   "dictation": {
     "formatting": "Formatting",
     "automaticDialogue": "Automatic dialogue",

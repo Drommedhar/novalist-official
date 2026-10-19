@@ -23,6 +23,7 @@ could encounter in a previously released version.
 
 ### Added
 
+- **Support Novalist** — an optional Bookshelf notice and Help menu entry open a popup with Patreon and Ko-fi links. Hide the notice for 30 days or permanently; your choice survives restarts and updates.
 - Editor extension actions show their name and an animated progress bar while running, with a Cancel button.
 - Toolkit dictionary and thesaurus support German and English using the project's writing language, with source links beside results.
 

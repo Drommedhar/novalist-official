@@ -11,6 +11,7 @@ import { InputDialog } from './InputDialog'
 import { PaneLayoutsDialog } from './PaneLayoutsDialog'
 import { SceneDialog } from './SceneDialog'
 import { SnapshotsDialog } from './SnapshotsDialog'
+import { SupportDialog } from './SupportDialog'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { useShellStore, type ShellDialog } from '../stores/shellStore'
@@ -48,6 +49,7 @@ function ShellDialogContent({ dialog }: { dialog: ShellDialog }): React.JSX.Elem
   const activeDraft = drafts.find((d) => d.isActive) ?? null
 
   if (dialog === 'chapter') return <ChapterDialog onClose={close} />
+  if (dialog === 'support') return <SupportDialog onClose={close} />
 
   if (dialog === 'scene') {
     // A book with no chapters has nowhere to put a scene. The command is

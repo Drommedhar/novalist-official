@@ -269,9 +269,13 @@ docs/                 User manual, extension guide, screenshots
 
 If you find Novalist useful and want to support its development:
 
+[Support on Patreon](https://patreon.com/Drommedhar)
+
 [<img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" alt="Donate with PayPal" />](https://www.paypal.com/donate/?hosted_button_id=EQJG5JHAKYU4S)
 
 [Buy me a coffee on Ko-fi](https://ko-fi.com/drommedhar)
+
+In the desktop app, **Support Novalist** on the Bookshelf or in the **Help** menu opens a popup with Patreon and Ko-fi links. The Bookshelf notice can be hidden for 30 days or permanently.
 
 [Official Discord](https://discord.gg/xRyDQ7Cbvq)
 

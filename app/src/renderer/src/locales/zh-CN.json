@@ -1,4 +1,14 @@
 {
+  "support": {
+    "title": "支持 Novalist",
+    "noticeTitle": "帮助 Novalist 成长",
+    "noticeMessage": "Novalist 是免费开源软件。如果它对你的写作有所帮助，欢迎支持它的开发。",
+    "remindLater": "一个月后提醒我",
+    "neverAgain": "不再显示",
+    "dialogMessage": "你的支持有助于 Novalist 的持续开发。谢谢。",
+    "optional": "支持完全自愿。这些链接将在你的浏览器中打开。",
+    "openFailed": "无法打开链接。请重试。"
+  },
   "dictation": {
     "formatting": "格式",
     "automaticDialogue": "自动对话格式",
