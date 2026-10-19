@@ -156,6 +156,24 @@ Beyond contributing views, an extension can drive shared UI surfaces through the
 
 Extension-contributed **settings categories** are listed in that same Extension settings section. An extension that provides a declarative settings schema (`ISettingsSchemaContributor`) gets an editable form rendered inline there (changes save automatically, like the rest of Settings — there is no separate Save button) — for the AI Assistant this exposes the full provider, model, generation-parameter, analysis-check, and system-prompt configuration. Schema fields can declare **conditional visibility** (`SettingsField.VisibleWhenKey` / `VisibleWhenValues`): a field is shown only while another field currently holds one of the listed values, so — for example — the LM Studio connection fields appear only when the provider is set to LM Studio, and the Copilot fields only when the provider is Copilot. A schema can also include **action buttons** (`SettingsFieldType.Action`) that call back into the extension (`ISettingsSchemaContributor.ExecuteSchemaActionAsync`) with the form's current values and return a refreshed schema — used, for instance, by the AI Assistant's **Refresh models** button, which queries the configured provider and fills the model field's autocomplete **suggestions** (`SettingsField.Suggestions`) with the available models while still letting you type any value. Extensions that only ship a native settings page (`ISettingsContributor`) still appear as a card, and their configuration is driven through the extension's setup wizard.
 
+Editor extension actions show a progress dialog with the action's name while
+they run. **Cancel** asks the extension to stop; the dialog closes when the
+action finishes or fails.
+
+### Toolkit dictionary and thesaurus
+
+In the scene editor, select one word and choose **Look up → Define** or
+**Look up → Synonyms** from the right-click menu. From Manuscript view, click
+the scene title to open that editor.
+
+Toolkit supports German and English, using the project's writing language
+(**Settings → Writing → Quote Style**) rather than the interface language.
+Definitions and synonyms come directly from Wiktionary and include a source
+link. Definitions leave the manuscript unchanged; a synonym becomes a suggested
+edit only after you choose and apply it. Lookups require internet access but no
+API key. A timeout or service failure is reported separately from a word with
+no dictionary entry.
+
 ## AI integration
 
 The AI Assistant extension integrates large-language-model providers. Typical settings exposed by an AI extension:

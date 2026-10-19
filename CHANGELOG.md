@@ -21,7 +21,16 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- Editor extension actions show their name and an animated progress bar while running, with a Cancel button.
+- Toolkit dictionary and thesaurus support German and English using the project's writing language, with source links beside results.
+
+### Fixed
+
+- Dictionary lookups and other editor extension actions no longer fail with an “Unable to find method” error.
+- Toolkit lookups use Wiktionary directly, avoiding the previous dictionary service's stalled requests. Timeouts and service errors are reported separately from missing words.
+- Clicking Toolkit's Sprint status-bar item opens its sprint controls; extension commands can open their content views again.
 
 ---
 

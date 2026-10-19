@@ -213,6 +213,8 @@ export interface InlineActionResult {
   disposition: 'replace' | 'insertAfter' | 'insertAtCaret' | 'information'
   alternatives?: string[]
   asSuggestion?: boolean
+  sourceLabel?: string
+  sourceUrl?: string
   /** Non-empty aborts the edit; editor.html leaves the selection untouched. */
   error?: string
 }

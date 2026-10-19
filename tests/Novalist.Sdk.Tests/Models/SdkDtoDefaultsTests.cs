@@ -254,6 +254,8 @@ public class SdkDtoDefaultsTests
         var result = new InlineActionResult();
         Assert.Equal(InlineActionDisposition.ReplaceSelection, result.Disposition);
         Assert.Null(result.Error);
+        Assert.Empty(result.SourceLabel);
+        Assert.Empty(result.SourceUrl);
     }
 
     [Fact]
