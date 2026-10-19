@@ -203,6 +203,40 @@ Novalist is an Electron + React front end over a bundled .NET 10 core process (`
 
 Building and running the checks requires the .NET 10 SDK and Node.js 22.13+ on the 22 LTS line, or Node.js 23.2+. The renderer tests use Node's TypeScript stripping API. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
 
+### Development environment with devenv
+
+With [Nix](https://nixos.org/download/) and [devenv](https://devenv.sh/getting-started/)
+installed, enter the pinned development environment from the repository root:
+
+```bash
+devenv shell
+# Alternatively, with direnv installed: direnv allow
+
+dotnet build novalist-official.sln
+dotnet test novalist-official.sln --no-build
+npm --prefix app ci
+npm --prefix app run typecheck
+npm --prefix app run dev
+```
+
+The environment provides the .NET 10 SDK, Node.js 22 with npm, Git and Python
+for the repository's tooling. On Linux it also supplies a Nix-patched Electron
+42 binary and skips npm's Electron download. The Electron major version in
+`devenv.nix` should follow `app/package.json`. On macOS, npm installs Electron
+normally.
+
+On Linux, run `npm run dev` inside `devenv shell` (or through direnv): the shell
+sets both Electron's distribution override and electron-vite's executable
+override so the development launcher uses the Nix binary.
+
+For Rider, select `.devenv/state/dotnet` as the .NET CLI directory after entering
+the shell once. Keep `devenv.lock` committed so contributors resolve the same
+Nix inputs. App dependencies are installed explicitly with `npm ci`; entering
+the shell does not install them. The iOS app still requires macOS, Xcode and
+the MAUI/iOS workloads described in its platform-specific documentation.
+
+### Using an existing toolchain
+
 ```
 # build the backend the app spawns, then run the app in development
 dotnet build Novalist.Backend/Novalist.Backend.csproj
