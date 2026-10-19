@@ -20,11 +20,9 @@
       "env": {
         "ELECTRON_RUN_AS_NODE": null,
         "REMOTE_DEBUGGING_PORT": "9222",
-        // Force the version the update check treats as "installed". Set to an
-        // older version (e.g. "1.0.0") to make the app detect the latest GitHub
-        // release as an update and exercise the self-update flow. Empty = use the
-        // real build version (no forcing).
-        "NOVALIST_FORCE_VERSION": "3.3.0",
+        // Overrides update checks and extension compatibility. Leave empty for
+        // the real build version; set an older version only when testing updates.
+        "NOVALIST_FORCE_VERSION": "",
         "NOVALIST_DISABLE_SELF_UPDATE": "1"
       }
     },

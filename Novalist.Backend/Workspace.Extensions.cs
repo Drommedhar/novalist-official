@@ -21,6 +21,7 @@ public sealed partial class Workspace
                 _hostServices = new Extensions.HostServices(
                     FileService, Projects, new EntityService(Projects), Settings, _uiPump, Editing);
                 _hostServices.NotificationRequested += UiBridge.ShowNotification;
+                _hostServices.ContentViewActivated += (viewKey, _) => UiBridge.ActivateContentView(viewKey);
                 // An extension's write has to reach the screen, or it changed a
                 // file and nothing the writer can see.
                 _hostServices.EntityRefreshRequested += UiBridge.EntitiesChanged;

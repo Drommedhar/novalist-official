@@ -145,4 +145,10 @@ public sealed class InlineActionResult
     /// one costs nothing while it is being considered.
     /// </summary>
     public bool AsSuggestion { get; init; }
+
+    /// <summary>Optional source attribution shown with the result, never inserted into the manuscript.</summary>
+    public string SourceLabel { get; init; } = string.Empty;
+
+    /// <summary>HTTP(S) link to the source entry, including its authorship and licensing information.</summary>
+    public string SourceUrl { get; init; } = string.Empty;
 }

@@ -35,6 +35,8 @@ public sealed class ThrowingExtension : IExtension, IGrammarCheckContributor, ID
     {
         if (Environment.GetEnvironmentVariable("NOVALIST_TEST_THROW_INIT") == "1")
             throw new InvalidOperationException("init boom");
+        if (Environment.GetEnvironmentVariable("NOVALIST_TEST_INLINE_ACTION_GATE") is { Length: > 0 } gate)
+            host.RegisterInlineActionContributor(new GatedInlineAction(gate));
     }
 
     public void Shutdown()
