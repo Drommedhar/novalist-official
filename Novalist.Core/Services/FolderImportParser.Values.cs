@@ -26,6 +26,17 @@ internal sealed partial class FolderImportParser
         }
         if (type == typeof(List<EntitySection>) || type == typeof(List<EntityRelationship>))
             return value is JsonArray ? NormalizeFlags(value) : null;
+        if (field.Definition is { } referenceDefinition && FolderImportSchema.BuiltInType(referenceDefinition) == CustomPropertyType.EntityRefList)
+        {
+            try
+            {
+                return JsonValue.Create(JsonSerializer.Serialize(EntityReferenceList.Parse(value is JsonArray ? value.ToJsonString() : value.ToString())));
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
         var text = Text(value);
         if (text == null) return null;
         if (type == typeof(bool)) return Boolean(text) is { } boolean ? JsonValue.Create(boolean) : null;

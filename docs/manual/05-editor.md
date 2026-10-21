@@ -255,6 +255,8 @@ When all selected **Dictionaries** belong to one language, grammar checking uses
 
 **Add to dictionary** teaches both the native spell checker and the selected grammar checker. Learned words are accepted on subsequent checks and after reopening the app, including with free LanguageTool accounts. Grammar and style suggestions about those words can still appear. Harper also accepts names from the project's Codex.
 
+**Dismiss** ignores the selected occurrence, removes its underline, and updates the count so you can open the next remaining issue. Rechecking unchanged text keeps that occurrence dismissed. Editing the scene or reopening it resets dismissals; use **Add to dictionary** to accept a word permanently.
+
 The provider choice can be overridden per project with the Writing assistance override switch. Switching to Harper keeps your LanguageTool settings for later; Harper does not use that server or account.
 
 On desktop, the spelling and grammar counts and checking progress appear in the status bar below the workspace. Click a count to open an issue in the active scene; in split view, the counts follow the focused editor. On mobile, the counts sit below the writing area so they stay visible without covering your text.

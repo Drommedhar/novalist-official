@@ -47,7 +47,8 @@ function setGrammarIssues(issuesJson, requestId) {
         const { plainText } = buildGrammarPlainTextMap();
         window.NovalistEditorState.grammarIssues = raw.filter(issue => {
             const flaggedText = plainText.substring(issue.offset, issue.offset + issue.length);
-            return !isKnownEntity(flaggedText);
+            return !isKnownEntity(flaggedText)
+                && !window.NovalistEditorState.dismissedGrammarIssues.has(window.grammarIssueKey(issue));
         });
         logToHost("setGrammarIssues: filtered issues count = " + window.NovalistEditorState.grammarIssues.length);
     } catch (ex) {

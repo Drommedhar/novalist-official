@@ -13,8 +13,10 @@ public static class WellKnownPropertyTypes
     public const string Enum = "Enum";
     public const string Timespan = "Timespan";
     public const string EntityRef = "EntityRef";
+    public const string Text = "Text";
+    public const string EntityRefList = "EntityRefList";
 
-    public static readonly string[] All = [String, Int, Bool, Date, Enum, Timespan, EntityRef];
+    public static readonly string[] All = [String, Int, Bool, Date, Enum, Timespan, EntityRef, Text, EntityRefList];
 
     /// <summary>
     /// Resolves a <see cref="CustomPropertyType"/> enum to its string key.

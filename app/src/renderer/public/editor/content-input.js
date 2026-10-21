@@ -5,6 +5,7 @@ let sceneIdentity = '';
 function setSceneContext(id) {
     if (id === sceneIdentity) return;
     sceneIdentity = id;
+    window.NovalistEditorState.dismissedGrammarIssues.clear();
     window.NovalistEditorState.imageTargetBlock = null;
     window.NovalistEditorState.pendingInlineAction = null;
     // Two scenes can have identical HTML, in which case the host does not call
@@ -144,6 +145,7 @@ function isCompositionInput(event) {
 
 function handleEditorInput(event) {
     if (window.NovalistEditorState.isSettingContent || isCompositionInput(event)) return;
+    window.NovalistEditorState.dismissedGrammarIssues.clear();
     if (event && event.inputType === 'insertParagraph') {
         // Chromium clones inline spans into the empty paragraph after Enter.
         // A comment belongs to its words, not to the new paragraph. Keep the

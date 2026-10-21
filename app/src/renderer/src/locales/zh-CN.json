@@ -2450,6 +2450,11 @@
     "filterListNone": "整本书"
   },
   "entityTypeManager": {
+    "textType": "多行文本",
+    "referenceListType": "引用列表",
+    "unavailableReference": "条目不可用",
+    "invalidReferenceList": "此引用列表无效。请清空后重新选择条目。",
+    "clearReferences": "清空引用",
     "displayName": "显示名称",
     "displayNameWatermark": "例如：派系",
     "pluralName": "复数名称",

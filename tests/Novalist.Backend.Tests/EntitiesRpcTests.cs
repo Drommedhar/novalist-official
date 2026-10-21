@@ -825,6 +825,87 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task ReferenceLists_KeepEntryIdentityAndReadableLinksAfterReopenAndRename()
+    {
+        var first = (await _rpc.CreateAsync("character", "Mira, the Brave")).GetProperty("id").GetString()!;
+        var second = (await _rpc.CreateAsync("character", "Örn")).GetProperty("id").GetString()!;
+        var members = JsonSerializer.Serialize(new[] { first, second });
+        await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto("guild", "Guild", "Guilds", [
+            new("Members", "Members", "EntityRefList", members, ["character"], false),
+            new("History", "History", "Text", "First line.\nSecond line.", null, false)
+        ], true, false, false));
+        var id = (await _rpc.CreateAsync("guild", "Watch")).GetProperty("id").GetString()!;
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        var fields = (await _rpc.GetAsync("guild", id)).GetProperty("fields");
+        Assert.Equal("First line.\nSecond line.", fields.GetProperty("History").GetString());
+        Assert.Equal(members, fields.GetProperty("Members").GetString());
+
+        var wiki = new WikiRpc(_workspace);
+        Assert.Equal("First line.\nSecond line.", Assert.Single(await _rpc.ListAsync("guild")).Detail);
+        var indexed = (await wiki.IndexAsync()).Scopes.SelectMany(scope => scope.Types).Single(type => type.TypeKey == "guild");
+        Assert.Equal("First line.\nSecond line.", Assert.Single(indexed.Entries).Subtitle);
+        var article = await wiki.ArticleAsync("guild", id);
+        var links = Assert.Single(article.Relationships).Targets;
+        Assert.Equal(new[] { first, second }, links.Select(link => link.EntityId));
+        Assert.Equal(new[] { "Mira, the Brave", "Örn" }, links.Select(link => link.Name));
+        Assert.Contains((await wiki.ArticleAsync("character", first)).ReferencedBy, reference => reference.EntityId == id);
+        await _rpc.UpdateAsync("character", first, new() { ["name"] = "Renamed Mira" });
+        var peek = await _rpc.PeekAsync("guild", id);
+        Assert.Equal("Renamed Mira", Assert.Single(peek.Relationships).Targets[0].Name);
+        Assert.Equal(first, Assert.Single(peek.Relationships).Targets[0].EntityId);
+        await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto("guild", "Guild", "Guilds", [
+            new("Members", "Members", "EntityRefList", "[]", ["location"], false)
+        ], true, false, false));
+        Assert.Empty(Assert.Single((await wiki.ArticleAsync("guild", id)).Relationships).Targets);
+        Assert.DoesNotContain((await wiki.ArticleAsync("character", first)).ReferencedBy, reference => reference.EntityId == id);
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("[null]")]
+    [InlineData("[1]")]
+    [InlineData("not a list")]
+    public async Task ReferenceLists_RejectInvalidValuesWithoutChangingTheEntry(string invalid)
+    {
+        await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto("guild", "Guild", "Guilds", [
+            new("Members", "Members", "EntityRefList", "[]", ["character"], false)
+        ], false, false, false));
+        var id = (await _rpc.CreateAsync("guild", "Watch")).GetProperty("id").GetString()!;
+        await Assert.ThrowsAsync<JsonException>(() => _rpc.UpdateAsync("guild", id, new() { ["Members"] = invalid }));
+        Assert.Equal("[]", (await _rpc.GetAsync("guild", id)).GetProperty("fields").GetProperty("Members").GetString());
+    }
+
+    [Fact]
+    public async Task CustomImages_SurviveReopenAndSupportGalleryEdits()
+    {
+        await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            "guild", "Guild", "Guilds", [], true, false, false));
+        var id = (await _rpc.CreateAsync("guild", "Watch")).GetProperty("id").GetString()!;
+        var source = Path.Combine(_root, "crest.png");
+        await File.WriteAllBytesAsync(source, [137, 80, 78, 71]);
+        var added = await _rpc.AddImageAsync("guild", id, source, import: true);
+        var path = added.GetProperty("images")[0].GetProperty("path").GetString()!;
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        var image = (await _rpc.GetAsync("guild", id)).GetProperty("images")[0];
+        Assert.Equal(path, image.GetProperty("path").GetString());
+        Assert.EndsWith("/Images/crest.png", image.GetProperty("url").GetString());
+
+        await _rpc.RenameImageAsync("guild", id, path, "Guild crest");
+        await _rpc.SetImageAltAsync("guild", id, path, "A silver tower");
+        await _rpc.ReplaceImageAsync("guild", id, path, "Images/second.png");
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        image = (await _rpc.GetAsync("guild", id)).GetProperty("images")[0];
+        Assert.Equal("Guild crest", image.GetProperty("name").GetString());
+        Assert.Equal("A silver tower", image.GetProperty("alt").GetString());
+        Assert.Equal("Images/second.png", image.GetProperty("path").GetString());
+
+        await _rpc.RemoveImageAsync("guild", id, "Images/second.png");
+        await _rpc.AddImageAsync("guild", id, path, import: false);
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        Assert.Equal(path, (await _rpc.GetAsync("guild", id)).GetProperty("images")[0].GetProperty("path").GetString());
+    }
+
+    [Fact]
     public async Task SetImageAlt_DescribesTheImageWithoutRenamingIt()
     {
         var id = (await _rpc.CreateAsync("character", "Mira")).GetProperty("id").GetString()!;

@@ -2010,6 +2010,11 @@
     "filterListNone": "Das ganze Buch"
   },
   "entityTypeManager": {
+    "textType": "Mehrzeiliger Text",
+    "referenceListType": "Verweisliste",
+    "unavailableReference": "Nicht verfügbarer Eintrag",
+    "invalidReferenceList": "Diese Verweisliste ist ungültig. Leere sie, um erneut Einträge auszuwählen.",
+    "clearReferences": "Verweise löschen",
     "displayName": "Anzeigename",
     "displayNameWatermark": "z.B. Fraktion",
     "pluralName": "Pluralname",

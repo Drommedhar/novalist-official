@@ -118,7 +118,7 @@ A place cannot be dropped **inside its own subtree** — into a child, a grandch
 This is what a project with two settings needs: without it, two worlds are two unrelated piles of places and nothing says which is which.
   - **Items** have name, type, origin, and description.
   - **Lore** has name, a **category** dropdown (Organization, Culture, History, Other), and description.
-  - **Custom types** render the typed fields you declared for them: a text box for String, a number box for Int, a date picker for Date, a dropdown for Bool and Enum, and a picker for EntityRef.
+  - **Custom types** render the typed fields you declared for them: a text box for String, a plain text area for Multiline text, a number box for Int, a date picker for Date, a dropdown for Bool and Enum, a picker for EntityRef, and checkboxes for a Reference list.
 - **Images** — the entity's image strip. **From gallery** picks an existing project image; **Import file** copies a new file into the project; **Paste from clipboard** pastes a copied image; **From URL** downloads an image from a web address. Each image has an editable **name**, a **swap** button (replace it with another gallery image), and a remove button. The first image is the thumbnail used in the list and in the editor's hover cards.
 - **Custom properties** — typed key-value pairs. Each renders with a type-aware control: checkbox for Bool, number input for Int, date picker for Date, dropdown for Enum, text for String. Types and defaults come from the entity's template or type definition; you can also add ad-hoc properties and delete any of them.
 - **Chapter overrides** (characters only) — see below.
@@ -293,11 +293,15 @@ Every packed field carries the question it is for, and that question stays on th
 
 1. Click **New Entity Type**.
 2. Enter a **Display Name** (e.g. "Faction") and optionally a **Plural Name** ("Factions" — auto-generated if empty).
-3. Define its **Fields** — each has a name, a type (String, Int, Bool, Date, Enum, Timespan, or EntityRef — a link to another entity), an optional default value, for Enum a comma-separated option list, for **EntityRef** a target-type picker choosing which entity type it links to, and a **Required** flag.
+3. Define its **Fields** — each has a name, a type (String, Multiline text, Int, Bool, Date, Enum, Timespan, EntityRef, or Reference list), an optional default value, and a **Required** flag. Enum offers a comma-separated option list. EntityRef and Reference list offer a target-type picker, including your other custom types.
 4. Choose its **Features**: **Include Images**, **Include Relationships**, **Include Sections**.
 5. Confirm with **OK**.
 
 The new type appears as a tab in the Codex, gets its own folder in the book, can have its own [templates](07-templates.md), and can be referenced by other entities through EntityRef fields. Edit or delete user-defined types from the same dialog — deleting a type deletes its entities, and you are asked to confirm.
+
+The type editor wraps its field controls to keep them readable. Drag its bottom-right corner to resize it; long forms scroll inside the window.
+
+**Multiline text** preserves line breaks as plain text. **Reference list** lets you check several entries of the selected type and uncheck them to remove a reference. Both support defaults and guided creation. Reference lists keep their links after an entry is renamed, including names with commas. Wiki articles and focus previews show the linked entries by name. A deleted or unavailable target remains removable from the list as **Unavailable entry**.
 
 Extensions can also contribute entity types; those appear alongside user-defined ones but are managed by the extension, not the type manager. See [Extensions](24-extensions.md).
 

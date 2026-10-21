@@ -86,7 +86,7 @@ English and German **dictation** writes directly at the editor caret. Built-in s
 - **Locations** with hierarchical parents, types, and custom fields.
 - **Items** with origin, type, and description.
 - **Lore** entries for magic systems, religions, history, in-world books.
-- **Custom entity types** — define your own (Factions, Spells, Vehicles, Races, …) with custom field schemas.
+- **Custom entity types** — define your own (Factions, Spells, Vehicles, Races, …) with custom field schemas, plain multiline text, and lists of linked entries.
 - **Templates** per entity type with default sections, custom properties, and field defaults.
 - **Sections** of long-form content per entity, written in a formatted text box: headings, bold, lists, and links are styled as you type and their syntax stays hidden until you edit the line, with a toolbar so you never need to learn it. Stored as plain Markdown.
 - **Relationships** with auto-learned inverse-role pairs and inverse-prompting on new relationships.

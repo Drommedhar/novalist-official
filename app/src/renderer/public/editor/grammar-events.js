@@ -1,6 +1,7 @@
 'use strict';
 
 let grammarIssues = [];
+const dismissedGrammarIssues = new Set();
 
 let grammarCheckTimer = null;
 
@@ -43,7 +44,7 @@ window.NovalistEditorState.editor.addEventListener('click', (e) => {
 });
 
 // Dismiss button
-grammarPopup.querySelector('.gp-dismiss').addEventListener('click', window.hideGrammarPopup);
+grammarPopup.querySelector('.gp-dismiss').addEventListener('click', window.dismissGrammarIssue);
 
 // Hide popup on scroll or outside click
 window.NovalistEditorState.wrapper.addEventListener('scroll', window.hideGrammarPopup);
@@ -107,6 +108,7 @@ window.NovalistEditorState.editor.addEventListener('mousedown', (e) => {
 
 Object.defineProperties(window.NovalistEditorState, {
     grammarIssues: { get() { return grammarIssues; }, set(value) { grammarIssues = value; } },
+    dismissedGrammarIssues: { get() { return dismissedGrammarIssues; } },
     grammarEnabled: { get() { return grammarEnabled; }, set(value) { grammarEnabled = value; } },
     grammarRequestId: { get() { return grammarRequestId; }, set(value) { grammarRequestId = value; } },
     pendingGrammarRequest: { get() { return pendingGrammarRequest; }, set(value) { pendingGrammarRequest = value; } },

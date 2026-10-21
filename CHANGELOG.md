@@ -23,12 +23,16 @@ could encounter in a previously released version.
 
 ### Added
 
+- **Custom Codex fields** — add plain multiline text and lists of references to entries of a chosen type, with defaults, guided creation, and a resizable type editor. Reference lists stay linked when entries are renamed.
 - **Support Novalist** — an optional Bookshelf notice and Help menu entry open a popup with Patreon and Ko-fi links. Hide the notice for 30 days or permanently; your choice survives restarts and updates.
 - Editor extension actions show their name and an animated progress bar while running, with a Cancel button.
 - Toolkit dictionary and thesaurus support German and English using the project's writing language, with source links beside results.
 
 ### Fixed
 
+- Dismissing a spelling or grammar issue removes that occurrence from the count, allowing the next issue to open. It stays dismissed until the scene is edited or reopened.
+- Images attached to custom Codex entries now save and remain available when the project is reopened.
+- Custom-type field controls remain readable in narrow windows, wrapping to fit instead of squeezing text fields.
 - Dictionary lookups and other editor extension actions no longer fail with an “Unable to find method” error.
 - Toolkit lookups use Wiktionary directly, avoiding the previous dictionary service's stalled requests. Timeouts and service errors are reported separately from missing words.
 - Clicking Toolkit's Sprint status-bar item opens its sprint controls; extension commands can open their content views again.

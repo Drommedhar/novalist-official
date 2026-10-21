@@ -29,6 +29,7 @@ function setContent(html) {
     window.hideGrammarPopup();
     window.hideContextMenu();
     window.NovalistEditorState.grammarIssues = [];
+    window.NovalistEditorState.dismissedGrammarIssues.clear();
     // Captured before the write and compared after it, so the browser has
     // normalised both sides and the comparison is honest.
     const previous = window.NovalistEditorState.editor.innerHTML;
