@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from './projectStore'
 import { loadBookScoped } from './bookScopedLoad'
+import { metadataBinding } from '../collaboration/SharedMetadataField'
+import { writeSharedMetadata } from '../collaboration/metadataCommands'
 
 export interface SceneStage {
   key: string
@@ -41,6 +43,9 @@ export const useStageStore = create<StageState>((set, get) => ({
   },
 
   setSceneStage: async (chapterGuid, sceneId, key) => {
+    const scene = useProjectStore.getState().chapters.find(chapter => chapter.guid === chapterGuid)?.scenes.find(scene => scene.id === sceneId)
+    const binding = metadataBinding(scene, 'stage')
+    if (binding) { await writeSharedMetadata(binding, key); return }
     const state = await rpc.request<ProjectStateDto>('stages/setSceneStage', [
       chapterGuid,
       sceneId,

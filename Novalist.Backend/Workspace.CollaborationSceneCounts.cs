@@ -7,7 +7,7 @@ namespace Novalist.Backend;
 
 public sealed partial class Workspace
 {
-    private async Task<bool> RecordInactiveSharedSceneAsync(string root, string relative, string html, bool local)
+    private async Task<bool> RecordInactiveSharedSceneAsync(string root, string relative, string html)
     {
         foreach (var book in Projects.CurrentProject?.Books ?? [])
         {
@@ -17,14 +17,13 @@ public sealed partial class Workspace
             {
                 if (!relative.StartsWith(draft + '/' + book.ChapterFolder + '/', StringComparison.OrdinalIgnoreCase)) continue;
                 var manifest = draft + (book.Drafts.Count == 0 ? "/.book/scenes.json" : "/scenes.json");
-                return await SaveInactiveSceneCountAsync(root, relative, manifest, book.Id, html, local);
+                return await SaveInactiveSceneCountAsync(root, relative, manifest, html);
             }
         }
         return false;
     }
 
-    private async Task<bool> SaveInactiveSceneCountAsync(string root, string relative, string manifest,
-        string bookId, string html, bool local)
+    private async Task<bool> SaveInactiveSceneCountAsync(string root, string relative, string manifest, string html)
     {
         var path = SharedProjectPath.Resolve(root, manifest);
         if (!await FileService.ExistsAsync(path)) return false;
@@ -36,8 +35,6 @@ public sealed partial class Workspace
             .OfType<JsonObject>().SingleOrDefault(scene => scene["id"]?.GetValue<string>() == id);
         if (scene is null) return false;
         var count = CountWords(Core.Utilities.TextDiff.StripHtml(SharedBlockBoundary().Replace(html, "\n")));
-        if (local) await WordHistory.RecordSaveAsync(bookId, id, count);
-        else await WordHistory.RecordBaselineAsync(bookId, id, count);
         if (scene["wordCount"]?.GetValue<int>() != count)
         {
             scene["wordCount"] = count;

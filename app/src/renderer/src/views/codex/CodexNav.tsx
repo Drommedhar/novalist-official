@@ -6,6 +6,10 @@ import { ContextMenu, type ContextMenuItem } from '../../shell/ContextMenu'
 import { MotionPresence } from '../../shell/MotionPresence'
 import { useProjectStore } from '../../stores/projectStore'
 import { rpc } from '../../rpc/client'
+import { metadataBinding } from '../../collaboration/SharedMetadataField'
+import { writeSharedField, writeSharedMetadata } from '../../collaboration/metadataCommands'
+import type { SharedEntityFields } from '../../collaboration/FocusedField'
+import { useHostBridgeStore } from '../../stores/hostBridgeStore'
 
 /** Character grouping mode for the navigation column. */
 type GroupMode = 'role' | 'group'
@@ -95,6 +99,7 @@ export function CodexNav({
   const [groupMode, setGroupMode] = useState<GroupMode>('role')
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [menu, setMenu] = useState<{ x: number; y: number; entity: EntitySummary } | null>(null)
+  const menuEntity = entities.find(entity => entity.id === menu?.entity.id)
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -105,6 +110,18 @@ export function CodexNav({
   const openContext = (e: React.MouseEvent, entity: EntitySummary): void => {
     e.preventDefault()
     setMenu({ x: e.clientX, y: e.clientY, entity })
+  }
+
+  const changeFlag = async (entity: EntitySummary, key: 'locked' | 'isWorld'): Promise<void> => {
+    try {
+      const record = await rpc.request<{ sharedFields?: SharedEntityFields }>('entities/get', [entityType, entity.id])
+      const binding = metadataBinding(record, key)
+      if (binding) {
+        if (!await writeSharedMetadata<boolean>(binding, previous => !previous)) return
+      } else if (key === 'locked') await rpc.request('entities/setLocked', [entityType, entity.id, !entity.locked])
+      else await rpc.request('entities/setIsWorld', [entity.id, !entity.isWorld])
+      await useCodexStore.getState().refresh()
+    } catch (error) { useHostBridgeStore.getState().pushToast(String(error)) }
   }
 
   const menuItems = (entity: EntitySummary): ContextMenuItem[] => [
@@ -118,11 +135,7 @@ export function CodexNav({
       ? [
           {
             label: entity.isWorld ? t('codexHub.unmarkWorld') : t('codexHub.markAsWorld'),
-            onClick: () => {
-              void rpc
-                .request('entities/setIsWorld', [entity.id, !entity.isWorld])
-                .then(() => void useCodexStore.getState().refresh())
-            }
+            onClick: () => { void changeFlag(entity, 'isWorld') }
           }
         ]
       : []),
@@ -131,11 +144,7 @@ export function CodexNav({
     // rather than a typo.
     {
       label: entity.locked ? t('codexHub.unlock') : t('codexHub.lock'),
-      onClick: () => {
-        void rpc
-          .request('entities/setLocked', [entityType, entity.id, !entity.locked])
-          .then(() => void useCodexStore.getState().refresh())
-      }
+      onClick: () => { void changeFlag(entity, 'locked') }
     },
     { label: t('explorer.contextDelete'), danger: true, onClick: () => onDelete(entity) }
   ]
@@ -202,9 +211,13 @@ export function CodexNav({
     if (!id) return
     const child = entities.find((e) => e.id === id)
     if (!child || child.name === parentName) return
-    void rpc
-      .request<boolean>('entities/setParent', [id, parentName])
-      .then((moved) => moved && void useCodexStore.getState().refresh())
+    void (async () => {
+      const record = await rpc.request<{ sharedFields?: SharedEntityFields }>('entities/get', ['location', id])
+      const binding = metadataBinding(record, 'parent')
+      const moved = binding ? await writeSharedField(binding, parentName ?? '')
+        : await rpc.request<boolean>('entities/setParent', [id, parentName])
+      if (moved) await useCodexStore.getState().refresh()
+    })().catch(error => useHostBridgeStore.getState().pushToast(String(error)))
   }
 
   const renderTree = (): React.JSX.Element[] => {
@@ -299,11 +312,11 @@ export function CodexNav({
         <Plus size={14} strokeWidth={2} />
         {t('codexHub.newEntry')}
       </button>
-      <MotionPresence disabled={suspendMotion}>{menu && (
+      <MotionPresence disabled={suspendMotion}>{menu && menuEntity && (
         <ContextMenu
           x={menu.x}
           y={menu.y}
-          items={menuItems(menu.entity)}
+          items={menuItems(menuEntity)}
           onClose={() => setMenu(null)}
         />
       )}</MotionPresence>
