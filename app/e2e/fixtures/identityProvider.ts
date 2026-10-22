@@ -2,7 +2,7 @@ import { createHash, generateKeyPairSync, randomUUID, sign } from 'node:crypto'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import { once } from 'node:events'
 
-export async function identityProvider(subject: () => string = () => 'writer'): Promise<{ address: string; close(): Promise<void> }> {
+export async function identityProvider(subject: () => string = () => 'writer', displayName: (subject: string) => string = () => 'Test Writer'): Promise<{ address: string; close(): Promise<void> }> {
   const keys = generateKeyPairSync('rsa', { modulusLength: 2048 })
   const publicKey = { ...keys.publicKey.export({ format: 'jwk' }), kid: 'test', alg: 'RS256', use: 'sig' }
   const codes = new Map<string, { challenge: string; redirect: string; nonce: string; subject: string }>()
@@ -33,7 +33,7 @@ export async function identityProvider(subject: () => string = () => 'writer'): 
     const now = Math.floor(Date.now() / 1000)
     const encoded = (value: unknown): string => Buffer.from(JSON.stringify(value)).toString('base64url')
     const unsigned = encoded({ alg: 'RS256', kid: 'test', typ: 'JWT' }) + '.' +
-      encoded({ iss: address, aud: 'novalist', sub: identity.subject, name: 'Test Writer', nonce: identity.nonce, iat: now, exp: now + 300 })
+      encoded({ iss: address, aud: 'novalist', sub: identity.subject, name: displayName(identity.subject), nonce: identity.nonce, iat: now, exp: now + 300 })
     const signature = sign('RSA-SHA256', Buffer.from(unsigned), keys.privateKey).toString('base64url')
     const refresh = randomUUID()
     refreshTokens.set(refresh, identity.subject)
