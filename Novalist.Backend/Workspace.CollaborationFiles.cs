@@ -34,9 +34,10 @@ public sealed partial class Workspace
         }
     }
 
-    internal async Task FlushSharedProjectFilesAsync()
+    internal async Task FlushSharedProjectFilesAsync(bool pendingOnly = false)
     {
         if (projectingSharedFiles || sharedProjectFiles is not { } files || sharedRoot is not { } root) return;
+        if (pendingOnly && sharedPendingWrites.Count == 0 && !sharedWriteRejected) return;
         var ct = CancellationToken.None;
         var canonical = await files.SnapshotAsync(ct);
         var current = await ReadSharedFilesAsync(root, ct);
@@ -47,6 +48,7 @@ public sealed partial class Workspace
         {
             var before = previous.GetValueOrDefault(path);
             var after = current.GetValueOrDefault(path);
+            if (SameSharedFileContent(path, before, after)) continue;
             var reference = canonical.GetValueOrDefault(path);
             if (before is not null) before = MaskSeparatelySharedContent(path, before, reference);
             if (after is not null) after = MaskSeparatelySharedContent(path, after, reference);
@@ -66,7 +68,7 @@ public sealed partial class Workspace
                 throw;
             }
         }
-        sharedDiskFiles = await ReadSharedFilesAsync(root, ct);
+        sharedDiskFiles = changes.Count == 0 ? current : await ReadSharedFilesAsync(root, ct);
         sharedPendingWrites.Clear();
     }
 

@@ -131,10 +131,10 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
         return rpc;
     }
 
-    private async Task AfterWorkspaceRequestAsync()
+    private async Task AfterWorkspaceRequestAsync(string? method)
     {
 #if NOVALIST_COLLABORATION
-        await _workspace.FlushSharedProjectFilesAsync();
+        await _workspace.FlushSharedProjectFilesAsync(pendingOnly: method != "system/barrier");
 #endif
         await _importApi.StopIfScopeChangedAsync();
     }

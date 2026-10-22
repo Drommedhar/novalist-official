@@ -105,6 +105,7 @@ public sealed partial class Workspace
         var binding = fieldBindings[item];
         if (retiredSharedBindings.Contains(item)) throw new InvalidOperationException("The shared metadata item was deleted or changed type.");
         var path = SharedProjectPath.Resolve(sharedRoot ?? throw new InvalidOperationException("The shared project is no longer open."), binding.Path);
+        await ValidateSharedWriteAsync(path, null, structural: false);
         var entity = JsonNode.Parse(await FileService.ReadTextAsync(path)) as JsonObject
             ?? throw new InvalidDataException("The shared Codex entry is invalid.");
         if (entity[PropertyName(entity, "locked")]?.GetValue<bool>() == true && !(binding.Metadata?.Kind == "codex" && binding.Key == "locked"))

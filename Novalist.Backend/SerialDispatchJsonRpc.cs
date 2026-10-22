@@ -150,10 +150,10 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
     ];
 
     private readonly SemaphoreSlim _gate;
-    private readonly Func<Task>? _afterRequest;
+    private readonly Func<string?, Task>? _afterRequest;
     private readonly WorkspaceCoordinator? _coordinator;
 
-    public SerialDispatchJsonRpc(IJsonRpcMessageHandler handler, SemaphoreSlim? gate = null, Func<Task>? afterRequest = null,
+    public SerialDispatchJsonRpc(IJsonRpcMessageHandler handler, SemaphoreSlim? gate = null, Func<string?, Task>? afterRequest = null,
         WorkspaceCoordinator? coordinator = null) : base(handler)
     {
         _gate = gate ?? new SemaphoreSlim(1, 1);
@@ -224,7 +224,7 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         CancellationToken cancellationToken)
     {
         try { return await base.DispatchRequestAsync(request, targetMethod, cancellationToken).ConfigureAwait(false); }
-        finally { if (_afterRequest is not null) await _afterRequest().ConfigureAwait(false); }
+        finally { if (_afterRequest is not null) await _afterRequest(request.Method).ConfigureAwait(false); }
     }
 
     private static JsonRpcError WorkspaceError(JsonRpcRequest request, Exception error) => new()

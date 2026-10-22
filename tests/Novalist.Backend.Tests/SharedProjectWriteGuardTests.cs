@@ -348,6 +348,23 @@ public sealed class SharedProjectWriteGuardTests
     }
 
     [Fact]
+    public async Task ReadOnlyProjectRequestsDoNotWaitForUnrelatedSharedFiles()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var path = Path.Combine(fixture.Root, fixture.Scene.Path);
+        await using (var unavailable = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            for (var read = 0; read < 5; read++)
+            {
+                var state = await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/getState")
+                    .WaitAsync(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+                Assert.Single(Assert.Single(state.Chapters).Scenes);
+            }
+        }
+        Assert.True(await fixture.Desktop.InvokeAsync<bool>("system/barrier"));
+    }
+
+    [Fact]
     public async Task UntrackedDiskEditsAreRecoveredAndAfterRequestErrorsDoNotBreakRpc()
     {
         await using var fixture = await SharedProjectFixture.StartAsync();

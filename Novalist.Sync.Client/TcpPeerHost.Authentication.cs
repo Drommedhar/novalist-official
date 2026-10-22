@@ -7,6 +7,7 @@ public sealed partial class TcpPeerHost
 {
     private readonly Dictionary<string, Invitation> invitations = [];
     private readonly Dictionary<Guid, byte[]> members = [];
+    private readonly Dictionary<Guid, byte[]> removedMemberCertificates = [];
     private sealed record Invitation(DateTimeOffset ExpiresAt, Guid? ClaimedBy = null);
 
     public PeerProjectAccess CreateOwnerAccess(string advertisedHost)
@@ -82,6 +83,12 @@ public sealed partial class TcpPeerHost
         {
             invitations[hash] = invitation with { ClaimedBy = hello.DeviceId };
             return existing;
+        }
+        if (removedMemberCertificates.Remove(hello.DeviceId, out var priorCertificate))
+        {
+            invitations[hash] = invitation with { ClaimedBy = hello.DeviceId };
+            members[hello.DeviceId] = priorCertificate;
+            return priorCertificate;
         }
         using var delegation = Key.Create(SignatureAlgorithm.Ed25519);
         var grant = membership.CreateInvitation(new(Guid.NewGuid(), DateTimeOffset.UtcNow.AddMinutes(-1), invitation.ExpiresAt),

@@ -60,6 +60,32 @@ public sealed class TcpPeerSessionTests : IDisposable
         await Assert.ThrowsAsync<CryptographicException>(() => TcpPeerTransport.JoinInvitationAsync(extended, stranger, ct));
     }
 
+    [Fact]
+    public async Task RemovedWriterNeedsANewInvitationToRestoreItsPinnedDeviceCertificate()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var owner = await DeviceAsync("owner", ct);
+        using var writer = await DeviceAsync("writer", ct);
+        using var stranger = await DeviceAsync("stranger", ct);
+        await using var host = await TcpPeerHost.StartAsync(new(IPAddress.Loopback, 0), folder,
+            new(Guid.NewGuid(), 0, RandomNumberGenerator.GetBytes(32), owner), ct);
+        var original = host.CreateInvitation("127.0.0.1");
+        await using var joined = await TcpPeerTransport.JoinInvitationAsync(original, writer, ct);
+        var certificate = joined.Access.Certificate;
+        await joined.DisconnectAsync(ct);
+        host.RemoveMember(writer.Id);
+        Assert.DoesNotContain(writer.Id, host.Members());
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => joined.ConnectAsync(ct));
+        await Assert.ThrowsAsync<CryptographicException>(() => TcpPeerTransport.JoinInvitationAsync(original, writer, ct));
+        var replacement = host.CreateInvitation("127.0.0.1");
+        await using var readmitted = await TcpPeerTransport.JoinInvitationAsync(replacement, writer, ct);
+        Assert.Equal(certificate, readmitted.Access.Certificate);
+        Assert.Contains(writer.Id, host.Members());
+        await Assert.ThrowsAsync<CryptographicException>(() => TcpPeerTransport.JoinInvitationAsync(replacement, stranger, ct));
+        await Assert.ThrowsAsync<CryptographicException>(() => TcpPeerTransport.JoinInvitationAsync(original, writer, ct));
+        Assert.True(joined.AccessHasEnded);
+    }
+
     private static Task<DeviceIdentity> DeviceAsync(string subject, CancellationToken ct)
     {
         var credentials = Substitute.For<ICollaborationCredentials>();

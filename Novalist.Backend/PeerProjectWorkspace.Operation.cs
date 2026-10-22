@@ -38,6 +38,7 @@ internal sealed partial class PeerProjectWorkspace
         async Task CaptureAsync()
         {
             if (current != runtime) throw new InvalidOperationException("The host ended this collaboration session.");
+            await workspace.FlushSharedProjectFilesAsync();
             await runtime.Session.Updates.CaptureSnapshotAsync(async (sequence, token) =>
             {
                 var directory = Path.Combine(storage, "sessions", runtime.Id.ToString("N"), "bootstrap");
