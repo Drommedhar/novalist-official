@@ -50,6 +50,15 @@ public sealed class SharedProjectFiles : IAsyncDisposable
             foreach (var (path, content) in initial)
                 files.Add(path, await FilterContentAsync(path, content, ct));
             SharedProjectFileBindings.Validate(initialState, files);
+            if (initialState.FileBaselines is { } baselines)
+            {
+                foreach (var (path, content) in baselines)
+                {
+                    if (!files.ContainsKey(path) || content is null) throw new InvalidDataException("A canonical shared project file is missing.");
+                    files[path] = await FilterContentAsync(path, content, ct);
+                }
+                await CheckpointStorageReferences.ValidateAsync(files, ct);
+            }
             state = SharedProjectFileBindings.Copy(initialState);
             started = true;
             session.CommittedHistoryChanged += Enqueue;

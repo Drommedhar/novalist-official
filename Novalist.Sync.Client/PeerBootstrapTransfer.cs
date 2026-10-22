@@ -19,7 +19,7 @@ public static class PeerBootstrapTransfer
         var manifest = await ReadManifestAsync(transport, ct);
         var matches = await CompareAsync(destination, manifest, meter, ct);
         var bytes = manifest.Files.Where(file => !matches.Contains(file.Path)).Sum(file => file.Length) +
-            (manifest.Documents ?? []).Sum(document => document.Length);
+            (manifest.Documents ?? []).Sum(document => document.Length) + (manifest.Baselines ?? []).Sum(baseline => baseline.Length);
         meter.Report("comparing", matches.Count, manifest.Files.Count, 0, bytes, matches.Count);
         reconstructedArchive.SetLength(0);
         using (var archive = new ZipArchive(reconstructedArchive, ZipArchiveMode.Create, leaveOpen: true))
@@ -40,6 +40,12 @@ public static class PeerBootstrapTransfer
                 var name = $"state/{document.ItemId:N}";
                 await using var target = archive.CreateEntry(name, CompressionLevel.Fastest).Open();
                 await DownloadEntryAsync(transport, name, document.Length, document.Sha256, target, meter.AddBytes, ct);
+            }
+            foreach (var baseline in manifest.Baselines ?? [])
+            {
+                var name = CheckpointBaselines.EntryName(baseline.Path);
+                await using var target = archive.CreateEntry(name, CompressionLevel.Fastest).Open();
+                await DownloadEntryAsync(transport, name, baseline.Length, baseline.Sha256, target, meter.AddBytes, ct);
             }
             await using var metadata = archive.CreateEntry("manifest.json", CompressionLevel.Fastest).Open();
             await JsonSerializer.SerializeAsync(metadata, manifest, cancellationToken: ct);

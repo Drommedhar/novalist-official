@@ -21,6 +21,7 @@ internal sealed class PeerBootstrapArchive : IDisposable
         Description = description;
         entries = manifest.Files.Select(file => "files/" + file.Path)
             .Concat((manifest.Documents ?? []).Select(document => $"state/{document.ItemId:N}"))
+            .Concat((manifest.Baselines ?? []).Select(baseline => CheckpointBaselines.EntryName(baseline.Path)))
             .Append("manifest.json").ToHashSet(StringComparer.Ordinal);
     }
 

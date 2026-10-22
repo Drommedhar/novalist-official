@@ -98,7 +98,7 @@ public sealed class PeerBootstrapTests : IDisposable
         Assert.Equal("Scene content", await File.ReadAllTextAsync(Path.Combine(destination, "Book/scene.txt"), ct));
         Assert.Equal("New", await File.ReadAllTextAsync(Path.Combine(destination, "Book/new.txt"), ct));
         Assert.False(File.Exists(Path.Combine(destination, "Book/offline.txt")));
-        var recovery = Assert.Single(Directory.GetDirectories(Path.Combine(destination, ".novalist/recovered-joins")));
+        var recovery = Assert.Single(Directory.GetDirectories(Path.Combine(destination, "Recovered edits")));
         Assert.Equal("My offline scene", await File.ReadAllTextAsync(Path.Combine(recovery, "Book/scene.txt"), ct));
         Assert.Equal("My offline addition", await File.ReadAllTextAsync(Path.Combine(recovery, "Book/offline.txt"), ct));
         Assert.Equal("Private git configuration", await File.ReadAllTextAsync(Path.Combine(destination, ".git/config"), ct));
@@ -169,7 +169,7 @@ public sealed class PeerBootstrapTests : IDisposable
         await Assert.ThrowsAsync<InvalidDataException>(() => PeerBootstrapTransfer.DownloadAsync(transport, destination, reconstructed, null, ct));
 
         Assert.Equal("Local original", await File.ReadAllTextAsync(Path.Combine(destination, "Book/scene.txt"), ct));
-        Assert.False(Directory.Exists(Path.Combine(destination, ".novalist/recovered-joins")));
+        Assert.False(Directory.Exists(Path.Combine(destination, "Recovered edits")));
     }
 
     [Fact]
@@ -305,6 +305,45 @@ public sealed class PeerBootstrapTests : IDisposable
         await Assert.ThrowsAsync<InvalidDataException>(() => PeerBootstrapTransfer.DownloadAsync(transport, destination, reconstructed, null, ct));
 
         Assert.Equal("Private original", await File.ReadAllTextAsync(Path.Combine(outside, "scene.txt"), ct));
+    }
+
+    [Fact]
+    public async Task MatchingCurrentCopyReceivesOnlyTheSmallCanonicalMergePatch()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var source = await ProjectAsync("owner", ct);
+        var destination = await ProjectAsync("guest", ct);
+        var canonical = System.Text.Encoding.UTF8.GetBytes(new string('x', 1_000_000) + "old");
+        var current = new string('x', 1_000_000) + "latest";
+        await File.WriteAllTextAsync(Path.Combine(source, "Book/prose.txt"), current, ct);
+        await File.WriteAllTextAsync(Path.Combine(destination, "Book/prose.txt"), current, ct);
+        var state = new SharedProjectState([], []) { FileBaselines = new Dictionary<string, byte[]> { ["Book/prose.txt"] = canonical } };
+        var path = Path.Combine(root, "baselines.zip");
+        await using (var output = File.Create(path))
+            await ProjectCheckpoint.CreateAsync(source, output, () => ProjectContentSelection.Read(source), state, ct);
+        using var owner = await DeviceAsync("owner", ct);
+        using var guest = await DeviceAsync("guest", ct);
+        await using var host = await HostAsync(owner, ct);
+        host.SetBootstrap(path);
+        await using var transport = await TcpPeerTransport.JoinInvitationAsync(host.CreateInvitation("127.0.0.1"), guest, ct);
+        using var reconstructed = new MemoryStream();
+        var progress = new TransferProgress();
+
+        var installed = await PeerBootstrapTransfer.DownloadAsync(transport, destination, reconstructed, progress, ct);
+
+        Assert.NotNull(installed.FileBaselines);
+        Assert.Equal(canonical, installed.FileBaselines["Book/prose.txt"]);
+        Assert.Equal(current, await File.ReadAllTextAsync(Path.Combine(destination, "Book/prose.txt"), ct));
+        var complete = Assert.Single(progress.Values, value => value.Phase == "complete");
+        Assert.Equal(3, complete.ReusedFiles);
+        Assert.InRange(complete.CompletedBytes, 1, 128);
+        await using var session = await PeerProjectSession.OpenAsync(Path.Combine(root, "guest-session"), Guid.NewGuid(), transport, guest,
+            transport.BootstrapSequence);
+        await session.StartAsync(false, ct);
+        var actualFiles = await ProjectCheckpoint.ReadFilesAsync(reconstructed, long.MaxValue, ct);
+        await using var files = new SharedProjectFiles(session.Updates, (_, _) => Task.CompletedTask);
+        await files.StartAsync(actualFiles, installed, ct);
+        Assert.Equal(canonical, (await files.SnapshotAsync(ct))["Book/prose.txt"]);
     }
 
     private Task<TcpPeerHost> HostAsync(DeviceIdentity owner, CancellationToken ct) =>

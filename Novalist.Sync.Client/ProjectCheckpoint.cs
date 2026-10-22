@@ -6,7 +6,7 @@ namespace Novalist.Sync.Client;
 
 public sealed record CheckpointFile(string Path, long Length, string Sha256);
 public sealed record CheckpointManifest(int Version, IReadOnlyList<CheckpointFile> Files, IReadOnlyList<CheckpointDocument>? Documents = null,
-    IReadOnlyList<SharedFieldBinding>? Fields = null);
+    IReadOnlyList<SharedFieldBinding>? Fields = null, IReadOnlyList<CheckpointBaseline>? Baselines = null);
 
 public static partial class ProjectCheckpoint
 {
@@ -68,10 +68,12 @@ public static partial class ProjectCheckpoint
             if (!paths.SequenceEqual(selectPaths().Order(StringComparer.Ordinal)))
                 throw new IOException("The project changed while its checkpoint was being created. Try again.");
             var states = await CheckpointDocuments.WriteAsync(archive, files, state.Documents, cancellationToken);
+            var baselines = await CheckpointBaselines.WriteAsync(archive, root, files, state.FileBaselines, cancellationToken);
             ValidateFields(files, states, state.Fields);
             await SharedCodexFields.ReadAsync(root, state.Fields, cancellationToken);
             await using var manifest = archive.CreateEntry("manifest.json", CompressionLevel.Fastest).Open();
-            await JsonSerializer.SerializeAsync(manifest, new CheckpointManifest(states.Any(document => document.TextField is not null) ? 4 : 3, files, states, state.Fields), cancellationToken: cancellationToken);
+            await JsonSerializer.SerializeAsync(manifest, new CheckpointManifest(baselines.Count != 0 ? 5 : states.Any(document => document.TextField is not null) ? 4 : 3,
+                files, states, state.Fields, baselines), cancellationToken: cancellationToken);
             meter.Phase("complete");
         }
         finally
@@ -96,12 +98,13 @@ public static partial class ProjectCheckpoint
         {
             foreach (var file in manifest.Files)
                 await InstallFileAsync(archive, staging, file, cancellationToken);
+            var baselines = await CheckpointBaselines.ReadAsync(archive, staging, manifest.Baselines ?? [], cancellationToken);
             await CheckpointStorageReferences.ValidateAsync(staging, manifest.Files, cancellationToken);
             await SharedCodexFields.ReadAsync(staging, manifest.Fields ?? [], cancellationToken);
             await SharedProjectMetadata.FilterInstalledAsync(staging, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             Directory.Move(staging, destination);
-            return new(states, manifest.Fields ?? []);
+            return new(states, manifest.Fields ?? []) { FileBaselines = baselines };
         }
         finally
         {
@@ -117,7 +120,7 @@ public static partial class ProjectCheckpoint
         var manifest = await JsonSerializer.DeserializeAsync<CheckpointManifest>(stream, cancellationToken: cancellationToken)
             ?? throw new InvalidDataException("Invalid checkpoint manifest.");
         ValidateManifest(manifest, maxTotalBytes);
-        if (archive.Entries.Count != manifest.Files.Count + (manifest.Documents?.Count ?? 0) + 1 ||
+        if (archive.Entries.Count != manifest.Files.Count + (manifest.Documents?.Count ?? 0) + (manifest.Baselines?.Count ?? 0) + 1 ||
             archive.Entries.Select(item => item.FullName).Distinct(StringComparer.Ordinal).Count() != archive.Entries.Count)
             throw new InvalidDataException("Duplicate or incomplete checkpoint entries.");
         return manifest;
@@ -126,7 +129,8 @@ public static partial class ProjectCheckpoint
     internal static void ValidateManifest(CheckpointManifest manifest, long maxTotalBytes)
     {
         var documents = manifest.Documents ?? [];
-        if (manifest.Version is not (1 or 2 or 3 or 4) || (manifest.Version == 1 && documents.Count != 0) ||
+        if (manifest.Version is not (1 or 2 or 3 or 4 or 5) || (manifest.Version == 1 && documents.Count != 0) ||
+            (manifest.Version < 5 && manifest.Baselines is { Count: > 0 }) ||
             (manifest.Version < 4 && documents.Any(document => document.TextField is not null)) ||
             (manifest.Version < 3 && manifest.Fields is { Count: > 0 }) ||
             manifest.Files is null)
@@ -141,6 +145,7 @@ public static partial class ProjectCheckpoint
             total += file.Length;
         }
         CheckpointDocuments.Validate(manifest.Files, documents, maxTotalBytes - total);
+        CheckpointBaselines.Validate(manifest.Files, manifest.Baselines ?? [], maxTotalBytes - total - documents.Sum(document => document.Length));
         ValidateFields(manifest.Files, documents, manifest.Fields ?? []);
     }
 

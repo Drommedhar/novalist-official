@@ -7,7 +7,10 @@ public sealed record SharedFieldBinding(Guid ItemId, string Path, string Key, bo
 {
     public SharedMetadataTarget? Metadata { get; init; }
 }
-public sealed record SharedProjectState(IReadOnlyList<SharedDocumentState> Documents, IReadOnlyList<SharedFieldBinding> Fields);
+public sealed record SharedProjectState(IReadOnlyList<SharedDocumentState> Documents, IReadOnlyList<SharedFieldBinding> Fields)
+{
+    public IReadOnlyDictionary<string, byte[]>? FileBaselines { get; init; }
+}
 
 public static class SharedCodexFields
 {

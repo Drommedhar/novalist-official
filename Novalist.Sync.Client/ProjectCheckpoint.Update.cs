@@ -71,11 +71,7 @@ public static partial class ProjectCheckpoint
 
     private static async Task ApplyUpdateAsync(string destination, IReadOnlyList<InstallChange> changes, CancellationToken ct)
     {
-        var metadata = SharedProjectPath.Resolve(destination, ".novalist");
-        var recoveryParent = Path.Combine(metadata, "recovered-joins");
-        if (new DirectoryInfo(recoveryParent).LinkTarget is not null ||
-            Directory.Exists(recoveryParent) && (File.GetAttributes(recoveryParent) & FileAttributes.ReparsePoint) != 0)
-            throw new InvalidDataException("Recovered project files cannot follow symbolic links.");
+        var recoveryParent = SharedProjectPath.Resolve(destination, "Recovered edits");
         var recovery = Path.Combine(recoveryParent, Guid.NewGuid().ToString("N"));
         foreach (var change in changes.Where(change => change.HasOriginal))
         {
@@ -116,7 +112,7 @@ public static partial class ProjectCheckpoint
                 }
                 catch (Exception rollback) when (rollback is IOException or UnauthorizedAccessException) { failures.Add(rollback); }
             }
-            if (failures.Count != 1) throw new AggregateException("The local project could not be restored. Its original files remain in recovered joins.", failures);
+            if (failures.Count != 1) throw new AggregateException("The local project could not be restored. Its original files remain in Recovered edits.", failures);
             throw;
         }
     }
