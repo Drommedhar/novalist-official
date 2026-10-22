@@ -67,6 +67,18 @@ internal sealed class RetainedProjectRestore(string root, string staging, string
             ct.ThrowIfCancellationRequested();
             var path = SharedProjectPath.Resolve(root, relative);
             if (await files.ExistsAsync(path)) await files.DeleteFileAsync(path);
+            await PruneEmptyParentsAsync(relative, files);
+        }
+    }
+
+    private async Task PruneEmptyParentsAsync(string relative, IFileService files)
+    {
+        while (relative.LastIndexOf('/') is var separator && separator > 0)
+        {
+            relative = relative[..separator];
+            var path = SharedProjectPath.Resolve(root, relative);
+            if (!Directory.Exists(path) || Directory.EnumerateFileSystemEntries(path).Any()) return;
+            await files.DeleteDirectoryAsync(path, recursive: false);
         }
     }
 

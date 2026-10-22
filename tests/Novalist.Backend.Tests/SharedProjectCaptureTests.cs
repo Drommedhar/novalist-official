@@ -12,6 +12,33 @@ namespace Novalist.Backend.Tests;
 public sealed class SharedProjectCaptureTests
 {
     [Fact]
+    public async Task SharingResearchBindsNoteAndLinkProseByStableIdentityWithoutBindingAssetPaths()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var temporary = new TempDir();
+        using var workspace = new Workspace(Path.Combine(temporary.Path, "settings"));
+        await workspace.Projects.CreateProjectAsync(temporary.Path, "Novel", "Book");
+        var research = new Novalist.Backend.Rpc.LibraryRpc(workspace);
+        await research.SaveResearchAsync(null, "Notes", "Note", "**Exact** research prose.", []);
+        await research.SaveResearchAsync(null, "Source", "Link", "https://example.org", []);
+        await research.SaveResearchAsync(null, "Diagram", "Image", "Research/diagram.png", []);
+        workspace.CreateSharedDocuments = id => new(id, new CapturePeer().RequestAsync);
+        using var archive = new MemoryStream();
+        var captured = await workspace.CaptureSharedProjectAsync(archive, ct);
+        Assert.Equal(2, captured.Documents.Count);
+        var notes = research.ListResearch().Where(item => item.Type != "Image").ToArray();
+        foreach (var note in notes)
+        {
+            var document = Assert.Single(captured.Documents, item => item.TextField?.ResearchItemId == note.Id);
+            Assert.Equal(".novalist/project.json", document.Path);
+            Assert.Equal(note.Content, Encoding.UTF8.GetString(document.State));
+        }
+        archive.Position = 0;
+        var installed = await ProjectCheckpoint.InstallAsync(archive, Path.Combine(temporary.Path, "Joined"), 1024 * 1024, ct);
+        Assert.Equal(captured.Documents.Select(item => item.TextField), installed.Documents.Select(item => item.TextField));
+    }
+
+    [Fact]
     public async Task SharingPreservesMarkdownAndGivesLegacySectionsStableIdentities()
     {
         var ct = TestContext.Current.CancellationToken;

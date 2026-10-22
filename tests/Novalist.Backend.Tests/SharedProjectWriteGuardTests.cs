@@ -5,6 +5,7 @@ using System.Text.Json;
 using Nerdbank.Streams;
 using NSubstitute;
 using Novalist.Backend.Extensions;
+using Novalist.Backend.Rpc;
 using Novalist.Backend.Tests.TestHelpers;
 using Novalist.Core.Services;
 using Novalist.Sync.Client;
@@ -16,6 +17,33 @@ namespace Novalist.Backend.Tests;
 [Collection("BackendStatics")]
 public sealed class SharedProjectWriteGuardTests
 {
+    [Fact]
+    public async Task ResearchProseKeepsItsIdentityAndSurvivesMetadataSavesAndDeletionAsRecovery()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        await fixture.Desktop.InvokeAsync("research/save", null, "Source", "Note", "Initial notes.", Array.Empty<string>(), Array.Empty<string>());
+        var note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var binding = Assert.IsType<SharedResearchProseDto>(note.SharedProse);
+        Assert.Equal(fixture.SessionId, binding.SessionId);
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", binding.SessionId, binding.ItemId, Encoding.UTF8.GetBytes("text:Collaborative research."));
+        note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        Assert.Equal("Collaborative research.", note.Content);
+        await fixture.Desktop.InvokeAsync("research/save", note.Id, "Renamed", "Note", null, Array.Empty<string>(), Array.Empty<string>());
+        var renamed = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        Assert.Equal(note.Id, renamed.Id);
+        Assert.Equal(binding, renamed.SharedProse);
+        Assert.Equal("Collaborative research.", renamed.Content);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("research/save", note.Id, "Stale", "Note", "Replace all writing", Array.Empty<string>(), Array.Empty<string>()));
+        Assert.Equal("Collaborative research.", Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list")).Content);
+        await fixture.Desktop.InvokeAsync("research/delete", note.Id);
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", binding.SessionId, binding.ItemId, Encoding.UTF8.GetBytes("text:Preserve concurrent edits."));
+        Assert.Empty(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var recovery = Directory.GetFiles(Path.Combine(fixture.Root, "Recovered edits"), "project.json", SearchOption.AllDirectories);
+        Assert.Contains(recovery, file => File.ReadAllText(file).Contains("Preserve concurrent edits.", StringComparison.Ordinal));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("research/save", note.Id, "Old title", "Note", "Late draft", Array.Empty<string>(), Array.Empty<string>()));
+        Assert.Empty(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+    }
+
     [Fact]
     public async Task ADisconnectedWriterCannotCreateStructureThatAppearsAfterReconnecting()
     {
@@ -189,7 +217,7 @@ public sealed class SharedProjectWriteGuardTests
             var formatter = new SystemTextJsonFormatter();
             formatter.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
             desktopRpc = new JsonRpc(new HeaderDelimitedMessageHandler(desktop, desktop, formatter));
-            Desktop.AddLocalRpcTarget(new SceneDocumentPeer());
+            Desktop.AddLocalRpcTarget(new CollaborationDocumentPeer());
             Desktop.StartListening();
             await Desktop.InvokeAsync("project/create", directory.Path, "Shared", "Book");
             var chapter = Assert.Single((await Desktop.InvokeAsync<ProjectStateDto>("project/createChapter", "Chapter")).Chapters);
@@ -248,32 +276,4 @@ public sealed class SharedProjectWriteGuardTests
         }
     }
 
-    private sealed class SceneDocumentPeer
-    {
-        private readonly Dictionary<Guid, byte[]> states = [];
-
-        [JsonRpcMethod("collaboration/documents")]
-        public object? Documents(string action, JsonElement command = default, Guid? id = null)
-        {
-            if (action == "execute")
-            {
-                var item = command.GetProperty("id").GetGuid();
-                var kind = command.GetProperty("kind").GetString();
-                if (kind == "seed") states[item] = Encoding.UTF8.GetBytes(command.GetProperty("html").GetString() ?? "");
-                if (kind == "seedText") states[item] = Encoding.UTF8.GetBytes("text:" + command.GetProperty("text").GetString());
-                if (kind == "load") states[item] = command.GetProperty("state").GetBytesFromBase64();
-                if (kind == "receive")
-                {
-                    states[item] = command.GetProperty("state").GetBytesFromBase64();
-                    return new SceneApplyResult(true, []);
-                }
-            }
-            if (action != "capture" || id is null) return null;
-            var state = states[id.Value];
-            var value = Encoding.UTF8.GetString(state);
-            return value.StartsWith("text:", StringComparison.Ordinal)
-                ? new SharedSceneSnapshot(state, [], null, null) { Text = value[5..] }
-                : new SharedSceneSnapshot(state, [], value, null);
-        }
-    }
 }

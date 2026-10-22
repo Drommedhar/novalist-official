@@ -345,6 +345,7 @@ export function ResearchEditor({ selected, t, fetchingTitle, fetchLinkTitle, set
         placeholder={t('research.contentWatermark')}
         ariaLabel={t('research.content')}
         value={selected.content}
+        shared={selected.sharedProse}
         onChange={(next) => patchSelected({ content: next })}
         onBlur={() => void save(selected)}
       />

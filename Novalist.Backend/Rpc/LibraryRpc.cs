@@ -118,17 +118,18 @@ public sealed class LibraryRpc
 
     [JsonRpcMethod("research/save")]
     public async Task<ResearchItemDto[]> SaveResearchAsync(
-        string? id, string title, string type, string content, string[] tags,
+        string? id, string title, string type, string? content, string[] tags,
         string[]? entityRefs = null)
     {
         var existing = id == null ? null : _research.GetAll().FirstOrDefault(r => r.Id == id);
+        if (id is not null && existing is null) throw new InvalidOperationException("This research item was deleted. Keep your draft before creating a new note.");
         // Taken before the edits below: the project holds this very object, so
         // a moment later there is no earlier state left to keep a version of.
         var before = existing == null ? null : Core.Services.ResearchService.Serialize(existing);
         var item = existing ?? new ResearchItem { Order = _research.GetAll().Count };
         item.Title = title;
         item.Type = Enum.Parse<ResearchItemType>(type);
-        item.Content = content;
+        if (content is not null) item.Content = content;
         item.Tags = tags.Where(t => !string.IsNullOrWhiteSpace(t)).ToList();
         if (entityRefs != null)
             item.EntityRefs = entityRefs.Where(r => !string.IsNullOrWhiteSpace(r)).Distinct().ToList();
@@ -360,10 +361,14 @@ public sealed class LibraryRpc
         var (size, modified) = isFile && !string.IsNullOrWhiteSpace(r.Content)
             ? ReadMetadata(_research.GetAbsolutePath(r.Content))
             : (string.Empty, string.Empty);
-        return new ResearchItemDto(
+        var result = new ResearchItemDto(
             r.Id, r.Title, r.Type.ToString(), r.Content, r.Tags.ToArray(), size, modified,
             r.EntityRefs.ToArray(), r.Status.ToString(), r.Rating,
             r.RelatedIds?.ToArray() ?? []);
+#if NOVALIST_COLLABORATION
+        result = result with { SharedProse = _workspace.SharedResearchProse(r.Id) };
+#endif
+        return result;
     }
 
     // Reads on-disk file metadata for imported research files. A missing target
@@ -401,7 +406,12 @@ public sealed record ResearchItemDto(
     /// <summary>0 for unrated, 1-5 otherwise.</summary>
     int Rating,
     /// <summary>Ids of other research items this one refers to.</summary>
-    IReadOnlyList<string> RelatedIds);
+    IReadOnlyList<string> RelatedIds)
+{
+    public SharedResearchProseDto? SharedProse { get; init; }
+}
+
+public sealed record SharedResearchProseDto(Guid SessionId, Guid ItemId);
 
 public sealed record GalleryImageDto(string Path, string Url);
 
