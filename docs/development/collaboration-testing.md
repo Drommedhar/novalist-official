@@ -81,9 +81,15 @@ session cannot be resumed after that database is removed.
 
 - Type and format in the same scene from both apps. Check cursors and each writer's
   undo. Open different scenes and inspect presence badges in the binder/outliner.
+- Edit a scene in Manuscript while the other app uses the normal scene editor.
+  Check formatting, each writer's undo and saved changes after reopening. Include
+  a scene imported from Markdown with bold and italic text.
 - Focus the same Codex field in both apps. Check that the second names its holder
   and becomes editable after the first leaves it. Try table cells, relationships,
   visibility, media labels, scene metadata and research controls.
+- Move a scene card between POV or custom-property columns in Board view. Hold the
+  corresponding field open in the other app and check that a blocked move names
+  that writer; leave the field and try the move again.
 - Add scenes, Codex entries, research and assets; rename, move and delete them.
   Navigate different books/drafts and check both retained copies.
 - Interrupt the connection while editing shared prose, then reconnect. Delete a
