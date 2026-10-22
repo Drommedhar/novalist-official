@@ -26,7 +26,14 @@ public sealed partial class Workspace
         var resource = new Guid(SHA256.HashData(Encoding.UTF8.GetBytes($"novalist:location-graph:v1:{context.ProjectId:N}"))[..16]);
         var request = new FieldLeaseRequest(context.ProjectId, resource, context.Epoch, Guid.NewGuid());
         var grant = await field.Session.AcquireFieldAsync(request, ct);
-        if (!grant.Acquired) throw new InvalidOperationException("Another collaborator is changing location relationships. Retry after their change finishes.");
+        if (!grant.Acquired)
+        {
+            var participants = PeerProjects?.IsActive == true ? PeerProjects.Participants(sessionId) : HostedProjects?.Participants(sessionId);
+            var writer = participants?.FirstOrDefault(participant => participant.DeviceId == grant.DeviceId)?.Name;
+            throw new InvalidOperationException(writer is null
+                ? "A name or relationship change is in progress. Retry after it finishes."
+                : $"{writer} is changing names or relationships. Retry after their change finishes.");
+        }
         var lease = new SharedGraphLease(field.Session, request);
         try
         {

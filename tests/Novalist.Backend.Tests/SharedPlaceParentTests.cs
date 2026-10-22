@@ -79,6 +79,7 @@ public sealed class SharedPlaceParentTests
         var secondFocus = Guid.NewGuid();
         await owner.Rpc.InvokeAsync("collaboration/acquireField", ownerSession.SessionId, firstParent, firstFocus);
         await guest.Rpc.InvokeAsync("collaboration/acquireField", guestSession.SessionId, secondParent, secondFocus);
+        var writer = operation == "name" ? await PublishOwnerPresenceAsync(owner, ownerSession.SessionId, guest, guestSession.SessionId, firstParent) : null;
         var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         Novalist.Sync.Client.FieldLeaseCondition? graph = null;
@@ -88,7 +89,8 @@ public sealed class SharedPlaceParentTests
         try
         {
             await entered.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
-            await Assert.ThrowsAsync<RemoteInvocationException>(() => guest.Rpc.InvokeAsync("collaboration/writeField", guestSession.SessionId, secondParent, secondFocus, "First"));
+            var conflict = await Assert.ThrowsAsync<RemoteInvocationException>(() => guest.Rpc.InvokeAsync("collaboration/writeField", guestSession.SessionId, secondParent, secondFocus, "First"));
+            if (writer is not null) Assert.Contains($"{writer} is changing names or relationships", conflict.Message);
             if (expired)
             {
                 Assert.NotNull(graph);
@@ -111,6 +113,20 @@ public sealed class SharedPlaceParentTests
         first = await owner.Rpc.InvokeAsync<JsonElement>("entities/get", "location", first.GetProperty("id").GetString());
         Assert.Equal(operation == "name" && !expired ? "Renamed" : "First", first.GetProperty("name").GetString());
         Assert.Equal(operation == "isWorld" && !expired, first.TryGetProperty("isWorld", out var isWorld) && isWorld.GetBoolean());
+    }
+
+    private static async Task<string> PublishOwnerPresenceAsync(HostedDesktop owner, Guid ownerSession, HostedDesktop guest, Guid guestSession, Guid item)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var view = Guid.NewGuid();
+        await owner.Rpc.InvokeAsync("collaboration/presence", ownerSession, item, view, null, true);
+        for (var attempt = 0; attempt < 100; attempt++)
+        {
+            var participants = await guest.Rpc.InvokeAsync<SharedParticipantDto[]>("collaboration/participants", guestSession);
+            if (participants.FirstOrDefault(participant => participant.ViewId == view) is { Name.Length: > 0 } writer) return writer.Name;
+            await Task.Delay(20, ct);
+        }
+        throw new InvalidOperationException("The collaborator's presence did not arrive.");
     }
 
     [Fact]
