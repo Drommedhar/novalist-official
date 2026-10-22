@@ -1,0 +1,32 @@
+.collaboration-scene-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--nl-space-hairline);
+  margin-inline-start: var(--nl-space-tightest);
+  padding: var(--nl-space-hairline) var(--nl-space-tightest);
+  border-radius: var(--nl-radius-pill);
+  font-size: var(--nl-font-caption);
+  line-height: 1;
+  background: var(--nl-surface-hover);
+  color: var(--nl-accent);
+  vertical-align: middle;
+}
+
+.collaboration-scene-badge svg {
+  width: var(--nl-font-caption);
+  height: var(--nl-font-caption);
+}
+
+.outliner-scene-title,
+.corkboard-card-title {
+  display: flex;
+  align-items: center;
+}
+
+.collaboration-scene-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

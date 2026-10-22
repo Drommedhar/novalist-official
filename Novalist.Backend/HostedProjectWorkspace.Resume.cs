@@ -11,7 +11,7 @@ public sealed record SavedHostedProjectDto(string Server, Guid ProjectId, string
 internal sealed partial class HostedProjectWorkspace
 {
     private sealed record SavedHostedProject(int Version, Guid SessionId, Guid ProjectId, Uri Server,
-        Guid DeviceId, string Root, string LocalProjectId, CheckpointReference Checkpoint, string? RecoveryPath);
+        Guid DeviceId, string Root, string LocalProjectId, CheckpointReference Checkpoint, string? RecoveryPath, uint Epoch = 0);
 
     internal async Task<SavedHostedProjectDto?> SavedAsync()
     {
@@ -62,13 +62,23 @@ internal sealed partial class HostedProjectWorkspace
         var runtime = await ReopenAsync(saved, ct);
         try
         {
-            var archivePath = Path.Combine(storage, "sessions", saved.SessionId.ToString("N"), "checkpoint.zip");
-            if (runtime.Id != saved.SessionId) File.Copy(archivePath, Path.Combine(storage, "sessions", runtime.Id.ToString("N"), "checkpoint.zip"));
+            await runtime.Session.StartAsync(createProject: false, ct);
+            var archivePath = Path.Combine(storage, "sessions", runtime.Id.ToString("N"), "checkpoint.zip");
+            if (runtime.Access.Epoch != saved.Epoch)
+            {
+                await using var download = new FileStream(archivePath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                var checkpoint = runtime.Checkpoint ?? throw new InvalidDataException("The refreshed project checkpoint is missing.");
+                var drive = Path.GetPathRoot(saved.Root) ?? throw new InvalidDataException("The local project root is invalid.");
+                await CheckpointTransfer.DownloadAsync(runtime.Session.Updates, checkpoint, download, new DriveInfo(drive).AvailableFreeSpace, ct);
+                await download.FlushAsync(ct);
+                download.Flush(true);
+            }
+            else if (runtime.Id != saved.SessionId)
+                File.Copy(Path.Combine(storage, "sessions", saved.SessionId.ToString("N"), "checkpoint.zip"), archivePath);
             await using var archive = File.OpenRead(archivePath);
             using var restore = await RetainedProjectRestore.PrepareAsync(saved.Root, archive, storage, ct);
             runtime.RecoveryPath = restore.RecoveryPath;
             await RememberAsync(runtime, saved.Root, ct);
-            await runtime.Session.StartAsync(createProject: false, ct);
             try
             {
                 await restore.ApplyAsync(workspace.FileService, ct);
@@ -99,7 +109,13 @@ internal sealed partial class HostedProjectWorkspace
             if (device.Id != saved.DeviceId) throw new InvalidOperationException("Sign in with the account that joined this local project.");
             access = await accessStore.LoadAsync(saved.Server, saved.ProjectId, device, ct)
                 ?? throw new InvalidOperationException("This device no longer has the saved project credentials.");
-            var id = saved.SessionId;
+            await using (var transport = new HostedTransport(saved.Server, device, () => account.GetAccessTokenAsync(CancellationToken.None)))
+            {
+                await transport.ConnectAsync(ct);
+                if (await accessStore.RefreshEpochAsync(access, device, transport, ct) is { } next)
+                { access.Dispose(); access = next; }
+            }
+            var id = access.Epoch == saved.Epoch ? saved.SessionId : Guid.NewGuid();
             session = await HostedProjectSession.OpenAsync(storage, id, access, device, () => account.GetAccessTokenAsync(CancellationToken.None));
             if (session.IsClosed)
             {
@@ -107,7 +123,7 @@ internal sealed partial class HostedProjectWorkspace
                 id = Guid.NewGuid();
                 session = await HostedProjectSession.OpenAsync(storage, id, access, device, () => account.GetAccessTokenAsync(CancellationToken.None));
             }
-            return new(id, device, access, session, account.DisplayName) { Checkpoint = saved.Checkpoint };
+            return new(id, device, access, session, account.DisplayName) { Checkpoint = access.Epoch == saved.Epoch ? saved.Checkpoint : access.Checkpoint };
         }
         catch
         {

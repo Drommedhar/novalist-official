@@ -1,9 +1,10 @@
 import { rpc } from '../rpc/client'
+import { SharedItemPresence } from './SharedItemPresence'
 
 export interface FieldBinding { sessionId: string; itemId: string }
 export interface SharedEntityFields { sessionId: string; fields: Record<string, string> }
-export interface FieldView { value: string; phase: 'idle' | 'waiting' | 'editing' | 'locked' | 'expired' | 'saving' | 'failed'; error: string; recoveryPath?: string }
-interface Lease { acquired: boolean; remainingMilliseconds: number }
+export interface FieldView { value: string; phase: 'idle' | 'waiting' | 'editing' | 'locked' | 'expired' | 'saving' | 'failed'; error: string; recoveryPath?: string; ownerDeviceId?: string }
+interface Lease { acquired: boolean; deviceId: string; remainingMilliseconds: number }
 interface Focus {
   id: string
   initial: string
@@ -16,6 +17,7 @@ interface Focus {
   expiry?: ReturnType<typeof setTimeout>
   renewing: boolean
   storedRevision: number
+  presence?: SharedItemPresence
 }
 
 export class FocusedField {
@@ -65,8 +67,9 @@ export class FocusedField {
         focus.initial = result.value
         focus.value = result.value
         if (focus.ended) return
-        this.publish({ value: result.value, phase: focus.granted ? 'editing' : 'locked' })
+        this.publish({ value: result.value, phase: focus.granted ? 'editing' : 'locked', ownerDeviceId: result.lease.deviceId })
         if (focus.granted) {
+          focus.presence = new SharedItemPresence(this.binding, focus.id)
           focus.renewal = setInterval(() => void this.renew(focus), 10_000)
           this.deadline(focus, result.lease, started)
         } else {
@@ -156,7 +159,11 @@ export class FocusedField {
     if (!focus.ended && this.current === focus) this.publish({ phase: 'expired' })
   }
 
-  private clearTimers(focus: Focus): void { clearInterval(focus.renewal); clearTimeout(focus.expiry) }
+  private clearTimers(focus: Focus): void {
+    clearInterval(focus.renewal)
+    clearTimeout(focus.expiry)
+    focus.presence?.close()
+  }
   private params(focus: Focus): string[] { return [this.binding.sessionId, this.binding.itemId, focus.id] }
   private fail(error: unknown): void { this.publish({ phase: 'failed', error: String(error) }) }
   private publish(change: Partial<FieldView>): void {

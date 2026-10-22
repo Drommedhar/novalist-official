@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useHostedSessionStore } from '../../collaboration/hostedSessionStore'
 import { useProjectStore } from '../../stores/projectStore'
+import { SharedProjectAccess } from './SharedProjectAccess'
 
 export function SharedProjectCard({ server, signedIn }: { server: string; signedIn: boolean }): React.JSX.Element {
   const { t } = useTranslation()
@@ -35,16 +36,20 @@ export function SharedProjectCard({ server, signedIn }: { server: string; signed
       {presenceUnavailable && <p className="settings-hint">{t('collaboration.presenceUnavailable')}</p>}
       <p className="settings-hint">{t(session.mode === 'hosted' ? 'collaboration.localCopyHint' : 'collaboration.peerLocalCopyHint')}</p>
       <div className="match-row">
-        {session.isOwner && <button className="btn-primary" disabled={busy !== null} onClick={() => {
+        {session.isOwner && <button className="btn-primary" disabled={busy !== null || session.connection !== 'Connected'} onClick={() => {
           void run('invite', [new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()])
         }}>{t('collaboration.invite')}</button>}
         <button className="btn-secondary" disabled={busy !== null} onClick={() => void run('end')}>{t('collaboration.end')}</button>
+        {session.connection === 'KeyRefreshRequired' && <button className="btn-primary" disabled={busy !== null} onClick={() => {
+          void run('end').then(() => { if (!useHostedSessionStore.getState().session) return run('resume') })
+        }}>{t('collaboration.refreshKeys')}</button>}
       </div>
       {invitation && <>
         <label className="inspector-label" htmlFor="set-collaboration-invitation">{t('collaboration.invitation')}</label>
         <textarea id="set-collaboration-invitation" className="inspector-input" value={invitation} readOnly onFocus={event => event.target.select()} />
         <p className="settings-hint">{t(session.mode === 'hosted' ? 'collaboration.invitationHint' : 'collaboration.peerInvitationHint')}</p>
       </>}
+      {session.isOwner && <SharedProjectAccess sessionId={session.sessionId} disabled={busy !== null || session.connection === 'AccessEnded'} />}
     </> : <>
       {saved && <>
         <p className="settings-hint">{t('collaboration.savedServer', { server: saved.server })}</p>

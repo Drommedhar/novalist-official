@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Novalist.Sync.IntegrationTests;
 
-public sealed class DesktopSharingTests(CommunityServerFixture server) : IClassFixture<CommunityServerFixture>
+public sealed partial class DesktopSharingTests(CommunityServerFixture server) : IClassFixture<CommunityServerFixture>
 {
     [Theory]
     [InlineData("external")]

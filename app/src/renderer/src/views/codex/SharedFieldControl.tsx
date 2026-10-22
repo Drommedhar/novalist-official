@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { FocusedField, type FieldBinding, type FieldView } from '../../collaboration/FocusedField'
 import { persistPendingWrite, registerPendingWrite, retainPendingWrite } from '../../stores/pendingWrites'
 import { useCodexStore } from '../../stores/codexStore'
+import { useParticipants } from '../../collaboration/participants'
 
 const retainedFields = new Map<string, FocusedField>()
 
@@ -13,6 +14,9 @@ export function SharedFieldControl({ binding, value, label, type, list, options,
   const fieldKey = `${binding.sessionId}:${binding.itemId}`
   const controller = useMemo(() => retainedFields.get(fieldKey) ?? new FocusedField(binding, value), [fieldKey])
   const [view, setView] = useState<FieldView>(controller.snapshot)
+  const participants = useParticipants(binding.sessionId)
+  const owner = participants.find(participant => participant.deviceId === view.ownerDeviceId && participant.itemId === binding.itemId)
+    ?? participants.find(participant => participant.deviceId === view.ownerDeviceId)
   const key = controller.pendingKey
   const flush = async (preserveFocus = false): Promise<void> => {
     await controller.finish(preserveFocus)
@@ -50,7 +54,8 @@ export function SharedFieldControl({ binding, value, label, type, list, options,
       list={list} value={view.value} readOnly={!editable} disabled={disabled} onFocus={() => controller.focus()}
       onChange={event => controller.change(event.target.value)} onBlur={blur} />}
     {view.phase === 'waiting' && <span role="status" className="settings-hint">{t('collaboration.fieldWaiting')}</span>}
-    {view.phase === 'locked' && <span role="status" className="settings-hint">{t('collaboration.fieldLocked')}</span>}
+    {view.phase === 'locked' && <span role="status" className="settings-hint">{owner
+      ? t('collaboration.fieldLockedBy', { name: owner.name }) : t('collaboration.fieldLocked')}</span>}
     {view.phase === 'expired' && <span role="status" className="settings-hint">{t('collaboration.fieldExpired')}</span>}
     {view.error && <span role="alert">{view.error}</span>}
     {view.phase === 'failed' && <button className="btn-secondary" onClick={blur}>{t('collaboration.retryField')}</button>}

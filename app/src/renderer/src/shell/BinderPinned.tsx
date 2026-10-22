@@ -1,4 +1,5 @@
 import { ChevronRight, Pin } from 'lucide-react'
+import { ScenePresenceBadge } from '../collaboration/ScenePresenceBadge'
 
 import type { BinderState } from './binderState'
 import { MotionPresence } from './MotionPresence'
@@ -28,6 +29,7 @@ export function BinderPinned({ state }: { state: BinderState }): React.JSX.Eleme
                   >
                     <Pin size={11} strokeWidth={2} className="binder-pin-icon" />
                     <span className="binder-scene-title" title={scene.title}>{scene.title}</span>
+                    <ScenePresenceBadge sceneId={scene.id} />
                     {/* Which chapter it came from - a pinned list with no
                         context is a list of titles floating free of the book. */}
                     <span className="binder-pin-chapter">{chapter.title}</span>

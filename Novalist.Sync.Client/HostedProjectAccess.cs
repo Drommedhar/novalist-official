@@ -4,7 +4,8 @@ using NSec.Cryptography;
 namespace Novalist.Sync.Client;
 
 internal sealed record StoredProjectAccess(int Version, string Server, Guid ProjectId, uint Epoch, Guid DeviceId,
-    byte[] OwnerKey, byte[] EpochKey, byte[] Certificate, Guid? InvitationId, CheckpointReference? Checkpoint, string? InvitationHash);
+    byte[] OwnerKey, byte[] EpochKey, byte[] Certificate, Guid? InvitationId, CheckpointReference? Checkpoint, string? InvitationHash,
+    long FirstServerSequence = 1);
 
 public sealed class HostedProjectAccess : IDisposable
 {
@@ -14,6 +15,7 @@ public sealed class HostedProjectAccess : IDisposable
     public Uri Server { get; }
     public Guid ProjectId => State.ProjectId;
     public uint Epoch => State.Epoch;
+    public long FirstServerSequence => State.FirstServerSequence;
     public byte[] Certificate => State.Certificate.ToArray();
     public CheckpointReference? Checkpoint => State.Checkpoint;
     public Guid? InvitationId => State.InvitationId;
@@ -22,7 +24,7 @@ public sealed class HostedProjectAccess : IDisposable
     internal HostedProjectAccess(StoredProjectAccess state, DeviceIdentity device)
     {
         if (state.Version != 1 || state.ProjectId == Guid.Empty || state.DeviceId != device.Id ||
-            state.OwnerKey is not { Length: 32 } || state.EpochKey is not { Length: 32 } || state.Certificate is null)
+            state.OwnerKey is not { Length: 32 } || state.EpochKey is not { Length: 32 } || state.Certificate is null || state.FirstServerSequence < 1)
             throw new InvalidDataException("The saved project credentials are incomplete.");
         Server = CanonicalServer(new Uri(state.Server, UriKind.Absolute));
         var owner = PublicKey.Import(SignatureAlgorithm.Ed25519, state.OwnerKey, KeyBlobFormat.RawPublicKey);

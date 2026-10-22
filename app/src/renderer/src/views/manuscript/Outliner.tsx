@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { ScenePresenceBadge } from '../../collaboration/ScenePresenceBadge'
 import { useTranslation } from 'react-i18next'
 import { useManuscriptStore } from '../../stores/manuscriptStore'
 import { useProjectStore } from '../../stores/projectStore'
@@ -76,7 +77,8 @@ export function Outliner(): React.JSX.Element {
                   void useProjectStore.getState().openScene(section.chapterGuid, scene.sceneId)
                 }}
               >
-                {scene.title}
+                <span className="collaboration-scene-title">{scene.title}</span>
+                <ScenePresenceBadge sceneId={scene.sceneId} />
               </button>
               <input
                 className="outliner-input"

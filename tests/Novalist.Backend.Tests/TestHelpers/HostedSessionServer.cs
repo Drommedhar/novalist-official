@@ -19,6 +19,7 @@ internal sealed class HostedSessionServer : IAsyncDisposable
     internal readonly Dictionary<Guid, Guid> Devices = [];
     internal readonly Dictionary<string, Guid> Accounts = [];
     internal readonly Dictionary<(Guid, Guid), FieldLeaseGrant> Leases = [];
+    internal readonly Dictionary<(Guid, Guid), HostedProjectDevice> ProjectDevices = [];
     internal Uri Address => new(app.Urls.Single());
     internal bool RejectJoins { get; set; }
 
@@ -80,6 +81,18 @@ internal sealed class HostedSessionServer : IAsyncDisposable
         {
             lock (server.Gate) server.Projects.TryAdd(project, []);
         }
+
+        public HostedProjectEpoch GetProjectEpoch(Guid project)
+        {
+            lock (server.Gate) return new(0, server.Projects[project].Count);
+        }
+
+        public void RegisterProjectDevice(Guid project, uint epoch, byte[] certificate)
+        {
+            lock (server.Gate) server.ProjectDevices[(project, Device)] = new(server.Devices[Device], Device, epoch, certificate);
+        }
+
+        public StoredHostedEpochGrant? GetProjectEpochGrant(Guid project, uint afterEpoch) => null;
 
         public async Task JoinProject(Guid project)
         {

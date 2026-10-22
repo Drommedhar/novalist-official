@@ -4,7 +4,7 @@ using Novalist.Sync.Client;
 
 namespace Novalist.Backend.Rpc;
 
-public sealed class CollaborationRpc
+public sealed partial class CollaborationRpc
 {
     private readonly Workspace workspace;
 
@@ -100,8 +100,8 @@ public sealed class CollaborationRpc
             : Hosted().PublishPresenceAsync(sessionId, itemId, viewId, selection, active, cancellationToken);
 
     [JsonRpcMethod("collaboration/participants")]
-    public IReadOnlyList<ParticipantPresence> Participants(Guid sessionId) => workspace.PeerProjects?.IsActive == true
-        ? workspace.PeerProjects.Participants(sessionId) : Hosted().Participants(sessionId);
+    public IReadOnlyList<SharedParticipantDto> Participants(Guid sessionId) => workspace.DescribeSharedParticipants(
+        workspace.PeerProjects?.IsActive == true ? workspace.PeerProjects.Participants(sessionId) : Hosted().Participants(sessionId));
 
     [JsonRpcMethod("collaboration/readScene")]
     public async Task<byte[]> ReadSceneAsync(Guid sessionId, Guid itemId, CancellationToken cancellationToken = default)

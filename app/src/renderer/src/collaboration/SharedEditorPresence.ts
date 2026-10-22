@@ -1,15 +1,7 @@
-import { rpc } from '../rpc/client'
 import type { SharedSceneIdentity } from '../../../shared/sharedScene'
 import type { SharedSelection, ParticipantSelection } from './remoteSelections'
-import { useHostedSessionStore } from './hostedSessionStore'
-
-interface Participant {
-  deviceId: string
-  viewId: string
-  itemId: string
-  name: string
-  selection: { anchor: string; focus: string } | null
-}
+import { observeParticipants, useParticipantStore, type Participant } from './participants'
+import { SharedItemPresence } from './SharedItemPresence'
 
 interface PresenceEditor {
   selection(): SharedSelection | null
@@ -18,58 +10,20 @@ interface PresenceEditor {
 }
 
 export class SharedEditorPresence {
-  private readonly view = crypto.randomUUID()
-  private readonly timer: ReturnType<typeof setInterval>
+  private readonly presence: SharedItemPresence
+  private readonly stopObserving: () => void
+  private readonly unsubscribe: () => void
   private readonly visible = new Set<string>()
-  private publishing = false
-  private polling = false
-  private publishFailed = false
-  private pollFailed = false
   private closed = false
-  private lastSelection = ''
-  private lastSent = 0
 
   constructor(private readonly identity: SharedSceneIdentity, private readonly session: PresenceEditor) {
-    this.timer = setInterval(() => this.tick(), 500)
-    this.tick()
-  }
-
-  private tick(): void {
-    if (this.closed) return
-    if (!this.publishing) void this.publish()
-    if (!this.polling) void this.refresh()
-  }
-
-  private async publish(): Promise<void> {
-    this.publishing = true
-    try {
+    this.presence = new SharedItemPresence(identity, crypto.randomUUID(), () => {
       const selected = this.session.selection()
-      const selection = selected ? { anchor: btoa(String.fromCharCode(...selected.anchor)), focus: btoa(String.fromCharCode(...selected.focus)) } : null
-      const encoded = JSON.stringify(selection)
-      if (encoded !== this.lastSelection || Date.now() - this.lastSent >= 5000) {
-        await rpc.request('collaboration/presence', [this.identity.sessionId, this.identity.itemId, this.view, selection, true])
-        this.lastSelection = encoded
-        this.lastSent = Date.now()
-        this.publishFailed = false
-      }
-    } catch { this.publishFailed = true }
-    finally { this.publishing = false; this.report() }
-  }
-
-  private async refresh(): Promise<void> {
-    this.polling = true
-    try {
-      const participants = await rpc.request<Participant[]>('collaboration/participants', [this.identity.sessionId])
-      if (!this.closed) this.render(participants)
-      this.pollFailed = false
-    } catch {
-      this.clear()
-      this.pollFailed = true
-    } finally { this.polling = false; this.report() }
-  }
-
-  private report(): void {
-    if (!this.closed) useHostedSessionStore.getState().reportPresence(this.identity.sessionId, this.view, this.publishFailed || this.pollFailed)
+      return selected ? { anchor: btoa(String.fromCharCode(...selected.anchor)), focus: btoa(String.fromCharCode(...selected.focus)) } : null
+    })
+    this.stopObserving = observeParticipants(identity.sessionId)
+    this.unsubscribe = useParticipantStore.subscribe(state => this.render(state[identity.sessionId] ?? []))
+    this.render(useParticipantStore.getState()[identity.sessionId] ?? [])
   }
 
   private render(participants: Participant[]): void {
@@ -95,9 +49,9 @@ export class SharedEditorPresence {
   close(): void {
     if (this.closed) return
     this.closed = true
-    clearInterval(this.timer)
+    this.unsubscribe()
+    this.stopObserving()
+    this.presence.close()
     this.clear()
-    useHostedSessionStore.getState().reportPresence(this.identity.sessionId, this.view, false)
-    rpc.notify('collaboration/presence', [this.identity.sessionId, this.identity.itemId, this.view, null, false])
   }
 }
