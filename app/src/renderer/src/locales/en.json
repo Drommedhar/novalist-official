@@ -15,6 +15,7 @@
     "peerHint": "The host must stay online. For another computer, enter an address it can reach and allow the listening port through the host's firewall. Use 127.0.0.1 for two apps on this computer.",
     "peerLocalCopyHint": "Ending keeps your local project. If the host ends the session, live collaboration stops for everyone.",
     "peerInvitationHint": "Send this private link to one collaborator. It expires after one hour and can be used once. No server sign-in is needed.",
+    "editorError": "Shared writing needs attention. Retry saving before closing this project.",
     "resume": "Reconnect to shared project",
     "resumeHint": "Reconnects to the saved server. A recovery archive keeps your current local copy; edits made after ending a session are not sent automatically.",
     "savedServer": "Saved shared project: {{server}}",

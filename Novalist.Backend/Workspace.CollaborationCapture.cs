@@ -16,6 +16,7 @@ public sealed partial class Workspace
         await Projects.SaveScenesAsync();
         await Projects.SaveProjectAsync();
         var paths = ProjectContentSelection.Read(root);
+        await NormalizeSharedSectionsAsync(root, paths, ct);
         await using var documents = factory(Guid.NewGuid());
         await documents.OpenAsync(ct);
         var states = new List<SharedDocumentState>();
@@ -35,6 +36,7 @@ public sealed partial class Workspace
                 throw new InvalidDataException("An initial shared scene cannot be deleted.");
             states.Add(new(item, path, snapshot.State) { SourceSha256 = Convert.ToHexStringLower(SHA256.HashData(bytes)) });
         }
+        states.AddRange(await CaptureSharedProseAsync(root, paths, documents, ct));
         var state = new SharedProjectState(states, await SharedCodexFields.CaptureAsync(root, paths, ct));
         await ProjectCheckpoint.CreateAsync(root, archive, () =>
         {

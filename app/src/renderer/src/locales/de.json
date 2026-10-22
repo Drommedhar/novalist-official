@@ -15,6 +15,7 @@
     "peerHint": "Der Host muss online bleiben. Gib für einen anderen Computer eine erreichbare Adresse an und erlaube den Empfangsport in der Firewall des Hosts. Verwende 127.0.0.1 für zwei Apps auf diesem Computer.",
     "peerLocalCopyHint": "Beim Beenden bleibt dein lokales Projekt erhalten. Wenn der Host die Sitzung beendet, endet die Zusammenarbeit in Echtzeit für alle.",
     "peerInvitationHint": "Sende diesen privaten Link an eine mitarbeitende Person. Er läuft nach einer Stunde ab und kann einmal verwendet werden. Eine Serveranmeldung ist nicht nötig.",
+    "editorError": "Das gemeinsame Schreiben benötigt Aufmerksamkeit. Versuche vor dem Schließen des Projekts erneut zu speichern.",
     "resume": "Erneut mit gemeinsamem Projekt verbinden",
     "resumeHint": "Verbindet erneut mit dem gespeicherten Server. Ein Wiederherstellungsarchiv bewahrt deine lokale Kopie; Änderungen nach dem Beenden einer Sitzung werden nicht automatisch gesendet.",
     "savedServer": "Gespeichertes gemeinsames Projekt: {{server}}",

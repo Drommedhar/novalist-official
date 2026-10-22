@@ -1,6 +1,6 @@
 import { rpc } from '../rpc/client'
 import type { SharedSceneIdentity } from '../../../shared/sharedScene'
-import type { SharedEditorSession } from './SharedEditorSession'
+import type { SharedSelection, ParticipantSelection } from './remoteSelections'
 import { useHostedSessionStore } from './hostedSessionStore'
 
 interface Participant {
@@ -9,6 +9,12 @@ interface Participant {
   itemId: string
   name: string
   selection: { anchor: string; focus: string } | null
+}
+
+interface PresenceEditor {
+  selection(): SharedSelection | null
+  showParticipant(participant: ParticipantSelection): void
+  removeParticipant(id: string): void
 }
 
 export class SharedEditorPresence {
@@ -23,7 +29,7 @@ export class SharedEditorPresence {
   private lastSelection = ''
   private lastSent = 0
 
-  constructor(private readonly identity: SharedSceneIdentity, private readonly session: SharedEditorSession) {
+  constructor(private readonly identity: SharedSceneIdentity, private readonly session: PresenceEditor) {
     this.timer = setInterval(() => this.tick(), 500)
     this.tick()
   }

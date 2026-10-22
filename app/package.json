@@ -38,6 +38,7 @@
     "react-i18next": "^17.0.10",
     "react-markdown": "^9.1.0",
     "remark-gfm": "^4.0.1",
+    "y-codemirror.next": "0.3.5",
     "yjs": "13.6.31",
     "zustand": "^5.0.14"
   },

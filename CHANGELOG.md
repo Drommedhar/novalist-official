@@ -23,7 +23,7 @@ could encounter in a previously released version.
 
 ### Added
 
-- **Collaboration** — sign in to a community server or host a direct TCP session from Settings, share a project through a private single-use invitation, and edit scenes together with participant cursors in the existing editor. Optional Steam builds add Steam session controls with runtime availability checks; native Steam playtesting is still pending. Project structure, new scenes, Codex entries, research and assets synchronize as they change. Codex text fields lock while focused and save before releasing the lock; conflicting file changes and writing received after deletion are preserved in local recovery copies. Joining downloads all books and drafts. Reconnect to hosted projects after reopening, preserve closed-session changes in a recovery archive, or create an independent copy with its own identity.
+- **Collaboration** — sign in to a community server or host a direct TCP session from Settings, share a project through a private single-use invitation, and edit scenes and Codex prose together with participant cursors and per-writer undo in the existing editors. Optional Steam builds add Steam session controls with runtime availability checks; native Steam playtesting is still pending. Project structure, new scenes, Codex entries, research and assets synchronize as they change. Codex non-prose text fields lock while focused and save before releasing the lock; conflicting file changes and writing received after deletion are preserved in local recovery copies. Joining downloads all books and drafts. Reconnect to hosted projects after reopening, preserve closed-session changes in a recovery archive, or create an independent copy with its own identity.
 
 ### Fixed
 

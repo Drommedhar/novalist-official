@@ -36,7 +36,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 ## Features
 
 - **Collaboration (in development)** — hosted server or direct TCP sessions, optional Steamworks integration, browser sign-in, single-use
-  invitations, live project structure, Codex, research and asset synchronization,
+  invitations, live project structure, Codex prose with per-writer undo, research and asset synchronization,
   participant cursors, scene editing through the existing editor, focus locks for Codex text fields, reconnecting
   retained projects and independent project copies. See [Collaboration](docs/manual/23-settings.md#collaboration)
   for the current capabilities and remaining work, or [Steam build requirements](docs/development/steam-collaboration.md)
