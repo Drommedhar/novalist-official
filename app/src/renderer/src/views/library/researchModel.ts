@@ -8,6 +8,7 @@ import { useShellStore } from '../../stores/shellStore'
 import { useHostBridgeStore } from '../../stores/hostBridgeStore'
 import { useResearchDrafts } from './useResearchDrafts'
 import { useSharedProjectRevision } from '../../collaboration/sharedProjectNotifications'
+import type { FieldBinding } from '../../collaboration/FocusedField'
 
 /** Reserved tag marking a quick-captured note that has not been filed yet.
  *  Mirrors ResearchItem.InboxTag on the backend. */
@@ -18,6 +19,7 @@ export interface ResearchItemDto {
   title: string
   type: string
   content: string
+  sharedProse?: FieldBinding
   tags: string[]
   fileSize: string
   modified: string

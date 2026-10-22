@@ -27,6 +27,16 @@ async function refreshResearch(state: {
   }
 }
 
+function mergeResearchDrafts(items: ResearchItemDto[], drafts: Map<string, ResearchItemDto>, originals: Map<string, ResearchRecoveryValue>): ResearchItemDto[] {
+  return items.map(item => {
+    const draft = drafts.get(item.id)
+    if (!draft) return item
+    const proseChanged = draft.content !== originals.get(item.id)?.content
+    return { ...item, title: draft.title, type: draft.type, content: proseChanged ? draft.content : item.content,
+      sharedProse: proseChanged ? undefined : item.sharedProse, tags: draft.tags, entityRefs: draft.entityRefs }
+  })
+}
+
 export function useResearchDrafts() {
   const [items, setState] = useState<ResearchItemDto[]>([])
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -41,10 +51,7 @@ export function useResearchDrafts() {
 
   const setItems = useCallback((next: SetStateAction<ResearchItemDto[]>): void => {
     const incoming = typeof next === 'function' ? next(current.current) : next
-    current.current = incoming.map((item) => {
-      const draft = drafts.current.get(item.id)
-      return draft ? { ...item, title: draft.title, type: draft.type, content: draft.content, tags: draft.tags, entityRefs: draft.entityRefs } : item
-    })
+    current.current = mergeResearchDrafts(incoming, drafts.current, originals.current)
     if (mounted.current) setState(current.current)
   }, [])
 
@@ -56,7 +63,7 @@ export function useResearchDrafts() {
     try {
       await persistPendingWrite(`research:${owner.current}:${draft.id}`, async () => {
         const updated = await rpc.request<ResearchItemDto[]>('research/save', [
-          draft.id, draft.title, draft.type, draft.content, draft.tags, draft.entityRefs
+          draft.id, draft.title, draft.type, draft.sharedProse ? null : draft.content, draft.tags, draft.entityRefs
         ])
         writeRevision.current++
         if (drafts.current.get(draft.id) === draft) { drafts.current.delete(draft.id); originals.current.delete(draft.id) }

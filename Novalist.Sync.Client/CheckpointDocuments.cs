@@ -8,7 +8,7 @@ public sealed record SharedDocumentState(Guid ItemId, string Path, byte[] State)
     public string? SourceSha256 { get; init; }
     public SharedTextField? TextField { get; init; }
 }
-public sealed record SharedTextField(string Key, string? SectionId = null, string? Chapter = null, string? Scene = null);
+public sealed record SharedTextField(string Key, string? SectionId = null, string? Chapter = null, string? Scene = null, string? ResearchItemId = null);
 public sealed record CheckpointDocument(Guid ItemId, string Path, long Length, string Sha256)
 {
     public SharedTextField? TextField { get; init; }

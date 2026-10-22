@@ -9,6 +9,23 @@ public sealed class CheckpointTests : IDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "novalist-checkpoint-tests", Guid.NewGuid().ToString("N"));
 
+    [Theory]
+    [InlineData("title", "note", null, null, null)]
+    [InlineData("content", " ", null, null, null)]
+    [InlineData("content", "note", "section", null, null)]
+    [InlineData("content", "note", null, "chapter", null)]
+    [InlineData("content", "note", null, null, "scene")]
+    public async Task ResearchBindingsRejectAmbiguousOrNonProseTargets(string key, string research, string? section, string? chapter, string? scene)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        Directory.CreateDirectory(Path.Combine(root, ".novalist"));
+        const string path = ".novalist/project.json";
+        await File.WriteAllTextAsync(Path.Combine(root, path), """{"books":[],"researchItems":[{"id":"note","type":"Note","content":"Source"}]}""", ct);
+        var document = new SharedDocumentState(Guid.NewGuid(), path, [0, 0]) { TextField = new(key, section, chapter, scene, research) };
+        using var archive = new MemoryStream();
+        await Assert.ThrowsAsync<InvalidDataException>(() => ProjectCheckpoint.CreateAsync(root, archive, () => ProjectContentSelection.Read(root), [document], ct));
+    }
+
     [Fact]
     public async Task MultipleProseFieldsInOneEntryKeepDistinctEditingHistoriesAfterJoining()
     {
