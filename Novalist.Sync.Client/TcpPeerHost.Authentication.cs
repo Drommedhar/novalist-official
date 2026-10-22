@@ -18,14 +18,15 @@ public sealed partial class TcpPeerHost
         }
     }
 
-    public PeerInvitation CreateInvitation(string advertisedHost, CheckpointReference? checkpoint = null)
+    public PeerInvitation CreateInvitation(string advertisedHost, CheckpointReference? checkpoint = null, DateTimeOffset? expiresAt = null)
     {
         lock (gate)
         {
             ObjectDisposedException.ThrowIf(disposed, this);
             var address = Address(advertisedHost);
             var secret = RandomNumberGenerator.GetBytes(32);
-            var expires = DateTimeOffset.UtcNow.AddHours(1);
+            var expires = expiresAt ?? DateTimeOffset.UtcNow.AddHours(1);
+            if (expires <= DateTimeOffset.UtcNow) throw new ArgumentException("Choose an invitation expiry in the future.", nameof(expiresAt));
             invitations.Add(Convert.ToHexString(SHA256.HashData(secret)), new(expires));
             return new(address, secret, expires, checkpoint);
         }
@@ -73,7 +74,8 @@ public sealed partial class TcpPeerHost
     {
         if (hello.Invitation is not { Length: 32 }) throw new CryptographicException("A peer invitation is required.");
         var hash = Convert.ToHexString(SHA256.HashData(hello.Invitation));
-        if (!invitations.TryGetValue(hash, out var invitation) || invitation.ExpiresAt <= DateTimeOffset.UtcNow ||
+        if (!invitations.TryGetValue(hash, out var invitation) ||
+            (invitation.ExpiresAt <= DateTimeOffset.UtcNow && invitation.ClaimedBy != hello.DeviceId) ||
             (invitation.ClaimedBy is { } claimed && claimed != hello.DeviceId))
             throw new CryptographicException("The peer invitation is expired or already used.");
         if (members.TryGetValue(hello.DeviceId, out var existing))

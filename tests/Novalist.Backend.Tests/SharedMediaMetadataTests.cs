@@ -37,6 +37,7 @@ public sealed class SharedMediaMetadataTests
         var guestRecord = await guest.Rpc.InvokeAsync<JsonElement>("entities/get", "character", id);
         var age = guestRecord.GetProperty("sharedFields").GetProperty("metadata").GetProperty($"override:{chapter.Guid}:Arrival:age").GetGuid();
         var focus = Guid.NewGuid();
+        focus = Guid.NewGuid();
         await guest.Rpc.InvokeAsync("collaboration/acquireField", joined.SessionId, age, focus);
         await guest.Rpc.InvokeAsync("collaboration/writeField", joined.SessionId, age, focus, "\"28\"");
         await guest.Rpc.InvokeAsync("collaboration/releaseField", joined.SessionId, age, focus);

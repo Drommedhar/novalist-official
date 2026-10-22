@@ -54,7 +54,7 @@ public sealed partial class Workspace
             var focused = await field.Fields.AcquireAsync(field.Lease, ct);
             if (!focused.Lease.Acquired)
             {
-                var participants = PeerProjects?.IsActive == true ? PeerProjects.Participants(sharedSession) : HostedProjects?.Participants(sharedSession);
+                var participants = PeerProjects?.IsActive == true ? PeerProjects.Participants(sharedSession) : null;
                 var writer = participants?.FirstOrDefault(participant => participant.DeviceId == focused.Lease.DeviceId)?.Name;
                 throw new InvalidOperationException(writer is null ? "A reference to this entry is being edited. Retry the rename after the field is released."
                     : $"{writer} is editing a reference to this entry. Retry the rename after the field is released.");

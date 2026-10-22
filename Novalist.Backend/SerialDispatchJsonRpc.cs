@@ -76,6 +76,7 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         "ui/progress/cancel",
         "system/ping",
         "system/shutdown",
+        "collaboration/cancel",
         "collaboration/presence",
         "collaboration/participants",
         // Stopping a reading is the same shape as cancelling a progress dialog:

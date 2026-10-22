@@ -10,29 +10,32 @@ public sealed partial class CollaborationRpc
 
     public CollaborationRpc(Workspace workspace) => this.workspace = workspace;
 
+    [JsonRpcMethod("collaboration/cancel")]
+    public void Cancel() => workspace.PeerProjects?.Cancel();
+
     [JsonRpcMethod("collaboration/end")]
     public Task EndAsync() => workspace.DetachSharedScenesAsync();
 
     [JsonRpcMethod("collaboration/status")]
-    public HostedSessionDto? Status() => workspace.HostedProjects?.Status ?? workspace.PeerProjects?.Status;
+    public HostedSessionDto? Status() => workspace.PeerProjects?.Status;
 
     [JsonRpcMethod("collaboration/saved")]
-    public Task<SavedHostedProjectDto?> SavedAsync() => workspace.HostedProjects?.SavedAsync() ?? Task.FromResult<SavedHostedProjectDto?>(null);
+    public Task<SavedHostedProjectDto?> SavedAsync() => workspace.PeerProjects?.SavedAsync() ?? Task.FromResult<SavedHostedProjectDto?>(null);
 
     [JsonRpcMethod("collaboration/resume")]
-    public Task<HostedSessionDto> ResumeAsync(CancellationToken cancellationToken = default) => Hosted().ResumeAsync(cancellationToken);
+    public Task<HostedSessionDto> ResumeAsync(CancellationToken cancellationToken = default) => Peers().ResumeAsync(cancellationToken);
 
     [JsonRpcMethod("collaboration/create")]
     public Task<HostedSessionDto> CreateAsync(Uri server, CancellationToken cancellationToken = default) =>
-        Hosted().CreateAsync(server, cancellationToken);
+        Peers().CreateAsync(server, cancellationToken);
 
     [JsonRpcMethod("collaboration/join")]
     public Task<HostedSessionDto> JoinAsync(Uri server, string link, string destination, CancellationToken cancellationToken = default) =>
-        Hosted().JoinAsync(server, link, destination, cancellationToken);
+        Peers().JoinAsync(server, link, destination, cancellationToken);
 
     [JsonRpcMethod("collaboration/invite")]
     public Task<string> InviteAsync(DateTimeOffset expiresAt, CancellationToken cancellationToken = default) =>
-        workspace.PeerProjects?.IsActive == true ? Task.FromResult(workspace.PeerProjects.Invite()) : Hosted().InviteAsync(expiresAt, cancellationToken);
+        Task.FromResult(Peers().Invite(expiresAt));
 
     [JsonRpcMethod("collaboration/peer/host")]
     public Task<HostedSessionDto> HostPeerAsync(string address, int port, string name, CancellationToken cancellationToken = default) =>
@@ -59,7 +62,6 @@ public sealed partial class CollaborationRpc
         RetainedProjectCopies.CreateIndependentAsync(workspace.Projects.ProjectRoot
             ?? throw new InvalidOperationException("Open a project first."), destination, cancellationToken);
 
-    private HostedProjectWorkspace Hosted() => workspace.HostedProjects ?? throw new InvalidOperationException("Desktop collaboration is unavailable.");
 
     [JsonRpcMethod("collaboration/acquireField")]
     public async Task<SharedFieldFocus> AcquireFieldAsync(Guid sessionId, Guid itemId, Guid focusId, CancellationToken cancellationToken = default)
@@ -92,13 +94,11 @@ public sealed partial class CollaborationRpc
 
     [JsonRpcMethod("collaboration/presence")]
     public Task PublishPresenceAsync(Guid sessionId, Guid itemId, Guid viewId, CursorSelection? selection, bool active, CancellationToken cancellationToken = default) =>
-        workspace.PeerProjects?.IsActive == true
-            ? workspace.PeerProjects.PublishPresenceAsync(sessionId, itemId, viewId, selection, active, cancellationToken)
-            : Hosted().PublishPresenceAsync(sessionId, itemId, viewId, selection, active, cancellationToken);
+        Peers().PublishPresenceAsync(sessionId, itemId, viewId, selection, active, cancellationToken);
 
     [JsonRpcMethod("collaboration/participants")]
     public IReadOnlyList<SharedParticipantDto> Participants(Guid sessionId) => workspace.DescribeSharedParticipants(
-        workspace.PeerProjects?.IsActive == true ? workspace.PeerProjects.Participants(sessionId) : Hosted().Participants(sessionId));
+        Peers().Participants(sessionId));
 
     [JsonRpcMethod("collaboration/readScene")]
     public async Task<byte[]> ReadSceneAsync(Guid sessionId, Guid itemId, CancellationToken cancellationToken = default)

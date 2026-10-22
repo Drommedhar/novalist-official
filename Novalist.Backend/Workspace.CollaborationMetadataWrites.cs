@@ -94,7 +94,7 @@ public sealed partial class Workspace
         var grant = await field.Fields.AcquireAsync(field.Lease, ct);
         if (!grant.Lease.Acquired)
         {
-            var participants = PeerProjects?.IsActive == true ? PeerProjects.Participants(sharedSession) : HostedProjects?.Participants(sharedSession);
+            var participants = PeerProjects?.IsActive == true ? PeerProjects.Participants(sharedSession) : null;
             var writer = participants?.FirstOrDefault(participant => participant.DeviceId == grant.Lease.DeviceId)?.Name;
             throw new InvalidOperationException(writer is null ? "A related field is being edited. Retry after it is released." : $"{writer} is editing a related field. Retry after it is released.");
         }

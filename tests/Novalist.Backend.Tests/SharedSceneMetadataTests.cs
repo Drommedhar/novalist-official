@@ -28,8 +28,10 @@ public sealed class SharedSceneMetadataTests
         var fields = Assert.IsType<SharedEntityFieldsDto>(scene.SharedFields).Fields;
         var modeFocus = Guid.NewGuid();
         var strandFocus = Guid.NewGuid();
+        modeFocus = Guid.NewGuid();
         await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, fields["narrativeMode"], modeFocus);
         await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, fields["narrativeMode"], modeFocus, "\"parallel\"");
+        strandFocus = Guid.NewGuid();
         await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, fields["strand"], strandFocus);
         await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, fields["strand"], strandFocus, "\"Mira\"");
 
@@ -39,6 +41,7 @@ public sealed class SharedSceneMetadataTests
         Assert.Equal("\"parallel\"", retained.Value);
         await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, fields["strand"], strandFocus);
         await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, fields["narrativeMode"], modeFocus, "\"linear\"");
+        strandFocus = Guid.NewGuid();
         var cleared = await desktop.Rpc.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", session.SessionId, fields["strand"], strandFocus);
         Assert.Equal("null", cleared.Value);
         await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, fields["strand"], strandFocus);
@@ -83,7 +86,9 @@ public sealed class SharedSceneMetadataTests
         var fields = Assert.IsType<SharedEntityFieldsDto>(scene.SharedFields).Fields;
         var rangeFocus = Guid.NewGuid();
         var dateFocus = Guid.NewGuid();
+        rangeFocus = Guid.NewGuid();
         await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, fields["dateRange"], rangeFocus);
+        dateFocus = Guid.NewGuid();
         await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, fields["date"], dateFocus);
         var range = JsonSerializer.Serialize(new { start = "2031-04-06", end = "2031-04-07", note = "Arrival" });
 
@@ -94,6 +99,7 @@ public sealed class SharedSceneMetadataTests
         await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, fields["dateRange"], rangeFocus, range);
         await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, fields["dateRange"], rangeFocus, "null");
         await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, fields["dateRange"], rangeFocus);
+        dateFocus = Guid.NewGuid();
         var mirrored = await desktop.Rpc.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", session.SessionId, fields["date"], dateFocus);
         Assert.Equal("\"2031-04-06\"", mirrored.Value);
         Assert.Equal("", (await desktop.Rpc.InvokeAsync<SceneEditDto>("project/getSceneEdit", chapter.Guid, scene.Id)).DateStart);

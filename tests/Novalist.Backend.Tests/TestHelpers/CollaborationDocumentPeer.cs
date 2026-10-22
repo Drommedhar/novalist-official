@@ -9,6 +9,7 @@ internal sealed class CollaborationDocumentPeer
 {
     private readonly Dictionary<Guid, byte[]> states = [];
     private readonly Dictionary<Guid, byte[]> removed = [];
+    internal Func<CancellationToken, Task>? BeforeSeed { get; set; }
     internal bool RejectNextLoad { get; set; }
     internal Guid? RejectLoadItem { get; set; }
     internal bool RemoveSeededScenes { get; set; }
@@ -17,7 +18,7 @@ internal sealed class CollaborationDocumentPeer
 
     [JsonRpcMethod("collaboration/documents")]
     public async Task<object?> Documents(string action, JsonElement command = default, Guid? id = null,
-        string? entityId = null, string? oldName = null, string? newName = null)
+        string? entityId = null, string? oldName = null, string? newName = null, CancellationToken cancellationToken = default)
     {
         if (action == "rename")
         {
@@ -34,6 +35,7 @@ internal sealed class CollaborationDocumentPeer
         {
             var item = command.GetProperty("id").GetGuid();
             var kind = command.GetProperty("kind").GetString();
+            if (kind == "seed" && BeforeSeed is { } beforeSeed) await beforeSeed(cancellationToken);
             if (kind == "load" && (RejectNextLoad || RejectLoadItem == item))
             {
                 RejectNextLoad = false;

@@ -5,69 +5,79 @@ using Novalist.Sync.Client;
 
 namespace Novalist.Backend;
 
-internal sealed class PeerProjectWorkspace : IDisposable
+public sealed record HostedSessionDto(Guid SessionId, Guid ProjectId, string Server, string Connection, bool IsOwner, string? RecoveryPath = null, string Mode = "hosted");
+public sealed record SavedHostedProjectDto(string Server, Guid ProjectId, string? RecoveryPath);
+
+internal sealed partial class PeerProjectWorkspace : IDisposable
 {
     private readonly Workspace workspace;
     private readonly DeviceIdentityStore devices;
+    private readonly HostedAccounts? accounts;
+    private readonly ICollaborationCredentials credentials;
     private readonly string storage;
     private readonly CancellationTokenSource stopping = new();
+    private readonly object operationGate = new();
+    private CancellationTokenSource? pending;
     private Runtime? current;
     internal bool IsActive => current is not null;
     internal HostedSessionDto? Status => current?.View();
 
-    internal PeerProjectWorkspace(Workspace workspace, ICollaborationCredentials credentials)
+    internal PeerProjectWorkspace(Workspace workspace, ICollaborationCredentials credentials, HostedAccounts? accounts = null)
     {
         this.workspace = workspace;
+        this.credentials = credentials;
+        this.accounts = accounts;
         devices = new(credentials);
         storage = Path.Combine(workspace.SettingsDirectory ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Novalist"), "Collaboration", "peer");
     }
 
-    internal Task<HostedSessionDto> HostAsync(string address, int port, string name, CancellationToken ct) => HostCoreAsync(address, port, name, false, ct);
-    internal Task<HostedSessionDto> HostSteamAsync(string name, CancellationToken ct) => HostCoreAsync("127.0.0.1", 0, name, true, ct);
+    internal Task<HostedSessionDto> HostAsync(string address, int port, string name, CancellationToken ct) => HostCoreAsync(address, port, name, false, null, null, ct);
+    internal Task<HostedSessionDto> HostSteamAsync(string name, CancellationToken ct) => HostCoreAsync("127.0.0.1", 0, name, true, null, null, ct);
 
-    private async Task<HostedSessionDto> HostCoreAsync(string address, int port, string name, bool steam, CancellationToken ct)
+    internal async Task<HostedSessionDto> CreateAsync(Uri server, CancellationToken ct)
     {
-        using var operation = CancellationTokenSource.CreateLinkedTokenSource(ct, stopping.Token);
+        var account = await AccountAsync(server, ct);
+        return await HostCoreAsync("127.0.0.1", 0, account.DisplayName, false, server, account, ct);
+    }
+
+    private async Task<HostedSessionDto> HostCoreAsync(string address, int port, string name, bool steam, Uri? server, HostedAccount? account, CancellationToken ct)
+    {
+        using var operation = BeginOperation(ct);
         ct = operation.Token;
         workspace.RequireNoSharedSession();
         _ = workspace.Projects.ProjectRoot ?? throw new InvalidOperationException("Open a project first.");
         ValidateName(name);
         if (port is < 0 or > 65535 || Uri.CheckHostName(address) == UriHostNameType.Unknown)
             throw new ArgumentException("Choose a reachable host address and a valid listening port.");
-        var device = await DeviceAsync(ct);
+        var device = await DeviceAsync(account, ct);
         TcpPeerHost? host = null;
-        SteamPeerRelay? relay = null;
         PeerProjectAccess? access = null;
         Runtime? runtime = null;
         try
         {
             var epochKey = RandomNumberGenerator.GetBytes(32);
-            var bindAddress = steam ? IPAddress.Loopback : Uri.CheckHostName(address) == UriHostNameType.IPv6 ? IPAddress.IPv6Any : IPAddress.Any;
+            var bindAddress = steam || server is not null ? IPAddress.Loopback : Uri.CheckHostName(address) == UriHostNameType.IPv6 ? IPAddress.IPv6Any : IPAddress.Any;
             try { host = await TcpPeerHost.StartAsync(new(bindAddress, port), Path.Combine(storage, "hosts"), new(Guid.NewGuid(), 0, epochKey, device), ct); }
             finally { CryptographicOperations.ZeroMemory(epochKey); }
             access = host.CreateOwnerAccess(address);
-            if (steam) relay = await SteamPeerRelay.HostAsync(access.Address.Port, ct);
             var wire = new TcpPeerTransport(access, device);
             var id = Guid.NewGuid();
             var session = await PeerProjectSession.OpenAsync(storage, id, wire, device);
-            runtime = new(id, device, session, host, address, name) { Relay = relay };
-            await using var archive = OpenArchive(id);
-            var states = await workspace.CaptureSharedProjectAsync(archive, ct);
-            await archive.FlushAsync(ct);
-            archive.Flush(flushToDisk: true);
-            archive.Position = 0;
-            await session.StartAsync(createProject: true, ct);
-            runtime.Checkpoint = await CheckpointTransfer.PublishAsync(session.Updates, archive, ct);
-            archive.Position = 0;
-            await workspace.AttachSharedProjectAsync(id, session.Updates, states, archive, ct);
+            runtime = new(id, device, session, host, address, name) { Server = server };
+            await CaptureHostAsync(runtime, ct);
+            if (steam) runtime.Steam = await SteamPeerRelay.HostAsync(access.Address.Port, ct);
+            if (server is not null && account is not null)
+                runtime.Relay = await RelayPeerTunnel.HostAsync(server, access.Address.Port, account.GetAccessTokenAsync, ct);
+            var prepared = runtime;
+            host.PrepareBootstrap = token => PrepareBootstrapAsync(prepared, token);
         }
         catch
         {
+            await workspace.DetachSharedScenesAsync();
             if (runtime is not null) await runtime.DisposeAsync();
             else
             {
-                if (relay is not null) await relay.DisposeAsync();
                 if (host is not null) await host.DisposeAsync();
                 access?.Dispose();
                 device.Dispose();
@@ -78,63 +88,99 @@ internal sealed class PeerProjectWorkspace : IDisposable
         return runtime.View();
     }
 
+    private async Task CaptureHostAsync(Runtime runtime, CancellationToken ct)
+    {
+        await using var archive = OpenArchive(runtime.Id);
+        var state = await workspace.CaptureSharedProjectAsync(archive, ct);
+        await archive.FlushAsync(ct);
+        archive.Flush(true);
+        runtime.RequireHost().SetBootstrap(archive.Name, 0);
+        await runtime.Session.StartAsync(createProject: true, ct);
+        archive.Position = 0;
+        await workspace.AttachSharedProjectAsync(runtime.Id, runtime.Session.Updates, state, archive, ct);
+        var files = ProjectContentSelection.Read(workspace.Projects.ProjectRoot ?? throw new InvalidOperationException("The project is closed."));
+        await workspace.ReportCollaborationProgressAsync(new("complete", files.Count, files.Count, 0, 0));
+    }
+
     internal Task<HostedSessionDto> JoinAsync(string link, string destination, string name, CancellationToken ct) =>
-        JoinCoreAsync(PeerInvitation.Parse(link), 0, destination, name, ct);
+        JoinCoreAsync(PeerInvitation.Parse(link), null, 0, destination, name, null, ct);
 
     internal Task<HostedSessionDto> JoinSteamAsync(string link, string destination, string name, CancellationToken ct)
     {
         var invitation = SteamPeerInvitation.Parse(link);
-        return JoinCoreAsync(invitation.Invitation, invitation.HostSteamId, destination, name, ct);
+        return JoinCoreAsync(invitation.Invitation, null, invitation.HostSteamId, destination, name, null, ct);
     }
 
-    private async Task<HostedSessionDto> JoinCoreAsync(PeerInvitation invitation, ulong steamHost, string destination, string name, CancellationToken ct)
+    internal async Task<HostedSessionDto> JoinAsync(Uri server, string link, string destination, CancellationToken ct)
     {
-        using var operation = CancellationTokenSource.CreateLinkedTokenSource(ct, stopping.Token);
+        var invitation = RelayPeerInvitation.Parse(link);
+        if (new Uri(server.AbsoluteUri.TrimEnd('/') + '/') != new Uri(invitation.Server.AbsoluteUri.TrimEnd('/') + '/'))
+            throw new InvalidOperationException("Sign in to the server named by this invitation.");
+        var account = await AccountAsync(server, ct);
+        return await JoinCoreAsync(invitation.Invitation, invitation, 0, destination, account.DisplayName, account, ct);
+    }
+
+    private async Task<HostedSessionDto> JoinCoreAsync(PeerInvitation invitation, RelayPeerInvitation? hosted, ulong steamHost, string destination, string name, HostedAccount? account, CancellationToken ct)
+    {
+        using var operation = BeginOperation(ct);
         ct = operation.Token;
         workspace.RequireNoSharedSession();
         ValidateName(name);
-        var checkpoint = invitation.Checkpoint ?? throw new InvalidDataException("The invitation has no project checkpoint.");
         destination = Path.GetFullPath(destination);
-        if (Directory.Exists(destination) || File.Exists(destination)) throw new IOException("Choose a new folder for the shared project.");
-        var device = await DeviceAsync(ct);
+        var device = await DeviceAsync(account, ct);
         Runtime? runtime = null;
-        SteamPeerRelay? relay = null;
+        SteamPeerRelay? steam = null;
+        RelayPeerTunnel? relay = null;
+        TcpPeerTransport? wire = null;
         try
         {
-            TcpPeerTransport wire;
+            var address = invitation.Address.Host;
+            if (hosted is not null && account is not null)
+            {
+                relay = await RelayPeerTunnel.ConnectAsync(hosted.Server, hosted.SessionId, account.GetAccessTokenAsync, ct);
+                invitation = invitation with { Address = invitation.Address with { Host = "127.0.0.1", Port = relay.LocalPort } };
+            }
             if (steamHost == 0) wire = await TcpPeerTransport.JoinInvitationAsync(invitation, device, ct);
-            else (wire, relay) = await SteamPeerRelay.JoinInvitationAsync(new(steamHost, invitation), device, ct);
+            else (wire, steam) = await SteamPeerRelay.JoinInvitationAsync(new(steamHost, invitation), device, ct);
             var id = Guid.NewGuid();
-            var session = await PeerProjectSession.OpenAsync(storage, id, wire, device);
-            runtime = new(id, device, session, null, invitation.Address.Host, name) { Checkpoint = checkpoint, Relay = relay };
-            await session.StartAsync(createProject: false, ct);
             await using var archive = OpenArchive(id);
-            var available = new DriveInfo(Path.GetPathRoot(destination) ?? throw new IOException("Choose a local project folder.")).AvailableFreeSpace;
-            await CheckpointTransfer.DownloadAsync(session.Updates, checkpoint, archive, available, ct);
-            await archive.FlushAsync(ct);
-            archive.Flush(flushToDisk: true);
-            archive.Position = 0;
-            var states = await ProjectCheckpoint.InstallAsync(archive, destination, available, ct);
+            var progress = new CollaborationProgress(workspace);
+            var state = await PeerBootstrapTransfer.DownloadAsync(wire, destination, archive, progress, ct);
+            await progress.FlushAsync();
+            var session = await PeerProjectSession.OpenAsync(storage, id, wire, device, wire.BootstrapSequence);
+            runtime = new(id, device, session, null, address, name) { Steam = steam, Relay = relay, Server = hosted?.Server };
+            await session.StartAsync(createProject: false, ct);
             await workspace.OpenProjectAsync(destination);
             archive.Position = 0;
-            await workspace.AttachSharedProjectAsync(id, session.Updates, states, archive, ct);
+            await workspace.AttachSharedProjectAsync(id, session.Updates, state, archive, ct);
+            if (hosted is not null) await RememberAsync(hosted, destination, ct);
         }
-        catch
+        catch (Exception error)
         {
+            await workspace.DetachSharedScenesAsync();
             if (runtime is not null) await runtime.DisposeAsync();
-            else { if (relay is not null) await relay.DisposeAsync(); device.Dispose(); }
+            else
+            {
+                if (wire is not null) { await wire.DisposeAsync(); wire.Access.Dispose(); }
+                if (steam is not null) await steam.DisposeAsync();
+                if (relay is not null) await relay.DisposeAsync();
+                device.Dispose();
+            }
+            if (error is System.Net.WebSockets.WebSocketException or System.Net.Sockets.SocketException)
+                throw new InvalidOperationException("Cannot reach this live session. Keep the host online and ask for a new invitation if the session has ended.", error);
             throw;
         }
         current = runtime;
         return runtime.View();
     }
 
-    internal string Invite()
+    internal string Invite(DateTimeOffset expiresAt)
     {
         var runtime = current ?? throw new InvalidOperationException("Host a project before inviting someone.");
         var host = runtime.Host ?? throw new InvalidOperationException("Only the host can invite someone to this session.");
-        var invitation = host.CreateInvitation(runtime.Address, runtime.Checkpoint);
-        return runtime.Relay is { } relay ? new SteamPeerInvitation(relay.SteamId, invitation).ToLink() : invitation.ToLink();
+        var invitation = host.CreateInvitation(runtime.Address, expiresAt: expiresAt);
+        if (runtime.Relay is { } relay && runtime.Server is { } server) return new RelayPeerInvitation(server, relay.SessionId, invitation).ToLink();
+        return runtime.Steam is { } steam ? new SteamPeerInvitation(steam.SteamId, invitation).ToLink() : invitation.ToLink();
     }
 
     internal async Task ReleaseAsync()
@@ -157,8 +203,20 @@ internal sealed class PeerProjectWorkspace : IDisposable
     private Runtime RequireSession(Guid sessionId) => current is { } runtime && runtime.Id == sessionId
         ? runtime : throw new InvalidOperationException("This collaboration session is no longer active.");
 
-    private Task<DeviceIdentity> DeviceAsync(CancellationToken ct) => devices.GetOrCreateAsync(new("https://novalist.invalid/peer-device"), "desktop", ct);
-    private FileStream OpenArchive(Guid id) => new(Path.Combine(storage, "sessions", id.ToString("N"), "checkpoint.zip"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
+    private async Task<HostedAccount> AccountAsync(Uri server, CancellationToken ct) =>
+        accounts is null ? throw new InvalidOperationException("Desktop collaboration is unavailable.") :
+        await accounts.RestoreAsync(server, ct) ?? throw new InvalidOperationException("Sign in to the collaboration server first.");
+
+    private Task<DeviceIdentity> DeviceAsync(HostedAccount? account, CancellationToken ct) => devices.GetOrCreateAsync(
+        account?.Authority ?? new("https://novalist.invalid/peer-device"), account?.Subject ?? "desktop", ct);
+
+    private FileStream OpenArchive(Guid id)
+    {
+        var directory = Path.Combine(storage, "sessions", id.ToString("N"));
+        Directory.CreateDirectory(directory);
+        return new(Path.Combine(directory, "checkpoint.zip"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
+    }
+
     private static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name) || name.Length > 128 || name.Any(char.IsControl))
@@ -171,18 +229,27 @@ internal sealed class PeerProjectWorkspace : IDisposable
     private sealed class Runtime(Guid id, DeviceIdentity device, PeerProjectSession session, TcpPeerHost? host, string address, string name) : IAsyncDisposable
     {
         internal Guid Id => id;
+        internal DeviceIdentity Device => device;
         internal PeerProjectSession Session => session;
         internal TcpPeerHost? Host => host;
-        internal SteamPeerRelay? Relay { get; init; }
+        internal TcpPeerHost RequireHost() => host ?? throw new UnauthorizedAccessException("Only the host can manage this session.");
+        internal SteamPeerRelay? Steam { get; set; }
+        internal RelayPeerTunnel? Relay { get; set; }
+        internal Uri? Server { get; init; }
+        internal List<string> BootstrapArchives { get; } = [];
         internal string Address => address;
         internal string Name => name;
-        internal CheckpointReference? Checkpoint { get; set; }
-        internal HostedSessionDto View() => new(id, session.Transport.Access.ProjectId, Relay is null ? new UriBuilder("tcp", address, session.Transport.Access.Address.Port).Uri.GetLeftPart(UriPartial.Authority) : "Steam",
-            session.Status.State.ToString(), host is not null, Mode: Relay is null ? "tcp" : "steam");
+        internal HostedSessionDto View() => new(id, session.Transport.Access.ProjectId,
+            Server is not null ? Server.AbsoluteUri.TrimEnd('/') + "/" : (Steam is null ? new UriBuilder("tcp", address, session.Transport.Access.Address.Port).Uri.GetLeftPart(UriPartial.Authority) : "Steam"),
+            Relay?.Failure is null ? session.Status.State.ToString() : "Failed", host is not null,
+            Mode: Server is not null ? "hosted" : Steam is null ? "tcp" : "steam");
         public async ValueTask DisposeAsync()
         {
+            if (host is not null) host.PrepareBootstrap = null;
             await session.DisposeAsync();
             if (host is not null) await host.DisposeAsync();
+            foreach (var path in BootstrapArchives) File.Delete(path);
+            if (Steam is not null) await Steam.DisposeAsync();
             if (Relay is not null) await Relay.DisposeAsync();
             device.Dispose();
         }

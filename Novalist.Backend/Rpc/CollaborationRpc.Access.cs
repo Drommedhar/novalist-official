@@ -7,12 +7,17 @@ namespace Novalist.Backend.Rpc;
 public sealed partial class CollaborationRpc
 {
     [JsonRpcMethod("collaboration/members")]
-    public Task<IReadOnlyList<HostedProjectMember>> MembersAsync(CancellationToken cancellationToken = default) => Hosted().MembersAsync(cancellationToken);
+    public Task<IReadOnlyList<HostedProjectMember>> MembersAsync(CancellationToken cancellationToken = default) => Task.FromResult(Peers().Members());
 
     [JsonRpcMethod("collaboration/removeMember")]
-    public Task RemoveMemberAsync(Guid memberId, CancellationToken cancellationToken = default) => Hosted().RemoveMemberAsync(memberId, cancellationToken);
+    public Task RemoveMemberAsync(Guid memberId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Peers().RemoveMember(memberId);
+        return Task.CompletedTask;
+    }
 
     [JsonRpcMethod("collaboration/deleteSharedProject")]
-    public Task DeleteSharedProjectAsync(CancellationToken cancellationToken = default) => Hosted().DeleteSharedProjectAsync(cancellationToken);
+    public Task DeleteSharedProjectAsync(CancellationToken cancellationToken = default) => Peers().DeleteSharedProjectAsync();
 }
 #endif

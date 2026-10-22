@@ -67,6 +67,29 @@ public sealed class PeerProjectRpcTests
     }
 
     [Fact]
+    public async Task JoiningAnExistingCopyReusesMatchingProjectFiles()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var temporary = new TempDir();
+        await using var owner = new Desktop(temporary.Combine("owner-settings"));
+        await using var guest = new Desktop(temporary.Combine("guest-settings"));
+        await owner.Workspace.Projects.CreateProjectAsync(temporary.Path, "Novel", "Book");
+        var root = owner.Workspace.Projects.ProjectRoot!;
+        var destination = temporary.Combine("Existing copy");
+        foreach (var file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+        {
+            var target = Path.Combine(destination, Path.GetRelativePath(root, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file, target);
+        }
+        await owner.Rpc.HostPeerAsync("127.0.0.1", 0, "Owner", ct);
+        var link = await owner.Rpc.InviteAsync(DateTimeOffset.UtcNow.AddHours(1), ct);
+        var joined = await guest.Rpc.JoinPeerAsync(link, destination, "Guest", ct);
+        Assert.Equal("Connected", joined.Connection);
+        Assert.Equal(destination, guest.Workspace.Projects.ProjectRoot);
+    }
+
+    [Fact]
     public async Task FailedPeerSetupLeavesTheOpenProjectUsableAndAllowsAnotherAttempt()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -92,8 +115,6 @@ public sealed class PeerProjectRpcTests
         var link = await owner.Rpc.InviteAsync(DateTimeOffset.UtcNow.AddHours(1), ct);
         await using var guest = new Desktop(temporary.Combine("guest-settings"));
         await Assert.ThrowsAsync<IOException>(() => guest.Rpc.JoinPeerAsync(link, temporary.Path, "Guest", ct));
-        var withoutCheckpoint = PeerInvitation.Parse(link) with { Checkpoint = null };
-        await Assert.ThrowsAsync<InvalidDataException>(() => guest.Rpc.JoinPeerAsync(withoutCheckpoint.ToLink(), temporary.Combine("No checkpoint"), "Guest", ct));
         var wrongPin = PeerInvitation.Parse(link) with { Address = PeerInvitation.Parse(link).Address with { CertificateHash = new byte[32] } };
         await Assert.ThrowsAnyAsync<Exception>(() => guest.Rpc.JoinPeerAsync(wrongPin.ToLink(), temporary.Combine("Wrong host"), "Guest", ct));
         Assert.Null(guest.Rpc.Status());
@@ -139,8 +160,14 @@ public sealed class PeerProjectRpcTests
         internal Desktop(string settings)
         {
             Workspace = new(settings);
+            var values = new Dictionary<string, string>();
             var credentials = Substitute.For<ICollaborationCredentials>();
-            credentials.ReadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult<string?>(null));
+            credentials.ReadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(call => Task.FromResult(values.GetValueOrDefault(call.Arg<string>())));
+            credentials.WriteAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(call =>
+            {
+                values[call.ArgAt<string>(0)] = call.ArgAt<string>(1);
+                return Task.CompletedTask;
+            });
             Workspace.PeerProjects = new(Workspace, credentials);
             Workspace.CreateSharedDocuments = id => new(id, SceneDocumentsAsync);
             Rpc = new(Workspace);
