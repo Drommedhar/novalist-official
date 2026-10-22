@@ -41,6 +41,7 @@ public sealed class CommunityServerFixture : WebApplicationFactory<Program>, IAs
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
+        builder.UseSetting("Relay:Enabled", "false");
         builder.UseSetting("ConnectionStrings:Default", connectionString);
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services => services.PostConfigure<JwtBearerOptions>(
