@@ -6,6 +6,15 @@
     "copy": "Unabhängige Kopie erstellen",
     "copyCreated": "Unabhängige Projektkopie erstellt.",
     "showRetainedCopy": "Archiv der lokalen Projektkopie anzeigen",
+    "access": {
+      "title": "Geteilten Zugriff verwalten",
+      "hint": "Der Eigentümer verwaltet den Zugriff auf dieses Serverprojekt. Bereits erhaltene lokale Kopien bleiben erhalten.",
+      "owner": "Eigentümer",
+      "remove": "Zugriff entfernen",
+      "removeConfirm": "{{name}} aus diesem geteilten Projekt entfernen? Unbenutzte Einladungslinks laufen ebenfalls ab. Bereits vorhandene lokale Kopien bleiben erhalten.",
+      "delete": "Geteiltes Projekt vom Server löschen",
+      "deleteConfirm": "Das geteilte Projekt für alle vom Server löschen? Die Zusammenarbeit endet und Einladungen werden ungültig. Lokale Projektkopien bleiben erhalten."
+    },
     "title": "Zusammenarbeit",
     "server": "Serveradresse",
     "serverHint": "Melde dich über deinen Browser bei deinem Community-Server für die Zusammenarbeit an. Dein Konto wird auf diesem Gerät sicher gespeichert.",
@@ -34,6 +43,7 @@
     "fieldRecovered": "Deine Änderung wurde in einer lokalen Wiederherstellungskopie gesichert.",
     "showRecovery": "Wiederherstellungskopie anzeigen",
     "connection": {
+      "AccessEnded": "Der Zugriff auf dieses geteilte Projekt wurde beendet. Beende diese Sitzung, um mit deiner lokalen Kopie weiterzuarbeiten.",
       "Stopped": "Die Zusammenarbeit ist pausiert.",
       "Connecting": "Verbindung zum geteilten Projekt wird hergestellt…",
       "Connected": "Mit dem geteilten Projekt verbunden.",

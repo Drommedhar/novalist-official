@@ -19,6 +19,7 @@ public sealed partial class HostedTransport : IUpdateTransport, IPresenceTranspo
 
     public event Func<SequencedUpdate, Task>? Received;
     public event Func<UpdateEnvelope, Task>? PresenceReceived;
+    public event Action<Guid>? AccessEnded;
     public bool IsConnected => ready && hub.State == HubConnectionState.Connected;
     public string ConnectionIdentity { get; }
     internal bool AuthenticatesDevice(Guid expected) => authentication is not null && deviceId == expected;
@@ -50,6 +51,7 @@ public sealed partial class HostedTransport : IUpdateTransport, IPresenceTranspo
             .AddMessagePackProtocol()
             .Build();
         hub.Closed += _ => { ready = false; return Task.CompletedTask; };
+        hub.On<Guid>("ProjectAccessEnded", project => { ready = false; AccessEnded?.Invoke(project); });
         hub.On<SequencedUpdate>("ReceiveUpdate", async update =>
         {
             if (Received is { } handlers)

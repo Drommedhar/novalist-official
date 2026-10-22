@@ -6,6 +6,15 @@
     "copy": "Create independent copy",
     "copyCreated": "Independent project copy created.",
     "showRetainedCopy": "Show retained project archive",
+    "access": {
+      "title": "Manage shared access",
+      "hint": "The owner controls access to this server project. Everyone keeps copies they have already received.",
+      "owner": "Owner",
+      "remove": "Remove access",
+      "removeConfirm": "Remove {{name}} from this shared project? Unused invitation links will also expire. Their existing local copies remain available.",
+      "delete": "Delete shared project from server",
+      "deleteConfirm": "Delete the shared project from the server for everyone? This ends collaboration and invalidates invitations. Local project copies are kept."
+    },
     "title": "Collaboration",
     "server": "Server address",
     "serverHint": "Sign in to your community collaboration server using your browser. Your account is remembered securely on this device.",
@@ -34,6 +43,7 @@
     "fieldRecovered": "Your edit was saved in a local recovery copy.",
     "showRecovery": "Show recovery copy",
     "connection": {
+      "AccessEnded": "Access to this shared project has ended. End this session to continue with your local copy.",
       "Stopped": "Sharing is paused.",
       "Connecting": "Connecting to the shared project…",
       "Connected": "Connected to the shared project.",

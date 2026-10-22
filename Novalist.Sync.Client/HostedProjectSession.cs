@@ -13,7 +13,8 @@ public sealed class HostedProjectSession : IAsyncDisposable
     private bool disposed;
     public CollaborationSession Updates { get; }
     public HostedTransport Transport => transport;
-    public SessionConnectionStatus Status => synchronizer.Status;
+    private bool accessEnded;
+    public SessionConnectionStatus Status => accessEnded ? new(SessionConnectionState.AccessEnded) : synchronizer.Status;
     public SessionPresence Presence { get; }
     public bool IsClosed => journal.IsClosed;
 
@@ -30,6 +31,14 @@ public sealed class HostedProjectSession : IAsyncDisposable
         Updates = updates;
         Presence = presence;
         synchronizer = new(updates);
+        transport.AccessEnded += OnAccessEnded;
+    }
+
+    private void OnAccessEnded(Guid project)
+    {
+        if (project != Updates.Context.ProjectId) return;
+        accessEnded = true;
+        Updates.ReportAccessEnded();
     }
 
     public static async Task<HostedProjectSession> OpenAsync(string storage, Guid sessionId, HostedProjectAccess access,
@@ -103,6 +112,7 @@ public sealed class HostedProjectSession : IAsyncDisposable
             await Presence.DisposeAsync();
             await synchronizer.DisposeAsync();
             await Updates.DisposeAsync();
+            transport.AccessEnded -= OnAccessEnded;
             await transport.DisposeAsync();
             cipher.Dispose();
             journal.Dispose();

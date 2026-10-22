@@ -68,6 +68,13 @@ and select **Create independent copy** to make a separate project. It keeps all
 the project content with a new identity and has no connection to the original
 shared project. You can open and share it as its owner.
 
+The owner can use **Manage shared access** to remove a collaborator's server
+access or **Delete shared project from server** to end server sharing for everyone.
+Removing access also expires unused invitation links. Deleting the shared project
+removes its server updates and invitations. Everyone keeps their local project
+copy. A connected writer whose access ends sees a notice and can end the session
+to continue working locally.
+
 Shared scenes show other writers' cursors and selections. Cursors follow the
 text as it changes and disappear when their writer leaves or stops responding.
 

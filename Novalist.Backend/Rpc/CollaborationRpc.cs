@@ -4,7 +4,7 @@ using Novalist.Sync.Client;
 
 namespace Novalist.Backend.Rpc;
 
-public sealed class CollaborationRpc
+public sealed partial class CollaborationRpc
 {
     private readonly Workspace workspace;
 

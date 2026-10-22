@@ -5,7 +5,7 @@ using System.Threading.Channels;
 
 namespace Novalist.Sync.Client;
 
-public enum SessionConnectionState { Stopped, Connecting, Connected, Reconnecting, Failed }
+public enum SessionConnectionState { Stopped, Connecting, Connected, Reconnecting, Failed, AccessEnded }
 public sealed record SessionConnectionStatus(SessionConnectionState State, Exception? Error = null);
 
 public sealed class SessionSynchronizer : IAsyncDisposable

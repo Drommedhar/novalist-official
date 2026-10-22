@@ -94,6 +94,12 @@ public sealed partial class CollaborationSession : IAsyncDisposable
 
     public void RejectUpdate(Guid item, string hash) => journal.RejectUpdate(item, hash);
 
+    internal void ReportAccessEnded()
+    {
+        ReceiveError = new UnauthorizedAccessException("Your access to this shared project has ended. Your local copy is still available.");
+        ReceiveFailed?.Invoke(ReceiveError);
+    }
+
     public async Task SynchronizeAsync(bool createProject, CancellationToken cancellationToken)
     {
         await connectionGate.WaitAsync(cancellationToken);

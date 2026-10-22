@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useHostedSessionStore } from '../../collaboration/hostedSessionStore'
 import { useProjectStore } from '../../stores/projectStore'
+import { SharedProjectAccess } from './SharedProjectAccess'
 
 export function SharedProjectCard({ server, signedIn }: { server: string; signedIn: boolean }): React.JSX.Element {
   const { t } = useTranslation()
@@ -45,6 +46,7 @@ export function SharedProjectCard({ server, signedIn }: { server: string; signed
         <textarea id="set-collaboration-invitation" className="inspector-input" value={invitation} readOnly onFocus={event => event.target.select()} />
         <p className="settings-hint">{t('collaboration.invitationHint')}</p>
       </>}
+      {session.isOwner && <SharedProjectAccess sessionId={session.sessionId} disabled={busy !== null || session.connection === 'AccessEnded'} />}
     </> : <>
       {saved && <>
         <p className="settings-hint">{t('collaboration.savedServer', { server: saved.server })}</p>
