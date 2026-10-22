@@ -12,7 +12,7 @@ export class SharedItemPresence {
   private lastSent = 0
 
   constructor(private readonly identity: Identity, private readonly view: string = crypto.randomUUID(),
-    private readonly selection: () => Selection = () => null) {
+    private readonly selection: () => Selection = () => null, private readonly active: () => boolean = () => true) {
     this.timer = setInterval(() => this.tick(), 500)
     this.tick()
   }
@@ -24,10 +24,11 @@ export class SharedItemPresence {
 
   private async publish(): Promise<void> {
     try {
-      const selection = this.selection()
-      const encoded = JSON.stringify(selection)
+      const active = this.active()
+      const selection = active ? this.selection() : null
+      const encoded = JSON.stringify({ active, selection })
       if (encoded === this.lastSelection && Date.now() - this.lastSent < 5000) return
-      await rpc.request('collaboration/presence', [this.identity.sessionId, this.identity.itemId, this.view, selection, true])
+      await rpc.request('collaboration/presence', [this.identity.sessionId, this.identity.itemId, this.view, selection, active])
       this.lastSelection = encoded
       this.lastSent = Date.now()
       this.report(false)

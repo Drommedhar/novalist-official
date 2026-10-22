@@ -12,6 +12,7 @@ import { ManuscriptFrame } from './ManuscriptFrame'
 import { Corkboard } from './Corkboard'
 import { Outliner } from './Outliner'
 import { useContentTransition } from '../../shell/useContentTransition'
+import { useSharedProjectRevision } from '../../collaboration/sharedProjectNotifications'
 
 const MODES: ManuscriptMode[] = ['manuscript', 'corkboard', 'outliner', 'board']
 
@@ -39,10 +40,11 @@ function useManuscriptView() {
   const freeform = useManuscriptStore((s) => s.freeform)
   const colourBy = useManuscriptStore((s) => s.colourBy)
   const definitions = useManuscriptPropsStore((s) => s.definitions)
+  const sharedRevision = useSharedProjectRevision()
 
   useEffect(() => {
     void load()
-  }, [load, filterStatus, composed])
+  }, [load, filterStatus, composed, sharedRevision])
 
   // The shared status chip and the manuscript's own filter are the same
   // statement about the book, so one follows the other rather than the writer

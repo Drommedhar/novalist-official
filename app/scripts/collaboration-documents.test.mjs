@@ -13,6 +13,32 @@ const require = createRequire(import.meta.url)
 const Y = require('yjs')
 const { ProseDocumentHost } = require(output)
 
+for (const html of [
+  '<p><strong class="novalist-entity" data-id="mira"><em>Imported</em> prose</strong>.</p>',
+  '<p>Imported prose.</p>\n',
+  '<p>First.</p>\n<p>Second.</p>\n',
+  'Before <strong>bold</strong><p>A paragraph.</p>After'
+]) test(`imported scene markup roundtrips exactly: ${html}`, () => {
+  const owner = new ProseDocumentHost()
+  const guest = new ProseDocumentHost()
+  try {
+    guest.load('imported', owner.seed('imported', html))
+    assert.equal(owner.project('imported'), html)
+    assert.equal(guest.project('imported'), html)
+    const writer = new Y.Doc()
+    try {
+      Y.applyUpdate(writer, guest.state('imported'))
+      const previous = Y.encodeStateVector(writer)
+      writer.getText('prose').insert(0, 'New ')
+      const update = Y.encodeStateAsUpdate(writer, previous)
+      owner.receive('imported', update)
+      guest.receive('imported', update)
+      assert.equal(owner.project('imported'), guest.project('imported'))
+      assert.ok(owner.project('imported').includes('New '))
+    } finally { writer.destroy() }
+  } finally { owner.dispose(); guest.dispose() }
+})
+
 test('unopened scenes merge edits and retain shared identities across restart', () => {
   const owner = new ProseDocumentHost()
   const guest = new ProseDocumentHost()

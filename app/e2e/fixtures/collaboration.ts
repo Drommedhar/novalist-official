@@ -1,4 +1,5 @@
 import { CollaborativeScene } from '../../src/renderer/src/collaboration/CollaborativeScene'
+import { sceneEditorSurface } from '../../src/renderer/src/collaboration/richEditingSurface'
 import type { EditorWindow } from '../../src/renderer/src/views/editor/editorBridge'
 
 export interface CollaborationHarness {
@@ -21,7 +22,7 @@ let updates: number[][] = []
 const errors: string[] = []
 window.collaboration = {
   start(state) {
-    scene = new CollaborativeScene(editor, {
+    scene = new CollaborativeScene(sceneEditorSurface(editor), {
       initialState: state && new Uint8Array(state),
       onUpdate: update => updates.push(Array.from(update)),
       onError: error => errors.push(error.message)

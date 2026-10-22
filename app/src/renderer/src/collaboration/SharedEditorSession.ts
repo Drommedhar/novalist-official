@@ -1,5 +1,5 @@
 import { CollaborativeScene } from './CollaborativeScene'
-import type { EditorWindow } from '../views/editor/editorBridge'
+import type { RichEditingSurface } from './richEditingSurface'
 import type { SharedSelection, ParticipantSelection } from './remoteSelections'
 import { mergeUpdates } from 'yjs'
 
@@ -25,7 +25,7 @@ export class SharedEditorSession {
   private detached = false
   private content: Pick<SharedEditorStatus, 'html' | 'plainText'>
 
-  constructor(private readonly editor: EditorWindow, initialState: Uint8Array,
+  constructor(private readonly editor: RichEditingSurface, initialState: Uint8Array,
     private readonly connection: SharedEditorConnection,
     private readonly changed: (status: SharedEditorStatus) => void) {
     this.content = { html: editor.getContent(), plainText: editor.getPlainText() }

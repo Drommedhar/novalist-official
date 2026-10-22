@@ -1,5 +1,5 @@
 import * as Y from 'yjs'
-import type { EditorWindow } from '../views/editor/editorBridge'
+import type { RichEditingSurface } from './richEditingSurface'
 import { updateRichText } from './richText'
 import { SceneMarkup } from './sceneMarkup'
 import { validateSceneUpdate } from './validateSceneUpdate'
@@ -32,9 +32,10 @@ export class CollaborativeScene {
   private pending: Uint8Array[] = []
   private pendingBytes = 0
 
-  constructor(private readonly editor: EditorWindow, private readonly options: SceneOptions) {
-    const root = editor.document.getElementById('editor')
-    if (!root) throw new Error('The prose editor is not ready.')
+  constructor(private readonly editor: RichEditingSurface, private readonly options: SceneOptions) {
+    const root = editor.root
+    const view = root.ownerDocument.defaultView
+    if (!view) throw new Error('The prose editor is not ready.')
     this.root = root
     this.markup = new SceneMarkup(editor, root)
     this.updates = new SceneUpdateInbox(this.doc, this.markup)
@@ -46,7 +47,7 @@ export class CollaborativeScene {
       this.capture()
     }
     this.history = new Y.UndoManager(this.prose, { trackedOrigins: new Set([this]) })
-    this.presence = new RemoteSelections(editor, selection => this.selectionRange(selection))
+    this.presence = new RemoteSelections(view, selection => this.selectionRange(selection))
     this.doc.on('update', this.updated)
     this.observer = new MutationObserver(() => this.capture())
     this.observer.observe(root, { subtree: true, childList: true, characterData: true, attributes: true })
@@ -187,7 +188,7 @@ export class CollaborativeScene {
   }
 
   private selection(): SceneSelection | null {
-    const selection = this.editor.getSelection()
+    const selection = this.editor.document.getSelection()
     if (!selection?.anchorNode || !selection.focusNode) return null
     const anchor = this.relativePosition(selection.anchorNode, selection.anchorOffset)
     const focus = this.relativePosition(selection.focusNode, selection.focusOffset)
@@ -202,7 +203,7 @@ export class CollaborativeScene {
   private restoreSelection(selection: SceneSelection): void {
     const anchor = this.domPosition(selection.anchor)
     const focus = this.domPosition(selection.focus)
-    if (anchor && focus) this.editor.getSelection()?.setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset)
+    if (anchor && focus) this.editor.document.getSelection()?.setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset)
   }
 
   private domPosition(position: Y.RelativePosition): { node: Node; offset: number } | null {

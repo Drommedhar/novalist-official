@@ -60,8 +60,7 @@ export class SceneMarkup {
     let nested = false
     let continuation = false
     const finish = (): void => {
-      const blocks = path.length ? path : [{ id: 'root', tag: 'p', attributes: {} }]
-      this.append('\n', { block: JSON.stringify(blocks), ...(continuation ? { continuation: 'true' } : {}) })
+      this.append('\n', { block: JSON.stringify(path), ...(continuation ? { continuation: 'true' } : {}) })
       continuation = true
       inline = false
     }
@@ -98,7 +97,7 @@ export class SceneMarkup {
     }
     if (node.nodeType !== this.root.ELEMENT_NODE) return
     const element = node as Element
-    const tag = element.tagName.toLowerCase().replace(/^strong$/, 'b').replace(/^em$/, 'i')
+    const tag = element.tagName.toLowerCase()
     const values = Object.fromEntries(Array.from(element.attributes, attribute => [attribute.name, attribute.value]))
     if (tag === 'br' && element.parentElement && this.isBlock(element.parentElement) && element.parentElement.childNodes.length === 1) return
     if (tag === 'img' && values['data-nv-src']) {
@@ -198,7 +197,7 @@ export class SceneMarkup {
 
   private parsePath(value: string): Block[] {
     const path: unknown = JSON.parse(value)
-    if (!Array.isArray(path) || !path.length) throw new Error('Invalid shared paragraph path.')
+    if (!Array.isArray(path)) throw new Error('Invalid shared paragraph path.')
     return path.map((block: unknown) => {
       if (!block || typeof block !== 'object' || !('id' in block) || typeof block.id !== 'string' || !('tag' in block) || typeof block.tag !== 'string' || !blockTags.has(block.tag) || !('attributes' in block) || !block.attributes || typeof block.attributes !== 'object' || Array.isArray(block.attributes)) throw new Error('Invalid shared paragraph.')
       const attributes: Record<string, string> = {}

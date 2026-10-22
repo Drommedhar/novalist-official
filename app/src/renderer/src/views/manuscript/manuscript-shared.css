@@ -1,0 +1,8 @@
+.manuscript-shared-error {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-md);
+  color: var(--nl-danger);
+  font-size: var(--nl-font-body);
+}
