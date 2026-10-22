@@ -59,6 +59,9 @@ jobs:
           --settings tests/coverlet.runsettings
           --results-directory artifacts/coverage/backend
 
+      - name: Test Novalist.Sync.Client
+        run: dotnet test tests/Novalist.Sync.Client.Tests/Novalist.Sync.Client.Tests.csproj -c Debug --no-build
+
       # Measure only (never fails) so the badge can be published with the real number
       # — including when coverage has dropped below the threshold — before we fail the build.
       - name: Measure coverage
