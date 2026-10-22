@@ -2,6 +2,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Nerdbank.Streams;
 using NSubstitute;
 using Novalist.Backend.Extensions;
@@ -34,6 +35,14 @@ public sealed class SharedProjectWriteGuardTests
         Assert.Equal("Afraid to trust.", arc.Start);
         Assert.Equal("Accepts help", Assert.Single(arc.Points).Label);
         await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("arcs/save", fixture.CharacterId, "Stale prose", "", arc.Points, "", ""));
+    }
+
+    [Fact]
+    public async Task UnsupportedEntityImplementationsCannotExposeSharedFieldBindings()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var entity = Substitute.For<Novalist.Core.Models.IEntityData>();
+        Assert.Throws<InvalidOperationException>(() => fixture.Host.Workspace.SharedEntityFields(entity));
     }
 
     [Fact]
@@ -84,11 +93,40 @@ public sealed class SharedProjectWriteGuardTests
         rows = await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/getStateOverrides", "character", fixture.CharacterId);
         Assert.Equal("Later", Assert.Single(rows).Chapter);
         Assert.Equal("Shared description.", Assert.Single(rows).Description);
+        rows = await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/setStateOverrides", "character", fixture.CharacterId,
+            new[] { Assert.Single(rows) with { Description = null, Note = null } });
+        Assert.Equal("Shared description.", Assert.Single(rows).Description);
+        Assert.Equal("A note", Assert.Single(rows).Note);
         await fixture.Desktop.InvokeAsync("entities/setStateOverrides", "character", fixture.CharacterId, Array.Empty<StateOverrideDto>());
         await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, item, Encoding.UTF8.GetBytes("text:Recovered state prose."));
         Assert.Empty(await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/getStateOverrides", "character", fixture.CharacterId));
         Assert.Contains(Directory.GetFiles(Path.Combine(fixture.Root, "Recovered edits"), "*.json", SearchOption.AllDirectories),
             path => File.ReadAllText(path).Contains("Recovered state prose.", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task OutsideDeletionCannotAcquireTheRemovedMetadataAndKeepsTheLocalChangeRecoverable()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var state = Assert.Single(await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/setStateOverrides", "character", fixture.CharacterId,
+            new[] { new StateOverrideDto(null, "Opening", null, "Captain", "Description", null, "Note", false) }));
+        var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        var item = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty($"state:{state.Id}:chapter").GetGuid();
+        var path = Assert.Single(Directory.GetFiles(fixture.Root, fixture.CharacterId + ".json", SearchOption.AllDirectories));
+        var original = await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken);
+        var changed = Assert.IsType<JsonObject>(JsonNode.Parse(original));
+        changed["stateOverrides"] = new JsonArray();
+        await File.WriteAllTextAsync(path, changed.ToJsonString(), TestContext.Current.CancellationToken);
+
+        var error = await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, item, Guid.NewGuid()));
+
+        Assert.Contains("outside", error.Message);
+        Assert.Equal(original, await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken));
+        Assert.Contains(Directory.GetFiles(Path.Combine(fixture.Root, "Recovered edits"), "*.json", SearchOption.AllDirectories),
+            file => JsonNode.Parse(File.ReadAllText(file))?["stateOverrides"] is JsonArray { Count: 0 });
+        var focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, item, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, item, focus);
     }
 
     [Fact]
