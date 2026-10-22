@@ -34,9 +34,8 @@ public sealed partial class Workspace
 
     internal SharedEntityFieldsDto? SharedSceneMetadata(string id)
     {
-        if (Projects.ActiveDraftRoot is not { } draft || sharedRoot is not { } root) return null;
-        var path = Path.GetRelativePath(root, Path.Combine(draft, "scenes.json")).Replace('\\', '/');
-        return SharedMetadata("scene", id, path);
+        var path = SharedSceneManifestPath();
+        return path is null ? null : SharedMetadata("scene", id, path);
     }
 
     internal SharedEntityFieldsDto? SharedResearchMetadata(string id) => SharedMetadata("research", id, ".novalist/project.json");

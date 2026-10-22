@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ScenePresenceBadge } from '../../collaboration/ScenePresenceBadge'
+import { ScenePlanningText } from '../../collaboration/ScenePlanningText'
 import { useTranslation } from 'react-i18next'
 import { useManuscriptStore } from '../../stores/manuscriptStore'
 import { rpc as rpcClient } from '../../rpc/client'
@@ -106,14 +107,14 @@ export function Corkboard(): React.JSX.Element {
                   <span className="collaboration-scene-title">{scene.title}</span>
                   <ScenePresenceBadge sceneId={scene.sceneId} />
                 </button>
-                <textarea
+                <ScenePlanningText sceneId={scene.sceneId} field="synopsis" label={t('sceneNotes.synopsisTitle')} value={scene.synopsis ?? ''} rows={3}><textarea
                   className="corkboard-synopsis"
                   placeholder={t('sceneNotes.synopsisPlaceholder')}
                   defaultValue={scene.synopsis ?? ''}
                   onBlur={(e) =>
                     void setSynopsis(section.chapterGuid, scene.sceneId, e.target.value)
                   }
-                />
+                /></ScenePlanningText>
                 <div className="corkboard-card-words">
                   {scene.wordCount.toLocaleString()} {t('shell.words')}
                 </div>
@@ -173,7 +174,7 @@ function FreeformCorkboard({
   const onPointerDown = (sceneId: string, e: React.PointerEvent<HTMLDivElement>): void => {
     // Only a drag on the card body moves it. The synopsis box and the title
     // button are things to use, not handles to pull.
-    if ((e.target as HTMLElement).closest('textarea, button')) return
+    if ((e.target as HTMLElement).closest('textarea, button, .md-editor')) return
     const place = places[sceneId] ?? { x: 0, y: 0 }
     dragging.current = { sceneId, dx: e.clientX - place.x, dy: e.clientY - place.y }
     e.currentTarget.setPointerCapture(e.pointerId)
@@ -255,12 +256,12 @@ function FreeformCorkboard({
                 <span className="collaboration-scene-title">{scene.title}</span>
                 <ScenePresenceBadge sceneId={scene.sceneId} />
               </button>
-              <textarea
+              <ScenePlanningText sceneId={scene.sceneId} field="synopsis" label={t('sceneNotes.synopsisTitle')} value={scene.synopsis ?? ''} rows={3}><textarea
                 className="corkboard-synopsis"
                 placeholder={t('sceneNotes.synopsisPlaceholder')}
                 defaultValue={scene.synopsis ?? ''}
                 onBlur={(e) => void setSynopsis(scene.chapterGuid, scene.sceneId, e.target.value)}
-              />
+              /></ScenePlanningText>
               <div className="corkboard-card-words">
                 {scene.wordCount.toLocaleString()} {t('shell.words')}
               </div>

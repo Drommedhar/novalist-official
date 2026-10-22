@@ -95,6 +95,11 @@ Codex descriptions, distinguishing features and free-form sections use the exist
 Markdown editor. Writers can edit the same prose together, see one another's
 cursors, and undo their own edits without removing another writer's writing.
 Sections keep their writing history when their titles change.
+Scene synopsis, notes, goal and outcome use the same collaborative editor in the
+inspector and notes dock. The Outliner and corkboard edit the same planning text,
+so changing views preserves the shared writing. Empty fields and newly created
+scenes are ready for both writers immediately; moving a scene keeps its planning
+text and editing history together.
 Renaming a shared Codex entry updates its scene mentions, section links, relationships,
 parent references and scene POV in both writers' copies. A book's local entries keep
 their name references separate from same-named entries in other books.

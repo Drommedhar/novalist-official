@@ -10,6 +10,7 @@ import { SharedPropertyField } from '../../collaboration/SharedPropertyField'
 import { metadataBinding, SharedMetadataField } from '../../collaboration/SharedMetadataField'
 import { MetadataInput } from '../../collaboration/MetadataInput'
 import { useSharedProjectRevision } from '../../collaboration/sharedProjectNotifications'
+import { ScenePlanningText } from '../../collaboration/ScenePlanningText'
 import { LazyBlock } from '../../shell/LazyBlock'
 import { EAGER_SECTIONS } from './ManuscriptFrame'
 
@@ -86,12 +87,12 @@ export function Outliner(): React.JSX.Element {
                 <span className="collaboration-scene-title">{scene.title}</span>
                 <ScenePresenceBadge sceneId={scene.sceneId} />
               </button>
-              <input
+              <ScenePlanningText sceneId={scene.sceneId} field="synopsis" label={t('sceneNotes.synopsisTitle')} value={scene.synopsis ?? ''}><input
                 className="outliner-input"
                 defaultValue={scene.synopsis ?? ''}
                 onBlur={(e) => void setSynopsis(section.chapterGuid, scene.sceneId, e.target.value)}
-              />
-              <input
+              /></ScenePlanningText>
+              <ScenePlanningText sceneId={scene.sceneId} field="goal" label={t('sceneNotes.goal')} value={scene.goal ?? ''}><input
                 className="outliner-input"
                 defaultValue={scene.goal ?? ''}
                 placeholder={t('sceneNotes.goal')}
@@ -103,8 +104,8 @@ export function Outliner(): React.JSX.Element {
                     scene.outcome ?? ''
                   )
                 }
-              />
-              <input
+              /></ScenePlanningText>
+              <ScenePlanningText sceneId={scene.sceneId} field="outcome" label={t('sceneNotes.outcome')} value={scene.outcome ?? ''}><input
                 className="outliner-input"
                 defaultValue={scene.outcome ?? ''}
                 placeholder={t('sceneNotes.outcome')}
@@ -116,7 +117,7 @@ export function Outliner(): React.JSX.Element {
                     e.target.value
                   )
                 }
-              />
+              /></ScenePlanningText>
               <SharedMetadataField<string | null> binding={binding(scene.sceneId, 'analysisOverrides.pov')} value={scene.pov} onChange={() => {}}>{field => <MetadataInput<string | null>
                 className="outliner-input"
                 value={field.value}

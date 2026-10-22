@@ -152,7 +152,10 @@ public sealed class PeerProjectRpcTests
             if (request.GetProperty("action").GetString() == "capture")
             {
                 var content = html[request.GetProperty("id").GetGuid()];
-                return Task.FromResult(JsonSerializer.SerializeToElement(new SharedSceneSnapshot(Encoding.UTF8.GetBytes(content), [], content, null)));
+                var snapshot = content.StartsWith("text:", StringComparison.Ordinal)
+                    ? new SharedSceneSnapshot(Encoding.UTF8.GetBytes(content), [], null, null) { Text = content[5..] }
+                    : new SharedSceneSnapshot(Encoding.UTF8.GetBytes(content), [], content, null);
+                return Task.FromResult(JsonSerializer.SerializeToElement(snapshot));
             }
             if (request.GetProperty("action").GetString() == "execute")
             {
@@ -161,6 +164,7 @@ public sealed class PeerProjectRpcTests
                 switch (command.GetProperty("kind").GetString())
                 {
                     case "seed": html[id] = command.GetProperty("html").GetString() ?? ""; break;
+                    case "seedText": html[id] = "text:" + command.GetProperty("text").GetString(); break;
                     case "load":
                         if (FailNextLoad) { FailNextLoad = false; throw new IOException("Document host failed to load the scene."); }
                         html[id] = Encoding.UTF8.GetString(command.GetProperty("state").GetBytesFromBase64());

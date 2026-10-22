@@ -7,6 +7,14 @@ public static class SharedProseFields
     public static void Validate(SharedTextField? field)
     {
         if (field is null) return;
+        if (field.SceneId is not null)
+        {
+            if (string.IsNullOrWhiteSpace(field.SceneId) || field.Key is not ("synopsis" or "notes" or "goal" or "outcome") ||
+                field.SectionId is not null || field.Chapter is not null || field.Scene is not null ||
+                field.ResearchItemId is not null || field.StateOverrideId is not null || field.Container is not null)
+                throw new InvalidDataException("Invalid shared scene planning field.");
+            return;
+        }
         if (field.Container is not null)
         {
             if (field.Container != "arc" || field.Key is not ("start" or "end" or "want" or "need") || field.SectionId is not null ||
@@ -37,6 +45,8 @@ public static class SharedProseFields
     public static JsonObject? Target(JsonObject entity, SharedTextField field, bool create = false)
     {
         Validate(field);
+        if (field.SceneId is { } sceneId)
+            return SceneNotes(entity).SingleOrDefault(item => item["id"]?.GetValue<string>() == sceneId);
         if (field.Container == "arc")
         {
             if (entity["arc"] is null)
@@ -60,6 +70,9 @@ public static class SharedProseFields
     public static IReadOnlyList<SharedTextField> Enumerate(JsonObject entity)
     {
         var result = new List<SharedTextField>();
+        foreach (var scene in SceneNotes(entity))
+            foreach (var key in new[] { "synopsis", "notes", "goal", "outcome" })
+                result.Add(new(key, SceneId: scene["id"]?.GetValue<string>() ?? throw new InvalidDataException("Shared scene notes need an identity.")));
         if (entity.ContainsKey("surname"))
             foreach (var key in new[] { "start", "end", "want", "need" }) result.Add(new(key, Container: "arc"));
         foreach (var item in (entity["stateOverrides"] as JsonArray)?.OfType<JsonObject>() ?? [])
@@ -83,6 +96,9 @@ public static class SharedProseFields
                 result.Add(new("content", section["id"]?.GetValue<string>() ?? throw new InvalidDataException("A shared section needs an identity."), chapter, scene));
         }
     }
+
+    private static IEnumerable<JsonObject> SceneNotes(JsonObject entity) => (entity["chapters"] as JsonObject)?.SelectMany(chapter =>
+        (chapter.Value as JsonArray)?.OfType<JsonObject>() ?? []) ?? [];
 
     private static IEnumerable<JsonObject> ResearchNotes(JsonObject entity) =>
         ((entity["researchItems"] as JsonArray)?.OfType<JsonObject>() ?? [])

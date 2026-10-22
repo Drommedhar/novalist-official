@@ -324,6 +324,7 @@ public sealed record SceneDto(
 {
 #if NOVALIST_COLLABORATION
     public SharedEntityFieldsDto? SharedFields { get; init; }
+    public SharedEntityFieldsDto? SharedProse { get; init; }
 #endif
 }
 

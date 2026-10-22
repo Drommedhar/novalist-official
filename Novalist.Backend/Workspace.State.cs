@@ -107,7 +107,7 @@ public sealed partial class Workspace
                 ResolvePlotlineIds(s))
             {
 #if NOVALIST_COLLABORATION
-                SharedFields = SharedSceneMetadata(s.Id)
+                SharedFields = SharedSceneMetadata(s.Id), SharedProse = SharedSceneProse(s.Id)
 #endif
             })
             .ToArray();

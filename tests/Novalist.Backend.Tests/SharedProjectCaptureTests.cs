@@ -119,8 +119,9 @@ public sealed class SharedProjectCaptureTests
 
         var captured = (await workspace.CaptureSharedProjectAsync(archive, ct)).Documents;
 
-        Assert.Equal(3, captured.Count);
-        Assert.Equal(3, captured.Select(item => item.ItemId).Distinct().Count());
+        Assert.Equal(3, captured.Count(item => item.TextField is null));
+        Assert.Equal(12, captured.Count(item => item.TextField?.SceneId is not null));
+        Assert.Equal(15, captured.Select(item => item.ItemId).Distinct().Count());
         Assert.Equal(2, captured.Count(item => Encoding.UTF8.GetString(item.State) == "<p>First draft.</p>"));
         Assert.Contains(captured, item => Encoding.UTF8.GetString(item.State) == "<p>Second book.</p>");
         Assert.Equal(first.Id, workspace.Projects.ActiveBook!.Id);
@@ -133,7 +134,7 @@ public sealed class SharedProjectCaptureTests
         var localCopy = new ProjectService(new FileService());
         Assert.Equal(2, (await localCopy.LoadProjectAsync(destination)).Books.Count);
         Assert.Equal("An opaque research attachment.", await File.ReadAllTextAsync(Path.Combine(destination, "Research/old-manuscript.novalist"), ct));
-        foreach (var item in captured)
+        foreach (var item in captured.Where(item => item.TextField is null))
             Assert.Equal(Encoding.UTF8.GetString(item.State), FileFrontMatter.Strip(await File.ReadAllTextAsync(Path.Combine(destination, item.Path), ct)));
     }
 
@@ -160,7 +161,7 @@ public sealed class SharedProjectCaptureTests
                 case "capture":
                     var content = html[request.GetProperty("id").GetGuid()];
                     return JsonSerializer.SerializeToElement(plain.Contains(request.GetProperty("id").GetGuid())
-                        ? new SharedSceneSnapshot(Encoding.UTF8.GetBytes(content), [], null, null) { Text = content }
+                        ? new SharedSceneSnapshot(content.Length == 0 ? [0] : Encoding.UTF8.GetBytes(content), [], null, null) { Text = content }
                         : new SharedSceneSnapshot(Encoding.UTF8.GetBytes(content), [], content, null));
                 case "close": Closed = true; break;
             }
