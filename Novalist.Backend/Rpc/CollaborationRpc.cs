@@ -16,6 +16,12 @@ public sealed class CollaborationRpc
     [JsonRpcMethod("collaboration/status")]
     public HostedSessionDto? Status() => workspace.HostedProjects?.Status;
 
+    [JsonRpcMethod("collaboration/saved")]
+    public Task<SavedHostedProjectDto?> SavedAsync() => workspace.HostedProjects?.SavedAsync() ?? Task.FromResult<SavedHostedProjectDto?>(null);
+
+    [JsonRpcMethod("collaboration/resume")]
+    public Task<HostedSessionDto> ResumeAsync(CancellationToken cancellationToken = default) => Hosted().ResumeAsync(cancellationToken);
+
     [JsonRpcMethod("collaboration/create")]
     public Task<HostedSessionDto> CreateAsync(Uri server, CancellationToken cancellationToken = default) =>
         Hosted().CreateAsync(server, cancellationToken);
@@ -27,6 +33,11 @@ public sealed class CollaborationRpc
     [JsonRpcMethod("collaboration/invite")]
     public Task<string> InviteAsync(DateTimeOffset expiresAt, CancellationToken cancellationToken = default) =>
         Hosted().InviteAsync(expiresAt, cancellationToken);
+
+    [JsonRpcMethod("collaboration/copy")]
+    public Task CreateIndependentCopyAsync(string destination, CancellationToken cancellationToken = default) =>
+        RetainedProjectCopies.CreateIndependentAsync(workspace.Projects.ProjectRoot
+            ?? throw new InvalidOperationException("Open a project first."), destination, cancellationToken);
 
     private HostedProjectWorkspace Hosted() => workspace.HostedProjects ?? throw new InvalidOperationException("Desktop collaboration is unavailable.");
 

@@ -44,9 +44,10 @@ export async function closeTestApp(app: ElectronApplication): Promise<void> {
 export async function launchApp(
   prefix: string,
   /** Extra environment for the launch, e.g. NOVALIST_FORCE_MOBILE for the phone shell. */
-  extraEnv: Record<string, string> = {}
+  extraEnv: Record<string, string> = {},
+  existingWorkDir?: string
 ): Promise<Harness> {
-  const workDir = mkdtempSync(join(tmpdir(), prefix))
+  const workDir = existingWorkDir ?? mkdtempSync(join(tmpdir(), prefix))
   const env: Record<string, string> = Object.fromEntries(
     Object.entries(process.env).filter(([k, v]) => v !== undefined && k !== 'ELECTRON_RUN_AS_NODE')
   ) as Record<string, string>

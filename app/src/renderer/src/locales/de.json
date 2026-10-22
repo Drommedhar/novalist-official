@@ -1,5 +1,11 @@
 {
   "collaboration": {
+    "resume": "Erneut mit gemeinsamem Projekt verbinden",
+    "resumeHint": "Verbindet erneut mit dem gespeicherten Server. Ein Wiederherstellungsarchiv bewahrt deine lokale Kopie; Änderungen nach dem Beenden einer Sitzung werden nicht automatisch gesendet.",
+    "savedServer": "Gespeichertes gemeinsames Projekt: {{server}}",
+    "copy": "Unabhängige Kopie erstellen",
+    "copyCreated": "Unabhängige Projektkopie erstellt.",
+    "showRetainedCopy": "Archiv der lokalen Projektkopie anzeigen",
     "title": "Zusammenarbeit",
     "server": "Serveradresse",
     "serverHint": "Melde dich über deinen Browser bei deinem Community-Server für die Zusammenarbeit an. Dein Konto wird auf diesem Gerät sicher gespeichert.",
@@ -35,6 +41,8 @@
       "Failed": "Die Verbindung erfordert deine Aufmerksamkeit. Dein Text wird lokal gespeichert."
     },
     "progress": {
+      "resume": "Lokale Kopie sichern und erneut verbinden…",
+      "copy": "Unabhängige Projektkopie wird erstellt…",
       "create": "Geteiltes Projekt wird vorbereitet und hochgeladen…",
       "join": "Geteiltes Projekt wird heruntergeladen…",
       "invite": "Einladung wird erstellt…",
