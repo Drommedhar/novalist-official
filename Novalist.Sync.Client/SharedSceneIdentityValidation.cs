@@ -5,9 +5,9 @@ namespace Novalist.Sync.Client;
 
 internal static partial class SharedSceneIdentityValidation
 {
-    internal static async Task ValidateAsync(string path, CancellationToken ct)
+    internal static async Task ValidateAsync(Stream source, CancellationToken ct)
     {
-        using var reader = new StreamReader(path, new UTF8Encoding(false, true), detectEncodingFromByteOrderMarks: true);
+        using var reader = new StreamReader(source, new UTF8Encoding(false, true), detectEncodingFromByteOrderMarks: true);
         var prefix = new char[4096];
         var count = await reader.ReadBlockAsync(prefix.AsMemory(), ct);
         var content = new string(prefix, 0, count);

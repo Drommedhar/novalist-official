@@ -15,9 +15,16 @@ internal static class CheckpointStorageReferences
     private static readonly HashSet<string> ProseDictionaries = new(StringComparer.OrdinalIgnoreCase)
         { "properties", "customProperties", "fields" };
 
-    internal static async Task ValidateAsync(string root, IReadOnlyList<CheckpointFile> files, CancellationToken ct)
+    internal static Task ValidateAsync(string root, IReadOnlyList<CheckpointFile> files, CancellationToken ct) =>
+        ValidateAsync(files.Select(file => file.Path), path => File.OpenRead(SharedProjectPath.Resolve(root, path)), ct);
+
+    internal static Task ValidateAsync(IReadOnlyDictionary<string, byte[]> files, CancellationToken ct) =>
+        ValidateAsync(files.Keys, path => files.TryGetValue(path, out var bytes) ? new MemoryStream(bytes, writable: false)
+            : throw new InvalidDataException("Missing shared project metadata."), ct);
+
+    private static async Task ValidateAsync(IEnumerable<string> paths, Func<string, Stream> read, CancellationToken ct)
     {
-        using var project = await ReadAsync(SharedProjectPath.Resolve(root, ".novalist/project.json"), ct);
+        using var project = await ReadAsync(read(".novalist/project.json"), ct);
         ValidateObject(project.RootElement);
         ValidateResearch(project.RootElement);
         var directories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -36,17 +43,17 @@ internal static class CheckpointStorageReferences
             foreach (var draft in drafts)
                 AddDraft(folder + "/Drafts/" + Folder(draft, "folderName", "default"), chapterFolder, metadata, directories, sceneFolders);
         }
-        foreach (var file in files)
+        foreach (var path in paths)
         {
-            var parent = file.Path[..Math.Max(0, file.Path.LastIndexOf('/'))];
-            var scene = sceneFolders.Any(folder => file.Path.StartsWith(folder, StringComparison.OrdinalIgnoreCase));
-            if (scene && file.Path.EndsWith(".novalist", StringComparison.OrdinalIgnoreCase))
-                await SharedSceneIdentityValidation.ValidateAsync(SharedProjectPath.Resolve(root, file.Path), ct);
-            var marker = scene && file.Path.EndsWith("/.nvchapter.json", StringComparison.OrdinalIgnoreCase);
-            var entity = file.Path.EndsWith(".json", StringComparison.OrdinalIgnoreCase) && directories.Contains(parent);
-            if (!marker && !metadata.ContainsKey(file.Path) && !entity) continue;
-            using var document = await ReadAsync(SharedProjectPath.Resolve(root, file.Path), ct);
-            var manifest = metadata.GetValueOrDefault(file.Path);
+            var parent = path[..Math.Max(0, path.LastIndexOf('/'))];
+            var scene = sceneFolders.Any(folder => path.StartsWith(folder, StringComparison.OrdinalIgnoreCase));
+            if (scene && path.EndsWith(".novalist", StringComparison.OrdinalIgnoreCase))
+                await SharedSceneIdentityValidation.ValidateAsync(read(path), ct);
+            var marker = scene && path.EndsWith("/.nvchapter.json", StringComparison.OrdinalIgnoreCase);
+            var entity = path.EndsWith(".json", StringComparison.OrdinalIgnoreCase) && directories.Contains(parent);
+            if (!marker && !metadata.ContainsKey(path) && !entity) continue;
+            using var document = await ReadAsync(read(path), ct);
+            var manifest = metadata.GetValueOrDefault(path);
             if (manifest) ValidateScenes(document.RootElement);
             if (!manifest || entity || marker) ValidateObject(document.RootElement);
         }
@@ -142,9 +149,9 @@ internal static class CheckpointStorageReferences
         ? value.EnumerateObject().Where(property => property.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).Select(property => (JsonElement?)property.Value).FirstOrDefault()
         : throw new InvalidDataException("Invalid project metadata object.");
 
-    private static async Task<JsonDocument> ReadAsync(string path, CancellationToken ct)
+    private static async Task<JsonDocument> ReadAsync(Stream source, CancellationToken ct)
     {
-        await using var stream = File.OpenRead(path);
+        await using var stream = source;
         if (stream.Length > 64 * 1024 * 1024) throw new InvalidDataException("Project metadata is too large to share.");
         try { return await JsonDocument.ParseAsync(stream, cancellationToken: ct); }
         catch (JsonException ex) { throw new InvalidDataException("Invalid shared project metadata.", ex); }

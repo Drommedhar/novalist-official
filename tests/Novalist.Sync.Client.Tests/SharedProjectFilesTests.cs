@@ -210,6 +210,43 @@ public sealed class SharedProjectFilesTests
         Assert.Equal(binding.ItemId, Assert.Single((await files.SnapshotStateAsync(ct)).Documents).ItemId);
     }
 
+    [Theory]
+    [InlineData(".novalist/project.json", "{\"worldBibleFolder\":\"../outside\"}")]
+    [InlineData(".novalist/project.json", "{\"books\":[{\"folderName\":\"C:/outside\"}]}")]
+    [InlineData(".novalist/project.json", "{\"books\":[{\"folderName\":\"Book\",\"drafts\":[{\"folderName\":\"../../outside\"}]}]}")]
+    [InlineData("Book/Drafts/default/draft.json", "{\"chapterFolder\":\"../outside\"}")]
+    [InlineData("Book/Drafts/default/scenes.json", "{\"chapters\":{\"chapter\":[{\"id\":\"scene\",\"fileName\":\"../../outside.novalist\"}]}}")]
+    [InlineData("Book/Drafts/default/Chapters/scene.novalist", "<!--nv v=1 id=../outside -->\n<p>Unsafe identity</p>")]
+    public async Task UnsafeLiveStorageReferencesRejectTheWholeBatchAndLeaveExistingFilesUnchanged(string target, string content)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var peers = new Peers();
+        var initial = new Dictionary<string, byte[]>
+        {
+            [".novalist/project.json"] = Bytes("{\"books\":[{\"folderName\":\"Book\",\"drafts\":[{\"folderName\":\"default\"}]}]}"),
+            ["Book/Drafts/default/draft.json"] = Bytes("{}"),
+            ["Book/Drafts/default/scenes.json"] = Bytes("{\"chapters\":{}}"),
+            ["Book/Drafts/default/Chapters/scene.novalist"] = Bytes("<!--nv v=1 id=scene -->\n<p>Existing scene</p>")
+        };
+        var disk = new Dictionary<string, byte[]>(initial);
+        await using var files = peers.Workspace(0, disk);
+        await files.StartAsync(initial, ct);
+        var batch = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            Version = 1,
+            Changes = new[] { new SharedFileChange("Research/partial.txt", null, Bytes("Must not be installed")), new(target, initial[target], Bytes(content)) },
+            AddedState = new SharedProjectState([], [])
+        });
+        peers.Sessions[0].Save(files.ItemId, batch);
+        await peers.Sessions[0].SynchronizeAsync(false, ct);
+        await files.RefreshAsync(ct);
+        Assert.True(files.RejectedUpdates);
+        Assert.Equal(initial.Count, disk.Count);
+        foreach (var (path, original) in initial) Assert.Equal(original, disk[path]);
+        await files.CommitAsync([new("Research/valid.txt", null, Bytes("Later valid update"))], ct);
+        Assert.Equal("Later valid update", Text(disk["Research/valid.txt"]));
+    }
+
     private static byte[] Bytes(string text) => Encoding.UTF8.GetBytes(text);
     private static string Text(byte[] bytes) => Encoding.UTF8.GetString(bytes);
 

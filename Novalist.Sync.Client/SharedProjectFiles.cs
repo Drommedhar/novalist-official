@@ -147,7 +147,12 @@ public sealed class SharedProjectFiles : IAsyncDisposable
                 else nextFiles.Remove(change.Path);
             var added = SharedProjectFileBindings.Accept(batch.AddedState, batch.Changes, nextFiles);
             SharedProjectState nextState;
-            try { nextState = SharedProjectFileBindings.Update(state, added, nextFiles); }
+            try
+            {
+                if (files.ContainsKey(".novalist/project.json") || nextFiles.ContainsKey(".novalist/project.json"))
+                    await CheckpointStorageReferences.ValidateAsync(nextFiles, ct);
+                nextState = SharedProjectFileBindings.Update(state, added, nextFiles);
+            }
             catch (InvalidDataException) { Reject(update.Payload); continue; }
             await apply(new(changes, recoveries, update.ServerSeq, added), ct);
             foreach (var change in changes.Where(change => change.After is null)) deletedPaths[change.Path] = update.ServerSeq;
