@@ -37,15 +37,23 @@ public sealed class SharedInactiveSceneTests
         await using var guest = new HostedDesktop(Path.Combine(directory.Path, "guest-settings"), identity);
         await guest.SignInAsync(server.Address);
         var guestRoot = Path.Combine(directory.Path, "Guest copy");
-        await guest.Rpc.InvokeAsync("collaboration/join", server.Address, invitation, guestRoot);
+        var joined = await guest.Rpc.InvokeAsync<HostedSessionDto>("collaboration/join", server.Address, invitation, guestRoot);
         var switchMethod = anotherDraft ? "project/switchDraft" : "project/switchBook";
         await guest.Rpc.InvokeAsync<ProjectStateDto>(switchMethod, alternate);
+        var before = await guest.Rpc.InvokeAsync<DashboardDto>("dashboard/get", 7);
 
         const string changed = "Four newly written words.";
         await owner.Rpc.InvokeAsync("collaboration/writeScene", session.SessionId, document.ItemId, Encoding.UTF8.GetBytes("<p>" + changed + "</p>"));
         for (var attempt = 0; attempt < 100 && !(await File.ReadAllTextAsync(Path.Combine(guestRoot, relative), ct)).Contains(changed, StringComparison.Ordinal); attempt++)
             await Task.Delay(20, ct);
         Assert.Contains(changed, await File.ReadAllTextAsync(Path.Combine(guestRoot, relative), ct));
+        if (anotherDraft)
+        {
+            var clone = (await guest.Rpc.InvokeAsync<SceneContentDto>("scenes/read", chapter.Guid, scene.Id)).Shared ?? throw new InvalidOperationException("Missing cloned shared scene.");
+            await guest.Rpc.InvokeAsync("collaboration/writeScene", joined.SessionId, clone.ItemId, Encoding.UTF8.GetBytes("<p>Before. Added.</p>"));
+            var after = await guest.Rpc.InvokeAsync<DashboardDto>("dashboard/get", 7);
+            Assert.Equal(before.TodayWords + 1, after.TodayWords);
+        }
         await guest.Rpc.InvokeAsync<ProjectStateDto>(switchMethod, original);
         Assert.Contains(changed, (await guest.Rpc.InvokeAsync<SceneContentDto>("scenes/read", chapter.Guid, scene.Id)).Html);
 
