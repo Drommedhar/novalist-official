@@ -25,7 +25,6 @@ public sealed class RelayServerFixture : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
-        builder.UseSetting("Relay:Enabled", "true");
         builder.UseSetting("ConnectionStrings:Default", "");
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services => services.PostConfigure<JwtBearerOptions>(

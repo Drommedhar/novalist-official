@@ -12,6 +12,36 @@ namespace Novalist.Sync.IntegrationTests;
 public sealed class RelayTunnelTests
 {
     [Fact]
+    public async Task ClosingOneGuestRouteDoesNotFailTheHostSession()
+    {
+        await using var server = new RelayServerFixture();
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(10));
+        var ct = deadline.Token;
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        await using var host = await RelayPeerTunnel.HostAsync(server.Address, ((IPEndPoint)listener.LocalEndpoint).Port,
+            _ => Task.FromResult(server.Token("owner")), ct);
+        using var guestSocket = new ClientWebSocket();
+        guestSocket.Options.SetRequestHeader("Authorization", "Bearer " + server.Token("first-guest"));
+        await guestSocket.ConnectAsync(new UriBuilder(server.Address)
+            { Scheme = "ws", Path = $"/relay/v1/sessions/{host.SessionId}/guest" }.Uri, ct);
+        using var firstAccepted = await listener.AcceptTcpClientAsync(ct);
+        guestSocket.Abort();
+        Assert.Equal(0, await firstAccepted.GetStream().ReadAsync(new byte[1], ct));
+        await using var second = await RelayPeerTunnel.ConnectAsync(server.Address, host.SessionId,
+            _ => Task.FromResult(server.Token("second-guest")), ct);
+        using var secondClient = new TcpClient();
+        await secondClient.ConnectAsync(IPAddress.Loopback, second.LocalPort, ct);
+        using var secondAccepted = await listener.AcceptTcpClientAsync(ct);
+        await secondAccepted.GetStream().WriteAsync(new byte[] { 42 }, ct);
+        var response = new byte[1];
+        await secondClient.GetStream().ReadExactlyAsync(response, ct);
+        Assert.Equal(42, response[0]);
+        Assert.Null(host.Failure);
+    }
+
+    [Fact]
     public async Task ExistingPinnedTlsPeerProtocolRunsThroughRelayWithoutServerProjectState()
     {
         var folder = Path.Combine(Path.GetTempPath(), "novalist-relay-test", Guid.NewGuid().ToString("N"));

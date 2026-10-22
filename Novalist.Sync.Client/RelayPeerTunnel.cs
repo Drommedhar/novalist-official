@@ -128,8 +128,10 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
         catch (OperationCanceledException) when (stop.IsCancellationRequested) { }
         catch (Exception error)
         {
+            // Peer reconnects replace failed routes without ending the relay session.
+            if (!stopOnFailure) return;
             if (!stop.IsCancellationRequested) Interlocked.CompareExchange(ref failure, error, null);
-            if (stopOnFailure) await stop.CancelAsync();
+            await stop.CancelAsync();
         }
     }
 
