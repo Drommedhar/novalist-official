@@ -100,7 +100,7 @@ both writers' copies. Manually worded mentions, aliases and ordinary prose keep
 their wording.
 
 Codex non-prose text fields, including those on entries created during the session, acquire an
-exclusive editing lock when focused. Wait for the field to become editable;
+exclusive editing lock when focused. Scene stage actions briefly acquire the same kind of lock and leave the stage unchanged if another writer holds it. Wait for the field to become editable;
 another writer cannot change it until you leave the field. Moving focus saves
 the value before releasing the lock. These edits require an active connection.
 When a field is locked, its message names the writer editing it.
