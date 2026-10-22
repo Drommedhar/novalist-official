@@ -1,16 +1,19 @@
 import { useEffect, useRef } from 'react'
 import { useManuscriptStore } from '../../stores/manuscriptStore'
 import { useProjectStore } from '../../stores/projectStore'
-import { useSettingsStore } from '../../stores/settingsStore'
+import { useSettingsStore, type EffectiveSettings } from '../../stores/settingsStore'
 import { registerPendingWrite } from '../../stores/pendingWrites'
 import { pushWritingTypography } from '../editor/writingTypography'
 import { useWritingZoomStore } from '../../stores/writingZoomStore'
+import { SharedManuscriptEditors, type ManuscriptEditingWindow } from './SharedManuscriptEditors'
+import { rpc } from '../../rpc/client'
+import { useHostBridgeStore } from '../../stores/hostBridgeStore'
+import { useTranslation } from 'react-i18next'
+import './manuscript-shared.css'
 
-// How many chapter blocks are built up front. Everything past this waits until
-// it is scrolled near, which is what keeps a fifty-chapter book openable.
 export const EAGER_SECTIONS = 3
 
-interface ManuscriptWindow extends Window {
+interface ManuscriptWindow extends ManuscriptEditingWindow {
   setManuscript(sectionsJson: string): void
   setTheme(
     bg: string,
@@ -37,12 +40,48 @@ interface ManuscriptWindow extends Window {
   }>
 }
 
+function presentManuscript(win: ManuscriptWindow, eff?: EffectiveSettings): void {
+  const style = getComputedStyle(document.documentElement)
+  const token = (name: string): string => style.getPropertyValue(name).trim()
+  for (const name of style) {
+    if (name.startsWith('--nl-') || name.startsWith('--nv-')) {
+      win.document.documentElement.style.setProperty(name, token(name))
+    }
+  }
+  win.setTheme(
+    token('--nl-surface-editor'),
+    token('--nl-text'),
+    token('--nl-text'),
+    token('--nl-surface-selected'),
+    token('--nl-accent'),
+    token('--nl-text-subtle'),
+    token('--nl-border'),
+    // Separate document: browser-painted scrollbars need the colours pushed.
+    token('--nl-scrollbar-thumb'),
+    token('--nl-scrollbar-thumb-hover'),
+    token('--nl-scrollbar-thumb-active')
+  )
+  // Manuscript mode is the same prose in a longer strip, so it reads with the
+  // writer's own face and leading rather than the page's defaults.
+  if (eff) {
+    pushWritingTypography(win, eff)
+    win.setReadingComfort(
+      eff.editorLineHeight,
+      eff.editorLetterSpacing,
+      eff.editorFirstLineIndent
+    )
+  }
+}
+
 export function ManuscriptFrame(): React.JSX.Element {
+  const { t } = useTranslation()
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const sharedRef = useRef<SharedManuscriptEditors | null>(null)
   const readyRef = useRef(false)
   const sections = useManuscriptStore((s) => s.sections)
   const effective = useSettingsStore((s) => s.view?.effective)
   const zoomPercent = useWritingZoomStore((s) => s.percent)
+  const sharedError = useManuscriptStore(s => Object.values(s.sharedEdits).some(edit => edit.error))
   const sectionsRef = useRef(sections)
   const effectiveRef = useRef(effective)
   sectionsRef.current = sections
@@ -51,37 +90,7 @@ export function ManuscriptFrame(): React.JSX.Element {
   const pushPresentation = (): void => {
     const win = iframeRef.current?.contentWindow as ManuscriptWindow | null
     if (!win || !readyRef.current) return
-    const style = getComputedStyle(document.documentElement)
-    const token = (name: string): string => style.getPropertyValue(name).trim()
-    for (const name of style) {
-      if (name.startsWith('--nl-') || name.startsWith('--nv-')) {
-        win.document.documentElement.style.setProperty(name, token(name))
-      }
-    }
-    win.setTheme(
-      token('--nl-surface-editor'),
-      token('--nl-text'),
-      token('--nl-text'),
-      token('--nl-surface-selected'),
-      token('--nl-accent'),
-      token('--nl-text-subtle'),
-      token('--nl-border'),
-      // Separate document: browser-painted scrollbars need the colours pushed.
-      token('--nl-scrollbar-thumb'),
-      token('--nl-scrollbar-thumb-hover'),
-      token('--nl-scrollbar-thumb-active')
-    )
-    // Manuscript mode is the same prose in a longer strip, so it reads with the
-    // writer's own face and leading rather than the page's defaults.
-    const eff = effectiveRef.current
-    if (eff) {
-      pushWritingTypography(win, eff)
-      win.setReadingComfort(
-        eff.editorLineHeight,
-        eff.editorLetterSpacing,
-        eff.editorFirstLineIndent
-      )
-    }
+    presentManuscript(win, effectiveRef.current)
   }
 
   const pushContent = (): void => {
@@ -96,10 +105,13 @@ export function ManuscriptFrame(): React.JSX.Element {
         sceneId: sc.sceneId,
         title: sc.title,
         html: sc.html,
+        shared: !!sc.shared,
         wordCount: sc.wordCount
       }))
     }))
+    sharedRef.current?.prepare(sectionsRef.current)
     win.setManuscript(JSON.stringify(payload))
+    sharedRef.current?.sync(sectionsRef.current, win)
   }
 
   const push = (): void => {
@@ -111,6 +123,7 @@ export function ManuscriptFrame(): React.JSX.Element {
     const iframe = iframeRef.current
     if (!iframe) return
     const store = useManuscriptStore.getState()
+    sharedRef.current = new SharedManuscriptEditors()
 
     const onMessage = (event: MessageEvent): void => {
       if (event.source !== iframe.contentWindow) return
@@ -129,8 +142,13 @@ export function ManuscriptFrame(): React.JSX.Element {
         case 'ready':
           readyRef.current = true
           push()
+          void rpc.request<string>('gallery/base').then(base => {
+            const win = iframe.contentWindow as ManuscriptWindow | null
+            win?.setImageBase(`novalist-project://nl/${base}`)
+          }).catch(error => useHostBridgeStore.getState().pushToast(String(error)))
           break
         case 'sceneContentChanged':
+          if (sharedRef.current?.capture(String(message.sceneId))) break
           store.onSceneContentChanged(
             String(message.sceneId),
             String(message.html ?? ''),
@@ -164,6 +182,8 @@ export function ManuscriptFrame(): React.JSX.Element {
     return () => {
       window.removeEventListener('message', onMessage)
       readyRef.current = false
+      sharedRef.current?.close()
+      sharedRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -173,11 +193,13 @@ export function ManuscriptFrame(): React.JSX.Element {
       const win = iframeRef.current?.contentWindow as ManuscriptWindow | null
       const store = useManuscriptStore.getState()
       for (const change of win?.flushPendingChanges() ?? []) {
-        store.onSceneContentChanged(change.sceneId, change.html, change.plainText, change.wordCount)
+        if (!sharedRef.current?.capture(change.sceneId)) store.onSceneContentChanged(change.sceneId, change.html, change.plainText, change.wordCount)
       }
+      sharedRef.current?.capture()
     }
     return registerPendingWrite(async () => {
       capture()
+      await sharedRef.current?.flush()
       await useManuscriptStore.getState().flushPendingSave()
     }, capture)
   }, [])
@@ -197,12 +219,18 @@ export function ManuscriptFrame(): React.JSX.Element {
   }, [effective, zoomPercent])
 
   return (
-    <iframe
-      ref={iframeRef}
-      className="editor-frame"
-      src="./editor/manuscript-editor.html"
-      title="manuscript"
-      sandbox="allow-scripts allow-same-origin"
-    />
+    <>
+      {sharedError && <div role="alert" className="manuscript-shared-error">
+        {t('collaboration.editorError')}
+        <button type="button" className="dialog-btn" onClick={() => void sharedRef.current?.flush().catch(error => useHostBridgeStore.getState().pushToast(String(error)))}>{t('collaboration.retryField')}</button>
+      </div>}
+      <iframe
+        ref={iframeRef}
+        className="editor-frame"
+        src="./editor/manuscript-editor.html"
+        title="manuscript"
+        sandbox="allow-scripts allow-same-origin"
+      />
+    </>
   )
 }

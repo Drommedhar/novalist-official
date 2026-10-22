@@ -34,66 +34,86 @@ function sendMessage(msg) {
 // ── Manuscript Loading ──────────────────────────────────────────
 
 function setManuscript(sectionsJson) {
-    let sections;
-    try { sections = JSON.parse(sectionsJson); } catch { sections = []; }
-    // Local edits are already displayed. Their save acknowledgements must not
-    // rebuild the editable nodes and discard the caret or undo history.
+    const sections = JSON.parse(sectionsJson);
     if (JSON.stringify(sections) === JSON.stringify(renderedSections)) return;
     renderedSections = sections;
     isSettingContent = true;
-    wrapper.innerHTML = '';
-    lastHtmlMap = {};
-
+    const chapters = new Map(Array.from(wrapper.querySelectorAll('.chapter-section'), el => [el.dataset.chapterGuid, el]));
+    const blocks = new Map(Array.from(wrapper.querySelectorAll('.scene-block'), el => [el.querySelector('.scene-editor').dataset.sceneId, el]));
+    let position = wrapper.firstElementChild;
     for (const section of sections) {
-        const sectionEl = document.createElement('div');
-        sectionEl.className = 'chapter-section';
-
-        // Chapter header
-        const header = document.createElement('div');
-        header.className = 'chapter-header';
-
-        if (section.act) {
-            const actEl = document.createElement('div');
-            actEl.className = 'chapter-act';
-            actEl.textContent = section.act;
-            header.appendChild(actEl);
+        let sectionEl = chapters.get(section.chapterGuid);
+        if (!sectionEl) {
+            sectionEl = document.createElement('div');
+            sectionEl.className = 'chapter-section';
+            sectionEl.dataset.chapterGuid = section.chapterGuid;
+            sectionEl.appendChild(document.createElement('div'));
         }
-
-        const titleRow = document.createElement('div');
-        titleRow.className = 'chapter-title-row';
-
-        const titleEl = document.createElement('span');
-        titleEl.className = 'chapter-title';
-        titleEl.textContent = section.chapterTitle;
-        titleRow.appendChild(titleEl);
-
-        const statusEl = document.createElement('span');
-        statusEl.className = 'chapter-status';
-        statusEl.textContent = section.status;
-        statusEl.dataset.chapterGuid = section.chapterGuid;
-        statusEl.addEventListener('click', () => {
-            sendMessage({ type: 'cycleStatus', chapterGuid: section.chapterGuid });
-        });
-        titleRow.appendChild(statusEl);
-
-        header.appendChild(titleRow);
-        sectionEl.appendChild(header);
-
+        placeNode(wrapper, sectionEl, position);
+        position = sectionEl.nextElementSibling;
+        updateChapterHeader(sectionEl.firstElementChild, section);
+        let scenePosition = sectionEl.children[1] || null;
         for (const scene of section.scenes) {
-            sectionEl.appendChild(createSceneBlock(section.chapterGuid, scene));
+            const block = blocks.get(scene.sceneId) || createSceneBlock(section.chapterGuid, scene);
+            const editor = block.querySelector('.scene-editor');
+            editor.dataset.chapterGuid = section.chapterGuid;
+            block.querySelector('.scene-title').textContent = scene.title;
+            block.querySelector('.scene-wordcount').textContent = scene.wordCount + ' words';
+            if (!scene.shared && getSceneContent(editor) !== scene.html) {
+                editor.replaceChildren(window.sanitizeSceneFragment(scene.html || '<p><br></p>'));
+                toDisplayImages(editor);
+                lastHtmlMap[scene.sceneId] = getSceneContent(editor);
+            }
+            placeNode(sectionEl, block, scenePosition);
+            scenePosition = block.nextElementSibling;
+            blocks.delete(scene.sceneId);
         }
-
-        wrapper.appendChild(sectionEl);
+        chapters.delete(section.chapterGuid);
     }
-
-    // Footer
-    const footer = document.createElement('div');
-    footer.className = 'manuscript-footer';
-    footer.id = 'manuscript-footer';
-    wrapper.appendChild(footer);
-
+    for (const [sceneId, block] of blocks) {
+        clearTimeout(contentChangeTimers[sceneId]);
+        delete contentChangeTimers[sceneId];
+        delete lastHtmlMap[sceneId];
+        block.remove();
+    }
+    for (const chapter of chapters.values()) chapter.remove();
+    if (!document.getElementById('manuscript-footer')) {
+        const footer = document.createElement('div');
+        footer.className = 'manuscript-footer';
+        footer.id = 'manuscript-footer';
+        wrapper.appendChild(footer);
+    }
     isSettingContent = false;
     updateFooter();
+}
+
+function placeNode(parent, node, before) {
+    if (node === before) return;
+    if (node.isConnected) parent.moveBefore(node, before);
+    else parent.insertBefore(node, before);
+}
+
+function updateChapterHeader(header, section) {
+    header.className = 'chapter-header';
+    header.replaceChildren();
+    if (section.act) {
+        const act = document.createElement('div');
+        act.className = 'chapter-act';
+        act.textContent = section.act;
+        header.appendChild(act);
+    }
+    const row = document.createElement('div');
+    row.className = 'chapter-title-row';
+    const title = document.createElement('span');
+    title.className = 'chapter-title';
+    title.textContent = section.chapterTitle;
+    const status = document.createElement('span');
+    status.className = 'chapter-status';
+    status.textContent = section.status;
+    status.dataset.chapterGuid = section.chapterGuid;
+    status.addEventListener('click', () => sendMessage({ type: 'cycleStatus', chapterGuid: section.chapterGuid }));
+    row.append(title, status);
+    header.appendChild(row);
 }
 
 function createSceneBlock(chapterGuid, scene) {
@@ -105,7 +125,7 @@ function createSceneBlock(chapterGuid, scene) {
     title.className = 'scene-title';
     title.textContent = scene.title;
     title.addEventListener('click', () => {
-        sendMessage({ type: 'openScene', chapterGuid, sceneId: scene.sceneId });
+        sendMessage({ type: 'openScene', chapterGuid: editor.dataset.chapterGuid, sceneId: scene.sceneId });
     });
     header.appendChild(title);
     const wordCount = document.createElement('span');
@@ -123,20 +143,18 @@ function createSceneBlock(chapterGuid, scene) {
     editor.dataset.chapterGuid = chapterGuid;
     const html = window.sanitizeSceneHtml(scene.html) || '<p><br></p>';
     editor.replaceChildren(window.sanitizeSceneFragment(html));
+    toDisplayImages(editor);
     refreshSceneBreakClasses(editor);
-    lastHtmlMap[scene.sceneId] = editor.innerHTML;
+    lastHtmlMap[scene.sceneId] = getSceneContent(editor);
     editor.addEventListener('input', () => onSceneInput(editor));
     editor.addEventListener('paste', onPaste);
     editor.addEventListener('keydown', onKeyDown);
     editor.addEventListener('focus', () => {
-        sendMessage({ type: 'sceneFocused', sceneId: scene.sceneId, chapterGuid });
+        sendMessage({ type: 'sceneFocused', sceneId: scene.sceneId, chapterGuid: editor.dataset.chapterGuid });
     });
     block.appendChild(editor);
     return block;
 }
-
-// Fire ready only once on initial page load
-sendMessage({ type: 'ready' });
 
 // ── Scene Content Changes ───────────────────────────────────────
 
@@ -155,7 +173,7 @@ function captureSceneChange(editor) {
     const sceneId = editor.dataset.sceneId;
     const chapterGuid = editor.dataset.chapterGuid;
     refreshSceneBreakClasses(editor);
-    const html = editor.innerHTML;
+    const html = getSceneContent(editor);
     if (html === lastHtmlMap[sceneId]) return null;
     lastHtmlMap[sceneId] = html;
     const plainText = editor.innerText || '';
@@ -373,17 +391,37 @@ function isTextEditingShortcut(e) {
     return false;
 }
 
-// ── Ready Signal ────────────────────────────────────────────────
-sendMessage({ type: 'ready' });
+let imageBase = '';
+
+function setImageBase(base) {
+    imageBase = base;
+    toDisplayImages(wrapper);
+}
+
+function toDisplayImages(root) {
+    if (!imageBase) return;
+    for (const image of root.querySelectorAll('img')) {
+        const stored = image.getAttribute('data-nv-src') || image.getAttribute('src');
+        if (!stored || /^(?:[a-z][a-z0-9+.-]*:|[/\\])/i.test(stored)) continue;
+        image.setAttribute('data-nv-src', stored);
+        image.src = imageBase + stored.split('/').map(encodeURIComponent).join('/');
+    }
+}
+
+function getSceneContent(root) {
+    const copy = root.cloneNode(true);
+    for (const image of copy.querySelectorAll('img[data-nv-src]')) {
+        image.setAttribute('src', image.getAttribute('data-nv-src'));
+        image.removeAttribute('data-nv-src');
+    }
+    return copy.innerHTML;
+}
 
 Object.assign(window, {
-    setManuscript,
-    flushPendingChanges,
-    updateSceneContent,
-    setTheme,
-    setReadingComfort,
-    setFont,
-    setBookWidth,
-    setBookParagraphSpacing,
-    setLanguage
+    setManuscript, flushPendingChanges, updateSceneContent,
+    getSceneContent, flushSceneContent: reportSceneChange,
+    setImageBase, toDisplayImages,
+    setTheme, setReadingComfort, setFont, setBookWidth,
+    setBookParagraphSpacing, setLanguage
 });
+sendMessage({ type: 'ready' });

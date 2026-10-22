@@ -5,31 +5,10 @@ import { useFilterStore } from './filterStore'
 import type { ColourDimension } from '../views/manuscript/sceneColour'
 import i18n from '../i18n'
 import { retainMobileSceneRecovery } from '../mobile/recovery'
-
-export interface ManuscriptSceneDto {
-  sceneId: string
-  title: string
-  html: string
-  /** Fingerprint of the exact prose this editor loaded. */
-  hash: string
-  wordCount: number
-  synopsis: string | null
-  pov: string | null
-  /** What the viewpoint wants here. Authored, never inferred. */
-  goal: string | null
-  /** What they are left with. Authored, never inferred. */
-  outcome: string | null
-  /** True when the scene is out of the book but still in the plan. */
-  inactive: boolean
-}
-
-export interface ManuscriptSectionDto {
-  chapterGuid: string
-  chapterTitle: string
-  status: string
-  act: string
-  scenes: ManuscriptSceneDto[]
-}
+import { metadataBinding } from '../collaboration/SharedMetadataField'
+import { writeSharedMetadata } from '../collaboration/metadataCommands'
+import type { ManuscriptSectionDto } from './manuscriptTypes'
+export type { ManuscriptSceneDto, ManuscriptSectionDto } from './manuscriptTypes'
 
 export type ManuscriptMode = 'manuscript' | 'corkboard' | 'outliner' | 'board'
 
@@ -148,6 +127,7 @@ function writePendingManuscriptSave(save: PendingManuscriptSave): Promise<void> 
 }
 
 interface ManuscriptState {
+  sharedEdits: Record<string, { chapterGuid: string; sceneId: string; pending: boolean; error: boolean }>
   mode: ManuscriptMode
   /** When set, only these scenes are composed - a chosen run read as prose. */
   composed: string[] | null
@@ -197,6 +177,7 @@ interface ManuscriptState {
 }
 
 export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
+  sharedEdits: {},
   mode: 'manuscript',
   freeform: false,
   composed: null,
@@ -296,7 +277,7 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
 
   onSceneContentChanged: (sceneId, html, plainText, wordCount) => {
     const section = get().sections.find((s) => s.scenes.some((sc) => sc.sceneId === sceneId))
-    if (!section) return
+    if (!section || section.scenes.find(scene => scene.sceneId === sceneId)?.shared) return
     set({
       sections: get().sections.map((s) => ({
         ...s,
@@ -385,7 +366,11 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   },
 
   setPov: async (chapterGuid, sceneId, pov) => {
-    await rpc.request('scenes/setPov', [chapterGuid, sceneId, pov])
+    const scene = useProjectStore.getState().chapters.find(chapter => chapter.guid === chapterGuid)?.scenes.find(scene => scene.id === sceneId)
+    const binding = metadataBinding(scene, 'analysisOverrides.pov')
+    if (binding) {
+      if (!await writeSharedMetadata(binding, pov || null)) return
+    } else await rpc.request('scenes/setPov', [chapterGuid, sceneId, pov])
     set({
       sections: get().sections.map((s) =>
         s.chapterGuid === chapterGuid
@@ -417,15 +402,16 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   }
 }))
 
-function reportManuscriptClaims(): void {
-  reportManuscriptEditing([...saveTimers.values()].map(({ chapterGuid, sceneId }) => ({ chapterGuid, sceneId, dirty: true })))
+export function reportManuscriptClaims(): void {
+  reportManuscriptEditing([...saveTimers.values(), ...Object.values(useManuscriptStore.getState().sharedEdits)]
+    .map(({ chapterGuid, sceneId }) => ({ chapterGuid, sceneId, dirty: true })))
 }
 
 export function pendingManuscriptRecovery(): { chapterGuid: string; sceneId: string; html: string; plainText: string; hash: string }[] {
   return [...saveTimers.values()].map((save) => ({ chapterGuid: save.chapterGuid, sceneId: save.sceneId, html: save.html, plainText: save.plainText, hash: save.expectedHash }))
 }
 
-export function hasPendingManuscriptWrites(): boolean { return saveTimers.size > 0 }
+export function hasPendingManuscriptWrites(): boolean { return saveTimers.size > 0 || Object.keys(useManuscriptStore.getState().sharedEdits).length > 0 }
 
 /** Called only after the shared workspace has acknowledged every pending save. */
 export function resetManuscriptWorkspace(): void {

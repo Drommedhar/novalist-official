@@ -16,11 +16,12 @@ export class RemoteSelections {
   private readonly markers = new Map<string, HTMLElement>()
   private readonly style: HTMLStyleElement
   private readonly document: Document
+  private readonly highlight = `novalist-collaborators-${crypto.randomUUID()}`
 
   constructor(private readonly editor: Window, private readonly range: (selection: SharedSelection) => Range | null) {
     this.document = editor.document
     this.style = this.document.createElement('style')
-    this.style.textContent = css
+    this.style.textContent = css.replaceAll('novalist-collaborators', this.highlight)
     this.document.head.append(this.style)
     this.document.addEventListener('scroll', this.render, true)
     this.editor.addEventListener('resize', this.render)
@@ -58,7 +59,7 @@ export class RemoteSelections {
       marker.firstChild!.textContent = participant.name
     }
     const view = this.editor as Window & typeof globalThis
-    view.CSS.highlights.set('novalist-collaborators', new view.Highlight(...ranges))
+    view.CSS.highlights.set(this.highlight, new view.Highlight(...ranges))
   }
 
   private createMarker(participant: ParticipantSelection): HTMLElement {
@@ -79,6 +80,6 @@ export class RemoteSelections {
     this.editor.removeEventListener('resize', this.render)
     for (const marker of this.markers.values()) marker.remove()
     this.style.remove()
-    ;(this.editor as Window & typeof globalThis).CSS.highlights.delete('novalist-collaborators')
+    ;(this.editor as Window & typeof globalThis).CSS.highlights.delete(this.highlight)
   }
 }

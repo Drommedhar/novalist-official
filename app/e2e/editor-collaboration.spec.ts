@@ -256,10 +256,10 @@ for (const backward of [false, true]) test(`remote ${backward ? 'backward' : 'fo
   await expect(page.locator('.nv-collaboration-label')).toHaveText('Bea')
   await caret(page, 0)
   await page.keyboard.type('Long ')
-  const selected = await page.evaluate(() => Array.from(CSS.highlights.get('novalist-collaborators') ?? [], range => range instanceof Range ? range.toString() : '').join(''))
+  const selected = await page.evaluate(() => Array.from(CSS.highlights.values()).flatMap(highlight => Array.from(highlight, range => range instanceof Range ? range.toString() : '')).join(''))
   expect(selected).toBe('story')
   const caretError = await page.evaluate(backward => {
-    const selected = Array.from(CSS.highlights.get('novalist-collaborators')!)[0] as Range
+    const selected = Array.from(CSS.highlights.values()).flatMap(highlight => Array.from(highlight))[0] as Range
     const focus = selected.cloneRange()
     focus.collapse(backward)
     return Math.abs(document.querySelector('.nv-collaboration-caret')!.getBoundingClientRect().left - focus.getBoundingClientRect().left)

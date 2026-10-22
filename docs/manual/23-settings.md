@@ -48,7 +48,12 @@ not replace an existing project. The initial copy includes every book and draft,
 Codex entries, images and research. Personal settings, credentials, local
 snapshots and executable extensions are excluded.
 
-Synchronized scenes use the existing editor. Prose edits arrive automatically
+Synchronized scenes use the existing scene editor and continuous **Manuscript** view.
+Both show remote selections and preserve per-writer undo. Moving between views
+keeps unsaved shared edits available for retry. In Manuscript, your focused scene
+is the one shown as active to other writers. Board drops for POV and custom
+properties respect the same named focus locks as the inspector and outliner.
+Prose edits arrive automatically
 and remain saved locally during a connection interruption. **End this session**
 keeps the local project available for opening and exporting. Other participants
 can keep working on the hosted project, and an unused invitation can be accepted

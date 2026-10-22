@@ -48,9 +48,14 @@ export function plainText(text: Y.Text): string {
 
 export function renderRichText(document: Document, runs: TextRun[]): DocumentFragment {
   const fragment = document.createDocumentFragment()
+  let open: { key: string; value: string; element: HTMLElement }[] = []
   for (const run of runs) {
-    let node: Node = run.attributes?.embed ? renderEmbed(document, run.attributes.embed, run.insert.length) : document.createTextNode(run.insert)
-    for (const key of orderedMarks(run.attributes ?? {}).reverse()) {
+    const marks = orderedMarks(run.attributes ?? {})
+    let shared = 0
+    while (shared < open.length && marks[shared] === open[shared].key && run.attributes?.[marks[shared]] === open[shared].value) shared++
+    open = open.slice(0, shared)
+    let parent: HTMLElement | DocumentFragment = open.at(-1)?.element ?? fragment
+    for (const key of marks.slice(shared)) {
       const tag = key.split(':')[0]
       if (!/^[a-z][a-z0-9]*$/.test(tag)) throw new Error('Invalid shared formatting tag.')
       const element = document.createElement(tag)
@@ -60,10 +65,11 @@ export function renderRichText(document: Document, runs: TextRun[]): DocumentFra
         if (typeof value !== 'string') throw new Error('Invalid shared formatting attribute.')
         element.setAttribute(name, value)
       }
-      element.append(node)
-      node = element
+      parent.append(element)
+      parent = element
+      open.push({ key, value: run.attributes![key], element })
     }
-    fragment.append(node)
+    parent.append(run.attributes?.embed ? renderEmbed(document, run.attributes.embed, run.insert.length) : document.createTextNode(run.insert))
   }
   return fragment
 }

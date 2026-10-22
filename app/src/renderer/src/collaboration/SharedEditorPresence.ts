@@ -16,11 +16,11 @@ export class SharedEditorPresence {
   private readonly visible = new Set<string>()
   private closed = false
 
-  constructor(private readonly identity: SharedSceneIdentity, private readonly session: PresenceEditor) {
+  constructor(private readonly identity: SharedSceneIdentity, private readonly session: PresenceEditor, active?: () => boolean) {
     this.presence = new SharedItemPresence(identity, crypto.randomUUID(), () => {
       const selected = this.session.selection()
       return selected ? { anchor: btoa(String.fromCharCode(...selected.anchor)), focus: btoa(String.fromCharCode(...selected.focus)) } : null
-    })
+    }, active)
     this.stopObserving = observeParticipants(identity.sessionId)
     this.unsubscribe = useParticipantStore.subscribe(state => this.render(state[identity.sessionId] ?? []))
     this.render(useParticipantStore.getState()[identity.sessionId] ?? [])
