@@ -45,10 +45,10 @@ internal sealed partial class HostedProjectWorkspace : IDisposable
             runtime.Checkpoint = await CheckpointTransfer.PublishAsync(runtime.Session.Updates, archive, ct);
             await RememberAsync(runtime, root, ct);
             await workspace.AttachSharedProjectAsync(runtime.Id, runtime.Session.Updates, states, archive, ct);
-            current = runtime;
-            return runtime.View();
         }
         catch { await runtime.DisposeAsync(); throw; }
+        current = runtime;
+        return runtime.View();
     }
 
     internal async Task<HostedSessionDto> JoinAsync(Uri server, string link, string destination, CancellationToken ct)
@@ -75,10 +75,10 @@ internal sealed partial class HostedProjectWorkspace : IDisposable
             await RememberAsync(runtime, destination, ct);
             await workspace.OpenProjectAsync(destination);
             await workspace.AttachSharedProjectAsync(runtime.Id, runtime.Session.Updates, states, archive, ct);
-            current = runtime;
-            return runtime.View();
         }
         catch { await runtime.DisposeAsync(); throw; }
+        current = runtime;
+        return runtime.View();
     }
 
     internal async Task<string> InviteAsync(DateTimeOffset expiresAt, CancellationToken ct)
