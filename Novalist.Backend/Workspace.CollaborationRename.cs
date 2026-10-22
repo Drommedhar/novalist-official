@@ -8,6 +8,7 @@ public sealed partial class Workspace
 {
     internal async Task WriteSharedFieldAsync(Guid sessionId, Guid item, Guid focus, string value, CancellationToken ct)
     {
+        if (await WriteSharedMetadataAsync(sessionId, item, focus, value, ct)) return;
         var field = await RequireEditableSharedFieldAsync(sessionId, item, focus);
         await field.Fields.ReadAsync(item, ct);
         var rename = await SharedRenameAsync(fieldBindings[item], value);

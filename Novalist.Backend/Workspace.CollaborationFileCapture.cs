@@ -58,7 +58,7 @@ public sealed partial class Workspace
         }
     }
 
-    private async Task<SharedProjectState> CaptureAddedBindingsAsync(IReadOnlyList<SharedFileChange> changes, CancellationToken ct)
+    private async Task<SharedProjectState> CaptureAddedBindingsAsync(List<SharedFileChange> changes, CancellationToken ct)
     {
         var root = sharedRoot ?? throw new InvalidOperationException("The shared project is closed.");
         var paths = changes.Where(change => change.After is not null && change.Before is null).Select(change => change.Path).ToArray();
@@ -90,7 +90,8 @@ public sealed partial class Workspace
             }
         }
         var prosePaths = changes.Where(change => change.After is not null).Select(change => change.Path).ToArray();
-        var fields = (await SharedCodexFields.CaptureAsync(root, prosePaths, ct)).Where(candidate =>
+        var fieldPaths = prosePaths.Contains(".novalist/project.json", StringComparer.Ordinal) ? ProjectContentSelection.Read(root).ToArray() : prosePaths;
+        var fields = (await SharedCodexFields.CaptureAsync(root, fieldPaths, ct)).Where(candidate =>
             !fieldBindings.Values.Any(existing => existing.Path == candidate.Path && existing.Key == candidate.Key && existing.Custom == candidate.Custom && existing.Metadata == candidate.Metadata)).ToArray();
         if (prosePaths.Any(path => path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)))
         {
@@ -98,6 +99,15 @@ public sealed partial class Workspace
             await using var host = factory(Guid.NewGuid());
             await host.OpenAsync(ct);
             documents.AddRange(await CaptureSharedProseAsync(root, prosePaths, host, ct));
+        }
+        if (fields.Any(field => !prosePaths.Contains(field.Path, StringComparer.Ordinal)))
+        {
+            var canonical = await (sharedProjectFiles ?? throw new InvalidOperationException("The shared project is closed.")).SnapshotAsync(ct);
+            foreach (var path in fields.Select(field => field.Path).Distinct(StringComparer.Ordinal).Except(prosePaths, StringComparer.Ordinal))
+            {
+                var source = canonical[path];
+                changes.Add(new(path, source, source));
+            }
         }
         var sourceHashes = changes.Where(change => change.After is not null).ToDictionary(change => change.Path,
             change => Convert.ToHexStringLower(SHA256.HashData(change.After ?? throw new InvalidDataException("Missing shared content."))));
