@@ -61,7 +61,7 @@ public sealed class ScenesRpc
     {
         var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
         var storyDate = SceneStoryDate.Resolve(chapter, scene);
-        return new SceneMetaDto(
+        var result = new SceneMetaDto(
             scene.Id,
             scene.Synopsis,
             scene.Notes,
@@ -76,6 +76,10 @@ public sealed class ScenesRpc
             scene.Inactive,
             scene.RelativeTime?.Amount ?? 0,
             scene.RelativeTime?.Unit.ToString() ?? string.Empty);
+#if NOVALIST_COLLABORATION
+        result = result with { SharedFields = _workspace.SharedSceneMetadata(scene.Id) };
+#endif
+        return result;
     }
 
     /// <summary>
@@ -383,7 +387,12 @@ public sealed record SceneMetaDto(
     /// no relative statement.</summary>
     int RelativeAmount,
     /// <summary>"Minutes", "Hours", "Days" or "Weeks"; empty with no offset.</summary>
-    string RelativeUnit);
+    string RelativeUnit)
+{
+#if NOVALIST_COLLABORATION
+    public SharedEntityFieldsDto? SharedFields { get; init; }
+#endif
+}
 
 /// <summary>Partial patch for a scene's analysis overrides. Null fields are
 /// left unchanged; only supplied fields are written.</summary>

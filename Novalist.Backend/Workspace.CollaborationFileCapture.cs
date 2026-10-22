@@ -28,6 +28,12 @@ public sealed partial class Workspace
         var original = JsonNode.Parse(baseline) as JsonObject ?? throw new InvalidDataException("Invalid shared metadata baseline.");
         foreach (var binding in bindings)
         {
+            if (binding.Metadata is not null)
+            {
+                if (SharedMetadataFields.Target(current, binding) is not null)
+                    SharedMetadataFields.Set(current, binding, SharedMetadataFields.Read(original, binding));
+                continue;
+            }
             var target = binding.Custom ? current[PropertyName(current, "fields")] as JsonObject : current;
             var source = binding.Custom ? original[PropertyName(original, "fields")] as JsonObject : original;
             if (target is null) continue;
@@ -83,8 +89,9 @@ public sealed partial class Workspace
                 documents.Add(new(id, path, state) { SourceSha256 = Convert.ToHexStringLower(SHA256.HashData(bytes)) });
             }
         }
-        var fields = await SharedCodexFields.CaptureAsync(root, paths, ct);
         var prosePaths = changes.Where(change => change.After is not null).Select(change => change.Path).ToArray();
+        var fields = (await SharedCodexFields.CaptureAsync(root, prosePaths, ct)).Where(candidate =>
+            !fieldBindings.Values.Any(existing => existing.Path == candidate.Path && existing.Key == candidate.Key && existing.Custom == candidate.Custom && existing.Metadata == candidate.Metadata)).ToArray();
         if (prosePaths.Any(path => path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)))
         {
             var factory = CreateSharedDocuments ?? throw new InvalidOperationException("Desktop collaboration is unavailable.");
@@ -94,7 +101,8 @@ public sealed partial class Workspace
         }
         var sourceHashes = changes.Where(change => change.After is not null).ToDictionary(change => change.Path,
             change => Convert.ToHexStringLower(SHA256.HashData(change.After ?? throw new InvalidDataException("Missing shared content."))));
-        return new(documents.Select(document => document with { SourceSha256 = sourceHashes[document.Path] }).ToArray(), fields);
+        return new(documents.Select(document => document with { SourceSha256 = sourceHashes[document.Path] }).ToArray(),
+            fields.Select(field => field with { SourceSha256 = sourceHashes[field.Path] }).ToArray());
     }
 }
 #endif

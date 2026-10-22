@@ -47,10 +47,10 @@ internal static class SharedProjectFileBindings
         foreach (var document in added.Documents) documents[document.ItemId] = document;
         foreach (var field in added.Fields) fields[field.ItemId] = field;
         var result = new SharedProjectState(documents.Values.Where(document => Exists(document, files)).ToArray(),
-            fields.Values.Where(field => files.ContainsKey(field.Path)).ToArray());
+            fields.Values.Where(field => Exists(field, files)).ToArray());
         if (result.Documents.Select(document => document.ItemId).Intersect(result.Fields.Select(field => field.ItemId)).Any() ||
             result.Documents.Select(document => (document.Path.ToUpperInvariant(), document.TextField)).Distinct().Count() != result.Documents.Count ||
-            result.Fields.Select(field => (field.Path.ToUpperInvariant(), field.Key, field.Custom)).Distinct().Count() != result.Fields.Count)
+            result.Fields.Select(field => (field.Path.ToUpperInvariant(), field.Key, field.Custom, field.Metadata)).Distinct().Count() != result.Fields.Count)
             throw new InvalidDataException("Conflicting project file bindings.");
         return result;
     }
@@ -61,5 +61,13 @@ internal static class SharedProjectFileBindings
         if (document.TextField is not { } field) return true;
         var entity = JsonNode.Parse(content) as JsonObject ?? throw new InvalidDataException("Invalid shared prose entry.");
         return SharedProseFields.Target(entity, field) is not null;
+    }
+
+    private static bool Exists(SharedFieldBinding binding, IReadOnlyDictionary<string, byte[]> files)
+    {
+        if (!files.TryGetValue(binding.Path, out var content)) return false;
+        if (binding.Metadata is null) return true;
+        var entity = JsonNode.Parse(content) as JsonObject ?? throw new InvalidDataException("Invalid shared metadata.");
+        return SharedMetadataFields.Target(entity, binding) is not null;
     }
 }

@@ -3,7 +3,10 @@ using System.Text.Json;
 
 namespace Novalist.Sync.Client;
 
-public sealed record SharedFieldBinding(Guid ItemId, string Path, string Key, bool Custom, string SourceSha256);
+public sealed record SharedFieldBinding(Guid ItemId, string Path, string Key, bool Custom, string SourceSha256)
+{
+    public SharedMetadataTarget? Metadata { get; init; }
+}
 public sealed record SharedProjectState(IReadOnlyList<SharedDocumentState> Documents, IReadOnlyList<SharedFieldBinding> Fields);
 
 public static class SharedCodexFields
@@ -19,21 +22,34 @@ public static class SharedCodexFields
     private sealed record FolderSchema(string[] Keys, bool Custom);
     private sealed record Value(SharedFieldBinding Binding, string Text);
 
-    public static async Task<IReadOnlyList<SharedFieldBinding>> CaptureAsync(string root, IReadOnlyList<string> paths, CancellationToken ct) =>
-        (await EnumerateAsync(root, paths, ct)).Select(value => value.Binding with { ItemId = Guid.NewGuid() }).ToArray();
+    public static async Task<IReadOnlyList<SharedFieldBinding>> CaptureAsync(string root, IReadOnlyList<string> paths, CancellationToken ct)
+    {
+        var basic = (await EnumerateAsync(root, paths, ct)).Select(value => value.Binding with { ItemId = Guid.NewGuid() }).ToArray();
+        var metadata = await SharedMetadataFields.CaptureAsync(root, paths, basic.Select(binding => binding.Path).Distinct(StringComparer.Ordinal).ToArray(), ct);
+        return [.. basic, .. metadata];
+    }
 
-    public static async Task<IReadOnlyDictionary<Guid, string>> ReadAsync(string root, IReadOnlyList<SharedFieldBinding> bindings, CancellationToken ct)
+    public static async Task<IReadOnlyDictionary<Guid, string>> ReadAsync(string root, IReadOnlyList<SharedFieldBinding> bindings, CancellationToken ct, bool verifySource = true)
     {
         ValidateBindings(bindings);
         if (bindings.Count == 0) return new Dictionary<Guid, string>();
-        var values = (await EnumerateAsync(root, bindings.Select(binding => binding.Path).Distinct(StringComparer.Ordinal).ToArray(), ct))
-            .ToDictionary(value => (value.Binding.Path, value.Binding.Key, value.Binding.Custom));
+        var paths = bindings.Select(binding => binding.Path).Distinct(StringComparer.Ordinal).ToArray();
+        var basic = await EnumerateAsync(root, paths, ct);
+        var values = basic.ToDictionary(value => (value.Binding.Path, value.Binding.Key, value.Binding.Custom));
+        var metadata = await SharedMetadataFields.CaptureAsync(root, paths, basic.Select(value => value.Binding.Path).Distinct(StringComparer.Ordinal).ToArray(), ct);
         var result = new Dictionary<Guid, string>();
         foreach (var binding in bindings)
         {
+            if (binding.Metadata is not null)
+            {
+                if (!metadata.Any(candidate => candidate.Path == binding.Path && candidate.Key == binding.Key && candidate.Metadata == binding.Metadata))
+                    throw new InvalidDataException("A shared metadata binding is outside its editable schema.");
+                result.Add(binding.ItemId, await SharedMetadataFields.ReadAsync(root, binding, verifySource, ct));
+                continue;
+            }
             if (!values.TryGetValue((binding.Path, binding.Key, binding.Custom), out var value))
                 throw new InvalidDataException("A shared field is not an editable Codex field.");
-            if (!string.Equals(value.Binding.SourceSha256, binding.SourceSha256, StringComparison.OrdinalIgnoreCase))
+            if (verifySource && !string.Equals(value.Binding.SourceSha256, binding.SourceSha256, StringComparison.OrdinalIgnoreCase))
                 throw new IOException("A Codex entry changed while sharing was starting. Its local changes have been kept.");
             result.Add(binding.ItemId, value.Text);
         }
@@ -43,14 +59,15 @@ public static class SharedCodexFields
     internal static void ValidateBindings(IReadOnlyList<SharedFieldBinding> bindings)
     {
         var identities = new HashSet<Guid>();
-        var fields = new HashSet<(string, string, bool)>();
+        var fields = new HashSet<(string, string, bool, SharedMetadataTarget?)>();
         foreach (var binding in bindings)
         {
             if (binding is null || binding.ItemId == Guid.Empty || !identities.Add(binding.ItemId) ||
-                string.IsNullOrEmpty(binding.Key) || !fields.Add((binding.Path, binding.Key, binding.Custom)) ||
+                string.IsNullOrEmpty(binding.Key) || !fields.Add((binding.Path, binding.Key, binding.Custom, binding.Metadata)) ||
                 binding.SourceSha256 is null || binding.SourceSha256.Length != 64 || !binding.SourceSha256.All(Uri.IsHexDigit))
                 throw new InvalidDataException("Invalid shared Codex field binding.");
             SharedProjectPath.Validate(binding.Path);
+            if (binding.Metadata is not null) SharedMetadataFields.Validate(binding);
         }
     }
 

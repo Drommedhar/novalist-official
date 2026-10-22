@@ -7,7 +7,10 @@ using Novalist.Sync.Client;
 
 namespace Novalist.Backend;
 
-public sealed record SharedEntityFieldsDto(Guid SessionId, IReadOnlyDictionary<string, Guid> Fields);
+public sealed record SharedEntityFieldsDto(Guid SessionId, IReadOnlyDictionary<string, Guid> Fields)
+{
+    public IReadOnlyDictionary<string, Guid>? Metadata { get; init; }
+}
 
 public sealed partial class Workspace
 {
@@ -42,8 +45,9 @@ public sealed partial class Workspace
             using var projection = BeginSharedProjection();
             if (Projects.ProjectRoot != root) throw new InvalidOperationException("The shared project is no longer open.");
             await ProjectFieldAsync(root, known[item], value);
-            if (Coordinator?.Notify is { } notify) await notify("collaboration/fieldUpdated", new { sessionId, itemId = item, value });
-        });
+            if (known[item].Metadata is null && Coordinator?.Notify is { } notify)
+                await notify("collaboration/fieldUpdated", new { sessionId, itemId = item, value });
+        }, (item, value) => { if (known[item].Metadata is not null) SharedMetadataFields.ParseValue(known[item], value); });
         if (DispatchSharedUpdate is { } dispatch) fields.DispatchRemote = dispatch;
         try { await fields.StartAsync(values, ct); }
         catch { await fields.DisposeAsync(); throw; }
@@ -58,9 +62,12 @@ public sealed partial class Workspace
         if (sharedFields is null) return null;
         var path = SharedEntityPath(entity);
         if (path is null) return null;
-        var fields = fieldBindings.Values.Where(binding => binding.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
-            .ToDictionary(binding => binding.Key, binding => binding.ItemId, StringComparer.Ordinal);
-        return fields.Count == 0 ? null : new(sharedSession, fields);
+        var bindings = fieldBindings.Values.Where(binding => binding.Path.Equals(path, StringComparison.OrdinalIgnoreCase)).ToArray();
+        var fields = bindings.Where(binding => binding.Metadata is null)
+            .ToDictionary(SharedMetadataFields.BindingKey, binding => binding.ItemId, StringComparer.Ordinal);
+        var metadata = bindings.Where(binding => binding.Metadata is not null)
+            .ToDictionary(SharedMetadataFields.BindingKey, binding => binding.ItemId, StringComparer.Ordinal);
+        return fields.Count == 0 && metadata.Count == 0 ? null : new(sharedSession, fields) { Metadata = metadata };
     }
 
     private string? SharedEntityPath(IEntityData entity)
@@ -101,11 +108,14 @@ public sealed partial class Workspace
             ?? throw new InvalidDataException("The shared Codex entry is invalid.");
         if (entity[PropertyName(entity, "locked")]?.GetValue<bool>() == true)
             throw new InvalidOperationException(Rpc.EntitiesRpc.LockedMessage);
+        if (binding.Metadata is not null && SharedMetadataFields.Target(entity, binding) is null)
+            throw new InvalidOperationException("The shared metadata item was deleted.");
         return field;
     }
 
     private async Task ProjectFieldAsync(string root, SharedFieldBinding binding, string value)
     {
+        if (binding.Metadata is not null) { await ProjectMetadataFieldAsync(root, binding, value); return; }
         await PrepareSharedProjectionPathAsync(binding.Path);
         var path = SharedProjectPath.Resolve(root, binding.Path);
         if (!await FileService.ExistsAsync(path))
