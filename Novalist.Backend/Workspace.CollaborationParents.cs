@@ -26,7 +26,14 @@ public sealed partial class Workspace
         var resource = new Guid(SHA256.HashData(Encoding.UTF8.GetBytes($"novalist:location-graph:v1:{context.ProjectId:N}"))[..16]);
         var request = new FieldLeaseRequest(context.ProjectId, resource, context.Epoch, Guid.NewGuid());
         var grant = await field.Session.AcquireFieldAsync(request, ct);
-        if (!grant.Acquired) throw new InvalidOperationException("Another collaborator is changing location relationships. Retry after their change finishes.");
+        if (!grant.Acquired)
+        {
+            var participants = PeerProjects?.IsActive == true ? PeerProjects.Participants(sessionId) : HostedProjects?.Participants(sessionId);
+            var writer = participants?.FirstOrDefault(participant => participant.DeviceId == grant.DeviceId)?.Name;
+            throw new InvalidOperationException(writer is null
+                ? "A name or relationship change is in progress. Retry after it finishes."
+                : $"{writer} is changing names or relationships. Retry after their change finishes.");
+        }
         var lease = new SharedGraphLease(field.Session, request);
         try
         {
@@ -49,14 +56,19 @@ public sealed partial class Workspace
 
     private async Task ValidateSharedRenameGraphAsync(SharedRename rename, string path)
     {
-        var places = await ReadSharedPlacesAsync(path);
-        foreach (var place in places)
+        var project = Projects.CurrentProject ?? throw new InvalidOperationException("The shared project is no longer open.");
+        IEnumerable<string> scopes = rename.BookFolder is null ? project.Books.Select(book => book.FolderName + '/').DefaultIfEmpty(path) : [path];
+        foreach (var scope in scopes)
         {
-            if (place.Id == rename.EntityId) place.Name = rename.Next;
-            if (place.Parent == rename.Previous) place.Parent = rename.Next;
+            var places = await ReadSharedPlacesAsync(scope);
+            foreach (var place in places)
+            {
+                if (place.Id == rename.EntityId) place.Name = rename.Next;
+                if (place.Parent == rename.Previous) place.Parent = rename.Next;
+            }
+            if (places.Any(place => !PlaceHierarchy.CanReparent(places, place, place.Parent)))
+                throw new InvalidOperationException("That name would create an invalid location hierarchy.");
         }
-        if (places.Any(place => !PlaceHierarchy.CanReparent(places, place, place.Parent)))
-            throw new InvalidOperationException("That name would create an invalid location hierarchy.");
     }
 
     private async Task<List<LocationData>> ReadSharedPlacesAsync(string entityPath)
