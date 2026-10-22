@@ -1,8 +1,10 @@
 import type { WorkspaceSnapshot } from '../../../shared/workspaceProtocol'
 import type { SharedSceneIdentity } from '../../../shared/sharedScene'
+import type { SharedEntityFields } from '../collaboration/FocusedField'
 
 export interface SceneDto {
   id: string
+  sharedFields?: SharedEntityFields
   title: string
   order: number
   wordCount: number
