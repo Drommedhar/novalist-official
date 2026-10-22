@@ -20,10 +20,12 @@ internal sealed class RetainedProjectRestore(string root, string staging, string
         try
         {
             var paths = ProjectContentSelection.Read(root);
-            await using var backup = new FileStream(recovery, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-            await ProjectCheckpoint.CreateAsync(root, backup, () => ProjectContentSelection.Read(root), ct);
-            await backup.FlushAsync(ct);
-            backup.Flush(flushToDisk: true);
+            await using (var backup = new FileStream(recovery, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await ProjectCheckpoint.CreateAsync(root, backup, () => ProjectContentSelection.Read(root), ct);
+                await backup.FlushAsync(ct);
+                backup.Flush(flushToDisk: true);
+            }
             var settingsPath = SharedProjectPath.Resolve(root, ".novalist/settings.json");
             var settings = File.Exists(settingsPath) ? await File.ReadAllBytesAsync(settingsPath, ct) : null;
             if (settings is not null) await new FileService().WriteBytesAsync(Path.Combine(folder, "personal-settings.json"), settings);

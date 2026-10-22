@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Nerdbank.Streams;
+using Novalist.Core.Services;
 using Novalist.Sync.Client.Tests;
 using StreamJsonRpc;
 
@@ -12,10 +13,10 @@ internal sealed class HostedDesktop : IAsyncDisposable
     internal CollaborationDocumentPeer Documents { get; } = new();
     internal Dictionary<string, string> Credentials { get; }
 
-    internal HostedDesktop(string settings, TestIdentityProvider identity, Dictionary<string, string>? credentials = null)
+    internal HostedDesktop(string settings, TestIdentityProvider identity, Dictionary<string, string>? credentials = null, IFileService? fileService = null)
     {
         Credentials = credentials ?? [];
-        Host = new BackendHost(settings);
+        Host = new BackendHost(settings, fileService: fileService);
         var (backend, desktop) = FullDuplexStream.CreatePair();
         Host.Attach(backend, backend);
         var formatter = new SystemTextJsonFormatter();

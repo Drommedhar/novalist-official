@@ -40,6 +40,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
   participant cursors and scene badges, scene editing through the existing editor, named focus locks for Codex text fields, reconnecting
   retained projects, independent project copies, and owner controls for server access and project deletion.
   Removing a collaborator refreshes project encryption for the remaining writers.
+  Shared Codex renames update scene mentions, section links and parent references.
   Shared prose stays writable during connection interruptions;
   structure and metadata edits require reconnecting. See [Collaboration](docs/manual/23-settings.md#collaboration)
   for the current capabilities and remaining work, or [Steam build requirements](docs/development/steam-collaboration.md)

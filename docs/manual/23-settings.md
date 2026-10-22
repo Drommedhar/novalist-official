@@ -79,6 +79,11 @@ removes its server updates and invitations. Everyone keeps their local project
 copy. A connected writer whose access ends sees a notice and can end the session
 to continue working locally.
 
+The owner can invite a removed writer again with a new invitation. End the old
+session before accepting it and choose a new local folder. Your previous project
+and any unshared writing stay in their original folder; old invitations cannot
+restore removed access.
+
 Shared scenes show other writers' cursors and selections. Cursors follow the
 text as it changes and disappear when their writer leaves or stops responding.
 Small badges beside scene titles in the binder, pinned scenes, outliner and
@@ -90,6 +95,10 @@ Codex descriptions, distinguishing features and free-form sections use the exist
 Markdown editor. Writers can edit the same prose together, see one another's
 cursors, and undo their own edits without removing another writer's writing.
 Sections keep their writing history when their titles change.
+Renaming a shared Codex entry updates its scene mentions, section links and parent
+references in both writers' copies. A focused reference field must be released
+before the rename can proceed. Manually worded mentions, aliases and ordinary
+prose keep their wording.
 
 Codex non-prose text fields, including those on entries created during the session, acquire an
 exclusive editing lock when focused. Wait for the field to become editable;

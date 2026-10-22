@@ -51,18 +51,22 @@ public sealed partial class HostedProjectAccessStore
         try
         {
             var saved = await LoadAsync(bootstrap.Server, bootstrap.ProjectId, device, ct);
-            if (saved is not null) return MatchingInvitation(saved, bootstrap);
-            var pendingKey = PendingKey(bootstrap.Server, bootstrap.ProjectId, device.Id, bootstrap.InvitationId);
-            var pending = await ReadAsync(bootstrap.Server, bootstrap.ProjectId, device, pendingKey, ct);
-            if (pending is not null) return MatchingInvitation(pending, bootstrap);
-            var access = bootstrap.Claim(device);
+            if (saved is not null && MatchesInvitation(saved, bootstrap)) return saved;
             try
             {
-                await PinOwnerAsync(access, ct);
-                await credentials.WriteAsync(pendingKey, JsonSerializer.Serialize(access.State), ct);
-                return access;
+                var pendingKey = PendingKey(bootstrap.Server, bootstrap.ProjectId, device.Id, bootstrap.InvitationId);
+                var access = await ReadAsync(bootstrap.Server, bootstrap.ProjectId, device, pendingKey, ct) ?? bootstrap.Claim(device);
+                try
+                {
+                    if (!MatchesInvitation(access, bootstrap)) throw new InvalidOperationException("The saved invitation changed.");
+                    if (saved is not null) ValidateReplacement(saved.State, access);
+                    await PinOwnerAsync(access, ct);
+                    await credentials.WriteAsync(pendingKey, JsonSerializer.Serialize(access.State), ct);
+                    return access;
+                }
+                catch { access.Dispose(); throw; }
             }
-            catch { access.Dispose(); throw; }
+            finally { saved?.Dispose(); }
         }
         finally { gate.Release(); }
     }
@@ -76,30 +80,34 @@ public sealed partial class HostedProjectAccessStore
         {
             var expected = JsonSerializer.Serialize(access.State);
             var active = await credentials.ReadAsync(StorageKey(access.Server, access.ProjectId, access.State.DeviceId), ct);
-            if (active is not null && active != expected)
-                throw new InvalidOperationException("This project was already joined with different credentials.");
-            var pending = active ?? await credentials.ReadAsync(PendingKey(access.Server, access.ProjectId, access.State.DeviceId, invitation), ct);
-            if (pending != expected) throw new InvalidOperationException("Save the joining credentials before claiming the invitation.");
+            if (active != expected)
+            {
+                var pending = await credentials.ReadAsync(PendingKey(access.Server, access.ProjectId, access.State.DeviceId, invitation), ct);
+                if (pending != expected) throw new InvalidOperationException("Save the joining credentials before claiming the invitation.");
+                if (active is not null) await ArchivePreviousAsync(active, access, ct);
+            }
             await transport.ActivateInvitationAsync(access.ProjectId, invitation, SHA256.HashData(access.Certificate), ct);
             await SaveAsync(access, ct);
         }
         finally { gate.Release(); }
     }
 
-    private static HostedProjectAccess MatchingInvitation(HostedProjectAccess access, HostedInvitationBootstrap bootstrap)
-    {
-        if (access.State.InvitationHash == bootstrap.Fingerprint && access.State.InvitationId == bootstrap.InvitationId) return access;
-        access.Dispose();
-        throw new InvalidOperationException("This device already has different active credentials for that shared project.");
-    }
+    private static bool MatchesInvitation(HostedProjectAccess access, HostedInvitationBootstrap bootstrap) =>
+        access.State.InvitationHash == bootstrap.Fingerprint && access.State.InvitationId == bootstrap.InvitationId;
 
     private async Task PinOwnerAsync(HostedProjectAccess access, CancellationToken ct)
     {
         var key = "project-anchor:" + StorageKey(access.Server, access.ProjectId, access.State.DeviceId);
-        var expected = JsonSerializer.Serialize(new { access.Epoch, Owner = Convert.ToHexStringLower(access.State.OwnerKey) });
+        var authority = new ProjectAnchor(access.Epoch, Convert.ToHexStringLower(access.State.OwnerKey));
+        var expected = JsonSerializer.Serialize(authority);
         var previous = await credentials.ReadAsync(key, ct);
-        if (previous is not null && previous != expected) throw new CryptographicException("The invitation changes the pinned project authority.");
-        if (previous is null) await credentials.WriteAsync(key, expected, ct);
+        if (previous is not null)
+        {
+            var pinned = JsonSerializer.Deserialize<ProjectAnchor>(previous) ?? throw new CryptographicException("The project authority is missing.");
+            if (pinned.Owner != authority.Owner || pinned.Epoch > authority.Epoch)
+                throw new CryptographicException("The invitation changes the pinned project authority.");
+        }
+        if (previous != expected) await credentials.WriteAsync(key, expected, ct);
     }
 
     private Task SaveAsync(HostedProjectAccess access, CancellationToken ct) => credentials.WriteAsync(

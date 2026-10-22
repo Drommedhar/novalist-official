@@ -69,11 +69,8 @@ public sealed partial class CollaborationRpc
     }
 
     [JsonRpcMethod("collaboration/writeField")]
-    public async Task WriteFieldAsync(Guid sessionId, Guid itemId, Guid focusId, string value, CancellationToken cancellationToken = default)
-    {
-        var field = await workspace.RequireEditableSharedFieldAsync(sessionId, itemId, focusId);
-        await field.Fields.WriteAsync(field.Lease, value, cancellationToken);
-    }
+    public Task WriteFieldAsync(Guid sessionId, Guid itemId, Guid focusId, string value, CancellationToken cancellationToken = default) =>
+        workspace.WriteSharedFieldAsync(sessionId, itemId, focusId, value, cancellationToken);
 
     [JsonRpcMethod("collaboration/renewField")]
     public async Task<FieldFocusResult?> RenewFieldAsync(Guid sessionId, Guid itemId, Guid focusId, CancellationToken cancellationToken = default)

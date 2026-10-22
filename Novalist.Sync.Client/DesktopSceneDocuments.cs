@@ -41,6 +41,14 @@ public sealed class DesktopSceneDocuments(Guid sessionId, Func<object, Cancellat
     public Task RemoveAsync(Guid item, byte[] state, CancellationToken ct) =>
         ExecuteAsync(new { kind = "remove", id = item, state }, ct);
 
+    public async Task<byte[]?> RenameAsync(Guid item, string entityId, string oldName, string newName, CancellationToken ct)
+    {
+        var response = await request(new { sessionId, action = "rename", id = item, entityId, oldName, newName }, ct);
+        if (response.ValueKind == JsonValueKind.Null) return null;
+        return response.Deserialize<byte[]>(Json) is { Length: > 0 } update
+            ? update : throw new InvalidDataException("The desktop returned an incomplete rename update.");
+    }
+
     public async Task<SharedSceneSnapshot> CaptureAsync(Guid item, CancellationToken ct)
     {
         var response = await request(new { sessionId, action = "capture", id = item }, ct);

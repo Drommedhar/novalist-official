@@ -203,6 +203,10 @@ public sealed class SharedProjectWriteGuardTests
         await using var fixture = await SharedProjectFixture.StartAsync();
         var path = Path.Combine(fixture.Root, fixture.Scene.Path);
         await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Host.Workspace.FileService.WriteTextAsync(path, "Background overwrite"));
+        var metadataPath = Path.Combine(fixture.Root, fixture.State.Fields.First(field => field.Path.EndsWith(fixture.CharacterId + ".json", StringComparison.Ordinal)).Path);
+        var originalMetadata = await File.ReadAllTextAsync(metadataPath, TestContext.Current.CancellationToken);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Host.Workspace.FileService.WriteTextAsync(metadataPath, "{malformed"));
+        Assert.Equal(originalMetadata, await File.ReadAllTextAsync(metadataPath, TestContext.Current.CancellationToken));
         await fixture.Desktop.InvokeAsync<bool>("system/barrier");
         await fixture.Wire.DisconnectAsync(TestContext.Current.CancellationToken);
         var settings = await fixture.Desktop.InvokeAsync<JsonElement>("settings/updateProject", new { editorFontSize = 29 });

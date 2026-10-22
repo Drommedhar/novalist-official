@@ -7,6 +7,7 @@ import { SceneMarkup } from '../../renderer/src/collaboration/sceneMarkup'
 import { updateRichText } from '../../renderer/src/collaboration/richText'
 import { validateSceneUpdate } from '../../renderer/src/collaboration/validateSceneUpdate'
 import { SceneUpdateInbox, type RejectedPendingUpdate } from '../../renderer/src/collaboration/SceneUpdateInbox'
+import { renameReferences } from './renameReferences'
 
 interface Scene {
   doc: Y.Doc
@@ -59,6 +60,19 @@ export class ProseDocumentHost {
   validate(id: string, update: Uint8Array): void {
     const scene = this.get(id)
     validateSceneUpdate(scene.doc, update, scene.markup, true)
+  }
+
+  rename(id: string, entityId: string, oldName: string, newName: string): Uint8Array | null {
+    const scene = this.get(id)
+    scene.updates.assertComplete()
+    if (scene.deletions.size || oldName === newName) return null
+    const copy = this.createScene(scene.markup === null)
+    try {
+      Y.applyUpdate(copy.doc, Y.encodeStateAsUpdate(scene.doc))
+      const before = Y.encodeStateVector(copy.doc)
+      this.html(copy)
+      return renameReferences(copy, entityId, oldName, newName) ? Y.encodeStateAsUpdate(copy.doc, before) : null
+    } finally { copy.doc.destroy() }
   }
 
   state(id: string): Uint8Array {
