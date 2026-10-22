@@ -66,7 +66,12 @@ public sealed class ManuscriptRpc
             var sceneDtos = new List<ManuscriptSceneDto>();
             foreach (var scene in scenes)
             {
+#if NOVALIST_COLLABORATION
+                var shared = await _workspace.ReadSharedSceneAsync(chapter.Guid, scene.Id, CancellationToken.None);
+                var html = shared?.Html ?? await projects.ReadSceneContentAsync(chapter, scene);
+#else
                 var html = await projects.ReadSceneContentAsync(chapter, scene);
+#endif
                 sceneDtos.Add(new ManuscriptSceneDto(
                     scene.Id,
                     scene.Title,
@@ -77,7 +82,11 @@ public sealed class ManuscriptRpc
                     scene.AnalysisOverrides?.Pov,
                     scene.Goal,
                     scene.Outcome,
-                    scene.Inactive));
+                    scene.Inactive)
+#if NOVALIST_COLLABORATION
+                    { Shared = shared?.Shared }
+#endif
+                );
             }
 
             sections.Add(new ManuscriptSectionDto(
@@ -187,4 +196,9 @@ public sealed record ManuscriptSceneDto(
     /// <summary>What they are left with. Authored, never inferred.</summary>
     string? Outcome,
     /// <summary>True when the scene is out of the book but still in the plan.</summary>
-    bool Inactive);
+    bool Inactive)
+{
+#if NOVALIST_COLLABORATION
+    public SharedSceneContentDto? Shared { get; init; }
+#endif
+}

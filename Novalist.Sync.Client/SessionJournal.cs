@@ -66,6 +66,7 @@ public sealed partial class SessionJournal : IDisposable
             CREATE TABLE IF NOT EXISTS checkpoint_base (id INTEGER PRIMARY KEY CHECK(id = 1), server_seq INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS field_edits (sender_seq INTEGER PRIMARY KEY, resource TEXT NOT NULL, epoch INTEGER NOT NULL, lease TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS field_conditions (sender_seq INTEGER PRIMARY KEY, resource TEXT NOT NULL, lease TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS compound_edits (item TEXT PRIMARY KEY, payload BLOB NOT NULL, after_seq INTEGER NOT NULL, confirmed INTEGER NOT NULL);
             INSERT OR IGNORE INTO session VALUES (1, $identity, 0, NULL);
             """, ("$identity", identity));
         schema.ExecuteNonQuery();
@@ -185,6 +186,7 @@ public sealed partial class SessionJournal : IDisposable
             WHERE sender = $sender AND sender_seq = $seq AND (server_seq IS NULL OR server_seq = $server)
             """, ("$server", serverSequence), ("$sender", header.SenderDeviceId.ToString("D")), ("$seq", (long)header.SenderSeq));
         if (command.ExecuteNonQuery() != 1) throw new InvalidOperationException("A stored update changed its server sequence.");
+        ConfirmCompoundEdit(header, serverSequence);
     }
 
     private void Insert(UpdateHeader header, byte[] payload, UpdateEnvelope envelope, bool pending, long? serverSequence)
@@ -196,6 +198,7 @@ public sealed partial class SessionJournal : IDisposable
             ("$seq", (long)header.SenderSeq), ("$payload", payload), ("$envelope", JsonSerializer.SerializeToUtf8Bytes(envelope)),
             ("$pending", pending ? 1 : 0), ("$server", serverSequence ?? (object)DBNull.Value));
         command.ExecuteNonQuery();
+        if (serverSequence is { } confirmed) ConfirmCompoundEdit(header, confirmed);
     }
 
     public long LastServerSequence

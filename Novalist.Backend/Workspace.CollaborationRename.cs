@@ -1,4 +1,5 @@
 #if NOVALIST_COLLABORATION
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Novalist.Sync.Client;
 
@@ -9,6 +10,7 @@ public sealed partial class Workspace
     internal async Task WriteSharedFieldAsync(Guid sessionId, Guid item, Guid focus, string value, CancellationToken ct)
     {
         await using var graph = await AcquireSharedGraphAsync(sessionId, item, focus, ct);
+        if (graph is not null) await CompletePendingSharedRenamesAsync(graph.Condition, ct);
         await WriteSharedFieldCoreAsync(sessionId, item, focus, value, graph?.Condition, ct);
     }
 
@@ -24,10 +26,13 @@ public sealed partial class Workspace
         try
         {
             if (rename is not null) await AcquireRenameReferencesAsync(rename, references, ct);
+            if (rename is not null) field.Session.SaveCompoundEdit(new(item,
+                JsonSerializer.SerializeToUtf8Bytes(rename), field.Session.CommittedSequence));
             await field.Fields.WriteAsync(field.Lease with { RequiredLease = required }, value, ct);
             foreach (var reference in references)
                 await field.Fields.WriteAsync(reference.Lease with { RequiredLease = required }, reference.Value, CancellationToken.None);
             if (rename is not null) await RenameSharedProseAsync(rename, CancellationToken.None);
+            if (rename is not null) field.Session.CompleteCompoundEdit(item);
         }
         finally
         {
@@ -35,7 +40,7 @@ public sealed partial class Workspace
         }
     }
 
-    private sealed record SharedRename(string EntityId, string Previous, string Next, string? BookFolder);
+    private sealed record SharedRename(string EntityId, string Previous, string Next, string? BookFolder, string Path, string Key);
     private sealed record SharedRenameReference(FieldLeaseRequest Lease, string Value);
 
     private async Task AcquireRenameReferencesAsync(SharedRename rename, List<SharedRenameReference> acquired, CancellationToken ct)
@@ -85,19 +90,21 @@ public sealed partial class Workspace
         var root = sharedRoot ?? throw new InvalidOperationException("The shared project is no longer open.");
         var entity = JsonNode.Parse(await FileService.ReadTextAsync(SharedProjectPath.Resolve(root, binding.Path))) as JsonObject
             ?? throw new InvalidDataException("Invalid shared Codex entry.");
-        var previous = Name(entity);
+        var previous = SharedEntityName(entity);
         entity[PropertyName(entity, binding.Key)] = value;
-        var next = Name(entity);
+        var next = SharedEntityName(entity);
         return string.IsNullOrWhiteSpace(previous) || string.IsNullOrWhiteSpace(next) || previous == next ? null
             : new(Path.GetFileNameWithoutExtension(binding.Path), previous, next,
-                Projects.CurrentProject?.Books.SingleOrDefault(book => binding.Path.StartsWith(book.FolderName + '/', StringComparison.OrdinalIgnoreCase))?.FolderName);
+                Projects.CurrentProject?.Books.SingleOrDefault(book => binding.Path.StartsWith(book.FolderName + '/', StringComparison.OrdinalIgnoreCase))?.FolderName,
+                binding.Path, binding.Key);
 
-        static string Name(JsonObject entity)
-        {
-            var first = entity[PropertyName(entity, "name")]?.GetValue<string>() ?? "";
-            var surname = entity[PropertyName(entity, "surname")]?.GetValue<string>() ?? "";
-            return surname.Length == 0 ? first : $"{first} {surname}";
-        }
+    }
+
+    private static string SharedEntityName(JsonObject entity)
+    {
+        var first = entity[PropertyName(entity, "name")]?.GetValue<string>() ?? "";
+        var surname = entity[PropertyName(entity, "surname")]?.GetValue<string>() ?? "";
+        return surname.Length == 0 ? first : $"{first} {surname}";
     }
 
     private async Task RenameSharedProseAsync(SharedRename rename, CancellationToken ct)

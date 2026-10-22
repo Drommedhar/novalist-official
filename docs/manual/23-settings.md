@@ -106,6 +106,10 @@ their name references separate from same-named entries in other books.
 A focused reference field must be released
 before the rename can proceed. Manually worded mentions, aliases and ordinary
 prose keep their wording.
+If a connection or app interruption happens after a name was saved, retrying the
+rename or reopening its hosted session finishes the remaining reference updates.
+Fields that another writer changed meanwhile keep their new values; an active
+reference lock must still be released before the remaining updates can finish.
 
 Codex non-prose fields and scene and Research metadata acquire an exclusive editing
 lock when focused. This includes scene timing, cast, analysis overrides and custom

@@ -12,6 +12,7 @@ internal sealed class CollaborationDocumentPeer
     internal bool RejectNextLoad { get; set; }
     internal Guid? RejectLoadItem { get; set; }
     internal bool RemoveSeededScenes { get; set; }
+    internal Guid? RejectRenameItem { get; set; }
 
     [JsonRpcMethod("collaboration/documents")]
     public object? Documents(string action, JsonElement command = default, Guid? id = null,
@@ -21,11 +22,11 @@ internal sealed class CollaborationDocumentPeer
         {
             if (id is null || string.IsNullOrEmpty(entityId) || string.IsNullOrEmpty(oldName) || newName is null)
                 throw new ArgumentException("Missing rename parameters.");
+            if (RejectRenameItem == id) { RejectRenameItem = null; throw new IOException("Rename interrupted."); }
             var previous = Encoding.UTF8.GetString(states[id.Value]);
             var next = previous.Replace(oldName, newName, StringComparison.Ordinal);
             if (next == previous) return null;
-            states[id.Value] = Encoding.UTF8.GetBytes(next);
-            return Convert.ToBase64String(states[id.Value]);
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(next));
         }
         if (action == "execute")
         {

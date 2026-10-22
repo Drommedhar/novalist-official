@@ -23,6 +23,7 @@ internal sealed partial class HostedSessionServer : IAsyncDisposable
     internal Uri Address => new(app.Urls.Single());
     internal bool RejectJoins { get; set; }
     internal Func<FieldLeaseRequest, Task>? BeforeFieldPush { get; set; }
+    internal Action<FieldLeaseRequest>? AfterFieldPush { get; set; }
     internal Action? ProjectCreated { get; set; }
 
     private HostedSessionServer(Uri authority)
@@ -197,7 +198,9 @@ internal sealed partial class HostedSessionServer : IAsyncDisposable
                     throw new HubException("Required editing lease expired.");
                 pushed = Push(envelope);
             }
-            return await pushed;
+            var sequence = await pushed;
+            server.AfterFieldPush?.Invoke(request);
+            return sequence;
         }
 
         public Task<long> PushGuardedFieldEdit(FieldLeaseRequest request, FieldLeaseRequest required, UpdateEnvelope envelope) =>

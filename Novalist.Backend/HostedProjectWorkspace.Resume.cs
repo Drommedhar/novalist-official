@@ -109,6 +109,7 @@ internal sealed partial class HostedProjectWorkspace
             if (device.Id != saved.DeviceId) throw new InvalidOperationException("Sign in with the account that joined this local project.");
             access = await accessStore.LoadAsync(saved.Server, saved.ProjectId, device, ct)
                 ?? throw new InvalidOperationException("This device no longer has the saved project credentials.");
+            var pending = HostedProjectSession.ReadPendingCompoundEdits(storage, saved.SessionId, saved.ProjectId, device.Id);
             await using (var transport = new HostedTransport(saved.Server, device, () => account.GetAccessTokenAsync(CancellationToken.None)))
             {
                 await transport.ConnectAsync(ct);
@@ -123,6 +124,7 @@ internal sealed partial class HostedProjectWorkspace
                 id = Guid.NewGuid();
                 session = await HostedProjectSession.OpenAsync(storage, id, access, device, () => account.GetAccessTokenAsync(CancellationToken.None));
             }
+            if (id != saved.SessionId) foreach (var edit in pending) session.Updates.SaveCompoundEdit(edit);
             return new(id, device, access, session, account.DisplayName) { Checkpoint = access.Epoch == saved.Epoch ? saved.Checkpoint : access.Checkpoint };
         }
         catch
