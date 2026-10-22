@@ -95,13 +95,15 @@ Codex descriptions, distinguishing features and free-form sections use the exist
 Markdown editor. Writers can edit the same prose together, see one another's
 cursors, and undo their own edits without removing another writer's writing.
 Sections keep their writing history when their titles change.
-Renaming a shared Codex entry updates its scene mentions, section links and parent
-references in both writers' copies. A focused reference field must be released
+Renaming a shared Codex entry updates its scene mentions, section links, relationships,
+parent references and scene POV in both writers' copies. A book's local entries keep
+their name references separate from same-named entries in other books.
+A focused reference field must be released
 before the rename can proceed. Manually worded mentions, aliases and ordinary
 prose keep their wording.
 
 Codex non-prose text fields, including those on entries created during the session, acquire an
-exclusive editing lock when focused. Wait for the field to become editable;
+exclusive editing lock when focused. Scene stage actions briefly acquire the same kind of lock and leave the stage unchanged if another writer holds it. Wait for the field to become editable;
 another writer cannot change it until you leave the field. Moving focus saves
 the value before releasing the lock. These edits require an active connection.
 When a field is locked, its message names the writer editing it.

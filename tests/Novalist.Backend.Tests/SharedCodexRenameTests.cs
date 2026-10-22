@@ -10,8 +10,11 @@ namespace Novalist.Backend.Tests;
 [Collection("BackendStatics")]
 public sealed class SharedCodexRenameTests
 {
-    [Fact]
-    public async Task RenamingAnEntryWaitsForItsParentReferenceLockAndUpdatesBothAfterRelease()
+    [Theory]
+    [InlineData("parent")]
+    [InlineData("relationships")]
+    [InlineData("pov")]
+    public async Task RenamingAnEntryWaitsForReferenceLocksAndUpdatesReferencesAfterRelease(string heldReference)
     {
         var ct = TestContext.Current.CancellationToken;
         using var directory = new TempDir();
@@ -24,12 +27,22 @@ public sealed class SharedCodexRenameTests
         var location = await desktop.Rpc.InvokeAsync<JsonElement>("entities/create", "location", "Harbor");
         var locationId = location.GetProperty("id").GetString();
         await desktop.Rpc.InvokeAsync("entities/update", "location", locationId, new { parent = "Mira" });
+        await desktop.Rpc.InvokeAsync("entities/updateLists", "location", locationId, null, null, new[] { new { role = "Home", target = "Mira" }, new { role = "Neighbor", target = "Other" } });
+        var chapter = Assert.Single((await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/createChapter", "Opening")).Chapters);
+        var scene = Assert.Single(Assert.Single((await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/createScene", chapter.Guid, "Arrival")).Chapters).Scenes);
+        await desktop.Rpc.InvokeAsync("scenes/setAnalysisOverride", chapter.Guid, scene.Id, new { pov = "Mira" });
         await desktop.SignInAsync(server.Address);
         var session = await desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address);
         character = await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "character", characterId);
         location = await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "location", locationId);
         var name = character.GetProperty("sharedFields").GetProperty("fields").GetProperty("name").GetGuid();
-        var parent = location.GetProperty("sharedFields").GetProperty("fields").GetProperty("parent").GetGuid();
+        var meta = await desktop.Rpc.InvokeAsync<JsonElement>("scenes/getMeta", chapter.Guid, scene.Id);
+        var parent = heldReference switch
+        {
+            "relationships" => location.GetProperty("sharedFields").GetProperty("metadata").GetProperty("relationships").GetGuid(),
+            "pov" => meta.GetProperty("sharedFields").GetProperty("fields").GetProperty("analysisOverrides.pov").GetGuid(),
+            _ => location.GetProperty("sharedFields").GetProperty("fields").GetProperty("parent").GetGuid()
+        };
         var renameFocus = Guid.NewGuid();
         var parentFocus = Guid.NewGuid();
         await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, name, renameFocus);
@@ -45,6 +58,11 @@ public sealed class SharedCodexRenameTests
         await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, name, renameFocus);
         Assert.Equal("Rowan", (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "character", characterId)).GetProperty("name").GetString());
         Assert.Equal("Rowan", (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "location", locationId)).GetProperty("parent").GetString());
+        var relationships = (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "location", locationId)).GetProperty("relationships");
+        Assert.Equal("Rowan", relationships[0].GetProperty("target").GetString());
+        Assert.Equal("Home", relationships[0].GetProperty("role").GetString());
+        Assert.Equal("Other", relationships[1].GetProperty("target").GetString());
+        Assert.Equal("Rowan", (await desktop.Rpc.InvokeAsync<SceneEditDto>("project/getSceneEdit", chapter.Guid, scene.Id)).Pov);
     }
 
     [Fact]
@@ -103,5 +121,47 @@ public sealed class SharedCodexRenameTests
         await desktop.Rpc.InvokeAsync("collaboration/acquireField", session, item, focus);
         await desktop.Rpc.InvokeAsync("collaboration/writeField", session, item, focus, value);
         await desktop.Rpc.InvokeAsync("collaboration/releaseField", session, item, focus);
+    }
+
+    [Fact]
+    public async Task LocalRenameKeepsSameNamedEntriesInAnotherBookUnchanged()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var directory = new TempDir();
+        await using var identity = await TestIdentityProvider.StartAsync(ct);
+        await using var server = await HostedSessionServer.StartAsync(identity.Authority, ct);
+        await using var desktop = new HostedDesktop(Path.Combine(directory.Path, "settings"), identity);
+        var project = await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/create", directory.Path, "Shared", "First book");
+        var firstBook = project.ActiveBookId;
+        var first = await CreateEntriesAsync(desktop);
+        project = await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/createBook", "Second book");
+        var secondBook = project.Books.Single(book => book.Id != firstBook).Id;
+        await desktop.Rpc.InvokeAsync("project/switchBook", secondBook);
+        var second = await CreateEntriesAsync(desktop);
+        await desktop.Rpc.InvokeAsync("project/switchBook", firstBook);
+        await desktop.SignInAsync(server.Address);
+        var session = await desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address);
+        var character = await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "character", first.Character);
+        var name = character.GetProperty("sharedFields").GetProperty("fields").GetProperty("name").GetGuid();
+
+        await WriteAsync(desktop, session.SessionId, name, "Rowan");
+
+        var changed = await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "location", first.Location);
+        Assert.Equal("Rowan", changed.GetProperty("parent").GetString());
+        Assert.Equal("[[Rowan]]", changed.GetProperty("sections")[0].GetProperty("content").GetString());
+        await desktop.Rpc.InvokeAsync("project/switchBook", secondBook);
+        var unchanged = await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "location", second.Location);
+        Assert.Equal("Mira", unchanged.GetProperty("parent").GetString());
+        Assert.Equal("[[Mira]]", unchanged.GetProperty("sections")[0].GetProperty("content").GetString());
+    }
+
+    private static async Task<(string Character, string Location)> CreateEntriesAsync(HostedDesktop desktop)
+    {
+        var character = await desktop.Rpc.InvokeAsync<JsonElement>("entities/create", "character", "Mira");
+        var location = await desktop.Rpc.InvokeAsync<JsonElement>("entities/create", "location", "Harbor");
+        var id = location.GetProperty("id").GetString()!;
+        await desktop.Rpc.InvokeAsync("entities/update", "location", id, new { parent = "Mira" });
+        await desktop.Rpc.InvokeAsync("entities/updateLists", "location", id, null, new[] { new EntitySectionDto("Notes", "[[Mira]]", "notes") }, null);
+        return (character.GetProperty("id").GetString()!, id);
     }
 }
