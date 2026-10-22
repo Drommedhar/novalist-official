@@ -12,7 +12,6 @@ public sealed class HostedProjectCaptureSafetyTests
     [Theory]
     [InlineData("missingIdentity", "supported project identity")]
     [InlineData("rendererDeletion", "initial shared scene cannot be deleted")]
-    [InlineData("concurrentEdit", "scene changed while sharing was starting")]
     public async Task AnInvalidOrChangingInitialSceneCannotStartAnIncompleteSharedProject(string fault, string expected)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -28,7 +27,6 @@ public sealed class HostedProjectCaptureSafetyTests
         var original = await File.ReadAllTextAsync(path, ct);
         if (fault == "missingIdentity") await File.WriteAllTextAsync(path, "<p>Writing without its marker.</p>", ct);
         if (fault == "rendererDeletion") desktop.Documents.RemoveSeededScenes = true;
-        if (fault == "concurrentEdit") server.ProjectCreated = () => File.WriteAllText(path, FileFrontMatter.Stamp("<p>Changed during connection.</p>", scene.Id));
         await desktop.SignInAsync(server.Address);
 
         var error = await Assert.ThrowsAsync<RemoteInvocationException>(() => desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address));
@@ -38,7 +36,6 @@ public sealed class HostedProjectCaptureSafetyTests
         var retained = await File.ReadAllTextAsync(path, ct);
         Assert.Contains(fault == "concurrentEdit" ? "Changed during connection." : fault == "missingIdentity" ? "Writing without its marker." : "Original writing.", retained);
         desktop.Documents.RemoveSeededScenes = false;
-        server.ProjectCreated = null;
         if (fault == "missingIdentity") await File.WriteAllTextAsync(path, original, ct);
         Assert.Equal("Connected", (await desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address)).Connection);
     }

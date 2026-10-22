@@ -28,7 +28,7 @@ public sealed partial class Workspace
         var grant = await field.Session.AcquireFieldAsync(request, ct);
         if (!grant.Acquired)
         {
-            var participants = PeerProjects?.IsActive == true ? PeerProjects.Participants(sessionId) : HostedProjects?.Participants(sessionId);
+            var participants = PeerProjects?.IsActive == true ? PeerProjects.Participants(sessionId) : null;
             var writer = participants?.FirstOrDefault(participant => participant.DeviceId == grant.DeviceId)?.Name;
             throw new InvalidOperationException(writer is null
                 ? "A name or relationship change is in progress. Retry after it finishes."

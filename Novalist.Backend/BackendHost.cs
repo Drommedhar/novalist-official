@@ -77,15 +77,20 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
             try { await action(); }
             finally { _workspaceGate.Release(); }
         };
+        _workspace.DispatchSharedCapture = async (action, ct) =>
+        {
+            await _workspaceGate.WaitAsync(ct);
+            try { await action(); }
+            finally { _workspaceGate.Release(); }
+        };
         rpc.AddLocalRpcTarget(new CollaborationRpc(_workspace), new JsonRpcTargetOptions { DisposeOnDisconnect = false });
         var credentials = new Sync.Client.DesktopCredentials((parameters, ct) =>
             rpc.InvokeWithParameterObjectAsync<JsonElement>("collaboration/credentials", parameters, ct));
         var accounts = new Sync.Client.HostedAccounts(credentials);
-        _workspace.HostedProjects = new(_workspace, accounts, credentials);
-        _workspace.PeerProjects = new(_workspace, credentials);
+        _workspace.PeerProjects = new(_workspace, credentials, accounts);
         _hostedAccounts = new(accounts, (url, ct) =>
             rpc.InvokeWithParameterObjectAsync("collaboration/openBrowser", new { url }, ct),
-            server => _workspace.HostedProjects.Status?.Server == server.AbsoluteUri.TrimEnd('/') + '/');
+            server => _workspace.PeerProjects.Status?.Server == server.AbsoluteUri.TrimEnd('/') + '/');
         rpc.AddLocalRpcTarget(_hostedAccounts, new JsonRpcTargetOptions { DisposeOnDisconnect = false });
 #endif
         coordinator.Notify = (method, payload) => rpc.NotifyAsync(method, payload);
@@ -268,7 +273,6 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
 #if NOVALIST_COLLABORATION
         _workspace.RequireNoSharedSession();
         _hostedAccounts?.DisposeAsync().AsTask().GetAwaiter().GetResult();
-        _workspace.HostedProjects?.Dispose();
         _workspace.PeerProjects?.Dispose();
 #endif
         _assetWatch?.Dispose();
@@ -280,13 +284,11 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
 #if NOVALIST_COLLABORATION
-        _workspace.HostedProjects?.StopPendingOperations();
         _workspace.PeerProjects?.StopPendingOperations();
         await _workspaceGate.WaitAsync().ConfigureAwait(false);
         try { await _workspace.DetachSharedScenesAsync().ConfigureAwait(false); }
         finally { _workspaceGate.Release(); }
         if (_hostedAccounts is not null) await _hostedAccounts.DisposeAsync().ConfigureAwait(false);
-        _workspace.HostedProjects?.Dispose();
         _workspace.PeerProjects?.Dispose();
 #endif
         _assetWatch?.Dispose();

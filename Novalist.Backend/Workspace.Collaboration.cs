@@ -12,7 +12,7 @@ public sealed partial class Workspace
 {
     internal Func<Guid, DesktopSceneDocuments>? CreateSharedDocuments { get; set; }
     internal Func<Func<Task>, Task>? DispatchSharedUpdate { get; set; }
-    internal HostedProjectWorkspace? HostedProjects { get; set; }
+    internal Func<Func<Task>, CancellationToken, Task>? DispatchSharedCapture { get; set; }
     internal PeerProjectWorkspace? PeerProjects { get; set; }
     private SharedSceneWorkspace? sharedScenes;
     private Guid sharedSession;
@@ -90,7 +90,7 @@ public sealed partial class Workspace
         var html = snapshot.Html ?? throw new InvalidOperationException("The shared scene was deleted.");
         await WordHistory.RecordBaselineAsync(Projects.ActiveBook?.Id ?? "", sceneId,
             CountWords(Core.Utilities.TextDiff.StripHtml(SharedBlockBoundary().Replace(html, "\n"))));
-        return new(sceneId, html, Core.Services.ContentHasher.Hash(html), new(sharedSession, item.Value, snapshot.State, HostedProjects?.IsActive == true || PeerProjects?.IsActive == true));
+        return new(sceneId, html, Core.Services.ContentHasher.Hash(html), new(sharedSession, item.Value, snapshot.State, PeerProjects?.IsActive == true));
     }
 
     internal SharedSceneWorkspace RequireSharedScenes(Guid sessionId)
@@ -128,13 +128,12 @@ public sealed partial class Workspace
         sharedProse.Clear();
         sharedRoot = null;
         sharedSession = Guid.Empty;
-        if (HostedProjects is { } hosted) await hosted.ReleaseAsync();
         if (PeerProjects is { } peers) await peers.ReleaseAsync();
     }
 
     internal void RequireNoSharedSession()
     {
-        if (sharedScenes is not null || sharedFields is not null || HostedProjects?.IsActive == true || PeerProjects?.IsActive == true) throw new InvalidOperationException("Close the collaboration session asynchronously before closing this workspace.");
+        if (sharedScenes is not null || sharedFields is not null || PeerProjects?.IsActive == true) throw new InvalidOperationException("Close the collaboration session asynchronously before closing this workspace.");
     }
 
     private async Task<bool> RecordSharedSceneAsync(string root, string relative, string html, bool local)

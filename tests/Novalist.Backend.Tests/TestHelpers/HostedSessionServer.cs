@@ -1,47 +1,35 @@
+using System.Collections.Concurrent;
 using System.Net;
-using System.Runtime.CompilerServices;
+using System.Net.WebSockets;
+using System.Text;
+using System.Threading.Channels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Novalist.Sync.Client;
 
 namespace Novalist.Backend.Tests.TestHelpers;
 
-internal sealed partial class HostedSessionServer : IAsyncDisposable
+internal sealed class HostedSessionServer : IAsyncDisposable
 {
     private readonly WebApplication app;
-    internal readonly object Gate = new();
-    internal readonly Dictionary<Guid, List<SequencedUpdate>> Projects = [];
-    internal readonly Dictionary<Guid, Guid> Invitations = [];
-    internal readonly Dictionary<Guid, Guid> Devices = [];
-    internal readonly Dictionary<string, Guid> Accounts = [];
-    internal readonly Dictionary<(Guid, Guid), FieldLeaseGrant> Leases = [];
-    internal readonly Dictionary<(Guid, Guid), HostedProjectDevice> ProjectDevices = [];
+    private readonly ConcurrentDictionary<Guid, Session> sessions = new();
     internal Uri Address => new(app.Urls.Single());
     internal bool RejectJoins { get; set; }
-    internal Func<FieldLeaseRequest, Task>? BeforeFieldPush { get; set; }
-    internal Action<FieldLeaseRequest>? AfterFieldPush { get; set; }
-    internal Action? ProjectCreated { get; set; }
+    internal int StorageRequests { get; private set; }
 
     private HostedSessionServer(Uri authority)
     {
         var builder = WebApplication.CreateSlimBuilder();
         builder.Logging.ClearProviders();
         builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0));
-        builder.Services.AddSingleton(this);
-        builder.Services.AddSignalR(options => options.MaximumReceiveMessageSize = 4 * 1024 * 1024).AddMessagePackProtocol();
         app = builder.Build();
+        app.UseWebSockets();
         app.MapGet("/client-configuration", () => new { protocolVersion = 1, authority = authority.AbsoluteUri, clientId = "novalist", scope = "openid profile sync offline_access" });
-        app.MapGet("/devices/registration", (HttpContext context) => new { userId = Account(context), serverUrl = Address.AbsoluteUri });
-        app.MapPut("/devices/verified", (HttpContext context, Registration registration) =>
-        {
-            lock (Gate) Devices[registration.Keys.DeviceId] = Account(context);
-            return Results.Ok();
-        });
-        app.MapHub<SessionHub>("/sync");
+        app.Map("/relay/v1/host", context => HandleAsync(context, HostAsync));
+        app.Map("/relay/v1/sessions/{id:guid}/guest", context => HandleAsync(context, GuestAsync));
+        app.Map("/relay/v1/sessions/{id:guid}/routes/{route:guid}", context => HandleAsync(context, RouteAsync));
+        app.MapFallback(context => { StorageRequests++; context.Response.StatusCode = 404; return Task.CompletedTask; });
     }
 
     internal static async Task<HostedSessionServer> StartAsync(Uri authority, CancellationToken ct)
@@ -51,159 +39,104 @@ internal sealed partial class HostedSessionServer : IAsyncDisposable
         catch { await server.DisposeAsync(); throw; }
     }
 
-    private Guid Account(HttpContext context)
+    private async Task HandleAsync(HttpContext context, Func<HttpContext, Task> action)
     {
-        var token = context.Request.Headers.Authorization.ToString();
-        lock (Gate)
+        if (RejectJoins || !context.WebSockets.IsWebSocketRequest || !context.Request.Headers.Authorization.ToString().StartsWith("Bearer ", StringComparison.Ordinal))
+        { context.Response.StatusCode = 403; return; }
+        try { await action(context); }
+        catch (Exception error) when (error is WebSocketException or OperationCanceledException or IOException) { }
+    }
+
+    private async Task HostAsync(HttpContext context)
+    {
+        using var socket = await context.WebSockets.AcceptWebSocketAsync();
+        using var session = new Session();
+        var id = Guid.NewGuid();
+        sessions[id] = session;
+        using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted, session.Stop.Token);
+        try
         {
-            if (!Accounts.TryGetValue(token, out var account)) Accounts[token] = account = Guid.NewGuid();
-            return account;
+            await SendIdAsync(socket, id, lifetime.Token);
+            var send = SendRoutesAsync(socket, session, lifetime.Token);
+            var receive = socket.ReceiveAsync(new byte[1], lifetime.Token);
+            await Task.WhenAny(send, receive);
+            await lifetime.CancelAsync();
+            socket.Abort();
+            await Task.WhenAll(send, receive);
+        }
+        finally { sessions.TryRemove(id, out _); session.Stop.Cancel(); }
+    }
+
+    private static async Task SendRoutesAsync(WebSocket socket, Session session, CancellationToken ct)
+    {
+        await foreach (var route in session.Pending.Reader.ReadAllAsync(ct)) await SendIdAsync(socket, route, ct);
+    }
+
+    private static Task SendIdAsync(WebSocket socket, Guid id, CancellationToken ct) =>
+        socket.SendAsync(Encoding.ASCII.GetBytes(id.ToString("N")), WebSocketMessageType.Text, true, ct);
+
+    private async Task GuestAsync(HttpContext context)
+    {
+        if (!sessions.TryGetValue(Guid.Parse((string)context.Request.RouteValues["id"]!), out var session))
+        { context.Response.StatusCode = 404; return; }
+        using var socket = await context.WebSockets.AcceptWebSocketAsync();
+        var route = new Route();
+        var id = Guid.NewGuid();
+        session.Routes[id] = route;
+        using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted, session.Stop.Token);
+        try
+        {
+            await session.Pending.Writer.WriteAsync(id, lifetime.Token);
+            var host = await route.Host.Task.WaitAsync(lifetime.Token);
+            var forward = CopyAsync(socket, host, lifetime.Token);
+            var backward = CopyAsync(host, socket, lifetime.Token);
+            await Task.WhenAny(forward, backward);
+            await lifetime.CancelAsync();
+            socket.Abort();
+            host.Abort();
+            await Task.WhenAll(forward, backward);
+        }
+        finally { session.Routes.TryRemove(id, out _); route.Closed.TrySetResult(); }
+    }
+
+    private async Task RouteAsync(HttpContext context)
+    {
+        if (!sessions.TryGetValue(Guid.Parse((string)context.Request.RouteValues["id"]!), out var session) ||
+            !session.Routes.TryGetValue(Guid.Parse((string)context.Request.RouteValues["route"]!), out var route))
+        { context.Response.StatusCode = 404; return; }
+        using var socket = await context.WebSockets.AcceptWebSocketAsync();
+        route.Host.TrySetResult(socket);
+        await route.Closed.Task.WaitAsync(session.Stop.Token);
+    }
+
+    private static async Task CopyAsync(WebSocket source, WebSocket destination, CancellationToken ct)
+    {
+        var buffer = new byte[16384];
+        while (true)
+        {
+            var message = await source.ReceiveAsync(buffer.AsMemory(), ct);
+            if (message.MessageType == WebSocketMessageType.Close) return;
+            await destination.SendAsync(buffer.AsMemory(0, message.Count), message.MessageType, message.EndOfMessage, ct);
         }
     }
 
-    internal sealed record PublicKeys(Guid DeviceId, byte[] SigningPublicKey, byte[] ReceivingPublicKey);
-    internal sealed record Registration(PublicKeys Keys, byte[] Signature);
-
-    public async ValueTask DisposeAsync() => await app.DisposeAsync();
-
-    public sealed partial class SessionHub(HostedSessionServer server) : Hub
+    public async ValueTask DisposeAsync()
     {
-        private Guid Device => Guid.Parse(Context.GetHttpContext()?.Request.Query["deviceId"].ToString() ?? "");
+        foreach (var session in sessions.Values) session.Stop.Cancel();
+        await app.DisposeAsync();
+    }
 
-        public HostedDeviceChallenge GetDeviceChallenge()
-        {
-            lock (server.Gate) return new(server.Devices[Device], Device, Guid.NewGuid(), server.Address.AbsoluteUri);
-        }
+    private sealed class Route
+    {
+        internal TaskCompletionSource<WebSocket> Host { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource Closed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
 
-        public void AuthenticateDevice(byte[] signature)
-        {
-            if (signature.Length != 64) throw new HubException("Invalid proof.");
-        }
-
-        public void CreateProject(Guid project)
-        {
-            lock (server.Gate)
-            {
-                server.Projects.TryAdd(project, []);
-                server.Owners.TryAdd(project, server.Devices[Device]);
-                server.Members.TryAdd(project, [server.Devices[Device]]);
-            }
-            server.ProjectCreated?.Invoke();
-        }
-
-        public HostedProjectEpoch GetProjectEpoch(Guid project)
-        {
-            lock (server.Gate) return new(server.Epochs.GetValueOrDefault(project), server.Projects[project].Count);
-        }
-
-        public void RegisterProjectDevice(Guid project, uint epoch, byte[] certificate)
-        {
-            lock (server.Gate) server.ProjectDevices[(project, Device)] = new(server.Devices[Device], Device, epoch, certificate);
-        }
-
-        public async Task JoinProject(Guid project)
-        {
-            lock (server.Gate)
-                if (server.RejectJoins || !server.Projects.ContainsKey(project)) throw new HubException("Project unavailable.");
-            await Groups.AddToGroupAsync(Context.ConnectionId, project.ToString("N"));
-            await Groups.AddToGroupAsync(Context.ConnectionId, MemberGroup(project, server.Devices[Device]));
-        }
-
-        public async Task<long> Push(UpdateEnvelope envelope)
-        {
-            var header = UpdateHeader.Parse(envelope.Header);
-            SequencedUpdate update;
-            lock (server.Gate)
-            {
-                var history = server.Projects[header.ProjectId];
-                var previous = history.FirstOrDefault(item => item.Envelope.Header.AsSpan().SequenceEqual(envelope.Header));
-                if (previous is not null) return previous.ServerSeq;
-                update = new(history.Count + 1, envelope);
-                history.Add(update);
-            }
-            await Clients.Group(header.ProjectId.ToString("N")).SendAsync("ReceiveUpdate", update);
-            return update.ServerSeq;
-        }
-
-        public async IAsyncEnumerable<SequencedUpdate> CatchUp(Guid project, long after, [EnumeratorCancellation] CancellationToken ct)
-        {
-            SequencedUpdate[] updates;
-            lock (server.Gate) updates = server.Projects[project].Where(update => update.ServerSeq > after).ToArray();
-            foreach (var update in updates) { ct.ThrowIfCancellationRequested(); yield return update; }
-            await Task.CompletedTask;
-        }
-
-        public Task PublishPresence(UpdateEnvelope envelope)
-        {
-            var header = UpdateHeader.Parse(envelope.Header, EnvelopeKind.Presence);
-            return Clients.Group(header.ProjectId.ToString("N")).SendAsync("ReceivePresence", envelope);
-        }
-
-        public void CreateInvitation(Guid project, HostedInvitationRequest request)
-        {
-            lock (server.Gate) server.Invitations.Add(request.InvitationId, project);
-        }
-
-        public HostedInvitationActivation ActivateInvitation(HostedInvitationActivationRequest request)
-        {
-            lock (server.Gate)
-            {
-                var project = server.Invitations[request.InvitationId];
-                server.Members[project].Add(server.Devices[Device]);
-                return new(project, Device, request.CertificateHash);
-            }
-        }
-
-        public FieldLeaseGrant AcquireFieldLease(FieldLeaseRequest request)
-        {
-            lock (server.Gate)
-            {
-                var key = (request.ProjectId, request.ResourceId);
-                var now = DateTimeOffset.UtcNow;
-                if (server.Leases.TryGetValue(key, out var held) && held.ExpiresAt > now) return held with { ServerTime = now };
-                return server.Leases[key] = new(Device, request.LeaseId, now.AddSeconds(30), now, server.Projects[request.ProjectId].Count);
-            }
-        }
-
-        public FieldLeaseGrant? RenewFieldLease(FieldLeaseRequest request)
-        {
-            lock (server.Gate)
-            {
-                var key = (request.ProjectId, request.ResourceId);
-                if (!server.Leases.TryGetValue(key, out var held) || held.DeviceId != Device || held.LeaseId != request.LeaseId) return null;
-                var now = DateTimeOffset.UtcNow;
-                return server.Leases[key] = held with { ServerTime = now, ExpiresAt = now.AddSeconds(30) };
-            }
-        }
-
-        public bool ReleaseFieldLease(FieldLeaseRequest request)
-        {
-            lock (server.Gate)
-            {
-                var key = (request.ProjectId, request.ResourceId);
-                return server.Leases.TryGetValue(key, out var held) && held.DeviceId == Device && held.LeaseId == request.LeaseId && server.Leases.Remove(key);
-            }
-        }
-
-        public async Task<long> PushFieldEdit(FieldLeaseRequest request, UpdateEnvelope envelope)
-        {
-            if (server.BeforeFieldPush is { } before) await before(request);
-            Task<long> pushed;
-            lock (server.Gate)
-            {
-                if (!server.Leases.TryGetValue((request.ProjectId, request.ResourceId), out var held) || held.DeviceId != Device || held.LeaseId != request.LeaseId)
-                    throw new HubException("Editing lease expired.");
-                if (request.RequiredLease is { } required && (!server.Leases.TryGetValue((request.ProjectId, required.ResourceId), out var guard) ||
-                    guard.DeviceId != Device || guard.LeaseId != required.LeaseId || guard.ExpiresAt <= DateTimeOffset.UtcNow))
-                    throw new HubException("Required editing lease expired.");
-                pushed = Push(envelope);
-            }
-            var sequence = await pushed;
-            server.AfterFieldPush?.Invoke(request);
-            return sequence;
-        }
-
-        public Task<long> PushGuardedFieldEdit(FieldLeaseRequest request, FieldLeaseRequest required, UpdateEnvelope envelope) =>
-            PushFieldEdit(request with { RequiredLease = new(required.ResourceId, required.LeaseId) }, envelope);
+    private sealed class Session : IDisposable
+    {
+        internal CancellationTokenSource Stop { get; } = new();
+        internal Channel<Guid> Pending { get; } = Channel.CreateUnbounded<Guid>();
+        internal ConcurrentDictionary<Guid, Route> Routes { get; } = new();
+        public void Dispose() { Stop.Cancel(); Stop.Dispose(); }
     }
 }

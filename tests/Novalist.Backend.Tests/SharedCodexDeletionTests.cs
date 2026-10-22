@@ -15,7 +15,7 @@ public sealed class SharedCodexDeletionTests
     [InlineData("age")]
     [InlineData("aliases")]
     [InlineData("section:notes:title")]
-    public async Task AConfirmedFieldEditArrivingAfterDeletionIsPreservedWithoutRecreatingTheEntry(string fieldKey)
+    public async Task UnsentFieldEditsCanBeRecoveredAfterAnotherWriterDeletesTheEntry(string fieldKey)
     {
         var ct = TestContext.Current.CancellationToken;
         using var directory = new TempDir();
@@ -37,26 +37,12 @@ public sealed class SharedCodexDeletionTests
         var field = entry.GetProperty("sharedFields").GetProperty(fieldKey == "age" ? "fields" : "metadata").GetProperty(fieldKey).GetGuid();
         var focus = Guid.NewGuid();
         await guest.Rpc.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", joined.SessionId, field, focus);
-        var arrived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        server.BeforeFieldPush = request =>
-        {
-            if (request.ResourceId != field) return Task.CompletedTask;
-            arrived.TrySetResult();
-            return release.Task;
-        };
         var value = fieldKey == "age" ? "42 after deletion" : fieldKey == "aliases" ? JsonSerializer.Serialize(new[] { "42 after deletion" }) : JsonSerializer.Serialize("42 after deletion");
-        var write = guest.Rpc.InvokeAsync("collaboration/writeField", joined.SessionId, field, focus, value);
-        try
-        {
-            await arrived.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
-            if (fieldKey.StartsWith("section:", StringComparison.Ordinal))
-                await owner.Rpc.InvokeAsync("entities/updateLists", "character", id, null, Array.Empty<EntitySectionDto>(), null);
-            else await owner.Rpc.InvokeAsync("entities/delete", "character", id, false);
-        }
-        finally { release.TrySetResult(); }
-        await write;
-        var recovery = Path.Combine(project.ProjectPath ?? throw new InvalidOperationException("Missing project."), "Recovered edits");
+        if (fieldKey.StartsWith("section:", StringComparison.Ordinal))
+            await owner.Rpc.InvokeAsync("entities/updateLists", "character", id, null, Array.Empty<EntitySectionDto>(), null);
+        else await owner.Rpc.InvokeAsync("entities/delete", "character", id, false);
+        await guest.Rpc.InvokeAsync("collaboration/recoverField", joined.SessionId, field, focus, value);
+        var recovery = Path.Combine(directory.Path, "Joined", "Recovered edits");
         for (var attempt = 0; attempt < 100 && (!Directory.Exists(recovery) || !Directory.GetFiles(recovery, "*", SearchOption.AllDirectories).Any(file => File.ReadAllText(file).Contains("42 after deletion", StringComparison.Ordinal))); attempt++)
             await Task.Delay(20, ct);
         Assert.Contains(Directory.GetFiles(recovery, "*", SearchOption.AllDirectories), file => File.ReadAllText(file).Contains("42 after deletion", StringComparison.Ordinal));

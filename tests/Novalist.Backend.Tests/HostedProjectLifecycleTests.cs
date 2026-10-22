@@ -1,4 +1,3 @@
-using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using Novalist.Backend.Rpc;
@@ -14,137 +13,126 @@ namespace Novalist.Backend.Tests;
 public sealed class HostedProjectLifecycleTests
 {
     [Fact]
-    public async Task HostedCollaboratorsKeepWorkingAfterOwnerLeavesAndOwnerResumesWithARecoveryCopy()
+    public async Task RelaySharingRequiresTheHostAndKeepsLocalCopiesWithoutStorageRequests()
     {
         var ct = TestContext.Current.CancellationToken;
         using var directory = new TempDir();
         await using var identity = await TestIdentityProvider.StartAsync(ct);
-        identity.IssueAccessToken = () => identity.Subject;
         await using var server = await HostedSessionServer.StartAsync(identity.Authority, ct);
-        await using var owner = new HostedDesktop(Path.Combine(directory.Path, "owner-settings"), identity);
-        var scene = await CreateProjectAsync(owner, directory.Path);
+        await using var owner = new HostedDesktop(directory.Combine("owner-settings"), identity);
+        var project = await owner.Rpc.InvokeAsync<ProjectStateDto>("project/create", directory.Path, "Shared", "Book");
+        var chapter = Assert.Single((await owner.Rpc.InvokeAsync<ProjectStateDto>("project/createChapter", "Opening")).Chapters);
+        var scene = Assert.Single(Assert.Single((await owner.Rpc.InvokeAsync<ProjectStateDto>("project/createScene", chapter.Guid, "Arrival")).Chapters).Scenes);
+        await owner.Rpc.InvokeAsync("scenes/write", chapter.Guid, scene.Id, "<p>Initial draft.</p>", "Initial draft.");
         await owner.SignInAsync(server.Address);
-        var ownerSession = await owner.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address);
+        var session = await owner.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address);
         var invitation = await owner.Rpc.InvokeAsync<string>("collaboration/invite", DateTimeOffset.UtcNow.AddHours(1));
-        await owner.Rpc.InvokeAsync("collaboration/end");
         identity.Subject = "guest";
-        await using var guest = new HostedDesktop(Path.Combine(directory.Path, "guest-settings"), identity);
+        await using var guest = new HostedDesktop(directory.Combine("guest-settings"), identity);
         await guest.SignInAsync(server.Address);
-        var guestSession = await guest.Rpc.InvokeAsync<HostedSessionDto>("collaboration/join", server.Address, invitation, Path.Combine(directory.Path, "Joined"));
-        Assert.Equal(ownerSession.ProjectId, guestSession.ProjectId);
-        Assert.False(guestSession.IsOwner);
-        var content = await guest.Rpc.InvokeAsync<JsonElement>("scenes/read", scene.Chapter, scene.Id);
-        var item = content.GetProperty("shared").GetProperty("itemId").GetGuid();
-        await owner.Rpc.InvokeAsync("scenes/write", scene.Chapter, scene.Id, "<p>Closed-session draft.</p>", "Closed-session draft.");
-        await owner.Rpc.InvokeAsync("settings/updateProject", new { editorFontSize = 28 });
-        await guest.Rpc.InvokeAsync("collaboration/writeScene", guestSession.SessionId, item, Encoding.UTF8.GetBytes("<p>Guest writes while owner is away.</p>"));
-        var resumed = await owner.Rpc.InvokeAsync<HostedSessionDto>("collaboration/resume");
-        Assert.Equal(ownerSession.ProjectId, resumed.ProjectId);
-        Assert.NotEqual(ownerSession.SessionId, resumed.SessionId);
-        await WaitForSceneAsync(owner, scene, "Guest writes while owner is away.");
-        Assert.NotNull(resumed.RecoveryPath);
-        using var recovery = ZipFile.OpenRead(resumed.RecoveryPath);
-        var retained = recovery.Entries.Single(entry => entry.FullName.EndsWith(".novalist", StringComparison.Ordinal));
-        using var reader = new StreamReader(retained.Open());
-        Assert.Contains("Closed-session draft.", await reader.ReadToEndAsync(ct));
-        var settings = await owner.Rpc.InvokeAsync<JsonElement>("settings/get");
-        Assert.Equal(28, settings.GetProperty("effective").GetProperty("editorFontSize").GetDouble());
-        Assert.Equal(resumed.ProjectId, (await owner.Rpc.InvokeAsync<SavedHostedProjectDto>("collaboration/saved")).ProjectId);
-        var view = Guid.NewGuid();
-        await owner.Rpc.InvokeAsync("collaboration/presence", resumed.SessionId, item, view, null, true);
-        await WaitForPresenceAsync(guest, guestSession.SessionId, item, view);
+        var root = directory.Combine("Joined");
+        var joined = await guest.Rpc.InvokeAsync<HostedSessionDto>("collaboration/join", server.Address, invitation, root);
+        Assert.Equal("hosted", joined.Mode);
+        Assert.Equal(session.ProjectId, joined.ProjectId);
+        var item = (await guest.Rpc.InvokeAsync<SceneContentDto>("scenes/read", chapter.Guid, scene.Id)).Shared!.ItemId;
+        await guest.Rpc.InvokeAsync("collaboration/writeScene", joined.SessionId, item, Encoding.UTF8.GetBytes("<p>Guest writes live.</p>"));
+        await WaitForSceneAsync(owner, chapter.Guid, scene.Id, "Guest writes live.");
+        await guest.Rpc.InvokeAsync("collaboration/end");
+        Assert.Equal(joined.ProjectId, (await guest.Rpc.InvokeAsync<SavedHostedProjectDto>("collaboration/saved")).ProjectId);
+        var resumed = await guest.Rpc.InvokeAsync<HostedSessionDto>("collaboration/resume");
+        Assert.Equal(session.ProjectId, resumed.ProjectId);
+        await guest.Rpc.InvokeAsync("collaboration/end");
+        var unused = await owner.Rpc.InvokeAsync<string>("collaboration/invite", DateTimeOffset.UtcNow.AddHours(1));
+        await owner.Rpc.InvokeAsync("collaboration/end");
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => guest.Rpc.InvokeAsync("collaboration/resume"));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => guest.Rpc.InvokeAsync("collaboration/join", server.Address, unused, directory.Combine("Offline")));
+        Assert.False(Directory.Exists(directory.Combine("Offline")));
+        Assert.Contains("Guest writes live.", (await guest.Rpc.InvokeAsync<SceneContentDto>("scenes/read", chapter.Guid, scene.Id)).Html);
+        Assert.Equal(0, server.StorageRequests);
+        Assert.True(File.Exists(Path.Combine(project.ProjectPath!, ".novalist", "project.json")));
     }
 
     [Fact]
-    public async Task FailedResumeRestoresLocalChaptersProseAndPersonalSettingsBeforeRetry()
+    public async Task RelayRejectingConnectionsLeavesTheDesktopUsableForRetry()
     {
         var ct = TestContext.Current.CancellationToken;
         using var directory = new TempDir();
         await using var identity = await TestIdentityProvider.StartAsync(ct);
         await using var server = await HostedSessionServer.StartAsync(identity.Authority, ct);
-        await using var desktop = new HostedDesktop(Path.Combine(directory.Path, "settings"), identity);
-        var scene = await CreateProjectAsync(desktop, directory.Path);
-        await desktop.SignInAsync(server.Address);
-        await desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address);
-        await desktop.Rpc.InvokeAsync("collaboration/end");
-        await desktop.Rpc.InvokeAsync("project/createChapter", "Local chapter");
-        await desktop.Rpc.InvokeAsync("scenes/write", scene.Chapter, scene.Id, "<p>Kept after failed resume.</p>", "Kept after failed resume.");
-        await desktop.Rpc.InvokeAsync("settings/updateProject", new { editorFontSize = 31 });
-        desktop.Documents.RejectNextLoad = true;
-
-        await Assert.ThrowsAsync<RemoteInvocationException>(() => desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/resume"));
-
-        Assert.Null(await desktop.Rpc.InvokeAsync<HostedSessionDto?>("collaboration/status"));
-        await WaitForSceneAsync(desktop, scene, "Kept after failed resume.");
-        var project = await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/getState");
-        Assert.Contains(project.Chapters, chapter => chapter.Title == "Local chapter");
-        var settings = await desktop.Rpc.InvokeAsync<JsonElement>("settings/get");
-        Assert.Equal(31, settings.GetProperty("effective").GetProperty("editorFontSize").GetDouble());
-        var resumed = await desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/resume");
-        Assert.Equal("Connected", resumed.Connection);
-        await WaitForSceneAsync(desktop, scene, "Initial draft.");
-        Assert.Single((await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/getState")).Chapters);
-    }
-
-    [Fact]
-    public async Task ServerRejectingCreateAndJoinLeavesTheDesktopUsableForRetry()
-    {
-        var ct = TestContext.Current.CancellationToken;
-        using var directory = new TempDir();
-        await using var identity = await TestIdentityProvider.StartAsync(ct);
-        await using var server = await HostedSessionServer.StartAsync(identity.Authority, ct);
-        await using var owner = new HostedDesktop(Path.Combine(directory.Path, "owner-settings"), identity);
-        await CreateProjectAsync(owner, directory.Path);
+        await using var owner = new HostedDesktop(directory.Combine("settings"), identity);
+        await owner.Rpc.InvokeAsync("project/create", directory.Path, "Shared", "Book");
         await owner.SignInAsync(server.Address);
         server.RejectJoins = true;
-        await Assert.ThrowsAsync<RemoteInvocationException>(() => owner.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => owner.Rpc.InvokeAsync("collaboration/create", server.Address));
         Assert.Null(await owner.Rpc.InvokeAsync<HostedSessionDto?>("collaboration/status"));
         server.RejectJoins = false;
-        await owner.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address);
-        var invitation = await owner.Rpc.InvokeAsync<string>("collaboration/invite", DateTimeOffset.UtcNow.AddHours(1));
+        Assert.Equal("Connected", (await owner.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address)).Connection);
+        Assert.Equal(0, server.StorageRequests);
+    }
+
+    [Fact]
+    public async Task SharingReportsProgressAndCanBeCancelledWithoutBlockingTheWorkspace()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var directory = new TempDir();
+        await using var identity = await TestIdentityProvider.StartAsync(ct);
+        await using var server = await HostedSessionServer.StartAsync(identity.Authority, ct);
+        await using var owner = new HostedDesktop(directory.Combine("settings"), identity);
+        await owner.Rpc.InvokeAsync("project/create", directory.Path, "Shared", "Book");
+        var chapter = Assert.Single((await owner.Rpc.InvokeAsync<ProjectStateDto>("project/createChapter", "Opening")).Chapters);
+        await owner.Rpc.InvokeAsync("project/createScene", chapter.Guid, "Arrival");
+        await owner.SignInAsync(server.Address);
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        owner.Documents.BeforeSeed = async token => { entered.TrySetResult(); await Task.Delay(Timeout.Infinite, token); };
+        var sharing = owner.Rpc.InvokeAsync("collaboration/create", server.Address);
+        await entered.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
+        Assert.Contains(owner.Progress, progress => progress.Phase == "scanning");
+        await owner.Rpc.InvokeAsync("collaboration/cancel").WaitAsync(TimeSpan.FromSeconds(5), ct);
+        await Assert.ThrowsAnyAsync<Exception>(() => sharing.WaitAsync(TimeSpan.FromSeconds(5), ct));
+        Assert.Null(await owner.Rpc.InvokeAsync<HostedSessionDto?>("collaboration/status"));
+        owner.Documents.BeforeSeed = null;
+        await owner.Rpc.InvokeAsync("collaboration/create", server.Address);
+        Assert.Contains(owner.Progress, progress => progress.CompletedFiles > 0 && progress.TotalFiles > 0);
+        Assert.Contains(owner.Progress, progress => progress.Phase == "complete");
+        Assert.Equal(0, server.StorageRequests);
+    }
+
+    [Fact]
+    public async Task OnlyTheHostCanRemoveWritersAndEndingTheSessionRetainsEveryoneFiles()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var directory = new TempDir();
+        await using var identity = await TestIdentityProvider.StartAsync(ct);
+        await using var server = await HostedSessionServer.StartAsync(identity.Authority, ct);
+        await using var owner = new HostedDesktop(directory.Combine("owner-settings"), identity);
+        await owner.Rpc.InvokeAsync("project/create", directory.Path, "Shared", "Book");
+        await owner.SignInAsync(server.Address);
+        await owner.Rpc.InvokeAsync("collaboration/create", server.Address);
+        var link = await owner.Rpc.InvokeAsync<string>("collaboration/invite", DateTimeOffset.UtcNow.AddHours(1));
         identity.Subject = "guest";
-        await using var guest = new HostedDesktop(Path.Combine(directory.Path, "guest-settings"), identity);
+        await using var guest = new HostedDesktop(directory.Combine("guest-settings"), identity);
         await guest.SignInAsync(server.Address);
-        server.RejectJoins = true;
-        var destination = Path.Combine(directory.Path, "Joined");
-        await Assert.ThrowsAsync<RemoteInvocationException>(() => guest.Rpc.InvokeAsync<HostedSessionDto>("collaboration/join", server.Address, invitation, destination));
-        Assert.False(Directory.Exists(destination));
-        server.RejectJoins = false;
-        var joined = await guest.Rpc.InvokeAsync<HostedSessionDto>("collaboration/join", server.Address, invitation, destination);
-        Assert.False(joined.IsOwner);
+        var root = directory.Combine("Guest copy");
+        await guest.Rpc.InvokeAsync("collaboration/join", server.Address, link, root);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => guest.Rpc.InvokeAsync("collaboration/members"));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => guest.Rpc.InvokeAsync("collaboration/deleteSharedProject"));
+        var members = await owner.Rpc.InvokeAsync<HostedProjectMember[]>("collaboration/members");
+        var member = Assert.Single(members, item => item.Role == "Contributor");
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => owner.Rpc.InvokeAsync("collaboration/removeMember", Assert.Single(members, item => item.Role == "Owner").UserId));
+        await owner.Rpc.InvokeAsync("collaboration/removeMember", member.UserId);
+        Assert.Single(await owner.Rpc.InvokeAsync<HostedProjectMember[]>("collaboration/members"));
+        await guest.Rpc.InvokeAsync("collaboration/end");
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => guest.Rpc.InvokeAsync("collaboration/resume"));
+        await owner.Rpc.InvokeAsync("collaboration/deleteSharedProject");
+        Assert.Null(await owner.Rpc.InvokeAsync<HostedSessionDto?>("collaboration/status"));
+        Assert.True(File.Exists(Path.Combine(root, ".novalist", "project.json")));
+        Assert.Equal(0, server.StorageRequests);
     }
 
-    private static async Task<(string Chapter, string Id)> CreateProjectAsync(HostedDesktop desktop, string parent)
+    private static async Task WaitForSceneAsync(HostedDesktop desktop, string chapter, string scene, string text)
     {
-        await desktop.Rpc.InvokeAsync("project/create", parent, "Shared", "Book");
-        var chapter = Assert.Single((await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/createChapter", "Opening")).Chapters);
-        var project = await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/createScene", chapter.Guid, "Arrival");
-        var scene = Assert.Single(Assert.Single(project.Chapters).Scenes);
-        await desktop.Rpc.InvokeAsync("scenes/write", chapter.Guid, scene.Id, "<p>Initial draft.</p>", "Initial draft.");
-        return (chapter.Guid, scene.Id);
-    }
-
-    private static async Task WaitForSceneAsync(HostedDesktop desktop, (string Chapter, string Id) scene, string text)
-    {
-        var ct = TestContext.Current.CancellationToken;
-        for (var attempt = 0; attempt < 100; attempt++)
-        {
-            var content = await desktop.Rpc.InvokeAsync<SceneContentDto>("scenes/read", scene.Chapter, scene.Id);
-            if (content.Html.Contains(text, StringComparison.Ordinal)) return;
-            await Task.Delay(20, ct);
-        }
-        Assert.Fail("The shared scene did not arrive.");
-    }
-
-    private static async Task WaitForPresenceAsync(HostedDesktop desktop, Guid session, Guid item, Guid view)
-    {
-        var ct = TestContext.Current.CancellationToken;
-        for (var attempt = 0; attempt < 100; attempt++)
-        {
-            var participants = await desktop.Rpc.InvokeAsync<ParticipantPresence[]>("collaboration/participants", session);
-            if (participants.Any(participant => participant.ItemId == item && participant.ViewId == view && participant.Name.Length > 0)) return;
-            await Task.Delay(20, ct);
-        }
-        Assert.Fail("The shared participant did not arrive.");
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        while (!(await desktop.Rpc.InvokeAsync<SceneContentDto>("scenes/read", chapter, scene)).Html.Contains(text, StringComparison.Ordinal))
+            await Task.Delay(20, timeout.Token);
     }
 }

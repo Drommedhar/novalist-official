@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Collections.Concurrent;
+using Novalist.Sync.Client;
 using Nerdbank.Streams;
 using Novalist.Core.Services;
 using Novalist.Sync.Client.Tests;
@@ -12,6 +14,7 @@ internal sealed class HostedDesktop : IAsyncDisposable
     internal JsonRpc Rpc { get; }
     internal CollaborationDocumentPeer Documents { get; } = new();
     internal Dictionary<string, string> Credentials { get; }
+    internal ConcurrentQueue<CollaborationTransferProgress> Progress { get; } = new();
 
     internal HostedDesktop(string settings, TestIdentityProvider identity, Dictionary<string, string>? credentials = null, IFileService? fileService = null)
     {
@@ -23,6 +26,7 @@ internal sealed class HostedDesktop : IAsyncDisposable
         formatter.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         Rpc = new(new HeaderDelimitedMessageHandler(desktop, desktop, formatter));
         Rpc.AddLocalRpcTarget(Documents);
+        Rpc.AddLocalRpcMethod("collaboration/progress", new Action<CollaborationTransferProgress>(Progress.Enqueue));
         Rpc.AddLocalRpcTarget(new AccountPeer(identity, Credentials));
         Rpc.StartListening();
     }
