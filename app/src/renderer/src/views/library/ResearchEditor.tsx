@@ -1,223 +1,16 @@
-
-
 import { useState } from 'react'
-import { RevisionsPanel } from '../../shell/RevisionsPanel'
+import { ExternalLink, FolderOpen, Trash2 } from 'lucide-react'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
-import { ExternalLink, FolderOpen, Link2, Star, Trash2 } from 'lucide-react'
-
-import { CustomFieldsPanel } from '../../shell/CustomFieldsPanel'
-
-import { TYPES, STATUSES, isFileType, type ResearchItemDto, type useResearchModel } from './researchModel'
-function RelatedResearch({ t, selected, items, setSelectedId, toggleRelated }: { t: ResearchViewState['t']; selected: NonNullable<ResearchViewState['selected']>; items: ResearchViewState['items']; setSelectedId: ResearchViewState['setSelectedId']; toggleRelated: ResearchViewState['toggleRelated'] }): React.JSX.Element {
-  return (
-    <div className="research-tags">
-      <span className="research-tags-label">{t('research.related')}</span>
-      <div className="research-tag-list">
-        {selected.relatedIds.map((relatedId) => {
-          const other = items.find((i) => i.id === relatedId)
-          return (
-            <span key={relatedId} className="research-tag">
-              <button
-                className="research-related-open"
-                onClick={() => setSelectedId(relatedId)}
-              >
-                <Link2 size={12} strokeWidth={2} /> {other?.title ?? relatedId}
-              </button>
-              <button
-                className="research-tag-remove"
-                aria-label={`${t('explorer.contextDelete')} ${other?.title ?? relatedId}`}
-                onClick={() => void toggleRelated(relatedId, false)}
-              >
-                ×
-              </button>
-            </span>
-          )
-        })}
-        {selected.relatedIds.length === 0 && (
-          <span className="research-tags-hint">{t('research.relatedHint')}</span>
-        )}
-      </div>
-      <div className="research-tag-add">
-        <select
-          className="dialog-input"
-          value=""
-          onChange={(e) => {
-            if (e.target.value) void toggleRelated(e.target.value, true)
-          }}
-        >
-          <option value="">{t('research.linkResearch')}</option>
-          {items
-            .filter((i) => i.id !== selected.id && !selected.relatedIds.includes(i.id))
-            .map((i) => (
-              <option key={i.id} value={i.id}>
-                {i.title}
-              </option>
-            ))}
-        </select>
-      </div>
-    </div>
-  )
-}
+import { metadataBinding, SharedMetadataField } from '../../collaboration/SharedMetadataField'
+import { isFileType, type useResearchModel } from './researchModel'
+import { ResearchMetadata } from './ResearchMetadata'
 
 type ResearchViewState = ReturnType<typeof useResearchModel>
 
-function ResearchEntities({ t, selected, entityNames, unlinkEntity, linkEntity, allEntities }: { t: ResearchViewState['t']; selected: NonNullable<ResearchViewState['selected']>; entityNames: ResearchViewState['entityNames']; unlinkEntity: ResearchViewState['unlinkEntity']; linkEntity: ResearchViewState['linkEntity']; allEntities: ResearchViewState['allEntities'] }): React.JSX.Element {
-  return (
-    <div className="research-tags">
-      <span className="research-tags-label">{t('research.linkedEntities')}</span>
-      <div className="research-tag-list">
-        {selected.entityRefs.map((refId) => (
-          <span key={refId} className="research-tag">
-            {entityNames.get(refId) ?? refId}
-            <button
-              className="research-tag-remove"
-              aria-label={`${t('explorer.contextDelete')} ${entityNames.get(refId) ?? refId}`}
-              onClick={() => void unlinkEntity(refId)}
-            >
-              ×
-            </button>
-          </span>
-        ))}
-        {selected.entityRefs.length === 0 && (
-          <span className="research-tags-hint">{t('research.linkedEntitiesHint')}</span>
-        )}
-      </div>
-      <div className="research-tag-add">
-        <select
-          className="dialog-input"
-          value=""
-          onChange={(e) => {
-            if (e.target.value) void linkEntity(e.target.value)
-          }}
-        >
-          <option value="">{t('research.linkEntity')}</option>
-          {allEntities
-            .filter((e) => !selected.entityRefs.includes(e.id))
-            .map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name}
-              </option>
-            ))}
-        </select>
-      </div>
-    </div>
-  )
-}
-
-function ResearchTags({ t, selected, removeTag, newTag, setNewTag, addTag }: { t: ResearchViewState['t']; selected: NonNullable<ResearchViewState['selected']>; removeTag: ResearchViewState['removeTag']; newTag: ResearchViewState['newTag']; setNewTag: ResearchViewState['setNewTag']; addTag: ResearchViewState['addTag'] }): React.JSX.Element {
-  return (
-    <div className="research-tags">
-      <span className="research-tags-label">{t('research.tags')}</span>
-      <div className="research-tag-list">
-        {selected.tags.map((tag) => (
-          <span key={tag} className="research-tag">
-            {tag}
-            <button
-              className="research-tag-remove"
-              aria-label={`${t('explorer.contextDelete')} ${tag}`}
-              onClick={() => removeTag(tag)}
-            >
-              ×
-            </button>
-          </span>
-        ))}
-      </div>
-      <div className="research-tag-add">
-        <input
-          className="dialog-input"
-          placeholder={t('research.addTag')}
-          value={newTag}
-          onChange={(e) => setNewTag(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') addTag()
-          }}
-        />
-        <button className="dialog-button" onClick={addTag}>
-          +
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function ResearchMetadata({ t, selected, setLifecycle, patchSelected, save, removeTag, newTag, setNewTag, addTag, entityNames, unlinkEntity, linkEntity, allEntities, items, setSelectedId, toggleRelated, setItems }: { t: ResearchViewState['t']; selected: NonNullable<ResearchViewState['selected']>; setLifecycle: ResearchViewState['setLifecycle']; patchSelected: ResearchViewState['patchSelected']; save: ResearchViewState['save']; removeTag: ResearchViewState['removeTag']; newTag: ResearchViewState['newTag']; setNewTag: ResearchViewState['setNewTag']; addTag: ResearchViewState['addTag']; entityNames: ResearchViewState['entityNames']; unlinkEntity: ResearchViewState['unlinkEntity']; linkEntity: ResearchViewState['linkEntity']; allEntities: ResearchViewState['allEntities']; items: ResearchViewState['items']; setSelectedId: ResearchViewState['setSelectedId']; toggleRelated: ResearchViewState['toggleRelated']; setItems: ResearchViewState['setItems'] }): React.JSX.Element {
-  return (
-    <details className="research-metadata">
-      <summary>{t('desktopRefresh.researchMetadata')}</summary>
-      {/* Where it stands and what it is worth. A shelf of forty
-        sources has three that matter and, until now, nothing said
-        which - or which questions were still open. */}
-      <div className="research-lifecycle">
-        <select
-          className="dialog-input"
-          aria-label={t('research.status')}
-          value={selected.status}
-          onChange={(e) => void setLifecycle(selected.id, e.target.value, null)}
-        >
-          {STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {t(`research.status${status}`)}
-            </option>
-          ))}
-        </select>
-        <div className="research-rating" role="group" aria-label={t('research.rating')}>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              className={`research-star${selected.rating >= star ? ' on' : ''}`}
-              aria-label={t('research.rateStars', { count: star })}
-              aria-pressed={selected.rating >= star}
-              // Clicking the star already set clears the rating, so an
-              // accidental one is one click to undo.
-              onClick={() =>
-                void setLifecycle(selected.id, null, selected.rating === star ? 0 : star)
-              }
-            >
-              <Star size={14} strokeWidth={2} />
-            </button>
-          ))}
-        </div>
-      </div>
-      <select
-        className="dialog-input"
-        value={selected.type}
-        onChange={(e) => {
-          patchSelected({ type: e.target.value })
-          void save({ ...selected, type: e.target.value })
-        }}
-      >
-        {TYPES.map((type) => (
-          <option key={type} value={type}>
-            {t(`research.type${type}`, { defaultValue: type })}
-          </option>
-        ))}
-      </select>
-      <ResearchTags t={t} selected={selected} removeTag={removeTag} newTag={newTag} setNewTag={setNewTag} addTag={addTag} />
-      <ResearchEntities t={t} selected={selected} entityNames={entityNames} unlinkEntity={unlinkEntity} linkEntity={linkEntity} allEntities={allEntities} />
-      {/* Other research this one refers to. Written both ways, because
-        the end worth finding is usually the other one: the question
-        a source answers is what somebody is reading when they need
-        the source. */}
-      <RelatedResearch t={t} selected={selected} items={items} setSelectedId={setSelectedId} toggleRelated={toggleRelated} />
-      <CustomFieldsPanel scope="Research" id={selected.id} />
-
-      {/* A note pasted over is as lost as a character sheet typed
-        over, and research is where a writer keeps the things they
-        cannot rewrite from memory. */}
-      <div className="inspector-label">{t('entityHistory.title')}</div>
-      <RevisionsPanel
-        historyMethod="research/history"
-        restoreMethod="research/restoreRevision"
-        targetId={selected.id}
-        restoreArgs={[selected.id]}
-        onRestored={(updated) => setItems(updated as ResearchItemDto[])}
-      />
-    </details>
-  )
-}
-
 export function ResearchEditor({ selected, t, fetchingTitle, fetchLinkTitle, setConfirmDelete, isInbox, setFiling, markFiled, patchSelected, save, setLifecycle, removeTag, newTag, setNewTag, addTag, entityNames, unlinkEntity, linkEntity, allEntities, items, setSelectedId, toggleRelated, setItems }: { selected: NonNullable<ResearchViewState['selected']>; t: ResearchViewState['t']; fetchingTitle: ResearchViewState['fetchingTitle']; fetchLinkTitle: ResearchViewState['fetchLinkTitle']; setConfirmDelete: ResearchViewState['setConfirmDelete']; isInbox: ResearchViewState['isInbox']; setFiling: ResearchViewState['setFiling']; markFiled: ResearchViewState['markFiled']; patchSelected: ResearchViewState['patchSelected']; save: ResearchViewState['save']; setLifecycle: ResearchViewState['setLifecycle']; removeTag: ResearchViewState['removeTag']; newTag: ResearchViewState['newTag']; setNewTag: ResearchViewState['setNewTag']; addTag: ResearchViewState['addTag']; entityNames: ResearchViewState['entityNames']; unlinkEntity: ResearchViewState['unlinkEntity']; linkEntity: ResearchViewState['linkEntity']; allEntities: ResearchViewState['allEntities']; items: ResearchViewState['items']; setSelectedId: ResearchViewState['setSelectedId']; toggleRelated: ResearchViewState['toggleRelated']; setItems: ResearchViewState['setItems'] }): React.JSX.Element {
   const [previewError, setPreviewError] = useState<{ id: string; message: string } | null>(null)
+  const titleBinding = metadataBinding(selected, 'title')
+  const contentBinding = metadataBinding(selected, 'content')
   const previewLoaded = (event: React.SyntheticEvent): void => {
     const target = event.target as HTMLElement
     if (!target.matches('.research-preview img, .research-embed, .research-audio')) return
@@ -281,14 +74,17 @@ export function ResearchEditor({ selected, t, fetchingTitle, fetchLinkTitle, set
           </button>
         </div>
       )}
-      <input
-        className="dialog-input research-title"
-        aria-label={t('research.titleWatermark')}
-        placeholder={t('research.titleWatermark')}
-        value={selected.title}
-        onChange={(e) => patchSelected({ title: e.target.value })}
-        onBlur={() => void save(selected)}
-      />
+      <SharedMetadataField binding={titleBinding} value={selected.title} onChange={title => patchSelected({ title })}>
+        {field => <input
+          className="dialog-input research-title"
+          aria-label={t('research.titleWatermark')}
+          placeholder={t('research.titleWatermark')}
+          value={field.value}
+          readOnly={!field.editable}
+          onChange={event => field.change(event.target.value)}
+          onBlur={() => { if (!titleBinding) void save(selected) }}
+        />}
+      </SharedMetadataField>
 
       {selected.type === 'Image' && selected.content.length > 0 && (
         <div className="research-preview">
@@ -338,17 +134,18 @@ export function ResearchEditor({ selected, t, fetchingTitle, fetchLinkTitle, set
           )}
         </dl>
       )}
-      <MarkdownEditor
+      <SharedMetadataField binding={contentBinding} value={selected.content} onChange={content => patchSelected({ content })}>{field => <MarkdownEditor
         key={selected.id}
         className="research-content"
         minRows={12}
         placeholder={t('research.contentWatermark')}
         ariaLabel={t('research.content')}
-        value={selected.content}
+        value={field.value}
+        readOnly={!field.editable}
         shared={selected.sharedProse}
-        onChange={(next) => patchSelected({ content: next })}
-        onBlur={() => void save(selected)}
-      />
+        onChange={field.change}
+        onBlur={() => { if (!selected.sharedProse && !contentBinding) void save(selected) }}
+      />}</SharedMetadataField>
       <ResearchMetadata t={t} selected={selected} setLifecycle={setLifecycle} patchSelected={patchSelected} save={save} removeTag={removeTag} newTag={newTag} setNewTag={setNewTag} addTag={addTag} entityNames={entityNames} unlinkEntity={unlinkEntity} linkEntity={linkEntity} allEntities={allEntities} items={items} setSelectedId={setSelectedId} toggleRelated={toggleRelated} setItems={setItems} />
     </div>
   )

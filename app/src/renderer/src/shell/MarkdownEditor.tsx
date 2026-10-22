@@ -13,7 +13,7 @@ import {
   Strikethrough,
   Table
 } from 'lucide-react'
-import { EditorState, RangeSetBuilder, type ChangeSpec, type Range, type Extension } from '@codemirror/state'
+import { Compartment, EditorState, RangeSetBuilder, type ChangeSpec, type Range, type Extension } from '@codemirror/state'
 import {
   Decoration,
   EditorView,
@@ -306,6 +306,7 @@ export function MarkdownEditor({
   placeholder,
   ariaLabel,
   shared,
+  readOnly = false,
   className = ''
 }: {
   value: string
@@ -317,6 +318,7 @@ export function MarkdownEditor({
   placeholder?: string
   ariaLabel?: string
   shared?: FieldBinding
+  readOnly?: boolean
   className?: string
 }): React.JSX.Element {
   const { t } = useTranslation()
@@ -326,6 +328,11 @@ export function MarkdownEditor({
   const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const sharedSession = useRef<SharedMarkdownSession | null>(null)
+  const [editingPermission] = useState(() => new Compartment())
+  const readOnlyRef = useRef(readOnly)
+  readOnlyRef.current = readOnly
+  const createState = (doc: string): EditorState => EditorState.create({ doc,
+    extensions: [...extensions.current, editingPermission.of(EditorState.readOnly.of(readOnlyRef.current))] })
   // Kept in refs so the CodeMirror extensions can stay static: rebuilding the
   // view on every keystroke would lose the selection and the undo history.
   const onChangeRef = useRef(onChange)
@@ -351,11 +358,11 @@ export function MarkdownEditor({
         keymap.of([
           {
             key: 'Mod-b',
-            run: (v) => (applyMarkdownAction(v, 'bold'), true)
+            run: v => { if (!readOnlyRef.current) applyMarkdownAction(v, 'bold'); return true }
           },
           {
             key: 'Mod-i',
-            run: (v) => (applyMarkdownAction(v, 'italic'), true)
+            run: v => { if (!readOnlyRef.current) applyMarkdownAction(v, 'italic'); return true }
           },
           ...(collaboration ? [] : historyKeymap),
           // Without Enter/Backspace etc. the field would not accept newlines.
@@ -372,8 +379,9 @@ export function MarkdownEditor({
         }),
         EditorView.contentAttributes.of(ariaLabel ? { 'aria-label': ariaLabel } : {})
       ]
-      const state = EditorState.create({ doc: collaboration?.text ?? value, extensions: extensions.current })
+      const state = createState(collaboration?.text ?? value)
       created = new EditorView({ state, parent: host.current! })
+      created.contentDOM.setAttribute('aria-readonly', String(readOnlyRef.current))
       view.current = created
       if (collaboration && shared) {
         const session = collaboration
@@ -406,6 +414,13 @@ export function MarkdownEditor({
     else view.current?.contentDOM.removeAttribute('aria-label')
   }, [ariaLabel])
 
+  useEffect(() => {
+    const editor = view.current
+    if (!editor) return
+    editor.dispatch({ effects: editingPermission.reconfigure(EditorState.readOnly.of(readOnly)) })
+    editor.contentDOM.setAttribute('aria-readonly', String(readOnly))
+  }, [readOnly, editingPermission])
+
   const retry = async (): Promise<void> => {
     try {
       if (sharedSession.current) { await sharedSession.current.flush(); await sharedSession.current.refresh() }
@@ -421,11 +436,11 @@ export function MarkdownEditor({
     if (!v || shared) return
     const current = v.state.doc.toString()
     if (current === value) return
-    v.setState(EditorState.create({ doc: value, extensions: extensions.current }))
+    v.setState(createState(value))
   }, [value, shared])
 
   const act = useCallback((action: MarkdownAction) => {
-    if (view.current) applyMarkdownAction(view.current, action)
+    if (view.current && !readOnlyRef.current) applyMarkdownAction(view.current, action)
   }, [])
 
   const buttons: { action: MarkdownAction; icon: React.ReactNode; labelKey: string }[] = [
@@ -459,6 +474,7 @@ export function MarkdownEditor({
             key={b.action}
             type="button"
             className="md-toolbar-btn"
+            disabled={readOnly}
             title={t(b.labelKey)}
             aria-label={t(b.labelKey)}
             // The editor keeps focus and the selection, so the action applies
