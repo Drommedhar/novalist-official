@@ -55,7 +55,7 @@ internal sealed class PeerBootstrapArchive : IDisposable
             position = 0;
         }
         var bytes = new byte[(int)Math.Min(ChunkBytes, entry.Length - offset)];
-        await current!.ReadExactlyAsync(bytes, ct);
+        await (current ?? throw new InvalidOperationException("The bootstrap entry is not open.")).ReadExactlyAsync(bytes, ct);
         position += bytes.Length;
         return bytes;
     }

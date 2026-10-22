@@ -7,22 +7,6 @@ namespace Novalist.Backend;
 
 public sealed partial class Workspace
 {
-    private async Task ResumeSharedRenamesAsync(CancellationToken ct)
-    {
-        if (fieldSession is not { } session) return;
-        SharedFieldBinding? binding = null;
-        foreach (var edit in session.PendingCompoundEdits())
-        {
-            var rename = JsonSerializer.Deserialize<SharedRename>(edit.Payload) ?? throw new InvalidDataException("Invalid pending rename.");
-            binding = await PendingRenameBindingAsync(edit, rename);
-            if (binding is not null) break;
-            session.CompleteCompoundEdit(edit.ItemId);
-        }
-        if (binding is null) return;
-        await using var graph = await AcquireSharedGraphAsync(sharedSession, binding.ItemId, Guid.NewGuid(), ct);
-        await CompletePendingSharedRenamesAsync(graph?.Condition, ct);
-    }
-
     private async Task CompletePendingSharedRenamesAsync(FieldLeaseCondition? required, CancellationToken ct)
     {
         var session = fieldSession ?? throw new InvalidOperationException("The shared project is closed.");

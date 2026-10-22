@@ -74,7 +74,7 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
     {
         while (true)
         {
-            var routeId = await RelayTunnelSocket.ReceiveIdAsync(control!, ct);
+            var routeId = await RelayTunnelSocket.ReceiveIdAsync(control ?? throw new InvalidOperationException("This tunnel has no host control connection."), ct);
             Track(connectionToken => AcceptRouteAsync(routeId, connectionToken));
         }
     }
@@ -92,7 +92,7 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
     {
         using (initial)
         {
-            using var first = await listener!.AcceptTcpClientAsync(ct);
+            using var first = await (listener ?? throw new InvalidOperationException("This tunnel has no guest listener.")).AcceptTcpClientAsync(ct);
             Track(connectionToken => RelayTunnelSocket.TransferAsync(initial, first, connectionToken));
             await AcceptGuestsAsync(ct);
         }
@@ -102,7 +102,7 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
     {
         while (true)
         {
-            var tcp = await listener!.AcceptTcpClientAsync(ct);
+            var tcp = await (listener ?? throw new InvalidOperationException("This tunnel has no guest listener.")).AcceptTcpClientAsync(ct);
             Track(async connectionToken =>
             {
                 using (tcp)

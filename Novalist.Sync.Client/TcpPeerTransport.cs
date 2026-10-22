@@ -44,8 +44,8 @@ public sealed partial class TcpPeerTransport : IUpdateTransport, IPresenceTransp
 
     public static async Task<TcpPeerTransport> JoinInvitationAsync(PeerInvitation invitation, DeviceIdentity device, CancellationToken ct)
     {
-        if (invitation.Secret is not { Length: 32 } || invitation.ExpiresAt <= DateTimeOffset.UtcNow)
-            throw new InvalidDataException("The peer invitation is invalid or expired.");
+        if (invitation.Secret is not { Length: 32 } || invitation.ExpiresAt <= DateTimeOffset.UnixEpoch)
+            throw new InvalidDataException("The peer invitation is incomplete.");
         var (socket, stream, welcome) = await OpenAsync(invitation.Address, device, invitation.Secret, null, ct);
         try
         {

@@ -13,7 +13,7 @@ public static partial class ProjectCheckpoint
         var existingMetadata = SharedProjectPath.Resolve(destination, ".novalist/project.json");
         if (!File.Exists(existingMetadata) && Directory.EnumerateFileSystemEntries(destination).Any())
             throw new IOException("Choose an empty folder or an existing copy of this project.");
-        var staging = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(destination))!, ".novalist-bootstrap-" + Guid.NewGuid().ToString("N"));
+        var staging = Path.Combine(Path.GetDirectoryName(destination) ?? throw new IOException("Choose a project folder."), ".novalist-bootstrap-" + Guid.NewGuid().ToString("N"));
         try
         {
             var state = await InstallAsync(source, staging, long.MaxValue, ct);
@@ -76,7 +76,7 @@ public static partial class ProjectCheckpoint
         foreach (var change in changes.Where(change => change.HasOriginal))
         {
             var backup = SharedProjectPath.Resolve(recovery, change.Path);
-            Directory.CreateDirectory(Path.GetDirectoryName(backup)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(backup) ?? throw new IOException("The recovery file needs a parent folder."));
             await using var input = File.OpenRead(change.Target);
             await using var output = new FileStream(backup, FileMode.CreateNew, FileAccess.Write, FileShare.None);
             await input.CopyToAsync(output, ct);
@@ -93,7 +93,7 @@ public static partial class ProjectCheckpoint
                 if (change.Replacement is null) File.Delete(change.Target);
                 else
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(change.Target)!);
+                    Directory.CreateDirectory(Path.GetDirectoryName(change.Target) ?? throw new IOException("The project file needs a parent folder."));
                     File.Move(change.Replacement, change.Target, overwrite: true);
                 }
                 applied.Add(change);

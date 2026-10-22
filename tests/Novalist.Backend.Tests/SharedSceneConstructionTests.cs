@@ -17,6 +17,22 @@ namespace Novalist.Backend.Tests;
 public sealed class SharedSceneConstructionTests
 {
     [Fact]
+    public async Task ChangedSceneBytesRejectStaleSharedStateAndRetainTheLocalWriting()
+    {
+        await using var fixture = await ConstructionFixture.StartAsync();
+        var path = Path.Combine(fixture.Root, fixture.ScenePath);
+        var original = await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken);
+        var state = fixture.Document(fixture.ScenePath, "html:<p>Original.</p>") with
+        {
+            SourceSha256 = Convert.ToHexStringLower(SHA256.HashData(original))
+        };
+        await File.WriteAllTextAsync(path, FileFrontMatter.Stamp("<p>Outside editing.</p>", fixture.Scene.Id), TestContext.Current.CancellationToken);
+        var error = await Assert.ThrowsAsync<IOException>(() => fixture.AttachAsync([state]));
+        Assert.Contains("local writing has been kept", error.Message);
+        Assert.Contains("Outside editing.", await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
     public async Task DuplicateScenePathsAreRejectedBeforeOpeningDocumentsAndCanBeRetried()
     {
         await using var fixture = await ConstructionFixture.StartAsync();

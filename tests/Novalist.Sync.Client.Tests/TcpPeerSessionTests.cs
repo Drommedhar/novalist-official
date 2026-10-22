@@ -40,6 +40,26 @@ public sealed class TcpPeerSessionTests : IDisposable
         Assert.Equal(2, ownerSession.Updates.ReadItem(item).Count);
     }
 
+    [Fact]
+    public async Task OnlyTheAdmittedDeviceCanReconnectAfterItsInvitationExpires()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var owner = await DeviceAsync("owner", ct);
+        using var writer = await DeviceAsync("writer", ct);
+        using var stranger = await DeviceAsync("stranger", ct);
+        await using var host = await TcpPeerHost.StartAsync(new(IPAddress.Loopback, 0), folder,
+            new(Guid.NewGuid(), 0, RandomNumberGenerator.GetBytes(32), owner), ct);
+        var expires = DateTimeOffset.UtcNow.AddSeconds(3);
+        var invitation = host.CreateInvitation("127.0.0.1", expiresAt: expires);
+        await using (var joined = await TcpPeerTransport.JoinInvitationAsync(invitation, writer, ct))
+            Assert.True(joined.IsConnected);
+        await Task.Delay(expires - DateTimeOffset.UtcNow + TimeSpan.FromMilliseconds(50), ct);
+        await using var resumed = await TcpPeerTransport.JoinInvitationAsync(invitation, writer, ct);
+        Assert.True(resumed.IsConnected);
+        var extended = invitation with { ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) };
+        await Assert.ThrowsAsync<CryptographicException>(() => TcpPeerTransport.JoinInvitationAsync(extended, stranger, ct));
+    }
+
     private static Task<DeviceIdentity> DeviceAsync(string subject, CancellationToken ct)
     {
         var credentials = Substitute.For<ICollaborationCredentials>();

@@ -446,6 +446,89 @@ public sealed class SharedProjectWriteGuardTests
         Assert.Single(project.Chapters);
     }
 
+    [Theory]
+    [InlineData("age", "Late field value")]
+    [InlineData("aliases", "[\"Late metadata value\"]")]
+    public async Task APreviouslyLeasedEditArrivingAfterDeletionIsRecovered(string key, string value)
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var ct = TestContext.Current.CancellationToken;
+        var field = fixture.State.Fields.Single(binding => binding.Path.EndsWith(fixture.CharacterId + ".json", StringComparison.Ordinal) && binding.Key == key);
+        var context = fixture.Updates.Context;
+        var lease = new FieldLeaseRequest(context.ProjectId, field.ItemId, context.Epoch, Guid.NewGuid());
+        Assert.True((await fixture.Updates.AcquireFieldAsync(lease, ct)).Acquired);
+        await fixture.Desktop.InvokeAsync("entities/delete", "character", fixture.CharacterId, false);
+        await fixture.Updates.CommitFieldAsync(field.ItemId, JsonSerializer.SerializeToUtf8Bytes(new { Version = 1, Value = value }), lease, ct);
+        var recovery = Path.Combine(fixture.Root, "Recovered edits");
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(5));
+        while (!Directory.Exists(recovery) || !Directory.GetFiles(recovery, "*.json", SearchOption.AllDirectories).Any(path => File.ReadAllText(path).Contains("Late ", StringComparison.Ordinal)))
+            await Task.Delay(20, timeout.Token);
+        Assert.False(File.Exists(Path.Combine(fixture.Root, field.Path)));
+        Assert.Empty((await fixture.Desktop.InvokeAsync<JsonElement>("entities/list", "character")).EnumerateArray());
+    }
+
+    [Fact]
+    public async Task FailedFieldReplayDuringAttachmentLeavesTheLocalCopyEditable()
+    {
+        var files = new FailingFieldFiles();
+        await using var fixture = await SharedProjectFixture.StartAsync(files, attach: false);
+        var ct = TestContext.Current.CancellationToken;
+        var age = fixture.State.Fields.Single(binding => binding.Path.EndsWith(fixture.CharacterId + ".json", StringComparison.Ordinal) && binding.Key == "age");
+        var context = fixture.Updates.Context;
+        var lease = new FieldLeaseRequest(context.ProjectId, age.ItemId, context.Epoch, Guid.NewGuid());
+        Assert.True((await fixture.Updates.AcquireFieldAsync(lease, ct)).Acquired);
+        await fixture.Updates.CommitFieldAsync(age.ItemId, JsonSerializer.SerializeToUtf8Bytes(new { Version = 1, Value = "43" }), lease, ct);
+        files.RejectNextAge = true;
+        await Assert.ThrowsAsync<IOException>(() => fixture.AttachAsync(fixture.State));
+        await fixture.Desktop.InvokeAsync("collaboration/end");
+        await fixture.Desktop.InvokeAsync("entities/update", "character", fixture.CharacterId, new { age = "44" });
+        var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        Assert.Equal("44", entry.GetProperty("age").GetString());
+    }
+
+    [Fact]
+    public async Task ActualMetadataChangesAreRejectedDespiteAllowingFormattingNormalization()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync(attach: false);
+        var ct = TestContext.Current.CancellationToken;
+        var field = fixture.State.Fields.Single(binding => binding.Path.EndsWith(fixture.CharacterId + ".json", StringComparison.Ordinal) && binding.Key == "age");
+        var path = Path.Combine(fixture.Root, field.Path);
+        var changed = JsonNode.Parse(await File.ReadAllBytesAsync(path, ct))!.AsObject();
+        changed["age"] = "Outside metadata edit";
+        await File.WriteAllTextAsync(path, changed.ToJsonString(), ct);
+        var error = await Assert.ThrowsAsync<IOException>(() => fixture.AttachAsync(fixture.State));
+        Assert.Contains("local changes have been kept", error.Message);
+        Assert.Contains("Outside metadata edit", await File.ReadAllTextAsync(path, ct));
+    }
+
+    [Fact]
+    public async Task InvalidCanonicalFileStateDetachesTheFailedSession()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync(attach: false);
+        var invalid = fixture.State with { FileBaselines = new Dictionary<string, byte[]> { ["Missing/file.txt"] = [1] } };
+        await Assert.ThrowsAsync<InvalidDataException>(() => fixture.AttachAsync(invalid));
+        var scene = Assert.Single(Assert.Single((await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/getState")).Chapters).Scenes);
+        Assert.Null(scene.SharedFields);
+        fixture.SessionEnded = true;
+        await fixture.Desktop.InvokeAsync("entities/update", "character", fixture.CharacterId, new { age = "44" });
+        Assert.Equal("44", (await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId)).GetProperty("age").GetString());
+    }
+
+    private sealed class FailingFieldFiles : FileService, IFileService
+    {
+        internal bool RejectNextAge { get; set; }
+        public new Task WriteBytesAsync(string path, byte[] bytes)
+        {
+            if (RejectNextAge && path.EndsWith(".json", StringComparison.Ordinal) && Encoding.UTF8.GetString(bytes).Contains("\"age\": \"43\"", StringComparison.Ordinal))
+            {
+                RejectNextAge = false;
+                throw new IOException("The local metadata file is temporarily unavailable.");
+            }
+            return base.WriteBytesAsync(path, bytes);
+        }
+    }
+
     private sealed class SharedProjectFixture : IAsyncDisposable
     {
         private readonly TempDir directory = new();
@@ -461,22 +544,24 @@ public sealed class SharedProjectWriteGuardTests
         internal CollaborationSession Updates => updates ?? throw new InvalidOperationException("Fixture not started.");
         internal string Root => Host.Workspace.Projects.ProjectRoot ?? throw new InvalidOperationException("Project not open.");
         internal SharedProjectState State { get; private set; } = new([], []);
+        private byte[] checkpoint = [];
         private IReadOnlyDictionary<string, byte[]> initialFiles = new Dictionary<string, byte[]>();
         internal SharedDocumentState Scene => Assert.Single(State.Documents, document => document.TextField is null);
         internal string CharacterId { get; private set; } = "";
         internal Guid SessionId { get; } = Guid.NewGuid();
+        internal bool SessionEnded { get; set; }
 
-        internal static async Task<SharedProjectFixture> StartAsync()
+        internal static async Task<SharedProjectFixture> StartAsync(IFileService? fileService = null, bool attach = true)
         {
             var fixture = new SharedProjectFixture();
-            try { await fixture.InitializeAsync(); return fixture; }
+            try { await fixture.InitializeAsync(fileService, attach); return fixture; }
             catch { await fixture.DisposeAsync(); throw; }
         }
 
-        private async Task InitializeAsync()
+        private async Task InitializeAsync(IFileService? fileService, bool attach)
         {
             var ct = TestContext.Current.CancellationToken;
-            backendHost = new BackendHost(Path.Combine(directory.Path, "settings"));
+            backendHost = new BackendHost(Path.Combine(directory.Path, "settings"), fileService: fileService);
             var (backend, desktop) = FullDuplexStream.CreatePair();
             Host.Attach(backend, backend);
             var formatter = new SystemTextJsonFormatter();
@@ -515,7 +600,14 @@ public sealed class SharedProjectWriteGuardTests
             State = await Host.Workspace.CaptureSharedProjectAsync(archive, ct);
             archive.Position = 0;
             initialFiles = await ProjectCheckpoint.ReadFilesAsync(archive, long.MaxValue, ct);
-            await Host.Workspace.AttachSharedProjectAsync(SessionId, Updates, State, archive, ct);
+            checkpoint = archive.ToArray();
+            if (attach) await AttachAsync(State);
+        }
+
+        internal async Task AttachAsync(SharedProjectState state)
+        {
+            using var archive = new MemoryStream(checkpoint);
+            await Host.Workspace.AttachSharedProjectAsync(SessionId, Updates, state, archive, TestContext.Current.CancellationToken);
         }
 
         internal async Task<IReadOnlyDictionary<string, byte[]>> ReadCommittedFilesAsync()
@@ -530,7 +622,7 @@ public sealed class SharedProjectWriteGuardTests
         {
             if (backendHost is not null)
             {
-                if (updates is not null) await Updates.SynchronizeAsync(createProject: false, CancellationToken.None);
+                if (updates is not null && !SessionEnded) await Updates.SynchronizeAsync(createProject: false, CancellationToken.None);
                 await Host.Workspace.DetachSharedScenesAsync();
                 await Host.DisposeAsync();
             }

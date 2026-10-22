@@ -60,6 +60,8 @@ public sealed class PeerProjectRpcTests
         Assert.Null(owner.Rpc.Status());
         Assert.Null(guest.Rpc.Status());
         Assert.Equal("<p>Shared writing.</p>", FileFrontMatter.Strip(await guest.Workspace.Projects.ReadSceneContentAsync(chapter, scene)));
+        await Assert.ThrowsAsync<IOException>(() => guest.Rpc.CreateIndependentCopyAsync(
+            Path.Combine(guest.Workspace.Projects.ProjectRoot!, "Nested copy"), ct));
         await guest.Rpc.CreateIndependentCopyAsync(temporary.Combine("Independent"), ct);
         var independent = new ProjectService(new FileService());
         Assert.NotEqual(status.ProjectId.ToString(), (await independent.LoadProjectAsync(temporary.Combine("Independent"))).Id);
@@ -100,6 +102,13 @@ public sealed class PeerProjectRpcTests
         await Assert.ThrowsAsync<ArgumentException>(() => owner.Rpc.HostPeerAsync("127.0.0.1", 0, "", ct));
         await Assert.ThrowsAsync<ArgumentException>(() => owner.Rpc.HostPeerAsync("not an address", 0, "Owner", ct));
         await Assert.ThrowsAsync<ArgumentException>(() => owner.Rpc.HostPeerAsync("127.0.0.1", -1, "Owner", ct));
+        using (var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Any, 0))
+        {
+            listener.Start();
+            var port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+            await Assert.ThrowsAsync<System.Net.Sockets.SocketException>(() => owner.Rpc.HostPeerAsync("127.0.0.1", port, "Owner", ct));
+            Assert.Null(owner.Rpc.Status());
+        }
         var createDocuments = owner.Workspace.CreateSharedDocuments;
         owner.Workspace.CreateSharedDocuments = null;
         await Assert.ThrowsAsync<InvalidOperationException>(() => owner.Rpc.HostPeerAsync("127.0.0.1", 0, "Owner", ct));

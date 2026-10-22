@@ -35,7 +35,6 @@ public sealed class SharedPlaceParentTests
         harbor = await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "location", harborId);
         var name = harbor.GetProperty("sharedFields").GetProperty("fields").GetProperty("name").GetGuid();
         var focus = Guid.NewGuid();
-        focus = Guid.NewGuid();
         await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, name, focus);
         await Assert.ThrowsAsync<RemoteInvocationException>(() => desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, name, focus, "Quay"));
         Assert.Equal("Harbor", (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "location", harborId)).GetProperty("name").GetString());
@@ -68,7 +67,6 @@ public sealed class SharedPlaceParentTests
         var fields = harbor.GetProperty("sharedFields");
         var parent = fields.GetProperty("fields").GetProperty("parent").GetGuid();
         var focus = Guid.NewGuid();
-        focus = Guid.NewGuid();
         await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, parent, focus);
         foreach (var name in new[] { "Harbor", "Quay" })
             await Assert.ThrowsAsync<RemoteInvocationException>(() => desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, parent, focus, name));
@@ -77,14 +75,12 @@ public sealed class SharedPlaceParentTests
         await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, parent, focus);
         var nameField = fields.GetProperty("fields").GetProperty("name").GetGuid();
         var renameFocus = Guid.NewGuid();
-        renameFocus = Guid.NewGuid();
         await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, nameField, renameFocus);
         await Assert.ThrowsAsync<RemoteInvocationException>(() => desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, nameField, renameFocus, "Quay"));
         Assert.Equal("Harbor", (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "location", harborId)).GetProperty("name").GetString());
         await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, nameField, renameFocus);
         var world = fields.GetProperty("metadata").GetProperty("isWorld").GetGuid();
         var worldFocus = Guid.NewGuid();
-        worldFocus = Guid.NewGuid();
         await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, world, worldFocus);
         await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, world, worldFocus, "true");
         await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, world, worldFocus);

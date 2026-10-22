@@ -14,6 +14,7 @@ public sealed partial class Workspace
     {
         archive.Position = 0;
         var baseline = await ProjectCheckpoint.ReadFilesAsync(archive, long.MaxValue, ct);
+        (state, baseline) = await ReconcileSharedSourceFormattingAsync(state, baseline, ct);
         await AttachSharedProjectAsync(sessionId, session, state, ct);
         var files = new SharedProjectFiles(session, ApplySharedProjectFilesAsync);
         if (DispatchSharedUpdate is { } dispatch) files.DispatchRemote = dispatch;
@@ -22,7 +23,6 @@ public sealed partial class Workspace
             sharedProjectFiles = files;
             sharedDiskFiles = await ReadSharedFilesAsync(sharedRoot ?? throw new InvalidOperationException("The shared project is closed."), ct);
             await files.StartAsync(baseline, state, ct);
-            await ResumeSharedRenamesAsync(ct);
             sharedDiskFiles = await ReadSharedFilesAsync(sharedRoot ?? throw new InvalidOperationException("The shared project is closed."), ct);
         }
         catch

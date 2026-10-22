@@ -49,13 +49,47 @@ public sealed class HostedProjectMetadataRecoveryTests
         await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, age, ageFocus);
     }
 
+    [Fact]
+    public async Task ConfirmedRenameRetriesReferencesAfterItsLocalNameProjectionFails()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var directory = new TempDir();
+        await using var identity = await TestIdentityProvider.StartAsync(ct);
+        await using var server = await HostedSessionServer.StartAsync(identity.Authority, ct);
+        var files = new FailingFileService();
+        await using var desktop = new HostedDesktop(directory.Combine("settings"), identity, fileService: files);
+        await desktop.Rpc.InvokeAsync("project/create", directory.Path, "Shared", "Book");
+        var character = await desktop.Rpc.InvokeAsync<JsonElement>("entities/create", "character", "Mira");
+        var characterId = character.GetProperty("id").GetString();
+        var location = await desktop.Rpc.InvokeAsync<JsonElement>("entities/create", "location", "Harbor");
+        var locationId = location.GetProperty("id").GetString();
+        await desktop.Rpc.InvokeAsync("entities/update", "location", locationId, new { parent = "Mira" });
+        await desktop.SignInAsync(server.Address);
+        var session = await desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address);
+        character = await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "character", characterId);
+        var name = character.GetProperty("sharedFields").GetProperty("fields").GetProperty("name").GetGuid();
+        var focus = Guid.NewGuid();
+        await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, name, focus);
+        files.RejectNextName = true;
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, name, focus, "Rowan"));
+        await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, name, focus, "Rowan");
+        Assert.Equal("Rowan", (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "character", characterId)).GetProperty("name").GetString());
+        Assert.Equal("Rowan", (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "location", locationId)).GetProperty("parent").GetString());
+    }
+
     private sealed class FailingFileService : FileService, IFileService
     {
         internal bool RejectSharedAge { get; set; }
+        internal bool RejectNextName { get; set; }
         internal bool KeepRejecting { get; set; }
 
         public new Task WriteBytesAsync(string path, byte[] bytes)
         {
+            if (RejectNextName && path.EndsWith(".json", StringComparison.Ordinal) && Encoding.UTF8.GetString(bytes).Contains("\"name\": \"Rowan\"", StringComparison.Ordinal))
+            {
+                RejectNextName = false;
+                throw new IOException("Temporary name write failure.");
+            }
             if (RejectSharedAge && path.EndsWith(".json", StringComparison.Ordinal) && Encoding.UTF8.GetString(bytes).Contains("\"age\": \"42\"", StringComparison.Ordinal))
             {
                 RejectSharedAge = KeepRejecting;
