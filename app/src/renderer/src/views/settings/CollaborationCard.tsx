@@ -14,10 +14,12 @@ export function CollaborationCard(): React.JSX.Element {
   const [busy, setBusy] = useState<'checking' | 'signIn' | 'signOut' | null>(null)
   const [error, setError] = useState('')
   const sharing = useHostedSessionStore(state => state.session !== null || state.busy !== null)
+  const savedServer = useHostedSessionStore(state => state.saved?.server)
 
   useEffect(() => {
-    const saved = localStorage.getItem(serverPreference)
+    const saved = localStorage.getItem(serverPreference) || savedServer
     if (!saved) return
+    setServer(saved)
     let current = true
     setBusy('checking')
     void rpc.request<Account | null>('collaboration/account/status', [saved])
@@ -25,7 +27,7 @@ export function CollaborationCard(): React.JSX.Element {
       .catch(reason => { if (current) setError(String(reason)) })
       .finally(() => { if (current) setBusy(null) })
     return () => { current = false }
-  }, [])
+  }, [savedServer])
 
   const signIn = async (): Promise<void> => {
     setError('')

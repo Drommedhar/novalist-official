@@ -5,7 +5,7 @@ import { useProjectStore } from '../../stores/projectStore'
 
 export function SharedProjectCard({ server, signedIn }: { server: string; signedIn: boolean }): React.JSX.Element {
   const { t } = useTranslation()
-  const { session, busy, invitation, error, presenceUnavailable, refresh, run } = useHostedSessionStore()
+  const { session, saved, copied, busy, invitation, error, presenceUnavailable, refresh, run } = useHostedSessionStore()
   const loaded = useProjectStore(state => state.isLoaded)
   const [link, setLink] = useState('')
   const [folder, setFolder] = useState('')
@@ -28,6 +28,7 @@ export function SharedProjectCard({ server, signedIn }: { server: string; signed
     if (useHostedSessionStore.getState().session) setLink('')
   }
   const validName = name.trim().length > 0 && !/[\\/:*?"<>|]/.test(name) && !['.', '..'].includes(name.trim())
+  const recoveryPath = session?.recoveryPath || saved?.recoveryPath
   return <div className="settings-subgroup">
     {session ? <>
       <p role="status">{t('collaboration.connection.' + session.connection)}</p>
@@ -45,6 +46,11 @@ export function SharedProjectCard({ server, signedIn }: { server: string; signed
         <p className="settings-hint">{t('collaboration.invitationHint')}</p>
       </>}
     </> : <>
+      {saved && <>
+        <p className="settings-hint">{t('collaboration.savedServer', { server: saved.server })}</p>
+        <button className="btn-primary" disabled={!loaded || busy !== null} onClick={() => void run('resume')}>{t('collaboration.resume')}</button>
+        <p className="settings-hint">{t('collaboration.resumeHint')}</p>
+      </>}
       <button className="btn-primary" disabled={!signedIn || !loaded || busy !== null} onClick={() => void run('create', [server.trim()])}>
         {t('collaboration.create')}
       </button>
@@ -59,10 +65,16 @@ export function SharedProjectCard({ server, signedIn }: { server: string; signed
         <button className="btn-primary" disabled={!signedIn || busy !== null || !link.trim() || !folder || !validName} onClick={() => void join()}>
           {t('collaboration.join')}
         </button>
+        {loaded && <button className="btn-secondary" disabled={busy !== null || !folder || !validName}
+          onClick={() => void run('copy', [folder.replace(/[\\/]$/, '') + '/' + name.trim()])}>{t('collaboration.copy')}</button>}
       </div>
       {folder && <p className="settings-hint">{folder}</p>}
       <p className="settings-hint">{t('collaboration.joinHint')}</p>
     </>}
+    {recoveryPath && <button className="btn-secondary" onClick={() => {
+      void window.novalist.revealPath(recoveryPath).catch(reason => setLocalError(String(reason)))
+    }}>{t('collaboration.showRetainedCopy')}</button>}
+    {copied && <p role="status">{t('collaboration.copyCreated')}</p>}
     {busy && <p role="status">{t('collaboration.progress.' + busy)}</p>}
     {(error || localError) && <p role="alert">{error || localError}</p>}
   </div>

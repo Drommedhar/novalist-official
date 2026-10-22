@@ -23,7 +23,7 @@ could encounter in a previously released version.
 
 ### Added
 
-- **Hosted collaboration** — sign in to a community server from Settings, share a project through a private single-use invitation, and edit synchronized scenes together with participant cursors in the existing editor. Existing Codex text fields acquire an exclusive editing lock while focused and save before releasing it; failed edits can be kept in a local recovery copy. Joining downloads a local project copy, including all books and drafts; ending a session keeps that copy available.
+- **Hosted collaboration** — sign in to a community server from Settings, share a project through a private single-use invitation, and edit synchronized scenes together with participant cursors in the existing editor. Existing Codex text fields acquire an exclusive editing lock while focused and save before releasing it; failed edits can be kept in a local recovery copy. Joining downloads a local project copy, including all books and drafts. Reconnect after reopening it, preserve closed-session changes in a recovery archive, or create an independent project copy with its own identity.
 
 ### Fixed
 

@@ -54,6 +54,20 @@ keeps the local project available for opening and exporting. Other participants
 can keep working on the hosted project, and an unused invitation can be accepted
 while the owner is offline. End the session before signing out or changing servers.
 
+To return later, open your retained project and select **Reconnect to shared
+project**. Novalist remembers the server and project on this device. Sign in with
+the same account if needed. An interrupted session resumes its durable writing;
+an explicitly ended session starts a new connection and does not send its old
+pending edits. Changes made while the session was closed stay in a recovery
+archive instead of being merged automatically. **Show retained project archive**
+reveals that archive; its `files` folder contains the project copy. Your personal
+editor settings are retained separately alongside it and remain in your project.
+
+After ending a session, enter a new local folder name, choose its parent folder,
+and select **Create independent copy** to make a separate project. It keeps all
+the project content with a new identity and has no connection to the original
+shared project. You can open and share it as its owner.
+
 Shared scenes show other writers' cursors and selections. Cursors follow the
 text as it changes and disappear when their writer leaves or stops responding.
 
@@ -69,8 +83,8 @@ project's `Recovered edits` folder. **Show recovery copy** reveals that file so
 you can reuse the value later. It does not replace the shared field.
 
 Collaboration is still under development on this branch. Ongoing structure,
-new Codex entries, Codex prose and asset synchronization, access management, session
-restoration and Steamworks sessions are not yet available. The initial project
+new Codex entries, Codex prose and asset synchronization, access management,
+and Steamworks sessions are not yet available. The initial project
 transfer is complete; those later changes are not yet synchronized.
 
 ## Global vs project settings

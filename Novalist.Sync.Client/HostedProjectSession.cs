@@ -15,6 +15,7 @@ public sealed class HostedProjectSession : IAsyncDisposable
     public HostedTransport Transport => transport;
     public SessionConnectionStatus Status => synchronizer.Status;
     public SessionPresence Presence { get; }
+    public bool IsClosed => journal.IsClosed;
 
     private sealed record Resources(DeviceSequence Sequence, SessionJournal Journal, EnvelopeCipher Cipher,
         HostedTransport Transport, CancellationTokenSource Lifetime);

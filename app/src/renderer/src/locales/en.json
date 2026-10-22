@@ -1,5 +1,11 @@
 {
   "collaboration": {
+    "resume": "Reconnect to shared project",
+    "resumeHint": "Reconnects to the saved server. A recovery archive keeps your current local copy; edits made after ending a session are not sent automatically.",
+    "savedServer": "Saved shared project: {{server}}",
+    "copy": "Create independent copy",
+    "copyCreated": "Independent project copy created.",
+    "showRetainedCopy": "Show retained project archive",
     "title": "Collaboration",
     "server": "Server address",
     "serverHint": "Sign in to your community collaboration server using your browser. Your account is remembered securely on this device.",
@@ -35,6 +41,8 @@
       "Failed": "The connection needs attention. Your writing is saved locally."
     },
     "progress": {
+      "resume": "Preserving your local copy and reconnecting…",
+      "copy": "Creating an independent project copy…",
       "create": "Preparing and uploading the shared project…",
       "join": "Downloading the shared project…",
       "invite": "Creating an invitation…",

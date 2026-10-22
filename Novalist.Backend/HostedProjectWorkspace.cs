@@ -1,12 +1,11 @@
 #if NOVALIST_COLLABORATION
-using System.Text.Json;
 using Novalist.Sync.Client;
 
 namespace Novalist.Backend;
 
-public sealed record HostedSessionDto(Guid SessionId, Guid ProjectId, string Server, string Connection, bool IsOwner);
+public sealed record HostedSessionDto(Guid SessionId, Guid ProjectId, string Server, string Connection, bool IsOwner, string? RecoveryPath = null);
 
-internal sealed class HostedProjectWorkspace : IDisposable
+internal sealed partial class HostedProjectWorkspace : IDisposable
 {
     private readonly Workspace workspace;
     private readonly HostedAccounts accounts;
@@ -137,9 +136,10 @@ internal sealed class HostedProjectWorkspace : IDisposable
     private Task RememberAsync(Runtime runtime, string root, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        var record = new { version = 1, sessionId = runtime.Id, projectId = runtime.Access.ProjectId,
-            server = runtime.Access.Server, deviceId = runtime.Device.Id, root, checkpoint = runtime.Checkpoint };
-        return workspace.FileService.WriteTextAsync(Path.Combine(storage, "sessions", runtime.Id.ToString("N"), "session.json"), JsonSerializer.Serialize(record));
+        var record = new SavedHostedProject(2, runtime.Id, runtime.Access.ProjectId, runtime.Access.Server,
+            runtime.Device.Id, root, ReadProjectId(root),
+            runtime.Checkpoint ?? throw new InvalidOperationException("The project checkpoint is missing."), runtime.RecoveryPath);
+        return RememberAsync(record);
     }
 
     private sealed class Runtime(Guid id, DeviceIdentity device, HostedProjectAccess access, HostedProjectSession session, string name) : IAsyncDisposable
@@ -150,7 +150,8 @@ internal sealed class HostedProjectWorkspace : IDisposable
         internal HostedProjectSession Session => session;
         internal string Name => name;
         internal CheckpointReference? Checkpoint { get; set; }
-        internal HostedSessionDto View() => new(id, access.ProjectId, access.Server.AbsoluteUri, session.Status.State.ToString(), access.IsOwner);
+        internal string? RecoveryPath { get; set; }
+        internal HostedSessionDto View() => new(id, access.ProjectId, access.Server.AbsoluteUri, session.Status.State.ToString(), access.IsOwner, RecoveryPath);
         public async ValueTask DisposeAsync() { await session.DisposeAsync(); access.Dispose(); device.Dispose(); }
     }
 }

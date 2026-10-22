@@ -8,11 +8,15 @@ interface HostedSession {
   server: string
   connection: string
   isOwner: boolean
+  recoveryPath: string | null
 }
 
-type Operation = 'create' | 'join' | 'invite' | 'end'
+interface SavedHostedProject { server: string; projectId: string; recoveryPath: string | null }
+type Operation = 'create' | 'join' | 'invite' | 'end' | 'resume' | 'copy'
 interface HostedSessionState {
   session: HostedSession | null
+  saved: SavedHostedProject | null
+  copied: boolean
   busy: Operation | null
   invitation: string
   error: string
@@ -25,6 +29,8 @@ interface HostedSessionState {
 
 export const useHostedSessionStore = create<HostedSessionState>((set, get) => ({
   session: null,
+  saved: null,
+  copied: false,
   busy: null,
   invitation: '',
   error: '',
@@ -39,19 +45,28 @@ export const useHostedSessionStore = create<HostedSessionState>((set, get) => ({
   async refresh() {
     if (get().busy) return
     try {
-      const session = await rpc.request<HostedSession | null>('collaboration/status')
-      if (!get().busy) set({ session, ...(!session ? { invitation: '' } : {}),
+      const [session, saved] = await Promise.all([
+        rpc.request<HostedSession | null>('collaboration/status'),
+        rpc.request<SavedHostedProject | null>('collaboration/saved')
+      ])
+      if (!get().busy) set({ session, saved, ...(!session ? { invitation: '' } : {}),
         ...(session?.sessionId !== get().session?.sessionId ? { presenceFailures: [], presenceUnavailable: false } : {}) })
     } catch (error) { set({ error: String(error) }) }
   },
   async run(operation, params) {
     if (get().busy) return
-    set({ busy: operation, error: '', invitation: '' })
+    set({ busy: operation, error: '', invitation: '', copied: false })
     try {
       if (operation === 'invite') set({ invitation: await rpc.request<string>('collaboration/invite', params) })
+      else if (operation === 'copy') {
+        await rpc.request('collaboration/copy', params)
+        set({ copied: true })
+      }
       else if (operation === 'end') {
         await rpc.request('collaboration/end')
         set({ session: null, presenceFailures: [], presenceUnavailable: false })
+      } else if (operation === 'resume') {
+        set({ session: await rpc.request<HostedSession>('collaboration/resume'), presenceFailures: [], presenceUnavailable: false })
       } else {
         const session = operation === 'create'
           ? await rpc.request<HostedSession>('collaboration/create', params)
