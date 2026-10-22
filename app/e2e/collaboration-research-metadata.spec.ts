@@ -1,6 +1,26 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Locator } from '@playwright/test'
 import { join } from 'node:path'
 import { dismissTour, launchApp, seedBook, type Harness } from './harness'
+
+async function releaseFocusedField(harness: Harness, input: Locator): Promise<void> {
+  const release = await harness.page.evaluateHandle(() => {
+    const request = window.novalistRpc.request.bind(window.novalistRpc)
+    const observed = { completed: false }
+    window.novalistRpc.request = async <T,>(method: string, params?: unknown): Promise<T> => {
+      const result = await request<T>(method, params)
+      if (method === 'collaboration/releaseField') {
+        observed.completed = true
+        window.novalistRpc.request = request
+      }
+      return result
+    }
+    return observed
+  })
+  try {
+    await input.blur()
+    await expect.poll(() => release.evaluate(observed => observed.completed)).toBe(true)
+  } finally { await release.dispose() }
+}
 
 test('Research metadata locks, reciprocal links and file-to-prose transitions work between writers', async () => {
   const participants: Harness[] = []
@@ -10,7 +30,7 @@ test('Research metadata locks, reciprocal links and file-to-prose transitions wo
     await seedBook(owner, { Opening: ['Arrival'] })
     await dismissTour(owner.page)
     const character = await owner.rpc<{ id: string }>('entities/create', ['character', 'Research subject'])
-    const [note] = await owner.rpc<{ id: string }[]>('research/save', [null, 'Shared source', 'Note', 'Original source.', [], []])
+    const [note] = await owner.rpc<{ id: string }[]>('research/save', [null, 'Shared source', 'Note', 'Original source.txt', [], []])
     await owner.rpc('manuscriptProps/setDefinitions', [[{ key: 'source', label: 'Source location', type: 'String', scope: 'Research', enumOptions: [], showInOutliner: false }]])
     await owner.rpc('manuscriptProps/setResearchValue', [note.id, 'source', 'Archive'])
     const related = (await owner.rpc<{ id: string; title: string }[]>('research/save', [null, 'Related source', 'Note', 'Related evidence.', [], []])).find(item => item.title === 'Related source')!
@@ -43,11 +63,12 @@ test('Research metadata locks, reciprocal links and file-to-prose transitions wo
     await second.fill('Title from the invited writer')
     await second.blur()
     await expect(first).toHaveValue('Title from the invited writer')
-    await expect(owner.page.locator('.research-content .cm-content')).toHaveText('Original source.')
+    await expect(owner.page.locator('.research-content .cm-content')).toHaveText('Original source.txt')
     for (const h of participants) await h.page.locator('.research-metadata > summary').click()
     const ownerTag = owner.page.getByPlaceholder('Add tag…')
     const guestTag = guest.page.getByPlaceholder('Add tag…')
-    await ownerTag.focus()
+    await ownerTag.click()
+    await expect(ownerTag).toBeFocused()
     await expect(ownerTag).not.toHaveAttribute('readonly', '')
     await guestTag.focus()
     await expect(guestTag).toHaveAttribute('readonly', '')
@@ -134,7 +155,7 @@ test('Research metadata locks, reciprocal links and file-to-prose transitions wo
     await expect(ownerTag).not.toHaveAttribute('readonly', '')
     await guest.page.getByRole('button', { name: 'Keep as research note', exact: true }).click()
     await expect(guest.page.getByText('Owner is editing this field.', { exact: true })).toBeVisible()
-    await ownerTag.blur()
+    await releaseFocusedField(owner, ownerTag)
     await guest.page.getByRole('button', { name: 'Keep as research note', exact: true }).click()
     await expect(owner.page.getByRole('button', { name: 'Keep as research note', exact: true })).toHaveCount(0)
     await expect(owner.page.locator('.research-tag').filter({ hasText: 'History' })).toHaveCount(1)
