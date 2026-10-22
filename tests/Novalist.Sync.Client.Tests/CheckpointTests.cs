@@ -139,6 +139,25 @@ public sealed class CheckpointTests : IDisposable
     }
 
     [Fact]
+    public async Task SharedProjectSelectionKeepsWorldBibleRevisionsLocal()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var project = new ProjectService(new FileService());
+        await project.CreateProjectAsync(root, "Shared project", "Book");
+        var history = EntityHistory.ForEntity(project, worldBible: true);
+        await history.RecordAsync("world-character", "{\"age\":\"42\"}", "{\"age\":\"43\"}");
+        Assert.Single(await history.ListAsync("world-character"));
+        var files = ProjectContentSelection.Read(project.ProjectRoot!);
+        Assert.DoesNotContain(files, path => path.StartsWith(project.CurrentProject!.WorldBibleFolder + "/Snapshots/", StringComparison.Ordinal));
+        using var checkpoint = new MemoryStream();
+        await ProjectCheckpoint.CreateAsync(project.ProjectRoot!, checkpoint, () => files, [], ct);
+        checkpoint.Position = 0;
+        var destination = Path.Combine(root, "joined");
+        await ProjectCheckpoint.InstallAsync(checkpoint, destination, long.MaxValue, ct);
+        Assert.False(Directory.Exists(Path.Combine(destination, project.CurrentProject!.WorldBibleFolder, "Snapshots")));
+    }
+
+    [Fact]
     public async Task ASceneChangedAfterDocumentCaptureCannotBePublishedWithStaleSharedState()
     {
         var ct = TestContext.Current.CancellationToken;

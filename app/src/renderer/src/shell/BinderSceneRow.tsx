@@ -1,4 +1,5 @@
 import { MoreHorizontal } from 'lucide-react'
+import { ScenePresenceBadge } from '../collaboration/ScenePresenceBadge'
 import { handleSceneClick, useSelectionStore } from '../stores/selectionStore'
 import type { ChapterDto, SceneDto } from '../stores/projectTypes'
 import type { BinderState } from './binderState'
@@ -57,6 +58,7 @@ export function BinderSceneRow({ state, chapter, scene, sceneIndex }: {
                     )
                   })()}
                   <span className="binder-scene-title" title={scene.title}>{scene.title}</span>
+                  <ScenePresenceBadge sceneId={scene.id} />
                   {/* A plotline has carried a colour since the Plot Grid
                       shipped and it never left that view, so the binder could
                       not show that this scene and that one are one thread. */}
