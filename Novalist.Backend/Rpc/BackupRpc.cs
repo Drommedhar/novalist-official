@@ -48,6 +48,9 @@ public sealed class BackupRpc
     [JsonRpcMethod("backup/restore")]
     public async Task<bool> RestoreAsync(string backupId)
     {
+#if NOVALIST_COLLABORATION
+        _workspace.RequireNoSharedSession();
+#endif
         var root = _workspace.Projects.ProjectRoot;
         if (string.IsNullOrWhiteSpace(root))
             return false;

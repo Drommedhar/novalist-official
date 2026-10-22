@@ -88,8 +88,16 @@ a scene keeps its shared writing identity. Deleting it keeps it deleted; edits
 arriving afterward are saved under `Recovered edits`. Conflicting file changes
 also retain a recovery copy instead of silently replacing the shared version.
 
+During a connection interruption, keep writing in already shared scenes. Changes
+to structure, assets and other project details require reconnecting first.
+Personal editor settings still save locally. Changes refused by the server and
+files changed outside collaboration are preserved in `Recovered edits` before
+the shared version is restored. End the session before restoring a whole-project
+backup. Extensions must use collaborative prose and field editing when changing
+content already bound to a shared editor or focus lock.
+
 Collaboration is still under development on this branch. Simultaneous Codex prose
-merging, complete disconnected-write guards, owner access controls and desktop
+merging, owner access controls and desktop
 TCP/Steamworks session controls are not yet complete.
 
 ## Global vs project settings

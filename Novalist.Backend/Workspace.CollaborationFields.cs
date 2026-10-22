@@ -39,6 +39,7 @@ public sealed partial class Workspace
         foreach (var binding in bindings) known.Add(binding.ItemId, binding);
         var fields = new SharedFieldWorkspace(session, async (item, value, _) =>
         {
+            using var projection = BeginSharedProjection();
             if (Projects.ProjectRoot != root) throw new InvalidOperationException("The shared project is no longer open.");
             await ProjectFieldAsync(root, known[item], value);
             if (Coordinator?.Notify is { } notify) await notify("collaboration/fieldUpdated", new { sessionId, itemId = item, value });
@@ -98,6 +99,7 @@ public sealed partial class Workspace
 
     private async Task ProjectFieldAsync(string root, SharedFieldBinding binding, string value)
     {
+        await PrepareSharedProjectionPathAsync(binding.Path);
         var path = SharedProjectPath.Resolve(root, binding.Path);
         if (!await FileService.ExistsAsync(path))
         {
