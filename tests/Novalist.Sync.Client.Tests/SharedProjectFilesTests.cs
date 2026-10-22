@@ -154,8 +154,10 @@ public sealed class SharedProjectFilesTests
         Assert.Equal("{\"author\":\"Coauthors\"}", Text((await files.SnapshotAsync(ct))[path]));
     }
 
-    [Fact]
-    public async Task MovingASceneFromAStaleCopyCannotUndoItsConcurrentDeletion()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MovingASceneFromAStaleCopyCannotUndoItsConcurrentDeletion(bool catchUpBeforeSaving)
     {
         var ct = TestContext.Current.CancellationToken;
         await using var peers = new Peers();
@@ -171,6 +173,11 @@ public sealed class SharedProjectFilesTests
         await first.StartAsync(initial, initialState, ct);
         await second.StartAsync(initial, initialState, ct);
         await first.CommitAsync([new(binding.Path, original, null)], ct);
+        if (catchUpBeforeSaving)
+        {
+            await peers.Sessions[1].SynchronizeAsync(false, ct);
+            await second.SnapshotAsync(ct);
+        }
         var moved = binding with { Path = "Book/Scenes/moved.md" };
         await second.CommitAsync([new(binding.Path, original, null), new(moved.Path, null, original)], new([moved], []), ct);
         Assert.Empty(disk);

@@ -18,7 +18,7 @@ public sealed class SharedProjectFiles : IAsyncDisposable
     private readonly Dictionary<string, byte[]> files = new(StringComparer.OrdinalIgnoreCase);
     private SharedProjectState state = new([], []);
     private readonly Dictionary<string, long> deletedPaths = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<Guid, long> deletedItems = [];
+    private readonly HashSet<Guid> deletedItems = [];
     private readonly object queueGate = new();
     private Task incoming = Task.CompletedTask;
     private long projectedSequence;
@@ -153,7 +153,7 @@ public sealed class SharedProjectFiles : IAsyncDisposable
             foreach (var change in changes.Where(change => change.After is null)) deletedPaths[change.Path] = update.ServerSeq;
             foreach (var item in state.Documents.Select(document => document.ItemId).Concat(state.Fields.Select(field => field.ItemId))
                 .Except(nextState.Documents.Select(document => document.ItemId).Concat(nextState.Fields.Select(field => field.ItemId))))
-                deletedItems[item] = update.ServerSeq;
+                deletedItems.Add(item);
             files.Clear();
             foreach (var (path, content) in nextFiles) files.Add(path, content);
             state = nextState;
@@ -169,7 +169,7 @@ public sealed class SharedProjectFiles : IAsyncDisposable
         if (deletedPaths.GetValueOrDefault(change.Path) > batch.ObservedSequence) return true;
         return batch.AddedState.Documents.Where(document => document.Path.Equals(change.Path, StringComparison.OrdinalIgnoreCase)).Select(document => document.ItemId)
             .Concat(batch.AddedState.Fields.Where(field => field.Path.Equals(change.Path, StringComparison.OrdinalIgnoreCase)).Select(field => field.ItemId))
-            .Any(item => deletedItems.GetValueOrDefault(item) > batch.ObservedSequence);
+            .Any(deletedItems.Contains);
     }
 
     private async Task<FileBatch?> DecodeAsync(CommittedUpdate update, CancellationToken ct)
