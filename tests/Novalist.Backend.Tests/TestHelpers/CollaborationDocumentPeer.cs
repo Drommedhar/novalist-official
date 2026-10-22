@@ -13,9 +13,10 @@ internal sealed class CollaborationDocumentPeer
     internal Guid? RejectLoadItem { get; set; }
     internal bool RemoveSeededScenes { get; set; }
     internal Guid? RejectRenameItem { get; set; }
+    internal Func<Guid, Task>? AfterRename { get; set; }
 
     [JsonRpcMethod("collaboration/documents")]
-    public object? Documents(string action, JsonElement command = default, Guid? id = null,
+    public async Task<object?> Documents(string action, JsonElement command = default, Guid? id = null,
         string? entityId = null, string? oldName = null, string? newName = null)
     {
         if (action == "rename")
@@ -26,6 +27,7 @@ internal sealed class CollaborationDocumentPeer
             var previous = Encoding.UTF8.GetString(states[id.Value]);
             var next = previous.Replace(oldName, newName, StringComparison.Ordinal);
             if (next == previous) return null;
+            if (AfterRename is { } after) await after(id.Value);
             return Convert.ToBase64String(Encoding.UTF8.GetBytes(next));
         }
         if (action == "execute")
