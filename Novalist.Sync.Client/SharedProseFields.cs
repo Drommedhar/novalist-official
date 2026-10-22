@@ -7,6 +7,13 @@ public static class SharedProseFields
     public static void Validate(SharedTextField? field)
     {
         if (field is null) return;
+        if (field.Container is not null)
+        {
+            if (field.Container != "arc" || field.Key is not ("start" or "end" or "want" or "need") || field.SectionId is not null ||
+                field.Chapter is not null || field.Scene is not null || field.ResearchItemId is not null || field.StateOverrideId is not null)
+                throw new InvalidDataException("Invalid shared arc prose field.");
+            return;
+        }
         if (field.StateOverrideId is not null)
         {
             if (string.IsNullOrWhiteSpace(field.StateOverrideId) || field.Key is not ("description" or "note") ||
@@ -27,9 +34,19 @@ public static class SharedProseFields
             throw new InvalidDataException("Invalid shared prose field.");
     }
 
-    public static JsonObject? Target(JsonObject entity, SharedTextField field)
+    public static JsonObject? Target(JsonObject entity, SharedTextField field, bool create = false)
     {
         Validate(field);
+        if (field.Container == "arc")
+        {
+            if (entity["arc"] is null)
+            {
+                var empty = new JsonObject();
+                if (create) entity["arc"] = empty;
+                return empty;
+            }
+            return entity["arc"] as JsonObject ?? throw new InvalidDataException("Invalid shared character arc.");
+        }
         if (field.StateOverrideId is { } stateId)
             return (entity["stateOverrides"] as JsonArray)?.OfType<JsonObject>().SingleOrDefault(item => item["id"]?.GetValue<string>() == stateId);
         if (field.ResearchItemId is { } researchId)
@@ -43,6 +60,8 @@ public static class SharedProseFields
     public static IReadOnlyList<SharedTextField> Enumerate(JsonObject entity)
     {
         var result = new List<SharedTextField>();
+        if (entity.ContainsKey("surname"))
+            foreach (var key in new[] { "start", "end", "want", "need" }) result.Add(new(key, Container: "arc"));
         foreach (var item in (entity["stateOverrides"] as JsonArray)?.OfType<JsonObject>() ?? [])
             foreach (var key in new[] { "description", "note" })
                 result.Add(new(key, StateOverrideId: item["id"]?.GetValue<string>() ?? throw new InvalidDataException("A shared state needs an identity.")));

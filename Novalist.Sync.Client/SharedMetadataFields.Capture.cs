@@ -41,7 +41,7 @@ public static partial class SharedMetadataFields
         }
         foreach (var key in Codex.Keys.Concat(MapKeys(root, "customProperties")))
             if ((key != "relationships" || root.ContainsKey(key)) && (key != "group" || root.ContainsKey("entityTypeKey")) &&
-                (key != "isWorld" || root.ContainsKey("parent"))) yield return (new("codex"), key);
+                (key != "isWorld" || root.ContainsKey("parent")) && (key != "arc.points" || root.ContainsKey("surname"))) yield return (new("codex"), key);
         foreach (var section in Sections(root))
             foreach (var key in new[] { "title", "aiHidden", "readerHidden" }) yield return (new("section", Identity(section)), key);
         foreach (var image in (root["images"] as JsonArray)?.OfType<JsonObject>() ?? [])
