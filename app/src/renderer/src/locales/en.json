@@ -17,6 +17,7 @@
     "peerInvitationHint": "Send this private link to one collaborator. It expires after one hour and can be used once. No server sign-in is needed.",
     "editorError": "Shared writing needs attention. Retry saving before closing this project.",
     "resume": "Reconnect to shared project",
+    "refreshKeys": "Refresh shared access",
     "resumeHint": "Reconnects to the saved server. A recovery archive keeps your current local copy; edits made after ending a session are not sent automatically.",
     "savedServer": "Saved shared project: {{server}}",
     "copy": "Create independent copy",
@@ -24,7 +25,7 @@
     "showRetainedCopy": "Show retained project archive",
     "access": {
       "title": "Manage shared access",
-      "hint": "The owner controls access to this server project. Everyone keeps copies they have already received.",
+      "hint": "The owner controls access to this server project. Removing access creates new encryption keys; remaining writers refresh shared access to continue. Everyone keeps copies they have already received.",
       "owner": "Owner",
       "remove": "Remove access",
       "removeConfirm": "Remove {{name}} from this shared project? Unused invitation links will also expire. Their existing local copies remain available.",
@@ -60,6 +61,7 @@
     "showRecovery": "Show recovery copy",
     "connection": {
       "AccessEnded": "Access to this shared project has ended. End this session to continue with your local copy.",
+      "KeyRefreshRequired": "Shared access changed. Refresh to continue; your unshared writing will be kept in a recovery copy.",
       "Stopped": "Sharing is paused.",
       "Connecting": "Connecting to the shared project…",
       "Connected": "Connected to the shared project.",

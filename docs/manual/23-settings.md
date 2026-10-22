@@ -70,7 +70,11 @@ shared project. You can open and share it as its owner.
 
 The owner can use **Manage shared access** to remove a collaborator's server
 access or **Delete shared project from server** to end server sharing for everyone.
-Removing access also expires unused invitation links. Deleting the shared project
+Removing access creates fresh encryption keys and expires unused invitation links.
+The owner resumes automatically. Remaining writers select **Refresh shared access**
+to continue from the new shared copy; unshared writing stays in a local recovery
+archive. If another writer changes the project during removal, the change is
+cancelled: reconnect and try again. Deleting the shared project
 removes its server updates and invitations. Everyone keeps their local project
 copy. A connected writer whose access ends sees a notice and can end the session
 to continue working locally.

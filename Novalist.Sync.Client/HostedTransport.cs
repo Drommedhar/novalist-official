@@ -52,6 +52,7 @@ public sealed partial class HostedTransport : IUpdateTransport, IPresenceTranspo
             .Build();
         hub.Closed += _ => { ready = false; return Task.CompletedTask; };
         hub.On<Guid>("ProjectAccessEnded", project => { ready = false; AccessEnded?.Invoke(project); });
+        hub.On<Guid, uint>("ProjectEpochChanged", (project, epoch) => { ready = false; EpochChanged?.Invoke(project, epoch); });
         hub.On<SequencedUpdate>("ReceiveUpdate", async update =>
         {
             if (Received is { } handlers)
@@ -89,8 +90,11 @@ public sealed partial class HostedTransport : IUpdateTransport, IPresenceTranspo
     public Task CreateProjectAsync(Guid project, CancellationToken cancellationToken) =>
         hub.InvokeAsync("CreateProject", project, cancellationToken);
 
-    public Task JoinAsync(Guid project, CancellationToken cancellationToken) =>
-        hub.InvokeAsync("JoinProject", project, cancellationToken);
+    public async Task JoinAsync(Guid project, CancellationToken cancellationToken)
+    {
+        await hub.InvokeAsync("JoinProject", project, cancellationToken);
+        await CheckProjectEpochAsync(project, cancellationToken);
+    }
 
     public Task<long> PushAsync(UpdateEnvelope envelope, CancellationToken cancellationToken) =>
         hub.InvokeAsync<long>("Push", envelope, cancellationToken);

@@ -14,7 +14,9 @@ public sealed class HostedProjectSession : IAsyncDisposable
     public CollaborationSession Updates { get; }
     public HostedTransport Transport => transport;
     private bool accessEnded;
-    public SessionConnectionStatus Status => accessEnded ? new(SessionConnectionState.AccessEnded) : synchronizer.Status;
+    private bool epochChanged;
+    public SessionConnectionStatus Status => accessEnded ? new(SessionConnectionState.AccessEnded) :
+        epochChanged ? new(SessionConnectionState.KeyRefreshRequired) : synchronizer.Status;
     public SessionPresence Presence { get; }
     public bool IsClosed => journal.IsClosed;
 
@@ -32,12 +34,20 @@ public sealed class HostedProjectSession : IAsyncDisposable
         Presence = presence;
         synchronizer = new(updates);
         transport.AccessEnded += OnAccessEnded;
+        transport.EpochChanged += OnEpochChanged;
     }
 
     private void OnAccessEnded(Guid project)
     {
         if (project != Updates.Context.ProjectId) return;
         accessEnded = true;
+        Updates.ReportAccessEnded();
+    }
+
+    private void OnEpochChanged(Guid project, uint epoch)
+    {
+        if (project != Updates.Context.ProjectId || epoch <= Updates.Context.Epoch) return;
+        epochChanged = true;
         Updates.ReportAccessEnded();
     }
 
@@ -52,9 +62,11 @@ public sealed class HostedProjectSession : IAsyncDisposable
         try
         {
             journal = new(Path.Combine(storage, "sessions", sessionId.ToString("N"), "journal.sqlite"), sessionId, access.ProjectId, sequence);
+            journal.BindFirstServerSequence(access.FirstServerSequence);
             cipher = access.CreateCipher();
             transport = new(access.Server, device, () => accessToken().WaitAsync(lifetime.Token));
             var context = new SessionContext(access.ProjectId, device.Id, access.Epoch);
+            transport.BindProjectEpoch(context);
             var identity = access.CreateSessionIdentity(device);
             var updates = new CollaborationSession(context, journal, cipher, identity, transport);
             var presence = new SessionPresence(context, identity, sequence, cipher, transport);
@@ -73,7 +85,12 @@ public sealed class HostedProjectSession : IAsyncDisposable
 
     public Task ConnectAsync(CancellationToken ct) => RunAsync(transport.ConnectAsync, ct);
 
-    public Task StartAsync(bool createProject, CancellationToken ct) => RunAsync(token => synchronizer.StartAsync(createProject, token), ct);
+    public Task StartAsync(bool createProject, CancellationToken ct) => RunAsync(async token =>
+    {
+        await synchronizer.StartAsync(createProject, token);
+        if (Updates.Identity is { } identity)
+            await transport.RegisterProjectDeviceAsync(Updates.Context.ProjectId, Updates.Context.Epoch, identity.Certificate, token);
+    }, ct);
 
     private async Task RunAsync(Func<CancellationToken, Task> action, CancellationToken ct)
     {
@@ -113,6 +130,7 @@ public sealed class HostedProjectSession : IAsyncDisposable
             await synchronizer.DisposeAsync();
             await Updates.DisposeAsync();
             transport.AccessEnded -= OnAccessEnded;
+            transport.EpochChanged -= OnEpochChanged;
             await transport.DisposeAsync();
             cipher.Dispose();
             journal.Dispose();

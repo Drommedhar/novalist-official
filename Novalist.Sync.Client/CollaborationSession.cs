@@ -31,6 +31,8 @@ public sealed partial class CollaborationSession : IAsyncDisposable
     public Exception? ReceiveError { get; private set; }
     public bool IsConnected => !closed && transport.IsConnected;
     public SessionContext Context => new(project, device, epoch);
+    internal CertifiedSessionIdentity? Identity => identity;
+    public long LastServerSequence => journal.LastServerSequence;
 
     public CollaborationSession(SessionContext context, SessionJournal journal, EnvelopeCipher cipher,
         Key signing, IReadOnlyDictionary<Guid, PublicKey> writers, IUpdateTransport transport)

@@ -28,6 +28,7 @@ export function SharedProjectAccess({ sessionId, disabled }: { sessionId: string
     try {
       await rpc.request('collaboration/removeMember', [member.userId])
       useHostedSessionStore.setState({ invitation: '' })
+      await useHostedSessionStore.getState().refresh()
       setMembers(await rpc.request<Member[]>('collaboration/members'))
     } catch (reason) { setError(String(reason)) }
     finally { setBusy(false) }

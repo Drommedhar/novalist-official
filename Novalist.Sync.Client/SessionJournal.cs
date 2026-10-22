@@ -63,6 +63,7 @@ public sealed partial class SessionJournal : IDisposable
             CREATE TABLE IF NOT EXISTS rejected_scene_updates (item TEXT NOT NULL, hash TEXT NOT NULL, PRIMARY KEY(item, hash));
             CREATE TABLE IF NOT EXISTS certificates (device TEXT PRIMARY KEY, certificate BLOB NOT NULL);
             CREATE TABLE IF NOT EXISTS authority (id INTEGER PRIMARY KEY CHECK(id = 1), value BLOB NOT NULL);
+            CREATE TABLE IF NOT EXISTS checkpoint_base (id INTEGER PRIMARY KEY CHECK(id = 1), server_seq INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS field_edits (sender_seq INTEGER PRIMARY KEY, resource TEXT NOT NULL, epoch INTEGER NOT NULL, lease TEXT NOT NULL);
             INSERT OR IGNORE INTO session VALUES (1, $identity, 0, NULL);
             """, ("$identity", identity));
@@ -203,7 +204,8 @@ public sealed partial class SessionJournal : IDisposable
             lock (gate)
             {
                 using var command = Command("""
-                    SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM changes WHERE server_seq = 1) THEN 0
+                    SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM changes WHERE server_seq = COALESCE((SELECT server_seq FROM checkpoint_base), 0) + 1)
+                    THEN COALESCE((SELECT server_seq FROM checkpoint_base), 0)
                     ELSE (SELECT MIN(server_seq) FROM changes c WHERE server_seq IS NOT NULL
                         AND NOT EXISTS (SELECT 1 FROM changes n WHERE n.server_seq = c.server_seq + 1)) END
                     """);
@@ -211,6 +213,25 @@ public sealed partial class SessionJournal : IDisposable
             }
         }
     }
+
+    internal void BindFirstServerSequence(long first) => Atomic(() =>
+    {
+        if (first < 1) throw new ArgumentOutOfRangeException(nameof(first));
+        using var read = Command("SELECT server_seq FROM checkpoint_base WHERE id = 1");
+        if (read.ExecuteScalar() is long existing)
+        {
+            if (existing != first - 1) throw new CryptographicException("The session checkpoint boundary changed.");
+            return 0;
+        }
+        if (first > 1)
+        {
+            using var count = Command("SELECT COUNT(*) FROM changes");
+            if (!Equals(count.ExecuteScalar(), 0L)) throw new CryptographicException("A checkpoint boundary requires a fresh journal.");
+        }
+        using var insert = Command("INSERT INTO checkpoint_base VALUES (1, $base)", ("$base", first - 1));
+        insert.ExecuteNonQuery();
+        return 0;
+    });
 
     public IReadOnlyList<byte[]> ReadItem(Guid item) => ReadItemRecords(item).Select(record => record.Payload).ToArray();
 

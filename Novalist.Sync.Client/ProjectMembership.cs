@@ -36,6 +36,12 @@ public sealed class ProjectMembership
         return CreateCertificate(device.Id, device, ProjectRole.Owner, [], device.SigningKey);
     }
 
+    public byte[] RenewCertificate(AuthorizedProjectDevice device, Key ownerKey)
+    {
+        RequireKey(ownerKey, owner);
+        return CreateCertificate(device, [], ownerKey);
+    }
+
     internal void CheckSession(SessionContext context)
     {
         if (context.ProjectId != project || context.Epoch != epoch)
@@ -100,7 +106,7 @@ public sealed class ProjectMembership
 
     private PublicKey CertificateSigner(ReadOnlySpan<byte> certificate, ProjectRole role, Guid member)
     {
-        if (role == ProjectRole.Owner && certificate.Length == CertificateBodySize + 64) return owner;
+        if (role is ProjectRole.Owner or ProjectRole.Contributor && certificate.Length == CertificateBodySize + 64) return owner;
         if (role != ProjectRole.Contributor || certificate.Length != MaxCertificateBytes)
             throw new CryptographicException("Invalid project certificate role.");
         var grant = VerifyGrant(certificate.Slice(CertificateBodySize, GrantSize));
