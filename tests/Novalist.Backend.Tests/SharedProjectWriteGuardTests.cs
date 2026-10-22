@@ -38,6 +38,14 @@ public sealed class SharedProjectWriteGuardTests
     }
 
     [Fact]
+    public async Task UnsupportedEntityImplementationsCannotExposeSharedFieldBindings()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var entity = Substitute.For<Novalist.Core.Models.IEntityData>();
+        Assert.Throws<InvalidOperationException>(() => fixture.Host.Workspace.SharedEntityFields(entity));
+    }
+
+    [Fact]
     public async Task ChangingResearchTypeRebindsContentAndRecoversEditsFromThePreviousEditor()
     {
         await using var fixture = await SharedProjectFixture.StartAsync();
