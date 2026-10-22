@@ -75,6 +75,47 @@ test('the desktop document process retains deleted-scene recovery across a resta
       } finally { for (const writer of writers) writer.destroy(); await host.dispose() }
     }, resolve(output, 'worker.cjs'))
     expect(prose).toEqual({ text: 'Alice **Literal** <tag> & text\n\nSecond line.\nBob', rejected: true })
+    const renamed = await application.evaluate(async (_, worker) => {
+      const { DesktopDocumentBridge, Y } = (globalThis as typeof globalThis & { documentHostTest: HostTestEnvironment }).documentHostTest
+      const bridge = new DesktopDocumentBridge(worker)
+      const call = (params: object): Promise<unknown> => bridge.request('collaboration/documents', { sessionId: 'rename', ...params })
+      const capture = async (id: string): Promise<{ html: string; text: string; state: string }> =>
+        await call({ action: 'capture', id }) as { html: string; text: string; state: string }
+      const writer = new Y.Doc()
+      try {
+        await call({ action: 'open' })
+        const html = '<p>Before <b>bold</b> <span class="nv-entity-mention" data-entity-id="person">Old</span> ' +
+          '<span class="nv-entity-mention" data-entity-id="person" data-mention-source="alias">O</span> ' +
+          '<span class="nv-entity-mention" data-entity-id="person" data-mention-source="manual">my wording</span> Old.</p>'
+        await call({ action: 'execute', command: { kind: 'seed', id: 'scene', html } })
+        const before = await capture('scene')
+        Y.applyUpdate(writer, Buffer.from(before.state, 'base64'))
+        writer.getText('prose').insert(0, 'Concurrent ')
+        const rename = { action: 'rename', id: 'scene', entityId: 'person', oldName: 'Old', newName: 'New & name' }
+        const update = await call(rename)
+        if (typeof update !== 'string') throw new Error('Missing rename update.')
+        const unchanged = (await capture('scene')).html === html
+        await call({ action: 'execute', command: { kind: 'receive', id: 'scene', state: Buffer.from(Y.encodeStateAsUpdate(writer)).toString('base64') } })
+        await call({ action: 'execute', command: { kind: 'receive', id: 'scene', state: update } })
+        const scene = (await capture('scene')).html
+        const repeated = await call(rename)
+        await call({ action: 'execute', command: { kind: 'seedText', id: 'section', text: 'Old [[ Old ]] [[old|my words]] [[Other]]' } })
+        const linkUpdate = await call({ ...rename, id: 'section' })
+        await call({ action: 'execute', command: { kind: 'receive', id: 'section', state: linkUpdate } })
+        const section = (await capture('section')).text
+        const current = await capture('scene')
+        await call({ action: 'execute', command: { kind: 'remove', id: 'scene', state: current.state } })
+        const deleted = await call({ ...rename, newName: 'Later' })
+        return { unchanged, scene, repeated, section, deleted }
+      } finally { writer.destroy(); await bridge.reset() }
+    }, resolve(output, 'worker.cjs'))
+    expect(renamed).toEqual({
+      unchanged: true,
+      scene: '<p>Concurrent Before <b>bold</b> <span class="nv-entity-mention" data-entity-id="person">New &amp; name</span> ' +
+        '<span class="nv-entity-mention" data-entity-id="person" data-mention-source="alias">O</span> ' +
+        '<span class="nv-entity-mention" data-entity-id="person" data-mention-source="manual">my wording</span> Old.</p>',
+      repeated: null, section: 'Old [[New & name]] [[New & name|my words]] [[Other]]', deleted: null
+    })
     const bridged = await application.evaluate(async (_, worker) => {
       const { DesktopDocumentBridge } = (globalThis as typeof globalThis & { documentHostTest: HostTestEnvironment }).documentHostTest
       const bridge = new DesktopDocumentBridge(worker)

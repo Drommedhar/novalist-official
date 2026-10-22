@@ -16,6 +16,7 @@ export interface SharedSceneSnapshot {
 export interface DocumentRequest {
   sequence: number
   command: SceneCommand | { kind: 'capture'; id: string }
+    | { kind: 'rename'; id: string; entityId: string; oldName: string; newName: string }
 }
 
 export interface SceneApplyResult {
@@ -25,4 +26,4 @@ export interface SceneApplyResult {
 
 export type DocumentReply =
   | { sequence: number; failed: true }
-  | { sequence: number; failed: false; snapshot?: SharedSceneSnapshot; application?: SceneApplyResult }
+  | { sequence: number; failed: false; snapshot?: SharedSceneSnapshot; application?: SceneApplyResult; update?: Uint8Array | null }
