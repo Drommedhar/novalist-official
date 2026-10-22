@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Novalist.Backend.Rpc;
 using Novalist.Backend.Tests.TestHelpers;
 using Novalist.Sync.Client.Tests;
 using StreamJsonRpc;
@@ -87,5 +88,33 @@ public sealed class HostedProjectResumeSafetyTests
         Assert.Empty((await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/getState")).Chapters);
         using var restored = JsonDocument.Parse(await File.ReadAllTextAsync(path, ct));
         Assert.Equal(JsonValueKind.Object, restored.RootElement.ValueKind);
+    }
+
+    [Fact]
+    public async Task FailureLoadingANewerSharedSceneRestoresTheRetainedProjectAndAllowsRetry()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var directory = new TempDir();
+        await using var identity = await TestIdentityProvider.StartAsync(ct);
+        await using var server = await HostedSessionServer.StartAsync(identity.Authority, ct);
+        await using var desktop = new HostedDesktop(Path.Combine(directory.Path, "settings"), identity);
+        await desktop.Rpc.InvokeAsync("project/create", directory.Path, "Shared", "Book");
+        var chapter = Assert.Single((await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/createChapter", "Opening")).Chapters);
+        await desktop.SignInAsync(server.Address);
+        await desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address);
+        var scene = Assert.Single(Assert.Single((await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/createScene", chapter.Guid, "Added later")).Chapters).Scenes);
+        var added = await desktop.Rpc.InvokeAsync<SceneContentDto>("scenes/read", chapter.Guid, scene.Id);
+        await desktop.Rpc.InvokeAsync("collaboration/end");
+        await desktop.Rpc.InvokeAsync("scenes/write", chapter.Guid, scene.Id, "<p>Local retained draft.</p>", "Local retained draft.");
+        desktop.Documents.RejectLoadItem = added.Shared?.ItemId ?? throw new InvalidOperationException("Missing shared document.");
+
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/resume"));
+
+        Assert.Null(await desktop.Rpc.InvokeAsync<HostedSessionDto?>("collaboration/status"));
+        Assert.Contains("Local retained draft.", (await desktop.Rpc.InvokeAsync<SceneContentDto>("scenes/read", chapter.Guid, scene.Id)).Html);
+        await desktop.Rpc.InvokeAsync("collaboration/resume");
+        var restored = await desktop.Rpc.InvokeAsync<SceneContentDto>("scenes/read", chapter.Guid, scene.Id);
+        Assert.DoesNotContain("Local retained draft.", restored.Html);
+        Assert.NotNull(restored.Shared);
     }
 }

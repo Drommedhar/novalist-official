@@ -10,6 +10,8 @@ internal sealed class CollaborationDocumentPeer
     private readonly Dictionary<Guid, byte[]> states = [];
     private readonly Dictionary<Guid, byte[]> removed = [];
     internal bool RejectNextLoad { get; set; }
+    internal Guid? RejectLoadItem { get; set; }
+    internal bool RemoveSeededScenes { get; set; }
 
     [JsonRpcMethod("collaboration/documents")]
     public object? Documents(string action, JsonElement command = default, Guid? id = null)
@@ -18,8 +20,14 @@ internal sealed class CollaborationDocumentPeer
         {
             var item = command.GetProperty("id").GetGuid();
             var kind = command.GetProperty("kind").GetString();
-            if (kind == "load" && RejectNextLoad) { RejectNextLoad = false; throw new InvalidOperationException("Document host unavailable."); }
+            if (kind == "load" && (RejectNextLoad || RejectLoadItem == item))
+            {
+                RejectNextLoad = false;
+                RejectLoadItem = null;
+                throw new InvalidOperationException("Document host unavailable.");
+            }
             if (kind == "seed") states[item] = Encoding.UTF8.GetBytes("html:" + command.GetProperty("html").GetString());
+            if (kind == "seed" && RemoveSeededScenes) removed[item] = states[item];
             if (kind == "seedText") states[item] = Encoding.UTF8.GetBytes("text:" + command.GetProperty("text").GetString());
             if (kind == "load") { states[item] = command.GetProperty("state").GetBytesFromBase64(); removed.Remove(item); }
             if (kind == "remove") removed[item] = command.GetProperty("state").GetBytesFromBase64();

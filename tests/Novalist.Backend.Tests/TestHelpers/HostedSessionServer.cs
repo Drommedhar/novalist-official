@@ -10,7 +10,7 @@ using Novalist.Sync.Client;
 
 namespace Novalist.Backend.Tests.TestHelpers;
 
-internal sealed class HostedSessionServer : IAsyncDisposable
+internal sealed partial class HostedSessionServer : IAsyncDisposable
 {
     private readonly WebApplication app;
     internal readonly object Gate = new();
@@ -22,6 +22,8 @@ internal sealed class HostedSessionServer : IAsyncDisposable
     internal readonly Dictionary<(Guid, Guid), HostedProjectDevice> ProjectDevices = [];
     internal Uri Address => new(app.Urls.Single());
     internal bool RejectJoins { get; set; }
+    internal Func<FieldLeaseRequest, Task>? BeforeFieldPush { get; set; }
+    internal Action? ProjectCreated { get; set; }
 
     private HostedSessionServer(Uri authority)
     {
@@ -63,7 +65,7 @@ internal sealed class HostedSessionServer : IAsyncDisposable
 
     public async ValueTask DisposeAsync() => await app.DisposeAsync();
 
-    public sealed class SessionHub(HostedSessionServer server) : Hub
+    public sealed partial class SessionHub(HostedSessionServer server) : Hub
     {
         private Guid Device => Guid.Parse(Context.GetHttpContext()?.Request.Query["deviceId"].ToString() ?? "");
 
@@ -79,12 +81,18 @@ internal sealed class HostedSessionServer : IAsyncDisposable
 
         public void CreateProject(Guid project)
         {
-            lock (server.Gate) server.Projects.TryAdd(project, []);
+            lock (server.Gate)
+            {
+                server.Projects.TryAdd(project, []);
+                server.Owners.TryAdd(project, server.Devices[Device]);
+                server.Members.TryAdd(project, [server.Devices[Device]]);
+            }
+            server.ProjectCreated?.Invoke();
         }
 
         public HostedProjectEpoch GetProjectEpoch(Guid project)
         {
-            lock (server.Gate) return new(0, server.Projects[project].Count);
+            lock (server.Gate) return new(server.Epochs.GetValueOrDefault(project), server.Projects[project].Count);
         }
 
         public void RegisterProjectDevice(Guid project, uint epoch, byte[] certificate)
@@ -92,13 +100,12 @@ internal sealed class HostedSessionServer : IAsyncDisposable
             lock (server.Gate) server.ProjectDevices[(project, Device)] = new(server.Devices[Device], Device, epoch, certificate);
         }
 
-        public StoredHostedEpochGrant? GetProjectEpochGrant(Guid project, uint afterEpoch) => null;
-
         public async Task JoinProject(Guid project)
         {
             lock (server.Gate)
                 if (server.RejectJoins || !server.Projects.ContainsKey(project)) throw new HubException("Project unavailable.");
             await Groups.AddToGroupAsync(Context.ConnectionId, project.ToString("N"));
+            await Groups.AddToGroupAsync(Context.ConnectionId, MemberGroup(project, server.Devices[Device]));
         }
 
         public async Task<long> Push(UpdateEnvelope envelope)
@@ -138,7 +145,12 @@ internal sealed class HostedSessionServer : IAsyncDisposable
 
         public HostedInvitationActivation ActivateInvitation(HostedInvitationActivationRequest request)
         {
-            lock (server.Gate) return new(server.Invitations[request.InvitationId], Device, request.CertificateHash);
+            lock (server.Gate)
+            {
+                var project = server.Invitations[request.InvitationId];
+                server.Members[project].Add(server.Devices[Device]);
+                return new(project, Device, request.CertificateHash);
+            }
         }
 
         public FieldLeaseGrant AcquireFieldLease(FieldLeaseRequest request)
@@ -172,12 +184,13 @@ internal sealed class HostedSessionServer : IAsyncDisposable
             }
         }
 
-        public Task<long> PushFieldEdit(FieldLeaseRequest request, UpdateEnvelope envelope)
+        public async Task<long> PushFieldEdit(FieldLeaseRequest request, UpdateEnvelope envelope)
         {
             lock (server.Gate)
                 if (!server.Leases.TryGetValue((request.ProjectId, request.ResourceId), out var held) || held.DeviceId != Device || held.LeaseId != request.LeaseId)
                     throw new HubException("Editing lease expired.");
-            return Push(envelope);
+            if (server.BeforeFieldPush is { } before) await before(request);
+            return await Push(envelope);
         }
     }
 }
