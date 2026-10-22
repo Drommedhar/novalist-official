@@ -41,7 +41,7 @@ test('research refreshes in both desktop sessions without replacing a pending lo
       window.researchCollaborationSave = { pending: false }
       let delay = true
       window.novalistRpc.request = async function<T>(method: string, params?: unknown[]): Promise<T> {
-        if (method === 'research/save' && delay) {
+        if (method === 'collaboration/writeField' && delay) {
           delay = false
           window.researchCollaborationSave.pending = true
           await new Promise<void>(resolve => { window.researchCollaborationSave.release = resolve })
@@ -49,7 +49,11 @@ test('research refreshes in both desktop sessions without replacing a pending lo
         return original<T>(method, params)
       }
     })
-    await guest.page.locator('.research-title').fill('My pending research title')
+    const title = guest.page.locator('.research-title')
+    await title.focus()
+    await expect(title).not.toHaveAttribute('readonly')
+    await title.fill('My pending research title')
+    await title.blur()
     await expect.poll(() => guest.page.evaluate(() => window.researchCollaborationSave.pending)).toBe(true)
     const added = (await owner.rpc<ResearchNote[]>('research/save', [null, 'New shared source', 'Note', 'Another source.', [], []])).find(item => item.id !== note.id)!
     await expect(guest.page.locator('.codex-row', { hasText: 'New shared source' })).toBeVisible()

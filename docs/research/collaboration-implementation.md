@@ -6,7 +6,60 @@ Work is on `feature/realtime-collaboration`, based on main commit
 0003–0006. This record describes implementation progress; it is not a release
 announcement.
 
-## Implemented and exercised
+## Current integration status
+
+The [task graph](../specs/realtime-collaboration.md) tracks outstanding acceptance
+work. The current integration includes whole-project synchronization, hosted
+resume and independent copies, TCP sessions, the optional Steam adapter, named
+focus locks and scene presence, shared Codex/research prose, access management and
+encryption-key rotation. Scene auxiliary prose and concurrent location hierarchy
+guards are integrated. The final review identified four remaining corrections:
+validate embedded storage references in live metadata before projection, resume
+interrupted rename cascades, connect Manuscript editing to shared documents, and
+route Board POV/custom-property changes through field leases.
+
+Core and SDK coverage at the combined `74b634fc` checkpoint is 100%: 3,947 Core
+tests and 61 SDK tests pass. Targeted two-app checks cover the existing scene
+editor, Codex forms/table/policies, research, scene metadata/dialogs, media,
+invitations, removal, reconnect and retained copies. These targeted checks do not
+replace the final combined application checks.
+
+At `7706dc9a`, all 2,143 Backend tests pass; line coverage is 15,798/15,808, so its
+100% gate is not yet met. The client suite passes 145 tests. After updating two
+older test fixtures for the new collaboration boundary, real local-server
+integration passes 26 tests and the desktop transport suite passes 131 tests.
+The optional Steam build compiles. The combined desktop run passes 49 of 51
+scenarios; the two stale test routes were corrected and both pass on targeted
+rerun. This gives 51 passing scenarios, including the real hosted deployment.
+Regressions and integration checks for the four review corrections remain.
+
+### Standards review
+
+The independent review found no hard documented-standard violations, and two P1
+correctness/security findings: live embedded path validation and interrupted
+rename recovery. Both require corrections before the testing handoff.
+
+### Spec review
+
+The independent requirements review found a P1 Manuscript save-path mismatch and
+P2 Board POV/custom-property commands bypassing leases. Narration is read-only
+playback and does not share the Manuscript defect. Total: two findings on each
+axis; the worst severity on each axis is P1.
+
+The server changes remain in the local checkout under
+`app/out/collaboration-sync-server`. No fork, push, upstream PR or deployment is
+authorized until the user tests the result and explicitly approves publication.
+The [local testing guide](../development/collaboration-testing.md) includes
+separate desktop profiles and a disposable hosted-server helper. Native Steam
+playtesting still requires the registered app and two entitled accounts.
+
+## Historical checkpoints
+
+The sections below record earlier implementation stages. Their test counts and
+remaining-work statements describe those stages, not the current integration.
+Use the task graph and current status above for outstanding work.
+
+### Implemented and exercised
 
 - Shared scene dialogs acquire focus locks for title, point of view and the
   story-date range. Close flushes pending edits; a save failure keeps the dialog
@@ -110,7 +163,7 @@ announcement.
   process also handles fatal error events without logging diagnostic reports;
   that specific V8 fatal-event path has not been exercised successfully.
 
-## Local server evidence
+### Local server evidence
 
 The user selected local deployment for validation. The unchanged community
 server at commit `199201abad46dc451d2b7d19076cdd894146e26d` is checked out in
@@ -128,7 +181,7 @@ no invitation endpoint. This is a test fixture, not an implementation of
 membership management. Additional tests now exercise real invitation APIs in
 the focused server branch described below, without test-only membership setup.
 
-## Necessary server additions
+### Necessary server additions
 
 The separate `feature/collaboration-invitations-presence` branch in the local
 server checkout adds authenticated, owner-created single-use invitations and
@@ -202,7 +255,7 @@ deliberately separate from the ordinary solution: production/client builds do
 not reference the AGPL server or require PostgreSQL. The client implements
 the wire format independently and does not vendor server code.
 
-## Desktop sharing validation
+### Desktop sharing validation
 
 Settings now creates hosted projects, generates private invitations, joins into
 a new local folder, displays connection state and ends sessions. Initial capture
@@ -280,7 +333,7 @@ It starts a disposable local server and test identity provider, creates/migrates
 an isolated PostgreSQL database, and removes that database on teardown. Without
 the environment flag this deployment-dependent test is explicitly skipped.
 
-## Still required
+### Work still required at the earlier checkpoint
 
 The latest client-library slice now creates private invitation links, persists
 joining keys and certificates before claiming, and verifies owner-authorized
