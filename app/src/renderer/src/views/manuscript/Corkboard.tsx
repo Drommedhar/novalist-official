@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { ScenePresenceBadge } from '../../collaboration/ScenePresenceBadge'
 import { useTranslation } from 'react-i18next'
 import { useManuscriptStore } from '../../stores/manuscriptStore'
 import { rpc as rpcClient } from '../../rpc/client'
@@ -102,7 +103,8 @@ export function Corkboard(): React.JSX.Element {
                     void useProjectStore.getState().openScene(section.chapterGuid, scene.sceneId)
                   }}
                 >
-                  {scene.title}
+                  <span className="collaboration-scene-title">{scene.title}</span>
+                  <ScenePresenceBadge sceneId={scene.sceneId} />
                 </button>
                 <textarea
                   className="corkboard-synopsis"
@@ -250,7 +252,8 @@ function FreeformCorkboard({
                   void useProjectStore.getState().openScene(scene.chapterGuid, scene.sceneId)
                 }}
               >
-                {scene.title}
+                <span className="collaboration-scene-title">{scene.title}</span>
+                <ScenePresenceBadge sceneId={scene.sceneId} />
               </button>
               <textarea
                 className="corkboard-synopsis"

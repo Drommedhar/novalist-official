@@ -70,6 +70,10 @@ shared project. You can open and share it as its owner.
 
 Shared scenes show other writers' cursors and selections. Cursors follow the
 text as it changes and disappear when their writer leaves or stops responding.
+Small badges beside scene titles in the binder, pinned scenes, outliner and
+corkboard show how many other writers are working there, even while you view a
+different scene. Hover over a badge to see their names. Badges follow the current
+book and draft, so another draft's copy of a scene does not show the same presence.
 
 Codex descriptions, distinguishing features and free-form sections use the existing
 Markdown editor. Writers can edit the same prose together, see one another's
@@ -80,6 +84,7 @@ Codex non-prose text fields, including those on entries created during the sessi
 exclusive editing lock when focused. Wait for the field to become editable;
 another writer cannot change it until you leave the field. Moving focus saves
 the value before releasing the lock. These edits require an active connection.
+When a field is locked, its message names the writer editing it.
 Locks expire after a disconnected writer stops renewing them. An unsent draft
 remains visible when you leave and reopen the Codex view.
 If saving fails, use **Retry save**. When the lock has expired or the connection
