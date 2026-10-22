@@ -2,7 +2,11 @@ using System.Text.Json;
 
 namespace Novalist.Sync.Client;
 
-public sealed record SharedSceneSnapshot(byte[] State, IReadOnlyList<byte[]> Deletions, string? Html, string? Recovered);
+public sealed record SharedSceneSnapshot(byte[] State, IReadOnlyList<byte[]> Deletions, string? Html, string? Recovered)
+{
+    public string? Text { get; init; }
+    public string? RecoveredText { get; init; }
+}
 public sealed record SceneApplyResult(bool Accepted, IReadOnlyList<string> Rejected);
 
 public sealed class DesktopSceneDocuments(Guid sessionId, Func<object, CancellationToken, Task<JsonElement>> request) : IAsyncDisposable
@@ -18,8 +22,11 @@ public sealed class DesktopSceneDocuments(Guid sessionId, Func<object, Cancellat
     public Task SeedAsync(Guid item, string html, CancellationToken ct) =>
         ExecuteAsync(new { kind = "seed", id = item, html }, ct);
 
-    public Task LoadAsync(Guid item, byte[] state, IReadOnlyList<byte[]> deletions, CancellationToken ct) =>
-        ExecuteAsync(new { kind = "load", id = item, state, deletions }, ct);
+    public Task SeedTextAsync(Guid item, string text, CancellationToken ct) =>
+        ExecuteAsync(new { kind = "seedText", id = item, text }, ct);
+
+    public Task LoadAsync(Guid item, byte[] state, IReadOnlyList<byte[]> deletions, CancellationToken ct, bool plainText = false) =>
+        ExecuteAsync(new { kind = "load", id = item, state, deletions, plainText }, ct);
 
     public async Task<SceneApplyResult> ReceiveAsync(Guid item, byte[] state, CancellationToken ct)
     {

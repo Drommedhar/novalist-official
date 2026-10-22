@@ -3,6 +3,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <EnableSteamworks Condition="'$(EnableSteamworks)' == ''">false</EnableSteamworks>
+    <DefineConstants Condition="'$(EnableSteamworks)' == 'true'">$(DefineConstants);NOVALIST_STEAMWORKS</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -13,4 +15,13 @@
     <PackageReference Include="NSec.Cryptography" Version="26.4.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.13" />
   </ItemGroup>
+  <ItemGroup Condition="'$(EnableSteamworks)' == 'true'">
+    <PackageReference Include="Steamworks.NET" Version="2024.8.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(EnableSteamworks)' == 'true' and Exists('$(SteamworksNativeLibrary)')">
+    <Content Include="$(SteamworksNativeLibrary)" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="RequireSteamworksNativeLibrary" BeforeTargets="GetCopyToPublishDirectoryItems" Condition="'$(EnableSteamworks)' == 'true'">
+    <Error Condition="!Exists('$(SteamworksNativeLibrary)')" Text="Steam publishing requires SteamworksNativeLibrary pointing to the matching Steamworks SDK redistributable (steam_api64.dll, libsteam_api.so, or libsteam_api.dylib)." />
+  </Target>
 </Project>

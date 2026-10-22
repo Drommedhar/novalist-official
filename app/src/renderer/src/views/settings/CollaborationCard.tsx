@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import { SharedProjectCard } from './SharedProjectCard'
+import { PeerProjectCard } from './PeerProjectCard'
 import { useHostedSessionStore } from '../../collaboration/hostedSessionStore'
 
 interface Account { subject: string; displayName: string }
@@ -15,6 +16,10 @@ export function CollaborationCard(): React.JSX.Element {
   const [error, setError] = useState('')
   const sharing = useHostedSessionStore(state => state.session !== null || state.busy !== null)
   const savedServer = useHostedSessionStore(state => state.saved?.server)
+  const sessionMode = useHostedSessionStore(state => state.session?.mode)
+  const [selectedMode, setSelectedMode] = useState('hosted')
+  const mode = sessionMode ?? selectedMode
+  useEffect(() => { if (sessionMode) setSelectedMode(sessionMode) }, [sessionMode])
 
   useEffect(() => {
     const saved = localStorage.getItem(serverPreference) || savedServer
@@ -56,6 +61,14 @@ export function CollaborationCard(): React.JSX.Element {
   }
 
   return <div className="settings-subgroup">
+    <label className="inspector-label" htmlFor="set-collaboration-mode">{t('collaboration.mode')}</label>
+    <select id="set-collaboration-mode" className="inspector-input" value={mode} disabled={sharing}
+      onChange={event => setSelectedMode(event.target.value)}>
+      <option value="hosted">{t('collaboration.modeHosted')}</option>
+      <option value="tcp">{t('collaboration.modeTcp')}</option>
+      <option value="steam">{t('collaboration.modeSteam')}</option>
+    </select>
+    {mode !== 'hosted' ? <PeerProjectCard key={mode} steam={mode === 'steam'} /> : <>
     <p className="settings-hint">{t('collaboration.serverHint')}</p>
     <label className="inspector-label" htmlFor="set-collaboration-server">{t('collaboration.server')}</label>
     <input id="set-collaboration-server" className="inspector-input" type="url" value={server} disabled={busy !== null || sharing}
@@ -72,5 +85,6 @@ export function CollaborationCard(): React.JSX.Element {
       }}>{t('collaboration.cancelSignIn')}</button>}
     </div>
     <SharedProjectCard server={server} signedIn={account !== null && busy === null} />
+    </>}
   </div>
 }

@@ -205,26 +205,25 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
             _coordinator?.Validate(identity, request.Method);
             if (_coordinator != null && request.Method is { } method && WorkspaceCoordinator.ChangesWorkspace(method))
                 return await _coordinator.RunAsync(method, async () =>
-                    await base.DispatchRequestAsync(request, targetMethod, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
-            return await base.DispatchRequestAsync(request, targetMethod, cancellationToken)
-                .ConfigureAwait(false);
+                    await DispatchAndFinishAsync(request, targetMethod, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+            return await DispatchAndFinishAsync(request, targetMethod, cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception error) when (error is InvalidOperationException or TimeoutException)
+        catch (Exception error) when (error is InvalidOperationException or TimeoutException or IOException or System.Text.Json.JsonException)
         {
             return WorkspaceError(request, error);
         }
         finally
         {
-            try
-            {
-                if (_afterRequest != null) await _afterRequest().ConfigureAwait(false);
-            }
-            finally
-            {
-                lease.Active = false;
-                lease.Yield();
-            }
+            lease.Active = false;
+            lease.Yield();
         }
+    }
+
+    private async ValueTask<JsonRpcMessage> DispatchAndFinishAsync(JsonRpcRequest request, TargetMethod targetMethod,
+        CancellationToken cancellationToken)
+    {
+        try { return await base.DispatchRequestAsync(request, targetMethod, cancellationToken).ConfigureAwait(false); }
+        finally { if (_afterRequest is not null) await _afterRequest().ConfigureAwait(false); }
     }
 
     private static JsonRpcError WorkspaceError(JsonRpcRequest request, Exception error) => new()

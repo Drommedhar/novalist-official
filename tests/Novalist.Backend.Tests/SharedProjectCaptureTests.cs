@@ -12,6 +12,40 @@ namespace Novalist.Backend.Tests;
 public sealed class SharedProjectCaptureTests
 {
     [Fact]
+    public async Task SharingPreservesMarkdownAndGivesLegacySectionsStableIdentities()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var temporary = new TempDir();
+        using var workspace = new Workspace(Path.Combine(temporary.Path, "settings"));
+        await workspace.Projects.CreateProjectAsync(temporary.Path, "Novel", "Book");
+        var entity = new LocationData { Id = "place", Name = "Place", Description = "**Markdown** <tag>\n\nExact text.", Sections = [new() { Title = "History", Content = "Long ago." }] };
+        await new EntityService(workspace.Projects).SaveLocationAsync(entity);
+        var root = workspace.Projects.ProjectRoot ?? throw new InvalidOperationException();
+        var relative = ProjectContentSelection.Read(root).Single(path => path.EndsWith("/place.json", StringComparison.Ordinal));
+        var file = Path.Combine(root, relative);
+        var legacy = System.Text.Json.Nodes.JsonNode.Parse(await File.ReadAllTextAsync(file, ct))!;
+        legacy["sections"]![0]!.AsObject().Remove("id");
+        await File.WriteAllTextAsync(file, legacy.ToJsonString(), ct);
+        workspace.CreateSharedDocuments = id => new(id, new CapturePeer().RequestAsync);
+        using var archive = new MemoryStream();
+        var captured = await workspace.CaptureSharedProjectAsync(archive, ct);
+        var description = Assert.Single(captured.Documents, item => item.TextField?.Key == "description");
+        Assert.Equal(entity.Description, Encoding.UTF8.GetString(description.State));
+        var section = Assert.Single(captured.Documents, item => item.TextField?.Key == "content");
+        var sectionId = section.TextField?.SectionId;
+        Assert.False(string.IsNullOrEmpty(sectionId));
+        using var nextArchive = new MemoryStream();
+        var recaptured = await workspace.CaptureSharedProjectAsync(nextArchive, ct);
+        Assert.Equal(sectionId, Assert.Single(recaptured.Documents, item => item.TextField?.Key == "content").TextField?.SectionId);
+        archive.Position = 0;
+        var destination = Path.Combine(temporary.Path, "Joined");
+        var installed = await ProjectCheckpoint.InstallAsync(archive, destination, 1024 * 1024, ct);
+        Assert.Equal(captured.Documents.Select(item => item.TextField), installed.Documents.Select(item => item.TextField));
+        using var retained = JsonDocument.Parse(await File.ReadAllTextAsync(file, ct));
+        Assert.Equal(entity.Description, retained.RootElement.GetProperty("description").GetString());
+    }
+
+    [Fact]
     public async Task ASceneAddedDuringCaptureRequiresRetryInsteadOfPublishingAnIncompleteSharedProject()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -79,6 +113,7 @@ public sealed class SharedProjectCaptureTests
     private sealed class CapturePeer
     {
         private readonly Dictionary<Guid, string> html = [];
+        private readonly HashSet<Guid> plain = [];
         public bool Closed { get; private set; }
         public Func<Task>? AfterSeed { get; init; }
 
@@ -89,12 +124,17 @@ public sealed class SharedProjectCaptureTests
             {
                 case "execute":
                     var command = request.GetProperty("command");
-                    html.Add(command.GetProperty("id").GetGuid(), command.GetProperty("html").GetString()!);
+                    var id = command.GetProperty("id").GetGuid();
+                    var isText = command.GetProperty("kind").GetString() == "seedText";
+                    if (isText) plain.Add(id);
+                    html.Add(id, command.GetProperty(isText ? "text" : "html").GetString()!);
                     if (AfterSeed is not null) await AfterSeed();
                     break;
                 case "capture":
                     var content = html[request.GetProperty("id").GetGuid()];
-                    return JsonSerializer.SerializeToElement(new SharedSceneSnapshot(Encoding.UTF8.GetBytes(content), [], content, null));
+                    return JsonSerializer.SerializeToElement(plain.Contains(request.GetProperty("id").GetGuid())
+                        ? new SharedSceneSnapshot(Encoding.UTF8.GetBytes(content), [], null, null) { Text = content }
+                        : new SharedSceneSnapshot(Encoding.UTF8.GetBytes(content), [], content, null));
                 case "close": Closed = true; break;
             }
             return JsonSerializer.SerializeToElement<object?>(null);

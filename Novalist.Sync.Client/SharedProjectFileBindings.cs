@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text.Json.Nodes;
 
 namespace Novalist.Sync.Client;
 
@@ -12,13 +13,14 @@ internal static class SharedProjectFileBindings
         if (state is null || state.Documents is null || state.Fields is null) throw new InvalidDataException("Missing project file bindings.");
         SharedCodexFields.ValidateBindings(state.Fields);
         var identities = state.Fields.Select(field => field.ItemId).ToHashSet();
-        var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var paths = new HashSet<(string, SharedTextField?)>();
         foreach (var document in state.Documents)
         {
             if (document is null || document.ItemId == Guid.Empty || !identities.Add(document.ItemId) ||
-                !paths.Add(document.Path) || document.State is not { Length: > 0 })
+                !paths.Add((document.Path.ToUpperInvariant(), document.TextField)) || document.State is not { Length: > 0 })
                 throw new InvalidDataException("Invalid shared document binding.");
             CheckSource(document.Path, document.SourceSha256, files);
+            SharedProseFields.Validate(document.TextField);
         }
         foreach (var field in state.Fields) CheckSource(field.Path, field.SourceSha256, files);
     }
@@ -44,12 +46,20 @@ internal static class SharedProjectFileBindings
         var fields = current.Fields.ToDictionary(field => field.ItemId);
         foreach (var document in added.Documents) documents[document.ItemId] = document;
         foreach (var field in added.Fields) fields[field.ItemId] = field;
-        var result = new SharedProjectState(documents.Values.Where(document => files.ContainsKey(document.Path)).ToArray(),
+        var result = new SharedProjectState(documents.Values.Where(document => Exists(document, files)).ToArray(),
             fields.Values.Where(field => files.ContainsKey(field.Path)).ToArray());
         if (result.Documents.Select(document => document.ItemId).Intersect(result.Fields.Select(field => field.ItemId)).Any() ||
-            result.Documents.Select(document => document.Path).Distinct(StringComparer.OrdinalIgnoreCase).Count() != result.Documents.Count ||
+            result.Documents.Select(document => (document.Path.ToUpperInvariant(), document.TextField)).Distinct().Count() != result.Documents.Count ||
             result.Fields.Select(field => (field.Path.ToUpperInvariant(), field.Key, field.Custom)).Distinct().Count() != result.Fields.Count)
             throw new InvalidDataException("Conflicting project file bindings.");
         return result;
+    }
+
+    private static bool Exists(SharedDocumentState document, IReadOnlyDictionary<string, byte[]> files)
+    {
+        if (!files.TryGetValue(document.Path, out var content)) return false;
+        if (document.TextField is not { } field) return true;
+        var entity = JsonNode.Parse(content) as JsonObject ?? throw new InvalidDataException("Invalid shared prose entry.");
+        return SharedProseFields.Target(entity, field) is not null;
     }
 }

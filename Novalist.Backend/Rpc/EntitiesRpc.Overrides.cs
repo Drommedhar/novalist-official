@@ -130,8 +130,10 @@ public sealed partial class EntitiesRpc
     {
         var character = await LoadCharacterAsync(characterId);
         var ovr = FindOrCreateOverride(character, chapterGuid, sceneTitle);
+        var previous = ovr.Sections?.ToDictionary(section => section.Id, section => section.Content) ?? [];
         ovr.Sections = sections?
-            .Select(s => new EntitySection { Title = s.Title, Content = s.Content })
+            .Select(s => new EntitySection { Id = s.Id ?? Guid.NewGuid().ToString("N"), Title = s.Title,
+                Content = s.Content ?? (s.Id is { } id ? previous.GetValueOrDefault(id, "") : "") })
             .ToList();
         await _entities.SaveCharacterAsync(character);
         return WithResolvedImages(character);

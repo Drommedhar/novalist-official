@@ -42,7 +42,7 @@ public sealed class SharedSceneWorkspace : IAsyncDisposable
             session.UpdateReceived += Enqueue;
             foreach (var scene in initial)
             {
-                await documents.LoadAsync(scene.ItemId, scene.State, [], ct);
+                await documents.LoadAsync(scene.ItemId, scene.State, [], ct, scene.TextField is not null);
                 items.Add(scene.ItemId);
                 foreach (var update in session.ReadItem(scene.ItemId))
                     await ApplyAsync(scene.ItemId, update, ct);
@@ -76,7 +76,7 @@ public sealed class SharedSceneWorkspace : IAsyncDisposable
             {
                 if (scene.ItemId == Guid.Empty) throw new InvalidDataException("A shared scene needs an identity.");
                 if (items.Contains(scene.ItemId)) continue;
-                await documents.LoadAsync(scene.ItemId, scene.State, [], ct);
+                await documents.LoadAsync(scene.ItemId, scene.State, [], ct, scene.TextField is not null);
                 items.Add(scene.ItemId);
                 failures.Add(scene.ItemId);
                 await ReplayFailureAsync(scene.ItemId, ct);

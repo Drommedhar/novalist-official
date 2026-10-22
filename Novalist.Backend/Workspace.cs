@@ -31,7 +31,11 @@ public sealed partial class Workspace : IDisposable
     {
         SettingsDirectory = settingsDirectory;
         _storedPaths = storedPaths;
+#if NOVALIST_COLLABORATION
+        FileService = new CollaborationFileService(fileService ?? new FileService(), this);
+#else
         FileService = fileService ?? new FileService();
+#endif
         Projects = new ProjectService(FileService);
         Settings = new SettingsService(settingsDirectory);
         // Beside the settings rather than inside a project: a thought that

@@ -11,7 +11,7 @@ import { SceneUpdateInbox, type RejectedPendingUpdate } from '../../renderer/src
 interface Scene {
   doc: Y.Doc
   root: HTMLElement
-  markup: SceneMarkup
+  markup: SceneMarkup | null
   updates: SceneUpdateInbox
   deletions: Map<string, { state: Uint8Array; html: string }>
 }
@@ -27,15 +27,23 @@ export class ProseDocumentHost {
     try {
       scene.root.replaceChildren(this.sanitizer.sanitizeSceneFragment(html))
       const original = scene.root.innerHTML
-      updateRichText(scene.doc.getText('prose'), scene.markup.read())
+      updateRichText(scene.doc.getText('prose'), scene.markup!.read())
       if (this.html(scene) !== original) throw new Error('This scene cannot yet be shared without changing its content.')
       this.scenes.set(id, scene)
       return Y.encodeStateAsUpdate(scene.doc)
     } catch (error) { scene.doc.destroy(); throw error }
   }
 
-  load(id: string, state: Uint8Array, deletions: readonly Uint8Array[] = []): void {
-    const scene = this.create(id)
+  seedText(id: string, text: string): void {
+    const scene = this.create(id, true)
+    scene.doc.getText('prose').insert(0, text)
+    this.scenes.set(id, scene)
+  }
+
+  isPlainText(id: string): boolean { return this.get(id).markup === null }
+
+  load(id: string, state: Uint8Array, deletions: readonly Uint8Array[] = [], plainText = false): void {
+    const scene = this.create(id, plainText)
     try {
       validateSceneUpdate(scene.doc, state, scene.markup, true)
       Y.applyUpdate(scene.doc, state)
@@ -83,7 +91,7 @@ export class ProseDocumentHost {
     const state = deletedAt.slice()
     const hash = createHash('sha256').update(state).digest('hex')
     if (scene.deletions.has(hash)) return []
-    const baseline = this.createScene()
+    const baseline = this.createScene(scene.markup === null)
     try {
       validateSceneUpdate(baseline.doc, state, baseline.markup, true)
       Y.applyUpdate(baseline.doc, state)
@@ -95,20 +103,21 @@ export class ProseDocumentHost {
   }
 
   private html(scene: Scene): string {
+    if (!scene.markup) return scene.doc.getText('prose').toString()
     scene.markup.render(scene.doc.getText('prose').toDelta())
     return scene.root.innerHTML
   }
 
-  private create(id: string): Scene {
+  private create(id: string, plainText = false): Scene {
     if (this.disposed) throw new Error('The shared document host is closed.')
     if (!id || this.scenes.has(id)) throw new Error('The scene already has a shared identity or has no identity.')
-    return this.createScene()
+    return this.createScene(plainText)
   }
 
-  private createScene(): Scene {
+  private createScene(plainText = false): Scene {
     const root = this.dom.window.document.createElement('div')
     const doc = new Y.Doc()
-    const markup = new SceneMarkup({ document: this.dom.window.document,
+    const markup = plainText ? null : new SceneMarkup({ document: this.dom.window.document,
       sanitizeSceneFragment: this.sanitizer.sanitizeSceneFragment, toDisplayImages: () => {} }, root)
     return { doc, root, markup, deletions: new Map(), updates: new SceneUpdateInbox(doc, markup) }
   }

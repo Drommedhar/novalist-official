@@ -39,6 +39,7 @@ public sealed partial class Workspace
         foreach (var binding in bindings) known.Add(binding.ItemId, binding);
         var fields = new SharedFieldWorkspace(session, async (item, value, _) =>
         {
+            using var projection = BeginSharedProjection();
             if (Projects.ProjectRoot != root) throw new InvalidOperationException("The shared project is no longer open.");
             await ProjectFieldAsync(root, known[item], value);
             if (Coordinator?.Notify is { } notify) await notify("collaboration/fieldUpdated", new { sessionId, itemId = item, value });
@@ -54,7 +55,17 @@ public sealed partial class Workspace
 
     internal SharedEntityFieldsDto? SharedEntityFields(IEntityData entity)
     {
-        if (sharedFields is null || Projects.ProjectRoot != sharedRoot || Projects.ActiveBook is not { } book || Projects.CurrentProject is not { } project) return null;
+        if (sharedFields is null) return null;
+        var path = SharedEntityPath(entity);
+        if (path is null) return null;
+        var fields = fieldBindings.Values.Where(binding => binding.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
+            .ToDictionary(binding => binding.Key, binding => binding.ItemId, StringComparer.Ordinal);
+        return fields.Count == 0 ? null : new(sharedSession, fields);
+    }
+
+    private string? SharedEntityPath(IEntityData entity)
+    {
+        if (Projects.ProjectRoot != sharedRoot || Projects.ActiveBook is not { } book || Projects.CurrentProject is not { } project) return null;
         var folders = entity switch
         {
             CharacterData => (book.CharacterFolder, project.CharacterFolder),
@@ -64,10 +75,7 @@ public sealed partial class Workspace
             CustomEntityData custom => CustomFolders(custom.EntityTypeKey),
             _ => throw new InvalidOperationException("Unknown Codex entry type.")
         };
-        var path = (entity.IsWorldBible ? project.WorldBibleFolder + '/' + folders.Item2 : book.FolderName + '/' + folders.Item1) + '/' + entity.Id + ".json";
-        var fields = fieldBindings.Values.Where(binding => binding.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
-            .ToDictionary(binding => binding.Key, binding => binding.ItemId, StringComparer.Ordinal);
-        return fields.Count == 0 ? null : new(sharedSession, fields);
+        return (entity.IsWorldBible ? project.WorldBibleFolder + '/' + folders.Item2 : book.FolderName + '/' + folders.Item1) + '/' + entity.Id + ".json";
 
         (string, string) CustomFolders(string type)
         {
@@ -98,6 +106,7 @@ public sealed partial class Workspace
 
     private async Task ProjectFieldAsync(string root, SharedFieldBinding binding, string value)
     {
+        await PrepareSharedProjectionPathAsync(binding.Path);
         var path = SharedProjectPath.Resolve(root, binding.Path);
         if (!await FileService.ExistsAsync(path))
         {

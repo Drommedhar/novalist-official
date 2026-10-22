@@ -79,8 +79,10 @@ export class FocusedField {
       }).catch(error => { if (!focus.ended) this.fail(error) })
   }
 
-  finish(): Promise<void> {
-    this.wantsFocus = false
+  blur(): void { this.wantsFocus = false }
+
+  finish(preserveFocus = false): Promise<void> {
+    if (!preserveFocus) this.wantsFocus = false
     const focus = this.current
     if (!focus) return Promise.resolve()
     if (focus.saving) return focus.saving

@@ -20,6 +20,7 @@ public sealed partial class Workspace
         try
         {
             sharedProjectFiles = files;
+            sharedDiskFiles = await ReadSharedFilesAsync(sharedRoot ?? throw new InvalidOperationException("The shared project is closed."), ct);
             await files.StartAsync(baseline, state, ct);
             sharedDiskFiles = await ReadSharedFilesAsync(sharedRoot ?? throw new InvalidOperationException("The shared project is closed."), ct);
         }
@@ -36,9 +37,10 @@ public sealed partial class Workspace
     {
         if (projectingSharedFiles || sharedProjectFiles is not { } files || sharedRoot is not { } root) return;
         var ct = CancellationToken.None;
+        var canonical = await files.SnapshotAsync(ct);
         var current = await ReadSharedFilesAsync(root, ct);
         var previous = new Dictionary<string, byte[]>(sharedDiskFiles, StringComparer.Ordinal);
-        var canonical = await files.SnapshotAsync(ct);
+        await ValidatePendingSharedFilesAsync(root, previous, current, ct);
         var changes = new List<SharedFileChange>();
         foreach (var path in previous.Keys.Concat(current.Keys).Distinct(StringComparer.Ordinal))
         {
@@ -47,18 +49,29 @@ public sealed partial class Workspace
             var reference = canonical.GetValueOrDefault(path);
             if (before is not null) before = MaskSeparatelySharedContent(path, before, reference);
             if (after is not null) after = MaskSeparatelySharedContent(path, after, reference);
-            if (!SameFileBytes(before, after)) changes.Add(new(path, before, after));
+            if (!SameSharedFileContent(path, before, after)) changes.Add(new(path, before, after));
         }
         if (changes.Count > 0)
         {
-            var bindings = await CaptureAddedBindingsAsync(changes, ct);
-            await files.CommitAsync(changes, bindings, ct);
+            try
+            {
+                var bindings = await CaptureAddedBindingsAsync(changes, ct);
+                await files.CommitAsync(changes, bindings, ct);
+            }
+            catch
+            {
+                sharedWriteRejected = true;
+                await ValidatePendingSharedFilesAsync(root, new(sharedDiskFiles, StringComparer.Ordinal), await ReadSharedFilesAsync(root, ct), ct);
+                throw;
+            }
         }
         sharedDiskFiles = await ReadSharedFilesAsync(root, ct);
+        sharedPendingWrites.Clear();
     }
 
     private async Task ApplySharedProjectFilesAsync(SharedProjectProjection projection, CancellationToken ct)
     {
+        using var projectionScope = BeginSharedProjection();
         var root = sharedRoot ?? throw new InvalidOperationException("The shared project is closed.");
         projectingSharedFiles = true;
         try
@@ -67,6 +80,7 @@ public sealed partial class Workspace
                 await WriteSharedFileRecoveryAsync(root, recovery.Id, recovery.Path, recovery.Content);
             foreach (var change in projection.Changes.OrderBy(change => change.Path == ".novalist/project.json"))
             {
+                await PrepareSharedProjectionPathAsync(change.Path);
                 var path = SharedProjectPath.Resolve(root, change.Path);
                 var current = await FileService.ExistsAsync(path) ? await FileService.ReadBytesAsync(path) : null;
                 var merged = SharedFileMerge.Apply(change, current);
@@ -75,7 +89,7 @@ public sealed partial class Workspace
                 if (merged.Content is { } content) await FileService.WriteBytesAsync(path, content);
                 else await FileService.DeleteFileAsync(path);
             }
-            await Projects.ReloadSharedProjectAsync();
+            await ReloadSharedWorkspaceAsync();
             await AddSharedProjectBindingsAsync(projection.AddedState, ct);
             foreach (var change in projection.Changes)
             {
@@ -106,6 +120,8 @@ public sealed partial class Workspace
         }
         sharedProjectFiles = null;
         sharedDiskFiles.Clear();
+        sharedPendingWrites.Clear();
+        sharedWriteRejected = false;
     }
 
     private static bool SameFileBytes(byte[]? left, byte[]? right) =>

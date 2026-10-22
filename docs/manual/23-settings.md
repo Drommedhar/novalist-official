@@ -78,7 +78,12 @@ to continue working locally.
 Shared scenes show other writers' cursors and selections. Cursors follow the
 text as it changes and disappear when their writer leaves or stops responding.
 
-Codex text fields, including those on entries created during the session, acquire an
+Codex descriptions, distinguishing features and free-form sections use the existing
+Markdown editor. Writers can edit the same prose together, see one another's
+cursors, and undo their own edits without removing another writer's writing.
+Sections keep their writing history when their titles change.
+
+Codex non-prose text fields, including those on entries created during the session, acquire an
 exclusive editing lock when focused. Wait for the field to become editable;
 another writer cannot change it until you leave the field. Moving focus saves
 the value before releasing the lock. These edits require an active connection.
@@ -95,9 +100,43 @@ a scene keeps its shared writing identity. Deleting it keeps it deleted; edits
 arriving afterward are saved under `Recovered edits`. Conflicting file changes
 also retain a recovery copy instead of silently replacing the shared version.
 
-Collaboration is still under development on this branch. Simultaneous Codex prose
-merging, complete disconnected-write guards, owner access controls and desktop
-TCP/Steamworks session controls are not yet complete.
+For a direct session, choose **Direct connection (TCP)** in **Connection type**.
+Enter the name other writers should see, a reachable host address and a listening
+port, then select **Host direct session**. Port `0` chooses an available port and
+includes it in the invitation. Use `127.0.0.1` for two Novalist instances on the
+same computer; other computers need an address they can reach and a firewall
+rule allowing that port. **Create invitation** gives one writer a private link
+valid for an hour. They choose the direct connection type, enter their name,
+paste the link, choose a new local folder and select **Join direct session**.
+Direct sessions use the same project synchronization, editor and focus locks.
+The host must stay online. Ending the host's session stops live collaboration
+for everyone; each participant retains their local copy. Starting a new session
+does not send pending edits from an ended session.
+
+Steam-enabled builds also offer **Steam** as a connection type. Choose a display
+name and **Host Steam session**, then share the private invitation. The invited
+writer pastes it into the Steam form and chooses a new local folder. Steam routes
+the connection, so neither writer needs to enter an IP address or forward a port.
+The host must stay online. A missing Steam runtime, app registration or account
+access is shown before the host and join controls become available. Hosted-server
+sessions remain available to both Steam and non-Steam builds.
+
+The Steam adapter compiles against Steamworks.NET and uses reliable
+SteamNetworkingSockets messages for the same authenticated project session used
+by TCP. It has not yet been tested with two Steam accounts; that validation needs
+Novalist's registered app ID and Steamworks SDK redistributables. The default
+open-source build excludes the native integration.
+
+During a connection interruption, keep writing in already shared scenes and Codex prose. Changes
+to structure, assets and other project details require reconnecting first.
+Personal editor settings still save locally. Changes refused by the server and
+files changed outside collaboration are preserved in `Recovered edits` before
+the shared version is restored. End the session before restoring a whole-project
+backup. Extensions must use collaborative prose and field editing when changing
+content already bound to a shared editor or focus lock.
+
+Collaboration is still under development on this branch. Owner access controls are
+not yet complete.
 
 ## Global vs project settings
 

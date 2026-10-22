@@ -53,6 +53,9 @@ public class EntityImage : INotifyPropertyChanged
 
 public class EntitySection
 {
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+
     [JsonPropertyName("title")]
     public string Title { get; set; } = string.Empty;
 

@@ -82,6 +82,7 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
             rpc.InvokeWithParameterObjectAsync<JsonElement>("collaboration/credentials", parameters, ct));
         var accounts = new Sync.Client.HostedAccounts(credentials);
         _workspace.HostedProjects = new(_workspace, accounts, credentials);
+        _workspace.PeerProjects = new(_workspace, credentials);
         _hostedAccounts = new(accounts, (url, ct) =>
             rpc.InvokeWithParameterObjectAsync("collaboration/openBrowser", new { url }, ct),
             server => _workspace.HostedProjects.Status?.Server == server.AbsoluteUri.TrimEnd('/') + '/');
@@ -268,6 +269,7 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
         _workspace.RequireNoSharedSession();
         _hostedAccounts?.DisposeAsync().AsTask().GetAwaiter().GetResult();
         _workspace.HostedProjects?.Dispose();
+        _workspace.PeerProjects?.Dispose();
 #endif
         _assetWatch?.Dispose();
         _importApi.Dispose();
@@ -279,11 +281,13 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
     {
 #if NOVALIST_COLLABORATION
         _workspace.HostedProjects?.StopPendingOperations();
+        _workspace.PeerProjects?.StopPendingOperations();
         await _workspaceGate.WaitAsync().ConfigureAwait(false);
         try { await _workspace.DetachSharedScenesAsync().ConfigureAwait(false); }
         finally { _workspaceGate.Release(); }
         if (_hostedAccounts is not null) await _hostedAccounts.DisposeAsync().ConfigureAwait(false);
         _workspace.HostedProjects?.Dispose();
+        _workspace.PeerProjects?.Dispose();
 #endif
         _assetWatch?.Dispose();
         await _importApi.DisposeAsync().ConfigureAwait(false);

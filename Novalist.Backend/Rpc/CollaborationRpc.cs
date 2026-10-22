@@ -14,7 +14,7 @@ public sealed partial class CollaborationRpc
     public Task EndAsync() => workspace.DetachSharedScenesAsync();
 
     [JsonRpcMethod("collaboration/status")]
-    public HostedSessionDto? Status() => workspace.HostedProjects?.Status;
+    public HostedSessionDto? Status() => workspace.HostedProjects?.Status ?? workspace.PeerProjects?.Status;
 
     [JsonRpcMethod("collaboration/saved")]
     public Task<SavedHostedProjectDto?> SavedAsync() => workspace.HostedProjects?.SavedAsync() ?? Task.FromResult<SavedHostedProjectDto?>(null);
@@ -32,7 +32,27 @@ public sealed partial class CollaborationRpc
 
     [JsonRpcMethod("collaboration/invite")]
     public Task<string> InviteAsync(DateTimeOffset expiresAt, CancellationToken cancellationToken = default) =>
-        Hosted().InviteAsync(expiresAt, cancellationToken);
+        workspace.PeerProjects?.IsActive == true ? Task.FromResult(workspace.PeerProjects.Invite()) : Hosted().InviteAsync(expiresAt, cancellationToken);
+
+    [JsonRpcMethod("collaboration/peer/host")]
+    public Task<HostedSessionDto> HostPeerAsync(string address, int port, string name, CancellationToken cancellationToken = default) =>
+        Peers().HostAsync(address, port, name, cancellationToken);
+
+    [JsonRpcMethod("collaboration/peer/join")]
+    public Task<HostedSessionDto> JoinPeerAsync(string link, string destination, string name, CancellationToken cancellationToken = default) =>
+        Peers().JoinAsync(link, destination, name, cancellationToken);
+
+    private PeerProjectWorkspace Peers() => workspace.PeerProjects ?? throw new InvalidOperationException("Desktop collaboration is unavailable.");
+
+    [JsonRpcMethod("collaboration/steam/status")]
+    public SteamRuntimeStatus SteamStatus() => SteamPeerRelay.Status();
+
+    [JsonRpcMethod("collaboration/steam/host")]
+    public Task<HostedSessionDto> HostSteamAsync(string name, CancellationToken cancellationToken = default) => Peers().HostSteamAsync(name, cancellationToken);
+
+    [JsonRpcMethod("collaboration/steam/join")]
+    public Task<HostedSessionDto> JoinSteamAsync(string link, string destination, string name, CancellationToken cancellationToken = default) =>
+        Peers().JoinSteamAsync(link, destination, name, cancellationToken);
 
     [JsonRpcMethod("collaboration/copy")]
     public Task CreateIndependentCopyAsync(string destination, CancellationToken cancellationToken = default) =>
@@ -75,10 +95,13 @@ public sealed partial class CollaborationRpc
 
     [JsonRpcMethod("collaboration/presence")]
     public Task PublishPresenceAsync(Guid sessionId, Guid itemId, Guid viewId, CursorSelection? selection, bool active, CancellationToken cancellationToken = default) =>
-        Hosted().PublishPresenceAsync(sessionId, itemId, viewId, selection, active, cancellationToken);
+        workspace.PeerProjects?.IsActive == true
+            ? workspace.PeerProjects.PublishPresenceAsync(sessionId, itemId, viewId, selection, active, cancellationToken)
+            : Hosted().PublishPresenceAsync(sessionId, itemId, viewId, selection, active, cancellationToken);
 
     [JsonRpcMethod("collaboration/participants")]
-    public IReadOnlyList<ParticipantPresence> Participants(Guid sessionId) => Hosted().Participants(sessionId);
+    public IReadOnlyList<ParticipantPresence> Participants(Guid sessionId) => workspace.PeerProjects?.IsActive == true
+        ? workspace.PeerProjects.Participants(sessionId) : Hosted().Participants(sessionId);
 
     [JsonRpcMethod("collaboration/readScene")]
     public async Task<byte[]> ReadSceneAsync(Guid sessionId, Guid itemId, CancellationToken cancellationToken = default)
@@ -86,6 +109,6 @@ public sealed partial class CollaborationRpc
 
     [JsonRpcMethod("collaboration/writeScene")]
     public Task WriteSceneAsync(Guid sessionId, Guid itemId, byte[] update, CancellationToken cancellationToken = default)
-        => workspace.RequireSharedScenes(sessionId).WriteAsync(itemId, update, cancellationToken);
+        => workspace.WriteSharedDocumentAsync(sessionId, itemId, update, cancellationToken);
 }
 #endif

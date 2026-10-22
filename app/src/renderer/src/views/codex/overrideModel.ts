@@ -14,6 +14,7 @@ export interface OverrideRelationship {
 }
 
 export interface OverrideSection {
+  id?: string
   title: string
   content: string
 }

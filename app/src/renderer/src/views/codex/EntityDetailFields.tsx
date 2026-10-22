@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import type { CustomTypeDefinition } from './CustomTypeManager'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
+import { proseBinding } from '../../collaboration/sharedMarkdown'
 import { SharedFieldControl } from './SharedFieldControl'
 import type { SharedEntityFields } from '../../collaboration/FocusedField'
 
@@ -203,6 +204,8 @@ export function EntityDetailFields({
       if (v !== value) void updateField(key, v)
     }
     if (control === 'textarea') {
+      const prose = proseBinding(record, key)
+      if (prose) return <MarkdownEditor key={prose.itemId} value={value} ariaLabel={label} shared={prose} onChange={() => {}} />
       return <MarkdownField key={key} value={value} ariaLabel={label} onCommit={commit} />
     }
     if (control === 'category' || (options && options.length > 0)) {

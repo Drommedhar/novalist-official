@@ -25,7 +25,7 @@ public sealed record CustomFieldSpecDto(
 
 public sealed record CustomPropDto(string Key, string Value, string PropType, IReadOnlyList<string> EnumOptions);
 
-public sealed record EntitySectionDto(string Title, string Content);
+public sealed record EntitySectionDto(string Title, string? Content, string? Id = null);
 
 /// <summary>A stored entity image (display name + project-relative path) as sent
 /// by the inline overrides editor when replacing a scope's image list.</summary>

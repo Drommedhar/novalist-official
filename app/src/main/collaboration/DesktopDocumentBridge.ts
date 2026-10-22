@@ -64,9 +64,13 @@ function command(value: unknown): SceneCommand {
     case 'seed':
       if (typeof data.html !== 'string' || Buffer.byteLength(data.html) > 64 * 1024 * 1024) throw new Error('Invalid scene content size.')
       return { kind: 'seed', id, html: data.html }
+    case 'seedText':
+      if (typeof data.text !== 'string' || Buffer.byteLength(data.text) > 64 * 1024 * 1024) throw new Error('Invalid prose content size.')
+      return { kind: 'seedText', id, text: data.text }
     case 'load':
       if (data.deletions !== undefined && !Array.isArray(data.deletions)) throw new Error('Invalid scene deletion state.')
-      return { kind: 'load', id, state: state(data.state), deletions: data.deletions?.map(state) }
+      if (data.plainText !== undefined && typeof data.plainText !== 'boolean') throw new Error('Invalid prose format.')
+      return { kind: 'load', id, state: state(data.state), deletions: data.deletions?.map(state), plainText: data.plainText }
     case 'receive':
     case 'remove':
     case 'validate':

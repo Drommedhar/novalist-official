@@ -3,7 +3,7 @@ using Novalist.Sync.Client;
 
 namespace Novalist.Backend;
 
-public sealed record HostedSessionDto(Guid SessionId, Guid ProjectId, string Server, string Connection, bool IsOwner, string? RecoveryPath = null);
+public sealed record HostedSessionDto(Guid SessionId, Guid ProjectId, string Server, string Connection, bool IsOwner, string? RecoveryPath = null, string Mode = "hosted");
 
 internal sealed partial class HostedProjectWorkspace : IDisposable
 {

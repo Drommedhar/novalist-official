@@ -9,10 +9,11 @@ interface HostedSession {
   connection: string
   isOwner: boolean
   recoveryPath: string | null
+  mode: 'hosted' | 'tcp' | 'steam'
 }
 
 interface SavedHostedProject { server: string; projectId: string; recoveryPath: string | null }
-type Operation = 'create' | 'join' | 'invite' | 'end' | 'resume' | 'copy'
+type Operation = 'create' | 'join' | 'invite' | 'end' | 'resume' | 'copy' | 'peerHost' | 'peerJoin' | 'steamHost' | 'steamJoin'
 interface HostedSessionState {
   session: HostedSession | null
   saved: SavedHostedProject | null
@@ -67,6 +68,14 @@ export const useHostedSessionStore = create<HostedSessionState>((set, get) => ({
         set({ session: null, presenceFailures: [], presenceUnavailable: false })
       } else if (operation === 'resume') {
         set({ session: await rpc.request<HostedSession>('collaboration/resume'), presenceFailures: [], presenceUnavailable: false })
+      } else if (operation === 'peerHost') {
+        set({ session: await rpc.request<HostedSession>('collaboration/peer/host', params), presenceFailures: [], presenceUnavailable: false })
+      } else if (operation === 'peerJoin') {
+        set({ session: await rpc.request<HostedSession>('collaboration/peer/join', params), presenceFailures: [], presenceUnavailable: false })
+      } else if (operation === 'steamHost') {
+        set({ session: await rpc.request<HostedSession>('collaboration/steam/host', params), presenceFailures: [], presenceUnavailable: false })
+      } else if (operation === 'steamJoin') {
+        set({ session: await rpc.request<HostedSession>('collaboration/steam/join', params), presenceFailures: [], presenceUnavailable: false })
       } else {
         const session = operation === 'create'
           ? await rpc.request<HostedSession>('collaboration/create', params)

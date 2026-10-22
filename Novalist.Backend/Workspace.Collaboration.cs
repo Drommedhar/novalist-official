@@ -13,6 +13,7 @@ public sealed partial class Workspace
     internal Func<Guid, DesktopSceneDocuments>? CreateSharedDocuments { get; set; }
     internal Func<Func<Task>, Task>? DispatchSharedUpdate { get; set; }
     internal HostedProjectWorkspace? HostedProjects { get; set; }
+    internal PeerProjectWorkspace? PeerProjects { get; set; }
     private SharedSceneWorkspace? sharedScenes;
     private Guid sharedSession;
     private string? sharedRoot;
@@ -34,6 +35,7 @@ public sealed partial class Workspace
         var recorded = sharedSceneRecorded;
         foreach (var item in initial)
         {
+            if (item.TextField is not null) { sharedProse.Add(item.ItemId, item); continue; }
             var path = SharedProjectPath.Resolve(root, item.Path);
             var bytes = await FileService.ReadBytesAsync(path);
             if (item.SourceSha256 is { } expected && !string.Equals(expected,
@@ -49,7 +51,10 @@ public sealed partial class Workspace
             throw new InvalidDataException("Shared scenes must have distinct project paths.");
         var documents = new SharedSceneWorkspace(session, factory(sessionId), async (item, snapshot, local, _) =>
         {
+            using var projection = BeginSharedProjection();
             if (Projects.ProjectRoot != root) throw new InvalidOperationException("The shared project is no longer open.");
+            if (sharedProse.TryGetValue(item, out var prose)) { await ProjectSharedProseAsync(root, prose, snapshot); return; }
+            await PrepareSharedProjectionPathAsync(files[item].Relative);
             if (snapshot.Html is null)
             {
                 await FileService.DeleteFileAsync(SharedProjectPath.Resolve(root, files[item].Relative));
@@ -74,7 +79,7 @@ public sealed partial class Workspace
         sharedScenes = documents;
         sharedSession = sessionId;
         sharedRoot = root;
-        foreach (var item in initial) sharedItems.Add(item.Path, item.ItemId);
+        foreach (var item in initial.Where(item => item.TextField is null)) sharedItems.Add(item.Path, item.ItemId);
     }
 
     internal async Task<SceneContentDto?> ReadSharedSceneAsync(string chapterGuid, string sceneId, CancellationToken ct)
@@ -83,7 +88,7 @@ public sealed partial class Workspace
         if (item is null || sharedScenes is null) return null;
         var snapshot = await sharedScenes.ReadAsync(item.Value, ct);
         var html = snapshot.Html ?? throw new InvalidOperationException("The shared scene was deleted.");
-        return new(sceneId, html, Core.Services.ContentHasher.Hash(html), new(sharedSession, item.Value, snapshot.State, HostedProjects?.IsActive == true));
+        return new(sceneId, html, Core.Services.ContentHasher.Hash(html), new(sharedSession, item.Value, snapshot.State, HostedProjects?.IsActive == true || PeerProjects?.IsActive == true));
     }
 
     internal SharedSceneWorkspace RequireSharedScenes(Guid sessionId)
@@ -118,14 +123,16 @@ public sealed partial class Workspace
         sharedSceneProjected.Clear();
         sharedSceneRecorded.Clear();
         sharedSceneBaseline.Clear();
+        sharedProse.Clear();
         sharedRoot = null;
         sharedSession = Guid.Empty;
         if (HostedProjects is { } hosted) await hosted.ReleaseAsync();
+        if (PeerProjects is { } peers) await peers.ReleaseAsync();
     }
 
     internal void RequireNoSharedSession()
     {
-        if (sharedScenes is not null || sharedFields is not null || HostedProjects?.IsActive == true) throw new InvalidOperationException("Close the collaboration session asynchronously before closing this workspace.");
+        if (sharedScenes is not null || sharedFields is not null || HostedProjects?.IsActive == true || PeerProjects?.IsActive == true) throw new InvalidOperationException("Close the collaboration session asynchronously before closing this workspace.");
     }
 
     private async Task RecordSharedSceneAsync(string root, string relative, string html, bool local)
