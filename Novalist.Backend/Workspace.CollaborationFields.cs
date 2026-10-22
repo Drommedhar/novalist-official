@@ -106,7 +106,7 @@ public sealed partial class Workspace
         var path = SharedProjectPath.Resolve(sharedRoot ?? throw new InvalidOperationException("The shared project is no longer open."), binding.Path);
         var entity = JsonNode.Parse(await FileService.ReadTextAsync(path)) as JsonObject
             ?? throw new InvalidDataException("The shared Codex entry is invalid.");
-        if (entity[PropertyName(entity, "locked")]?.GetValue<bool>() == true)
+        if (entity[PropertyName(entity, "locked")]?.GetValue<bool>() == true && !(binding.Metadata?.Kind == "codex" && binding.Key == "locked"))
             throw new InvalidOperationException(Rpc.EntitiesRpc.LockedMessage);
         if (binding.Metadata is not null && SharedMetadataFields.Target(entity, binding) is null)
             throw new InvalidOperationException("The shared metadata item was deleted.");
