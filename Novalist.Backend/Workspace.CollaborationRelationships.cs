@@ -19,7 +19,7 @@ public sealed partial class Workspace
         foreach (var target in result.Changed)
         {
             var path = SharedEntityPath(target);
-            var counterpart = fieldBindings.Values.Single(other => other.Metadata?.Kind == "codex" && other.Path == path && other.Key == "relationships");
+            var counterpart = ActiveFieldBindings.Single(other => other.Metadata?.Kind == "codex" && other.Path == path && other.Key == "relationships");
             await AcquireMetadataWriteAsync(counterpart, acquired, current =>
             {
                 target.Relationships = current?.Deserialize<List<EntityRelationship>>(options) ?? [];

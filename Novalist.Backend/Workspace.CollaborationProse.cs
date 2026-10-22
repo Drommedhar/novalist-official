@@ -33,7 +33,7 @@ public sealed partial class Workspace
             var entity = JsonNode.Parse(bytes) as JsonObject ?? throw new InvalidDataException("Invalid Codex entry.");
             foreach (var field in SharedProseFields.Enumerate(entity))
             {
-                if (sharedProse.Values.Any(binding => binding.Path == relative && binding.TextField == field)) continue;
+                if (ActiveSharedProse.Any(binding => binding.Path == relative && binding.TextField == field)) continue;
                 var id = Guid.NewGuid();
                 var text = SharedProseFields.Target(entity, field)?[field.Key]?.GetValue<string>() ?? "";
                 await documents.SeedTextAsync(id, text, ct);
@@ -50,7 +50,7 @@ public sealed partial class Workspace
         var field = binding.TextField ?? throw new InvalidDataException("Missing shared prose field.");
         var path = SharedProjectPath.Resolve(root, binding.Path);
         var entity = await FileService.ExistsAsync(path) ? JsonNode.Parse(await FileService.ReadTextAsync(path)) as JsonObject : null;
-        var target = entity is null ? null : SharedProseFields.Target(entity, field);
+        var target = entity is null || retiredSharedBindings.Contains(binding.ItemId) ? null : SharedProseFields.Target(entity, field);
         if (entity is null || target is null || snapshot.Text is null)
         {
             if ((snapshot.RecoveredText ?? snapshot.Text) is { Length: > 0 } recovered)
@@ -72,7 +72,7 @@ public sealed partial class Workspace
 
     internal Rpc.SharedResearchProseDto? SharedResearchProse(string id)
     {
-        var binding = sharedProse.Values.SingleOrDefault(binding => binding.TextField?.ResearchItemId == id);
+        var binding = ActiveSharedProse.SingleOrDefault(binding => binding.TextField?.ResearchItemId == id);
         return binding is null ? null : new(sharedSession, binding.ItemId);
     }
 
@@ -95,20 +95,21 @@ public sealed partial class Workspace
     {
         var path = SharedEntityPath(entity);
         if (path is null) return null;
-        var fields = sharedProse.Values.Where(binding => binding.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
+        var fields = ActiveSharedProse.Where(binding => binding.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
             .ToDictionary(binding => ProseKey(RequireTextField(binding)), binding => binding.ItemId, StringComparer.Ordinal);
         return fields.Count == 0 ? null : new(sharedSession, fields);
     }
 
     private static string ProseKey(SharedTextField field)
     {
+        if (field.StateOverrideId is { } state) return $"state:{state}:{field.Key}";
         var key = field.SectionId is null ? field.Key : "section:" + field.SectionId;
         return field.Chapter is null ? key : $"override:{field.Chapter}:{field.Scene ?? ""}:{key}";
     }
 
     private void MaskSharedProse(string path, JsonObject target, JsonObject source)
     {
-        foreach (var binding in sharedProse.Values.Where(binding => binding.Path == path))
+        foreach (var binding in ActiveSharedProse.Where(binding => binding.Path == path))
         {
             var field = RequireTextField(binding);
             var destination = SharedProseFields.Target(target, field);

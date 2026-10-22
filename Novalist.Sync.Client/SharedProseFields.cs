@@ -7,6 +7,13 @@ public static class SharedProseFields
     public static void Validate(SharedTextField? field)
     {
         if (field is null) return;
+        if (field.StateOverrideId is not null)
+        {
+            if (string.IsNullOrWhiteSpace(field.StateOverrideId) || field.Key is not ("description" or "note") ||
+                field.SectionId is not null || field.Chapter is not null || field.Scene is not null || field.ResearchItemId is not null)
+                throw new InvalidDataException("Invalid shared state prose field.");
+            return;
+        }
         if (field.ResearchItemId is not null)
         {
             if (field.Key != "content" || string.IsNullOrWhiteSpace(field.ResearchItemId) ||
@@ -23,6 +30,8 @@ public static class SharedProseFields
     public static JsonObject? Target(JsonObject entity, SharedTextField field)
     {
         Validate(field);
+        if (field.StateOverrideId is { } stateId)
+            return (entity["stateOverrides"] as JsonArray)?.OfType<JsonObject>().SingleOrDefault(item => item["id"]?.GetValue<string>() == stateId);
         if (field.ResearchItemId is { } researchId)
             return ResearchNotes(entity).SingleOrDefault(item => item["id"]?.GetValue<string>() == researchId);
         var scope = field.Chapter is null ? entity : (entity["chapterOverrides"] as JsonArray)?.OfType<JsonObject>()
@@ -34,6 +43,9 @@ public static class SharedProseFields
     public static IReadOnlyList<SharedTextField> Enumerate(JsonObject entity)
     {
         var result = new List<SharedTextField>();
+        foreach (var item in (entity["stateOverrides"] as JsonArray)?.OfType<JsonObject>() ?? [])
+            foreach (var key in new[] { "description", "note" })
+                result.Add(new(key, StateOverrideId: item["id"]?.GetValue<string>() ?? throw new InvalidDataException("A shared state needs an identity.")));
         foreach (var item in ResearchNotes(entity))
             result.Add(new("content", ResearchItemId: item["id"]?.GetValue<string>() ?? throw new InvalidDataException("A shared research note needs an identity.")));
         Add(entity, null, null);
@@ -61,6 +73,13 @@ public static class SharedProseFields
     {
         var changed = false;
         var scopes = new[] { entity }.Concat((entity["chapterOverrides"] as JsonArray)?.OfType<JsonObject>() ?? []);
+        var stateIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var state in (entity["stateOverrides"] as JsonArray)?.OfType<JsonObject>() ?? [])
+        {
+            var id = state["id"]?.GetValue<string>();
+            if (string.IsNullOrWhiteSpace(id)) { id = Guid.NewGuid().ToString("N"); state["id"] = id; changed = true; }
+            if (!stateIds.Add(id)) throw new InvalidDataException("Shared states need distinct identities.");
+        }
         foreach (var scope in scopes)
         {
             var ids = new HashSet<string>(StringComparer.Ordinal);

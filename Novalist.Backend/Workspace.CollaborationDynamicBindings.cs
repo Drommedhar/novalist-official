@@ -34,12 +34,16 @@ public sealed partial class Workspace
                 var path = SharedProjectPath.Resolve(root, binding.Path);
                 var entity = await FileService.ExistsAsync(path) ? System.Text.Json.Nodes.JsonNode.Parse(await FileService.ReadTextAsync(path)) as System.Text.Json.Nodes.JsonObject : null;
                 if (entity is null || SharedProseFields.Target(entity, RequireTextField(binding)) is null)
+                {
+                    retiredSharedBindings.Add(item);
                     await scenes.RemoveAsync(item, binding.State, ct);
+                }
             }
         }
         var values = await SharedCodexFields.ReadAsync(root, added.Fields, ct, verifySource: false);
         foreach (var binding in added.Fields) fieldBindings[binding.ItemId] = binding;
         if (sharedFields is { } fields) await fields.AddAsync(values, ct);
+        await RetireMissingMetadataAsync(root);
     }
 }
 #endif

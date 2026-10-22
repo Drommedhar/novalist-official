@@ -18,6 +18,58 @@ namespace Novalist.Backend.Tests;
 public sealed class SharedProjectWriteGuardTests
 {
     [Fact]
+    public async Task ChangingResearchTypeRebindsContentAndRecoversEditsFromThePreviousEditor()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        await fixture.Desktop.InvokeAsync("research/save", null, "Source", "Note", "Writing.", Array.Empty<string>(), Array.Empty<string>());
+        var note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var original = Assert.IsType<SharedResearchProseDto>(note.SharedProse);
+        var type = Assert.IsType<SharedEntityFieldsDto>(note.SharedFields).Fields["type"];
+        var focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, type, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, type, focus, "\"File\"");
+        note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        Assert.Null(note.SharedProse);
+        Assert.Contains("content", Assert.IsType<SharedEntityFieldsDto>(note.SharedFields).Fields.Keys);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, type, focus, "\"Note\"");
+        note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var current = Assert.IsType<SharedResearchProseDto>(note.SharedProse);
+        Assert.NotEqual(original.ItemId, current.ItemId);
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, original.ItemId, Encoding.UTF8.GetBytes("text:Late previous editor."));
+        Assert.Equal("Writing.", Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list")).Content);
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, current.ItemId, Encoding.UTF8.GetBytes("text:New editor."));
+        Assert.Equal("New editor.", Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list")).Content);
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, type, focus);
+    }
+
+    [Fact]
+    public async Task StateOverridesKeepStableProseAndMetadataBindingsAcrossScopeChanges()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var rows = await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/setStateOverrides", "character", fixture.CharacterId,
+            new[] { new StateOverrideDto(null, "Opening", null, "Captain", "Initial description", null, "A note", false) });
+        var state = Assert.Single(rows);
+        var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        var id = entry.GetProperty("stateOverrides")[0].GetProperty("id").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(id));
+        var item = entry.GetProperty("sharedProse").GetProperty("fields").GetProperty($"state:{id}:description").GetGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, item, Encoding.UTF8.GetBytes("text:Shared description."));
+        var scope = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty($"state:{id}:chapter").GetGuid();
+        var focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, scope, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, scope, focus, "\"Later\"");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, scope, focus);
+        rows = await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/getStateOverrides", "character", fixture.CharacterId);
+        Assert.Equal("Later", Assert.Single(rows).Chapter);
+        Assert.Equal("Shared description.", Assert.Single(rows).Description);
+        await fixture.Desktop.InvokeAsync("entities/setStateOverrides", "character", fixture.CharacterId, Array.Empty<StateOverrideDto>());
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, item, Encoding.UTF8.GetBytes("text:Recovered state prose."));
+        Assert.Empty(await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/getStateOverrides", "character", fixture.CharacterId));
+        Assert.Contains(Directory.GetFiles(Path.Combine(fixture.Root, "Recovered edits"), "*.json", SearchOption.AllDirectories),
+            path => File.ReadAllText(path).Contains("Recovered state prose.", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task SharedRelationshipsKeepTheirInverseAndCastRemovalClearsTheFocusedEntity()
     {
         await using var fixture = await SharedProjectFixture.StartAsync();
@@ -89,6 +141,14 @@ public sealed class SharedProjectWriteGuardTests
         await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, item, focus);
         entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
         Assert.Equal(new[] { "M", "Captain" }, entry.GetProperty("aliases").EnumerateArray().Select(value => value.GetString()));
+        var policy = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty("ai").GetGuid();
+        focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, policy, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, policy, focus, "1");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, policy, focus);
+        entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        Assert.Equal(fixture.CharacterId, entry.GetProperty("id").GetString());
+        Assert.Equal("Always", (await fixture.Desktop.InvokeAsync<JsonElement>("entities/getAiPolicy", "character", fixture.CharacterId)).GetProperty("inclusion").GetString());
     }
 
     [Fact]
