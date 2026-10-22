@@ -95,8 +95,10 @@ Codex descriptions, distinguishing features and free-form sections use the exist
 Markdown editor. Writers can edit the same prose together, see one another's
 cursors, and undo their own edits without removing another writer's writing.
 Sections keep their writing history when their titles change.
-Renaming a shared Codex entry updates its scene mentions, section links and parent
-references in both writers' copies. A focused reference field must be released
+Renaming a shared Codex entry updates its scene mentions, section links, relationships,
+parent references and scene POV in both writers' copies. A book's local entries keep
+their name references separate from same-named entries in other books.
+A focused reference field must be released
 before the rename can proceed. Manually worded mentions, aliases and ordinary
 prose keep their wording.
 

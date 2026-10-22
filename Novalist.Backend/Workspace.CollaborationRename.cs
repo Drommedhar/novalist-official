@@ -26,16 +26,16 @@ public sealed partial class Workspace
         }
     }
 
-    private sealed record SharedRename(string EntityId, string Previous, string Next);
+    private sealed record SharedRename(string EntityId, string Previous, string Next, string? BookFolder);
     private sealed record SharedRenameReference(FieldLeaseRequest Lease, string Value);
 
     private async Task AcquireRenameReferencesAsync(SharedRename rename, List<SharedRenameReference> acquired, CancellationToken ct)
     {
-        foreach (var binding in fieldBindings.Values.Where(binding => !binding.Custom && binding.Key == "parent"))
+        foreach (var binding in fieldBindings.Values.Where(binding => IsRenameReference(binding) && RenameReferenceInScope(rename, binding.Path)))
         {
             if (!await FileService.ExistsAsync(SharedProjectPath.Resolve(sharedRoot ?? throw new InvalidOperationException("The shared project is closed."), binding.Path))) continue;
             var field = RequireSharedField(sharedSession, binding.ItemId, Guid.NewGuid());
-            if (await field.Fields.ReadAsync(binding.ItemId, ct) != rename.Previous) continue;
+            if (RenamedReferenceValue(binding, await field.Fields.ReadAsync(binding.ItemId, ct), rename) is null) continue;
             await RequireEditableSharedFieldAsync(sharedSession, binding.ItemId, field.Lease.LeaseId);
             var focused = await field.Fields.AcquireAsync(field.Lease, ct);
             if (!focused.Lease.Acquired)
@@ -45,13 +45,34 @@ public sealed partial class Workspace
                 throw new InvalidOperationException(writer is null ? "A reference to this entry is being edited. Retry the rename after the field is released."
                     : $"{writer} is editing a reference to this entry. Retry the rename after the field is released.");
             }
-            acquired.Add(new(field.Lease, focused.Value == rename.Previous ? rename.Next : focused.Value));
+            acquired.Add(new(field.Lease, RenamedReferenceValue(binding, focused.Value, rename) ?? focused.Value));
         }
+    }
+
+    private static bool IsRenameReference(SharedFieldBinding binding) => !binding.Custom &&
+        (binding.Metadata is null && binding.Key == "parent" || binding.Metadata?.Kind is "codex" or "override" && binding.Key == "relationships" ||
+         binding.Metadata?.Kind == "scene" && binding.Key == "analysisOverrides.pov");
+
+    private static string? RenamedReferenceValue(SharedFieldBinding binding, string value, SharedRename rename)
+    {
+        if (binding.Metadata is null) return value == rename.Previous ? rename.Next : null;
+        var node = SharedMetadataFields.ParseValue(binding, value);
+        if (binding.Key == "analysisOverrides.pov")
+            return node?.GetValue<string>() == rename.Previous ? JsonValue.Create(rename.Next).ToJsonString() : null;
+        if (node is not JsonArray relationships) return null;
+        var changed = false;
+        foreach (var relationship in relationships.OfType<JsonObject>())
+        {
+            if (relationship["target"]?.GetValue<string>() != rename.Previous) continue;
+            relationship["target"] = rename.Next;
+            changed = true;
+        }
+        return changed ? relationships.ToJsonString() : null;
     }
 
     private async Task<SharedRename?> SharedRenameAsync(SharedFieldBinding binding, string value)
     {
-        if (binding.Custom || binding.Key is not ("name" or "surname")) return null;
+        if (binding.Custom || binding.Metadata is not null || binding.Key is not ("name" or "surname")) return null;
         var root = sharedRoot ?? throw new InvalidOperationException("The shared project is no longer open.");
         var entity = JsonNode.Parse(await FileService.ReadTextAsync(SharedProjectPath.Resolve(root, binding.Path))) as JsonObject
             ?? throw new InvalidDataException("Invalid shared Codex entry.");
@@ -59,7 +80,8 @@ public sealed partial class Workspace
         entity[PropertyName(entity, binding.Key)] = value;
         var next = Name(entity);
         return string.IsNullOrWhiteSpace(previous) || string.IsNullOrWhiteSpace(next) || previous == next ? null
-            : new(Path.GetFileNameWithoutExtension(binding.Path), previous, next);
+            : new(Path.GetFileNameWithoutExtension(binding.Path), previous, next,
+                Projects.CurrentProject?.Books.SingleOrDefault(book => binding.Path.StartsWith(book.FolderName + '/', StringComparison.OrdinalIgnoreCase))?.FolderName);
 
         static string Name(JsonObject entity)
         {
@@ -72,10 +94,17 @@ public sealed partial class Workspace
     private async Task RenameSharedProseAsync(SharedRename rename, CancellationToken ct)
     {
         var scenes = RequireSharedScenes(sharedSession);
-        var items = sharedSceneFiles.Keys.Concat(sharedProse.Values.Where(binding => binding.TextField?.SectionId is not null)
+        var items = sharedSceneFiles.Keys.Concat(sharedProse.Values.Where(binding => binding.TextField?.SectionId is not null && RenameReferenceInScope(rename, binding.Path))
             .Select(binding => binding.ItemId)).ToArray();
         foreach (var item in items)
             await scenes.RenameAsync(item, rename.EntityId, rename.Previous, rename.Next, ct);
+    }
+
+    private bool RenameReferenceInScope(SharedRename rename, string path)
+    {
+        var project = Projects.CurrentProject ?? throw new InvalidOperationException("The shared project is no longer open.");
+        return rename.BookFolder is null || path.StartsWith(rename.BookFolder + '/', StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWith(project.WorldBibleFolder + '/', StringComparison.OrdinalIgnoreCase);
     }
 }
 #endif

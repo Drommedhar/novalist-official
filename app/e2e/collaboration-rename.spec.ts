@@ -8,6 +8,7 @@ interface Entity {
   name: string
   parent: string
   sections: { content: string }[]
+  relationships: { role: string; target: string }[]
   sharedFields: { sessionId: string; fields: Record<string, string> }
 }
 
@@ -23,6 +24,8 @@ test('a shared Codex rename updates open scene mentions and section links in bot
     const notes = await owner.rpc<Entity>('entities/create', ['lore', 'History'])
     const place = await owner.rpc<Entity>('entities/create', ['location', 'Harbour'])
     await owner.rpc('entities/update', ['location', place.id, { parent: 'Mira Vance' }])
+    await owner.rpc('entities/updateLists', ['location', place.id, null, null, [{ role: 'Home', target: 'Mira Vance' }]])
+    await owner.rpc('scenes/setPov', [chapter.guid, scene.id, 'Mira Vance'])
     await owner.rpc('entities/updateLists', ['lore', notes.id, null, [{ id: 'history', title: 'History', content: '[[Mira Vance]] and [[Mira Vance|Mira]], with bare Mira Vance.' }], null])
     const html = `<p><span class="nv-entity-mention" data-entity-id="${person.id}">Mira Vance</span> arrives.</p>`
     await owner.rpc('scenes/write', [chapter.guid, scene.id, html, 'Mira Vance arrives.'])
@@ -54,6 +57,8 @@ test('a shared Codex rename updates open scene mentions and section links in bot
       await expect.poll(async () => (await participant.rpc<Entity>('entities/get', ['lore', notes.id])).sections[0].content)
         .toBe('[[Mira Calder]] and [[Mira Calder|Mira]], with bare Mira Vance.')
       await expect.poll(async () => (await participant.rpc<Entity>('entities/get', ['location', place.id])).parent).toBe('Mira Calder')
+      await expect.poll(async () => (await participant.rpc<Entity>('entities/get', ['location', place.id])).relationships[0].target).toBe('Mira Calder')
+      await expect.poll(async () => (await participant.rpc<{ pov: string }>('project/getSceneEdit', [chapter.guid, scene.id])).pov).toBe('Mira Calder')
     }
     for (const participant of participants.slice().reverse()) {
       await participant.rpc('collaboration/end')
