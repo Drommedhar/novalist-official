@@ -13,6 +13,66 @@ namespace Novalist.Backend.Tests;
 [Collection("BackendStatics")]
 public sealed class SharedRenameRecoveryTests
 {
+    [Fact]
+    public async Task ExpiredRenameCannotPublishPreparedProseOverANewerName()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var directory = new TempDir();
+        await using var identity = await TestIdentityProvider.StartAsync(ct);
+        identity.IssueAccessToken = () => identity.Subject;
+        await using var server = await HostedSessionServer.StartAsync(identity.Authority, ct);
+        var settings = Path.Combine(directory.Path, "settings");
+        var credentials = new Dictionary<string, string>();
+        var owner = new HostedDesktop(settings, identity, credentials);
+        await using var guest = new HostedDesktop(Path.Combine(directory.Path, "guest"), identity);
+        var prepared = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        try
+        {
+            var project = await owner.Rpc.InvokeAsync<ProjectStateDto>("project/create", directory.Path, "Shared", "Book");
+            var character = await owner.Rpc.InvokeAsync<JsonElement>("entities/create", "character", "Mira");
+            var characterId = character.GetProperty("id").GetString();
+            var chapter = Assert.Single((await owner.Rpc.InvokeAsync<ProjectStateDto>("project/createChapter", "Opening")).Chapters);
+            var scene = Assert.Single(Assert.Single((await owner.Rpc.InvokeAsync<ProjectStateDto>("project/createScene", chapter.Guid, "Arrival")).Chapters).Scenes);
+            await owner.Rpc.InvokeAsync("scenes/write", chapter.Guid, scene.Id, "<p>Mira arrives.</p>", "Mira arrives.");
+            await owner.SignInAsync(server.Address);
+            var session = await owner.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address);
+            var invitation = await owner.Rpc.InvokeAsync<string>("collaboration/invite", DateTimeOffset.UtcNow.AddHours(1));
+            identity.Subject = "guest";
+            await guest.SignInAsync(server.Address);
+            var other = await guest.Rpc.InvokeAsync<HostedSessionDto>("collaboration/join", server.Address, invitation, Path.Combine(directory.Path, "Joined"));
+            identity.Subject = "writer";
+            character = await owner.Rpc.InvokeAsync<JsonElement>("entities/get", "character", characterId);
+            var name = character.GetProperty("sharedFields").GetProperty("fields").GetProperty("name").GetGuid();
+            FieldLeaseCondition? graph = null;
+            server.BeforeFieldPush = request => { if (request.ResourceId == name) graph = request.RequiredLease; return Task.CompletedTask; };
+            owner.Documents.AfterRename = async _ => { prepared.TrySetResult(); await resume.Task.WaitAsync(ct); };
+            var focus = Guid.NewGuid();
+            await owner.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, name, focus);
+            var pending = owner.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, name, focus, "Rowan");
+            await prepared.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
+            Assert.NotNull(graph);
+            lock (server.Gate)
+                foreach (var key in server.Leases.Keys.Where(key => key.Item2 == graph.ResourceId || key.Item2 == name).ToArray())
+                    server.Leases[key] = server.Leases[key] with { ExpiresAt = DateTimeOffset.UnixEpoch };
+            var guestFocus = Guid.NewGuid();
+            await guest.Rpc.InvokeAsync("collaboration/acquireField", other.SessionId, name, guestFocus);
+            await guest.Rpc.InvokeAsync("collaboration/writeField", other.SessionId, name, guestFocus, "Jules");
+            await guest.Rpc.InvokeAsync("collaboration/releaseField", other.SessionId, name, guestFocus);
+            var prose = (await guest.Rpc.InvokeAsync<SceneContentDto>("scenes/read", chapter.Guid, scene.Id)).Shared!;
+            await guest.Rpc.InvokeAsync("collaboration/writeScene", other.SessionId, prose.ItemId, Encoding.UTF8.GetBytes("<p>Jules arrives.</p>"));
+            resume.TrySetResult();
+            await Assert.ThrowsAsync<RemoteInvocationException>(() => pending);
+            await owner.DisposeAsync();
+            owner = new HostedDesktop(settings, identity, credentials);
+            await owner.Rpc.InvokeAsync("project/open", project.ProjectPath);
+            await owner.Rpc.InvokeAsync("collaboration/resume");
+            Assert.Equal("Jules", (await owner.Rpc.InvokeAsync<JsonElement>("entities/get", "character", characterId)).GetProperty("name").GetString());
+            Assert.Equal("<p>Jules arrives.</p>", (await owner.Rpc.InvokeAsync<SceneContentDto>("scenes/read", chapter.Guid, scene.Id)).Html);
+        }
+        finally { resume.TrySetResult(); await owner.DisposeAsync(); }
+    }
+
     [Theory]
     [InlineData("ack", false)]
     [InlineData("references", false)]

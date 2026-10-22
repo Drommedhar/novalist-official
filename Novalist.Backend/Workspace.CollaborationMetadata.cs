@@ -19,7 +19,7 @@ public sealed partial class Workspace
                 JsonSerializer.SerializeToUtf8Bytes(new { binding.Key, binding.Metadata, Value = value }));
             return;
         }
-        SharedMetadataFields.Set(entity, binding, SharedMetadataFields.ParseValue(binding, value));
+        ValidateSharedMetadataProjection(entity, binding, SharedMetadataFields.ParseValue(binding, value));
         var next = entity.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
         if (binding.Metadata?.Kind is "codex" or "override" or "section" or "state" or "image" or "attachment")
         {

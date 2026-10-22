@@ -14,6 +14,7 @@ public sealed partial class Workspace
         var binding = fieldBindings[item];
         if (binding.Metadata is null) return false;
         var parsed = SharedMetadataFields.ParseValue(binding, value);
+        await ValidateSharedMetadataWriteAsync(binding, parsed);
         var acquired = new List<MetadataWrite>();
         try
         {

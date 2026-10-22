@@ -49,7 +49,7 @@ public sealed class SharedProjectWriteGuardTests
     public async Task ChangingResearchTypeRebindsContentAndRecoversEditsFromThePreviousEditor()
     {
         await using var fixture = await SharedProjectFixture.StartAsync();
-        await fixture.Desktop.InvokeAsync("research/save", null, "Source", "Note", "Writing.", Array.Empty<string>(), Array.Empty<string>());
+        await fixture.Desktop.InvokeAsync("research/save", null, "Source", "Note", "Writing.txt", Array.Empty<string>(), Array.Empty<string>());
         var note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
         var original = Assert.IsType<SharedResearchProseDto>(note.SharedProse);
         var type = Assert.IsType<SharedEntityFieldsDto>(note.SharedFields).Fields["type"];
@@ -64,10 +64,35 @@ public sealed class SharedProjectWriteGuardTests
         var current = Assert.IsType<SharedResearchProseDto>(note.SharedProse);
         Assert.NotEqual(original.ItemId, current.ItemId);
         await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, original.ItemId, Encoding.UTF8.GetBytes("text:Late previous editor."));
-        Assert.Equal("Writing.", Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list")).Content);
+        Assert.Equal("Writing.txt", Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list")).Content);
         await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, current.ItemId, Encoding.UTF8.GetBytes("text:New editor."));
         Assert.Equal("New editor.", Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list")).Content);
         await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, type, focus);
+    }
+
+    [Theory]
+    [InlineData(true, "Writing.")]
+    [InlineData(false, "../outside.txt")]
+    [InlineData(false, "C:/outside.txt")]
+    public async Task ResearchStorageChangesRejectUnsafeReferencesBeforeCommitting(bool changeType, string unsafeValue)
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var originalType = changeType ? "Note" : "File";
+        var originalContent = changeType ? unsafeValue : "Sources/writing.txt";
+        await fixture.Desktop.InvokeAsync("research/save", null, "Source", originalType, originalContent, Array.Empty<string>(), Array.Empty<string>());
+        var item = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var field = Assert.IsType<SharedEntityFieldsDto>(item.SharedFields).Fields[changeType ? "type" : "content"];
+        var focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, field, focus);
+
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("collaboration/writeField",
+            fixture.SessionId, field, focus, JsonSerializer.Serialize(changeType ? "File" : unsafeValue)));
+
+        item = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        Assert.Equal(originalType, item.Type);
+        Assert.Equal(originalContent, item.Content);
+        Assert.Empty(fixture.Updates.ReadCommittedItem(field, long.MaxValue));
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, field, focus);
     }
 
     [Fact]

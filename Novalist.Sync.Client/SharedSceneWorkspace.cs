@@ -113,7 +113,7 @@ public sealed class SharedSceneWorkspace : IAsyncDisposable
         finally { gate.Release(); }
     }
 
-    public async Task RenameAsync(Guid item, string entityId, string oldName, string newName, CancellationToken ct)
+    public async Task RenameAsync(Guid item, string entityId, string oldName, string newName, FieldLeaseCondition condition, CancellationToken ct)
     {
         await gate.WaitAsync(ct);
         try
@@ -121,7 +121,14 @@ public sealed class SharedSceneWorkspace : IAsyncDisposable
             EnsureItem(item);
             await ReplayFailureAsync(item, ct);
             if (await documents.RenameAsync(item, entityId, oldName, newName, ct) is { } update)
-                await SaveEditAsync(item, update, ct);
+            {
+                await documents.ValidateAsync(item, update, ct);
+                var context = session.Context;
+                await session.CommitFieldAsync(item, update, new(context.ProjectId, condition.ResourceId, context.Epoch, condition.LeaseId), ct);
+                failures.Add(item);
+                await ReplayFailureAsync(item, CancellationToken.None);
+                await ProjectAsync(item, CancellationToken.None, local: true);
+            }
         }
         finally { gate.Release(); }
     }

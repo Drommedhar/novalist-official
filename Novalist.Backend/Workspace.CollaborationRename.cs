@@ -31,7 +31,7 @@ public sealed partial class Workspace
             await field.Fields.WriteAsync(field.Lease with { RequiredLease = required }, value, ct);
             foreach (var reference in references)
                 await field.Fields.WriteAsync(reference.Lease with { RequiredLease = required }, reference.Value, CancellationToken.None);
-            if (rename is not null) await RenameSharedProseAsync(rename, CancellationToken.None);
+            if (rename is not null) await RenameSharedProseAsync(rename, required, CancellationToken.None);
             if (rename is not null) field.Session.CompleteCompoundEdit(item);
         }
         finally
@@ -107,13 +107,14 @@ public sealed partial class Workspace
         return surname.Length == 0 ? first : $"{first} {surname}";
     }
 
-    private async Task RenameSharedProseAsync(SharedRename rename, CancellationToken ct)
+    private async Task RenameSharedProseAsync(SharedRename rename, FieldLeaseCondition? required, CancellationToken ct)
     {
+        var condition = required ?? throw new InvalidOperationException("The rename has no editing lease.");
         var scenes = RequireSharedScenes(sharedSession);
         var items = sharedSceneFiles.Keys.Concat(ActiveSharedProse.Where(binding => binding.TextField?.SectionId is not null && RenameReferenceInScope(rename, binding.Path))
             .Select(binding => binding.ItemId)).ToArray();
         foreach (var item in items)
-            await scenes.RenameAsync(item, rename.EntityId, rename.Previous, rename.Next, ct);
+            await scenes.RenameAsync(item, rename.EntityId, rename.Previous, rename.Next, condition, ct);
     }
 
     private bool RenameReferenceInScope(SharedRename rename, string path)

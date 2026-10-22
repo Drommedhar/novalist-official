@@ -22,6 +22,12 @@ internal static class CheckpointStorageReferences
         ValidateAsync(files.Keys, path => files.TryGetValue(path, out var bytes) ? new MemoryStream(bytes, writable: false)
             : throw new InvalidDataException("Missing shared project metadata."), ct);
 
+    internal static void ValidateMetadata(JsonElement value, bool research)
+    {
+        ValidateObject(value);
+        if (research) ValidateResearch(value);
+    }
+
     private static async Task ValidateAsync(IEnumerable<string> paths, Func<string, Stream> read, CancellationToken ct)
     {
         using var project = await ReadAsync(read(".novalist/project.json"), ct);

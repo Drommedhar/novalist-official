@@ -41,7 +41,7 @@ public sealed partial class Workspace
                     await AcquireRenameReferencesAsync(rename, references, ct);
                     foreach (var reference in references)
                         await fields.WriteAsync(reference.Lease with { RequiredLease = required }, reference.Value, ct);
-                    await RenameSharedProseAsync(rename, ct);
+                    await RenameSharedProseAsync(rename, required, ct);
                 }
                 finally { await Task.WhenAll(references.Select(reference => session.ReleaseFieldAsync(reference.Lease, CancellationToken.None))); }
             }

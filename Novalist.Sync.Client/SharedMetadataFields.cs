@@ -8,6 +8,12 @@ public sealed record SharedMetadataTarget(string Kind, string? Identity = null, 
 
 public static partial class SharedMetadataFields
 {
+    public static void ValidateStorage(JsonObject root, SharedFieldBinding binding)
+    {
+        using var document = JsonDocument.Parse(root.ToJsonString());
+        CheckpointStorageReferences.ValidateMetadata(document.RootElement, binding.Metadata?.Kind == "research");
+    }
+
     public static string BindingKey(SharedFieldBinding binding)
     {
         var target = binding.Metadata;
