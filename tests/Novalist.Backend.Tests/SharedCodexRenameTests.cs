@@ -11,6 +11,43 @@ namespace Novalist.Backend.Tests;
 public sealed class SharedCodexRenameTests
 {
     [Fact]
+    public async Task RenamingAnEntryWaitsForItsParentReferenceLockAndUpdatesBothAfterRelease()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var directory = new TempDir();
+        await using var identity = await TestIdentityProvider.StartAsync(ct);
+        await using var server = await HostedSessionServer.StartAsync(identity.Authority, ct);
+        await using var desktop = new HostedDesktop(Path.Combine(directory.Path, "settings"), identity);
+        await desktop.Rpc.InvokeAsync("project/create", directory.Path, "Shared", "Book");
+        var character = await desktop.Rpc.InvokeAsync<JsonElement>("entities/create", "character", "Mira");
+        var characterId = character.GetProperty("id").GetString();
+        var location = await desktop.Rpc.InvokeAsync<JsonElement>("entities/create", "location", "Harbor");
+        var locationId = location.GetProperty("id").GetString();
+        await desktop.Rpc.InvokeAsync("entities/update", "location", locationId, new { parent = "Mira" });
+        await desktop.SignInAsync(server.Address);
+        var session = await desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address);
+        character = await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "character", characterId);
+        location = await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "location", locationId);
+        var name = character.GetProperty("sharedFields").GetProperty("fields").GetProperty("name").GetGuid();
+        var parent = location.GetProperty("sharedFields").GetProperty("fields").GetProperty("parent").GetGuid();
+        var renameFocus = Guid.NewGuid();
+        var parentFocus = Guid.NewGuid();
+        await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, name, renameFocus);
+        await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, parent, parentFocus);
+
+        var blocked = await Assert.ThrowsAsync<RemoteInvocationException>(() => desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, name, renameFocus, "Rowan"));
+
+        Assert.Contains("reference", blocked.Message);
+        Assert.Equal("Mira", (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "character", characterId)).GetProperty("name").GetString());
+        Assert.Equal("Mira", (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "location", locationId)).GetProperty("parent").GetString());
+        await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, parent, parentFocus);
+        await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, name, renameFocus, "Rowan");
+        await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, name, renameFocus);
+        Assert.Equal("Rowan", (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "character", characterId)).GetProperty("name").GetString());
+        Assert.Equal("Rowan", (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "location", locationId)).GetProperty("parent").GetString());
+    }
+
+    [Fact]
     public async Task ConfirmedNameAndSurnameChangesReachSharedScenesAndSectionsButRejectedWritesDoNot()
     {
         var ct = TestContext.Current.CancellationToken;
