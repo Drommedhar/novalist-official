@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
+import { useCodexStore } from '../../stores/codexStore'
+import { SharedMetadataField, metadataBinding } from '../../collaboration/SharedMetadataField'
+import type { SharedEntityFields } from '../../collaboration/FocusedField'
+import { useSharedProjectRevision } from '../../collaboration/sharedProjectNotifications'
 
 interface AiSection {
   index: number
@@ -29,6 +33,10 @@ export function AiPolicyEditor(props: {
 }): React.JSX.Element {
   const { t } = useTranslation()
   const [policy, setPolicy] = useState<AiPolicy | null>(null)
+  const record = useCodexStore(state => state.selectedRecord)
+  const sharedFields = record?.id === props.entityId ? record.sharedFields as SharedEntityFields | undefined : undefined
+  const sections = record?.sections as { id: string }[] | undefined
+  const revision = useSharedProjectRevision()
 
   const load = useCallback(async () => {
     setPolicy(
@@ -38,7 +46,7 @@ export function AiPolicyEditor(props: {
 
   useEffect(() => {
     void load()
-  }, [load])
+  }, [load, revision])
 
   if (!policy) return <></>
 
@@ -57,40 +65,42 @@ export function AiPolicyEditor(props: {
   return (
     <div className="match-settings">
       <label className="inspector-label">{t('aiPolicy.inclusion')}</label>
-      {INCLUSIONS.map((value) => (
+      <SharedMetadataField binding={metadataBinding({ sharedFields }, 'ai')} value={INCLUSIONS.findIndex(value => value === policy.inclusion)}
+        onChange={index => void save({ ...policy, inclusion: INCLUSIONS[index] })}>
+        {field => <>{INCLUSIONS.map((value, index) => (
         <label key={value} className="match-toggle">
           <input
             type="radio"
             name={`ai-inclusion-${props.entityId}`}
-            checked={policy.inclusion === value}
-            onChange={() => void save({ ...policy, inclusion: value })}
+            checked={(field.value ?? 0) === index}
+            aria-disabled={!field.editable}
+            onChange={() => field.change(index)}
           />
           {t(`aiPolicy.${value}`)}
         </label>
       ))}
-      <div className="match-hint">{t(`aiPolicy.${policy.inclusion}Desc`)}</div>
+      <div className="match-hint">{t(`aiPolicy.${INCLUSIONS[field.value ?? 0]}Desc`)}</div></>}
+      </SharedMetadataField>
 
       {policy.sections.length > 0 && (
         <>
           <label className="inspector-label">{t('aiPolicy.sections')}</label>
           <div className="match-hint">{t('aiPolicy.sectionsDesc')}</div>
           {policy.sections.map((section) => (
-            <label key={section.index} className="match-toggle">
+            <SharedMetadataField key={sections?.[section.index]?.id ?? section.index}
+              binding={metadataBinding({ sharedFields }, `section:${sections?.[section.index]?.id}:aiHidden`)} value={section.hidden}
+              onChange={hidden => void save({ ...policy, sections: policy.sections.map(s => s.index === section.index ? { ...s, hidden } : s) })}>
+              {field => <label className="match-toggle">
               <input
                 type="checkbox"
-                checked={section.hidden}
+                checked={field.value ?? false}
+                aria-disabled={!field.editable}
                 disabled={policy.inclusion === 'Never'}
-                onChange={(e) =>
-                  void save({
-                    ...policy,
-                    sections: policy.sections.map((s) =>
-                      s.index === section.index ? { ...s, hidden: e.target.checked } : s
-                    )
-                  })
-                }
+                onChange={e => field.change(e.target.checked)}
               />
               {section.title || t('aiPolicy.untitledSection')}
-            </label>
+            </label>}
+            </SharedMetadataField>
           ))}
         </>
       )}

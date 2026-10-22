@@ -37,7 +37,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 - **Collaboration (in development)** — hosted server or direct TCP sessions, optional Steamworks integration, browser sign-in, single-use
   invitations, live project structure, Codex prose with per-writer undo, research and asset synchronization,
-  participant cursors and scene badges, scene editing through the existing editor, named focus locks for Codex text fields, guarded scene stage changes, reconnecting
+  participant cursors and scene badges, scene editing through the existing editor, named focus locks for Codex fields and visibility policies, guarded scene stage changes, reconnecting
   retained projects, independent project copies, and owner controls for server access and project deletion.
   Removing a collaborator refreshes project encryption for the remaining writers.
   Shared Codex renames update scene mentions, section links, relationships, parent references and scene POV.

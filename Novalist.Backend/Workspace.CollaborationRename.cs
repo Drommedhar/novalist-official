@@ -11,6 +11,7 @@ public sealed partial class Workspace
         if (await WriteSharedMetadataAsync(sessionId, item, focus, value, ct)) return;
         var field = await RequireEditableSharedFieldAsync(sessionId, item, focus);
         await field.Fields.ReadAsync(item, ct);
+        value = await NormalizeSharedParentAsync(fieldBindings[item], value);
         var rename = await SharedRenameAsync(fieldBindings[item], value);
         var references = new List<SharedRenameReference>();
         try
@@ -32,7 +33,7 @@ public sealed partial class Workspace
 
     private async Task AcquireRenameReferencesAsync(SharedRename rename, List<SharedRenameReference> acquired, CancellationToken ct)
     {
-        foreach (var binding in fieldBindings.Values.Where(binding => IsRenameReference(binding) && RenameReferenceInScope(rename, binding.Path)))
+        foreach (var binding in ActiveFieldBindings.Where(binding => IsRenameReference(binding) && RenameReferenceInScope(rename, binding.Path)))
         {
             if (!await FileService.ExistsAsync(SharedProjectPath.Resolve(sharedRoot ?? throw new InvalidOperationException("The shared project is closed."), binding.Path))) continue;
             var field = RequireSharedField(sharedSession, binding.ItemId, Guid.NewGuid());
@@ -95,7 +96,7 @@ public sealed partial class Workspace
     private async Task RenameSharedProseAsync(SharedRename rename, CancellationToken ct)
     {
         var scenes = RequireSharedScenes(sharedSession);
-        var items = sharedSceneFiles.Keys.Concat(sharedProse.Values.Where(binding => binding.TextField?.SectionId is not null && RenameReferenceInScope(rename, binding.Path))
+        var items = sharedSceneFiles.Keys.Concat(ActiveSharedProse.Where(binding => binding.TextField?.SectionId is not null && RenameReferenceInScope(rename, binding.Path))
             .Select(binding => binding.ItemId)).ToArray();
         foreach (var item in items)
             await scenes.RenameAsync(item, rename.EntityId, rename.Previous, rename.Next, ct);
