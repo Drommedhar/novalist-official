@@ -50,7 +50,7 @@ public sealed partial class Workspace
         var field = binding.TextField ?? throw new InvalidDataException("Missing shared prose field.");
         var path = SharedProjectPath.Resolve(root, binding.Path);
         var entity = await FileService.ExistsAsync(path) ? JsonNode.Parse(await FileService.ReadTextAsync(path)) as JsonObject : null;
-        var target = entity is null || retiredSharedBindings.Contains(binding.ItemId) ? null : SharedProseFields.Target(entity, field);
+        var target = entity is null || retiredSharedBindings.Contains(binding.ItemId) ? null : SharedProseFields.Target(entity, field, create: true);
         if (entity is null || target is null || snapshot.Text is null)
         {
             if ((snapshot.RecoveredText ?? snapshot.Text) is { Length: > 0 } recovered)
@@ -102,6 +102,7 @@ public sealed partial class Workspace
 
     private static string ProseKey(SharedTextField field)
     {
+        if (field.Container is { } container) return $"{container}:{field.Key}";
         if (field.StateOverrideId is { } state) return $"state:{state}:{field.Key}";
         var key = field.SectionId is null ? field.Key : "section:" + field.SectionId;
         return field.Chapter is null ? key : $"override:{field.Chapter}:{field.Scene ?? ""}:{key}";
@@ -113,7 +114,14 @@ public sealed partial class Workspace
         {
             var field = RequireTextField(binding);
             var destination = SharedProseFields.Target(target, field);
-            if (destination is not null) destination[field.Key] = SharedProseFields.Target(source, field)?[field.Key]?.DeepClone();
+            if (destination is null) continue;
+            if (SharedProseFields.Target(source, field)?[field.Key] is { } value) destination[field.Key] = value.DeepClone();
+            else destination.Remove(field.Key);
+        }
+        if (target["arc"] is JsonObject { Count: 0 } && source["arc"] is null)
+        {
+            if (source.ContainsKey("arc")) target["arc"] = null;
+            else target.Remove("arc");
         }
     }
 

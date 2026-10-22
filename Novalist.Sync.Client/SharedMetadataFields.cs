@@ -117,6 +117,7 @@ public static partial class SharedMetadataFields
     {
         if (key.StartsWith("analysisOverrides.", StringComparison.Ordinal)) return ("analysisOverrides", key[18..]);
         if (key.StartsWith("match.", StringComparison.Ordinal)) return ("match", key[6..]);
+        if (key == "arc.points") return ("arc", "points");
         if (key.StartsWith("customProperties:", StringComparison.Ordinal)) return ("customProperties", key[17..]);
         if (key.StartsWith("properties:", StringComparison.Ordinal)) return ("properties", key[11..]);
         return (null, key);

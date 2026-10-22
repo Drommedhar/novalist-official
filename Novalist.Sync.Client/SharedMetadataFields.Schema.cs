@@ -8,7 +8,7 @@ public static partial class SharedMetadataFields
     {
         ["aliases"] = "strings", ["relationships"] = "relationships", ["tags"] = "strings",
         ["group"] = "text", ["ai"] = "aiInclusion", ["readerHidden"] = "boolean", ["locked"] = "boolean", ["isWorld"] = "boolean",
-        ["match.caseSensitive"] = "boolean", ["match.matchPlurals"] = "boolean", ["match.exclusions"] = "strings", ["match.ignoredSceneIds"] = "strings"
+        ["match.caseSensitive"] = "boolean", ["match.matchPlurals"] = "boolean", ["match.exclusions"] = "strings", ["match.ignoredSceneIds"] = "strings", ["arc.points"] = "arcPoints"
     };
     private static readonly string[] OverrideText = ["name", "surname", "gender", "age", "role", "eyeColor", "hairColor", "hairLength", "height", "build", "skinTone"];
     private static readonly IReadOnlyDictionary<string, string> Scene = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -46,6 +46,8 @@ public static partial class SharedMetadataFields
         "text" => IsText(value),
         "strings" => value is JsonArray strings && strings.All(IsText),
         "relationships" => value is JsonArray rows && rows.All(IsRelationship),
+        "arcPoints" => value is JsonArray points && points.All(IsArcPoint) && points.OfType<JsonObject>().Count(point => point["isTurn"]?.GetValue<bool>() == true) <= 1 &&
+            points.OfType<JsonObject>().Select(point => point["id"]?.GetValue<string>()).Distinct(StringComparer.Ordinal).Count() == points.Count,
         "integer" => IsInteger(value, 0, int.MaxValue),
         "intensity" => IsInteger(value, -10, 10),
         "rating" => IsInteger(value, 0, 5),
@@ -61,4 +63,20 @@ public static partial class SharedMetadataFields
 
     private static bool IsInteger(JsonNode? value, int minimum, int maximum) => value is JsonValue scalar && scalar.TryGetValue<int>(out var number) && number >= minimum && number <= maximum;
     private static bool IsChoice(JsonNode? value, string[] choices) => value is JsonValue scalar && scalar.TryGetValue<string>(out var text) && choices.Contains(text, StringComparer.Ordinal);
+    private static bool IsArcPoint(JsonNode? value) => value is JsonObject point && point["id"] is JsonValue id && id.TryGetValue<string>(out var identity) && !string.IsNullOrWhiteSpace(identity) &&
+        point.All(property => property.Key is "id" or "sceneId" or "label" ? IsText(property.Value) : property.Key == "isTurn" && property.Value is JsonValue flag && flag.TryGetValue<bool>(out _));
+
+    public static bool Equivalent(SharedFieldBinding binding, JsonNode? before, JsonNode? after)
+    {
+        if (JsonNode.DeepEquals(before, after)) return true;
+        if (before is not null && after is not null) return false;
+        var present = before ?? after;
+        return ValueKind(binding) switch
+        {
+            "boolean" => present is JsonValue scalar && scalar.TryGetValue<bool>(out var flag) && !flag,
+            "rating" or "aiInclusion" => IsInteger(present, 0, 0),
+            "strings" or "relationships" or "arcPoints" when binding.Metadata?.Kind != "override" => present is JsonArray { Count: 0 },
+            _ => false
+        };
+    }
 }

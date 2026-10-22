@@ -56,14 +56,15 @@ public sealed partial class Workspace
                 (next is not null && SharedMetadataFields.Target(next, binding) is null))) continue;
             var before = binding.Metadata is not null && previous is not null ? SharedMetadataFields.Read(previous, binding) : ReadBoundValue(previous, binding.Key, binding.Custom);
             var after = binding.Metadata is not null && next is not null ? SharedMetadataFields.Read(next, binding) : ReadBoundValue(next, binding.Key, binding.Custom);
-            if (!JsonNode.DeepEquals(before, after)) RejectSharedWrite("Edit shared Codex fields through their focus lock.");
+            var equal = binding.Metadata is null ? JsonNode.DeepEquals(before, after) : SharedMetadataFields.Equivalent(binding, before, after);
+            if (!equal) RejectSharedWrite("Edit shared Codex fields through their focus lock.");
         }
         foreach (var binding in prose)
         {
             var field = RequireTextField(binding);
             var before = previous is null ? null : SharedProseFields.Target(previous, field);
             var after = next is null ? null : SharedProseFields.Target(next, field);
-            if (before is not null && after is not null && !JsonNode.DeepEquals(before[field.Key], after[field.Key]))
+            if (before is not null && after is not null && (before[field.Key]?.GetValue<string>() ?? "") != (after[field.Key]?.GetValue<string>() ?? ""))
                 RejectSharedWrite("Save shared prose through its collaboration editor.");
         }
     }

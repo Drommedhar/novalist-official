@@ -18,6 +18,25 @@ namespace Novalist.Backend.Tests;
 public sealed class SharedProjectWriteGuardTests
 {
     [Fact]
+    public async Task EmptyCharacterArcsShareProseAndLeaseTheirTurningPoints()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        var prose = entry.GetProperty("sharedProse").GetProperty("fields").GetProperty("arc:start").GetGuid();
+        var points = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty("arc.points").GetGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, prose, Encoding.UTF8.GetBytes("text:Afraid to trust."));
+        var focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, points, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, points, focus,
+            "[{\"id\":\"turn\",\"label\":\"Accepts help\",\"sceneId\":\"\",\"isTurn\":true}]");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, points, focus);
+        var arc = await fixture.Desktop.InvokeAsync<ArcDto>("arcs/get", fixture.CharacterId);
+        Assert.Equal("Afraid to trust.", arc.Start);
+        Assert.Equal("Accepts help", Assert.Single(arc.Points).Label);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("arcs/save", fixture.CharacterId, "Stale prose", "", arc.Points, "", ""));
+    }
+
+    [Fact]
     public async Task ChangingResearchTypeRebindsContentAndRecoversEditsFromThePreviousEditor()
     {
         await using var fixture = await SharedProjectFixture.StartAsync();
@@ -49,9 +68,12 @@ public sealed class SharedProjectWriteGuardTests
         var rows = await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/setStateOverrides", "character", fixture.CharacterId,
             new[] { new StateOverrideDto(null, "Opening", null, "Captain", "Initial description", null, "A note", false) });
         var state = Assert.Single(rows);
+        var committed = await fixture.ReadCommittedFilesAsync();
+        Assert.Contains("stateOverrides", Encoding.UTF8.GetString(committed.Single(pair => pair.Key.EndsWith(fixture.CharacterId + ".json", StringComparison.Ordinal)).Value));
         var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
         var id = entry.GetProperty("stateOverrides")[0].GetProperty("id").GetString();
         Assert.False(string.IsNullOrWhiteSpace(id));
+        Assert.Contains($"state:{id}:description", entry.GetProperty("sharedProse").GetProperty("fields").EnumerateObject().Select(field => field.Name));
         var item = entry.GetProperty("sharedProse").GetProperty("fields").GetProperty($"state:{id}:description").GetGuid();
         await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, item, Encoding.UTF8.GetBytes("text:Shared description."));
         var scope = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty($"state:{id}:chapter").GetGuid();
@@ -149,6 +171,13 @@ public sealed class SharedProjectWriteGuardTests
         entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
         Assert.Equal(fixture.CharacterId, entry.GetProperty("id").GetString());
         Assert.Equal("Always", (await fixture.Desktop.InvokeAsync<JsonElement>("entities/getAiPolicy", "character", fixture.CharacterId)).GetProperty("inclusion").GetString());
+        var locked = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty("locked").GetGuid();
+        focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, locked, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, locked, focus, "true");
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, locked, focus, "false");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, locked, focus);
+        await fixture.Desktop.InvokeAsync("entities/updateLists", "character", fixture.CharacterId, null, new[] { new EntitySectionDto("Notes", "Text", "notes") }, null);
     }
 
     [Fact]
