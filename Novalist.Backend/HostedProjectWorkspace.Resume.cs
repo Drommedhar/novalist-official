@@ -75,8 +75,6 @@ internal sealed partial class HostedProjectWorkspace
                 await workspace.OpenProjectAsync(saved.Root);
                 archive.Position = 0;
                 await workspace.AttachSharedProjectAsync(runtime.Id, runtime.Session.Updates, restore.State, archive, ct);
-                current = runtime;
-                return runtime.View();
             }
             catch
             {
@@ -86,6 +84,8 @@ internal sealed partial class HostedProjectWorkspace
             }
         }
         catch { await runtime.DisposeAsync(); throw; }
+        current = runtime;
+        return runtime.View();
     }
 
     private async Task<Runtime> ReopenAsync(SavedHostedProject saved, CancellationToken ct)

@@ -32,7 +32,9 @@ public sealed partial class Workspace
             var source = binding.Custom ? original[PropertyName(original, "fields")] as JsonObject : original;
             if (target is null) continue;
             var key = binding.Custom ? binding.Key : PropertyName(target, binding.Key);
-            target[key] = source?[binding.Custom ? binding.Key : PropertyName(source, binding.Key)]?.DeepClone();
+            if (source is not null && source.TryGetPropertyValue(binding.Custom ? binding.Key : PropertyName(source, binding.Key), out var originalValue))
+                target[key] = originalValue?.DeepClone();
+            else target.Remove(key);
         }
         if (path == ".novalist/project.json") PreserveNavigation(current, original);
         MaskSharedProse(path, current, original);

@@ -8,6 +8,7 @@ namespace Novalist.Backend.Tests.TestHelpers;
 internal sealed class CollaborationDocumentPeer
 {
     private readonly Dictionary<Guid, byte[]> states = [];
+    private readonly Dictionary<Guid, byte[]> removed = [];
     internal bool RejectNextLoad { get; set; }
 
     [JsonRpcMethod("collaboration/documents")]
@@ -18,9 +19,10 @@ internal sealed class CollaborationDocumentPeer
             var item = command.GetProperty("id").GetGuid();
             var kind = command.GetProperty("kind").GetString();
             if (kind == "load" && RejectNextLoad) { RejectNextLoad = false; throw new InvalidOperationException("Document host unavailable."); }
-            if (kind == "seed") states[item] = Encoding.UTF8.GetBytes(command.GetProperty("html").GetString() ?? "");
+            if (kind == "seed") states[item] = Encoding.UTF8.GetBytes("html:" + command.GetProperty("html").GetString());
             if (kind == "seedText") states[item] = Encoding.UTF8.GetBytes("text:" + command.GetProperty("text").GetString());
-            if (kind == "load") states[item] = command.GetProperty("state").GetBytesFromBase64();
+            if (kind == "load") { states[item] = command.GetProperty("state").GetBytesFromBase64(); removed.Remove(item); }
+            if (kind == "remove") removed[item] = command.GetProperty("state").GetBytesFromBase64();
             if (kind == "receive")
             {
                 states[item] = command.GetProperty("state").GetBytesFromBase64();
@@ -30,6 +32,14 @@ internal sealed class CollaborationDocumentPeer
         if (action != "capture" || id is null) return null;
         var state = states[id.Value];
         var value = Encoding.UTF8.GetString(state);
+        if (value.StartsWith("html:", StringComparison.Ordinal)) value = value[5..];
+        if (removed.TryGetValue(id.Value, out var deletedAt))
+        {
+            var changed = !state.AsSpan().SequenceEqual(deletedAt);
+            return value.StartsWith("text:", StringComparison.Ordinal)
+                ? new SharedSceneSnapshot(state, [deletedAt], null, null) { RecoveredText = changed ? value[5..] : null }
+                : new SharedSceneSnapshot(state, [deletedAt], null, changed ? value : null);
+        }
         return value.StartsWith("text:", StringComparison.Ordinal)
             ? new SharedSceneSnapshot(state, [], null, null) { Text = value[5..] }
             : new SharedSceneSnapshot(state, [], value, null);
