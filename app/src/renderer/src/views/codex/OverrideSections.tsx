@@ -7,6 +7,7 @@ import { type OverrideSection, type CharacterOverride, type Scope, apply } from 
 import { OverrideMediaHeader } from './OverrideMediaHeader'
 import { useCodexStore } from '../../stores/codexStore'
 import { proseBinding } from '../../collaboration/sharedMarkdown'
+import { SharedMetadataField, metadataBinding } from '../../collaboration/SharedMetadataField'
 
 /** Per-scope override sections editor. Mirrors the sections block of
  * EntityListsEditor.tsx but persists to the override scope via
@@ -56,14 +57,13 @@ export function OverrideSections({
       {sections.map((section, index) => (
         <div key={section.id ?? index} className="entity-section">
           <div className="entity-section-head">
-            <input
-              className="outliner-input entity-section-title"
-              value={section.title}
-              onChange={(e) =>
-                setSections(sections.map((s, i) => (i === index ? { ...s, title: e.target.value } : s)))
-              }
-              onBlur={() => persist(sections)}
-            />
+            <SharedMetadataField<string | null> binding={section.id && overriding ? metadataBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:section:${section.id}:title`) : undefined}
+              value={section.title} onChange={next => setSections(sections.map((s, i) => i === index ? { ...s, title: next ?? '' } : s))}>
+              {({ value, editable, change }) => <input className="outliner-input entity-section-title" value={value ?? ''} readOnly={!editable}
+                onChange={event => change(event.target.value)} onBlur={() => {
+                  if (!section.id || !metadataBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:section:${section.id}:title`)) persist(sections)
+                }} />}
+            </SharedMetadataField>
             <button
               className="binder-expand"
               aria-label={t('explorer.contextDelete')}

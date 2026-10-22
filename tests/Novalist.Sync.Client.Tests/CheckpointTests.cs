@@ -95,7 +95,7 @@ public sealed class CheckpointTests : IDisposable
         Assert.Equal("old", values[Assert.Single(fields, field => field.Key == "Age").ItemId]);
         Assert.Equal("new", values[Assert.Single(fields, field => field.Key == "age").ItemId]);
         Assert.Equal("../metaphor", values[Assert.Single(fields, field => field.Key == "path").ItemId]);
-        Assert.All(fields.Where(field => field.Key != "name"), field => Assert.True(field.Custom));
+        Assert.All(fields.Where(field => field.Metadata is null && field.Key != "name"), field => Assert.True(field.Custom));
         var invalid = Assert.Single(fields, field => field.Key == "path") with { Custom = false };
         await Assert.ThrowsAsync<InvalidDataException>(() => SharedCodexFields.ReadAsync(source, [invalid], ct));
     }

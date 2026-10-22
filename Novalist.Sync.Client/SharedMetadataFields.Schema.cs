@@ -7,7 +7,8 @@ public static partial class SharedMetadataFields
     private static readonly IReadOnlyDictionary<string, string> Codex = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["aliases"] = "strings", ["relationships"] = "relationships", ["tags"] = "strings",
-        ["group"] = "text", ["ai"] = "aiInclusion", ["readerHidden"] = "boolean", ["locked"] = "boolean"
+        ["group"] = "text", ["ai"] = "aiInclusion", ["readerHidden"] = "boolean", ["locked"] = "boolean", ["isWorld"] = "boolean",
+        ["match.caseSensitive"] = "boolean", ["match.matchPlurals"] = "boolean", ["match.exclusions"] = "strings", ["match.ignoredSceneIds"] = "strings"
     };
     private static readonly string[] OverrideText = ["name", "surname", "gender", "age", "role", "eyeColor", "hairColor", "hairLength", "height", "build", "skinTone"];
     private static readonly IReadOnlyDictionary<string, string> Scene = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -32,6 +33,9 @@ public static partial class SharedMetadataFields
         "codex" => Codex.GetValueOrDefault(binding.Key),
         "override" => OverrideText.Contains(binding.Key, StringComparer.Ordinal) ? "text" : Codex.GetValueOrDefault(binding.Key),
         "section" => binding.Key == "title" ? "text" : binding.Key is "aiHidden" or "readerHidden" ? "boolean" : null,
+        "state" => binding.Key is "act" or "chapter" or "scene" or "name" ? "text" : binding.Key == "gone" ? "boolean" : null,
+        "image" => binding.Key is "name" or "alt" ? "text" : null,
+        "attachment" => binding.Key == "name" ? "text" : null,
         "scene" => Scene.GetValueOrDefault(binding.Key),
         "research" => Research.GetValueOrDefault(binding.Key),
         _ => null
@@ -48,7 +52,7 @@ public static partial class SharedMetadataFields
         "boolean" => value is JsonValue boolean && boolean.TryGetValue<bool>(out _),
         "researchType" => IsChoice(value, ["Note", "Link", "File", "Image", "Pdf", "Audio", "Video"]),
         "researchStatus" => IsChoice(value, ["None", "Open", "InProgress", "Resolved"]),
-        "aiInclusion" => IsChoice(value, ["WhenMentioned", "Always", "Never"]),
+        "aiInclusion" => IsInteger(value, 0, 2),
         "relativeTime" => value is JsonObject relative && relative.Count == 2 && IsInteger(relative["amount"], int.MinValue, int.MaxValue) &&
             IsChoice(relative["unit"], ["Minutes", "Hours", "Days", "Weeks"]),
         "dateRange" => value is JsonObject range && range.All(property => property.Key is "start" or "end" or "note" or "startTime" or "endTime" && (property.Value is null || IsText(property.Value))),

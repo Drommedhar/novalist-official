@@ -40,9 +40,16 @@ public static partial class SharedMetadataFields
             yield break;
         }
         foreach (var key in Codex.Keys.Concat(MapKeys(root, "customProperties")))
-            if ((key != "relationships" || root.ContainsKey(key)) && (key != "group" || root.ContainsKey("entityTypeKey"))) yield return (new("codex"), key);
+            if ((key != "relationships" || root.ContainsKey(key)) && (key != "group" || root.ContainsKey("entityTypeKey")) &&
+                (key != "isWorld" || root.ContainsKey("parent"))) yield return (new("codex"), key);
         foreach (var section in Sections(root))
             foreach (var key in new[] { "title", "aiHidden", "readerHidden" }) yield return (new("section", Identity(section)), key);
+        foreach (var image in (root["images"] as JsonArray)?.OfType<JsonObject>() ?? [])
+            foreach (var key in new[] { "name", "alt" }) yield return (new("image", image["path"]?.GetValue<string>()), key);
+        foreach (var attachment in (root["attachments"] as JsonArray)?.OfType<JsonObject>() ?? [])
+            yield return (new("attachment", Identity(attachment)), "name");
+        foreach (var state in (root["stateOverrides"] as JsonArray)?.OfType<JsonObject>().Where(state => state["id"]?.GetValue<string>() is { Length: > 0 }) ?? [])
+            foreach (var key in new[] { "act", "chapter", "scene", "name", "gone" }) yield return (new("state", Identity(state)), key);
         foreach (var scope in (root["chapterOverrides"] as JsonArray)?.OfType<JsonObject>() ?? [])
         {
             var chapter = scope["chapter"]?.GetValue<string>() ?? throw new InvalidDataException("An override needs its chapter.");
@@ -50,6 +57,8 @@ public static partial class SharedMetadataFields
             foreach (var key in OverrideText.Concat(new[] { "aliases", "relationships" }).Concat(MapKeys(root, "customProperties")).Concat(MapKeys(scope, "customProperties")).Distinct(StringComparer.Ordinal)) yield return (new("override", Chapter: chapter, Scene: scene), key);
             foreach (var section in Sections(scope))
                 foreach (var key in new[] { "title", "aiHidden", "readerHidden" }) yield return (new("section", Identity(section), chapter, scene), key);
+            foreach (var image in (scope["images"] as JsonArray)?.OfType<JsonObject>() ?? [])
+                yield return (new("image", image["path"]?.GetValue<string>(), chapter, scene), "name");
         }
     }
 
