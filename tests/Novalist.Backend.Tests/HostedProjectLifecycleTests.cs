@@ -120,6 +120,12 @@ public sealed class HostedProjectLifecycleTests
         var member = Assert.Single(members, item => item.Role == "Contributor");
         await Assert.ThrowsAsync<RemoteInvocationException>(() => owner.Rpc.InvokeAsync("collaboration/removeMember", Assert.Single(members, item => item.Role == "Owner").UserId));
         await owner.Rpc.InvokeAsync("collaboration/removeMember", member.UserId);
+        using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct))
+        {
+            timeout.CancelAfter(TimeSpan.FromSeconds(5));
+            while ((await guest.Rpc.InvokeAsync<HostedSessionDto>("collaboration/status")).Connection != "AccessEnded")
+                await Task.Delay(20, timeout.Token);
+        }
         Assert.Single(await owner.Rpc.InvokeAsync<HostedProjectMember[]>("collaboration/members"));
         await guest.Rpc.InvokeAsync("collaboration/end");
         await Assert.ThrowsAsync<RemoteInvocationException>(() => guest.Rpc.InvokeAsync("collaboration/resume"));

@@ -24,6 +24,7 @@ public sealed partial class CollaborationSession
             {
                 lock (receiveGate) paused = false;
                 connectionGate.Release();
+                Saved?.Invoke();
             }
             if (Stopwatch.GetElapsedTime(started) > TimeSpan.FromSeconds(30))
                 throw new TimeoutException("A collaborator's update is still incomplete. Retry joining after it finishes.");

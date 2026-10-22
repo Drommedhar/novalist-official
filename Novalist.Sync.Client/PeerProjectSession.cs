@@ -12,7 +12,8 @@ public sealed class PeerProjectSession : IAsyncDisposable
     public TcpPeerTransport Transport { get; }
     public CollaborationSession Updates { get; }
     public SessionPresence Presence { get; }
-    public SessionConnectionStatus Status => synchronizer.Status;
+    public SessionConnectionStatus Status => Transport.AccessHasEnded
+        ? new(SessionConnectionState.AccessEnded) : synchronizer.Status;
 
     private PeerProjectSession(DeviceSequence sequence, SessionJournal journal, EnvelopeCipher cipher, TcpPeerTransport transport, DeviceIdentity device)
     {
@@ -26,6 +27,7 @@ public sealed class PeerProjectSession : IAsyncDisposable
         Updates = new(context, journal, cipher, identity, transport);
         Presence = new(context, identity, sequence, cipher, transport);
         synchronizer = new(Updates);
+        transport.AccessEnded += Updates.ReportAccessEnded;
     }
 
     public static async Task<PeerProjectSession> OpenAsync(string storage, Guid id, TcpPeerTransport transport, DeviceIdentity device,
@@ -89,6 +91,7 @@ public sealed class PeerProjectSession : IAsyncDisposable
             stopping.Cancel();
             await Presence.DisposeAsync();
             await synchronizer.DisposeAsync();
+            Transport.AccessEnded -= Updates.ReportAccessEnded;
             await Updates.DisposeAsync();
             await Transport.DisposeAsync();
             Transport.Access.Dispose();

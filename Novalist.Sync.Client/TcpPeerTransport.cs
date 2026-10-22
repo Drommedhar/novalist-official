@@ -29,6 +29,8 @@ public sealed partial class TcpPeerTransport : IUpdateTransport, IPresenceTransp
     public event Func<SequencedUpdate, Task>? Received;
     public event Func<UpdateEnvelope, Task>? PresenceReceived;
     public Exception? ReceiveError { get; private set; }
+    public bool AccessHasEnded { get; private set; }
+    public event Action? AccessEnded;
 
     public TcpPeerTransport(PeerProjectAccess access, DeviceIdentity device) : this(access, device, false) { }
 
@@ -62,6 +64,7 @@ public sealed partial class TcpPeerTransport : IUpdateTransport, IPresenceTransp
         try
         {
             ObjectDisposedException.ThrowIf(disposed, this);
+            if (AccessHasEnded) throw new UnauthorizedAccessException("Your access to this live session has ended.");
             if (connected) return;
             await DisconnectCoreAsync();
             var opened = await OpenAsync(Access.Address, device, null, Access.Certificate, ct);
@@ -73,6 +76,12 @@ public sealed partial class TcpPeerTransport : IUpdateTransport, IPresenceTransp
             }
             catch { opened.Stream.Dispose(); opened.Socket.Dispose(); throw; }
             finally { CryptographicOperations.ZeroMemory(opened.Welcome.EpochKey); }
+        }
+        catch (UnauthorizedAccessException)
+        {
+            AccessHasEnded = true;
+            AccessEnded?.Invoke();
+            throw;
         }
         finally { connectionGate.Release(); }
     }
@@ -112,7 +121,11 @@ public sealed partial class TcpPeerTransport : IUpdateTransport, IPresenceTransp
             hello = hello with { Signature = SignatureAlgorithm.Ed25519.Sign(device.SigningKey, PeerProtocol.Proof(challenge, hello)) };
             await PeerProtocol.WriteAsync(stream, hello, timeout.Token);
             var welcome = await PeerProtocol.ReadAsync<PeerWelcome>(stream, timeout.Token);
-            if (welcome.Error is not null) throw new CryptographicException(welcome.Error);
+            if (welcome.Error is not null)
+            {
+                if (certificate is not null) throw new UnauthorizedAccessException(welcome.Error);
+                throw new CryptographicException(welcome.Error);
+            }
             return (socket, stream, welcome);
         }
         catch { stream?.Dispose(); socket.Dispose(); throw; }

@@ -346,6 +346,41 @@ public sealed class PeerBootstrapTests : IDisposable
         Assert.Equal(canonical, (await files.SnapshotAsync(ct))["Book/prose.txt"]);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task EditsReceivedDuringSnapshotCatchUpWithoutFurtherHostActivity(bool failCapture)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var owner = await DeviceAsync("owner", ct);
+        using var guest = await DeviceAsync("guest", ct);
+        await using var host = await HostAsync(owner, ct);
+        var ownerTransport = new TcpPeerTransport(host.CreateOwnerAccess("127.0.0.1"), owner);
+        await using var ownerSession = await PeerProjectSession.OpenAsync(Path.Combine(root, "owner-session"), Guid.NewGuid(), ownerTransport, owner);
+        await ownerSession.StartAsync(true, ct);
+        var guestTransport = await TcpPeerTransport.JoinInvitationAsync(host.CreateInvitation("127.0.0.1"), guest, ct);
+        await using var guestSession = await PeerProjectSession.OpenAsync(Path.Combine(root, "guest-session"), Guid.NewGuid(), guestTransport, guest);
+        await guestSession.StartAsync(false, ct);
+        var received = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        ownerTransport.Received += _ => { received.TrySetResult(); return Task.CompletedTask; };
+        var item = Guid.NewGuid();
+        var capture = ownerSession.Updates.CaptureSnapshotAsync(async (sequence, token) =>
+        {
+            guestSession.Updates.Save(item, "Written during snapshot"u8.ToArray());
+            await guestSession.Updates.SynchronizeAsync(false, token);
+            await received.Task.WaitAsync(TimeSpan.FromSeconds(5), token);
+            Assert.Empty(ownerSession.Updates.ReadItem(item));
+            if (failCapture) throw new IOException("Snapshot disk is full.");
+            return sequence;
+        }, ct);
+        if (failCapture) await Assert.ThrowsAsync<IOException>(() => capture);
+        else Assert.Equal(0, await capture);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(3));
+        while (ownerSession.Updates.ReadItem(item).Count == 0) await Task.Delay(20, timeout.Token);
+        Assert.Equal("Written during snapshot"u8.ToArray(), Assert.Single(ownerSession.Updates.ReadItem(item)));
+    }
+
     private Task<TcpPeerHost> HostAsync(DeviceIdentity owner, CancellationToken ct) =>
         TcpPeerHost.StartAsync(new(IPAddress.Loopback, 0), root,
             new(Guid.NewGuid(), 0, RandomNumberGenerator.GetBytes(32), owner), ct);
