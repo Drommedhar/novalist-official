@@ -68,9 +68,9 @@ public sealed partial class Workspace
             var file = files[item];
             if (changed) await FileService.WriteTextAsync(SharedProjectPath.Resolve(root, file.Relative),
                 FileFrontMatter.Stamp(FileFrontMatter.Strip(snapshot.Html), file.SceneId));
-            await RecordSharedSceneAsync(root, file.Relative, snapshot.Html, local);
+            var counted = await RecordSharedSceneAsync(root, file.Relative, snapshot.Html, local);
             projected[item] = snapshot.Html;
-            recorded.Add(item);
+            if (counted) recorded.Add(item);
         });
         if (DispatchSharedUpdate is { } dispatch) documents.DispatchRemote = dispatch;
         try { await documents.StartAsync(initial, ct); }
@@ -135,9 +135,9 @@ public sealed partial class Workspace
         if (sharedScenes is not null || sharedFields is not null || HostedProjects?.IsActive == true || PeerProjects?.IsActive == true) throw new InvalidOperationException("Close the collaboration session asynchronously before closing this workspace.");
     }
 
-    private async Task RecordSharedSceneAsync(string root, string relative, string html, bool local)
+    private async Task<bool> RecordSharedSceneAsync(string root, string relative, string html, bool local)
     {
-        if (Projects.ProjectRoot != root || Projects.ActiveBook is not { } book || Projects.ScenesManifest is not { } manifest) return;
+        if (Projects.ProjectRoot != root || Projects.ActiveBook is not { } book || Projects.ScenesManifest is not { } manifest) return false;
         foreach (var chapter in book.Chapters)
         {
             foreach (var scene in manifest.Chapters.GetValueOrDefault(chapter.Guid) ?? [])
@@ -146,9 +146,10 @@ public sealed partial class Workspace
                 if (!sharedItems.Comparer.Equals(relative, path)) continue;
                 var plainText = Core.Utilities.TextDiff.StripHtml(SharedBlockBoundary().Replace(html, "\n"));
                 await AfterSceneWriteAsync(chapter, scene, html, plainText, recordHistory: local);
-                return;
+                return true;
             }
         }
+        return await RecordInactiveSharedSceneAsync(root, relative, html, local);
     }
 
     [GeneratedRegex(@"</?(?:p|div|h[1-6]|ul|ol|li|dl|dt|dd|blockquote|pre|table|thead|tbody|tfoot|tr|td|th|figure|figcaption|br|hr)\b[^>]*>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]

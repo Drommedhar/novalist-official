@@ -33,7 +33,7 @@ project. No hard participant cap. Ending and starting sessions has no handover.
 | C4 | In progress | C1 | Ordinary write sync, dynamic scene/Codex bindings, simultaneous Codex prose, per-writer undo and disconnected-write guards are integrated. Research prose and remaining metadata controls are being completed. |
 | C5 | In progress | C1, C2, C4 | Real two-app structure, Codex, research/assets, move/deletion recovery, retained copies and reopen pass. Named field locks and different-scene presence badges pass hosted/TCP acceptance. |
 | C6 | Complete | C3, C4 | Desktop peer session controls, initial project exchange and local TCP acceptance pass. Optional Steam adapter compiles; native runtime validation requires app registration. |
-| C7 | In progress | C4 | Owner access management and revoked participant behavior. |
+| C7 | Complete | C4 | Owner access management, removal with encryption-key rotation, remaining-writer refresh, safe re-invitation and project deletion pass three-app acceptance. |
 | C8 | Pending | C5, C6, C7 | Final application checks, standards/spec review, prepared local server changes, implementation commits and cleanup. Publishing awaits the user's own testing and explicit approval. |
 
 Approved test boundaries: editor API, collaboration session API, real transports.

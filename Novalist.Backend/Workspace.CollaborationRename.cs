@@ -11,11 +11,43 @@ public sealed partial class Workspace
         var field = await RequireEditableSharedFieldAsync(sessionId, item, focus);
         await field.Fields.ReadAsync(item, ct);
         var rename = await SharedRenameAsync(fieldBindings[item], value);
-        await field.Fields.WriteAsync(field.Lease, value, ct);
-        if (rename is not null) await RenameSharedProseAsync(rename, CancellationToken.None);
+        var references = new List<SharedRenameReference>();
+        try
+        {
+            if (rename is not null) await AcquireRenameReferencesAsync(rename, references, ct);
+            await field.Fields.WriteAsync(field.Lease, value, ct);
+            foreach (var reference in references)
+                await field.Fields.WriteAsync(reference.Lease, reference.Value, CancellationToken.None);
+            if (rename is not null) await RenameSharedProseAsync(rename, CancellationToken.None);
+        }
+        finally
+        {
+            await Task.WhenAll(references.Select(reference => field.Session.ReleaseFieldAsync(reference.Lease, CancellationToken.None)));
+        }
     }
 
     private sealed record SharedRename(string EntityId, string Previous, string Next);
+    private sealed record SharedRenameReference(FieldLeaseRequest Lease, string Value);
+
+    private async Task AcquireRenameReferencesAsync(SharedRename rename, List<SharedRenameReference> acquired, CancellationToken ct)
+    {
+        foreach (var binding in fieldBindings.Values.Where(binding => !binding.Custom && binding.Key == "parent"))
+        {
+            if (!await FileService.ExistsAsync(SharedProjectPath.Resolve(sharedRoot ?? throw new InvalidOperationException("The shared project is closed."), binding.Path))) continue;
+            var field = RequireSharedField(sharedSession, binding.ItemId, Guid.NewGuid());
+            if (await field.Fields.ReadAsync(binding.ItemId, ct) != rename.Previous) continue;
+            await RequireEditableSharedFieldAsync(sharedSession, binding.ItemId, field.Lease.LeaseId);
+            var focused = await field.Fields.AcquireAsync(field.Lease, ct);
+            if (!focused.Lease.Acquired)
+            {
+                var participants = PeerProjects?.IsActive == true ? PeerProjects.Participants(sharedSession) : HostedProjects?.Participants(sharedSession);
+                var writer = participants?.FirstOrDefault(participant => participant.DeviceId == focused.Lease.DeviceId)?.Name;
+                throw new InvalidOperationException(writer is null ? "A reference to this entry is being edited. Retry the rename after the field is released."
+                    : $"{writer} is editing a reference to this entry. Retry the rename after the field is released.");
+            }
+            acquired.Add(new(field.Lease, focused.Value == rename.Previous ? rename.Next : focused.Value));
+        }
+    }
 
     private async Task<SharedRename?> SharedRenameAsync(SharedFieldBinding binding, string value)
     {
