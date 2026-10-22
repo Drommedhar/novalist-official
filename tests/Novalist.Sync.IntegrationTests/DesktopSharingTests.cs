@@ -182,12 +182,16 @@ public sealed partial class DesktopSharingTests(CommunityServerFixture server) :
                     await UnblockCapture.Task.WaitAsync(cancellationToken);
                 }
                 var state = documents[id!.Value];
-                return new SharedSceneSnapshot(state, [], Encoding.UTF8.GetString(state), null);
+                var value = Encoding.UTF8.GetString(state);
+                return value.StartsWith("text:", StringComparison.Ordinal)
+                    ? new SharedSceneSnapshot(state, [], null, null) { Text = value[5..] }
+                    : new SharedSceneSnapshot(state, [], value, null);
             }
             if (action != "execute") return null;
             var kind = command.GetProperty("kind").GetString();
             var item = command.GetProperty("id").GetGuid();
             if (kind == "seed") documents[item] = Encoding.UTF8.GetBytes(command.GetProperty("html").GetString()!);
+            else if (kind == "seedText") documents[item] = Encoding.UTF8.GetBytes("text:" + command.GetProperty("text").GetString());
             else if (kind != "validate") documents[item] = command.GetProperty("state").GetBytesFromBase64();
             return kind == "receive" ? new SceneApplyResult(true, []) : null;
         }
