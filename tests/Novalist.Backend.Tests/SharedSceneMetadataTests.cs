@@ -12,6 +12,40 @@ namespace Novalist.Backend.Tests;
 public sealed class SharedSceneMetadataTests
 {
     [Fact]
+    public async Task LeavingParallelNarrationClearsTheStrandOnlyAfterItsFocusIsReleased()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var directory = new TempDir();
+        await using var identity = await TestIdentityProvider.StartAsync(ct);
+        await using var server = await HostedSessionServer.StartAsync(identity.Authority, ct);
+        await using var desktop = new HostedDesktop(Path.Combine(directory.Path, "settings"), identity);
+        await desktop.Rpc.InvokeAsync("project/create", directory.Path, "Shared", "Book");
+        var chapter = Assert.Single((await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/createChapter", "Opening")).Chapters);
+        await desktop.Rpc.InvokeAsync("project/createScene", chapter.Guid, "Arrival");
+        await desktop.SignInAsync(server.Address);
+        var session = await desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address);
+        var scene = Assert.Single(Assert.Single((await desktop.Rpc.InvokeAsync<ProjectStateDto>("project/getState")).Chapters).Scenes);
+        var fields = Assert.IsType<SharedEntityFieldsDto>(scene.SharedFields).Fields;
+        var modeFocus = Guid.NewGuid();
+        var strandFocus = Guid.NewGuid();
+        await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, fields["narrativeMode"], modeFocus);
+        await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, fields["narrativeMode"], modeFocus, "\"parallel\"");
+        await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, fields["strand"], strandFocus);
+        await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, fields["strand"], strandFocus, "\"Mira\"");
+
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, fields["narrativeMode"], modeFocus, "\"linear\""));
+
+        var retained = await desktop.Rpc.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", session.SessionId, fields["narrativeMode"], modeFocus);
+        Assert.Equal("\"parallel\"", retained.Value);
+        await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, fields["strand"], strandFocus);
+        await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, fields["narrativeMode"], modeFocus, "\"linear\"");
+        var cleared = await desktop.Rpc.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", session.SessionId, fields["strand"], strandFocus);
+        Assert.Equal("null", cleared.Value);
+        await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, fields["strand"], strandFocus);
+        await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, fields["narrativeMode"], modeFocus);
+    }
+
+    [Fact]
     public async Task ANewSharedSceneIncludesItsInitialPointOfViewBeforeItsFieldsAreBound()
     {
         var ct = TestContext.Current.CancellationToken;
