@@ -1,5 +1,7 @@
 import css from './presence.css?inline'
 
+let nextHighlightId = 0
+
 export interface SharedSelection {
   anchor: number[]
   focus: number[]
@@ -16,7 +18,7 @@ export class RemoteSelections {
   private readonly markers = new Map<string, HTMLElement>()
   private readonly style: HTMLStyleElement
   private readonly document: Document
-  private readonly highlight = `novalist-collaborators-${crypto.randomUUID()}`
+  private readonly highlight = `novalist-collaborators-${++nextHighlightId}`
 
   constructor(private readonly editor: Window, private readonly range: (selection: SharedSelection) => Range | null) {
     this.document = editor.document
