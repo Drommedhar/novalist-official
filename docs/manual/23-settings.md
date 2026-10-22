@@ -110,6 +110,8 @@ When a field is locked, its message names the writer editing it.
 AI and reader visibility settings, section visibility and name-matching controls use these
 locks too. Settling or unsettling an entry and moving a place under another place
 briefly acquire the relevant field lock before changing it.
+The Codex table uses the same named locks for its cells and shared Markdown editing
+for descriptions, so changes made in the table and the detail form stay together.
 Locks expire after a disconnected writer stops renewing them. An unsent draft
 remains visible when you leave and reopen the Codex view.
 If saving fails, use **Retry save**. When the lock has expired or the connection
