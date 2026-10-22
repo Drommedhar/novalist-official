@@ -43,7 +43,8 @@ internal sealed class PeerProjectWorkspace : IDisposable
         try
         {
             var epochKey = RandomNumberGenerator.GetBytes(32);
-            try { host = await TcpPeerHost.StartAsync(new(steam ? IPAddress.Loopback : IPAddress.Any, port), Path.Combine(storage, "hosts"), new(Guid.NewGuid(), 0, epochKey, device), ct); }
+            var bindAddress = steam ? IPAddress.Loopback : Uri.CheckHostName(address) == UriHostNameType.IPv6 ? IPAddress.IPv6Any : IPAddress.Any;
+            try { host = await TcpPeerHost.StartAsync(new(bindAddress, port), Path.Combine(storage, "hosts"), new(Guid.NewGuid(), 0, epochKey, device), ct); }
             finally { CryptographicOperations.ZeroMemory(epochKey); }
             access = host.CreateOwnerAccess(address);
             if (steam) relay = await SteamPeerRelay.HostAsync(access.Address.Port, ct);
@@ -60,8 +61,6 @@ internal sealed class PeerProjectWorkspace : IDisposable
             runtime.Checkpoint = await CheckpointTransfer.PublishAsync(session.Updates, archive, ct);
             archive.Position = 0;
             await workspace.AttachSharedProjectAsync(id, session.Updates, states, archive, ct);
-            current = runtime;
-            return runtime.View();
         }
         catch
         {
@@ -75,6 +74,8 @@ internal sealed class PeerProjectWorkspace : IDisposable
             }
             throw;
         }
+        current = runtime;
+        return runtime.View();
     }
 
     internal Task<HostedSessionDto> JoinAsync(string link, string destination, string name, CancellationToken ct) =>
@@ -100,12 +101,9 @@ internal sealed class PeerProjectWorkspace : IDisposable
         SteamPeerRelay? relay = null;
         try
         {
-            if (steamHost != 0)
-            {
-                relay = await SteamPeerRelay.ConnectAsync(steamHost, ct);
-                invitation = invitation with { Address = invitation.Address with { Host = "127.0.0.1", Port = relay.LocalPort } };
-            }
-            var wire = await TcpPeerTransport.JoinInvitationAsync(invitation, device, ct);
+            TcpPeerTransport wire;
+            if (steamHost == 0) wire = await TcpPeerTransport.JoinInvitationAsync(invitation, device, ct);
+            else (wire, relay) = await SteamPeerRelay.JoinInvitationAsync(new(steamHost, invitation), device, ct);
             var id = Guid.NewGuid();
             var session = await PeerProjectSession.OpenAsync(storage, id, wire, device);
             runtime = new(id, device, session, null, invitation.Address.Host, name) { Checkpoint = checkpoint, Relay = relay };
@@ -120,8 +118,6 @@ internal sealed class PeerProjectWorkspace : IDisposable
             await workspace.OpenProjectAsync(destination);
             archive.Position = 0;
             await workspace.AttachSharedProjectAsync(id, session.Updates, states, archive, ct);
-            current = runtime;
-            return runtime.View();
         }
         catch
         {
@@ -129,6 +125,8 @@ internal sealed class PeerProjectWorkspace : IDisposable
             else { if (relay is not null) await relay.DisposeAsync(); device.Dispose(); }
             throw;
         }
+        current = runtime;
+        return runtime.View();
     }
 
     internal string Invite()
@@ -179,7 +177,7 @@ internal sealed class PeerProjectWorkspace : IDisposable
         internal string Address => address;
         internal string Name => name;
         internal CheckpointReference? Checkpoint { get; set; }
-        internal HostedSessionDto View() => new(id, session.Transport.Access.ProjectId, Relay is null ? "tcp://" + address + ":" + session.Transport.Access.Address.Port : "Steam",
+        internal HostedSessionDto View() => new(id, session.Transport.Access.ProjectId, Relay is null ? new UriBuilder("tcp", address, session.Transport.Access.Address.Port).Uri.GetLeftPart(UriPartial.Authority) : "Steam",
             session.Status.State.ToString(), host is not null, Mode: Relay is null ? "tcp" : "steam");
         public async ValueTask DisposeAsync()
         {

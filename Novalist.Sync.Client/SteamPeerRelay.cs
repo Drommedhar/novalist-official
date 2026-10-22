@@ -9,6 +9,21 @@ public abstract class SteamPeerRelay : IAsyncDisposable
     public abstract Exception? Failure { get; protected set; }
     public abstract ValueTask DisposeAsync();
 
+    public static async Task<(TcpPeerTransport Transport, SteamPeerRelay Relay)> JoinInvitationAsync(
+        SteamPeerInvitation invitation, DeviceIdentity device, CancellationToken ct)
+    {
+        var relay = await ConnectAsync(invitation.HostSteamId, ct);
+        try
+        {
+            var local = invitation.Invitation with
+            {
+                Address = invitation.Invitation.Address with { Host = "127.0.0.1", Port = relay.LocalPort }
+            };
+            return (await TcpPeerTransport.JoinInvitationAsync(local, device, ct), relay);
+        }
+        catch { await relay.DisposeAsync(); throw; }
+    }
+
     public static SteamRuntimeStatus Status()
     {
 #if NOVALIST_STEAMWORKS

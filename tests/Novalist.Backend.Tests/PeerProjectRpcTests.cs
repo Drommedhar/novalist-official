@@ -13,8 +13,10 @@ namespace Novalist.Backend.Tests;
 [Collection("BackendStatics")]
 public sealed class PeerProjectRpcTests
 {
-    [Fact]
-    public async Task DesktopPeerSessionsTransferAProjectPublishPresenceAndRetainLocalCopiesWhenEnded()
+    [Theory]
+    [InlineData("127.0.0.1")]
+    [InlineData("::1")]
+    public async Task DesktopPeerSessionsTransferAProjectPublishPresenceAndRetainLocalCopiesWhenEnded(string address)
     {
         var ct = TestContext.Current.CancellationToken;
         using var temporary = new TempDir();
@@ -24,7 +26,7 @@ public sealed class PeerProjectRpcTests
         var chapter = await owner.Workspace.Projects.CreateChapterAsync("Opening");
         var scene = await owner.Workspace.Projects.CreateSceneAsync(chapter.Guid, "Arrival");
         await owner.Workspace.Projects.WriteSceneContentAsync(chapter, scene, "<p>Shared writing.</p>");
-        var status = await owner.Rpc.HostPeerAsync("127.0.0.1", 0, "Owner", ct);
+        var status = await owner.Rpc.HostPeerAsync(address, 0, "Owner", ct);
         Assert.True(status.IsOwner);
         Assert.Equal("tcp", status.Mode);
         Assert.Equal(status.ProjectId, owner.Rpc.Status()?.ProjectId);
@@ -99,6 +101,13 @@ public sealed class PeerProjectRpcTests
         Assert.Null(desktop.Rpc.Status());
         Assert.NotNull(desktop.Workspace.Projects.ProjectRoot);
         Assert.Equal("tcp", (await desktop.Rpc.HostPeerAsync("127.0.0.1", 0, "Writer", ct)).Mode);
+        var link = await desktop.Rpc.InviteAsync(DateTimeOffset.UtcNow.AddHours(1), ct);
+        var steamLink = new SteamPeerInvitation(76561198000000001, PeerInvitation.Parse(link)).ToLink();
+        await using var guest = new Desktop(temporary.Combine("guest-settings"));
+        await Assert.ThrowsAsync<NotSupportedException>(() => guest.Rpc.JoinSteamAsync(steamLink, temporary.Combine("Guest"), "Guest", ct));
+        Assert.Null(guest.Rpc.Status());
+        Assert.False(Directory.Exists(temporary.Combine("Guest")));
+        Assert.Equal("tcp", (await guest.Rpc.JoinPeerAsync(link, temporary.Combine("Guest"), "Guest", ct)).Mode);
     }
 
     private static async Task EventuallyAsync(Func<bool> condition, CancellationToken ct)
