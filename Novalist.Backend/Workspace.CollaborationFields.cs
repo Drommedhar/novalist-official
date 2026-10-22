@@ -35,7 +35,8 @@ public sealed partial class Workspace
         if (sessionId == Guid.Empty) throw new ArgumentException("A session identity is required.", nameof(sessionId));
         var root = Projects.ProjectRoot ?? throw new InvalidOperationException("Open a project first.");
         var values = await SharedCodexFields.ReadAsync(root, bindings, ct);
-        var known = bindings.ToDictionary(binding => binding.ItemId);
+        var known = fieldBindings;
+        foreach (var binding in bindings) known.Add(binding.ItemId, binding);
         var fields = new SharedFieldWorkspace(session, async (item, value, _) =>
         {
             if (Projects.ProjectRoot != root) throw new InvalidOperationException("The shared project is no longer open.");
@@ -49,7 +50,6 @@ public sealed partial class Workspace
         fieldSession = session;
         sharedRoot = root;
         sharedSession = sessionId;
-        foreach (var (item, binding) in known) fieldBindings.Add(item, binding);
     }
 
     internal SharedEntityFieldsDto? SharedEntityFields(IEntityData entity)
@@ -99,6 +99,12 @@ public sealed partial class Workspace
     private async Task ProjectFieldAsync(string root, SharedFieldBinding binding, string value)
     {
         var path = SharedProjectPath.Resolve(root, binding.Path);
+        if (!await FileService.ExistsAsync(path))
+        {
+            await WriteSharedFileRecoveryAsync(root, binding.ItemId.ToString("N"), binding.Path,
+                JsonSerializer.SerializeToUtf8Bytes(new { binding.Key, binding.Custom, Value = value }));
+            return;
+        }
         var previous = await FileService.ReadTextAsync(path);
         var entity = JsonNode.Parse(previous) as JsonObject ?? throw new InvalidDataException("The shared Codex entry is invalid.");
         var id = entity[PropertyName(entity, "id")]?.GetValue<string>();

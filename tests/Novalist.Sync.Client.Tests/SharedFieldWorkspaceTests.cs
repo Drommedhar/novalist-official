@@ -148,7 +148,8 @@ public sealed class SharedFieldWorkspaceTests
             }
             localValue = "42";
             await using var reopened = new SharedFieldWorkspace(session, Project);
-            await reopened.StartAsync(new Dictionary<Guid, string> { [item] = localValue }, ct);
+            await reopened.StartAsync(new Dictionary<Guid, string>(), ct);
+            await reopened.AddAsync(new Dictionary<Guid, string> { [item] = localValue }, ct);
             Assert.Equal("43", localValue);
         }
         finally { if (Directory.Exists(folder)) Directory.Delete(folder, recursive: true); }

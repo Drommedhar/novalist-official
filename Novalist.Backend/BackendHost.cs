@@ -67,7 +67,7 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
         // SerialDispatchJsonRpc for what that cost and what this costs instead.
         var coordinator = new WorkspaceCoordinator(_workspace, _workspaceGate);
         _workspace.Coordinator = coordinator;
-        var rpc = new SerialDispatchJsonRpc(handler, _workspaceGate, _importApi.StopIfScopeChangedAsync, coordinator);
+        var rpc = new SerialDispatchJsonRpc(handler, _workspaceGate, AfterWorkspaceRequestAsync, coordinator);
 #if NOVALIST_COLLABORATION
         _workspace.CreateSharedDocuments = session => new(session, (parameters, ct) =>
             rpc.InvokeWithParameterObjectAsync<JsonElement>("collaboration/documents", parameters, ct));
@@ -123,6 +123,14 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
         rpc.StartListening();
         _rpc = rpc;
         return rpc;
+    }
+
+    private async Task AfterWorkspaceRequestAsync()
+    {
+#if NOVALIST_COLLABORATION
+        await _workspace.FlushSharedProjectFilesAsync();
+#endif
+        await _importApi.StopIfScopeChangedAsync();
     }
 
     private void AttachProjectTargets(JsonRpc rpc, JsonRpcTargetOptions targetOptions)

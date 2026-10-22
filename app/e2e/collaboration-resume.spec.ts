@@ -44,6 +44,7 @@ test('a restarted writer reconnects to their retained project and creates an ind
     await guest.page.keyboard.press('Control+End')
     await guest.page.keyboard.type(' Written while away.')
     await expect.poll(async () => (await guest.rpc<{ html: string }>('scenes/read', [chapter.guid, scene.id])).html).toContain('Written while away.')
+    const createdWhileAway = await guest.rpc<{ id: string }>('entities/create', ['character', 'Created while owner offline'])
 
     const reopened = await launchApp('novalist-resume-reopened-', {}, owner.workDir)
     participants.push(reopened)
@@ -60,6 +61,7 @@ test('a restarted writer reconnects to their retained project and creates an ind
     expect(resumed.sessionId).not.toBe(original.sessionId)
     expect((await reopened.rpc<{ overrides: { editorFontSize: number } }>('settings/get')).overrides.editorFontSize).toBe(23)
     await expect.poll(async () => (await reopened.rpc<{ html: string }>('scenes/read', [chapter.guid, scene.id])).html).toContain('Written while away.')
+    expect((await reopened.rpc<{ id: string }[]>('entities/list', ['character'])).some(entity => entity.id === createdWhileAway.id)).toBe(true)
     await reopened.rpc('collaboration/end')
     await reopened.app.evaluate(({ dialog }, folder) => {
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] })

@@ -74,7 +74,7 @@ internal sealed partial class HostedProjectWorkspace
                 await restore.ApplyAsync(workspace.FileService, ct);
                 await workspace.OpenProjectAsync(saved.Root);
                 archive.Position = 0;
-                await workspace.AttachSharedProjectAsync(runtime.Id, runtime.Session.Updates, restore.State, ct);
+                await workspace.AttachSharedProjectAsync(runtime.Id, runtime.Session.Updates, restore.State, archive, ct);
                 current = runtime;
                 return runtime.View();
             }

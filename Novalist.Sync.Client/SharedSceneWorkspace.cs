@@ -65,6 +65,41 @@ public sealed class SharedSceneWorkspace : IAsyncDisposable
         finally { gate.Release(); }
     }
 
+    public async Task AddAsync(IReadOnlyList<SharedDocumentState> added, CancellationToken ct)
+    {
+        await gate.WaitAsync(ct);
+        try
+        {
+            ObjectDisposedException.ThrowIf(disposed, this);
+            if (!started) throw new InvalidOperationException("The shared scenes have not opened.");
+            foreach (var scene in added)
+            {
+                if (scene.ItemId == Guid.Empty) throw new InvalidDataException("A shared scene needs an identity.");
+                if (items.Contains(scene.ItemId)) continue;
+                await documents.LoadAsync(scene.ItemId, scene.State, [], ct);
+                items.Add(scene.ItemId);
+                failures.Add(scene.ItemId);
+                await ReplayFailureAsync(scene.ItemId, ct);
+                await ProjectAsync(scene.ItemId, ct);
+            }
+        }
+        finally { gate.Release(); }
+    }
+
+    public async Task RemoveAsync(Guid item, byte[] deletedAt, CancellationToken ct)
+    {
+        await gate.WaitAsync(ct);
+        try
+        {
+            EnsureItem(item);
+            await documents.RemoveAsync(item, deletedAt, ct);
+            failures.Add(item);
+            await ReplayFailureAsync(item, ct);
+            await ProjectAsync(item, ct);
+        }
+        finally { gate.Release(); }
+    }
+
     public async Task WriteAsync(Guid item, byte[] update, CancellationToken ct)
     {
         var stable = update.ToArray();

@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test'
 import { join } from 'node:path'
-import { readFile } from 'node:fs/promises'
+import { readFile, readdir, writeFile } from 'node:fs/promises'
+import * as Y from 'yjs'
 import { dismissTour, launchApp, seedBook, type Harness } from './harness'
 import { identityProvider } from './fixtures/identityProvider'
 import { collaborationServer } from './fixtures/collaborationServer'
+import type { ProjectStateDto } from '../src/renderer/src/stores/projectStore'
 
 test.skip(process.env.NOVALIST_SYNC_INTEGRATION !== '1', 'Requires the local community-server checkout and PostgreSQL fixture.')
 
@@ -44,6 +46,60 @@ async function editSharedCodex(owner: Harness, guest: Harness, entityId: string)
   await guestAge.fill('44')
   await guestAge.blur()
   await expect(ownerAge).toHaveValue('44')
+}
+
+async function createSharedContent(owner: Harness, guest: Harness): Promise<void> {
+  const added = await guest.rpc<{ id: string }>('entities/create', ['character', 'Created together'])
+  await expect.poll(async () => (await owner.rpc<{ id: string }[]>('entities/list', ['character']))
+    .some(entity => entity.id === added.id), { timeout: 15_000 }).toBe(true)
+  await editSharedCodex(owner, guest, added.id)
+
+  const source = join(guest.workDir, 'shared-attachment.bin')
+  const bytes = Buffer.from([0, 1, 2, 127, 128, 254, 255])
+  await writeFile(source, bytes)
+  await guest.rpc('attachments/add', ['character', added.id, source, 'Shared attachment'])
+  await expect.poll(() => owner.rpc<unknown[]>('attachments/list', ['character', added.id])).toHaveLength(1)
+  const attachments = await owner.rpc<{ fullPath: string }[]>('attachments/list', ['character', added.id])
+  expect(await readFile(attachments[0].fullPath)).toEqual(bytes)
+
+  await owner.rpc('research/save', [null, 'Shared source', 'Note', 'A source found together.', [], []])
+  await expect.poll(() => guest.rpc('research/list')).toMatchObject([{ title: 'Shared source', content: 'A source found together.' }])
+
+  const createdChapter = await guest.rpc<ProjectStateDto>('project/createChapter', ['Shared chapter'])
+  const chapter = createdChapter.chapters.find(chapter => chapter.title === 'Shared chapter')!
+  await expect.poll(async () => (await owner.rpc<ProjectStateDto>('project/getState')).chapters.some(item => item.guid === chapter.guid)).toBe(true)
+  const createdScene = await guest.rpc<ProjectStateDto>('project/createScene', [chapter.guid, 'Shared scene'])
+  const scene = createdScene.chapters.find(item => item.guid === chapter.guid)!.scenes[0]
+  await expect.poll(async () => (await owner.rpc<ProjectStateDto>('project/getState')).chapters
+    .find(item => item.guid === chapter.guid)?.scenes.some(item => item.id === scene.id)).toBe(true)
+  for (const h of [owner, guest]) await h.page.evaluate(({ chapter, scene }) =>
+    window.novalistStores.project.getState().openScene(chapter, scene), { chapter: chapter.guid, scene: scene.id })
+  const editor = guest.page.frameLocator('.editor-frame').locator('#editor')
+  await editor.click()
+  await guest.page.keyboard.type('A newly shared scene.')
+  await expect(owner.page.frameLocator('.editor-frame').locator('#editor')).toHaveText('A newly shared scene.')
+  const target = createdScene.chapters.find(item => item.title === 'Opening')!
+  await guest.rpc('project/moveScenes', [[scene.id], target.guid, 1])
+  await expect.poll(async () => (await owner.rpc<ProjectStateDto>('project/getState')).chapters
+    .find(item => item.guid === target.guid)?.scenes.some(item => item.id === scene.id)).toBe(true)
+  const content = await guest.rpc<{ shared: { sessionId: string; itemId: string; state: string } }>('scenes/read', [target.guid, scene.id])
+  const concurrent = new Y.Doc()
+  Y.applyUpdate(concurrent, Buffer.from(content.shared.state, 'base64'))
+  const previous = Y.encodeStateVector(concurrent)
+  concurrent.getText('prose').insert(concurrent.getText('prose').length - 1, ' A late concurrent edit.')
+  const update = Buffer.from(Y.encodeStateAsUpdate(concurrent, previous)).toString('base64')
+  concurrent.destroy()
+  await guest.rpc('project/deleteScene', [target.guid, scene.id])
+  await guest.rpc('collaboration/writeScene', [content.shared.sessionId, content.shared.itemId, update])
+  await expect.poll(async () => (await owner.rpc<ProjectStateDto>('project/getState')).chapters
+    .some(item => item.scenes.some(candidate => candidate.id === scene.id))).toBe(false)
+  const root = (await owner.rpc<ProjectStateDto>('project/getState')).projectPath!
+  await expect.poll(async () => {
+    const files = await readdir(join(root, 'Recovered edits'), { recursive: true })
+    const prose = await Promise.all(files.filter(file => file.endsWith('.novalist'))
+      .map(file => readFile(join(root, 'Recovered edits', file), 'utf8')))
+    return prose.some(html => html.includes('A late concurrent edit.'))
+  }).toBe(true)
 }
 
 test('two desktop writers join through Settings, exchange real editor updates, and retain their copies', async () => {
@@ -106,6 +162,7 @@ test('two desktop writers join through Settings, exchange real editor updates, a
     await expect(owner.page.frameLocator('.editor-frame').locator('.nv-collaboration-label')).toHaveText('Test Writer')
     await editSharedCodex(owner, guest, character.id)
     await editSharedCodex(owner, guest, worldCharacter.id)
+    await createSharedContent(owner, guest)
     for (const h of participants) {
       await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
       await h.page.getByRole('button', { name: 'End this session', exact: true }).click()

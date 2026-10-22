@@ -36,6 +36,32 @@ public sealed class SharedSceneWorkspaceTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task DeletedSceneKeepsLaterWritingInRecoveryWithoutRestoringTheScene()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var shared = Create();
+        await shared.StartAsync([new(item, "Books/scene.novalist", [1])], ct);
+        await shared.RemoveAsync(item, [1], ct);
+        await shared.WriteAsync(item, [2], ct);
+        var snapshot = await shared.ReadAsync(item, ct);
+        Assert.Null(snapshot.Html);
+        Assert.Equal("<p>2</p>", snapshot.Recovered);
+    }
+
+    [Fact]
+    public async Task SceneCreatedDuringTheSessionReplaysEditsReceivedBeforeItsBinding()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var shared = Create();
+        await shared.StartAsync([], ct);
+        session.Save(item, [2]);
+        await shared.AddAsync([new(item, "Books/new-scene.novalist", [1])], ct);
+        Assert.Equal("<p>2</p>", (await shared.ReadAsync(item, ct)).Html);
+        await shared.AddAsync([new(item, "Books/moved-scene.novalist", [1])], ct);
+        Assert.Equal("<p>2</p>", (await shared.ReadAsync(item, ct)).Html);
+    }
+
+    [Fact]
     public async Task LocalEditIsJournaledBeforeProjectionAndReplayedAfterRestart()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -189,6 +215,7 @@ public sealed class SharedSceneWorkspaceTests : IAsyncDisposable
     private sealed class DocumentPeer
     {
         private readonly Dictionary<Guid, byte[]> states = [];
+        private readonly Dictionary<Guid, byte[]> deleted = [];
         public bool Cumulative { get; set; }
 
         public Task<JsonElement> RequestAsync(object request, CancellationToken ct)
@@ -208,14 +235,19 @@ public sealed class SharedSceneWorkspaceTests : IAsyncDisposable
                     throw new InvalidDataException("Invalid shared state.");
                 }
                 var id = command.GetProperty("id").GetGuid();
-                if (command.GetProperty("kind").GetString() != "validate")
+                if (command.GetProperty("kind").GetString() == "remove") deleted[id] = state;
+                else if (command.GetProperty("kind").GetString() != "validate")
                     states[id] = Cumulative && states.TryGetValue(id, out var previous) ? previous.Union(state).ToArray() : state;
             }
             object? result = action == "execute" && message.GetProperty("command").GetProperty("kind").GetString() == "receive" ? new SceneApplyResult(true, []) : null;
             if (action == "capture")
             {
-                var state = states[message.GetProperty("id").GetGuid()];
-                result = new SharedSceneSnapshot(state, [], $"<p>{state[0]}</p>", null);
+                var id = message.GetProperty("id").GetGuid();
+                var state = states[id];
+                var html = $"<p>{state[0]}</p>";
+                result = deleted.TryGetValue(id, out var baseline)
+                    ? new SharedSceneSnapshot(state, [baseline], null, state.SequenceEqual(baseline) ? null : html)
+                    : new SharedSceneSnapshot(state, [], html, null);
             }
             return Task.FromResult(JsonSerializer.SerializeToElement(result));
         }

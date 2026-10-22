@@ -59,6 +59,24 @@ public sealed class SharedFieldWorkspace : IAsyncDisposable
         return new SharedFieldFocus(lease with { RemainingMilliseconds = remaining }, value);
     }, ct);
 
+    public async Task AddAsync(IReadOnlyDictionary<Guid, string> added, CancellationToken ct)
+    {
+        await gate.WaitAsync(ct);
+        try
+        {
+            ObjectDisposedException.ThrowIf(disposed, this);
+            if (!started) throw new InvalidOperationException("The shared fields have not opened.");
+            foreach (var (item, value) in added)
+            {
+                if (item == Guid.Empty || value is null) throw new InvalidDataException("A shared field needs an identity and a value.");
+                fields.TryAdd(item, (value, 0));
+            }
+            projectedSequence = 0;
+            await ProjectAsync(ct);
+        }
+        finally { gate.Release(); }
+    }
+
     public Task WriteAsync(FieldLeaseRequest request, string value, CancellationToken ct) => EditAsync(async token =>
     {
         await ReadAsync(request.ResourceId, token);

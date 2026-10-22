@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { rpc } from '../rpc/client'
 import { applySharedCodexField, useCodexStore } from './codexStore'
 import { useProjectStore, type ProjectStateDto } from './projectStore'
+import { registerSharedProjectNotifications } from '../collaboration/sharedProjectNotifications'
 
 /**
  * Bridges the backend extension host's imperative UI capabilities — toasts,
@@ -166,6 +167,7 @@ export function registerHostBridge(): void {
   registered = true
 
   registerProjectNotifications()
+  registerSharedProjectNotifications()
   registerProgressNotifications()
   registerDialogNotifications()
 }

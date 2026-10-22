@@ -44,7 +44,7 @@ internal sealed partial class HostedProjectWorkspace : IDisposable
             await runtime.Session.StartAsync(createProject: true, ct);
             runtime.Checkpoint = await CheckpointTransfer.PublishAsync(runtime.Session.Updates, archive, ct);
             await RememberAsync(runtime, root, ct);
-            await workspace.AttachSharedProjectAsync(runtime.Id, runtime.Session.Updates, states, ct);
+            await workspace.AttachSharedProjectAsync(runtime.Id, runtime.Session.Updates, states, archive, ct);
             current = runtime;
             return runtime.View();
         }
@@ -74,7 +74,7 @@ internal sealed partial class HostedProjectWorkspace : IDisposable
             var states = await ProjectCheckpoint.InstallAsync(archive, destination, available, ct);
             await RememberAsync(runtime, destination, ct);
             await workspace.OpenProjectAsync(destination);
-            await workspace.AttachSharedProjectAsync(runtime.Id, runtime.Session.Updates, states, ct);
+            await workspace.AttachSharedProjectAsync(runtime.Id, runtime.Session.Updates, states, archive, ct);
             current = runtime;
             return runtime.View();
         }

@@ -71,9 +71,11 @@ test('the normal editor retains failed shared edits and saves CRDT updates witho
     await h.page.evaluate(() => window.novalistStores.settings.getState().update('global', { language: 'en' }))
     await expect(editor).toHaveText('The story. More. Again.')
     await expect.poll(() => h.page.evaluate(() => window.novalistStores.project.getState().isDirty)).toBe(true)
+    const attemptsBeforeRetry = attempts
     refuse = false
     await h.page.evaluate(() => window.novalistStores.project.getState().flushPendingSave())
     expect(prose.toString()).toBe('The story. More. Again.\n')
+    expect(attempts - attemptsBeforeRetry).toBeLessThanOrEqual(4)
     await expect.poll(() => h.page.evaluate(() => window.novalistStores.project.getState().isDirty)).toBe(false)
     expect(await h.page.evaluate(() => window.sharedPersistenceTest.ordinaryWrites)).toBe(0)
     await h.page.evaluate(chapter => window.novalistStores.project.getState().openScene(chapter.guid, chapter.scenes[1].id), chapter)

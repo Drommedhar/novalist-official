@@ -17,6 +17,10 @@ public sealed partial class Workspace
     private Guid sharedSession;
     private string? sharedRoot;
     private readonly Dictionary<string, Guid> sharedItems = new(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+    private readonly Dictionary<Guid, (string Relative, string SceneId)> sharedSceneFiles = [];
+    private readonly Dictionary<Guid, string> sharedSceneProjected = [];
+    private readonly HashSet<Guid> sharedSceneRecorded = [];
+    private readonly Dictionary<Guid, byte[]> sharedSceneBaseline = [];
 
     internal async Task AttachSharedScenesAsync(Guid sessionId, CollaborationSession session,
         IReadOnlyList<SharedDocumentState> initial, CancellationToken ct)
@@ -25,9 +29,9 @@ public sealed partial class Workspace
         var root = Projects.ProjectRoot ?? throw new InvalidOperationException("Open a project first.");
         var factory = CreateSharedDocuments ?? throw new InvalidOperationException("Desktop collaboration is unavailable.");
         if (sessionId == Guid.Empty) throw new ArgumentException("A session identity is required.", nameof(sessionId));
-        var files = new Dictionary<Guid, (string Relative, string SceneId)>();
-        var projected = new Dictionary<Guid, string>();
-        var recorded = new HashSet<Guid>();
+        var files = sharedSceneFiles;
+        var projected = sharedSceneProjected;
+        var recorded = sharedSceneRecorded;
         foreach (var item in initial)
         {
             var path = SharedProjectPath.Resolve(root, item.Path);
@@ -39,13 +43,21 @@ public sealed partial class Workspace
             if (!FileFrontMatter.TryParse(content, out var marker)) throw new InvalidDataException("A shared scene is missing its project identity.");
             files.Add(item.ItemId, (item.Path, marker.Id));
             projected.Add(item.ItemId, FileFrontMatter.Strip(content));
+            sharedSceneBaseline.Add(item.ItemId, item.State);
         }
         if (files.Values.Select(file => file.Relative).Distinct(sharedItems.Comparer).Count() != files.Count)
             throw new InvalidDataException("Shared scenes must have distinct project paths.");
         var documents = new SharedSceneWorkspace(session, factory(sessionId), async (item, snapshot, local, _) =>
         {
             if (Projects.ProjectRoot != root) throw new InvalidOperationException("The shared project is no longer open.");
-            if (snapshot.Html is null) throw new InvalidOperationException("Deleted scenes require the project recovery workflow.");
+            if (snapshot.Html is null)
+            {
+                await FileService.DeleteFileAsync(SharedProjectPath.Resolve(root, files[item].Relative));
+                if (snapshot.Recovered is { } recovered)
+                    await WriteSharedFileRecoveryAsync(root, item.ToString("N"), files[item].Relative,
+                        Encoding.UTF8.GetBytes(FileFrontMatter.Stamp(recovered, files[item].SceneId)));
+                return;
+            }
             var changed = projected[item] != snapshot.Html;
             if (!changed && recorded.Contains(item)) return;
             var file = files[item];
@@ -97,10 +109,15 @@ public sealed partial class Workspace
 
     internal async Task DetachSharedScenesAsync()
     {
+        await DetachSharedProjectFilesAsync();
         await DetachSharedFieldsAsync();
         if (sharedScenes is not null) await sharedScenes.CloseAsync(CancellationToken.None);
         sharedScenes = null;
         sharedItems.Clear();
+        sharedSceneFiles.Clear();
+        sharedSceneProjected.Clear();
+        sharedSceneRecorded.Clear();
+        sharedSceneBaseline.Clear();
         sharedRoot = null;
         sharedSession = Guid.Empty;
         if (HostedProjects is { } hosted) await hosted.ReleaseAsync();

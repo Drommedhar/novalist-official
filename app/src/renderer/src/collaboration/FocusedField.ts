@@ -69,6 +69,12 @@ export class FocusedField {
         if (focus.granted) {
           focus.renewal = setInterval(() => void this.renew(focus), 10_000)
           this.deadline(focus, result.lease, started)
+        } else {
+          focus.expiry = setTimeout(() => {
+            if (this.current !== focus || focus.ended || !this.wantsFocus) return
+            this.current = null
+            this.focus()
+          }, 1000)
         }
       }).catch(error => { if (!focus.ended) this.fail(error) })
   }

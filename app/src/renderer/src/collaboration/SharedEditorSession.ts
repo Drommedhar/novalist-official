@@ -1,6 +1,7 @@
 import { CollaborativeScene } from './CollaborativeScene'
 import type { EditorWindow } from '../views/editor/editorBridge'
 import type { SharedSelection, ParticipantSelection } from './remoteSelections'
+import { mergeUpdates } from 'yjs'
 
 export interface SharedEditorConnection {
   write(update: Uint8Array): Promise<void>
@@ -68,8 +69,10 @@ export class SharedEditorSession {
   private async writePending(): Promise<void> {
     try {
       while (this.pending.length) {
-        await this.connection.write(this.pending[0])
-        this.pending.shift()
+        const count = this.pending.length
+        const update = count === 1 ? this.pending[0] : mergeUpdates(this.pending.slice(0, count))
+        await this.connection.write(update)
+        this.pending.splice(0, count)
         this.error = null
         this.publish()
       }

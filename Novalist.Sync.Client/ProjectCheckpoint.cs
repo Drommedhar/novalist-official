@@ -10,6 +10,26 @@ public sealed record CheckpointManifest(int Version, IReadOnlyList<CheckpointFil
 
 public static class ProjectCheckpoint
 {
+    public static async Task<IReadOnlyDictionary<string, byte[]>> ReadFilesAsync(Stream source, long maxTotalBytes, CancellationToken ct)
+    {
+        if (maxTotalBytes < 0) throw new ArgumentOutOfRangeException(nameof(maxTotalBytes));
+        using var archive = new ZipArchive(source, ZipArchiveMode.Read, leaveOpen: true);
+        var manifest = await ReadManifestAsync(archive, maxTotalBytes, ct);
+        var result = new Dictionary<string, byte[]>(StringComparer.Ordinal);
+        foreach (var file in manifest.Files)
+        {
+            var entry = archive.GetEntry("files/" + file.Path) ?? throw new InvalidDataException("Missing checkpoint content.");
+            if (entry.Length != file.Length) throw new InvalidDataException("Checkpoint content size mismatch.");
+            await using var input = entry.Open();
+            using var output = new MemoryStream();
+            var hash = await CopyAndHashAsync(input, output, file.Length, ct);
+            if (!string.Equals(hash, file.Sha256, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException("Checkpoint content hash mismatch.");
+            result.Add(file.Path, output.ToArray());
+        }
+        return result;
+    }
+
     public static Task CreateAsync(string root, Stream destination, Func<IReadOnlyList<string>> selectPaths, CancellationToken cancellationToken) =>
         CreateAsync(root, destination, selectPaths, new SharedProjectState([], []), cancellationToken);
 

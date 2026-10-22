@@ -71,7 +71,7 @@ shared project. You can open and share it as its owner.
 Shared scenes show other writers' cursors and selections. Cursors follow the
 text as it changes and disappear when their writer leaves or stops responding.
 
-Existing Codex text fields, such as a character's age or eye colour, acquire an
+Codex text fields, including those on entries created during the session, acquire an
 exclusive editing lock when focused. Wait for the field to become editable;
 another writer cannot change it until you leave the field. Moving focus saves
 the value before releasing the lock. These edits require an active connection.
@@ -82,10 +82,15 @@ cannot be restored, **Save a recovery copy** keeps your value separately in the
 project's `Recovered edits` folder. **Show recovery copy** reveals that file so
 you can reuse the value later. It does not replace the shared field.
 
-Collaboration is still under development on this branch. Ongoing structure,
-new Codex entries, Codex prose and asset synchronization, access management,
-and Steamworks sessions are not yet available. The initial project
-transfer is complete; those later changes are not yet synchronized.
+Project saves also synchronize structure, new scenes and Codex entries, research,
+and binary assets. A new scene becomes a collaborative editor immediately. Moving
+a scene keeps its shared writing identity. Deleting it keeps it deleted; edits
+arriving afterward are saved under `Recovered edits`. Conflicting file changes
+also retain a recovery copy instead of silently replacing the shared version.
+
+Collaboration is still under development on this branch. Simultaneous Codex prose
+merging, complete disconnected-write guards, owner access controls and desktop
+TCP/Steamworks session controls are not yet complete.
 
 ## Global vs project settings
 

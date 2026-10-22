@@ -36,8 +36,8 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 ## Features
 
 - **Hosted collaboration (in development)** — browser sign-in, single-use
-  invitations, a complete initial project copy, participant cursors, live scene editing through
-  the existing editor, focus locks for existing Codex text fields, reconnecting
+  invitations, live project structure, Codex, research and asset synchronization,
+  participant cursors, scene editing through the existing editor, focus locks for Codex text fields, reconnecting
   retained projects and independent project copies. See [Collaboration](docs/manual/23-settings.md#collaboration)
   for the current capabilities and remaining work.
 
