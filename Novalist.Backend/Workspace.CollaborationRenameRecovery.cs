@@ -17,7 +17,7 @@ public sealed partial class Workspace
             if (binding is null) { session.CompleteCompoundEdit(edit.ItemId); continue; }
             await using var graph = await AcquireSharedGraphAsync(sharedSession, binding.ItemId, Guid.NewGuid(), ct);
             await CompletePendingSharedRenamesAsync(graph?.Condition, ct);
-            break;
+            return;
         }
     }
 
