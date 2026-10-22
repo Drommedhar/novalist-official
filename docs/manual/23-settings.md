@@ -79,6 +79,11 @@ removes its server updates and invitations. Everyone keeps their local project
 copy. A connected writer whose access ends sees a notice and can end the session
 to continue working locally.
 
+The owner can invite a removed writer again with a new invitation. End the old
+session before accepting it and choose a new local folder. Your previous project
+and any unshared writing stay in their original folder; old invitations cannot
+restore removed access.
+
 Shared scenes show other writers' cursors and selections. Cursors follow the
 text as it changes and disappear when their writer leaves or stops responding.
 Small badges beside scene titles in the binder, pinned scenes, outliner and
