@@ -13,7 +13,7 @@ public sealed partial class Workspace
         foreach (var edit in session.PendingCompoundEdits())
         {
             var rename = JsonSerializer.Deserialize<SharedRename>(edit.Payload) ?? throw new InvalidDataException("Invalid pending rename.");
-            var binding = PendingRenameBinding(edit, rename);
+            var binding = await PendingRenameBindingAsync(edit, rename);
             if (binding is null) { session.CompleteCompoundEdit(edit.ItemId); continue; }
             await using var graph = await AcquireSharedGraphAsync(sharedSession, binding.ItemId, Guid.NewGuid(), ct);
             await CompletePendingSharedRenamesAsync(graph?.Condition, ct);
@@ -28,7 +28,7 @@ public sealed partial class Workspace
         {
             var fields = sharedFields ?? throw new InvalidOperationException("The shared fields are closed.");
             var intent = JsonSerializer.Deserialize<SharedRename>(edit.Payload) ?? throw new InvalidDataException("Invalid pending rename.");
-            if (PendingRenameBinding(edit, intent) is { } binding)
+            if (await PendingRenameBindingAsync(edit, intent) is { } binding)
             {
                 var path = SharedProjectPath.Resolve(sharedRoot ?? throw new InvalidOperationException("The shared project is closed."), binding.Path);
                 var entity = JsonNode.Parse(await FileService.ReadTextAsync(path)) as JsonObject ?? throw new InvalidDataException("Invalid shared Codex entry.");
@@ -49,8 +49,12 @@ public sealed partial class Workspace
         }
     }
 
-    private SharedFieldBinding? PendingRenameBinding(PendingCompoundEdit edit, SharedRename rename) =>
-        ActiveFieldBindings.SingleOrDefault(binding => binding.ItemId == edit.ItemId ||
+    private async Task<SharedFieldBinding?> PendingRenameBindingAsync(PendingCompoundEdit edit, SharedRename rename)
+    {
+        var binding = ActiveFieldBindings.SingleOrDefault(binding => binding.ItemId == edit.ItemId ||
             !binding.Custom && binding.Metadata is null && binding.Path == rename.Path && binding.Key == rename.Key);
+        return binding is not null && await FileService.ExistsAsync(SharedProjectPath.Resolve(
+            sharedRoot ?? throw new InvalidOperationException("The shared project is closed."), binding.Path)) ? binding : null;
+    }
 }
 #endif
