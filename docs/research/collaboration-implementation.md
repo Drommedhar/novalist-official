@@ -14,6 +14,12 @@ announcement.
   clearing a range. Date-range writes acquire the separate Date lock before
   mirroring a nonempty start, matching local date semantics. New scenes can set
   their initial point of view before their shared field identities are created.
+- Existing Codex image names, image descriptions, override image names and
+  attachment names use the same named focus locks. Inherited override images
+  become a separate scoped list on first focus. Structural file projection
+  preserves separately synchronized field values while adding those targets;
+  the hosted two-session regression retains an edited age while adding scoped
+  image bindings.
 - A Yjs binding extends the existing iframe editor. Browser checks cover
   concurrent text and formatting, paragraph splits, per-writer undo, IME,
   annotations, footnotes, images, nested lists, cursor positions, saved state,

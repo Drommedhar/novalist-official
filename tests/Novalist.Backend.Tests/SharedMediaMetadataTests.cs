@@ -29,6 +29,18 @@ public sealed class SharedMediaMetadataTests
         await desktop.Rpc.InvokeAsync("entities/setOverride", id, chapter.Guid, "Arrival", new { age = "27" });
         await desktop.SignInAsync(server.Address);
         await desktop.Rpc.InvokeAsync("collaboration/create", server.Address);
+        var invitation = await desktop.Rpc.InvokeAsync<string>("collaboration/invite", DateTimeOffset.UtcNow.AddHours(1));
+        identity.Subject = "guest";
+        await using var guest = new HostedDesktop(Path.Combine(directory.Path, "guest-settings"), identity);
+        await guest.SignInAsync(server.Address);
+        var joined = await guest.Rpc.InvokeAsync<HostedSessionDto>("collaboration/join", server.Address, invitation, Path.Combine(directory.Path, "Joined"));
+        var guestRecord = await guest.Rpc.InvokeAsync<JsonElement>("entities/get", "character", id);
+        var age = guestRecord.GetProperty("sharedFields").GetProperty("metadata").GetProperty($"override:{chapter.Guid}:Arrival:age").GetGuid();
+        var focus = Guid.NewGuid();
+        await guest.Rpc.InvokeAsync("collaboration/acquireField", joined.SessionId, age, focus);
+        await guest.Rpc.InvokeAsync("collaboration/writeField", joined.SessionId, age, focus, "\"28\"");
+        await guest.Rpc.InvokeAsync("collaboration/releaseField", joined.SessionId, age, focus);
+        await WaitAsync(async () => (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "character", id)).GetProperty("chapterOverrides")[0].GetProperty("age").GetString() == "28", ct);
 
         await desktop.Rpc.InvokeAsync("entities/setOverrideImages", id, chapter.Guid, "Arrival",
             new[] { new EntityImageDto(image.GetProperty("name").GetString()!, image.GetProperty("path").GetString()!) });
@@ -38,5 +50,17 @@ public sealed class SharedMediaMetadataTests
         Assert.True(metadata.TryGetProperty($"override:{chapter.Guid}:Arrival:image:{image.GetProperty("path").GetString()}:name", out var binding),
             string.Join(", ", metadata.EnumerateObject().Where(property => property.Name.Contains("image:", StringComparison.Ordinal)).Select(property => property.Name)));
         Assert.NotEqual(Guid.Empty, binding.GetGuid());
+        await WaitAsync(async () => (await guest.Rpc.InvokeAsync<JsonElement>("entities/get", "character", id)).GetProperty("sharedFields").GetProperty("metadata")
+            .TryGetProperty($"override:{chapter.Guid}:Arrival:image:{image.GetProperty("path").GetString()}:name", out _), ct);
+        guestRecord = await guest.Rpc.InvokeAsync<JsonElement>("entities/get", "character", id);
+        Assert.Equal("28", guestRecord.GetProperty("chapterOverrides")[0].GetProperty("age").GetString());
+        Assert.Single(guestRecord.GetProperty("chapterOverrides")[0].GetProperty("images").EnumerateArray());
+    }
+
+    private static async Task WaitAsync(Func<Task<bool>> condition, CancellationToken ct)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (DateTime.UtcNow < deadline) { if (await condition()) return; await Task.Delay(20, ct); }
+        Assert.True(await condition());
     }
 }

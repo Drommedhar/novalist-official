@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { FileText, Film, Link2, Music, Paperclip, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useCodexStore } from '../../stores/codexStore'
+import { metadataBinding } from '../../collaboration/SharedMetadataField'
+import { MediaMetadataInput } from './MediaMetadataInput'
 
 interface AttachmentDto {
   id: string
@@ -35,6 +37,7 @@ export function EntityAttachments(): React.JSX.Element | null {
   const { t } = useTranslation()
   const entityType = useCodexStore((s) => s.entityType)
   const selectedId = useCodexStore((s) => s.selectedId)
+  const record = useCodexStore(s => s.selectedRecord)
   const [items, setItems] = useState<AttachmentDto[]>([])
   const [linkUrl, setLinkUrl] = useState('')
 
@@ -43,11 +46,13 @@ export function EntityAttachments(): React.JSX.Element | null {
       setItems([])
       return
     }
+    let active = true
     void rpc
       .request<AttachmentDto[]>('attachments/list', [entityType, selectedId])
-      .then(setItems)
-      .catch(() => setItems([]))
-  }, [entityType, selectedId])
+      .then(next => { if (active) setItems(next) })
+      .catch(() => { if (active) setItems([]) })
+    return () => { active = false }
+  }, [entityType, selectedId, record])
 
   if (!selectedId) return null
 
@@ -77,18 +82,21 @@ export function EntityAttachments(): React.JSX.Element | null {
       {items.map((item) => (
         <div key={item.id} className="attachment-row">
           <span className="attachment-icon">{icon(item.kind)}</span>
-          <input
+          <MediaMetadataInput
             className="attachment-name"
-            defaultValue={item.name}
-            aria-label={t('attachments.name')}
-            onBlur={(e) => {
-              if (e.target.value === item.name) return
+            value={item.name}
+            label={t('attachments.name')}
+            shared={!!record?.sharedFields}
+            binding={metadataBinding(record, `attachment:${item.id}:name`)}
+            trim
+            save={name => {
+              if (name === item.name) return
               void rpc
                 .request<AttachmentDto[]>('attachments/update', [
                   entityType,
                   selectedId,
                   item.id,
-                  e.target.value
+                  name
                 ])
                 .then(setItems)
             }}

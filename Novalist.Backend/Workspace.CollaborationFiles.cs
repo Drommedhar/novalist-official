@@ -83,10 +83,12 @@ public sealed partial class Workspace
                 await PrepareSharedProjectionPathAsync(change.Path);
                 var path = SharedProjectPath.Resolve(root, change.Path);
                 var current = await FileService.ExistsAsync(path) ? await FileService.ReadBytesAsync(path) : null;
-                var merged = SharedFileMerge.Apply(change, current);
+                var structural = current is null ? null : MaskSeparatelySharedContent(change.Path, current, change.Before);
+                var merged = SharedFileMerge.Apply(change, structural);
                 if (merged.Conflict && current is not null)
                     await WriteSharedFileRecoveryAsync(root, projection.Sequence.ToString(System.Globalization.CultureInfo.InvariantCulture), change.Path, current);
-                if (merged.Content is { } content) await FileService.WriteBytesAsync(path, content);
+                if (merged.Content is { } content)
+                    await FileService.WriteBytesAsync(path, current is null ? content : MaskSeparatelySharedContent(change.Path, content, current));
                 else await FileService.DeleteFileAsync(path);
             }
             await ReloadSharedWorkspaceAsync();
