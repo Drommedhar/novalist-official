@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
+import { useCodexStore } from '../../stores/codexStore'
+import { SharedMetadataField, metadataBinding } from '../../collaboration/SharedMetadataField'
+import type { SharedEntityFields } from '../../collaboration/FocusedField'
+import { useSharedProjectRevision } from '../../collaboration/sharedProjectNotifications'
 
 interface ReaderSection {
   index: number
@@ -31,6 +35,10 @@ export function ReaderPolicyEditor(props: {
 }): React.JSX.Element {
   const { t } = useTranslation()
   const [policy, setPolicy] = useState<ReaderPolicy | null>(null)
+  const record = useCodexStore(state => state.selectedRecord)
+  const sharedFields = record?.id === props.entityId ? record.sharedFields as SharedEntityFields | undefined : undefined
+  const sections = record?.sections as { id: string }[] | undefined
+  const revision = useSharedProjectRevision()
 
   const load = useCallback(async () => {
     setPolicy(
@@ -43,7 +51,7 @@ export function ReaderPolicyEditor(props: {
 
   useEffect(() => {
     void load()
-  }, [load])
+  }, [load, revision])
 
   const save = async (hidden: boolean, hiddenSections: number[]): Promise<void> => {
     setPolicy(
@@ -64,14 +72,18 @@ export function ReaderPolicyEditor(props: {
     <div className="ai-policy">
       <p className="inspector-meta">{t('readerPolicy.intro')}</p>
 
-      <label className="relationships-toggle">
+      <SharedMetadataField binding={metadataBinding({ sharedFields }, 'readerHidden')} value={policy.hidden}
+        onChange={hidden => void save(hidden, hiddenSections)}>
+      {field => <label className="relationships-toggle">
         <input
           type="checkbox"
-          checked={policy.hidden}
-          onChange={(e) => void save(e.target.checked, hiddenSections)}
+          checked={field.value ?? false}
+          aria-disabled={!field.editable}
+          onChange={e => field.change(e.target.checked)}
         />
         {t('readerPolicy.hideEntry')}
-      </label>
+      </label>}
+      </SharedMetadataField>
 
       {/* Per section, so one twist can be withheld while the character it
           belongs to still appears. */}
@@ -79,21 +91,19 @@ export function ReaderPolicyEditor(props: {
         <>
           <span className="inspector-label">{t('readerPolicy.sections')}</span>
           {policy.sections.map((section) => (
-            <label key={section.index} className="relationships-toggle">
+            <SharedMetadataField key={sections?.[section.index]?.id ?? section.index}
+              binding={metadataBinding({ sharedFields }, `section:${sections?.[section.index]?.id}:readerHidden`)} value={section.hidden}
+              onChange={hidden => void save(policy.hidden, hidden ? [...hiddenSections, section.index] : hiddenSections.filter(i => i !== section.index))}>
+            {field => <label className="relationships-toggle">
               <input
                 type="checkbox"
-                checked={section.hidden}
-                onChange={(e) =>
-                  void save(
-                    policy.hidden,
-                    e.target.checked
-                      ? [...hiddenSections, section.index]
-                      : hiddenSections.filter((i) => i !== section.index)
-                  )
-                }
+                checked={field.value ?? false}
+                aria-disabled={!field.editable}
+                onChange={e => field.change(e.target.checked)}
               />
               {section.title}
-            </label>
+            </label>}
+            </SharedMetadataField>
           ))}
         </>
       )}

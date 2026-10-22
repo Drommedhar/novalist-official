@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from './projectStore'
 import type { SharedEntityFields } from '../collaboration/FocusedField'
+import type { SharedEntityProse } from '../collaboration/sharedMarkdown'
 
 export type EntityType = string
 
@@ -18,6 +19,8 @@ export interface EntitySummary {
   isWorld?: boolean
   /** True when the entry is settled: the save path refuses writes to it. */
   locked?: boolean
+  sharedFields?: SharedEntityFields
+  sharedProse?: SharedEntityProse
 }
 
 interface CodexState {

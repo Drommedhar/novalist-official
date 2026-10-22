@@ -2,6 +2,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { useCodexStore } from '../../stores/codexStore'
+import { SharedMetadataField, metadataBinding } from '../../collaboration/SharedMetadataField'
+import type { SharedEntityFields } from '../../collaboration/FocusedField'
+import { useSharedProjectRevision } from '../../collaboration/sharedProjectNotifications'
+import { writeSharedMetadata } from '../../collaboration/metadataCommands'
 import './match-settings.css'
 
 interface MatchSettings {
@@ -18,6 +23,9 @@ export function MatchSettingsEditor(props: {
   const { t } = useTranslation()
   const [settings, setSettings] = useState<MatchSettings | null>(null)
   const [draft, setDraft] = useState('')
+  const record = useCodexStore(state => state.selectedRecord)
+  const sharedFields = record?.id === props.entityId ? record.sharedFields as SharedEntityFields | undefined : undefined
+  const revision = useSharedProjectRevision()
 
   const load = useCallback(async () => {
     setSettings(
@@ -30,7 +38,7 @@ export function MatchSettingsEditor(props: {
 
   useEffect(() => {
     void load()
-  }, [load])
+  }, [load, revision])
 
   const save = async (next: MatchSettings): Promise<void> => {
     setSettings(next)
@@ -48,49 +56,43 @@ export function MatchSettingsEditor(props: {
 
   if (!settings) return <></>
 
-  const addExclusion = (): void => {
-    const phrase = draft.trim()
-    if (phrase.length === 0) return
-    setDraft('')
-    void save({ ...settings, exclusions: [...settings.exclusions, phrase] })
-  }
-
   return (
     <div className="match-settings">
-      <label className="match-toggle">
+      {(['caseSensitive', 'matchPlurals'] as const).map(key => <div key={key}>
+      <SharedMetadataField binding={metadataBinding({ sharedFields }, `match.${key}`)} value={settings[key]}
+        onChange={value => void save({ ...settings, [key]: value })}>
+      {field => <label className="match-toggle">
         <input
           type="checkbox"
-          checked={settings.caseSensitive}
-          onChange={(e) => void save({ ...settings, caseSensitive: e.target.checked })}
+          checked={field.value ?? false}
+          aria-disabled={!field.editable}
+          onChange={e => field.change(e.target.checked)}
         />
-        {t('match.caseSensitive')}
-      </label>
-      <div className="match-hint">{t('match.caseSensitiveDesc')}</div>
-
-      <label className="match-toggle">
-        <input
-          type="checkbox"
-          checked={settings.matchPlurals}
-          onChange={(e) => void save({ ...settings, matchPlurals: e.target.checked })}
-        />
-        {t('match.matchPlurals')}
-      </label>
-      <div className="match-hint">{t('match.matchPluralsDesc')}</div>
+        {t(`match.${key}`)}
+      </label>}
+      </SharedMetadataField>
+      <div className="match-hint">{t(`match.${key}Desc`)}</div>
+      </div>)}
 
       <label className="inspector-label">{t('match.exclusions')}</label>
       <div className="match-hint">{t('match.exclusionsDesc')}</div>
-      {settings.exclusions.map((phrase) => (
+      <SharedMetadataField binding={metadataBinding({ sharedFields }, 'match.exclusions')} value={settings.exclusions}
+        onChange={exclusions => void save({ ...settings, exclusions })}>
+      {field => {
+        const addExclusion = (): void => {
+          const phrase = draft.trim()
+          if (!field.editable || !phrase) return
+          field.change(previous => [...(previous ?? []), phrase])
+          setDraft('')
+        }
+        return <>{(field.value ?? []).map((phrase) => (
         <div key={phrase} className="match-row">
           <span>{phrase}</span>
           <button
             className="dialog-button"
             title={t('match.removeExclusion')}
-            onClick={() =>
-              void save({
-                ...settings,
-                exclusions: settings.exclusions.filter((e) => e !== phrase)
-              })
-            }
+            aria-disabled={!field.editable}
+            onClick={() => field.change(previous => previous.filter(e => e !== phrase))}
           >
             <Trash2 size={14} />
           </button>
@@ -100,6 +102,7 @@ export function MatchSettingsEditor(props: {
         <input
           className="inspector-input"
           value={draft}
+          readOnly={!field.editable}
           placeholder={t('match.exclusionPlaceholder')}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -108,13 +111,15 @@ export function MatchSettingsEditor(props: {
         />
         <button
           className="dialog-button"
-          disabled={draft.trim().length === 0}
+          disabled={!field.editable || draft.trim().length === 0}
           title={t('match.addExclusion')}
           onClick={addExclusion}
         >
           <Plus size={14} />
         </button>
       </div>
+      </>}}
+      </SharedMetadataField>
 
       {settings.ignoredSceneIds.length > 0 && (
         <>
@@ -125,7 +130,11 @@ export function MatchSettingsEditor(props: {
           <div className="match-row">
             <button
               className="dialog-button"
-              onClick={() => void save({ ...settings, ignoredSceneIds: [] })}
+              onClick={() => {
+                const binding = metadataBinding({ sharedFields }, 'match.ignoredSceneIds')
+                if (binding) void writeSharedMetadata(binding, [])
+                else void save({ ...settings, ignoredSceneIds: [] })
+              }}
             >
               {t('match.clearIgnoredScenes')}
             </button>

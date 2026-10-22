@@ -62,7 +62,13 @@ public sealed record EntitySummaryDto(
     /// and never given a parent of its own.</summary>
     bool IsWorld = false,
     /// <summary>True when this entry is settled and the save path refuses it.</summary>
-    bool Locked = false);
+    bool Locked = false)
+{
+#if NOVALIST_COLLABORATION
+    public SharedEntityFieldsDto? SharedFields { get; init; }
+    public SharedEntityFieldsDto? SharedProse { get; init; }
+#endif
+}
 
 /// <summary>How this entry's name is recognised in prose. Rides along with the
 /// summary so the editor can apply the rules without a second round trip per

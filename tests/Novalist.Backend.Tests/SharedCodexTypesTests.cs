@@ -33,6 +33,9 @@ public sealed class SharedCodexTypesTests
         var session = await desktop.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address);
         var entry = await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", type, id);
         var field = entry.GetProperty("sharedFields").GetProperty("fields").GetProperty(key).GetGuid();
+        var summary = Assert.Single(await desktop.Rpc.InvokeAsync<EntitySummaryDto[]>("entities/list", type));
+        Assert.Equal(field, summary.SharedFields!.Fields[key]);
+        if (type != "species") Assert.Contains("description", summary.SharedProse!.Fields.Keys);
         var focus = Guid.NewGuid();
 
         await desktop.Rpc.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", session.SessionId, field, focus);
