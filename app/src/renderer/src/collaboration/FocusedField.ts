@@ -52,9 +52,9 @@ export class FocusedField {
     this.publish({ value })
   }
 
-  focus(): void {
+  focus(): Promise<void> {
     this.wantsFocus = true
-    if (this.current) return
+    if (this.current) return this.current.ready
     const focus: Focus = { id: crypto.randomUUID(), initial: this.view.value, value: this.view.value,
       granted: false, ended: false, ready: Promise.resolve(), saving: null, renewing: false,
       storedRevision: this.storedRevision }
@@ -80,6 +80,7 @@ export class FocusedField {
           }, 1000)
         }
       }).catch(error => { if (!focus.ended) this.fail(error) })
+    return focus.ready
   }
 
   blur(): void { this.wantsFocus = false }
