@@ -8,50 +8,75 @@ announcement.
 
 ## Current integration status
 
-The [task graph](../specs/realtime-collaboration.md) tracks outstanding acceptance
-work. The current integration includes whole-project synchronization, hosted
-resume and independent copies, TCP sessions, the optional Steam adapter, named
-focus locks and scene presence, shared Codex/research prose, access management and
-encryption-key rotation. Scene auxiliary prose and concurrent location hierarchy
-guards are integrated. The final review identified four remaining corrections:
-validate embedded storage references in live metadata before projection, resume
-interrupted rename cascades, connect Manuscript editing to shared documents, and
-route Board POV/custom-property changes through field leases.
+The [task graph](../specs/realtime-collaboration.md) is complete for the local
+testing handoff. Final implementation checkpoint: `dd98251e`. The integration
+includes whole-project synchronization, hosted resume and independent copies,
+TCP sessions, the optional Steam adapter, named focus locks and scene presence,
+shared scene/Manuscript/Codex/research prose, access management and encryption-key
+rotation. Scene planning prose, location hierarchy guards and Board metadata
+commands use the same collaboration boundaries.
 
-Core and SDK coverage at the combined `74b634fc` checkpoint is 100%: 3,947 Core
-tests and 61 SDK tests pass. Targeted two-app checks cover the existing scene
-editor, Codex forms/table/policies, research, scene metadata/dialogs, media,
-invitations, removal, reconnect and retained copies. These targeted checks do not
-replace the final combined application checks.
+All four final review corrections are implemented and exercised. Additional
+regressions cover expired rename leases, deleted rename sources, Research storage
+paths, imported rich markup and pending Manuscript edits across view switches.
 
-At `7706dc9a`, all 2,143 Backend tests pass; line coverage is 15,798/15,808, so its
-100% gate is not yet met. The client suite passes 145 tests. After updating two
-older test fixtures for the new collaboration boundary, real local-server
-integration passes 26 tests and the desktop transport suite passes 131 tests.
-The optional Steam build compiles. The combined desktop run passes 49 of 51
-scenarios; the two stale test routes were corrected and both pass on targeted
-rerun. This gives 51 passing scenarios, including the real hosted deployment.
-Regressions and integration checks for the four review corrections remain.
+| Validation | Result |
+| --- | --- |
+| Core | 3,947 tests; 22,050/22,050 lines covered (100%). |
+| SDK | 61 tests; 30/30 lines covered (100%). |
+| Backend | 2,163 tests; 15,877/15,877 lines covered (100%). |
+| Collaboration client | 151 tests pass. |
+| Local server and contracts | 143 tests pass. |
+| Desktop transport/document host | 135 tests pass. |
+| Real local-server integration | 26 tests pass against SignalR and PostgreSQL. |
+| Desktop collaboration | All 54 scenarios pass across the combined run and targeted reruns. |
+
+The combined desktop run passed 52/54 scenarios. Cursor initialization and
+Research fixture synchronization were corrected; both affected scenarios pass
+on rerun, along with the affected cursor and Manuscript checks. Coverage includes
+real hosted project exchange, direct TCP, rich/Markdown editing, per-writer undo,
+field locks, scene presence, metadata/assets, access rotation, reconnect,
+deletion recovery and retained copies. TypeScript checks, desktop/backend builds
+and the optional Steam build pass. The repository's eight source checks pass.
+Coverage thresholds and exclusions were not weakened. Evidence is preserved in
+`app/out/collaboration-test-results/final/`.
 
 ### Standards review
 
-The independent review found no hard documented-standard violations, and two P1
-correctness/security findings: live embedded path validation and interrupted
-rename recovery. Both require corrections before the testing handoff.
+The independent review found no hard documented-standard violations and two P1
+correctness/security findings. Both are resolved: live file batches validate
+embedded storage references before projection, and interrupted renames retain
+durable intent with lease checks through their prose updates. Guarded Research
+metadata also validates storage paths before commit and projection.
 
 ### Spec review
 
 The independent requirements review found a P1 Manuscript save-path mismatch and
-P2 Board POV/custom-property commands bypassing leases. Narration is read-only
-playback and does not share the Manuscript defect. Total: two findings on each
-axis; the worst severity on each axis is P1.
+P2 Board POV/custom-property commands bypassing leases. Both are resolved:
+Manuscript binds its existing scene editors to shared documents, retains pending
+edits and publishes focus-based presence; Board commands acquire field leases
+and show named denials. Narration remains read-only playback. All four findings
+across the two review axes are closed.
 
-The server changes remain in the local checkout under
-`app/out/collaboration-sync-server`. No fork, push, upstream PR or deployment is
-authorized until the user tests the result and explicitly approves publication.
+### Remaining validation limits and warnings
+
+Native Steam playtesting still requires the registered app and two entitled
+accounts; only compilation and the shared transport boundaries are verified.
+The .NET build reports existing ImageSharp 2.1.11 vulnerability advisories.
+Focused Aislop scans have no errors or fixable warnings. Remaining non-fixable
+reports include the existing eight-parameter `StateOverrideDto` constructor and
+server primary-constructor class-length false positives (`FieldLeaseAccess`,
+`ProjectEpochAccess` and `UpdateLog`); the server's existing multi-server TODO is
+also recorded in its local change manifest. These findings were not suppressed.
+
+Hosted testing uses the extended server checkout under
+`app/out/collaboration-sync-server` at `29358eb` (contracts 1.6.0). No fork, push,
+upstream PR or deployment is authorized until the user tests the result and
+explicitly approves publication.
 The [local testing guide](../development/collaboration-testing.md) includes
-separate desktop profiles and a disposable hosted-server helper. Native Steam
-playtesting still requires the registered app and two entitled accounts.
+separate desktop profiles and a disposable hosted-server helper. All temporary
+implementation worktrees and their merged branches have been removed; the local
+integration branch and server checkout remain available for testing.
 
 ## Historical checkpoints
 
