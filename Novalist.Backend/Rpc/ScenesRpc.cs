@@ -77,7 +77,7 @@ public sealed class ScenesRpc
             scene.RelativeTime?.Amount ?? 0,
             scene.RelativeTime?.Unit.ToString() ?? string.Empty);
 #if NOVALIST_COLLABORATION
-        result = result with { SharedFields = _workspace.SharedSceneMetadata(scene.Id) };
+        result = result with { SharedFields = _workspace.SharedSceneMetadata(scene.Id), SharedProse = _workspace.SharedSceneProse(scene.Id) };
 #endif
         return result;
     }
@@ -391,6 +391,7 @@ public sealed record SceneMetaDto(
 {
 #if NOVALIST_COLLABORATION
     public SharedEntityFieldsDto? SharedFields { get; init; }
+    public SharedEntityFieldsDto? SharedProse { get; init; }
 #endif
 }
 

@@ -307,6 +307,7 @@ export function MarkdownEditor({
   ariaLabel,
   shared,
   readOnly = false,
+  showToolbar = true,
   className = ''
 }: {
   value: string
@@ -319,6 +320,7 @@ export function MarkdownEditor({
   ariaLabel?: string
   shared?: FieldBinding
   readOnly?: boolean
+  showToolbar?: boolean
   className?: string
 }): React.JSX.Element {
   const { t } = useTranslation()
@@ -468,7 +470,7 @@ export function MarkdownEditor({
   return (
     <div className={`md-editor ${className}`.trim()}>
       {failed && <div role="alert">{t('collaboration.editorError')} <button type="button" onClick={() => void retry()}>{t('collaboration.retryField')}</button></div>}
-      <div className="md-toolbar" role="toolbar" aria-label={t('markdown.toolbar')}>
+      {showToolbar && <div className="md-toolbar" role="toolbar" aria-label={t('markdown.toolbar')}>
         {buttons.map((b) => (
           <button
             key={b.action}
@@ -485,7 +487,7 @@ export function MarkdownEditor({
             {b.icon}
           </button>
         ))}
-      </div>
+      </div>}
       <div
         className="md-surface"
         style={{ minHeight: `calc(${minRows} * var(--nl-leading-body) * 1em)` }}

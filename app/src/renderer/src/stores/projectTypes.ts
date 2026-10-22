@@ -5,6 +5,7 @@ import type { SharedEntityFields } from '../collaboration/FocusedField'
 export interface SceneDto {
   id: string
   sharedFields?: SharedEntityFields
+  sharedProse?: SharedEntityFields
   title: string
   order: number
   wordCount: number

@@ -61,13 +61,14 @@ public sealed partial class Workspace
         if (target[field.Key]?.GetValue<string>() == snapshot.Text) return;
         target[field.Key] = snapshot.Text;
         await FileService.WriteTextAsync(path, entity.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        if (field.SceneId is not null) ProjectSceneNote(binding, field, snapshot.Text);
         if (field.ResearchItemId is { } researchId)
         {
             var item = Projects.CurrentProject?.ResearchItems.SingleOrDefault(item => item.Id == researchId);
             if (item is not null) item.Content = snapshot.Text;
-            if (Coordinator?.Notify is { } notify)
-                await notify("collaboration/projectUpdated", new { sessionId = sharedSession, state = BuildState() });
         }
+        if ((field.SceneId is not null || field.ResearchItemId is not null) && Coordinator?.Notify is { } notify)
+            await notify("collaboration/projectUpdated", new { sessionId = sharedSession, state = BuildState() });
     }
 
     internal Rpc.SharedResearchProseDto? SharedResearchProse(string id)

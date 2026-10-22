@@ -8,6 +8,7 @@ import { rpc } from '../rpc/client'
 import { metadataBinding, SharedMetadataField } from '../collaboration/SharedMetadataField'
 import { useSharedProjectRevision } from '../collaboration/sharedProjectNotifications'
 import type { SharedEntityFields } from '../collaboration/FocusedField'
+import { ScenePlanningText } from '../collaboration/ScenePlanningText'
 
 interface SceneMeta {
   sharedFields?: SharedEntityFields
@@ -121,7 +122,7 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
         <label className="notes-dock-label" htmlFor={`${idPrefix}-synopsis`}>
           {t('sceneNotes.synopsisTitle')}
         </label>
-        <textarea
+        <ScenePlanningText sceneId={scene.id} field="synopsis" label={t('sceneNotes.synopsisTitle')} value={synopsis} rows={3}><textarea
           id={`${idPrefix}-synopsis`}
           className="notes-dock-textarea notes-dock-synopsis"
           placeholder={t('sceneNotes.synopsisPlaceholder')}
@@ -130,20 +131,20 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
           onBlur={() =>
             void rpc.request('scenes/setSynopsis', [openChapterGuid, openSceneId, synopsis])
           }
-        />
+        /></ScenePlanningText>
       </div>
       <div className="notes-dock-col notes-dock-col-grow">
         <label className="notes-dock-label" htmlFor={`${idPrefix}-notes`}>
           {t('sceneNotes.title')}
         </label>
-        <textarea
+        <ScenePlanningText sceneId={scene.id} field="notes" label={t('sceneNotes.title')} value={notes} rows={3}><textarea
           id={`${idPrefix}-notes`}
           className="notes-dock-textarea"
           placeholder={t('sceneNotes.placeholder')}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           onBlur={() => void rpc.request('scenes/setNotes', [openChapterGuid, openSceneId, notes])}
-        />
+        /></ScenePlanningText>
       </div>
       {/* What they wanted and what they got. Conflict sits between the two and
           is read out of the prose in the Inspector; these two never are,
@@ -153,7 +154,7 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
         <label className="notes-dock-label" htmlFor={`${idPrefix}-goal`}>
           {t('sceneNotes.goal')}
         </label>
-        <textarea
+        <ScenePlanningText sceneId={scene.id} field="goal" label={t('sceneNotes.goal')} value={goal}><textarea
           id={`${idPrefix}-goal`}
           className="notes-dock-textarea notes-dock-short"
           placeholder={t('sceneNotes.goalPlaceholder')}
@@ -167,11 +168,11 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
               outcome
             ])
           }
-        />
+        /></ScenePlanningText>
         <label className="notes-dock-label" htmlFor={`${idPrefix}-outcome`}>
           {t('sceneNotes.outcome')}
         </label>
-        <textarea
+        <ScenePlanningText sceneId={scene.id} field="outcome" label={t('sceneNotes.outcome')} value={outcome}><textarea
           id={`${idPrefix}-outcome`}
           className="notes-dock-textarea notes-dock-short"
           placeholder={t('sceneNotes.outcomePlaceholder')}
@@ -185,7 +186,7 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
               outcome
             ])
           }
-        />
+        /></ScenePlanningText>
       </div>
 
       <SceneNarrativeFields state={state} idPrefix={idPrefix} />

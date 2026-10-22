@@ -18,6 +18,8 @@ public sealed partial class Workspace
                 {
                     var relative = Path.GetRelativePath(root, Projects.GetSceneFilePath(chapter, scene)).Replace('\\', '/');
                     if (sharedItems.TryGetValue(relative, out var item)) scenes[item] = scene.Id;
+                    if (SharedSceneProse(scene.Id) is { } notes)
+                        foreach (var note in notes.Fields.Values) scenes[note] = scene.Id;
                 }
         }
         return participants.Select(participant => new SharedParticipantDto(participant.DeviceId, participant.ViewId,

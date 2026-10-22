@@ -36,7 +36,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 ## Features
 
 - **Collaboration (in development)** — hosted server or direct TCP sessions, optional Steamworks integration, browser sign-in, single-use
-  invitations, live project structure, Codex prose with per-writer undo, research and asset synchronization,
+  invitations, live project structure, scene planning notes and Codex prose with per-writer undo, research and asset synchronization,
   participant cursors and scene badges, scene editing through the existing editor, named focus locks for Codex fields, table cells, visibility policies, scene and Research metadata, guarded binder actions, reconnecting
   retained projects, independent project copies, and owner controls for server access and project deletion.
   Removing a collaborator refreshes project encryption for the remaining writers.
