@@ -49,14 +49,19 @@ public sealed partial class Workspace
 
     private async Task ValidateSharedRenameGraphAsync(SharedRename rename, string path)
     {
-        var places = await ReadSharedPlacesAsync(path);
-        foreach (var place in places)
+        var project = Projects.CurrentProject ?? throw new InvalidOperationException("The shared project is no longer open.");
+        IEnumerable<string> scopes = rename.BookFolder is null ? project.Books.Select(book => book.FolderName + '/').DefaultIfEmpty(path) : [path];
+        foreach (var scope in scopes)
         {
-            if (place.Id == rename.EntityId) place.Name = rename.Next;
-            if (place.Parent == rename.Previous) place.Parent = rename.Next;
+            var places = await ReadSharedPlacesAsync(scope);
+            foreach (var place in places)
+            {
+                if (place.Id == rename.EntityId) place.Name = rename.Next;
+                if (place.Parent == rename.Previous) place.Parent = rename.Next;
+            }
+            if (places.Any(place => !PlaceHierarchy.CanReparent(places, place, place.Parent)))
+                throw new InvalidOperationException("That name would create an invalid location hierarchy.");
         }
-        if (places.Any(place => !PlaceHierarchy.CanReparent(places, place, place.Parent)))
-            throw new InvalidOperationException("That name would create an invalid location hierarchy.");
     }
 
     private async Task<List<LocationData>> ReadSharedPlacesAsync(string entityPath)
