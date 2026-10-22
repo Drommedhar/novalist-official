@@ -11,7 +11,7 @@ public static partial class SharedMetadataFields
     public static string BindingKey(SharedFieldBinding binding)
     {
         var target = binding.Metadata;
-        var key = target?.Kind == "section" ? $"section:{target.Identity}:{binding.Key}" : binding.Key;
+        var key = target?.Kind is "section" or "state" or "image" or "attachment" ? $"{target.Kind}:{target.Identity}:{binding.Key}" : binding.Key;
         return target?.Chapter is null ? key : $"override:{target.Chapter}:{target.Scene ?? ""}:{key}";
     }
 
@@ -19,10 +19,10 @@ public static partial class SharedMetadataFields
     {
         var target = binding.Metadata;
         if (binding.Custom || target is null || (target.Chapter is null && target.Scene is not null) ||
-            (target.Kind is "scene" or "research" or "section" && string.IsNullOrWhiteSpace(target.Identity)) ||
+            (target.Kind is "scene" or "research" or "section" or "state" or "image" or "attachment" && string.IsNullOrWhiteSpace(target.Identity)) ||
             (target.Kind is "codex" or "override" && target.Identity is not null) ||
             (target.Kind == "override" && string.IsNullOrWhiteSpace(target.Chapter)) ||
-            (target.Kind is "codex" or "scene" or "research" && target.Chapter is not null) || ValueKind(binding) is null)
+            (target.Kind is "codex" or "scene" or "research" or "state" or "attachment" && target.Chapter is not null) || ValueKind(binding) is null)
             throw new InvalidDataException("Invalid shared metadata field.");
     }
 
@@ -36,7 +36,11 @@ public static partial class SharedMetadataFields
         {
             "codex" or "override" => scope,
             "section" => (scope?["sections"] as JsonArray)?.OfType<JsonObject>().SingleOrDefault(item => item["id"]?.GetValue<string>() == target.Identity),
-            "research" => (root["researchItems"] as JsonArray)?.OfType<JsonObject>().SingleOrDefault(item => item["id"]?.GetValue<string>() == target.Identity),
+            "state" => (root["stateOverrides"] as JsonArray)?.OfType<JsonObject>().SingleOrDefault(item => item["id"]?.GetValue<string>() == target.Identity),
+            "image" => (scope?["images"] as JsonArray)?.OfType<JsonObject>().SingleOrDefault(item => item["path"]?.GetValue<string>() == target.Identity),
+            "attachment" => (root["attachments"] as JsonArray)?.OfType<JsonObject>().SingleOrDefault(item => item["id"]?.GetValue<string>() == target.Identity),
+            "research" => (root["researchItems"] as JsonArray)?.OfType<JsonObject>().SingleOrDefault(item => item["id"]?.GetValue<string>() == target.Identity &&
+                (binding.Key != "content" || item["type"]?.GetValue<string>() is not ("Note" or "Link"))),
             "scene" => Scenes(root).SingleOrDefault(item => item["id"]?.GetValue<string>() == target.Identity),
             _ => throw new InvalidDataException("Invalid shared metadata target.")
         };
@@ -68,6 +72,8 @@ public static partial class SharedMetadataFields
         try
         {
             var parsed = JsonNode.Parse(value);
+            if (binding.Metadata?.Kind == "attachment" && (parsed is null || !IsText(parsed) || string.IsNullOrWhiteSpace(parsed.GetValue<string>())))
+                throw new InvalidDataException("An attachment needs a name.");
             if (parsed is null) return null;
             if (!ValidValue(ValueKind(binding) ?? throw new InvalidDataException("Invalid shared metadata field."), parsed))
                 throw new InvalidDataException("Invalid shared metadata value.");
@@ -84,6 +90,7 @@ public static partial class SharedMetadataFields
     private static (string? Container, string Key) Property(string key)
     {
         if (key.StartsWith("analysisOverrides.", StringComparison.Ordinal)) return ("analysisOverrides", key[18..]);
+        if (key.StartsWith("match.", StringComparison.Ordinal)) return ("match", key[6..]);
         if (key.StartsWith("customProperties:", StringComparison.Ordinal)) return ("customProperties", key[17..]);
         if (key.StartsWith("properties:", StringComparison.Ordinal)) return ("properties", key[11..]);
         return (null, key);

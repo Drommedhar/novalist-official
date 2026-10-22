@@ -62,7 +62,7 @@ public sealed partial class Workspace
         if (sharedFields is null) return null;
         var path = SharedEntityPath(entity);
         if (path is null) return null;
-        var bindings = fieldBindings.Values.Where(binding => binding.Path.Equals(path, StringComparison.OrdinalIgnoreCase)).ToArray();
+        var bindings = ActiveFieldBindings.Where(binding => binding.Path.Equals(path, StringComparison.OrdinalIgnoreCase)).ToArray();
         var fields = bindings.Where(binding => binding.Metadata is null)
             .ToDictionary(SharedMetadataFields.BindingKey, binding => binding.ItemId, StringComparer.Ordinal);
         var metadata = bindings.Where(binding => binding.Metadata is not null)
@@ -103,6 +103,7 @@ public sealed partial class Workspace
     {
         var field = RequireSharedField(sessionId, item, focus);
         var binding = fieldBindings[item];
+        if (retiredSharedBindings.Contains(item)) throw new InvalidOperationException("The shared metadata item was deleted or changed type.");
         var path = SharedProjectPath.Resolve(sharedRoot ?? throw new InvalidOperationException("The shared project is no longer open."), binding.Path);
         var entity = JsonNode.Parse(await FileService.ReadTextAsync(path)) as JsonObject
             ?? throw new InvalidDataException("The shared Codex entry is invalid.");
@@ -159,6 +160,7 @@ public sealed partial class Workspace
         sharedFields = null;
         fieldSession = null;
         fieldBindings.Clear();
+        retiredSharedBindings.Clear();
     }
 }
 #endif

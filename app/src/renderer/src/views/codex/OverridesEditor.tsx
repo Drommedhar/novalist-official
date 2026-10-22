@@ -11,6 +11,7 @@ import { OverrideImages } from './OverrideImages'
 import { OverrideRelationships } from './OverrideRelationships'
 import { OverrideSections } from './OverrideSections'
 import { proseBinding } from '../../collaboration/sharedMarkdown'
+import { SharedMetadataField, metadataBinding } from '../../collaboration/SharedMetadataField'
 
 /** Per-chapter/scene character overrides. Editing happens INLINE in the detail
  * pane (an expandable form under the scope row / add button), never in a modal —
@@ -98,8 +99,8 @@ export function OverridesEditor(): React.JSX.Element | null {
         selectedId,
         scope.chapter,
         scope.scene,
-        Object.fromEntries(Object.entries(draft).filter(([key]) => !proseBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:${key}`))),
-        customDraft
+        Object.fromEntries(Object.entries(draft).filter(([key]) => !proseBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:${key}`) && !metadataBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:${key}`))),
+        Object.fromEntries(Object.entries(customDraft).filter(([key]) => !metadataBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:customProperties:${key}`)))
       ])
       .then(apply)
   }
@@ -246,12 +247,13 @@ function OverrideForm({scope, pickScope, overrides, t, setNewScope, chapters, ne
                         onChange={(next) => setDraft({ ...draft, [field.key]: next })}
                       />
                     ) : (
-                      <input
-                        className="outliner-input codex-field-input"
-                        placeholder={String(record[field.key] ?? '')}
+                      <SharedMetadataField<string | null> binding={existing ? metadataBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:${field.key}`) : undefined}
                         value={draft[field.key] ?? ''}
-                        onChange={(e) => setDraft({ ...draft, [field.key]: e.target.value })}
-                      />
+                        onChange={next => setDraft({ ...draft, [field.key]: next ?? '' })}>
+                        {({ value, editable, change }) => <input className="outliner-input codex-field-input"
+                          placeholder={String(record[field.key] ?? '')} value={value ?? ''} readOnly={!editable}
+                          onChange={event => change(event.target.value || null)} />}
+                      </SharedMetadataField>
                     )}
                   </dd>
                 </div>
@@ -265,12 +267,13 @@ function OverrideForm({scope, pickScope, overrides, t, setNewScope, chapters, ne
                 <div key={key} className="codex-field">
                   <dt>{key}</dt>
                   <dd>
-                    <input
-                      className="outliner-input codex-field-input"
-                      placeholder={baseCustom[key]}
+                    <SharedMetadataField<string | null> binding={existing ? metadataBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:customProperties:${key}`) : undefined}
                       value={customDraft[key] ?? ''}
-                      onChange={(e) => setCustomDraft({ ...customDraft, [key]: e.target.value })}
-                    />
+                      onChange={next => setCustomDraft({ ...customDraft, [key]: next ?? '' })}>
+                      {({ value, editable, change }) => <input className="outliner-input codex-field-input"
+                        placeholder={baseCustom[key]} value={value ?? ''} readOnly={!editable}
+                        onChange={event => change(event.target.value || null)} />}
+                    </SharedMetadataField>
                   </dd>
                 </div>
               ))}
