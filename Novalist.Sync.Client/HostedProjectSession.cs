@@ -85,6 +85,13 @@ public sealed class HostedProjectSession : IAsyncDisposable
 
     public Task ConnectAsync(CancellationToken ct) => RunAsync(transport.ConnectAsync, ct);
 
+    public static IReadOnlyList<PendingCompoundEdit> ReadPendingCompoundEdits(string storage, Guid sessionId, Guid projectId, Guid deviceId)
+    {
+        using var sequence = new DeviceSequence(Path.Combine(storage, "devices", deviceId.ToString("N") + ".sqlite"), deviceId);
+        using var journal = new SessionJournal(Path.Combine(storage, "sessions", sessionId.ToString("N"), "journal.sqlite"), sessionId, projectId, sequence);
+        return journal.PendingCompoundEdits();
+    }
+
     public Task StartAsync(bool createProject, CancellationToken ct) => RunAsync(async token =>
     {
         await synchronizer.StartAsync(createProject, token);

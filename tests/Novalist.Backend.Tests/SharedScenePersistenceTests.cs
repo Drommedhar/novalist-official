@@ -62,6 +62,11 @@ public sealed class SharedScenePersistenceTests
             Assert.Equal(sessionId, read.Shared!.SessionId);
             Assert.Equal(item, read.Shared.ItemId);
             Assert.Equal(new byte[] { 1 }, read.Shared.State);
+            var manuscript = await desktop.InvokeAsync<JsonElement[]>("manuscript/get", "All");
+            var shared = Assert.Single(manuscript).GetProperty("scenes")[0].GetProperty("shared");
+            Assert.Equal(item, shared.GetProperty("itemId").GetGuid());
+            Assert.Equal(sessionId, shared.GetProperty("sessionId").GetGuid());
+            Assert.Equal(read.Shared.State, shared.GetProperty("state").GetBytesFromBase64());
             await desktop.InvokeWithParameterObjectAsync("collaboration/writeScene", new { sessionId, itemId = item, update = new byte[] { 2 } }, ct);
             Assert.Equal(new byte[] { 2 }, Assert.Single(session.ReadItem(item)));
             Assert.Contains("<p>2</p>", await File.ReadAllTextAsync(path, ct));

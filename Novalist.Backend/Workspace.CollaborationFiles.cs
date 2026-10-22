@@ -22,6 +22,7 @@ public sealed partial class Workspace
             sharedProjectFiles = files;
             sharedDiskFiles = await ReadSharedFilesAsync(sharedRoot ?? throw new InvalidOperationException("The shared project is closed."), ct);
             await files.StartAsync(baseline, state, ct);
+            await ResumeSharedRenamesAsync(ct);
             sharedDiskFiles = await ReadSharedFilesAsync(sharedRoot ?? throw new InvalidOperationException("The shared project is closed."), ct);
         }
         catch
