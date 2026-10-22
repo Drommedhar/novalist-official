@@ -188,6 +188,7 @@ public sealed partial class TcpPeerHost : IAsyncDisposable
                 "catch-up" when request.After >= 0 && request.After <= log.LastSequence => new(request.Id, "reply", Updates: log.Read(request.After)),
                 "push" => new(request.Id, "reply", Sequence: Push(client, request)),
                 "field-push" => new(request.Id, "reply", Sequence: Push(client, request with { Lease = RequireLease(request) })),
+                "guarded-field-push" when request.Lease?.RequiredLease is not null => new(request.Id, "reply", Sequence: Push(client, request with { Lease = RequireLease(request) })),
                 "field-acquire" => new(request.Id, "reply", Lease: Acquire(client, RequireLease(request))),
                 "field-renew" => new(request.Id, "reply", Lease: Renew(client, RequireLease(request))),
                 "field-release" => new(request.Id, "reply", Released: Release(client, RequireLease(request))),
@@ -209,6 +210,8 @@ public sealed partial class TcpPeerHost : IAsyncDisposable
         if (log.Find(header, envelope) is { } existing) return existing;
         if (request.Lease is { } lease && !Owns(client, lease, DateTimeOffset.UtcNow))
             throw new InvalidOperationException("This field's editing lease has expired or changed.");
+        if (request.Lease?.RequiredLease is { } required && !Owns(client, new(project, required.ResourceId, epoch, required.LeaseId), DateTimeOffset.UtcNow))
+            throw new InvalidOperationException("The required editing lease has expired or changed.");
         var sequence = log.Append(header, envelope);
         var update = new PeerMessage(0, "update", Update: new(sequence, envelope));
         foreach (var peer in clients.Values.Where(peer => peer.Joined)) peer.Send(update);

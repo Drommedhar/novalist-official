@@ -50,6 +50,8 @@ public sealed partial class CollaborationSession
     {
         if (lease.ProjectId != project || lease.Epoch != epoch || lease.ResourceId == Guid.Empty || lease.LeaseId == Guid.Empty)
             throw new ArgumentException("This field's editing lease belongs to another session context.", nameof(lease));
+        if (lease.RequiredLease is { } required && (required.ResourceId == Guid.Empty || required.LeaseId == Guid.Empty || required.ResourceId == lease.ResourceId))
+            throw new ArgumentException("A dependent editing lease needs a distinct resource and valid identities.", nameof(lease));
     }
 
     private void EndFieldOperation(CancellationTokenSource operation)

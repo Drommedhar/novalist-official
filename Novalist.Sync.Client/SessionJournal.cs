@@ -65,6 +65,7 @@ public sealed partial class SessionJournal : IDisposable
             CREATE TABLE IF NOT EXISTS authority (id INTEGER PRIMARY KEY CHECK(id = 1), value BLOB NOT NULL);
             CREATE TABLE IF NOT EXISTS checkpoint_base (id INTEGER PRIMARY KEY CHECK(id = 1), server_seq INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS field_edits (sender_seq INTEGER PRIMARY KEY, resource TEXT NOT NULL, epoch INTEGER NOT NULL, lease TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS field_conditions (sender_seq INTEGER PRIMARY KEY, resource TEXT NOT NULL, lease TEXT NOT NULL);
             INSERT OR IGNORE INTO session VALUES (1, $identity, 0, NULL);
             """, ("$identity", identity));
         schema.ExecuteNonQuery();

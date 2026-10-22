@@ -17,7 +17,10 @@ public sealed partial class HostedTransport
         hub.InvokeAsync<bool>("ReleaseFieldLease", request, ct);
 
     public Task<long> PushFieldEditAsync(FieldLeaseRequest request, UpdateEnvelope envelope, CancellationToken ct) =>
-        hub.InvokeAsync<long>("PushFieldEdit", request, envelope, ct);
+        request.RequiredLease is { } required
+            ? hub.InvokeAsync<long>("PushGuardedFieldEdit", request with { RequiredLease = null },
+                new FieldLeaseRequest(request.ProjectId, required.ResourceId, request.Epoch, required.LeaseId), envelope, ct)
+            : hub.InvokeAsync<long>("PushFieldEdit", request, envelope, ct);
 
     private static FieldLeaseGrant ValidateLease(FieldLeaseGrant grant)
     {

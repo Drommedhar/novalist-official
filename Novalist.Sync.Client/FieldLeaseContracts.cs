@@ -1,6 +1,10 @@
 namespace Novalist.Sync.Client;
 
-public sealed record FieldLeaseRequest(Guid ProjectId, Guid ResourceId, uint Epoch, Guid LeaseId);
+public sealed record FieldLeaseCondition(Guid ResourceId, Guid LeaseId);
+public sealed record FieldLeaseRequest(Guid ProjectId, Guid ResourceId, uint Epoch, Guid LeaseId)
+{
+    public FieldLeaseCondition? RequiredLease { get; init; }
+}
 public sealed record FieldLeaseGrant(Guid DeviceId, Guid LeaseId, DateTimeOffset ExpiresAt, DateTimeOffset ServerTime, long ServerSeq);
 
 public interface IFieldLeaseTransport

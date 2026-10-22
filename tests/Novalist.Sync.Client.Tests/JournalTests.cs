@@ -16,13 +16,16 @@ public sealed class JournalTests : IDisposable
 
     public JournalTests() => sequences = new DeviceSequence(Path.Combine(folder, "device.sqlite"), device);
 
-    [Fact]
-    public void UnconfirmedFieldEditsSurviveRestartWithoutEnteringTheOrdinaryUploadQueue()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void UnconfirmedFieldEditsSurviveRestartWithoutEnteringTheOrdinaryUploadQueue(bool guarded)
     {
         using var signing = Key.Create(SignatureAlgorithm.Ed25519);
         using var cipher = new EnvelopeCipher(project, 0, epochKey);
         var item = Guid.NewGuid();
-        var lease = new FieldLeaseRequest(project, Guid.NewGuid(), 0, Guid.NewGuid());
+        var lease = new FieldLeaseRequest(project, Guid.NewGuid(), 0, Guid.NewGuid())
+            { RequiredLease = guarded ? new(Guid.NewGuid(), Guid.NewGuid()) : null };
         UpdateEnvelope envelope;
         using (var journal = new SessionJournal(Database, session, project, sequences))
         {

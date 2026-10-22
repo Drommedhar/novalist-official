@@ -186,11 +186,21 @@ internal sealed partial class HostedSessionServer : IAsyncDisposable
 
         public async Task<long> PushFieldEdit(FieldLeaseRequest request, UpdateEnvelope envelope)
         {
+            if (server.BeforeFieldPush is { } before) await before(request);
+            Task<long> pushed;
             lock (server.Gate)
+            {
                 if (!server.Leases.TryGetValue((request.ProjectId, request.ResourceId), out var held) || held.DeviceId != Device || held.LeaseId != request.LeaseId)
                     throw new HubException("Editing lease expired.");
-            if (server.BeforeFieldPush is { } before) await before(request);
-            return await Push(envelope);
+                if (request.RequiredLease is { } required && (!server.Leases.TryGetValue((request.ProjectId, required.ResourceId), out var guard) ||
+                    guard.DeviceId != Device || guard.LeaseId != required.LeaseId || guard.ExpiresAt <= DateTimeOffset.UtcNow))
+                    throw new HubException("Required editing lease expired.");
+                pushed = Push(envelope);
+            }
+            return await pushed;
         }
+
+        public Task<long> PushGuardedFieldEdit(FieldLeaseRequest request, FieldLeaseRequest required, UpdateEnvelope envelope) =>
+            PushFieldEdit(request with { RequiredLease = new(required.ResourceId, required.LeaseId) }, envelope);
     }
 }

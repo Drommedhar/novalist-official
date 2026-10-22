@@ -8,7 +8,7 @@ public sealed partial class Workspace
 {
     private sealed record MetadataWrite(FieldLeaseRequest Lease, string Value);
 
-    private async Task<bool> WriteSharedMetadataAsync(Guid sessionId, Guid item, Guid focus, string value, CancellationToken ct)
+    private async Task<bool> WriteSharedMetadataAsync(Guid sessionId, Guid item, Guid focus, string value, CancellationToken ct, FieldLeaseCondition? required = null)
     {
         var field = await RequireEditableSharedFieldAsync(sessionId, item, focus);
         var binding = fieldBindings[item];
@@ -35,8 +35,9 @@ public sealed partial class Workspace
                 await AcquireClearedSceneFieldAsync(binding, "focusEntityId", parsed, acquired, ct);
             if (binding.Metadata.Kind == "scene" && binding.Key == "narrativeMode" && parsed?.GetValue<string>() != "parallel")
                 await AcquireClearedSceneFieldAsync(binding, "strand", null, acquired, ct);
-            await field.Fields.WriteAsync(field.Lease, value, ct);
-            foreach (var write in acquired) await field.Fields.WriteAsync(write.Lease, write.Value, CancellationToken.None);
+            var origin = new MetadataWrite(field.Lease, value);
+            var writes = binding.Key == "isWorld" ? acquired.Append(origin) : acquired.Prepend(origin);
+            foreach (var write in writes) await field.Fields.WriteAsync(write.Lease with { RequiredLease = required }, write.Value, ct);
             if (binding.Metadata.Kind == "research" && binding.Key == "type")
                 await PublishResearchTypeAsync(binding, parsed, CancellationToken.None);
             return true;

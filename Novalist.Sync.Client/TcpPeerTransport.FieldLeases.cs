@@ -13,5 +13,5 @@ public sealed partial class TcpPeerTransport : IFieldLeaseTransport
         (await RequestAsync(new(NextId(), "field-release", request.ProjectId, Lease: request), ct)).Released;
 
     public async Task<long> PushFieldEditAsync(FieldLeaseRequest request, UpdateEnvelope envelope, CancellationToken ct) =>
-        (await RequestAsync(new(NextId(), "field-push", request.ProjectId, Envelope: envelope, Lease: request), ct)).Sequence;
+        (await RequestAsync(new(NextId(), request.RequiredLease is null ? "field-push" : "guarded-field-push", request.ProjectId, Envelope: envelope, Lease: request), ct)).Sequence;
 }

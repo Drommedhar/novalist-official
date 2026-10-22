@@ -78,6 +78,15 @@ public sealed class TcpPeerSessionTests : IDisposable
         await writerSession.Updates.CommitFieldAsync(item, "44"u8.ToArray(), writerLease, ct);
         await ownerSession.Updates.SynchronizeAsync(false, ct);
         Assert.Equal("44"u8.ToArray(), ownerSession.Updates.ReadCommittedItem(item)[^1].Payload);
+        var graph = new FieldLeaseRequest(project, Guid.NewGuid(), 0, Guid.NewGuid());
+        Assert.True((await writerSession.Updates.AcquireFieldAsync(graph, ct)).Acquired);
+        var guarded = writerLease with { RequiredLease = new(graph.ResourceId, graph.LeaseId) };
+        await writerSession.Updates.CommitFieldAsync(item, "45"u8.ToArray(), guarded, ct);
+        Assert.True(await writerSession.Updates.ReleaseFieldAsync(graph, ct));
+        var replacement = graph with { LeaseId = Guid.NewGuid() };
+        Assert.True((await ownerSession.Updates.AcquireFieldAsync(replacement, ct)).Acquired);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => writerSession.Updates.CommitFieldAsync(item, "46"u8.ToArray(), guarded, ct));
+        Assert.Equal("45"u8.ToArray(), writerSession.Updates.ReadCommittedItem(item)[^1].Payload);
     }
 
     private PeerSession OpenSession(string name, DeviceIdentity device, TcpPeerTransport transport) =>

@@ -8,18 +8,25 @@ public sealed partial class Workspace
 {
     internal async Task WriteSharedFieldAsync(Guid sessionId, Guid item, Guid focus, string value, CancellationToken ct)
     {
-        if (await WriteSharedMetadataAsync(sessionId, item, focus, value, ct)) return;
+        await using var graph = await AcquireSharedGraphAsync(sessionId, item, focus, ct);
+        await WriteSharedFieldCoreAsync(sessionId, item, focus, value, graph?.Condition, ct);
+    }
+
+    private async Task WriteSharedFieldCoreAsync(Guid sessionId, Guid item, Guid focus, string value, FieldLeaseCondition? required, CancellationToken ct)
+    {
+        if (await WriteSharedMetadataAsync(sessionId, item, focus, value, ct, required)) return;
         var field = await RequireEditableSharedFieldAsync(sessionId, item, focus);
         await field.Fields.ReadAsync(item, ct);
         value = await NormalizeSharedParentAsync(fieldBindings[item], value);
         var rename = await SharedRenameAsync(fieldBindings[item], value);
+        if (rename is not null) await ValidateSharedRenameGraphAsync(rename, fieldBindings[item].Path);
         var references = new List<SharedRenameReference>();
         try
         {
             if (rename is not null) await AcquireRenameReferencesAsync(rename, references, ct);
-            await field.Fields.WriteAsync(field.Lease, value, ct);
+            await field.Fields.WriteAsync(field.Lease with { RequiredLease = required }, value, ct);
             foreach (var reference in references)
-                await field.Fields.WriteAsync(reference.Lease, reference.Value, CancellationToken.None);
+                await field.Fields.WriteAsync(reference.Lease with { RequiredLease = required }, reference.Value, CancellationToken.None);
             if (rename is not null) await RenameSharedProseAsync(rename, CancellationToken.None);
         }
         finally

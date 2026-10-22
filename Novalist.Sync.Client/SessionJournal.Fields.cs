@@ -22,6 +22,12 @@ public sealed partial class SessionJournal
             ("$sequence", (long)header.SenderSeq), ("$resource", lease.ResourceId.ToString("D")),
             ("$epoch", (long)lease.Epoch), ("$lease", lease.LeaseId.ToString("D")));
         command.ExecuteNonQuery();
+        if (lease.RequiredLease is { } required)
+        {
+            using var condition = Command("INSERT INTO field_conditions VALUES ($sequence, $resource, $lease)",
+                ("$sequence", (long)header.SenderSeq), ("$resource", required.ResourceId.ToString("D")), ("$lease", required.LeaseId.ToString("D")));
+            condition.ExecuteNonQuery();
+        }
     }
 
     internal byte[]? LatestFieldPayload(Guid item, FieldLeaseRequest lease)
@@ -30,10 +36,14 @@ public sealed partial class SessionJournal
         {
             using var command = Command("""
                 SELECT c.payload FROM changes c JOIN field_edits f ON c.sender_seq = f.sender_seq
+                LEFT JOIN field_conditions guard ON c.sender_seq = guard.sender_seq
                 WHERE c.sender = $device AND c.item = $item AND f.resource = $resource AND f.epoch = $epoch AND f.lease = $lease
+                AND guard.resource IS $guardResource AND guard.lease IS $guardLease
                 ORDER BY c.sender_seq DESC
                 """, ("$device", device.ToString("D")), ("$item", item.ToString("D")),
-                ("$resource", lease.ResourceId.ToString("D")), ("$epoch", (long)lease.Epoch), ("$lease", lease.LeaseId.ToString("D")));
+                ("$resource", lease.ResourceId.ToString("D")), ("$epoch", (long)lease.Epoch), ("$lease", lease.LeaseId.ToString("D")),
+                ("$guardResource", (object?)lease.RequiredLease?.ResourceId.ToString("D") ?? DBNull.Value),
+                ("$guardLease", (object?)lease.RequiredLease?.LeaseId.ToString("D") ?? DBNull.Value));
             using var reader = command.ExecuteReader();
             var packets = new List<UpdatePacket>();
             while (reader.Read())
@@ -51,14 +61,16 @@ public sealed partial class SessionJournal
         lock (gate)
         {
             using var command = Command("""
-                SELECT f.resource, f.epoch, f.lease, c.payload, c.envelope FROM changes c
+                SELECT f.resource, f.epoch, f.lease, c.payload, c.envelope, guard.resource, guard.lease FROM changes c
                 JOIN field_edits f ON c.sender_seq = f.sender_seq
+                LEFT JOIN field_conditions guard ON c.sender_seq = guard.sender_seq
                 WHERE c.sender = $device AND c.pending = 1 ORDER BY c.sender_seq
                 """, ("$device", device.ToString("D")));
             using var reader = command.ExecuteReader();
             var result = new List<PendingFieldEdit>();
             while (reader.Read()) result.Add(new(
-                new(project, Guid.Parse(reader.GetString(0)), checked((uint)reader.GetInt64(1)), Guid.Parse(reader.GetString(2))),
+                new(project, Guid.Parse(reader.GetString(0)), checked((uint)reader.GetInt64(1)), Guid.Parse(reader.GetString(2)))
+                { RequiredLease = reader.IsDBNull(5) ? null : new(Guid.Parse(reader.GetString(5)), Guid.Parse(reader.GetString(6))) },
                 (byte[])reader[3], JsonSerializer.Deserialize<UpdateEnvelope>((byte[])reader[4])
                     ?? throw new InvalidDataException("Invalid field edit in the local journal.")));
             return result;
