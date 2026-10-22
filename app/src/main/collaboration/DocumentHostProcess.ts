@@ -39,6 +39,12 @@ export class DocumentHostProcess {
     return snapshot
   }
 
+  async rename(id: string, entityId: string, oldName: string, newName: string): Promise<Uint8Array | null> {
+    const { update } = await this.request({ kind: 'rename', id, entityId, oldName, newName })
+    if (update === undefined) throw new Error('The shared document process returned no rename result.')
+    return update
+  }
+
   private request(command: DocumentRequest['command']): Promise<Extract<DocumentReply, { failed: false }>> {
     if (this.closed) return Promise.reject(new Error('The shared document process is closed.'))
     const sequence = ++this.sequence

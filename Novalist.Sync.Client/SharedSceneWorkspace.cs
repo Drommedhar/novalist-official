@@ -108,16 +108,33 @@ public sealed class SharedSceneWorkspace : IAsyncDisposable
         {
             EnsureItem(item);
             await ReplayFailureAsync(item, ct);
-            await documents.ValidateAsync(item, stable, ct);
-            ct.ThrowIfCancellationRequested();
-            session.Save(item, stable);
-            failures.Add(item);
-            // After the journal commits, finish projection even if the caller
-            // leaves. A failed projection is replayed from that same journal.
-            if (!await ApplyAsync(item, stable, CancellationToken.None)) throw new InvalidDataException("The shared edit was rejected after validation.");
-            await ProjectAsync(item, CancellationToken.None, local: true);
+            await SaveEditAsync(item, stable, ct);
         }
         finally { gate.Release(); }
+    }
+
+    public async Task RenameAsync(Guid item, string entityId, string oldName, string newName, CancellationToken ct)
+    {
+        await gate.WaitAsync(ct);
+        try
+        {
+            EnsureItem(item);
+            await ReplayFailureAsync(item, ct);
+            if (await documents.RenameAsync(item, entityId, oldName, newName, ct) is { } update)
+                await SaveEditAsync(item, update, ct);
+        }
+        finally { gate.Release(); }
+    }
+
+    private async Task SaveEditAsync(Guid item, byte[] update, CancellationToken ct)
+    {
+        await documents.ValidateAsync(item, update, ct);
+        ct.ThrowIfCancellationRequested();
+        session.Save(item, update);
+        failures.Add(item);
+        // A committed journal entry must be projected even if its caller leaves.
+        if (!await ApplyAsync(item, update, CancellationToken.None)) throw new InvalidDataException("The shared edit was rejected after validation.");
+        await ProjectAsync(item, CancellationToken.None, local: true);
     }
 
     public async Task DrainAsync(CancellationToken ct)
