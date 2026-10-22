@@ -2,7 +2,7 @@ import { rpc } from '../rpc/client'
 import { SharedItemPresence } from './SharedItemPresence'
 
 export interface FieldBinding { sessionId: string; itemId: string }
-export interface SharedEntityFields { sessionId: string; fields: Record<string, string> }
+export interface SharedEntityFields { sessionId: string; fields: Record<string, string>; metadata?: Record<string, string> }
 export interface FieldView { value: string; phase: 'idle' | 'waiting' | 'editing' | 'locked' | 'expired' | 'saving' | 'failed'; error: string; recoveryPath?: string; ownerDeviceId?: string }
 interface Lease { acquired: boolean; deviceId: string; remainingMilliseconds: number }
 interface Focus {
@@ -52,9 +52,9 @@ export class FocusedField {
     this.publish({ value })
   }
 
-  focus(): void {
+  focus(): Promise<void> {
     this.wantsFocus = true
-    if (this.current) return
+    if (this.current) return this.current.ready
     const focus: Focus = { id: crypto.randomUUID(), initial: this.view.value, value: this.view.value,
       granted: false, ended: false, ready: Promise.resolve(), saving: null, renewing: false,
       storedRevision: this.storedRevision }
@@ -80,6 +80,7 @@ export class FocusedField {
           }, 1000)
         }
       }).catch(error => { if (!focus.ended) this.fail(error) })
+    return focus.ready
   }
 
   blur(): void { this.wantsFocus = false }

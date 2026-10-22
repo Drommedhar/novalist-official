@@ -10,6 +10,7 @@ public sealed class SharedFieldWorkspace : IAsyncDisposable
 {
     private readonly CollaborationSession session;
     private readonly Func<Guid, string, CancellationToken, Task> project;
+    private readonly Action<Guid, string>? validate;
     private readonly SemaphoreSlim gate = new(1, 1);
     private readonly SemaphoreSlim editing = new(1, 1);
     private readonly CancellationTokenSource stopping = new();
@@ -25,10 +26,11 @@ public sealed class SharedFieldWorkspace : IAsyncDisposable
     public Exception? ProjectionError { get; private set; }
     public bool RejectedUpdates { get; private set; }
 
-    public SharedFieldWorkspace(CollaborationSession session, Func<Guid, string, CancellationToken, Task> project)
+    public SharedFieldWorkspace(CollaborationSession session, Func<Guid, string, CancellationToken, Task> project, Action<Guid, string>? validate = null)
     {
         this.session = session;
         this.project = project;
+        this.validate = validate;
     }
 
     public async Task StartAsync(IReadOnlyDictionary<Guid, string> initial, CancellationToken ct)
@@ -81,6 +83,7 @@ public sealed class SharedFieldWorkspace : IAsyncDisposable
     {
         await ReadAsync(request.ResourceId, token);
         ArgumentNullException.ThrowIfNull(value);
+        validate?.Invoke(request.ResourceId, value);
         await session.CommitFieldAsync(request.ResourceId, JsonSerializer.SerializeToUtf8Bytes(new FieldValue(1, value)), request, token);
         await RefreshAsync(token);
         return true;
@@ -133,6 +136,7 @@ public sealed class SharedFieldWorkspace : IAsyncDisposable
         {
             var value = JsonSerializer.Deserialize<FieldValue>(payload);
             if (value is not { Version: 1, Value: not null }) throw new InvalidDataException("Unsupported shared field value.");
+            validate?.Invoke(item, value.Value);
             return value.Value;
         }
         catch (Exception error) when (error is JsonException or InvalidDataException)

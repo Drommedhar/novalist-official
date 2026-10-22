@@ -320,7 +320,12 @@ public sealed record SceneDto(
     /// </summary>
     IReadOnlyList<string> PlotlineColors,
     /// <summary>The same threads by id, so the binder can filter by one.</summary>
-    IReadOnlyList<string> PlotlineIds);
+    IReadOnlyList<string> PlotlineIds)
+{
+#if NOVALIST_COLLABORATION
+    public SharedEntityFieldsDto? SharedFields { get; init; }
+#endif
+}
 
 public sealed record RecentProjectDto(string Name, string Path, string? Cover,
     string? ProjectId = null, LibraryBookDto[]? Books = null, bool? HasWorldBible = null);

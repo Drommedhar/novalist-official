@@ -52,8 +52,10 @@ public sealed partial class Workspace
         if (previous is null || next is null) RejectSharedWrite("A shared Codex entry must remain valid metadata.");
         foreach (var binding in bindings)
         {
-            var before = ReadBoundValue(previous, binding.Key, binding.Custom);
-            var after = ReadBoundValue(next, binding.Key, binding.Custom);
+            if (binding.Metadata is not null && ((previous is not null && SharedMetadataFields.Target(previous, binding) is null) ||
+                (next is not null && SharedMetadataFields.Target(next, binding) is null))) continue;
+            var before = binding.Metadata is not null && previous is not null ? SharedMetadataFields.Read(previous, binding) : ReadBoundValue(previous, binding.Key, binding.Custom);
+            var after = binding.Metadata is not null && next is not null ? SharedMetadataFields.Read(next, binding) : ReadBoundValue(next, binding.Key, binding.Custom);
             if (!JsonNode.DeepEquals(before, after)) RejectSharedWrite("Edit shared Codex fields through their focus lock.");
         }
         foreach (var binding in prose)

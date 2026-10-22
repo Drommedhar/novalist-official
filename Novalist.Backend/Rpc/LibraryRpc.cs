@@ -366,7 +366,7 @@ public sealed class LibraryRpc
             r.EntityRefs.ToArray(), r.Status.ToString(), r.Rating,
             r.RelatedIds?.ToArray() ?? []);
 #if NOVALIST_COLLABORATION
-        result = result with { SharedProse = _workspace.SharedResearchProse(r.Id) };
+        result = result with { SharedProse = _workspace.SharedResearchProse(r.Id), SharedFields = _workspace.SharedResearchMetadata(r.Id) };
 #endif
         return result;
     }
@@ -409,6 +409,9 @@ public sealed record ResearchItemDto(
     IReadOnlyList<string> RelatedIds)
 {
     public SharedResearchProseDto? SharedProse { get; init; }
+#if NOVALIST_COLLABORATION
+    public SharedEntityFieldsDto? SharedFields { get; init; }
+#endif
 }
 
 public sealed record SharedResearchProseDto(Guid SessionId, Guid ItemId);
