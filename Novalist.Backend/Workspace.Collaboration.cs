@@ -88,6 +88,8 @@ public sealed partial class Workspace
         if (item is null || sharedScenes is null) return null;
         var snapshot = await sharedScenes.ReadAsync(item.Value, ct);
         var html = snapshot.Html ?? throw new InvalidOperationException("The shared scene was deleted.");
+        await WordHistory.RecordBaselineAsync(Projects.ActiveBook?.Id ?? "", sceneId,
+            CountWords(Core.Utilities.TextDiff.StripHtml(SharedBlockBoundary().Replace(html, "\n"))));
         return new(sceneId, html, Core.Services.ContentHasher.Hash(html), new(sharedSession, item.Value, snapshot.State, HostedProjects?.IsActive == true || PeerProjects?.IsActive == true));
     }
 
@@ -149,7 +151,7 @@ public sealed partial class Workspace
                 return true;
             }
         }
-        return await RecordInactiveSharedSceneAsync(root, relative, html, local);
+        return await RecordInactiveSharedSceneAsync(root, relative, html);
     }
 
     [GeneratedRegex(@"</?(?:p|div|h[1-6]|ul|ol|li|dl|dt|dd|blockquote|pre|table|thead|tbody|tfoot|tr|td|th|figure|figcaption|br|hr)\b[^>]*>", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
