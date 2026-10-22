@@ -17,7 +17,7 @@ Settings shows **one section at a time**. The rail down the left side groups eve
 | **General** | Appearance, Accessibility, Keyboard shortcuts, Theme tokens |
 | **Writing** | Editor, Writing assistance |
 | **Project** | Writing goals, Word completion, Templates, Scene stages, Scene labels, Groups and factions, Scene templates, Tags, Scene and chapter fields |
-| **System** | Backups, Updates and integrations, Language packs, Diagnostics, Extensions |
+| **System** | Backups, Updates and integrations, Collaboration, Language packs, Diagnostics, Extensions |
 
 - **Search** — type a word (for example `grammar`, `deadline`, `accent`, `github`) and the results name the **individual controls** that match, not just the sections holding them. Picking a result opens its section and takes you to the control itself. If nothing matches, Settings says so rather than showing you an empty page.
 - **Category rail** — pick a section to open it. Only that section is on screen, so a long page of unrelated controls is no longer between you and the one you came for.
@@ -25,6 +25,53 @@ Settings shows **one section at a time**. The rail down the left side groups eve
 Settings opens **without a project**, so your global preferences are reachable the moment Novalist starts. Controls that need a project are visibly disabled rather than missing, so you can see what a project would give you.
 
 When you reach Settings from a control elsewhere — the editor's **More writing settings**, for example — the header carries a **Back to...** link that returns you to the view you came from.
+
+## Collaboration
+
+On desktop, open **Settings → Collaboration**, enter your community server's
+address, and select **Sign in**. Complete sign-in in your browser and return to
+Novalist. **Cancel sign-in** stops a pending request. **Sign out** removes the
+remembered account from this device.
+
+The server must publish its desktop sign-in configuration. Normal connections
+use HTTPS; HTTP is accepted for local loopback testing. Credentials are saved
+using the operating system's encryption service, outside project files. If that
+service is unavailable, Novalist reports the error instead of saving credentials
+without encryption.
+
+With a project open, select **Share this project** to upload its initial shared
+copy. **Create invitation** produces a private link for one collaborator, valid
+for 24 hours. Send it only to the person you want to invite. They sign in to the
+same server, paste the link, enter a local folder name, choose its parent folder,
+and select **Join shared project**. Joining always creates a new folder; it does
+not replace an existing project. The initial copy includes every book and draft,
+Codex entries, images and research. Personal settings, credentials, local
+snapshots and executable extensions are excluded.
+
+Synchronized scenes use the existing editor. Prose edits arrive automatically
+and remain saved locally during a connection interruption. **End this session**
+keeps the local project available for opening and exporting. Other participants
+can keep working on the hosted project, and an unused invitation can be accepted
+while the owner is offline. End the session before signing out or changing servers.
+
+Shared scenes show other writers' cursors and selections. Cursors follow the
+text as it changes and disappear when their writer leaves or stops responding.
+
+Existing Codex text fields, such as a character's age or eye colour, acquire an
+exclusive editing lock when focused. Wait for the field to become editable;
+another writer cannot change it until you leave the field. Moving focus saves
+the value before releasing the lock. These edits require an active connection.
+Locks expire after a disconnected writer stops renewing them. An unsent draft
+remains visible when you leave and reopen the Codex view.
+If saving fails, use **Retry save**. When the lock has expired or the connection
+cannot be restored, **Save a recovery copy** keeps your value separately in the
+project's `Recovered edits` folder. **Show recovery copy** reveals that file so
+you can reuse the value later. It does not replace the shared field.
+
+Collaboration is still under development on this branch. Ongoing structure,
+new Codex entries, Codex prose and asset synchronization, access management, session
+restoration and Steamworks sessions are not yet available. The initial project
+transfer is complete; those later changes are not yet synchronized.
 
 ## Global vs project settings
 

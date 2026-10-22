@@ -8,6 +8,8 @@ import { createProjectEditorActions } from './projectEditorActions'
 import { createProjectSceneActions } from './projectSceneActions'
 
 export const EMPTY_EDITOR: EditorPaneState = {
+  shared: null,
+  collaborationError: false,
   chapterGuid: null,
   sceneId: null,
   html: null,

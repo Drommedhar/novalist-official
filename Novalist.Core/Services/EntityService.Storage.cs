@@ -166,7 +166,7 @@ public partial class EntityService
         if (await _files.ExistsAsync(filePath))
         {
             var previous = await _files.ReadTextAsync(filePath);
-            await new EntityHistory(_projectService).RecordAsync(id, previous, json);
+            await EntityHistory.ForEntity(_projectService, isWorldBible).RecordAsync(id, previous, json);
         }
 
         await _files.WriteTextAsync(filePath, json);

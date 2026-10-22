@@ -54,11 +54,14 @@ public sealed partial class EntitiesRpc
     /// colour over the right one had no answer inside the app.
     /// </summary>
     [JsonRpcMethod("entities/history")]
-    public EntityRevisionDto[] History(string id)
-        => [.. new EntityHistory(_workspace.Projects).List(id)
-            .Select(r => new EntityRevisionDto(
-                r.Id, r.SavedAt.ToString("o", System.Globalization.CultureInfo.InvariantCulture),
-                r.SizeBytes))];
+    public EntityRevisionDto[] History(string id, bool worldBible = false)
+    {
+        var legacy = new EntityHistory(_workspace.Projects).List(id);
+        var revisions = worldBible ? legacy.Concat(EntityHistory.ForEntity(_workspace.Projects, true).List(id)
+            .Select(revision => revision with { Id = "world/" + revision.Id })) : legacy;
+        return [.. revisions.OrderByDescending(revision => revision.SavedAt).Select(revision => new EntityRevisionDto(
+            revision.Id, revision.SavedAt.ToString("o", System.Globalization.CultureInfo.InvariantCulture), revision.SizeBytes))];
+    }
 
     /// <summary>
     /// Puts a revision back. The state being replaced is recorded first by the
@@ -67,7 +70,15 @@ public sealed partial class EntitiesRpc
     [JsonRpcMethod("entities/restoreRevision")]
     public async Task<JsonElement> RestoreRevisionAsync(string type, string id, string revisionId)
     {
-        var stored = await new EntityHistory(_workspace.Projects).ReadAsync(id, revisionId)
+        var existing = await FindAnyAsync(type, id) ?? throw Unknown(id);
+        RefuseIfLocked(existing);
+#if NOVALIST_COLLABORATION
+        if (_workspace.SharedEntityFields(existing) is not null)
+            throw new InvalidOperationException("End collaboration before restoring an entire Codex revision.");
+#endif
+        var worldRevision = revisionId.StartsWith("world/", StringComparison.Ordinal);
+        if (worldRevision && !existing.IsWorldBible) throw new InvalidOperationException("That revision belongs to the World Bible.");
+        var stored = await EntityHistory.ForEntity(_workspace.Projects, worldRevision).ReadAsync(id, worldRevision ? revisionId[6..] : revisionId)
             ?? throw new InvalidOperationException("That revision is no longer there.");
 
         // Deserialised as the type the caller says it is, then saved the way any
@@ -76,19 +87,19 @@ public sealed partial class EntitiesRpc
         switch (type)
         {
             case "character":
-                await _entities.SaveCharacterAsync(Read<Core.Models.CharacterData>(stored, id));
+                await _entities.SaveCharacterAsync(Read<Core.Models.CharacterData>(stored, id, existing.IsWorldBible));
                 break;
             case "location":
-                await _entities.SaveLocationAsync(Read<Core.Models.LocationData>(stored, id));
+                await _entities.SaveLocationAsync(Read<Core.Models.LocationData>(stored, id, existing.IsWorldBible));
                 break;
             case "item":
-                await _entities.SaveItemAsync(Read<Core.Models.ItemData>(stored, id));
+                await _entities.SaveItemAsync(Read<Core.Models.ItemData>(stored, id, existing.IsWorldBible));
                 break;
             case "lore":
-                await _entities.SaveLoreAsync(Read<Core.Models.LoreData>(stored, id));
+                await _entities.SaveLoreAsync(Read<Core.Models.LoreData>(stored, id, existing.IsWorldBible));
                 break;
             default:
-                await _entities.SaveCustomEntityAsync(Read<Core.Models.CustomEntityData>(stored, id));
+                await _entities.SaveCustomEntityAsync(Read<Core.Models.CustomEntityData>(stored, id, existing.IsWorldBible));
                 break;
         }
 
@@ -99,12 +110,12 @@ public sealed partial class EntitiesRpc
     /// A stored revision, with its id forced back to the entry being restored -
     /// a file edited by hand should not be able to write over a different entry.
     /// </summary>
-    private static T Read<T>(string json, string id) where T : class
+    private static T Read<T>(string json, string id, bool worldBible) where T : class, IEntityData
     {
         var entity = JsonSerializer.Deserialize<T>(json, JsonOptions)
             ?? throw new InvalidOperationException("That revision could not be read.");
-        var idProperty = typeof(T).GetProperty("Id");
-        idProperty?.SetValue(entity, id);
+        typeof(T).GetProperty("Id")?.SetValue(entity, id);
+        entity.IsWorldBible = worldBible;
         return entity;
     }
 
@@ -182,7 +193,13 @@ public sealed partial class EntitiesRpc
     [JsonRpcMethod("entities/update")]
     public async Task<JsonElement> UpdateAsync(string type, string id, Dictionary<string, string> fields)
     {
-        RefuseIfLocked(await FindAnyAsync(type, id));
+        var existing = await FindAnyAsync(type, id);
+        RefuseIfLocked(existing);
+#if NOVALIST_COLLABORATION
+        if (existing is not null && _workspace.SharedEntityFields(existing) is { } shared &&
+            fields.Keys.Any(key => shared.Fields.Keys.Contains(key, IsCustomType(type) ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Shared Codex fields must be saved through their focused editing lease.");
+#endif
 
         if (IsCustomType(type))
         {

@@ -18,6 +18,14 @@ public sealed class ScenesRpc
     public async Task<SceneContentDto> ReadAsync(string chapterGuid, string sceneId)
     {
         var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+#if NOVALIST_COLLABORATION
+        var shared = await _workspace.ReadSharedSceneAsync(chapterGuid, sceneId, CancellationToken.None);
+        if (shared is not null)
+        {
+            _workspace.RaiseSceneOpened(chapter, scene);
+            return shared;
+        }
+#endif
         var html = await _workspace.Projects.ReadSceneContentAsync(chapter, scene);
         // Opening a scene in the editor is a scenes/read; notify extensions so the
         // AI Assistant tracks the current-scene context and knowledge cache.
@@ -334,6 +342,9 @@ public sealed class ScenesRpc
     public async Task<SceneWriteResultDto> ResolveConflictAsync(
         string chapterGuid, string sceneId, string html, string plainText, string? originalMineHtml = null)
     {
+#if NOVALIST_COLLABORATION
+        _workspace.RequireUnsharedScene(chapterGuid, sceneId);
+#endif
         var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
         var hash = await _workspace.SceneConflicts.ResolveAsync(chapter, scene, html, originalMineHtml);
         // Re-save through the unchecked path so the word count, history and
@@ -352,7 +363,8 @@ public sealed class ScenesRpc
 /// "mine" (only the writer has it) or "theirs" (only the file has it).</summary>
 public sealed record MergeRowDto(string? Mine, string? Theirs, string State, string? MineHtml = null, string? TheirsHtml = null);
 
-public sealed record SceneContentDto(string SceneId, string Html, string Hash);
+public sealed record SceneContentDto(string SceneId, string Html, string Hash, SharedSceneContentDto? Shared = null);
+public sealed record SharedSceneContentDto(Guid SessionId, Guid ItemId, byte[] State, bool Presence = false);
 
 public sealed record SceneMetaDto(
     string SceneId,

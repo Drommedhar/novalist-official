@@ -1,4 +1,46 @@
 {
+  "collaboration": {
+    "title": "协作",
+    "server": "服务器地址",
+    "serverHint": "通过浏览器登录社区协作服务器。你的账户将安全地保存在此设备上。",
+    "signIn": "登录",
+    "signOut": "退出登录",
+    "cancelSignIn": "取消登录",
+    "signedIn": "已登录为 {{name}}",
+    "browserPending": "请在浏览器中完成登录。",
+    "create": "共享此项目",
+    "openProjectHint": "打开项目以开始共享。",
+    "join": "加入共享项目",
+    "invitation": "邀请链接",
+    "invite": "创建邀请",
+    "invitationHint": "将此私密链接发送给一位协作者。链接仅可使用一次，24 小时后过期。对方需要登录此服务器。",
+    "localFolderName": "本地项目文件夹名称",
+    "parentFolder": "选择上级文件夹",
+    "joinHint": "加入时会创建新的本地项目文件夹，不会替换现有文件夹。",
+    "localCopyHint": "结束此会话会保留你的本地项目。其他协作者可以继续在服务器上工作。",
+    "end": "结束此会话",
+    "presenceUnavailable": "暂时无法显示协作者的光标。",
+    "fieldWaiting": "正在等待此字段的编辑权限…",
+    "fieldLocked": "另一位协作者正在编辑此字段。",
+    "fieldExpired": "编辑锁已过期。草稿已保留；请在结束会话前保存恢复副本。",
+    "retryField": "重试保存",
+    "recoverField": "保存恢复副本",
+    "fieldRecovered": "你的编辑已保存到本地恢复副本。",
+    "showRecovery": "显示恢复副本",
+    "connection": {
+      "Stopped": "共享已暂停。",
+      "Connecting": "正在连接共享项目…",
+      "Connected": "已连接共享项目。",
+      "Reconnecting": "正在重新连接。你的文本已保存在本地。",
+      "Failed": "连接需要处理。你的文本已保存在本地。"
+    },
+    "progress": {
+      "create": "正在准备并上传共享项目…",
+      "join": "正在下载共享项目…",
+      "invite": "正在创建邀请…",
+      "end": "正在保存并结束会话…"
+    }
+  },
   "dictation": {
     "formatting": "格式",
     "automaticDialogue": "自动对话格式",

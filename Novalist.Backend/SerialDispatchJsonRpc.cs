@@ -76,6 +76,8 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         "ui/progress/cancel",
         "system/ping",
         "system/shutdown",
+        "collaboration/presence",
+        "collaboration/participants",
         // Stopping a reading is the same shape as cancelling a progress dialog:
         // a control call for something already in flight. Reading a scene aloud
         // is a run of voices/speak calls, each of which does not return until
@@ -114,6 +116,7 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
     private static readonly string[] Unsynchronised =
     [
         "git/",
+        "collaboration/account/",
         // Backups must share the workspace queue: restore replaces files and
         // reloads models, and creation/pruning must not race that replacement.
         // Export compilation reads the current book, draft and Codex throughout
@@ -162,6 +165,7 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
     internal static bool IsReentrant(string? method)
     {
         if (method == null) return false;
+        if (method == "collaboration/account/signOut") return false;
         if (method == "$/cancelRequest") return true;
         if (method is "export/formats" or "export/tokens") return true;
         if (method is "workspace/prepared" or "workspace/applied" or "workspace/clientClosed") return true;

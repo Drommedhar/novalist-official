@@ -120,6 +120,11 @@ public sealed partial class EntitiesRpc
         var node = JsonSerializer.SerializeToNode(entity, JsonOptions);
         if (node is System.Text.Json.Nodes.JsonObject obj)
         {
+            if (entity is IEntityData scoped) obj["isWorldBible"] = scoped.IsWorldBible;
+#if NOVALIST_COLLABORATION
+            if (entity is IEntityData data && _workspace.SharedEntityFields(data) is { } fields)
+                obj["sharedFields"] = JsonSerializer.SerializeToNode(fields, JsonOptions);
+#endif
             ResolveImageUrls(obj["images"] as System.Text.Json.Nodes.JsonArray);
             // Per-scope character overrides carry their own image lists; annotate
             // each so the inline overrides editor can render them by resolved url.

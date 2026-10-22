@@ -35,6 +35,21 @@ function harness(notification) {
   return { router, requests }
 }
 
+test('backend requests are answered by the desktop without entering renderer ports', async () => {
+  const frames = [], decoder = new RpcFrameDecoder()
+  const router = new BackendRouter(frame => frames.push(...decoder.push(frame)), undefined,
+    async (method, params) => ({ method, params }))
+  const renderer = port()
+  router.attach(1, renderer)
+  router.receiveBackend(encodeRpcFrame({ jsonrpc: '2.0', id: 1,
+    method: 'collaboration/documents/capture', params: { id: 'scene-a' } }))
+  await new Promise(resolve => setImmediate(resolve))
+  assert.deepEqual(frames, [{ jsonrpc: '2.0', id: 1,
+    result: { method: 'collaboration/documents/capture', params: { id: 'scene-a' } } }])
+  assert.deepEqual(renderer.messages(), [])
+  router.dispose()
+})
+
 test('windows with identical request IDs receive only their own replies', () => {
   const { router, requests } = harness()
   const main = port(), detached = port()

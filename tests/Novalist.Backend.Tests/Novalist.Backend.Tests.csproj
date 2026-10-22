@@ -13,6 +13,7 @@
     <PackageReference Include="Nerdbank.Streams" Version="2.13.16" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Novalist.Sync.Client.Tests\TestIdentityProvider.cs" Link="TestHelpers\TestIdentityProvider.cs" />
     <!-- One copy of the Scrivener fixture, shared with the core tests. The
          reader and the import RPC have to agree about what a project looks
          like, and two hand-kept copies would drift. -->

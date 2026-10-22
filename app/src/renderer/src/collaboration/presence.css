@@ -1,0 +1,21 @@
+.nv-collaboration-caret {
+  position: fixed;
+  pointer-events: none;
+  border-inline-start: var(--nl-space-hairline) solid var(--caret);
+  z-index: 20;
+}
+
+.nv-collaboration-label {
+  position: absolute;
+  inset-block-end: 100%;
+  white-space: nowrap;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: var(--chrome-font-sm);
+  padding: var(--nl-space-hairline) var(--nl-space-tightest);
+  border-radius: var(--nl-radius-sm);
+}
+
+::highlight(novalist-collaborators) {
+  background: var(--selection-bg);
+}

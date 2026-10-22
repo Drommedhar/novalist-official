@@ -1,4 +1,5 @@
 import type { WorkspaceSnapshot } from '../../../shared/workspaceProtocol'
+import type { SharedSceneIdentity } from '../../../shared/sharedScene'
 
 export interface SceneDto {
   id: string
@@ -76,6 +77,8 @@ export interface SceneTabRef {
  * costs nothing.
  */
 export interface EditorPaneState {
+  shared?: SharedSceneIdentity | null
+  collaborationError?: boolean
   chapterGuid: string | null
   sceneId: string | null
   html: string | null

@@ -1,4 +1,5 @@
 import { BackupsCard } from './BackupsCard'
+import { CollaborationCard } from './CollaborationCard'
 import { CompletionCard } from './CompletionCard'
 import { ExtensionsCard } from './ExtensionsCard'
 import { GroupsCard } from './GroupsCard'
@@ -25,6 +26,7 @@ import { updatesIntegrationsSettingsBody } from './updatesIntegrationsSettingsBo
 import { writingAssistanceSettingsBody } from './writingAssistanceSettingsBody'
 import { writingGoalsSettingsBody } from './writingGoalsSettingsBody'
 const sectionFactories = [
+  { key: 'collaboration', body: () => <CollaborationCard /> },
   {
     /* Mobile only (see the registry): the way out of a project, which on
        desktop is a menu item and a palette command instead. */

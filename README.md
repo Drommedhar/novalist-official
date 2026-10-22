@@ -35,6 +35,11 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ## Features
 
+- **Hosted collaboration (in development)** — browser sign-in, single-use
+  invitations, a complete initial project copy, participant cursors, live scene editing through
+  the existing editor, and focus locks for existing Codex text fields. See [Collaboration](docs/manual/23-settings.md#collaboration)
+  for the current capabilities and remaining work.
+
 ### Interface
 
 - **Desktop workspace layout** — horizontal navigation with the mode panel above the scene list even in narrow windows, system sans-serif controls and flat surfaces; a bookshelf library and dashboard artwork; consistent view headings and actions, tabbed Codex and Research, a cast-and-reading layout for Narration, and complete scene context beside the editor.
@@ -201,7 +206,7 @@ The **Mac App Store edition has no extension feature** - no gallery, no installi
 
 Novalist is an Electron + React front end over a bundled .NET 10 core process (`Novalist.Backend`).
 
-Building and running the checks requires the .NET 10 SDK and Node.js 22.13+ on the 22 LTS line, or Node.js 23.2+. The renderer tests use Node's TypeScript stripping API. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
+Building and running the checks requires the .NET 10 SDK and Node.js 22.22.2+ on the 22 LTS line, 24.15+ on the 24 LTS line, or 26+. The renderer tests use Node's TypeScript stripping API, and the collaboration document host uses a headless DOM. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
 
 ### Development environment with devenv
 

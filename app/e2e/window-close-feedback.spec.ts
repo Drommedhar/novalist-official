@@ -134,3 +134,29 @@ test('close covers an already open native dialog and save failure restores its i
     await h.page.evaluate(() => (window as unknown as { closeProbe: CloseProbe }).closeProbe.restore())
   } finally { await h.close() }
 })
+
+test('failure to save the shared session prevents shutdown and permits retry', async () => {
+  const h = await launchApp('novalist-close-collaboration-')
+  try {
+    await seedBook(h, { Chapter: ['Shared'] })
+    await dismissTour(h.page)
+    await h.page.evaluate(() => {
+      const request = window.novalistRpc.request.bind(window.novalistRpc)
+      let failed = false
+      window.novalistRpc.request = async <T>(method: string, params?: unknown): Promise<T> => {
+        if (method === 'collaboration/end' && !failed) {
+          failed = true
+          throw new Error('Shared session could not be saved.')
+        }
+        return request<T>(method, params)
+      }
+    })
+    await requestMainClose(h)
+    await expect(h.page.getByText('Shared session could not be saved.', { exact: false })).toBeVisible()
+    await expect(h.page.locator('.window-closing-dialog')).toHaveCount(0)
+    await expect(h.page.locator('.shell, .app-shell')).not.toHaveAttribute('inert')
+    expect(h.app.windows()).toHaveLength(1)
+    await requestMainClose(h)
+    await expect.poll(() => h.app.windows().length).toBe(0)
+  } finally { await h.close().catch(() => {}) }
+})

@@ -17,6 +17,8 @@ export interface ProofingStatus {
 
 /** The editor page's global functions the host is allowed to call. */
 export interface EditorWindow extends Window {
+  sanitizeSceneFragment(html: string): DocumentFragment
+  toDisplayImages(root: ParentNode): void
   setContent(html: string): void
   setSceneContext(sceneId: string): void
   /** Clean stored HTML and plain text currently in the live contenteditable. */

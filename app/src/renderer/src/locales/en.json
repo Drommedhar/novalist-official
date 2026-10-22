@@ -1,4 +1,46 @@
 {
+  "collaboration": {
+    "title": "Collaboration",
+    "server": "Server address",
+    "serverHint": "Sign in to your community collaboration server using your browser. Your account is remembered securely on this device.",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "cancelSignIn": "Cancel sign-in",
+    "signedIn": "Signed in as {{name}}",
+    "browserPending": "Finish signing in in your browser.",
+    "create": "Share this project",
+    "openProjectHint": "Open a project to start sharing it.",
+    "join": "Join shared project",
+    "invitation": "Invitation link",
+    "invite": "Create invitation",
+    "invitationHint": "Send this private link to one collaborator. It can be used once and expires after 24 hours. They must sign in to this server.",
+    "localFolderName": "Local project folder name",
+    "parentFolder": "Choose parent folder",
+    "joinHint": "Joining creates a new local project folder. Existing folders are never replaced.",
+    "localCopyHint": "Ending this session keeps your local project. Other collaborators can keep working on the server.",
+    "end": "End this session",
+    "presenceUnavailable": "Participant cursors are temporarily unavailable.",
+    "fieldWaiting": "Waiting for permission to edit this field…",
+    "fieldLocked": "Another writer is editing this field.",
+    "fieldExpired": "The editing lock expired. Your draft is kept; save a recovery copy before ending the session.",
+    "retryField": "Retry save",
+    "recoverField": "Save a recovery copy",
+    "fieldRecovered": "Your edit was saved in a local recovery copy.",
+    "showRecovery": "Show recovery copy",
+    "connection": {
+      "Stopped": "Sharing is paused.",
+      "Connecting": "Connecting to the shared project…",
+      "Connected": "Connected to the shared project.",
+      "Reconnecting": "Reconnecting. Your writing is saved locally.",
+      "Failed": "The connection needs attention. Your writing is saved locally."
+    },
+    "progress": {
+      "create": "Preparing and uploading the shared project…",
+      "join": "Downloading the shared project…",
+      "invite": "Creating an invitation…",
+      "end": "Saving and ending the session…"
+    }
+  },
   "dictation": {
     "formatting": "Formatting",
     "automaticDialogue": "Automatic dialogue",

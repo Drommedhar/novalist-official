@@ -6,6 +6,7 @@ import { useShellStore } from '../../stores/shellStore'
 import { rpc } from '../../rpc/client'
 import { pushEditorSettings, pushEditorConfig } from './editorConfiguration'
 import type { EditorHandlerContext, EditorMessageHandlers } from './editorMessageContext'
+import { syncSharedEditor } from '../../collaboration/sharedEditors'
 
 export function createEditorReadyMessages(context: EditorHandlerContext): EditorMessageHandlers {
   const { editorRef, iframe, pane, i18n, loadingRef, lastReportedHtmlRef, loadAnnotations, applyFootnoteOrder, pushEntityNames, t } = context
@@ -36,7 +37,7 @@ export function createEditorReadyMessages(context: EditorHandlerContext): Editor
       if (initialHtml !== null) {
         loadingRef.current = true
         live.setSceneContext(editorPane(useProjectStore.getState(), pane).sceneId ?? '')
-        live.setContent(initialHtml)
+        if (!syncSharedEditor(pane, live)) live.setContent(initialHtml)
         loadingRef.current = false
         lastReportedHtmlRef.current = initialHtml
       }

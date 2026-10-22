@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
-import { useCodexStore } from './codexStore'
+import { applySharedCodexField, useCodexStore } from './codexStore'
 import { useProjectStore, type ProjectStateDto } from './projectStore'
 
 /**
@@ -171,6 +171,10 @@ export function registerHostBridge(): void {
 }
 
 function registerProjectNotifications(): void {
+  rpc.onNotification('collaboration/fieldUpdated', params => {
+    const change = firstParam<{ sessionId: string; itemId: string; value: string } | null>(params)
+    if (change) applySharedCodexField(change)
+  })
 
   // An extension writing to the project changes files the interface is
   // already showing. Without these two the writer saw their old values until

@@ -33,17 +33,23 @@ public sealed class EntityHistory
     private readonly IProjectService _projects;
     private readonly IFileService _files;
     private readonly Func<DateTime> _now;
+    private readonly string? _snapshotRoot;
 
     /// <param name="now">
     /// The clock, so a test can hold it still. Two saves inside one millisecond
     /// is the case worth pinning down and the hardest to arrange by timing.
     /// </param>
-    public EntityHistory(IProjectService projects, Func<DateTime>? now = null)
+    public EntityHistory(IProjectService projects, Func<DateTime>? now = null, string? snapshotRoot = null)
     {
         _projects = projects;
         _files = ProjectFiles.For(projects);
         _now = now ?? (() => DateTime.UtcNow);
+        _snapshotRoot = snapshotRoot;
     }
+
+    public static EntityHistory ForEntity(IProjectService projects, bool worldBible) => worldBible
+        ? new(projects, snapshotRoot: Path.Combine(projects.WorldBibleRoot ?? throw new InvalidOperationException("No project is open."), "Snapshots"))
+        : new(projects);
 
     /// <summary>
     /// Records the state being replaced. Does nothing when there is nothing to
@@ -126,6 +132,7 @@ public sealed class EntityHistory
     /// </summary>
     private string? DirectoryFor(string entityId)
     {
+        if (_snapshotRoot is not null) return Path.Combine(_snapshotRoot, "Entities", entityId);
         var book = _projects.ActiveBook;
         var root = _projects.ActiveDraftRoot ?? _projects.ActiveBookRoot;
         if (book == null || root == null) return null;

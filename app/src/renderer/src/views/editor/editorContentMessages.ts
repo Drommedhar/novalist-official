@@ -3,6 +3,7 @@ import { useEditorBridge } from '../../stores/editorBridgeStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { useShellStore } from '../../stores/shellStore'
 import type { EditorHandlerContext, EditorMessageHandlers } from './editorMessageContext'
+import { captureSharedEditor } from '../../collaboration/sharedEditors'
 
 export function createEditorContentMessages(context: EditorHandlerContext): EditorMessageHandlers {
   const { iframe, loadingRef, lastReportedHtmlRef, pane, editorRef, activatePane, peekRef, setSpeaking, setFormatting } = context
@@ -17,6 +18,7 @@ export function createEditorContentMessages(context: EditorHandlerContext): Edit
       // Record what the editor authored so the push effect treats the
       // store's echo of this same HTML as a no-op (keeps caret + undo).
       lastReportedHtmlRef.current = String(message.html ?? '')
+      if (captureSharedEditor(pane)) return
       useProjectStore
         .getState()
         .onEditorContentChanged(

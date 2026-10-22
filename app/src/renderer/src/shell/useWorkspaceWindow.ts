@@ -177,6 +177,7 @@ export function useWorkspaceWindow(): WindowCloseStage | null {
         else {
           await createCloseBackup()
           await flushWindowWrites()
+          await rpc.request('collaboration/end')
           markCloseBackupHandledForQuit()
         }
       } catch (error) { failWindowOperation(error) }

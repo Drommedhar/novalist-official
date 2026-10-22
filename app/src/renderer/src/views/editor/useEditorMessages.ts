@@ -6,6 +6,7 @@ import { useWritingZoomStore } from '../../stores/writingZoomStore'
 import { pushEditorSettings, pushEditorConfig } from './editorConfiguration'
 import type { EditorMessageContext, EditorHandlerContext } from './editorMessageContext'
 import { createEditorMessageHandlers } from './editorMessageHandlers'
+import { detachSharedEditor, syncSharedEditor } from '../../collaboration/sharedEditors'
 
 export function useEditorMessages(context: EditorMessageContext): void {
   const { iframeRef, editorRef, i18n, t, peekRef } = context
@@ -49,9 +50,11 @@ export function useEditorMessages(context: EditorMessageContext): void {
     if (existing && typeof existing.setContent === 'function') {
       editorRef.current = existing
       existing.setLanguage(i18n.language.startsWith('de') ? 'de' : 'en')
+      syncSharedEditor(context.pane, existing)
     }
 
     return () => {
+      detachSharedEditor(context.pane)
       dispose()
       observer.disconnect()
       unsubscribeSettings()

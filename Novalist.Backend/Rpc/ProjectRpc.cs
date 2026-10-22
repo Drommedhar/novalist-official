@@ -19,7 +19,7 @@ public sealed class ProjectRpc
     public ProjectStateDto GetState() => _workspace.BuildState();
 
     [JsonRpcMethod("project/close")]
-    public ProjectStateDto Close() => _workspace.CloseProject();
+    public Task<ProjectStateDto> CloseAsync() => _workspace.CloseProjectAsync();
 
     [JsonRpcMethod("project/recent")]
     public Task<RecentProjectDto[]> GetRecentAsync(bool includeLibraryDetails = true) =>
@@ -37,6 +37,9 @@ public sealed class ProjectRpc
     public async Task<ProjectStateDto> CreateAsync(
         string parentDirectory, string projectName, string firstBookName, string? templateId = null)
     {
+#if NOVALIST_COLLABORATION
+        await _workspace.DetachSharedScenesAsync();
+#endif
         await _workspace.Projects.CreateProjectAsync(parentDirectory, projectName, firstBookName);
         if (!string.IsNullOrWhiteSpace(templateId)
             && ProjectTemplates.GetById(templateId) is { } template)

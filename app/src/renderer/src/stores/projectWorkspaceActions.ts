@@ -8,6 +8,7 @@ import { type ProjectStateDto, type ProjectState, type ProjectSlice } from './pr
 import { autosaveTimers, stripHtml } from './projectPersistence'
 import { runSceneContext } from './projectSceneActions'
 import { clearedEditorState, mirror, mapEditors, reconcileSceneEditors } from './projectStore'
+import type { SharedSceneIdentity } from '../../../shared/sharedScene'
 
 export const createProjectWorkspaceActions: ProjectSlice<'applyWorkspaceSnapshot' | 'refreshWorkspaceEditors' | 'applyState' | 'switchBook' | 'createBook' | 'loadDrafts' | 'createDraft' | 'switchDraft' | 'deleteDraft'> = (set, get) => ({
   applyWorkspaceSnapshot: (snapshot, resetEditors = false) => {
@@ -30,14 +31,14 @@ export const createProjectWorkspaceActions: ProjectSlice<'applyWorkspaceSnapshot
     // These are deliberately fresh reads. A coalesced pre-change read could
     // be waiting behind the original RPC's all-window resume barrier.
     const contents = new Map(await Promise.all([...scenes.values()].map(async (scene) => {
-      const content = await rpc.request<{ html: string; hash: string }>('scenes/read', [scene.chapterGuid, scene.sceneId])
+      const content = await rpc.request<{ html: string; hash: string; shared?: SharedSceneIdentity | null }>('scenes/read', [scene.chapterGuid, scene.sceneId])
       return [scene.sceneId, content] as const
     })))
     if (get().workspaceEpoch !== epoch) return
     set((state) => {
       const editors = mapEditors(state.editors, (editor) => {
         const content = editor.sceneId ? contents.get(editor.sceneId) : null
-        return content && (!preserveDirty || !isDirty(state, editor.sceneId!)) ? { ...editor, html: content.html, hash: content.hash, plainText: stripHtml(content.html), isDirty: false } : editor
+        return content && (!preserveDirty || !isDirty(state, editor.sceneId!)) ? { ...editor, html: content.html, hash: content.hash, shared: content.shared ?? null, plainText: stripHtml(content.html), isDirty: false } : editor
       })
       return { editors, ...mirror(editors, state.activeEditorPaneId), sceneHashes: {
         ...state.sceneHashes, ...Object.fromEntries([...contents].filter(([id]) => !preserveDirty || !isDirty(state, id)).map(([id, content]) => [id, content.hash]))

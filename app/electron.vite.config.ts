@@ -7,6 +7,10 @@ export default defineConfig({
   main: {
     build: {
       rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'src/main/index.ts'),
+          collaborationHost: resolve(__dirname, 'src/main/collaboration/documentWorker.ts')
+        },
         // Darwin-only optional native module (Liquid Glass). Never bundle it —
         // glass.ts imports it lazily at runtime and no-ops when it is absent
         // (Windows/Linux), so the build must not try to resolve it there.

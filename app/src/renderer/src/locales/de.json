@@ -1,4 +1,46 @@
 {
+  "collaboration": {
+    "title": "Zusammenarbeit",
+    "server": "Serveradresse",
+    "serverHint": "Melde dich über deinen Browser bei deinem Community-Server für die Zusammenarbeit an. Dein Konto wird auf diesem Gerät sicher gespeichert.",
+    "signIn": "Anmelden",
+    "signOut": "Abmelden",
+    "cancelSignIn": "Anmeldung abbrechen",
+    "signedIn": "Angemeldet als {{name}}",
+    "browserPending": "Schließe die Anmeldung in deinem Browser ab.",
+    "create": "Dieses Projekt teilen",
+    "openProjectHint": "Öffne ein Projekt, um es zu teilen.",
+    "join": "Geteiltem Projekt beitreten",
+    "invitation": "Einladungslink",
+    "invite": "Einladung erstellen",
+    "invitationHint": "Sende diesen privaten Link an eine Person. Er kann einmal verwendet werden und läuft nach 24 Stunden ab. Die Person muss sich bei diesem Server anmelden.",
+    "localFolderName": "Name des lokalen Projektordners",
+    "parentFolder": "Übergeordneten Ordner auswählen",
+    "joinHint": "Beim Beitritt wird ein neuer lokaler Projektordner erstellt. Vorhandene Ordner werden niemals ersetzt.",
+    "localCopyHint": "Wenn du diese Sitzung beendest, bleibt dein lokales Projekt erhalten. Andere Beteiligte können auf dem Server weiterarbeiten.",
+    "end": "Diese Sitzung beenden",
+    "presenceUnavailable": "Die Cursor anderer Beteiligter sind vorübergehend nicht verfügbar.",
+    "fieldWaiting": "Warte auf die Freigabe dieses Felds…",
+    "fieldLocked": "Eine andere Person bearbeitet dieses Feld.",
+    "fieldExpired": "Die Bearbeitungssperre ist abgelaufen. Dein Entwurf bleibt erhalten; sichere eine Wiederherstellungskopie vor dem Beenden der Sitzung.",
+    "retryField": "Speichern erneut versuchen",
+    "recoverField": "Wiederherstellungskopie sichern",
+    "fieldRecovered": "Deine Änderung wurde in einer lokalen Wiederherstellungskopie gesichert.",
+    "showRecovery": "Wiederherstellungskopie anzeigen",
+    "connection": {
+      "Stopped": "Die Zusammenarbeit ist pausiert.",
+      "Connecting": "Verbindung zum geteilten Projekt wird hergestellt…",
+      "Connected": "Mit dem geteilten Projekt verbunden.",
+      "Reconnecting": "Verbindung wird wiederhergestellt. Dein Text wird lokal gespeichert.",
+      "Failed": "Die Verbindung erfordert deine Aufmerksamkeit. Dein Text wird lokal gespeichert."
+    },
+    "progress": {
+      "create": "Geteiltes Projekt wird vorbereitet und hochgeladen…",
+      "join": "Geteiltes Projekt wird heruntergeladen…",
+      "invite": "Einladung wird erstellt…",
+      "end": "Sitzung wird gespeichert und beendet…"
+    }
+  },
   "dictation": {
     "formatting": "Formatierung",
     "automaticDialogue": "Automatische Dialoge",

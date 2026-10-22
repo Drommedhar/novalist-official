@@ -20,6 +20,9 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
     private readonly IProcessRunner? _processRunner;
     private JsonRpc? _rpc;
     private Core.Services.AssetWatchService? _assetWatch;
+#if NOVALIST_COLLABORATION
+    private HostedAccountRpc? _hostedAccounts;
+#endif
 
     /// <param name="processRunner">
     /// External-process backend for shell-out services (Git). Null uses the real
@@ -65,6 +68,25 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
         var coordinator = new WorkspaceCoordinator(_workspace, _workspaceGate);
         _workspace.Coordinator = coordinator;
         var rpc = new SerialDispatchJsonRpc(handler, _workspaceGate, _importApi.StopIfScopeChangedAsync, coordinator);
+#if NOVALIST_COLLABORATION
+        _workspace.CreateSharedDocuments = session => new(session, (parameters, ct) =>
+            rpc.InvokeWithParameterObjectAsync<JsonElement>("collaboration/documents", parameters, ct));
+        _workspace.DispatchSharedUpdate = async action =>
+        {
+            await _workspaceGate.WaitAsync();
+            try { await action(); }
+            finally { _workspaceGate.Release(); }
+        };
+        rpc.AddLocalRpcTarget(new CollaborationRpc(_workspace), new JsonRpcTargetOptions { DisposeOnDisconnect = false });
+        var credentials = new Sync.Client.DesktopCredentials((parameters, ct) =>
+            rpc.InvokeWithParameterObjectAsync<JsonElement>("collaboration/credentials", parameters, ct));
+        var accounts = new Sync.Client.HostedAccounts(credentials);
+        _workspace.HostedProjects = new(_workspace, accounts, credentials);
+        _hostedAccounts = new(accounts, (url, ct) =>
+            rpc.InvokeWithParameterObjectAsync("collaboration/openBrowser", new { url }, ct),
+            server => _workspace.HostedProjects.Status?.Server == server.AbsoluteUri.TrimEnd('/') + '/');
+        rpc.AddLocalRpcTarget(_hostedAccounts, new JsonRpcTargetOptions { DisposeOnDisconnect = false });
+#endif
         coordinator.Notify = (method, payload) => rpc.NotifyAsync(method, payload);
         var targetOptions = new JsonRpcTargetOptions { DisposeOnDisconnect = false };
         rpc.AddLocalRpcTarget(new WorkspaceCoordinationRpc(coordinator), targetOptions);
@@ -234,6 +256,11 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
 
     public void Dispose()
     {
+#if NOVALIST_COLLABORATION
+        _workspace.RequireNoSharedSession();
+        _hostedAccounts?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        _workspace.HostedProjects?.Dispose();
+#endif
         _assetWatch?.Dispose();
         _importApi.Dispose();
         _rpc?.Dispose();
@@ -242,6 +269,14 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+#if NOVALIST_COLLABORATION
+        _workspace.HostedProjects?.StopPendingOperations();
+        await _workspaceGate.WaitAsync().ConfigureAwait(false);
+        try { await _workspace.DetachSharedScenesAsync().ConfigureAwait(false); }
+        finally { _workspaceGate.Release(); }
+        if (_hostedAccounts is not null) await _hostedAccounts.DisposeAsync().ConfigureAwait(false);
+        _workspace.HostedProjects?.Dispose();
+#endif
         _assetWatch?.Dispose();
         await _importApi.DisposeAsync().ConfigureAwait(false);
         _rpc?.Dispose();

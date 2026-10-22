@@ -17,6 +17,7 @@ export class BackendProcess {
   private child: BackendChild | null = null
   private disposed = false
   private notificationHandler: (message: RpcMessage) => boolean = () => false
+  private desktopRequestHandler?: (method: string, params: unknown) => Promise<unknown>
   private restartHandler?: () => Promise<void>
   private recovery: Promise<void> | null = null
   private needsRecovery = false
@@ -27,11 +28,16 @@ export class BackendProcess {
       if (!this.child || this.child.stdin.destroyed) throw new Error('Backend is not connected.')
       this.child.stdin.write(Buffer.from(frame))
     },
-    (message) => this.notificationHandler(message)
+    (message) => this.notificationHandler(message),
+    (method, params) => this.desktopRequestHandler?.(method, params) ?? Promise.reject(new Error('This desktop operation is unavailable.'))
   )
 
   onNotification(handler: (message: RpcMessage) => boolean): void {
     this.notificationHandler = handler
+  }
+
+  onRequest(handler: (method: string, params: unknown) => Promise<unknown>): void {
+    this.desktopRequestHandler = handler
   }
 
   onRestart(handler: () => Promise<void>): void {

@@ -105,3 +105,6 @@ __pycache__/
 
 # Rider configuration
 .idea/
+
+# Isolated collaboration implementation worktrees.
+/.worktrees/

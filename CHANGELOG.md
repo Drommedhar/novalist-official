@@ -21,7 +21,13 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Hosted collaboration** — sign in to a community server from Settings, share a project through a private single-use invitation, and edit synchronized scenes together with participant cursors in the existing editor. Existing Codex text fields acquire an exclusive editing lock while focused and save before releasing it; failed edits can be kept in a local recovery copy. Joining downloads a local project copy, including all books and drafts; ending a session keeps that copy available.
+
+### Fixed
+
+- Restoring a World Bible revision keeps the entry in the World Bible. New World Bible revisions are available across books, and settled entries reject revision restores until unlocked.
 
 ---
 

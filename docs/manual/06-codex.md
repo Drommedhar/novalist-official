@@ -309,7 +309,8 @@ This exists for the mistake that had no answer before: typing the wrong eye colo
 
 - The version kept is the one being **replaced**, which is the one a restore wants. A save that changes nothing does not make a version.
 - Restoring keeps the current state as a version of its own, so an unwanted restore is undone the same way.
-- The last 25 versions of each entry are kept. They are small JSON files and live beside the scene snapshots, under the book's snapshot folder — so one setting moves all of a book's history, and one folder can be excluded from Git if that is what you want.
+- The last 25 versions of each entry are kept. Book entries use the book's snapshot folder beside scene snapshots. New World Bible revisions use `World Bible/Snapshots/Entities` and remain available from every book; older revisions stored with the active book are also listed.
+- Unlock a settled entry before restoring it. During collaboration, end the session before restoring an entire Codex revision.
 
 This is history for the entry's own fields, sections and relationships. Deleting an entry is still a deletion; there is no bin for it.
 

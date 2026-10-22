@@ -105,6 +105,9 @@ public sealed partial class Workspace : IDisposable
 
     public void Dispose()
     {
+#if NOVALIST_COLLABORATION
+        RequireNoSharedSession();
+#endif
         Disposing?.Invoke();
         Disposing = null;
         _extensions?.ShutdownAll();
@@ -114,6 +117,9 @@ public sealed partial class Workspace : IDisposable
 
     public async Task<ProjectStateDto> OpenProjectAsync(string projectDirectory, string? bookId = null)
     {
+#if NOVALIST_COLLABORATION
+        await DetachSharedScenesAsync();
+#endif
         await Settings.LoadAsync();
         var metadata = await Projects.LoadProjectAsync(projectDirectory, bookId);
         await Projects.ReconcileActiveDraftAsync();
@@ -143,6 +149,9 @@ public sealed partial class Workspace : IDisposable
     /// </remarks>
     public ProjectStateDto CloseProject()
     {
+#if NOVALIST_COLLABORATION
+        RequireNoSharedSession();
+#endif
         Projects.CloseProject();
         Settings.SetActiveOverrides(null);
         // The rendered reading goes with the project. Clips are kept between
@@ -152,6 +161,16 @@ public sealed partial class Workspace : IDisposable
         // should not outlive the project being open.
         new NarrationClipCache(SettingsDirectory).Clear();
         return BuildState();
+    }
+
+    public async Task<ProjectStateDto> CloseProjectAsync()
+    {
+#if NOVALIST_COLLABORATION
+        await DetachSharedScenesAsync();
+#else
+        await Task.CompletedTask;
+#endif
+        return CloseProject();
     }
 
     public ChapterData ResolveChapter(string chapterGuid)
@@ -171,6 +190,9 @@ public sealed partial class Workspace : IDisposable
 
     public async Task<int> WriteSceneAsync(string chapterGuid, string sceneId, string html, string plainText)
     {
+#if NOVALIST_COLLABORATION
+        RequireUnsharedScene(chapterGuid, sceneId);
+#endif
         var (chapter, scene) = ResolveScene(chapterGuid, sceneId);
         await Projects.WriteSceneContentAsync(chapter, scene, html);
         await AfterSceneWriteAsync(chapter, scene, html, plainText);
@@ -191,6 +213,9 @@ public sealed partial class Workspace : IDisposable
     public async Task<(SceneSaveOutcome Outcome, int WordCount)> WriteSceneCheckedAsync(
         string chapterGuid, string sceneId, string html, string plainText, string? expectedHash)
     {
+#if NOVALIST_COLLABORATION
+        RequireUnsharedScene(chapterGuid, sceneId);
+#endif
         var (chapter, scene) = ResolveScene(chapterGuid, sceneId);
         var outcome = await SceneConflicts.SaveAsync(chapter, scene, html, expectedHash);
         // A refused save must not touch the word history or the manifest: nothing
@@ -204,10 +229,12 @@ public sealed partial class Workspace : IDisposable
     /// <summary>The bookkeeping every successful scene write does: word count,
     /// history, manifest, and the extension event.</summary>
     private async Task AfterSceneWriteAsync(
-        ChapterData chapter, SceneData scene, string html, string plainText)
+        ChapterData chapter, SceneData scene, string html, string plainText, bool recordHistory = true)
     {
         scene.WordCount = CountWords(plainText.Length > 0 ? plainText : StripHtml(html));
-        await WordHistory.RecordSaveAsync(
+        if (recordHistory) await WordHistory.RecordSaveAsync(
+            Projects.ActiveBook?.Id ?? string.Empty, scene.Id, scene.WordCount);
+        else await WordHistory.RecordBaselineAsync(
             Projects.ActiveBook?.Id ?? string.Empty, scene.Id, scene.WordCount);
         await Projects.SaveScenesAsync();
         RaiseSceneSaved(chapter, scene);
