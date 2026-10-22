@@ -35,9 +35,16 @@ public sealed partial class Workspace
                 await AcquireClearedSceneFieldAsync(binding, "focusEntityId", parsed, acquired, ct);
             if (binding.Metadata.Kind == "scene" && binding.Key == "narrativeMode" && parsed?.GetValue<string>() != "parallel")
                 await AcquireClearedSceneFieldAsync(binding, "strand", null, acquired, ct);
+            if (binding.Metadata.Kind == "scene" && binding.Key == "dateRange")
+                await AcquireSceneDateWritesAsync(binding, parsed, acquired, ct);
             var origin = new MetadataWrite(field.Lease, value);
             var writes = binding.Key == "isWorld" ? acquired.Append(origin) : acquired.Prepend(origin);
-            foreach (var write in writes) await field.Fields.WriteAsync(write.Lease with { RequiredLease = required }, write.Value, ct);
+            var writeToken = ct;
+            foreach (var write in writes)
+            {
+                await field.Fields.WriteAsync(write.Lease with { RequiredLease = required }, write.Value, writeToken);
+                writeToken = CancellationToken.None;
+            }
             if (binding.Metadata.Kind == "research" && binding.Key == "type")
                 await PublishResearchTypeAsync(binding, parsed, CancellationToken.None);
             return true;

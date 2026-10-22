@@ -89,12 +89,18 @@ public sealed class ProjectRpc
     /// </param>
     [JsonRpcMethod("project/createScene")]
     public async Task<ProjectStateDto> CreateSceneAsync(
-        string chapterGuid, string title, string? templateId = null)
+        string chapterGuid, string title, string? templateId = null, string? initialPov = null)
     {
         var template = string.IsNullOrWhiteSpace(templateId)
             ? null
             : _workspace.Projects.ActiveBook?.SceneTemplates.FirstOrDefault(t => t.Id == templateId);
-        await _workspace.Projects.CreateSceneAsync(chapterGuid, title, template: template);
+        var scene = await _workspace.Projects.CreateSceneAsync(chapterGuid, title, template: template);
+        if (!string.IsNullOrWhiteSpace(initialPov))
+        {
+            scene.AnalysisOverrides ??= new();
+            scene.AnalysisOverrides.Pov = initialPov.Trim();
+            await _workspace.Projects.SaveScenesAsync();
+        }
         return _workspace.BuildState();
     }
 

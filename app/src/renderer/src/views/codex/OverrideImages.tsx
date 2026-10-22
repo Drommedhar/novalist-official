@@ -5,6 +5,9 @@ import { ClipboardPaste, ImagePlus, Link, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { type OverrideImage, type CharacterOverride, type Scope, apply } from './overrideModel'
 import { OverrideMediaHeader } from './OverrideMediaHeader'
+import { useCodexStore } from '../../stores/codexStore'
+import { metadataBinding } from '../../collaboration/SharedMetadataField'
+import { MediaMetadataInput } from './MediaMetadataInput'
 
 /** Per-scope override image strip: gallery pick, file import, clipboard paste and
  * download-from-URL, plus per-image remove/rename and reset-to-inherit. Mirrors
@@ -21,6 +24,7 @@ export function OverrideImages({
   baseImages: OverrideImage[]
 }): React.JSX.Element {
   const { t } = useTranslation()
+  const record = useCodexStore(state => state.selectedRecord)
   const overriding = Array.isArray(override?.images)
   const images = overriding ? (override!.images as OverrideImage[]) : baseImages
   const [galleryOpen, setGalleryOpen] = useState(false)
@@ -87,6 +91,16 @@ export function OverrideImages({
     setImages(images.map((i) => (i.path === path ? { ...i, name: nextName } : i)))
   }
 
+  const prepareInheritedImages = async (): Promise<void> => {
+    const current = await rpc.request<Record<string, unknown>>('entities/get', ['character', selectedId])
+    const scopes = current.chapterOverrides as CharacterOverride[]
+    if (!scopes.find(item => item.chapter === scope.chapter && (item.scene ?? null) === scope.scene)?.images) {
+      const inherited = current.images as OverrideImage[]
+      await rpc.request('entities/setOverrideImages', [...args, inherited.map(image => ({ name: image.name, path: image.path }))])
+    }
+    apply(await rpc.request<Record<string, unknown>>('entities/get', ['character', selectedId]))
+  }
+
   return (
     <div className="entity-images overrides-media">
       <OverrideMediaHeader
@@ -111,13 +125,15 @@ export function OverrideImages({
                 <X size={11} strokeWidth={2} />
               </button>
             </div>
-            <input
+            <MediaMetadataInput
               className="entity-image-namefield"
-              aria-label={t('entityEditor.imageName')}
+              label={t('entityEditor.imageName')}
               placeholder={t('entityEditor.imageName')}
-              defaultValue={image.name}
-              key={`${image.path}:${image.name}`}
-              onBlur={(e) => renameImage(image.path, image.name, e.target.value)}
+              value={image.name}
+              shared={!!record?.sharedFields}
+              binding={metadataBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:image:${image.path}:name`)}
+              prepare={!overriding ? prepareInheritedImages : undefined}
+              save={name => renameImage(image.path, image.name, name)}
             />
           </figure>
         ))}

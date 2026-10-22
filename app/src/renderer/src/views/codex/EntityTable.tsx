@@ -1,6 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import { useCodexStore, type EntitySummary } from '../../stores/codexStore'
+import { SharedFieldControl } from './SharedFieldControl'
+import { metadataBinding, SharedMetadataField } from '../../collaboration/SharedMetadataField'
+import { proseBinding } from '../../collaboration/sharedMarkdown'
+import { MarkdownEditor } from '../../shell/MarkdownEditor'
 
 /**
  * One editable column of the table.
@@ -99,22 +103,8 @@ export function EntityTable(): React.JSX.Element {
             <tr key={entity.id}>
               {columns.map((column) => (
                 <td key={column.key}>
-                  {/* Uncontrolled and committed on blur: a controlled input
-                      would round-trip every keystroke through the backend, and
-                      the refresh would fight the caret. */}
-                  <input
-                    className="codex-table-input"
-                    defaultValue={column.read(entity)}
-                    aria-label={`${entity.name} ${t(column.labelKey)}`}
-                    onBlur={(e) => commit(entity, column, e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') e.currentTarget.blur()
-                      if (e.key === 'Escape') {
-                        e.currentTarget.value = column.read(entity)
-                        e.currentTarget.blur()
-                      }
-                    }}
-                  />
+                  <TableCell entity={entity} column={column} label={`${entity.name} ${t(column.labelKey)}`}
+                    commit={value => commit(entity, column, value)} />
                 </td>
               ))}
             </tr>
@@ -123,4 +113,28 @@ export function EntityTable(): React.JSX.Element {
       </table>
     </div>
   )
+}
+
+function TableCell({ entity, column, label, commit }: {
+  entity: EntitySummary; column: Column; label: string; commit(value: string): void
+}): React.JSX.Element {
+  const shared = entity.sharedFields
+  const itemId = shared?.fields[column.field]
+  const value = column.read(entity)
+  const prose = proseBinding({ sharedProse: entity.sharedProse }, column.field)
+  if (prose && !entity.locked) return <MarkdownEditor shared={prose} value={value} onChange={commit} ariaLabel={label} minRows={1} />
+  const metadata = shared?.metadata?.[column.field] ? metadataBinding(entity, column.field) : undefined
+  if (metadata) return <SharedMetadataField binding={metadata} value={value} onChange={commit}>
+    {field => <input className="codex-table-input" aria-label={label} value={field.value} readOnly={!field.editable}
+      disabled={entity.locked} onChange={event => field.change(event.target.value)}
+      onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur() }} />}
+  </SharedMetadataField>
+  if (shared && itemId) return <SharedFieldControl binding={{ sessionId: shared.sessionId, itemId }}
+    value={value} label={label} disabled={entity.locked} />
+  return <input className="codex-table-input" defaultValue={value} aria-label={label}
+    readOnly={!!shared} disabled={entity.locked} onBlur={event => commit(event.target.value)}
+    onKeyDown={event => {
+      if (event.key === 'Enter') event.currentTarget.blur()
+      if (event.key === 'Escape') { event.currentTarget.value = value; event.currentTarget.blur() }
+    }} />
 }

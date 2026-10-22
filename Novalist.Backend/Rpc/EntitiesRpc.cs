@@ -330,10 +330,10 @@ public sealed partial class EntitiesRpc
         var image = entity.Images.FirstOrDefault();
         var firstName = character?.Name;
         var surname = character?.Surname;
-        return new(entity.Id, name, detail, entity.IsWorldBible,
+        var summary = new EntitySummaryDto(entity.Id, name, detail, entity.IsWorldBible,
             image == null ? null : _entities.ResolveProjectRelativeImage(image.Path),
             entity.Aliases,
-            NullIfEmpty(character?.Group), NullIfEmpty(character?.Gender), NullIfEmpty(location?.Parent),
+            NullIfEmpty(entity.Group), NullIfEmpty(character?.Gender), NullIfEmpty(location?.Parent),
             // The bare first name is an extra hover/mention target ("Liam" for
             // "Liam Calder"); null when it equals the composed display name.
             NullIfEmpty(firstName) is { } fn && !string.Equals(fn, name, StringComparison.Ordinal) ? fn : null,
@@ -344,6 +344,10 @@ public sealed partial class EntitiesRpc
             MatchDto(entity.Match, name, entity.Aliases, firstName, surname),
             location?.IsWorld ?? false,
             entity.Locked);
+#if NOVALIST_COLLABORATION
+        summary = summary with { SharedFields = _workspace.SharedEntityFields(entity), SharedProse = _workspace.SharedEntityProse(entity) };
+#endif
+        return summary;
     }
 
     /// <summary>Projects the stored match settings, precomputing the plural forms

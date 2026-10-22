@@ -10,6 +10,9 @@ import { EntityProposalsDialog, type EntityProposal } from './EntityProposalsDia
 import { MotionPresence } from './MotionPresence'
 import { type CardPeek, type SceneContext } from './contextTypes'
 import { SECTION_STORAGE_KEY, readCollapsed, loc, CollapsibleSection, EntitySection } from './ContextSections'
+import { metadataBinding, SharedMetadataField } from '../collaboration/SharedMetadataField'
+import { useSharedProjectRevision } from '../collaboration/sharedProjectNotifications'
+import { MetadataInput } from '../collaboration/MetadataInput'
 
 /** Scene context/analysis panel: entities present in the scene, cross-chapter
  * mention matrix, and the auto-computed scene analysis. POV, emotion, intensity,
@@ -38,6 +41,7 @@ export function ContextPanel({
   const [scanMessage, setScanMessage] = useState<string | null>(null)
   const [proposals, setProposals] = useState<EntityProposal[] | null>(null)
   const chapters = useProjectStore((s) => s.chapters)
+  const revision = useSharedProjectRevision()
   const savedHash = useProjectStore((s) => s.sceneHashes[sceneId])
   const analyzedHash = useRef(savedHash)
   const analysisRequest = useRef(0)
@@ -46,6 +50,12 @@ export function ContextPanel({
   // its per-chapter/scene overrides for the scene in view — exactly as the editor
   // peek does.
   const scopeChapter = chapters.find((c) => c.guid === chapterGuid)
+  const scene = scopeChapter?.scenes.find(scene => scene.id === sceneId)
+  const conflictBinding = metadataBinding(scene, 'analysisOverrides.conflict')
+  const intensityBinding = metadataBinding(scene, 'analysisOverrides.intensity')
+  const tagsBinding = metadataBinding(scene, 'analysisOverrides.tags')
+  const povBinding = metadataBinding(scene, 'analysisOverrides.pov')
+  const emotionBinding = metadataBinding(scene, 'analysisOverrides.emotion')
   const peekScope: PeekScope = {
     chapterGuid,
     chapterTitle: scopeChapter?.title ?? null,
@@ -131,6 +141,7 @@ export function ContextPanel({
       ++analysisRequest.current
     }
   }, [analyze])
+  useEffect(() => { if (revision > 0) analyze() }, [revision, analyze])
 
   // A retained panel follows saved prose while tucked away. It does no work on
   // hover, and never replaces a draft field while the writer is using it.
@@ -200,12 +211,12 @@ export function ContextPanel({
 
   if (!hasAny) return null
 
-  const resetButton = (field: string): React.JSX.Element => (
+  const resetButton = (field: string, reset?: () => void): React.JSX.Element => (
     <button
       className="ctx-reset"
       title={t('context.resetOverride')}
       aria-label={t('context.resetOverride')}
-      onClick={() => resetOverride(field)}
+      onClick={reset ?? (() => resetOverride(field))}
     >
       <RotateCcw size={12} strokeWidth={2} />
     </button>
@@ -388,14 +399,16 @@ export function ContextPanel({
         )}
         <div className="ctx-analysis-row">
           <span className="ctx-analysis-key">{t('context.pov')}</span>
-          <div className="ctx-analysis-edit">
+          <SharedMetadataField<string | null> binding={povBinding} value={a.pov}
+            onChange={pov => void rpc.request('scenes/setPov', [chapterGuid, sceneId, pov ?? '']).then(() => analyze())}>
+            {field => <div className="ctx-analysis-edit">
             <select
               className="dialog-input ctx-analysis-input ctx-pov"
-              value={a.pov}
-              onChange={(e) => {
-                const pov = e.target.value
-                void rpc.request('scenes/setPov', [chapterGuid, sceneId, pov]).then(() => analyze())
-              }}
+              value={field.value ?? a.pov}
+              aria-label={t('context.pov')}
+              aria-disabled={!field.editable}
+              onKeyDown={event => { if (!field.editable && event.key !== 'Tab') event.preventDefault() }}
+              onChange={event => field.change(event.target.value)}
             >
               <option value="">{t('context.none')}</option>
               {a.pov && !a.povOptions.includes(a.pov) && (
@@ -407,18 +420,21 @@ export function ContextPanel({
                 </option>
               ))}
             </select>
-            {resetButton('pov')}
-          </div>
+            {resetButton('pov', povBinding ? () => field.change(null) : undefined)}
+          </div>}</SharedMetadataField>
         </div>
 
         <div className="ctx-analysis-row">
           <span className="ctx-analysis-key">{t('context.emotion')}</span>
-          <div className="ctx-analysis-edit">
+          <SharedMetadataField<string | null> binding={emotionBinding} value={a.emotion}
+            onChange={emotion => setOverride({ emotion: emotion ?? '' })}>{field => <div className="ctx-analysis-edit">
             <select
               className="dialog-input ctx-analysis-input"
               aria-label={t('context.selectEmotion')}
-              value={a.emotion}
-              onChange={(e) => setOverride({ emotion: e.target.value })}
+              value={field.value ?? a.emotion}
+              aria-disabled={!field.editable}
+              onKeyDown={event => { if (!field.editable && event.key !== 'Tab') event.preventDefault() }}
+              onChange={event => field.change(event.target.value)}
             >
               {a.emotion && !a.emotionKeys.includes(a.emotion) && (
                 <option value={a.emotion}>{loc(t, a.emotion, 'emotion')}</option>
@@ -429,8 +445,8 @@ export function ContextPanel({
                 </option>
               ))}
             </select>
-            {resetButton('emotion')}
-          </div>
+            {resetButton('emotion', emotionBinding ? () => field.change(null) : undefined)}
+          </div>}</SharedMetadataField>
         </div>
 
         <div className="ctx-analysis-row">
@@ -441,15 +457,21 @@ export function ContextPanel({
               style={{ width: `${Math.min(100, Math.abs(a.intensity) * 10)}%` }}
             />
           </span>
-          <input
+          <SharedMetadataField<number | null> binding={intensityBinding} value={Number(intensityDraft)}
+            onChange={value => setIntensityDraft(value === null ? '' : String(value))}>{field => <div className="ctx-analysis-edit">
+          <MetadataInput<number | null>
             type="number"
             min={-10}
             max={10}
             className="dialog-input ctx-intensity-input"
             title={t('context.intensityRange')}
-            value={intensityDraft}
-            onChange={(e) => setIntensityDraft(e.target.value)}
+            value={field.value ?? a.intensity}
+            editable={field.editable}
+            change={field.change}
+            format={value => String(value ?? a.intensity)}
+            parse={value => value.trim() === '' || !Number.isFinite(Number(value)) ? null : Math.max(-10, Math.min(10, Math.round(Number(value))))}
             onBlur={() => {
+              if (intensityBinding) return
               const v = Number(intensityDraft)
               if (intensityDraft.trim() === '' || Number.isNaN(v)) {
                 setIntensityDraft(String(a.intensity))
@@ -460,34 +482,42 @@ export function ContextPanel({
               else setIntensityDraft(String(clamped))
             }}
           />
-          {resetButton('intensity')}
+          {resetButton('intensity', intensityBinding ? () => field.change(null) : undefined)}
+          </div>}</SharedMetadataField>
         </div>
 
         <div className="ctx-analysis-block">
           <span className="ctx-analysis-key">{t('context.conflict')}</span>
-          <div className="ctx-analysis-edit">
+          <SharedMetadataField<string | null> binding={conflictBinding} value={conflictDraft} onChange={value => setConflictDraft(value ?? '')}>
+            {field => <div className="ctx-analysis-edit">
             <input
               className="dialog-input ctx-analysis-input"
               placeholder={t('context.conflict')}
-              value={conflictDraft}
-              onChange={(e) => setConflictDraft(e.target.value)}
+              value={field.value ?? a.conflict}
+              readOnly={!field.editable}
+              onChange={event => field.change(event.target.value)}
               onBlur={() => {
-                if (conflictDraft !== a.conflict) setOverride({ conflict: conflictDraft })
+                if (!conflictBinding && conflictDraft !== a.conflict) setOverride({ conflict: conflictDraft })
               }}
             />
-            {resetButton('conflict')}
-          </div>
+            {resetButton('conflict', conflictBinding ? () => field.change(null) : undefined)}
+          </div>}</SharedMetadataField>
         </div>
 
         <div className="ctx-analysis-block">
           <span className="ctx-analysis-key">{t('context.tags')}</span>
-          <div className="ctx-analysis-edit">
-            <input
+          <SharedMetadataField<string[] | null> binding={tagsBinding} value={tagsDraft.split(',').map(tag => tag.trim()).filter(Boolean)}
+            onChange={value => setTagsDraft((value ?? []).join(', '))}>{field => <div className="ctx-analysis-edit">
+            <MetadataInput<string[] | null>
               className="dialog-input ctx-analysis-input"
               placeholder={t('context.commaSeparatedTags')}
-              value={tagsDraft}
-              onChange={(e) => setTagsDraft(e.target.value)}
+              value={field.value ?? a.tags}
+              editable={field.editable}
+              change={field.change}
+              format={value => (value ?? a.tags).map(tag => loc(t, tag)).join(', ')}
+              parse={value => value.split(',').map(tag => tag.trim()).filter(Boolean)}
               onBlur={() => {
+                if (tagsBinding) return
                 const parsed = tagsDraft
                   .split(',')
                   .map((s) => s.trim())
@@ -496,8 +526,8 @@ export function ContextPanel({
                 if (parsed.join('|') !== base.join('|')) setOverride({ tags: parsed })
               }}
             />
-            {resetButton('tags')}
-          </div>
+            {resetButton('tags', tagsBinding ? () => field.change(null) : undefined)}
+          </div>}</SharedMetadataField>
         </div>
 
         {a.tags.length > 0 && (

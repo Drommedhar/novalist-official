@@ -1793,6 +1793,8 @@ public sealed class EntitiesRpcTests : IDisposable
         await _rpc.SetGroupAsync("item", ship, "Salt House");
         await _rpc.SetGroupAsync("ledger", ledger, "Salt House");
         var groups = await _rpc.SetGroupAsync("location", port, "Salt House");
+        foreach (var type in new[] { "character", "item", "ledger", "location" })
+            Assert.Equal("Salt House", Assert.Single(await _rpc.ListAsync(type)).Group);
 
         Assert.Equal(["Salt House"], groups);
 

@@ -5,6 +5,7 @@ import { useDialogAutoFocus } from './useDialogKeyboard'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import type { SceneEditDto } from './sceneEdit'
+import { SharedSceneEditDialog } from './SharedSceneDialogs'
 import './shellDialogs.css'
 
 /** A scene worth starting from, as the picker shows it. */
@@ -39,6 +40,7 @@ export function SceneDialog({
   useWorkspaceDialogGuard()
   const { t } = useTranslation()
   const chapters = useProjectStore((s) => s.chapters)
+  const sharedScene = edit && chapters.find(chapter => chapter.guid === edit.chapterGuid)?.scenes.find(scene => scene.id === edit.sceneId)
   const isEdit = !!edit
   const [title, setTitle] = useState(edit?.title ?? '')
   const [pov, setPov] = useState('')
@@ -54,7 +56,7 @@ export function SceneDialog({
   useDialogAutoFocus(inputRef)
 
   useEffect(() => {
-    if (!edit) return
+    if (!edit || sharedScene?.sharedFields) return
     let active = true
     void rpc
       .request<SceneEditDto>('project/getSceneEdit', [edit.chapterGuid, edit.sceneId])
@@ -66,7 +68,7 @@ export function SceneDialog({
     return () => {
       active = false
     }
-  }, [edit])
+  }, [edit, sharedScene?.sharedFields])
 
   // Only offered on a new scene: applying a template to a scene that already
   // has prose would be a merge, and nobody asked for one.
@@ -90,19 +92,12 @@ export function SceneDialog({
           await rpc.request('scenes/setPov', [edit.chapterGuid, edit.sceneId, pov.trim()])
       } else {
         if (!chapterGuid) return
-        const before = new Set(
-          store.chapters.find((c) => c.guid === chapterGuid)?.scenes.map((s) => s.id) ?? []
-        )
         const state = await rpc.request<ProjectStateDto>('project/createScene', [
           chapterGuid,
           name,
-          templateId || null
+          templateId || null,
+          pov.trim() || null
         ])
-        const created = state.chapters
-          .find((c) => c.guid === chapterGuid)
-          ?.scenes.find((s) => !before.has(s.id))
-        if (created && pov.trim())
-          await rpc.request('scenes/setPov', [chapterGuid, created.id, pov.trim()])
         useProjectStore.getState().applyState(state)
       }
       onClose()
@@ -110,6 +105,9 @@ export function SceneDialog({
       setBusy(false)
     }
   }
+
+  if (sharedScene?.sharedFields && edit)
+    return <SharedSceneEditDialog chapter={edit.chapterGuid} scene={sharedScene} onClose={onClose} />
 
   return (
     <div

@@ -52,6 +52,17 @@ public sealed class VerifiedTransportTests(CommunityServerFixture server) : ICla
         Assert.Equal(1, await owner.PushFieldEditAsync(request, edit, ct));
         var late = cipher.Seal(new(project, Guid.NewGuid(), 0, ownerDevice.Id, 2), "Late edit"u8, ownerDevice.SigningKey);
         await Assert.ThrowsAsync<Microsoft.AspNetCore.SignalR.HubException>(() => owner.PushFieldEditAsync(request, late, ct));
+        var field = request with { ResourceId = Guid.NewGuid(), LeaseId = Guid.NewGuid() };
+        var graph = field with { ResourceId = Guid.NewGuid(), LeaseId = Guid.NewGuid() };
+        await owner.AcquireFieldLeaseAsync(field, ct);
+        await owner.AcquireFieldLeaseAsync(graph, ct);
+        var guarded = field with { RequiredLease = new(graph.ResourceId, graph.LeaseId) };
+        Assert.Equal(2, await owner.PushFieldEditAsync(guarded, late, ct));
+        Assert.True(await owner.ReleaseFieldLeaseAsync(graph, ct));
+        Assert.Equal(guestDevice.Id, (await guest.AcquireFieldLeaseAsync(graph with { LeaseId = Guid.NewGuid() }, ct)).DeviceId);
+        var obsolete = cipher.Seal(new(project, Guid.NewGuid(), 0, ownerDevice.Id, 3), "Obsolete graph edit"u8, ownerDevice.SigningKey);
+        await Assert.ThrowsAsync<Microsoft.AspNetCore.SignalR.HubException>(() => owner.PushFieldEditAsync(guarded, obsolete, ct));
+        Assert.Equal(2, await owner.PushFieldEditAsync(guarded, late, ct));
     }
 
     [Theory]

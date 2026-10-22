@@ -112,6 +112,9 @@
   padding: var(--nl-space-tightest) var(--nl-space-tighter);
 }
 
+.attachment-row > .media-metadata-input { flex: 1; min-width: 0; }
+.attachment-row > .media-metadata-input .attachment-name { width: 100%; }
+
 .attachment-name:focus {
   background: var(--nl-surface-card);
   border-color: var(--nl-accent);

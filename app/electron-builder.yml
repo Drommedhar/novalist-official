@@ -5,7 +5,9 @@ directories:
   output: dist
   buildResources: build
 files:
-  - out/**
+  - out/main/**
+  - out/preload/**
+  - out/renderer/**
   - package.json
 extraResources:
   - from: dist-backend

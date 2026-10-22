@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { ClipboardPaste, ImagePlus, Link, Replace, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useCodexStore } from '../../stores/codexStore'
+import { metadataBinding } from '../../collaboration/SharedMetadataField'
+import { MediaMetadataInput } from './MediaMetadataInput'
 import './entity-images.css'
 
 interface EntityImage {
@@ -97,13 +99,13 @@ function useEntityImages() {
   }
 
 
-  return { t, images, openGallery, entityType, selectedId, applyResult, renameImage, importImage, pasteImage, setUrlValue, setUrlOpen, galleryOpen, setGalleryOpen, setSwapTarget, swapTarget, galleryImages, pickFromGallery, urlOpen, urlValue, submitUrl, urlError, setUrlError, urlBusy }
+  return { t, record, images, openGallery, entityType, selectedId, applyResult, renameImage, importImage, pasteImage, setUrlValue, setUrlOpen, galleryOpen, setGalleryOpen, setSwapTarget, swapTarget, galleryImages, pickFromGallery, urlOpen, urlValue, submitUrl, urlError, setUrlError, urlBusy }
 }
 
 export function EntityImages(): React.JSX.Element | null {
   const model = useEntityImages()
   if (!model) return null
-  const { t, images, openGallery, entityType, selectedId, applyResult, renameImage, importImage, pasteImage, setUrlValue, setUrlOpen, galleryOpen, setGalleryOpen, setSwapTarget, swapTarget, galleryImages, pickFromGallery, urlOpen, urlValue, submitUrl, urlError, setUrlError, urlBusy } = model
+  const { t, record, images, openGallery, entityType, selectedId, applyResult, renameImage, importImage, pasteImage, setUrlValue, setUrlOpen, galleryOpen, setGalleryOpen, setSwapTarget, swapTarget, galleryImages, pickFromGallery, urlOpen, urlValue, submitUrl, urlError, setUrlError, urlBusy } = model
   return (
     <div className="entity-images">
       <div className="inspector-label">{t('entityEditor.images')}</div>
@@ -139,31 +141,33 @@ export function EntityImages(): React.JSX.Element | null {
                 <X size={11} strokeWidth={2} />
               </button>
             </div>
-            <input
+            <MediaMetadataInput
               className="entity-image-namefield"
-              aria-label={t('entityEditor.imageName')}
+              label={t('entityEditor.imageName')}
               placeholder={t('entityEditor.imageName')}
-              defaultValue={image.name}
-              key={`${image.path}:${image.name}`}
-              onBlur={(e) => renameImage(image.path, image.name, e.target.value)}
+              value={image.name}
+              shared={!!record.sharedFields}
+              binding={metadataBinding(record, `image:${image.path}:name`)}
+              save={name => renameImage(image.path, image.name, name)}
             />
             {/* The name says which image this is; the description says what it
                 shows. Only the second is any use read aloud, and only the
                 second reaches an export. */}
-            <input
+            <MediaMetadataInput
               className="entity-image-namefield"
-              aria-label={t('entityEditor.imageAlt')}
+              label={t('entityEditor.imageAlt')}
               placeholder={t('entityEditor.imageAltPlaceholder')}
-              defaultValue={image.alt}
-              key={`alt:${image.path}:${image.alt}`}
-              onBlur={(e) => {
-                if (e.target.value === image.alt) return
+              value={image.alt}
+              shared={!!record.sharedFields}
+              binding={metadataBinding(record, `image:${image.path}:alt`)}
+              save={alt => {
+                if (alt === image.alt) return
                 void rpc
                   .request<Record<string, unknown>>('entities/setImageAlt', [
                     entityType,
                     selectedId,
                     image.path,
-                    e.target.value
+                    alt
                   ])
                   .then(applyResult)
               }}

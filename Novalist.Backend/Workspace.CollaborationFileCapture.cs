@@ -31,7 +31,7 @@ public sealed partial class Workspace
             if (binding.Metadata is not null)
             {
                 if (SharedMetadataFields.Target(current, binding) is not null)
-                    SharedMetadataFields.Set(current, binding, SharedMetadataFields.Read(original, binding));
+                    SharedMetadataFields.Copy(original, current, binding);
                 continue;
             }
             var target = binding.Custom ? current[PropertyName(current, "fields")] as JsonObject : current;

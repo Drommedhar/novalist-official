@@ -59,5 +59,7 @@ public sealed class SharedInactiveSceneTests
 
         var state = await guest.Rpc.InvokeAsync<ProjectStateDto>("project/getState");
         Assert.Equal(4, Assert.Single(Assert.Single(state.Chapters).Scenes).WordCount);
+        var reopened = await guest.Rpc.InvokeAsync<DashboardDto>("dashboard/get", 7);
+        Assert.Equal(before.TodayWords + (anotherDraft ? 1 : 0), reopened.TodayWords);
     }
 }

@@ -68,9 +68,13 @@ public sealed class SharedProjectEvolutionTests
         var prose = entity.GetProperty("sharedProse").GetProperty("fields").GetProperty("distinguishingFeatures").GetGuid();
         await desktop.Rpc.InvokeAsync("collaboration/writeScene", session.SessionId, prose, Encoding.UTF8.GetBytes("text:New shared description."));
         Assert.Equal("New shared description.", (await desktop.Rpc.InvokeAsync<JsonElement>("entities/get", "character", id)).GetProperty("distinguishingFeatures").GetString());
-        await desktop.Rpc.InvokeAsync("entities/setLocked", "character", id, true);
+        var locked = entity.GetProperty("sharedFields").GetProperty("metadata").GetProperty("locked").GetGuid();
+        var focus = Guid.NewGuid();
+        await desktop.Rpc.InvokeAsync("collaboration/acquireField", session.SessionId, locked, focus);
+        await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, locked, focus, "true");
         await Assert.ThrowsAsync<RemoteInvocationException>(() => desktop.Rpc.InvokeAsync("collaboration/writeScene", session.SessionId, prose, Encoding.UTF8.GetBytes("text:Forbidden")));
-        await desktop.Rpc.InvokeAsync("entities/setLocked", "character", id, false);
+        await desktop.Rpc.InvokeAsync("collaboration/writeField", session.SessionId, locked, focus, "false");
+        await desktop.Rpc.InvokeAsync("collaboration/releaseField", session.SessionId, locked, focus);
         await Assert.ThrowsAsync<RemoteInvocationException>(() => desktop.Rpc.InvokeAsync("entities/restoreRevision", "character", id, "unused"));
 
         await desktop.Rpc.InvokeAsync("entities/updateLists", "character", id, null, new[] { new EntitySectionDto("Notes", "Original section", "notes") }, null);
