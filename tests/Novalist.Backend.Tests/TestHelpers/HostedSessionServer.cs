@@ -64,7 +64,7 @@ internal sealed class HostedSessionServer : IAsyncDisposable
             socket.Abort();
             await Task.WhenAll(send, receive);
         }
-        finally { sessions.TryRemove(id, out _); session.Stop.Cancel(); }
+        finally { sessions.TryRemove(id, out _); session.Cancel(); }
     }
 
     private static async Task SendRoutesAsync(WebSocket socket, Session session, CancellationToken ct)
@@ -122,7 +122,7 @@ internal sealed class HostedSessionServer : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        foreach (var session in sessions.Values) session.Stop.Cancel();
+        foreach (var session in sessions.Values) session.Cancel();
         await app.DisposeAsync();
     }
 
@@ -137,6 +137,21 @@ internal sealed class HostedSessionServer : IAsyncDisposable
         internal CancellationTokenSource Stop { get; } = new();
         internal Channel<Guid> Pending { get; } = Channel.CreateUnbounded<Guid>();
         internal ConcurrentDictionary<Guid, Route> Routes { get; } = new();
-        public void Dispose() { Stop.Cancel(); Stop.Dispose(); }
+        private readonly object gate = new();
+        private bool disposed;
+        internal void Cancel()
+        {
+            lock (gate) { if (!disposed) Stop.Cancel(); }
+        }
+        public void Dispose()
+        {
+            lock (gate)
+            {
+                if (disposed) return;
+                disposed = true;
+                Stop.Cancel();
+                Stop.Dispose();
+            }
+        }
     }
 }

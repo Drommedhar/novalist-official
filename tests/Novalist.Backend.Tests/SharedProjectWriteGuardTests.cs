@@ -129,10 +129,13 @@ public sealed class SharedProjectWriteGuardTests
             path => File.ReadAllText(path).Contains("Recovered state prose.", StringComparison.Ordinal));
     }
 
-    [Fact]
-    public async Task OutsideDeletionCannotAcquireTheRemovedMetadataAndKeepsTheLocalChangeRecoverable()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OutsideDeletionCannotAcquireTheRemovedMetadataAndKeepsTheLocalChangeRecoverable(bool duringRead)
     {
-        await using var fixture = await SharedProjectFixture.StartAsync();
+        var files = new ChangingMetadataFiles();
+        await using var fixture = await SharedProjectFixture.StartAsync(files);
         var state = Assert.Single(await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/setStateOverrides", "character", fixture.CharacterId,
             new[] { new StateOverrideDto(null, "Opening", null, "Captain", "Description", null, "Note", false) }));
         var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
@@ -141,7 +144,8 @@ public sealed class SharedProjectWriteGuardTests
         var original = await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken);
         var changed = Assert.IsType<JsonObject>(JsonNode.Parse(original));
         changed["stateOverrides"] = new JsonArray();
-        await File.WriteAllTextAsync(path, changed.ToJsonString(), TestContext.Current.CancellationToken);
+        if (duringRead) files.Pending = (path, changed.ToJsonString());
+        else await File.WriteAllTextAsync(path, changed.ToJsonString(), TestContext.Current.CancellationToken);
 
         var error = await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, item, Guid.NewGuid()));
 
@@ -530,6 +534,20 @@ public sealed class SharedProjectWriteGuardTests
         fixture.SessionEnded = true;
         await fixture.Desktop.InvokeAsync("entities/update", "character", fixture.CharacterId, new { age = "44" });
         Assert.Equal("44", (await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId)).GetProperty("age").GetString());
+    }
+
+    private sealed class ChangingMetadataFiles : FileService, IFileService
+    {
+        internal (string Path, string Content)? Pending { get; set; }
+        public new async Task<string> ReadTextAsync(string path)
+        {
+            if (Pending is { } edit && edit.Path == path)
+            {
+                Pending = null;
+                await File.WriteAllTextAsync(path, edit.Content);
+            }
+            return await base.ReadTextAsync(path);
+        }
     }
 
     private sealed class FailingFieldFiles : FileService, IFileService

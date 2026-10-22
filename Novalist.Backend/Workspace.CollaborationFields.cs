@@ -111,7 +111,7 @@ public sealed partial class Workspace
         if (entity[PropertyName(entity, "locked")]?.GetValue<bool>() == true && !(binding.Metadata?.Kind == "codex" && binding.Key == "locked"))
             throw new InvalidOperationException(Rpc.EntitiesRpc.LockedMessage);
         if (binding.Metadata is not null && SharedMetadataFields.Target(entity, binding) is null)
-            throw new InvalidOperationException("The shared metadata item was deleted.");
+            RejectSharedWrite("The shared metadata item was deleted.");
         return field;
     }
 
