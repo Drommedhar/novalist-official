@@ -3,8 +3,10 @@ import { useHostedSessionStore } from './hostedSessionStore'
 import { reconcileSceneEditors, useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { useCodexStore } from '../stores/codexStore'
 import { useHostBridgeStore } from '../stores/hostBridgeStore'
+import { create } from 'zustand'
 
 interface ProjectUpdate { sessionId: string; state: ProjectStateDto }
+export const useSharedProjectRevision = create(() => 0)
 
 export function registerSharedProjectNotifications(): void {
   rpc.onNotification('collaboration/projectUpdated', params => {
@@ -14,6 +16,7 @@ export function registerSharedProjectNotifications(): void {
     if (project.projectPath !== change.state.projectPath || project.workspaceBusy) return
     project.applyState(change.state)
     useProjectStore.setState(state => reconcileSceneEditors(state, change.state.chapters))
+    useSharedProjectRevision.setState(revision => revision + 1)
     void refreshCodex().catch(error => useHostBridgeStore.getState().pushToast(String(error)))
   })
 }
