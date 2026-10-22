@@ -8,7 +8,7 @@ import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import type { CustomTypeDefinition } from './CustomTypeManager'
 import { useEntitySections } from './useEntitySections'
 import { proseBinding } from '../../collaboration/sharedMarkdown'
-import { metadataBinding } from '../../collaboration/SharedMetadataField'
+import { SharedMetadataField, metadataBinding } from '../../collaboration/SharedMetadataField'
 import { EntityAliases } from './EntityAliases'
 
 interface RelationshipRow {
@@ -250,6 +250,12 @@ export function EntityListsEditor({
         values={metadataBinding(record, 'aliases') ? record.aliases as string[] ?? [] : aliases}
         onChange={next => { setAliases(next); persistAliases(next) }} />
       {includeRelationships && (
+        <SharedMetadataField<RelationshipRow[] | null> binding={metadataBinding(record, 'relationships')}
+          value={metadataBinding(record, 'relationships') ? record.relationships as RelationshipRow[] ?? [] : relationships}
+          onChange={next => setRelationships(next ?? [])}>
+          {({ value, editable, change }) => {
+            const displayed = value ?? []
+            return (
         <section data-entity-tab="relationships" className="codex-entry-section">
           <div className="inspector-label">{t('entityEditor.relationships')}</div>
           <datalist id="codex-rel-names">
@@ -262,18 +268,19 @@ export function EntityListsEditor({
               <option key={r} value={r} />
             ))}
           </datalist>
-          {relationships.map((rel, index) => {
+          {displayed.map((rel, index) => {
             // Built from the live rows too, so two edits landing before a
             // re-render do not overwrite each other - which is what happened
             // when the inverse role arrived from the backend mid-typing.
             const patch = (p: Partial<RelationshipRow>): void =>
-              setRelationships(rowsRef.current.map((r, i) => (i === index ? { ...r, ...p } : r)))
+              change(current => (current ?? []).map((r, i) => (i === index ? { ...r, ...p } : r)))
             return (
               <div key={index} className="entity-rel-row">
                 <input
                   className="outliner-input"
                   list="codex-rel-roles"
                   placeholder={t('entityEditor.rolePlaceholderRel')}
+                  readOnly={!editable}
                   value={rel.role}
                   onChange={(e) => patch({ role: e.target.value })}
                   onBlur={() => {
@@ -284,27 +291,29 @@ export function EntityListsEditor({
                           if (inv) patch({ inverseRole: inv })
                         })
                     }
-                    persistRelationships()
+                    if (!metadataBinding(record, 'relationships')) persistRelationships()
                   }}
                 />
                 <input
                   className="outliner-input"
                   list="codex-rel-names"
                   placeholder={t('entityEditor.targetNames')}
+                  readOnly={!editable}
                   value={rel.target}
                   onChange={(e) => patch({ target: e.target.value })}
-                  onBlur={() => persistRelationships()}
+                  onBlur={() => !metadataBinding(record, 'relationships') && persistRelationships()}
                 />
                 <select
                   className="outliner-input codex-rel-kind"
                   aria-label={t('entityEditor.tieKind')}
+                  aria-disabled={!editable}
                   value={rel.category ?? ''}
                   onChange={(e) => {
-                    const next = relationships.map((r, i) =>
+                    const next = displayed.map((r, i) =>
                       i === index ? { ...r, category: e.target.value } : r
                     )
-                    setRelationships(next)
-                    persistRelationships()
+                    change(next)
+                    if (!metadataBinding(record, 'relationships')) persistRelationships()
                   }}
                 >
                   {TIE_KINDS.map((kind) => (
@@ -317,17 +326,18 @@ export function EntityListsEditor({
                   className="outliner-input codex-rel-inverse"
                   placeholder={t('entityEditor.inverseRole')}
                   list="codex-rel-roles"
+                  readOnly={!editable}
                   value={rel.inverseRole ?? ''}
                   onChange={(e) => patch({ inverseRole: e.target.value })}
-                  onBlur={() => persistRelationships()}
+                  onBlur={() => !metadataBinding(record, 'relationships') && persistRelationships()}
                 />
                 <button
                   className="binder-expand"
                   aria-label={t('explorer.contextDelete')}
                   onClick={() => {
-                    const next = relationships.filter((_, i) => i !== index)
-                    setRelationships(next)
-                    persistRelationships()
+                    const next = displayed.filter((_, i) => i !== index)
+                    change(next)
+                    if (!metadataBinding(record, 'relationships')) persistRelationships()
                   }}
                 >
                   <X size={12} strokeWidth={2} />
@@ -338,8 +348,8 @@ export function EntityListsEditor({
           <button
             className="binder-rail-item codex-add-relationship"
             onClick={() =>
-              setRelationships([
-                ...relationships,
+              change(current => [
+                ...(current ?? []),
                 { role: '', target: '', category: '', inverseRole: '' }
               ])
             }
@@ -348,6 +358,9 @@ export function EntityListsEditor({
             {t('entityEditor.addRelationship')}
           </button>
         </section>
+            )
+          }}
+        </SharedMetadataField>
       )}
 
       <section data-entity-tab="overview" className="codex-entry-section">
@@ -355,16 +368,12 @@ export function EntityListsEditor({
         {sections.map((section, index) => (
           <div key={section.id ?? index} className="entity-section">
             <div className="entity-section-head">
-              <input
-                className="outliner-input entity-section-title"
-                value={section.title}
-                onChange={(e) =>
-                  setSections((current) =>
-                    current.map((s, i) => (i === index ? { ...s, title: e.target.value } : s))
-                  )
-                }
-                onBlur={() => void flushSections().catch(() => {})}
-              />
+              <SharedMetadataField<string | null> binding={section.id ? metadataBinding(record, `section:${section.id}:title`) : undefined}
+                value={section.title} onChange={next => setSections(current => current.map((s, i) => i === index ? { ...s, title: next ?? '' } : s))}>
+                {({ value, editable, change }) => <input className="outliner-input entity-section-title"
+                  value={value ?? ''} readOnly={!editable} onChange={event => change(event.target.value)}
+                  onBlur={() => { if (!section.id || !metadataBinding(record, `section:${section.id}:title`)) void flushSections().catch(() => {}) }} />}
+              </SharedMetadataField>
               {canGenerate && (
                 <button
                   className="binder-expand"

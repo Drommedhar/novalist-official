@@ -22,7 +22,7 @@ public sealed partial class Workspace
     {
         if (baseline is null) return value;
         if (sharedItems.ContainsKey(path)) return baseline;
-        var bindings = fieldBindings.Values.Where(binding => binding.Path == path).ToArray();
+        var bindings = ActiveFieldBindings.Where(binding => binding.Path == path).ToArray();
         if (bindings.Length == 0 && !sharedProse.Values.Any(binding => binding.Path == path) && path != ".novalist/project.json") return value;
         var current = JsonNode.Parse(value) as JsonObject ?? throw new InvalidDataException("Invalid shared metadata.");
         var original = JsonNode.Parse(baseline) as JsonObject ?? throw new InvalidDataException("Invalid shared metadata baseline.");
@@ -92,7 +92,7 @@ public sealed partial class Workspace
         var prosePaths = changes.Where(change => change.After is not null).Select(change => change.Path).ToArray();
         var fieldPaths = prosePaths.Contains(".novalist/project.json", StringComparer.Ordinal) ? ProjectContentSelection.Read(root).ToArray() : prosePaths;
         var fields = (await SharedCodexFields.CaptureAsync(root, fieldPaths, ct)).Where(candidate =>
-            !fieldBindings.Values.Any(existing => existing.Path == candidate.Path && existing.Key == candidate.Key && existing.Custom == candidate.Custom && existing.Metadata == candidate.Metadata)).ToArray();
+            !ActiveFieldBindings.Any(existing => existing.Path == candidate.Path && existing.Key == candidate.Key && existing.Custom == candidate.Custom && existing.Metadata == candidate.Metadata)).ToArray();
         if (prosePaths.Any(path => path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)))
         {
             var factory = CreateSharedDocuments ?? throw new InvalidOperationException("Desktop collaboration is unavailable.");

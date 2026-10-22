@@ -3,12 +3,16 @@ import { join } from 'node:path'
 import { dismissTour, launchApp, seedBook, type Harness } from './harness'
 
 test('structured Codex controls enforce the named focus owner and refresh before the next writer edits', async () => {
+  test.setTimeout(60_000)
   const participants: Harness[] = []
   try {
     const owner = await launchApp('novalist-metadata-owner-')
     participants.push(owner)
     await seedBook(owner, { Opening: ['Arrival'] })
     const entity = await owner.rpc<{ id: string }>('entities/create', ['character', 'Mira', null])
+    await owner.rpc('entities/create', ['character', 'Rowan', null])
+    await owner.rpc('entities/setRelationships', [entity.id, [{ role: 'ally', target: 'Rowan', inverseRole: '' }], 'character'])
+    await owner.rpc('entities/updateLists', ['character', entity.id, null, [{ id: 'background', title: 'Background', content: 'Notes.' }], null])
     await owner.rpc('collaboration/peer/host', ['127.0.0.1', 0, 'Owner'])
     const link = await owner.rpc<string>('collaboration/invite', [new Date(Date.now() + 60_000).toISOString()])
     const guest = await launchApp('novalist-metadata-guest-')
@@ -43,5 +47,32 @@ test('structured Codex controls enforce the named focus owner and refresh before
     for (const h of participants) {
       expect((await h.rpc<{ aliases: string[] }>('entities/get', ['character', entity.id])).aliases).toEqual(['Captain', 'Navigator'])
     }
+    const title = owner.page.locator('.entity-section-title').first()
+    const guestTitle = guest.page.locator('.entity-section-title').first()
+    await title.focus()
+    await expect(title).not.toHaveAttribute('readonly')
+    await guestTitle.focus()
+    await expect(guestTitle).toHaveAttribute('readonly')
+    await title.fill('Earlier life')
+    await title.blur()
+    await expect(guestTitle).not.toHaveAttribute('readonly')
+    await expect(guestTitle).toHaveValue('Earlier life')
+    await guestTitle.blur()
+    for (const h of participants) await h.page.locator('.codex-entry-tabs').getByRole('button', { name: 'Relationships', exact: true }).click()
+    const role = owner.page.locator('.entity-rel-row input[list="codex-rel-roles"]').first()
+    const guestRole = guest.page.locator('.entity-rel-row input[list="codex-rel-roles"]').first()
+    await role.focus()
+    await expect(role).not.toHaveAttribute('readonly')
+    await guestRole.focus()
+    await expect(guestRole).toHaveAttribute('readonly')
+    await role.fill('mentor')
+    const inverse = owner.page.locator('.codex-rel-inverse').first()
+    await inverse.focus()
+    await expect(guestRole).toHaveAttribute('readonly')
+    await inverse.fill('student')
+    await inverse.blur()
+    await expect(guestRole).not.toHaveAttribute('readonly')
+    await expect(guestRole).toHaveValue('mentor')
+    await guestRole.blur()
   } finally { for (const h of participants.reverse()) await h.close() }
 })

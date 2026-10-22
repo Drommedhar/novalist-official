@@ -16,6 +16,9 @@ namespace Novalist.Core.Models;
 /// </summary>
 public sealed class EntityStateOverride
 {
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+
     /// <summary>Act this applies from, or null when scoped by chapter instead.</summary>
     [JsonPropertyName("act")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -78,7 +78,10 @@ public sealed record StateOverrideDto(
     string? Note,
     /// <summary>From here the entry is out of the story: dead, departed,
     /// destroyed. Read by the continuity gates.</summary>
-    bool Gone = false);
+    bool Gone = false)
+{
+    public string? Id { get; init; }
+}
 
 /// <summary>What an entry is like in one context. <c>IsOverridden</c> false
 /// means the entry reads as itself and nothing else here is meaningful.</summary>

@@ -44,8 +44,8 @@ public sealed partial class Workspace
     private async Task ValidateBoundContentAsync(string path, string relative, byte[] content)
     {
         if (sharedItems.ContainsKey(relative)) RejectSharedWrite("Save shared prose through its collaboration editor.");
-        var bindings = fieldBindings.Values.Where(binding => binding.Path.Equals(relative, StringComparison.OrdinalIgnoreCase)).ToArray();
-        var prose = sharedProse.Values.Where(binding => binding.Path.Equals(relative, StringComparison.OrdinalIgnoreCase)).ToArray();
+        var bindings = ActiveFieldBindings.Where(binding => binding.Path.Equals(relative, StringComparison.OrdinalIgnoreCase)).ToArray();
+        var prose = ActiveSharedProse.Where(binding => binding.Path.Equals(relative, StringComparison.OrdinalIgnoreCase)).ToArray();
         if ((bindings.Length == 0 && prose.Length == 0) || !await FileService.ExistsAsync(path)) return;
         var previous = JsonNode.Parse(await FileService.ReadBytesAsync(path)) as JsonObject;
         var next = JsonNode.Parse(content) as JsonObject;
