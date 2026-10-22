@@ -14,8 +14,19 @@ internal sealed class CollaborationDocumentPeer
     internal bool RemoveSeededScenes { get; set; }
 
     [JsonRpcMethod("collaboration/documents")]
-    public object? Documents(string action, JsonElement command = default, Guid? id = null)
+    public object? Documents(string action, JsonElement command = default, Guid? id = null,
+        string? entityId = null, string? oldName = null, string? newName = null)
     {
+        if (action == "rename")
+        {
+            if (id is null || string.IsNullOrEmpty(entityId) || string.IsNullOrEmpty(oldName) || newName is null)
+                throw new ArgumentException("Missing rename parameters.");
+            var previous = Encoding.UTF8.GetString(states[id.Value]);
+            var next = previous.Replace(oldName, newName, StringComparison.Ordinal);
+            if (next == previous) return null;
+            states[id.Value] = Encoding.UTF8.GetBytes(next);
+            return Convert.ToBase64String(states[id.Value]);
+        }
         if (action == "execute")
         {
             var item = command.GetProperty("id").GetGuid();
