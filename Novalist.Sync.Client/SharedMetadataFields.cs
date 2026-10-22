@@ -66,6 +66,32 @@ public static partial class SharedMetadataFields
         else target[key] = value.DeepClone();
     }
 
+    public static void Copy(JsonObject source, JsonObject destination, SharedFieldBinding binding)
+    {
+        var original = Target(source, binding);
+        var target = Target(destination, binding);
+        if (target is null) return;
+        var (container, key) = Property(binding.Key);
+        var scope = target;
+        if (container is not null)
+        {
+            original = original?[container] as JsonObject;
+            if (target[container] is null)
+            {
+                if (original?.ContainsKey(key) != true) return;
+                target[container] = new JsonObject();
+            }
+            target = target[container] as JsonObject ?? throw new InvalidDataException("Invalid shared metadata container.");
+        }
+        if (original is not null && original.TryGetPropertyValue(key, out var value)) target[key] = value?.DeepClone();
+        else target.Remove(key);
+        if (container is not null && target.Count == 0 && Target(source, binding) is { } originalScope && originalScope[container] is null)
+        {
+            if (originalScope.ContainsKey(container)) scope[container] = null;
+            else scope.Remove(container);
+        }
+    }
+
     public static JsonNode? ParseValue(SharedFieldBinding binding, string value)
     {
         Validate(binding);

@@ -11,7 +11,7 @@ public sealed partial class Workspace
     {
         var start = value?["start"]?.GetValue<string>();
         if (string.IsNullOrWhiteSpace(start)) return;
-        var counterpart = fieldBindings.Values.Single(other => other.Path == binding.Path &&
+        var counterpart = ActiveFieldBindings.Single(other => other.Path == binding.Path &&
             other.Metadata == binding.Metadata && other.Key == "date");
         await AcquireMetadataWriteAsync(counterpart, acquired, _ => JsonValue.Create(start), ct);
     }

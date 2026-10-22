@@ -3,7 +3,6 @@ import type { SharedSceneIdentity } from '../../../shared/sharedScene'
 import type { SharedEntityFields } from '../collaboration/FocusedField'
 
 export interface SceneDto {
-  sharedFields?: SharedEntityFields
   id: string
   sharedFields?: SharedEntityFields
   title: string
