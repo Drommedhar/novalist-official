@@ -73,9 +73,11 @@ test('relay joining reuses an existing copy, recovers local differences and requ
     const invitation = await owner.rpc<string>('collaboration/invite', [new Date(Date.now() + 3600_000).toISOString()])
     subject = 'guest'
     await guest.app.evaluate(({ shell }) => { shell.openExternal = async url => { await fetch(url) } })
-    await guest.rpc('collaboration/account/signIn', [server.address])
     await dismissTour(guest.page)
     await guest.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await guest.page.getByLabel('Server address', { exact: true }).fill(server.address)
+    await guest.page.getByRole('button', { name: 'Sign in', exact: true }).click()
+    await expect(guest.page.getByText('Signed in as Test Writer', { exact: true })).toBeVisible()
     await guest.app.evaluate(({ dialog }, folder) => {
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] })
     }, destination)

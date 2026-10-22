@@ -45,9 +45,9 @@ collaboration or incremental joining is complete.
 | C6 | Complete | C3, C4 | Desktop peer session controls, initial project exchange and local TCP acceptance pass. Optional Steam adapter compiles; native runtime validation requires app registration. |
 | C7 | Complete | C4 | Owner access management, removal with encryption-key rotation, remaining-writer refresh, safe re-invitation and project deletion pass three-app acceptance. |
 | C8 | Complete | C5, C6, C7 | All four final review corrections and their regressions are complete. Core, SDK and Backend meet the unchanged 100% coverage gate; final application checks pass and temporary implementation worktrees are removed. Server changes stay local; publishing awaits the user's own testing and explicit approval. |
-| C9 | In progress | Existing peer collaboration | Replace persistent server hosting with packet relay only; require an online host for joining and verify that no project payload or edit history is persisted by the relay. |
-| C10 | In progress | C9 | Compare relative paths and SHA-256 hashes before initial transfer, reuse matching local files, and transfer only missing or changed files. |
-| C11 | In progress | C9, C10 | Show scanning, comparison and transfer progress in the desktop UI; verify the complete workflow with existing project copies. |
+| C9 | Complete | Existing peer collaboration | Relay mode registers no database or storage endpoints and forwards packets only. Joining requires the online host; real relay transport and desktop acceptance pass. |
+| C10 | Complete | C9 | Relative paths and SHA-256 select missing/changed files; matching files are reused and local differences are recoverable. Existing-copy acceptance covers large assets, private files and all 117 scenes of the populated project. |
+| C11 | Complete | C9, C10 | Scanning/comparison/transfer progress, file/byte/reuse counts and cancellation work while the workspace is busy. All 55 desktop scenarios pass across the full run and corrected setup reruns; populated-project share/join/end passes and Backend retains 100% coverage. |
 
 Approved test boundaries: editor API, collaboration session API, real transports.
 Implementation agents use isolated worktrees from the integration branch;

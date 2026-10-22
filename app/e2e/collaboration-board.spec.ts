@@ -29,6 +29,10 @@ test('Board POV and property drops honor named focus locks and synchronize after
     writers.push(guest)
     await guest.rpc('collaboration/peer/join', [invitation, join(guest.workDir, 'Joined'), 'Guest'])
     for (const writer of writers) {
+      await writer.page.waitForFunction(() => {
+        const project = window.novalistStores.project.getState()
+        return project.isLoaded && !project.workspaceBusy && !project.workspaceTransitionToken
+      })
       await dismissTour(writer.page)
       await writer.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
       await expect(writer.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible()

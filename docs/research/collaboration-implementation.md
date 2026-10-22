@@ -6,14 +6,71 @@ Work is on `feature/realtime-collaboration`, based on main commit
 the earlier server-storage requirements. This record describes implementation progress; it is not a release
 announcement.
 
-## Relay correction, 2026-10-22
+## Relay correction, 2026-10-23
 
-The current work replaces persisted hosting with a packet relay, requires an
-online host, compares relative paths and SHA-256 before transferring project
-files, and exposes synchronization progress and cancellation. See
-[ADR 0007](../adr/0007-relay-only-collaboration.md). The checks recorded below
-predate this correction and do not establish that the new requirements pass.
-The current acceptance result belongs in tasks C9–C11 of the task graph.
+The desktop now connects through the live packet relay in the local server
+checkout at `2ad5a9f`. Its default mode registers no database and exposes no
+project-storage endpoints. The host must remain online. Clients compare relative
+paths and SHA-256 hashes, reuse matching local files, and request missing or
+changed files in chunks. Local differences are retained in **Recovered edits**.
+The desktop shows scanning, comparison and transfer progress, file/byte/reuse
+counts, and cancellation, including while the workspace is busy. See
+[ADR 0007](../adr/0007-relay-only-collaboration.md).
+
+Tasks C9–C11 are complete for the local testing handoff. Final implementation
+checkpoint: `3f76a493`.
+
+The real existing-copy desktop test passes with a matching 2 MB asset, a changed
+file, a missing asset larger than 1 MB, retained Git metadata, recovery copies and
+host-offline rejection. An additional acceptance test used isolated copies of
+the populated local project: all 117 active scenes matched byte-for-byte, 239 of
+431 files were reused, and 1,088,090 bytes crossed the connection, including
+collaboration state. Both sessions ended successfully and the original source
+files were unchanged. The complete check took 1.4 minutes.
+
+Ordinary read requests no longer rescan the project. Writes, synchronization
+barriers, capture and session end retain validation and recovery for outside
+edits. Explicit readmission preserves the device certificate trusted by existing
+peers; removed devices still need a fresh valid invitation. Snapshot capture
+wakes catch-up after success or failure so a joining writer cannot strand edits
+received during capture.
+
+| Validation | Result |
+| --- | --- |
+| Collaboration client | 169 tests pass. |
+| Real relay integration | Seven transport tests pass against the local relay. |
+| Desktop transport/document host | 142 tests pass. |
+| Populated project | Share, incremental existing-copy join, exact scene equality, both session ends and unchanged original source pass. |
+| Desktop collaboration | All 55 scenarios pass across the full run and corrected setup reruns. |
+| Backend | 2,153 tests pass; 15,758/15,758 lines covered (100%). The gate and exclusions are unchanged. |
+| Builds | Desktop, backend and optional Steam build pass; TypeScript checks pass. |
+| Source checks | All eight repository checks pass. |
+
+The full desktop run passed 53/55. The two corrected setups now pass: a returning
+writer publishes through the supported collaboration API both before removal and
+after readmission, and Board interactions wait for the joined workspace to finish
+loading. The separate populated-project acceptance also passes on the optimized
+relay implementation. Core and SDK production code are unchanged by this
+correction; their earlier coverage results below remain the baseline.
+
+Standards review found no blocking violations. Requirements review verified the
+relay-only boundary, incremental transfer, snapshot catch-up, strict metadata
+validation, revoked-device denial and certificate-preserving readmission; no
+blocking findings remain. Current evidence is kept under
+`app/out/collaboration-test-results/relay/` and in `app/out/relay-*.log`.
+
+Aislop scores the correction at 100, with no errors or fixable warnings. Five
+non-fixable advisories remain: four private host/join/transfer methods have seven
+parameters, and the existing synchronous backend disposal bridge waits for async
+cleanup. The method arguments describe distinct transport/lifetime inputs; the
+disposal bridge serves the existing `IDisposable` entry point. Neither rule was
+disabled. The builds also retain the pre-existing ImageSharp 2.1.11 advisories.
+
+The server checkout and all desktop changes remain local. The VS Code
+**Collaboration: Local server + 2 apps** configuration builds this relay without
+PostgreSQL. The optional Steam build with App ID 420 compiles, but two-account
+Steam runtime validation remains outstanding. Earlier evidence below describes
+the superseded persistent-server implementation, not the current relay result.
 
 ## Previous persistent-hosting checkpoint
 
