@@ -65,13 +65,18 @@ public sealed class ProjectMembership
     }
 
     public byte[] ClaimInvitation(byte[] grant, Key delegation, DeviceIdentity device)
+        => ClaimInvitation(grant, delegation, device.Id, device.SigningKey.PublicKey, device.ReceivingKey.PublicKey);
+
+    public byte[] ClaimInvitation(byte[] grant, Key delegation, Guid device, PublicKey signing, PublicKey receiving)
     {
         var verified = VerifyGrant(grant);
         RequireKey(delegation, verified.Key);
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         if (now < verified.NotBefore || now >= verified.ExpiresAt)
             throw new InvalidOperationException("The invitation is not currently valid.");
-        return CreateCertificate(verified.Member, device, ProjectRole.Contributor, grant, delegation);
+        if (device != DeviceIdentity.IdForKeys(signing, receiving))
+            throw new CryptographicException("The invited device identity does not match its keys.");
+        return CreateCertificate(new(verified.Member, device, ProjectRole.Contributor, signing, receiving), grant, delegation);
     }
 
     public AuthorizedProjectDevice VerifyCertificate(Guid device, ReadOnlySpan<byte> certificate)
@@ -118,12 +123,15 @@ public sealed class ProjectMembership
     }
 
     private byte[] CreateCertificate(Guid member, DeviceIdentity device, ProjectRole role, byte[] grant, Key signer)
+        => CreateCertificate(new(member, device.Id, role, device.SigningKey.PublicKey, device.ReceivingKey.PublicKey), grant, signer);
+
+    private byte[] CreateCertificate(AuthorizedProjectDevice device, byte[] grant, Key signer)
     {
         var body = new byte[CertificateBodySize + grant.Length];
-        WriteContext(body, member, role);
-        device.Id.TryWriteBytes(body.AsSpan(38, 16), bigEndian: true, out _);
-        device.SigningKey.PublicKey.Export(KeyBlobFormat.RawPublicKey).CopyTo(body, 54);
-        device.ReceivingKey.PublicKey.Export(KeyBlobFormat.RawPublicKey).CopyTo(body, 86);
+        WriteContext(body, device.MemberId, device.Role);
+        device.DeviceId.TryWriteBytes(body.AsSpan(38, 16), bigEndian: true, out _);
+        device.SigningKey.Export(KeyBlobFormat.RawPublicKey).CopyTo(body, 54);
+        device.ReceivingKey.Export(KeyBlobFormat.RawPublicKey).CopyTo(body, 86);
         grant.CopyTo(body, CertificateBodySize);
         return Sign("novalist/v1/project-device"u8, body, signer);
     }
