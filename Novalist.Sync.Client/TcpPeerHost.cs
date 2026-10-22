@@ -131,7 +131,9 @@ public sealed partial class TcpPeerHost : IAsyncDisposable
                 while (!lifetime.IsCancellationRequested)
                 {
                     var request = await PeerProtocol.ReadAsync<PeerRequest>(stream, lifetime.Token);
-                    lock (gate) client.Send(Dispatch(client, request));
+                    if (request.Operation.StartsWith("bootstrap-", StringComparison.Ordinal))
+                        client.Send(await DispatchBootstrapAsync(client, request, lifetime.Token));
+                    else lock (gate) client.Send(Dispatch(client, request));
                 }
             }
             catch (Exception error) when (error is IOException or SocketException or AuthenticationException or
@@ -149,6 +151,7 @@ public sealed partial class TcpPeerHost : IAsyncDisposable
                         if (clients.GetValueOrDefault(client.Device) == client) clients.Remove(client.Device);
                     }
                     client.Outgoing.Writer.TryComplete();
+                    client.Bootstrap?.Dispose();
                 }
                 await writer;
             }
@@ -170,6 +173,7 @@ public sealed partial class TcpPeerHost : IAsyncDisposable
     {
         public Guid Device { get; } = device;
         public bool Joined { get; set; }
+        public PeerBootstrapArchive? Bootstrap { get; set; }
         public Channel<PeerMessage> Outgoing { get; } = Channel.CreateBounded<PeerMessage>(256);
         public void Stop() => lifetime.Cancel();
         public void Send(PeerMessage value) { if (!Outgoing.Writer.TryWrite(value)) Stop(); }
@@ -179,6 +183,7 @@ public sealed partial class TcpPeerHost : IAsyncDisposable
     {
         try
         {
+            if (!members.ContainsKey(client.Device)) throw new CryptographicException("This device is no longer a member of the session.");
             if (request.Id <= 0 || request.Project != project) throw new InvalidDataException("The peer request belongs to another project.");
             if (request.Operation == "create" && client.Device == owner.Id) return new(request.Id, "reply");
             if (request.Operation == "join") { client.Joined = true; return new(request.Id, "reply"); }

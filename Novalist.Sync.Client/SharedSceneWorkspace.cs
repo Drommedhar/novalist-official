@@ -157,6 +157,23 @@ public sealed class SharedSceneWorkspace : IAsyncDisposable
         finally { gate.Release(); }
     }
 
+    public async Task RefreshAsync(CancellationToken ct)
+    {
+        await gate.WaitAsync(ct);
+        try
+        {
+            ObjectDisposedException.ThrowIf(disposed, this);
+            if (!started) throw new InvalidOperationException("The shared scenes have not opened.");
+            foreach (var item in items)
+            {
+                failures.Add(item);
+                await ReplayFailureAsync(item, ct);
+                await ProjectAsync(item, ct);
+            }
+        }
+        finally { gate.Release(); }
+    }
+
     private void Enqueue(Guid item, byte[] update)
     {
         lock (queueGate) incoming = ReceiveAfterAsync(incoming, item, update.ToArray());

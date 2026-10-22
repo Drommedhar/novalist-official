@@ -93,6 +93,38 @@ public sealed class TcpPeerSessionTests : IDisposable
         new(Path.Combine(folder, name), device, transport);
 
     [Fact]
+    public async Task SnapshotWaitsForCompleteLiveUpdatesBeforeChoosingItsSequenceBoundary()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var owner = await DeviceAsync("owner", ct);
+        using var writer = await DeviceAsync("writer", ct);
+        await using var host = await TcpPeerHost.StartAsync(new(IPAddress.Loopback, 0), folder,
+            new(Guid.NewGuid(), 0, RandomNumberGenerator.GetBytes(32), owner), ct);
+        using var ownerAccess = host.CreateOwnerAccess("127.0.0.1");
+        await using var ownerWire = new TcpPeerTransport(ownerAccess, owner);
+        await using var ownerSession = OpenSession("owner", owner, ownerWire);
+        await ownerSession.Updates.SynchronizeAsync(true, ct);
+        await using var writerWire = await TcpPeerTransport.JoinInvitationAsync(host.CreateInvitation("127.0.0.1"), writer, ct);
+        await using var writerSession = OpenSession("writer", writer, writerWire);
+        await writerSession.Updates.SynchronizeAsync(false, ct);
+        var item = Guid.NewGuid();
+        var payload = RandomNumberGenerator.GetBytes(600_000);
+        writerSession.Updates.Save(item, payload);
+        await writerWire.PushAsync(writerSession.Pending[0], ct);
+        await ownerSession.Updates.SynchronizeAsync(false, ct);
+        Assert.Empty(ownerSession.Updates.ReadItem(item));
+        var capture = ownerSession.Updates.CaptureSnapshotAsync((sequence, token) =>
+        {
+            Assert.Equal(payload, Assert.Single(ownerSession.Updates.ReadItem(item)));
+            return Task.FromResult(sequence);
+        }, ct);
+
+        await writerSession.Updates.SynchronizeAsync(false, ct);
+
+        Assert.True(await capture > 1);
+    }
+
+    [Fact]
     public async Task PeerPresenceReachesOtherWritersWithoutEnteringProjectHistory()
     {
         var ct = TestContext.Current.CancellationToken;

@@ -8,7 +8,7 @@ public sealed record CheckpointFile(string Path, long Length, string Sha256);
 public sealed record CheckpointManifest(int Version, IReadOnlyList<CheckpointFile> Files, IReadOnlyList<CheckpointDocument>? Documents = null,
     IReadOnlyList<SharedFieldBinding>? Fields = null);
 
-public static class ProjectCheckpoint
+public static partial class ProjectCheckpoint
 {
     public static async Task<IReadOnlyDictionary<string, byte[]>> ReadFilesAsync(Stream source, long maxTotalBytes, CancellationToken ct)
     {
@@ -38,24 +38,32 @@ public static class ProjectCheckpoint
         CreateAsync(root, destination, selectPaths, new SharedProjectState(documents, []), cancellationToken);
 
     public static async Task CreateAsync(string root, Stream destination, Func<IReadOnlyList<string>> selectPaths,
-        SharedProjectState state, CancellationToken cancellationToken)
+        SharedProjectState state, CancellationToken cancellationToken, IProgress<CollaborationTransferProgress>? progress = null)
     {
         var paths = selectPaths().Order(StringComparer.Ordinal).ToArray();
         ValidatePaths(paths);
         var sources = new List<(string Path, FileStream Stream)>();
+        var meter = new BootstrapProgress(progress);
+        meter.Report("scanning", total: paths.Length);
         try
         {
             foreach (var path in paths)
                 sources.Add((path, new FileStream(SharedProjectPath.Resolve(root, path), FileMode.Open, FileAccess.Read, FileShare.Read)));
             using var archive = new ZipArchive(destination, ZipArchiveMode.Create, leaveOpen: true);
             var files = new List<CheckpointFile>();
+            var totalBytes = sources.Sum(source => source.Stream.Length);
+            long completedBytes = 0;
             foreach (var (path, source) in sources)
             {
                 using var projected = await SharedProjectMetadata.ProjectAsync(path, source, cancellationToken);
                 var content = projected ?? (Stream)source;
+                totalBytes += content.Length - source.Length;
+                meter.Report("comparing", files.Count, paths.Length, completedBytes, totalBytes);
                 await using var entry = archive.CreateEntry("files/" + path, CompressionLevel.Fastest).Open();
-                var hash = await CopyAndHashAsync(content, entry, content.Length, cancellationToken);
+                var hash = await CopyAndHashAsync(content, entry, content.Length, cancellationToken, meter.AddBytes);
                 files.Add(new(path, content.Length, hash));
+                completedBytes += content.Length;
+                meter.CompleteFile();
             }
             if (!paths.SequenceEqual(selectPaths().Order(StringComparer.Ordinal)))
                 throw new IOException("The project changed while its checkpoint was being created. Try again.");
@@ -64,6 +72,7 @@ public static class ProjectCheckpoint
             await SharedCodexFields.ReadAsync(root, state.Fields, cancellationToken);
             await using var manifest = archive.CreateEntry("manifest.json", CompressionLevel.Fastest).Open();
             await JsonSerializer.SerializeAsync(manifest, new CheckpointManifest(states.Any(document => document.TextField is not null) ? 4 : 3, files, states, state.Fields), cancellationToken: cancellationToken);
+            meter.Phase("complete");
         }
         finally
         {
@@ -100,18 +109,27 @@ public static class ProjectCheckpoint
         }
     }
 
-    private static async Task<CheckpointManifest> ReadManifestAsync(ZipArchive archive, long maxTotalBytes, CancellationToken cancellationToken)
+    internal static async Task<CheckpointManifest> ReadManifestAsync(ZipArchive archive, long maxTotalBytes, CancellationToken cancellationToken)
     {
         var entry = archive.GetEntry("manifest.json") ?? throw new InvalidDataException("Missing checkpoint manifest.");
         if (entry.Length > 8 * 1024 * 1024) throw new InvalidDataException("The checkpoint manifest is too large.");
         await using var stream = entry.Open();
         var manifest = await JsonSerializer.DeserializeAsync<CheckpointManifest>(stream, cancellationToken: cancellationToken)
             ?? throw new InvalidDataException("Invalid checkpoint manifest.");
+        ValidateManifest(manifest, maxTotalBytes);
+        if (archive.Entries.Count != manifest.Files.Count + (manifest.Documents?.Count ?? 0) + 1 ||
+            archive.Entries.Select(item => item.FullName).Distinct(StringComparer.Ordinal).Count() != archive.Entries.Count)
+            throw new InvalidDataException("Duplicate or incomplete checkpoint entries.");
+        return manifest;
+    }
+
+    internal static void ValidateManifest(CheckpointManifest manifest, long maxTotalBytes)
+    {
         var documents = manifest.Documents ?? [];
         if (manifest.Version is not (1 or 2 or 3 or 4) || (manifest.Version == 1 && documents.Count != 0) ||
             (manifest.Version < 4 && documents.Any(document => document.TextField is not null)) ||
             (manifest.Version < 3 && manifest.Fields is { Count: > 0 }) ||
-            manifest.Files is null || archive.Entries.Count != manifest.Files.Count + documents.Count + 1)
+            manifest.Files is null)
             throw new InvalidDataException("Unsupported or incomplete checkpoint.");
         if (manifest.Files.Any(file => file is null)) throw new InvalidDataException("Missing checkpoint file description.");
         ValidatePaths(manifest.Files.Select(file => file.Path));
@@ -124,9 +142,6 @@ public static class ProjectCheckpoint
         }
         CheckpointDocuments.Validate(manifest.Files, documents, maxTotalBytes - total);
         ValidateFields(manifest.Files, documents, manifest.Fields ?? []);
-        if (archive.Entries.Select(item => item.FullName).Distinct(StringComparer.Ordinal).Count() != archive.Entries.Count)
-            throw new InvalidDataException("Duplicate checkpoint entries.");
-        return manifest;
     }
 
     private static void ValidateFields(IReadOnlyList<CheckpointFile> files, IReadOnlyList<CheckpointDocument> documents, IReadOnlyList<SharedFieldBinding> fields)
@@ -165,7 +180,8 @@ public static class ProjectCheckpoint
         if (!seen.Contains(".novalist/project.json")) throw new InvalidDataException("The checkpoint has no project metadata.");
     }
 
-    private static async Task<string> CopyAndHashAsync(Stream input, Stream output, long expectedLength, CancellationToken cancellationToken)
+    private static async Task<string> CopyAndHashAsync(Stream input, Stream output, long expectedLength, CancellationToken cancellationToken,
+        Action<int>? copied = null)
     {
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         var buffer = new byte[64 * 1024];
@@ -177,6 +193,7 @@ public static class ProjectCheckpoint
             await output.WriteAsync(buffer.AsMemory(0, count), cancellationToken);
             hash.AppendData(buffer, 0, count);
             length += count;
+            copied?.Invoke(count);
         }
         if (length != expectedLength) throw new InvalidDataException("Incomplete checkpoint content.");
         return Convert.ToHexStringLower(hash.GetHashAndReset());

@@ -9,10 +9,13 @@ internal sealed record PeerHello(Guid DeviceId, byte[] SigningKey, byte[] Receiv
     byte[]? Invitation, byte[]? Certificate);
 internal sealed record PeerWelcome(byte[] OwnerKey, byte[] EpochKey, byte[] Certificate, string? Error = null);
 internal sealed record PeerRequest(long Id, string Operation, Guid Project, long After = 0,
-    UpdateEnvelope? Envelope = null, FieldLeaseRequest? Lease = null);
+    UpdateEnvelope? Envelope = null, FieldLeaseRequest? Lease = null, string? BootstrapEntry = null, long Offset = 0);
 internal sealed record PeerMessage(long Id, string Type, string? Error = null, long Sequence = 0,
     SequencedUpdate? Update = null, IReadOnlyList<SequencedUpdate>? Updates = null,
-    FieldLeaseGrant? Lease = null, bool Released = false, UpdateEnvelope? Presence = null);
+    FieldLeaseGrant? Lease = null, bool Released = false, UpdateEnvelope? Presence = null,
+    PeerBootstrapDescription? Bootstrap = null, byte[]? Data = null);
+
+internal sealed record PeerBootstrapDescription(long ManifestLength, string ManifestSha256, long Sequence);
 
 internal static class PeerProtocol
 {

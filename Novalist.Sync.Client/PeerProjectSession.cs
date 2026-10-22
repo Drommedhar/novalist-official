@@ -28,7 +28,8 @@ public sealed class PeerProjectSession : IAsyncDisposable
         synchronizer = new(Updates);
     }
 
-    public static async Task<PeerProjectSession> OpenAsync(string storage, Guid id, TcpPeerTransport transport, DeviceIdentity device)
+    public static async Task<PeerProjectSession> OpenAsync(string storage, Guid id, TcpPeerTransport transport, DeviceIdentity device,
+        long bootstrapSequence = 0)
     {
         DeviceSequence? sequence = null;
         SessionJournal? journal = null;
@@ -37,6 +38,7 @@ public sealed class PeerProjectSession : IAsyncDisposable
         {
             sequence = new(Path.Combine(storage, "devices", device.Id.ToString("N") + ".sqlite"), device.Id);
             journal = new(Path.Combine(storage, "sessions", id.ToString("N"), "journal.sqlite"), id, transport.Access.ProjectId, sequence);
+            journal.BindFirstServerSequence(checked(bootstrapSequence + 1));
             cipher = transport.Access.CreateCipher();
             return new(sequence, journal, cipher, transport, device);
         }

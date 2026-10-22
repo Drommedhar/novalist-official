@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Novalist.Sync.Client;
 
@@ -8,6 +9,44 @@ internal static class SharedProjectMetadata
         ["author", "disabledContinuityRules", "timeline", "wholeStoryAnalysis", "chapterAnalysis", "wordsPerPage"];
     private static readonly string[] BookFormatting =
         ["enableBookParagraphSpacing", "enableBookWidth", "bookPageFormat", "bookTextBlockWidth", "bookFontFamily", "bookFontSize"];
+
+    internal static async Task MergeLocalSettingsAsync(string localRoot, string incomingRoot, CancellationToken ct)
+    {
+        const string relative = ".novalist/settings.json";
+        var local = SharedProjectPath.Resolve(localRoot, relative);
+        if (!File.Exists(local)) return;
+        var incoming = SharedProjectPath.Resolve(incomingRoot, relative);
+        var merged = await ReadObjectAsync(local, ct);
+        var shared = File.Exists(incoming) ? await ReadObjectAsync(incoming, ct) : new JsonObject();
+        MergeProperties(merged, shared, SharedSettings);
+        MergeSection(merged, shared, "overrides", BookFormatting);
+        MergeSection(merged, shared, "wordCountGoals", ["projectGoal", "deadline"]);
+        await File.WriteAllTextAsync(incoming, merged.ToJsonString(), ct);
+    }
+
+    private static async Task<JsonObject> ReadObjectAsync(string path, CancellationToken ct)
+    {
+        await using var input = File.OpenRead(path);
+        if (input.Length > 64 * 1024 * 1024) throw new InvalidDataException("Project settings are too large to merge.");
+        return await JsonNode.ParseAsync(input, cancellationToken: ct) as JsonObject
+            ?? throw new InvalidDataException("Invalid local project settings.");
+    }
+
+    private static void MergeSection(JsonObject local, JsonObject shared, string name, string[] properties)
+    {
+        var target = local[name] as JsonObject ?? new JsonObject();
+        MergeProperties(target, shared[name] as JsonObject ?? new JsonObject(), properties);
+        local[name] = target;
+    }
+
+    private static void MergeProperties(JsonObject local, JsonObject shared, string[] properties)
+    {
+        foreach (var property in properties)
+        {
+            local.Remove(property);
+            if (shared.TryGetPropertyValue(property, out var value)) local[property] = value?.DeepClone();
+        }
+    }
 
     internal static async Task FilterInstalledAsync(string root, CancellationToken ct)
     {

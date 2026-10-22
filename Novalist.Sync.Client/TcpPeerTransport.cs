@@ -143,14 +143,14 @@ public sealed partial class TcpPeerTransport : IUpdateTransport, IPresenceTransp
 
     private long NextId() => Interlocked.Increment(ref requestId);
 
-    private async Task<PeerMessage> RequestAsync(PeerRequest request, CancellationToken ct)
+    private async Task<PeerMessage> RequestAsync(PeerRequest request, CancellationToken ct, TimeSpan? timeout = null)
     {
         var active = stream;
         if (!connected || active is null) throw new IOException("The peer session is disconnected.");
         var result = new TaskCompletionSource<PeerMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
         pending[request.Id] = result;
         using var operation = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        operation.CancelAfter(TimeSpan.FromSeconds(10));
+        operation.CancelAfter(timeout ?? TimeSpan.FromSeconds(10));
         try
         {
             await sending.WaitAsync(operation.Token);
