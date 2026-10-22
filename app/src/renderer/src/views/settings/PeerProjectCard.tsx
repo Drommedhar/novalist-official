@@ -4,6 +4,8 @@ import { useHostedSessionStore } from '../../collaboration/hostedSessionStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { SharedProjectCard } from './SharedProjectCard'
 import { rpc } from '../../rpc/client'
+import { CollaborationDestination, type CollaborationDestinationValue } from './CollaborationDestination'
+import { CollaborationTransferStatus } from './CollaborationTransferStatus'
 
 interface SteamStatus { available: boolean; reason: string; displayName: string | null }
 
@@ -15,8 +17,7 @@ export function PeerProjectCard({ steam = false }: { steam?: boolean }): React.J
   const [address, setAddress] = useState('127.0.0.1')
   const [port, setPort] = useState('0')
   const [link, setLink] = useState('')
-  const [folder, setFolder] = useState('')
-  const [folderName, setFolderName] = useState('')
+  const [destination, setDestination] = useState<CollaborationDestinationValue>({ path: '', valid: false, existing: false })
   const [localError, setLocalError] = useState('')
   const [steamStatus, setSteamStatus] = useState<SteamStatus | null>(null)
   useEffect(() => { void refresh() }, [refresh])
@@ -30,14 +31,7 @@ export function PeerProjectCard({ steam = false }: { steam?: boolean }): React.J
   }, [steam])
   const available = !steam || steamStatus?.available === true
   const validName = name.trim().length > 0 && name.trim().length <= 128
-  const validFolder = folderName.trim().length > 0 && !/[\\/:*?"<>|]/.test(folderName) && !['.', '..'].includes(folderName.trim())
   const validPort = /^\d+$/.test(port) && Number(port) >= 0 && Number(port) <= 65535
-  const chooseFolder = async (): Promise<void> => {
-    try {
-      const selected = await window.novalist.pickFolder(t('collaboration.parentFolder'))
-      if (selected) { setFolder(selected); setLocalError('') }
-    } catch (reason) { setLocalError(String(reason)) }
-  }
   if (session) return <SharedProjectCard server="" signedIn={false} />
   return <div className="settings-subgroup">
     <p className="settings-hint">{t(steam ? 'collaboration.steamHint' : 'collaboration.peerHint')}</p>
@@ -58,20 +52,16 @@ export function PeerProjectCard({ steam = false }: { steam?: boolean }): React.J
     <label className="inspector-label" htmlFor="set-peer-link">{t('collaboration.invitation')}</label>
     <textarea id="set-peer-link" className="inspector-input" value={link} disabled={busy !== null} autoComplete="off"
       onChange={event => setLink(event.target.value)} />
-    <label className="inspector-label" htmlFor="set-peer-folder-name">{t('collaboration.localFolderName')}</label>
-    <input id="set-peer-folder-name" className="inspector-input" value={folderName} disabled={busy !== null}
-      onChange={event => setFolderName(event.target.value)} />
+    <CollaborationDestination id="set-peer-destination" busy={busy !== null} onChange={setDestination} />
     <div className="match-row">
-      <button className="btn-secondary" disabled={busy !== null} onClick={() => void chooseFolder()}>{t('collaboration.parentFolder')}</button>
-      <button className="btn-primary" disabled={busy !== null || !available || !validName || !link.trim() || !folder || !validFolder}
-        onClick={() => void run(steam ? 'steamJoin' : 'peerJoin', [link.trim(), folder.replace(/[\\/]$/, '') + '/' + folderName.trim(), name.trim()])}>
+      <button className="btn-primary" disabled={busy !== null || !available || !validName || !link.trim() || !destination.valid}
+        onClick={() => void run(steam ? 'steamJoin' : 'peerJoin', [link.trim(), destination.path, name.trim()])}>
         {t(steam ? 'collaboration.steamJoin' : 'collaboration.peerJoin')}</button>
-      {loaded && <button className="btn-secondary" disabled={busy !== null || !folder || !validFolder}
-        onClick={() => void run('copy', [folder.replace(/[\\/]$/, '') + '/' + folderName.trim()])}>{t('collaboration.copy')}</button>}
+      {loaded && !destination.existing && <button className="btn-secondary" disabled={busy !== null || !destination.valid}
+        onClick={() => void run('copy', [destination.path])}>{t('collaboration.copy')}</button>}
     </div>
-    {folder && <p className="settings-hint">{folder}</p>}
     {copied && <p role="status">{t('collaboration.copyCreated')}</p>}
-    {busy && <p role="status">{t('collaboration.progress.' + busy)}</p>}
+    <CollaborationTransferStatus />
     {(error || localError) && <p role="alert">{error || localError}</p>}
   </div>
 }

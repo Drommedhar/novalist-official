@@ -13,6 +13,14 @@ interface HostedSession {
 }
 
 interface SavedHostedProject { server: string; projectId: string; recoveryPath: string | null }
+export interface CollaborationTransferProgress {
+  phase: 'scanning' | 'connecting' | 'comparing' | 'transferring' | 'installing' | 'complete'
+  completedFiles: number
+  totalFiles: number
+  completedBytes: number
+  totalBytes: number
+  reusedFiles: number
+}
 type Operation = 'create' | 'join' | 'invite' | 'end' | 'resume' | 'copy' | 'peerHost' | 'peerJoin' | 'steamHost' | 'steamJoin'
 interface HostedSessionState {
   session: HostedSession | null
@@ -23,6 +31,9 @@ interface HostedSessionState {
   error: string
   presenceUnavailable: boolean
   presenceFailures: string[]
+  transfer: CollaborationTransferProgress | null
+  cancelling: boolean
+  cancel(): Promise<void>
   reportPresence(sessionId: string, viewId: string, unavailable: boolean): void
   refresh(): Promise<void>
   run(operation: Operation, params?: unknown[]): Promise<void>
@@ -37,6 +48,14 @@ export const useHostedSessionStore = create<HostedSessionState>((set, get) => ({
   error: '',
   presenceUnavailable: false,
   presenceFailures: [],
+  transfer: null,
+  cancelling: false,
+  async cancel() {
+    if (!get().busy || get().cancelling) return
+    set({ cancelling: true })
+    try { await rpc.request('collaboration/cancel') }
+    catch (error) { set({ error: String(error), cancelling: false }) }
+  },
   reportPresence(sessionId, viewId, unavailable) {
     if (get().session?.sessionId !== sessionId) return
     const failures = get().presenceFailures.filter(view => view !== viewId)
@@ -56,7 +75,7 @@ export const useHostedSessionStore = create<HostedSessionState>((set, get) => ({
   },
   async run(operation, params) {
     if (get().busy) return
-    set({ busy: operation, error: '', invitation: '', copied: false })
+    set({ busy: operation, error: '', invitation: '', copied: false, transfer: null, cancelling: false })
     try {
       if (operation === 'invite') set({ invitation: await rpc.request<string>('collaboration/invite', params) })
       else if (operation === 'copy') {
@@ -84,9 +103,9 @@ export const useHostedSessionStore = create<HostedSessionState>((set, get) => ({
       }
     } catch (error) {
       const message = String(error)
-      set({ error: message })
+      set({ error: message, transfer: null })
       useHostBridgeStore.getState().pushToast(message)
     }
-    finally { set({ busy: null }) }
+    finally { set({ busy: null, cancelling: false }) }
   }
 }))

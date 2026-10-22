@@ -14,6 +14,12 @@ const Y = require('yjs')
 const { ProseDocumentHost } = require(output)
 
 for (const html of [
+  '<p></p>',
+  '<p></p>\n',
+  '<p>Before.</p><p></p><p>After.</p>',
+  '<p><br></p>',
+  '<p><br class="scene-break"></p>',
+  '<blockquote><p></p><p><br></p></blockquote>',
   '<p><strong class="novalist-entity" data-id="mira"><em>Imported</em> prose</strong>.</p>',
   '<p>Imported prose.</p>\n',
   '<p>First.</p>\n<p>Second.</p>\n',
@@ -36,6 +42,18 @@ for (const html of [
       assert.equal(owner.project('imported'), guest.project('imported'))
       assert.ok(owner.project('imported').includes('New '))
     } finally { writer.destroy() }
+  } finally { owner.dispose(); guest.dispose() }
+})
+
+test('saved grammar highlights do not prevent sharing or remove their prose formatting', () => {
+  const owner = new ProseDocumentHost()
+  const guest = new ProseDocumentHost()
+  try {
+    const html = '<p><span>Before <span class="grammar-issue" data-issue-index="0"><b>marked</b> words</span> after.</span></p>'
+    guest.load('highlighted', owner.seed('highlighted', html))
+    const expected = '<p><span>Before <b>marked</b> words after.</span></p>'
+    assert.equal(owner.project('highlighted'), expected)
+    assert.equal(guest.project('highlighted'), expected)
   } finally { owner.dispose(); guest.dispose() }
 })
 

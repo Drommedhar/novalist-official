@@ -24,6 +24,42 @@
       }
     },
     {
+      "label": "build collaboration renderer",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "build"],
+      "options": { "cwd": "${workspaceFolder}/app" },
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare collaboration desktop",
+      "dependsOn": ["build Novalist Backend (Debug)", "build collaboration renderer"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare collaboration server",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/eng/Prepare-CollaborationServer.ps1"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$msCompile"]
+    },
+    {
+      "label": "build collaboration Steam backend",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/eng/Build-CollaborationSteam.ps1"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$msCompile"]
+    },
+    {
+      "label": "prepare collaboration Steam app",
+      "dependsOn": ["build collaboration Steam backend", "build collaboration renderer"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
       "label": "install New UI deps",
       "detail": "npm install for the Electron app (run once after cloning).",
       "type": "shell",

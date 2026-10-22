@@ -5,7 +5,7 @@ import { dismissTour, launchApp, seedBook, type Harness } from './harness'
 import { identityProvider } from './fixtures/identityProvider'
 import { collaborationServer } from './fixtures/collaborationServer'
 
-test.skip(process.env.NOVALIST_SYNC_INTEGRATION !== '1', 'Requires the local community-server checkout and PostgreSQL fixture.')
+test.skip(process.env.NOVALIST_SYNC_INTEGRATION !== '1', 'Requires the local relay-server checkout.')
 
 async function signIn(h: Harness, server: string): Promise<void> {
   await dismissTour(h.page)
@@ -29,7 +29,7 @@ async function joinProject(h: Harness, link: string, folder = 'Joined'): Promise
   await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
 }
 
-test('owner removal rotates access and remaining writers refresh while everyone retains a local project', async () => {
+test('host removal disconnects one writer while others continue and everyone retains a local project', async () => {
   let subject = 'owner'
   const identity = await identityProvider(() => subject)
   const server = await collaborationServer(identity.address)
@@ -69,11 +69,9 @@ test('owner removal rotates access and remaining writers refresh while everyone 
     await owner.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
     await expect(owner.page.getByRole('button', { name: 'Remove access', exact: true })).toHaveCount(1)
     await expect(guest.page.getByText('Access to this shared project has ended. End this session to continue with your local copy.', { exact: true })).toBeVisible()
-    await remaining.page.getByRole('button', { name: 'Refresh shared access', exact: true }).click()
     await expect(remaining.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible({ timeout: 30_000 })
-    await remaining.rpc('research/save', [null, 'After key rotation', 'Note', 'Still writing together.', [], []])
-    await expect.poll(() => owner.rpc('research/list')).toMatchObject([{ title: 'After key rotation' }])
-    expect((await remaining.rpc<{ recoveryPath: string }>('collaboration/status')).recoveryPath).toBeTruthy()
+    await remaining.rpc('research/save', [null, 'After removal', 'Note', 'Still writing together.', [], []])
+    await expect.poll(() => owner.rpc('research/list')).toMatchObject([{ title: 'After removal' }])
     await owner.page.getByRole('button', { name: 'Create invitation', exact: true }).click()
     await expect(invitation).toHaveValue(/^novalist:/)
     const replacementLink = await invitation.inputValue()
@@ -85,10 +83,10 @@ test('owner removal rotates access and remaining writers refresh while everyone 
     await joinProject(guest, replacementLink, 'Rejoined')
     await expect(guest.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible({ timeout: 30_000 })
     expect(await readFile(join(destination, '.novalist', 'project.json'), 'utf8')).toBe(retained)
-    await expect.poll(() => guest.rpc('research/list')).toMatchObject([{ title: 'After key rotation' }])
+    await expect.poll(() => guest.rpc('research/list')).toMatchObject([{ title: 'After removal' }])
     await guest.rpc('research/save', [null, 'Writing after new invitation', 'Note', 'Invited again.', [], []])
     await expect.poll(() => owner.rpc<unknown[]>('research/list')).toHaveLength(2)
-    await owner.page.getByRole('button', { name: 'Delete shared project from server', exact: true }).click()
+    await owner.page.getByRole('button', { name: 'End session for everyone', exact: true }).click()
     await expect(owner.page.getByRole('button', { name: 'Share this project', exact: true })).toBeEnabled()
     expect(await owner.rpc('collaboration/status')).toBeNull()
     await guest.page.getByRole('button', { name: 'End this session', exact: true }).click()

@@ -5,7 +5,9 @@ Novalist is a writing workspace for books and their story worlds.
 ## Language
 
 **Hosted project**:
-A shared Novalist project available to invited collaborators through a server, including while its owner is offline.
+A shared Novalist project whose connected clients communicate through a packet
+relay. The relay does not persist project data; joining requires an online host.
+See [ADR 0007](docs/adr/0007-relay-only-collaboration.md).
 
 **Steam collaboration session**:
 A shared project editing session joined through Steam that remains available while its hosting writer is online.

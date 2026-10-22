@@ -4,7 +4,7 @@ import { dismissTour, launchApp, seedBook, type Harness } from './harness'
 import { identityProvider } from './fixtures/identityProvider'
 import { collaborationServer } from './fixtures/collaborationServer'
 
-test.skip(process.env.NOVALIST_SYNC_INTEGRATION !== '1', 'Requires the local community-server checkout and PostgreSQL fixture.')
+test.skip(process.env.NOVALIST_SYNC_INTEGRATION !== '1', 'Requires the local relay-server checkout.')
 
 async function authenticate(h: Harness, server: string): Promise<void> {
   await dismissTour(h.page)
@@ -12,7 +12,7 @@ async function authenticate(h: Harness, server: string): Promise<void> {
   await h.rpc('collaboration/account/signIn', [server])
 }
 
-test('a restarted writer reconnects to their retained project and creates an independent copy', async () => {
+test('a restarted guest reconnects to the running host and creates an independent copy', async () => {
   let subject = 'owner'
   const identity = await identityProvider(() => subject)
   const server = await collaborationServer(identity.address)
@@ -23,30 +23,30 @@ test('a restarted writer reconnects to their retained project and creates an ind
     const project = await seedBook(owner, { Opening: ['Arrival'] })
     const chapter = project.chapters.find(value => value.title === 'Opening')!
     const scene = chapter.scenes[0]
-    const root = (await owner.rpc<{ projectPath: string }>('project/getState')).projectPath
     await owner.rpc('scenes/write', [chapter.guid, scene.id, '<p>Before restart.</p>', 'Before restart.'])
-    await owner.rpc('settings/updateProject', [{ editorFontSize: 23 }])
     await authenticate(owner, server.address)
-    const original = await owner.rpc<{ sessionId: string; projectId: string }>('collaboration/create', [server.address])
+    await owner.rpc('collaboration/create', [server.address])
     const invitation = await owner.rpc<string>('collaboration/invite', [new Date(Date.now() + 3600000).toISOString()])
     subject = 'guest'
     const guest = await launchApp('novalist-resume-guest-')
     participants.push(guest)
     await authenticate(guest, server.address)
-    await guest.rpc('collaboration/join', [server.address, invitation, join(guest.workDir, 'Joined')])
-    await owner.rpc('collaboration/end')
-    await owner.close()
-    participants.splice(participants.indexOf(owner), 1)
-    await guest.page.evaluate(({ chapter, scene }) => window.novalistStores.project.getState().openScene(chapter, scene), { chapter: chapter.guid, scene: scene.id })
-    const editor = guest.page.frameLocator('.editor-frame').locator('#editor')
+    const root = join(guest.workDir, 'Joined')
+    const original = await guest.rpc<{ sessionId: string; projectId: string }>('collaboration/join', [server.address, invitation, root])
+    await guest.rpc('settings/updateProject', [{ editorFontSize: 23 }])
+    await guest.rpc('collaboration/end')
+    await guest.close()
+    participants.splice(participants.indexOf(guest), 1)
+    await owner.page.evaluate(({ chapter, scene }) => window.novalistStores.project.getState().openScene(chapter, scene), { chapter: chapter.guid, scene: scene.id })
+    const editor = owner.page.frameLocator('.editor-frame').locator('#editor')
     await expect(editor).toHaveText('Before restart.')
     await editor.click()
-    await guest.page.keyboard.press('Control+End')
-    await guest.page.keyboard.type(' Written while away.')
-    await expect.poll(async () => (await guest.rpc<{ html: string }>('scenes/read', [chapter.guid, scene.id])).html).toContain('Written while away.')
-    const createdWhileAway = await guest.rpc<{ id: string }>('entities/create', ['character', 'Created while owner offline'])
+    await owner.page.keyboard.press('Control+End')
+    await owner.page.keyboard.type(' Written while away.')
+    await expect.poll(async () => (await owner.rpc<{ html: string }>('scenes/read', [chapter.guid, scene.id])).html).toContain('Written while away.')
+    const createdWhileAway = await owner.rpc<{ id: string }>('entities/create', ['character', 'Created while guest offline'])
 
-    const reopened = await launchApp('novalist-resume-reopened-', {}, owner.workDir)
+    const reopened = await launchApp('novalist-resume-reopened-', {}, guest.workDir)
     participants.push(reopened)
     await dismissTour(reopened.page)
     await reopened.rpc('project/open', [root])

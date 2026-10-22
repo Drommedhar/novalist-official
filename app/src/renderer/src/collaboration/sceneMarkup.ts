@@ -99,7 +99,6 @@ export class SceneMarkup {
     const element = node as Element
     const tag = element.tagName.toLowerCase()
     const values = Object.fromEntries(Array.from(element.attributes, attribute => [attribute.name, attribute.value]))
-    if (tag === 'br' && element.parentElement && this.isBlock(element.parentElement) && element.parentElement.childNodes.length === 1) return
     if (tag === 'img' && values['data-nv-src']) {
       values.src = values['data-nv-src']
       delete values['data-nv-src']
@@ -184,7 +183,6 @@ export class SceneMarkup {
         const rendered = document.createElement('div')
         rendered.append(renderRichText(document, content))
         parent.append(this.editor.sanitizeSceneFragment(rendered.innerHTML))
-        if (!parent.firstChild) parent.append(document.createElement('br'))
         if (parent.nodeType === this.root.ELEMENT_NODE) completed.add(parent as Element)
         content = []
       } else {

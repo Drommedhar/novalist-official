@@ -4,6 +4,30 @@ All implementation and server changes are local. Publication waits for your test
 and explicit approval. Native Steam testing still requires Novalist's registered
 app and two entitled Steam accounts; see [Steam builds](steam-collaboration.md).
 
+## VS Code launch configurations (Windows)
+
+In **Run and Debug**, choose **Collaboration: Local server + 2 apps** and press
+**F5**. It builds the desktop app and local relay server and opens owner and guest instances with separate persistent
+settings and browser profiles. The server's integrated terminal prints its URL;
+use that URL in both apps' **Settings → Collaboration**.
+
+Sign in as Morgan in the owner app, enter `guest` in the server terminal, then
+sign in as Alex in the guest app. Create and accept an invitation as described
+below. The **Collaboration: Owner**, **Collaboration: Guest** and
+**Collaboration: Local server** entries can restart individual components; the
+two app entries reuse the desktop build prepared by the compound launch.
+
+Stopping one instance leaves the other app and server running. Closing the host
+ends its session; a running relay cannot serve the project without it. Close the
+clients when finished, then enter `quit` in the server terminal. Local project
+copies and app profiles remain. Keep both the host and server running when testing
+guest reconnects. The relay requires no database and stores no project data.
+
+**Collaboration: Steam (App ID 420)** builds and launches the Steam variant with
+its own profile. See [the Steam launch setup](steam-collaboration.md#vs-code-launch-app-id-420)
+for the native library and account requirements. These development configurations
+disable self-updates and require the existing local fixtures under `app/out`.
+
 ## Start two independent app instances
 
 Build once from the repository root:
@@ -30,31 +54,24 @@ node node_modules/electron/cli.js out/main/index.js "--user-data-dir=$PWD/out/ma
 
 The separate settings and browser profiles give each instance its own account,
 device and workspace. Reuse those commands to test closing and reopening the app.
-Open a project copy in the owner instance; the guest downloads into a new folder.
+Open a project copy in the owner instance. The guest can choose a new folder or
+select **Use an existing local project** to reuse matching files.
 
 ## Direct TCP
 
 In **Settings → Collaboration**, select **Direct connection (TCP)** in both apps.
 The owner enters a display name, `127.0.0.1` and port `0`, then selects **Host direct
 session** and **Create invitation**. The guest enters another display name, pastes
-the invitation, chooses a new local folder and selects **Join direct session**.
+the invitation, chooses a new folder or an existing copy and selects **Join direct session**.
 TCP sessions require the host to remain open.
 
-## Local hosted server
+## Local relay server
 
-This workspace has a local server checkout, PostgreSQL and migration tool under
-`app/out/collaboration-*`. These are development fixtures and are excluded from
-desktop installers. If the computer has restarted, start the existing database
-fixture again. From `app`:
+This workspace has the locally modified community-server checkout under
+`app/out/collaboration-sync-server`. It is excluded from desktop installers and
+has not been published. Its relay mode needs no database or migrations. From `app`:
 
 ```powershell
-$pg = "$PWD/out/collaboration-postgres/pgsql/bin/pg_ctl.exe"
-$data = "$PWD/out/collaboration-postgres-data"
-$port = (Get-Content out/collaboration-postgres-port.txt).Trim()
-& $pg status -D $data
-if ($LASTEXITCODE -ne 0) {
-    & $pg start -D $data -l "$PWD/out/collaboration-postgres.log" -o "-h 127.0.0.1 -p $port" -w
-}
 dotnet build out/collaboration-sync-server/src/Novalist.Sync.Server/Novalist.Sync.Server.csproj
 ```
 
@@ -71,11 +88,10 @@ guest app. Create an invitation in the owner app and accept it in the guest app.
 Enter `third` before signing in from a third independent profile to test **Sam**.
 The selected account applies to the next sign-in; existing sign-ins keep theirs.
 
-Keep the helper terminal running while closing/reopening desktop clients or testing
-owner-offline editing and first-time joining. Its sign-in provider is for local
-testing only and asks for no credentials. Entering `quit` removes its temporary
-server database. Your local project copies and app profiles remain; the old hosted
-session cannot be resumed after that database is removed.
+Keep the helper terminal and the host's session running. Its sign-in provider is
+for local testing only and asks for no credentials. Entering `quit` stops packet
+forwarding. Your local project copies and app profiles remain. Restarting the
+relay or closing the host requires starting a new session.
 
 ## Things to exercise
 
@@ -94,9 +110,12 @@ session cannot be resumed after that database is removed.
   Navigate different books/drafts and check both retained copies.
 - Interrupt the connection while editing shared prose, then reconnect. Delete a
   scene while the other writer has pending work and inspect **Recovered edits**.
-- In hosted mode, close the owner app and keep editing as the guest. Accept an
-  unused invitation from the third profile while the owner remains closed.
-- Reopen the owner. Remove a collaborator, check that remaining writers can
-  continue, and invite the removed account again with a fresh invitation.
+- Join using an existing copy. Check reused-file counts, a changed file, a missing
+  file and an asset larger than 1 MB. Verify local differences in **Recovered edits**.
+- Cancel synchronization and verify the previous local project remains usable.
+- Close the host and check that new joins fail clearly, while local copies remain.
+  Reopen the host and start a fresh session with a new invitation.
+- Remove a collaborator, check that remaining writers can continue, and invite
+  the removed account again with a fresh invitation.
 - End a session, open/export the retained local copies, and make an independent
   copy. Start a fresh session and check that old pending edits do not replay.

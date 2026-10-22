@@ -3,14 +3,15 @@ import { useTranslation } from 'react-i18next'
 import { useHostedSessionStore } from '../../collaboration/hostedSessionStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { SharedProjectAccess } from './SharedProjectAccess'
+import { CollaborationDestination, type CollaborationDestinationValue } from './CollaborationDestination'
+import { CollaborationTransferStatus } from './CollaborationTransferStatus'
 
 export function SharedProjectCard({ server, signedIn }: { server: string; signedIn: boolean }): React.JSX.Element {
   const { t } = useTranslation()
   const { session, saved, copied, busy, invitation, error, presenceUnavailable, refresh, run } = useHostedSessionStore()
   const loaded = useProjectStore(state => state.isLoaded)
   const [link, setLink] = useState('')
-  const [folder, setFolder] = useState('')
-  const [name, setName] = useState('')
+  const [destination, setDestination] = useState<CollaborationDestinationValue>({ path: '', valid: false, existing: false })
   const [localError, setLocalError] = useState('')
   useEffect(() => {
     void refresh()
@@ -18,17 +19,10 @@ export function SharedProjectCard({ server, signedIn }: { server: string; signed
     return () => clearInterval(timer)
   }, [refresh])
 
-  const chooseFolder = async (): Promise<void> => {
-    try {
-      const selected = await window.novalist.pickFolder(t('collaboration.parentFolder'))
-      if (selected) { setFolder(selected); setLocalError('') }
-    } catch (reason) { setLocalError(String(reason)) }
-  }
   const join = async (): Promise<void> => {
-    await run('join', [server.trim(), link.trim(), folder.replace(/[\\/]$/, '') + '/' + name.trim()])
+    await run('join', [server.trim(), link.trim(), destination.path])
     if (useHostedSessionStore.getState().session) setLink('')
   }
-  const validName = name.trim().length > 0 && !/[\\/:*?"<>|]/.test(name) && !['.', '..'].includes(name.trim())
   const recoveryPath = session?.recoveryPath || saved?.recoveryPath
   return <div className="settings-subgroup">
     {session ? <>
@@ -63,24 +57,21 @@ export function SharedProjectCard({ server, signedIn }: { server: string; signed
       <label className="inspector-label" htmlFor="set-collaboration-join">{t('collaboration.invitation')}</label>
       <textarea id="set-collaboration-join" className="inspector-input" value={link} disabled={busy !== null} autoComplete="off"
         onChange={event => setLink(event.target.value)} />
-      <label className="inspector-label" htmlFor="set-collaboration-name">{t('collaboration.localFolderName')}</label>
-      <input id="set-collaboration-name" className="inspector-input" value={name} disabled={busy !== null} onChange={event => setName(event.target.value)} />
+      <CollaborationDestination id="set-collaboration-destination" busy={busy !== null} onChange={setDestination} />
       <div className="match-row">
-        <button className="btn-secondary" disabled={busy !== null} onClick={() => void chooseFolder()}>{t('collaboration.parentFolder')}</button>
-        <button className="btn-primary" disabled={!signedIn || busy !== null || !link.trim() || !folder || !validName} onClick={() => void join()}>
+        <button className="btn-primary" disabled={!signedIn || busy !== null || !link.trim() || !destination.valid} onClick={() => void join()}>
           {t('collaboration.join')}
         </button>
-        {loaded && <button className="btn-secondary" disabled={busy !== null || !folder || !validName}
-          onClick={() => void run('copy', [folder.replace(/[\\/]$/, '') + '/' + name.trim()])}>{t('collaboration.copy')}</button>}
+        {loaded && !destination.existing && <button className="btn-secondary" disabled={busy !== null || !destination.valid}
+          onClick={() => void run('copy', [destination.path])}>{t('collaboration.copy')}</button>}
       </div>
-      {folder && <p className="settings-hint">{folder}</p>}
       <p className="settings-hint">{t('collaboration.joinHint')}</p>
     </>}
     {recoveryPath && <button className="btn-secondary" onClick={() => {
       void window.novalist.revealPath(recoveryPath).catch(reason => setLocalError(String(reason)))
     }}>{t('collaboration.showRetainedCopy')}</button>}
     {copied && <p role="status">{t('collaboration.copyCreated')}</p>}
-    {busy && <p role="status">{t('collaboration.progress.' + busy)}</p>}
+    <CollaborationTransferStatus />
     {(error || localError) && <p role="alert">{error || localError}</p>}
   </div>
 }

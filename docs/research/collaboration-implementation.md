@@ -2,11 +2,20 @@
 
 Work is on `feature/realtime-collaboration`, based on main commit
 `7bdd1cd7d4425a08287a2d0ae513e807b8b6cdfc`. The accepted scope is recorded in
-[the feasibility assessment](realtime-collaboration-feasibility.md) and ADRs
-0003–0006. This record describes implementation progress; it is not a release
+[the task graph](../specs/realtime-collaboration.md) and ADR 0007, which supersedes
+the earlier server-storage requirements. This record describes implementation progress; it is not a release
 announcement.
 
-## Current integration status
+## Relay correction, 2026-10-22
+
+The current work replaces persisted hosting with a packet relay, requires an
+online host, compares relative paths and SHA-256 before transferring project
+files, and exposes synchronization progress and cancellation. See
+[ADR 0007](../adr/0007-relay-only-collaboration.md). The checks recorded below
+predate this correction and do not establish that the new requirements pass.
+The current acceptance result belongs in tasks C9–C11 of the task graph.
+
+## Previous persistent-hosting checkpoint
 
 The [task graph](../specs/realtime-collaboration.md) is complete for the local
 testing handoff. Final implementation checkpoint: `dd98251e`. The integration

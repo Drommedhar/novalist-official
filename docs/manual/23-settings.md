@@ -28,7 +28,7 @@ When you reach Settings from a control elsewhere — the editor's **More writing
 
 ## Collaboration
 
-On desktop, open **Settings → Collaboration**, enter your community server's
+On desktop, open **Settings → Collaboration**, select **Relay server**, enter your server's
 address, and select **Sign in**. Complete sign-in in your browser and return to
 Novalist. **Cancel sign-in** stops a pending request. **Sign out** removes the
 remembered account from this device.
@@ -39,12 +39,22 @@ using the operating system's encryption service, outside project files. If that
 service is unavailable, Novalist reports the error instead of saving credentials
 without encryption.
 
-With a project open, select **Share this project** to upload its initial shared
-copy. **Create invitation** produces a private link for one collaborator, valid
+With a project open, select **Share this project** to start hosting it.
+The server forwards encrypted packets between connected writers. It stores no
+project files, snapshots or edit history. Keep the host's project and session open;
+other writers cannot join while the host is offline.
+
+**Create invitation** produces a private link for one collaborator, valid
 for 24 hours. Send it only to the person you want to invite. They sign in to the
 same server, paste the link, enter a local folder name, choose its parent folder,
-and select **Join shared project**. Joining always creates a new folder; it does
-not replace an existing project. The initial copy includes every book and draft,
+and select **Join shared project**. Alternatively, select **Use an existing local
+project** and choose its folder. Novalist compares relative paths and SHA-256
+hashes, reuses matching files, and requests only missing or changed files from
+the host. Local differences are preserved in **Recovered edits** before the shared
+version is installed. Progress shows scanning, comparison and transfer, with file
+counts, reused files, transferred bytes and **Cancel synchronization**.
+
+The synchronized project includes every book and draft,
 Codex entries, images and research. Personal settings, credentials, local
 snapshots and executable extensions are excluded.
 
@@ -55,39 +65,31 @@ is the one shown as active to other writers. Board drops for POV and custom
 properties respect the same named focus locks as the inspector and outliner.
 Prose edits arrive automatically
 and remain saved locally during a connection interruption. **End this session**
-keeps the local project available for opening and exporting. Other participants
-can keep working on the hosted project, and an unused invitation can be accepted
-while the owner is offline. End the session before signing out or changing servers.
+keeps the local project available for opening and exporting. Ending the host's
+session stops collaboration for everyone and invalidates its invitations.
+End the session before signing out or changing servers.
 
 To return later, open your retained project and select **Reconnect to shared
-project**. Novalist remembers the server and project on this device. Sign in with
-the same account if needed. An interrupted session resumes its durable writing;
-an explicitly ended session starts a new connection and does not send its old
-pending edits. Changes made while the session was closed stay in a recovery
-archive instead of being merged automatically. **Show retained project archive**
-reveals that archive; its `files` folder contains the project copy. Your personal
-editor settings are retained separately alongside it and remain in your project.
+project** while the same host session is still running. Novalist remembers the
+connection on this device. Sign in with the same account if needed. After the
+host ends a session, they must start a new session and create a new invitation.
+Changes made while disconnected are kept locally. Differences in an existing
+copy are preserved under its **Recovered edits** folder during synchronization.
+Your personal editor settings and local version history remain in the project.
 
 After ending a session, enter a new local folder name, choose its parent folder,
 and select **Create independent copy** to make a separate project. It keeps all
 the project content with a new identity and has no connection to the original
 shared project. You can open and share it as its owner.
 
-The owner can use **Manage shared access** to remove a collaborator's server
-access or **Delete shared project from server** to end server sharing for everyone.
-Removing access creates fresh encryption keys and expires unused invitation links.
-The owner resumes automatically. Remaining writers select **Refresh shared access**
-to continue from the new shared copy; unshared writing stays in a local recovery
-archive. If another writer changes the project during removal, the change is
-cancelled: reconnect and try again. Deleting the shared project
-removes its server updates and invitations. Everyone keeps their local project
-copy. A connected writer whose access ends sees a notice and can end the session
-to continue working locally.
+The owner can use **Manage shared access** to disconnect a collaborator and revoke
+their session access, or **End session for everyone** to stop hosting. Remaining
+writers keep working while the host remains online. Everyone retains their local
+project copy. A writer whose access ends can end their session to continue locally.
 
 The owner can invite a removed writer again with a new invitation. End the old
-session before accepting it and choose a new local folder. Your previous project
-and any unshared writing stay in their original folder; old invitations cannot
-restore removed access.
+session before accepting it. Choose a new folder or reuse your existing local
+copy. Old invitations cannot restore removed access.
 
 Shared scenes show other writers' cursors and selections. Cursors follow the
 text as it changes and disappear when their writer leaves or stops responding.
@@ -153,7 +155,7 @@ includes it in the invitation. Use `127.0.0.1` for two Novalist instances on the
 same computer; other computers need an address they can reach and a firewall
 rule allowing that port. **Create invitation** gives one writer a private link
 valid for an hour. They choose the direct connection type, enter their name,
-paste the link, choose a new local folder and select **Join direct session**.
+paste the link, choose a new folder or an existing local project and select **Join direct session**.
 Direct sessions use the same project synchronization, editor and focus locks.
 The host must stay online. Ending the host's session stops live collaboration
 for everyone; each participant retains their local copy. Starting a new session
@@ -161,10 +163,10 @@ does not send pending edits from an ended session.
 
 Steam-enabled builds also offer **Steam** as a connection type. Choose a display
 name and **Host Steam session**, then share the private invitation. The invited
-writer pastes it into the Steam form and chooses a new local folder. Steam routes
+writer pastes it into the Steam form and chooses a new folder or existing copy. Steam routes
 the connection, so neither writer needs to enter an IP address or forward a port.
 The host must stay online. A missing Steam runtime, app registration or account
-access is shown before the host and join controls become available. Hosted-server
+access is shown before the host and join controls become available. Relay-server
 sessions remain available to both Steam and non-Steam builds.
 
 The Steam adapter compiles against Steamworks.NET and uses reliable
@@ -175,14 +177,13 @@ open-source build excludes the native integration.
 
 During a connection interruption, keep writing in already shared scenes and Codex prose. Changes
 to structure, assets and other project details require reconnecting first.
-Personal editor settings still save locally. Changes refused by the server and
+Personal editor settings still save locally. Changes refused by the host and
 files changed outside collaboration are preserved in `Recovered edits` before
 the shared version is restored. End the session before restoring a whole-project
 backup. Extensions must use collaborative prose and field editing when changing
 content already bound to a shared editor or focus lock.
 
-Collaboration is still under development on this branch. Owner access controls are
-not yet complete.
+Native Steam sessions still require testing with two entitled Steam accounts.
 
 ## Global vs project settings
 

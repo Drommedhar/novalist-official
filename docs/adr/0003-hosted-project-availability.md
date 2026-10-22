@@ -1,5 +1,9 @@
 # Keep hosted projects available while their owner is offline
 
+Superseded by [ADR 0007](0007-relay-only-collaboration.md) on 2026-10-22.
+The server is now a packet relay; joining requires an online host. The original
+decision below is retained as history.
+
 Hosted projects must remain available to invited collaborators while the project owner's application is offline. Writers connect to a hosted service so collaboration does not require inbound connections to their desktops or an always-connected owner.
 
 This includes a collaborator's first join. Owners create expiring, single-use

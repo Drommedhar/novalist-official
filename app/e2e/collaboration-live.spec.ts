@@ -7,7 +7,7 @@ import { identityProvider } from './fixtures/identityProvider'
 import { collaborationServer } from './fixtures/collaborationServer'
 import type { ProjectStateDto } from '../src/renderer/src/stores/projectStore'
 
-test.skip(process.env.NOVALIST_SYNC_INTEGRATION !== '1', 'Requires the local community-server checkout and PostgreSQL fixture.')
+test.skip(process.env.NOVALIST_SYNC_INTEGRATION !== '1', 'Requires the local relay-server checkout.')
 
 async function signIn(h: Harness, server: string): Promise<void> {
   await dismissTour(h.page)

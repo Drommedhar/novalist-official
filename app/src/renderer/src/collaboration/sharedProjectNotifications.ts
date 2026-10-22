@@ -1,5 +1,5 @@
 import { rpc } from '../rpc/client'
-import { useHostedSessionStore } from './hostedSessionStore'
+import { useHostedSessionStore, type CollaborationTransferProgress } from './hostedSessionStore'
 import { reconcileSceneEditors, useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { useCodexStore } from '../stores/codexStore'
 import { useHostBridgeStore } from '../stores/hostBridgeStore'
@@ -9,6 +9,10 @@ interface ProjectUpdate { sessionId: string; state: ProjectStateDto }
 export const useSharedProjectRevision = create(() => 0)
 
 export function registerSharedProjectNotifications(): void {
+  rpc.onNotification('collaboration/progress', params => {
+    const progress = (Array.isArray(params) ? params[0] : params) as CollaborationTransferProgress | undefined
+    if (progress && useHostedSessionStore.getState().busy) useHostedSessionStore.setState({ transfer: progress })
+  })
   rpc.onNotification('collaboration/projectUpdated', params => {
     const change = (Array.isArray(params) ? params[0] : params) as ProjectUpdate | undefined
     if (!change || useHostedSessionStore.getState().session?.sessionId !== change.sessionId) return

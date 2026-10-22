@@ -27,6 +27,10 @@ export class ProseDocumentHost {
     const scene = this.create(id)
     try {
       scene.root.replaceChildren(this.sanitizer.sanitizeSceneFragment(html))
+      for (const mark of scene.root.querySelectorAll('.grammar-issue')) {
+        while (mark.firstChild) mark.before(mark.firstChild)
+        mark.remove()
+      }
       const original = scene.root.innerHTML
       updateRichText(scene.doc.getText('prose'), scene.markup!.read())
       if (this.html(scene) !== original) throw new Error('This scene cannot yet be shared without changing its content.')

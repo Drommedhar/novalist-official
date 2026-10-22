@@ -31,6 +31,27 @@ Novalist app. Steam launches provide `SteamAppId`; development launches may set
 The Settings form explains initialization failures and disables host/join when
 Steam is unavailable.
 
+## VS Code launch: App ID 420
+
+On Windows, select **Collaboration: Steam (App ID 420)** in **Run and Debug** and
+press **F5**. Its preparation task builds the optional adapter and copies the
+native DLL into `app/out/collaboration-steam-build`; the launch selects that
+backend explicitly and sets `NOVALIST_STEAM_APP_ID`, `SteamAppId` and `SteamGameId`
+to `420`. The ordinary backend output is separate. Its settings and browser
+profile persist under `app/out/manual-steam`.
+
+The build uses `SteamworksNativeLibrary` from the environment if set. Otherwise,
+it uses `../Fireplace/src-tauri/target/debug/steam_api64.dll`, relative to this
+repository, which is available in this development workspace. To use a different
+SDK library, set that environment variable before opening VS Code or pass
+`-SteamworksNativeLibrary` to `eng/Build-CollaborationSteam.ps1` when building
+manually. A missing library stops the preparation task with an actionable error.
+
+Start Steam and sign in with an account that can run App ID 420. This ID is an
+explicit local test setting, not Novalist's release identity. Testing a Steam
+peer connection still requires a second Steam client/account; the two local
+desktop profiles are intended for hosted/TCP tests.
+
 Native integration remains unvalidated until two entitled Steam accounts can run
 the same app build. Required acceptance: host a project, join from another account
 without a reachable TCP endpoint, transfer an asset larger than one Steam message,

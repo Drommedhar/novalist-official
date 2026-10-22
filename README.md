@@ -35,11 +35,12 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ## Features
 
-- **Collaboration (in development)** — hosted server or direct TCP sessions, optional Steamworks integration, browser sign-in, single-use
+- **Collaboration (in development)** — relay server or direct TCP sessions, optional Steamworks integration, browser sign-in, single-use
   invitations, live project structure, scene planning notes and Codex prose with per-writer undo, research and asset synchronization,
   participant cursors and scene badges, scene editing through the existing editor and continuous Manuscript, named focus locks for Codex fields, table cells, visibility policies, scene and Research metadata, guarded binder actions and Board drops, reconnecting
-  retained projects, independent project copies, and owner controls for server access and project deletion.
-  Removing a collaborator refreshes project encryption for the remaining writers.
+  retained projects, independent project copies, and host controls for session access.
+  The relay forwards encrypted packets without storing projects or edit history; the host stays online.
+  Joining reuses matching files in an existing local copy by relative path and SHA-256, with progress and cancellation.
   Shared Codex renames update scene mentions, section links, relationships, parent references and scene POV, and finish interrupted reference updates when retried or reopened.
   Shared prose stays writable during connection interruptions;
   structure and metadata edits require reconnecting. See [Collaboration](docs/manual/23-settings.md#collaboration)

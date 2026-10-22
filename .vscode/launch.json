@@ -41,6 +41,72 @@
       ]
     },
     {
+      "name": "Collaboration: Local server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/app/scripts/collaboration-manual-server.mjs",
+      "runtimeArgs": ["--experimental-strip-types"],
+      "cwd": "${workspaceFolder}/app",
+      "console": "integratedTerminal",
+      "preLaunchTask": "prepare collaboration server",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Collaboration: Owner",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "${workspaceFolder}/app/node_modules/electron/dist/electron.exe",
+      "program": "${workspaceFolder}/app/out/main/index.js",
+      "args": ["--user-data-dir=${workspaceFolder}/app/out/manual-owner/profile"],
+      "cwd": "${workspaceFolder}/app",
+      "console": "integratedTerminal",
+      "env": {
+        "ELECTRON_RUN_AS_NODE": null,
+        "NOVALIST_SETTINGS_DIR": "${workspaceFolder}/app/out/manual-owner/settings",
+        "NOVALIST_BACKEND_PATH": "${workspaceFolder}/Novalist.Backend/bin/Debug/net10.0/Novalist.Backend.exe",
+        "NOVALIST_DISABLE_SELF_UPDATE": "1"
+      },
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      "name": "Collaboration: Guest",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "${workspaceFolder}/app/node_modules/electron/dist/electron.exe",
+      "program": "${workspaceFolder}/app/out/main/index.js",
+      "args": ["--user-data-dir=${workspaceFolder}/app/out/manual-guest/profile"],
+      "cwd": "${workspaceFolder}/app",
+      "console": "integratedTerminal",
+      "env": {
+        "ELECTRON_RUN_AS_NODE": null,
+        "NOVALIST_SETTINGS_DIR": "${workspaceFolder}/app/out/manual-guest/settings",
+        "NOVALIST_BACKEND_PATH": "${workspaceFolder}/Novalist.Backend/bin/Debug/net10.0/Novalist.Backend.exe",
+        "NOVALIST_DISABLE_SELF_UPDATE": "1"
+      },
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      "name": "Collaboration: Steam (App ID 420)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "${workspaceFolder}/app/node_modules/electron/dist/electron.exe",
+      "program": "${workspaceFolder}/app/out/main/index.js",
+      "args": ["--user-data-dir=${workspaceFolder}/app/out/manual-steam/profile"],
+      "cwd": "${workspaceFolder}/app",
+      "console": "integratedTerminal",
+      "preLaunchTask": "prepare collaboration Steam app",
+      "env": {
+        "ELECTRON_RUN_AS_NODE": null,
+        "NOVALIST_SETTINGS_DIR": "${workspaceFolder}/app/out/manual-steam/settings",
+        "NOVALIST_BACKEND_PATH": "${workspaceFolder}/app/out/collaboration-steam-build/bin/Novalist.Backend/debug/Novalist.Backend.exe",
+        "NOVALIST_STEAM_APP_ID": "420",
+        "SteamAppId": "420",
+        "SteamGameId": "420",
+        "NOVALIST_DISABLE_SELF_UPDATE": "1"
+      },
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
       "name": "New UI: Attach to Backend (C#)",
       "type": "coreclr",
       "request": "attach",
@@ -49,6 +115,12 @@
     }
   ],
   "compounds": [
+    {
+      "name": "Collaboration: Local server + 2 apps",
+      "configurations": ["Collaboration: Local server", "Collaboration: Owner", "Collaboration: Guest"],
+      "preLaunchTask": "prepare collaboration desktop",
+      "stopAll": false
+    },
     {
       "name": "New UI: Full Stack (main + renderer)",
       "configurations": ["New UI: Main Process", "New UI: Renderer Process"],

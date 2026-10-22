@@ -1,5 +1,9 @@
 # Share hosted collaboration across desktop editions
 
+The storage and owner-offline requirements below are superseded by
+[ADR 0007](0007-relay-only-collaboration.md). Both desktop editions use the same
+packet relay with an online host; optional Steam sessions remain available.
+
 Both the open-source and Steam editions will connect to the same hosted collaboration service so their users can work together. Hosted projects retain the owner-independent availability required by [ADR 0003](0003-hosted-project-availability.md). The Steam edition additionally offers Steamworks sessions that do not require a hosted project server. Their hosting writer must remain online for live collaboration; participants retain their copies under [ADR 0005](0005-retain-collaborator-work.md).
 
 Use the existing community [novalist-sync-server](https://github.com/QF0xB/novalist-sync-server) and its current protocol as the integration baseline. Implement client responsibilities against that service first, and establish any missing server behavior with concrete integration evidence. Where server changes are necessary, prepare focused upstream pull requests with the missing behavior and relevant validation. Server changes are conditional on demonstrated need.

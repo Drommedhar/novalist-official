@@ -5,6 +5,7 @@ import { useShellCommands } from './useShellCommands'
 import { useAppUpdateState } from './appUpdateState'
 
 import { WindowClosingDialog } from './WindowClosingDialog'
+import { CollaborationTransferDialog } from '../views/settings/CollaborationTransferStatus'
 import { useLayoutEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ModePanel } from './ModePanel'
@@ -189,6 +190,7 @@ export function AppShell(): React.JSX.Element {
       {!isMobile && !focused && (!isLoaded || chrome.status) && <StatusBar />}
       <AppShellDialogs />
     </div>
+    <CollaborationTransferDialog />
     {closeStage && <WindowClosingDialog stage={closeStage} />}
     {closingProject && <div className="dialog-overlay" role="status" aria-live="polite">
       <div className="dialog-card"><p>{t('bookshelf.closingProject')}</p></div>
