@@ -51,8 +51,10 @@ public sealed partial class Workspace
             throw new InvalidDataException("Shared scenes must have distinct project paths.");
         var documents = new SharedSceneWorkspace(session, factory(sessionId), async (item, snapshot, local, _) =>
         {
+            using var projection = BeginSharedProjection();
             if (Projects.ProjectRoot != root) throw new InvalidOperationException("The shared project is no longer open.");
             if (sharedProse.TryGetValue(item, out var prose)) { await ProjectSharedProseAsync(root, prose, snapshot); return; }
+            await PrepareSharedProjectionPathAsync(files[item].Relative);
             if (snapshot.Html is null)
             {
                 await FileService.DeleteFileAsync(SharedProjectPath.Resolve(root, files[item].Relative));

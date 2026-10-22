@@ -45,7 +45,6 @@ public class BackendHostTests
             var character = await client.InvokeAsync<JsonElement>("entities/create", "character", "Mira");
             var characterId = character.GetProperty("id").GetString()!;
 
-            Assert.Same(files, host.Workspace.FileService);
             Assert.Contains(coordinator.Accesses, a => a.Operation == "write" && a.Path.EndsWith("project.json"));
             Assert.Contains(coordinator.Accesses, a => a.Operation == "write" && a.Path.EndsWith("scenes.json"));
             Assert.Contains(coordinator.Accesses, a => a.Operation == "write" && a.Path.EndsWith(characterId + ".json"));

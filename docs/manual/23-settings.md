@@ -120,8 +120,16 @@ by TCP. It has not yet been tested with two Steam accounts; that validation need
 Novalist's registered app ID and Steamworks SDK redistributables. The default
 open-source build excludes the native integration.
 
-Collaboration is still under development on this branch. Complete disconnected-write
-guards and owner access controls are not yet complete.
+During a connection interruption, keep writing in already shared scenes and Codex prose. Changes
+to structure, assets and other project details require reconnecting first.
+Personal editor settings still save locally. Changes refused by the server and
+files changed outside collaboration are preserved in `Recovered edits` before
+the shared version is restored. End the session before restoring a whole-project
+backup. Extensions must use collaborative prose and field editing when changing
+content already bound to a shared editor or focus lock.
+
+Collaboration is still under development on this branch. Owner access controls are
+not yet complete.
 
 ## Global vs project settings
 

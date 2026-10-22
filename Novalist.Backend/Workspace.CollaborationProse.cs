@@ -46,6 +46,7 @@ public sealed partial class Workspace
 
     private async Task ProjectSharedProseAsync(string root, SharedDocumentState binding, SharedSceneSnapshot snapshot)
     {
+        await PrepareSharedProjectionPathAsync(binding.Path);
         var field = binding.TextField ?? throw new InvalidDataException("Missing shared prose field.");
         var path = SharedProjectPath.Resolve(root, binding.Path);
         var entity = await FileService.ExistsAsync(path) ? JsonNode.Parse(await FileService.ReadTextAsync(path)) as JsonObject : null;
