@@ -2,11 +2,15 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '../stores/projectStore'
 import { useManuscriptPropsStore } from '../stores/manuscriptPropsStore'
-import { ManuscriptPropertyField } from './ManuscriptPropertyField'
+import { SharedPropertyField } from '../collaboration/SharedPropertyField'
 import { SceneCastPicker } from './SceneCastPicker'
 import { rpc } from '../rpc/client'
+import { metadataBinding, SharedMetadataField } from '../collaboration/SharedMetadataField'
+import { useSharedProjectRevision } from '../collaboration/sharedProjectNotifications'
+import type { SharedEntityFields } from '../collaboration/FocusedField'
 
 interface SceneMeta {
+  sharedFields?: SharedEntityFields
   notes?: string | null
   cast?: string[]
   focusEntityId?: string | null
@@ -59,32 +63,35 @@ function useSceneNotes() {
   const [outcome, setOutcome] = useState('')
   const [relAmount, setRelAmount] = useState(0)
   const [relUnit, setRelUnit] = useState('Hours')
+  const revision = useSharedProjectRevision()
   const definitions = useManuscriptPropsStore((s) => s.definitions)
   const sceneValues = useManuscriptPropsStore((s) => s.sceneValues)
   const sceneProps = definitions.filter((d) => d.scope === 'Scene')
 
   useEffect(() => {
     void useManuscriptPropsStore.getState().load()
-  }, [])
+  }, [revision])
 
   useEffect(() => { setSynopsis(scene?.synopsis ?? '') }, [openChapterGuid, openSceneId, scene?.synopsis])
 
   useEffect(() => {
     let cancelled = false
-    setLoadedSceneKey(null)
+    const changingScene = loadedSceneKey !== sceneKey
     setLoadError(false)
     if (openChapterGuid && openSceneId) {
       void rpc
         .request<SceneMeta>('scenes/getMeta', [openChapterGuid, openSceneId])
         .then((meta) => {
           if (cancelled) return
-          setNotes(meta.notes ?? '')
+          if (changingScene) {
+            setNotes(meta.notes ?? '')
+            setGoal(meta.goal ?? '')
+            setOutcome(meta.outcome ?? '')
+          }
           setCast(meta.cast ?? [])
           setFocus(meta.focusEntityId ?? null)
           setMode(meta.narrativeMode ?? '')
           setStrand(meta.strand ?? '')
-          setGoal(meta.goal ?? '')
-          setOutcome(meta.outcome ?? '')
           setRelAmount(meta.relativeAmount ?? 0)
           setRelUnit(meta.relativeUnit || 'Hours')
           setLoadedSceneKey(sceneKey)
@@ -92,7 +99,7 @@ function useSceneNotes() {
         .catch(() => { if (!cancelled) setLoadError(true) })
     }
     return () => { cancelled = true }
-  }, [openChapterGuid, openSceneId, sceneKey, attempt])
+  }, [openChapterGuid, openSceneId, sceneKey, attempt, revision])
 
   return { t, openChapterGuid, openSceneId, scene, sceneKey, loadedSceneKey, loadError, setAttempt, synopsis, setSynopsis, notes, setNotes, cast, setCast, focus, setFocus, mode, setMode, strand, setStrand, goal, setGoal, outcome, setOutcome, relAmount, setRelAmount, relUnit, setRelUnit, sceneValues, sceneProps }
 }
@@ -191,6 +198,7 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
           sceneId={openSceneId}
           cast={cast}
           focusEntityId={focus}
+          sharedFields={scene.sharedFields}
           onChange={(next, nextFocus) => {
             setCast(next)
             setFocus(nextFocus)
@@ -206,7 +214,8 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
           {sceneProps.map((property) => (
             <div key={property.key} className="notes-dock-prop">
               <span className="notes-dock-prop-label">{property.label}</span>
-              <ManuscriptPropertyField
+              <SharedPropertyField
+                binding={metadataBinding(scene, `properties:${property.key}`)}
                 property={property}
                 value={sceneValues[openSceneId]?.[property.key] ?? ''}
                 onCommit={(value) =>
@@ -225,6 +234,8 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
 
 function SceneNarrativeFields({ state, idPrefix }: { state: ReturnType<typeof useSceneNotes>; idPrefix: string }): React.JSX.Element {
   const { t, openChapterGuid, openSceneId, mode, setMode, strand, setStrand, relAmount, setRelAmount, relUnit, setRelUnit } = state
+  const timingBinding = metadataBinding(state.scene, 'relativeTime')
+  const strandBinding = metadataBinding(state.scene, 'strand')
   return <>
       {/* "The next morning", said so the app can count with it. A writer who
           knows a scene is two hours after the last one and not which day had
@@ -234,15 +245,23 @@ function SceneNarrativeFields({ state, idPrefix }: { state: ReturnType<typeof us
         <label className="notes-dock-label" htmlFor={`${idPrefix}-rel-amount`}>
           {t('narrative.relativeTime')}
         </label>
-        <div className="notes-dock-relative">
+        <SharedMetadataField<{ amount: number; unit: string } | null> binding={timingBinding}
+          value={{ amount: relAmount, unit: relUnit }} onChange={value => {
+            setRelAmount(value?.amount ?? 0)
+            setRelUnit(value?.unit ?? 'Hours')
+          }}>{field => <div className="notes-dock-relative">
           <input
             id={`${idPrefix}-rel-amount`}
             className="inspector-input"
             type="number"
-            value={relAmount}
-            onChange={(e) => setRelAmount(Number(e.target.value) || 0)}
+            value={field.value?.amount ?? 0}
+            readOnly={!field.editable}
+            onChange={event => {
+              const amount = Number(event.target.value) || 0
+              field.change(value => ({ amount, unit: value?.unit ?? 'Hours' }))
+            }}
             onBlur={() =>
-              void rpc.request('scenes/setRelativeTime', [
+              !timingBinding && void rpc.request('scenes/setRelativeTime', [
                 openChapterGuid,
                 openSceneId,
                 relAmount,
@@ -253,10 +272,13 @@ function SceneNarrativeFields({ state, idPrefix }: { state: ReturnType<typeof us
           <select
             className="inspector-input"
             aria-label={t('narrative.relativeUnit')}
-            value={relUnit}
+            value={field.value?.unit ?? 'Hours'}
+            aria-disabled={!field.editable}
+            onKeyDown={event => { if (!field.editable && event.key !== 'Tab') event.preventDefault() }}
             onChange={(e) => {
-              setRelUnit(e.target.value)
-              void rpc.request('scenes/setRelativeTime', [
+              const unit = e.target.value
+              field.change(value => ({ amount: value?.amount ?? 0, unit }))
+              if (!timingBinding) void rpc.request('scenes/setRelativeTime', [
                 openChapterGuid,
                 openSceneId,
                 relAmount,
@@ -270,7 +292,7 @@ function SceneNarrativeFields({ state, idPrefix }: { state: ReturnType<typeof us
               </option>
             ))}
           </select>
-        </div>
+        </div>}</SharedMetadataField>
         <div className="settings-hint">{t('narrative.relativeHint')}</div>
       </div>
 
@@ -280,19 +302,17 @@ function SceneNarrativeFields({ state, idPrefix }: { state: ReturnType<typeof us
         <label className="notes-dock-label" htmlFor={`${idPrefix}-mode`}>
           {t('narrative.title')}
         </label>
-        <select
+        <SharedMetadataField<string | null> binding={metadataBinding(state.scene, 'narrativeMode')} value={mode || null}
+          onChange={value => {
+            setMode(value ?? '')
+            void rpc.request('scenes/setNarrativeMode', [openChapterGuid, openSceneId, value, strand || null])
+          }}>{field => <select
           id={`${idPrefix}-mode`}
           className="inspector-input"
-          value={mode}
-          onChange={(e) => {
-            setMode(e.target.value)
-            void rpc.request('scenes/setNarrativeMode', [
-              openChapterGuid,
-              openSceneId,
-              e.target.value || null,
-              strand || null
-            ])
-          }}
+          value={field.value ?? ''}
+          aria-disabled={!field.editable}
+          onKeyDown={event => { if (!field.editable && event.key !== 'Tab') event.preventDefault() }}
+          onChange={event => field.change(event.target.value || null)}
         >
           <option value="">{t('narrative.normal')}</option>
           {NARRATIVE_MODES.map((m) => (
@@ -300,24 +320,25 @@ function SceneNarrativeFields({ state, idPrefix }: { state: ReturnType<typeof us
               {t(`timeline.mode_${m}`)}
             </option>
           ))}
-        </select>
+        </select>}</SharedMetadataField>
         {/* Only a scene running alongside another belongs to a strand. */}
         {mode === 'parallel' && (
-          <input
+          <SharedMetadataField<string | null> binding={strandBinding} value={strand || null} onChange={value => setStrand(value ?? '')}>{field => <input
             className="inspector-input"
             placeholder={t('narrative.strandPlaceholder')}
             aria-label={t('narrative.strand')}
-            value={strand}
-            onChange={(e) => setStrand(e.target.value)}
+            value={field.value ?? ''}
+            readOnly={!field.editable}
+            onChange={event => field.change(event.target.value || null)}
             onBlur={() =>
-              void rpc.request('scenes/setNarrativeMode', [
+              !strandBinding && void rpc.request('scenes/setNarrativeMode', [
                 openChapterGuid,
                 openSceneId,
                 mode || null,
                 strand || null
               ])
             }
-          />
+          />}</SharedMetadataField>
         )}
       </div>
 

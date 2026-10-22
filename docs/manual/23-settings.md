@@ -102,8 +102,15 @@ A focused reference field must be released
 before the rename can proceed. Manually worded mentions, aliases and ordinary
 prose keep their wording.
 
-Codex non-prose fields, including those on entries created during the session, acquire an
-exclusive editing lock when focused. Scene stage actions briefly acquire the same kind of lock and leave the stage unchanged if another writer holds it. Wait for the field to become editable;
+Codex non-prose fields and scene and Research metadata acquire an exclusive editing
+lock when focused. This includes scene timing, cast, analysis overrides and custom
+fields in the inspector, plus POV, word targets and custom columns in the Outliner.
+Research titles, types, tags, status, ratings, references and custom fields use
+the same locks. Note and Link content stays collaborative prose; a file item's
+path uses a focus lock. Changing an item between those types preserves its content.
+Scene stage, label, pin, activity, export and word-target actions briefly acquire
+the same kind of lock and leave a locked field unchanged. Research filing and
+fetched titles respect those locks too. Wait for the field to become editable;
 another writer cannot change it until you leave the field. Moving focus saves
 the value before releasing the lock. These edits require an active connection.
 When a field is locked, its message names the writer editing it.

@@ -8,7 +8,9 @@ import { useShellStore } from '../../stores/shellStore'
 import { useHostBridgeStore } from '../../stores/hostBridgeStore'
 import { useResearchDrafts } from './useResearchDrafts'
 import { useSharedProjectRevision } from '../../collaboration/sharedProjectNotifications'
-import type { FieldBinding } from '../../collaboration/FocusedField'
+import type { FieldBinding, SharedEntityFields } from '../../collaboration/FocusedField'
+import { metadataBinding } from '../../collaboration/SharedMetadataField'
+import { writeSharedMetadata } from '../../collaboration/metadataCommands'
 
 /** Reserved tag marking a quick-captured note that has not been filed yet.
  *  Mirrors ResearchItem.InboxTag on the backend. */
@@ -20,6 +22,7 @@ export interface ResearchItemDto {
   type: string
   content: string
   sharedProse?: FieldBinding
+  sharedFields?: SharedEntityFields
   tags: string[]
   fileSize: string
   modified: string
@@ -239,6 +242,8 @@ function researchMetadata(context: ReturnType<typeof researchAttachments>) {
     try {
       const title = await rpc.request<string | null>('research/fetchLinkTitle', [selected.content])
       if (title) {
+        const binding = metadataBinding(selected, 'title')
+        if (binding) { await writeSharedMetadata(binding, title); return }
         patchSelected({ title })
         await save({ ...selected, title })
       }
@@ -297,6 +302,11 @@ function researchFiling(context: ReturnType<typeof researchMetadata>) {
   /** Clears the inbox flag: the note has been dealt with and becomes an ordinary
    *  research item. Filing never deletes anything — you keep the original. */
   const markFiled = async (item: ResearchItemDto): Promise<void> => {
+    const binding = metadataBinding(item, 'tags')
+    if (binding) {
+      await writeSharedMetadata<string[]>(binding, tags => tags.filter(tag => tag.toLowerCase() !== INBOX_TAG))
+      return
+    }
     const next = { ...item, tags: item.tags.filter((tag) => tag.toLowerCase() !== INBOX_TAG) }
     patchSelected({ tags: next.tags })
     await save(next)
