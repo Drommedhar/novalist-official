@@ -13,6 +13,7 @@ public sealed partial class Workspace
     internal Func<Guid, DesktopSceneDocuments>? CreateSharedDocuments { get; set; }
     internal Func<Func<Task>, Task>? DispatchSharedUpdate { get; set; }
     internal HostedProjectWorkspace? HostedProjects { get; set; }
+    internal PeerProjectWorkspace? PeerProjects { get; set; }
     private SharedSceneWorkspace? sharedScenes;
     private Guid sharedSession;
     private string? sharedRoot;
@@ -83,7 +84,7 @@ public sealed partial class Workspace
         if (item is null || sharedScenes is null) return null;
         var snapshot = await sharedScenes.ReadAsync(item.Value, ct);
         var html = snapshot.Html ?? throw new InvalidOperationException("The shared scene was deleted.");
-        return new(sceneId, html, Core.Services.ContentHasher.Hash(html), new(sharedSession, item.Value, snapshot.State, HostedProjects?.IsActive == true));
+        return new(sceneId, html, Core.Services.ContentHasher.Hash(html), new(sharedSession, item.Value, snapshot.State, HostedProjects?.IsActive == true || PeerProjects?.IsActive == true));
     }
 
     internal SharedSceneWorkspace RequireSharedScenes(Guid sessionId)
@@ -121,11 +122,12 @@ public sealed partial class Workspace
         sharedRoot = null;
         sharedSession = Guid.Empty;
         if (HostedProjects is { } hosted) await hosted.ReleaseAsync();
+        if (PeerProjects is { } peers) await peers.ReleaseAsync();
     }
 
     internal void RequireNoSharedSession()
     {
-        if (sharedScenes is not null || sharedFields is not null || HostedProjects?.IsActive == true) throw new InvalidOperationException("Close the collaboration session asynchronously before closing this workspace.");
+        if (sharedScenes is not null || sharedFields is not null || HostedProjects?.IsActive == true || PeerProjects?.IsActive == true) throw new InvalidOperationException("Close the collaboration session asynchronously before closing this workspace.");
     }
 
     private async Task RecordSharedSceneAsync(string root, string relative, string html, bool local)

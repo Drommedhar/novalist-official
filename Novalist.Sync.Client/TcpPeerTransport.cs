@@ -94,7 +94,7 @@ public sealed partial class TcpPeerTransport : IUpdateTransport, IPresenceTransp
         var socket = new TcpClient { NoDelay = true };
         SslStream? stream = null;
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeout.CancelAfter(TimeSpan.FromSeconds(10));
+        timeout.CancelAfter(TimeSpan.FromSeconds(30));
         try
         {
             await socket.ConnectAsync(address.Host, address.Port, timeout.Token);

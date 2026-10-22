@@ -1,5 +1,20 @@
 {
   "collaboration": {
+    "mode": "连接类型",
+    "modeHosted": "托管服务器",
+    "modeTcp": "直接连接（TCP）",
+    "modeSteam": "Steam",
+    "steamHost": "创建 Steam 会话",
+    "steamJoin": "加入 Steam 会话",
+    "steamHint": "Steam 无需公开主机地址即可连接协作者。主持人必须保持在线。所有参与者都需要运行 Steam，并拥有同一个 Novalist 应用的访问权限。",
+    "peerName": "你的名字",
+    "peerAddress": "可访问的主机地址",
+    "peerPort": "监听端口（0 为自动选择）",
+    "peerHost": "创建直接会话",
+    "peerJoin": "加入直接会话",
+    "peerHint": "主持人必须保持在线。连接另一台电脑时，请输入可访问的地址，并在主机防火墙中允许监听端口。在此电脑上运行两个应用时，使用 127.0.0.1。",
+    "peerLocalCopyHint": "结束会话后会保留本地项目。如果主持人结束会话，所有人的实时协作都会停止。",
+    "peerInvitationHint": "将此私人链接发送给一位协作者。链接一小时后过期，只能使用一次。无需登录服务器。",
     "resume": "重新连接共享项目",
     "resumeHint": "重新连接到已保存的服务器。恢复归档会保留当前本地副本；结束会话后所做的修改不会自动发送。",
     "savedServer": "已保存的共享项目：{{server}}",
@@ -41,6 +56,10 @@
       "Failed": "连接需要处理。你的文本已保存在本地。"
     },
     "progress": {
+      "peerHost": "正在准备直接会话…",
+      "steamHost": "正在准备 Steam 会话…",
+      "steamJoin": "正在通过 Steam 加入并下载共享项目…",
+      "peerJoin": "正在加入并下载共享项目…",
       "resume": "正在保留本地副本并重新连接…",
       "copy": "正在创建独立项目副本…",
       "create": "正在准备并上传共享项目…",

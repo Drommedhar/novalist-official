@@ -1,5 +1,20 @@
 {
   "collaboration": {
+    "mode": "Connection type",
+    "modeHosted": "Hosted server",
+    "modeTcp": "Direct connection (TCP)",
+    "modeSteam": "Steam",
+    "steamHost": "Host Steam session",
+    "steamJoin": "Join Steam session",
+    "steamHint": "Steam connects writers without a public host address. The host must stay online. All participants need Steam running with access to the same Novalist app.",
+    "peerName": "Your name",
+    "peerAddress": "Reachable host address",
+    "peerPort": "Listening port (0 chooses automatically)",
+    "peerHost": "Host direct session",
+    "peerJoin": "Join direct session",
+    "peerHint": "The host must stay online. For another computer, enter an address it can reach and allow the listening port through the host's firewall. Use 127.0.0.1 for two apps on this computer.",
+    "peerLocalCopyHint": "Ending keeps your local project. If the host ends the session, live collaboration stops for everyone.",
+    "peerInvitationHint": "Send this private link to one collaborator. It expires after one hour and can be used once. No server sign-in is needed.",
     "resume": "Reconnect to shared project",
     "resumeHint": "Reconnects to the saved server. A recovery archive keeps your current local copy; edits made after ending a session are not sent automatically.",
     "savedServer": "Saved shared project: {{server}}",
@@ -41,6 +56,10 @@
       "Failed": "The connection needs attention. Your writing is saved locally."
     },
     "progress": {
+      "peerHost": "Preparing the direct session…",
+      "steamHost": "Preparing the Steam session…",
+      "steamJoin": "Joining through Steam and downloading the shared project…",
+      "peerJoin": "Joining and downloading the shared project…",
       "resume": "Preserving your local copy and reconnecting…",
       "copy": "Creating an independent project copy…",
       "create": "Preparing and uploading the shared project…",

@@ -1,5 +1,20 @@
 {
   "collaboration": {
+    "mode": "Verbindungstyp",
+    "modeHosted": "Gehosteter Server",
+    "modeTcp": "Direkte Verbindung (TCP)",
+    "modeSteam": "Steam",
+    "steamHost": "Steam-Sitzung starten",
+    "steamJoin": "Steam-Sitzung beitreten",
+    "steamHint": "Steam verbindet Schreibende ohne öffentliche Host-Adresse. Der Host muss online bleiben. Alle Teilnehmenden benötigen ein laufendes Steam mit Zugriff auf dieselbe Novalist-App.",
+    "peerName": "Dein Name",
+    "peerAddress": "Erreichbare Hostadresse",
+    "peerPort": "Empfangsport (0 wählt automatisch)",
+    "peerHost": "Direkte Sitzung starten",
+    "peerJoin": "Direkter Sitzung beitreten",
+    "peerHint": "Der Host muss online bleiben. Gib für einen anderen Computer eine erreichbare Adresse an und erlaube den Empfangsport in der Firewall des Hosts. Verwende 127.0.0.1 für zwei Apps auf diesem Computer.",
+    "peerLocalCopyHint": "Beim Beenden bleibt dein lokales Projekt erhalten. Wenn der Host die Sitzung beendet, endet die Zusammenarbeit in Echtzeit für alle.",
+    "peerInvitationHint": "Sende diesen privaten Link an eine mitarbeitende Person. Er läuft nach einer Stunde ab und kann einmal verwendet werden. Eine Serveranmeldung ist nicht nötig.",
     "resume": "Erneut mit gemeinsamem Projekt verbinden",
     "resumeHint": "Verbindet erneut mit dem gespeicherten Server. Ein Wiederherstellungsarchiv bewahrt deine lokale Kopie; Änderungen nach dem Beenden einer Sitzung werden nicht automatisch gesendet.",
     "savedServer": "Gespeichertes gemeinsames Projekt: {{server}}",
@@ -41,6 +56,10 @@
       "Failed": "Die Verbindung erfordert deine Aufmerksamkeit. Dein Text wird lokal gespeichert."
     },
     "progress": {
+      "peerHost": "Direkte Sitzung wird vorbereitet…",
+      "steamHost": "Steam-Sitzung wird vorbereitet…",
+      "steamJoin": "Verbindung über Steam wird hergestellt und gemeinsames Projekt heruntergeladen…",
+      "peerJoin": "Sitzung wird beigetreten und gemeinsames Projekt heruntergeladen…",
       "resume": "Lokale Kopie sichern und erneut verbinden…",
       "copy": "Unabhängige Projektkopie wird erstellt…",
       "create": "Geteiltes Projekt wird vorbereitet und hochgeladen…",

@@ -33,7 +33,7 @@ export function SharedProjectCard({ server, signedIn }: { server: string; signed
     {session ? <>
       <p role="status">{t('collaboration.connection.' + session.connection)}</p>
       {presenceUnavailable && <p className="settings-hint">{t('collaboration.presenceUnavailable')}</p>}
-      <p className="settings-hint">{t('collaboration.localCopyHint')}</p>
+      <p className="settings-hint">{t(session.mode === 'hosted' ? 'collaboration.localCopyHint' : 'collaboration.peerLocalCopyHint')}</p>
       <div className="match-row">
         {session.isOwner && <button className="btn-primary" disabled={busy !== null} onClick={() => {
           void run('invite', [new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()])
@@ -43,7 +43,7 @@ export function SharedProjectCard({ server, signedIn }: { server: string; signed
       {invitation && <>
         <label className="inspector-label" htmlFor="set-collaboration-invitation">{t('collaboration.invitation')}</label>
         <textarea id="set-collaboration-invitation" className="inspector-input" value={invitation} readOnly onFocus={event => event.target.select()} />
-        <p className="settings-hint">{t('collaboration.invitationHint')}</p>
+        <p className="settings-hint">{t(session.mode === 'hosted' ? 'collaboration.invitationHint' : 'collaboration.peerInvitationHint')}</p>
       </>}
     </> : <>
       {saved && <>
