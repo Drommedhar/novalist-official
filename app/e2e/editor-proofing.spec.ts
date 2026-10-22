@@ -46,6 +46,37 @@ const issue = (offset: number, length: number, replacement: string) => ({
   offset, length, type: 'grammar', message: 'Fixture correction', replacements: [replacement]
 })
 
+test('saved prose does not retain proofing underlines without explanations after reopening', async ({ page }) => {
+  await content(page, '<p><b>Really</b> strange prose.</p>')
+  await issues(page, [{ ...issue(0, 6, 'Very'), type: 'style', message: 'Use a more precise word' }])
+  await page.locator('.grammar-issue').click()
+  await expect(page.locator('.gp-message')).toHaveText('Use a more precise word')
+  const legacy = await page.locator('#editor').innerHTML()
+  const saved = await page.evaluate(() => (window as unknown as EditorWindow).getContent())
+  expect(saved).not.toContain('grammar-issue')
+  await content(page, legacy)
+  await expect(page.locator('#editor .grammar-issue')).toHaveCount(0)
+  await expect(page.locator('#editor b')).toHaveText('Really')
+  await expect(page.locator('#editor')).toHaveText('Really strange prose.')
+})
+
+test('learned words clear spelling immediately while style explanations and later checks remain valid', async ({ page }) => {
+  await content(page, '<p>Aelthorn met Aelthorn.</p>')
+  const findings = [
+    { ...issue(0, 8, 'Author'), type: 'spelling' },
+    { ...issue(13, 8, 'the visitor'), type: 'style', message: 'Avoid repeating the name' }
+  ]
+  await issues(page, findings)
+  await page.evaluate(() => (window as unknown as EditorWindow).setSpellingDictionary(['Aelthorn']))
+  await expect(page.locator('.grammar-issue')).toHaveCount(1)
+  await issues(page, findings)
+  await page.locator('.grammar-issue').click()
+  await expect(page.locator('.gp-message')).toHaveText('Avoid repeating the name')
+  await page.evaluate(() => (window as unknown as EditorWindow).setSpellingDictionary([]))
+  await issues(page, findings)
+  await expect(page.locator('.grammar-issue')).toHaveCount(2)
+})
+
 test('Dismiss removes one occurrence and keeps it dismissed across unchanged checks', async ({ page }) => {
   await content(page, '<p><b>Ael</b>thorn met Aelthorn.</p>')
   const findings = [
@@ -66,6 +97,29 @@ test('Dismiss removes one occurrence and keeps it dismissed across unchanged che
   await page.locator('.gp-dismiss').click()
   await expect(page.locator('#editor .grammar-issue')).toHaveCount(0)
   expect(await page.evaluate(() => (window as unknown as EditorWindow).getProofingStatus().spellingCount)).toBe(0)
+})
+
+test('dismissing spelling also suppresses native spellcheck for only that occurrence', async ({ page }) => {
+  await content(page, '<p><b>Aelthorn</b> met Aelthorn.</p>')
+  await page.evaluate(() => (window as unknown as EditorWindow).setSpellCheck(true))
+  const findings = [
+    { ...issue(0, 8, 'Author'), type: 'spelling' },
+    { ...issue(13, 8, 'Author'), type: 'spelling' }
+  ]
+  await issues(page, findings)
+  await page.locator('#editor b .grammar-issue').click()
+  await page.locator('.gp-dismiss').click()
+  await expect(page.locator('#editor [spellcheck="false"]')).toHaveText('Aelthorn')
+  await expect(page.locator('#editor .grammar-issue')).toHaveText('Aelthorn')
+  await issues(page, findings)
+  await expect(page.locator('#editor [spellcheck="false"]')).toHaveText('Aelthorn')
+  expect(await page.evaluate(() => (window as unknown as EditorWindow).getContent()))
+    .not.toContain('spellcheck')
+  await page.locator('#editor').click()
+  await page.keyboard.press('ControlOrMeta+End')
+  await page.keyboard.type(' More.')
+  await issues(page, findings)
+  await expect(page.locator('#editor [spellcheck="false"]')).toHaveCount(0)
 })
 
 for (const reset of ['edit', 'scene switch', 'reload']) {

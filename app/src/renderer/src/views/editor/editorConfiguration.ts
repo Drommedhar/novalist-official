@@ -24,6 +24,10 @@ export function pushEditorSettings(editor: EditorWindow, initial = false): void 
   const view = useSettingsStore.getState().view
   if (!view) return
   const eff = view.effective
+  const words = view.global.spellCheckCustomWords
+  editor.setSpellingDictionary(
+    Array.isArray(words) ? words.filter((word): word is string => typeof word === 'string') : []
+  )
   pushWritingTypography(editor, eff)
   editor.setReadingComfort(
     eff.editorLineHeight,

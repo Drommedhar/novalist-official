@@ -39,6 +39,7 @@ function setContent(html) {
         const bodyContent = extractBody(html);
         window.NovalistEditorState.editor.replaceChildren(window.sanitizeSceneFragment(bodyContent));
     }
+    window.clearGrammarHighlights();
     refreshSceneBreakClasses(window.NovalistEditorState.editor);
     const changed = window.NovalistEditorState.editor.innerHTML !== previous;
     window.NovalistEditorState.lastHtml = window.NovalistEditorState.editor.innerHTML;

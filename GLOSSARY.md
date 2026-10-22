@@ -18,3 +18,9 @@ A plain-text field that preserves line breaks for longer descriptions.
 
 **Dismissed proofing issue**:
 A spelling or grammar finding ignored for one occurrence until its scene is edited or reopened. Dismissing a finding does not add its word to the dictionary.
+
+**Chapter story date**:
+The in-world date or date range of a chapter. Scenes without their own dates or relative timing inherit it, falling back to the act's date when the chapter is undated.
+
+**Act timeline date**:
+The act's explicit story date, or otherwise the story date of its first chapter in manuscript order. An act with neither remains undated.

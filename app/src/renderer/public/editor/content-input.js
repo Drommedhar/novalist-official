@@ -98,6 +98,7 @@ function insertImageAtCaret(storedPath, alt) {
 
 function getCleanContentHtml() {
     const clone = window.NovalistEditorState.editor.cloneNode(true);
+    window.clearGrammarHighlights(clone);
     if (window.NovalistEditorState.pageViewEnabled) {
         clone.querySelectorAll('.nv-page').forEach(p => {
             const parent = p.parentNode;
@@ -146,6 +147,8 @@ function isCompositionInput(event) {
 function handleEditorInput(event) {
     if (window.NovalistEditorState.isSettingContent || isCompositionInput(event)) return;
     window.NovalistEditorState.dismissedGrammarIssues.clear();
+    window.NovalistEditorState.editor.querySelectorAll('.proofing-dismissed')
+        .forEach(mark => mark.removeAttribute('spellcheck'));
     if (event && event.inputType === 'insertParagraph') {
         // Chromium clones inline spans into the empty paragraph after Enter.
         // A comment belongs to its words, not to the new paragraph. Keep the

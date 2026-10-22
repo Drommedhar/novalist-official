@@ -67,7 +67,7 @@ function dismissGrammarIssue() {
     const index = state.grammarPopup.dataset.issueIndex;
     const issue = state.grammarIssues[index];
     if (!issue) return;
-    state.dismissedGrammarIssues.add(grammarIssueKey(issue));
+    state.dismissedGrammarIssues.set(grammarIssueKey(issue), issue);
     state.grammarIssues.splice(Number(index), 1);
     hideGrammarPopup();
     window.applyGrammarHighlights();
