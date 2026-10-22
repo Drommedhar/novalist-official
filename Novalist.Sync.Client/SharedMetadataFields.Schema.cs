@@ -6,7 +6,8 @@ public static partial class SharedMetadataFields
 {
     private static readonly IReadOnlyDictionary<string, string> Codex = new Dictionary<string, string>(StringComparer.Ordinal)
     {
-        ["aliases"] = "strings", ["relationships"] = "relationships"
+        ["aliases"] = "strings", ["relationships"] = "relationships", ["tags"] = "strings",
+        ["group"] = "text", ["ai"] = "aiInclusion", ["readerHidden"] = "boolean", ["locked"] = "boolean"
     };
     private static readonly string[] OverrideText = ["name", "surname", "gender", "age", "role", "eyeColor", "hairColor", "hairLength", "height", "build", "skinTone"];
     private static readonly IReadOnlyDictionary<string, string> Scene = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -47,6 +48,7 @@ public static partial class SharedMetadataFields
         "boolean" => value is JsonValue boolean && boolean.TryGetValue<bool>(out _),
         "researchType" => IsChoice(value, ["Note", "Link", "File", "Image", "Pdf", "Audio", "Video"]),
         "researchStatus" => IsChoice(value, ["None", "Open", "InProgress", "Resolved"]),
+        "aiInclusion" => IsChoice(value, ["WhenMentioned", "Always", "Never"]),
         "relativeTime" => value is JsonObject relative && relative.Count == 2 && IsInteger(relative["amount"], int.MinValue, int.MaxValue) &&
             IsChoice(relative["unit"], ["Minutes", "Hours", "Days", "Weeks"]),
         "dateRange" => value is JsonObject range && range.All(property => property.Key is "start" or "end" or "note" or "startTime" or "endTime" && (property.Value is null || IsText(property.Value))),

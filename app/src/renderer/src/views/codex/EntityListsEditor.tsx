@@ -8,6 +8,8 @@ import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import type { CustomTypeDefinition } from './CustomTypeManager'
 import { useEntitySections } from './useEntitySections'
 import { proseBinding } from '../../collaboration/sharedMarkdown'
+import { metadataBinding } from '../../collaboration/SharedMetadataField'
+import { EntityAliases } from './EntityAliases'
 
 interface RelationshipRow {
   role: string
@@ -48,7 +50,6 @@ export function EntityListsEditor({
   const includeRelationships =
     RELATIONSHIP_TYPES.includes(entityType) || !!customDef?.features.includeRelationships
   const [aliases, setAliases] = useState<string[]>([])
-  const [aliasDraft, setAliasDraft] = useState('')
   const { sections, setSections, flushSections } = useEntitySections(entityType, selectedId, record)
   const [relationships, setRelationshipsState] = useState<RelationshipRow[]>([])
   // Whether any extension offers a generator at all. Without one the buttons
@@ -243,45 +244,11 @@ export function EntityListsEditor({
       })
   }
 
-  const addAlias = (): void => {
-    const value = aliasDraft.trim()
-    if (!value || aliases.includes(value)) return
-    const next = [...aliases, value]
-    setAliases(next)
-    setAliasDraft('')
-    persistAliases(next)
-  }
-
   return (
     <div className="entity-lists">
-      <section data-entity-tab="overview" className="codex-entry-section">
-        <div className="inspector-label">{t('entityEditor.aliases')}</div>
-        <div className="entity-chips">
-          {aliases.map((alias) => (
-            <span key={alias} className="entity-chip">
-              {alias}
-              <button
-                aria-label={`${t('explorer.contextDelete')} ${alias}`}
-                onClick={() => {
-                  const next = aliases.filter((a) => a !== alias)
-                  setAliases(next)
-                  persistAliases(next)
-                }}
-              >
-                <X size={11} strokeWidth={2} />
-              </button>
-            </span>
-          ))}
-          <input
-            className="entity-chip-input"
-            value={aliasDraft}
-            placeholder={t('entityEditor.addAlias')}
-            onChange={(e) => setAliasDraft(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addAlias()}
-            onBlur={addAlias}
-          />
-        </div>
-      </section>
+      <EntityAliases key={selectedId} binding={metadataBinding(record, 'aliases')}
+        values={metadataBinding(record, 'aliases') ? record.aliases as string[] ?? [] : aliases}
+        onChange={next => { setAliases(next); persistAliases(next) }} />
       {includeRelationships && (
         <section data-entity-tab="relationships" className="codex-entry-section">
           <div className="inspector-label">{t('entityEditor.relationships')}</div>
