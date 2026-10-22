@@ -14,7 +14,8 @@ parent.on('message', ({ data }: { data: DocumentRequest }) => {
     let application: { accepted: boolean; rejected: string[] } | undefined
     switch (command.kind) {
       case 'seed': documents.seed(command.id, command.html); break
-      case 'load': documents.load(command.id, command.state, command.deletions); break
+      case 'seedText': documents.seedText(command.id, command.text); break
+      case 'load': documents.load(command.id, command.state, command.deletions, command.plainText); break
       case 'validate': documents.validate(command.id, command.state); break
       case 'receive': {
         const rejected = documents.receive(command.id, command.state)
@@ -32,7 +33,9 @@ parent.on('message', ({ data }: { data: DocumentRequest }) => {
     reply = { sequence: data.sequence, failed: false, application }
     if (command.kind === 'capture') reply.snapshot = {
       state: documents.state(command.id), deletions: documents.deletions(command.id),
-      html: documents.project(command.id), recovered: documents.recovered(command.id)
+      html: documents.isPlainText(command.id) ? null : documents.project(command.id),
+      recovered: documents.isPlainText(command.id) ? null : documents.recovered(command.id),
+      ...(documents.isPlainText(command.id) ? { text: documents.project(command.id), recoveredText: documents.recovered(command.id) } : {})
     }
   } catch (error) {
     reply = error instanceof InvalidSceneUpdate && data.command.kind === 'receive'

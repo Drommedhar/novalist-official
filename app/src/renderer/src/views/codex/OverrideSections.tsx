@@ -5,6 +5,8 @@ import { rpc } from '../../rpc/client'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { type OverrideSection, type CharacterOverride, type Scope, apply } from './overrideModel'
 import { OverrideMediaHeader } from './OverrideMediaHeader'
+import { useCodexStore } from '../../stores/codexStore'
+import { proseBinding } from '../../collaboration/sharedMarkdown'
 
 /** Per-scope override sections editor. Mirrors the sections block of
  * EntityListsEditor.tsx but persists to the override scope via
@@ -21,6 +23,7 @@ export function OverrideSections({
   baseSections: OverrideSection[]
 }): React.JSX.Element {
   const { t } = useTranslation()
+  const record = useCodexStore(state => state.selectedRecord)
   const overriding = Array.isArray(override?.sections)
   const [sections, setSections] = useState<OverrideSection[]>([])
 
@@ -37,7 +40,8 @@ export function OverrideSections({
         selectedId,
         scope.chapter,
         scope.scene,
-        next?.map((s) => ({ title: s.title, content: s.content })) ?? null
+        next?.map((s) => ({ id: s.id, title: s.title,
+          content: s.id && overriding && proseBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:section:${s.id}`) ? null : s.content })) ?? null
       ])
       .then(apply)
   }
@@ -50,7 +54,7 @@ export function OverrideSections({
         onReset={() => persist(null)}
       />
       {sections.map((section, index) => (
-        <div key={index} className="entity-section">
+        <div key={section.id ?? index} className="entity-section">
           <div className="entity-section-head">
             <input
               className="outliner-input entity-section-title"
@@ -73,6 +77,7 @@ export function OverrideSections({
             </button>
           </div>
           <MarkdownEditor
+            shared={section.id && overriding ? proseBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:section:${section.id}`) : undefined}
             value={section.content}
             ariaLabel={section.title}
             onChange={(next) =>
@@ -84,7 +89,7 @@ export function OverrideSections({
       ))}
       <button
         className="binder-rail-item"
-        onClick={() => setSections([...sections, { title: t('section.newSection'), content: '' }])}
+        onClick={() => setSections([...sections, { id: crypto.randomUUID(), title: t('section.newSection'), content: '' }])}
       >
         <Plus size={13} strokeWidth={2} />
         {t('entityEditor.addSection')}

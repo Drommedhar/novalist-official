@@ -10,6 +10,7 @@ import { type OverrideImage, type OverrideRelationship, type OverrideSection, ty
 import { OverrideImages } from './OverrideImages'
 import { OverrideRelationships } from './OverrideRelationships'
 import { OverrideSections } from './OverrideSections'
+import { proseBinding } from '../../collaboration/sharedMarkdown'
 
 /** Per-chapter/scene character overrides. Editing happens INLINE in the detail
  * pane (an expandable form under the scope row / add button), never in a modal —
@@ -97,7 +98,7 @@ export function OverridesEditor(): React.JSX.Element | null {
         selectedId,
         scope.chapter,
         scope.scene,
-        draft,
+        Object.fromEntries(Object.entries(draft).filter(([key]) => !proseBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:${key}`))),
         customDraft
       ])
       .then(apply)
@@ -236,6 +237,7 @@ function OverrideForm({scope, pickScope, overrides, t, setNewScope, chapters, ne
                   <dd>
                     {field.multiline ? (
                       <MarkdownEditor
+                        shared={existing ? proseBinding(record, `override:${scope.chapter}:${scope.scene ?? ''}:${field.key}`) : undefined}
                         className="md-compact"
                         minRows={2}
                         placeholder={String(record[field.key] ?? '')}

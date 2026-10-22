@@ -1,5 +1,6 @@
 {
   "collaboration": {
+    "editorError": "Das gemeinsame Schreiben benötigt Aufmerksamkeit. Versuche vor dem Schließen des Projekts erneut zu speichern.",
     "resume": "Erneut mit gemeinsamem Projekt verbinden",
     "resumeHint": "Verbindet erneut mit dem gespeicherten Server. Ein Wiederherstellungsarchiv bewahrt deine lokale Kopie; Änderungen nach dem Beenden einer Sitzung werden nicht automatisch gesendet.",
     "savedServer": "Gespeichertes gemeinsames Projekt: {{server}}",

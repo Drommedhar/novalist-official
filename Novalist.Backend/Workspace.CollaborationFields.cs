@@ -55,7 +55,17 @@ public sealed partial class Workspace
 
     internal SharedEntityFieldsDto? SharedEntityFields(IEntityData entity)
     {
-        if (sharedFields is null || Projects.ProjectRoot != sharedRoot || Projects.ActiveBook is not { } book || Projects.CurrentProject is not { } project) return null;
+        if (sharedFields is null) return null;
+        var path = SharedEntityPath(entity);
+        if (path is null) return null;
+        var fields = fieldBindings.Values.Where(binding => binding.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
+            .ToDictionary(binding => binding.Key, binding => binding.ItemId, StringComparer.Ordinal);
+        return fields.Count == 0 ? null : new(sharedSession, fields);
+    }
+
+    private string? SharedEntityPath(IEntityData entity)
+    {
+        if (Projects.ProjectRoot != sharedRoot || Projects.ActiveBook is not { } book || Projects.CurrentProject is not { } project) return null;
         var folders = entity switch
         {
             CharacterData => (book.CharacterFolder, project.CharacterFolder),
@@ -65,10 +75,7 @@ public sealed partial class Workspace
             CustomEntityData custom => CustomFolders(custom.EntityTypeKey),
             _ => throw new InvalidOperationException("Unknown Codex entry type.")
         };
-        var path = (entity.IsWorldBible ? project.WorldBibleFolder + '/' + folders.Item2 : book.FolderName + '/' + folders.Item1) + '/' + entity.Id + ".json";
-        var fields = fieldBindings.Values.Where(binding => binding.Path.Equals(path, StringComparison.OrdinalIgnoreCase))
-            .ToDictionary(binding => binding.Key, binding => binding.ItemId, StringComparer.Ordinal);
-        return fields.Count == 0 ? null : new(sharedSession, fields);
+        return (entity.IsWorldBible ? project.WorldBibleFolder + '/' + folders.Item2 : book.FolderName + '/' + folders.Item1) + '/' + entity.Id + ".json";
 
         (string, string) CustomFolders(string type)
         {

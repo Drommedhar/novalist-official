@@ -81,6 +81,7 @@ public sealed class SharedProjectWriteGuardTests
     {
         await using var fixture = await SharedProjectFixture.StartAsync();
         await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("entities/update", "character", fixture.CharacterId, new { age = "42" }));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("entities/update", "character", fixture.CharacterId, new { distinguishingFeatures = "Unsafe full prose replacement" }));
         var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
         Assert.NotEqual("42", entry.GetProperty("age").GetString());
         var field = fixture.State.Fields.Single(binding => binding.Path.EndsWith(fixture.CharacterId + ".json", StringComparison.Ordinal) && binding.Key.Equals("age", StringComparison.OrdinalIgnoreCase));
@@ -168,7 +169,7 @@ public sealed class SharedProjectWriteGuardTests
         internal string Root => Host.Workspace.Projects.ProjectRoot ?? throw new InvalidOperationException("Project not open.");
         internal SharedProjectState State { get; private set; } = new([], []);
         private IReadOnlyDictionary<string, byte[]> initialFiles = new Dictionary<string, byte[]>();
-        internal SharedDocumentState Scene => Assert.Single(State.Documents);
+        internal SharedDocumentState Scene => Assert.Single(State.Documents, document => document.TextField is null);
         internal string CharacterId { get; private set; } = "";
         internal Guid SessionId { get; } = Guid.NewGuid();
 
@@ -259,6 +260,7 @@ public sealed class SharedProjectWriteGuardTests
                 var item = command.GetProperty("id").GetGuid();
                 var kind = command.GetProperty("kind").GetString();
                 if (kind == "seed") states[item] = Encoding.UTF8.GetBytes(command.GetProperty("html").GetString() ?? "");
+                if (kind == "seedText") states[item] = Encoding.UTF8.GetBytes("text:" + command.GetProperty("text").GetString());
                 if (kind == "load") states[item] = command.GetProperty("state").GetBytesFromBase64();
                 if (kind == "receive")
                 {
@@ -268,7 +270,10 @@ public sealed class SharedProjectWriteGuardTests
             }
             if (action != "capture" || id is null) return null;
             var state = states[id.Value];
-            return new SharedSceneSnapshot(state, [], Encoding.UTF8.GetString(state), null);
+            var value = Encoding.UTF8.GetString(state);
+            return value.StartsWith("text:", StringComparison.Ordinal)
+                ? new SharedSceneSnapshot(state, [], null, null) { Text = value[5..] }
+                : new SharedSceneSnapshot(state, [], value, null);
         }
     }
 }

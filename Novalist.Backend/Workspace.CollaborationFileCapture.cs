@@ -23,7 +23,7 @@ public sealed partial class Workspace
         if (baseline is null) return value;
         if (sharedItems.ContainsKey(path)) return baseline;
         var bindings = fieldBindings.Values.Where(binding => binding.Path == path).ToArray();
-        if (bindings.Length == 0 && path != ".novalist/project.json") return value;
+        if (bindings.Length == 0 && !sharedProse.Values.Any(binding => binding.Path == path) && path != ".novalist/project.json") return value;
         var current = JsonNode.Parse(value) as JsonObject ?? throw new InvalidDataException("Invalid shared metadata.");
         var original = JsonNode.Parse(baseline) as JsonObject ?? throw new InvalidDataException("Invalid shared metadata baseline.");
         foreach (var binding in bindings)
@@ -35,6 +35,7 @@ public sealed partial class Workspace
             target[key] = source?[binding.Custom ? binding.Key : PropertyName(source, binding.Key)]?.DeepClone();
         }
         if (path == ".novalist/project.json") PreserveNavigation(current, original);
+        MaskSharedProse(path, current, original);
         return Encoding.UTF8.GetBytes(current.ToJsonString());
     }
 
@@ -81,7 +82,17 @@ public sealed partial class Workspace
             }
         }
         var fields = await SharedCodexFields.CaptureAsync(root, paths, ct);
-        return new(documents, fields);
+        var prosePaths = changes.Where(change => change.After is not null).Select(change => change.Path).ToArray();
+        if (prosePaths.Any(path => path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)))
+        {
+            var factory = CreateSharedDocuments ?? throw new InvalidOperationException("Desktop collaboration is unavailable.");
+            await using var host = factory(Guid.NewGuid());
+            await host.OpenAsync(ct);
+            documents.AddRange(await CaptureSharedProseAsync(root, prosePaths, host, ct));
+        }
+        var sourceHashes = changes.Where(change => change.After is not null).ToDictionary(change => change.Path,
+            change => Convert.ToHexStringLower(SHA256.HashData(change.After ?? throw new InvalidDataException("Missing shared content."))));
+        return new(documents.Select(document => document with { SourceSha256 = sourceHashes[document.Path] }).ToArray(), fields);
     }
 }
 #endif

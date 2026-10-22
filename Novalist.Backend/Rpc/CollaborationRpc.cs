@@ -86,6 +86,6 @@ public sealed class CollaborationRpc
 
     [JsonRpcMethod("collaboration/writeScene")]
     public Task WriteSceneAsync(Guid sessionId, Guid itemId, byte[] update, CancellationToken cancellationToken = default)
-        => workspace.RequireSharedScenes(sessionId).WriteAsync(itemId, update, cancellationToken);
+        => workspace.WriteSharedDocumentAsync(sessionId, itemId, update, cancellationToken);
 }
 #endif

@@ -71,7 +71,12 @@ shared project. You can open and share it as its owner.
 Shared scenes show other writers' cursors and selections. Cursors follow the
 text as it changes and disappear when their writer leaves or stops responding.
 
-Codex text fields, including those on entries created during the session, acquire an
+Codex descriptions, distinguishing features and free-form sections use the existing
+Markdown editor. Writers can edit the same prose together, see one another's
+cursors, and undo their own edits without removing another writer's writing.
+Sections keep their writing history when their titles change.
+
+Codex non-prose text fields, including those on entries created during the session, acquire an
 exclusive editing lock when focused. Wait for the field to become editable;
 another writer cannot change it until you leave the field. Moving focus saves
 the value before releasing the lock. These edits require an active connection.
@@ -88,7 +93,7 @@ a scene keeps its shared writing identity. Deleting it keeps it deleted; edits
 arriving afterward are saved under `Recovered edits`. Conflicting file changes
 also retain a recovery copy instead of silently replacing the shared version.
 
-During a connection interruption, keep writing in already shared scenes. Changes
+During a connection interruption, keep writing in already shared scenes and Codex prose. Changes
 to structure, assets and other project details require reconnecting first.
 Personal editor settings still save locally. Changes refused by the server and
 files changed outside collaboration are preserved in `Recovered edits` before
@@ -96,8 +101,7 @@ the shared version is restored. End the session before restoring a whole-project
 backup. Extensions must use collaborative prose and field editing when changing
 content already bound to a shared editor or focus lock.
 
-Collaboration is still under development on this branch. Simultaneous Codex prose
-merging, owner access controls and desktop
+Collaboration is still under development on this branch. Owner access controls and desktop
 TCP/Steamworks session controls are not yet complete.
 
 ## Global vs project settings

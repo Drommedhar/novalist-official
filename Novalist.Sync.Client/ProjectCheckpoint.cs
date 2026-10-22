@@ -63,7 +63,7 @@ public static class ProjectCheckpoint
             ValidateFields(files, states, state.Fields);
             await SharedCodexFields.ReadAsync(root, state.Fields, cancellationToken);
             await using var manifest = archive.CreateEntry("manifest.json", CompressionLevel.Fastest).Open();
-            await JsonSerializer.SerializeAsync(manifest, new CheckpointManifest(3, files, states, state.Fields), cancellationToken: cancellationToken);
+            await JsonSerializer.SerializeAsync(manifest, new CheckpointManifest(states.Any(document => document.TextField is not null) ? 4 : 3, files, states, state.Fields), cancellationToken: cancellationToken);
         }
         finally
         {
@@ -108,7 +108,8 @@ public static class ProjectCheckpoint
         var manifest = await JsonSerializer.DeserializeAsync<CheckpointManifest>(stream, cancellationToken: cancellationToken)
             ?? throw new InvalidDataException("Invalid checkpoint manifest.");
         var documents = manifest.Documents ?? [];
-        if (manifest.Version is not (1 or 2 or 3) || (manifest.Version == 1 && documents.Count != 0) ||
+        if (manifest.Version is not (1 or 2 or 3 or 4) || (manifest.Version == 1 && documents.Count != 0) ||
+            (manifest.Version < 4 && documents.Any(document => document.TextField is not null)) ||
             (manifest.Version < 3 && manifest.Fields is { Count: > 0 }) ||
             manifest.Files is null || archive.Entries.Count != manifest.Files.Count + documents.Count + 1)
             throw new InvalidDataException("Unsupported or incomplete checkpoint.");

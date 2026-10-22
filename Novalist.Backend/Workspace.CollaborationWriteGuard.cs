@@ -45,7 +45,8 @@ public sealed partial class Workspace
     {
         if (sharedItems.ContainsKey(relative)) RejectSharedWrite("Save shared prose through its collaboration editor.");
         var bindings = fieldBindings.Values.Where(binding => binding.Path.Equals(relative, StringComparison.OrdinalIgnoreCase)).ToArray();
-        if (bindings.Length == 0 || !await FileService.ExistsAsync(path)) return;
+        var prose = sharedProse.Values.Where(binding => binding.Path.Equals(relative, StringComparison.OrdinalIgnoreCase)).ToArray();
+        if ((bindings.Length == 0 && prose.Length == 0) || !await FileService.ExistsAsync(path)) return;
         var previous = JsonNode.Parse(await FileService.ReadBytesAsync(path)) as JsonObject;
         var next = JsonNode.Parse(content) as JsonObject;
         if (previous is null || next is null) RejectSharedWrite("A shared Codex entry must remain valid metadata.");
@@ -54,6 +55,14 @@ public sealed partial class Workspace
             var before = ReadBoundValue(previous, binding.Key, binding.Custom);
             var after = ReadBoundValue(next, binding.Key, binding.Custom);
             if (!JsonNode.DeepEquals(before, after)) RejectSharedWrite("Edit shared Codex fields through their focus lock.");
+        }
+        foreach (var binding in prose)
+        {
+            var field = RequireTextField(binding);
+            var before = previous is null ? null : SharedProseFields.Target(previous, field);
+            var after = next is null ? null : SharedProseFields.Target(next, field);
+            if (before is not null && after is not null && !JsonNode.DeepEquals(before[field.Key], after[field.Key]))
+                RejectSharedWrite("Save shared prose through its collaboration editor.");
         }
     }
 

@@ -1,5 +1,6 @@
 {
   "collaboration": {
+    "editorError": "Shared writing needs attention. Retry saving before closing this project.",
     "resume": "Reconnect to shared project",
     "resumeHint": "Reconnects to the saved server. A recovery archive keeps your current local copy; edits made after ending a session are not sent automatically.",
     "savedServer": "Saved shared project: {{server}}",
