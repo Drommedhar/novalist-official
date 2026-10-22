@@ -28,7 +28,6 @@ public sealed partial class Workspace
             case "notes": scene.Notes = text; break;
             case "goal": scene.Goal = text; break;
             case "outcome": scene.Outcome = text; break;
-            default: throw new InvalidDataException("Invalid shared scene planning field.");
         }
     }
 }
