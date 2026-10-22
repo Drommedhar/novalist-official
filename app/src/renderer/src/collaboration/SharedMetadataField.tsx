@@ -4,7 +4,7 @@ import { SharedFieldStatus } from './SharedFieldStatus'
 
 export function metadataBinding(record: { sharedFields?: SharedEntityFields } | null | undefined, key: string): FieldBinding | undefined {
   const shared = record?.sharedFields
-  const itemId = shared?.fields[key]
+  const itemId = shared?.metadata?.[key] ?? shared?.fields[key]
   return shared && itemId ? { sessionId: shared.sessionId, itemId } : undefined
 }
 

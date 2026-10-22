@@ -18,6 +18,24 @@ namespace Novalist.Backend.Tests;
 public sealed class SharedProjectWriteGuardTests
 {
     [Fact]
+    public async Task StructuredCodexFieldsRequireTheGrantedLeaseAndRejectOrdinaryOrMalformedWrites()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        var item = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty("aliases").GetGuid();
+        var focus = Guid.NewGuid();
+        var grant = await fixture.Desktop.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", fixture.SessionId, item, focus);
+        Assert.True(grant.Lease.Acquired);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, item, Guid.NewGuid(), "[\"Intruder\"]"));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("entities/updateLists", "character", fixture.CharacterId, new[] { "Bypass" }, null, null));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, item, focus, "{\"not\":\"an array\"}"));
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, item, focus, "[\"M\",\"Captain\"]");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, item, focus);
+        entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        Assert.Equal(new[] { "M", "Captain" }, entry.GetProperty("aliases").EnumerateArray().Select(value => value.GetString()));
+    }
+
+    [Fact]
     public async Task ResearchProseKeepsItsIdentityAndSurvivesMetadataSavesAndDeletionAsRecovery()
     {
         await using var fixture = await SharedProjectFixture.StartAsync();
@@ -28,7 +46,7 @@ public sealed class SharedProjectWriteGuardTests
         await fixture.Desktop.InvokeAsync("collaboration/writeScene", binding.SessionId, binding.ItemId, Encoding.UTF8.GetBytes("text:Collaborative research."));
         note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
         Assert.Equal("Collaborative research.", note.Content);
-        await fixture.Desktop.InvokeAsync("research/save", note.Id, "Renamed", "Note", null, Array.Empty<string>(), Array.Empty<string>());
+        await fixture.Desktop.InvokeAsync("research/save", note.Id, note.Title, "Note", null, Array.Empty<string>(), Array.Empty<string>());
         var renamed = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
         Assert.Equal(note.Id, renamed.Id);
         Assert.Equal(binding, renamed.SharedProse);
@@ -42,6 +60,34 @@ public sealed class SharedProjectWriteGuardTests
         Assert.Contains(recovery, file => File.ReadAllText(file).Contains("Preserve concurrent edits.", StringComparison.Ordinal));
         await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("research/save", note.Id, "Old title", "Note", "Late draft", Array.Empty<string>(), Array.Empty<string>()));
         Assert.Empty(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+    }
+
+    [Fact]
+    public async Task SceneAndResearchMetadataUseStableTargetsAndReloadTheOpenWorkspace()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var state = await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/getState");
+        var chapter = Assert.Single(state.Chapters);
+        var scene = Assert.Single(chapter.Scenes);
+        var fields = Assert.IsType<SharedEntityFieldsDto>(scene.SharedFields);
+        var focus = Guid.NewGuid();
+        var pov = fields.Fields["analysisOverrides.pov"];
+        await fixture.Desktop.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", fixture.SessionId, pov, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, pov, focus, "\"Mira\"");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, pov, focus);
+        Assert.Equal("Mira", fixture.Host.Workspace.ResolveScene(chapter.Guid, scene.Id).scene.AnalysisOverrides?.Pov);
+        await fixture.Desktop.InvokeAsync("research/save", null, "Source", "Note", "Writing.", Array.Empty<string>(), Array.Empty<string>());
+        var note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var title = Assert.IsType<SharedEntityFieldsDto>(note.SharedFields).Fields["title"];
+        focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", fixture.SessionId, title, focus);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("research/save", note.Id, "Bypass", "Note", null, Array.Empty<string>(), Array.Empty<string>()));
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, title, focus, "\"Revised source\"");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, title, focus);
+        var revised = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        Assert.Equal("Revised source", revised.Title);
+        Assert.Equal("Writing.", revised.Content);
+        Assert.Equal(note.Id, revised.Id);
     }
 
     [Fact]

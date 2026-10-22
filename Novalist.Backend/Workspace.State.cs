@@ -104,7 +104,12 @@ public sealed partial class Workspace
             .Select(s => new SceneDto(
                 s.Id, s.Title, s.Order, s.WordCount, ResolveLabelColor(s), s.IsFavorite, s.Synopsis,
                 s.Stage, s.ExcludeFromExport, s.Inactive, ResolvePlotlineColors(s),
-                ResolvePlotlineIds(s)))
+                ResolvePlotlineIds(s))
+            {
+#if NOVALIST_COLLABORATION
+                SharedFields = SharedSceneMetadata(s.Id)
+#endif
+            })
             .ToArray();
     }
 }
