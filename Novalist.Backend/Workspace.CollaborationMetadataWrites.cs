@@ -25,6 +25,8 @@ public sealed partial class Workspace
                 await AcquireClearedSceneFieldAsync(binding, "focusEntityId", parsed, acquired, ct);
             if (binding.Metadata.Kind == "scene" && binding.Key == "narrativeMode" && parsed?.GetValue<string>() != "parallel")
                 await AcquireClearedSceneFieldAsync(binding, "strand", null, acquired, ct);
+            if (binding.Metadata.Kind == "scene" && binding.Key == "dateRange")
+                await AcquireSceneDateWritesAsync(binding, parsed, acquired, ct);
             await field.Fields.WriteAsync(field.Lease, value, ct);
             foreach (var write in acquired) await field.Fields.WriteAsync(write.Lease, write.Value, CancellationToken.None);
             return true;

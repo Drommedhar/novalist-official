@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import type { SceneEditDto } from './sceneEdit'
+import { useProjectStore } from '../stores/projectStore'
+import { SharedStoryDateDialog } from './SharedSceneDialogs'
 import './shellDialogs.css'
 
 interface StoryDateRangeDialogProps {
@@ -12,7 +14,14 @@ interface StoryDateRangeDialogProps {
 
 /** Set a scene's in-world story date, with an optional end date and note.
  * Persisted through project/setSceneDateRange (Novalist.Core StoryDateRange). */
-export function StoryDateRangeDialog({
+export function StoryDateRangeDialog(props: StoryDateRangeDialogProps): React.JSX.Element {
+  const scene = useProjectStore(state => state.chapters.find(chapter => chapter.guid === props.chapterGuid)?.scenes.find(scene => scene.id === props.sceneId))
+  return scene?.sharedFields
+    ? <SharedStoryDateDialog chapter={props.chapterGuid} scene={scene} onClose={props.onClose} />
+    : <LocalStoryDateRangeDialog {...props} />
+}
+
+function LocalStoryDateRangeDialog({
   chapterGuid,
   sceneId,
   onClose

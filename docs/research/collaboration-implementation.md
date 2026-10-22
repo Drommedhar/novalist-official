@@ -8,6 +8,12 @@ announcement.
 
 ## Implemented and exercised
 
+- Shared scene dialogs acquire focus locks for title, point of view and the
+  story-date range. Close flushes pending edits; a save failure keeps the dialog
+  open. Two real TCP desktops exercise named-lock handoff, remote values and
+  clearing a range. Date-range writes acquire the separate Date lock before
+  mirroring a nonempty start, matching local date semantics. New scenes can set
+  their initial point of view before their shared field identities are created.
 - A Yjs binding extends the existing iframe editor. Browser checks cover
   concurrent text and formatting, paragraph splits, per-writer undo, IME,
   annotations, footnotes, images, nested lists, cursor positions, saved state,

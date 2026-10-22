@@ -10,13 +10,13 @@ export function metadataBinding(record: { sharedFields?: SharedEntityFields } | 
 
 interface MetadataControl<T> { value: T; editable: boolean; change(value: T | ((previous: T) => T)): void }
 interface MetadataProps<T> {
-  binding?: FieldBinding; value: T; onChange(value: T): void; children(control: MetadataControl<T>): React.ReactNode
+  binding?: FieldBinding; value: T; onChange?(value: T): void; children(control: MetadataControl<T>): React.ReactNode
 }
 
 export function SharedMetadataField<T>(props: MetadataProps<T>): React.JSX.Element {
   if (props.binding) return <BoundMetadataField {...props} binding={props.binding} />
-  return <>{props.children({ value: props.value, editable: true,
-    change: next => props.onChange(typeof next === 'function' ? (next as (previous: T) => T)(props.value) : next) })}</>
+  return <>{props.children({ value: props.value, editable: !!props.onChange,
+    change: next => props.onChange?.(typeof next === 'function' ? (next as (previous: T) => T)(props.value) : next) })}</>
 }
 
 function BoundMetadataField<T>({ binding, value, children }: MetadataProps<T> & { binding: FieldBinding }): React.JSX.Element {
