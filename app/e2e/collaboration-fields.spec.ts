@@ -18,6 +18,8 @@ test('Codex waits for its field lock, saves before releasing it, and refuses a c
       window.fieldTest = { grant: true, value: '42', failSave: false, failRecovery: false, recovered: null, calls: [], finishAcquire() {} }
       window.novalistRpc.request = async <T,>(method: string, params?: unknown): Promise<T> => {
         const state = window.fieldTest
+        if (method === 'collaboration/participants') return [{ deviceId: 'writer', viewId: 'other-focus', itemId: 'age-item', name: 'Morgan', selection: null, sceneId: null }] as T
+        if (method === 'collaboration/presence') return undefined as T
         if (method === 'collaboration/acquireField') {
           state.calls.push('acquire')
           await new Promise<void>(resolve => { state.finishAcquire = resolve })
@@ -58,7 +60,7 @@ test('Codex waits for its field lock, saves before releasing it, and refuses a c
     await expect.poll(() => h.page.evaluate(() => window.fieldTest.calls.length)).toBe(4)
     await h.page.evaluate(() => window.fieldTest.finishAcquire())
     await expect(age).toHaveAttribute('readonly', '')
-    await expect(h.page.getByText('Another writer is editing this field.', { exact: true })).toBeVisible()
+    await expect(h.page.getByText('Morgan is editing this field.', { exact: true })).toBeVisible()
     await age.blur()
     await expect.poll(() => h.page.evaluate(() => window.fieldTest.value)).toBe('43')
     await h.page.evaluate(() => { window.fieldTest.grant = true; window.fieldTest.failSave = true })

@@ -8,7 +8,7 @@ namespace Novalist.Sync.Client;
 internal sealed class HostedInvitationBootstrap : IDisposable
 {
     private sealed record Bootstrap(int Version, string Server, Guid ProjectId, uint Epoch, Guid InvitationId,
-        byte[] OwnerKey, byte[] Grant, byte[] DelegationKey, byte[] EpochKey, CheckpointReference Checkpoint);
+        byte[] OwnerKey, byte[] Grant, byte[] DelegationKey, byte[] EpochKey, CheckpointReference Checkpoint, long FirstServerSequence = 1);
     private readonly Bootstrap state;
     internal Uri Server { get; }
     internal Guid ProjectId => state.ProjectId;
@@ -30,7 +30,7 @@ internal sealed class HostedInvitationBootstrap : IDisposable
     {
         ValidateCheckpoint(checkpoint);
         var bytes = JsonSerializer.SerializeToUtf8Bytes(new Bootstrap(1, access.Server, access.ProjectId, access.Epoch, invitation,
-            access.OwnerKey, grant, delegation, access.EpochKey, checkpoint));
+            access.OwnerKey, grant, delegation, access.EpochKey, checkpoint, access.FirstServerSequence));
         try { return "novalist://collaboration/join#" + Base64UrlEncoder.Encode(bytes); }
         finally { CryptographicOperations.ZeroMemory(bytes); }
     }
@@ -59,7 +59,7 @@ internal sealed class HostedInvitationBootstrap : IDisposable
         using var delegation = Key.Import(SignatureAlgorithm.Ed25519, state.DelegationKey, KeyBlobFormat.RawPrivateKey);
         var certificate = membership.ClaimInvitation(state.Grant, delegation, device);
         return new(new(1, Server.AbsoluteUri, state.ProjectId, state.Epoch, device.Id, state.OwnerKey.ToArray(),
-            state.EpochKey.ToArray(), certificate, state.InvitationId, state.Checkpoint, Fingerprint), device);
+            state.EpochKey.ToArray(), certificate, state.InvitationId, state.Checkpoint, Fingerprint, state.FirstServerSequence), device);
     }
 
     private static void ValidateCheckpoint(CheckpointReference? checkpoint)

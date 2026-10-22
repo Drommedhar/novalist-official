@@ -4,7 +4,7 @@ using NSec.Cryptography;
 
 namespace Novalist.Sync.Client;
 
-public sealed class HostedProjectAccessStore
+public sealed partial class HostedProjectAccessStore
 {
     private readonly ICollaborationCredentials credentials;
     private readonly SemaphoreSlim gate = new(1, 1);

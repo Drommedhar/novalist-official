@@ -138,7 +138,7 @@ internal sealed partial class HostedProjectWorkspace : IDisposable
         ct.ThrowIfCancellationRequested();
         var record = new SavedHostedProject(2, runtime.Id, runtime.Access.ProjectId, runtime.Access.Server,
             runtime.Device.Id, root, ReadProjectId(root),
-            runtime.Checkpoint ?? throw new InvalidOperationException("The project checkpoint is missing."), runtime.RecoveryPath);
+            runtime.Checkpoint ?? throw new InvalidOperationException("The project checkpoint is missing."), runtime.RecoveryPath, runtime.Access.Epoch);
         return RememberAsync(record);
     }
 

@@ -31,6 +31,8 @@ public sealed partial class CollaborationSession : IAsyncDisposable
     public Exception? ReceiveError { get; private set; }
     public bool IsConnected => !closed && transport.IsConnected;
     public SessionContext Context => new(project, device, epoch);
+    internal CertifiedSessionIdentity? Identity => identity;
+    public long LastServerSequence => journal.LastServerSequence;
 
     public CollaborationSession(SessionContext context, SessionJournal journal, EnvelopeCipher cipher,
         Key signing, IReadOnlyDictionary<Guid, PublicKey> writers, IUpdateTransport transport)
@@ -93,6 +95,12 @@ public sealed partial class CollaborationSession : IAsyncDisposable
         .OfType<byte[]>().Where(update => !journal.IsRejectedUpdate(item, update)).ToArray();
 
     public void RejectUpdate(Guid item, string hash) => journal.RejectUpdate(item, hash);
+
+    internal void ReportAccessEnded()
+    {
+        ReceiveError = new UnauthorizedAccessException("Your access to this shared project has ended. Your local copy is still available.");
+        ReceiveFailed?.Invoke(ReceiveError);
+    }
 
     public async Task SynchronizeAsync(bool createProject, CancellationToken cancellationToken)
     {

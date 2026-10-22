@@ -11,7 +11,8 @@ public static class ProjectContentSelection
         var files = new HashSet<string>(StringComparer.Ordinal);
         if (!project.TryGetProperty("books", out var books) || books.ValueKind != JsonValueKind.Array)
             throw new InvalidDataException("The project has no book manifest.");
-        var excluded = new List<string>();
+        var worldBible = ReadFolder(project, "worldBibleFolder");
+        var excluded = new List<string> { worldBible + "/Snapshots" };
         foreach (var book in books.EnumerateArray())
         {
             var folder = ReadFolder(book, "folderName");
@@ -28,7 +29,7 @@ public static class ProjectContentSelection
         foreach (var file in SharedProjectPath.MetadataFiles) AddFile(root, ".novalist/" + file, files);
         foreach (var directory in SharedProjectPath.MetadataDirectories) Walk(root, ".novalist/" + directory, files, privateFolders);
         foreach (var book in books.EnumerateArray()) Walk(root, ReadFolder(book, "folderName"), files, privateFolders);
-        Walk(root, ReadFolder(project, "worldBibleFolder"), files, privateFolders);
+        Walk(root, worldBible, files, privateFolders);
         Walk(root, "Research", files, privateFolders);
         return files.Order(StringComparer.Ordinal).ToArray();
     }
