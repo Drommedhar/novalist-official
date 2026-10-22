@@ -79,7 +79,7 @@ public static partial class SharedMetadataFields
     private static bool IsText(JsonNode? value) => value is JsonValue text && text.TryGetValue<string>(out _);
 
     private static bool IsRelationship(JsonNode? value) => value is JsonObject row &&
-        row.All(property => property.Key is "role" or "target" or "category" && IsText(property.Value));
+        row.All(property => property.Key is "role" or "target" or "category" or "inverseRole" && IsText(property.Value));
 
     private static (string? Container, string Key) Property(string key)
     {
