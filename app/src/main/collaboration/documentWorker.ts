@@ -12,6 +12,7 @@ parent.on('message', ({ data }: { data: DocumentRequest }) => {
   try {
     const command = data.command
     let application: { accepted: boolean; rejected: string[] } | undefined
+    let update: Uint8Array | null | undefined
     switch (command.kind) {
       case 'seed': documents.seed(command.id, command.html); break
       case 'seedText': documents.seedText(command.id, command.text); break
@@ -28,9 +29,10 @@ parent.on('message', ({ data }: { data: DocumentRequest }) => {
         break
       }
       case 'capture': break
+      case 'rename': update = documents.rename(command.id, command.entityId, command.oldName, command.newName); break
       default: throw new Error('Unknown shared document operation.')
     }
-    reply = { sequence: data.sequence, failed: false, application }
+    reply = { sequence: data.sequence, failed: false, application, update }
     if (command.kind === 'capture') reply.snapshot = {
       state: documents.state(command.id), deletions: documents.deletions(command.id),
       html: documents.isPlainText(command.id) ? null : documents.project(command.id),

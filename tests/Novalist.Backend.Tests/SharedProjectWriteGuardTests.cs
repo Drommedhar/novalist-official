@@ -5,6 +5,7 @@ using System.Text.Json;
 using Nerdbank.Streams;
 using NSubstitute;
 using Novalist.Backend.Extensions;
+using Novalist.Backend.Rpc;
 using Novalist.Backend.Tests.TestHelpers;
 using Novalist.Core.Services;
 using Novalist.Sync.Client;
@@ -16,6 +17,33 @@ namespace Novalist.Backend.Tests;
 [Collection("BackendStatics")]
 public sealed class SharedProjectWriteGuardTests
 {
+    [Fact]
+    public async Task ResearchProseKeepsItsIdentityAndSurvivesMetadataSavesAndDeletionAsRecovery()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        await fixture.Desktop.InvokeAsync("research/save", null, "Source", "Note", "Initial notes.", Array.Empty<string>(), Array.Empty<string>());
+        var note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var binding = Assert.IsType<SharedResearchProseDto>(note.SharedProse);
+        Assert.Equal(fixture.SessionId, binding.SessionId);
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", binding.SessionId, binding.ItemId, Encoding.UTF8.GetBytes("text:Collaborative research."));
+        note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        Assert.Equal("Collaborative research.", note.Content);
+        await fixture.Desktop.InvokeAsync("research/save", note.Id, "Renamed", "Note", null, Array.Empty<string>(), Array.Empty<string>());
+        var renamed = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        Assert.Equal(note.Id, renamed.Id);
+        Assert.Equal(binding, renamed.SharedProse);
+        Assert.Equal("Collaborative research.", renamed.Content);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("research/save", note.Id, "Stale", "Note", "Replace all writing", Array.Empty<string>(), Array.Empty<string>()));
+        Assert.Equal("Collaborative research.", Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list")).Content);
+        await fixture.Desktop.InvokeAsync("research/delete", note.Id);
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", binding.SessionId, binding.ItemId, Encoding.UTF8.GetBytes("text:Preserve concurrent edits."));
+        Assert.Empty(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var recovery = Directory.GetFiles(Path.Combine(fixture.Root, "Recovered edits"), "project.json", SearchOption.AllDirectories);
+        Assert.Contains(recovery, file => File.ReadAllText(file).Contains("Preserve concurrent edits.", StringComparison.Ordinal));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("research/save", note.Id, "Old title", "Note", "Late draft", Array.Empty<string>(), Array.Empty<string>()));
+        Assert.Empty(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+    }
+
     [Fact]
     public async Task ADisconnectedWriterCannotCreateStructureThatAppearsAfterReconnecting()
     {

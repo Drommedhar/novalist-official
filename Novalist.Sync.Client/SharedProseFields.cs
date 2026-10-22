@@ -7,6 +7,13 @@ public static class SharedProseFields
     public static void Validate(SharedTextField? field)
     {
         if (field is null) return;
+        if (field.ResearchItemId is not null)
+        {
+            if (field.Key != "content" || string.IsNullOrWhiteSpace(field.ResearchItemId) ||
+                field.SectionId is not null || field.Chapter is not null || field.Scene is not null)
+                throw new InvalidDataException("Invalid shared research field.");
+            return;
+        }
         if ((field.SectionId is null && field.Key is not ("description" or "distinguishingFeatures")) ||
             (field.SectionId is not null && (field.Key != "content" || string.IsNullOrWhiteSpace(field.SectionId))) ||
             (field.Chapter is null && field.Scene is not null))
@@ -16,6 +23,8 @@ public static class SharedProseFields
     public static JsonObject? Target(JsonObject entity, SharedTextField field)
     {
         Validate(field);
+        if (field.ResearchItemId is { } researchId)
+            return ResearchNotes(entity).SingleOrDefault(item => item["id"]?.GetValue<string>() == researchId);
         var scope = field.Chapter is null ? entity : (entity["chapterOverrides"] as JsonArray)?.OfType<JsonObject>()
             .SingleOrDefault(value => value["chapter"]?.GetValue<string>() == field.Chapter && value["scene"]?.GetValue<string>() == field.Scene);
         return field.SectionId is null ? scope : (scope?["sections"] as JsonArray)?.OfType<JsonObject>()
@@ -25,6 +34,8 @@ public static class SharedProseFields
     public static IReadOnlyList<SharedTextField> Enumerate(JsonObject entity)
     {
         var result = new List<SharedTextField>();
+        foreach (var item in ResearchNotes(entity))
+            result.Add(new("content", ResearchItemId: item["id"]?.GetValue<string>() ?? throw new InvalidDataException("A shared research note needs an identity.")));
         Add(entity, null, null);
         foreach (var scope in (entity["chapterOverrides"] as JsonArray)?.OfType<JsonObject>() ?? [])
         {
@@ -41,6 +52,10 @@ public static class SharedProseFields
                 result.Add(new("content", section["id"]?.GetValue<string>() ?? throw new InvalidDataException("A shared section needs an identity."), chapter, scene));
         }
     }
+
+    private static IEnumerable<JsonObject> ResearchNotes(JsonObject entity) =>
+        ((entity["researchItems"] as JsonArray)?.OfType<JsonObject>() ?? [])
+        .Where(item => item["type"]?.GetValue<string>() is "Note" or "Link");
 
     public static bool EnsureSectionIdentities(JsonObject entity)
     {

@@ -14,7 +14,7 @@ public sealed partial class Workspace
     private async Task NormalizeSharedSectionsAsync(string root, IReadOnlyList<string> paths, CancellationToken ct)
     {
         var fields = await SharedCodexFields.CaptureAsync(root, paths, ct);
-        foreach (var relative in fields.Select(field => field.Path).Distinct(StringComparer.Ordinal))
+        foreach (var relative in fields.Select(field => field.Path).Concat(paths.Where(path => path == ".novalist/project.json")).Distinct(StringComparer.Ordinal))
         {
             var path = SharedProjectPath.Resolve(root, relative);
             var entity = JsonNode.Parse(await FileService.ReadTextAsync(path)) as JsonObject ?? throw new InvalidDataException("Invalid Codex entry.");
@@ -27,7 +27,7 @@ public sealed partial class Workspace
     {
         var fields = await SharedCodexFields.CaptureAsync(root, paths, ct);
         var result = new List<SharedDocumentState>();
-        foreach (var relative in fields.Select(field => field.Path).Distinct(StringComparer.Ordinal))
+        foreach (var relative in fields.Select(field => field.Path).Concat(paths.Where(path => path == ".novalist/project.json")).Distinct(StringComparer.Ordinal))
         {
             var bytes = await FileService.ReadBytesAsync(SharedProjectPath.Resolve(root, relative));
             var entity = JsonNode.Parse(bytes) as JsonObject ?? throw new InvalidDataException("Invalid Codex entry.");
@@ -61,6 +61,19 @@ public sealed partial class Workspace
         if (target[field.Key]?.GetValue<string>() == snapshot.Text) return;
         target[field.Key] = snapshot.Text;
         await FileService.WriteTextAsync(path, entity.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        if (field.ResearchItemId is { } researchId)
+        {
+            var item = Projects.CurrentProject?.ResearchItems.SingleOrDefault(item => item.Id == researchId);
+            if (item is not null) item.Content = snapshot.Text;
+            if (Coordinator?.Notify is { } notify)
+                await notify("collaboration/projectUpdated", new { sessionId = sharedSession, state = BuildState() });
+        }
+    }
+
+    internal Rpc.SharedResearchProseDto? SharedResearchProse(string id)
+    {
+        var binding = sharedProse.Values.SingleOrDefault(binding => binding.TextField?.ResearchItemId == id);
+        return binding is null ? null : new(sharedSession, binding.ItemId);
     }
 
     internal async Task WriteSharedDocumentAsync(Guid sessionId, Guid item, byte[] update, CancellationToken ct)

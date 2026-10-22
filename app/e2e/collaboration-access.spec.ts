@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { join } from 'node:path'
+import { readFile } from 'node:fs/promises'
 import { dismissTour, launchApp, seedBook, type Harness } from './harness'
 import { identityProvider } from './fixtures/identityProvider'
 import { collaborationServer } from './fixtures/collaborationServer'
@@ -15,12 +16,12 @@ async function signIn(h: Harness, server: string): Promise<void> {
   await expect(h.page.getByText('Signed in as Test Writer', { exact: true })).toBeVisible()
 }
 
-async function joinProject(h: Harness, link: string): Promise<void> {
+async function joinProject(h: Harness, link: string, folder = 'Joined'): Promise<void> {
   await h.app.evaluate(({ dialog }, folder) => {
     dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] })
   }, h.workDir)
   await h.page.getByLabel('Invitation link', { exact: true }).fill(link)
-  await h.page.getByLabel('Local project folder name', { exact: true }).fill('Joined')
+  await h.page.getByLabel('Local project folder name', { exact: true }).fill(folder)
   await h.page.getByRole('button', { name: 'Choose parent folder', exact: true }).click()
   await h.page.getByRole('button', { name: 'Join shared project', exact: true }).click()
   await h.page.waitForFunction(() => window.novalistStores.project.getState().isLoaded && !window.novalistStores.project.getState().workspaceBusy)
@@ -64,6 +65,8 @@ test('owner removal rotates access and remaining writers refresh while everyone 
     await joinProject(remaining, nextLink)
     owner.page.on('dialog', dialog => void dialog.accept())
     await owner.page.locator('.match-row').filter({ hasText: removed.displayName }).getByRole('button', { name: 'Remove access', exact: true }).click()
+    await expect.poll(() => owner.rpc('collaboration/status'), { timeout: 30_000 }).toMatchObject({ connection: 'Connected' })
+    await owner.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
     await expect(owner.page.getByRole('button', { name: 'Remove access', exact: true })).toHaveCount(1)
     await expect(guest.page.getByText('Access to this shared project has ended. End this session to continue with your local copy.', { exact: true })).toBeVisible()
     await remaining.page.getByRole('button', { name: 'Refresh shared access', exact: true }).click()
@@ -71,13 +74,27 @@ test('owner removal rotates access and remaining writers refresh while everyone 
     await remaining.rpc('research/save', [null, 'After key rotation', 'Note', 'Still writing together.', [], []])
     await expect.poll(() => owner.rpc('research/list')).toMatchObject([{ title: 'After key rotation' }])
     expect((await remaining.rpc<{ recoveryPath: string }>('collaboration/status')).recoveryPath).toBeTruthy()
+    await owner.page.getByRole('button', { name: 'Create invitation', exact: true }).click()
+    await expect(invitation).toHaveValue(/^novalist:/)
+    const replacementLink = await invitation.inputValue()
+    await expect(guest.page.getByRole('button', { name: 'Join shared project', exact: true })).toHaveCount(0)
+    await guest.page.getByRole('button', { name: 'End this session', exact: true }).click()
+    await expect(guest.page.getByRole('button', { name: 'Share this project', exact: true })).toBeEnabled()
+    await guest.rpc('research/save', [null, 'Private retained writing', 'Note', 'Keep this local draft.', [], []])
+    const retained = await readFile(join(destination, '.novalist', 'project.json'), 'utf8')
+    await joinProject(guest, replacementLink, 'Rejoined')
+    await expect(guest.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible({ timeout: 30_000 })
+    expect(await readFile(join(destination, '.novalist', 'project.json'), 'utf8')).toBe(retained)
+    await expect.poll(() => guest.rpc('research/list')).toMatchObject([{ title: 'After key rotation' }])
+    await guest.rpc('research/save', [null, 'Writing after new invitation', 'Note', 'Invited again.', [], []])
+    await expect.poll(() => owner.rpc<unknown[]>('research/list')).toHaveLength(2)
     await owner.page.getByRole('button', { name: 'Delete shared project from server', exact: true }).click()
     await expect(owner.page.getByRole('button', { name: 'Share this project', exact: true })).toBeEnabled()
     expect(await owner.rpc('collaboration/status')).toBeNull()
     await guest.page.getByRole('button', { name: 'End this session', exact: true }).click()
     await expect(guest.page.getByRole('button', { name: 'Share this project', exact: true })).toBeEnabled()
     expect(await guest.rpc('collaboration/status')).toBeNull()
-    expect((await guest.rpc<{ projectPath: string }>('project/getState')).projectPath).toBe(destination)
+    expect((await guest.rpc<{ projectPath: string }>('project/getState')).projectPath).toBe(join(guest.workDir, 'Rejoined'))
     expect((await owner.rpc<{ projectPath: string }>('project/getState')).projectPath).toBeTruthy()
     await remaining.page.getByRole('button', { name: 'End this session', exact: true }).click()
     await expect(remaining.page.getByRole('button', { name: 'Share this project', exact: true })).toBeEnabled()

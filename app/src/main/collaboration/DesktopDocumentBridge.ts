@@ -23,6 +23,10 @@ export class DesktopDocumentBridge {
         return null
       case 'execute':
         return await host.execute(command(request.command)) ?? null
+      case 'rename': {
+        const update = await host.rename(identity(request.id), identity(request.entityId), name(request.oldName), name(request.newName))
+        return update === null ? null : Buffer.from(update).toString('base64')
+      }
       case 'capture': {
         const snapshot = await host.capture(identity(request.id))
         return { ...snapshot, state: Buffer.from(snapshot.state).toString('base64'),
@@ -46,6 +50,12 @@ function record(value: unknown): Record<string, unknown> {
 
 function identity(value: unknown): string {
   if (typeof value !== 'string' || !value.length || value.length > 128) throw new Error('Invalid shared document identity.')
+  return value
+}
+
+function name(value: unknown): string {
+  if (typeof value !== 'string' || !value.trim() || Buffer.byteLength(value) > 1024 * 1024)
+    throw new Error('Invalid Codex name.')
   return value
 }
 
