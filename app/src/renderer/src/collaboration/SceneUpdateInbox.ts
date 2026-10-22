@@ -10,7 +10,7 @@ export class SceneUpdateInbox {
   private pending: Uint8Array[] = []
   private pendingBytes = 0
 
-  constructor(private readonly doc: Y.Doc, private readonly markup: SceneMarkup) {}
+  constructor(private readonly doc: Y.Doc, private readonly markup: SceneMarkup | null) {}
 
   assertComplete(): void {
     if (this.pending.length) throw new Error('Shared edits are still waiting for missing history. Synchronize before capturing the scene.')

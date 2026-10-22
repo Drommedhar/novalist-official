@@ -56,6 +56,25 @@ test('the desktop document process retains deleted-scene recovery across a resta
       } finally { await restarted.dispose() }
     }, { worker: resolve(output, 'worker.cjs') })
     expect(actual).toEqual({ html: null, recovered: '<p>Shared Original story.</p>', deletions: 1 })
+    const prose = await application.evaluate(async (_, worker) => {
+      const { DocumentHostProcess, Y } = (globalThis as typeof globalThis & { documentHostTest: HostTestEnvironment }).documentHostTest
+      const host = new DocumentHostProcess(worker)
+      const writers = [new Y.Doc(), new Y.Doc()]
+      try {
+        const original = '**Literal** <tag> & text\n\nSecond line.\n'
+        await host.execute({ kind: 'seedText', id: 'description', text: original })
+        const seeded = await host.capture('description')
+        for (const writer of writers) Y.applyUpdate(writer, seeded.state)
+        writers[0].getText('prose').insert(0, 'Alice ')
+        writers[1].getText('prose').insert(original.length, 'Bob')
+        for (const writer of writers) await host.execute({ kind: 'receive', id: 'description', state: Y.encodeStateAsUpdate(writer) })
+        const merged = await host.capture('description')
+        writers[0].getText('prose').format(0, 1, { bold: 'true' })
+        const invalid = await host.execute({ kind: 'receive', id: 'description', state: Y.encodeStateAsUpdate(writers[0]) })
+        return { text: merged.text, rejected: invalid?.accepted === false }
+      } finally { for (const writer of writers) writer.destroy(); await host.dispose() }
+    }, resolve(output, 'worker.cjs'))
+    expect(prose).toEqual({ text: 'Alice **Literal** <tag> & text\n\nSecond line.\nBob', rejected: true })
     const bridged = await application.evaluate(async (_, worker) => {
       const { DesktopDocumentBridge } = (globalThis as typeof globalThis & { documentHostTest: HostTestEnvironment }).documentHostTest
       const bridge = new DesktopDocumentBridge(worker)

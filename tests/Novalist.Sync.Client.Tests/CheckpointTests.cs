@@ -10,6 +10,28 @@ public sealed class CheckpointTests : IDisposable
     private readonly string root = Path.Combine(Path.GetTempPath(), "novalist-checkpoint-tests", Guid.NewGuid().ToString("N"));
 
     [Fact]
+    public async Task MultipleProseFieldsInOneEntryKeepDistinctEditingHistoriesAfterJoining()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var source = Path.Combine(root, "prose-owner");
+        Directory.CreateDirectory(Path.Combine(source, ".novalist"));
+        Directory.CreateDirectory(Path.Combine(source, "World Bible/Locations"));
+        await File.WriteAllTextAsync(Path.Combine(source, ".novalist/project.json"), """{"books":[],"worldBibleFolder":"World Bible"}""", ct);
+        const string path = "World Bible/Locations/one.json";
+        await File.WriteAllTextAsync(Path.Combine(source, path), """{"id":"one","description":"Place","sections":[{"id":"history","title":"History","content":"Long ago"}]}""", ct);
+        SharedDocumentState[] documents = [
+            new(Guid.NewGuid(), path, [0, 0]) { TextField = new("description") },
+            new(Guid.NewGuid(), path, [0, 0]) { TextField = new("content", "history") }
+        ];
+        using var archive = new MemoryStream();
+        await ProjectCheckpoint.CreateAsync(source, archive, () => ProjectContentSelection.Read(source), documents, ct);
+        archive.Position = 0;
+        var state = await ProjectCheckpoint.InstallAsync(archive, Path.Combine(root, "prose-guest"), 1024 * 1024, ct);
+        Assert.Equal(documents.Select(item => item.TextField), state.Documents.Select(item => item.TextField));
+        Assert.Equal(documents.Select(item => item.ItemId), state.Documents.Select(item => item.ItemId));
+    }
+
+    [Fact]
     public async Task FieldBindingsSurviveJoiningAndDistinguishBooksFromTheWorldBible()
     {
         var ct = TestContext.Current.CancellationToken;

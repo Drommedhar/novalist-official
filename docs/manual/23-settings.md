@@ -71,7 +71,12 @@ shared project. You can open and share it as its owner.
 Shared scenes show other writers' cursors and selections. Cursors follow the
 text as it changes and disappear when their writer leaves or stops responding.
 
-Codex text fields, including those on entries created during the session, acquire an
+Codex descriptions, distinguishing features and free-form sections use the existing
+Markdown editor. Writers can edit the same prose together, see one another's
+cursors, and undo their own edits without removing another writer's writing.
+Sections keep their writing history when their titles change.
+
+Codex non-prose text fields, including those on entries created during the session, acquire an
 exclusive editing lock when focused. Wait for the field to become editable;
 another writer cannot change it until you leave the field. Moving focus saves
 the value before releasing the lock. These edits require an active connection.
@@ -88,8 +93,8 @@ a scene keeps its shared writing identity. Deleting it keeps it deleted; edits
 arriving afterward are saved under `Recovered edits`. Conflicting file changes
 also retain a recovery copy instead of silently replacing the shared version.
 
-Collaboration is still under development on this branch. Simultaneous Codex prose
-merging, complete disconnected-write guards, owner access controls and desktop
+Collaboration is still under development on this branch. Complete disconnected-write
+guards, owner access controls and desktop
 TCP/Steamworks session controls are not yet complete.
 
 ## Global vs project settings

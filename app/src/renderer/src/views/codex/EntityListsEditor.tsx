@@ -7,6 +7,7 @@ import { persistPendingWrite, registerPendingWrite } from '../../stores/pendingW
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import type { CustomTypeDefinition } from './CustomTypeManager'
 import { useEntitySections } from './useEntitySections'
+import { proseBinding } from '../../collaboration/sharedMarkdown'
 
 interface RelationshipRow {
   role: string
@@ -385,7 +386,7 @@ export function EntityListsEditor({
       <section data-entity-tab="overview" className="codex-entry-section">
         <div className="inspector-label">{t('entityEditor.sections')}</div>
         {sections.map((section, index) => (
-          <div key={index} className="entity-section">
+          <div key={section.id ?? index} className="entity-section">
             <div className="entity-section-head">
               <input
                 className="outliner-input entity-section-title"
@@ -432,6 +433,7 @@ export function EntityListsEditor({
               </button>
             </div>
             <MarkdownEditor
+              shared={section.id ? proseBinding(record, `section:${section.id}`) : undefined}
               value={section.content}
               ariaLabel={section.title}
               onChange={(next) =>
@@ -446,7 +448,7 @@ export function EntityListsEditor({
         <button
           className="binder-rail-item"
           onClick={() =>
-            setSections((current) => [...current, { title: t('section.newSection'), content: '' }])
+            setSections((current) => [...current, { id: crypto.randomUUID(), title: t('section.newSection'), content: '' }])
           }
         >
           <Plus size={13} strokeWidth={2} />

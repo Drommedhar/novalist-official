@@ -14,8 +14,8 @@ export function SharedFieldControl({ binding, value, label, type, list, options,
   const controller = useMemo(() => retainedFields.get(fieldKey) ?? new FocusedField(binding, value), [fieldKey])
   const [view, setView] = useState<FieldView>(controller.snapshot)
   const key = controller.pendingKey
-  const flush = async (): Promise<void> => {
-    await controller.finish()
+  const flush = async (preserveFocus = false): Promise<void> => {
+    await controller.finish(preserveFocus)
     if (retainedFields.get(fieldKey) === controller) retainedFields.delete(fieldKey)
     const codex = useCodexStore.getState()
     if (codex.selectedId) await codex.select(codex.selectedId)
@@ -33,7 +33,10 @@ export function SharedFieldControl({ binding, value, label, type, list, options,
   useEffect(() => controller.stored(value), [controller, value])
   const editable = view.phase === 'editing'
   const recoveryPath = view.recoveryPath
-  const blur = (): void => { void persistPendingWrite(key, flush).catch(() => {}) }
+  const blur = (): void => {
+    controller.blur()
+    void persistPendingWrite(key, () => flush(true)).catch(() => {})
+  }
   const recover = (): void => {
     void persistPendingWrite(key, async () => { await controller.recover(); await flush() }).catch(() => {})
   }

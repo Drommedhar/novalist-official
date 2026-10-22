@@ -6,8 +6,13 @@ namespace Novalist.Sync.Client;
 public sealed record SharedDocumentState(Guid ItemId, string Path, byte[] State)
 {
     public string? SourceSha256 { get; init; }
+    public SharedTextField? TextField { get; init; }
 }
-public sealed record CheckpointDocument(Guid ItemId, string Path, long Length, string Sha256);
+public sealed record SharedTextField(string Key, string? SectionId = null, string? Chapter = null, string? Scene = null);
+public sealed record CheckpointDocument(Guid ItemId, string Path, long Length, string Sha256)
+{
+    public SharedTextField? TextField { get; init; }
+}
 
 internal static class CheckpointDocuments
 {
@@ -17,15 +22,16 @@ internal static class CheckpointDocuments
     {
         var paths = files.Select(file => file.Path).ToHashSet(StringComparer.Ordinal);
         var identities = new HashSet<Guid>();
-        var bindings = new HashSet<string>(StringComparer.Ordinal);
+        var bindings = new HashSet<(string, SharedTextField?)>();
         foreach (var document in documents)
         {
             if (document is null || document.ItemId == Guid.Empty || !identities.Add(document.ItemId) ||
-                !paths.Contains(document.Path) || !bindings.Add(document.Path) ||
+                !paths.Contains(document.Path) || !bindings.Add((document.Path, document.TextField)) ||
                 document.Length is <= 0 or > MaxStateBytes || document.Length > quota ||
                 document.Sha256 is null || document.Sha256.Length != 64 || !document.Sha256.All(Uri.IsHexDigit))
                 throw new InvalidDataException("Invalid shared document checkpoint.");
             quota -= document.Length;
+            SharedProseFields.Validate(document.TextField);
         }
     }
 
@@ -35,7 +41,7 @@ internal static class CheckpointDocuments
         if (documents.Any(document => document is null || document.State is null))
             throw new InvalidDataException("Missing shared document state.");
         var descriptions = documents.Select(document => new CheckpointDocument(document.ItemId, document.Path,
-            document.State.Length, Convert.ToHexStringLower(SHA256.HashData(document.State)))).ToArray();
+            document.State.Length, Convert.ToHexStringLower(SHA256.HashData(document.State))) { TextField = document.TextField }).ToArray();
         Validate(files, descriptions, long.MaxValue);
         var sources = files.ToDictionary(file => file.Path, StringComparer.Ordinal);
         foreach (var document in documents)
@@ -64,7 +70,7 @@ internal static class CheckpointDocuments
             if (await stream.ReadAsync(new byte[1], ct) != 0 ||
                 !string.Equals(Convert.ToHexStringLower(SHA256.HashData(state)), document.Sha256, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidDataException("Shared document state hash mismatch.");
-            states.Add(new(document.ItemId, document.Path, state));
+            states.Add(new(document.ItemId, document.Path, state) { TextField = document.TextField });
         }
         return states;
     }

@@ -1,5 +1,6 @@
 {
   "collaboration": {
+    "editorError": "协作内容需要处理。关闭项目前请重试保存。",
     "resume": "重新连接共享项目",
     "resumeHint": "重新连接到已保存的服务器。恢复归档会保留当前本地副本；结束会话后所做的修改不会自动发送。",
     "savedServer": "已保存的共享项目：{{server}}",

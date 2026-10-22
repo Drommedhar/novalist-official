@@ -19,6 +19,14 @@ interface RetainedScene { state: Uint8Array; flush(): Promise<void> }
 const retainedStates = new Map<string, Map<string, RetainedScene>>()
 const listeners = new Set<(event: SharedSceneUpdate) => void>()
 
+export function subscribeSharedDocument(identity: { sessionId: string; itemId: string }, receive: (update: Uint8Array) => void): () => void {
+  const listener = (event: SharedSceneUpdate): void => {
+    if (event.sessionId === identity.sessionId && event.itemId === identity.itemId) receive(decodeState(event.update))
+  }
+  listeners.add(listener)
+  return () => { listeners.delete(listener) }
+}
+
 rpc.onNotification('collaboration/sceneUpdated', params => {
   const payload = Array.isArray(params) ? params[0] : params
   if (!payload || typeof payload !== 'object') return
@@ -43,13 +51,7 @@ export function syncSharedEditor(pane: string, editor: EditorWindow): 'attached'
   const session = new SharedEditorSession(editor, decodeState(identity.state), {
     write: update => rpc.request('collaboration/writeScene', [identity.sessionId, identity.itemId, encodeState(update)]),
     read: async () => decodeState(await rpc.request<string>('collaboration/readScene', [identity.sessionId, identity.itemId])),
-    subscribe: receive => {
-      const listener = (event: SharedSceneUpdate): void => {
-        if (event.sessionId === identity.sessionId && event.itemId === identity.itemId) receive(decodeState(event.update))
-      }
-      listeners.add(listener)
-      return () => listeners.delete(listener)
-    }
+    subscribe: receive => subscribeSharedDocument(identity, receive)
   }, status => applyStatus(pane, identity, generation, status))
   bindings.set(pane, { editor, identity, session, generation,
     presence: identity.presence ? new SharedEditorPresence(identity, session) : undefined })

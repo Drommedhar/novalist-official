@@ -34,6 +34,7 @@ public sealed partial class Workspace
         var recorded = sharedSceneRecorded;
         foreach (var item in initial)
         {
+            if (item.TextField is not null) { sharedProse.Add(item.ItemId, item); continue; }
             var path = SharedProjectPath.Resolve(root, item.Path);
             var bytes = await FileService.ReadBytesAsync(path);
             if (item.SourceSha256 is { } expected && !string.Equals(expected,
@@ -50,6 +51,7 @@ public sealed partial class Workspace
         var documents = new SharedSceneWorkspace(session, factory(sessionId), async (item, snapshot, local, _) =>
         {
             if (Projects.ProjectRoot != root) throw new InvalidOperationException("The shared project is no longer open.");
+            if (sharedProse.TryGetValue(item, out var prose)) { await ProjectSharedProseAsync(root, prose, snapshot); return; }
             if (snapshot.Html is null)
             {
                 await FileService.DeleteFileAsync(SharedProjectPath.Resolve(root, files[item].Relative));
@@ -74,7 +76,7 @@ public sealed partial class Workspace
         sharedScenes = documents;
         sharedSession = sessionId;
         sharedRoot = root;
-        foreach (var item in initial) sharedItems.Add(item.Path, item.ItemId);
+        foreach (var item in initial.Where(item => item.TextField is null)) sharedItems.Add(item.Path, item.ItemId);
     }
 
     internal async Task<SceneContentDto?> ReadSharedSceneAsync(string chapterGuid, string sceneId, CancellationToken ct)
@@ -118,6 +120,7 @@ public sealed partial class Workspace
         sharedSceneProjected.Clear();
         sharedSceneRecorded.Clear();
         sharedSceneBaseline.Clear();
+        sharedProse.Clear();
         sharedRoot = null;
         sharedSession = Guid.Empty;
         if (HostedProjects is { } hosted) await hosted.ReleaseAsync();

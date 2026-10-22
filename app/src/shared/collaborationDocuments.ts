@@ -1,6 +1,7 @@
 export type SceneCommand =
   | { kind: 'seed'; id: string; html: string }
-  | { kind: 'load'; id: string; state: Uint8Array; deletions?: Uint8Array[] }
+  | { kind: 'seedText'; id: string; text: string }
+  | { kind: 'load'; id: string; state: Uint8Array; deletions?: Uint8Array[]; plainText?: boolean }
   | { kind: 'receive' | 'remove' | 'validate'; id: string; state: Uint8Array }
 
 export interface SharedSceneSnapshot {
@@ -8,6 +9,8 @@ export interface SharedSceneSnapshot {
   deletions: Uint8Array[]
   html: string | null
   recovered: string | null
+  text?: string | null
+  recoveredText?: string | null
 }
 
 export interface DocumentRequest {
