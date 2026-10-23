@@ -52,7 +52,9 @@ project** and choose its folder. Novalist compares relative paths and SHA-256
 hashes, reuses matching files, and requests only missing or changed files from
 the host. Local differences are preserved in **Recovered edits** before the shared
 version is installed. Progress shows scanning, comparison and transfer, with file
-counts, reused files, transferred bytes and **Cancel synchronization**.
+counts, reused files, transferred bytes and **Cancel synchronization**. On the
+host, preparation counts describe files processed locally, not uploaded data.
+The dialog stays in startup until the live session is ready.
 
 The synchronized project includes every book and draft,
 Codex entries, images and research. Personal settings, credentials, local

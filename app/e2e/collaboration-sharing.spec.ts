@@ -25,8 +25,22 @@ test('existing empty paragraphs and grammar highlights survive sharing and joini
     await owner.page.getByLabel('Server address', { exact: true }).fill(server.address)
     await owner.page.getByRole('button', { name: 'Sign in', exact: true }).click()
     await expect(owner.page.getByText('Signed in as Test Writer', { exact: true })).toBeVisible()
+    await owner.page.evaluate(() => {
+      const observed = document.createElement('div')
+      observed.id = 'host-progress-observed'
+      observed.hidden = true
+      document.body.append(observed)
+      new MutationObserver(() => {
+        const dialog = document.querySelector('[role="dialog"][aria-label="Synchronization progress"]')
+        if (dialog?.textContent?.includes('transferred')) observed.dataset.claimedTransfer = 'true'
+        if (dialog?.textContent?.includes('Project synchronized.')) observed.dataset.claimedComplete = 'true'
+      }).observe(document.body, { childList: true, subtree: true, characterData: true })
+    })
     await owner.page.getByRole('button', { name: 'Share this project', exact: true }).click()
     await expect(owner.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible({ timeout: 35_000 })
+    await expect(owner.page.getByRole('dialog', { name: 'Synchronization progress' })).toHaveCount(0)
+    await expect(owner.page.locator('#host-progress-observed')).not.toHaveAttribute('data-claimed-transfer', 'true')
+    await expect(owner.page.locator('#host-progress-observed')).not.toHaveAttribute('data-claimed-complete', 'true')
     const invitation = await owner.rpc<string>('collaboration/invite', [new Date(Date.now() + 3600_000).toISOString()])
     subject = 'guest'
     guest = await launchApp('novalist-sharing-guest-')

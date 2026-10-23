@@ -8,6 +8,17 @@ announcement.
 
 ## Relay correction, 2026-10-23
 
+Follow-up host progress correction: the local checkpoint's processed byte count
+was displayed as transferred data, and its completion was displayed as session
+success while startup was still pending. The renderer now distinguishes local
+preparation, pending startup and successful sharing. A real Share-button test
+reproduced the incorrect labels; the corrected UI regression and an injected
+late-startup failure test pass. The user also reported a later error whose text
+was no longer available. That startup failure remains unidentified; the populated
+project succeeds through the Share button using isolated copies. Local evidence
+is retained in `app/out/host-progress-*.log`, `host-startup-green.log` and
+`host-corpus-*.log`. No backend behavior changed in this correction.
+
 The desktop now connects through the live packet relay in the local server
 checkout at `2ad5a9f`. Its default mode registers no database and exposes no
 project-storage endpoints. The host must remain online. Clients compare relative

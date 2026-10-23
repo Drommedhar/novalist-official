@@ -48,6 +48,11 @@ collaboration or incremental joining is complete.
 | C9 | Complete | Existing peer collaboration | Relay mode registers no database or storage endpoints and forwards packets only. Joining requires the online host; real relay transport and desktop acceptance pass. |
 | C10 | Complete | C9 | Relative paths and SHA-256 select missing/changed files; matching files are reused and local differences are recoverable. Existing-copy acceptance covers large assets, private files and all 117 scenes of the populated project. |
 | C11 | Complete | C9, C10 | Scanning/comparison/transfer progress, file/byte/reuse counts and cancellation work while the workspace is busy. All 55 desktop scenarios pass across the full run and corrected setup reruns; populated-project share/join/end passes and Backend retains 100% coverage. |
+| C12 | In progress | C11 | Fix scene typing layout flicker, populated Manuscript loading and normal window shutdown during collaboration. Verify through the editor and desktop lifecycle. |
+| C13 | In progress | C11 | Starting sharing preserves existing project file contents; local preparation and attachment perform no unnecessary rewrites. Compare all included files before and after sharing and joining. |
+| C14 | In progress | C11 | Named Codex viewing/editing presence, clear host/join settings, functional new-folder joining and centered progress controls. Verify visible controls in two desktop instances. |
+| C15 | In progress | C11 | Local sign-in/relay lifecycle survives normal development restarts and fails clearly when unavailable; test stale identity endpoints and restarting the manual helper. |
+| C16 | Pending | C12, C13, C14, C15 | Combine fixes, run populated two-window acceptance including real close actions, review standards/spec, retain local evidence and remove temporary branches/worktrees. |
 
 Approved test boundaries: editor API, collaboration session API, real transports.
 Implementation agents use isolated worktrees from the integration branch;
