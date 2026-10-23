@@ -9,6 +9,7 @@ import { rpc } from '../../rpc/client'
 import { metadataBinding } from '../../collaboration/SharedMetadataField'
 import { writeSharedField, writeSharedMetadata } from '../../collaboration/metadataCommands'
 import type { SharedEntityFields } from '../../collaboration/FocusedField'
+import { CodexPresence } from '../../collaboration/CodexPresence'
 import { useHostBridgeStore } from '../../stores/hostBridgeStore'
 
 /** Character grouping mode for the navigation column. */
@@ -72,6 +73,7 @@ function EntityRow({
         {entity.detail && <span className="codex-row-detail">{entity.detail}</span>}
       </span>
       {entity.gender && <span className="codex-gender">{entity.gender.slice(0, 1).toUpperCase()}</span>}
+      <CodexPresence fields={entity.sharedFields} prose={entity.sharedProse} compact />
       {entity.isWorld && <span className="codex-wb">{t('codexHub.worldBadge')}</span>}
       {entity.isWorldBible && <span className="codex-wb">{t('common.wbBadge')}</span>}
     </button>

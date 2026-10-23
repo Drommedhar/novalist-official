@@ -24,50 +24,60 @@ export function SharedProjectCard({ server, signedIn }: { server: string; signed
     if (useHostedSessionStore.getState().session) setLink('')
   }
   const recoveryPath = session?.recoveryPath || saved?.recoveryPath
-  return <div className="settings-subgroup">
+  return <div className="collaboration-project">
     {session ? <>
       <p role="status">{t('collaboration.connection.' + session.connection)}</p>
       {presenceUnavailable && <p className="settings-hint">{t('collaboration.presenceUnavailable')}</p>}
       <p className="settings-hint">{t(session.mode === 'hosted' ? 'collaboration.localCopyHint' : 'collaboration.peerLocalCopyHint')}</p>
-      <div className="match-row">
-        {session.isOwner && <button className="btn-primary" disabled={busy !== null || session.connection !== 'Connected'} onClick={() => {
+      <div className="settings-button-row">
+        {session.isOwner && <button className="dialog-button primary" disabled={busy !== null || session.connection !== 'Connected'} onClick={() => {
           void run('invite', [new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()])
         }}>{t('collaboration.invite')}</button>}
-        <button className="btn-secondary" disabled={busy !== null} onClick={() => void run('end')}>{t('collaboration.end')}</button>
-        {session.connection === 'KeyRefreshRequired' && <button className="btn-primary" disabled={busy !== null} onClick={() => {
+        <button className="dialog-button" disabled={busy !== null} onClick={() => void run('end')}>{t('collaboration.end')}</button>
+        {session.connection === 'KeyRefreshRequired' && <button className="dialog-button primary" disabled={busy !== null} onClick={() => {
           void run('end').then(() => { if (!useHostedSessionStore.getState().session) return run('resume') })
         }}>{t('collaboration.refreshKeys')}</button>}
       </div>
       {invitation && <>
         <label className="inspector-label" htmlFor="set-collaboration-invitation">{t('collaboration.invitation')}</label>
-        <textarea id="set-collaboration-invitation" className="inspector-input" value={invitation} readOnly onFocus={event => event.target.select()} />
+        <textarea id="set-collaboration-invitation" className="dialog-input" value={invitation} readOnly onFocus={event => event.target.select()} />
         <p className="settings-hint">{t(session.mode === 'hosted' ? 'collaboration.invitationHint' : 'collaboration.peerInvitationHint')}</p>
       </>}
       {session.isOwner && <SharedProjectAccess sessionId={session.sessionId} disabled={busy !== null || session.connection === 'AccessEnded'} />}
     </> : <>
       {saved && <>
         <p className="settings-hint">{t('collaboration.savedServer', { server: saved.server })}</p>
-        <button className="btn-primary" disabled={!loaded || busy !== null} onClick={() => void run('resume')}>{t('collaboration.resume')}</button>
+        <button className="dialog-button primary" disabled={!loaded || busy !== null} onClick={() => void run('resume')}>{t('collaboration.resume')}</button>
         <p className="settings-hint">{t('collaboration.resumeHint')}</p>
       </>}
-      <button className="btn-primary" disabled={!signedIn || !loaded || busy !== null} onClick={() => void run('create', [server.trim()])}>
+      {!signedIn && <p className="settings-hint">{t('collaboration.signInHint')}</p>}
+      <div className="collaboration-options">
+      <section className="collaboration-option" aria-labelledby="collaboration-host-title">
+      <h4 id="collaboration-host-title">{t('collaboration.hostTitle')}</h4>
+      <p className="settings-hint">{t('collaboration.hostHint')}</p>
+      <button className="dialog-button primary" disabled={!signedIn || !loaded || busy !== null} onClick={() => void run('create', [server.trim()])}>
         {t('collaboration.create')}
       </button>
       {!loaded && <p className="settings-hint">{t('collaboration.openProjectHint')}</p>}
+      </section>
+      <section className="collaboration-option" aria-labelledby="collaboration-join-title">
+      <h4 id="collaboration-join-title">{t('collaboration.joinTitle')}</h4>
       <label className="inspector-label" htmlFor="set-collaboration-join">{t('collaboration.invitation')}</label>
-      <textarea id="set-collaboration-join" className="inspector-input" value={link} disabled={busy !== null} autoComplete="off"
+      <textarea id="set-collaboration-join" className="dialog-input" value={link} disabled={busy !== null} autoComplete="off"
         onChange={event => setLink(event.target.value)} />
       <CollaborationDestination id="set-collaboration-destination" busy={busy !== null} onChange={setDestination} />
-      <div className="match-row">
-        <button className="btn-primary" disabled={!signedIn || busy !== null || !link.trim() || !destination.valid} onClick={() => void join()}>
+      <div className="settings-button-row">
+        <button className="dialog-button primary" disabled={!signedIn || busy !== null || !link.trim() || !destination.valid} onClick={() => void join()}>
           {t('collaboration.join')}
         </button>
-        {loaded && !destination.existing && <button className="btn-secondary" disabled={busy !== null || !destination.valid}
+        {loaded && !destination.existing && <button className="dialog-button" disabled={busy !== null || !destination.valid}
           onClick={() => void run('copy', [destination.path])}>{t('collaboration.copy')}</button>}
       </div>
       <p className="settings-hint">{t('collaboration.joinHint')}</p>
+      </section>
+      </div>
     </>}
-    {recoveryPath && <button className="btn-secondary" onClick={() => {
+    {recoveryPath && <button className="dialog-button" onClick={() => {
       void window.novalist.revealPath(recoveryPath).catch(reason => setLocalError(String(reason)))
     }}>{t('collaboration.showRetainedCopy')}</button>}
     {copied && <p role="status">{t('collaboration.copyCreated')}</p>}

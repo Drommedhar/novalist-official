@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useHostedSessionStore } from '../../collaboration/hostedSessionStore'
+import './collaboration.css'
 
 export function CollaborationTransferDialog(): React.JSX.Element | null {
   const { t } = useTranslation()
@@ -27,7 +28,7 @@ export function CollaborationTransferStatus({ active = false }: { active?: boole
   const total = starting ? 0 : transfer?.phase === 'transferring' ? transfer.totalBytes : transfer?.totalFiles ?? 0
   const done = transfer?.phase === 'transferring' ? transfer.completedBytes : transfer?.completedFiles ?? 0
   const canCancel = busy !== null && !['copy', 'invite', 'end'].includes(busy)
-  return <div className="settings-subgroup" aria-live="polite">
+  return <div className="collaboration-transfer" aria-live="polite">
     <p role="status">{cancelling ? t('collaboration.transfer.cancelling') : phase
       ? t('collaboration.transfer.' + phase) : t('collaboration.progress.' + busy)}</p>
     {busy && <progress aria-label={t('collaboration.transfer.label')} max={Math.max(total, 1)}
@@ -40,7 +41,7 @@ export function CollaborationTransferStatus({ active = false }: { active?: boole
         done: bytes(transfer.completedBytes), total: bytes(transfer.totalBytes)
       })}</p>}
     </>}
-    {canCancel && <button className="btn-secondary" disabled={cancelling} onClick={() => void cancel()}>
+    {canCancel && <button className="dialog-button" disabled={cancelling} onClick={() => void cancel()}>
       {t('collaboration.transfer.cancel')}
     </button>}
   </div>

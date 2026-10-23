@@ -1,5 +1,12 @@
 {
   "collaboration": {
+    "defaultFolderName": "Shared project",
+    "chooseDestinationHint": "Choose where to save your local project copy.",
+    "invalidFolderName": "Enter a valid folder name without special characters or a trailing dot.",
+    "hostTitle": "Share your project",
+    "hostHint": "Invite writers to the project you have open. Keep Novalist open while they collaborate.",
+    "joinTitle": "Join an invitation",
+    "signInHint": "Sign in above to share or join a project.",
     "mode": "Connection type",
     "modeHosted": "Relay server",
     "modeTcp": "Direct connection (TCP)",
@@ -37,6 +44,7 @@
     "serverHint": "Sign in to your community relay server using your browser. The server forwards packets between writers and does not store project data. The host must stay online.",
     "signIn": "Sign in",
     "signOut": "Sign out",
+    "forgetSignIn": "Forget saved sign-in",
     "cancelSignIn": "Cancel sign-in",
     "signedIn": "Signed in as {{name}}",
     "browserPending": "Finish signing in in your browser.",
@@ -56,6 +64,7 @@
     "fieldLocked": "This field is locked.",
     "fieldLockedBy": "{{name}} is editing this field.",
     "sceneEditors": "Editing: {{names}}",
+    "entryViewers": "Viewing: {{names}}",
     "fieldExpired": "The editing lock expired. Your draft is kept; save a recovery copy before ending the session.",
     "retryField": "Retry save",
     "recoverField": "Save a recovery copy",

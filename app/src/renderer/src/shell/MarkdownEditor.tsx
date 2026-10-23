@@ -389,7 +389,7 @@ export function MarkdownEditor({
         const session = collaboration
         session.attach(created)
         unregister = registerPendingWrite(() => session.flush())
-        presence = new SharedEditorPresence({ ...shared, state: '', presence: true }, session)
+        presence = new SharedEditorPresence({ ...shared, state: '', presence: true }, session, () => created?.hasFocus === true)
         await session.refresh()
       }
     }

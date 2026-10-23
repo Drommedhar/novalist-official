@@ -35,6 +35,10 @@ public sealed class SharedCodexTypesTests
         var field = entry.GetProperty("sharedFields").GetProperty("fields").GetProperty(key).GetGuid();
         var summary = Assert.Single(await desktop.Rpc.InvokeAsync<EntitySummaryDto[]>("entities/list", type));
         Assert.Equal(field, summary.SharedFields!.Fields[key]);
+        var presence = entry.GetProperty("sharedFields").GetProperty("presenceItemId").GetGuid();
+        Assert.NotEqual(Guid.Empty, presence);
+        Assert.NotEqual(field, presence);
+        Assert.Equal(presence, summary.SharedFields.PresenceItemId);
         if (type != "species") Assert.Contains("description", summary.SharedProse!.Fields.Keys);
         var focus = Guid.NewGuid();
 

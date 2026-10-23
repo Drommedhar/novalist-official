@@ -45,14 +45,14 @@ export function SharedProjectAccess({ sessionId, disabled }: { sessionId: string
   return <div className="settings-subgroup">
     <h4>{t('collaboration.access.title')}</h4>
     <p className="settings-hint">{t('collaboration.access.hint')}</p>
-    {members.map(member => <div className="match-row" key={member.userId}>
+    {members.map(member => <div className="settings-button-row" key={member.userId}>
       <span>{member.displayName}</span>
       {member.role === 'Owner' ? <span>{t('collaboration.access.owner')}</span> :
-        <button className="btn-secondary" disabled={disabled || busy} onClick={() => void remove(member)}>
+        <button className="dialog-button" disabled={disabled || busy} onClick={() => void remove(member)}>
           {t('collaboration.access.remove')}
         </button>}
     </div>)}
-    <button className="btn-secondary" disabled={disabled || busy} onClick={() => void deleteProject()}>
+    <button className="dialog-button" disabled={disabled || busy} onClick={() => void deleteProject()}>
       {t('collaboration.access.delete')}
     </button>
     {error && <p role="alert">{error}</p>}

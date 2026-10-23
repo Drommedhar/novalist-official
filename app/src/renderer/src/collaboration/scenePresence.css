@@ -1,3 +1,9 @@
+.collaboration-entry-presence {
+  margin: var(--nl-space-sm) var(--nl-space-none);
+  color: var(--nl-accent);
+  font-size: var(--nl-font-ui);
+}
+
 .collaboration-scene-badge {
   display: inline-flex;
   flex-shrink: 0;

@@ -12,13 +12,15 @@ export function CollaborationDestination({ id, busy, onChange }: {
   const [existing, setExisting] = useState(false)
   const [parent, setParent] = useState('')
   const [copy, setCopy] = useState('')
-  const [name, setName] = useState('')
+  const [name, setName] = useState(() => t('collaboration.defaultFolderName'))
   const [error, setError] = useState('')
-  const validName = name.trim().length > 0 && !/[\\/:*?"<>|]/.test(name) && !['.', '..'].includes(name.trim())
+  const validName = name.trim().length > 0 && !/[\\/:*?"<>|\x00-\x1f]/.test(name) && !/[. ]$/.test(name)
+    && !/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(name)
+  const path = existing ? copy : parent.replace(/[\\/]$/, '') + '/' + name.trim()
   useEffect(() => {
-    onChange({ existing, path: existing ? copy : parent.replace(/[\\/]$/, '') + '/' + name.trim(),
+    onChange({ existing, path,
       valid: existing ? Boolean(copy) : Boolean(parent) && validName })
-  }, [existing, copy, parent, name, validName, onChange])
+  }, [existing, copy, parent, path, validName, onChange])
   const choose = async (): Promise<void> => {
     try {
       const folder = await window.novalist.pickFolder(t(existing ? 'collaboration.existingFolder' : 'collaboration.parentFolder'))
@@ -29,22 +31,24 @@ export function CollaborationDestination({ id, busy, onChange }: {
       }
     } catch (reason) { setError(String(reason)) }
   }
-  return <>
-    <label className="match-row" htmlFor={id + '-existing'}>
+  return <div className="collaboration-destination">
+    <label className="collaboration-checkbox" htmlFor={id + '-existing'}>
       <input id={id + '-existing'} type="checkbox" checked={existing} disabled={busy}
         onChange={event => setExisting(event.target.checked)} />
       {t('collaboration.useExisting')}
     </label>
     {!existing && <>
       <label className="inspector-label" htmlFor={id + '-name'}>{t('collaboration.localFolderName')}</label>
-      <input id={id + '-name'} className="inspector-input" value={name} disabled={busy}
+      <input id={id + '-name'} className="dialog-input" value={name} disabled={busy}
+        aria-invalid={!validName} aria-describedby={!validName ? id + '-invalid' : undefined}
         onChange={event => setName(event.target.value)} />
+      {!validName && <p id={id + '-invalid'} className="collaboration-error" role="alert">{t('collaboration.invalidFolderName')}</p>}
     </>}
-    <button className="btn-secondary" disabled={busy} onClick={() => void choose()}>
+    <button className="dialog-button" disabled={busy} onClick={() => void choose()}>
       {t(existing ? 'collaboration.existingFolder' : 'collaboration.parentFolder')}
     </button>
-    {(existing ? copy : parent) && <p className="settings-hint">{existing ? copy : parent}</p>}
+    <p className="settings-hint collaboration-destination-path">{(existing ? copy : parent) ? path : t('collaboration.chooseDestinationHint')}</p>
     {existing && <p className="settings-hint">{t('collaboration.reuseHint')}</p>}
     {error && <p role="alert">{error}</p>}
-  </>
+  </div>
 }

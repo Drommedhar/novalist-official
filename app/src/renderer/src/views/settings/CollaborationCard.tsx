@@ -60,9 +60,9 @@ export function CollaborationCard(): React.JSX.Element {
     finally { setBusy(null) }
   }
 
-  return <div className="settings-subgroup">
+  return <div className="collaboration-settings">
     <label className="inspector-label" htmlFor="set-collaboration-mode">{t('collaboration.mode')}</label>
-    <select id="set-collaboration-mode" className="inspector-input" value={mode} disabled={sharing}
+    <select id="set-collaboration-mode" className="dialog-input" value={mode} disabled={sharing}
       onChange={event => setSelectedMode(event.target.value)}>
       <option value="hosted">{t('collaboration.modeHosted')}</option>
       <option value="tcp">{t('collaboration.modeTcp')}</option>
@@ -71,16 +71,19 @@ export function CollaborationCard(): React.JSX.Element {
     {mode !== 'hosted' ? <PeerProjectCard key={mode} steam={mode === 'steam'} /> : <>
     <p className="settings-hint">{t('collaboration.serverHint')}</p>
     <label className="inspector-label" htmlFor="set-collaboration-server">{t('collaboration.server')}</label>
-    <input id="set-collaboration-server" className="inspector-input" type="url" value={server} disabled={busy !== null || sharing}
+    <input id="set-collaboration-server" className="dialog-input" type="url" value={server} disabled={busy !== null || sharing}
       onChange={event => { setServer(event.target.value); setAccount(null); setError('') }} />
     {account && <p role="status">{t('collaboration.signedIn', { name: account.displayName })}</p>}
     {busy === 'signIn' && <p role="status">{t('collaboration.browserPending')}</p>}
     {error && <p role="alert">{error}</p>}
-    <div className="match-row">
+    <div className="settings-button-row">
       {account
-        ? <button className="btn-secondary" disabled={busy !== null || sharing} onClick={() => void signOut()}>{t('collaboration.signOut')}</button>
-        : <button className="btn-primary" disabled={busy !== null || !server.trim()} onClick={() => void signIn()}>{t('collaboration.signIn')}</button>}
-      {busy === 'signIn' && <button className="btn-secondary" onClick={() => {
+        ? <button className="dialog-button" disabled={busy !== null || sharing} onClick={() => void signOut()}>{t('collaboration.signOut')}</button>
+        : <button className="dialog-button primary" disabled={busy !== null || !server.trim()} onClick={() => void signIn()}>{t('collaboration.signIn')}</button>}
+      {!account && error && <button className="dialog-button" disabled={busy !== null || sharing} onClick={() => void signOut()}>
+        {t('collaboration.forgetSignIn')}
+      </button>}
+      {busy === 'signIn' && <button className="dialog-button" onClick={() => {
         void rpc.request('collaboration/account/cancel').catch(reason => setError(String(reason)))
       }}>{t('collaboration.cancelSignIn')}</button>}
     </div>

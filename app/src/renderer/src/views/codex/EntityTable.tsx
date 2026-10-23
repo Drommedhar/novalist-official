@@ -5,6 +5,7 @@ import { SharedFieldControl } from './SharedFieldControl'
 import { metadataBinding, SharedMetadataField } from '../../collaboration/SharedMetadataField'
 import { proseBinding } from '../../collaboration/sharedMarkdown'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
+import { CodexPresence } from '../../collaboration/CodexPresence'
 
 /**
  * One editable column of the table.
@@ -105,6 +106,7 @@ export function EntityTable(): React.JSX.Element {
                 <td key={column.key}>
                   <TableCell entity={entity} column={column} label={`${entity.name} ${t(column.labelKey)}`}
                     commit={value => commit(entity, column, value)} />
+                  {column.key === 'name' && <CodexPresence fields={entity.sharedFields} prose={entity.sharedProse} compact />}
                 </td>
               ))}
             </tr>

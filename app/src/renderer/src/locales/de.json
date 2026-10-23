@@ -1,5 +1,12 @@
 {
   "collaboration": {
+    "defaultFolderName": "Gemeinsames Projekt",
+    "chooseDestinationHint": "Wähle aus, wo deine lokale Projektkopie gespeichert werden soll.",
+    "invalidFolderName": "Gib einen gültigen Ordnernamen ohne Sonderzeichen oder Punkt am Ende ein.",
+    "hostTitle": "Dein Projekt teilen",
+    "hostHint": "Lade Schreibende in dein geöffnetes Projekt ein. Lass Novalist während der Zusammenarbeit geöffnet.",
+    "joinTitle": "Mit Einladung beitreten",
+    "signInHint": "Melde dich oben an, um ein Projekt zu teilen oder beizutreten.",
     "mode": "Verbindungstyp",
     "modeHosted": "Relay-Server",
     "modeTcp": "Direkte Verbindung (TCP)",
@@ -37,6 +44,7 @@
     "serverHint": "Melde dich über deinen Browser beim Community-Relay-Server an. Der Server leitet Pakete zwischen Schreibenden weiter und speichert keine Projektdaten. Der Host muss online bleiben.",
     "signIn": "Anmelden",
     "signOut": "Abmelden",
+    "forgetSignIn": "Gespeicherte Anmeldung entfernen",
     "cancelSignIn": "Anmeldung abbrechen",
     "signedIn": "Angemeldet als {{name}}",
     "browserPending": "Schließe die Anmeldung in deinem Browser ab.",
@@ -56,6 +64,7 @@
     "fieldLocked": "Dieses Feld ist gesperrt.",
     "fieldLockedBy": "{{name}} bearbeitet dieses Feld.",
     "sceneEditors": "In Bearbeitung: {{names}}",
+    "entryViewers": "Ansehen: {{names}}",
     "fieldExpired": "Die Bearbeitungssperre ist abgelaufen. Dein Entwurf bleibt erhalten; sichere eine Wiederherstellungskopie vor dem Beenden der Sitzung.",
     "retryField": "Speichern erneut versuchen",
     "recoverField": "Wiederherstellungskopie sichern",

@@ -33,32 +33,42 @@ export function PeerProjectCard({ steam = false }: { steam?: boolean }): React.J
   const validName = name.trim().length > 0 && name.trim().length <= 128
   const validPort = /^\d+$/.test(port) && Number(port) >= 0 && Number(port) <= 65535
   if (session) return <SharedProjectCard server="" signedIn={false} />
-  return <div className="settings-subgroup">
+  return <div className="collaboration-project">
     <p className="settings-hint">{t(steam ? 'collaboration.steamHint' : 'collaboration.peerHint')}</p>
     {steam && steamStatus && !steamStatus.available && <p role="status">{steamStatus.reason}</p>}
     <label className="inspector-label" htmlFor="set-peer-name">{t('collaboration.peerName')}</label>
-    <input id="set-peer-name" className="inspector-input" value={name} disabled={busy !== null} maxLength={128}
+    <input id="set-peer-name" className="dialog-input" value={name} disabled={busy !== null} maxLength={128}
       onChange={event => setName(event.target.value)} />
+    <div className="collaboration-options">
+    <section className="collaboration-option" aria-labelledby="collaboration-host-title">
+    <h4 id="collaboration-host-title">{t('collaboration.hostTitle')}</h4>
+    <p className="settings-hint">{t('collaboration.hostHint')}</p>
     {!steam && <><label className="inspector-label" htmlFor="set-peer-address">{t('collaboration.peerAddress')}</label>
-    <input id="set-peer-address" className="inspector-input" value={address} disabled={busy !== null}
+    <input id="set-peer-address" className="dialog-input" value={address} disabled={busy !== null}
       onChange={event => setAddress(event.target.value)} />
     <label className="inspector-label" htmlFor="set-peer-port">{t('collaboration.peerPort')}</label>
-    <input id="set-peer-port" className="inspector-input" type="number" min={0} max={65535} value={port} disabled={busy !== null}
+    <input id="set-peer-port" className="dialog-input" type="number" min={0} max={65535} value={port} disabled={busy !== null}
       onChange={event => setPort(event.target.value)} /></>}
-    <button className="btn-primary" disabled={busy !== null || !available || !loaded || !validName || !address.trim() || !validPort}
+    <button className="dialog-button primary" disabled={busy !== null || !available || !loaded || !validName || !address.trim() || !validPort}
       onClick={() => void (steam ? run('steamHost', [name.trim()]) : run('peerHost', [address.trim(), Number(port), name.trim()]))}>
       {t(steam ? 'collaboration.steamHost' : 'collaboration.peerHost')}</button>
     {!loaded && <p className="settings-hint">{t('collaboration.openProjectHint')}</p>}
+    </section>
+    <section className="collaboration-option" aria-labelledby="collaboration-join-title">
+    <h4 id="collaboration-join-title">{t('collaboration.joinTitle')}</h4>
     <label className="inspector-label" htmlFor="set-peer-link">{t('collaboration.invitation')}</label>
-    <textarea id="set-peer-link" className="inspector-input" value={link} disabled={busy !== null} autoComplete="off"
+    <textarea id="set-peer-link" className="dialog-input" value={link} disabled={busy !== null} autoComplete="off"
       onChange={event => setLink(event.target.value)} />
     <CollaborationDestination id="set-peer-destination" busy={busy !== null} onChange={setDestination} />
-    <div className="match-row">
-      <button className="btn-primary" disabled={busy !== null || !available || !validName || !link.trim() || !destination.valid}
+    <div className="settings-button-row">
+      <button className="dialog-button primary" disabled={busy !== null || !available || !validName || !link.trim() || !destination.valid}
         onClick={() => void run(steam ? 'steamJoin' : 'peerJoin', [link.trim(), destination.path, name.trim()])}>
         {t(steam ? 'collaboration.steamJoin' : 'collaboration.peerJoin')}</button>
-      {loaded && !destination.existing && <button className="btn-secondary" disabled={busy !== null || !destination.valid}
+      {loaded && !destination.existing && <button className="dialog-button" disabled={busy !== null || !destination.valid}
         onClick={() => void run('copy', [destination.path])}>{t('collaboration.copy')}</button>}
+    </div>
+    <p className="settings-hint">{t('collaboration.joinHint')}</p>
+    </section>
     </div>
     {copied && <p role="status">{t('collaboration.copyCreated')}</p>}
     <CollaborationTransferStatus />

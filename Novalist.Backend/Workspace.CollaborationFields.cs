@@ -1,4 +1,6 @@
 #if NOVALIST_COLLABORATION
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Novalist.Core.Models;
@@ -10,6 +12,7 @@ namespace Novalist.Backend;
 public sealed record SharedEntityFieldsDto(Guid SessionId, IReadOnlyDictionary<string, Guid> Fields)
 {
     public IReadOnlyDictionary<string, Guid>? Metadata { get; init; }
+    public Guid? PresenceItemId { get; init; }
 }
 
 public sealed partial class Workspace
@@ -59,7 +62,7 @@ public sealed partial class Workspace
 
     internal SharedEntityFieldsDto? SharedEntityFields(IEntityData entity)
     {
-        if (sharedFields is null) return null;
+        if (sharedFields is null || fieldSession is null) return null;
         var path = SharedEntityPath(entity);
         if (path is null) return null;
         var bindings = ActiveFieldBindings.Where(binding => binding.Path.Equals(path, StringComparison.OrdinalIgnoreCase)).ToArray();
@@ -67,7 +70,12 @@ public sealed partial class Workspace
             .ToDictionary(SharedMetadataFields.BindingKey, binding => binding.ItemId, StringComparer.Ordinal);
         var metadata = bindings.Where(binding => binding.Metadata is not null)
             .ToDictionary(SharedMetadataFields.BindingKey, binding => binding.ItemId, StringComparer.Ordinal);
-        return fields.Count == 0 && metadata.Count == 0 ? null : new(sharedSession, fields) { Metadata = metadata };
+        return fields.Count == 0 && metadata.Count == 0 ? null : new(sharedSession, fields)
+        {
+            Metadata = metadata,
+            PresenceItemId = new Guid(SHA256.HashData(Encoding.UTF8.GetBytes(
+                $"novalist:codex-view:v1:{fieldSession.Context.ProjectId:N}:{path}"))[..16])
+        };
     }
 
     private string? SharedEntityPath(IEntityData entity)

@@ -2,7 +2,7 @@ import { rpc } from '../rpc/client'
 import { SharedItemPresence } from './SharedItemPresence'
 
 export interface FieldBinding { sessionId: string; itemId: string }
-export interface SharedEntityFields { sessionId: string; fields: Record<string, string>; metadata?: Record<string, string> }
+export interface SharedEntityFields { sessionId: string; fields: Record<string, string>; metadata?: Record<string, string>; presenceItemId?: string }
 export interface FieldView { value: string; phase: 'idle' | 'waiting' | 'editing' | 'locked' | 'expired' | 'saving' | 'failed'; error: string; recoveryPath?: string; ownerDeviceId?: string }
 interface Lease { acquired: boolean; deviceId: string; remainingMilliseconds: number }
 interface Focus {

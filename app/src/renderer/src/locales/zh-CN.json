@@ -1,5 +1,12 @@
 {
   "collaboration": {
+    "defaultFolderName": "共享项目",
+    "chooseDestinationHint": "选择本地项目副本的保存位置。",
+    "invalidFolderName": "请输入有效的文件夹名称，不要使用特殊字符或以句点结尾。",
+    "hostTitle": "共享你的项目",
+    "hostHint": "邀请其他作者加入当前项目。协作期间请保持 Novalist 打开。",
+    "joinTitle": "通过邀请加入",
+    "signInHint": "请先在上方登录，然后共享或加入项目。",
     "mode": "连接类型",
     "modeHosted": "中继服务器",
     "modeTcp": "直接连接（TCP）",
@@ -37,6 +44,7 @@
     "serverHint": "通过浏览器登录社区中继服务器。服务器仅在协作者之间转发数据包，不存储项目数据。主持人必须保持在线。",
     "signIn": "登录",
     "signOut": "退出登录",
+    "forgetSignIn": "清除已保存的登录信息",
     "cancelSignIn": "取消登录",
     "signedIn": "已登录为 {{name}}",
     "browserPending": "请在浏览器中完成登录。",
@@ -56,6 +64,7 @@
     "fieldLocked": "此字段已锁定。",
     "fieldLockedBy": "{{name}} 正在编辑此字段。",
     "sceneEditors": "正在编辑：{{names}}",
+    "entryViewers": "正在查看：{{names}}",
     "fieldExpired": "编辑锁已过期。草稿已保留；请在结束会话前保存恢复副本。",
     "retryField": "重试保存",
     "recoverField": "保存恢复副本",
