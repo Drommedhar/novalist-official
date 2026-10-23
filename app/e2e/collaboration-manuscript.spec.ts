@@ -1,6 +1,43 @@
 import { expect, test } from '@playwright/test'
-import { join } from 'node:path'
-import { dismissTour, launchApp, seedBook, type Harness } from './harness'
+import { cp } from 'node:fs/promises'
+import { join, relative } from 'node:path'
+import { dismissTour, launchApp, seedBook, type Book, type Harness } from './harness'
+
+async function populatedBook(owner: Harness): Promise<Book> {
+  const source = process.env.NOVALIST_COLLABORATION_CORPUS
+  if (source) {
+    const destination = join(owner.workDir, 'Project')
+    await cp(source, destination, { recursive: true, filter: path => !relative(source, path).split(/[\\/]/).includes('.git') })
+    await owner.rpc('project/open', [destination])
+    return owner.rpc<Book>('project/getState')
+  }
+  const chapters = Object.fromEntries(Array.from({ length: 12 }, (_, chapter) =>
+    [`Chapter ${chapter + 1}`, Array.from({ length: 10 }, (_, scene) => `Scene ${chapter + 1}.${scene + 1}`)]))
+  return seedBook(owner, chapters)
+}
+
+test('a populated shared manuscript loads and remains editable', async () => {
+  const owner = await launchApp('nl-manuscript-populated-')
+  try {
+    const project = await populatedBook(owner)
+    const chapter = project.chapters.find(chapter => chapter.scenes.length > 0)!
+    const scene = chapter.scenes[0]
+    await owner.rpc('scenes/write', [chapter.guid, scene.id, '<p>A populated book.</p>', 'A populated book.'])
+    await owner.rpc('collaboration/peer/host', ['127.0.0.1', 0, 'Morgan'])
+    await dismissTour(owner.page)
+    await owner.page.evaluate(() => window.novalistStores.shell.getState().setMainView('manuscript'))
+    const manuscript = owner.page.frameLocator('iframe[title="manuscript"]')
+    await expect(manuscript.locator('.scene-editor')).toHaveCount(project.chapters.reduce((count, chapter) => count + chapter.scenes.length, 0), { timeout: 15_000 })
+    const editor = manuscript.locator(`.scene-editor[data-scene-id="${scene.id}"]`)
+    await expect(editor).toHaveText('A populated book.')
+    await editor.click()
+    await owner.page.keyboard.press('End')
+    await owner.page.keyboard.type(' Still responsive.')
+    await expect(editor).toHaveText('A populated book. Still responsive.')
+    await owner.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].close())
+    await expect.poll(() => owner.app.windows().length, { timeout: 20_000 }).toBe(0)
+  } finally { await owner.close().catch(() => {}) }
+})
 
 test('continuous manuscript shares existing rich scenes, preserves roots and publishes only the focused scene', async () => {
   const writers: Harness[] = []
@@ -66,6 +103,46 @@ test('continuous manuscript shares existing rich scenes, preserves roots and pub
     await owner.page.evaluate(() => window.novalistStores.shell.getState().setMainView('manuscript'))
     await expect(firstEditor).toHaveText('Our story. From scene.')
     await expect(secondEditor).toHaveText('A second scene.')
+  } finally {
+    for (const writer of writers.reverse()) await writer.close()
+  }
+})
+
+test('scrolling to an offscreen shared scene refreshes remote edits before writing there', async () => {
+  const writers: Harness[] = []
+  try {
+    const owner = await launchApp('nl-manuscript-scroll-owner-')
+    writers.push(owner)
+    const project = await seedBook(owner, { Opening: ['Long opening', 'Later scene'] })
+    const chapter = project.chapters.find(chapter => chapter.title === 'Opening')!
+    const [first, last] = chapter.scenes
+    await owner.rpc('scenes/write', [chapter.guid, first.id, '<p>A long opening paragraph.</p>'.repeat(120), 'A long opening paragraph. '.repeat(120)])
+    await owner.rpc('collaboration/peer/host', ['127.0.0.1', 0, 'Morgan'])
+    const invitation = await owner.rpc<string>('collaboration/invite', [new Date(Date.now() + 60_000).toISOString()])
+    const guest = await launchApp('nl-manuscript-scroll-guest-')
+    writers.push(guest)
+    await guest.rpc('collaboration/peer/join', [invitation, join(guest.workDir, 'Joined'), 'Alex'])
+    for (const writer of writers) await dismissTour(writer.page)
+    await owner.page.evaluate(() => window.novalistStores.shell.getState().setMainView('manuscript'))
+    const manuscript = owner.page.frameLocator('iframe[title="manuscript"]')
+    await expect(manuscript.locator('.scene-editor')).toHaveCount(2)
+    await guest.page.evaluate(({ chapter, scene }) => window.novalistStores.project.getState().openScene(chapter, scene), { chapter: chapter.guid, scene: last.id })
+    const guestEditor = guest.page.frameLocator('iframe[title="editor"]').locator('#editor')
+    await guestEditor.click()
+    await guest.page.keyboard.type('Remote offscreen prose.')
+    await guest.page.evaluate(() => window.novalistStores.project.getState().flushPendingSave())
+    const editor = manuscript.locator(`.scene-editor[data-scene-id="${last.id}"]`)
+    await editor.scrollIntoViewIfNeeded()
+    await expect(editor).toHaveText('Remote offscreen prose.')
+    await editor.click()
+    await owner.page.keyboard.press('End')
+    await owner.page.keyboard.type(' Continued here.')
+    await expect(guestEditor).toHaveText('Remote offscreen prose. Continued here.')
+    await manuscript.locator(`.scene-editor[data-scene-id="${first.id}"]`).scrollIntoViewIfNeeded()
+    await editor.scrollIntoViewIfNeeded()
+    await editor.click()
+    await owner.page.keyboard.press('Control+z')
+    await expect(guestEditor).toHaveText('Remote offscreen prose.')
   } finally {
     for (const writer of writers.reverse()) await writer.close()
   }

@@ -70,6 +70,7 @@ export interface EditorWindow extends Window {
   setMobile(enabled: boolean): void
   setTypewriterScroll(enabled: boolean, anchor: string): void
   setPageView(enabled: boolean): void
+  repaginatePageView(): void
   setBookParagraphSpacing(enabled: boolean): void
   setCommentsData(data: { id: string; anchorText: string; text: string }[]): void
   setFootnotesData(data: { id: string; text: string }[]): void

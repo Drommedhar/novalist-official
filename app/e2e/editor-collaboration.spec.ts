@@ -291,6 +291,43 @@ test('page layout and proofing remain local while remote edits still save normal
   expect(saved).not.toContain('grammar-issue')
 })
 
+test('acknowledging local typing preserves the paginated layout before the next paint', async ({ page }) => {
+  await openEditor(page, undefined, '<p>The story.</p><p>The next paragraph.</p>')
+  await page.evaluate(() => (window as unknown as EditorWindow).setPageView(true))
+  await page.locator('#editor p').first().click()
+  await page.keyboard.press('End')
+  for (const character of ' More') {
+    await page.keyboard.type(character)
+    const geometry = await page.evaluate(() => {
+      const paragraph = document.querySelector('#editor p')!
+      const before = paragraph.getBoundingClientRect()
+      const updates = window.collaboration.drain()
+      for (const update of updates) window.collaboration.receive(update)
+      const after = document.querySelector('#editor p')!.getBoundingClientRect()
+      return { paginated: !!document.querySelector('#editor > .nv-page > p'), left: after.left - before.left, top: after.top - before.top }
+    })
+    expect(geometry).toEqual({ paginated: true, left: 0, top: 0 })
+  }
+})
+
+test('remote typing keeps paginated text in place before the next paint', async ({ page, context }) => {
+  const other = await context.newPage()
+  await openEditor(page, undefined, '<p>The story.</p><p>The next paragraph.</p>')
+  await openEditor(other, await page.evaluate(() => window.collaboration.state()))
+  await page.evaluate(() => (window as unknown as EditorWindow).setPageView(true))
+  await caret(other, 4)
+  await other.keyboard.type('long ')
+  const updates = await other.evaluate(() => window.collaboration.drain())
+  const geometry = await page.evaluate(updates => {
+    const before = document.querySelector('#editor p')!.getBoundingClientRect()
+    for (const update of updates) window.collaboration.receive(update)
+    const after = document.querySelector('#editor p')!.getBoundingClientRect()
+    return { paginated: !!document.querySelector('#editor > .nv-page > p'), left: after.left - before.left, top: after.top - before.top }
+  }, updates)
+  expect(geometry).toEqual({ paginated: true, left: 0, top: 0 })
+  await expect(page.locator('#editor p').first()).toHaveText('The long story.')
+})
+
 test('saved shared state survives restarting both writers and replaying updates twice', async ({ page, context }) => {
   const other = await context.newPage()
   await openEditor(page)

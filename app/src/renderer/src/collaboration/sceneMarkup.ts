@@ -4,6 +4,7 @@ export interface MarkupEnvironment {
   document: Document
   sanitizeSceneFragment(html: string): DocumentFragment
   toDisplayImages(root: ParentNode): void
+  refreshLayout?(): void
 }
 
 interface Block {
@@ -140,6 +141,7 @@ export class SceneMarkup {
     const fragment = this.prepare(runs)
     this.patch(this.root, fragment)
     this.editor.toDisplayImages(this.root)
+    this.editor.refreshLayout?.()
     this.read()
   }
 

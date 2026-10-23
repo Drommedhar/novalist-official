@@ -132,7 +132,7 @@ export function useWorkspaceWindow(): WindowCloseStage | null {
     }
     const stopWorkspace = window.novalist.onWorkspaceEvent?.(async (event) => {
       if (event.phase === 'prepare') {
-        if (closing || workspaceToken) throw new Error(i18n.t('update.workspaceBusy'))
+        if ((closing && event.preparation.reason !== 'collaboration/end') || workspaceToken) throw new Error(i18n.t('update.workspaceBusy'))
         if (hasWorkspaceDialogDraft()) throw new Error(i18n.t('update.workspaceBusy'))
         workspaceToken = event.preparation.token
         workspaceReason = event.preparation.reason
@@ -148,7 +148,7 @@ export function useWorkspaceWindow(): WindowCloseStage | null {
           resetManuscriptWorkspace()
         })
       } else if (event.token === workspaceToken) {
-        if (event.phase === 'resumed') {
+        if (event.phase === 'resumed' && !closing) {
           await useProjectStore.getState().refreshWorkspaceEditors()
           if (!useProjectStore.getState().isLoaded) await prepareProjectLibrary()
         }
@@ -156,7 +156,7 @@ export function useWorkspaceWindow(): WindowCloseStage | null {
         workspaceToken = null
         useProjectStore.setState({ workspaceTransitionToken: null })
         resume()
-        if (event.phase === 'resumed') refreshResumedWorkspace()
+        if (event.phase === 'resumed' && !closing) refreshResumedWorkspace()
       }
     })
     const stopClose = window.novalist.onBeforeClose?.(async (stage) => {

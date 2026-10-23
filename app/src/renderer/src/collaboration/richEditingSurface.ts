@@ -15,6 +15,7 @@ export function sceneEditorSurface(editor: EditorWindow): RichEditingSurface {
     root, document: root.ownerDocument,
     sanitizeSceneFragment: html => editor.sanitizeSceneFragment(html),
     toDisplayImages: content => editor.toDisplayImages(content),
+    refreshLayout: () => editor.repaginatePageView(),
     getContent: () => editor.getContent(),
     getPlainText: () => editor.getPlainText(),
     flushPendingContentChange: () => editor.flushPendingContentChange()
