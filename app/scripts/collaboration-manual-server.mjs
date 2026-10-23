@@ -7,11 +7,21 @@ import { collaborationServer } from '../e2e/fixtures/collaborationServer.ts'
 process.chdir(fileURLToPath(new URL('..', import.meta.url)))
 const accounts = { owner: 'Morgan', guest: 'Alex', third: 'Sam' }
 let account = 'owner'
-const identity = await identityProvider(() => account, subject => accounts[subject])
+const port = (name, fallback) => {
+  const value = Number(process.env[name] ?? fallback)
+  if (!Number.isInteger(value) || value < 1 || value > 65535) throw new Error(`${name} must be a port between 1 and 65535.`)
+  return value
+}
+const relayPort = port('NOVALIST_COLLAB_RELAY_PORT', 42670)
+const identityPort = port('NOVALIST_COLLAB_IDENTITY_PORT', 42671)
+if (relayPort === identityPort) throw new Error('The relay and sign-in provider need different ports.')
+const identity = await identityProvider(() => account, subject => accounts[subject], identityPort)
 let server
 try {
-  server = await collaborationServer(identity.address)
+  server = await collaborationServer(identity.address, relayPort)
   console.log(`Local test server: ${server.address}`)
+  console.log(`Local sign-in provider: ${identity.address}`)
+  console.log('After restarting this helper, sign out and sign in again in each app before sharing.')
   console.log('Next browser sign-in: Morgan (owner). No password is needed.')
   console.log('Enter owner, guest or third to choose the account for the next sign-in.')
   console.log('This server relays packets only; it stores no project data and needs no database.')

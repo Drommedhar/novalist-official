@@ -2,7 +2,7 @@ import { createHash, generateKeyPairSync, randomUUID, sign } from 'node:crypto'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import { once } from 'node:events'
 
-export async function identityProvider(subject: () => string = () => 'writer', displayName: (subject: string) => string = () => 'Test Writer'): Promise<{ address: string; close(): Promise<void> }> {
+export async function identityProvider(subject: () => string = () => 'writer', displayName: (subject: string) => string = () => 'Test Writer', port = 0): Promise<{ address: string; close(): Promise<void> }> {
   const keys = generateKeyPairSync('rsa', { modulusLength: 2048 })
   const publicKey = { ...keys.publicKey.export({ format: 'jwk' }), kid: 'test', alg: 'RS256', use: 'sig' }
   const codes = new Map<string, { challenge: string; redirect: string; nonce: string; subject: string }>()
@@ -66,7 +66,7 @@ export async function identityProvider(subject: () => string = () => 'writer', d
       default: response.writeHead(404); response.end()
     }
   })
-  server.listen(0, '127.0.0.1')
+  server.listen(port, '127.0.0.1')
   await once(server, 'listening')
   const endpoint = server.address()
   if (!endpoint || typeof endpoint === 'string') throw new Error('The test identity provider has no port.')

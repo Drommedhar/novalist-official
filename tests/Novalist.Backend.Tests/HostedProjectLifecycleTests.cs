@@ -64,6 +64,7 @@ public sealed class HostedProjectLifecycleTests
         await owner.SignInAsync(server.Address);
         server.RejectJoins = true;
         await Assert.ThrowsAsync<RemoteInvocationException>(() => owner.Rpc.InvokeAsync("collaboration/create", server.Address));
+        Assert.Empty(owner.Progress);
         Assert.Null(await owner.Rpc.InvokeAsync<HostedSessionDto?>("collaboration/status"));
         server.RejectJoins = false;
         Assert.Equal("Connected", (await owner.Rpc.InvokeAsync<HostedSessionDto>("collaboration/create", server.Address)).Connection);

@@ -8,8 +8,11 @@ app and two entitled Steam accounts; see [Steam builds](steam-collaboration.md).
 
 In **Run and Debug**, choose **Collaboration: Local server + 2 apps** and press
 **F5**. It builds the desktop app and local relay server and opens owner and guest instances with separate persistent
-settings and browser profiles. The server's integrated terminal prints its URL;
-use that URL in both apps' **Settings → Collaboration**.
+settings and browser profiles. Use `http://127.0.0.1:42670` in both apps'
+**Settings → Collaboration**. The sign-in helper uses port `42671`; both addresses
+remain stable across restarts. The terminal prints them when ready. If those ports
+are already in use, stop the earlier helper or set `NOVALIST_COLLAB_RELAY_PORT` and
+`NOVALIST_COLLAB_IDENTITY_PORT` to distinct available ports before launching.
 
 Sign in as Morgan in the owner app, enter `guest` in the server terminal, then
 sign in as Alex in the guest app. Create and accept an invitation as described
@@ -91,7 +94,11 @@ The selected account applies to the next sign-in; existing sign-ins keep theirs.
 Keep the helper terminal and the host's session running. Its sign-in provider is
 for local testing only and asks for no credentials. Entering `quit` stops packet
 forwarding. Your local project copies and app profiles remain. Restarting the
-relay or closing the host requires starting a new session.
+relay or closing the host requires starting a new session. The helper's test
+accounts and tokens last only for that helper run. After restarting it, sign in
+again in both apps; an old rejected sign-in returns to the sign-in form. If an
+already running app still shows an account from the previous run, sign out first.
+Do not use the sign-in provider's port as the collaboration server address.
 
 ## Things to exercise
 

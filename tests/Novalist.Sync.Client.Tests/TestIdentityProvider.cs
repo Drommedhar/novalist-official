@@ -22,6 +22,7 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
     public bool ExchangedWithPkce { get; private set; }
     public int AccessLifetime { get; set; } = 300;
     public int Refreshes { get; private set; }
+    public bool RejectRefresh { get; set; }
     public string? TokenFault { get; set; }
     public string Subject { get; set; } = "writer";
     public Func<string>? IssueAccessToken { get; set; }
@@ -66,6 +67,8 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
         result.EnsureSuccessStatusCode();
     }
 
+    public Task StopAsync(CancellationToken ct) => app.StopAsync(ct);
+
     private IResult Authorize(HttpContext context)
     {
         var query = context.Request.Query;
@@ -83,7 +86,7 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
         if (form["grant_type"] == "refresh_token")
         {
             var expected = Refreshes == 0 ? "refresh" : $"rotated-{Refreshes}";
-            if (form["refresh_token"] != expected || form["client_id"] != "novalist") return Results.BadRequest();
+            if (RejectRefresh || form["refresh_token"] != expected || form["client_id"] != "novalist") return Results.BadRequest();
             Refreshes++;
             return Results.Json(new { access_token = IssueAccessToken?.Invoke() ?? $"renewed-{Refreshes}", refresh_token = $"rotated-{Refreshes}", token_type = "Bearer", expires_in = 300 });
         }
