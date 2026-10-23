@@ -63,6 +63,12 @@ public sealed partial class Workspace
                         Encoding.UTF8.GetBytes(FileFrontMatter.Stamp(recovered, files[item].SceneId)));
                 return;
             }
+            if (!recorded.Contains(item) && snapshot.State.AsSpan().SequenceEqual(sharedSceneBaseline[item]))
+            {
+                projected[item] = snapshot.Html;
+                recorded.Add(item);
+                return;
+            }
             var changed = projected[item] != snapshot.Html;
             if (!changed && recorded.Contains(item)) return;
             var file = files[item];

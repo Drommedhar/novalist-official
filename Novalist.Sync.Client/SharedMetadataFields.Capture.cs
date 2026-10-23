@@ -16,6 +16,7 @@ public static partial class SharedMetadataFields
             if (!codexPaths.Contains(path, StringComparer.Ordinal) && path != ".novalist/project.json" && !scenePaths.Contains(path)) continue;
             var bytes = await File.ReadAllBytesAsync(SharedProjectPath.Resolve(root, path), ct);
             var entity = JsonNode.Parse(bytes) as JsonObject ?? throw new InvalidDataException("Invalid shared metadata.");
+            SharedProseFields.EnsureSectionIdentities(entity);
             var hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
             foreach (var (target, key) in Enumerate(entity, path == ".novalist/project.json", scenePaths.Contains(path), DefinedProperties(project, path)))
                 result.Add(new(Guid.NewGuid(), path, key, false, hash) { Metadata = target });
