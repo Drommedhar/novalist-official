@@ -16,7 +16,7 @@ using Xunit;
 namespace Novalist.Backend.Tests;
 
 [Collection("BackendStatics")]
-public sealed class SharedProjectWriteGuardTests
+public sealed partial class SharedProjectWriteGuardTests
 {
     [Fact]
     public async Task EmptyCharacterArcsShareProseAndLeaseTheirTurningPoints()
@@ -631,12 +631,18 @@ public sealed class SharedProjectWriteGuardTests
             updates = new(new(access.ProjectId, device.Id, access.Epoch), journal, cipher, access.CreateSessionIdentity(device), Wire);
             asynchronous.Add(Updates);
             await Updates.SynchronizeAsync(createProject: true, ct);
+            await CaptureAsync();
+            if (attach) await AttachAsync(State);
+        }
+
+        internal async Task CaptureAsync()
+        {
+            var ct = TestContext.Current.CancellationToken;
             using var archive = new MemoryStream();
             State = await Host.Workspace.CaptureSharedProjectAsync(archive, ct);
             archive.Position = 0;
             initialFiles = await ProjectCheckpoint.ReadFilesAsync(archive, long.MaxValue, ct);
             checkpoint = archive.ToArray();
-            if (attach) await AttachAsync(State);
         }
 
         internal async Task AttachAsync(SharedProjectState state)
