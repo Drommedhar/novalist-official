@@ -47,7 +47,7 @@
     "electron-builder": "26.15.3",
     "electron-vite": "^5.0.0",
     "typescript": "^7.0.2",
-    "vite": "^7.0.2"
+    "vite": "^7.3.7"
   },
   "author": "Novalist",
   "optionalDependencies": {
