@@ -2,7 +2,7 @@ import { createHash, generateKeyPairSync, randomUUID, sign } from 'node:crypto'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import { once } from 'node:events'
 
-export async function identityProvider(subject: () => string = () => 'writer', displayName: (subject: string) => string = () => 'Test Writer', port = 0): Promise<{ address: string; close(): Promise<void> }> {
+export async function identityProvider(subject: () => string = () => 'writer', displayName: (subject: string) => string = () => 'Test Writer', port = 0, advertiseClientConfiguration = true): Promise<{ address: string; close(): Promise<void> }> {
   const keys = generateKeyPairSync('rsa', { modulusLength: 2048 })
   const publicKey = { ...keys.publicKey.export({ format: 'jwk' }), kid: 'test', alg: 'RS256', use: 'sig' }
   const codes = new Map<string, { challenge: string; redirect: string; nonce: string; subject: string }>()
@@ -48,6 +48,7 @@ export async function identityProvider(subject: () => string = () => 'writer', d
     const url = new URL(request.url ?? '/', address)
     switch (url.pathname) {
       case '/client-configuration':
+        if (!advertiseClientConfiguration) { response.writeHead(404); response.end(); break }
         send(response, { protocolVersion: 1, authority: address, clientId: 'novalist', scope: 'openid profile sync offline_access' }); break
       case '/.well-known/openid-configuration':
         send(response, { issuer: address, authorization_endpoint: address + '/authorize', token_endpoint: address + '/token',

@@ -7,6 +7,9 @@ import { hydrateWindow } from './bootstrap'
 import { hasSeenTour } from './FirstRunTour'
 import { runUpdateCheck } from './appUpdateActions'
 import type { AppUpdateState } from './appUpdateState'
+import type { DeepLink } from '../../../main/deeplink'
+import { useSteamInvitations } from '../collaboration/steamInvitations'
+import { useHostBridgeStore } from '../stores/hostBridgeStore'
 
 export function useRecentProjects(): void {
   const backendVersion = useShellStore((s) => s.backendVersion)
@@ -54,6 +57,10 @@ export function useShellStartup(updates: AppUpdateState): void {
         // the renderer existed.
         const waiting = await window.novalist.takeDeepLink()
         if (!waiting) return
+        if ('steamInvite' in waiting) {
+          await receiveSteamInvitation(waiting.steamInvite)
+          return
+        }
         await useProjectStore.getState().openProject(waiting.project)
         if (waiting.chapter && waiting.scene) {
           await useProjectStore.getState().openScene(waiting.chapter, waiting.scene)
@@ -96,11 +103,11 @@ export function useDeepLinks(updates: AppUpdateState): void {
    * already open.
    */
   useEffect(() => {
-    const follow = async (link: {
-      project: string
-      chapter?: string
-      scene?: string
-    }): Promise<void> => {
+    const follow = async (link: DeepLink): Promise<void> => {
+      if ('steamInvite' in link) {
+        await receiveSteamInvitation(link.steamInvite)
+        return
+      }
       if (installingRef.current || useProjectStore.getState().workspaceBusy || useProjectStore.getState().changingSceneStructure) return
       try {
         await useProjectStore.getState().openProject(link.project)
@@ -117,6 +124,11 @@ export function useDeepLinks(updates: AppUpdateState): void {
 
     window.novalist.onDeepLink((link) => void follow(link))
   }, [])
+}
+
+async function receiveSteamInvitation(connectString: string): Promise<void> {
+  try { await useSteamInvitations.getState().receive(connectString) }
+  catch (error) { useHostBridgeStore.getState().pushToast(String(error)) }
 }
 
 export function useProjectLanding(): void {

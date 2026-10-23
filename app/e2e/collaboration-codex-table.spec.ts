@@ -35,7 +35,7 @@ test('Codex table cells hand focus to the named writer and retain other columns'
     await expect(ownerGroup).not.toHaveAttribute('readonly', '')
     await ownerGroup.fill('House Raven')
     await guestGroup.focus()
-    await expect(guestRow.getByText('Morgan is editing this field.', { exact: true })).toBeVisible()
+    await expect(guestRow.getByRole('status', { name: 'Morgan is editing this field.', exact: true })).toBeVisible()
     await expect(guestGroup).toHaveAttribute('readonly', '')
     await ownerGroup.blur()
     await expect(guestGroup).not.toHaveAttribute('readonly', '')

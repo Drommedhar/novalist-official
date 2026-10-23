@@ -54,6 +54,8 @@ test('the manual relay keeps both endpoints stable across restart and stops them
       const configuration = await fetch(expected + '/client-configuration').then(response => response.json())
       assert.equal(configuration.authority.replace(/\/$/, ''), authority)
       assert.equal((await fetch(authority + '/.well-known/openid-configuration')).status, 200)
+      assert.equal((await fetch(authority + '/client-configuration')).status, 404,
+        'The sign-in helper must not advertise itself as a collaboration server')
     } finally { await server.stop() }
     await assert.rejects(fetch(expected + '/client-configuration'))
     await assert.rejects(fetch(authority + '/.well-known/openid-configuration'))

@@ -1,7 +1,7 @@
 .nv-collaboration-caret {
   position: fixed;
   pointer-events: none;
-  border-inline-start: var(--nl-space-hairline) solid var(--caret);
+  border-inline-start: var(--nl-space-hairline) solid var(--nl-text);
   z-index: 20;
 }
 
@@ -9,13 +9,23 @@
   position: absolute;
   inset-block-end: 100%;
   white-space: nowrap;
-  background: var(--fg);
-  color: var(--bg);
-  font-size: var(--chrome-font-sm);
+  background: var(--nl-text);
+  color: var(--nl-surface-editor);
+  font-family: var(--nl-font-family);
+  font-size: var(--nl-font-caption);
   padding: var(--nl-space-hairline) var(--nl-space-tightest);
   border-radius: var(--nl-radius-sm);
 }
 
+.nv-collaboration-field-label {
+  position: static;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
 ::highlight(novalist-collaborators) {
-  background: var(--selection-bg);
+  background: var(--nl-surface-selected);
 }

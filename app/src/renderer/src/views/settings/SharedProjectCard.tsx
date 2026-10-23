@@ -5,6 +5,7 @@ import { useProjectStore } from '../../stores/projectStore'
 import { SharedProjectAccess } from './SharedProjectAccess'
 import { CollaborationDestination, type CollaborationDestinationValue } from './CollaborationDestination'
 import { CollaborationTransferStatus } from './CollaborationTransferStatus'
+import { SteamFriendsInvite } from './SteamFriendsInvite'
 
 export function SharedProjectCard({ server, signedIn }: { server: string; signedIn: boolean }): React.JSX.Element {
   const { t } = useTranslation()
@@ -38,6 +39,7 @@ export function SharedProjectCard({ server, signedIn }: { server: string; signed
           void run('end').then(() => { if (!useHostedSessionStore.getState().session) return run('resume') })
         }}>{t('collaboration.refreshKeys')}</button>}
       </div>
+      {session.mode === 'steam' && session.isOwner && <SteamFriendsInvite disabled={busy !== null || session.connection !== 'Connected'} />}
       {invitation && <>
         <label className="inspector-label" htmlFor="set-collaboration-invitation">{t('collaboration.invitation')}</label>
         <textarea id="set-collaboration-invitation" className="dialog-input" value={invitation} readOnly onFocus={event => event.target.select()} />

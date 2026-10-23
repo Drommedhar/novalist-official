@@ -9,8 +9,10 @@ public sealed class TcpPeerSessionTests : IDisposable
 {
     private readonly string folder = Path.Combine(Path.GetTempPath(), "novalist-peer-tests", Guid.NewGuid().ToString("N"));
 
-    [Fact]
-    public async Task InvitedWriterReceivesExistingContentAndSendsEditsToTheOwnerOverTcp()
+    [Theory]
+    [InlineData("127.0.0.1")]
+    [InlineData("localhost")]
+    public async Task InvitedWriterReceivesExistingContentAndSendsEditsToTheOwnerOverTcp(string address)
     {
         var ct = TestContext.Current.CancellationToken;
         using var owner = await DeviceAsync("owner", ct);
@@ -18,7 +20,7 @@ public sealed class TcpPeerSessionTests : IDisposable
         var project = Guid.NewGuid();
         await using var host = await TcpPeerHost.StartAsync(new(IPAddress.Loopback, 0), folder, new(project, 0,
             RandomNumberGenerator.GetBytes(32), owner), ct);
-        using var ownerAccess = host.CreateOwnerAccess("127.0.0.1");
+        using var ownerAccess = host.CreateOwnerAccess(address);
         await using var ownerWire = new TcpPeerTransport(ownerAccess, owner);
         await using var ownerSession = OpenSession("owner", owner, ownerWire);
         var connectionError = await Record.ExceptionAsync(() => ownerSession.Updates.SynchronizeAsync(true, ct));
@@ -28,7 +30,7 @@ public sealed class TcpPeerSessionTests : IDisposable
         ownerSession.Updates.Save(item, "Existing scene"u8.ToArray());
         await ownerSession.Updates.SynchronizeAsync(false, ct);
 
-        await using var writerWire = await TcpPeerTransport.JoinInvitationAsync(host.CreateInvitation("127.0.0.1"), writer, ct);
+        await using var writerWire = await TcpPeerTransport.JoinInvitationAsync(host.CreateInvitation(address), writer, ct);
         await using var writerSession = OpenSession("writer", writer, writerWire);
         await writerSession.Updates.SynchronizeAsync(false, ct);
         Assert.Equal("Existing scene"u8.ToArray(), Assert.Single(writerSession.Updates.ReadItem(item)));

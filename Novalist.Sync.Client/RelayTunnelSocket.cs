@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Text;
@@ -14,12 +15,19 @@ internal static class RelayTunnelSocket
         var socket = new ClientWebSocket();
         try
         {
+            socket.Options.CollectHttpResponseDetails = true;
             socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(20);
             socket.Options.KeepAliveTimeout = TimeSpan.FromSeconds(15);
             socket.Options.SetRequestHeader("Authorization", "Bearer " + await token(deadline.Token));
             var endpoint = new Uri(new Uri(server.AbsoluteUri.TrimEnd('/') + '/'), path);
             await socket.ConnectAsync(new UriBuilder(endpoint) { Scheme = server.Scheme == "https" ? "wss" : "ws" }.Uri, deadline.Token);
             return socket;
+        }
+        catch (WebSocketException error) when (path == "relay/v1/host" && socket.HttpStatusCode == HttpStatusCode.NotFound)
+        {
+            socket.Dispose();
+            throw new WebSocketException(WebSocketError.NotAWebSocket,
+                "This address does not provide a Novalist relay. Use the relay server address, not the sign-in provider address.", error);
         }
         catch { socket.Dispose(); throw; }
     }

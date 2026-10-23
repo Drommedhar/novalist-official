@@ -51,7 +51,7 @@ for (const command of [
       }
     }
     await chooseStage()
-    await expect(h.page.getByText('Morgan is editing this field.', { exact: true })).toBeVisible()
+    await expect(h.page.getByRole('status', { name: 'Morgan is editing this field.', exact: true })).toBeVisible()
     await expect.poll(() => h.page.evaluate(() => window.metadataCommandTest.calls)).toEqual(['acquire', 'release'])
     await h.page.evaluate(() => { window.metadataCommandTest.grant = true })
     await chooseStage()

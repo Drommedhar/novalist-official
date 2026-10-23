@@ -6,3 +6,11 @@
   color: var(--nl-danger);
   font-size: var(--nl-font-body);
 }
+.manuscript-loading {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  padding: var(--nl-space-xl);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body);
+}

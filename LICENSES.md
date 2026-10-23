@@ -3,6 +3,45 @@
 Novalist itself is licensed under the MIT License — see [LICENSE](LICENSE) for
 the project copyright.
 
+## Steamworks.NET (MIT, optional Steam builds)
+
+Steam builds compile [Steamworks.NET](https://github.com/rlabrecque/Steamworks.NET)
+at commit `ba71581f1ed7349e8d0f17ddc6f135dd3bc8a6a3`. Its unmodified MIT license
+is also copied to the backend build and publish output as `Steamworks.NET.LICENSE.txt`.
+
+```
+The MIT License (MIT)
+
+Copyright (c) 2013-2022 Riley Labrecque
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+```
+
+## Steamworks SDK redistributables (Valve license, optional Steam builds)
+
+The native Steam library is supplied locally by the developer under
+[Valve's Steamworks SDK access agreement](https://partner.steamgames.com/documentation/sdk_access_agreement/).
+Only the applicable library from `redistributable_bin` accompanies a compiled
+Steam build, as permitted by section 1.1(b). The SDK archive, headers, tools and
+native binaries are not committed to this repository. Non-Steam builds do not
+include this library. See [Steam build setup](docs/development/steam-collaboration.md).
+
 ## ASP.NET Core / Kestrel (MIT)
 
 The desktop local import API uses ASP.NET Core and its Kestrel server, distributed

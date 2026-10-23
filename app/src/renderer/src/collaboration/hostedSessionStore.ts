@@ -32,6 +32,7 @@ interface HostedSessionState {
   presenceUnavailable: boolean
   presenceFailures: string[]
   transfer: CollaborationTransferProgress | null
+  hostSynchronizing: boolean
   cancelling: boolean
   cancel(): Promise<void>
   reportPresence(sessionId: string, viewId: string, unavailable: boolean): void
@@ -49,9 +50,10 @@ export const useHostedSessionStore = create<HostedSessionState>((set, get) => ({
   presenceUnavailable: false,
   presenceFailures: [],
   transfer: null,
+  hostSynchronizing: false,
   cancelling: false,
   async cancel() {
-    if (!get().busy || get().cancelling) return
+    if ((!get().busy && !get().hostSynchronizing) || get().cancelling) return
     set({ cancelling: true })
     try { await rpc.request('collaboration/cancel') }
     catch (error) { set({ error: String(error), cancelling: false }) }

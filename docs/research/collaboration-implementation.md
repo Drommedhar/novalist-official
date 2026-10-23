@@ -70,7 +70,10 @@ regression fail. No coverage exclusions or thresholds changed.
 Evidence is retained under `app/out/collaboration-test-results/polish/` and
 `app/out/collaboration-test-results/polish-ui/`, with integrated run logs named
 `app/out/polish-*.log`. No server changes or branches have been published.
-Native two-account Steam validation remains outstanding.
+Subsequent native testing with App ID 480 passed invitation acceptance, initial
+transfer and bidirectional editing between Windows and Apple Silicon using two
+Steam accounts. See [Steam validation](../development/steam-collaboration.md)
+for the verified scope and remaining acceptance checks.
 Tasks C12–C16 are complete for local testing. Only the integration worktree remains;
 the three temporary implementation worktrees and their merged branches were removed.
 
@@ -147,8 +150,8 @@ disabled. The builds also retain the pre-existing ImageSharp 2.1.11 advisories.
 
 The server checkout and all desktop changes remain local. The VS Code
 **Collaboration: Local server + 2 apps** configuration builds this relay without
-PostgreSQL. The optional Steam build with App ID 420 compiles, but two-account
-Steam runtime validation remains outstanding. Earlier evidence below describes
+PostgreSQL. The optional Steam build uses App ID 480; subsequent two-account
+runtime validation is recorded above. Earlier evidence below describes
 the superseded persistent-server implementation, not the current relay result.
 
 ## Previous persistent-hosting checkpoint

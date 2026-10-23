@@ -17,12 +17,12 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.13" />
   </ItemGroup>
   <ItemGroup Condition="'$(EnableSteamworks)' == 'true'">
-    <PackageReference Include="Steamworks.NET" Version="2024.8.0" />
+    <ProjectReference Include="../eng/SteamworksBinding/SteamworksBinding.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(EnableSteamworks)' == 'true' and Exists('$(SteamworksNativeLibrary)')">
     <Content Include="$(SteamworksNativeLibrary)" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
-  <Target Name="RequireSteamworksNativeLibrary" BeforeTargets="GetCopyToPublishDirectoryItems" Condition="'$(EnableSteamworks)' == 'true'">
-    <Error Condition="!Exists('$(SteamworksNativeLibrary)')" Text="Steam publishing requires SteamworksNativeLibrary pointing to the matching Steamworks SDK redistributable (steam_api64.dll, libsteam_api.so, or libsteam_api.dylib)." />
+  <Target Name="RequireSteamworksNativeLibrary" BeforeTargets="PrepareForBuild;GetCopyToPublishDirectoryItems" Condition="'$(EnableSteamworks)' == 'true'">
+    <Error Condition="!Exists('$(SteamworksNativeLibrary)')" Text="Steam builds require SteamworksNativeLibrary pointing to the SDK 1.65 redistributable. On Windows use eng/Build-CollaborationSteam.ps1; see docs/development/steam-collaboration.md." />
   </Target>
 </Project>

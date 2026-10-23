@@ -7,8 +7,8 @@ internal static class SharedProjectMetadata
 {
     private static readonly string[] SharedSettings =
         ["author", "disabledContinuityRules", "timeline", "wholeStoryAnalysis", "chapterAnalysis", "wordsPerPage"];
-    private static readonly string[] BookFormatting =
-        ["enableBookParagraphSpacing", "enableBookWidth", "bookPageFormat", "bookTextBlockWidth", "bookFontFamily", "bookFontSize"];
+    private static readonly string[] SharedOverrides =
+        ["autoReplacementLanguage", "enableBookParagraphSpacing", "enableBookWidth", "bookPageFormat", "bookTextBlockWidth", "bookFontFamily", "bookFontSize"];
 
     internal static async Task MergeLocalSettingsAsync(string localRoot, string incomingRoot, CancellationToken ct)
     {
@@ -19,7 +19,7 @@ internal static class SharedProjectMetadata
         var merged = await ReadObjectAsync(local, ct);
         var shared = File.Exists(incoming) ? await ReadObjectAsync(incoming, ct) : new JsonObject();
         MergeProperties(merged, shared, SharedSettings);
-        MergeSection(merged, shared, "overrides", BookFormatting);
+        MergeSection(merged, shared, "overrides", SharedOverrides);
         MergeSection(merged, shared, "wordCountGoals", ["projectGoal", "deadline"]);
         await File.WriteAllTextAsync(incoming, merged.ToJsonString(), ct);
     }
@@ -76,7 +76,7 @@ internal static class SharedProjectMetadata
             {
                 writer.WriteStartObject();
                 WriteProperties(writer, root, SharedSettings);
-                WriteSection(writer, root, "overrides", BookFormatting);
+                WriteSection(writer, root, "overrides", SharedOverrides);
                 WriteSection(writer, root, "wordCountGoals", ["projectGoal", "deadline"]);
                 writer.WriteEndObject();
             }

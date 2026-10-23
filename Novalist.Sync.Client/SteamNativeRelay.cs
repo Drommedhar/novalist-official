@@ -9,9 +9,8 @@ namespace Novalist.Sync.Client;
 
 internal sealed partial class SteamNativeRelay : SteamPeerRelay
 {
-    private static readonly SemaphoreSlim runtimeGate = new(1, 1);
-    private static SteamRuntimeStatus? activeStatus;
-    private readonly object nativeGate = new();
+    private static readonly SemaphoreSlim sessionGate = new(1, 1);
+    private readonly object nativeGate = SteamNativeRuntime.Gate;
     private readonly CancellationTokenSource stopping = new();
     private readonly ConcurrentDictionary<HSteamNetConnection, Connection> connections = new();
     private readonly Callback<SteamNetConnectionStatusChangedCallback_t> callback;
@@ -53,39 +52,28 @@ internal sealed partial class SteamNativeRelay : SteamPeerRelay
         catch { localListener?.Stop(); callback.Dispose(); stopping.Dispose(); throw; }
     }
 
-    internal new static SteamRuntimeStatus Status()
-    {
-        if (!runtimeGate.Wait(0)) return activeStatus ?? new(false, "Steam is starting another collaboration session.");
-        try
-        {
-            var result = Initialize();
-            if (result.Available) SteamAPI.Shutdown();
-            return result;
-        }
-        finally { runtimeGate.Release(); }
-    }
+    internal new static SteamRuntimeStatus Status() => SteamNativeRuntime.Status();
 
     internal static Task<SteamPeerRelay> CreateAsync(int hostPort, ulong remoteId, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
         if (remoteId == 0 && hostPort is < 1 or > 65535) throw new ArgumentOutOfRangeException(nameof(hostPort));
-        if (!runtimeGate.Wait(0)) throw new InvalidOperationException("End the current Steam session first.");
+        if (!sessionGate.Wait(0)) throw new InvalidOperationException("End the current Steam session first.");
         try
         {
-            activeStatus = Initialize();
+            var activeStatus = SteamNativeRuntime.Status();
             if (!activeStatus.Available) throw new InvalidOperationException(activeStatus.Reason);
-            return Task.FromResult<SteamPeerRelay>(new SteamNativeRelay(hostPort, remoteId, activeStatus));
+            lock (SteamNativeRuntime.Gate)
+                return Task.FromResult<SteamPeerRelay>(new SteamNativeRelay(hostPort, remoteId, activeStatus));
         }
         catch
         {
-            if (activeStatus?.Available == true) SteamAPI.Shutdown();
-            activeStatus = null;
-            runtimeGate.Release();
+            sessionGate.Release();
             throw;
         }
     }
 
-    private static SteamRuntimeStatus Initialize()
+    internal static SteamRuntimeStatus Initialize()
     {
         var appIdText = Environment.GetEnvironmentVariable("NOVALIST_STEAM_APP_ID") ?? Environment.GetEnvironmentVariable("SteamAppId");
         if (!uint.TryParse(appIdText, out var appId) || appId == 0)
@@ -213,11 +201,9 @@ internal sealed partial class SteamNativeRelay : SteamPeerRelay
         {
             if (listenSocket != HSteamListenSocket.Invalid) SteamNetworkingSockets.CloseListenSocket(listenSocket);
             callback.Dispose();
-            SteamAPI.Shutdown();
         }
         stopping.Dispose();
-        activeStatus = null;
-        runtimeGate.Release();
+        sessionGate.Release();
     }
 }
 #endif

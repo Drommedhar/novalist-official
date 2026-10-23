@@ -121,9 +121,9 @@ interface Window {
     onSpellCheckWordAdded(handler: (word: string) => void): void
     /** The misspelling under the pointer, as the context menu opens. */
     /** A novalist:// link waiting from launch, or null. */
-    takeDeepLink(): Promise<{ project: string; chapter?: string; scene?: string } | null>
+    takeDeepLink(): Promise<import('../../main/deeplink').DeepLink | null>
     /** Links arriving while the app is already open. */
-    onDeepLink(handler: (link: { project: string; chapter?: string; scene?: string }) => void): void
+    onDeepLink(handler: (link: import('../../main/deeplink').DeepLink) => void): void
     onSpellingContext(handler: (word: string, suggestions: string[]) => void): void
     /** Applies a correction through Chromium, which owns the misspelled range. */
     replaceMisspelling(replacement: string): void

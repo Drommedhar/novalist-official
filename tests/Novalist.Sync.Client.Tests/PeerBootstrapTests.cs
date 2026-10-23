@@ -209,9 +209,9 @@ public sealed class PeerBootstrapTests : IDisposable
         var source = await ProjectAsync("owner", ct);
         var destination = await ProjectAsync("guest", ct);
         await File.WriteAllTextAsync(Path.Combine(source, ".novalist/settings.json"),
-            """{"author":"Shared author","overrides":{"bookFontSize":14},"wordCountGoals":{"projectGoal":5000}}""", ct);
+            """{"author":"Shared author","overrides":{"bookFontSize":14,"autoReplacementLanguage":"de-guillemet"},"wordCountGoals":{"projectGoal":5000}}""", ct);
         await File.WriteAllTextAsync(Path.Combine(destination, ".novalist/settings.json"),
-            """{"author":"Local author","theme":"dark","overrides":{"bookFontSize":12,"locale":"de"},"wordCountGoals":{"dailyGoal":250}}""", ct);
+            """{"author":"Local author","theme":"dark","overrides":{"bookFontSize":12,"locale":"de","autoReplacementLanguage":"en"},"wordCountGoals":{"dailyGoal":250}}""", ct);
         await using var archive = File.OpenRead(await ArchiveAsync(source, ct));
 
         await ProjectCheckpoint.InstallOrUpdateAsync(archive, destination, ct);
@@ -221,6 +221,7 @@ public sealed class PeerBootstrapTests : IDisposable
         Assert.Equal("dark", settings.RootElement.GetProperty("theme").GetString());
         Assert.Equal("de", settings.RootElement.GetProperty("overrides").GetProperty("locale").GetString());
         Assert.Equal(14, settings.RootElement.GetProperty("overrides").GetProperty("bookFontSize").GetInt32());
+        Assert.Equal("de-guillemet", settings.RootElement.GetProperty("overrides").GetProperty("autoReplacementLanguage").GetString());
         Assert.Equal(250, settings.RootElement.GetProperty("wordCountGoals").GetProperty("dailyGoal").GetInt32());
         Assert.Equal(5000, settings.RootElement.GetProperty("wordCountGoals").GetProperty("projectGoal").GetInt32());
     }
@@ -241,11 +242,15 @@ public sealed class PeerBootstrapTests : IDisposable
         var item = Guid.NewGuid();
         ownerSession.Updates.Save(item, "Before snapshot"u8.ToArray());
         await ownerSession.Updates.SynchronizeAsync(false, ct);
-        host.PrepareBootstrap = token => ownerSession.Updates.CaptureSnapshotAsync(async (sequence, snapshotToken) =>
+        host.SynchronizeBootstrap = async (transfer, token) =>
         {
-            host.SetBootstrap(await ArchiveAsync(source, snapshotToken), sequence);
-            return true;
-        }, token);
+            await ownerSession.Updates.CaptureSnapshotAsync(async (sequence, snapshotToken) =>
+            {
+                host.SetBootstrap(await ArchiveAsync(source, snapshotToken), sequence);
+                return true;
+            }, token);
+            await transfer();
+        };
         await using var transport = await TcpPeerTransport.JoinInvitationAsync(host.CreateInvitation("127.0.0.1"), guest, ct);
         using var reconstructed = new MemoryStream();
         var progress = new TransferProgress(value =>
@@ -384,6 +389,37 @@ public sealed class PeerBootstrapTests : IDisposable
     private Task<TcpPeerHost> HostAsync(DeviceIdentity owner, CancellationToken ct) =>
         TcpPeerHost.StartAsync(new(IPAddress.Loopback, 0), root,
             new(Guid.NewGuid(), 0, RandomNumberGenerator.GetBytes(32), owner), ct);
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task FailedHostSynchronizationReleasesTheTransferForAnotherAttempt(bool afterTransfer)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var owner = await DeviceAsync("owner", ct);
+        using var guest = await DeviceAsync("guest", ct);
+        await using var host = await HostAsync(owner, ct);
+        host.SetBootstrap(await ArchiveAsync(await ProjectAsync("owner", ct), ct));
+        host.SynchronizeBootstrap = async (transfer, _) =>
+        {
+            if (afterTransfer) await transfer();
+            throw new IOException("Host synchronization failed.");
+        };
+        await using var wire = await TcpPeerTransport.JoinInvitationAsync(host.CreateInvitation("127.0.0.1"), guest, ct);
+        using var archive = new MemoryStream();
+        var download = PeerBootstrapTransfer.DownloadAsync(wire, Path.Combine(root, "guest"), archive, null, ct);
+        if (afterTransfer)
+        {
+            await download;
+            await Assert.ThrowsAsync<InvalidOperationException>(() => wire.CompleteBootstrapAsync(ct));
+        }
+        else await Assert.ThrowsAsync<InvalidOperationException>(() => download);
+        host.SynchronizeBootstrap = null;
+        using var retry = new MemoryStream();
+        await PeerBootstrapTransfer.DownloadAsync(wire, Path.Combine(root, "guest"), retry, null, ct);
+        await wire.CompleteBootstrapAsync(ct);
+        Assert.Equal("Scene content", await File.ReadAllTextAsync(Path.Combine(root, "guest/Book/scene.txt"), ct));
+    }
 
     private static Task<DeviceIdentity> DeviceAsync(string name, CancellationToken ct)
     {

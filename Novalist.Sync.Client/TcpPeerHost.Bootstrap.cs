@@ -4,7 +4,13 @@ public sealed partial class TcpPeerHost
 {
     private readonly SemaphoreSlim preparingBootstrap = new(1, 1);
     private (string Path, long Sequence)? bootstrap;
-    public Func<CancellationToken, Task>? PrepareBootstrap { get; set; }
+    public Func<Func<Task>, CancellationToken, Task>? SynchronizeBootstrap { get; set; }
+
+    public void CancelBootstrap()
+    {
+        lock (gate)
+            foreach (var client in clients.Values.Where(client => client.BootstrapPending)) client.Stop();
+    }
 
     public void SetBootstrap(string archivePath, long sequence = 0)
     {
@@ -26,10 +32,14 @@ public sealed partial class TcpPeerHost
                 throw new InvalidDataException("The bootstrap request belongs to another project.");
             if (request.Operation == "bootstrap-begin")
             {
+                await FinishBootstrapAsync(client);
+                lock (gate) client.BootstrapPending = true;
                 await preparingBootstrap.WaitAsync(ct);
+                client.BootstrapLockHeld = true;
                 try
                 {
-                    if (PrepareBootstrap is { } prepare) await prepare(ct);
+                    client.BootstrapSession = await PeerBootstrapSession.StartAsync(
+                        transfer => SynchronizeBootstrap is { } synchronize ? synchronize(transfer, ct) : transfer(), ct);
                     (string Path, long Sequence) snapshot;
                     lock (gate) snapshot = bootstrap ?? throw new InvalidOperationException("The host has not prepared its project.");
                     var archive = await PeerBootstrapArchive.OpenAsync(snapshot.Path, snapshot.Sequence, ct);
@@ -41,7 +51,12 @@ public sealed partial class TcpPeerHost
                         return new(request.Id, "reply", Bootstrap: archive.Description);
                     }
                 }
-                finally { preparingBootstrap.Release(); }
+                catch { await FinishBootstrapAsync(client); throw; }
+            }
+            if (request.Operation == "bootstrap-complete")
+            {
+                await FinishBootstrapAsync(client);
+                return new(request.Id, "reply");
             }
             if (request.Operation == "bootstrap-read" && request.BootstrapEntry is { } entry && client.Bootstrap is { } source)
             {
@@ -58,6 +73,29 @@ public sealed partial class TcpPeerHost
             ArgumentException or TimeoutException or System.Text.Json.JsonException)
         {
             return new(request.Id, "reply", Error: "The host could not prepare or read the shared project.");
+        }
+    }
+
+    private async Task FinishBootstrapAsync(PeerClient client)
+    {
+        try
+        {
+            client.Bootstrap?.Dispose();
+            client.Bootstrap = null;
+            if (client.BootstrapSession is { } session)
+            {
+                client.BootstrapSession = null;
+                await session.DisposeAsync();
+            }
+        }
+        finally
+        {
+            lock (gate) client.BootstrapPending = false;
+            if (client.BootstrapLockHeld)
+            {
+                client.BootstrapLockHeld = false;
+                preparingBootstrap.Release();
+            }
         }
     }
 }

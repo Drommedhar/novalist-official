@@ -71,7 +71,7 @@ internal sealed partial class PeerProjectWorkspace : IDisposable
                 runtime.Relay = await RelayPeerTunnel.HostAsync(server, access.Address.Port, account.GetAccessTokenAsync, ct);
             await CaptureHostAsync(runtime, ct);
             var prepared = runtime;
-            host.PrepareBootstrap = token => PrepareBootstrapAsync(prepared, token);
+            host.SynchronizeBootstrap = (transfer, token) => SynchronizeBootstrapAsync(prepared, transfer, token);
         }
         catch
         {
@@ -155,6 +155,7 @@ internal sealed partial class PeerProjectWorkspace : IDisposable
             archive.Position = 0;
             await workspace.AttachSharedProjectAsync(id, session.Updates, state, archive, ct);
             if (hosted is not null) await RememberAsync(hosted, destination, ct);
+            await wire.CompleteBootstrapAsync(ct);
         }
         catch (Exception error)
         {
@@ -224,7 +225,11 @@ internal sealed partial class PeerProjectWorkspace : IDisposable
             throw new ArgumentException("Enter a name for the other writers to see.", nameof(name));
     }
 
-    internal void StopPendingOperations() => stopping.Cancel();
+    internal void StopPendingOperations()
+    {
+        stopping.Cancel();
+        current?.Host?.CancelBootstrap();
+    }
     public void Dispose() => stopping.Dispose();
 
     private sealed class Runtime(Guid id, DeviceIdentity device, PeerProjectSession session, TcpPeerHost? host, string address, string name) : IAsyncDisposable
@@ -246,7 +251,7 @@ internal sealed partial class PeerProjectWorkspace : IDisposable
             Mode: Server is not null ? "hosted" : Steam is null ? "tcp" : "steam");
         public async ValueTask DisposeAsync()
         {
-            if (host is not null) host.PrepareBootstrap = null;
+            if (host is not null) host.SynchronizeBootstrap = null;
             await session.DisposeAsync();
             if (host is not null) await host.DisposeAsync();
             foreach (var path in BootstrapArchives) File.Delete(path);

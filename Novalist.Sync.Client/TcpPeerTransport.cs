@@ -111,7 +111,7 @@ public sealed partial class TcpPeerTransport : IUpdateTransport, IPresenceTransp
                 CryptographicOperations.FixedTimeEquals(SHA256.HashData(presented.GetRawCertData()), address.CertificateHash));
             await stream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
             {
-                TargetHost = "Novalist peer session", EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13
+                TargetHost = address.Host, EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13
             }, timeout.Token);
             var challenge = await PeerProtocol.ReadAsync<PeerChallenge>(stream, timeout.Token);
             if (challenge.SessionId != address.SessionId || challenge.Nonce is not { Length: 32 })

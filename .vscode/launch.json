@@ -86,7 +86,7 @@
       "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
     },
     {
-      "name": "Collaboration: Steam (App ID 420)",
+      "name": "Collaboration: Steam (App ID 480)",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "${workspaceFolder}/app/node_modules/electron/dist/electron.exe",
@@ -99,9 +99,9 @@
         "ELECTRON_RUN_AS_NODE": null,
         "NOVALIST_SETTINGS_DIR": "${workspaceFolder}/app/out/manual-steam/settings",
         "NOVALIST_BACKEND_PATH": "${workspaceFolder}/app/out/collaboration-steam-build/bin/Novalist.Backend/debug/Novalist.Backend.exe",
-        "NOVALIST_STEAM_APP_ID": "420",
-        "SteamAppId": "420",
-        "SteamGameId": "420",
+        "NOVALIST_STEAM_APP_ID": "480",
+        "SteamAppId": "480",
+        "SteamGameId": "480",
         "NOVALIST_DISABLE_SELF_UPDATE": "1"
       },
       "skipFiles": ["<node_internals>/**", "**/node_modules/**"]

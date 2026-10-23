@@ -111,7 +111,7 @@ public sealed class CheckpointTests : IDisposable
         const string settings = """
             {"author":"Shared author","wordsPerPage":320,"disabledContinuityRules":["example"],
              "overrides":{"grammarCheckApiKey":"private-key","grammarCheckUsername":"private-account",
-               "grammarCheckApiUrl":"https://private.example/?token=secret","theme":"personal-theme","bookFontSize":11},
+               "grammarCheckApiUrl":"https://private.example/?token=secret","theme":"personal-theme","bookFontSize":11,"autoReplacementLanguage":"de-guillemet"},
              "wordCountGoals":{"projectGoal":80000,"dailyGoal":500,"dailyBaselineWords":1234},
              "viewState":{"isExplorerVisible":false},"sprints":[{"notes":"personal-sprint"}],"futureCredential":"private-future"}
             """;
@@ -131,6 +131,7 @@ public sealed class CheckpointTests : IDisposable
         Assert.Equal("Shared author", json.RootElement.GetProperty("author").GetString());
         Assert.Equal(320, json.RootElement.GetProperty("wordsPerPage").GetInt32());
         Assert.Equal(11, json.RootElement.GetProperty("overrides").GetProperty("bookFontSize").GetInt32());
+        Assert.Equal("de-guillemet", json.RootElement.GetProperty("overrides").GetProperty("autoReplacementLanguage").GetString());
         Assert.Equal(80000, json.RootElement.GetProperty("wordCountGoals").GetProperty("projectGoal").GetInt32());
         Assert.False(json.RootElement.GetProperty("wordCountGoals").TryGetProperty("dailyGoal", out _));
         Assert.False(json.RootElement.TryGetProperty("viewState", out _));

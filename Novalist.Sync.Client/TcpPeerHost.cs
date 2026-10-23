@@ -151,7 +151,7 @@ public sealed partial class TcpPeerHost : IAsyncDisposable
                         if (clients.GetValueOrDefault(client.Device) == client) clients.Remove(client.Device);
                     }
                     client.Outgoing.Writer.TryComplete();
-                    client.Bootstrap?.Dispose();
+                    await FinishBootstrapAsync(client);
                 }
                 await writer;
             }
@@ -174,6 +174,9 @@ public sealed partial class TcpPeerHost : IAsyncDisposable
         public Guid Device { get; } = device;
         public bool Joined { get; set; }
         public PeerBootstrapArchive? Bootstrap { get; set; }
+        public PeerBootstrapSession? BootstrapSession { get; set; }
+        public bool BootstrapPending { get; set; }
+        public bool BootstrapLockHeld { get; set; }
         public Channel<PeerMessage> Outgoing { get; } = Channel.CreateBounded<PeerMessage>(256);
         public void Stop() => lifetime.Cancel();
         public void Send(PeerMessage value) { if (!Outgoing.Writer.TryWrite(value)) Stop(); }

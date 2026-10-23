@@ -91,6 +91,61 @@ public sealed class PeerProjectRpcTests
         Assert.Equal(destination, guest.Workspace.Projects.ProjectRoot);
     }
 
+    [Theory]
+    [InlineData(true, "complete")]
+    [InlineData(true, "disconnect")]
+    [InlineData(true, "cancel")]
+    [InlineData(true, "shutdown")]
+    [InlineData(false, "complete")]
+    public async Task HostRemainsPausedUntilTheGuestFinishesInstallingOrLeaves(bool coordinated, string ending)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var temporary = new TempDir();
+        await using var owner = new Desktop(temporary.Combine("settings"));
+        await owner.Workspace.Projects.CreateProjectAsync(temporary.Path, "Novel", "Book");
+        await owner.Rpc.HostPeerAsync("127.0.0.1", 0, "Owner", ct);
+        using var gate = new SemaphoreSlim(1, 1);
+        if (coordinated)
+        {
+            var coordinator = new WorkspaceCoordinator(owner.Workspace, gate);
+            owner.Workspace.Coordinator = coordinator;
+            coordinator.Validate(new("host-window", 0, null), "scenes/read");
+            coordinator.Notify = (method, payload) =>
+            {
+                var json = JsonSerializer.SerializeToElement(payload);
+                var token = json.GetProperty("token").GetString()!;
+                if (method == "workspace/prepare")
+                {
+                    Assert.Equal("collaboration/hostSync", json.GetProperty("reason").GetString());
+                    coordinator.Prepared(token, true, null);
+                }
+                else coordinator.Applied(token);
+                return Task.CompletedTask;
+            };
+        }
+        else owner.Workspace.DispatchSharedCapture = async (action, token) =>
+        {
+            await gate.WaitAsync(token);
+            try { await action(); }
+            finally { gate.Release(); }
+        };
+        var credentials = Substitute.For<ICollaborationCredentials>();
+        credentials.ReadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult<string?>(null));
+        using var device = await new DeviceIdentityStore(credentials).GetOrCreateAsync(new("https://peer.test"), "guest", ct);
+        var link = await owner.Rpc.InviteAsync(DateTimeOffset.UtcNow.AddHours(1), ct);
+        await using var wire = await TcpPeerTransport.JoinInvitationAsync(PeerInvitation.Parse(link), device, ct);
+        using var access = wire.Access;
+        using var archive = new MemoryStream();
+        await PeerBootstrapTransfer.DownloadAsync(wire, temporary.Combine("Joined"), archive, null, ct);
+        Assert.Equal(0, gate.CurrentCount);
+        if (ending == "complete") await wire.CompleteBootstrapAsync(ct);
+        else if (ending == "cancel") owner.Rpc.Cancel();
+        else if (ending == "shutdown") owner.Workspace.PeerProjects!.StopPendingOperations();
+        else await wire.DisposeAsync();
+        await EventuallyAsync(() => gate.CurrentCount == 1, ct);
+        Assert.NotNull(owner.Rpc.Status());
+    }
+
     [Fact]
     public async Task FailedPeerSetupLeavesTheOpenProjectUsableAndAllowsAnotherAttempt()
     {
@@ -139,10 +194,15 @@ public sealed class PeerProjectRpcTests
         await using var desktop = new Desktop(temporary.Combine("settings"));
         await desktop.Workspace.Projects.CreateProjectAsync(temporary.Path, "Novel", "Book");
         Assert.False(desktop.Rpc.SteamStatus().Available);
+        Assert.Throws<NotSupportedException>(() => desktop.Rpc.SteamFriends());
+        Assert.Null(desktop.Rpc.PendingSteamInvitation());
+        desktop.Rpc.DismissSteamInvitation(Guid.NewGuid());
+        Assert.Throws<NotSupportedException>(() => desktop.Rpc.ReceiveSteamInvitation("invite"));
         await Assert.ThrowsAsync<NotSupportedException>(() => desktop.Rpc.HostSteamAsync("Writer", ct));
         Assert.Null(desktop.Rpc.Status());
         Assert.NotNull(desktop.Workspace.Projects.ProjectRoot);
         Assert.Equal("tcp", (await desktop.Rpc.HostPeerAsync("127.0.0.1", 0, "Writer", ct)).Mode);
+        Assert.Throws<InvalidDataException>(() => desktop.Rpc.InviteSteamFriend("76561198000000001"));
         var link = await desktop.Rpc.InviteAsync(DateTimeOffset.UtcNow.AddHours(1), ct);
         var steamLink = new SteamPeerInvitation(76561198000000001, PeerInvitation.Parse(link)).ToLink();
         await using var guest = new Desktop(temporary.Combine("guest-settings"));

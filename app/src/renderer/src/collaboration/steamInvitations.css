@@ -1,0 +1,17 @@
+.steam-invitation-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  max-height: calc(100dvh - var(--nl-space-xxl));
+  overflow-y: auto;
+}
+
+.steam-invitation-dialog .collaboration-destination {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+}
+
+.steam-invitation-dialog p {
+  margin: 0;
+}

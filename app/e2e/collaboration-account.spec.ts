@@ -40,7 +40,7 @@ test('settings can cancel browser sign-in and displays discovery failures', asyn
     await expect(h.page.getByRole('button', { name: 'Sign in', exact: true })).toBeEnabled()
     await h.page.getByLabel('Server address', { exact: true }).fill(provider.address + '/missing')
     await h.page.getByRole('button', { name: 'Sign in', exact: true }).click()
-    await expect(h.page.getByRole('alert')).toContainText('This server has not enabled desktop sign-in.')
+    await expect(h.page.getByRole('alert')).toContainText('Use the collaboration server address, not the sign-in provider address.')
   } finally { await h.close(); await provider.close() }
 })
 

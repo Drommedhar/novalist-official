@@ -79,6 +79,7 @@ export function ManuscriptFrame(): React.JSX.Element {
   const sharedRef = useRef<SharedManuscriptEditors | null>(null)
   const readyRef = useRef(false)
   const sections = useManuscriptStore((s) => s.sections)
+  const loaded = useManuscriptStore(s => s.loaded)
   const effective = useSettingsStore((s) => s.view?.effective)
   const zoomPercent = useWritingZoomStore((s) => s.percent)
   const sharedError = useManuscriptStore(s => Object.values(s.sharedEdits).some(edit => edit.error))
@@ -220,6 +221,7 @@ export function ManuscriptFrame(): React.JSX.Element {
 
   return (
     <>
+      {!loaded && <div className="manuscript-loading" role="status">{t('splash.loading')}</div>}
       {sharedError && <div role="alert" className="manuscript-shared-error">
         {t('collaboration.editorError')}
         <button type="button" className="dialog-btn" onClick={() => void sharedRef.current?.flush().catch(error => useHostBridgeStore.getState().pushToast(String(error)))}>{t('collaboration.retryField')}</button>
@@ -227,6 +229,7 @@ export function ManuscriptFrame(): React.JSX.Element {
       <iframe
         ref={iframeRef}
         className="editor-frame"
+        style={!loaded ? { display: 'none' } : undefined}
         src="./editor/manuscript-editor.html"
         title="manuscript"
         sandbox="allow-scripts allow-same-origin"

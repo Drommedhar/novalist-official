@@ -5,7 +5,8 @@ import './collaboration.css'
 export function CollaborationTransferDialog(): React.JSX.Element | null {
   const { t } = useTranslation()
   const busy = useHostedSessionStore(state => state.busy)
-  if (!busy || ['copy', 'invite', 'end'].includes(busy)) return null
+  const hostSynchronizing = useHostedSessionStore(state => state.hostSynchronizing)
+  if (!hostSynchronizing && (!busy || ['copy', 'invite', 'end'].includes(busy))) return null
   return <div className="dialog-overlay" role="dialog" aria-modal="true" aria-label={t('collaboration.transfer.label')}>
     <div className="dialog-card"><CollaborationTransferStatus active /></div>
   </div>
@@ -13,7 +14,14 @@ export function CollaborationTransferDialog(): React.JSX.Element | null {
 
 export function CollaborationTransferStatus({ active = false }: { active?: boolean }): React.JSX.Element | null {
   const { t, i18n } = useTranslation()
-  const { busy, session, transfer, cancelling, cancel } = useHostedSessionStore()
+  const { busy, session, transfer, hostSynchronizing, cancelling, cancel } = useHostedSessionStore()
+  if (hostSynchronizing) return active ? <div className="collaboration-transfer" aria-live="polite">
+    <p role="status">{t(cancelling ? 'collaboration.transfer.cancelling' : 'collaboration.transfer.hostSynchronizing')}</p>
+    <progress aria-label={t('collaboration.transfer.label')} />
+    <button className="dialog-button" disabled={cancelling} onClick={() => void cancel()}>
+      {t('collaboration.transfer.cancel')}
+    </button>
+  </div> : null
   if (!busy && transfer?.phase !== 'complete') return null
   if (busy && !['copy', 'invite', 'end'].includes(busy) && !active) return null
   const bytes = (value: number): string => {

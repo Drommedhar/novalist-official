@@ -9,6 +9,13 @@ public abstract class SteamPeerRelay : IAsyncDisposable
     public abstract Exception? Failure { get; protected set; }
     public abstract ValueTask DisposeAsync();
 
+    public static void ShutdownRuntime()
+    {
+#if NOVALIST_STEAMWORKS
+        SteamNativeRuntime.Shutdown();
+#endif
+    }
+
     public static async Task<(TcpPeerTransport Transport, SteamPeerRelay Relay)> JoinInvitationAsync(
         SteamPeerInvitation invitation, DeviceIdentity device, CancellationToken ct)
     {

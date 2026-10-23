@@ -1,15 +1,13 @@
 [CmdletBinding()]
-param([string] $SteamworksNativeLibrary = $env:SteamworksNativeLibrary)
+param(
+    [string] $SteamworksSdkArchive = $env:SteamworksSdkArchive,
+    [string] $SteamworksNativeLibrary = $env:SteamworksNativeLibrary
+)
 
 $ErrorActionPreference = 'Stop'
 $workspacePath = Split-Path -Parent $PSScriptRoot
-if ([string]::IsNullOrWhiteSpace($SteamworksNativeLibrary)) {
-    $SteamworksNativeLibrary = Join-Path (Split-Path -Parent $workspacePath) 'Fireplace/src-tauri/target/debug/steam_api64.dll'
-}
-if (-not (Test-Path -LiteralPath $SteamworksNativeLibrary -PathType Leaf)) {
-    throw 'Set SteamworksNativeLibrary to your Steamworks SDK steam_api64.dll before starting VS Code, or build the sibling Fireplace checkout first.'
-}
-$nativePath = (Resolve-Path -LiteralPath $SteamworksNativeLibrary).Path
+$nativePath = & (Join-Path $PSScriptRoot 'Get-SteamworksNativeLibrary.ps1') -SteamworksSdkArchive $SteamworksSdkArchive -SteamworksNativeLibrary $SteamworksNativeLibrary
+& (Join-Path $PSScriptRoot 'Prepare-SteamworksBinding.ps1')
 $backendProject = Join-Path $workspacePath 'Novalist.Backend/Novalist.Backend.csproj'
 $artifactsPath = Join-Path $workspacePath 'app/out/collaboration-steam-build'
 dotnet build $backendProject '-p:EnableSteamworks=true' "-p:SteamworksNativeLibrary=$nativePath" --artifacts-path $artifactsPath

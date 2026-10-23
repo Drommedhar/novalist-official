@@ -15,6 +15,7 @@ import { ShellDialogs } from './ShellDialogs'
 
 import { SceneConflictDialog } from './SceneConflictDialog'
 import { UnsavedLeaveDialog } from './UnsavedLeaveDialog'
+import { SteamInvitationDialog } from '../collaboration/SteamInvitationDialog'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 
@@ -89,5 +90,6 @@ export function AppShellDialogs(): React.JSX.Element {
       {/* Raised by the store when a navigation would leave unsaved edits
           behind, wherever the writer set off from. */}
       <UnsavedLeaveDialog />
+      <SteamInvitationDialog />
   </>
 }

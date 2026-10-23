@@ -18,6 +18,7 @@ internal sealed partial class PeerProjectWorkspace
     internal void Cancel()
     {
         lock (operationGate) pending?.Cancel();
+        current?.Host?.CancelBootstrap();
     }
 
     private sealed class Operation(PeerProjectWorkspace owner, CancellationTokenSource source) : IDisposable
@@ -33,7 +34,7 @@ internal sealed partial class PeerProjectWorkspace
         }
     }
 
-    private async Task PrepareBootstrapAsync(Runtime runtime, CancellationToken ct)
+    private async Task SynchronizeBootstrapAsync(Runtime runtime, Func<Task> transfer, CancellationToken ct)
     {
         async Task CaptureAsync()
         {
@@ -53,8 +54,10 @@ internal sealed partial class PeerProjectWorkspace
                 runtime.RequireHost().SetBootstrap(archive.Name, sequence);
                 return true;
             }, ct);
+            await transfer();
         }
-        if (workspace.DispatchSharedCapture is { } dispatch) await dispatch(CaptureAsync, ct);
+        if (workspace.Coordinator is { } coordinator) await coordinator.RunAsync("collaboration/hostSync", CaptureAsync);
+        else if (workspace.DispatchSharedCapture is { } dispatch) await dispatch(CaptureAsync, ct);
         else await CaptureAsync();
     }
 }

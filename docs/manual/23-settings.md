@@ -140,7 +140,9 @@ the same kind of lock and leave a locked field unchanged. Research filing and
 fetched titles respect those locks too. Wait for the field to become editable;
 another writer cannot change it until you leave the field. Moving focus saves
 the value before releasing the lock. These edits require an active connection.
-When a field is locked, its message names the writer editing it.
+When a writer focuses a field, the same name badge used by editor cursors appears beside it for other participants,
+without those participants needing to click the field. The indicator clears when
+the writer leaves the field.
 AI and reader visibility settings, section visibility and name-matching controls use these
 locks too. Settling or unsettling an entry and moving a place under another place
 briefly acquire the relevant field lock before changing it.
@@ -154,7 +156,10 @@ project's `Recovered edits` folder. **Show recovery copy** reveals that file so
 you can reuse the value later. It does not replace the shared field.
 
 Project saves also synchronize structure, new scenes and Codex entries, research,
-and binary assets. A new scene becomes a collaborative editor immediately. Moving
+and binary assets. A writing language set for the project travels with it, so
+automatic scene conflict, emotion, intensity and tags use that language on each
+computer. Each writer keeps their own interface language. A new scene becomes a
+collaborative editor immediately. Moving
 a scene keeps its shared writing identity. Deleting it keeps it deleted; edits
 arriving afterward are saved under `Recovered edits`. Conflicting file changes
 also retain a recovery copy instead of silently replacing the shared version.
@@ -168,12 +173,28 @@ rule allowing that port. **Create invitation** gives one writer a private link
 valid for an hour. They choose the direct connection type, enter their name,
 paste the link, choose a new folder or an existing local project and select **Join direct session**.
 Direct sessions use the same project synchronization, editor and focus locks.
+When someone joins, the host sees a synchronization dialog. Novalist saves any
+pending edits and pauses host editing until the joining writer has installed
+the initial copy. Editing resumes after completion, cancellation or disconnection.
+The host can cancel the incoming synchronization from the dialog. This applies
+to relay-server and Steam sessions too.
 The host must stay online. Ending the host's session stops live collaboration
 for everyone; each participant retains their local copy. Starting a new session
 does not send pending edits from an ended session.
 
-Steam-enabled builds also offer **Steam** as a connection type. Choose a display
-name and **Host Steam session**, then share the private invitation. The invited
+Steam-enabled builds also offer **Steam** as a connection type. Your Steam display
+name is filled in automatically; you can change it before choosing **Host Steam session**.
+Then choose **Invite Steam friends**, select a
+friend and press **Send Steam invitation**. After accepting in Steam, the friend
+gets a **Steam project invitation** dialog inside Novalist, including when the
+invitation launches the app. Choose a parent folder and a name for a new local
+copy, or enable **Use an existing local project** and select that project folder.
+**Accept and join** starts synchronization only after a destination is selected;
+canceling leaves the current project untouched. If another collaboration session
+is already open, close it first and accept the invitation again. Steam keeps
+listening for invitations after a session ends.
+
+You can also create and share the private invitation link manually. The invited
 writer pastes it into the Steam form and chooses a new folder or existing copy. Steam routes
 the connection, so neither writer needs to enter an IP address or forward a port.
 The host must stay online. A missing Steam runtime, app registration or account
@@ -182,8 +203,10 @@ sessions remain available to both Steam and non-Steam builds.
 
 The Steam adapter compiles against Steamworks.NET and uses reliable
 SteamNetworkingSockets messages for the same authenticated project session used
-by TCP. It has not yet been tested with two Steam accounts; that validation needs
-Novalist's registered app ID and Steamworks SDK redistributables. The default
+by TCP. SDK 1.65 initialization, friends access and hosting are tested locally.
+Invitation acceptance, project transfer, edits in both directions and cursor names
+have also been verified between Windows and Apple Silicon macOS using two Steam
+accounts. Both machines must keep Novalist and Steam running. The default
 open-source build excludes the native integration.
 
 During a connection interruption, keep writing in already shared scenes and Codex prose. Changes
@@ -193,8 +216,6 @@ files changed outside collaboration are preserved in `Recovered edits` before
 the shared version is restored. End the session before restoring a whole-project
 backup. Extensions must use collaborative prose and field editing when changing
 content already bound to a shared editor or focus lock.
-
-Native Steam sessions still require testing with two entitled Steam accounts.
 
 ## Global vs project settings
 

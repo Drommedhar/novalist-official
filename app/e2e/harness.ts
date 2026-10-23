@@ -45,7 +45,8 @@ export async function launchApp(
   prefix: string,
   /** Extra environment for the launch, e.g. NOVALIST_FORCE_MOBILE for the phone shell. */
   extraEnv: Record<string, string> = {},
-  existingWorkDir?: string
+  existingWorkDir?: string,
+  launchArguments: string[] = []
 ): Promise<Harness> {
   const workDir = existingWorkDir ?? mkdtempSync(join(tmpdir(), prefix))
   const env: Record<string, string> = Object.fromEntries(
@@ -62,7 +63,7 @@ export async function launchApp(
   // saved by one spec turn up in the next, so a test could pass or fail
   // depending on which ones had run before it.
   const app = await electron.launch({
-    args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`],
+    args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`, ...launchArguments],
     env
   })
   const page = await app.firstWindow()

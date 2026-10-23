@@ -1,8 +1,9 @@
 # Test collaboration locally
 
 All implementation and server changes are local. Publication waits for your testing
-and explicit approval. Native Steam testing still requires Novalist's registered
-app and two entitled Steam accounts; see [Steam builds](steam-collaboration.md).
+and explicit approval. Native Steam initialization and hosting can be tested with
+the App ID 480 launch; a full peer test requires two entitled Steam accounts.
+See [Steam builds](steam-collaboration.md).
 
 ## VS Code launch configurations (Windows)
 
@@ -10,7 +11,9 @@ In **Run and Debug**, choose **Collaboration: Local server + 2 apps** and press
 **F5**. It builds the desktop app and local relay server and opens owner and guest instances with separate persistent
 settings and browser profiles. Use `http://127.0.0.1:42670` in both apps'
 **Settings → Collaboration**. The sign-in helper uses port `42671`; both addresses
-remain stable across restarts. The terminal prints them when ready. If those ports
+remain stable across restarts. Do not enter `42671` as the server address: it only
+handles browser sign-in and cannot relay a session. The terminal labels both
+addresses when ready. If those ports
 are already in use, stop the earlier helper or set `NOVALIST_COLLAB_RELAY_PORT` and
 `NOVALIST_COLLAB_IDENTITY_PORT` to distinct available ports before launching.
 
@@ -26,8 +29,8 @@ clients when finished, then enter `quit` in the server terminal. Local project
 copies and app profiles remain. Keep both the host and server running when testing
 guest reconnects. The relay requires no database and stores no project data.
 
-**Collaboration: Steam (App ID 420)** builds and launches the Steam variant with
-its own profile. See [the Steam launch setup](steam-collaboration.md#vs-code-launch-app-id-420)
+**Collaboration: Steam (App ID 480)** builds and launches the Steam variant with
+its own profile. See [the Steam launch setup](steam-collaboration.md#vs-code-launch-app-id-480)
 for the native library and account requirements. These development configurations
 disable self-updates and require the existing local fixtures under `app/out`.
 

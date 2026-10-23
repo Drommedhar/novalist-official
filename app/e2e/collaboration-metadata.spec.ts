@@ -34,7 +34,7 @@ test('structured Codex controls enforce the named focus owner and refresh before
     await expect(first).not.toHaveAttribute('readonly')
     await second.focus()
     await expect(second).toHaveAttribute('readonly')
-    await expect(guest.page.getByText('Owner is editing this field.', { exact: true })).toBeVisible()
+    await expect(guest.page.getByRole('status', { name: 'Owner is editing this field.', exact: true })).toBeVisible()
     await first.fill('Captain')
     await first.press('Enter')
     await first.blur()

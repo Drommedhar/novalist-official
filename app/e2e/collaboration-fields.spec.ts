@@ -60,7 +60,7 @@ test('Codex waits for its field lock, saves before releasing it, and refuses a c
     await expect.poll(() => h.page.evaluate(() => window.fieldTest.calls.length)).toBe(4)
     await h.page.evaluate(() => window.fieldTest.finishAcquire())
     await expect(age).toHaveAttribute('readonly', '')
-    await expect(h.page.getByText('Morgan is editing this field.', { exact: true })).toBeVisible()
+    await expect(h.page.getByRole('status', { name: 'Morgan is editing this field.', exact: true })).toBeVisible()
     await age.blur()
     await expect.poll(() => h.page.evaluate(() => window.fieldTest.value)).toBe('43')
     await h.page.evaluate(() => { window.fieldTest.grant = true; window.fieldTest.failSave = true })

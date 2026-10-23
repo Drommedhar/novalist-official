@@ -297,6 +297,8 @@ export function extensionContextMenuItemsJson(): string {
 export function pushEditorTheme(editor: EditorWindow): void {
   const style = getComputedStyle(document.documentElement)
   const token = (name: string): string => style.getPropertyValue(name).trim()
+  for (const name of ['--nl-font-family', '--nl-font-caption', '--nl-radius-sm', '--nl-text', '--nl-surface-editor', '--nl-surface-selected'])
+    editor.document.documentElement.style.setProperty(name, token(name))
   const fg = token('--nl-text')
   editor.setTheme(
     token('--nl-surface-editor'),

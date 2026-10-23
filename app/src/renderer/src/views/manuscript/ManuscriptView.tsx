@@ -42,10 +42,6 @@ function useManuscriptView() {
   const definitions = useManuscriptPropsStore((s) => s.definitions)
   const sharedRevision = useSharedProjectRevision()
 
-  useEffect(() => {
-    void load()
-  }, [load, filterStatus, composed, sharedRevision])
-
   // The shared status chip and the manuscript's own filter are the same
   // statement about the book, so one follows the other rather than the writer
   // setting it twice and wondering which won.
@@ -64,7 +60,7 @@ function useManuscriptView() {
   const sharedStage = useFilterStore((s) => s.filter.stage)
   useEffect(() => {
     void load()
-  }, [load, sharedCharacter, sharedLocation, sharedPlotline, sharedStage])
+  }, [load, filterStatus, composed, sharedRevision, sharedCharacter, sharedLocation, sharedPlotline, sharedStage])
 
   useEffect(() => {
     void useManuscriptPropsStore.getState().load()

@@ -47,7 +47,7 @@ test('Board POV and property drops honor named focus locks and synchronize after
     const card = owner.page.locator('.board-card', { hasText: 'Arrival' })
     const target = owner.page.locator('.board-column').filter({ has: owner.page.locator('.board-column-title', { hasText: 'Morgan' }) })
     await drop(card, target)
-    await expect(owner.page.getByText('Guest is editing this field.', { exact: true })).toBeVisible()
+    await expect(owner.page.getByRole('status', { name: 'Guest is editing this field.', exact: true })).toBeVisible()
     await expect(target.locator('.board-card')).toHaveCount(1)
     await pov.blur()
     await expect(pov).toHaveAttribute('readonly')

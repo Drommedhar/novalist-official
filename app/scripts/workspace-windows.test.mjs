@@ -85,6 +85,23 @@ test('failed apply keeps every surface frozen and never acknowledges stale UI', 
   assert.equal(h.events.get(1).length, 1)
 })
 
+test('a following change waits for every window to resume before preparing again', async () => {
+  const h = setup(1000, false)
+  h.send('workspace/changed', { token: 'a', epoch: 5, state: {}, draftId: null })
+  for (const owner of [1, 2]) h.windows.acknowledge(owner, 'a', 'changed', true)
+  await tick()
+  h.send('workspace/prepare', { token: 'b', epoch: 5, reason: 'collaboration/hostSync' })
+  await tick()
+  assert.equal(h.calls.some(call => call.method === 'workspace/prepared'), false)
+  assert.deepEqual(h.prepared, [])
+  for (const owner of [1, 2]) h.windows.acknowledge(owner, 'a', 'resumed', true)
+  await tick()
+  assert.deepEqual(h.prepared, [[1, 'b'], [2, 'b']])
+  for (const owner of [1, 2]) h.windows.acknowledge(owner, 'b', 'prepare', true)
+  await tick()
+  assert.deepEqual(h.calls.at(-1), { method: 'workspace/prepared', params: ['b', true, null] })
+})
+
 test('unresponsive save fails within the deadline', async () => {
   const h = setup(10)
   h.send('workspace/prepare', { token: 'a', epoch: 0, reason: 'project/open' })

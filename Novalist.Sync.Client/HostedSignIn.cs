@@ -16,7 +16,9 @@ public static class HostedSignIn
             { Timeout = TimeSpan.FromSeconds(30), MaxResponseContentBufferSize = 64 * 1024 };
         var endpoint = new Uri(new Uri(server.AbsoluteUri.TrimEnd('/') + '/'), "client-configuration");
         using var response = await http.GetAsync(endpoint, ct);
-        if (response.StatusCode is System.Net.HttpStatusCode.NotFound or System.Net.HttpStatusCode.ServiceUnavailable)
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            throw new InvalidOperationException("This address does not provide Novalist desktop sign-in. Use the collaboration server address, not the sign-in provider address.");
+        if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
             throw new InvalidOperationException("This server has not enabled desktop sign-in.");
         response.EnsureSuccessStatusCode();
         var configuration = await response.Content.ReadFromJsonAsync<NativeConfiguration>(ct);

@@ -4,6 +4,9 @@ public sealed partial class TcpPeerTransport
 {
     public long BootstrapSequence { get; private set; }
 
+    public async Task CompleteBootstrapAsync(CancellationToken ct) =>
+        _ = await RequestAsync(new(NextId(), "bootstrap-complete", Access.ProjectId), ct);
+
     internal async Task<PeerBootstrapDescription> BeginBootstrapAsync(CancellationToken ct)
     {
         var response = await RequestAsync(new(NextId(), "bootstrap-begin", Access.ProjectId), ct, TimeSpan.FromMinutes(10));

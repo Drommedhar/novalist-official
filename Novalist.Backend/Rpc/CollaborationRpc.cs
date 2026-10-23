@@ -7,8 +7,13 @@ namespace Novalist.Backend.Rpc;
 public sealed partial class CollaborationRpc
 {
     private readonly Workspace workspace;
+    private readonly ISteamFriendsClient steamFriends;
 
-    public CollaborationRpc(Workspace workspace) => this.workspace = workspace;
+    public CollaborationRpc(Workspace workspace, ISteamFriendsClient? steamFriends = null)
+    {
+        this.workspace = workspace;
+        this.steamFriends = steamFriends ?? SteamFriendsClient.Create();
+    }
 
     [JsonRpcMethod("collaboration/cancel")]
     public void Cancel() => workspace.PeerProjects?.Cancel();

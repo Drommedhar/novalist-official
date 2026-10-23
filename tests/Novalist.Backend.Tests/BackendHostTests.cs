@@ -75,6 +75,32 @@ public class BackendHostTests
     }
 
     [Fact]
+    public async Task CollaborationCaptureReleasesWorkspaceGateAfterFailureAndHonorsCancellation()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var (serverStream, clientStream) = FullDuplexStream.CreatePair();
+        await using var host = new BackendHost();
+        host.Attach(serverStream, serverStream);
+        using var client = CreateClient(clientStream);
+        var dispatch = host.Workspace.DispatchSharedCapture!;
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var capture = dispatch(async () => { entered.SetResult(); await release.Task; }, ct);
+        await entered.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        try
+        {
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => dispatch(
+                () => throw new InvalidOperationException("A cancelled capture must not run."), cancelled.Token));
+        }
+        finally { release.SetResult(); }
+        await capture;
+        await Assert.ThrowsAsync<IOException>(() => dispatch(() => throw new IOException("Capture failed."), ct));
+        Assert.True(await client.InvokeAsync<bool>("system/barrier").WaitAsync(TimeSpan.FromSeconds(5), ct));
+    }
+
+    [Fact]
     public async Task Barrier_RoundTrips()
     {
         var (serverStream, clientStream) = FullDuplexStream.CreatePair();
