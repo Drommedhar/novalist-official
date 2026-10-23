@@ -23,8 +23,20 @@ interface Binding {
   presence?: SharedEditorPresence
 }
 
+interface WaitingEditor {
+  root: HTMLElement
+  identity: SharedSceneIdentity
+  chapter: string
+  editor: ManuscriptEditingWindow
+}
+
 export class SharedManuscriptEditors {
   private readonly bindings = new Map<string, Binding>()
+  private readonly waiting = new Map<string, WaitingEditor>()
+  private readonly visible = new Set<string>()
+  private observer: IntersectionObserver | null = null
+  private document: Document | null = null
+  private attachTimer: ReturnType<typeof setTimeout> | undefined
   private readonly stopObserving = observeRetainedDocuments(() => this.capture())
 
   prepare(sections: ManuscriptSectionDto[]): void {
@@ -33,9 +45,25 @@ export class SharedManuscriptEditors {
       const identity = scenes.get(id)
       if (identity?.sessionId !== binding.identity.sessionId || identity.itemId !== binding.identity.itemId) this.detach(id, binding)
     }
+    for (const [id, pending] of this.waiting) {
+      const identity = scenes.get(id)
+      if (identity?.sessionId !== pending.identity.sessionId || identity.itemId !== pending.identity.itemId) this.forget(id)
+    }
   }
 
   sync(sections: ManuscriptSectionDto[], editor: ManuscriptEditingWindow): void {
+    if (!this.observer) {
+      this.document = editor.document
+      this.document.addEventListener('focusin', this.onFocus)
+      this.observer = new IntersectionObserver(entries => {
+        for (const entry of entries) {
+          const id = (entry.target as HTMLElement).dataset.sceneId!
+          if (entry.isIntersecting) this.visible.add(id)
+          else this.visible.delete(id)
+        }
+        this.scheduleAttach()
+      }, { root: editor.document.getElementById('manuscript-wrapper'), rootMargin: '100% 0px' })
+    }
     for (const section of sections) for (const scene of section.scenes) {
       if (!scene.shared) continue
       const root = editor.document.querySelector<HTMLElement>(`.scene-editor[data-scene-id="${CSS.escape(scene.sceneId)}"]`)
@@ -49,9 +77,40 @@ export class SharedManuscriptEditors {
         }
       } else {
         if (previous) this.detach(scene.sceneId, previous)
-        this.attach(scene.sceneId, section.chapterGuid, scene.shared, root, editor)
+        const pending = this.waiting.get(scene.sceneId)
+        if (pending?.root !== root) this.forget(scene.sceneId)
+        this.waiting.set(scene.sceneId, { chapter: section.chapterGuid, identity: scene.shared, root, editor })
+        this.observer.observe(root)
       }
     }
+  }
+
+  private readonly onFocus = (event: FocusEvent): void => {
+    const id = (event.target as HTMLElement | null)?.dataset?.sceneId
+    if (id) this.activate(id)
+  }
+
+  private scheduleAttach(): void {
+    if (this.attachTimer !== undefined || !this.visible.size) return
+    this.attachTimer = setTimeout(() => {
+      this.attachTimer = undefined
+      const id = this.visible.values().next().value
+      if (id) this.activate(id)
+      this.scheduleAttach()
+    }, 0)
+  }
+
+  private forget(id: string): void {
+    const pending = this.waiting.get(id)
+    if (pending) this.observer?.unobserve(pending.root)
+    this.waiting.delete(id)
+    this.visible.delete(id)
+  }
+
+  private activate(id: string): void {
+    const pending = this.waiting.get(id)
+    this.forget(id)
+    if (pending) this.attach(id, pending.chapter, pending.identity, pending.root, pending.editor)
   }
 
   private attach(id: string, chapter: string, identity: SharedSceneIdentity, root: HTMLElement, editor: ManuscriptEditingWindow): void {
@@ -79,6 +138,7 @@ export class SharedManuscriptEditors {
 
   capture(id?: string): boolean {
     if (id) {
+      this.activate(id)
       const binding = this.bindings.get(id)
       binding?.session.capture()
       return !!binding
@@ -104,6 +164,11 @@ export class SharedManuscriptEditors {
 
   close(): void {
     this.stopObserving()
+    clearTimeout(this.attachTimer)
+    this.observer?.disconnect()
+    this.document?.removeEventListener('focusin', this.onFocus)
+    this.waiting.clear()
+    this.visible.clear()
     for (const [id, binding] of this.bindings) this.detach(id, binding)
   }
 }

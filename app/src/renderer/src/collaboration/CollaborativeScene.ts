@@ -169,10 +169,17 @@ export class CollaborativeScene {
     }
     this.capture()
     const selection = this.selection()
-    const rejected = this.updates.receive(update)
-    this.render()
-    if (selection) this.restoreSelection(selection)
-    this.editor.flushPendingContentChange()
+    let changed = false
+    const onChange = (): void => { changed = true }
+    this.prose.observe(onChange)
+    let rejected
+    try { rejected = this.updates.receive(update) }
+    finally { this.prose.unobserve(onChange) }
+    if (changed) {
+      this.render()
+      if (selection) this.restoreSelection(selection)
+      this.editor.flushPendingContentChange()
+    }
     for (const error of rejected) this.options.onError(error)
   }
 

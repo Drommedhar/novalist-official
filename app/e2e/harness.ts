@@ -157,7 +157,7 @@ export async function dismissTour(page: Page): Promise<void> {
   const tour = page.locator('.tour-card')
   try {
     await tour.waitFor({ state: 'visible', timeout: 2_000 })
-    await tour.getByRole('button', { name: 'Close tour' }).click()
+    await tour.locator('.tour-close').click()
     await tour.waitFor({ state: 'hidden', timeout: 5_000 })
     // The tour walks the workspace and gives back the one it borrowed, and it
     // does that a task after it unmounts. Settling it here is what stops the
