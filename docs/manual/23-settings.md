@@ -28,10 +28,25 @@ When you reach Settings from a control elsewhere — the editor's **More writing
 
 ## Collaboration
 
-On desktop, open **Settings → Collaboration**, select **Relay server**, enter your server's
+Collaboration is available from **Collaborate** in the top bar, without opening
+Settings. Select **Share** for the open project or **Join** for an invitation.
+With no project open, only joining is available. Connection choices follow the
+runtime: Steam appears when available; relay server and direct TCP remain options.
+During a session, the panel shows connection status, invitations and the end-session
+action. Owners can expand **Manage shared access** for membership controls.
+
+For a community server, select **Relay server**, enter your server's
 address, and select **Sign in**. Complete sign-in in your browser and return to
-Novalist. **Cancel sign-in** stops a pending request. **Sign out** removes the
-remembered account from this device.
+Novalist. **Cancel sign-in** stops a pending request. Expand **Account** to sign out.
+**Sign out** removes the remembered account from this device.
+
+Your displayed name comes from the sign-in provider's `name` profile claim; if it
+is absent, the account identifier is used. Change the name in that provider's
+profile, then sign out and sign in again. The relay has no separate username or
+account-profile editor. The server administrator must configure the provider to
+include `name` in the ID token and grant the desktop the `profile` scope. Direct
+TCP and Steam sessions let you choose **Your name** before starting or joining;
+Steam fills it from your Steam profile.
 If a saved sign-in has expired, Novalist offers **Sign in** again. If its provider
 is unavailable, you can retry later or use **Forget saved sign-in** to remove that
 device's saved account. Sharing checks sign-in before preparing the project.
@@ -49,7 +64,7 @@ other writers cannot join while the host is offline.
 
 **Create invitation** produces a private link for one collaborator, valid
 for 24 hours. Send it only to the person you want to invite. They sign in to the
-same server, paste the link, choose a parent folder for the new local copy,
+same server, select **Join**, paste the link, choose a parent folder for the new local copy,
 and select **Join shared project**. The folder name starts as **Shared project**;
 you can change it before joining. The form shows the destination and explains
 what is still needed. Alternatively, select **Use an existing local

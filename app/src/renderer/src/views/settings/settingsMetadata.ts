@@ -24,7 +24,6 @@ export const SETTINGS_SECTION_KEYS = [
   'tags',
   'manuscriptProperties',
   'updatesIntegrations',
-  'collaboration',
   'languagePacks',
   'narration',
   'diagnostics',

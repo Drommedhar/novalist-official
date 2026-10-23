@@ -12,7 +12,7 @@ test('joining a new local copy needs only an invitation and a destination folder
     await guest.app.evaluate(({ dialog }, folder) => {
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] })
     }, guest.workDir)
-    await guest.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await guest.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     await guest.page.getByLabel('Connection type', { exact: true }).selectOption('tcp')
     await guest.page.getByLabel('Your name', { exact: true }).fill('Alex')
     await guest.page.getByLabel('Invitation link', { exact: true }).fill(invitation)
@@ -40,7 +40,7 @@ test('joining can select an existing local copy in relay and direct connection m
     await desktop.app.evaluate(({ dialog }, folder) => {
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] })
     }, desktop.workDir)
-    await desktop.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await desktop.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     for (const mode of ['hosted', 'tcp']) {
       await desktop.page.getByLabel('Connection type', { exact: true }).selectOption(mode)
       await expect(desktop.page.getByLabel('Use an existing local project', { exact: true })).toBeVisible()
@@ -73,7 +73,7 @@ test('synchronization progress and cancellation stay accessible while the worksp
         }
         return request<T>(method, params)
       }
-      window.novalistStores.shell.getState().openSettings('collaboration')
+      document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click()
     })
     await desktop.page.getByLabel('Connection type', { exact: true }).selectOption('tcp')
     await desktop.page.getByLabel('Your name', { exact: true }).fill('Morgan')
@@ -117,7 +117,7 @@ test('host preparation stays pending until startup succeeds and clears progress 
         }
         return request<T>(method, params)
       }
-      window.novalistStores.shell.getState().openSettings('collaboration')
+      document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click()
     })
     await desktop.page.getByLabel('Connection type', { exact: true }).selectOption('tcp')
     await desktop.page.getByLabel('Your name', { exact: true }).fill('Morgan')

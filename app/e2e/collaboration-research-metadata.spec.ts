@@ -41,7 +41,7 @@ test('Research metadata locks, reciprocal links and file-to-prose transitions wo
     await dismissTour(guest.page)
     await guest.rpc('collaboration/peer/join', [link, join(guest.workDir, 'Joined'), 'Guest'])
     for (const h of participants) {
-      await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+      await h.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
       await expect(h.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible()
       await h.page.evaluate(id => window.novalistStores.shell.getState().navigateToResearch(id), note.id)
       await expect(h.page.locator('.research-title')).toHaveValue('Shared source')

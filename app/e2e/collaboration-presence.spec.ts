@@ -42,7 +42,7 @@ test('cursor expiry and a new session remain independent of an old stalled publi
         return result
       }
     }, { chapter, initial: Buffer.from(Y.encodeStateAsUpdate(document)).toString('base64'), position })
-    await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await h.page.evaluate(() => window.document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     await expect(h.page.getByRole('button', { name: 'End this session', exact: true })).toBeVisible()
     await h.page.evaluate(chapter => window.novalistStores.project.getState().openScene(chapter.guid, chapter.scenes[0].id), chapter)
     const editor = h.page.frameLocator('.editor-frame')
@@ -55,7 +55,7 @@ test('cursor expiry and a new session remain independent of an old stalled publi
     await h.page.evaluate(chapter => window.novalistStores.project.getState().openScene(chapter.guid, chapter.scenes[1].id), chapter)
     await h.page.evaluate(() => {
       window.presenceTest.session = 'two'
-      window.novalistStores.shell.getState().openSettings('collaboration')
+      window.document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click()
     })
     await expect(h.page.getByRole('button', { name: 'End this session', exact: true })).toBeVisible()
     await h.page.evaluate(() => window.presenceTest.rejectSend())

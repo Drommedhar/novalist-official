@@ -1,5 +1,14 @@
 {
   "collaboration": {
+    "open": "Zusammenarbeiten",
+    "sharing": "Geteilt",
+    "joined": "Beigetreten",
+    "working": "Bitte warten…",
+    "reconnecting": "Getrennt",
+    "shareTab": "Teilen",
+    "joinTab": "Beitreten",
+    "accountDetails": "Konto",
+    "nameHint": "Dein Name stammt von deinem Anmeldeanbieter. Ändere ihn in dessen Profil und melde dich danach ab und wieder an.",
     "defaultFolderName": "Gemeinsames Projekt",
     "chooseDestinationHint": "Wähle aus, wo deine lokale Projektkopie gespeichert werden soll.",
     "invalidFolderName": "Gib einen gültigen Ordnernamen ohne Sonderzeichen oder Punkt am Ende ein.",
@@ -23,7 +32,7 @@
     "steamInvitationFrom": "{{name}} hat dich zur Zusammenarbeit eingeladen.",
     "steamInvitationReceived": "Du hast über Steam eine Einladung zu einem gemeinsamen Projekt erhalten.",
     "steamInvitationDestination": "Wähle, wo deine lokale Kopie gespeichert wird. Erst nach dem Annehmen und Beitreten werden Dateien übertragen.",
-    "steamEndCurrentFirst": "Du hast bereits eine Zusammenarbeitssitzung geöffnet. Schließe sie unter Einstellungen → Zusammenarbeit und nimm die Steam-Einladung erneut an.",
+    "steamEndCurrentFirst": "Du hast bereits eine Zusammenarbeitssitzung geöffnet. Beende sie über Zusammenarbeiten in der oberen Leiste und nimm die Steam-Einladung erneut an.",
     "steamAcceptInvitation": "Annehmen und beitreten",
     "steamHint": "Steam verbindet Schreibende ohne öffentliche Host-Adresse. Der Host muss online bleiben. Alle Teilnehmenden benötigen ein laufendes Steam mit Zugriff auf dieselbe Novalist-App.",
     "peerName": "Dein Name",

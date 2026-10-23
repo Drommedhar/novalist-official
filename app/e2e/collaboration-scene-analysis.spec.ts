@@ -25,7 +25,7 @@ test('shared scenes keep the writing language and update analysis without focusi
     expect((await guest.rpc<SceneContext>('context/analyze', [chapter.guid, scene.id])).analysis).toEqual(expected)
     for (const writer of writers) {
       await dismissTour(writer.page)
-      await writer.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+      await writer.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
       await expect(writer.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible()
       await writer.page.evaluate(async ({ chapter, scene }) => {
         await window.novalistStores.project.getState().openScene(chapter, scene)

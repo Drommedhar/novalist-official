@@ -51,7 +51,7 @@ test('a restarted guest reconnects to the running host and creates an independen
     await dismissTour(reopened.page)
     await reopened.rpc('project/open', [root])
     await dismissTour(reopened.page)
-    await reopened.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await reopened.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     const resume = reopened.page.getByRole('button', { name: 'Reconnect to shared project', exact: true })
     await expect(resume).toBeEnabled()
     await resume.click()
@@ -63,6 +63,7 @@ test('a restarted guest reconnects to the running host and creates an independen
     await expect.poll(async () => (await reopened.rpc<{ html: string }>('scenes/read', [chapter.guid, scene.id])).html).toContain('Written while away.')
     expect((await reopened.rpc<{ id: string }[]>('entities/list', ['character'])).some(entity => entity.id === createdWhileAway.id)).toBe(true)
     await reopened.rpc('collaboration/end')
+    await reopened.page.getByRole('button', { name: 'Join', exact: true }).click()
     await reopened.app.evaluate(({ dialog }, folder) => {
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] })
     }, reopened.workDir)

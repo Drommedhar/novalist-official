@@ -36,6 +36,8 @@ internal sealed partial class PeerProjectWorkspace
 
     private async Task SynchronizeBootstrapAsync(Runtime runtime, Func<Task> transfer, CancellationToken ct)
     {
+        // The listener outlives the RPC that started hosting and its workspace epoch.
+        using var context = WorkspaceRequestContext.Enter(null, null);
         async Task CaptureAsync()
         {
             if (current != runtime) throw new InvalidOperationException("The host ended this collaboration session.");

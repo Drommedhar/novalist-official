@@ -7,11 +7,6 @@ import { type SettingsSectionMetadata, control } from './settingsMetadata'
  */
 export const SETTINGS_REGISTRY: readonly SettingsSectionMetadata[] = [
   {
-    key: 'collaboration', category: 'system', titleKey: 'collaboration.title', scope: 'global', desktopOnly: true,
-    keywords: ['collaboration', 'server', 'sign in', 'account'],
-    controls: [control('server', 'collaboration.server', 'set-collaboration-server')]
-  },
-  {
     /**
      * The open project itself, and the way back out of it.
      *

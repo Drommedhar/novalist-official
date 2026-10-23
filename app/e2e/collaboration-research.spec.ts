@@ -7,7 +7,7 @@ interface ResearchNote { id: string; title: string; content: string; sharedProse
 declare global { interface Window { researchCollaborationSave: { pending: boolean; release?: () => void }; researchProseSave: { pending: boolean; release?: () => void } } }
 
 async function openSessionStatus(h: Harness): Promise<void> {
-  await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+  await h.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
   await expect(h.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible()
 }
 

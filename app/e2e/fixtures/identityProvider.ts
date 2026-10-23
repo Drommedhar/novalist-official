@@ -1,8 +1,9 @@
 import { createHash, generateKeyPairSync, randomUUID, sign } from 'node:crypto'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
+import { createServer as createHttpsServer, type ServerOptions } from 'node:https'
 import { once } from 'node:events'
 
-export async function identityProvider(subject: () => string = () => 'writer', displayName: (subject: string) => string = () => 'Test Writer', port = 0, advertiseClientConfiguration = true): Promise<{ address: string; close(): Promise<void> }> {
+export async function identityProvider(subject: () => string = () => 'writer', displayName: (subject: string) => string = () => 'Test Writer', port = 0, advertiseClientConfiguration = true, tls?: ServerOptions): Promise<{ address: string; close(): Promise<void> }> {
   const keys = generateKeyPairSync('rsa', { modulusLength: 2048 })
   const publicKey = { ...keys.publicKey.export({ format: 'jwk' }), kid: 'test', alg: 'RS256', use: 'sig' }
   const codes = new Map<string, { challenge: string; redirect: string; nonce: string; subject: string }>()
@@ -44,7 +45,7 @@ export async function identityProvider(subject: () => string = () => 'writer', d
     send(response, { access_token: unsigned + '.' + signature, refresh_token: refresh,
       id_token: unsigned + '.' + signature, token_type: 'Bearer', expires_in: 300 })
   }
-  const server = createServer((request, response) => {
+  const handle = (request: IncomingMessage, response: ServerResponse): void => {
     const url = new URL(request.url ?? '/', address)
     switch (url.pathname) {
       case '/client-configuration':
@@ -70,12 +71,13 @@ export async function identityProvider(subject: () => string = () => 'writer', d
         void token(request, response).catch(() => { response.writeHead(500); response.end() }); break
       default: response.writeHead(404); response.end()
     }
-  })
+  }
+  const server = tls ? createHttpsServer(tls, handle) : createServer(handle)
   server.listen(port, '127.0.0.1')
   await once(server, 'listening')
   const endpoint = server.address()
   if (!endpoint || typeof endpoint === 'string') throw new Error('The test identity provider has no port.')
-  address = `http://127.0.0.1:${endpoint.port}`
+  address = `${tls ? 'https' : 'http'}://127.0.0.1:${endpoint.port}`
   return { address, close: () => new Promise<void>((resolve, reject) => {
     server.close(error => error ? reject(error) : resolve())
     server.closeAllConnections()

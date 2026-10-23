@@ -43,7 +43,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
   Joining reuses matching files in an existing local copy by relative path and SHA-256, with progress and cancellation.
   Shared Codex renames update scene mentions, section links, relationships, parent references and scene POV, and finish interrupted reference updates when retried or reopened.
   Shared prose stays writable during connection interruptions;
-  structure and metadata edits require reconnecting. See [Collaboration](docs/manual/23-settings.md#collaboration)
+  structure and metadata edits require reconnecting. Open **Collaborate** in the top bar. See [Collaboration](docs/manual/23-settings.md#collaboration)
   for the current capabilities and remaining work, or [Steam build requirements](docs/development/steam-collaboration.md)
   for the optional native integration.
 

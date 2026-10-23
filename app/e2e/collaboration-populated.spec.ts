@@ -43,7 +43,7 @@ async function ready(writer: Harness): Promise<void> {
 async function signIn(writer: Harness, address: string): Promise<void> {
   await dismissTour(writer.page)
   await writer.app.evaluate(({ shell }) => { shell.openExternal = async url => { await fetch(url) } })
-  await writer.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+  await writer.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
   await writer.page.getByLabel(/^(Server address|Serveradresse)$/).fill(address)
   await writer.page.getByRole('button', { name: /^(Sign in|Anmelden)$/ }).click()
   await expect(writer.page.getByText(/^(Signed in as|Angemeldet als) Test Writer$/)).toBeVisible()

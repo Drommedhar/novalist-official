@@ -20,8 +20,8 @@ let server
 try {
   server = await collaborationServer(identity.address, relayPort)
   console.log(`Local test server: ${server.address}`)
-  console.log('Use the Local test server URL above in Settings > Collaboration in both apps.')
-  console.log(`Browser sign-in only (do not enter this in Settings): ${identity.address}`)
+  console.log('Use the Local test server URL above under Collaborate in the top bar of both apps.')
+  console.log(`Browser sign-in only (do not enter this as the relay address): ${identity.address}`)
   console.log('After restarting this helper, sign out and sign in again in each app before sharing.')
   console.log('Next browser sign-in: Morgan (owner). No password is needed.')
   console.log('Enter owner, guest or third to choose the account for the next sign-in.')

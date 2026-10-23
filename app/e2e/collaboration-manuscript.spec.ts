@@ -55,7 +55,7 @@ test('continuous manuscript shares existing rich scenes, preserves roots and pub
     await guest.rpc('collaboration/peer/join', [invitation, join(guest.workDir, 'Joined'), 'Guest'])
     for (const writer of writers) {
       await dismissTour(writer.page)
-      await writer.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+      await writer.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
       await expect(writer.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible()
     }
     await owner.page.evaluate(() => window.novalistStores.shell.getState().setMainView('manuscript'))

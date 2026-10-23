@@ -19,7 +19,7 @@ test('Codex table cells hand focus to the named writer and retain other columns'
     await guest.rpc('collaboration/peer/join', [invitation, join(guest.workDir, 'Joined'), 'Alex'])
     for (const app of apps) {
       await dismissTour(app.page)
-      await app.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+      await app.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
       await expect(app.page.getByRole('button', { name: 'End this session', exact: true })).toBeVisible()
       await app.page.evaluate(async () => {
         window.novalistStores.shell.getState().setMainView('codex')

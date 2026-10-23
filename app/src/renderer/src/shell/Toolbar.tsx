@@ -6,6 +6,7 @@ import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useUiScaleStore } from '../stores/uiScaleStore'
 import { chromeForView } from './modes'
+import { CollaborationToolbar } from '../collaboration/CollaborationToolbar'
 
 /**
  * The open project's command bar.
@@ -160,6 +161,7 @@ export function Toolbar(): React.JSX.Element {
         </>
       )}
       <div className="toolbar-spacer" />
+      <CollaborationToolbar />
       {isLoaded && wide && chrome.projectBar && (
         <button
           className="toolbar-button"

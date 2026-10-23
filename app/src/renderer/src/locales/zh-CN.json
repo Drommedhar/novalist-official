@@ -1,5 +1,14 @@
 {
   "collaboration": {
+    "open": "协作",
+    "sharing": "正在共享",
+    "joined": "已加入",
+    "working": "处理中…",
+    "reconnecting": "已断开",
+    "shareTab": "共享",
+    "joinTab": "加入",
+    "accountDetails": "账户",
+    "nameHint": "你的名称来自登录服务。请在该服务的个人资料中修改名称，然后退出并重新登录。",
     "defaultFolderName": "共享项目",
     "chooseDestinationHint": "选择本地项目副本的保存位置。",
     "invalidFolderName": "请输入有效的文件夹名称，不要使用特殊字符或以句点结尾。",
@@ -23,7 +32,7 @@
     "steamInvitationFrom": "{{name}} 邀请你协作。",
     "steamInvitationReceived": "你通过 Steam 收到了共享项目的邀请。",
     "steamInvitationDestination": "选择本地副本的保存位置。只有接受并加入后才会下载文件。",
-    "steamEndCurrentFirst": "你已开启一个协作会话。请在设置 → 协作中关闭它，然后再次接受 Steam 邀请。",
+    "steamEndCurrentFirst": "你已开启一个协作会话。请通过顶部工具栏的协作按钮结束会话，然后再次接受 Steam 邀请。",
     "steamAcceptInvitation": "接受并加入",
     "steamHint": "Steam 无需公开主机地址即可连接协作者。主持人必须保持在线。所有参与者都需要运行 Steam，并拥有同一个 Novalist 应用的访问权限。",
     "peerName": "你的名字",

@@ -10,13 +10,14 @@ test.skip(process.env.NOVALIST_SYNC_INTEGRATION !== '1', 'Requires the local rel
 async function signIn(h: Harness, server: string): Promise<void> {
   await dismissTour(h.page)
   await h.app.evaluate(({ shell }) => { shell.openExternal = async url => { await fetch(url) } })
-  await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+  await h.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
   await h.page.getByLabel('Server address', { exact: true }).fill(server)
   await h.page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(h.page.getByText('Signed in as Test Writer', { exact: true })).toBeVisible()
 }
 
 async function joinProject(h: Harness, link: string, folder = 'Joined'): Promise<void> {
+  await h.page.getByRole('button', { name: 'Join', exact: true }).click()
   await h.app.evaluate(({ dialog }, folder) => {
     dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] })
   }, h.workDir)
@@ -26,7 +27,7 @@ async function joinProject(h: Harness, link: string, folder = 'Joined'): Promise
   await h.page.getByRole('button', { name: 'Join shared project', exact: true }).click()
   await h.page.waitForFunction(() => window.novalistStores.project.getState().isLoaded && !window.novalistStores.project.getState().workspaceBusy)
   await dismissTour(h.page)
-  await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+  await h.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
 }
 
 test('host removal disconnects one writer while others continue and everyone retains a local project', async () => {
@@ -53,7 +54,7 @@ test('host removal disconnects one writer while others continue and everyone ret
     await joinProject(guest, link)
     await guest.rpc('research/save', [null, 'Before removal', 'Note', 'Published before leaving.', [], []])
     await expect.poll(() => owner.rpc('research/list')).toMatchObject([{ title: 'Before removal' }])
-    await owner.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await owner.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     await expect(guest.page.getByRole('heading', { name: 'Manage shared access' })).toHaveCount(0)
     const members = await owner.rpc<{ displayName: string; role: string }[]>('collaboration/members')
     const removed = members.find(member => member.role === 'Contributor')!
@@ -66,9 +67,10 @@ test('host removal disconnects one writer while others continue and everyone ret
     await signIn(remaining, server.address)
     await joinProject(remaining, nextLink)
     owner.page.on('dialog', dialog => void dialog.accept())
+    await owner.page.locator('summary').filter({ hasText: 'Manage shared access' }).click()
     await owner.page.locator('.settings-button-row').filter({ hasText: removed.displayName }).getByRole('button', { name: 'Remove access', exact: true }).click()
     await expect.poll(() => owner.rpc('collaboration/status'), { timeout: 30_000 }).toMatchObject({ connection: 'Connected' })
-    await owner.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await owner.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     await expect(owner.page.getByRole('button', { name: 'Remove access', exact: true })).toHaveCount(1)
     await expect(guest.page.getByText('Access to this shared project has ended. End this session to continue with your local copy.', { exact: true })).toBeVisible()
     await expect(remaining.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible({ timeout: 30_000 })

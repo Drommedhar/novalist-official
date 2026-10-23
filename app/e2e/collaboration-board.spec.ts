@@ -34,7 +34,7 @@ test('Board POV and property drops honor named focus locks and synchronize after
         return project.isLoaded && !project.workspaceBusy && !project.workspaceTransitionToken
       })
       await dismissTour(writer.page)
-      await writer.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+      await writer.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
       await expect(writer.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible()
       await writer.page.evaluate(() => window.novalistStores.shell.getState().setMainView('manuscript'))
     }

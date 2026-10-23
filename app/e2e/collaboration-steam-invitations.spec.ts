@@ -31,7 +31,7 @@ test('the Steam friends picker sends only to the selected friend after confirmat
         }
         return request<T>(method, params)
       }
-      window.novalistStores.shell.getState().openSettings('collaboration')
+      document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click()
     })
     await host.page.getByRole('button', { name: 'Invite Steam friends', exact: true }).click()
     const send = host.page.getByRole('button', { name: 'Send Steam invitation', exact: true })

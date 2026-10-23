@@ -10,11 +10,8 @@ test('two desktop writers host and join a direct session, edit together and reta
     const chapter = project.chapters.find(value => value.title === 'Opening')!
     const scene = chapter.scenes[0]
     await owner.rpc('scenes/write', [chapter.guid, scene.id, '<p>Our direct session.</p>', 'Our direct session.'])
-    await owner.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
-    await owner.page.getByLabel('Connection type', { exact: true }).selectOption('steam')
-    await expect(owner.page.getByText(/This build does not include Steamworks/)).toBeVisible()
-    await expect(owner.page.getByRole('button', { name: 'Host Steam session', exact: true })).toBeDisabled()
-    await expect(owner.page.getByRole('button', { name: 'Join Steam session', exact: true })).toBeDisabled()
+    await owner.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
+    await expect(owner.page.locator('#set-collaboration-mode option[value=steam]')).toHaveCount(0)
     await owner.page.getByLabel('Connection type', { exact: true }).selectOption('tcp')
     await owner.page.getByLabel('Your name', { exact: true }).fill('Owner')
     await owner.page.getByRole('button', { name: 'Host direct session', exact: true }).click()
@@ -27,7 +24,7 @@ test('two desktop writers host and join a direct session, edit together and reta
     const guest = await launchApp('novalist-peer-guest-')
     participants.push(guest)
     await dismissTour(guest.page)
-    await guest.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await guest.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     await guest.page.getByLabel('Connection type', { exact: true }).selectOption('tcp')
     await guest.page.getByLabel('Your name', { exact: true }).fill('Guest')
     await guest.app.evaluate(({ dialog }, folder) => {
@@ -75,7 +72,7 @@ test('two desktop writers host and join a direct session, edit together and reta
     const character = await guest.rpc<{ id: string }>('entities/create', ['character', 'Guest character'])
     await expect.poll(async () => (await owner.rpc<{ name: string }>('entities/get', ['character', character.id])).name).toBe('Guest character')
     for (const participant of participants.slice().reverse()) {
-      await participant.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+      await participant.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
       await participant.page.getByRole('button', { name: 'End this session', exact: true }).click()
       await expect(participant.page.getByRole('button', { name: 'Host direct session', exact: true })).toBeVisible()
       await expect(participant.page.getByRole('button', { name: 'End this session', exact: true })).toHaveCount(0)

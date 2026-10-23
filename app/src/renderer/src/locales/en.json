@@ -1,5 +1,14 @@
 {
   "collaboration": {
+    "open": "Collaborate",
+    "sharing": "Sharing",
+    "joined": "Joined",
+    "working": "Working…",
+    "reconnecting": "Disconnected",
+    "shareTab": "Share",
+    "joinTab": "Join",
+    "accountDetails": "Account",
+    "nameHint": "Your name comes from your sign-in provider. Change it in that profile, then sign out and sign in again.",
     "defaultFolderName": "Shared project",
     "chooseDestinationHint": "Choose where to save your local project copy.",
     "invalidFolderName": "Enter a valid folder name without special characters or a trailing dot.",
@@ -23,7 +32,7 @@
     "steamInvitationFrom": "{{name}} invited you to collaborate.",
     "steamInvitationReceived": "You received an invitation to a shared project through Steam.",
     "steamInvitationDestination": "Choose where to keep your local copy. Nothing is downloaded until you accept and join.",
-    "steamEndCurrentFirst": "You already have a collaboration session open. Close it in Settings → Collaboration, then accept the Steam invitation again.",
+    "steamEndCurrentFirst": "You already have a collaboration session open. End it from Collaborate in the top bar, then accept the Steam invitation again.",
     "steamAcceptInvitation": "Accept and join",
     "steamHint": "Steam connects writers without a public host address. The host must stay online. All participants need Steam running with access to the same Novalist app.",
     "peerName": "Your name",

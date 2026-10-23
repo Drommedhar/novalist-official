@@ -91,6 +91,37 @@ public sealed class PeerProjectRpcTests
         Assert.Equal(destination, guest.Workspace.Projects.ProjectRoot);
     }
 
+    [Fact]
+    public async Task JoiningUsesTheCurrentWorkspaceAfterTheHostRequestHasEnded()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var temporary = new TempDir();
+        await using var owner = new Desktop(temporary.Combine("owner-settings"));
+        await using var guest = new Desktop(temporary.Combine("guest-settings"));
+        await owner.Workspace.Projects.CreateProjectAsync(temporary.Path, "Novel", "Book");
+        using (WorkspaceRequestContext.Enter(new("host-window", 0, null), null))
+            await owner.Rpc.HostPeerAsync("127.0.0.1", 0, "Owner", ct);
+        using var gate = new SemaphoreSlim(1, 1);
+        var coordinator = new WorkspaceCoordinator(owner.Workspace, gate);
+        owner.Workspace.Coordinator = coordinator;
+        coordinator.Validate(new("host-window", 0, null), "scenes/read");
+        coordinator.Notify = (method, payload) =>
+        {
+            var token = JsonSerializer.SerializeToElement(payload).GetProperty("token").GetString()!;
+            if (method == "workspace/prepare") coordinator.Prepared(token, true, null);
+            else coordinator.Applied(token);
+            return Task.CompletedTask;
+        };
+        await coordinator.RunAsync("collaboration/removeMember", () => Task.CompletedTask);
+        Assert.Equal(1, coordinator.Epoch);
+        var invitation = await owner.Rpc.InviteAsync(DateTimeOffset.UtcNow.AddHours(1), ct);
+
+        var joined = await guest.Rpc.JoinPeerAsync(invitation, temporary.Combine("Guest"), "Guest", ct);
+
+        Assert.Equal("Connected", joined.Connection);
+        Assert.Equal(2, coordinator.Epoch);
+    }
+
     [Theory]
     [InlineData(true, "complete")]
     [InlineData(true, "disconnect")]

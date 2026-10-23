@@ -1,0 +1,62 @@
+.collaboration-toolbar {
+  position: relative;
+  -webkit-app-region: no-drag;
+}
+.collaboration-active {
+  color: var(--nl-accent);
+}
+.collaboration-panel {
+  position: absolute;
+  top: calc(100% + var(--nl-space-sm));
+  right: 0;
+  z-index: 100;
+  width: min(var(--nl-dialog-width), calc(100vw - var(--nl-space-xl)));
+  max-height: calc(100dvh - var(--nl-toolbar-height) - var(--nl-space-xl));
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: var(--nl-space-lg);
+  border: var(--nl-rule-width) solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+  color: var(--nl-text);
+  font-size: var(--nl-font-ui);
+  -webkit-app-region: no-drag;
+}
+.collaboration-panel-heading,
+.collaboration-intent {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  margin-bottom: var(--nl-space-md);
+}
+.collaboration-panel-heading h2 {
+  flex: 1;
+  margin: 0;
+  font-size: var(--nl-font-body);
+}
+.collaboration-intent .dialog-button {
+  flex: 1;
+}
+.collaboration-panel .collaboration-option {
+  border: none;
+  background: none;
+  padding: 0;
+}
+.collaboration-panel .collaboration-option h4 {
+  display: none;
+}
+.collaboration-panel .settings-hint {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  line-height: var(--nl-leading-body);
+}
+.collaboration-panel .settings-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nl-space-sm);
+}
+.collaboration-panel details > summary {
+  cursor: pointer;
+  padding-block: var(--nl-space-sm);
+}

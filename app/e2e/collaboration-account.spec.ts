@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { launchApp, dismissTour } from './harness'
 import { identityProvider } from './fixtures/identityProvider'
 
-test('settings signs in through the browser bridge, remembers the account, and signs out', async () => {
+test('the collaboration toolbar signs in through the browser bridge, remembers the account, and signs out', async () => {
   const provider = await identityProvider()
   const h = await launchApp('novalist-account-')
   try {
@@ -13,27 +13,28 @@ test('settings signs in through the browser bridge, remembers the account, and s
         if (!result.ok) throw new Error('Test browser could not finish sign-in.')
       }
     })
-    await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await h.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     await h.page.getByLabel('Server address', { exact: true }).fill(provider.address)
     await h.page.getByRole('button', { name: 'Sign in', exact: true }).click()
     await expect(h.page.getByRole('status').filter({ hasText: 'Signed in as Test Writer' })).toBeVisible()
     await h.page.reload()
     await h.page.waitForFunction(() => Boolean(window.novalistStores?.shell.getState().backendVersion))
-    await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await h.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     await expect(h.page.getByText('Signed in as Test Writer', { exact: true })).toBeVisible()
+    await h.page.getByText('Account', { exact: true }).click()
     await h.page.getByRole('button', { name: 'Sign out', exact: true }).click()
     await expect(h.page.getByText('Signed in as Test Writer', { exact: true })).toHaveCount(0)
     await expect(h.page.getByRole('button', { name: 'Sign in', exact: true })).toBeEnabled()
   } finally { await h.close(); await provider.close() }
 })
 
-test('settings can cancel browser sign-in and displays discovery failures', async () => {
+test('the collaboration toolbar can cancel browser sign-in and displays discovery failures', async () => {
   const provider = await identityProvider()
   const h = await launchApp('novalist-account-cancel-')
   try {
     await dismissTour(h.page)
     await h.app.evaluate(({ shell }) => { shell.openExternal = async () => {} })
-    await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await h.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     await h.page.getByLabel('Server address', { exact: true }).fill(provider.address)
     await h.page.getByRole('button', { name: 'Sign in', exact: true }).click()
     await h.page.getByRole('button', { name: 'Cancel sign-in', exact: true }).click()
@@ -59,7 +60,7 @@ test('restarting the local sign-in provider offers a fresh sign-in for a retaine
     desktop = await launchApp('novalist-account-restart-', {}, workDir)
     await dismissTour(desktop.page)
     await desktop.app.evaluate(({ shell }) => { shell.openExternal = async url => { await fetch(url) } })
-    await desktop.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await desktop.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     await expect(desktop.page.getByRole('button', { name: 'Sign in', exact: true })).toBeEnabled()
     await expect(desktop.page.getByText('Signed in as Test Writer', { exact: true })).toHaveCount(0)
     await desktop.page.getByRole('button', { name: 'Sign in', exact: true }).click()
@@ -67,7 +68,7 @@ test('restarting the local sign-in provider offers a fresh sign-in for a retaine
   } finally { await desktop.close(); await provider.close() }
 })
 
-test('an unavailable saved sign-in can be forgotten and replaced through Settings', async () => {
+test('an unavailable saved sign-in can be forgotten and replaced through the collaboration toolbar', async () => {
   let provider = await identityProvider()
   let providerRunning = true
   let desktop = await launchApp('novalist-account-unavailable-')
@@ -82,7 +83,7 @@ test('an unavailable saved sign-in can be forgotten and replaced through Setting
     providerRunning = false
     desktop = await launchApp('novalist-account-unavailable-', {}, workDir)
     await dismissTour(desktop.page)
-    await desktop.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await desktop.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     await expect(desktop.page.getByRole('alert')).toBeVisible()
     await desktop.page.getByRole('button', { name: 'Forget saved sign-in', exact: true }).click()
     await expect(desktop.page.getByRole('alert')).toHaveCount(0)

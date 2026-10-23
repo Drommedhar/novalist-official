@@ -17,7 +17,7 @@ async function signIn(h: Harness, server: string): Promise<void> {
       if (!result.ok) throw new Error('Test sign-in failed.')
     }
   })
-  await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+  await h.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
   await h.page.getByLabel('Server address', { exact: true }).fill(server)
   await h.page.getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(h.page.getByText('Signed in as Test Writer', { exact: true })).toBeVisible()
@@ -173,7 +173,7 @@ test('two desktop writers join through Settings, exchange real editor updates, a
     await guest.page.getByRole('button', { name: 'Join shared project', exact: true }).click()
     await guest.page.waitForFunction(() => window.novalistStores.project.getState().isLoaded && !window.novalistStores.project.getState().workspaceBusy)
     await dismissTour(guest.page)
-    await guest.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await guest.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
     await expect(guest.page.getByText('Connected to the shared project.', { exact: true })).toBeVisible({ timeout: 30_000 })
     await expect(guest.page.getByRole('button', { name: 'Create invitation', exact: true })).toHaveCount(0)
     for (const h of participants) {
@@ -196,7 +196,7 @@ test('two desktop writers join through Settings, exchange real editor updates, a
     await editSharedCodex(owner, guest, worldCharacter.id)
     await createSharedContent(owner, guest)
     for (const h of participants) {
-      await h.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+      await h.page.evaluate(() => document.querySelector<HTMLButtonElement>('[data-collaboration-trigger][aria-expanded="false"]')?.click())
       await h.page.getByRole('button', { name: 'End this session', exact: true }).click()
       await expect(h.page.getByRole('button', { name: 'Share this project', exact: true })).toBeEnabled()
       const saved = await h.rpc<{ html: string; shared: unknown }>('scenes/read', [chapter.guid, scene.id])
