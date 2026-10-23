@@ -35,6 +35,7 @@ public static partial class SharedMetadataFields
     public static JsonObject? Target(JsonObject root, SharedFieldBinding binding)
     {
         Validate(binding);
+        SharedProseFields.EnsureSectionIdentities(root);
         var target = binding.Metadata ?? throw new InvalidDataException("Missing shared metadata target.");
         var scope = target.Chapter is null ? root : (root["chapterOverrides"] as JsonArray)?.OfType<JsonObject>()
             .SingleOrDefault(item => item["chapter"]?.GetValue<string>() == target.Chapter && item["scene"]?.GetValue<string>() == target.Scene);

@@ -7,6 +7,7 @@
     <DefineConstants Condition="'$(EnableSteamworks)' == 'true'">$(DefineConstants);NOVALIST_STEAMWORKS</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\Novalist.Core\Utilities\LegacyEntityIdentities.cs" Link="Storage\LegacyEntityIdentities.cs" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Duende.IdentityModel.OidcClient" Version="7.1.1" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.19.2" />
