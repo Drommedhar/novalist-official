@@ -38,8 +38,21 @@ public sealed class HostedAccountRpc : IAsyncDisposable
     }
 
     [JsonRpcMethod("collaboration/account/status")]
-    public async Task<HostedAccountDto?> StatusAsync(Uri server, CancellationToken cancellationToken = default) =>
-        await accounts.RestoreAsync(server, cancellationToken) is { } account ? View(account) : null;
+    public async Task<HostedAccountDto?> StatusAsync(Uri server, CancellationToken cancellationToken = default)
+    {
+        var account = await accounts.RestoreAsync(server, cancellationToken);
+        if (account is null) return null;
+        try
+        {
+            if (!isSharing(server)) _ = await account.GetAccessTokenAsync(cancellationToken);
+            return View(account);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            await accounts.SignOutAsync(server, cancellationToken);
+            return null;
+        }
+    }
 
     [JsonRpcMethod("collaboration/account/signOut")]
     public Task SignOutAsync(Uri server, CancellationToken cancellationToken = default)

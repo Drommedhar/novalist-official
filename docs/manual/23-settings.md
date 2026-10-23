@@ -32,6 +32,9 @@ On desktop, open **Settings → Collaboration**, select **Relay server**, enter 
 address, and select **Sign in**. Complete sign-in in your browser and return to
 Novalist. **Cancel sign-in** stops a pending request. **Sign out** removes the
 remembered account from this device.
+If a saved sign-in has expired, Novalist offers **Sign in** again. If its provider
+is unavailable, you can retry later or use **Forget saved sign-in** to remove that
+device's saved account. Sharing checks sign-in before preparing the project.
 
 The server must publish its desktop sign-in configuration. Normal connections
 use HTTPS; HTTP is accepted for local loopback testing. Credentials are saved
@@ -46,8 +49,10 @@ other writers cannot join while the host is offline.
 
 **Create invitation** produces a private link for one collaborator, valid
 for 24 hours. Send it only to the person you want to invite. They sign in to the
-same server, paste the link, enter a local folder name, choose its parent folder,
-and select **Join shared project**. Alternatively, select **Use an existing local
+same server, paste the link, choose a parent folder for the new local copy,
+and select **Join shared project**. The folder name starts as **Shared project**;
+you can change it before joining. The form shows the destination and explains
+what is still needed. Alternatively, select **Use an existing local
 project** and choose its folder. Novalist compares relative paths and SHA-256
 hashes, reuses matching files, and requests only missing or changed files from
 the host. Local differences are preserved in **Recovered edits** before the shared
@@ -55,6 +60,7 @@ version is installed. Progress shows scanning, comparison and transfer, with fil
 counts, reused files, transferred bytes and **Cancel synchronization**. On the
 host, preparation counts describe files processed locally, not uploaded data.
 The dialog stays in startup until the live session is ready.
+Starting sharing does not rewrite unchanged project content.
 
 The synchronized project includes every book and draft,
 Codex entries, images and research. Personal settings, credentials, local
@@ -99,6 +105,9 @@ Small badges beside scene titles in the binder, pinned scenes, outliner and
 corkboard show how many other writers are working there, even while you view a
 different scene. Hover over a badge to see their names. Badges follow the current
 book and draft, so another draft's copy of a scene does not show the same presence.
+Codex list badges and the open entry's header also show who is **Viewing** or
+**Editing** that entry. Focusing a field marks its writer as editing; moving
+focus away restores viewing, and leaving the entry clears that presence.
 
 Codex descriptions, distinguishing features and free-form sections use the existing
 Markdown editor. Writers can edit the same prose together, see one another's

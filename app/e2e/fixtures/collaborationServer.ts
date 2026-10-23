@@ -4,10 +4,10 @@ import { createServer } from 'node:net'
 import { resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 
-export async function collaborationServer(authority: string): Promise<{ address: string; close(): Promise<void> }> {
+export async function collaborationServer(authority: string, port = 0): Promise<{ address: string; close(): Promise<void> }> {
   const source = resolve('out/collaboration-sync-server')
   const reservation = createServer()
-  reservation.listen(0, '127.0.0.1')
+  reservation.listen(port, '127.0.0.1')
   await once(reservation, 'listening')
   const endpoint = reservation.address()
   if (!endpoint || typeof endpoint === 'string') throw new Error('The test server has no port.')

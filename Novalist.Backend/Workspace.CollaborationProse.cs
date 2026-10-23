@@ -11,17 +11,6 @@ public sealed partial class Workspace
 {
     private readonly Dictionary<Guid, SharedDocumentState> sharedProse = [];
 
-    private async Task NormalizeSharedSectionsAsync(string root, IReadOnlyList<string> paths, CancellationToken ct)
-    {
-        var fields = await SharedCodexFields.CaptureAsync(root, paths, ct);
-        foreach (var relative in fields.Select(field => field.Path).Concat(paths.Where(path => path == ".novalist/project.json")).Distinct(StringComparer.Ordinal))
-        {
-            var path = SharedProjectPath.Resolve(root, relative);
-            var entity = JsonNode.Parse(await FileService.ReadTextAsync(path)) as JsonObject ?? throw new InvalidDataException("Invalid Codex entry.");
-            if (SharedProseFields.EnsureSectionIdentities(entity)) await FileService.WriteTextAsync(path, entity.ToJsonString());
-        }
-    }
-
     private async Task<IReadOnlyList<SharedDocumentState>> CaptureSharedProseAsync(string root, IReadOnlyList<string> paths,
         DesktopSceneDocuments documents, CancellationToken ct)
     {
@@ -58,7 +47,7 @@ public sealed partial class Workspace
                     JsonSerializer.SerializeToUtf8Bytes(new { Field = field, Text = recovered }));
             return;
         }
-        if (target[field.Key]?.GetValue<string>() == snapshot.Text) return;
+        if ((target[field.Key]?.GetValue<string>() ?? "") == snapshot.Text) return;
         target[field.Key] = snapshot.Text;
         await FileService.WriteTextAsync(path, entity.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         if (field.SceneId is not null) ProjectSceneNote(binding, field, snapshot.Text);

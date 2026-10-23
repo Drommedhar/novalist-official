@@ -80,8 +80,10 @@ public sealed class HostedAccount : IAsyncDisposable
     {
         if (string.IsNullOrEmpty(refresh)) throw new UnauthorizedAccessException("Your sign-in has expired. Please sign in again.");
         var result = await client.RefreshTokenAsync(refresh, cancellationToken: ct);
-        if (result.IsError || string.IsNullOrEmpty(result.AccessToken) || result.ExpiresIn <= 0)
+        if (result.Error == "invalid_grant")
             throw new UnauthorizedAccessException("Your sign-in has expired. Please sign in again.");
+        if (result.IsError || string.IsNullOrEmpty(result.AccessToken) || result.ExpiresIn <= 0)
+            throw new HttpRequestException("The sign-in provider could not renew your session. Please try again.");
         token = result.AccessToken;
         if (!string.IsNullOrEmpty(result.RefreshToken)) refresh = result.RefreshToken;
         expires = result.AccessTokenExpiration;

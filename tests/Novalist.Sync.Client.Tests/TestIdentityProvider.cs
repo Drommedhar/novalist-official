@@ -22,6 +22,8 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
     public bool ExchangedWithPkce { get; private set; }
     public int AccessLifetime { get; set; } = 300;
     public int Refreshes { get; private set; }
+    public bool RejectRefresh { get; set; }
+    public bool RefreshUnavailable { get; set; }
     public string? TokenFault { get; set; }
     public string Subject { get; set; } = "writer";
     public Func<string>? IssueAccessToken { get; set; }
@@ -66,6 +68,8 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
         result.EnsureSuccessStatusCode();
     }
 
+    public Task StopAsync(CancellationToken ct) => app.StopAsync(ct);
+
     private IResult Authorize(HttpContext context)
     {
         var query = context.Request.Query;
@@ -82,8 +86,9 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
         var form = await context.Request.ReadFormAsync(context.RequestAborted);
         if (form["grant_type"] == "refresh_token")
         {
+            if (RefreshUnavailable) return Results.Json(new { error = "temporarily_unavailable" }, statusCode: 503);
             var expected = Refreshes == 0 ? "refresh" : $"rotated-{Refreshes}";
-            if (form["refresh_token"] != expected || form["client_id"] != "novalist") return Results.BadRequest();
+            if (RejectRefresh || form["refresh_token"] != expected || form["client_id"] != "novalist") return Results.BadRequest(new { error = "invalid_grant" });
             Refreshes++;
             return Results.Json(new { access_token = IssueAccessToken?.Invoke() ?? $"renewed-{Refreshes}", refresh_token = $"rotated-{Refreshes}", token_type = "Bearer", expires_in = 300 });
         }

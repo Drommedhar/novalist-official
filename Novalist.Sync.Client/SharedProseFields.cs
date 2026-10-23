@@ -45,6 +45,7 @@ public static class SharedProseFields
     public static JsonObject? Target(JsonObject entity, SharedTextField field, bool create = false)
     {
         Validate(field);
+        EnsureSectionIdentities(entity);
         if (field.SceneId is { } sceneId)
             return SceneNotes(entity).SingleOrDefault(item => item["id"]?.GetValue<string>() == sceneId);
         if (field.Container == "arc")
@@ -69,6 +70,7 @@ public static class SharedProseFields
 
     public static IReadOnlyList<SharedTextField> Enumerate(JsonObject entity)
     {
+        EnsureSectionIdentities(entity);
         var result = new List<SharedTextField>();
         foreach (var scene in SceneNotes(entity))
             foreach (var key in new[] { "synopsis", "notes", "goal", "outcome" })
@@ -104,27 +106,5 @@ public static class SharedProseFields
         ((entity["researchItems"] as JsonArray)?.OfType<JsonObject>() ?? [])
         .Where(item => item["type"]?.GetValue<string>() is "Note" or "Link");
 
-    public static bool EnsureSectionIdentities(JsonObject entity)
-    {
-        var changed = false;
-        var scopes = new[] { entity }.Concat((entity["chapterOverrides"] as JsonArray)?.OfType<JsonObject>() ?? []);
-        var stateIds = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var state in (entity["stateOverrides"] as JsonArray)?.OfType<JsonObject>() ?? [])
-        {
-            var id = state["id"]?.GetValue<string>();
-            if (string.IsNullOrWhiteSpace(id)) { id = Guid.NewGuid().ToString("N"); state["id"] = id; changed = true; }
-            if (!stateIds.Add(id)) throw new InvalidDataException("Shared states need distinct identities.");
-        }
-        foreach (var scope in scopes)
-        {
-            var ids = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var section in (scope["sections"] as JsonArray)?.OfType<JsonObject>() ?? [])
-            {
-                var id = section["id"]?.GetValue<string>();
-                if (string.IsNullOrWhiteSpace(id)) { id = Guid.NewGuid().ToString("N"); section["id"] = id; changed = true; }
-                if (!ids.Add(id)) throw new InvalidDataException("Shared sections need distinct identities.");
-            }
-        }
-        return changed;
-    }
+    public static bool EnsureSectionIdentities(JsonObject entity) => Storage.LegacyEntityIdentities.Assign(entity);
 }

@@ -14,10 +14,7 @@ public sealed partial class Workspace
         await ReportCollaborationProgressAsync(new("scanning", 0, 0, 0, 0));
         var root = Projects.ProjectRoot ?? throw new InvalidOperationException("Open a project first.");
         var factory = CreateSharedDocuments ?? throw new InvalidOperationException("Desktop collaboration is unavailable.");
-        await Projects.SaveScenesAsync();
-        await Projects.SaveProjectAsync();
         var paths = ProjectContentSelection.Read(root);
-        await NormalizeSharedSectionsAsync(root, paths, ct);
         await using var documents = factory(Guid.NewGuid());
         await documents.OpenAsync(ct);
         var states = new List<SharedDocumentState>();

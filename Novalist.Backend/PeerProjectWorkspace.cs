@@ -50,6 +50,7 @@ internal sealed partial class PeerProjectWorkspace : IDisposable
         ValidateName(name);
         if (port is < 0 or > 65535 || Uri.CheckHostName(address) == UriHostNameType.Unknown)
             throw new ArgumentException("Choose a reachable host address and a valid listening port.");
+        if (account is not null) _ = await account.GetAccessTokenAsync(ct);
         var device = await DeviceAsync(account, ct);
         TcpPeerHost? host = null;
         PeerProjectAccess? access = null;
@@ -65,10 +66,10 @@ internal sealed partial class PeerProjectWorkspace : IDisposable
             var id = Guid.NewGuid();
             var session = await PeerProjectSession.OpenAsync(storage, id, wire, device);
             runtime = new(id, device, session, host, address, name) { Server = server };
-            await CaptureHostAsync(runtime, ct);
             if (steam) runtime.Steam = await SteamPeerRelay.HostAsync(access.Address.Port, ct);
             if (server is not null && account is not null)
                 runtime.Relay = await RelayPeerTunnel.HostAsync(server, access.Address.Port, account.GetAccessTokenAsync, ct);
+            await CaptureHostAsync(runtime, ct);
             var prepared = runtime;
             host.PrepareBootstrap = token => PrepareBootstrapAsync(prepared, token);
         }

@@ -263,9 +263,10 @@ public partial class ProjectService : IProjectService
         var migrator = new FilesystemMigrator(_fileService);
         if (await migrator.NeedsMigrationAsync(metadata, projectDirectory))
         {
+            var previousVersion = metadata.Version;
             await migrator.MigrateAsync(metadata, projectDirectory, MigrationProgress);
             // Persist the version bump without flushing the not-yet-loaded draft data.
-            await WriteProjectJsonAsync();
+            if (metadata.Version != previousVersion) await WriteProjectJsonAsync();
         }
 
         // Load the active draft's chapters/acts from draft.json (if present).
