@@ -66,3 +66,32 @@ test('restarting the local sign-in provider offers a fresh sign-in for a retaine
     await expect(desktop.page.getByText('Signed in as Test Writer', { exact: true })).toBeVisible()
   } finally { await desktop.close(); await provider.close() }
 })
+
+test('an unavailable saved sign-in can be forgotten and replaced through Settings', async () => {
+  let provider = await identityProvider()
+  let providerRunning = true
+  let desktop = await launchApp('novalist-account-unavailable-')
+  const address = provider.address
+  const workDir = desktop.workDir
+  try {
+    await desktop.app.evaluate(({ shell }) => { shell.openExternal = async url => { await fetch(url) } })
+    await desktop.rpc('collaboration/account/signIn', [address])
+    await desktop.page.evaluate(server => localStorage.setItem('novalist.collaboration.server', server), address)
+    await desktop.close()
+    await provider.close()
+    providerRunning = false
+    desktop = await launchApp('novalist-account-unavailable-', {}, workDir)
+    await dismissTour(desktop.page)
+    await desktop.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
+    await expect(desktop.page.getByRole('alert')).toBeVisible()
+    await desktop.page.getByRole('button', { name: 'Forget saved sign-in', exact: true }).click()
+    await expect(desktop.page.getByRole('alert')).toHaveCount(0)
+    expect(await desktop.rpc('collaboration/account/status', [address])).toBeNull()
+
+    provider = await identityProvider(() => 'writer', () => 'Test Writer', Number(new URL(address).port))
+    providerRunning = true
+    await desktop.app.evaluate(({ shell }) => { shell.openExternal = async url => { await fetch(url) } })
+    await desktop.page.getByRole('button', { name: 'Sign in', exact: true }).click()
+    await expect(desktop.page.getByText('Signed in as Test Writer', { exact: true })).toBeVisible()
+  } finally { await desktop.close(); if (providerRunning) await provider.close() }
+})

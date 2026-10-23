@@ -37,7 +37,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 - **Collaboration (in development)** — relay server or direct TCP sessions, optional Steamworks integration, browser sign-in, single-use
   invitations, live project structure, scene planning notes and Codex prose with per-writer undo, research and asset synchronization,
-  participant cursors and scene badges, scene editing through the existing editor and continuous Manuscript, named focus locks for Codex fields, table cells, visibility policies, scene and Research metadata, guarded binder actions and Board drops, reconnecting
+  participant cursors, scene badges and named Codex viewing/editing indicators, scene editing through the existing editor and continuous Manuscript, named focus locks for Codex fields, table cells, visibility policies, scene and Research metadata, guarded binder actions and Board drops, reconnecting
   retained projects, independent project copies, and host controls for session access.
   The relay forwards encrypted packets without storing projects or edit history; the host stays online.
   Joining reuses matching files in an existing local copy by relative path and SHA-256, with progress and cancellation.

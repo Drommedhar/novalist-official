@@ -10,6 +10,26 @@ namespace Novalist.Backend.Tests;
 public sealed class HostedAuthStartupTests
 {
     [Fact]
+    public async Task TemporarilyUnavailableSignInPreservesTheAccountForRetry()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var directory = new TempDir();
+        await using var identity = await TestIdentityProvider.StartAsync(ct);
+        await using var server = await HostedSessionServer.StartAsync(identity.Authority, ct);
+        var credentials = new Dictionary<string, string>();
+        await using (var first = new HostedDesktop(directory.Combine("first"), identity, credentials))
+            await first.SignInAsync(server.Address);
+        identity.RefreshUnavailable = true;
+        await using var restored = new HostedDesktop(directory.Combine("restored"), identity, credentials);
+
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => restored.Rpc.InvokeAsync<HostedAccountDto?>("collaboration/account/status", server.Address));
+        Assert.NotEmpty(credentials);
+
+        identity.RefreshUnavailable = false;
+        Assert.Equal("Writer", (await restored.Rpc.InvokeAsync<HostedAccountDto>("collaboration/account/status", server.Address)).DisplayName);
+    }
+
+    [Fact]
     public async Task UnreachableSavedIdentityFailsBeforePreparingTheProject()
     {
         var ct = TestContext.Current.CancellationToken;

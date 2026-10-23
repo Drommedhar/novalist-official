@@ -29,7 +29,11 @@ export async function identityProvider(subject: () => string = () => 'writer', d
       if (pending && form.get('client_id') === 'novalist' && form.get('redirect_uri') === pending.redirect &&
         createHash('sha256').update(form.get('code_verifier') ?? '').digest('base64url') === pending.challenge) identity = pending
     }
-    if (!identity) { response.writeHead(400); response.end(); return }
+    if (!identity) {
+      response.writeHead(400, { 'Content-Type': 'application/json' })
+      response.end(JSON.stringify({ error: 'invalid_grant' }))
+      return
+    }
     const now = Math.floor(Date.now() / 1000)
     const encoded = (value: unknown): string => Buffer.from(JSON.stringify(value)).toString('base64url')
     const unsigned = encoded({ alg: 'RS256', kid: 'test', typ: 'JWT' }) + '.' +
