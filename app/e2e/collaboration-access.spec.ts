@@ -66,7 +66,7 @@ test('host removal disconnects one writer while others continue and everyone ret
     await signIn(remaining, server.address)
     await joinProject(remaining, nextLink)
     owner.page.on('dialog', dialog => void dialog.accept())
-    await owner.page.locator('.match-row').filter({ hasText: removed.displayName }).getByRole('button', { name: 'Remove access', exact: true }).click()
+    await owner.page.locator('.settings-button-row').filter({ hasText: removed.displayName }).getByRole('button', { name: 'Remove access', exact: true }).click()
     await expect.poll(() => owner.rpc('collaboration/status'), { timeout: 30_000 }).toMatchObject({ connection: 'Connected' })
     await owner.page.evaluate(() => window.novalistStores.shell.getState().openSettings('collaboration'))
     await expect(owner.page.getByRole('button', { name: 'Remove access', exact: true })).toHaveCount(1)

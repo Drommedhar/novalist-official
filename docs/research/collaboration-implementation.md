@@ -6,6 +6,74 @@ Work is on `feature/realtime-collaboration`, based on main commit
 the earlier server-storage requirements. This record describes implementation progress; it is not a release
 announcement.
 
+## Usability follow-up, 2026-10-23
+
+Tasks C12–C16 address the reported typing layout jump, blank populated Manuscript,
+window-close failure, absent Codex presence, unclear joining controls, progress
+alignment and immediate file rewrites. Validation uses isolated copies of the
+populated project; the original project is not modified.
+
+The later startup screenshot identified an unreachable saved identity-provider
+address. The manual helper previously chose new ports on every run. It now uses
+stable relay/identity ports 42670/42671, with explicit overrides. A subprocess
+regression verifies endpoint shutdown and restart at the same addresses. Sharing
+validates saved sign-in and connects the relay before preparing files. Rejected
+refresh tokens return to sign-in; temporary provider failures retain credentials
+for retry. Settings also allows forgetting an unavailable saved sign-in.
+
+An all-file regression on the populated copy confirms 431 included host files
+remain byte-identical after sharing. Initial scene projection, unconditional
+manifest saves and eager persistence of legacy Codex IDs caused the rewrites.
+Legacy section identities now remain in memory until actual editing persists them.
+Joining rebuilds missing indexes without rewriting existing project/act manifests.
+
+The typing jump came from rendering echoed updates even when the document had
+not changed; rendering discarded pagination wrappers. Echoes now leave the DOM
+alone, and real remote changes repaginate before painting. Manuscript blocked
+on attaching all 116 rich collaborative editors before its first paint. It now
+attaches nearby scenes incrementally and attaches a focused scene immediately,
+retaining existing bindings and undo when scrolling. The populated Manuscript,
+offscreen remote edits and normal window-close regressions pass. Normal close
+now permits its own session-end save instead of rejecting it as another operation.
+
+Codex navigation, table and detail show named viewing/editing presence. Hosting
+and joining use styled controls, the new-copy name defaults to Shared project,
+the destination form explains missing choices, and progress is centered.
+Four integrated desktop account scenarios pass, including forgetting an
+unavailable saved sign-in. Transport/document-host tests pass 143/143.
+
+The combined real-relay test passes in 1.5 minutes using the populated copy:
+sharing through Settings leaves existing shared file bytes unchanged, a second
+desktop joins into a new folder through the visible controls, both writers type
+and receive changes without losing page wrappers or shifting the first paragraph,
+all 116 active scenes render in Manuscript, and both windows close through their
+normal close action. Both local copies retain the edits. The original source's
+file hashes remain unchanged.
+
+The full desktop run passed 66/68 scenarios. Its two failures were obsolete test
+selectors: the access panel changed layout, and the presence test assumed a fixed
+table-row order. Corrected assertions target the current member row and the named
+Codex entry; both scenarios then pass (2/2). Together with the separate populated
+acceptance, all 69 collaboration scenarios have passing evidence. The focused
+editor/lifecycle run also includes three existing close-guard scenarios.
+
+Standards and specification reviews of `a7d893fa...81a7dc10` report zero findings.
+The integrated client passes 169 tests; Core passes 3,949 tests and its unchanged
+100% coverage gate (22,080/22,080 lines). The desktop build and all TypeScript
+configurations pass. Aislop scores 100 with no errors or fixable warnings; the two
+existing nonfixable parameter-count warnings remain on the peer host/join methods.
+Backend passes 2,160 tests and its unchanged 100% coverage gate
+(15,769/15,769 lines). Explicit session regressions cover reformatted local copies
+and absent/null character arcs; removing formatting reconciliation makes its
+regression fail. No coverage exclusions or thresholds changed.
+
+Evidence is retained under `app/out/collaboration-test-results/polish/` and
+`app/out/collaboration-test-results/polish-ui/`, with integrated run logs named
+`app/out/polish-*.log`. No server changes or branches have been published.
+Native two-account Steam validation remains outstanding.
+Tasks C12–C16 are complete for local testing. Only the integration worktree remains;
+the three temporary implementation worktrees and their merged branches were removed.
+
 ## Relay correction, 2026-10-23
 
 Follow-up host progress correction: the local checkpoint's processed byte count
@@ -13,8 +81,8 @@ was displayed as transferred data, and its completion was displayed as session
 success while startup was still pending. The renderer now distinguishes local
 preparation, pending startup and successful sharing. A real Share-button test
 reproduced the incorrect labels; the corrected UI regression and an injected
-late-startup failure test pass. The user also reported a later error whose text
-was no longer available. That startup failure remains unidentified; the populated
+late-startup failure test pass. The later startup error was subsequently identified
+as the unreachable saved identity provider described above. The populated
 project succeeds through the Share button using isolated copies. Local evidence
 is retained in `app/out/host-progress-*.log`, `host-startup-green.log` and
 `host-corpus-*.log`. No backend behavior changed in this correction.
