@@ -54,8 +54,16 @@
       "problemMatcher": ["$msCompile"]
     },
     {
+      "label": "build collaboration Steam renderer",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "build:steam"],
+      "options": { "cwd": "${workspaceFolder}/app" },
+      "problemMatcher": []
+    },
+    {
       "label": "prepare collaboration Steam app",
-      "dependsOn": ["build collaboration Steam backend", "build collaboration renderer"],
+      "dependsOn": ["build collaboration Steam backend", "build collaboration Steam renderer"],
       "dependsOrder": "sequence",
       "problemMatcher": []
     },

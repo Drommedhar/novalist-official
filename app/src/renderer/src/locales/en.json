@@ -10,6 +10,7 @@
     "accountDetails": "Account",
     "nameHint": "Your name comes from your sign-in provider. Change it in that profile, then sign out and sign in again.",
     "defaultFolderName": "Shared project",
+    "mobileFolder": "Files → Novalist → {{name}}",
     "chooseDestinationHint": "Choose where to save your local project copy.",
     "invalidFolderName": "Enter a valid folder name without special characters or a trailing dot.",
     "hostTitle": "Share your project",

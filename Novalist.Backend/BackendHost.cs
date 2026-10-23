@@ -22,6 +22,7 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
     private Core.Services.AssetWatchService? _assetWatch;
 #if NOVALIST_COLLABORATION
     private HostedAccountRpc? _hostedAccounts;
+    public ICollaborationHost? CollaborationHost { get; init; }
 #endif
 
     /// <param name="processRunner">
@@ -69,8 +70,11 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
         _workspace.Coordinator = coordinator;
         var rpc = new SerialDispatchJsonRpc(handler, _workspaceGate, AfterWorkspaceRequestAsync, coordinator);
 #if NOVALIST_COLLABORATION
+        Task<JsonElement> RequestHost(string method, object parameters, CancellationToken ct) =>
+            CollaborationHost?.RequestAsync(method, parameters, ct)
+            ?? rpc.InvokeWithParameterObjectAsync<JsonElement>(method, parameters, ct);
         _workspace.CreateSharedDocuments = session => new(session, (parameters, ct) =>
-            rpc.InvokeWithParameterObjectAsync<JsonElement>("collaboration/documents", parameters, ct));
+            RequestHost("collaboration/documents", parameters, ct));
         _workspace.DispatchSharedUpdate = async action =>
         {
             await _workspaceGate.WaitAsync();
@@ -85,11 +89,11 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
         };
         rpc.AddLocalRpcTarget(new CollaborationRpc(_workspace), new JsonRpcTargetOptions { DisposeOnDisconnect = false });
         var credentials = new Sync.Client.DesktopCredentials((parameters, ct) =>
-            rpc.InvokeWithParameterObjectAsync<JsonElement>("collaboration/credentials", parameters, ct));
-        var accounts = new Sync.Client.HostedAccounts(credentials);
+            RequestHost("collaboration/credentials", parameters, ct));
+        var accounts = new Sync.Client.HostedAccounts(credentials, CollaborationHost?.SignInBrowser);
         _workspace.PeerProjects = new(_workspace, credentials, accounts);
         _hostedAccounts = new(accounts, (url, ct) =>
-            rpc.InvokeWithParameterObjectAsync("collaboration/openBrowser", new { url }, ct),
+            RequestHost("collaboration/openBrowser", new { url }, ct),
             server => _workspace.PeerProjects.Status?.Server == server.AbsoluteUri.TrimEnd('/') + '/');
         rpc.AddLocalRpcTarget(_hostedAccounts, new JsonRpcTargetOptions { DisposeOnDisconnect = false });
 #endif

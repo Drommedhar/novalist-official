@@ -1,9 +1,7 @@
 import type { MenuNode, MenuLabels } from '../shared/menuProtocol'
 export type { MenuNode, MenuLabels } from '../shared/menuProtocol'
 import { app, BrowserWindow, Menu, shell, type MenuItemConstructorOptions } from 'electron'
-
-const isMas = (process as NodeJS.Process & { mas?: boolean }).mas === true
-const selfUpdateDisabled = isMas || process.env.NOVALIST_DISABLE_SELF_UPDATE === '1'
+import { selfUpdateDisabled } from '../shared/selfUpdatePolicy'
 
 /** Relays a menu command to the renderer, which runs it through the registry. */
 function sendCommand(command: string): void {

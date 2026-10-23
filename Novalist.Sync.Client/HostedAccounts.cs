@@ -17,8 +17,13 @@ public sealed class HostedAccounts : IAsyncDisposable
     private readonly object lifecycle = new();
     private readonly CancellationTokenSource lifetime = new();
     private Task? closing;
+    private readonly IHostedSignInBrowser? browser;
 
-    public HostedAccounts(ICollaborationCredentials credentials) => this.credentials = credentials;
+    public HostedAccounts(ICollaborationCredentials credentials, IHostedSignInBrowser? browser = null)
+    {
+        this.credentials = credentials;
+        this.browser = browser;
+    }
 
     public async Task<HostedAccount> SignInAsync(Uri server, Func<Uri, CancellationToken, Task> openBrowser, CancellationToken ct)
     {
@@ -30,7 +35,8 @@ public sealed class HostedAccounts : IAsyncDisposable
         {
             if (accounts.ContainsKey(key)) throw new InvalidOperationException("Sign out of this server before signing in again.");
             var settings = await HostedSignIn.DiscoverAsync(server, ct);
-            var account = await HostedSignIn.SignInAsync(settings, openBrowser, ct);
+            var account = browser is null ? await HostedSignIn.SignInAsync(settings, openBrowser, ct)
+                : await HostedSignIn.SignInAsync(settings, browser, ct);
             try
             {
                 await account.RememberAsync(credentials, key, ct);

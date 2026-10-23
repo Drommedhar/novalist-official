@@ -38,12 +38,15 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
     private readonly SystemMicrophone _microphone = new();
     private readonly TemporaryAccessRegistry _manuscriptAccess = new(ReportScopeReleaseFailure);
     private readonly Stream _bridge;
+    private readonly MobileDocumentRequests _collaborationDocuments;
     private readonly CancellationTokenSource _cts = new();
+    private int _closing;
 
     public RendererHostPage()
     {
         var (backendEnd, nativeEnd) = FullDuplexStream.CreatePair();
         _bridge = nativeEnd;
+        _collaborationDocuments = new MobileDocumentRequests(SendDocumentRequestAsync);
         // UnavailableProcessRunner: the sandbox forbids launching `git`, so Git
         // degrades to "unavailable" rather than throwing (Phase 3).
         // IosStoredPathResolver: a path in settings is not an address here - the
@@ -54,7 +57,7 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
             FileSystem.Current.AppDataDirectory,
             new UnavailableProcessRunner(),
             new IosStoredPathResolver(),
-            _files);
+            _files) { CollaborationHost = new MobileCollaborationHost(_collaborationDocuments.RequestAsync) };
         _host.Attach(backendEnd, backendEnd);
 
         _web = new HybridWebView
@@ -176,8 +179,26 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
 
     public void Dispose()
     {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+        if (Interlocked.Exchange(ref _closing, 1) != 0) return;
+        _ = CloseHostAsync();
+    }
+
+    private async Task CloseHostAsync()
+    {
+        try { await _host.DisposeAsync(); }
+        catch (Exception error)
+        {
+            // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Reports shutdown failure without project data or paths.
+            System.Diagnostics.Debug.WriteLine($"[MobileShutdown] Host cleanup failed: {error.GetType().Name}");
+        }
+        finally { await MainThread.InvokeOnMainThreadAsync(DisposePage); }
+    }
+
+    private void DisposePage()
+    {
+        Interlocked.Exchange(ref _disposed, 1);
         _manuscriptAccess.Dispose();
+        _collaborationDocuments.Dispose();
         DisposeLifecycle();
         _ = _microphone.StopOnDisposeAsync();
         _cts.Cancel();
@@ -187,7 +208,6 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
         DisposeWebProcessObserver();
 #endif
         _web.RawMessageReceived -= OnRawMessageReceived;
-        _host.Dispose();
         IosStoredPathResolver.ActiveProjectPath = null;
         SecurityScopedFolders.ReleaseExcept(null);
         _bridge.Dispose();

@@ -1,0 +1,14 @@
+<Project>
+  <!-- libsodium 1.0.22 ships a device archive but no simulator archive. -->
+  <Target Name="UseSimulatorSodium" BeforeTargets="_ComputePublishLocation"
+          Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">
+    <PropertyGroup>
+      <_SodiumArchive>$(IntermediateOutputPath)sodium/$(RuntimeIdentifier)/libsodium.a</_SodiumArchive>
+    </PropertyGroup>
+    <Exec Command="bash &quot;$(MSBuildThisFileDirectory)build-simulator.sh&quot; &quot;$(RuntimeIdentifier)&quot; &quot;$(_SodiumArchive)&quot;" />
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'libsodium.a'" />
+      <ResolvedFileToPublish Include="$(_SodiumArchive)" AssetType="native" RuntimeIdentifier="$(RuntimeIdentifier)" />
+    </ItemGroup>
+  </Target>
+</Project>

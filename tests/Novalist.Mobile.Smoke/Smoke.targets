@@ -1,0 +1,9 @@
+<Project>
+  <Target Name="ValidateMobileSmokeBuild" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Configuration)' != 'Debug' or !$(RuntimeIdentifier.StartsWith('iossimulator'))" Text="Mobile smoke tests require a Debug iOS simulator build." />
+  </Target>
+  <ItemGroup>
+    <Compile Remove="App.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SmokeApp.cs" />
+  </ItemGroup>
+</Project>

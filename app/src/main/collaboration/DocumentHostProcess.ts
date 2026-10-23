@@ -1,11 +1,18 @@
 import { utilityProcess, type UtilityProcess } from 'electron'
 import { join } from 'node:path'
+import { DocumentBridge } from '../../shared/CollaborationDocumentBridge'
 import type { DocumentReply, DocumentRequest, SceneCommand, SharedSceneSnapshot, SceneApplyResult } from '../../shared/collaborationDocuments'
 
 interface PendingDocument {
   resolve(reply: Extract<DocumentReply, { failed: false }>): void
   reject(error: Error): void
   timer: ReturnType<typeof setTimeout>
+}
+
+export class DesktopDocumentBridge extends DocumentBridge {
+  constructor(workerEntry?: string) {
+    super(() => new DocumentHostProcess(workerEntry))
+  }
 }
 
 export class DocumentHostProcess {

@@ -14,6 +14,7 @@
     "collab:server": "node --experimental-strip-types scripts/collaboration-manual-server.mjs",
     "dev": "electron-vite dev",
     "build": "node scripts/sync-editor-sanitizer.mjs && electron-vite build",
+    "build:steam": "npm run build -- --mode steam",
     "build:mobile": "node scripts/sync-editor-sanitizer.mjs && vite build --config vite.mobile.config.ts",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.e2e.json",

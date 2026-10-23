@@ -1,6 +1,6 @@
 import type * as Y from 'yjs'
-import type { SceneMarkup } from '../../renderer/src/collaboration/sceneMarkup'
-import { updateRichText } from '../../renderer/src/collaboration/richText'
+import type { SceneMarkup } from '../renderer/src/collaboration/sceneMarkup'
+import { updateRichText } from '../renderer/src/collaboration/richText'
 
 export function renameReferences(scene: { doc: Y.Doc; root: HTMLElement; markup: SceneMarkup | null },
   entityId: string, oldName: string, newName: string): boolean {

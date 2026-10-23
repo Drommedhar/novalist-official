@@ -29,25 +29,50 @@ public static class HostedSignIn
         return settings;
     }
 
-    public static async Task<HostedAccount> SignInAsync(HostedSignInOptions settings,
+    public static Task<HostedAccount> SignInAsync(HostedSignInOptions settings,
         Func<Uri, CancellationToken, Task> openBrowser, CancellationToken ct)
+    {
+#if NOVALIST_LOOPBACK_SIGNIN
+        return SignInWithLoopbackAsync(settings, openBrowser, ct);
+#else
+        throw new PlatformNotSupportedException("This platform requires a native sign-in browser.");
+#endif
+    }
+
+#if NOVALIST_LOOPBACK_SIGNIN
+    private static async Task<HostedAccount> SignInWithLoopbackAsync(HostedSignInOptions settings,
+        Func<Uri, CancellationToken, Task> openBrowser, CancellationToken ct)
+    {
+        await using var callback = await LoopbackSignIn.StartAsync(ct);
+        return await AuthenticateAsync(settings, callback.Address, async (url, state, token) =>
+        {
+            callback.Expect(state);
+            await openBrowser(url, token);
+            return await callback.ReceiveAsync(token);
+        }, ct);
+    }
+#endif
+
+    public static Task<HostedAccount> SignInAsync(HostedSignInOptions settings,
+        IHostedSignInBrowser browser, CancellationToken ct) =>
+        AuthenticateAsync(settings, browser.RedirectUri, (url, _, token) => browser.AuthenticateAsync(url, token), ct);
+
+    private static async Task<HostedAccount> AuthenticateAsync(HostedSignInOptions settings, Uri redirect,
+        Func<Uri, string, CancellationToken, Task<string>> authenticate, CancellationToken ct)
     {
         Validate(settings);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeout.CancelAfter(TimeSpan.FromMinutes(5));
         ct = timeout.Token;
-        await using var callback = await LoopbackSignIn.StartAsync(ct);
         var http = CreateHttpClient();
         try
         {
             var nonce = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
             var options = Options(settings, nonce, null, http);
-            options.RedirectUri = callback.Address.AbsoluteUri;
+            options.RedirectUri = redirect.AbsoluteUri;
             var client = new OidcClient(options);
             var state = await client.PrepareLoginAsync(new Parameters { { "nonce", nonce } }, ct);
-            callback.Expect(state.State);
-            await openBrowser(new Uri(state.StartUrl), ct);
-            var response = await callback.ReceiveAsync(ct);
+            var response = await authenticate(new Uri(state.StartUrl), state.State, ct);
             var login = await client.ProcessResponseAsync(response, state, cancellationToken: ct);
             if (login.IsError || string.IsNullOrEmpty(login.IdentityToken) || login.User.FindFirst("sub") is not { } subject)
                 throw new InvalidOperationException("Sign-in could not be verified. Please sign in again.");

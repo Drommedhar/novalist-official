@@ -6,6 +6,7 @@ import { useAppUpdateState } from './appUpdateState'
 
 import { WindowClosingDialog } from './WindowClosingDialog'
 import { CollaborationTransferDialog } from '../views/settings/CollaborationTransferStatus'
+import { CollaborationToolbar } from '../collaboration/CollaborationToolbar'
 import { useLayoutEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ModePanel } from './ModePanel'
@@ -133,6 +134,7 @@ export function AppShell(): React.JSX.Element {
           status bar in place made it a wider editor rather than a place to
           write. Everything is a keystroke away again. */}
       {!isMobile && !focused && <Toolbar />}
+      {isMobile && <div className="mobile-collaboration-bar"><CollaborationToolbar /></div>}
       {!isMobile && !focused && <ModeRail />}
       {!isMobile && !focused && updateNotice && (appUpdate || extUpdates.length > 0) && <div className="update-banner" role="status">
         <span>{downloading ? t('desktopRefresh.backgroundDownload', { percent: updateProgress ?? 0 }) : ready ? t('desktopRefresh.ready') : t('desktopRefresh.available')}</span>
@@ -142,7 +144,7 @@ export function AppShell(): React.JSX.Element {
       <div className="shell-body" inert={installing}>
         {isMobile ? (
           isLoaded ? (
-            <MobileShell />
+            !workspaceSuspended && !closingProject ? <MobileShell /> : null
           ) : !workspaceSuspended && !closingProject ? (
             /* No project yet. The desktop shell's welcome content, in the
                mobile frame - the rail and the panes it sits beside are not

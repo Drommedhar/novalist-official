@@ -3,6 +3,14 @@ import { launchApp, type Harness } from './harness'
 
 type UpdateRequests = typeof globalThis & { __appUpdateRequests: number }
 
+const steamBuild = process.env.NOVALIST_TEST_STEAM_BUILD === '1'
+const disabledEnvironment = {
+  NOVALIST_DISABLE_SELF_UPDATE: steamBuild ? '0' : '1',
+  NOVALIST_STEAM_APP_ID: '',
+  SteamAppId: '',
+  SteamGameId: ''
+}
+
 const update: AppUpdate = {
   version: '999.0.0',
   tagName: 'v999.0.0',
@@ -39,9 +47,10 @@ async function hasUpdateMenu(h: Harness): Promise<boolean> {
 }
 
 test('disabled self-update rejects every app update entry point and hides the menu item', async () => {
-  const h = await launchApp('novalist-update-disabled-', { NOVALIST_DISABLE_SELF_UPDATE: '1' })
+  const h = await launchApp('novalist-update-disabled-', disabledEnvironment)
   try {
     await interceptAppUpdates(h)
+    expect(await h.page.evaluate(() => window.novalist.selfUpdateDisabled)).toBe(true)
     expect(await h.page.evaluate(() => window.novalist.checkAppUpdate())).toBeNull()
     await expect(h.page.evaluate((info) => window.novalist.downloadAppUpdate(info), update))
       .rejects.toThrow('Self-update is disabled in this build.')
@@ -56,6 +65,7 @@ test('disabled self-update rejects every app update entry point and hides the me
 
 for (const flag of ['', '0']) {
   test(`self-update remains available when the disable flag is ${flag || 'unset'}`, async () => {
+    test.skip(steamBuild, 'Steam owns application updates regardless of runtime flags.')
     const h = await launchApp('novalist-update-enabled-', { NOVALIST_DISABLE_SELF_UPDATE: flag })
     try {
       await interceptAppUpdates(h)
@@ -75,7 +85,7 @@ for (const flag of ['', '0']) {
 
 for (const surface of ['about', 'settings', 'settings-search'] as const) {
   test(`disabled self-update hides application update controls in ${surface}`, async () => {
-    const h = await launchApp('novalist-update-controls-', { NOVALIST_DISABLE_SELF_UPDATE: '1' })
+    const h = await launchApp('novalist-update-controls-', disabledEnvironment)
     try {
       if (surface === 'about') {
         await h.page.evaluate(() => window.novalistStores.shell.getState().setMainView('about'))
@@ -101,7 +111,7 @@ for (const surface of ['about', 'settings', 'settings-search'] as const) {
 
 test('startup still offers extension updates when app self-update is disabled', async () => {
   const h = await launchApp('novalist-extension-startup-', {
-    NOVALIST_DISABLE_SELF_UPDATE: '1',
+    ...disabledEnvironment,
     NOVALIST_NO_SPLASH: ''
   })
   try {

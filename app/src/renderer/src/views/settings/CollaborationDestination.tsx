@@ -11,12 +11,23 @@ export function CollaborationDestination({ id, busy, onChange }: {
   const { t } = useTranslation()
   const [existing, setExisting] = useState(false)
   const [parent, setParent] = useState('')
+  const [defaultRoot, setDefaultRoot] = useState('')
   const [copy, setCopy] = useState('')
   const [name, setName] = useState(() => t('collaboration.defaultFolderName'))
   const [error, setError] = useState('')
+  useEffect(() => {
+    if (!window.novalist.isMobile || !window.novalist.defaultProjectRoot) return
+    let current = true
+    void window.novalist.defaultProjectRoot().then(folder => {
+      if (current && folder) { setParent(folder); setDefaultRoot(folder) }
+    }).catch(reason => { if (current) setError(String(reason)) })
+    return () => { current = false }
+  }, [])
   const validName = name.trim().length > 0 && !/[\\/:*?"<>|\x00-\x1f]/.test(name) && !/[. ]$/.test(name)
     && !/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(name)
   const path = existing ? copy : parent.replace(/[\\/]$/, '') + '/' + name.trim()
+  const displayPath = !existing && defaultRoot && parent === defaultRoot
+    ? t('collaboration.mobileFolder', { name: name.trim() }) : path
   useEffect(() => {
     onChange({ existing, path,
       valid: existing ? Boolean(copy) : Boolean(parent) && validName })
@@ -47,7 +58,7 @@ export function CollaborationDestination({ id, busy, onChange }: {
     <button className="dialog-button" disabled={busy} onClick={() => void choose()}>
       {t(existing ? 'collaboration.existingFolder' : 'collaboration.parentFolder')}
     </button>
-    <p className="settings-hint collaboration-destination-path">{(existing ? copy : parent) ? path : t('collaboration.chooseDestinationHint')}</p>
+    <p className="settings-hint collaboration-destination-path">{(existing ? copy : parent) ? displayPath : t('collaboration.chooseDestinationHint')}</p>
     {existing && <p className="settings-hint">{t('collaboration.reuseHint')}</p>}
     {error && <p role="alert">{error}</p>}
   </div>

@@ -2,6 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Novalist connects to nearby writers to share projects and edit together.</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.novalist.app.authentication</string>
+            <key>CFBundleURLSchemes</key>
+            <array><string>com.novalist.app</string></array>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+        </dict>
+    </array>
     <key>NSMicrophoneUsageDescription</key>
     <string>Novalist uses the microphone to write the words you dictate.</string>
     <key>NSSpeechRecognitionUsageDescription</key>

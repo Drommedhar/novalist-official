@@ -1,6 +1,6 @@
 import { shell } from 'electron'
 import { CredentialStore } from './CredentialStore'
-import { DesktopDocumentBridge } from './DesktopDocumentBridge'
+import { DesktopDocumentBridge } from './DocumentHostProcess'
 
 export class DesktopCollaborationServices {
   private readonly documents = new DesktopDocumentBridge()
@@ -9,7 +9,7 @@ export class DesktopCollaborationServices {
   constructor(directory: string) { this.credentials = new CredentialStore(directory) }
 
   async request(method: string, params: unknown): Promise<unknown> {
-    if (method === 'collaboration/documents') return this.documents.request(method, params)
+    if (method === 'collaboration/documents') return this.documents.handle(method, params)
     if (!params || typeof params !== 'object' || Array.isArray(params)) throw new Error('Invalid collaboration operation.')
     if (method === 'collaboration/openBrowser') {
       if (!('url' in params) || typeof params.url !== 'string' || params.url.length > 16_384)

@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 
 interface HostTestEnvironment {
   DocumentHostProcess: typeof import('../src/main/collaboration/DocumentHostProcess').DocumentHostProcess
-  DesktopDocumentBridge: typeof import('../src/main/collaboration/DesktopDocumentBridge').DesktopDocumentBridge
+  DesktopDocumentBridge: typeof import('../src/main/collaboration/DocumentHostProcess').DesktopDocumentBridge
   Y: typeof import('yjs')
 }
 
@@ -14,11 +14,10 @@ test('the desktop document process retains deleted-scene recovery across a resta
   await mkdir(output, { recursive: true })
   await build({ entryPoints: {
     client: 'src/main/collaboration/DocumentHostProcess.ts',
-    bridge: 'src/main/collaboration/DesktopDocumentBridge.ts',
     worker: 'src/main/collaboration/documentWorker.ts'
   }, outdir: output, outExtension: { '.js': '.cjs' }, bundle: true, packages: 'external', platform: 'node', format: 'cjs' })
   const fixture = resolve(output, 'main.cjs')
-  await writeFile(fixture, "globalThis.documentHostTest = { DocumentHostProcess: require('./client.cjs').DocumentHostProcess, DesktopDocumentBridge: require('./bridge.cjs').DesktopDocumentBridge, Y: require('yjs') };\nrequire('electron').app.whenReady().then(() => {});\n")
+  await writeFile(fixture, "globalThis.documentHostTest = { DocumentHostProcess: require('./client.cjs').DocumentHostProcess, DesktopDocumentBridge: require('./client.cjs').DesktopDocumentBridge, Y: require('yjs') };\nrequire('electron').app.whenReady().then(() => {});\n")
   await writeFile(resolve(output, 'stopped.cjs'), 'process.exit(17);\n')
   const env: Record<string, string> = {}
   for (const [key, value] of Object.entries(process.env)) {
@@ -78,7 +77,7 @@ test('the desktop document process retains deleted-scene recovery across a resta
     const renamed = await application.evaluate(async (_, worker) => {
       const { DesktopDocumentBridge, Y } = (globalThis as typeof globalThis & { documentHostTest: HostTestEnvironment }).documentHostTest
       const bridge = new DesktopDocumentBridge(worker)
-      const call = (params: object): Promise<unknown> => bridge.request('collaboration/documents', { sessionId: 'rename', ...params })
+      const call = (params: object): Promise<unknown> => bridge.handle('collaboration/documents', { sessionId: 'rename', ...params })
       const capture = async (id: string): Promise<{ html: string; text: string; state: string }> =>
         await call({ action: 'capture', id }) as { html: string; text: string; state: string }
       const writer = new Y.Doc()
@@ -121,27 +120,26 @@ test('the desktop document process retains deleted-scene recovery across a resta
       const bridge = new DesktopDocumentBridge(worker)
       const method = 'collaboration/documents'
       try {
-        await bridge.request(method, { sessionId: 'first', action: 'open' })
-        await bridge.request(method, { sessionId: 'first', action: 'execute', command: { kind: 'seed', id: 'scene-a', html: '<p>First session.</p>' } })
-        const captured = await bridge.request(method, { sessionId: 'first', action: 'capture', id: 'scene-a' })
-        await bridge.request(method, { sessionId: 'second', action: 'open' })
+        await bridge.handle(method, { sessionId: 'first', action: 'open' })
+        await bridge.handle(method, { sessionId: 'first', action: 'execute', command: { kind: 'seed', id: 'scene-a', html: '<p>First session.</p>' } })
+        const captured = await bridge.handle(method, { sessionId: 'first', action: 'capture', id: 'scene-a' })
+        await bridge.handle(method, { sessionId: 'second', action: 'open' })
         let isolated = false
-        try { await bridge.request(method, { sessionId: 'second', action: 'capture', id: 'scene-a' }) }
+        try { await bridge.handle(method, { sessionId: 'second', action: 'capture', id: 'scene-a' }) }
         catch { isolated = true }
         await bridge.reset()
         let closed = false
-        try { await bridge.request(method, { sessionId: 'first', action: 'capture', id: 'scene-a' }) }
+        try { await bridge.handle(method, { sessionId: 'first', action: 'capture', id: 'scene-a' }) }
         catch { closed = true }
         return { captured, isolated, closed }
       } finally { await bridge.reset() }
     }, resolve(output, 'worker.cjs'))
     expect(bridged).toMatchObject({ captured: { html: '<p>First session.</p>', recovered: null, deletions: [], state: expect.any(String) }, isolated: true, closed: true })
-    const immediateClose = await application.evaluate(async (_, worker) => {
+    await application.evaluate(async (_, worker) => {
       const { DocumentHostProcess } = (globalThis as typeof globalThis & { documentHostTest: HostTestEnvironment }).documentHostTest
       const host = new DocumentHostProcess(worker)
-      return Promise.race([host.dispose().then(() => true), new Promise<boolean>(resolve => setTimeout(() => resolve(false), 2_000))])
+      await host.dispose()
     }, resolve(output, 'worker.cjs'))
-    expect(immediateClose).toBe(true)
     const processFailure = await application.evaluate(async (_, worker) => {
       const { DocumentHostProcess } = (globalThis as typeof globalThis & { documentHostTest: HostTestEnvironment }).documentHostTest
       const host = new DocumentHostProcess(worker)

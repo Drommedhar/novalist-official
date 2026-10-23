@@ -22,6 +22,8 @@ import i18next from 'i18next'
 
 import { installProjectImageLoader, clearProjectImageCache } from './projectImages'
 import { HostCallChannel } from './hostCalls'
+import { installCollaborationHost } from './collaboration'
+import { MobileBackend } from './backend'
 
 function sendRaw(message: string): void {
   if (!window.HybridWebView?.SendRawMessage) throw new Error('The mobile host bridge is unavailable.')
@@ -48,10 +50,11 @@ function base64ToBytes(base64: string): Uint8Array {
 let backendPort: MessagePort | null = null
 let bridgeFailed = false
 let ready: Promise<void> | null = null
+const backend = new MobileBackend(frame => sendRaw(bytesToBase64(frame)), () => window.__novalistBridgeFailed?.())
 
 window.__novalistRecv = (base64: string) => {
   if (!backendPort || bridgeFailed) return 'unavailable'
-  backendPort.postMessage(base64ToBytes(base64))
+  backend.receive(base64ToBytes(base64))
   return 'accepted'
 }
 
@@ -67,12 +70,13 @@ function requestBackendPort(): void {
   backendPort?.close()
   const port = channel.port2
   backendPort = port
+  backend.attach(port)
   const connection = ready ??= hostCall<void>('bridgeReady', [])
   backendPort.onmessage = (event) => {
     void connection.then(() => {
       if (backendPort !== port) return
       if (bridgeFailed) throw new Error('The mobile connection stopped.')
-      sendRaw(bytesToBase64(event.data as Uint8Array))
+      backend.send(port, event.data as Uint8Array)
     }).catch(() => window.__novalistBridgeFailed?.())
   }
   void ready.catch(() => window.__novalistBridgeFailed?.())
@@ -82,6 +86,8 @@ function requestBackendPort(): void {
 
 
 const hostCalls = new HostCallChannel(sendRaw)
+const closeCollaboration = installCollaborationHost(window, (id, ok, result) =>
+  hostCall<void>('collaborationCompleted', [id, ok, result]))
 const backgroundSaves = new Set<() => Promise<void>>()
 
 window.__novalistLifecycleSave = (requestId: number) => {
@@ -126,6 +132,8 @@ function manuscriptExtensions(options?: { extensions?: string[] }): string[] {
 
 
 const novalist: Window['novalist'] = {
+  workspaceSnapshot: () => backend.snapshot(),
+  onWorkspaceEvent: handler => backend.subscribe(handler),
   onBackgroundSave: (handler) => {
     backgroundSaves.add(handler)
     return () => { backgroundSaves.delete(handler) }
@@ -272,6 +280,8 @@ const healthCheck = setInterval(() => {
   void hostCall('bridgeHealth', []).catch(() => window.__novalistBridgeFailed?.())
 }, 15_000)
 window.addEventListener('pagehide', () => {
+  closeCollaboration()
+  backend.dispose()
   clearInterval(healthCheck)
   bridgeFailed = true
   backendPort?.close()

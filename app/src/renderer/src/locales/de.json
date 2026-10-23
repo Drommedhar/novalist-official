@@ -10,6 +10,7 @@
     "accountDetails": "Konto",
     "nameHint": "Dein Name stammt von deinem Anmeldeanbieter. Ändere ihn in dessen Profil und melde dich danach ab und wieder an.",
     "defaultFolderName": "Gemeinsames Projekt",
+    "mobileFolder": "Dateien → Novalist → {{name}}",
     "chooseDestinationHint": "Wähle aus, wo deine lokale Projektkopie gespeichert werden soll.",
     "invalidFolderName": "Gib einen gültigen Ordnernamen ohne Sonderzeichen oder Punkt am Ende ein.",
     "hostTitle": "Dein Projekt teilen",

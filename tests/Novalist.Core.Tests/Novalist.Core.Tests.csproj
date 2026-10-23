@@ -11,6 +11,7 @@
     <Compile Include="..\..\Novalist.Mobile\Services\OwnedProjectPaths.cs" Link="Mobile\OwnedProjectPaths.cs" />
     <Compile Include="..\..\Novalist.Mobile\Services\MobileAssetReader.cs" Link="Mobile\MobileAssetReader.cs" />
     <Compile Include="..\..\Novalist.Mobile\Services\TemporaryAccessRegistry.cs" Link="Mobile\TemporaryAccessRegistry.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\MobileDocumentRequests.cs" Link="Mobile\MobileDocumentRequests.cs" />
   </ItemGroup>
 
   <ItemGroup>

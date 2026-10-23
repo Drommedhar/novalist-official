@@ -53,11 +53,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Core and Sdk arrive transitively through Backend. Keep a single build
-         path: MAUI publish adjusts reference properties, and redundant direct
-         references can compile the same output concurrently. -->
+    <!-- Core and Sdk arrive transitively through Backend. -->
     <!-- The local import server uses the desktop ASP.NET Core runtime. -->
-    <ProjectReference Include="..\Novalist.Backend\Novalist.Backend.csproj" AdditionalProperties="BuildAppleDesktopSpeech=false;EnableImportApi=false" />
+    <ProjectReference Include="..\Novalist.Backend\Novalist.Backend.csproj" AdditionalProperties="BuildAppleDesktopSpeech=false;EnableImportApi=false;EnableLoopbackSignIn=false;EnableSteamworks=false" />
+    <!-- Publish promotes transitive references. Keep its Sync build on the same
+         native-host configuration instead of rebuilding the desktop web host. -->
+    <ProjectReference Include="..\Novalist.Sync.Client\Novalist.Sync.Client.csproj" AdditionalProperties="BuildAppleDesktopSpeech=false;EnableImportApi=false;EnableLoopbackSignIn=false;EnableSteamworks=false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -96,4 +97,6 @@
   </ItemGroup>
 
   <Import Project="../native/AppleSpeech/AppleSpeech.iOS.targets" />
+  <Import Project="../native/Sodium/Sodium.iOS.targets" />
+  <Import Project="../tests/Novalist.Mobile.Smoke/Smoke.targets" Condition="'$(MobileSmokeTest)' == 'true'" />
 </Project>

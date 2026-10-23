@@ -22,6 +22,7 @@ export function CollaborationCard(): React.JSX.Element {
     if (session) { setMode(session.mode); setIntent('share') }
   }, [session?.sessionId, session?.mode])
   useEffect(() => {
+    if (window.novalist.isMobile) return
     let current = true
     void rpc.request<{ available: boolean }>('collaboration/steam/status')
       .then(status => { if (current) setSteamAvailable(status.available) }, () => { if (current) setSteamAvailable(false) })

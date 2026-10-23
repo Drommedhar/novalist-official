@@ -35,6 +35,15 @@ runtime: Steam appears when available; relay server and direct TCP remain option
 During a session, the panel shows connection status, invitations and the end-session
 action. Owners can expand **Manage shared access** for membership controls.
 
+iPhone and iPad offer **Relay server** and **Direct TCP**, and can collaborate with
+desktop writers using either mode. Steam is available only on desktop. Mobile joins
+create a local copy in **Files → Novalist** by default; change the folder name or
+choose another folder before joining. You can also reuse an existing local project.
+Keep Novalist in the foreground during collaboration: iOS can suspend network activity
+when you switch apps or lock the device. Pending edits are saved before suspension,
+and the connection retries when the app runs again. A mobile host must remain open
+and active for other writers to join or synchronize.
+
 For a community server, select **Relay server**, enter your server's
 address, and select **Sign in**. Complete sign-in in your browser and return to
 Novalist. **Cancel sign-in** stops a pending request. Expand **Account** to sign out.
@@ -56,6 +65,11 @@ use HTTPS; HTTP is accepted for local loopback testing. Credentials are saved
 using the operating system's encryption service, outside project files. If that
 service is unavailable, Novalist reports the error instead of saving credentials
 without encryption.
+
+On iPhone and iPad, sign-in uses the system authentication browser and credentials
+are kept in Keychain. The provider's native client must register
+`com.novalist.app:/oauth/callback` as an additional redirect URI with PKCE; desktop
+loopback redirects stay registered.
 
 With a project open, select **Share this project** to start hosting it.
 The server forwards encrypted packets between connected writers. It stores no
@@ -448,7 +462,9 @@ The default bindings are listed in [Hotkeys](26-hotkeys.md).
 
 Startup update availability appears in a dismissible banner. Choose **Review update** to read release notes; **Help → Check for Updates** opens the same review. Failed checks show an error and **Check again**, without claiming the application is current.
 
-For installations updated by an external tool or package manager, set `NOVALIST_DISABLE_SELF_UPDATE=1` in Novalist's environment before launching it. This blocks application update checks, downloads and installation, including manual requests. It hides **Help → Check for Updates**, the update button in **About**, and the application-update setting and its search result. Startup extension checks, extension settings and updates through the **Extensions** store remain available. Unset the variable or set it to `0`, then restart Novalist to restore application updates. Unlike `NOVALIST_NO_SPLASH`, this option leaves the splash screen and startup extension checks enabled.
+**Steam builds** receive application updates through Steam. They hide the application-update controls in Help, About and Settings, including Settings search. Application update checks, downloads and installation through Novalist are disabled even when it is started outside Steam. Extension checks and updates remain available.
+
+For installations updated by an external tool or package manager, set `NOVALIST_DISABLE_SELF_UPDATE=1` in Novalist's environment before launching it. This blocks application update checks, downloads and installation, including manual requests. It hides **Help → Check for Updates**, the update button in **About**, and the application-update setting and its search result. Startup extension checks, extension settings and updates through the **Extensions** store remain available. In directly downloaded builds, unset the variable or set it to `0`, then restart Novalist to restore application updates. This cannot enable self-updates in Steam or Mac App Store builds. Unlike `NOVALIST_NO_SPLASH`, this option leaves the splash screen and startup extension checks enabled.
 
 Choose **Download update** to download in the background. **Continue writing** or Escape closes the review while the download continues. Once ready, choose **Install and restart** separately. Novalist finishes pending editor, manuscript, map, planning-board, book-matter and extension-settings saves, creates the normal close backup, starts the operating system's installer, then closes itself. Resolve save conflicts and close detached panes before installing. If a save or installer handoff fails, Novalist stays open and explains why. Platforms requiring manual installation open the downloaded file's folder instead.
 

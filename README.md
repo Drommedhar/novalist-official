@@ -46,6 +46,8 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
   structure and metadata edits require reconnecting. Open **Collaborate** in the top bar. See [Collaboration](docs/manual/23-settings.md#collaboration)
   for the current capabilities and remaining work, or [Steam build requirements](docs/development/steam-collaboration.md)
   for the optional native integration.
+  iPhone and iPad support relay-server and direct TCP sessions with desktop writers;
+  Steam is desktop-only. Mobile joins default to a local copy in Novalist's Files folder.
 
 ### Interface
 
@@ -206,6 +208,8 @@ SDK 15 and new official extension releases require Novalist 3.6.0 or later. Earl
 The Extensions view has a built-in **store**: browse the online extension gallery, read each extension's README and release notes, and install or update extensions in place (with download progress and a cancel option) without leaving the app. It can also check installed extensions for updates on startup.
 
 Externally managed installations can set `NOVALIST_DISABLE_SELF_UPDATE=1` before launching Novalist to block all app self-updates and hide their controls in Help, About and Settings, while retaining startup extension checks and extension updates. See [Updates & Integrations](docs/manual/23-settings.md#updates--integrations).
+
+Steam builds receive application updates through Steam. Their GitHub application updater is disabled permanently; extension updates remain available.
 
 The **Mac App Store edition has no extension feature** - no gallery, no installing from a folder, and no extension loaded. An extension is code the app downloads and runs to add features, which App Store rules do not permit and the sandbox would not load. The directly downloaded builds (macOS `.dmg`, Windows, Linux) are unaffected. Projects are identical across editions. See [`docs/manual/24-extensions.md`](docs/manual/24-extensions.md).
 

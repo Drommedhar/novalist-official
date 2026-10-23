@@ -101,8 +101,7 @@
         "NOVALIST_BACKEND_PATH": "${workspaceFolder}/app/out/collaboration-steam-build/bin/Novalist.Backend/debug/Novalist.Backend.exe",
         "NOVALIST_STEAM_APP_ID": "480",
         "SteamAppId": "480",
-        "SteamGameId": "480",
-        "NOVALIST_DISABLE_SELF_UPDATE": "1"
+        "SteamGameId": "480"
       },
       "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
     },

@@ -77,7 +77,8 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
         challenge = query["code_challenge"].ToString();
         nonce = query["nonce"].ToString();
         redirect = query["redirect_uri"].ToString();
-        if (!Uri.TryCreate(redirect, UriKind.Absolute, out var callback) || callback.Host != "127.0.0.1") return Results.BadRequest();
+        if (!Uri.TryCreate(redirect, UriKind.Absolute, out var callback) ||
+            (callback.Host != "127.0.0.1" && redirect != "com.novalist.app:/oauth/callback")) return Results.BadRequest();
         return Results.Redirect(redirect + "?code=code&state=" + Uri.EscapeDataString(query["state"].ToString()));
     }
 

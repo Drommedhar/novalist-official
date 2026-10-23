@@ -58,7 +58,7 @@ export async function identityProvider(subject: () => string = () => 'writer', d
       case '/keys': send(response, { keys: [publicKey] }); break
       case '/authorize': {
         const redirect = new URL(url.searchParams.get('redirect_uri') ?? 'about:blank')
-        if (redirect.hostname !== '127.0.0.1' || url.searchParams.get('code_challenge_method') !== 'S256') {
+        if (!(redirect.protocol === 'http:' && redirect.hostname === '127.0.0.1' || redirect.href === 'com.novalist.app:/oauth/callback') || url.searchParams.get('code_challenge_method') !== 'S256') {
           response.writeHead(400); response.end(); break
         }
         const code = randomUUID()

@@ -1,6 +1,7 @@
 import type { WorkspaceEvent, WorkspaceSnapshot, CloseStage } from "../shared/workspaceProtocol";
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import type { DeepLink } from '../main/deeplink'
+import { selfUpdateDisabled } from '../shared/selfUpdatePolicy'
 
 const material =
   process.argv.find((a) => a.startsWith('--nl-material='))?.split('=')[1] ?? 'opaque'
@@ -52,7 +53,7 @@ contextBridge.exposeInMainWorld('novalist', {
   // never pops a modal that blocks tests. Also off in the Mac App Store build,
   // where self-updating is prohibited.
   autoUpdate: !process.env.NOVALIST_NO_SPLASH && !isMas,
-  selfUpdateDisabled: isMas || process.env.NOVALIST_DISABLE_SELF_UPDATE === '1',
+  selfUpdateDisabled: isMas || selfUpdateDisabled,
   requestBackendPort(): void {
     ipcRenderer.send('novalist:request-backend-port')
   },

@@ -50,9 +50,24 @@ dotnet publish Novalist.Backend -r win-x64 -p:EnableSteamworks=true "-p:Steamwor
 On Linux or macOS, prepare the binding with PowerShell 7 and pass the matching
 SDK 1.65 `libsteam_api.so` or `libsteam_api.dylib` to `SteamworksNativeLibrary`
 when building on that platform. The archive-extraction helper is Windows-only.
-Include the resulting backend publish output in the Electron package using the
-ordinary desktop packaging process. Native runtime testing below currently
+Build the Electron shell with `npm --prefix app run build:steam`. This compiles
+the Steam update policy into both the main process and preload: GitHub application
+checks, downloads and installation are disabled, and their UI controls are hidden.
+It does not depend on Steam running or on launch environment variables. Extension
+updates remain available. `npm --prefix app run build` produces the ordinary shell.
+
+Package that Steam shell output together with the Steam-enabled backend publish
+output. The ordinary `npm run package` command rebuilds the non-Steam shell and
+backend; it is not a Steam release command. Native runtime testing below currently
 covers Windows x64.
+
+To verify the Steam update policy without a Steam client or SDK, build the Steam
+shell, set `NOVALIST_TEST_STEAM_BUILD=1`, and run
+`npx playwright test e2e/self-update-policy.spec.ts` from `app`. The test uses a
+normal debug backend, clears the Steam launch variables and sets
+`NOVALIST_DISABLE_SELF_UPDATE=0`. It verifies blocked update requests, hidden
+controls and working extension updates. For the ordinary build, rebuild with
+`npm run build` and unset `NOVALIST_TEST_STEAM_BUILD` before running the same suite.
 
 Steam must be running and signed in to an account entitled to the registered
 Novalist app. Steam launches provide `SteamAppId`; development launches may set
@@ -64,7 +79,8 @@ Steam is unavailable.
 
 On Windows, select **Collaboration: Steam (App ID 480)** in **Run and Debug** and
 press **F5**. Its preparation task builds the optional adapter and copies the
-native DLL into `app/out/collaboration-steam-build`; the launch selects that
+native DLL into `app/out/collaboration-steam-build`, and builds the Steam shell;
+the launch selects that
 backend explicitly and sets `NOVALIST_STEAM_APP_ID`, `SteamAppId` and `SteamGameId`
 to `480`. The ordinary backend output is separate. Its settings and browser
 profile persist under `app/out/manual-steam`.

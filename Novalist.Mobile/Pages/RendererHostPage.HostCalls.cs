@@ -120,6 +120,9 @@ public sealed partial class RendererHostPage
     {
         switch (method)
         {
+            case "collaborationCompleted":
+                _collaborationDocuments.Complete(args[0].GetInt32(), args[1].GetBoolean(), args[2]);
+                return null;
             case "bridgeReady":
                 _rendererReady.TrySetResult();
                 return null;

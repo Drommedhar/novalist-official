@@ -22,6 +22,7 @@ interface Window {
   HybridWebView?: { SendRawMessage?: (message: string) => void }
   __novalistRecv?: (base64: string) => string
   __novalistHostResult?: (base64: string) => string
+  __novalistCollaborationRequest?: (id: number, parameters: unknown) => string
   __novalistLifecycleSave?: (requestId: number) => void
   __novalistBridgeFailed?: () => void
   __novalistLayout?: (mode: string) => void

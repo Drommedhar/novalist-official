@@ -5,6 +5,21 @@
 .collaboration-active {
   color: var(--nl-accent);
 }
+.mobile-collaboration-bar {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  padding: calc(var(--nl-safe-top) + var(--nl-space-tightest)) var(--nl-space-sm) var(--nl-space-tightest);
+}
+.shell.mobile .mobile-shell { padding-top: 0; }
+.mobile .collaboration-panel {
+  position: fixed;
+  left: auto;
+  right: var(--nl-space-sm);
+  top: calc(env(safe-area-inset-top, 0px) + var(--nl-toolbar-height));
+  width: min(var(--nl-dialog-width), calc(100vw - 2 * var(--nl-space-sm)));
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - var(--nl-toolbar-height) - var(--nl-space-xl));
+}
 .collaboration-panel {
   position: absolute;
   top: calc(100% + var(--nl-space-sm));

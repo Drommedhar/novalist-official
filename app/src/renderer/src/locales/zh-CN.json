@@ -10,6 +10,7 @@
     "accountDetails": "账户",
     "nameHint": "你的名称来自登录服务。请在该服务的个人资料中修改名称，然后退出并重新登录。",
     "defaultFolderName": "共享项目",
+    "mobileFolder": "文件 → Novalist → {{name}}",
     "chooseDestinationHint": "选择本地项目副本的保存位置。",
     "invalidFolderName": "请输入有效的文件夹名称，不要使用特殊字符或以句点结尾。",
     "hostTitle": "共享你的项目",

@@ -1,17 +1,24 @@
-import { DocumentHostProcess } from './DocumentHostProcess'
-import type { SceneCommand } from '../../shared/collaborationDocuments'
+import type { SceneCommand, SceneApplyResult, SharedSceneSnapshot } from './collaborationDocuments'
+import { encodeBase64, decodeBase64 } from './base64'
 
-export class DesktopDocumentBridge {
-  private readonly hosts = new Map<string, DocumentHostProcess>()
+export interface DocumentSession {
+  execute(command: SceneCommand): Promise<SceneApplyResult | null | undefined>
+  rename(id: string, entityId: string, oldName: string, newName: string): Promise<Uint8Array | null>
+  capture(id: string): Promise<SharedSceneSnapshot>
+  dispose(): void | Promise<void>
+}
 
-  constructor(private readonly workerEntry?: string) {}
+export class DocumentBridge {
+  private readonly hosts = new Map<string, DocumentSession>()
 
-  async request(method: string, params: unknown): Promise<unknown> {
-    if (method !== 'collaboration/documents') throw new Error('Unknown desktop operation.')
+  constructor(private readonly createHost: () => DocumentSession) {}
+
+  async handle(method: string, params: unknown): Promise<unknown> {
+    if (method !== 'collaboration/documents') throw new Error('Unknown collaboration operation.')
     const request = record(params)
     const session = identity(request.sessionId)
     if (request.action === 'open') {
-      if (!this.hosts.has(session)) this.hosts.set(session, new DocumentHostProcess(this.workerEntry))
+      if (!this.hosts.has(session)) this.hosts.set(session, this.createHost())
       return null
     }
     const host = this.hosts.get(session)
@@ -25,12 +32,12 @@ export class DesktopDocumentBridge {
         return await host.execute(command(request.command)) ?? null
       case 'rename': {
         const update = await host.rename(identity(request.id), identity(request.entityId), name(request.oldName), name(request.newName))
-        return update === null ? null : Buffer.from(update).toString('base64')
+        return update === null ? null : encodeBase64(update)
       }
       case 'capture': {
         const snapshot = await host.capture(identity(request.id))
-        return { ...snapshot, state: Buffer.from(snapshot.state).toString('base64'),
-          deletions: snapshot.deletions.map(state => Buffer.from(state).toString('base64')) }
+        return { ...snapshot, state: encodeBase64(snapshot.state),
+          deletions: snapshot.deletions.map(encodeBase64) }
       }
       default: throw new Error('Unknown document host operation.')
     }
@@ -54,7 +61,7 @@ function identity(value: unknown): string {
 }
 
 function name(value: unknown): string {
-  if (typeof value !== 'string' || !value.trim() || Buffer.byteLength(value) > 1024 * 1024)
+  if (typeof value !== 'string' || !value.trim() || new TextEncoder().encode(value).length > 1024 * 1024)
     throw new Error('Invalid Codex name.')
   return value
 }
@@ -62,8 +69,8 @@ function name(value: unknown): string {
 function state(value: unknown): Uint8Array {
   if (typeof value !== 'string' || !value.length || value.length > Math.ceil(64 * 1024 * 1024 / 3) * 4)
     throw new Error('Invalid shared document state size.')
-  const bytes = Buffer.from(value, 'base64')
-  if (bytes.length > 64 * 1024 * 1024 || bytes.toString('base64') !== value) throw new Error('Invalid shared document state encoding.')
+  const bytes = decodeBase64(value)
+  if (bytes.length > 64 * 1024 * 1024 || encodeBase64(bytes) !== value) throw new Error('Invalid shared document state encoding.')
   return bytes
 }
 
@@ -72,10 +79,10 @@ function command(value: unknown): SceneCommand {
   const id = identity(data.id)
   switch (data.kind) {
     case 'seed':
-      if (typeof data.html !== 'string' || Buffer.byteLength(data.html) > 64 * 1024 * 1024) throw new Error('Invalid scene content size.')
+      if (typeof data.html !== 'string' || new TextEncoder().encode(data.html).length > 64 * 1024 * 1024) throw new Error('Invalid scene content size.')
       return { kind: 'seed', id, html: data.html }
     case 'seedText':
-      if (typeof data.text !== 'string' || Buffer.byteLength(data.text) > 64 * 1024 * 1024) throw new Error('Invalid prose content size.')
+      if (typeof data.text !== 'string' || new TextEncoder().encode(data.text).length > 64 * 1024 * 1024) throw new Error('Invalid prose content size.')
       return { kind: 'seedText', id, text: data.text }
     case 'load':
       if (data.deletions !== undefined && !Array.isArray(data.deletions)) throw new Error('Invalid scene deletion state.')
