@@ -44,12 +44,18 @@ when you switch apps or lock the device. Pending edits are saved before suspensi
 and the connection retries when the app runs again. A mobile host must remain open
 and active for other writers to join or synchronize.
 
-For a community server, select **Relay server**, enter your server's
-address, and select **Sign in**. Complete sign-in in your browser and return to
-Novalist. **Cancel sign-in** stops a pending request. Expand **Account** to sign out.
+For a community server, select **Relay server** and enter your server's address.
+Novalist checks whether that server requires authentication. If it does,
+**Share this project**, **Join shared project** and reconnecting open browser
+sign-in automatically when needed; you can also select **Sign in** beforehand.
+Complete sign-in in your browser and return to Novalist. If the server permits
+anonymous sessions, enter **Your name** and share or join directly without an
+account. Novalist remembers that name on this device. The name is a participant
+label, not proof of identity; invitation and device checks still protect access.
+**Cancel sign-in** stops a pending request. Expand **Account** to sign out.
 **Sign out** removes the remembered account from this device.
 
-Your displayed name comes from the sign-in provider's `name` profile claim; if it
+For authenticated sessions, your displayed name comes from the sign-in provider's `name` profile claim; if it
 is absent, the account identifier is used. Change the name in that provider's
 profile, then sign out and sign in again. The relay has no separate username or
 account-profile editor. The server administrator must configure the provider to
@@ -60,7 +66,10 @@ If a saved sign-in has expired, Novalist offers **Sign in** again. If its provid
 is unavailable, you can retry later or use **Forget saved sign-in** to remove that
 device's saved account. Sharing checks sign-in before preparing the project.
 
-The server must publish its desktop sign-in configuration. Normal connections
+The server must publish its client configuration. Administrators can enable
+anonymous relay sessions with `Relay__RequireAuthentication=false`; authentication
+remains required by default. Older servers without the new policy flag still
+require sign-in, and a discovery error never enables anonymous access. Normal connections
 use HTTPS; HTTP is accepted for local loopback testing. Credentials are saved
 using the operating system's encryption service, outside project files. If that
 service is unavailable, Novalist reports the error instead of saving credentials
@@ -77,7 +86,7 @@ project files, snapshots or edit history. Keep the host's project and session op
 other writers cannot join while the host is offline.
 
 **Create invitation** produces a private link for one collaborator, valid
-for 24 hours. Send it only to the person you want to invite. They sign in to the
+for 24 hours. Send it only to the person you want to invite. They connect to the
 same server, select **Join**, paste the link, choose a parent folder for the new local copy,
 and select **Join shared project**. The folder name starts as **Shared project**;
 you can change it before joining. The form shows the destination and explains

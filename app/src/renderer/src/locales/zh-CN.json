@@ -65,6 +65,8 @@
     "server": "服务器地址",
     "serverHint": "通过浏览器登录社区中继服务器。服务器仅在协作者之间转发数据包，不存储项目数据。主持人必须保持在线。",
     "signIn": "登录",
+    "checkingServer": "正在检查服务器…",
+    "checkServer": "检查服务器",
     "signOut": "退出登录",
     "forgetSignIn": "清除已保存的登录信息",
     "cancelSignIn": "取消登录",

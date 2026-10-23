@@ -35,10 +35,10 @@ internal sealed partial class PeerProjectWorkspace : IDisposable
     internal Task<HostedSessionDto> HostAsync(string address, int port, string name, CancellationToken ct) => HostCoreAsync(address, port, name, false, null, null, ct);
     internal Task<HostedSessionDto> HostSteamAsync(string name, CancellationToken ct) => HostCoreAsync("127.0.0.1", 0, name, true, null, null, ct);
 
-    internal async Task<HostedSessionDto> CreateAsync(Uri server, CancellationToken ct)
+    internal async Task<HostedSessionDto> CreateAsync(Uri server, CancellationToken ct, string? name = null)
     {
         var account = await AccountAsync(server, ct);
-        return await HostCoreAsync("127.0.0.1", 0, account.DisplayName, false, server, account, ct);
+        return await HostCoreAsync("127.0.0.1", 0, account?.DisplayName ?? name ?? "", false, server, account, ct);
     }
 
     private async Task<HostedSessionDto> HostCoreAsync(string address, int port, string name, bool steam, Uri? server, HostedAccount? account, CancellationToken ct)
@@ -67,8 +67,8 @@ internal sealed partial class PeerProjectWorkspace : IDisposable
             var session = await PeerProjectSession.OpenAsync(storage, id, wire, device);
             runtime = new(id, device, session, host, address, name) { Server = server };
             if (steam) runtime.Steam = await SteamPeerRelay.HostAsync(access.Address.Port, ct);
-            if (server is not null && account is not null)
-                runtime.Relay = await RelayPeerTunnel.HostAsync(server, access.Address.Port, account.GetAccessTokenAsync, ct);
+            if (server is not null)
+                runtime.Relay = await RelayPeerTunnel.HostAsync(server, access.Address.Port, account is null ? null : account.GetAccessTokenAsync, ct);
             await CaptureHostAsync(runtime, ct);
             var prepared = runtime;
             host.SynchronizeBootstrap = (transfer, token) => SynchronizeBootstrapAsync(prepared, transfer, token);
@@ -112,13 +112,13 @@ internal sealed partial class PeerProjectWorkspace : IDisposable
         return JoinCoreAsync(invitation.Invitation, null, invitation.HostSteamId, destination, name, null, ct);
     }
 
-    internal async Task<HostedSessionDto> JoinAsync(Uri server, string link, string destination, CancellationToken ct)
+    internal async Task<HostedSessionDto> JoinAsync(Uri server, string link, string destination, CancellationToken ct, string? name = null)
     {
         var invitation = RelayPeerInvitation.Parse(link);
         if (new Uri(server.AbsoluteUri.TrimEnd('/') + '/') != new Uri(invitation.Server.AbsoluteUri.TrimEnd('/') + '/'))
-            throw new InvalidOperationException("Sign in to the server named by this invitation.");
+            throw new InvalidOperationException("Connect to the server named by this invitation.");
         var account = await AccountAsync(server, ct);
-        return await JoinCoreAsync(invitation.Invitation, invitation, 0, destination, account.DisplayName, account, ct);
+        return await JoinCoreAsync(invitation.Invitation, invitation, 0, destination, account?.DisplayName ?? name ?? "", account, ct);
     }
 
     private async Task<HostedSessionDto> JoinCoreAsync(PeerInvitation invitation, RelayPeerInvitation? hosted, ulong steamHost, string destination, string name, HostedAccount? account, CancellationToken ct)
@@ -136,9 +136,9 @@ internal sealed partial class PeerProjectWorkspace : IDisposable
         try
         {
             var address = invitation.Address.Host;
-            if (hosted is not null && account is not null)
+            if (hosted is not null)
             {
-                relay = await RelayPeerTunnel.ConnectAsync(hosted.Server, hosted.SessionId, account.GetAccessTokenAsync, ct);
+                relay = await RelayPeerTunnel.ConnectAsync(hosted.Server, hosted.SessionId, account is null ? null : account.GetAccessTokenAsync, ct);
                 invitation = invitation with { Address = invitation.Address with { Host = "127.0.0.1", Port = relay.LocalPort } };
             }
             if (steamHost == 0) wire = await TcpPeerTransport.JoinInvitationAsync(invitation, device, ct);
@@ -154,7 +154,7 @@ internal sealed partial class PeerProjectWorkspace : IDisposable
             await workspace.OpenProjectAsync(destination);
             archive.Position = 0;
             await workspace.AttachSharedProjectAsync(id, session.Updates, state, archive, ct);
-            if (hosted is not null) await RememberAsync(hosted, destination, ct);
+            if (hosted is not null) await RememberAsync(hosted, destination, name, ct);
             await wire.CompleteBootstrapAsync(ct);
         }
         catch (Exception error)
@@ -205,9 +205,13 @@ internal sealed partial class PeerProjectWorkspace : IDisposable
     private Runtime RequireSession(Guid sessionId) => current is { } runtime && runtime.Id == sessionId
         ? runtime : throw new InvalidOperationException("This collaboration session is no longer active.");
 
-    private async Task<HostedAccount> AccountAsync(Uri server, CancellationToken ct) =>
-        accounts is null ? throw new InvalidOperationException("Desktop collaboration is unavailable.") :
-        await accounts.RestoreAsync(server, ct) ?? throw new InvalidOperationException("Sign in to the collaboration server first.");
+    private async Task<HostedAccount?> AccountAsync(Uri server, CancellationToken ct)
+    {
+        var configuration = await RelayServerDiscovery.DiscoverAsync(server, ct);
+        if (!configuration.AuthenticationRequired) return null;
+        if (accounts is null) throw new InvalidOperationException("Desktop collaboration is unavailable.");
+        return await accounts.RestoreAsync(server, ct) ?? throw new InvalidOperationException("Sign in to the collaboration server first.");
+    }
 
     private Task<DeviceIdentity> DeviceAsync(HostedAccount? account, CancellationToken ct) => devices.GetOrCreateAsync(
         account?.Authority ?? new("https://novalist.invalid/peer-device"), account?.Subject ?? "desktop", ct);

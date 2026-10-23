@@ -26,6 +26,13 @@ certificate, public sign-in provider and WebSocket-capable HTTPS endpoint.
 
 ## VS Code launch configurations (Windows)
 
+For a server without accounts, choose **Collaboration: Local server (no account) + 2 apps**
+and press **F5**. Use `http://127.0.0.1:42670` under **Collaborate** in both apps,
+enter **Your name**, then share or join directly. This launch starts no sign-in
+provider. **Collaboration: Local server (no account)** starts just the relay.
+Both server configurations use the same relay port, so stop the running server
+before switching between them.
+
 In **Run and Debug**, choose **Collaboration: Local server + 2 apps** and press
 **F5**. It builds the desktop app and local relay server and opens owner and guest instances with separate persistent
 settings and browser profiles. Use `http://127.0.0.1:42670` in both apps'
@@ -105,6 +112,9 @@ In another terminal, from `app`, run:
 ```powershell
 npm run collab:server
 ```
+
+To run without accounts instead, use `npm run collab:server -- --anonymous`.
+Enter **Your name** in each app and share or join directly; no browser login is needed.
 
 Copy the printed server URL into **Collaborate** in the top bar in both apps. The
 helper initially signs in **Morgan**, the owner. Sign in and share the project in

@@ -52,6 +52,18 @@
       "skipFiles": ["<node_internals>/**"]
     },
     {
+      "name": "Collaboration: Local server (no account)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/app/scripts/collaboration-manual-server.mjs",
+      "runtimeArgs": ["--experimental-strip-types"],
+      "args": ["--anonymous"],
+      "cwd": "${workspaceFolder}/app",
+      "console": "integratedTerminal",
+      "preLaunchTask": "prepare collaboration server",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
       "name": "Collaboration: Owner",
       "type": "node",
       "request": "launch",
@@ -114,6 +126,12 @@
     }
   ],
   "compounds": [
+    {
+      "name": "Collaboration: Local server (no account) + 2 apps",
+      "configurations": ["Collaboration: Local server (no account)", "Collaboration: Owner", "Collaboration: Guest"],
+      "preLaunchTask": "prepare collaboration desktop",
+      "stopAll": false
+    },
     {
       "name": "Collaboration: Local server + 2 apps",
       "configurations": ["Collaboration: Local server", "Collaboration: Owner", "Collaboration: Guest"],

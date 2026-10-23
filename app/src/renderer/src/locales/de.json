@@ -65,6 +65,8 @@
     "server": "Serveradresse",
     "serverHint": "Melde dich über deinen Browser beim Community-Relay-Server an. Der Server leitet Pakete zwischen Schreibenden weiter und speichert keine Projektdaten. Der Host muss online bleiben.",
     "signIn": "Anmelden",
+    "checkingServer": "Server wird geprüft…",
+    "checkServer": "Server prüfen",
     "signOut": "Abmelden",
     "forgetSignIn": "Gespeicherte Anmeldung entfernen",
     "cancelSignIn": "Anmeldung abbrechen",

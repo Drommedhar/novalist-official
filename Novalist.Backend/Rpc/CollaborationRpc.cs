@@ -28,15 +28,15 @@ public sealed partial class CollaborationRpc
     public Task<SavedHostedProjectDto?> SavedAsync() => workspace.PeerProjects?.SavedAsync() ?? Task.FromResult<SavedHostedProjectDto?>(null);
 
     [JsonRpcMethod("collaboration/resume")]
-    public Task<HostedSessionDto> ResumeAsync(CancellationToken cancellationToken = default) => Peers().ResumeAsync(cancellationToken);
+    public Task<HostedSessionDto> ResumeAsync(string? name = null, CancellationToken cancellationToken = default) => Peers().ResumeAsync(cancellationToken, name);
 
     [JsonRpcMethod("collaboration/create")]
-    public Task<HostedSessionDto> CreateAsync(Uri server, CancellationToken cancellationToken = default) =>
-        Peers().CreateAsync(server, cancellationToken);
+    public Task<HostedSessionDto> CreateAsync(Uri server, string? name = null, CancellationToken cancellationToken = default) =>
+        Peers().CreateAsync(server, cancellationToken, name);
 
     [JsonRpcMethod("collaboration/join")]
-    public Task<HostedSessionDto> JoinAsync(Uri server, string link, string destination, CancellationToken cancellationToken = default) =>
-        Peers().JoinAsync(server, link, destination, cancellationToken);
+    public Task<HostedSessionDto> JoinAsync(Uri server, string link, string destination, string? name = null, CancellationToken cancellationToken = default) =>
+        Peers().JoinAsync(server, link, destination, cancellationToken, name);
 
     [JsonRpcMethod("collaboration/invite")]
     public Task<string> InviteAsync(DateTimeOffset expiresAt, CancellationToken cancellationToken = default) =>

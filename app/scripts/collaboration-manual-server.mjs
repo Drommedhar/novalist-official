@@ -13,21 +13,27 @@ const port = (name, fallback) => {
   return value
 }
 const relayPort = port('NOVALIST_COLLAB_RELAY_PORT', 42670)
-const identityPort = port('NOVALIST_COLLAB_IDENTITY_PORT', 42671)
-if (relayPort === identityPort) throw new Error('The relay and sign-in provider need different ports.')
-const identity = await identityProvider(() => account, subject => accounts[subject], identityPort, false)
+const anonymous = process.argv.includes('--anonymous')
+let identity
+if (!anonymous) {
+  const identityPort = port('NOVALIST_COLLAB_IDENTITY_PORT', 42671)
+  if (relayPort === identityPort) throw new Error('The relay and sign-in provider need different ports.')
+  identity = await identityProvider(() => account, subject => accounts[subject], identityPort, false)
+}
 let server
 try {
-  server = await collaborationServer(identity.address, relayPort)
+  server = await collaborationServer(identity?.address ?? null, relayPort)
   console.log(`Local test server: ${server.address}`)
   console.log('Use the Local test server URL above under Collaborate in the top bar of both apps.')
-  console.log(`Browser sign-in only (do not enter this as the relay address): ${identity.address}`)
-  console.log('After restarting this helper, sign out and sign in again in each app before sharing.')
-  console.log('Next browser sign-in: Morgan (owner). No password is needed.')
-  console.log('Enter owner, guest or third to choose the account for the next sign-in.')
+  if (identity) {
+    console.log(`Browser sign-in only (do not enter this as the relay address): ${identity.address}`)
+    console.log('After restarting this helper, sign out and sign in again in each app before sharing.')
+    console.log('Next browser sign-in: Morgan (owner). No password is needed.')
+    console.log('Enter owner, guest or third to choose the account for the next sign-in.')
+  } else console.log('No account required. Enter Your name in each app, then share or join directly.')
   console.log('This server relays packets only; it stores no project data and needs no database.')
   console.log('Keep the host app and this terminal running for collaboration. Enter quit to stop the relay.')
-  const terminal = createInterface({ input: stdin, output: stdout, prompt: 'account> ' })
+  const terminal = createInterface({ input: stdin, output: stdout, prompt: identity ? 'account> ' : 'relay> ' })
   const stop = () => terminal.close()
   process.on('SIGINT', stop)
   process.on('SIGTERM', stop)
@@ -36,10 +42,10 @@ try {
     for await (const line of terminal) {
       const command = line.trim().toLowerCase()
       if (command === 'quit') break
-      if (Object.hasOwn(accounts, command)) {
+      if (identity && Object.hasOwn(accounts, command)) {
         account = command
         console.log(`Next browser sign-in: ${accounts[account]} (${account}).`)
-      } else console.log('Choose owner, guest, third, or quit.')
+      } else console.log(identity ? 'Choose owner, guest, third, or quit.' : 'Enter quit to stop the relay.')
       terminal.prompt()
     }
   } finally {
@@ -49,5 +55,5 @@ try {
   }
 } finally {
   try { await server?.close() }
-  finally { await identity.close() }
+  finally { await identity?.close() }
 }

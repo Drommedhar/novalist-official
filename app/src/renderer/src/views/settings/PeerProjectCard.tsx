@@ -32,7 +32,7 @@ export function PeerProjectCard({ steam = false, intent }: { steam?: boolean; in
   const available = !steam || steamStatus?.available === true
   const validName = name.trim().length > 0 && name.trim().length <= 128
   const validPort = /^\d+$/.test(port) && Number(port) >= 0 && Number(port) <= 65535
-  if (session) return <SharedProjectCard server="" signedIn={false} intent={intent} />
+  if (session) return <SharedProjectCard server="" canConnect={false} intent={intent} />
   return <div className="collaboration-project">
     {steam && steamStatus && !steamStatus.available && <p role="status">{steamStatus.reason}</p>}
     <label className="inspector-label" htmlFor="set-peer-name">{t('collaboration.peerName')}</label>

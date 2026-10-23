@@ -65,6 +65,8 @@
     "server": "Server address",
     "serverHint": "Sign in to your community relay server using your browser. The server forwards packets between writers and does not store project data. The host must stay online.",
     "signIn": "Sign in",
+    "checkingServer": "Checking server…",
+    "checkServer": "Check server",
     "signOut": "Sign out",
     "forgetSignIn": "Forget saved sign-in",
     "cancelSignIn": "Cancel sign-in",

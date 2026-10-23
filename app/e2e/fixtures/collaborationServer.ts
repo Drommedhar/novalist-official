@@ -4,7 +4,7 @@ import { createServer } from 'node:net'
 import { resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 
-export async function collaborationServer(authority: string, port = 0, tls?: { path: string; password: string }): Promise<{ address: string; close(): Promise<void> }> {
+export async function collaborationServer(authority: string | null, port = 0, tls?: { path: string; password: string }): Promise<{ address: string; close(): Promise<void> }> {
   const source = resolve('out/collaboration-sync-server')
   const reservation = createServer()
   reservation.listen(port, '127.0.0.1')
@@ -18,9 +18,10 @@ export async function collaborationServer(authority: string, port = 0, tls?: { p
     ASPNETCORE_ENVIRONMENT: 'Development',
     ASPNETCORE_URLS: address,
     Relay__Enabled: 'true',
-    Authentication__Schemes__Bearer__Authority: authority,
+    Relay__RequireAuthentication: String(authority !== null),
+    Authentication__Schemes__Bearer__Authority: authority ?? '',
     Authentication__Schemes__Bearer__ValidAudiences__0: 'novalist',
-    Authentication__Schemes__Bearer__RequireHttpsMetadata: String(authority.startsWith('https:')),
+    Authentication__Schemes__Bearer__RequireHttpsMetadata: String(authority?.startsWith('https:') ?? true),
     Authentication__NativeClient__ClientId: 'novalist',
     Authentication__NativeClient__Scope: 'openid profile sync offline_access',
     Collaboration__ServerUrl: address,

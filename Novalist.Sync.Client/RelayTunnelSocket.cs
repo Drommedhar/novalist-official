@@ -8,7 +8,7 @@ namespace Novalist.Sync.Client;
 internal static class RelayTunnelSocket
 {
     public static async Task<ClientWebSocket> ConnectAsync(Uri server, string path,
-        Func<CancellationToken, Task<string>> token, CancellationToken ct)
+        Func<CancellationToken, Task<string>>? token, CancellationToken ct, string? hostSecret = null)
     {
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct);
         deadline.CancelAfter(TimeSpan.FromSeconds(30));
@@ -18,7 +18,8 @@ internal static class RelayTunnelSocket
             socket.Options.CollectHttpResponseDetails = true;
             socket.Options.KeepAliveInterval = TimeSpan.FromSeconds(20);
             socket.Options.KeepAliveTimeout = TimeSpan.FromSeconds(15);
-            socket.Options.SetRequestHeader("Authorization", "Bearer " + await token(deadline.Token));
+            if (token is not null) socket.Options.SetRequestHeader("Authorization", "Bearer " + await token(deadline.Token));
+            if (hostSecret is not null) socket.Options.SetRequestHeader("X-Novalist-Relay-Host", hostSecret);
             var endpoint = new Uri(new Uri(server.AbsoluteUri.TrimEnd('/') + '/'), path);
             await socket.ConnectAsync(new UriBuilder(endpoint) { Scheme = server.Scheme == "https" ? "wss" : "ws" }.Uri, deadline.Token);
             return socket;

@@ -14,9 +14,11 @@ public sealed class RelayServerFixture : WebApplicationFactory<Program>
 {
     private readonly SymmetricSecurityKey signing = new(RandomNumberGenerator.GetBytes(32));
     public Uri Address { get; }
+    private readonly bool requireAuthentication;
 
-    public RelayServerFixture()
+    public RelayServerFixture(bool requireAuthentication = true)
     {
+        this.requireAuthentication = requireAuthentication;
         UseKestrel(0);
         using var client = CreateClient();
         Address = client.BaseAddress!;
@@ -26,6 +28,7 @@ public sealed class RelayServerFixture : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("Development");
         builder.UseSetting("ConnectionStrings:Default", "");
+        builder.UseSetting("Relay:RequireAuthentication", requireAuthentication.ToString());
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services => services.PostConfigure<JwtBearerOptions>(
             JwtBearerDefaults.AuthenticationScheme, options =>

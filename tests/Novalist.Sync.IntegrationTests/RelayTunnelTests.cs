@@ -41,13 +41,15 @@ public sealed class RelayTunnelTests
         Assert.Null(host.Failure);
     }
 
-    [Fact]
-    public async Task ExistingPinnedTlsPeerProtocolRunsThroughRelayWithoutServerProjectState()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ExistingPinnedTlsPeerProtocolRunsThroughRelayWithoutServerProjectState(bool requireAuthentication)
     {
         var folder = Path.Combine(Path.GetTempPath(), "novalist-relay-test", Guid.NewGuid().ToString("N"));
         try
         {
-            await using var server = new RelayServerFixture();
+            await using var server = new RelayServerFixture(requireAuthentication);
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
             deadline.CancelAfter(TimeSpan.FromSeconds(15));
             var ct = deadline.Token;
@@ -60,9 +62,9 @@ public sealed class RelayTunnelTests
                 new(Guid.NewGuid(), 0, RandomNumberGenerator.GetBytes(32), owner), ct);
             var invitation = peerHost.CreateInvitation("127.0.0.1");
             await using var hostTunnel = await RelayPeerTunnel.HostAsync(server.Address, invitation.Address.Port,
-                _ => Task.FromResult(server.Token("owner")), ct);
+                requireAuthentication ? _ => Task.FromResult(server.Token("owner")) : null, ct);
             await using var writerTunnel = await RelayPeerTunnel.ConnectAsync(server.Address, hostTunnel.SessionId,
-                _ => Task.FromResult(server.Token("writer")), ct);
+                requireAuthentication ? _ => Task.FromResult(server.Token("writer")) : null, ct);
             var localInvitation = invitation with { Address = invitation.Address with { Port = writerTunnel.LocalPort } };
             await using var writerWire = await TcpPeerTransport.JoinInvitationAsync(localInvitation, writer, ct);
             using var ownerAccess = peerHost.CreateOwnerAccess("127.0.0.1");

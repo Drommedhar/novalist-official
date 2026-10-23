@@ -27,6 +27,7 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
     public string? TokenFault { get; set; }
     public string Subject { get; set; } = "writer";
     public Func<string>? IssueAccessToken { get; set; }
+    public string? ClientConfigurationJson { get; set; }
 
     private TestIdentityProvider()
     {
@@ -34,7 +35,9 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
         builder.Logging.ClearProviders();
         builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0));
         app = builder.Build();
-        app.MapGet("/client-configuration", () => new { protocolVersion = 1, authority = Authority.AbsoluteUri, clientId = "novalist", scope = "openid profile sync offline_access" });
+        app.MapGet("/client-configuration", () => ClientConfigurationJson is { } json
+            ? Results.Content(json, "application/json")
+            : Results.Json(new { protocolVersion = 1, authority = Authority.AbsoluteUri, clientId = "novalist", scope = "openid profile sync offline_access" }));
         app.MapGet("/.well-known/openid-configuration", () => new
         {
             issuer = Authority.AbsoluteUri.TrimEnd('/'),

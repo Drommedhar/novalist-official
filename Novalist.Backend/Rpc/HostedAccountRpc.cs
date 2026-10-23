@@ -37,6 +37,10 @@ public sealed class HostedAccountRpc : IAsyncDisposable
         }
     }
 
+    [JsonRpcMethod("collaboration/account/configuration")]
+    public Task<RelayServerConfiguration> ConfigurationAsync(Uri server, CancellationToken cancellationToken = default) =>
+        RelayServerDiscovery.DiscoverAsync(server, cancellationToken);
+
     [JsonRpcMethod("collaboration/account/status")]
     public async Task<HostedAccountDto?> StatusAsync(Uri server, CancellationToken cancellationToken = default)
     {

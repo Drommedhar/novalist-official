@@ -88,7 +88,7 @@ export const useHostedSessionStore = create<HostedSessionState>((set, get) => ({
         await rpc.request('collaboration/end')
         set({ session: null, presenceFailures: [], presenceUnavailable: false })
       } else if (operation === 'resume') {
-        set({ session: await rpc.request<HostedSession>('collaboration/resume'), presenceFailures: [], presenceUnavailable: false })
+        set({ session: await rpc.request<HostedSession>('collaboration/resume', params), presenceFailures: [], presenceUnavailable: false })
       } else if (operation === 'peerHost') {
         set({ session: await rpc.request<HostedSession>('collaboration/peer/host', params), presenceFailures: [], presenceUnavailable: false })
       } else if (operation === 'peerJoin') {

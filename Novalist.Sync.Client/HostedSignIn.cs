@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using System.Net.Http.Json;
 using Duende.IdentityModel.Client;
 using Duende.IdentityModel.OidcClient;
 
@@ -11,22 +10,8 @@ public static class HostedSignIn
 {
     public static async Task<HostedSignInOptions> DiscoverAsync(Uri server, CancellationToken ct)
     {
-        ValidateAddress(server);
-        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
-            { Timeout = TimeSpan.FromSeconds(30), MaxResponseContentBufferSize = 64 * 1024 };
-        var endpoint = new Uri(new Uri(server.AbsoluteUri.TrimEnd('/') + '/'), "client-configuration");
-        using var response = await http.GetAsync(endpoint, ct);
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            throw new InvalidOperationException("This address does not provide Novalist desktop sign-in. Use the collaboration server address, not the sign-in provider address.");
-        if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
-            throw new InvalidOperationException("This server has not enabled desktop sign-in.");
-        response.EnsureSuccessStatusCode();
-        var configuration = await response.Content.ReadFromJsonAsync<NativeConfiguration>(ct);
-        if (configuration is not { ProtocolVersion: 1, Authority: not null, ClientId: not null, Scope: not null })
-            throw new InvalidDataException("The server returned an unsupported sign-in configuration.");
-        var settings = new HostedSignInOptions(configuration.Authority, configuration.ClientId, configuration.Scope);
-        Validate(settings);
-        return settings;
+        var configuration = await RelayServerDiscovery.DiscoverAsync(server, ct);
+        return configuration.SignIn ?? throw new InvalidOperationException("This server does not require sign-in.");
     }
 
     public static Task<HostedAccount> SignInAsync(HostedSignInOptions settings,
@@ -86,7 +71,7 @@ public static class HostedSignIn
         catch { http.Dispose(); throw; }
     }
 
-    private static void Validate(HostedSignInOptions settings)
+    internal static void Validate(HostedSignInOptions settings)
     {
         ValidateAddress(settings.Authority);
         if (string.IsNullOrWhiteSpace(settings.ClientId) || !settings.Scope.Split(' ').Contains("openid"))
@@ -99,8 +84,6 @@ public static class HostedSignIn
             url.UserInfo.Length != 0 || url.Query.Length != 0 || url.Fragment.Length != 0)
             throw new ArgumentException("Use an HTTPS address, or HTTP on loopback for local tests.", nameof(url));
     }
-
-    private sealed record NativeConfiguration(byte ProtocolVersion, Uri? Authority, string? ClientId, string? Scope);
 
     internal static HostedAccount Restore(HostedAccountState state, ICollaborationCredentials credentials, string key)
     {

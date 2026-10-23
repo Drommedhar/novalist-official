@@ -40,7 +40,6 @@ test('the collaboration toolbar can cancel browser sign-in and displays discover
     await h.page.getByRole('button', { name: 'Cancel sign-in', exact: true }).click()
     await expect(h.page.getByRole('button', { name: 'Sign in', exact: true })).toBeEnabled()
     await h.page.getByLabel('Server address', { exact: true }).fill(provider.address + '/missing')
-    await h.page.getByRole('button', { name: 'Sign in', exact: true }).click()
     await expect(h.page.getByRole('alert')).toContainText('Use the collaboration server address, not the sign-in provider address.')
   } finally { await h.close(); await provider.close() }
 })
@@ -92,6 +91,7 @@ test('an unavailable saved sign-in can be forgotten and replaced through the col
     provider = await identityProvider(() => 'writer', () => 'Test Writer', Number(new URL(address).port))
     providerRunning = true
     await desktop.app.evaluate(({ shell }) => { shell.openExternal = async url => { await fetch(url) } })
+    await desktop.page.getByRole('button', { name: 'Check server', exact: true }).click()
     await desktop.page.getByRole('button', { name: 'Sign in', exact: true }).click()
     await expect(desktop.page.getByText('Signed in as Test Writer', { exact: true })).toBeVisible()
   } finally { await desktop.close(); if (providerRunning) await provider.close() }
