@@ -47,7 +47,7 @@ public sealed class PrivateInvitationTests(CommunityServerFixture server) : ICla
         var initial = new Dictionary<Guid, string> { [item] = "42" };
         await ownerFields.StartAsync(initial, ct);
         await guestFields.StartAsync(initial, ct);
-        var ownerFocus = FieldLeaseRequest.Create(access.ProjectId, item, access.Epoch);
+        var ownerFocus = await owner.Session.CreateFieldRequestAsync(item, ct);
         var guestFocus = ownerFocus with { LeaseId = Guid.NewGuid() };
         Assert.True((await ownerFields.AcquireAsync(ownerFocus, ct)).Lease.Acquired);
         Assert.False((await guestFields.AcquireAsync(guestFocus, ct)).Lease.Acquired);

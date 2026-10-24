@@ -6,6 +6,9 @@ public sealed record FieldFocusResult(bool Acquired, Guid DeviceId, int Remainin
 
 public sealed partial class CollaborationSession
 {
+    public Task<FieldLeaseRequest> CreateFieldRequestAsync(Guid resource, CancellationToken ct) =>
+        WithFieldTransportAsync((fields, token) => fields.CreateFieldLeaseRequestAsync(project, resource, epoch, token), ct);
+
     public Task<FieldFocusResult> AcquireFieldAsync(FieldLeaseRequest request, CancellationToken ct) =>
         WithFieldTransportAsync(request, async (fields, token) =>
         {
@@ -45,11 +48,16 @@ public sealed partial class CollaborationSession
             (int)remaining.TotalMilliseconds, grant.ServerSeq);
     }
 
-    private async Task<T> WithFieldTransportAsync<T>(FieldLeaseRequest request,
+    private Task<T> WithFieldTransportAsync<T>(FieldLeaseRequest request,
         Func<IFieldLeaseTransport, CancellationToken, Task<T>> action, CancellationToken ct)
     {
-        EnsureOpen();
         ValidateFieldLease(request);
+        return WithFieldTransportAsync(action, ct);
+    }
+
+    private async Task<T> WithFieldTransportAsync<T>(Func<IFieldLeaseTransport, CancellationToken, Task<T>> action, CancellationToken ct)
+    {
+        EnsureOpen();
         var fields = transport as IFieldLeaseTransport ?? throw new InvalidOperationException("This connection does not support field locking.");
         var operation = BeginFieldOperation(ct);
         try

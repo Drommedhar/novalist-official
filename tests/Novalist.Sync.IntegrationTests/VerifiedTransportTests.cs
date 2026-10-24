@@ -33,7 +33,7 @@ public sealed class VerifiedTransportTests(CommunityServerFixture server) : ICla
         await owner.CreateProjectAsync(project, ct);
         await server.AddContributorAsync(project, guestSubject, ct);
         await guest.JoinAsync(project, ct);
-        var request = FieldLeaseRequest.Create(project, Guid.NewGuid(), 0);
+        var request = await owner.CreateFieldLeaseRequestAsync(project, Guid.NewGuid(), 0, ct);
         var granted = await owner.AcquireFieldLeaseAsync(request, ct);
         Assert.Equal(ownerDevice.Id, granted.DeviceId);
         Assert.Equal(request.LeaseId, granted.LeaseId);

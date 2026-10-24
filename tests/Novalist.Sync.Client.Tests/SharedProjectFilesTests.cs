@@ -276,6 +276,8 @@ public sealed class SharedProjectFilesTests
                 wire.IsConnected.Returns(true);
                 wire.CatchUpAsync(project, Arg.Any<long>(), Arg.Any<CancellationToken>()).Returns(call => CatchUp(call.Arg<long>()));
                 var leases = (IFieldLeaseTransport)wire;
+                leases.CreateFieldLeaseRequestAsync(project, Arg.Any<Guid>(), 0, Arg.Any<CancellationToken>())
+                    .Returns(call => new FieldLeaseRequest(project, call.ArgAt<Guid>(1), 0, Guid.NewGuid()));
                 leases.AcquireFieldLeaseAsync(Arg.Any<FieldLeaseRequest>(), Arg.Any<CancellationToken>()).Returns(call =>
                 {
                     var now = DateTimeOffset.UtcNow;

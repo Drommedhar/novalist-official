@@ -4,6 +4,12 @@ namespace Novalist.Sync.Client;
 
 public sealed partial class HostedTransport
 {
+    public async Task<FieldLeaseRequest> CreateFieldLeaseRequestAsync(Guid projectId, Guid resourceId, uint epoch, CancellationToken ct)
+    {
+        var serverTime = await hub.InvokeAsync<DateTimeOffset>("GetFieldLeaseTime", ct);
+        return new(projectId, resourceId, epoch, Guid.NewGuid(), serverTime.AddMinutes(1));
+    }
+
     public async Task<FieldLeaseGrant> AcquireFieldLeaseAsync(FieldLeaseRequest request, CancellationToken ct)
     {
         if (request.AcquireBefore is null)

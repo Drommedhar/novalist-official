@@ -20,7 +20,7 @@ public sealed class HostedProjectAccessTests(CommunityServerFixture server) : IC
         var certificate = RandomNumberGenerator.GetBytes(32);
         await guest.Transport.ActivateInvitationAsync(project, invitation, certificate, ct);
         await guest.Transport.JoinAsync(project, ct);
-        var lease = FieldLeaseRequest.Create(project, Guid.NewGuid(), 0);
+        var lease = await guest.Transport.CreateFieldLeaseRequestAsync(project, Guid.NewGuid(), 0, ct);
         await guest.Transport.AcquireFieldLeaseAsync(lease, ct);
         var members = await owner.Transport.ListProjectMembersAsync(project, ct);
         Assert.Equal(2, members.Count);
