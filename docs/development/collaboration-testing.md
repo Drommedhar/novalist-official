@@ -101,7 +101,7 @@ TCP sessions require the host to remain open.
 
 This workspace has the locally modified community-server checkout under
 `app/out/collaboration-sync-server`. It is excluded from desktop installers and
-has not been published. Its relay mode needs no database or migrations. From `app`:
+its fork is published for review. Its relay mode needs no database or migrations. From `app`:
 
 ```powershell
 dotnet build out/collaboration-sync-server/src/Novalist.Sync.Server/Novalist.Sync.Server.csproj
@@ -122,6 +122,12 @@ the owner app. Enter `guest` in the helper terminal, then sign in as **Alex** in
 guest app. Create an invitation in the owner app and accept it in the guest app.
 Enter `third` before signing in from a third independent profile to test **Sam**.
 The selected account applies to the next sign-in; existing sign-ins keep theirs.
+
+The local provider also supplies token introspection to the relay using a fresh
+test credential for each helper process. Authenticated relays check account access
+when a connection opens and every 30 seconds, and close sockets at token expiry.
+Production operators must configure their own provider's introspection endpoint
+and client credentials as described in the server's `docs/relay.md`.
 
 Keep the helper terminal and the host's session running. Its sign-in provider is
 for local testing only and asks for no credentials. Entering `quit` stops packet

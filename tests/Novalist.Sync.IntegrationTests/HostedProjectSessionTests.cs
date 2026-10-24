@@ -13,6 +13,7 @@ public sealed class HostedProjectSessionTests(CommunityServerFixture server) : I
         var credentials = new MemoryCredentials();
         var subject = Guid.NewGuid().ToString();
         using var device = await new DeviceIdentityStore(credentials).GetOrCreateAsync(new("https://identity.example"), subject, ct);
+        await server.EnrollAsync(device, subject, ct);
         using var access = await new HostedProjectAccessStore(credentials).CreateOwnerAsync(server.Address, device, ct);
         var requested = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var token = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -43,6 +44,7 @@ public sealed class HostedProjectSessionTests(CommunityServerFixture server) : I
         var credentials = new MemoryCredentials();
         var subject = Guid.NewGuid().ToString();
         using var device = await new DeviceIdentityStore(credentials).GetOrCreateAsync(new("https://identity.example"), subject, ct);
+        await server.EnrollAsync(device, subject, ct);
         using var access = await new HostedProjectAccessStore(credentials).CreateOwnerAsync(server.Address, device, ct);
         var requested = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var token = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -71,6 +73,7 @@ public sealed class HostedProjectSessionTests(CommunityServerFixture server) : I
         var credentials = new MemoryCredentials();
         var subject = Guid.NewGuid().ToString();
         using var device = await new DeviceIdentityStore(credentials).GetOrCreateAsync(new("https://identity.example"), subject, ct);
+        await server.EnrollAsync(device, subject, ct);
         using var access = await new HostedProjectAccessStore(credentials).CreateOwnerAsync(server.Address, device, ct);
         var sessionId = Guid.NewGuid();
         var item = Guid.NewGuid();

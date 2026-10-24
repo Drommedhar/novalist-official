@@ -31,6 +31,9 @@ public sealed partial class HostedTransport
     public Task<IReadOnlyList<HostedProjectDevice>> ListProjectDevicesAsync(Guid project, CancellationToken ct) =>
         hub.InvokeAsync<IReadOnlyList<HostedProjectDevice>>("ListProjectDevices", project, ct);
     public Task BeginProjectEpochAsync(BeginHostedEpoch request, CancellationToken ct) => hub.InvokeAsync("BeginProjectEpoch", request, ct);
+    public Task<HostedProjectEpoch> ReserveProjectEpochAsync(Guid project, Guid rotation, CancellationToken ct) =>
+        hub.InvokeAsync<HostedProjectEpoch>("ReserveProjectEpoch", project, rotation, ct);
+    public Task CancelProjectEpochAsync(Guid rotation, CancellationToken ct) => hub.InvokeAsync("CancelProjectEpoch", rotation, ct);
     public Task<long> StageProjectEpochAsync(Guid rotation, UpdateEnvelope envelope, CancellationToken ct) => hub.InvokeAsync<long>("StageProjectEpoch", rotation, envelope, ct);
     public Task StageProjectEpochGrantAsync(Guid rotation, HostedEpochGrant grant, CancellationToken ct) => hub.InvokeAsync("StageProjectEpochGrant", rotation, grant, ct);
     public Task CommitProjectEpochAsync(CommitHostedEpoch request, CancellationToken ct) => hub.InvokeAsync("CommitProjectEpoch", request, ct);

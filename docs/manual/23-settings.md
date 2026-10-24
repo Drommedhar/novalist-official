@@ -85,6 +85,10 @@ The server forwards encrypted packets between connected writers. It stores no
 project files, snapshots or edit history. Keep the host's project and session open;
 other writers cannot join while the host is offline.
 
+Relay administrators can limit connections and traffic. If the server is at its
+limit, try joining again after another connection ends. Novalist also bounds
+simultaneous relay connections to protect the host from repeated join requests.
+
 **Create invitation** produces a private link for one collaborator, valid
 for 24 hours. Send it only to the person you want to invite. They connect to the
 same server, select **Join**, paste the link, choose a parent folder for the new local copy,

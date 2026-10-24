@@ -29,7 +29,7 @@ public sealed class FieldEditSessionTests
             transport.ConnectionIdentity.Returns("test:field-edits");
             transport.IsConnected.Returns(connected);
             transport.CatchUpAsync(project, Arg.Any<long>(), Arg.Any<CancellationToken>()).Returns(_ => EmptyUpdates());
-            var request = new FieldLeaseRequest(project, Guid.NewGuid(), 0, Guid.NewGuid());
+            var request = FieldLeaseRequest.Create(project, Guid.NewGuid(), 0);
             fields.PushFieldEditAsync(Arg.Any<FieldLeaseRequest>(), Arg.Any<UpdateEnvelope>(), Arg.Any<CancellationToken>())
                 .Returns<long>(_ => throw new IOException("Disconnected during field save."));
             await using var session = new CollaborationSession(new(project, device, 0), journal, cipher, signing,

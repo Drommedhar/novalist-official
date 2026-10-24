@@ -17,6 +17,8 @@ public sealed class PrivateInvitationTests(CommunityServerFixture server) : ICla
         var subject = Guid.NewGuid().ToString();
         using var ownerDevice = await devices.GetOrCreateAsync(new("https://identity.example"), "owner-" + subject, ct);
         using var guestDevice = await devices.GetOrCreateAsync(new("https://identity.example"), subject, ct);
+        await server.EnrollAsync(ownerDevice, "owner-" + subject, ct);
+        await server.EnrollAsync(guestDevice, subject, ct);
         using var access = await store.CreateOwnerAsync(server.Address, ownerDevice, ct);
         await using var ownerTransport = new HostedTransport(server.Address, ownerDevice, () => Task.FromResult(server.Token("owner-" + subject)));
         await using var guestTransport = new HostedTransport(server.Address, guestDevice, () => Task.FromResult(server.Token(subject)));
@@ -45,7 +47,7 @@ public sealed class PrivateInvitationTests(CommunityServerFixture server) : ICla
         var initial = new Dictionary<Guid, string> { [item] = "42" };
         await ownerFields.StartAsync(initial, ct);
         await guestFields.StartAsync(initial, ct);
-        var ownerFocus = new FieldLeaseRequest(access.ProjectId, item, access.Epoch, Guid.NewGuid());
+        var ownerFocus = FieldLeaseRequest.Create(access.ProjectId, item, access.Epoch);
         var guestFocus = ownerFocus with { LeaseId = Guid.NewGuid() };
         Assert.True((await ownerFields.AcquireAsync(ownerFocus, ct)).Lease.Acquired);
         Assert.False((await guestFields.AcquireAsync(guestFocus, ct)).Lease.Acquired);
@@ -70,6 +72,8 @@ public sealed class PrivateInvitationTests(CommunityServerFixture server) : ICla
         var subject = Guid.NewGuid().ToString();
         using var owner = await devices.GetOrCreateAsync(new("https://identity.example"), "owner-" + subject, ct);
         using var guest = await devices.GetOrCreateAsync(new("https://identity.example"), subject, ct);
+        await server.EnrollAsync(owner, "owner-" + subject, ct);
+        await server.EnrollAsync(guest, subject, ct);
         using var access = await store.CreateOwnerAsync(server.Address, owner, ct);
         await using var ownerTransport = new HostedTransport(server.Address, owner, () => Task.FromResult(server.Token("owner-" + subject)));
         await using var guestTransport = new HostedTransport(server.Address, guest, () => Task.FromResult(server.Token(subject)));
@@ -104,6 +108,8 @@ public sealed class PrivateInvitationTests(CommunityServerFixture server) : ICla
         var subject = Guid.NewGuid().ToString();
         using var ownerDevice = await devices.GetOrCreateAsync(new("https://identity.example"), "owner-" + subject, ct);
         using var guestDevice = await devices.GetOrCreateAsync(new("https://identity.example"), subject, ct);
+        await server.EnrollAsync(ownerDevice, "owner-" + subject, ct);
+        await server.EnrollAsync(guestDevice, subject, ct);
         using var ownerAccess = await store.CreateOwnerAsync(server.Address, ownerDevice, ct);
         await using var ownerTransport = new HostedTransport(server.Address, ownerDevice, () => Task.FromResult(server.Token("owner-" + subject)));
         await using var guestTransport = new HostedTransport(server.Address, guestDevice, () => Task.FromResult(server.Token(subject)));

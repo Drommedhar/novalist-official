@@ -5,10 +5,42 @@ namespace Novalist.Sync.Client;
 
 public sealed class HostedProjectRotation(string storage, DeviceIdentity owner, HostedTransport transport)
 {
-    public async Task RotateAsync(HostedProjectAccess access, Guid removedMember, long observedSequence, Stream checkpoint, CancellationToken ct)
+    public async Task RotateAsync(HostedProjectAccess access, Guid removedMember,
+        Func<long, CancellationToken, Task<Stream>> createCheckpoint, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(createCheckpoint);
         access.CheckTransport(transport);
         if (!access.IsOwner) throw new UnauthorizedAccessException("Only the project owner can rotate sharing keys.");
+        var rotation = Guid.NewGuid();
+        try
+        {
+            var boundary = await transport.ReserveProjectEpochAsync(access.ProjectId, rotation, ct);
+            if (boundary.Epoch != access.Epoch || boundary.LastServerSeq < 0)
+                throw new InvalidDataException("The project's reserved encryption epoch changed. Refresh its keys before rotating.");
+            await using var checkpoint = await createCheckpoint(boundary.LastServerSeq, ct);
+            await CompleteAsync(access, removedMember, rotation, boundary.LastServerSeq, checkpoint, ct);
+        }
+        catch (Exception error)
+        {
+            await CancelFailedRotationAsync(rotation, error);
+            throw;
+        }
+    }
+
+    private async Task CancelFailedRotationAsync(Guid rotation, Exception failure)
+    {
+        using var cleanup = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        try { await transport.CancelProjectEpochAsync(rotation, cleanup.Token); }
+        catch (Exception cleanupFailure)
+        {
+            throw new AggregateException("Key rotation failed and its reservation could not be cancelled. The reservation will expire automatically.",
+                failure, cleanupFailure);
+        }
+    }
+
+    private async Task CompleteAsync(HostedProjectAccess access, Guid removedMember, Guid rotation,
+        long observedSequence, Stream checkpoint, CancellationToken ct)
+    {
         var devices = await transport.ListProjectDevicesAsync(access.ProjectId, ct);
         var previous = access.CreateSessionIdentity(owner).Membership;
         var retained = devices.Where(value => value.UserId != removedMember).Select(value =>
@@ -16,7 +48,6 @@ public sealed class HostedProjectRotation(string storage, DeviceIdentity owner, 
             if (value.Epoch != access.Epoch) throw new CryptographicException("A receiving device has stale project authorization.");
             return previous.VerifyCertificate(value.DeviceId, value.Certificate);
         }).ToArray();
-        var rotation = Guid.NewGuid();
         await transport.BeginProjectEpochAsync(new(access.ProjectId, rotation, access.Epoch, observedSequence), ct);
         var nextMembership = new ProjectMembership(access.ProjectId, checked(access.Epoch + 1), owner.SigningKey.PublicKey);
         using var next = new HostedProjectAccess(access.State with { Epoch = checked(access.Epoch + 1), EpochKey = RandomNumberGenerator.GetBytes(32),

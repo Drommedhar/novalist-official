@@ -8,11 +8,13 @@ namespace Novalist.Sync.Client;
 
 public sealed class RelayPeerTunnel : IAsyncDisposable
 {
+    private const int MaximumConnections = 128;
     private readonly Uri server;
     private readonly Func<CancellationToken, Task<string>>? token;
     private readonly string? hostSecret;
     private readonly CancellationTokenSource stop = new();
     private readonly ConcurrentDictionary<long, Task> connections = new();
+    private readonly SemaphoreSlim connectionSlots;
     private readonly ClientWebSocket? control;
     private readonly TcpListener? listener;
     private readonly Task running;
@@ -25,11 +27,13 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
     public Exception? Failure => Volatile.Read(ref failure);
 
     private RelayPeerTunnel(Uri server, Guid sessionId, int localPort,
-        Func<CancellationToken, Task<string>>? token, ClientWebSocket socket, string? hostSecret = null)
+        (Func<CancellationToken, Task<string>>? Token, string? HostSecret) credentials,
+        ClientWebSocket socket, int maximumConnections)
     {
         this.server = server;
-        this.token = token;
-        this.hostSecret = hostSecret;
+        token = credentials.Token;
+        hostSecret = credentials.HostSecret;
+        connectionSlots = new(maximumConnections, maximumConnections);
         SessionId = sessionId;
         if (localPort > 0)
         {
@@ -46,10 +50,15 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
         }
     }
 
-    public static async Task<RelayPeerTunnel> HostAsync(Uri server, int localPort,
-        Func<CancellationToken, Task<string>>? token, CancellationToken ct)
+    public static Task<RelayPeerTunnel> HostAsync(Uri server, int localPort,
+        Func<CancellationToken, Task<string>>? token, CancellationToken ct) =>
+        HostAsync(server, localPort, token, MaximumConnections, ct);
+
+    internal static async Task<RelayPeerTunnel> HostAsync(Uri server, int localPort,
+        Func<CancellationToken, Task<string>>? token, int maximumConnections, CancellationToken ct)
     {
         HostedSignIn.ValidateAddress(server);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maximumConnections, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(localPort, 1);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(localPort, 65535);
         var secret = token is null ? Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32)) : null;
@@ -59,18 +68,23 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct);
             deadline.CancelAfter(TimeSpan.FromSeconds(30));
             var id = await RelayTunnelSocket.ReceiveIdAsync(socket, deadline.Token);
-            return new(server, id, localPort, token, socket, secret);
+            return new(server, id, localPort, (token, secret), socket, maximumConnections);
         }
         catch { socket.Dispose(); throw; }
     }
 
-    public static async Task<RelayPeerTunnel> ConnectAsync(Uri server, Guid sessionId,
-        Func<CancellationToken, Task<string>>? token, CancellationToken ct)
+    public static Task<RelayPeerTunnel> ConnectAsync(Uri server, Guid sessionId,
+        Func<CancellationToken, Task<string>>? token, CancellationToken ct) =>
+        ConnectAsync(server, sessionId, token, MaximumConnections, ct);
+
+    internal static async Task<RelayPeerTunnel> ConnectAsync(Uri server, Guid sessionId,
+        Func<CancellationToken, Task<string>>? token, int maximumConnections, CancellationToken ct)
     {
         HostedSignIn.ValidateAddress(server);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maximumConnections, 1);
         if (sessionId == Guid.Empty) throw new ArgumentException("A relay session is required.", nameof(sessionId));
         var socket = await RelayTunnelSocket.ConnectAsync(server, $"relay/v1/sessions/{sessionId:D}/guest", token, ct);
-        try { return new(server, sessionId, 0, token, socket); }
+        try { return new(server, sessionId, 0, (token, null), socket, maximumConnections); }
         catch { socket.Dispose(); throw; }
     }
 
@@ -78,7 +92,13 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
     {
         while (true)
         {
-            var routeId = await RelayTunnelSocket.ReceiveIdAsync(control ?? throw new InvalidOperationException("This tunnel has no host control connection."), ct);
+            await connectionSlots.WaitAsync(ct);
+            Guid routeId;
+            try
+            {
+                routeId = await RelayTunnelSocket.ReceiveIdAsync(control ?? throw new InvalidOperationException("This tunnel has no host control connection."), ct);
+            }
+            catch { connectionSlots.Release(); throw; }
             Track(connectionToken => AcceptRouteAsync(routeId, connectionToken));
         }
     }
@@ -96,7 +116,7 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
     {
         using (initial)
         {
-            using var first = await (listener ?? throw new InvalidOperationException("This tunnel has no guest listener.")).AcceptTcpClientAsync(ct);
+            using var first = await AcceptGuestAsync(ct);
             Track(connectionToken => RelayTunnelSocket.TransferAsync(initial, first, connectionToken));
             await AcceptGuestsAsync(ct);
         }
@@ -106,7 +126,7 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
     {
         while (true)
         {
-            var tcp = await (listener ?? throw new InvalidOperationException("This tunnel has no guest listener.")).AcceptTcpClientAsync(ct);
+            var tcp = await AcceptGuestAsync(ct);
             Track(async connectionToken =>
             {
                 using (tcp)
@@ -117,13 +137,26 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
         }
     }
 
+    private async Task<TcpClient> AcceptGuestAsync(CancellationToken ct)
+    {
+        await connectionSlots.WaitAsync(ct);
+        try { return await (listener ?? throw new InvalidOperationException("This tunnel has no guest listener.")).AcceptTcpClientAsync(ct); }
+        catch { connectionSlots.Release(); throw; }
+    }
+
     private void Track(Func<CancellationToken, Task> operation)
     {
         var id = Interlocked.Increment(ref nextConnection);
-        var task = ObserveAsync(operation, stopOnFailure: false);
+        var task = RunConnectionAsync(operation);
         connections[id] = task;
         _ = task.ContinueWith(_ => connections.TryRemove(id, out var ignored), CancellationToken.None,
             TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+    }
+
+    private async Task RunConnectionAsync(Func<CancellationToken, Task> operation)
+    {
+        try { await ObserveAsync(operation, stopOnFailure: false); }
+        finally { connectionSlots.Release(); }
     }
 
     private async Task ObserveAsync(Func<CancellationToken, Task> operation, bool stopOnFailure)
@@ -148,6 +181,7 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
         await running;
         await Task.WhenAll(connections.Values);
         control?.Dispose();
+        connectionSlots.Dispose();
         stop.Dispose();
     }
 }

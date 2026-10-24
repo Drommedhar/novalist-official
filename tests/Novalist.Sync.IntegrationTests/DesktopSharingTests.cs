@@ -1,5 +1,9 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Nerdbank.Streams;
 using Novalist.Backend;
 using Novalist.Backend.Rpc;
@@ -11,22 +15,23 @@ using Xunit;
 
 namespace Novalist.Sync.IntegrationTests;
 
-public sealed partial class DesktopSharingTests(CommunityServerFixture server) : IClassFixture<CommunityServerFixture>
+public sealed partial class DesktopSharingTests
 {
     [Theory]
     [InlineData("external")]
     [InlineData("capture")]
-    [InlineData("invite")]
+    [InlineData("join")]
     public async Task InterruptedSharingPreservesExternalWritingAndCanBeCancelledByShutdown(string interruption)
     {
         var ct = TestContext.Current.CancellationToken;
         var folder = Path.Combine(Path.GetTempPath(), "novalist-desktop-sharing", Guid.NewGuid().ToString("N"));
+        await using var server = new RelayServerFixture();
         await using var issuer = await TestIdentityProvider.StartAsync(ct);
         issuer.Subject = "owner-" + Guid.NewGuid();
         issuer.IssueAccessToken = () => server.Token(issuer.Subject);
-        server.ConfigureDesktopSignIn(issuer.Authority);
+        ConfigureDesktopSignIn(server, issuer.Authority);
         DesktopParticipant? owner = null;
-        CommunityServerFixture.InvitationBlock? blocked = null;
+        DesktopParticipant? guest = null;
         Task? creating = null;
         try
         {
@@ -43,13 +48,17 @@ public sealed partial class DesktopSharingTests(CommunityServerFixture server) :
             else if (interruption == "external") owner.Peer.OnClose = () => File.WriteAllText(project.GetSceneFilePath(chapter, scene),
                 Novalist.Core.Models.FileFrontMatter.Stamp("<p>External writing during upload.</p>", scene.Id));
             creating = owner.Rpc.InvokeWithParameterObjectAsync("collaboration/create", new { server = server.Address }, ct);
-            if (interruption == "invite")
+            if (interruption == "join")
             {
                 await creating;
-                blocked = await server.HoldInvitationsAsync(ct);
-                creating = owner.Rpc.InvokeWithParameterObjectAsync("collaboration/invite", new { expiresAt = DateTimeOffset.UtcNow.AddHours(1) }, ct);
-                await blocked.WaitForBlockedRequestAsync(ct);
-                entered.TrySetResult();
+                var link = await owner.Rpc.InvokeWithParameterObjectAsync<string>("collaboration/invite",
+                    new { expiresAt = DateTimeOffset.UtcNow.AddHours(1) }, ct);
+                issuer.Subject = "guest-" + Guid.NewGuid();
+                guest = new DesktopParticipant(Path.Combine(folder, "guest-settings"), issuer);
+                await guest.Rpc.InvokeWithParameterObjectAsync("collaboration/account/signIn", new { server = server.Address }, ct);
+                owner.Peer.CaptureEntered = entered;
+                creating = guest.Rpc.InvokeWithParameterObjectAsync("collaboration/join",
+                    new { server = server.Address, link, destination = Path.Combine(folder, "Joined novel") }, ct);
             }
             if (interruption != "external")
             {
@@ -57,7 +66,7 @@ public sealed partial class DesktopSharingTests(CommunityServerFixture server) :
                 await owner.Rpc.InvokeAsync("system/shutdown");
                 await owner.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5), ct);
                 owner = null;
-                await Assert.ThrowsAnyAsync<Exception>(() => creating);
+                await Assert.ThrowsAnyAsync<Exception>(() => creating).WaitAsync(TimeSpan.FromSeconds(5), ct);
             }
             else
             {
@@ -68,26 +77,27 @@ public sealed partial class DesktopSharingTests(CommunityServerFixture server) :
         }
         finally
         {
-            if (blocked is not null) await blocked.DisposeAsync();
             if (owner is not null)
             {
                 owner.Peer.UnblockCapture.TrySetResult();
                 if (creating is not null) await creating.ContinueWith(_ => { }, TaskScheduler.Default);
                 await owner.DisposeAsync();
             }
+            if (guest is not null) await guest.DisposeAsync();
             if (Directory.Exists(folder)) Directory.Delete(folder, recursive: true);
         }
     }
 
     [Fact]
-    public async Task DesktopCreatesAnInvitationAndAnOfflineOwnersGuestJoinsAUsableLocalProject()
+    public async Task DesktopGuestKeepsAUsableLocalProjectWhenTheLiveHostEnds()
     {
         var ct = TestContext.Current.CancellationToken;
         var folder = Path.Combine(Path.GetTempPath(), "novalist-desktop-sharing", Guid.NewGuid().ToString("N"));
+        await using var server = new RelayServerFixture();
         await using var issuer = await TestIdentityProvider.StartAsync(ct);
         issuer.Subject = "owner-" + Guid.NewGuid();
         issuer.IssueAccessToken = () => server.Token(issuer.Subject);
-        server.ConfigureDesktopSignIn(issuer.Authority);
+        ConfigureDesktopSignIn(server, issuer.Authority);
         try
         {
             var project = new ProjectService(new FileService());
@@ -105,8 +115,6 @@ public sealed partial class DesktopSharingTests(CommunityServerFixture server) :
             var link = await owner.Rpc.InvokeWithParameterObjectAsync<string>("collaboration/invite", new { expiresAt = DateTimeOffset.UtcNow.AddHours(1) }, ct);
             await Assert.ThrowsAsync<RemoteInvocationException>(() => owner.Rpc.InvokeWithParameterObjectAsync(
                 "collaboration/account/signOut", new { server = server.Address }, ct));
-            await owner.Rpc.InvokeAsync("collaboration/end");
-
             issuer.Subject = "guest-" + Guid.NewGuid();
             await using var guest = new DesktopParticipant(Path.Combine(folder, "guest-settings"), issuer);
             await guest.Rpc.InvokeWithParameterObjectAsync("collaboration/account/signIn", new { server = server.Address }, ct);
@@ -119,12 +127,24 @@ public sealed partial class DesktopSharingTests(CommunityServerFixture server) :
             await guest.Rpc.InvokeWithParameterObjectAsync("collaboration/writeScene",
                 new { sessionId = read.Shared.SessionId, itemId = read.Shared.ItemId, update = Encoding.UTF8.GetBytes("<p>Guest writing.</p>") }, ct);
             await guest.Rpc.InvokeAsync("collaboration/end");
+            await owner.Rpc.InvokeAsync("collaboration/end");
+            await Assert.ThrowsAsync<RemoteInvocationException>(() => guest.Rpc.InvokeWithParameterObjectAsync(
+                "collaboration/join", new { server = server.Address, link, destination }, ct));
             var retained = new ProjectService(new FileService());
             await retained.LoadProjectAsync(destination);
             Assert.Equal("<p>Guest writing.</p>", await retained.ReadSceneContentAsync(chapter, scene));
             Assert.Null((await guest.Rpc.InvokeWithParameterObjectAsync<SceneContentDto>("scenes/read", new { chapterGuid = chapter.Guid, sceneId = scene.Id }, ct)).Shared);
         }
         finally { if (Directory.Exists(folder)) Directory.Delete(folder, recursive: true); }
+    }
+
+    private static void ConfigureDesktopSignIn(RelayServerFixture server, Uri authority)
+    {
+        server.Services.GetRequiredService<IOptionsMonitor<JwtBearerOptions>>()
+            .Get(JwtBearerDefaults.AuthenticationScheme).Authority = authority.AbsoluteUri;
+        var configuration = server.Services.GetRequiredService<IConfiguration>();
+        configuration["Authentication:NativeClient:ClientId"] = "novalist";
+        configuration["Authentication:NativeClient:Scope"] = "openid profile sync offline_access";
     }
 
     private sealed class DesktopParticipant : IAsyncDisposable
@@ -178,6 +198,7 @@ public sealed partial class DesktopSharingTests(CommunityServerFixture server) :
             {
                 if (CaptureEntered is { } entered)
                 {
+                    CaptureEntered = null;
                     entered.TrySetResult();
                     await UnblockCapture.Task.WaitAsync(cancellationToken);
                 }

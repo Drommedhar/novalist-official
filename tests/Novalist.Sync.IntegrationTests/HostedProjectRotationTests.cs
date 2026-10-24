@@ -24,6 +24,9 @@ public sealed class HostedProjectRotationTests(CommunityServerFixture server) : 
         using var owner = await identities.GetOrCreateAsync(new("https://identity.example"), subjects[0], ct);
         using var writer = await identities.GetOrCreateAsync(new("https://identity.example"), subjects[1], ct);
         using var removed = await identities.GetOrCreateAsync(new("https://identity.example"), subjects[2], ct);
+        await server.EnrollAsync(owner, subjects[0], ct);
+        await server.EnrollAsync(writer, subjects[1], ct);
+        await server.EnrollAsync(removed, subjects[2], ct);
         try
         {
             using var access = await store.CreateOwnerAsync(server.Address, owner, ct);
@@ -49,9 +52,16 @@ public sealed class HostedProjectRotationTests(CommunityServerFixture server) : 
             var roster = await ownerSession.Transport.ListProjectDevicesAsync(access.ProjectId, ct);
             var member = roster.Single(value => value.DeviceId == removed.Id).UserId;
             var newBytes = "Fresh project after removal"u8.ToArray();
-            await using var archive = new MemoryStream(newBytes);
             await new HostedProjectRotation(folder, owner, ownerSession.Transport).RotateAsync(access, member,
-                ownerSession.Updates.LastServerSequence, archive, ct);
+                async (boundary, token) =>
+                {
+                    removedSession.Updates.Save(Guid.NewGuid(), "Attempt to interrupt removal"u8.ToArray());
+                    await Assert.ThrowsAsync<HubException>(() => removedSession.Updates.SynchronizeAsync(false, token));
+                    await ownerSession.Updates.SynchronizeAsync(false, token);
+                    Assert.Equal(boundary, ownerSession.Updates.LastServerSequence);
+                    Assert.Equal(boundary, (await ownerSession.Transport.GetProjectEpochAsync(access.ProjectId, token)).LastServerSeq);
+                    return new MemoryStream(newBytes);
+                }, ct);
             await Assert.ThrowsAsync<HubException>(() => removedSession.Transport.GetProjectEpochGrantAsync(access.ProjectId, 0, ct));
             var observed = new List<SequencedUpdate>();
             await foreach (var update in ownerSession.Transport.CatchUpAsync(access.ProjectId, 0, ct)) observed.Add(update);

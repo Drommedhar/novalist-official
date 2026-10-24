@@ -4,8 +4,12 @@ namespace Novalist.Sync.Client;
 
 public sealed partial class HostedTransport
 {
-    public async Task<FieldLeaseGrant> AcquireFieldLeaseAsync(FieldLeaseRequest request, CancellationToken ct) =>
-        ValidateLease(await hub.InvokeAsync<FieldLeaseGrant>("AcquireFieldLease", request, ct));
+    public async Task<FieldLeaseGrant> AcquireFieldLeaseAsync(FieldLeaseRequest request, CancellationToken ct)
+    {
+        if (request.AcquireBefore is null)
+            throw new ArgumentException("A hosted focus request requires a fixed acquisition deadline.", nameof(request));
+        return ValidateLease(await hub.InvokeAsync<FieldLeaseGrant>("AcquireFieldLease", request, ct));
+    }
 
     public async Task<FieldLeaseGrant?> RenewFieldLeaseAsync(FieldLeaseRequest request, CancellationToken ct)
     {

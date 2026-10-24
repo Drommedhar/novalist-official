@@ -23,6 +23,8 @@ public sealed class VerifiedTransportTests(CommunityServerFixture server) : ICla
         var guestSubject = Guid.NewGuid().ToString();
         using var ownerDevice = await accounts.GetOrCreateAsync(authority, ownerSubject, ct);
         using var guestDevice = await accounts.GetOrCreateAsync(authority, guestSubject, ct);
+        await server.EnrollAsync(ownerDevice, ownerSubject, ct);
+        await server.EnrollAsync(guestDevice, guestSubject, ct);
         await using var owner = new HostedTransport(server.Address, ownerDevice, () => Task.FromResult(server.Token(ownerSubject)));
         await using var guest = new HostedTransport(server.Address, guestDevice, () => Task.FromResult(server.Token(guestSubject)));
         await owner.ConnectAsync(ct);
@@ -31,7 +33,7 @@ public sealed class VerifiedTransportTests(CommunityServerFixture server) : ICla
         await owner.CreateProjectAsync(project, ct);
         await server.AddContributorAsync(project, guestSubject, ct);
         await guest.JoinAsync(project, ct);
-        var request = new FieldLeaseRequest(project, Guid.NewGuid(), 0, Guid.NewGuid());
+        var request = FieldLeaseRequest.Create(project, Guid.NewGuid(), 0);
         var granted = await owner.AcquireFieldLeaseAsync(request, ct);
         Assert.Equal(ownerDevice.Id, granted.DeviceId);
         Assert.Equal(request.LeaseId, granted.LeaseId);
@@ -74,6 +76,7 @@ public sealed class VerifiedTransportTests(CommunityServerFixture server) : ICla
         var subject = Guid.NewGuid().ToString();
         var token = server.Token(subject);
         using var device = await new DeviceIdentityStore(new MemoryCredentials()).GetOrCreateAsync(new("https://identity.example"), subject, ct);
+        await server.EnrollAsync(device, subject, ct);
         using var upstream = new HttpClient { BaseAddress = server.Address };
         upstream.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var builder = WebApplication.CreateSlimBuilder();
@@ -121,6 +124,8 @@ public sealed class VerifiedTransportTests(CommunityServerFixture server) : ICla
         var guestSubject = Guid.NewGuid().ToString();
         using var ownerDevice = await accounts.GetOrCreateAsync(authority, ownerSubject, ct);
         using var guestDevice = await accounts.GetOrCreateAsync(authority, guestSubject, ct);
+        await server.EnrollAsync(ownerDevice, ownerSubject, ct);
+        await server.EnrollAsync(guestDevice, guestSubject, ct);
         await using var owner = new HostedTransport(server.Address, ownerDevice, () => Task.FromResult(server.Token(ownerSubject)));
         await using var guest = new HostedTransport(server.Address, guestDevice, () => Task.FromResult(server.Token(guestSubject)));
         await owner.ConnectAsync(ct);

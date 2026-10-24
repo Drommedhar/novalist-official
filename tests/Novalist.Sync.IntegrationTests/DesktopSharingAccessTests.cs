@@ -13,10 +13,11 @@ public sealed partial class DesktopSharingTests
     {
         var ct = TestContext.Current.CancellationToken;
         var folder = Path.Combine(Path.GetTempPath(), "novalist-desktop-access", Guid.NewGuid().ToString("N"));
+        await using var server = new RelayServerFixture();
         await using var issuer = await TestIdentityProvider.StartAsync(ct);
         issuer.Subject = "owner-" + Guid.NewGuid();
         issuer.IssueAccessToken = () => server.Token(issuer.Subject);
-        server.ConfigureDesktopSignIn(issuer.Authority);
+        ConfigureDesktopSignIn(server, issuer.Authority);
         try
         {
             var project = new ProjectService(new FileService());

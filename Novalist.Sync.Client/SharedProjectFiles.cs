@@ -85,7 +85,7 @@ public sealed class SharedProjectFiles : IAsyncDisposable
             var batch = new FileBatch(1, filtered, SharedProjectFileBindings.Copy(addedState), observed);
             Validate(batch);
             var context = session.Context;
-            var request = new FieldLeaseRequest(context.ProjectId, ItemId, context.Epoch, Guid.NewGuid());
+            var request = FieldLeaseRequest.Create(context.ProjectId, ItemId, context.Epoch);
             var lease = await session.AcquireFieldAsync(request, ct);
             if (!lease.Acquired) throw new InvalidOperationException("Another collaborator is saving project changes. Retry shortly.");
             try

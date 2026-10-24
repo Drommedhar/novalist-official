@@ -10,6 +10,7 @@
     <DefineConstants Condition="'$(EnableLoopbackSignIn)' == 'true'">$(DefineConstants);NOVALIST_LOOPBACK_SIGNIN</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Novalist.Sync.Client.Tests" />
     <Compile Include="..\Novalist.Core\Utilities\LegacyEntityIdentities.cs" Link="Storage\LegacyEntityIdentities.cs" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" Condition="'$(EnableLoopbackSignIn)' == 'true'" />
     <Compile Remove="LoopbackSignIn.cs" Condition="'$(EnableLoopbackSignIn)' != 'true'" />

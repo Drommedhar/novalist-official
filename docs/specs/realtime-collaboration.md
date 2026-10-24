@@ -26,8 +26,9 @@ Clients compare project-relative paths and SHA-256 hashes and transfer only
 missing or changed files, reusing an existing local copy when available. Scanning,
 comparison and transfer show visible progress, including file and byte counts.
 Steam and open-source clients share the relay mode; TCP and Steam peer sessions
-use the same project model. The host controls session access. No hard participant
-cap. Ending and starting sessions has no handover.
+use the same project model. The host controls session access. Relay administrators
+configure resource limits, and each client tunnel bounds active and connecting
+relay routes to 128. Ending and starting sessions has no handover.
 
 Tasks C9–C11 track this correction. Previous completion evidence for C1–C8
 describes the earlier architecture; it does not establish that relay-only

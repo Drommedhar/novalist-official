@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Novalist.Sync.Server.Data;
+using Novalist.Sync.Client;
 using Npgsql;
 using Xunit;
 
@@ -56,22 +57,31 @@ public sealed class CommunityServerFixture : WebApplicationFactory<Program>, IAs
             }));
     }
 
-    public string Token(string subject) => new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
+    public string Token(string subject, DeviceIdentity? boundDevice = null)
     {
-        Issuer = Issuer,
-        Audience = Audience,
-        Claims = new Dictionary<string, object> { ["sub"] = subject },
-        Expires = DateTime.UtcNow.AddMinutes(10),
-        SigningCredentials = new(signing, SecurityAlgorithms.HmacSha256)
-    });
+        var claims = new Dictionary<string, object> { ["sub"] = subject };
+        if (boundDevice is not null)
+        {
+            claims["amr"] = new[] { "mfa" };
+            claims["auth_time"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            claims["cnf"] = new Dictionary<string, string> { ["jkt"] = HostedDeviceEnrollment.SigningKeyThumbprint(boundDevice) };
+        }
+        return new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
+        {
+            Issuer = Issuer, Audience = Audience, Claims = claims,
+            Expires = DateTime.UtcNow.AddMinutes(10), SigningCredentials = new(signing, SecurityAlgorithms.HmacSha256)
+        });
+    }
 
-    public void ConfigureDesktopSignIn(Uri authority)
+    public async Task EnrollAsync(DeviceIdentity device, string subject, CancellationToken ct)
     {
-        var configuration = Services.GetRequiredService<IConfiguration>();
-        Services.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<JwtBearerOptions>>()
-            .Get(JwtBearerDefaults.AuthenticationScheme).Authority = authority.AbsoluteUri;
-        configuration["Authentication:NativeClient:ClientId"] = "novalist";
-        configuration["Authentication:NativeClient:Scope"] = "openid profile sync offline_access";
+        var recoveryKey = RandomNumberGenerator.GetBytes(32);
+        try
+        {
+            using var recovery = RecoveryDeviceIdentity.Derive(recoveryKey);
+            await HostedDeviceEnrollment.EnrollAsync(Address, device, recovery, Token(subject, device), ct);
+        }
+        finally { CryptographicOperations.ZeroMemory(recoveryKey); }
     }
 
     public async Task AddContributorAsync(Guid project, string subject, CancellationToken cancellationToken)
@@ -81,41 +91,6 @@ public sealed class CommunityServerFixture : WebApplicationFactory<Program>, IAs
         var user = await db.Users.SingleAsync(user => user.Issuer == Issuer && user.Subject == subject, cancellationToken);
         db.Memberships.Add(new Membership { ProjectId = project, UserId = user.Id, Role = MembershipRole.Contributor });
         await db.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task<InvitationBlock> HoldInvitationsAsync(CancellationToken ct)
-    {
-        var connection = new NpgsqlConnection(connectionString);
-        try
-        {
-            await connection.OpenAsync(ct);
-            await using var command = new NpgsqlCommand("BEGIN; LOCK TABLE invitations IN ACCESS EXCLUSIVE MODE", connection);
-            await command.ExecuteNonQueryAsync(ct);
-            return new(connection);
-        }
-        catch { await connection.DisposeAsync(); throw; }
-    }
-
-    public sealed class InvitationBlock(NpgsqlConnection connection) : IAsyncDisposable
-    {
-        public async Task WaitForBlockedRequestAsync(CancellationToken ct)
-        {
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            deadline.CancelAfter(TimeSpan.FromSeconds(5));
-            await using var command = new NpgsqlCommand("""
-                SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE datname = current_database()
-                AND pid <> pg_backend_pid() AND wait_event_type = 'Lock' AND query ILIKE '%invitations%')
-                """, connection);
-            await using var refresh = new NpgsqlCommand("SELECT pg_stat_clear_snapshot()", connection);
-            while (true)
-            {
-                await refresh.ExecuteNonQueryAsync(deadline.Token);
-                if (Equals(await command.ExecuteScalarAsync(deadline.Token), true)) return;
-                await Task.Delay(20, deadline.Token);
-            }
-        }
-
-        public ValueTask DisposeAsync() => connection.DisposeAsync();
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()

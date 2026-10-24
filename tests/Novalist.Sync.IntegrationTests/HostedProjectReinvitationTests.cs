@@ -17,6 +17,8 @@ public sealed class HostedProjectReinvitationTests(CommunityServerFixture server
         var guestSubject = Guid.NewGuid().ToString();
         using var owner = await identities.GetOrCreateAsync(new("https://identity.example"), ownerSubject, ct);
         using var guest = await identities.GetOrCreateAsync(new("https://identity.example"), guestSubject, ct);
+        await server.EnrollAsync(owner, ownerSubject, ct);
+        await server.EnrollAsync(guest, guestSubject, ct);
         try
         {
             using var access = await store.CreateOwnerAsync(server.Address, owner, ct);
@@ -31,8 +33,13 @@ public sealed class HostedProjectReinvitationTests(CommunityServerFixture server
             await store.ActivateAsync(first, previousSession.Transport, ct);
             await previousSession.StartAsync(false, ct);
             var member = (await session.Transport.ListProjectDevicesAsync(access.ProjectId, ct)).Single(value => value.DeviceId == guest.Id).UserId;
-            await using var fresh = new MemoryStream("Current project"u8.ToArray());
-            await new HostedProjectRotation(folder, owner, session.Transport).RotateAsync(access, member, session.Updates.LastServerSequence, fresh, ct);
+            await new HostedProjectRotation(folder, owner, session.Transport).RotateAsync(access, member,
+                async (boundary, token) =>
+                {
+                    await session.Updates.SynchronizeAsync(false, token);
+                    Assert.Equal(boundary, session.Updates.LastServerSequence);
+                    return new MemoryStream("Current project"u8.ToArray());
+                }, ct);
             var item = Guid.NewGuid();
             previousSession.Updates.Save(item, "Private writing after removal"u8.ToArray());
             await previousSession.EndAsync(ct);

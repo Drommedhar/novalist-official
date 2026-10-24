@@ -20,7 +20,7 @@ public sealed class HostedProjectAccessTests(CommunityServerFixture server) : IC
         var certificate = RandomNumberGenerator.GetBytes(32);
         await guest.Transport.ActivateInvitationAsync(project, invitation, certificate, ct);
         await guest.Transport.JoinAsync(project, ct);
-        var lease = new FieldLeaseRequest(project, Guid.NewGuid(), 0, Guid.NewGuid());
+        var lease = FieldLeaseRequest.Create(project, Guid.NewGuid(), 0);
         await guest.Transport.AcquireFieldLeaseAsync(lease, ct);
         var members = await owner.Transport.ListProjectMembersAsync(project, ct);
         Assert.Equal(2, members.Count);
@@ -67,6 +67,7 @@ public sealed class HostedProjectAccessTests(CommunityServerFixture server) : IC
     {
         var subject = Guid.NewGuid().ToString();
         var device = await new DeviceIdentityStore(new Credentials()).GetOrCreateAsync(new("https://identity.example"), subject, ct);
+        await server.EnrollAsync(device, subject, ct);
         var transport = new HostedTransport(server.Address, device, () => Task.FromResult(server.Token(subject)));
         try { await transport.ConnectAsync(ct); return new(device, transport); }
         catch { await transport.DisposeAsync(); device.Dispose(); throw; }
