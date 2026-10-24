@@ -13,6 +13,7 @@ using Novalist.Sync.Server.Data;
 using Novalist.Sync.Client;
 using Npgsql;
 using Xunit;
+using Novalist.Sync.Client.Tests;
 
 namespace Novalist.Sync.IntegrationTests;
 
@@ -27,7 +28,10 @@ public sealed class CommunityServerFixture : WebApplicationFactory<Program>, IAs
     { Database = $"novalist_client_test_{Guid.NewGuid():N}" }.ConnectionString;
 
     private Uri? address;
+    private readonly TestIdentityProvider? identity;
     public Uri Address => address ?? throw new InvalidOperationException("The integration server has not started.");
+    public CommunityServerFixture() { }
+    internal CommunityServerFixture(TestIdentityProvider identity) => this.identity = identity;
 
     public async ValueTask InitializeAsync()
     {
@@ -44,14 +48,16 @@ public sealed class CommunityServerFixture : WebApplicationFactory<Program>, IAs
         builder.UseEnvironment("Development");
         builder.UseSetting("Relay:Enabled", "false");
         builder.UseSetting("ConnectionStrings:Default", connectionString);
+        builder.UseSetting("Authentication:NativeClient:ClientId", "novalist");
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services => services.PostConfigure<JwtBearerOptions>(
             JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 options.Authority = null;
-                options.Configuration = new OpenIdConnectConfiguration { Issuer = Issuer };
+                options.Configuration = new OpenIdConnectConfiguration { Issuer = identity?.Authority.AbsoluteUri.TrimEnd('/') ?? Issuer };
                 options.Configuration.SigningKeys.Add(signing);
-                options.TokenValidationParameters.ValidIssuer = Issuer;
+                if (identity is not null) options.Configuration.SigningKeys.Add(identity.VerificationKey);
+                options.TokenValidationParameters.ValidIssuer = options.Configuration.Issuer;
                 options.TokenValidationParameters.ValidAudience = Audience;
                 options.TokenValidationParameters.IssuerSigningKey = signing;
             }));
@@ -68,7 +74,7 @@ public sealed class CommunityServerFixture : WebApplicationFactory<Program>, IAs
         }
         return new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
         {
-            Issuer = Issuer, Audience = Audience, Claims = claims,
+            Issuer = identity?.Authority.AbsoluteUri.TrimEnd('/') ?? Issuer, Audience = Audience, Claims = claims,
             Expires = DateTime.UtcNow.AddMinutes(10), SigningCredentials = new(signing, SecurityAlgorithms.HmacSha256)
         });
     }

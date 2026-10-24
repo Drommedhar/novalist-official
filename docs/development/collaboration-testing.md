@@ -125,7 +125,11 @@ The selected account applies to the next sign-in; existing sign-ins keep theirs.
 
 The local provider also supplies token introspection to the relay using a fresh
 test credential for each helper process. Authenticated relays check account access
-when a connection opens and every 30 seconds, and close sockets at token expiry.
+when a connection opens and every 30 seconds. Clients renew access tokens on
+existing connections; refresh tokens stay on the client. Existing connections
+have a five-minute grace period for provider outages or delayed renewal, while
+explicit inactive responses still disconnect immediately. The helper explicitly
+enables relay mode, which is disabled by default.
 Production operators must configure their own provider's introspection endpoint
 and client credentials as described in the server's `docs/relay.md`.
 

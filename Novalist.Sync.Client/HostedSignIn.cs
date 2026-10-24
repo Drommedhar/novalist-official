@@ -8,6 +8,7 @@ public sealed record HostedSignInOptions(Uri Authority, string ClientId, string 
 
 public static class HostedSignIn
 {
+    private sealed record EnrollmentLogin(string Nonce, string Subject, Action<string> Capture);
     public static async Task<HostedSignInOptions> DiscoverAsync(Uri server, CancellationToken ct)
     {
         var configuration = await RelayServerDiscovery.DiscoverAsync(server, ct);
@@ -26,7 +27,7 @@ public static class HostedSignIn
 
 #if NOVALIST_LOOPBACK_SIGNIN
     private static async Task<HostedAccount> SignInWithLoopbackAsync(HostedSignInOptions settings,
-        Func<Uri, CancellationToken, Task> openBrowser, CancellationToken ct)
+        Func<Uri, CancellationToken, Task> openBrowser, CancellationToken ct, EnrollmentLogin? enrollment = null)
     {
         await using var callback = await LoopbackSignIn.StartAsync(ct);
         return await AuthenticateAsync(settings, callback.Address, async (url, state, token) =>
@@ -34,7 +35,7 @@ public static class HostedSignIn
             callback.Expect(state);
             await openBrowser(url, token);
             return await callback.ReceiveAsync(token);
-        }, ct);
+        }, ct, enrollment);
     }
 #endif
 
@@ -43,7 +44,7 @@ public static class HostedSignIn
         AuthenticateAsync(settings, browser.RedirectUri, (url, _, token) => browser.AuthenticateAsync(url, token), ct);
 
     private static async Task<HostedAccount> AuthenticateAsync(HostedSignInOptions settings, Uri redirect,
-        Func<Uri, string, CancellationToken, Task<string>> authenticate, CancellationToken ct)
+        Func<Uri, string, CancellationToken, Task<string>> authenticate, CancellationToken ct, EnrollmentLogin? enrollment = null)
     {
         Validate(settings);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -52,16 +53,23 @@ public static class HostedSignIn
         var http = CreateHttpClient();
         try
         {
-            var nonce = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
-            var options = Options(settings, nonce, null, http);
+            var nonce = enrollment?.Nonce ?? Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
+            var options = Options(settings, nonce, enrollment?.Subject, http);
             options.RedirectUri = redirect.AbsoluteUri;
             var client = new OidcClient(options);
-            var state = await client.PrepareLoginAsync(new Parameters { { "nonce", nonce } }, ct);
+            var parameters = new Parameters { { "nonce", nonce } };
+            if (enrollment is not null)
+            {
+                parameters.Add("max_age", "0");
+                parameters.Add("claims", "{\"id_token\":{\"amr\":{\"essential\":true},\"auth_time\":{\"essential\":true}}}");
+            }
+            var state = await client.PrepareLoginAsync(parameters, ct);
             var response = await authenticate(new Uri(state.StartUrl), state.State, ct);
             var login = await client.ProcessResponseAsync(response, state, cancellationToken: ct);
             if (login.IsError || string.IsNullOrEmpty(login.IdentityToken) || login.User.FindFirst("sub") is not { } subject)
                 throw new InvalidOperationException("Sign-in could not be verified. Please sign in again.");
             options.IdentityTokenValidator = new HostedIdentityValidator(nonce, subject.Value);
+            enrollment?.Capture(login.IdentityToken);
             return new HostedAccount(new()
             {
                 Settings = settings, Subject = subject.Value, DisplayName = login.User.FindFirst("name")?.Value ?? subject.Value,
@@ -69,6 +77,30 @@ public static class HostedSignIn
             }, login.AccessToken, login.AccessTokenExpiration, client, http);
         }
         catch { http.Dispose(); throw; }
+    }
+
+    internal static Task<string> AuthenticateEnrollmentAsync(HostedAccount account, string nonce,
+        Func<Uri, CancellationToken, Task> openBrowser, CancellationToken ct)
+    {
+#if NOVALIST_LOOPBACK_SIGNIN
+        return CaptureEnrollmentAsync(account, nonce,
+            enrollment => SignInWithLoopbackAsync(account.SignInSettings, openBrowser, ct, enrollment));
+#else
+        throw new PlatformNotSupportedException("This platform requires a native sign-in browser.");
+#endif
+    }
+
+    internal static Task<string> AuthenticateEnrollmentAsync(HostedAccount account, string nonce,
+        IHostedSignInBrowser browser, CancellationToken ct) => CaptureEnrollmentAsync(account, nonce,
+            enrollment => AuthenticateAsync(account.SignInSettings, browser.RedirectUri,
+                (url, _, token) => browser.AuthenticateAsync(url, token), ct, enrollment));
+
+    private static async Task<string> CaptureEnrollmentAsync(HostedAccount account, string nonce,
+        Func<EnrollmentLogin, Task<HostedAccount>> authenticate)
+    {
+        string? identityToken = null;
+        await using var authenticated = await authenticate(new(nonce, account.Subject, value => identityToken = value));
+        return identityToken ?? throw new InvalidOperationException("The provider did not return an enrollment identity token.");
     }
 
     internal static void Validate(HostedSignInOptions settings)

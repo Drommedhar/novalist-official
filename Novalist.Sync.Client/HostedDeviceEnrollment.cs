@@ -7,6 +7,25 @@ namespace Novalist.Sync.Client;
 
 public static class HostedDeviceEnrollment
 {
+    public static Task EnrollAsync(Uri server, DeviceIdentity device, DeviceIdentity recovery, HostedAccount account,
+        Func<Uri, CancellationToken, Task> openBrowser, CancellationToken ct) =>
+        EnrollWithBrowserAsync(server, device, recovery, account,
+            (nonce, token) => HostedSignIn.AuthenticateEnrollmentAsync(account, nonce, openBrowser, token), ct);
+
+    public static Task EnrollAsync(Uri server, DeviceIdentity device, DeviceIdentity recovery, HostedAccount account,
+        IHostedSignInBrowser browser, CancellationToken ct) =>
+        EnrollWithBrowserAsync(server, device, recovery, account,
+            (nonce, token) => HostedSignIn.AuthenticateEnrollmentAsync(account, nonce, browser, token), ct);
+
+    private static async Task EnrollWithBrowserAsync(Uri server, DeviceIdentity device, DeviceIdentity recovery, HostedAccount account,
+        Func<string, CancellationToken, Task<string>> authenticate, CancellationToken ct)
+    {
+        if (device.Id == recovery.Id) throw new ArgumentException("The recovery identity must differ from the ordinary device.", nameof(recovery));
+        using var http = CreateHttpClient();
+        await new HostedDeviceRegistration(CanonicalAddress(server), device)
+            .EnrollAsync(http, account.GetAccessTokenAsync, recovery, authenticate, ct);
+    }
+
     public static async Task EnrollAsync(Uri server, DeviceIdentity device, DeviceIdentity recovery,
         string deviceBoundMfaToken, CancellationToken ct)
     {

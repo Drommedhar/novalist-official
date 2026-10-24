@@ -66,7 +66,8 @@ If a saved sign-in has expired, Novalist offers **Sign in** again. If its provid
 is unavailable, you can retry later or use **Forget saved sign-in** to remove that
 device's saved account. Sharing checks sign-in before preparing the project.
 
-The server must publish its client configuration. Administrators can enable
+The server must publish its client configuration. Relay mode is disabled by
+default; administrators enable it with `Relay__Enabled=true`. They can enable
 anonymous relay sessions with `Relay__RequireAuthentication=false`; authentication
 remains required by default. Older servers without the new policy flag still
 require sign-in, and a discovery error never enables anonymous access. Normal connections
@@ -84,6 +85,11 @@ With a project open, select **Share this project** to start hosting it.
 The server forwards encrypted packets between connected writers. It stores no
 project files, snapshots or edit history. Keep the host's project and session open;
 other writers cannot join while the host is offline.
+
+Novalist renews sign-in on existing relay connections, so routine token expiry
+keeps the same session and invitation links. A temporary sign-in-provider outage
+has a server-configured grace period (five minutes by default). Revoked access
+still ends the affected connection; a revoked host ends its session.
 
 Relay administrators can limit connections and traffic. If the server is at its
 limit, try joining again after another connection ends. Novalist also bounds

@@ -21,6 +21,7 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
     public Uri Authority => new(app.Urls.Single());
     public bool ExchangedWithPkce { get; private set; }
     public int AccessLifetime { get; set; } = 300;
+    public int RefreshLifetime { get; set; } = 300;
     public int Refreshes { get; private set; }
     public bool RejectRefresh { get; set; }
     public bool RefreshUnavailable { get; set; }
@@ -28,6 +29,9 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
     public string Subject { get; set; } = "writer";
     public Func<string>? IssueAccessToken { get; set; }
     public string? ClientConfigurationJson { get; set; }
+    public bool MultiFactorAuthentication { get; set; }
+    public string? RequestedMaxAge { get; private set; }
+    internal SecurityKey VerificationKey => new RsaSecurityKey(rsa) { KeyId = "test" };
 
     private TestIdentityProvider()
     {
@@ -76,6 +80,7 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
     private IResult Authorize(HttpContext context)
     {
         var query = context.Request.Query;
+        RequestedMaxAge = query["max_age"].ToString();
         if (query["client_id"] != "novalist" || query["response_type"] != "code" || query["code_challenge_method"] != "S256") return Results.BadRequest();
         challenge = query["code_challenge"].ToString();
         nonce = query["nonce"].ToString();
@@ -94,7 +99,7 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
             var expected = Refreshes == 0 ? "refresh" : $"rotated-{Refreshes}";
             if (RejectRefresh || form["refresh_token"] != expected || form["client_id"] != "novalist") return Results.BadRequest(new { error = "invalid_grant" });
             Refreshes++;
-            return Results.Json(new { access_token = IssueAccessToken?.Invoke() ?? $"renewed-{Refreshes}", refresh_token = $"rotated-{Refreshes}", token_type = "Bearer", expires_in = 300 });
+            return Results.Json(new { access_token = IssueAccessToken?.Invoke() ?? $"renewed-{Refreshes}", refresh_token = $"rotated-{Refreshes}", token_type = "Bearer", expires_in = RefreshLifetime });
         }
         ExchangedWithPkce = challenge == Base64UrlEncoder.Encode(SHA256.HashData(Encoding.ASCII.GetBytes(form["code_verifier"].ToString())));
         if (!ExchangedWithPkce || form["code"] != "code" || form["redirect_uri"] != redirect || form["client_id"] != "novalist") return Results.BadRequest();
@@ -107,6 +112,11 @@ internal sealed class TestIdentityProvider : IAsyncDisposable
         using var otherKey = RSA.Create(2048);
         var claims = new Dictionary<string, object> { ["sub"] = TokenFault == "empty-subject" ? "" : Subject, ["name"] = "Writer", ["nonce"] = TokenFault == "nonce" ? "wrong" : nonce };
         if (TokenFault == "missing-nonce") claims.Remove("nonce");
+        if (MultiFactorAuthentication)
+        {
+            claims["amr"] = new[] { "mfa" };
+            claims["auth_time"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        }
         var descriptor = new SecurityTokenDescriptor
         {
             Issuer = TokenFault == "issuer" ? "https://wrong.example" : Authority.AbsoluteUri.TrimEnd('/'),

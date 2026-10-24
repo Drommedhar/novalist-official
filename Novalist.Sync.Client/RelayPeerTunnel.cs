@@ -39,7 +39,7 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
         {
             LocalPort = localPort;
             control = socket;
-            running = ObserveAsync(HostLoopAsync, stopOnFailure: true);
+            running = ObserveAsync(ct => RelayTokenRenewal.RunAsync(server, socket, token, HostLoopAsync, ct), stopOnFailure: true);
         }
         else
         {
@@ -109,7 +109,8 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
         await tcp.ConnectAsync(IPAddress.Loopback, LocalPort, ct);
         using var socket = await RelayTunnelSocket.ConnectAsync(server,
             $"relay/v1/sessions/{SessionId:D}/routes/{routeId:D}", token, ct, hostSecret);
-        await RelayTunnelSocket.TransferAsync(socket, tcp, ct);
+        await RelayTokenRenewal.RunAsync(server, socket, token,
+            lifetime => RelayTunnelSocket.TransferAsync(socket, tcp, lifetime), ct);
     }
 
     private async Task GuestLoopAsync(ClientWebSocket initial, CancellationToken ct)
@@ -117,7 +118,8 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
         using (initial)
         {
             using var first = await AcceptGuestAsync(ct);
-            Track(connectionToken => RelayTunnelSocket.TransferAsync(initial, first, connectionToken));
+            Track(connectionToken => RelayTokenRenewal.RunAsync(server, initial, token,
+                lifetime => RelayTunnelSocket.TransferAsync(initial, first, lifetime), connectionToken));
             await AcceptGuestsAsync(ct);
         }
     }
@@ -132,7 +134,8 @@ public sealed class RelayPeerTunnel : IAsyncDisposable
                 using (tcp)
                 using (var socket = await RelayTunnelSocket.ConnectAsync(server,
                     $"relay/v1/sessions/{SessionId:D}/guest", token, connectionToken))
-                    await RelayTunnelSocket.TransferAsync(socket, tcp, connectionToken);
+                    await RelayTokenRenewal.RunAsync(server, socket, token,
+                        lifetime => RelayTunnelSocket.TransferAsync(socket, tcp, lifetime), connectionToken);
             });
         }
     }

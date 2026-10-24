@@ -40,6 +40,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
   participant cursors, scene badges and named Codex viewing/editing indicators, scene editing through the existing editor and continuous Manuscript, named focus locks for Codex fields, table cells, visibility policies, scene and Research metadata, guarded binder actions and Board drops, reconnecting
   retained projects, independent project copies, and host controls for session access.
   The relay forwards encrypted packets without storing projects or edit history; the host stays online.
+  Sign-in renews without replacing the session or invitations, with a bounded grace period for provider outages.
   Connection and traffic limits protect hosts from repeated join requests.
   Joining reuses matching files in an existing local copy by relative path and SHA-256, with progress and cancellation.
   Shared Codex renames update scene mentions, section links, relationships, parent references and scene POV, and finish interrupted reference updates when retried or reopened.

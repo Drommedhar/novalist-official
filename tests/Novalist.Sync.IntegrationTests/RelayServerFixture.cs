@@ -16,10 +16,12 @@ public sealed class RelayServerFixture : WebApplicationFactory<Program>
     private readonly SymmetricSecurityKey signing = new(RandomNumberGenerator.GetBytes(32));
     public Uri Address { get; }
     private readonly bool requireAuthentication;
+    private readonly double authorizationGraceSeconds;
 
-    public RelayServerFixture(bool requireAuthentication = true)
+    public RelayServerFixture(bool requireAuthentication = true, double authorizationGraceSeconds = 300)
     {
         this.requireAuthentication = requireAuthentication;
+        this.authorizationGraceSeconds = authorizationGraceSeconds;
         UseKestrel(0);
         using var client = CreateClient();
         Address = client.BaseAddress!;
@@ -28,11 +30,13 @@ public sealed class RelayServerFixture : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
+        builder.UseSetting("Relay:Enabled", "true");
         builder.UseSetting("ConnectionStrings:Default", "");
         builder.UseSetting("Relay:RequireAuthentication", requireAuthentication.ToString());
         builder.UseSetting("Relay:Introspection:Endpoint", "https://relay.invalid/introspect");
         builder.UseSetting("Relay:Introspection:ClientId", "relay-integration");
         builder.UseSetting("Relay:Introspection:ClientSecret", "relay-integration-test-credential");
+        builder.UseSetting("Relay:Introspection:GracePeriodSeconds", authorizationGraceSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture));
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureServices(services => services.AddHttpClient("RelayIntrospection")
             .ConfigurePrimaryHttpMessageHandler(() => new IntrospectionHandler()));
@@ -48,12 +52,12 @@ public sealed class RelayServerFixture : WebApplicationFactory<Program>
             }));
     }
 
-    public string Token(string subject) => new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
+    public string Token(string subject, DateTime? expires = null) => new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
     {
         Issuer = "https://relay.invalid",
         Audience = "relay-test",
         Claims = new Dictionary<string, object> { ["sub"] = subject },
-        Expires = DateTime.UtcNow.AddMinutes(10),
+        Expires = expires ?? DateTime.UtcNow.AddMinutes(10),
         SigningCredentials = new(signing, SecurityAlgorithms.HmacSha256)
     });
 

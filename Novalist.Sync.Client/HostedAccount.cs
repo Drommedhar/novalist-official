@@ -23,6 +23,7 @@ public sealed class HostedAccount : IAsyncDisposable
     public Uri Authority => settings.Authority;
     public string Subject { get; }
     public string DisplayName { get; }
+    internal HostedSignInOptions SignInSettings => settings;
 
     internal HostedAccount(HostedAccountState state, string token, DateTimeOffset expires, OidcClient client,
         HttpClient http, (ICollaborationCredentials Store, string Key)? persistence = null)
