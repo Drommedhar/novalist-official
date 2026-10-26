@@ -4,6 +4,7 @@ import { Search, ChevronLeft } from 'lucide-react'
 import { useWikiStore, type WikiScopeGroup } from '../../stores/wikiStore'
 import { WikiArticle } from './WikiArticle'
 import { WikiScopeSection } from './WikiView'
+import { useMobileDetailBack } from '../../mobile/useMobileDetailBack'
 import './wiki.css'
 
 /** Filters the index by name/subtitle/alias, dropping empty groups and scopes. */
@@ -43,6 +44,7 @@ export function MobileWikiView(): React.JSX.Element {
   const loadIndex = useWikiStore((s) => s.loadIndex)
   const openArticle = useWikiStore((s) => s.openArticle)
   const clear = useWikiStore((s) => s.clear)
+  useMobileDetailBack(currentId !== null, clear)
   const [filter, setFilter] = useState('')
 
   // Start on the list, not an auto-opened article.

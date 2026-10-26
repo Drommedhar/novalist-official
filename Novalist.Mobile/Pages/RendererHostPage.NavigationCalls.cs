@@ -144,7 +144,11 @@ public sealed partial class RendererHostPage
         else HidePlanMenu();
                 });
 #elif ANDROID
-        if (open) await MainThread.InvokeOnMainThreadAsync(() => ShowAndroidPlanMenuAsync(labels, ArgString(args, 2)));
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            if (open) ShowAndroidPlanMenu(labels);
+            else HideAndroidPlanMenu();
+        });
 #endif
         return null;
     }

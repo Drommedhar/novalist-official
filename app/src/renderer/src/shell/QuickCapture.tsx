@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
 import { useDialogAutoFocus } from './useDialogKeyboard'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 /**
  * Jot something down without deciding where it belongs. The note lands in the
@@ -44,7 +45,8 @@ export function QuickCapture({ onClose }: { onClose(): void }): React.JSX.Elemen
       className="dialog-overlay palette-overlay"
       onPointerDown={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="dialog-card palette-card" role="dialog" aria-label={t('capture.quickTitle')}>
+      <div className="dialog-card palette-card" role="dialog" aria-label={t('capture.quickTitle')}
+        onKeyDownCapture={(event) => dismissOnAndroidBack(event, onClose)}>
         <div className="dialog-title">{t('capture.quickTitle')}</div>
         <textarea
           ref={areaRef}

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
 import { useSettingsStore } from '../stores/settingsStore'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 interface CleanupReportDto {
   scenesConsidered: number
@@ -85,7 +86,8 @@ export function CleanupDialog({ onClose }: { onClose(): void }): React.JSX.Eleme
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="dialog-card cleanup-card" role="dialog" aria-label={t('cleanup.title')}>
+      <div className="dialog-card cleanup-card" role="dialog" aria-label={t('cleanup.title')}
+        onKeyDown={(event) => dismissOnAndroidBack(event, onClose)}>
         <div className="dialog-title">{t('cleanup.title')}</div>
         <p className="inspector-meta">{t('cleanup.intro')}</p>
 

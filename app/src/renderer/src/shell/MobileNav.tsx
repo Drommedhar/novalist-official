@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import './mobile-nav.css'
 
@@ -120,6 +120,17 @@ export function MobileNav({
       })
     })
   }, [scroller])
+
+  useEffect(() => {
+    if (stack.length === 0) return
+    const back = (event: Event): void => {
+      if (event.defaultPrevented) return
+      event.preventDefault()
+      pop()
+    }
+    window.addEventListener('novalist-mobile-nav-back', back)
+    return () => window.removeEventListener('novalist-mobile-nav-back', back)
+  }, [pop, stack.length])
 
   const api = useMemo(() => ({ push, pop, depth: stack.length }), [push, pop, stack.length])
 

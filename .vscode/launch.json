@@ -2,6 +2,22 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Android: Phone (Android 16)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}/eng/Run-Android.ps1\" -Device Phone",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build Novalist Android (Debug)"
+    },
+    {
+      "name": "Android: Tablet (Android 17)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}/eng/Run-Android.ps1\" -Device Tablet",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build Novalist Android (Debug)"
+    },
+    {
       "name": "New UI: Main Process",
       "type": "node",
       "request": "launch",

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { rpc } from '../rpc/client'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 interface DiffRow {
   left: string | null
@@ -45,7 +46,8 @@ export function SnapshotCompareDialog({
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="snapshot-compare-card" role="dialog" aria-label={t('snapshots.compareTitle')}>
+      <div className="snapshot-compare-card" role="dialog" aria-label={t('snapshots.compareTitle')}
+        onKeyDown={(event) => dismissOnAndroidBack(event, onClose)}>
         <div className="snapshot-compare-head">
           <span className="dialog-title">{t('snapshots.compareTitle')}</span>
           <button className="ctx-reset" aria-label={t('dialog.close')} onClick={onClose}>

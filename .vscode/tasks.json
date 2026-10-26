@@ -2,6 +2,19 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "build Novalist Android (Debug)",
+      "detail": "Builds the shared renderer and standalone Android emulator APK.",
+      "type": "process",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", "${workspaceFolder}/eng/Build-Android.ps1"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$msCompile"]
+    },
+    {
       "label": "build Novalist Backend (Debug)",
       "detail": "Builds the C# core the new Electron UI spawns as a child process.",
       "type": "shell",

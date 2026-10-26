@@ -1,3 +1,12 @@
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
+
+export function dismissOnAndroidBack(event: ReactKeyboardEvent, dismiss: () => void): void {
+  if (window.novalist.platform !== 'android' || event.key !== 'Escape') return
+  event.preventDefault()
+  event.stopPropagation()
+  dismiss()
+}
+
 export function dispatchAndroidBack(): boolean {
   const nativeDialog = document.querySelector<HTMLDialogElement>('dialog[open]')
   if (nativeDialog) {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 
 interface BeatDef {
   key: string
@@ -58,7 +59,8 @@ export function StructureEditor(props: {
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && props.onDone()}>
-      <div className="dialog-card snowflake-card" role="dialog" aria-label={t('structure.editTitle')}>
+      <div className="dialog-card snowflake-card" role="dialog" aria-label={t('structure.editTitle')}
+        onKeyDown={(event) => dismissOnAndroidBack(event, props.onDone)}>
         <div className="dialog-title">{t('structure.editTitle')}</div>
 
         <label className="inspector-label">{t('structure.name')}</label>

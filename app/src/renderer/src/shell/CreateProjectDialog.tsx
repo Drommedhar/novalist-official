@@ -6,6 +6,7 @@ import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { flushPendingWrites } from '../stores/pendingWrites'
 import { SnowflakeSetup } from './SnowflakeSetup'
 import { useDialogAutoFocus } from './useDialogKeyboard'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 /**
  * New-project dialog on the start screen: name, first book, parent folder,
@@ -79,7 +80,8 @@ export function CreateProjectDialog({ onClose }: { onClose: () => void }): React
       className="dialog-overlay"
       onPointerDown={(e) => e.target === e.currentTarget && !creating && onClose()}
     >
-      <div className="dialog-card" role="dialog" aria-label={t('welcome.createTitle')}>
+      <div className="dialog-card" role="dialog" aria-label={t('welcome.createTitle')}
+        onKeyDown={(event) => { if (!creating) dismissOnAndroidBack(event, onClose) }}>
         <div className="dialog-title">{t('welcome.createTitle')}</div>
 
         <label className="inspector-label">{t('welcome.projectName')}</label>

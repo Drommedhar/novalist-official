@@ -5,6 +5,7 @@ import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { useManuscriptStore } from '../stores/manuscriptStore'
 import { flushPendingWrites } from '../stores/pendingWrites'
 import { useDialogAutoFocus } from './useDialogKeyboard'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 export function RestoreBackupDialog({ onClose, archivePath = '' }: {
   onClose: () => void
@@ -45,7 +46,8 @@ export function RestoreBackupDialog({ onClose, archivePath = '' }: {
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && !busy && onClose()}>
-      <div className="dialog-card" role="dialog" aria-label={t('backup.restoreAsNew')} aria-busy={busy}>
+      <div className="dialog-card" role="dialog" aria-label={t('backup.restoreAsNew')} aria-busy={busy}
+        onKeyDown={(event) => { if (!busy) dismissOnAndroidBack(event, onClose) }}>
         <div className="dialog-title">{t('backup.restoreAsNew')}</div>
         <p className="settings-hint">{t('backup.restoreAsNewDesc')}</p>
         <label className="inspector-label" htmlFor="restore-backup-file">{t('backup.archiveFile')}</label>

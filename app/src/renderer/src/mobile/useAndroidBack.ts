@@ -11,6 +11,8 @@ export function useAndroidBack(inspectorOpen: boolean, setInspectorOpen: (open: 
       event.preventDefault()
       if (inspectorOpen) { setInspectorOpen(false); return }
       if (planningOpen) { setPlanningOpen(false); return }
+      if (!window.dispatchEvent(new Event('novalist-mobile-nav-back', { cancelable: true }))) return
+      if (!window.dispatchEvent(new Event('novalist-mobile-detail-back', { cancelable: true }))) return
       useShellStore.getState().guardLeave(() => {
         void handleMobileBack().catch((error: unknown) => useHostBridgeStore.getState().pushToast(String(error)))
       })

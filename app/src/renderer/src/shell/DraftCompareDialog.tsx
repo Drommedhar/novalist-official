@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeftRight, Download, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 interface DraftChoice {
   id: string
@@ -126,7 +127,8 @@ export function DraftCompareDialog({ onClose }: { onClose(): void }): React.JSX.
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="draft-compare-card" role="dialog" aria-label={t('draftCompare.title')}>
+      <div className="draft-compare-card" role="dialog" aria-label={t('draftCompare.title')}
+        onKeyDown={(event) => dismissOnAndroidBack(event, onClose)}>
         <div className="snapshot-compare-head">
           <span className="dialog-title">{t('draftCompare.title')}</span>
           <button className="ctx-reset" aria-label={t('dialog.close')} onClick={onClose}>

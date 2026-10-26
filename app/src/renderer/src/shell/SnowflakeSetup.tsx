@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 interface PremiseAct {
   act: string
@@ -52,7 +53,8 @@ export function SnowflakeSetup({ onClose }: { onClose: () => void }): React.JSX.
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="dialog-card snowflake-card" role="dialog" aria-label={t('premise.setupTitle')}>
+      <div className="dialog-card snowflake-card" role="dialog" aria-label={t('premise.setupTitle')}
+        onKeyDown={(event) => { if (!busy) dismissOnAndroidBack(event, onClose) }}>
         <div className="dialog-title">{t('premise.setupTitle')}</div>
         <div className="settings-hint">{t('premise.setupIntro')}</div>
 

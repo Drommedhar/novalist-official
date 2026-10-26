@@ -7,6 +7,7 @@ import { MapScaleDialog } from './MapScaleDialog'
 import './map.css'
 import { useMapViewModel, type MapsViewState } from './mapViewModel'
 import { MapCanvas } from './MapCanvas'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 
 export function MapsView(): React.JSX.Element {
   const { setCreating, t, activeId, generating, generateTerrain, exporting, exportImage, exportScale, setExportScale, maps, setActiveId, editMode, hasMap, is3D, setEditMode, getWin, toggle3D, selectTool, selection, setRenaming, setConfirmingDelete, activeTool, buildingScale, mapModel, onAddImage, onSplinePreset, onTerrain, onBuilding, onBuildingScale, setMeasured, setScaleOpen, measured, iframeRef, loading3D, peek, setPeek, selectedNodeId, expanded, isolated, onSelectNode, onToggleExpand, onAddLayer, onAddChild, onDeleteNode, onRenameNode, onToggleHidden, onToggleLocked, onMoveNode, onMoveToRoot, onSetOpacity, onSetNodeZoom, onSetFloorMode, onSetActiveFloor, onSetElementZoom, onToggleIsolate, creating, onCreateMap, renaming, onRenameMap, confirmingDelete, activeMap, onDeleteMap, imagePicker, setImagePicker, placeImage, scaleOpen } = useMapViewModel()
@@ -49,7 +50,8 @@ export function MapsView(): React.JSX.Element {
           className="dialog-overlay"
           onPointerDown={(e) => e.target === e.currentTarget && setImagePicker(null)}
         >
-          <div className="dialog-card map-image-picker" role="dialog">
+          <div className="dialog-card map-image-picker" role="dialog"
+            onKeyDown={(event) => dismissOnAndroidBack(event, () => setImagePicker(null))}>
             <div className="dialog-title">{t('map.toolAddImageTooltip')}</div>
             <div className="map-image-grid">
               {imagePicker.map((img) => (

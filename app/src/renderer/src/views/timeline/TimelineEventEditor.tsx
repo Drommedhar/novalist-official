@@ -4,6 +4,7 @@ import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { useProjectStore } from '../../stores/projectStore'
 import type { TimelineEventDto } from './TimelineView'
 import { CustomFieldsPanel } from '../../shell/CustomFieldsPanel'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 
 export interface TimelineEventDraft {
   title: string
@@ -111,7 +112,8 @@ export function TimelineEventEditor({
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onCancel()}>
-      <div className="dialog-card" role="dialog" aria-label={t('timeline.eventTitle')}>
+      <div className="dialog-card" role="dialog" aria-label={t('timeline.eventTitle')}
+        onKeyDown={(event) => dismissOnAndroidBack(event, onCancel)}>
         <div className="dialog-title">{t('timeline.eventTitle')}</div>
         <label className="inspector-label" htmlFor="tl-title">
           {t('smartList.name')}

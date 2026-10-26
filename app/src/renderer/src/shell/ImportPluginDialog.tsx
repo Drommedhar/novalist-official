@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FolderOpen } from 'lucide-react'
 import { rpc } from '../rpc/client'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 interface DetectedProject {
   name: string
@@ -88,7 +89,8 @@ export function ImportPluginDialog({
       className="dialog-overlay"
       onPointerDown={(e) => e.target === e.currentTarget && !importing && onClose()}
     >
-      <div className="dialog-card type-manager-card" role="dialog" aria-label={t('import.title')}>
+      <div className="dialog-card type-manager-card" role="dialog" aria-label={t('import.title')}
+        onKeyDown={(event) => { if (!importing) dismissOnAndroidBack(event, onClose) }}>
         <div className="dialog-title">{t('import.title')}</div>
         <p className="wizard-help">{t('import.description')}</p>
 
