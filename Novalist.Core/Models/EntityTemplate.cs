@@ -14,7 +14,9 @@ public enum CustomPropertyType
     Date,
     Enum,
     Timespan,
-    EntityRef
+    EntityRef,
+    Text,
+    EntityRefList
 }
 
 /// <summary>

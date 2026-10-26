@@ -34,6 +34,43 @@ public class EntityServiceTests : IDisposable
 
     public void Dispose() => _dir.Dispose();
 
+    [Theory]
+    [InlineData("", "[]")]
+    [InlineData("[\"one\",\"two\",\"one\"]", "[\"one\",\"two\"]")]
+    public async Task CustomReferenceLists_NormalizeDefaultsAndSavedValues(string value, string expected)
+    {
+        await _sut.SaveCustomEntityTypeAsync(new CustomEntityTypeDefinition
+        {
+            TypeKey = "guild", FolderName = "Guilds", DefaultFields = [new()
+            {
+                Key = "Members", Type = CustomPropertyType.EntityRefList, DefaultValue = value
+            }]
+        });
+        Assert.Equal(expected, _sut.GetCustomEntityTypes().Single().DefaultFields.Single().DefaultValue);
+        await _sut.SaveCustomEntityAsync(new CustomEntityData
+        {
+            EntityTypeKey = "guild", Name = "Watch", Fields = new() { ["Members"] = value }
+        });
+        Assert.Equal(expected, (await _sut.LoadCustomEntitiesAsync("guild")).Single().Fields["Members"]);
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("[null]")]
+    [InlineData("[\" \" ]")]
+    [InlineData("broken")]
+    public async Task CustomReferenceLists_RejectInvalidDefaults(string value)
+    {
+        await Assert.ThrowsAsync<JsonException>(() => _sut.SaveCustomEntityTypeAsync(new CustomEntityTypeDefinition
+        {
+            TypeKey = "guild", DefaultFields = [new()
+            {
+                Key = "Members", Type = CustomPropertyType.EntityRefList, DefaultValue = value
+            }]
+        }));
+        Assert.Empty(_sut.GetCustomEntityTypes());
+    }
+
     private void WriteBookChar(string id, string name) => WriteJson(
         Path.Combine(_bookRoot, _book.CharacterFolder, id + ".json"), new CharacterData { Id = id, Name = name });
 

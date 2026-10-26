@@ -21,7 +21,21 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Custom Codex fields** — add plain multiline text and lists of references to entries of a chosen type, with defaults, guided creation, and a resizable type editor. Reference lists stay linked when entries are renamed.
+- Editor extension actions show their name and an animated progress bar while running, with a Cancel button.
+- Toolkit dictionary and thesaurus support German and English using the project's writing language, with source links beside results.
+
+### Fixed
+
+- Dismissing a spelling or grammar issue removes its underline and count, including native spelling marks on that occurrence, until the scene is edited or reopened. Adding a word to the dictionary clears its spelling underlines without waiting for the grammar server. Saved scenes no longer retain stale, unclickable proofing underlines.
+- Chapter creation and editing expose story dates and date ranges. Timeline and Calendar honor inherited chapter and act dates; clearing a chapter date no longer restores its old value. Acts without an explicit date appear at their first chapter's date in manuscript order.
+- Images attached to custom Codex entries now save and remain available when the project is reopened.
+- Custom-type field controls remain readable in narrow windows, wrapping to fit instead of squeezing text fields.
+- Dictionary lookups and other editor extension actions no longer fail with an “Unable to find method” error.
+- Toolkit lookups use Wiktionary directly, avoiding the previous dictionary service's stalled requests. Timeouts and service errors are reported separately from missing words.
+- Clicking Toolkit's Sprint status-bar item opens its sprint controls; extension commands can open their content views again.
 
 ---
 

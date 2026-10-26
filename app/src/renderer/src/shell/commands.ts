@@ -310,6 +310,13 @@ const APPLICATION_COMMANDS: CommandDef[] = [
     run: () => shell().openDialog('importFolder')
   },
   {
+    id: 'app.support',
+    labelKey: 'support.title',
+    categoryKey: 'hotkeys.category.general',
+    scope: 'application',
+    run: () => shell().openDialog('support')
+  },
+  {
     id: 'app.about',
     labelKey: 'command.about',
     categoryKey: 'hotkeys.category.general',

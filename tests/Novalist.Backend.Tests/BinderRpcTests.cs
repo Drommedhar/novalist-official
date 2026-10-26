@@ -40,6 +40,34 @@ public sealed class BinderRpcTests : IDisposable
     private SceneData FirstScene()
         => _workspace.Projects.GetScenesForChapter(FirstChapter().Guid)[0];
 
+    [Theory]
+    [InlineData(false, "2042-03-04", "2042-03-06")]
+    [InlineData(true, "812.2.38", "812.2.40")]
+    public async Task ChapterDatesSurviveReopeningAndCanBeCleared(bool custom, string start, string end)
+    {
+        var project = new ProjectRpc(_workspace);
+        var calendar = new CalendarRpc(_workspace);
+        if (custom)
+            await calendar.SetConfigAsync("Custom", "Cycle", ["First", "Last"], [30, 40], ["Day"]);
+        var guid = FirstChapter().Guid;
+        var path = _workspace.Projects.ProjectRoot!;
+        await project.SetChapterDateRangeAsync(guid, start, end, "Journey");
+        project.Close();
+        var reopened = await project.OpenAsync(path);
+        var chapter = Assert.Single(reopened.Chapters);
+        Assert.Equal(start, chapter.DateStart);
+        Assert.Equal(end, chapter.DateEnd);
+        Assert.Equal("Journey", chapter.DateNote);
+        Assert.Equal(3, calendar.Get(start, end).Length);
+
+        await project.SetChapterDateRangeAsync(guid, "", "", "");
+        project.Close();
+        reopened = await project.OpenAsync(path);
+        Assert.Equal("", Assert.Single(reopened.Chapters).DateStart);
+        Assert.Empty(calendar.Get(start, end));
+        Assert.Empty((await new TimelineRpc(_workspace).Get()).Groups);
+    }
+
     [Fact]
     public async Task PinningASceneSticksAndComesBackInTheState()
     {

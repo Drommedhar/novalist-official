@@ -11,7 +11,7 @@ export interface WizardStepDef {
   title: string
   help?: string
   skippable: boolean
-  kind: 'text' | 'choice' | 'number' | 'date'
+  kind: 'text' | 'choice' | 'number' | 'date' | 'plainText' | 'refList'
   multiline?: boolean
   choices?: WizardChoice[]
   defaultValue?: string
@@ -94,6 +94,17 @@ export function buildGuidedSteps(
     default:
       return (customDef?.defaultFields ?? []).map((field) => {
         switch (field.type) {
+          case 'Text':
+          case 'EntityRefList':
+            return {
+              id: field.key,
+              title: field.displayName,
+              skippable: !field.required,
+              kind: field.type === 'Text' ? 'plainText' as const : 'refList' as const,
+              defaultValue: field.defaultValue,
+              help: field.prompt,
+              entityRefType: field.type === 'EntityRefList' ? (field.enumOptions?.[0] ?? 'character').toLowerCase() : undefined
+            }
           case 'Int':
             return {
               id: field.key,

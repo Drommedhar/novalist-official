@@ -65,6 +65,14 @@ Launch Novalist with no project open and you get the app itself — the same win
 
 Project creation, opening and import are also available from the **File** menu.
 
+### Supporting Novalist
+
+A small **Help Novalist grow** notice appears below the desktop Bookshelf heading. **Support Novalist** opens a popup with **Patreon** and **Ko-fi** links; either opens the creator's page in your default browser. Support is entirely optional.
+
+**Remind me in a month** hides the notice for 30 days. It can return when you next visit the Bookshelf after that period; it never interrupts an open project. **Don’t show again** hides it permanently on this installation, including after application updates. Both choices are remembered when you restart Novalist.
+
+You can always open the same popup through **Help → Support Novalist** or the command palette, even after hiding the notice.
+
 ## Opening your first project
 
 Double-click a book on the bookshelf, or use **Open folder** and select your project folder. The welcome content is replaced by the **Dashboard**, and the rest of the window comes to life.

@@ -33,7 +33,8 @@ public sealed partial class WikiRpc
         if (customPair.TypeKey != null)
         {
             var entity = customPair.Entities.FirstOrDefault(e => e.Id == id) ?? throw Unknown(id);
-            return BuildCustomCore(entity, type, resolve);
+            var display = BuildDisplayMap(entities.Characters, entities.Locations, entities.Items, entities.Lore, entities.CustomTypes);
+            return BuildCustomCore(entity, type, resolve, display);
         }
 
         return type switch
@@ -150,7 +151,8 @@ public sealed partial class WikiRpc
             .ToArray();
 
     private ArticleCore BuildCustomCore(
-        CustomEntityData entity, string type, Dictionary<string, (string Id, string TypeKey)> resolve)
+        CustomEntityData entity, string type, Dictionary<string, (string Id, string TypeKey)> resolve,
+        Dictionary<string, (string Title, string TypeKey)> display)
     {
         var typeDef = _entities.GetCustomEntityTypes()
             .FirstOrDefault(t => string.Equals(t.TypeKey, type, StringComparison.OrdinalIgnoreCase));
@@ -166,6 +168,11 @@ public sealed partial class WikiRpc
             var label = def?.DisplayName ?? pair.Key;
             if (def?.Type == CustomPropertyType.EntityRef)
                 refRelationships.Add(BuildRelationship(label, pair.Value, resolve));
+            else if (def?.Type == CustomPropertyType.EntityRefList)
+                refRelationships.Add(new WikiRelationshipDto(label, EntityReferenceList.Parse(pair.Value)
+                    .Where(id => display.TryGetValue(id, out var target)
+                        && string.Equals(target.TypeKey, def.EnumOptions?.FirstOrDefault() ?? "character", StringComparison.OrdinalIgnoreCase))
+                    .Select(id => new WikiLinkTargetDto(display[id].Title, id, display[id].TypeKey)).ToArray()));
             else
                 fields.Add(new WikiFieldDto(null, label, pair.Value, null, null));
         }

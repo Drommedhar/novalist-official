@@ -1,0 +1,30 @@
+.dialog-card.custom-type-manager-card {
+  width: var(--nl-dialog-width-wide);
+  min-width: min(var(--nl-dialog-width), 92vw);
+  max-width: 92vw;
+  max-height: 85vh;
+  overflow: auto;
+  resize: both;
+}
+
+.custom-type-manager-card .type-manager-fields {
+  gap: var(--nl-space-lg);
+}
+
+.custom-type-manager-card .type-manager-field {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--nl-field-width-sm)), 1fr));
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-md);
+  border: var(--nl-rule-width) solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+}
+
+.custom-type-manager-card .type-manager-field .dialog-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.custom-type-manager-card .type-manager-field > .binder-expand {
+  justify-self: end;
+}

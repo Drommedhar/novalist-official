@@ -6,6 +6,7 @@ import { rpc } from '../rpc/client'
 import { useProjectStore, type ChapterDto, type ProjectStateDto } from '../stores/projectStore'
 import { useManuscriptPropsStore } from '../stores/manuscriptPropsStore'
 import { ManuscriptPropertyField } from './ManuscriptPropertyField'
+import { ChapterDateFields, useChapterDates } from './ChapterDateFields'
 import './shellDialogs.css'
 
 /** Chapter status enum values (mirrors Novalist.Core ChapterStatus) with the
@@ -33,8 +34,15 @@ interface ChapterDialogProps {
   onClose(): void
 }
 
-/** Create or edit a chapter: title, status, and act in a single dialog,
- * replacing the plain title-only InputDialog. */
+function useChapterSectionTypes(): SectionType[] {
+  const [sectionTypes, setSectionTypes] = useState<SectionType[]>([])
+  useEffect(() => {
+    void rpc.request<SectionType[]>('project/sectionTypes').then(setSectionTypes)
+      .catch(() => setSectionTypes([]))
+  }, [])
+  return sectionTypes
+}
+
 function useChapterDraft({ chapter, onClose }: ChapterDialogProps) {
   useWorkspaceDialogGuard()
   const { t } = useTranslation()
@@ -42,17 +50,11 @@ function useChapterDraft({ chapter, onClose }: ChapterDialogProps) {
   const [title, setTitle] = useState(chapter?.title ?? '')
   const [status, setStatus] = useState(chapter?.status ?? DEFAULT_STATUS)
   const [act, setAct] = useState(chapter?.act ?? '')
+  const dates = useChapterDates(chapter)
   const [subtitle, setSubtitle] = useState(chapter?.subtitle ?? '')
   const [hideHeading, setHideHeading] = useState(chapter?.hideHeading ?? false)
   const [sectionType, setSectionType] = useState(chapter?.sectionTypeKey ?? '')
-  const [sectionTypes, setSectionTypes] = useState<SectionType[]>([])
-
-  useEffect(() => {
-    void rpc
-      .request<SectionType[]>('project/sectionTypes')
-      .then(setSectionTypes)
-      .catch(() => setSectionTypes([]))
-  }, [])
+  const sectionTypes = useChapterSectionTypes()
   const [busy, setBusy] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const definitions = useManuscriptPropsStore((s) => s.definitions)
@@ -82,6 +84,7 @@ function useChapterDraft({ chapter, onClose }: ChapterDialogProps) {
         if (name !== chapter.title) await store.renameChapter(chapter.guid, name)
         if (status !== chapter.status) await store.setChapterStatus(chapter.guid, status)
         if (act.trim() !== chapter.act) await store.setChapterAct(chapter.guid, act.trim())
+        if (dates.changed) store.applyState(await dates.save(chapter.guid))
         if (
           subtitle.trim() !== (chapter.subtitle ?? '') ||
           hideHeading !== chapter.hideHeading ||
@@ -101,6 +104,7 @@ function useChapterDraft({ chapter, onClose }: ChapterDialogProps) {
         let state = await rpc.request<ProjectStateDto>('project/createChapter', [name])
         const created = state.chapters.find((c) => !prev.has(c.guid))
         if (created) {
+          if (dates.changed) state = await dates.save(created.guid)
           if (status !== DEFAULT_STATUS)
             state = await rpc.request<ProjectStateDto>('project/setChapterStatus', [
               created.guid,
@@ -120,11 +124,11 @@ function useChapterDraft({ chapter, onClose }: ChapterDialogProps) {
     }
   }
 
-  return { busy, t, isEdit, inputRef, title, setTitle, submit, sectionType, setSectionType, sectionTypes, status, setStatus, subtitle, setSubtitle, hideHeading, setHideHeading, act, setAct, chapterProps, values, setValues }
+  return { busy, t, isEdit, inputRef, title, setTitle, submit, sectionType, setSectionType, sectionTypes, status, setStatus, subtitle, setSubtitle, hideHeading, setHideHeading, act, setAct, chapterProps, values, setValues, dates }
 }
 
 export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.JSX.Element {
-  const { busy, t, isEdit, inputRef, title, setTitle, submit, sectionType, setSectionType, sectionTypes, status, setStatus, subtitle, setSubtitle, hideHeading, setHideHeading, act, setAct, chapterProps, values, setValues } = useChapterDraft({ chapter, onClose })
+  const { busy, t, isEdit, inputRef, title, setTitle, submit, sectionType, setSectionType, sectionTypes, status, setStatus, subtitle, setSubtitle, hideHeading, setHideHeading, act, setAct, chapterProps, values, setValues, dates } = useChapterDraft({ chapter, onClose })
 
   return (
     <div
@@ -207,6 +211,8 @@ export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.J
           onChange={(e) => setAct(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && void submit()}
         />
+
+        <ChapterDateFields dates={dates} />
 
         {/* The book's own chapter fields, written straight through rather
             than on submit: they are independent of the title and status this

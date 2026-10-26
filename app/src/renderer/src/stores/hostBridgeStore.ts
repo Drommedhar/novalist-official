@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { rpc } from '../rpc/client'
 import { useCodexStore } from './codexStore'
 import { useProjectStore, type ProjectStateDto } from './projectStore'
+import { useExtensionsStore } from './extensionsStore'
+import { useShellStore } from './shellStore'
 
 /**
  * Bridges the backend extension host's imperative UI capabilities — toasts,
@@ -166,8 +168,19 @@ export function registerHostBridge(): void {
   registered = true
 
   registerProjectNotifications()
+  registerViewNotifications()
   registerProgressNotifications()
   registerDialogNotifications()
+}
+
+function registerViewNotifications(): void {
+  rpc.onNotification('ui/activateContentView', (params) => {
+    const key = firstParam<string>(params)
+    const view = useExtensionsStore.getState().views.find((v) => v.key === key && v.placement === 'main')
+    if (!view) return
+    const shell = useShellStore.getState()
+    shell.guardLeave(() => shell.setExtView({ extensionId: view.extensionId, key: view.key }))
+  })
 }
 
 function registerProjectNotifications(): void {

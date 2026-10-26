@@ -292,6 +292,12 @@ Use `Language` for whatever your format calls a language declaration, and read `
 
 Inline editor actions can return `InlineActionDisposition.ShowInformation` to display `Text` without changing prose. `Alternatives` are choices for the writer to review, and `AsSuggestion` records an accepted edit as a suggestion. Do not insert informational results into the document or silently pick the first alternative.
 
+Set `SourceLabel` and `SourceUrl` to show source attribution beside a result. The
+host renders HTTP(S) source links in the review dialog; attribution is never
+inserted into the manuscript. Use `IHostServices.WritingLanguage` for dictionary
+and other language-dependent writing tools, independently of `CurrentLanguage`,
+which controls the interface.
+
 Anything with a user interface is HTML rendered in a sandboxed frame. Declare it in the manifest:
 
 ```json

@@ -1,0 +1,22 @@
+.entity-reference-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-sm);
+  border: var(--nl-rule-width) solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  max-height: var(--nl-panel-width-sm);
+  overflow: auto;
+  min-width: 0;
+}
+
+.entity-reference-list label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--nl-space-sm);
+  overflow-wrap: anywhere;
+}
+
+.entity-reference-list input {
+  flex-shrink: 0;
+}
