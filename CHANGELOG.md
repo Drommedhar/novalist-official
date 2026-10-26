@@ -21,6 +21,12 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.6.1] - 2026-10-26
+
 ### Added
 
 - **Custom Codex fields** — add plain multiline text and lists of references to entries of a chosen type, with defaults, guided creation, and a resizable type editor. Reference lists stay linked when entries are renamed.
@@ -1810,7 +1816,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.6.0...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.6.1...HEAD
+[3.6.1]: https://github.com/Drommedhar/novalist-official/compare/v3.6.0...v3.6.1
 [3.6.0]: https://github.com/Drommedhar/novalist-official/compare/v3.5.7...v3.6.0
 [3.5.7]: https://github.com/Drommedhar/novalist-official/compare/v3.5.6...v3.5.7
 [3.5.6]: https://github.com/Drommedhar/novalist-official/compare/v3.5.5...v3.5.6
