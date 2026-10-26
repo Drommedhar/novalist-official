@@ -18,6 +18,8 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
     private readonly SemaphoreSlim _workspaceGate = new(1, 1);
     private readonly ImportApi.LocalImportApi _importApi;
     private readonly IProcessRunner? _processRunner;
+    private readonly Dictation.ISystemDictation? _systemDictation;
+    private readonly Speech.IAsyncSystemVoices? _systemVoices;
     private JsonRpc? _rpc;
     private Core.Services.AssetWatchService? _assetWatch;
 
@@ -40,11 +42,15 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
         string? settingsDirectory = null,
         IProcessRunner? processRunner = null,
         IStoredPathResolver? storedPaths = null,
-        IFileService? fileService = null)
+        IFileService? fileService = null,
+        Dictation.ISystemDictation? systemDictation = null,
+        Speech.IAsyncSystemVoices? systemVoices = null)
     {
         _workspace = new Workspace(settingsDirectory, storedPaths, fileService);
         _importApi = new ImportApi.LocalImportApi(_workspace, _workspaceGate);
         _processRunner = processRunner;
+        _systemDictation = systemDictation;
+        _systemVoices = systemVoices;
     }
 
     /// <summary>Reroutes Console.Out to stderr so stray writes cannot corrupt RPC framing.</summary>
@@ -117,7 +123,7 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
         rpc.AddLocalRpcTarget(new WikiPagesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SubmissionsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new TasksRpc(_workspace), targetOptions);
-        rpc.AddLocalRpcTarget(new VoicesRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new VoicesRpc(_workspace, asyncVoices: _systemVoices), targetOptions);
         rpc.AddLocalRpcTarget(new GroupsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new EntitiesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new WikiRpc(_workspace), targetOptions);
@@ -129,7 +135,7 @@ public sealed class BackendHost : IDisposable, IAsyncDisposable
         rpc.AddLocalRpcTarget(new DialogueRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new NarrationRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new VoiceEngineRpc(_workspace), targetOptions);
-        rpc.AddLocalRpcTarget(new DictationRpc(_workspace, Dictation.SystemDictation.Create()), targetOptions);
+        rpc.AddLocalRpcTarget(new DictationRpc(_workspace, _systemDictation ?? Dictation.SystemDictation.Create()), targetOptions);
         rpc.AddLocalRpcTarget(new AudiobookRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new DashboardRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ManuscriptRpc(_workspace), targetOptions);

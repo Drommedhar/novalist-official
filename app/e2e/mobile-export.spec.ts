@@ -25,7 +25,7 @@ async function mobileHost(page: Page, layout: 'phone' | 'tablet') {
   })
   const host = {
     root,
-    outcome: 'success' as 'success' | 'cancel' | 'error',
+    outcome: 'success' as 'success' | 'cancel' | 'error' | 'handoff',
     failSave: false,
     failExport: false,
     shared: [] as { path: string; bytes: Buffer }[],
@@ -57,6 +57,7 @@ async function mobileHost(page: Page, layout: 'phone' | 'tablet') {
     let error: string | undefined
     try {
       switch (call.method) {
+        case 'hostCapabilities': result = { platform: 'darwin', projectStorage: 'external', layout }; break
         case 'beginProjectAccess': result = true; break
         case 'saveFile': {
           if (host.failSave) throw new Error('Cannot allocate export')
@@ -71,7 +72,7 @@ async function mobileHost(page: Page, layout: 'phone' | 'tablet') {
           const path = String(call.args[0])
           host.shared.push({ path, bytes: readFileSync(path) })
           if (host.outcome === 'error') throw new Error('Share failed')
-          result = host.outcome === 'success'
+          result = host.outcome === 'handoff' ? 'handed-off' : host.outcome === 'success'
           break
         }
         case 'releaseExport':
@@ -204,5 +205,18 @@ test('mobile export: cancel, retry, and failures never report a successful save'
     await expect(page.locator('.export-run')).toBeEnabled()
     await expect.poll(() => h.host.released.length).toBe(4)
     expect(h.host.shared).toHaveLength(3)
+  } finally { await h.close() }
+})
+
+test('Android sharing reports a handoff without claiming the recipient saved the export', async ({ page }) => {
+  const h = await mobileHost(page, 'phone')
+  try {
+    await seed(page, h.root)
+    await page.locator('.binder-mobile-actions').getByRole('button', { name: 'Export', exact: true }).click()
+    await page.selectOption('#export-format', 'Markdown')
+    h.host.outcome = 'handoff'
+    await page.locator('.export-run').click()
+    await expect(page.locator('.export-result')).toHaveText('Export prepared. Finish saving or sharing it in the app you selected.')
+    await expect.poll(() => h.host.released.length).toBe(1)
   } finally { await h.close() }
 })

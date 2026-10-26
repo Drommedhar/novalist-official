@@ -10,6 +10,9 @@
     "openFailed": "The link could not be opened. Please try again."
   },
   "dictation": {
+    "androidHelp": "Android transcribes English and German on your device when its installed speech service supports them. Novalist uses only on-device recognition and never switches to online speech.",
+    "androidUnavailable": "On-device dictation is unavailable on this device. Availability depends on the installed Android speech service and language support.",
+    "androidDownload": "Android needs to download this language's speech support first. Setup needs internet; dictation then runs on your device.",
     "formatting": "Formatting",
     "automaticDialogue": "Automatic dialogue",
     "plainTranscription": "Plain transcription",
@@ -2174,6 +2177,7 @@
     "selectedCount": "Selected: {0} chapter(s)",
     "exporting": "Exporting…",
     "exportSuccess": "Export complete.",
+    "shareHandedOff": "Export prepared. Finish saving or sharing it in the app you selected.",
     "exportFailed": "Export failed.",
     "exportAction": "Export",
     "selectedOfTotal": "{{selected}} of {{total}} selected",

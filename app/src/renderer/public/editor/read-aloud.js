@@ -90,7 +90,6 @@ function caretBlock() {
  * so a German scene is read by a German voice without being told twice.
  */
 function startReadAloud(fromCaret, rate, voiceUri) {
-    if (typeof speechSynthesis === 'undefined') return;
     stopReadAloud();
     window.NovalistEditorState.readAloudRate = rate > 0 ? rate : 1;
     window.NovalistEditorState.readAloudVoiceUri = voiceUri || null;
@@ -116,6 +115,7 @@ function startReadAloud(fromCaret, rate, voiceUri) {
  * itself minted, and it is always in getVoices().
  */
 function usingSystemVoice() {
+    if (typeof speechSynthesis === 'undefined') return true;
     if (!window.NovalistEditorState.readAloudVoiceUri) return false;
     return !speechSynthesis.getVoices().some(function (v) {
         return v.voiceURI === window.NovalistEditorState.readAloudVoiceUri;

@@ -16,6 +16,8 @@ Novalist explains itself in three places, and all three answer to one switch.
 
 ## Installing Novalist
 
+An Android phone/tablet version is under development for Android 13 and newer. Its current development APK supports app-private projects; external and cloud project folders are still being implemented. It is not the complete Android beta. Build and emulator instructions are in the repository's `docs/android-development.md`.
+
 Novalist is a desktop application. The user interface is an Electron shell; all project logic runs in a bundled core process ("Novalist Core") that the app starts automatically — you never manage it yourself.
 
 Download the latest release for your platform from the project's release page:

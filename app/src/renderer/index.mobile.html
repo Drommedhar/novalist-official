@@ -23,9 +23,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Mobile shim installs window.novalist (incl. the HybridWebView transport)
-         before the app boots. Must precede main.tsx. -->
-    <script type="module" src="/src/mobile/shim.ts"></script>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/mobile/bootstrap.ts"></script>
   </body>
 </html>

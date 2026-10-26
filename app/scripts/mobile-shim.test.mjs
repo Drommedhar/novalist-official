@@ -6,7 +6,7 @@ import { loadRendererSource } from './renderer-source-loader.mjs'
 const turn = () => new Promise((resolve) => setImmediate(resolve))
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64')
 
-function fixture(t) {
+function fixture(t, userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 27_0 like Mac OS X)') {
   const sent = []
   const channels = []
   const listeners = new Map()
@@ -27,20 +27,47 @@ function fixture(t) {
     postMessage() {},
     addEventListener: (name, callback) => listeners.set(name, callback)
   }
-  loadRendererSource('src/mobile/shim.ts', {
+  const module = loadRendererSource('src/mobile/shim.ts', {
     i18next: { default: { t: (key) => key } },
     './projectImages': { installProjectImageLoader() {}, clearProjectImageCache() {} },
-    './hostCalls': { HostCallChannel }
+    './hostCalls': { HostCallChannel },
+    './backEvents': { dispatchAndroidBack: () => false }
   }, {
-    window, document: { visibilityState: 'visible' }, MessageChannel: Channel,
+    window, document: { visibilityState: 'visible' }, navigator: { userAgent }, MessageChannel: Channel,
     TextDecoder, Uint8Array, btoa, atob,
     setInterval: () => 1, clearInterval() {}, console: { error() {} }
   })
   t.after(() => listeners.get('pagehide')())
   const reply = (request, result = null) => window.__novalistHostResult(encode({ id: request.id, ok: true, result }))
   const hostRequests = () => sent.filter((message) => message.startsWith('{')).map((message) => JSON.parse(message))
-  return { window, channels, sent, reply, hostRequests }
+  return { window, channels, sent, reply, hostRequests, initialize: module.initializeMobileHost }
 }
+
+test('Android host identifies itself before renderer startup', async (t) => {
+  const f = fixture(t, 'Mozilla/5.0 (Linux; Android 13; sdk_gphone64_x86_64) AppleWebKit/537.36')
+  const initialized = f.initialize()
+  assert.equal(f.hostRequests()[0]?.method, 'hostCapabilities')
+  f.reply(f.hostRequests()[0], { platform: 'android', projectStorage: 'private', layout: 'phone' })
+  await initialized
+  assert.equal(f.window.novalist.platform, 'android')
+})
+
+test('Apple host retains Darwin platform keyboard behavior', async (t) => {
+  const f = fixture(t)
+  const initialized = f.initialize()
+  assert.equal(f.hostRequests()[0]?.method, 'hostCapabilities')
+  f.reply(f.hostRequests()[0], { platform: 'darwin', projectStorage: 'external', layout: 'tablet' })
+  await initialized
+  assert.equal(f.window.novalist.platform, 'darwin')
+})
+
+test('unknown mobile hosts cannot start the renderer with guessed capabilities', async (t) => {
+  const f = fixture(t)
+  const initialized = f.initialize()
+  assert.equal(f.hostRequests()[0]?.method, 'hostCapabilities')
+  f.reply(f.hostRequests()[0], { platform: 'unknown', projectStorage: 'private', layout: 'phone' })
+  await assert.rejects(initialized, /Unsupported mobile host/)
+})
 
 test('mobile RPC waits for native readiness and acknowledges byte delivery', async (t) => {
   const f = fixture(t)

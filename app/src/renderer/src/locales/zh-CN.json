@@ -10,6 +10,9 @@
     "openFailed": "无法打开链接。请重试。"
   },
   "dictation": {
+    "androidHelp": "如果已安装的语音服务支持，Android 可在设备上识别英语和德语。Novalist 仅使用设备端识别，绝不会切换为在线语音识别。",
+    "androidUnavailable": "此设备无法使用设备端听写。可用性取决于已安装的 Android 语音服务及其语言支持。",
+    "androidDownload": "Android 需要先下载此语言的语音支持。设置需要联网；完成后，听写将在设备上运行。",
     "formatting": "格式",
     "automaticDialogue": "自动对话格式",
     "plainTranscription": "仅转写",
@@ -2209,6 +2212,7 @@
     "selectedCount": "已选：{0} 个章节",
     "exporting": "正在导出...",
     "exportSuccess": "导出完成。",
+    "shareHandedOff": "导出已准备好。请在所选应用中完成保存或分享。",
     "exportFailed": "导出失败。",
     "exportAction": "导出",
     "selectedOfTotal": "已选择 {{selected}} / {{total}}",

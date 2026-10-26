@@ -1,19 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!--
-    Novalist.Mobile - Phase 0 spike (iOS first).
-    Deliberately NOT added to novalist-official.sln: the desktop/CI build and the
-    100%-coverage gate (Core/Sdk/Backend) must stay untouched. Build this project
-    on its own with `dotnet build Novalist.Mobile/Novalist.Mobile.csproj`.
-
-    Requires (installed by the developer, see docs/mobile-phase0-runbook.md):
-      - full Xcode.app (not just Command Line Tools)
-      - `sudo dotnet workload install maui-ios`
-  -->
-
   <PropertyGroup>
-    <!-- iOS first for the spike. Add net10.0-android here in Phase 0's Android half. -->
-    <TargetFramework>net10.0-ios27.0</TargetFramework>
+    <TargetFramework Condition="'$(TargetFramework)' == '' and $([MSBuild]::IsOSPlatform('osx'))">net10.0-ios27.0</TargetFramework>
+    <TargetFramework Condition="'$(TargetFramework)' == ''">net10.0-android</TargetFramework>
     <OutputType>Exe</OutputType>
     <UseMaui>true</UseMaui>
     <SingleProject>true</SingleProject>
@@ -34,7 +23,8 @@
     <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 
-    <SupportedOSPlatformVersion>27.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">27.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">33.0</SupportedOSPlatformVersion>
 
     <!--
       Novalist.Backend is OutputType=Exe (the desktop stdio host). We reference it
@@ -43,6 +33,15 @@
     -->
     <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <AndroidPackageFormats>apk</AndroidPackageFormats>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'ios'">
+    <Compile Remove="Services\AppFolders.cs;Services\IosFileAccessCoordinator.cs;Services\IosStoredPathResolver.cs;Services\SecurityScopedFolders*.cs;Services\ImagePicking.cs;Services\ExportSharing.cs;Services\SystemMicrophone.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- App icon: the real Novalist icon (shared with the Electron build). iOS
@@ -95,5 +94,5 @@
     <MauiAsset Include="Resources\Raw\app\**\*" LogicalName="app\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
-  <Import Project="../native/AppleSpeech/AppleSpeech.iOS.targets" />
+  <Import Project="../native/AppleSpeech/AppleSpeech.iOS.targets" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'" />
 </Project>

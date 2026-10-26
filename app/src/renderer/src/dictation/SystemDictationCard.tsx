@@ -41,8 +41,8 @@ export function SystemDictationCard(): React.JSX.Element {
   }
   return <div id="set-system-dictation" className="settings-subgroup">
     <label className="inspector-label">{t('dictation.systemName')}</label>
-    <p className="settings-hint">{t(status?.usesSystemPanel ? 'dictation.windowsHelp' : 'dictation.appleHelp')}</p>
-    {status && !status.available && <p className="settings-hint">{t('dictation.systemUnavailable')}</p>}
+    <p className="settings-hint">{t(status?.engine === 'android' ? 'dictation.androidHelp' : status?.usesSystemPanel ? 'dictation.windowsHelp' : 'dictation.appleHelp')}</p>
+    {status && !status.available && <p className="settings-hint">{t(status.engine === 'android' ? 'dictation.androidUnavailable' : 'dictation.systemUnavailable')}</p>}
     {status?.available && !status.usesSystemPanel && <>
       <label className="inspector-label" htmlFor="set-system-dictation-language">{t('dictation.language')}</label>
       <select id="set-system-dictation-language" className="dialog-input" value={language} disabled={busy}
@@ -50,7 +50,7 @@ export function SystemDictationCard(): React.JSX.Element {
         <option value="en">English</option><option value="de">Deutsch</option>
       </select>
       <p className="settings-hint">{t(!selected?.supported ? 'dictation.languageUnsupported'
-        : selected.installed ? 'dictation.languageReady' : 'dictation.languageDownload')}</p>
+        : selected.installed ? 'dictation.languageReady' : status.engine === 'android' ? 'dictation.androidDownload' : 'dictation.languageDownload')}</p>
       {!busy && <button disabled={!selected?.supported || selected.installed} onClick={() => void prepare()}>{t('dictation.prepareSystem')}</button>}
       {busy && <>
         <span role="status">{t('dictation.preparingSystem')}</span>

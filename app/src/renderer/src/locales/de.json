@@ -10,6 +10,9 @@
     "openFailed": "Der Link konnte nicht geöffnet werden. Bitte versuche es erneut."
   },
   "dictation": {
+    "androidHelp": "Android erkennt Englisch und Deutsch auf Ihrem Gerät, sofern der installierte Sprachdienst sie unterstützt. Novalist verwendet ausschließlich die Erkennung auf dem Gerät und wechselt niemals zur Online-Spracherkennung.",
+    "androidUnavailable": "Das Diktieren auf dem Gerät ist hier nicht verfügbar. Die Verfügbarkeit hängt vom installierten Android-Sprachdienst und dessen Sprachunterstützung ab.",
+    "androidDownload": "Android muss zunächst die Sprachdateien herunterladen. Die Einrichtung benötigt Internet; danach erfolgt die Erkennung auf Ihrem Gerät.",
     "formatting": "Formatierung",
     "automaticDialogue": "Automatische Dialoge",
     "plainTranscription": "Nur Transkription",
@@ -1769,6 +1772,7 @@
     "selectedCount": "Ausgewählt: {0} Kapitel",
     "exporting": "Exportiere…",
     "exportSuccess": "Export abgeschlossen.",
+    "shareHandedOff": "Export vorbereitet. Schließe das Speichern oder Teilen in der ausgewählten App ab.",
     "exportFailed": "Export fehlgeschlagen.",
     "exportAction": "Exportieren",
     "selectedOfTotal": "{{selected}} von {{total}} ausgewählt",

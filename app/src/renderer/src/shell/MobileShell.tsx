@@ -16,6 +16,7 @@ import { TabletShell } from './TabletShell'
 import { useShellStore, type MobileTab, type MainView, type MobileLayout } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useCodexStore } from '../stores/codexStore'
+import { useAndroidBack } from '../mobile/useAndroidBack'
 import './mobile.css'
 
 // Plan menu items, in the order shown in the native popover. Index maps back from
@@ -88,17 +89,11 @@ function useMobileLayout(): MobileLayout {
   // requestLayout covers the case where the first size-class pass ran before this
   // bundle finished loading and its announcement was therefore lost.
   useEffect(() => {
-    const w = window
-    w.__novalistLayout = (mode: string) =>
-      useShellStore.getState().setMobileLayout(mode === 'tablet' ? 'tablet' : 'phone')
     // Electron has no size class to announce, so the e2e flag stands in for one.
     // Pushed through the same callback the native side calls, so a test drives
     // the real path into TabletShell rather than an approximation of it.
-    if (window.novalist.isTablet) w.__novalistLayout('tablet')
+    if (window.novalist.isTablet) useShellStore.getState().setMobileLayout('tablet')
     window.novalist.requestLayout?.()
-    return () => {
-      delete w.__novalistLayout
-    }
   }, [])
 
   // Expose the layout to CSS. On documentElement rather than a class on the shell
@@ -137,7 +132,7 @@ function useNativeTabs(layout: MobileLayout, setPlanningDrawerOpen: React.Dispat
   // Bridge for the native tab bar / sidebar (RendererHostPage -> EvaluateJavaScript).
   useEffect(() => {
     const w = window
-    w.__novalistTab = (key: string) => {
+    const navigate = (key: string): void => {
       // The iPad sidebar sends MainView keys straight through - it has one entry
       // per destination, so there is no tab-to-view mapping and no Plan drawer.
       if (layout === 'tablet') {
@@ -162,6 +157,10 @@ function useNativeTabs(layout: MobileLayout, setPlanningDrawerOpen: React.Dispat
       }
       setPlanningDrawerOpen(false)
       setTab(key as MobileTab)
+    }
+    w.__novalistTab = (key: string) => {
+      if (window.novalist.platform === 'android') useShellStore.getState().guardLeave(() => navigate(key))
+      else navigate(key)
     }
     return () => {
       delete w.__novalistTab
@@ -238,6 +237,8 @@ export function MobileShell(): React.JSX.Element {
   const [planningDrawerOpen, setPlanningDrawerOpen] = useState(false)
   // Codex tab: switch between editing (Codex) and reading (Wiki).
   const [codexMode, setCodexMode] = useState<'codex' | 'wiki'>('codex')
+
+  useAndroidBack(inspectorOpen, setInspectorOpen, planningDrawerOpen, setPlanningDrawerOpen)
 
   useNativeTabs(layout, setPlanningDrawerOpen)
   useNativeTabSelection(layout, planningView, inspectorOpen)

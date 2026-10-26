@@ -18,6 +18,15 @@ namespace Novalist.Mobile.Pages;
 
 public sealed partial class RendererHostPage
 {
+    private Task SetNativeColorsAsync(JsonElement args)
+    {
+#if ANDROID
+        return MainThread.InvokeOnMainThreadAsync(() => SetAndroidColors(ArgString(args, 0), ArgString(args, 1)));
+#else
+        return Task.CompletedTask;
+#endif
+    }
+
     private async Task<object?> SetNavVisibleAsync(JsonElement args)
     {
         // Show the native Liquid Glass navigation only inside a project
@@ -38,6 +47,8 @@ public sealed partial class RendererHostPage
         UpdateSidebarScrim();
         PushChromeMetrics();
                 });
+#elif ANDROID
+        await MainThread.InvokeOnMainThreadAsync(() => { _androidNavVisible = visible; PushAndroidLayout(); });
 #endif
         return null;
     }
@@ -56,6 +67,8 @@ public sealed partial class RendererHostPage
 #if IOS
                 _sidebarTitles = titles.ToArray();
                 await MainThread.InvokeOnMainThreadAsync(ApplySidebarTitles);
+#elif ANDROID
+        await MainThread.InvokeOnMainThreadAsync(() => SetAndroidTitles(_androidDestinations, titles));
 #endif
         return null;
     }
@@ -75,6 +88,8 @@ public sealed partial class RendererHostPage
         _sidebarCollapsed = collapsed;
         ApplySidebarCollapsed();
                 });
+#elif ANDROID
+        await MainThread.InvokeOnMainThreadAsync(() => { _androidSidebarCollapsed = collapsed; PushAndroidLayout(); });
 #endif
         return null;
     }
@@ -86,6 +101,8 @@ public sealed partial class RendererHostPage
         var key = ArgString(args, 0);
 #if IOS
                 await MainThread.InvokeOnMainThreadAsync(() => SelectSidebarKey(key));
+#elif ANDROID
+        await MainThread.InvokeOnMainThreadAsync(() => SelectAndroidButton(_androidDestinations, Array.IndexOf(AndroidDestinations, key)));
 #endif
         return null;
     }
@@ -101,6 +118,8 @@ public sealed partial class RendererHostPage
         _isRegularWidth = null;      // force ApplySizeClass to re-push
         ApplySizeClass();
                 });
+#elif ANDROID
+        await MainThread.InvokeOnMainThreadAsync(PushAndroidLayout);
 #endif
         return null;
     }
@@ -124,6 +143,8 @@ public sealed partial class RendererHostPage
         if (open) ShowPlanMenu(labels.ToArray());
         else HidePlanMenu();
                 });
+#elif ANDROID
+        if (open) await MainThread.InvokeOnMainThreadAsync(() => ShowAndroidPlanMenuAsync(labels, ArgString(args, 2)));
 #endif
         return null;
     }
@@ -147,6 +168,8 @@ public sealed partial class RendererHostPage
         _tabBar.SelectedItem = items[index];
         _committedItem = items[index];
                 });
+#elif ANDROID
+        await MainThread.InvokeOnMainThreadAsync(() => SelectAndroidButton(_androidTabs, index));
 #endif
         return null;
     }
@@ -165,6 +188,8 @@ public sealed partial class RendererHostPage
 #if IOS
                 _tabTitles = titles.ToArray();
                 await MainThread.InvokeOnMainThreadAsync(ApplyTabTitles);
+#elif ANDROID
+        await MainThread.InvokeOnMainThreadAsync(() => SetAndroidTitles(_androidTabs, titles));
 #endif
         return null;
     }

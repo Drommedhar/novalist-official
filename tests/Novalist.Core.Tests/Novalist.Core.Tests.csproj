@@ -11,6 +11,9 @@
     <Compile Include="..\..\Novalist.Mobile\Services\OwnedProjectPaths.cs" Link="Mobile\OwnedProjectPaths.cs" />
     <Compile Include="..\..\Novalist.Mobile\Services\MobileAssetReader.cs" Link="Mobile\MobileAssetReader.cs" />
     <Compile Include="..\..\Novalist.Mobile\Services\TemporaryAccessRegistry.cs" Link="Mobile\TemporaryAccessRegistry.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\PrivateProjectPaths.cs" Link="Mobile\PrivateProjectPaths.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\ManuscriptFileSelection.cs" Link="Mobile\ManuscriptFileSelection.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\PcmSpeechChunks.cs" Link="Mobile\PcmSpeechChunks.cs" />
   </ItemGroup>
 
   <ItemGroup>

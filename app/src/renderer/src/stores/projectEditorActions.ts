@@ -59,6 +59,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
         ...mirror(editors, paneId)
       }
     })
+    if (window.novalist.isMobile) useShellStore.getState().setMobileTab('manuscript')
   }),
 
   openSceneInSplit: async (chapterGuid, sceneId) => {
