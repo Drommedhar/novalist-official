@@ -32,7 +32,10 @@ public sealed partial class Workspace
                 c.HideHeading,
                 c.Description,
                 c.SectionTypeKey,
-                ScenesOf(c.Guid)))
+                ScenesOf(c.Guid),
+                c.DateRange?.Start ?? c.Date,
+                c.DateRange?.End ?? string.Empty,
+                c.DateRange?.Note ?? string.Empty))
             .ToArray();
 
         return new ProjectStateDto(

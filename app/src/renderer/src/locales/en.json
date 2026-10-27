@@ -139,6 +139,16 @@
       "cancelling": "Cancelling synchronization…"
     }
   },
+  "support": {
+    "title": "Support Novalist",
+    "noticeTitle": "Help Novalist grow",
+    "noticeMessage": "Novalist is free and open source. If it helps your writing, consider supporting its development.",
+    "remindLater": "Remind me in a month",
+    "neverAgain": "Don’t show again",
+    "dialogMessage": "Your support helps fund Novalist’s continued development. Thank you.",
+    "optional": "Support is entirely optional. These links open in your browser.",
+    "openFailed": "The link could not be opened. Please try again."
+  },
   "dictation": {
     "formatting": "Formatting",
     "automaticDialogue": "Automatic dialogue",
@@ -2545,6 +2555,11 @@
     "filterListNone": "The whole book"
   },
   "entityTypeManager": {
+    "textType": "Multiline text",
+    "referenceListType": "Reference list",
+    "unavailableReference": "Unavailable entry",
+    "invalidReferenceList": "This reference list is invalid. Clear it to choose entries again.",
+    "clearReferences": "Clear references",
     "displayName": "Display Name",
     "displayNameWatermark": "e.g. Faction",
     "pluralName": "Plural Name",

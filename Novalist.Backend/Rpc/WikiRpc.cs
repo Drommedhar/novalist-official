@@ -60,9 +60,11 @@ public sealed partial class WikiRpc
         foreach (var typeDef in _entities.GetCustomEntityTypes())
         {
             var custom = await _entities.LoadCustomEntitiesAsync(typeDef.TypeKey);
+            var references = typeDef.DefaultFields.Where(field => field.Type == CustomPropertyType.EntityRefList)
+                .Select(field => field.Key).ToHashSet();
             typed.Add((typeDef.TypeKey, typeDef.DisplayName, custom.Select(e => Entry(
                 e.Id, typeDef.TypeKey, e.Name,
-                e.Fields.Values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)),
+                e.Fields.FirstOrDefault(field => !references.Contains(field.Key) && !string.IsNullOrWhiteSpace(field.Value)).Value,
                 e.Images, e.IsWorldBible, e.Aliases))));
         }
 
@@ -101,7 +103,8 @@ public sealed partial class WikiRpc
         var appearanceIndex = await new AppearanceIndexService(_workspace.Projects).BuildAsync(characters);
         var displayMap = BuildDisplayMap(characters, locations, items, lore, customTypes);
 
-        var core = BuildCore(type, id, new ArticleEntities(characters, locations, items, lore, customTypes), resolve);
+        var articleEntities = new ArticleEntities(characters, locations, items, lore, customTypes);
+        var core = BuildCore(type, id, articleEntities, resolve);
 
         var rawAppearances = appearanceIndex.TryGetValue(id, out var raw) ? raw : [];
         var appearances = SortAppearances(rawAppearances);
@@ -116,7 +119,7 @@ public sealed partial class WikiRpc
             .OfType<string>()
             .ToHashSet(StringComparer.Ordinal);
         var referencedBy = BuildReferencedBy(
-            id, characters, locations, items, lore, customTypes, resolve, relatedIds);
+            id, core.TypeKey, articleEntities, resolve, relatedIds);
         var contains = BuildContains(id, locations, resolve);
         var research = BuildResearch(id);
         var events = BuildEvents(core, resolve);

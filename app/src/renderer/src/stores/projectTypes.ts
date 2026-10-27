@@ -39,6 +39,9 @@ export interface ChapterDto {
   order: number
   status: string
   act: string
+  dateStart: string
+  dateEnd: string
+  dateNote: string
   isFavorite: boolean
   scenes: SceneDto[]
 }

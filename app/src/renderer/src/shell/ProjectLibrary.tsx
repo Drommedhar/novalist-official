@@ -5,6 +5,7 @@ import { runCommand } from './commands'
 import { LibraryScratchpad } from './LibraryScratchpad'
 import { GeneratedBookCover } from './GeneratedBookCover'
 import { RemovedLibraryItems } from './RemovedLibraryItems'
+import { SupportNotice } from './SupportNotice'
 import { projectKey, useBookshelfStore, type LibrarySort, type RemovedLibraryItem } from '../stores/bookshelfStore'
 import { useProjectStore, type RecentProjectDto } from '../stores/projectStore'
 import { useShellStore } from '../stores/shellStore'
@@ -154,6 +155,7 @@ export function StartScreen({ recentProjects, onOpenPath }: StartScreenProps): R
           </details>
         </div>
       </header>
+      {!window.novalist.isMobile && <SupportNotice onDismiss={() => searchInput.current?.focus()} />}
       <div className="library-controls">
         <nav className="library-filters" aria-label={t('bookshelf.filterShelves')}>
           <button aria-pressed={activeShelf === null} onClick={() => { setActiveShelf(null); setSelection(null) }}>{t('bookshelf.allShelves')}<small>{availableProjects.length}</small></button>

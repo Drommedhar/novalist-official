@@ -1,6 +1,6 @@
 {
   "name": "novalist",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "description": "Novalist - a writing app for novelists",
   "main": "./out/main/index.js",
   "private": true,
@@ -29,7 +29,7 @@
     "@codemirror/view": "^6.43.7",
     "@lezer/highlight": "^1.2.3",
     "diff": "8.0.2",
-    "dompurify": "3.4.16",
+    "dompurify": "3.4.17",
     "electron-updater": "^6.8.9",
     "harper.js": "2.7.0",
     "i18next": "^26.3.6",
@@ -50,11 +50,11 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "electron": "^42.11.8",
+    "electron": "^42.11.16",
     "electron-builder": "26.15.3",
     "electron-vite": "^5.0.0",
     "typescript": "^7.0.2",
-    "vite": "^7.0.2"
+    "vite": "^7.3.7"
   },
   "author": "Novalist",
   "optionalDependencies": {

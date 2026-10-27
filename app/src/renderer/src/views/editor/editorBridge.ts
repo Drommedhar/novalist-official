@@ -75,6 +75,7 @@ export interface EditorWindow extends Window {
   setCommentsData(data: { id: string; anchorText: string; text: string }[]): void
   setFootnotesData(data: { id: string; text: string }[]): void
   setEntityNames(namesJson: string): void
+  setSpellingDictionary(words: string[]): void
   setMentionCandidates(candidatesJson: string): void
   setMentionLabels(labelsJson: string): void
   /** Answers a `mentionCreateRequested` message: turns the pending placeholder
@@ -216,6 +217,8 @@ export interface InlineActionResult {
   disposition: 'replace' | 'insertAfter' | 'insertAtCaret' | 'information'
   alternatives?: string[]
   asSuggestion?: boolean
+  sourceLabel?: string
+  sourceUrl?: string
   /** Non-empty aborts the edit; editor.html leaves the selection untouched. */
   error?: string
 }

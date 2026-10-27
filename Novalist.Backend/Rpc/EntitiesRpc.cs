@@ -24,9 +24,11 @@ public sealed partial class EntitiesRpc
     {
         if (IsCustomType(type))
         {
+            var references = _entities.GetCustomEntityTypes().Single(def => def.TypeKey == type).DefaultFields
+                .Where(field => field.Type == CustomPropertyType.EntityRefList).Select(field => field.Key).ToHashSet();
             return (await _entities.LoadCustomEntitiesAsync(type))
                 .Select(c => Summary(
-                    c, c.Fields.Values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? string.Empty))
+                    c, c.Fields.FirstOrDefault(field => !references.Contains(field.Key) && !string.IsNullOrWhiteSpace(field.Value)).Value ?? string.Empty))
                 .ToArray();
         }
         return type switch

@@ -12,9 +12,9 @@ Open it from the **Plan** mode (**Timeline**, first under **Shape** in the mode 
 
 ## What appears on the timeline
 
-- **Acts** — each act name appears once, ahead of its first chapter.
-- **Chapters** — every chapter that has a date.
-- **Scenes** — every scene that has a date (a scene without its own date inherits its chapter's date). Shown as `Chapter: Scene`.
+- **Acts** — each act name appears once. Its explicit date takes precedence; otherwise it uses its first chapter's date in manuscript order and appears ahead of that chapter. If neither has a date, the act remains undated, even when a later chapter is dated.
+- **Chapters** — every chapter with a date or date range, including dates inherited from an act. Set them in the chapter creation or **Rename Chapter** dialog.
+- **Scenes** — every scene with a date, including inherited chapter or act dates and relative story time. A scene's own date takes precedence. Shown as `Chapter: Scene`.
 - **Manual events** — anything you add directly to the timeline.
 
 Each entry shows a marker dot, its title, a **source pill** naming where it came from (Act, Chapter, Scene, or Events), its date, and (for scenes and manual events) a description or synopsis. Events that reference characters or locations also show them as **chips** under the description. A chip whose name matches exactly one Codex entity is a link — click it to open that entity's article in the [Wiki](30-wiki.md). Names that match more than one entity, or none, stay plain text.
@@ -123,7 +123,7 @@ Deleting an event does not disturb the dates that hung off it. They keep what th
 
 ## Spans
 
-An event with an end, and a scene with a [date range](04-chapters-and-scenes.md), draw a bar under their date showing how much of the story they cover.
+An event, act, chapter, or scene with a [date range](04-chapters-and-scenes.md) draws a bar under its date showing how much of the story it covers. Scenes inherit the chapter's range unless they have their own date or relative timing.
 
 Every bar is measured against the whole book, not against the group it sits in, because two bars only mean something next to each other if they share a scale. A war spanning ten chapters and a pregnancy spanning twenty are now comparable at a glance, and where they overlap is visible — which a duration printed as "3 weeks" beside a marker dot could never show.
 

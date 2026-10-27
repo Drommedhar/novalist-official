@@ -52,10 +52,12 @@ public sealed class ExtensionContribRpc
     // aislop-ignore-next-line complexity/too-many-params -- Published JSON-RPC parameter names and ordering are part of the renderer protocol and must remain compatible.
     public async Task<InlineActionResultDto?> ExecuteInlineActionAsync(
         string actionId, string selectedText, string? chapterGuid, string? sceneId,
-        CancellationToken cancellationToken,
-        string? precedingText = null, string? directive = null)
+        string? precedingText = null, string? directive = null,
+        CancellationToken cancellationToken = default)
     {
-        if (Host == null) return null;
+        var host = Host;
+        var action = host?.GetInlineActionDescriptors().FirstOrDefault(item => item.Id == actionId);
+        if (host == null || action == null) return null;
         var request = new InlineActionRequest
         {
             SelectedText = selectedText ?? string.Empty,
@@ -64,10 +66,17 @@ public sealed class ExtensionContribRpc
             PrecedingText = precedingText ?? string.Empty,
             Directive = directive ?? string.Empty,
         };
-        var result = await Host.ExecuteInlineActionAsync(actionId, request, cancellationToken);
+        using var progress = _workspace.UiBridge.CreateProgress(new BusyProgressOptions
+        {
+            Title = action.Label,
+            AllowCancel = true
+        });
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken, progress.CancellationToken);
+        var result = await host.ExecuteInlineActionAsync(actionId, request, cancellation.Token);
         if (result == null) return null;
         return new InlineActionResultDto(result.Text, DispositionName(result.Disposition), result.Error,
-            result.Alternatives.ToArray(), result.AsSuggestion);
+            result.Alternatives.ToArray(), result.AsSuggestion, result.SourceLabel, result.SourceUrl);
     }
 
     internal static string DispositionName(InlineActionDisposition disposition) => disposition switch
@@ -296,7 +305,8 @@ public sealed record InlineActionInfoDto(
     string Id, string Label, string Group, string Icon, int Priority,
     bool AllowsEmptySelection, string SlashKeyword);
 public sealed record InlineActionResultDto(
-    string Text, string Disposition, string? Error, string[] Alternatives, bool AsSuggestion);
+    string Text, string Disposition, string? Error, string[] Alternatives, bool AsSuggestion,
+    string SourceLabel, string SourceUrl);
 public sealed record ContextMenuInfoDto(string Id, string Label, string Icon, string? IconPath, string Context);
 public sealed record ExtensionHotkeyInfoDto(string ActionId, string DisplayName, string Category, string DefaultGesture);
 

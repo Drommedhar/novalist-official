@@ -294,7 +294,10 @@ public sealed record ChapterDto(
     /// <summary>What the chapter is - a chapter, a prologue, a part. Empty is
     /// an ordinary chapter, which is what every chapter was before types.</summary>
     string SectionTypeKey,
-    IReadOnlyList<SceneDto> Scenes);
+    IReadOnlyList<SceneDto> Scenes,
+    string DateStart,
+    string DateEnd,
+    string DateNote);
 
 public sealed record SceneDto(
     string Id,

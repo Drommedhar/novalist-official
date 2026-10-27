@@ -6,12 +6,14 @@ import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { proseBinding } from '../../collaboration/sharedMarkdown'
 import { SharedFieldControl } from './SharedFieldControl'
 import type { SharedEntityFields } from '../../collaboration/FocusedField'
+import { EntityReferenceList } from './EntityReferenceList'
+import { SharedEntityReferenceList } from './SharedEntityReferenceList'
 
 const LORE_CATEGORIES = ['Organization', 'Culture', 'History', 'Other']
 const refTargetType = (field: CustomTypeDefinition['defaultFields'][number]): string =>
   (field.enumOptions?.[0] || 'character').toLowerCase()
 
-type Control = 'text' | 'textarea' | 'category' | 'parent' | 'date' | 'ref' | 'group'
+type Control = 'text' | 'textarea' | 'plainText' | 'refList' | 'category' | 'parent' | 'date' | 'ref' | 'group'
 
 interface FieldSpec {
   key: string
@@ -200,6 +202,12 @@ export function EntityDetailFields({
     const value = readValue(key, isCustom)
     const shared = record.sharedFields as SharedEntityFields | undefined
     const itemId = shared?.fields[key]
+    if (control === 'refList') {
+      if (shared && itemId) return <SharedEntityReferenceList key={itemId} binding={{ sessionId: shared.sessionId, itemId }}
+        label={label ?? key} targetType={refType ?? 'character'} value={value} disabled={record.locked === true} />
+      return <EntityReferenceList key={`${record.id}:${key}`} label={label ?? key}
+        targetType={refType ?? 'character'} value={value} onChange={(next) => updateField(key, next)} />
+    }
     const commit = (v: string): void => {
       if (v !== value) void updateField(key, v)
     }
@@ -207,6 +215,12 @@ export function EntityDetailFields({
       const prose = proseBinding(record, key)
       if (prose) return <MarkdownEditor key={prose.itemId} value={value} ariaLabel={label} shared={prose} onChange={() => {}} />
       return <MarkdownField key={key} value={value} ariaLabel={label} onCommit={commit} />
+    }
+    if (control === 'plainText') {
+      if (shared && itemId) return <SharedFieldControl key={itemId} binding={{ sessionId: shared.sessionId, itemId }}
+        value={value} label={label} multiline disabled={record.locked === true} />
+      return <textarea className="dialog-input codex-field-input" aria-label={label} rows={5}
+        key={`${record.id}:${key}:${value}`} defaultValue={value} onBlur={(event) => commit(event.target.value)} />
     }
     if (control === 'category' || (options && options.length > 0)) {
       const opts = options ?? LORE_CATEGORIES
@@ -282,6 +296,10 @@ export function EntityDetailFields({
         return { control: 'category', options: ['true', 'false'] }
       case 'EntityRef':
         return { control: 'ref' }
+      case 'EntityRefList':
+        return { control: 'refList' }
+      case 'Text':
+        return { control: 'plainText' }
       default:
         return { control: 'text' }
     }

@@ -111,6 +111,21 @@ public sealed class ProjectRpc
         return _workspace.BuildState();
     }
 
+    [JsonRpcMethod("project/setChapterDateRange")]
+    public async Task<ProjectStateDto> SetChapterDateRangeAsync(
+        string chapterGuid, string start, string end, string note)
+    {
+        var chapter = _workspace.Projects.GetChaptersOrdered()
+            .FirstOrDefault(c => c.Guid == chapterGuid)
+            ?? throw new InvalidOperationException("Unknown chapter.");
+        var range = chapter.DateRange?.Clone() ?? new Core.Models.StoryDateRange();
+        range.Start = start.Trim();
+        range.End = end.Trim();
+        range.Note = note.Trim();
+        await _workspace.Projects.SetChapterDateRangeAsync(chapterGuid, range);
+        return _workspace.BuildState();
+    }
+
     /// <summary>
     /// The chapter's opener: a subtitle under the title, and whether the
     /// heading is printed at all. Both are export typography rather than

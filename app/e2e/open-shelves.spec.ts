@@ -27,7 +27,7 @@ test('open shelves fill the workspace and connect filters, details, size, sortin
     const widths = await h.page.evaluate(() => ({
       root: document.querySelector('.project-library')!.clientWidth,
       content: document.querySelector('.library-content')!.clientWidth,
-      rows: document.querySelector('.library-shelves')!.clientWidth,
+      rows: document.querySelector('.library-shelves')!.getBoundingClientRect().width,
       height: document.querySelector('.project-library')!.clientHeight,
       contentHeight: document.querySelector('.library-content')!.clientHeight
     }))

@@ -159,6 +159,9 @@ jobs:
       - name: Build backend
         run: dotnet build Novalist.Backend/Novalist.Backend.csproj -c Debug
 
+      - name: Build E2E test extension
+        run: dotnet build tests/Novalist.TestExtension/Novalist.TestExtension.csproj -c Debug
+
       - name: Install app dependencies
         working-directory: app
         run: npm ci

@@ -85,7 +85,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 - Multi-book projects with a shared **World Bible** for entities used across books.
 - **Drafts you can manage** — every version of a book in one view: rename them, drag them into your own order, record what each one is for, duplicate one, and send whole chapters or single scenes from one draft to another, copying or moving.
-- Chapters with status tracking (Outline → First Draft → Revised → Edited → Final), optional acts, optional in-world date ranges, label colors, and favorites.
+- Chapters with status tracking (Outline → First Draft → Revised → Edited → Final), optional acts, in-world date ranges editable during creation or renaming and inherited by undated scenes, label colors, and favorites.
 - Scenes with synopsis, notes, label color, plotline membership, in-world date range, POV / emotion / intensity / conflict / tags (auto-detected with manual overrides).
 - **Smart Lists** — saved scene queries by status, POV, tag, or plotline.
 - **Writing sprints** — a status-bar timer with words-this-sitting, live pace, and a per-project history.
@@ -102,7 +102,7 @@ English and German **dictation** writes directly at the editor caret. Built-in s
 - **Locations** with hierarchical parents, types, and custom fields.
 - **Items** with origin, type, and description.
 - **Lore** entries for magic systems, religions, history, in-world books.
-- **Custom entity types** — define your own (Factions, Spells, Vehicles, Races, …) with custom field schemas.
+- **Custom entity types** — define your own (Factions, Spells, Vehicles, Races, …) with custom field schemas, plain multiline text, and lists of linked entries.
 - **Templates** per entity type with default sections, custom properties, and field defaults.
 - **Sections** of long-form content per entity, written in a formatted text box: headings, bold, lists, and links are styled as you type and their syntax stays hidden until you edit the line, with a toolbar so you never need to learn it. Stored as plain Markdown.
 - **Relationships** with auto-learned inverse-role pairs and inverse-prompting on new relationships.
@@ -287,9 +287,13 @@ docs/                 User manual, extension guide, screenshots
 
 If you find Novalist useful and want to support its development:
 
+[Support on Patreon](https://patreon.com/Drommedhar)
+
 [<img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" alt="Donate with PayPal" />](https://www.paypal.com/donate/?hosted_button_id=EQJG5JHAKYU4S)
 
 [Buy me a coffee on Ko-fi](https://ko-fi.com/drommedhar)
+
+In the desktop app, **Support Novalist** on the Bookshelf or in the **Help** menu opens a popup with Patreon and Ko-fi links. The Bookshelf notice can be hidden for 30 days or permanently.
 
 [Official Discord](https://discord.gg/xRyDQ7Cbvq)
 

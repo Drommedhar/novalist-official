@@ -139,6 +139,16 @@
       "cancelling": "Synchronisierung wird abgebrochen…"
     }
   },
+  "support": {
+    "title": "Novalist unterstützen",
+    "noticeTitle": "Hilf Novalist zu wachsen",
+    "noticeMessage": "Novalist ist kostenlos und quelloffen. Wenn es dir beim Schreiben hilft, kannst du seine Entwicklung unterstützen.",
+    "remindLater": "In einem Monat erinnern",
+    "neverAgain": "Nicht mehr anzeigen",
+    "dialogMessage": "Deine Unterstützung hilft, die Weiterentwicklung von Novalist zu finanzieren. Vielen Dank.",
+    "optional": "Unterstützung ist völlig freiwillig. Diese Links öffnen sich in deinem Browser.",
+    "openFailed": "Der Link konnte nicht geöffnet werden. Bitte versuche es erneut."
+  },
   "dictation": {
     "formatting": "Formatierung",
     "automaticDialogue": "Automatische Dialoge",
@@ -2140,6 +2150,11 @@
     "filterListNone": "Das ganze Buch"
   },
   "entityTypeManager": {
+    "textType": "Mehrzeiliger Text",
+    "referenceListType": "Verweisliste",
+    "unavailableReference": "Nicht verfügbarer Eintrag",
+    "invalidReferenceList": "Diese Verweisliste ist ungültig. Leere sie, um erneut Einträge auszuwählen.",
+    "clearReferences": "Verweise löschen",
     "displayName": "Anzeigename",
     "displayNameWatermark": "z.B. Fraktion",
     "pluralName": "Pluralname",

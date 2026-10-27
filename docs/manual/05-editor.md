@@ -253,7 +253,9 @@ By default the free public LanguageTool endpoint is used; the URL is configurabl
 
 When all selected **Dictionaries** belong to one language, grammar checking uses that language, even if your **Quote Style** preset belongs to another. For British English, select **en-GB**; **en-GB-oxendict** also uses British English for grammar checking. With no dictionaries selected, or dictionaries from several languages, grammar follows your writing language and any matching regional dictionary. Conflicting variants, such as British and American English together, use that language's default variant unless the writing-language setting already specifies a region in that language.
 
-**Add to dictionary** teaches both the native spell checker and the selected grammar checker. Learned words are accepted on subsequent checks and after reopening the app, including with free LanguageTool accounts. Grammar and style suggestions about those words can still appear. Harper also accepts names from the project's Codex.
+**Add to dictionary** teaches both the native spell checker and the selected grammar checker. Once the word is saved, its spelling underlines clear in open editors even while the grammar server is still checking. Learned words are accepted on subsequent checks and after reopening the app, including with free LanguageTool accounts. Grammar and style suggestions about those words can still appear. Harper also accepts names from the project's Codex.
+
+**Dismiss** ignores the selected occurrence, removes its underline, and updates the count so you can open the next remaining issue. Native spellchecking also stops marking that occurrence. Rechecking unchanged text keeps it dismissed. Editing the scene or reopening it resets dismissals; use **Add to dictionary** to accept a word permanently. Proofing marks are temporary and are not saved as part of your prose.
 
 The provider choice can be overridden per project with the Writing assistance override switch. Switching to Harper keeps your LanguageTool settings for later; Harper does not use that server or account.
 

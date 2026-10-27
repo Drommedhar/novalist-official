@@ -27,7 +27,9 @@ function fixture(t) {
   loadRendererSource('src/mobile/shim.ts', {
     i18next: { default: { t: key => key } },
     './projectImages': { installProjectImageLoader() {}, clearProjectImageCache() {} },
-    './hostCalls': { HostCallChannel }
+    './hostCalls': { HostCallChannel },
+    './collaboration': { installCollaborationHost: () => () => {} },
+    './backend': { MobileBackend: class { dispose() {} } }
   }, globals)
   const audio = loadRendererSource('src/dictation/audio.ts', {}, globals, audioSource)
   const options = loadRendererSource('src/dictation/dictationOptions.ts', {}, {

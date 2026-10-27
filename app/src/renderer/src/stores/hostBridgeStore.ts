@@ -3,6 +3,8 @@ import { rpc } from '../rpc/client'
 import { applySharedCodexField, useCodexStore } from './codexStore'
 import { useProjectStore, type ProjectStateDto } from './projectStore'
 import { registerSharedProjectNotifications } from '../collaboration/sharedProjectNotifications'
+import { useExtensionsStore } from './extensionsStore'
+import { useShellStore } from './shellStore'
 
 /**
  * Bridges the backend extension host's imperative UI capabilities — toasts,
@@ -168,8 +170,19 @@ export function registerHostBridge(): void {
 
   registerProjectNotifications()
   registerSharedProjectNotifications()
+  registerViewNotifications()
   registerProgressNotifications()
   registerDialogNotifications()
+}
+
+function registerViewNotifications(): void {
+  rpc.onNotification('ui/activateContentView', (params) => {
+    const key = firstParam<string>(params)
+    const view = useExtensionsStore.getState().views.find((v) => v.key === key && v.placement === 'main')
+    if (!view) return
+    const shell = useShellStore.getState()
+    shell.guardLeave(() => shell.setExtView({ extensionId: view.extensionId, key: view.key }))
+  })
 }
 
 function registerProjectNotifications(): void {

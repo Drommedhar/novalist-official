@@ -94,7 +94,7 @@ public sealed partial class EntitiesRpc
             var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
                 ?? throw Unknown(id);
             return await WithAiFindingsAsync(
-                BuildCustomPeek(custom, type, resolveIndex, pins),
+                await BuildCustomPeekAsync(custom, type, resolveIndex, pins),
                 chapterGuid, [custom.Name, .. custom.Aliases]);
         }
 
@@ -266,7 +266,7 @@ public sealed partial class EntitiesRpc
             [], l.Sections.Select(s => new EntitySectionDto(s.Title, s.Content)).ToArray(), pins);
     }
 
-    private EntityPeekDto BuildCustomPeek(
+    private async Task<EntityPeekDto> BuildCustomPeekAsync(
         CustomEntityData entity, string type,
         Dictionary<string, (string Id, string TypeKey)> resolve, PeekMapPinDto[] pins)
     {
@@ -288,6 +288,17 @@ public sealed partial class EntitiesRpc
             var label = def?.DisplayName ?? pair.Key;
             if (def?.Type == CustomPropertyType.EntityRef)
                 entityRefRelationships.Add(BuildRelationship(label, pair.Value, resolve));
+            else if (def?.Type == CustomPropertyType.EntityRefList)
+            {
+                var targetType = def.EnumOptions?.FirstOrDefault() ?? "character";
+                var targets = new List<PeekRelationshipTargetDto>();
+                foreach (var targetId in EntityReferenceList.Parse(pair.Value))
+                {
+                    var target = await FindEntityAsync(targetType, targetId);
+                    if (target != null) targets.Add(new PeekRelationshipTargetDto(target.DisplayName, target.Id, targetType));
+                }
+                entityRefRelationships.Add(new PeekRelationshipDto(label, targets.ToArray()));
+            }
             else
                 props.Add(new PeekPropDto(label, pair.Value));
         }

@@ -28,6 +28,7 @@ function InlineActionReview({ review }: { review: Review }): React.JSX.Element {
   const [choice, setChoice] = useState<string | null>(null)
   const keyboard = useDialogKeyboard(() => review.finish(null))
   const { result } = review
+  const sourceUrl = result.sourceUrl && /^https?:\/\//i.test(result.sourceUrl) ? result.sourceUrl : null
   const information = result.disposition === 'information' || !!result.error
   const choices = [...new Set([result.text, ...result.alternatives ?? []])].filter(Boolean)
   return <div className="dialog-overlay">
@@ -41,6 +42,12 @@ function InlineActionReview({ review }: { review: Review }): React.JSX.Element {
             {text}
           </label>)}
         </fieldset>}
+      {sourceUrl && <p className="dialog-message">
+        <a href={sourceUrl} onClick={(event) => {
+          event.preventDefault()
+          void window.novalist.openExternal(sourceUrl)
+        }}>{result.sourceLabel || sourceUrl}</a>
+      </p>}
       <div className="dialog-actions">
         <button className="dialog-button" onClick={() => review.finish(null)}>{t(information ? 'dialog.close' : 'dialog.cancel')}</button>
         {!information && <button className="dialog-button primary" disabled={choice === null} onClick={() => review.finish(choice)}>{t('inlineReview.apply')}</button>}

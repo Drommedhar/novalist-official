@@ -123,6 +123,9 @@ public partial class EntityService : IEntityService
     public Task SaveCustomEntityAsync(CustomEntityData entity)
     {
         var typeDef = GetCustomEntityTypeOrThrow(entity.EntityTypeKey);
+        foreach (var field in typeDef.DefaultFields.Where(field => field.Type == CustomPropertyType.EntityRefList))
+            if (entity.Fields.TryGetValue(field.Key, out var value))
+                entity.Fields[field.Key] = System.Text.Json.JsonSerializer.Serialize(EntityReferenceList.Parse(value));
         return SaveEntityAsync(typeDef.FolderName, typeDef.FolderName, entity.Id, entity, entity.IsWorldBible);
     }
 
@@ -173,6 +176,8 @@ public partial class EntityService : IEntityService
 
     public async Task SaveCustomEntityTypeAsync(CustomEntityTypeDefinition definition)
     {
+        foreach (var field in definition.DefaultFields.Where(field => field.Type == CustomPropertyType.EntityRefList))
+            field.DefaultValue = System.Text.Json.JsonSerializer.Serialize(EntityReferenceList.Parse(field.DefaultValue));
         var existing = Project.CustomEntityTypes.FindIndex(t =>
             string.Equals(t.TypeKey, definition.TypeKey, StringComparison.Ordinal));
         if (existing >= 0)
