@@ -1,4 +1,5 @@
-const MODAL = 'dialog:modal, [role="dialog"], [role="alertdialog"]'
+const NATIVE_MODAL = CSS.supports('selector(dialog:modal)') ? 'dialog:modal' : 'dialog[open]'
+const MODAL = `${NATIVE_MODAL}, [role="dialog"], [role="alertdialog"]`
 const OVERLAY = '.dialog-overlay, .help-overlay, .mobile-sheet-overlay, [aria-modal="true"]'
 const FOCUSABLE = 'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href], [tabindex]:not([tabindex="-1"]), [contenteditable="true"]'
 
@@ -23,7 +24,7 @@ export function installModalFocus(): () => void {
   const refresh = (): void => {
     restoreBackground()
     const dialogs = [...document.querySelectorAll<HTMLElement>(MODAL)].filter((dialog) =>
-      (dialog.matches('dialog:modal') || dialog.closest(OVERLAY)) && !dialog.closest('[data-motion-presence="closing"], [hidden]') && dialog.getClientRects().length > 0)
+      (dialog.matches(NATIVE_MODAL) || dialog.closest(OVERLAY)) && !dialog.closest('[data-motion-presence="closing"], [hidden]') && dialog.getClientRects().length > 0)
     const removed = stack.filter((entry) => !dialogs.includes(entry.dialog))
     stack = stack.filter((entry) => dialogs.includes(entry.dialog))
     for (const entry of removed.reverse()) {
@@ -36,7 +37,7 @@ export function installModalFocus(): () => void {
       if (!dialog.contains(document.activeElement)) focus(dialog)
     }
     // Native dialogs occupy the browser's top layer, regardless of DOM order.
-    stack.sort((a, b) => Number(a.dialog.matches('dialog:modal')) - Number(b.dialog.matches('dialog:modal')))
+    stack.sort((a, b) => Number(a.dialog.matches(NATIVE_MODAL)) - Number(b.dialog.matches(NATIVE_MODAL)))
     const active = stack.at(-1)?.dialog
     if (!active) return
     let branch: HTMLElement = active

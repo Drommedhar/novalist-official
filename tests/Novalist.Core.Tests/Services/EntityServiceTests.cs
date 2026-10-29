@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Novalist.Core.Tests.Services;
 
-public class EntityServiceTests : IDisposable
+public partial class EntityServiceTests : IDisposable
 {
     private readonly TempDir _dir = new();
     private readonly string _bookRoot;

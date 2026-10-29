@@ -33,9 +33,13 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
 {
     private readonly HybridWebView _web;
     private readonly BackendHost _host;
-    private readonly IFileService _files = new CoordinatedFileService(new IosFileAccessCoordinator());
+    private readonly MobileProjectAccess _projects = MobileProjectAccess.Create();
+    private IFileService _files => _projects.Files;
     private readonly ExportFiles _exports = new(FileSystem.Current.CacheDirectory);
     private readonly SystemMicrophone _microphone = new();
+#if ANDROID
+    private readonly AndroidReadAloud _readAloud = new();
+#endif
     private readonly TemporaryAccessRegistry _manuscriptAccess = new(ReportScopeReleaseFailure);
     private readonly Stream _bridge;
     private readonly CancellationTokenSource _cts = new();
@@ -51,10 +55,12 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
         // locked until their grant is resumed. Without it the recent-projects
         // list reads as a list of deleted projects and erases itself.
         _host = new BackendHost(
-            FileSystem.Current.AppDataDirectory,
-            new UnavailableProcessRunner(),
-            new IosStoredPathResolver(),
-            _files);
+            new Workspace(FileSystem.Current.AppDataDirectory, _projects, _files, _projects.Archives),
+            new UnavailableProcessRunner()
+#if ANDROID
+            , systemDictation: new AndroidSystemDictation(), systemVoices: _readAloud
+#endif
+            );
         _host.Attach(backendEnd, backendEnd);
 
         _web = new HybridWebView
@@ -65,7 +71,11 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
             HorizontalOptions = LayoutOptions.Fill,
         };
         _web.RawMessageReceived += OnRawMessageReceived;
+#if ANDROID
+        Content = CreateAndroidChrome();
+#else
         Content = _web;
+#endif
 
 #if IOS
         // Lock zoom once the WKWebView exists: prevents the iOS focus-zoom trap
@@ -179,6 +189,10 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
         if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
         _manuscriptAccess.Dispose();
         DisposeLifecycle();
+#if ANDROID
+        DisposeAndroidChrome();
+        _readAloud.Dispose();
+#endif
         _ = _microphone.StopOnDisposeAsync();
         _cts.Cancel();
 #if IOS
@@ -188,8 +202,7 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
 #endif
         _web.RawMessageReceived -= OnRawMessageReceived;
         _host.Dispose();
-        IosStoredPathResolver.ActiveProjectPath = null;
-        SecurityScopedFolders.ReleaseExcept(null);
+        _projects.Dispose();
         _bridge.Dispose();
         _cts.Dispose();
     }

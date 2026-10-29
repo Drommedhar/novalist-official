@@ -12,6 +12,8 @@ Settings is also available before you open a project. Controls elsewhere in the 
 
 Settings shows **one section at a time**. The rail down the left side groups every section under four headings, and the header carries a search box. On desktop, the category list and section content scroll independently, keeping the heading and search visible. Selecting another section starts at its top. In a narrow split pane, the category list becomes a short scrollable area above the section.
 
+On tablets, the category list stays in a column to the left of the selected section. The sidebar and binder can be collapsed from the top bar to give the form more space.
+
 | Category | What lives there |
 | --- | --- |
 | **General** | Appearance, Accessibility, Keyboard shortcuts, Theme tokens |

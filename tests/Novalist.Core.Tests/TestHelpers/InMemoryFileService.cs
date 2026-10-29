@@ -92,6 +92,7 @@ public class InMemoryFileService : IFileService
     public Task DeleteFileAsync(string path)
     {
         Files.Remove(path);
+        Binaries.Remove(path);
         return Task.CompletedTask;
     }
 
@@ -118,6 +119,7 @@ public class InMemoryFileService : IFileService
         if (Files.Remove(oldPath, out var v))
         {
             Files[newPath] = v;
+            if (Binaries.Remove(oldPath, out var bytes)) Binaries[newPath] = bytes;
             Mtimes.Remove(oldPath, out var t);
             Mtimes[newPath] = t == default ? DateTime.UtcNow : t;
         }

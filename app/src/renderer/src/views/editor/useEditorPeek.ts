@@ -1,10 +1,11 @@
 import { pushEditorEntityNames } from './editorEntities'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { type EditorWindow } from './editorBridge'
 import { useProjectStore } from '../../stores/projectStore'
 import { useShellStore } from '../../stores/shellStore'
 import { useWikiStore } from '../../stores/wikiStore'
 import { useEntityPeek, type PeekScope } from './PeekCard'
+import { registerBackgroundRead } from '../../rpc/backgroundReads'
 
 export function useEditorPeek(pane: string, openSceneId: string | null) {
   const chapters = useProjectStore((s) => s.chapters)
@@ -50,7 +51,19 @@ export function useEditorPeek(pane: string, openSceneId: string | null) {
   const sceneTitleRef = useRef(peekScope.sceneTitle)
   sceneTitleRef.current = peekScope.sceneTitle
 
-  const pushEntityNames = (editor: EditorWindow): Promise<void> =>
-    pushEditorEntityNames(editor, pane, entityIndexRef, conlangWordsRef)
+  const entityLoad = useRef<AbortController | null>(null)
+  useEffect(() => () => entityLoad.current?.abort(), [])
+  const pushEntityNames = async (editor: EditorWindow): Promise<void> => {
+    entityLoad.current?.abort()
+    const controller = new AbortController()
+    entityLoad.current = controller
+    const unregister = registerBackgroundRead(controller)
+    try {
+      await pushEditorEntityNames(editor, pane, entityIndexRef, conlangWordsRef,
+        window.novalist.isMobile ? controller.signal : undefined)
+    } catch (error) {
+      if (!controller.signal.aborted) throw error
+    } finally { unregister() }
+  }
   return { entityIndexRef, peekScope, peek, peekRef, sceneTitleRef, pushEntityNames }
 }

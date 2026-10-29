@@ -1,5 +1,6 @@
 import { MotionPresence } from '../../shell/MotionPresence'
 import { useEffect, useState } from 'react'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 import { useTranslation } from 'react-i18next'
 import { Pencil, Plus, Trash2, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -160,6 +161,7 @@ export function CustomTypeManager({
         className="dialog-card type-manager-card custom-type-manager-card"
         role="dialog"
         aria-label={t('codexHub.manageTypes')}
+        onKeyDown={(event) => dismissOnAndroidBack(event, onClose)}
       >
         <div className="type-manager-title-row">
           <div className="dialog-title">

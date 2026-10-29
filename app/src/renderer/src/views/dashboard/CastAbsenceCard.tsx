@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { rpc } from '../../rpc/client'
 import { useProjectStore } from '../../stores/projectStore'
+import { useDashboardRead } from './useDashboardRead'
 
 interface AbsenceRow {
   entityId: string
@@ -25,7 +24,6 @@ interface AbsenceRow {
  */
 export function CastAbsenceCard(): React.JSX.Element {
   const { t } = useTranslation()
-  const [rows, setRows] = useState<AbsenceRow[]>([])
   /**
    * The book's shape, as one string: which chapters, in what order, holding how
    * many scenes. Asked again whenever it changes.
@@ -47,16 +45,7 @@ export function CastAbsenceCard(): React.JSX.Element {
     s.chapters.map((c) => `${c.guid}.${c.scenes.length}`).join('|')
   )
 
-  useEffect(() => {
-    let live = true
-    void rpc
-      .request<AbsenceRow[]>('analytics/castAbsence')
-      .then((next) => live && setRows(next))
-      .catch(() => live && setRows([]))
-    return () => {
-      live = false
-    }
-  }, [structure])
+  const rows = useDashboardRead<AbsenceRow[]>('analytics/castAbsence', structure) ?? []
 
   // A book where nobody disappears has nothing to say here, and an empty card
   // reads as a report that failed rather than one that came back clean.

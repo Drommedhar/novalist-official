@@ -1,0 +1,112 @@
+name: Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      alpha:
+        description: Build signed alpha APKs without publishing a release
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      alpha:
+        type: boolean
+        default: false
+    secrets:
+      ANDROID_ALPHA_KEYSTORE_BASE64:
+        required: false
+      ANDROID_ALPHA_KEYSTORE_PASSWORD:
+        required: false
+  pull_request:
+    paths:
+      - 'Novalist.Mobile/**'
+      - 'Novalist.Backend/**'
+      - 'Novalist.Core/**'
+      - 'Novalist.Sdk/**'
+      - 'app/**'
+      - 'Directory.Build.*'
+      - 'eng/Build-Android.ps1'
+      - 'eng/Publish-AndroidAlpha.ps1'
+      - '.github/workflows/android.yml'
+      - '.github/workflows/release.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [android-x64, android-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.303
+      - uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install Android workload
+        run: dotnet workload install maui-android --skip-manifest-update
+      - name: Install renderer dependencies
+        working-directory: app
+        run: npm ci --no-audit
+      - name: Verify renderer
+        working-directory: app
+        run: |
+          npm run test:transport
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run typecheck
+          exit $LASTEXITCODE
+      - name: Install required Android SDK components
+        run: >-
+          dotnet build Novalist.Mobile/Novalist.Mobile.csproj -f net10.0-android
+          -c ${{ inputs.alpha && 'Release' || 'Debug' }} -r ${{ matrix.runtime }}
+          -t:InstallAndroidDependencies -p:AcceptAndroidSdkLicenses=True
+          -p:EnableImportApi=false -p:UseMonoRuntime=true
+          -p:AndroidSdkDirectory="$env:ANDROID_HOME" -p:JavaSdkDirectory="$env:JAVA_HOME"
+      - name: Build standalone development APK
+        if: ${{ !inputs.alpha }}
+        run: ./eng/Build-Android.ps1 -Runtime '${{ matrix.runtime }}'
+      - name: Build and verify signed alpha APK
+        if: inputs.alpha
+        env:
+          ANDROID_ALPHA_KEYSTORE_BASE64: ${{ secrets.ANDROID_ALPHA_KEYSTORE_BASE64 }}
+          ANDROID_SIGNING_PASSWORD: ${{ secrets.ANDROID_ALPHA_KEYSTORE_PASSWORD }}
+          ANDROID_RUNTIME: ${{ matrix.runtime }}
+        run: |
+          if (!$env:ANDROID_ALPHA_KEYSTORE_BASE64 -or !$env:ANDROID_SIGNING_PASSWORD) {
+            throw 'Configure ANDROID_ALPHA_KEYSTORE_BASE64 and ANDROID_ALPHA_KEYSTORE_PASSWORD before releasing Android alpha APKs.'
+          }
+          $keyStore = Join-Path $env:RUNNER_TEMP 'novalist-alpha.keystore'
+          try {
+            [IO.File]::WriteAllBytes($keyStore, [Convert]::FromBase64String($env:ANDROID_ALPHA_KEYSTORE_BASE64))
+            $tag = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else {
+              (Get-Content -LiteralPath app/package.json -Raw | ConvertFrom-Json).version
+            }
+            ./eng/Publish-AndroidAlpha.ps1 -Runtime $env:ANDROID_RUNTIME -Tag $tag `
+              -VersionCode $env:GITHUB_RUN_NUMBER -SigningKeyStore $keyStore
+          } finally {
+            if (Test-Path -LiteralPath $keyStore) { Remove-Item -LiteralPath $keyStore }
+          }
+      - uses: actions/upload-artifact@v4
+        if: ${{ !inputs.alpha }}
+        with:
+          name: novalist-android-development-${{ matrix.runtime }}
+          path: Novalist.Mobile/bin/Debug/net10.0-android/${{ matrix.runtime }}/com.novalist.app-Signed.apk
+          if-no-files-found: error
+      - name: Upload Android alpha release assets
+        if: inputs.alpha
+        uses: actions/upload-artifact@v4
+        with:
+          name: novalist-android-alpha-${{ matrix.runtime }}
+          path: artifacts/android-alpha/${{ matrix.runtime }}/*
+          if-no-files-found: error

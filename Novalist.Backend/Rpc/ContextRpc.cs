@@ -48,26 +48,28 @@ public sealed partial class ContextRpc
     }
 
     [JsonRpcMethod("context/analyze")]
-    public async Task<SceneContextDto> AnalyzeAsync(string chapterGuid, string sceneId)
+    public async Task<SceneContextDto> AnalyzeAsync(string chapterGuid, string sceneId, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var (targetChapter, targetScene) = _workspace.ResolveScene(chapterGuid, sceneId);
         var projects = _workspace.Projects;
 
-        var characterSources = (await _entities.LoadCharactersAsync())
+        var characterSources = (await _entities.LoadCharactersAsync(cancellationToken))
             .Select(character => new EntitySource(character, character.DisplayName, BuildPatterns(GetCharacterAliases(character))))
             .ToList();
-        var locationSources = (await _entities.LoadLocationsAsync())
+        var locationSources = (await _entities.LoadLocationsAsync(cancellationToken))
             .Select(location => new EntitySource(location, location.Name, BuildPatterns([location.Name])))
             .ToList();
-        var itemSources = (await _entities.LoadItemsAsync())
+        var itemSources = (await _entities.LoadItemsAsync(cancellationToken))
             .Select(item => new EntitySource(item, item.Name, BuildPatterns([item.Name])))
             .ToList();
-        var loreSources = (await _entities.LoadLoreAsync())
+        var loreSources = (await _entities.LoadLoreAsync(cancellationToken))
             .Select(lore => new EntitySource(lore, lore.Name, BuildPatterns([lore.Name])))
             .ToList();
 
         var chapters = projects.GetChaptersOrdered();
-        var (aggregateByChapter, currentContent) = await ReadContextContentAsync(chapters, targetChapter, targetScene);
+        var (aggregateByChapter, currentContent) = await ReadContextContentAsync(chapters, targetChapter, targetScene, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var matchedCharacters = MatchSources(currentContent, characterSources);
         var matchedLocations = MatchSources(currentContent, locationSources);
@@ -121,7 +123,7 @@ public sealed partial class ContextRpc
     }
 
     private async Task<(Dictionary<string, string> Chapters, string Current)> ReadContextContentAsync(
-        IReadOnlyList<ChapterData> chapters, ChapterData targetChapter, SceneData targetScene)
+        IReadOnlyList<ChapterData> chapters, ChapterData targetChapter, SceneData targetScene, CancellationToken cancellationToken)
     {
         var projects = _workspace.Projects;
         var aggregateByChapter = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -129,10 +131,12 @@ public sealed partial class ContextRpc
         foreach (var chapter in chapters)
         {
             var scenes = projects.GetScenesForChapter(chapter.Guid);
+            var rawContents = await projects.ReadSceneContentsAsync(chapter, scenes, cancellationToken);
             var contents = new List<string>(scenes.Count);
-            foreach (var scene in scenes)
+            foreach (var (scene, rawContent) in scenes.Zip(rawContents))
             {
-                var content = NormalizeSceneContent(await projects.ReadSceneContentAsync(chapter, scene));
+                cancellationToken.ThrowIfCancellationRequested();
+                var content = NormalizeSceneContent(rawContent);
                 contents.Add(content);
                 if (string.Equals(chapter.Guid, targetChapter.Guid, StringComparison.OrdinalIgnoreCase)
                     && string.Equals(scene.Id, targetScene.Id, StringComparison.OrdinalIgnoreCase))

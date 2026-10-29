@@ -1,0 +1,21 @@
+:root[data-shell='mobile'] .settings-layout {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+}
+
+:root[data-shell='mobile'] .settings-nav {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+:root[data-shell='mobile'] .settings-sections {
+  min-width: 0;
+}
+
+:root[data-shell='mobile'] .settings-sections .props-row {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--nl-field-width-sm)), 1fr));
+}
+
+:root[data-shell='mobile'] .settings-sections .props-row > .inspector-input {
+  min-width: 0;
+}

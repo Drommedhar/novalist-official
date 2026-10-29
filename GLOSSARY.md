@@ -4,6 +4,12 @@ Novalist is a writing workspace for books and their story worlds.
 
 ## Language
 
+**External project folder**:
+A Novalist project folder chosen by the writer outside the app's private storage. Edits are saved back to that folder, rather than imported into a separate project.
+
+**Linked cloud project**:
+A Novalist project connected to a folder in the writer's cloud account. The writer can work on a downloaded copy while offline, and pending changes are synchronized with that same folder when connected.
+
 **Codex entry**:
 A named character, location, item, lore entry, or member of a custom type in a book or its World Bible.
 

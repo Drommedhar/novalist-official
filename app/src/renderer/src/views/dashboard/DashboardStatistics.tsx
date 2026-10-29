@@ -1,5 +1,6 @@
 import { BookAnalyticsCard } from './BookAnalyticsCard'
 import { type DashboardDto, type BookDashboardState } from './dashboardModel'
+import { useDashboardRead } from './useDashboardRead'
 
 const STATUS_SUMMARY: { key: keyof DashboardDto; label: string }[] = [
   { key: 'outlineCount', label: 'dashboard.statusOutline' },
@@ -56,6 +57,7 @@ export function DashboardWordStatistics({ data, t, statusTotal }: { data: Dashbo
 }
 
 export function DashboardStoryProgress({ stageBreakdown, t, stageTotal, data }: { stageBreakdown: BookDashboardState['stageBreakdown']; t: BookDashboardState['t']; stageTotal: BookDashboardState['stageTotal']; data: DashboardDto }): React.JSX.Element {
+  const echoes = useDashboardRead<DashboardDto['echoPhrases']>(window.novalist.isMobile ? 'dashboard/echoPhrases' : null) ?? data.echoPhrases
   return <>
       {/* Scene stages, which the chapter breakdown above cannot express: a
           chapter mid-revision holds scenes at four different stages. */}
@@ -123,12 +125,12 @@ export function DashboardStoryProgress({ stageBreakdown, t, stageTotal, data }: 
         </div>
       )}
 
-      {data.echoPhrases.length > 0 && (
+      {echoes.length > 0 && (
         <div className="dashboard-card">
           <div className="dashboard-card-title">{t('dashboard.echoFinder')}</div>
           <div className="dashboard-echo-desc">{t('dashboard.echoDescription')}</div>
           <div className="dashboard-echoes">
-            {data.echoPhrases.map((e) => (
+            {echoes.map((e) => (
               <span key={e.phrase} className="dashboard-echo">
                 {e.phrase} <b>{e.count}</b>
               </span>

@@ -37,6 +37,8 @@ Archives created by older versions remain where they are. If their folder has no
 | Before restore | Automatically, immediately before restoring another backup |
 | Milestone | When you name a version and press **Keep this version** |
 
+On mobile, open and automatic backups wait until you have been idle for one minute. Typing, scrolling, or navigating interrupts an automatic cloud-folder copy; Novalist retries it when you are idle again. Mobile shutdown does not guarantee a close backup. **Back up now** remains available in Settings.
+
 ## Milestones
 
 Rotating backups answer "what did this look like an hour ago". They cannot answer "what did the first draft look like", because by then it has been rotated out.

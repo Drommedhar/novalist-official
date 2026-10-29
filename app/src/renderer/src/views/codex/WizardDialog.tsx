@@ -5,6 +5,7 @@ import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { rpc } from '../../rpc/client'
 import type { WizardStepDef } from './wizards'
 import { EntityReferenceList } from './EntityReferenceList'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 
 /**
  * Step-at-a-time wizard runner: one question per screen with help text,
@@ -61,7 +62,8 @@ export function WizardDialog({
 
   return (
     <div className="dialog-overlay">
-      <div className="dialog-card type-manager-card" ref={stepRef} role="dialog" aria-label={title}>
+      <div className="dialog-card type-manager-card" ref={stepRef} role="dialog" aria-label={title}
+        onKeyDownCapture={(event) => dismissOnAndroidBack(event, onClose)}>
         <div className="type-manager-title-row">
           <div className="dialog-title">{title}</div>
           <span className="codex-row-detail">

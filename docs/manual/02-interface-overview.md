@@ -268,6 +268,8 @@ All dialogs (chapter creation, find & replace, confirmations, pane layouts, snap
 
 ## Leaving a screen with unsaved edits
 
+On phones and tablets, the labeled **Library** button at the top of the workspace returns to your bookshelf. It saves pending scene edits before closing the project. The button remains available as you move between views.
+
 Some screens hold what you type until you press **Save** — the plot [thread detail](08-plot-grid.md#a-thread-as-more-than-a-row-of-ticks) is one. Leaving one of those with edits in hand asks first, whichever way you set off: the activity bar, the mode panel, the command palette, a hotkey, a map pin, a research link, or clicking a scene in the binder.
 
 The prompt offers three answers:

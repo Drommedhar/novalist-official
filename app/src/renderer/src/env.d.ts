@@ -28,6 +28,7 @@ interface Window {
   __novalistTab?: (key: string) => void
   __novalistPlanSelect?: (index: number) => void
   __novalistPlanDismiss?: () => void
+  __novalistBack?: () => boolean
   __novalistSidebarCollapsed?: (collapsed: boolean) => void
   novalistStores: {
     project: typeof import('./stores/projectStore').useProjectStore
@@ -111,8 +112,8 @@ interface Window {
       scale: number
     ): Promise<boolean>
     saveFile(defaultName: string): Promise<string | null>
-    /** iOS: deliver a staged export through the share sheet. False means cancelled. */
-    shareExport?(path: string): Promise<boolean>
+    /** Share a staged export. Android reports handoff; only iOS reports completion/cancellation. */
+    shareExport?(path: string): Promise<boolean | 'handed-off'>
     /** iOS: release this export's temporary file and any companion assets. */
     releaseExport?(path: string): Promise<void>
     applySpellCheck(enabled: boolean, languages: string[], words: string[]): Promise<string[]>

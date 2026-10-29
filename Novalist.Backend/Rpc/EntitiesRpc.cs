@@ -20,29 +20,30 @@ public sealed partial class EntitiesRpc
     }
 
     [JsonRpcMethod("entities/list")]
-    public async Task<EntitySummaryDto[]> ListAsync(string type)
+    public async Task<EntitySummaryDto[]> ListAsync(string type, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (IsCustomType(type))
         {
             var references = _entities.GetCustomEntityTypes().Single(def => def.TypeKey == type).DefaultFields
                 .Where(field => field.Type == CustomPropertyType.EntityRefList).Select(field => field.Key).ToHashSet();
-            return (await _entities.LoadCustomEntitiesAsync(type))
+            return (await _entities.LoadCustomEntitiesAsync(type, cancellationToken))
                 .Select(c => Summary(
                     c, c.Fields.FirstOrDefault(field => !references.Contains(field.Key) && !string.IsNullOrWhiteSpace(field.Value)).Value ?? string.Empty))
                 .ToArray();
         }
         return type switch
         {
-            "character" => (await _entities.LoadCharactersAsync())
+            "character" => (await _entities.LoadCharactersAsync(cancellationToken))
                 .Select(c => Summary(c, c.Role))
                 .ToArray(),
-            "location" => (await _entities.LoadLocationsAsync())
+            "location" => (await _entities.LoadLocationsAsync(cancellationToken))
                 .Select(l => Summary(l, l.Description))
                 .ToArray(),
-            "item" => (await _entities.LoadItemsAsync())
+            "item" => (await _entities.LoadItemsAsync(cancellationToken))
                 .Select(i => Summary(i, i.Description))
                 .ToArray(),
-            "lore" => (await _entities.LoadLoreAsync())
+            "lore" => (await _entities.LoadLoreAsync(cancellationToken))
                 .Select(l => Summary(l, l.Description))
                 .ToArray(),
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
@@ -115,16 +116,16 @@ public sealed partial class EntitiesRpc
     {
         if (IsCustomType(type))
         {
-            var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
+            var custom = await _entities.LoadCustomEntityAsync(type, id)
                 ?? throw Unknown(id);
             return WithResolvedImages(custom);
         }
         object? entity = type switch
         {
-            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id),
-            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
-            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
-            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            "character" => await _entities.LoadCharacterAsync(id),
+            "location" => await _entities.LoadLocationAsync(id),
+            "item" => await _entities.LoadItemAsync(id),
+            "lore" => await _entities.LoadLoreEntryAsync(id),
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
         };
         return WithResolvedImages(entity ?? throw Unknown(id));
@@ -275,14 +276,14 @@ public sealed partial class EntitiesRpc
     private async Task<Core.Models.IEntityData?> FindEntityAsync(string type, string id)
     {
         if (IsCustomType(type))
-            return (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id);
+            return await _entities.LoadCustomEntityAsync(type, id);
 
         return type switch
         {
-            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id),
-            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
-            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
-            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            "character" => await _entities.LoadCharacterAsync(id),
+            "location" => await _entities.LoadLocationAsync(id),
+            "item" => await _entities.LoadItemAsync(id),
+            "lore" => await _entities.LoadLoreEntryAsync(id),
             _ => null
         };
     }

@@ -93,6 +93,34 @@ public class BackupServiceTests
         Assert.Single(archive.Created);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CreateAsyncPassesCancellationToCapableArchiveProviders(bool cancel)
+    {
+        var (_, files, _, settings) = Build();
+        var project = Substitute.For<IProjectService>();
+        project.ProjectRoot.Returns(Root);
+        var archive = Substitute.For<ICancellableArchiveService>();
+        using var cancellation = new CancellationTokenSource();
+        archive.CreateFromDirectoryAsync(Arg.Any<string>(), Arg.Any<string>(),
+            Arg.Any<IReadOnlyCollection<string>>(), Arg.Any<CancellationToken>()).Returns(async call =>
+        {
+            Assert.Equal(cancellation.Token, call.Arg<CancellationToken>());
+            if (cancel) cancellation.Cancel();
+            call.Arg<CancellationToken>().ThrowIfCancellationRequested();
+            await files.WriteTextAsync(call.ArgAt<string>(1), "archive");
+            return 1;
+        });
+        var service = new BackupService(project, files, archive, settings, BackupRoot);
+
+        if (cancel) await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.CreateAsync("manual", cancellation.Token));
+        else Assert.Equal(7, (await service.CreateAsync("manual", cancellation.Token))!.SizeBytes);
+
+        await archive.Received(1).CreateFromDirectoryAsync(Root, Arg.Any<string>(),
+            Arg.Is<IReadOnlyCollection<string>>(excluded => excluded.Contains(".git")), cancellation.Token);
+    }
+
     [Fact]
     public async Task CreateAsync_ExcludesGitDirectory()
     {

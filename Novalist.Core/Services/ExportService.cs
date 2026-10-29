@@ -14,11 +14,14 @@ public partial class ExportService
 
     private readonly IProjectService _projectService;
     private readonly IEntityService? _entityService;
+    private readonly Func<string, Task<string>>? _materializeAsset;
 
-    public ExportService(IProjectService projectService, IEntityService? entityService = null)
+    public ExportService(IProjectService projectService, IEntityService? entityService = null,
+        Func<string, Task<string>>? materializeAsset = null)
     {
         _projectService = projectService;
         _entityService = entityService;
+        _materializeAsset = materializeAsset;
     }
 
     /// <summary>
@@ -65,7 +68,30 @@ public partial class ExportService
     public async Task ExportAsync(ExportOptions options, string outputPath)
     {
         var chapters = await CompileChaptersAsync(options);
+        var cover = options.CoverImagePath;
+        var reference = options.ReferenceDocPath;
+        try
+        {
+            if (_materializeAsset != null && options.Format is ExportFormat.Epub or ExportFormat.Docx or ExportFormat.Pdf)
+            {
+                foreach (var scene in chapters.SelectMany(chapter => chapter.Scenes))
+                    scene.HtmlContent = await MaterializeImagesAsync(scene.HtmlContent);
+                if (options.Format is ExportFormat.Epub or ExportFormat.Pdf)
+                    options.CoverImagePath = await MaterializeAssetAsync(cover);
+                if (options.Format == ExportFormat.Docx)
+                    options.ReferenceDocPath = await MaterializeAssetAsync(reference);
+            }
+            await WriteCompiledAsync(chapters, options, outputPath);
+        }
+        finally
+        {
+            options.CoverImagePath = cover;
+            options.ReferenceDocPath = reference;
+        }
+    }
 
+    private async Task WriteCompiledAsync(List<ChapterExportContent> chapters, ExportOptions options, string outputPath)
+    {
         switch (options.Format)
         {
             case ExportFormat.Epub:

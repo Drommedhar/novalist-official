@@ -68,13 +68,17 @@ public sealed partial class BookAnalyticsService
     [GeneratedRegex(@"data-entity-id\s*=\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase)]
     private static partial Regex MentionIdRegex();
 
-    public async Task<BookAnalytics> ComputeAsync()
+    public async Task<BookAnalytics> ComputeAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var chapters = _projectService.GetChaptersOrdered();
         if (chapters.Count == 0) return new BookAnalytics();
 
-        var characters = await _entityService.LoadCharactersAsync();
-        var locations = await _entityService.LoadLocationsAsync();
+        var characters = _entityService is EntityService characterService
+            ? await characterService.LoadCharactersAsync(cancellationToken) : await _entityService.LoadCharactersAsync();
+        cancellationToken.ThrowIfCancellationRequested();
+        var locations = _entityService is EntityService locationService
+            ? await locationService.LoadLocationsAsync(cancellationToken) : await _entityService.LoadLocationsAsync();
 
         var characterNames = characters.ToDictionary(
             c => c.Id, c => EntityResolveIndex.Compose(c.Name, c.Surname), StringComparer.Ordinal);
@@ -90,14 +94,16 @@ public sealed partial class BookAnalyticsService
         for (var index = 0; index < chapters.Count; index++)
         {
             var chapter = chapters[index];
-            foreach (var scene in _projectService.GetScenesForChapter(chapter.Guid).OrderBy(s => s.Order))
+            var scenes = _projectService.GetScenesForChapter(chapter.Guid).OrderBy(s => s.Order).ToArray();
+            var contents = await ReadChapterAsync(chapter, scenes, cancellationToken);
+            foreach (var (scene, html) in scenes.Zip(contents))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 totalScenes++;
 
                 Add(pov, scene.AnalysisOverrides?.Pov ?? string.Empty, scene.WordCount);
                 Add(acts, chapter.Act, scene.WordCount);
 
-                var html = await _projectService.ReadSceneContentAsync(chapter, scene);
                 // Distinct per scene: a character named eight times in one scene
                 // is present once, not eight times.
                 foreach (Match match in MentionIdRegex().Matches(html))
@@ -130,6 +136,21 @@ public sealed partial class BookAnalyticsService
                     .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
             ]
         };
+    }
+
+    private async Task<IReadOnlyList<string>> ReadChapterAsync(ChapterData chapter,
+        IReadOnlyList<SceneData> scenes, CancellationToken cancellationToken)
+    {
+        if (_projectService is ProjectService projects)
+            return await projects.ReadSceneContentsAsync(chapter, scenes, cancellationToken);
+        var contents = new List<string>(scenes.Count);
+        foreach (var scene in scenes)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            contents.Add(await _projectService.ReadSceneContentAsync(chapter, scene));
+        }
+        cancellationToken.ThrowIfCancellationRequested();
+        return contents;
     }
 
     private static void Add(

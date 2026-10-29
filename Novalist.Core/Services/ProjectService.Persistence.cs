@@ -11,14 +11,18 @@ public partial class ProjectService
     /// scan found changes, reconciles the in-memory chapter/scene model + persists. Returns the
     /// report so callers can surface a summary. Safe to call on a clean project (no-op).
     /// </summary>
-    public async Task<ReconciliationReport> ReconcileActiveDraftAsync(bool apply = true)
+    public Task<ReconciliationReport> ReconcileActiveDraftAsync(bool apply = true)
+        => ReconcileActiveDraftCoreAsync(apply, forceContentScan: false);
+
+    private async Task<ReconciliationReport> ReconcileActiveDraftCoreAsync(bool apply, bool forceContentScan)
     {
+        using var freshReads = forceContentScan ? (_fileService as IFileReadCache)?.UseFreshReads() : null;
         if (ActiveBook == null || ActiveDraftRoot == null || ScenesManifest == null)
             return new ReconciliationReport();
 
         var index = await LoadDraftIndexAsync();
         var reconciler = new ProjectReconciler(_fileService);
-        var report = await reconciler.ScanAsync(ActiveDraftRoot, ActiveBook.ChapterFolder, ActiveBook.Chapters, ScenesManifest, index);
+        var report = await reconciler.ScanAsync(ActiveDraftRoot, ActiveBook.ChapterFolder, ActiveBook.Chapters, ScenesManifest, index, forceContentScan);
 
         if (apply && report.HasChanges)
         {
@@ -26,11 +30,35 @@ public partial class ProjectService
             await SaveActiveDraftDataAsync();   // draft.json + refreshed chapter markers
             await SaveScenesAsync();
         }
+        else if (apply && report.RefreshedIndexEntries.Count > 0)
+        {
+            await RefreshDraftIndexAsync(index, report.RefreshedIndexEntries);
+        }
 
         if (report.HasChanges)
             DraftReconciled?.Invoke(this, report);
 
         return report;
+    }
+
+    private async Task RefreshDraftIndexAsync(DraftIndex index, Dictionary<string, DraftIndexEntry> refreshed)
+    {
+        var draftRoot = ActiveDraftRoot ?? throw new InvalidOperationException("No draft active.");
+        var changed = index.Version != 1 || index.Entries == null;
+        index.Version = 1;
+        index.Entries ??= new();
+        foreach (var (path, entry) in refreshed)
+        {
+            if (index.Entries.TryGetValue(path, out var previous) && previous != null
+                && previous.Id == entry.Id && previous.Hash == entry.Hash
+                && previous.Size == entry.Size && previous.MtimeUtc == entry.MtimeUtc)
+                continue;
+            index.Entries[path] = entry;
+            changed = true;
+        }
+        if (changed)
+            await _fileService.WriteTextAsync(_fileService.CombinePath(draftRoot, ".nvindex.json"),
+                JsonSerializer.Serialize(index, JsonOptions));
     }
 
     private async Task<DraftIndex> LoadDraftIndexAsync()

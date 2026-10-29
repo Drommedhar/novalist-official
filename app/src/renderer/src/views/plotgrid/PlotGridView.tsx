@@ -14,6 +14,7 @@ import { PlotlineDetailScreen, type Plotline } from './PlotlineDetailScreen'
 import { PlotLanes } from './PlotLanes'
 import { MobileGroup, MobileNav, MobileRow, useMobileNav } from '../../shell/MobileNav'
 import { useIsPhone } from '../../shell/useIsPhone'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 
 /**
  * The plot grid as a phone can show it.
@@ -262,7 +263,8 @@ function PlotGridDialogs({ menu, t, setEditingId, setPending, setMenu, pending, 
           className="dialog-overlay"
           onPointerDown={(e) => e.target === e.currentTarget && setPending(null)}
         >
-          <div className="dialog-card" role="dialog" aria-label={pending.name}>
+          <div className="dialog-card" role="dialog" aria-label={pending.name}
+            onKeyDown={(event) => dismissOnAndroidBack(event, () => setPending(null))}>
             <span className="dialog-title">{pending.name}</span>
             <CustomFieldsPanel scope="Plotline" id={pending.id} />
             <div className="dialog-actions">

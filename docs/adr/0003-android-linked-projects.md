@@ -1,0 +1,7 @@
+# Preserve external projects through linked working copies on Android
+
+Android must open existing Novalist project folders, including Google Drive, OneDrive, and Nextcloud folders, and save changes back to the same source. Cloud projects use linked local working copies with automatic synchronization, offline editing after download, and visible pending/synchronized/conflict states. Importing an independent copy and requiring manual export does not satisfy this requirement.
+
+The current backend expects ordinary filesystem paths, while Android document providers expose content URIs and cloud services expose remote file identifiers. Keeping a local working directory preserves the shared editor, backend, and project format. The trade-off is a durable synchronization journal and explicit recovery from interrupted or conflicting writes. Provider-specific adapters belong behind the shared synchronization boundary; credentials and manuscript contents stay on the device and the writer's chosen service, without a Novalist relay service.
+
+The beta supports one active device per project. It preserves conflicting and unsynchronized work rather than silently selecting a winner, and does not promise simultaneous editing or transactions across all files on a cloud service. Broad provider consent is acceptable, but Novalist must constrain operations to explicitly selected project roots. Google My Drive, the user's own OneDrive, and authenticated Nextcloud folders are in scope; shared drives, team libraries, and public-share links are deferred.

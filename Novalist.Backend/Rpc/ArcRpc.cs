@@ -92,7 +92,7 @@ public sealed class ArcRpc
     }
 
     private async Task<CharacterData> FindAsync(string characterId)
-        => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == characterId)
+        => await _entities.LoadCharacterAsync(characterId)
            ?? throw new InvalidOperationException($"Unknown character '{characterId}'.");
 
     private static ArcDto ToDto(CharacterArc arc) => new(

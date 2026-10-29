@@ -1,8 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useProjectStore } from '../stores/projectStore'
+import { useShellStore } from '../stores/shellStore'
+import { loadSpellDictionary } from '../proofing/spellDictionary'
 
 /**
  * Keeps the platform spell checker in step with the writer's settings.
@@ -47,32 +49,48 @@ export async function learnWord(word: string): Promise<string[]> {
   return words
 }
 
+function updatePlatformDictionary(enabled: boolean, languages: string, applied: () => void): () => void {
+  let active = true
+  let controller = new AbortController()
+  let retry: ReturnType<typeof setTimeout> | undefined
+  const update = async (): Promise<void> => {
+    try {
+      const words = await loadSpellDictionary(controller)
+      if (!active || controller.signal.aborted) return
+      await window.novalist.applySpellCheck(enabled, languages ? languages.split(',') : [], words)
+      if (active && !controller.signal.aborted) applied()
+    } catch {
+      if (!active || !controller.signal.aborted) return
+      retry = setTimeout(() => { controller = new AbortController(); void update() }, 1000)
+    }
+  }
+  void update()
+  return () => { active = false; clearTimeout(retry); controller.abort() }
+}
+
 export function useSpellCheck(): void {
   const { t } = useTranslation()
   const view = useSettingsStore((s) => s.view)
   const enabled = view?.effective.spellCheckEnabled ?? true
   const workspaceBusy = useProjectStore((state) => state.workspaceBusy)
   const workspaceEpoch = useProjectStore((state) => state.workspaceEpoch)
+  const mobileSceneId = useProjectStore((state) => window.novalist.isMobile ? state.openSceneId : null)
+  const writing = useShellStore((state) => !window.novalist.isMobile ||
+    (state.mobileLayout === 'phone' ? state.mobileTab === 'manuscript' :
+      state.mainView === 'write' || state.mainView === 'manuscript'))
   // Joined because the array identity changes on every settings fetch, which
   // would otherwise reload dictionaries on every unrelated settings write.
   const languages = (view?.effective.spellCheckLanguages ?? []).join(',')
+  const dictionaryApplied = useRef(false)
 
   useEffect(() => {
-    if (workspaceBusy) return
-    let active = true
-    void (async () => {
-      // Every name the Codex holds as well as the writer's own words: a
-      // secondary-world manuscript is a wall of underlines otherwise.
-      const words = await rpc.request<string[]>('spell/dictionary')
-      if (!active) return
-      await window.novalist.applySpellCheck(
-        enabled,
-        languages.length > 0 ? languages.split(',') : [],
-        words
-      )
-    })().catch(() => { /* Scope changes cancel old background dictionary reads. */ })
-    return () => { active = false }
-  }, [enabled, languages, workspaceBusy, workspaceEpoch])
+    dictionaryApplied.current = false
+  }, [enabled, languages, workspaceBusy, workspaceEpoch, writing])
+
+  useEffect(() => {
+    if (workspaceBusy || !writing || (window.novalist.isMobile && !mobileSceneId) || dictionaryApplied.current) return
+    return updatePlatformDictionary(enabled, languages, () => { dictionaryApplied.current = true })
+  }, [enabled, languages, workspaceBusy, workspaceEpoch, writing, mobileSceneId])
 
   // The spelling menu is built natively, so its labels have to be pushed across
   // rather than translated where it is shown.

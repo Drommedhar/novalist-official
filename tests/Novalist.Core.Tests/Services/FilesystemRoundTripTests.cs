@@ -26,6 +26,72 @@ public sealed class FilesystemRoundTripTests : IDisposable
     }
 
     [Fact]
+    public async Task ReopeningAfterAnEdit_RefreshesOnlyTheIndexAndSkipsSceneReadsNextTime()
+    {
+        var (chapter, scene) = await SetupSceneAsync();
+        var root = _sut.ProjectRoot!;
+        await _sut.LoadProjectAsync(root);
+        await _sut.WriteSceneContentAsync(chapter, scene, "<p>Edited prose.</p>");
+        var path = _sut.GetSceneFilePath(chapter, scene);
+        var modified = File.GetLastWriteTimeUtc(path);
+        var files = new SceneReadCounter();
+        var reader = new ProjectService(files);
+
+        await reader.LoadProjectAsync(root);
+
+        Assert.Equal(1, files.SceneReads);
+        Assert.Equal(1, files.IndexWrites);
+        Assert.Equal(modified, File.GetLastWriteTimeUtc(path));
+        Assert.Equal(FileFrontMatter.Build(scene.Id) + "<p>Edited prose.</p>", await File.ReadAllTextAsync(path));
+        files.SceneReads = files.IndexWrites = 0;
+
+        await reader.LoadProjectAsync(root);
+
+        Assert.Equal(0, files.SceneReads);
+        Assert.Equal(0, files.IndexWrites);
+        await _sut.WriteSceneContentAsync(chapter, scene, "<p>Edited once more.</p>");
+        await reader.LoadProjectAsync(root);
+        Assert.Equal(1, files.SceneReads);
+        Assert.Equal(1, files.IndexWrites);
+    }
+
+    [Fact]
+    public async Task RecheckingUnreliableTimestampsDoesNotRewriteAnUnchangedIndex()
+    {
+        var (chapter, scene) = await SetupSceneAsync();
+        var path = _sut.GetSceneFilePath(chapter, scene);
+        File.SetLastWriteTimeUtc(path, DateTime.UnixEpoch);
+        var files = new SceneReadCounter();
+        var reader = new ProjectService(files);
+        await reader.LoadProjectAsync(_sut.ProjectRoot!);
+        files.SceneReads = files.IndexWrites = 0;
+
+        await reader.ReconcileActiveDraftAsync();
+
+        Assert.Equal(1, files.SceneReads);
+        Assert.Equal(0, files.IndexWrites);
+        Assert.Equal(scene.Id, Assert.Single(reader.GetScenesForChapter(chapter.Guid)).Id);
+    }
+
+    private sealed class SceneReadCounter : FileService, IFileService
+    {
+        public int SceneReads { get; set; }
+        public int IndexWrites { get; set; }
+
+        Task<string> IFileService.ReadTextAsync(string path)
+        {
+            if (path.EndsWith(".novalist", StringComparison.Ordinal)) SceneReads++;
+            return ReadTextAsync(path);
+        }
+
+        Task IFileService.WriteTextAsync(string path, string content)
+        {
+            if (Path.GetFileName(path) == ".nvindex.json") IndexWrites++;
+            return WriteTextAsync(path, content);
+        }
+    }
+
+    [Fact]
     public async Task CreateScene_FileBornStamped()
     {
         var (ch, sc) = await SetupSceneAsync();

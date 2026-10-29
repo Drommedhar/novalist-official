@@ -69,19 +69,19 @@ export const createProjectWorkspaceActions: ProjectSlice<'applyWorkspaceSnapshot
       chapters: state.chapters
     })
     window.novalist.setProjectRoot(state.projectPath)
-    if (!deferHydration && !applicationStateReady && (projectChanged || resetEditors || state.projectName !== prevName)) void get().loadRecents().catch(() => {})
+    if (!deferHydration && !applicationStateReady && (!window.novalist.isMobile || !state.isLoaded)
+      && (projectChanged || resetEditors || state.projectName !== prevName)) void get().loadRecents().catch(() => {})
     if (!deferHydration && state.isLoaded) void get().loadDrafts().catch(() => {})
     // The effective language/theme can carry a per-project override, so re-apply
     // settings whenever the active project changes - otherwise a project opened
     // with a non-default language stays on the global language until Settings is
     // opened (which reloads settings as a side effect).
     if (!deferHydration && !applicationStateReady && (projectChanged || resetEditors)) void useSettingsStore.getState().load().catch(() => {})
-    // The Codex is the active book's, and its entry count is shown outside the
-    // Codex view, so it cannot wait for that view to be mounted again. Anything
-    // selected belonged to the book being left, so the selection goes with it.
-    if (state.activeBookId !== prevBookId || resetEditors) {
-      useCodexStore.setState({ selectedId: null, selectedRecord: null })
-      if (!deferHydration && state.isLoaded) void useCodexStore.getState().refresh().catch(() => {})
+    // Desktop preloads the navigation count. Mobile waits for the Codex view
+    // so a remote cast scan cannot queue ahead of the first scene read.
+    if (projectChanged || state.activeBookId !== prevBookId || resetEditors) {
+      useCodexStore.setState({ selectedId: null, selectedRecord: null, entities: [] })
+      if (!window.novalist.isMobile && !deferHydration && state.isLoaded) void useCodexStore.getState().refresh().catch(() => {})
     }
   },
 

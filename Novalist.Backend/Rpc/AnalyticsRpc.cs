@@ -22,11 +22,11 @@ public sealed class AnalyticsRpc
     /// when the Dashboard opens rather than kept live.
     /// </summary>
     [JsonRpcMethod("analytics/book")]
-    public async Task<BookAnalyticsDto> BookAsync()
+    public async Task<BookAnalyticsDto> BookAsync(CancellationToken cancellationToken = default)
     {
         var service = new BookAnalyticsService(
             _workspace.Projects, new EntityService(_workspace.Projects));
-        var result = await service.ComputeAsync();
+        var result = await service.ComputeAsync(cancellationToken);
 
         return new BookAnalyticsDto(
             [.. result.ChapterTitles],
@@ -45,11 +45,11 @@ public sealed class AnalyticsRpc
     /// work the report exists to do.
     /// </summary>
     [JsonRpcMethod("analytics/castAbsence")]
-    public async Task<AbsenceRowDto[]> CastAbsenceAsync(int minimumGap = 2)
+    public async Task<AbsenceRowDto[]> CastAbsenceAsync(int minimumGap = 2, CancellationToken cancellationToken = default)
     {
         var service = new BookAnalyticsService(
             _workspace.Projects, new EntityService(_workspace.Projects));
-        var result = await service.ComputeAsync();
+        var result = await service.ComputeAsync(cancellationToken);
 
         return [.. CastAbsence
             .From(result.Characters, result.ChapterTitles.Count, minimumGap)

@@ -26,8 +26,9 @@ public sealed partial class DashboardRpc
     /// the popover opens.
     /// </summary>
     [JsonRpcMethod("dashboard/overview")]
-    public async Task<ProjectOverviewDto> OverviewAsync()
+    public async Task<ProjectOverviewDto> OverviewAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var projects = _workspace.Projects;
         var project = projects.CurrentProject ?? throw new InvalidOperationException("No project open.");
         var book = projects.ActiveBook ?? throw new InvalidOperationException("No project open.");
@@ -38,15 +39,17 @@ public sealed partial class DashboardRpc
         var chapters = new List<ChapterOverviewDto>();
         foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var scenes = (manifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [])
                 .Where(s => s.ArchivedAt == null)
                 .ToList();
 
             var chapterText = new System.Text.StringBuilder();
             var sceneDtos = new List<SceneOverviewDto>();
-            foreach (var scene in scenes)
+            var contents = await projects.ReadSceneContentsAsync(chapter, scenes, cancellationToken);
+            foreach (var (scene, content) in scenes.Zip(contents))
             {
-                chapterText.Append(await projects.ReadSceneContentAsync(chapter, scene)).Append(' ');
+                chapterText.Append(content).Append(' ');
                 sceneDtos.Add(new SceneOverviewDto(scene.Title, scene.WordCount));
             }
 
@@ -72,18 +75,23 @@ public sealed partial class DashboardRpc
     }
 
     [JsonRpcMethod("dashboard/get")]
-    public async Task<DashboardDto> GetAsync(int historyRangeDays)
+    public async Task<DashboardDto> GetAsync(int historyRangeDays, bool includeEchoPhrases = true,
+        CancellationToken cancellationToken = default)
     {
         var projects = _workspace.Projects;
         var project = projects.CurrentProject ?? throw new InvalidOperationException("No project open.");
         var book = projects.ActiveBook ?? throw new InvalidOperationException("No project open.");
-        var manuscript = await ReadManuscriptAsync(book);
+        var manuscript = await ReadManuscriptAsync(book, cancellationToken);
+        var echoes = includeEchoPhrases ? await EchoPhrasesAsync(cancellationToken) : [];
+        cancellationToken.ThrowIfCancellationRequested();
         var totalWords = manuscript.TotalWords;
         var goals = projects.ProjectSettings.WordCountGoals;
         var today = DateOnly.FromDateTime(DateTime.Now);
         var (dailyCurrent, bars) = await ReadDailyProgressAsync(goals, totalWords, today, book.Id, historyRangeDays);
-        var characters = await _entities.LoadCharactersAsync();
-        var locations = await _entities.LoadLocationsAsync();
+        var characters = await _entities.LoadCharactersAsync(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        var locations = await _entities.LoadLocationsAsync(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         var pacing = manuscript.Pacing;
         var maxChapterWords = pacing.Count > 0 ? pacing.Max(p => p.Words) : 0;
         var minChapterWords = pacing.Count > 0 ? pacing.Min(p => p.Words) : 0;
@@ -146,8 +154,7 @@ public sealed partial class DashboardRpc
             manuscript.Status.Select(kv => new StatusBreakdownDto(kv.Key, kv.Value.Count, kv.Value.Words)).ToArray(),
             pacing.ToArray(),
             maxChapterWords,
-            FindEchoPhrases(manuscript.Text.ToString(), 3, 5).Take(20)
-                .Select(e => new EchoPhraseDto(e.Phrase, e.Count)).ToArray(),
+            echoes,
             bars.ToArray(),
             recentActivity,
             new HorizonDto(
@@ -157,16 +164,36 @@ public sealed partial class DashboardRpc
                 monthLeft));
     }
 
-    private async Task<ManuscriptMetrics> ReadManuscriptAsync(BookData book)
+    [JsonRpcMethod("dashboard/echoPhrases")]
+    public async Task<EchoPhraseDto[]> EchoPhrasesAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var projects = _workspace.Projects;
-        var manifest = projects.ScenesManifest;
+        var book = projects.ActiveBook ?? throw new InvalidOperationException("No project open.");
+        var text = new System.Text.StringBuilder();
+        foreach (var chapter in book.Chapters.OrderBy(chapter => chapter.Order))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var contents = await projects.ReadSceneContentsAsync(chapter, LiveScenes(chapter), cancellationToken);
+            foreach (var content in contents) text.Append(content).Append(' ');
+        }
+        cancellationToken.ThrowIfCancellationRequested();
+        return FindEchoPhrases(text.ToString(), 3, 5).Take(20)
+            .Select(echo => new EchoPhraseDto(echo.Phrase, echo.Count)).ToArray();
+    }
+
+    private List<SceneData> LiveScenes(ChapterData chapter)
+        => (_workspace.Projects.ScenesManifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [])
+            .Where(scene => scene.ArchivedAt == null && !scene.Inactive).ToList();
+
+    private async Task<ManuscriptMetrics> ReadManuscriptAsync(BookData book, CancellationToken cancellationToken)
+    {
         var chapters = book.Chapters.OrderBy(c => c.Order).ToList();
         var metrics = new ManuscriptMetrics { ChapterCount = chapters.Count };
         foreach (var chapter in chapters)
         {
-            var scenes = manifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [];
-            var live = scenes.Where(s => s.ArchivedAt == null && !s.Inactive).ToList();
+            cancellationToken.ThrowIfCancellationRequested();
+            var live = LiveScenes(chapter);
             var chapterWords = live.Sum(s => s.WordCount);
             metrics.TotalWords += chapterWords;
             metrics.SceneCount += live.Count;
@@ -176,13 +203,24 @@ public sealed partial class DashboardRpc
             metrics.Pacing.Add(new ChapterPacingDto(chapter.Title, chapterWords));
             foreach (var scene in live)
             {
-                metrics.Text.Append(await projects.ReadSceneContentAsync(chapter, scene)).Append(' ');
+                cancellationToken.ThrowIfCancellationRequested();
                 metrics.SceneWords.Add(scene.WordCount);
-                metrics.Activity.Add((scene.Title, chapter.Title, chapter.Guid, scene.Id,
-                    System.IO.File.GetLastWriteTime(projects.GetSceneFilePath(chapter, scene))));
+                await AddRecentActivityAsync(metrics, chapter, scene);
             }
         }
         return metrics;
+    }
+
+    private async Task AddRecentActivityAsync(ManuscriptMetrics metrics, ChapterData chapter, SceneData scene)
+    {
+        DateTime modified;
+        try
+        {
+            modified = await _workspace.FileService.GetLastWriteTimeUtcAsync(
+                _workspace.Projects.GetSceneFilePath(chapter, scene));
+        }
+        catch (FileNotFoundException) { return; }
+        metrics.Activity.Add((scene.Title, chapter.Title, chapter.Guid, scene.Id, modified.ToLocalTime()));
     }
 
     private async Task<(int Current, List<WordHistoryBarDto> Bars)> ReadDailyProgressAsync(
@@ -190,6 +228,7 @@ public sealed partial class DashboardRpc
     {
         if (goals.DailyBaselineDate != today.ToString("yyyy-MM-dd"))
         {
+            using var freshReads = (_workspace.FileService as IFileReadCache)?.UseFreshReads();
             goals.DailyBaselineDate = today.ToString("yyyy-MM-dd");
             goals.DailyBaselineWords = totalWords;
             await _workspace.Projects.SaveProjectSettingsAsync();
@@ -214,7 +253,6 @@ public sealed partial class DashboardRpc
         public int SceneCount { get; set; }
         public Dictionary<string, (int Count, int Words)> Status { get; } = [];
         public List<ChapterPacingDto> Pacing { get; } = [];
-        public System.Text.StringBuilder Text { get; } = new();
         public List<int> SceneWords { get; } = [];
         public List<(string SceneTitle, string ChapterTitle, string ChapterGuid,
             string SceneId, DateTime Modified)> Activity { get; } = [];

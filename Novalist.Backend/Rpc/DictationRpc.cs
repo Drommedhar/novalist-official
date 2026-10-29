@@ -25,7 +25,13 @@ public sealed class DictationRpc(Workspace workspace, ISystemDictation? system =
         {
             var status = await system.StatusAsync(cancellationToken);
             providers.Add(new(SystemDictation.ProviderId, status.Engine == "windows" ? "Windows voice typing" : "System dictation",
-                status.Available, status.Engine == "windows" ? "Microsoft online speech" : "Apple SpeechAnalyzer",
+                status.Available, status.Engine switch
+                {
+                    "windows" => "Microsoft online speech",
+                    "android" => "Android on-device speech",
+                    "apple" or "appleUnavailable" => "Apple SpeechAnalyzer",
+                    _ => "Unavailable"
+                },
                 "", AutomaticDialogue: false, UsesSystemPanel: status.UsesSystemPanel,
                 Languages: status.Languages));
         }
