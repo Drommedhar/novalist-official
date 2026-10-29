@@ -2805,6 +2805,7 @@
     "prune": "删除旧存档",
     "openFolder": "打开备份文件夹",
     "restore": "恢复",
+    "importArchive": "导入备份",
     "restoreAsNew": "将备份恢复为新项目",
     "restoreAsNewDesc": "选择一个 ZIP 备份、一个新项目名称和一个父文件夹。恢复后将创建并打开独立副本，现有项目保持不变。",
     "archiveFile": "ZIP 备份文件",
@@ -3755,6 +3756,7 @@
     "removePreset": "删除此筛选"
   },
   "tour": {
+    "landscapeHint": "建议将平板切换为横屏，为写作和规划留出更多空间。竖屏也可以正常使用。",
     "title": "开始导览",
     "step": "第 {{at}} / {{of}} 步",
     "skip": "跳过",

@@ -25,7 +25,8 @@ function fixture(isMobile = false) {
     if (method === 'scenes/read') return { html: 'next', hash: 'next-hash' }
     throw new Error(method)
   } }
-  const queue = loadRendererSource('src/stores/sceneWriteQueue.ts')
+  const background = loadRendererSource('src/rpc/backgroundReads.ts', {}, { window: { novalist: { isMobile } } })
+  const queue = loadRendererSource('src/stores/sceneWriteQueue.ts', { '../rpc/backgroundReads': background })
   const timers = []
   const persistence = loadRendererSource('src/stores/projectPersistence.ts', {
     '../rpc/client': { rpc }, './projectStore': helpers, './sceneWriteQueue': queue
@@ -46,11 +47,22 @@ function fixture(isMobile = false) {
     '../rpc/client': { rpc }, './shellStore': { useShellStore: { getState: () => shell }, paneLeaves: () => [] },
     './projectStore': helpers, './projectPersistence': persistence, './sceneWriteQueue': queue,
     './pendingWrites': { capturePendingWrites() {} }, './projectSceneActions': { runSceneContext: (fn) => fn() },
-    '../mobile/recovery': recovery
+    '../mobile/recovery': recovery, '../rpc/backgroundReads': background
   }, { window: { novalist: { isMobile } } }).createProjectEditorActions(store.setState, store.getState)
   store.setState(actions)
-  return { store, shell, rpc, persistence, timers, requests, disk: () => disk, readJournal: journal.readRecoveryJournal }
+  return { store, shell, rpc, persistence, timers, requests, background, queue, disk: () => disk, readJournal: journal.readRecoveryJournal }
 }
+
+test('mobile navigation and saves cancel background scans before queuing file requests', async () => {
+  const f = fixture(true)
+  const reading = new AbortController()
+  f.background.registerBackgroundRead(reading)
+  await f.store.getState().openSceneIn('a', 'c', 'next')
+  assert.equal(reading.signal.aborted, true)
+  const writing = new AbortController()
+  f.background.registerBackgroundRead(writing)
+  await f.queue.enqueueSceneWrite('next', async () => assert.equal(writing.signal.aborted, true))
+})
 
 test('opening a scene from the phone dashboard switches to the writing tab', async () => {
   const f = fixture(true)

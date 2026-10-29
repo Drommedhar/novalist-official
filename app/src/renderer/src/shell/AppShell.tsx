@@ -25,6 +25,7 @@ import { FocusMode } from './FocusMode'
 
 import { useBackupScheduler } from './useBackupScheduler'
 import { useSpellCheck } from './useSpellCheck'
+import { usePrepareSceneContext } from './usePreparedSceneContext'
 
 import { BINDER_MIN, BINDER_MAX, panelWidthForShell, anyPaneShows, useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
@@ -42,6 +43,7 @@ export function AppShell(): React.JSX.Element {
   const closeStage = useWorkspaceWindow()
   useBackupScheduler()
   useSpellCheck()
+  usePrepareSceneContext()
   const binderVisible = useShellStore((s) => s.binderVisible)
   const binderWidth = useShellStore((s) => panelWidthForShell(s.binderWidth, s.shellWidth, BINDER_MIN, BINDER_MAX))
   const modePanelVisible = useShellStore((s) => s.modePanelVisible)

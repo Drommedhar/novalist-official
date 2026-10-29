@@ -13,9 +13,9 @@ public sealed class BackupRpc
     }
 
     [JsonRpcMethod("backup/create")]
-    public async Task<BackupDto?> CreateAsync(string trigger)
+    public async Task<BackupDto?> CreateAsync(string trigger, CancellationToken cancellationToken = default)
     {
-        var info = await (await _workspace.GetBackupServiceAsync()).CreateAsync(trigger);
+        var info = await (await _workspace.GetBackupServiceAsync()).CreateAsync(trigger, cancellationToken);
         return info == null ? null : ToDto(info);
     }
 

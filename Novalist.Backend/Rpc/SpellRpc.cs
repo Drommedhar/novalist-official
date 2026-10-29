@@ -52,9 +52,11 @@ public sealed class SpellRpc
     /// renamed character stops being spelled the old way.
     /// </summary>
     [JsonRpcMethod("spell/dictionary")]
-    public async Task<string[]> GetDictionaryAsync()
+    public async Task<string[]> GetDictionaryAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         await _workspace.Settings.LoadAsync();
+        cancellationToken.ThrowIfCancellationRequested();
         var names = new List<string>();
         // The dictionary is fetched at startup, before any project is open -
         // asking the Codex then would throw and take spell check with it.
@@ -64,14 +66,15 @@ public sealed class SpellRpc
         var entities = new Core.Services.EntityService(_workspace.Projects);
         // A character's surname is a separate field, and their aliases are
         // names the prose actually uses - both are words a checker will flag.
-        foreach (var character in await entities.LoadCharactersAsync())
+        foreach (var character in await entities.LoadCharactersAsync(cancellationToken))
         {
             names.Add(Core.Services.EntityResolveIndex.Compose(character.Name, character.Surname));
             names.AddRange(character.Aliases);
         }
-        names.AddRange((await entities.LoadLocationsAsync()).Select(l => l.Name));
-        names.AddRange((await entities.LoadItemsAsync()).Select(i => i.Name));
-        names.AddRange((await entities.LoadLoreAsync()).Select(l => l.Name));
+        names.AddRange((await entities.LoadLocationsAsync(cancellationToken)).Select(l => l.Name));
+        names.AddRange((await entities.LoadItemsAsync(cancellationToken)).Select(i => i.Name));
+        names.AddRange((await entities.LoadLoreAsync(cancellationToken)).Select(l => l.Name));
+        cancellationToken.ThrowIfCancellationRequested();
 
         return [.. Words
             .Concat(names.SelectMany(SplitName))

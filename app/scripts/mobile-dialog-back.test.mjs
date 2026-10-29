@@ -132,9 +132,10 @@ function fixture(entry, platform = 'android', busy = false) {
 }
 
 for (const entry of cases) {
-  test(`Android Back closes ${entry.name}`, () => {
+  test(`Android Back closes ${entry.name}`, async () => {
     const f = fixture(entry)
     assert.equal(f.back(), true)
+    await Promise.resolve()
     assert.equal(f.closed(), true)
   })
   test(`Android Back handling does not change ${entry.name} keyboard behavior on desktop`, () => {

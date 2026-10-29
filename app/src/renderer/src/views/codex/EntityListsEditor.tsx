@@ -7,6 +7,7 @@ import { persistPendingWrite, registerPendingWrite } from '../../stores/pendingW
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import type { CustomTypeDefinition } from './CustomTypeManager'
 import { useEntitySections } from './useEntitySections'
+import { useEntityFieldSuggestions } from './useEntityFieldSuggestions'
 
 interface RelationshipRow {
   role: string
@@ -75,8 +76,7 @@ export function EntityListsEditor({
     rowsRef.current = next
     setRelationshipsState(next)
   }
-  const [nameSuggestions, setNameSuggestions] = useState<string[]>([])
-  const [roleSuggestions, setRoleSuggestions] = useState<string[]>([])
+  const suggestions = useEntityFieldSuggestions(entityType, JSON.stringify([selectedId, restoredRevision]))
 
   /**
    * The entry these fields were last loaded for.
@@ -101,19 +101,6 @@ export function EntityListsEditor({
         : []
     )
   }, [selectedId, record, restoredRevision])
-
-  useEffect(() => {
-    // Every type that carries relationships, not characters alone: a location
-    // with no name suggestions is a relationship row nobody fills in.
-    if (!includeRelationships) return
-    void rpc
-      .request<{ characterNames: string[]; roles: string[] }>('entities/relationshipSuggestions')
-      .then((s) => {
-        setNameSuggestions(s.characterNames)
-        setRoleSuggestions(s.roles)
-      })
-      .catch(() => {})
-  }, [entityType, selectedId, includeRelationships])
 
   /**
    * One save, once the edits have settled.
@@ -285,12 +272,12 @@ export function EntityListsEditor({
         <section data-entity-tab="relationships" className="codex-entry-section">
           <div className="inspector-label">{t('entityEditor.relationships')}</div>
           <datalist id="codex-rel-names">
-            {nameSuggestions.map((n) => (
+            {(suggestions.names.relationshipNames ?? []).map((n) => (
               <option key={n} value={n} />
             ))}
           </datalist>
           <datalist id="codex-rel-roles">
-            {roleSuggestions.map((r) => (
+            {(suggestions.names.relationshipRoles ?? []).map((r) => (
               <option key={r} value={r} />
             ))}
           </datalist>
@@ -305,6 +292,8 @@ export function EntityListsEditor({
                 <input
                   className="outliner-input"
                   list="codex-rel-roles"
+                  onFocus={suggestions.loadRelationships}
+                  title={suggestions.errors.relationships}
                   placeholder={t('entityEditor.rolePlaceholderRel')}
                   value={rel.role}
                   onChange={(e) => patch({ role: e.target.value })}
@@ -322,6 +311,8 @@ export function EntityListsEditor({
                 <input
                   className="outliner-input"
                   list="codex-rel-names"
+                  onFocus={suggestions.loadRelationships}
+                  title={suggestions.errors.relationships}
                   placeholder={t('entityEditor.targetNames')}
                   value={rel.target}
                   onChange={(e) => patch({ target: e.target.value })}
@@ -349,6 +340,8 @@ export function EntityListsEditor({
                   className="outliner-input codex-rel-inverse"
                   placeholder={t('entityEditor.inverseRole')}
                   list="codex-rel-roles"
+                  onFocus={suggestions.loadRelationships}
+                  title={suggestions.errors.relationships}
                   value={rel.inverseRole ?? ''}
                   onChange={(e) => patch({ inverseRole: e.target.value })}
                   onBlur={() => persistRelationships()}

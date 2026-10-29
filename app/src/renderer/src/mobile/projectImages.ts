@@ -4,7 +4,9 @@ import i18n from '../i18n'
 const PREFIX = 'novalist-project://'
 const MAX_CACHE_BYTES = 32 * 1024 * 1024
 const cache = new Map<string, { uri: string; bytes: number }>()
-const pending = new Map<string, Promise<string | null>>()
+const pending = new Map<string, { promise: Promise<string | null>; consumers: Set<() => boolean> }>()
+const assetReads: Array<() => Promise<void>> = []
+let readingAsset = false
 let cacheBytes = 0
 const documents = new Map<Document, MutationObserver>()
 const frames = new WeakSet<HTMLIFrameElement>()
@@ -31,11 +33,34 @@ function relativePathOf(src: string): string | null {
   }
 }
 
+function queueAssetRead(read: (path: string) => Promise<string | null>, path: string,
+  requestedGeneration: number, stillNeeded: () => boolean): Promise<string | null> {
+  return new Promise((resolve, reject) => {
+    const next = async (): Promise<void> => {
+      try {
+        resolve(await (requestedGeneration === generation && stillNeeded() ? read(path) : null))
+      } catch (error) {
+        reject(error)
+      } finally {
+        const following = assetReads.shift()
+        if (following) void following()
+        else readingAsset = false
+      }
+    }
+    if (readingAsset) assetReads.push(next)
+    else { readingAsset = true; void next() }
+  })
+}
+
 export async function resolveProjectAssetUrl(src: string): Promise<string | null> {
+  return resolveAssetUrl(src, () => true)
+}
+
+async function resolveAssetUrl(src: string, stillNeeded: () => boolean): Promise<string | null> {
   if (!window.novalist.isMobile || !src.startsWith(PREFIX)) return src
   const path = relativePathOf(src)
   const read = window.novalist.readProjectAsset ?? window.novalist.readProjectImage
-  if (!path || !read) return null
+  if (!path || !read || !stillNeeded()) return null
   const requestedGeneration = generation
   const cached = cache.get(path)
   if (cached) {
@@ -45,7 +70,13 @@ export async function resolveProjectAssetUrl(src: string): Promise<string | null
   }
   let request = pending.get(path)
   if (!request) {
-    request = read(path).then((uri) => {
+    const consumers = new Set([stillNeeded])
+    const needed = (): boolean => {
+      if ([...consumers].some(consumer => consumer())) return true
+      if (pending.get(path)?.consumers === consumers) pending.delete(path)
+      return false
+    }
+    const promise = queueAssetRead(read, path, requestedGeneration, needed).then((uri) => {
       if (uri && requestedGeneration === generation) {
         const bytes = uri.length * 2
         if (bytes <= MAX_CACHE_BYTES) {
@@ -61,12 +92,14 @@ export async function resolveProjectAssetUrl(src: string): Promise<string | null
       }
       return uri
     })
+    request = { promise, consumers }
     pending.set(path, request)
-  }
+  } else request.consumers.add(stillNeeded)
   try {
-    const uri = await request
+    const uri = await request.promise
     return requestedGeneration === generation ? uri : null
   } finally {
+    request.consumers.delete(stillNeeded)
     if (pending.get(path) === request) pending.delete(path)
   }
 }
@@ -78,7 +111,7 @@ async function resolveAsset(element: Element): Promise<void> {
   const requestedGeneration = generation
   const stillCurrent = (): boolean => requestedGeneration === generation && element.getAttribute(attribute) === src && element.isConnected
   try {
-    const uri = await resolveProjectAssetUrl(src)
+    const uri = await resolveAssetUrl(src, stillCurrent)
     if (!stillCurrent()) return
     if (!uri) throw new Error(i18n.t('research.previewFailed'))
     element.setAttribute(attribute, uri)

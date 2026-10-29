@@ -84,10 +84,10 @@ async function suspendWorkspace(): Promise<void> {
 function refreshResumedWorkspace(): void {
   const state = useProjectStore.getState()
   if (!state.isLoaded) return
-  void state.loadRecents().catch(() => {})
+  if (!window.novalist.isMobile) void state.loadRecents().catch(() => {})
   void useSettingsStore.getState().load().catch(() => {})
   void state.loadDrafts().catch(() => {})
-  void useCodexStore.getState().refresh().catch(() => {})
+  if (!window.novalist.isMobile) void useCodexStore.getState().refresh().catch(() => {})
 }
 
 function useMobileBackgroundRecovery(): void {

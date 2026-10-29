@@ -1,5 +1,6 @@
 import { rpc } from '../rpc/client'
 import { useSettingsStore } from '../stores/settingsStore'
+import { loadSpellDictionary } from './spellDictionary'
 
 export interface GrammarIssue {
   message: string
@@ -23,7 +24,7 @@ export async function checkGrammar(text: string): Promise<GrammarIssue[]> {
     if (!/^en(?:-|$)/i.test(effective.grammarCheckLanguage)) return []
     const [{ checkHarper }, words] = await Promise.all([
       import('./harper'),
-      rpc.request<string[]>('spell/dictionary')
+      loadSpellDictionary()
     ])
     return checkHarper(text, effective.grammarCheckLanguage, words)
   })()

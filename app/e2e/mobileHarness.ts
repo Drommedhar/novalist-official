@@ -29,7 +29,10 @@ export async function mobileHost(page: Page, layout: 'phone' | 'tablet', platfor
     failExport: false,
     shared: [] as { path: string; bytes: Buffer }[],
     released: [] as string[],
-    created: [] as string[]
+    created: [] as string[],
+    pickedFile: null as string | null,
+    pickedFolder: null as string | null,
+    releasedPicks: [] as string[]
   }
   const server = createServer((req, res) => {
     if (req.url === '/_framework/hybridwebview.js') {
@@ -58,6 +61,10 @@ export async function mobileHost(page: Page, layout: 'phone' | 'tablet', platfor
       switch (call.method) {
         case 'hostCapabilities': result = { platform, projectStorage: platform === 'android' ? 'private' : 'external', layout }; break
         case 'beginProjectAccess': result = true; break
+        case 'defaultProjectRoot': result = root; break
+        case 'pickFile': result = host.pickedFile; break
+        case 'pickFolder': result = host.pickedFolder; break
+        case 'releasePickedFile': host.releasedPicks.push(String(call.args[0])); break
         case 'saveFile': {
           if (host.failSave) throw new Error('Cannot allocate export')
           const dir = join(root, 'exports', String(host.created.length))

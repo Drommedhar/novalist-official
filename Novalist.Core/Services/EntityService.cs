@@ -33,8 +33,10 @@ public partial class EntityService : IEntityService
 
     // ── Characters ──────────────────────────────────────────────────
 
-    public async Task<List<CharacterData>> LoadCharactersAsync()
-        => await LoadEntitiesMergedAsync<CharacterData>(Book.CharacterFolder, Project.CharacterFolder);
+    public Task<List<CharacterData>> LoadCharactersAsync() => LoadCharactersAsync(CancellationToken.None);
+
+    public Task<List<CharacterData>> LoadCharactersAsync(CancellationToken cancellationToken)
+        => LoadEntitiesMergedAsync<CharacterData>(Book.CharacterFolder, Project.CharacterFolder, cancellationToken);
 
     public Task SaveCharacterAsync(CharacterData character)
         => SaveEntityAsync(Book.CharacterFolder, Project.CharacterFolder, character.Id, character, character.IsWorldBible);
@@ -44,8 +46,10 @@ public partial class EntityService : IEntityService
 
     // ── Locations ───────────────────────────────────────────────────
 
-    public async Task<List<LocationData>> LoadLocationsAsync()
-        => await LoadEntitiesMergedAsync<LocationData>(Book.LocationFolder, Project.LocationFolder);
+    public Task<List<LocationData>> LoadLocationsAsync() => LoadLocationsAsync(CancellationToken.None);
+
+    public Task<List<LocationData>> LoadLocationsAsync(CancellationToken cancellationToken)
+        => LoadEntitiesMergedAsync<LocationData>(Book.LocationFolder, Project.LocationFolder, cancellationToken);
 
     public Task SaveLocationAsync(LocationData location)
         => SaveEntityAsync(Book.LocationFolder, Project.LocationFolder, location.Id, location, location.IsWorldBible);
@@ -55,8 +59,10 @@ public partial class EntityService : IEntityService
 
     // ── Items ───────────────────────────────────────────────────────
 
-    public async Task<List<ItemData>> LoadItemsAsync()
-        => await LoadEntitiesMergedAsync<ItemData>(Book.ItemFolder, Project.ItemFolder);
+    public Task<List<ItemData>> LoadItemsAsync() => LoadItemsAsync(CancellationToken.None);
+
+    public Task<List<ItemData>> LoadItemsAsync(CancellationToken cancellationToken)
+        => LoadEntitiesMergedAsync<ItemData>(Book.ItemFolder, Project.ItemFolder, cancellationToken);
 
     public Task SaveItemAsync(ItemData item)
         => SaveEntityAsync(Book.ItemFolder, Project.ItemFolder, item.Id, item, item.IsWorldBible);
@@ -66,8 +72,10 @@ public partial class EntityService : IEntityService
 
     // ── Lore ────────────────────────────────────────────────────────
 
-    public async Task<List<LoreData>> LoadLoreAsync()
-        => await LoadEntitiesMergedAsync<LoreData>(Book.LoreFolder, Project.LoreFolder);
+    public Task<List<LoreData>> LoadLoreAsync() => LoadLoreAsync(CancellationToken.None);
+
+    public Task<List<LoreData>> LoadLoreAsync(CancellationToken cancellationToken)
+        => LoadEntitiesMergedAsync<LoreData>(Book.LoreFolder, Project.LoreFolder, cancellationToken);
 
     public Task SaveLoreAsync(LoreData lore)
         => SaveEntityAsync(Book.LoreFolder, Project.LoreFolder, lore.Id, lore, lore.IsWorldBible);
@@ -113,11 +121,14 @@ public partial class EntityService : IEntityService
 
     // ── Custom entities ─────────────────────────────────────────────
 
-    public async Task<List<CustomEntityData>> LoadCustomEntitiesAsync(string entityTypeKey)
+    public Task<List<CustomEntityData>> LoadCustomEntitiesAsync(string entityTypeKey)
+        => LoadCustomEntitiesAsync(entityTypeKey, CancellationToken.None);
+
+    public Task<List<CustomEntityData>> LoadCustomEntitiesAsync(string entityTypeKey, CancellationToken cancellationToken)
     {
         var typeDef = GetCustomEntityTypeOrThrow(entityTypeKey);
         var wbFolder = typeDef.FolderName;
-        return await LoadEntitiesMergedAsync<CustomEntityData>(typeDef.FolderName, wbFolder);
+        return LoadEntitiesMergedAsync<CustomEntityData>(typeDef.FolderName, wbFolder, cancellationToken);
     }
 
     public Task SaveCustomEntityAsync(CustomEntityData entity)

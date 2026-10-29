@@ -14,6 +14,15 @@
     <Compile Include="..\..\Novalist.Mobile\Services\PrivateProjectPaths.cs" Link="Mobile\PrivateProjectPaths.cs" />
     <Compile Include="..\..\Novalist.Mobile\Services\ManuscriptFileSelection.cs" Link="Mobile\ManuscriptFileSelection.cs" />
     <Compile Include="..\..\Novalist.Mobile\Services\PcmSpeechChunks.cs" Link="Mobile\PcmSpeechChunks.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\DocumentTreeArchiveService.cs" Link="Mobile\DocumentTreeArchiveService.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\IDocumentTree.cs" Link="Mobile\IDocumentTree.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\DocumentTreeMounts.cs" Link="Mobile\DocumentTreeMounts.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\DocumentTreeOperations.cs" Link="Mobile\DocumentTreeOperations.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\DocumentTreeTransactions.cs" Link="Mobile\DocumentTreeTransactions.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\DocumentTreeFileService.cs" Link="Mobile\DocumentTreeFileService.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\CachedDocumentTree.cs" Link="Mobile\CachedDocumentTree.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\DocumentReadCache.cs" Link="Mobile\DocumentReadCache.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\DocumentTreeReadCancellation.cs" Link="Mobile\DocumentTreeReadCancellation.cs" />
   </ItemGroup>
 
   <ItemGroup>

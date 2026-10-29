@@ -94,13 +94,18 @@ function useProjectLibrary({ recentProjects, onOpenPath }: StartScreenProps) {
     if (!availableProjects.some(project => projectKey(project) === key)) return
     event.preventDefault(); event.stopPropagation(); library.moveProject(key, shelf, before); setDropShelf(null)
   }
-  const open = async (project: RecentProjectDto, book: LibraryBook, view?: 'codex' | 'series'): Promise<void> => {
+  const runOpening = async (action: () => Promise<void>): Promise<void> => {
     if (opening) return
     setOpening(true); setOpenError(null)
-    try { await onOpenPath(project.path, book.id); if (view && useProjectStore.getState().isLoaded) useShellStore.getState().setMainView(view) }
+    try { await action() }
     catch (error) { setOpenError(String(error)) }
     finally { setOpening(false) }
   }
+  const openFolder = (): Promise<void> => runOpening(() => useProjectStore.getState().pickAndOpenProject())
+  const open = (project: RecentProjectDto, book: LibraryBook, view?: 'codex' | 'series'): Promise<void> => runOpening(async () => {
+    await onOpenPath(project.path, book.id)
+    if (view && useProjectStore.getState().isLoaded) useShellStore.getState().setMainView(view)
+  })
   const finishSelectionClick = (event: MouseEvent<HTMLDivElement>): void => {
     const first = selectionClick.current
     selectionClick.current = null
@@ -125,7 +130,7 @@ function useProjectLibrary({ recentProjects, onOpenPath }: StartScreenProps) {
   </div>
   const closeMenu = (element: HTMLElement): void => { element.closest('details')?.removeAttribute('open') }
 
-  return { t, library, search, setSearch, activeShelf, setActiveShelf, newShelf, setNewShelf, renameShelf, setRenameShelf, selection, setSelection, dropShelf, setDropShelf, removedOpen, setRemovedOpen, lastRemoved, setLastRemoved, opening, openError, undoButton, searchInput, moreTrigger, openButton, selectedTrigger, selectionClick, instructionsId, needle, rows, availableProjects, shelfFor, selectedProject, selectedBook, selectedShelf, visibleShelves, selectedNeighbors, selectedIndex, remove, accept, open, finishSelectionClick, cover, closeMenu }
+  return { t, library, search, setSearch, activeShelf, setActiveShelf, newShelf, setNewShelf, renameShelf, setRenameShelf, selection, setSelection, dropShelf, setDropShelf, removedOpen, setRemovedOpen, lastRemoved, setLastRemoved, opening, openError, undoButton, searchInput, moreTrigger, openButton, selectedTrigger, selectionClick, instructionsId, needle, rows, availableProjects, shelfFor, selectedProject, selectedBook, selectedShelf, visibleShelves, selectedNeighbors, selectedIndex, remove, accept, open, openFolder, finishSelectionClick, cover, closeMenu }
 }
 
 export function StartScreen({ recentProjects, onOpenPath }: StartScreenProps): React.JSX.Element {
@@ -142,7 +147,8 @@ export function StartScreen({ recentProjects, onOpenPath }: StartScreenProps): R
         <div className="library-title"><h1>{t('bookshelf.yourBookshelf')}</h1><span className="library-total">{t('bookshelf.projects', { count: availableProjects.length })}</span></div>
         <div className="library-actions">
           <LibraryScratchpad compact />
-          <button className="library-button library-open-folder" onClick={() => runCommand('app.openProject')} title={t('welcome.browseFolder')}><FolderOpen size={17} /><span>{t('bookshelf.openFolder')}</span></button>
+          <button className="library-button library-open-folder" disabled={state.opening} aria-busy={state.opening} onClick={() => { void state.openFolder() }} title={t('welcome.browseFolder')}><FolderOpen size={17} /><span>{t(state.opening ? 'splash.loading' : 'bookshelf.openFolder')}</span></button>
+          {window.novalist.platform === 'android' && <button className="library-button library-import-backup" onClick={() => runCommand('app.restoreBackup')}><ArchiveRestore size={17} />{t('backup.importArchive')}</button>}
           <button className="library-button library-primary" onClick={() => runCommand('app.newProject')}><Plus size={17} />{t('welcome.newProject')}</button>
           <details className="library-more"><summary ref={moreTrigger} aria-label={t('bookshelf.more')} title={t('bookshelf.more')}><MoreHorizontal size={20} /></summary>
             <div className="library-more-menu">

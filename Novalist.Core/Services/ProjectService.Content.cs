@@ -93,9 +93,36 @@ public partial class ProjectService
     public async Task<string> ReadSceneContentAsync(ChapterData chapter, SceneData scene)
     {
         var path = GetSceneFilePath(chapter, scene);
-        if (await _fileService.ExistsAsync(path))
-            return FileFrontMatter.Strip(await _fileService.ReadTextAsync(path));
-        return string.Empty;
+        if (!await _fileService.ExistsAsync(path)) return string.Empty;
+        var content = await _fileService.ReadTextAsync(path);
+        return await ValidateSceneContentAsync(scene, content);
+    }
+
+    private async Task<string> ValidateSceneContentAsync(SceneData scene, string content)
+    {
+        if (FileFrontMatter.TryParse(content, out var identity) && identity.Id != scene.Id)
+        {
+            await ReconcileActiveDraftCoreAsync(apply: true, forceContentScan: true);
+            throw new IOException("The scene changed outside Novalist. Open it again from the binder before continuing.");
+        }
+        return FileFrontMatter.Strip(content);
+    }
+
+    public async Task<IReadOnlyList<string>> ReadSceneContentsAsync(ChapterData chapter,
+        IReadOnlyList<SceneData> scenes, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (scenes.Count == 0) return [];
+        var paths = scenes.Select(scene => GetSceneFilePath(chapter, scene)).ToArray();
+        var contents = await FileReadBatch.ReadExistingTextsAsync(_fileService, paths, cancellationToken);
+        var result = new List<string>(scenes.Count);
+        foreach (var (scene, path) in scenes.Zip(paths))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            result.Add(contents.TryGetValue(path, out var content)
+                ? await ValidateSceneContentAsync(scene, content) : string.Empty);
+        }
+        return result;
     }
 
     public async Task WriteSceneContentAsync(ChapterData chapter, SceneData scene, string content)

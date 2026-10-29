@@ -127,12 +127,14 @@ public partial class ExportService
         var imagesAbsDir = Path.Combine(outputDir, imagesFolderName);
         if (outputDir.Length > 0) Directory.CreateDirectory(outputDir);
 
+        var content = await CompileCodexAsync(options, _entityService);
+        var materialized = await MaterializeCodexImagesAsync(content, options);
         var copyMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         string? CopyImage(string relativePath)
         {
             if (string.IsNullOrWhiteSpace(relativePath)) return null;
             if (copyMap.TryGetValue(relativePath, out var existing)) return existing;
-            var abs = _entityService.GetImageFullPath(relativePath);
+            var abs = materialized.GetValueOrDefault(relativePath);
             if (string.IsNullOrWhiteSpace(abs) || !File.Exists(abs)) return null;
             var fileName = Path.GetFileName(abs);
             var dest = Path.Combine(imagesAbsDir, fileName);
@@ -158,8 +160,6 @@ public partial class ExportService
         sb.AppendLine($"# {options.Title ?? "Codex"}");
         if (!string.IsNullOrWhiteSpace(options.Author)) sb.AppendLine($"_by {options.Author}_");
         sb.AppendLine();
-
-        var content = await CompileCodexAsync(options, _entityService);
 
         if (content.Characters.Count > 0)
         {

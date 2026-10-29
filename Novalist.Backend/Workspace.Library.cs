@@ -128,7 +128,7 @@ public sealed partial class Workspace
                     ? metadata.CoverImage : book.CoverImage;
                 var path = string.IsNullOrEmpty(cover) ? null
                     : Path.Combine(entry.Path, book.FolderName, cover.Replace('/', Path.DirectorySeparatorChar));
-                books.Add(new LibraryBookDto(book.Id, book.Name, await LoadCoverDataUriAsync(path)));
+                books.Add(new LibraryBookDto(book.Id, book.Name, await LoadCoverDataUriAsync(path, FileService)));
             }
             return entry with
             {
@@ -179,13 +179,14 @@ public sealed partial class Workspace
     /// Recent projects are not the active project, so their cover cannot be
     /// served through <c>novalist-project://</c> (which resolves against the
     /// active root) — the bytes are inlined instead.</summary>
-    internal static async Task<string?> LoadCoverDataUriAsync(string? path)
+    internal static async Task<string?> LoadCoverDataUriAsync(string? path, IFileService? files = null)
     {
-        if (string.IsNullOrEmpty(path) || !File.Exists(path))
-            return null;
+        if (string.IsNullOrEmpty(path)) return null;
+        files ??= new FileService();
         try
         {
-            var bytes = await File.ReadAllBytesAsync(path);
+            if (!await files.ExistsAsync(path)) return null;
+            var bytes = await files.ReadBytesAsync(path);
             return $"data:{MimeForExtension(Path.GetExtension(path))};base64,{Convert.ToBase64String(bytes)}";
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)

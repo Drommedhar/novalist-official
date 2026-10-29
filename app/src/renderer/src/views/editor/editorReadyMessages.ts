@@ -38,7 +38,7 @@ export function createEditorReadyMessages(context: EditorHandlerContext): Editor
         live.setSceneContext(editorPane(useProjectStore.getState(), pane).sceneId ?? '')
         live.setContent(initialHtml)
         loadingRef.current = false
-        lastReportedHtmlRef.current = initialHtml
+        lastReportedHtmlRef.current = live.getContent()
       }
       void loadAnnotations(live).then((loaded) => {
         if (!loaded) return

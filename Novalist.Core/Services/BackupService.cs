@@ -93,18 +93,22 @@ public sealed class BackupService : IBackupService
 
     public Task<BackupInfo?> CreateAsync(string trigger) => CreateAsync(trigger, null);
 
+    public Task<BackupInfo?> CreateAsync(string trigger, CancellationToken cancellationToken)
+        => CreateArchiveAsync(_projectService.ProjectRoot, trigger, null, beforeRestore: false,
+            cancellationToken: cancellationToken);
+
     public async Task<BackupInfo?> CreateAsync(string trigger, string? milestoneName)
-        => await CreateArchiveAsync(_projectService.ProjectRoot, trigger, milestoneName, force: false, prune: true);
+        => await CreateArchiveAsync(_projectService.ProjectRoot, trigger, milestoneName, beforeRestore: false);
 
     private async Task<BackupInfo?> CreateArchiveAsync(string? projectRoot, string trigger, string? milestoneName,
-        bool force, bool prune, string? backupFolder = null)
+        bool beforeRestore, string? backupFolder = null, CancellationToken cancellationToken = default)
     {
         // A milestone is deliberate, so it is taken even when the automatic
         // backups behind it are switched off. Refusing "keep this version"
         // because a rotating schedule is disabled would be the wrong reading of
         // both settings.
         var milestone = !string.IsNullOrWhiteSpace(milestoneName);
-        if (string.IsNullOrWhiteSpace(projectRoot) || (!Settings.BackupEnabled && !milestone && !force))
+        if (string.IsNullOrWhiteSpace(projectRoot) || (!Settings.BackupEnabled && !milestone && !beforeRestore))
             return null;
 
         var folder = backupFolder ?? await ResolveBackupFolderAsync(projectRoot);
@@ -122,7 +126,11 @@ public sealed class BackupService : IBackupService
             timestamp = timestamp.AddSeconds(1);
         } while (await _fileService.ExistsAsync(path));
 
-        await _archiveService.CreateFromDirectoryAsync(projectRoot, path, ExcludedDirectories);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (_archiveService is ICancellableArchiveService cancellable)
+            await cancellable.CreateFromDirectoryAsync(projectRoot, path, ExcludedDirectories, cancellationToken);
+        else
+            await _archiveService.CreateFromDirectoryAsync(projectRoot, path, ExcludedDirectories);
 
         var info = new BackupInfo
         {
@@ -133,7 +141,7 @@ public sealed class BackupService : IBackupService
             Trigger = safeTrigger
         };
 
-        if (prune) await PruneFolderAsync(folder);
+        if (!beforeRestore) await PruneFolderAsync(folder);
         return info;
     }
 
@@ -194,7 +202,7 @@ public sealed class BackupService : IBackupService
         // when the user restores the wrong archive.
         // Mandatory even with scheduled backups disabled. Delay retention so a
         // quota of one cannot delete the archive we are about to restore.
-        await CreateArchiveAsync(projectRoot, "prerestore", null, force: true, prune: false, folder);
+        await CreateArchiveAsync(projectRoot, "prerestore", null, beforeRestore: true, folder);
 
         await _archiveService.RestoreProjectAsync(target.Path, projectRoot, replaceExisting: true);
         await PruneFolderAsync(folder);

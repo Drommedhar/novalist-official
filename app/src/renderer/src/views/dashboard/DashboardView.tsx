@@ -177,7 +177,7 @@ function BookDashboard(): React.JSX.Element {
                 which === 'project' ? parsed : data.projectGoalTarget,
                 data.deadline
               ])
-              .then(() => rpc.request<DashboardDto>('dashboard/get', [range]).then(setData))
+              .then(() => rpc.request<DashboardDto>('dashboard/get', [range, !window.novalist.isMobile]).then(setData))
           }}
         />
       )}</MotionPresence>

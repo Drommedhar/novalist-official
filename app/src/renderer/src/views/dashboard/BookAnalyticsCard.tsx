@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { rpc } from '../../rpc/client'
+import { useDashboardRead } from './useDashboardRead'
 import './analytics.css'
 
 interface Distribution {
@@ -41,16 +40,7 @@ const TOP_N = 12
  */
 export function BookAnalyticsCard(): React.JSX.Element | null {
   const { t } = useTranslation()
-  const [data, setData] = useState<BookAnalytics | null>(null)
-
-  useEffect(() => {
-    // Reads every scene file, so it is asked for once when the Dashboard opens
-    // rather than kept live.
-    void rpc
-      .request<BookAnalytics>('analytics/book')
-      .then(setData)
-      .catch(() => setData(null))
-  }, [])
+  const data = useDashboardRead<BookAnalytics>('analytics/book')
 
   if (!data || data.chapterTitles.length === 0) return null
 

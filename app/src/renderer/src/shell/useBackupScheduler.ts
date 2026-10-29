@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
+import { startIdleBackups } from '../mobile/idleBackups'
 
 /** How often to ask the backend whether an interval backup is due. */
 const POLL_MS = 60_000
@@ -48,6 +49,7 @@ export function useBackupScheduler(): void {
       openRef.current = null
       return
     }
+    if (window.novalist.isMobile) return startIdleBackups()
 
     // One "open" archive per project, not one per re-render.
     if (openRef.current !== projectName) {

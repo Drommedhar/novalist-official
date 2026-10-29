@@ -1,4 +1,5 @@
 using Novalist.Core.Models;
+using Novalist.Core.Services;
 using Novalist.Core.Utilities;
 using StreamJsonRpc;
 
@@ -21,7 +22,8 @@ public sealed class ScenesRpc
         var html = await _workspace.Projects.ReadSceneContentAsync(chapter, scene);
         // Opening a scene in the editor is a scenes/read; notify extensions so the
         // AI Assistant tracks the current-scene context and knowledge cache.
-        _workspace.RaiseSceneOpened(chapter, scene);
+        using ((_workspace.FileService as IFileReadCache)?.UseFreshReads())
+            _workspace.RaiseSceneOpened(chapter, scene);
         // The hash rides along so the editor can prove, at save time, that it is
         // overwriting the version it actually read.
         return new SceneContentDto(sceneId, html, Core.Services.ContentHasher.Hash(html));

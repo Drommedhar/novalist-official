@@ -198,6 +198,7 @@ export function FirstRunTour({
   const { t } = useTranslation()
   const present = useMotionPresent()
   const isMobile = window.novalist.isMobile === true
+  const mobileLayout = useShellStore((state) => state.mobileLayout)
   const liveHasOpenScene = useProjectStore((state) => state.openSceneId !== null)
   const completeTour = useOnboardingStore((state) => state.completeTour)
   const skipTour = useOnboardingStore((state) => state.skipTour)
@@ -299,6 +300,9 @@ export function FirstRunTour({
       <p id="tour-body" className="tour-body">
         {t(stop.bodyKey)}
       </p>
+      {isMobile && window.novalist.platform === 'android' && mobileLayout === 'tablet' && at === 0 && (
+        <p className="tour-landscape-hint">{t('tour.landscapeHint')}</p>
+      )}
       <div className="tour-task">
         <span className="tour-task-label">{t('tour.tryLabel')}</span>
         <span>{prerequisiteText ?? t(stop.taskKey)}</span>

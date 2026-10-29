@@ -5,6 +5,7 @@ namespace Novalist.Mobile.Services;
 public abstract class MobileProjectAccess : IStoredPathResolver, IDisposable
 {
     public abstract IFileService Files { get; }
+    public virtual IArchiveService Archives { get; } = new ArchiveService();
     public abstract string DefaultRoot { get; }
     public abstract string? Resolve(string storedPath);
     public abstract bool BeginAccess(string path);

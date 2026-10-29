@@ -77,14 +77,12 @@ export function LinksPanel(props: {
     return () => { ++loadRequest.current }
   }, [load])
 
-  // Loaded once rather than per open: the lists a picker offers do not change
-  // while somebody is deciding what to point at.
   useEffect(() => {
-    void rpc
+    if (kind === 'research') void rpc
       .request<ResearchItem[]>('research/list')
       .then(setResearch)
       .catch(() => setResearch([]))
-    void Promise.all(
+    if (kind === 'entity') void Promise.all(
       ENTITY_KINDS.map((k) =>
         rpc.request<EntityOption[]>('entities/list', [k]).catch(() => [] as EntityOption[])
       )
@@ -95,7 +93,7 @@ export function LinksPanel(props: {
           .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
       )
     )
-  }, [])
+  }, [kind])
 
   const choices = (): { id: string; label: string }[] => {
     if (kind === 'research') return research.map((r) => ({ id: r.id, label: r.title }))

@@ -2772,6 +2772,7 @@
     "openFolder": "Sicherungsordner öffnen",
     "restore": "Wiederherstellen",
     "restoreConfirm": "Projekt aus der Sicherung vom {{date}} wiederherstellen? Seitdem hinzugefügte Dateien werden entfernt. Der aktuelle Stand wird vorher archiviert, die Aktion lässt sich also rückgängig machen.",
+    "importArchive": "Sicherung importieren",
     "restoreAsNew": "Sicherung als neues Projekt wiederherstellen",
     "restoreAsNewDesc": "Wähle eine ZIP-Sicherung, einen neuen Projektnamen und einen übergeordneten Ordner. Eine separate Kopie wird erstellt und geöffnet; dein bestehendes Projekt bleibt unverändert.",
     "archiveFile": "ZIP-Sicherung",
@@ -3721,6 +3722,7 @@
     "removePreset": "Diesen Filter löschen"
   },
   "tour": {
+    "landscapeHint": "Drehe dein Tablet ins Querformat, um mehr Platz zum Schreiben und Planen zu haben. Du kannst es auch im Hochformat verwenden.",
     "title": "Rundgang starten",
     "step": "{{at}} von {{of}}",
     "skip": "Überspringen",

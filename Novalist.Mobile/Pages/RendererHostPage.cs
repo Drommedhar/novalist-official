@@ -55,10 +55,8 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
         // locked until their grant is resumed. Without it the recent-projects
         // list reads as a list of deleted projects and erases itself.
         _host = new BackendHost(
-            FileSystem.Current.AppDataDirectory,
-            new UnavailableProcessRunner(),
-            _projects,
-            _files
+            new Workspace(FileSystem.Current.AppDataDirectory, _projects, _files, _projects.Archives),
+            new UnavailableProcessRunner()
 #if ANDROID
             , systemDictation: new AndroidSystemDictation(), systemVoices: _readAloud
 #endif

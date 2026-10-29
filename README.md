@@ -203,7 +203,7 @@ Novalist is an Electron + React front end over a bundled .NET 10 core process (`
 
 Building and running the checks requires the .NET 10 SDK and Node.js 22.13+ on the 22 LTS line, or Node.js 23.2+. The renderer tests use Node's TypeScript stripping API. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
 
-The Android 13+ phone/tablet port is under development. Build its APK on Windows with `./eng/Build-Android.ps1`; see [Android development](docs/android-development.md) for setup, emulator checks and outstanding beta requirements. External/cloud project editing is not available in the development build yet.
+The Android 13+ phone/tablet port is under development. **Open folder** uses Android's system folder selector to open an existing project and save back to that folder. Cloud locations depend on the installed provider's folder support and synchronization. **Import backup** restores a desktop ZIP or ZIP-based `.novalist` backup as a new project. Automatic mobile backups wait for idle time and interrupted cloud copies retry later; manual backups remain available in Settings. Build its APK on Windows with `./eng/Build-Android.ps1`; see [Android development](docs/android-development.md) for setup, emulator checks and outstanding beta requirements.
 
 ### Development environment with devenv
 

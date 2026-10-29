@@ -120,7 +120,7 @@ public sealed partial class RendererHostPage
     private object HostCapabilities()
     {
 #if ANDROID
-        return new { platform = "android", projectStorage = "private", layout = _androidChrome?.Width > 700 ? "tablet" : "phone" };
+        return new { platform = "android", projectStorage = "external", layout = _androidChrome?.Width > 700 ? "tablet" : "phone" };
 #else
         return new { platform = "darwin", projectStorage = "external", layout = _isRegularWidth == true ? "tablet" : "phone" };
 #endif
@@ -130,6 +130,24 @@ public sealed partial class RendererHostPage
     {
         await _microphone.StartAsync(_cts.Token);
         return null;
+    }
+
+    private Task<bool> BeginProjectAccessAsync(string path)
+    {
+#if ANDROID
+        return Task.Run(() => _projects.BeginAccess(path));
+#else
+        return Task.FromResult(_projects.BeginAccess(path));
+#endif
+    }
+
+    private Task<string?> ResolveProjectPathAsync(string path)
+    {
+#if ANDROID
+        return Task.Run(() => ResolveStoredProjectPath(path));
+#else
+        return Task.FromResult(ResolveStoredProjectPath(path));
+#endif
     }
 
     private async Task<object?> InvokeHostAsync(string method, JsonElement args)
@@ -164,9 +182,9 @@ public sealed partial class RendererHostPage
             case "beginProjectAccess":
                 // Mirror the MAS contract: resolve the stored bookmark and start
                 // access; false lets the renderer re-prompt for the folder.
-                return _projects.BeginAccess(ArgString(args, 0));
+                return await BeginProjectAccessAsync(ArgString(args, 0)).ConfigureAwait(false);
             case "resolveStoredProjectPath":
-                return ResolveStoredProjectPath(ArgString(args, 0));
+                return await ResolveProjectPathAsync(ArgString(args, 0)).ConfigureAwait(false);
             case "endProjectAccess":
                 _projects.Release(ArgString(args, 0));
                 return null;

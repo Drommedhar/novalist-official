@@ -21,6 +21,7 @@ import { InboxPanel } from './InboxPanel'
 import { PanelResizer } from './PanelResizer'
 import { SceneNotesFields } from './SceneNotesFields'
 import { useContentTransition } from './useContentTransition'
+import { useSceneContext } from './usePreparedSceneContext'
 import './inspector.css'
 
 interface SceneMeta {
@@ -61,7 +62,8 @@ export function Inspector({ onReadyChange, prepareHidden = false }: {
   const [storyDate, setStoryDate] = useState('')
   const [isoDate, setIsoDate] = useState<string | null>(null)
   const [metaReady, setMetaReady] = useState(false)
-  const [contextReady, setContextReady] = useState(false)
+  const context = useSceneContext(openChapterGuid ?? undefined, openSceneId ?? undefined, !prepareHidden)
+  const contextReady = context.context !== null || context.status === 'error'
   const [linksReady, setLinksReady] = useState(false)
   const linksLoaded = useCallback(() => setLinksReady(true), [])
 
@@ -72,7 +74,6 @@ export function Inspector({ onReadyChange, prepareHidden = false }: {
   useEffect(() => {
     let cancelled = false
     setMetaReady(false)
-    setContextReady(false)
     setLinksReady(false)
     setStoryDate('')
     setIsoDate(null)
@@ -164,11 +165,14 @@ export function Inspector({ onReadyChange, prepareHidden = false }: {
         <button type="button" className={`inspector-tab${inspectorTab === 'notes' ? ' active' : ''}`}
           aria-pressed={inspectorTab === 'notes'} onClick={() => setInspectorTab('notes')}>{t('desktopRefresh.notes')}</button>
       </div>
-      <div className="inspector-body" ref={contentRef}>
+      <div className="inspector-body" ref={contentRef} aria-busy={inspectorTab === 'context' && !(metaReady && contextReady && linksReady)}>
+        {inspectorTab === 'context' && !(metaReady && contextReady && linksReady) &&
+          <div className="inspector-placeholder" role="status">{t('splash.loading')}</div>}
+        <div hidden={inspectorTab === 'context' && !(metaReady && contextReady && linksReady)}>
         {inspectorTab === 'notes' && <SceneNotesFields idPrefix="inspector" />}
         {inspectorTab === 'context' && (
           <>
-            <ContextPanel chapterGuid={openChapterGuid} sceneId={openSceneId} onReadyChange={setContextReady} prepareHidden={prepareHidden} />
+            <ContextPanel chapterGuid={openChapterGuid} sceneId={openSceneId} prepareHidden={prepareHidden} />
             <LinksPanel chapterGuid={openChapterGuid} sceneId={openSceneId} onReady={linksLoaded} />
             {/* Descriptive analysis says what a scene is. This asks whether it
                 works, and says what to try when the answer is no. */}
@@ -205,6 +209,7 @@ export function Inspector({ onReadyChange, prepareHidden = false }: {
             <DarlingsPanel />
           </>
         )}
+        </div>
       </div>
     </aside>
   )

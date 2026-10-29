@@ -180,7 +180,8 @@ public sealed class ExportRpc
     {
         if (Enum.TryParse<ExportFormat>(format, out var parsedFormat))
         {
-            var service = new ExportService(_workspace.Projects, new EntityService(_workspace.Projects));
+            using var assets = new ExportAssetStaging(_workspace.FileService);
+            var service = new ExportService(_workspace.Projects, new EntityService(_workspace.Projects), assets.MaterializeAsync);
             var options = new ExportOptions
             {
                 Format = parsedFormat,

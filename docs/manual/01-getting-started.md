@@ -16,7 +16,7 @@ Novalist explains itself in three places, and all three answer to one switch.
 
 ## Installing Novalist
 
-An Android phone/tablet version is under development for Android 13 and newer. Its current development APK supports app-private projects; external and cloud project folders are still being implemented. It is not the complete Android beta. Build and emulator instructions are in the repository's `docs/android-development.md`.
+An Android phone/tablet version is under development for Android 13 and newer. It supports app-private projects and existing project folders selected through Android's system picker. Changes are saved to the selected folder; any cloud synchronization is handled by that folder's provider. Only providers that offer folder access appear in the folder picker. Dedicated cloud connections and offline synchronization remain separate development work. Build and emulator instructions are in the repository's `docs/android-development.md`.
 
 Novalist is a desktop application. The user interface is an Electron shell; all project logic runs in a bundled core process ("Novalist Core") that the app starts automatically — you never manage it yourself.
 
@@ -44,6 +44,8 @@ Novalist has around twenty views behind five modes. The manual covers all of the
 
 **Skip** is as prominent as **Next** — if you already know the app, one click and it is gone. It is offered once per installation and never asks again. To take it later, press **Ctrl+Alt+T** or find **Take the tour** in the command palette.
 
+On Android tablets, the first tour card recommends landscape for more writing and planning space. Portrait remains supported. The card stays clear of the native navigation and scrolls when the screen is short, so its controls remain reachable after rotation.
+
 ### Tips as you go
 
 Beyond the tour, Novalist offers a short tip the first time a feature actually becomes usable — when your caret first lands on a linked Codex name, for example, rather than in a lesson before you have any. Each tip can be tried, put off, or turned off for good, and Novalist remembers only which tips you have seen: no part of your writing is recorded to decide when to show one.
@@ -64,6 +66,10 @@ Launch Novalist with no project open and you get the app itself — the same win
 - **More project actions → Import from Obsidian Plugin...** — converts a project produced by the legacy "Obsidian Novalist Plugin" into a native Novalist project: pick the vault folder, Novalist detects the plugin projects inside it, choose the output folder and names, and run the import. The new project opens when the import finishes and an `import-log.txt` is written into it. See [Troubleshooting](28-troubleshooting.md) for details.
 - **Scratchpad** is the note icon in the bookshelf header and stays visible as you scroll. Open it to jot down a thought or read saved notes without leaving your place on the shelves.
 - **Settings**, the **user manual** and **Restore backup as new project** are in **More project actions**.
+
+On Android, **Import backup** is also visible in the bookshelf toolbar. Select a desktop ZIP or ZIP-based `.novalist` backup through the file selector, enter a new project name, and choose its parent folder. **Restore and open** creates a separate project; opening an existing project with **Open folder** instead keeps editing its original folder. Android remembers the folder grant for reopening; if access is revoked, select the folder again. Wait for the provider to finish synchronizing before switching devices.
+
+On mobile, automatic backups wait until you have been idle for a minute. Returning to typing or navigation interrupts a cloud backup and retries it after another idle period, so downloading the project for a backup does not hold up your work. You can still start a backup manually in Settings.
 
 Project creation, opening and import are also available from the **File** menu.
 

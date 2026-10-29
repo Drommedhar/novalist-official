@@ -4,6 +4,7 @@ import { Plus, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { type OverrideRelationship, type CharacterOverride, type Scope, apply } from './overrideModel'
 import { OverrideMediaHeader } from './OverrideMediaHeader'
+import { useEntityFieldSuggestions } from './useEntityFieldSuggestions'
 
 /** Per-scope override relationships editor. Mirrors the relationships block of
  * EntityListsEditor.tsx but persists to the override scope via
@@ -22,8 +23,7 @@ export function OverrideRelationships({
   const { t } = useTranslation()
   const overriding = Array.isArray(override?.relationships)
   const [rows, setRows] = useState<OverrideRelationship[]>([])
-  const [nameSuggestions, setNameSuggestions] = useState<string[]>([])
-  const [roleSuggestions, setRoleSuggestions] = useState<string[]>([])
+  const suggestions = useEntityFieldSuggestions('character', JSON.stringify([selectedId, scope.chapter, scope.scene]))
 
   const effective = overriding ? (override!.relationships as OverrideRelationship[]) : baseRelationships
 
@@ -31,16 +31,6 @@ export function OverrideRelationships({
     setRows(effective.map((r) => ({ ...r })))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, scope.chapter, scope.scene, overriding, JSON.stringify(effective)])
-
-  useEffect(() => {
-    void rpc
-      .request<{ characterNames: string[]; roles: string[] }>('entities/relationshipSuggestions')
-      .then((s) => {
-        setNameSuggestions(s.characterNames)
-        setRoleSuggestions(s.roles)
-      })
-      .catch(() => {})
-  }, [selectedId])
 
   const persist = (next: OverrideRelationship[] | null): void => {
     void rpc
@@ -61,12 +51,12 @@ export function OverrideRelationships({
         onReset={() => persist(null)}
       />
       <datalist id="codex-override-rel-names">
-        {nameSuggestions.map((n) => (
+        {(suggestions.names.relationshipNames ?? []).map((n) => (
           <option key={n} value={n} />
         ))}
       </datalist>
       <datalist id="codex-override-rel-roles">
-        {roleSuggestions.map((r) => (
+        {(suggestions.names.relationshipRoles ?? []).map((r) => (
           <option key={r} value={r} />
         ))}
       </datalist>
@@ -78,6 +68,8 @@ export function OverrideRelationships({
             <input
               className="outliner-input"
               list="codex-override-rel-roles"
+              onFocus={suggestions.loadRelationships}
+              title={suggestions.errors.relationships}
               placeholder={t('entityEditor.rolePlaceholderRel')}
               value={rel.role}
               onChange={(e) => patch({ role: e.target.value })}
@@ -86,6 +78,8 @@ export function OverrideRelationships({
             <input
               className="outliner-input"
               list="codex-override-rel-names"
+              onFocus={suggestions.loadRelationships}
+              title={suggestions.errors.relationships}
               placeholder={t('entityEditor.targetNames')}
               value={rel.target}
               onChange={(e) => patch({ target: e.target.value })}

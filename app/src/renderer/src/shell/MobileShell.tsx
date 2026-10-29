@@ -12,6 +12,7 @@ import { PlotGridView } from '../views/plotgrid/PlotGridView'
 import { CalendarView } from '../views/calendar/CalendarView'
 import { ExportView } from '../views/export/ExportView'
 import { MobileInspectorSheet } from './MobileInspectorSheet'
+import { MobileLibraryButton } from './MobileLibraryButton'
 import { TabletShell } from './TabletShell'
 import { useShellStore, type MobileTab, type MainView, type MobileLayout } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
@@ -341,6 +342,9 @@ export function MobileShell(): React.JSX.Element {
 
   return (
     <div className="mobile-shell">
+      <div className="mobile-topbar">
+        <MobileLibraryButton />
+      </div>
       {tab === 'export' && (
         <div className="mobile-editor-bar">
           <button type="button" className="mobile-back" onClick={() => setTab('manuscript')}>

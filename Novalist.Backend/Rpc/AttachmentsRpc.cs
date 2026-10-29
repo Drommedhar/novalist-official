@@ -15,7 +15,7 @@ namespace Novalist.Backend.Rpc;
 public sealed class AttachmentsRpc
 {
     private readonly Workspace _workspace;
-    private readonly IEntityService _entities;
+    private readonly EntityService _entities;
 
     public AttachmentsRpc(Workspace workspace)
     {
@@ -130,11 +130,11 @@ public sealed class AttachmentsRpc
 
     private async Task<IEntityData?> FindAsync(string type, string id) => type switch
     {
-        "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id),
-        "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
-        "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
-        "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
-        _ => (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(e => e.Id == id)
+        "character" => await _entities.LoadCharacterAsync(id),
+        "location" => await _entities.LoadLocationAsync(id),
+        "item" => await _entities.LoadItemAsync(id),
+        "lore" => await _entities.LoadLoreEntryAsync(id),
+        _ => await _entities.LoadCustomEntityAsync(type, id)
     };
 
     private async Task SaveAsync(IEntityData entity)

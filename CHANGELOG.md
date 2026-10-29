@@ -21,7 +21,12 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Opening a folder from the bookshelf now shows when it is loading, reports an error if the project cannot be opened, and prevents repeated opening attempts while one is in progress.
+- Large projects open faster by avoiding duplicate manuscript scans and rereading unchanged scenes. Opening a Codex entry no longer reads every other entry of its type.
+- Scene context is prepared while writing and shared with the Inspector, avoiding duplicate scans and sections appearing separately when the sidebar opens.
+- Switching away from an untouched scene no longer saves it because of browser formatting differences, avoiding unnecessary writes and delays.
 
 ---
 

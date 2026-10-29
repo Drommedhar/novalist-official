@@ -2764,6 +2764,7 @@
     "openFolder": "Open backup folder",
     "restore": "Restore",
     "restoreConfirm": "Restore the project from the backup taken {{date}}? Files added since this backup will be removed. The current state is archived first, so this can be undone.",
+    "importArchive": "Import backup",
     "restoreAsNew": "Restore backup as new project",
     "restoreAsNewDesc": "Choose a backup ZIP, a new project name and a parent folder. A separate copy will be created and opened; your existing project stays unchanged.",
     "archiveFile": "Backup ZIP file",
@@ -3714,6 +3715,7 @@
   },
   "tour": {
     "title": "Take the tour",
+    "landscapeHint": "For more room to write and plan, turn your tablet to landscape. Portrait also works.",
     "step": "{{at}} of {{of}}",
     "skip": "Skip",
     "back": "Back",

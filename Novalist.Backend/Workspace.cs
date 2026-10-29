@@ -27,7 +27,8 @@ public sealed partial class Workspace : IDisposable
     private readonly IStoredPathResolver? _storedPaths;
 
     public Workspace(string? settingsDirectory = null, IStoredPathResolver? storedPaths = null,
-        IFileService? fileService = null)
+        IFileService? fileService = null,
+        IArchiveService? archiveService = null)
     {
         SettingsDirectory = settingsDirectory;
         _storedPaths = storedPaths;
@@ -37,7 +38,7 @@ public sealed partial class Workspace : IDisposable
         // Beside the settings rather than inside a project: a thought that
         // arrives before the right project is open still has somewhere to go.
         Scratchpad = new ScratchpadService(settingsDirectory);
-        ArchiveService = new ArchiveService();
+        ArchiveService = archiveService ?? new ArchiveService();
         WordHistory = new WordHistoryService(FileService, Projects);
         UserAssets = new Appearance.UserAssetsService(settingsDirectory);
         UserAssets.EnsureDirectories();
@@ -83,7 +84,7 @@ public sealed partial class Workspace : IDisposable
     public ScratchpadService Scratchpad { get; }
 
     /// <summary>ZIP creation and extraction, used by whole-project backups.</summary>
-    public ArchiveService ArchiveService { get; }
+    public IArchiveService ArchiveService { get; }
     public WordHistoryService WordHistory { get; }
 
     /// <summary>User-supplied themes, interface locales, and analysis lexicons
@@ -116,7 +117,6 @@ public sealed partial class Workspace : IDisposable
     {
         await Settings.LoadAsync();
         var metadata = await Projects.LoadProjectAsync(projectDirectory, bookId);
-        await Projects.ReconcileActiveDraftAsync();
         Settings.SetActiveOverrides(Projects.ProjectSettings.Overrides);
         // Record the portrait cover's absolute path so the welcome screen can
         // render each recent project's cover without opening it.

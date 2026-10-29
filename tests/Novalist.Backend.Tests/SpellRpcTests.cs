@@ -222,6 +222,15 @@ public sealed class SpellRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Dictionary_StopsWhenAlreadyCancelled()
+    {
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => _rpc.GetDictionaryAsync(cancellation.Token));
+    }
+
+    [Fact]
     public async Task Dictionary_DoesNotRepeatANameTheWriterAlsoTaught()
     {
         _workspace.Projects.CreateProjectAsync(_root, "SpellNovel", "Book").GetAwaiter().GetResult();

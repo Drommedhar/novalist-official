@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RotateCcw } from 'lucide-react'
 import { rpc } from '../rpc/client'
@@ -8,7 +8,9 @@ import { useProjectStore } from '../stores/projectStore'
 import { useEntityPeek, type PeekScope } from '../views/editor/PeekCard'
 import { EntityProposalsDialog, type EntityProposal } from './EntityProposalsDialog'
 import { MotionPresence } from './MotionPresence'
-import { type CardPeek, type SceneContext } from './contextTypes'
+import { type CardPeek } from './contextTypes'
+import { prepareSceneContext, sceneContextScope } from './sceneContextData'
+import { useSceneContext } from './usePreparedSceneContext'
 import { SECTION_STORAGE_KEY, readCollapsed, loc, CollapsibleSection, EntitySection } from './ContextSections'
 
 /** Scene context/analysis panel: entities present in the scene, cross-chapter
@@ -27,7 +29,8 @@ export function ContextPanel({
 }): React.JSX.Element | null {
   const { t } = useTranslation()
   const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
-  const [ctx, setCtx] = useState<SceneContext | null>(null)
+  const context = useSceneContext(chapterGuid, sceneId, !prepareHidden)
+  const ctx = context.context
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(readCollapsed)
   const [conflictDraft, setConflictDraft] = useState('')
   const [tagsDraft, setTagsDraft] = useState('')
@@ -38,9 +41,6 @@ export function ContextPanel({
   const [scanMessage, setScanMessage] = useState<string | null>(null)
   const [proposals, setProposals] = useState<EntityProposal[] | null>(null)
   const chapters = useProjectStore((s) => s.chapters)
-  const savedHash = useProjectStore((s) => s.sceneHashes[sceneId])
-  const analyzedHash = useRef(savedHash)
-  const analysisRequest = useRef(0)
 
   // The open chapter/scene, so a character peek raised from the sidebar resolves
   // its per-chapter/scene overrides for the scene in view — exactly as the editor
@@ -75,22 +75,11 @@ export function ContextPanel({
   }
 
   const analyze = useCallback(
-    (preparing = false): void => {
-      const request = ++analysisRequest.current
-      if (preparing) onReadyChange?.(false)
-      void rpc
-        .request<SceneContext>('context/analyze', [chapterGuid, sceneId])
-        .then((next) => {
-          if (request === analysisRequest.current) setCtx(next)
-        })
-        .catch(() => {
-          if (request === analysisRequest.current) setCtx(null)
-        })
-        .finally(() => {
-          if (request === analysisRequest.current) onReadyChange?.(true)
-        })
+    (): void => {
+      const scope = sceneContextScope(useProjectStore.getState(), chapterGuid, sceneId)
+      if (scope) void prepareSceneContext(scope, true)
     },
-    [chapterGuid, sceneId, onReadyChange]
+    [chapterGuid, sceneId]
   )
 
   /** Asks the installed AI extension which people/places/things in this scene are
@@ -124,21 +113,12 @@ export function ContextPanel({
   }
 
   useEffect(() => {
-    setCtx(null)
     setScanMessage(null)
-    analyze(true)
-    return () => {
-      ++analysisRequest.current
-    }
-  }, [analyze])
+  }, [chapterGuid, sceneId])
 
-  // A retained panel follows saved prose while tucked away. It does no work on
-  // hover, and never replaces a draft field while the writer is using it.
   useEffect(() => {
-    if (!prepareHidden || analyzedHash.current === savedHash) return
-    analyzedHash.current = savedHash
-    analyze(true)
-  }, [prepareHidden, savedHash, analyze])
+    onReadyChange?.(context.status === 'ready' || context.status === 'error')
+  }, [context.status, onReadyChange])
 
   // Whether any extension offers entity extraction; without one the scan button
   // never appears.
@@ -189,7 +169,10 @@ export function ContextPanel({
       .then(() => analyze())
   }
 
-  if (!ctx) return null
+  if (!ctx) return <div className="inspector-placeholder" role="status">
+    {context.error ?? t('splash.loading')}
+    {context.error && <button className="dialog-button" onClick={analyze}>{t('smartList.refresh')}</button>}
+  </div>
   const a = ctx.analysis
   const hasAny =
     ctx.characters.length ||
