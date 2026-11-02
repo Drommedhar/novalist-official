@@ -37,7 +37,7 @@ function setContent(html) {
         window.NovalistEditorState.editor.innerHTML = '<p><br></p>';
     } else {
         const bodyContent = extractBody(html);
-        window.NovalistEditorState.editor.replaceChildren(window.sanitizeSceneFragment(bodyContent));
+        window.NovalistEditorState.editor.replaceChildren(window.sceneContentFragment(bodyContent));
     }
     window.clearGrammarHighlights();
     refreshSceneBreakClasses(window.NovalistEditorState.editor);

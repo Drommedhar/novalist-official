@@ -50,6 +50,49 @@ public sealed class EntitiesRpcTests : IDisposable
 
     private EntityService Entities => new(_workspace.Projects);
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SharedImages_KeepOriginalBookAfterSwitchAndReopen(bool import)
+    {
+        var character = new CharacterData { Name = "Shared", IsWorldBible = true };
+        await Entities.SaveCharacterAsync(character);
+        var source = Path.Combine(_root, "shared-portrait.png");
+        await File.WriteAllBytesAsync(source, [137, 80, 78, 71]);
+        var library = new LibraryRpc(_workspace);
+        var imported = await library.ImportImageAsync(source);
+        await _rpc.AddImageAsync("character", character.Id, import ? source : imported.Path, import);
+        var projectRoot = _workspace.Projects.ProjectRoot!;
+        var second = await _workspace.Projects.CreateBookAsync("Second");
+        await _workspace.Projects.SwitchBookAsync(second.Id);
+        await _workspace.OpenProjectAsync(projectRoot);
+
+        var image = (await _rpc.GetAsync("character", character.Id)).GetProperty("images")[0];
+        Assert.Equal(imported.Url, image.GetProperty("url").GetString());
+        Assert.Equal("./" + imported.Url, image.GetProperty("path").GetString());
+        Assert.Single(Directory.GetFiles(projectRoot, "shared-portrait.png", SearchOption.AllDirectories));
+        Assert.True(File.Exists(Path.Combine(projectRoot, image.GetProperty("url").GetString()!)));
+    }
+
+    [Fact]
+    public async Task SharedImages_ReplacementAndOverrideRemainPortable()
+    {
+        var character = new CharacterData { Name = "Shared", IsWorldBible = true };
+        await Entities.SaveCharacterAsync(character);
+        await _rpc.AddImageAsync("character", character.Id, "Images/old.png", false);
+        var added = (await _rpc.GetAsync("character", character.Id)).GetProperty("images")[0];
+        await _rpc.ReplaceImageAsync("character", character.Id, added.GetProperty("path").GetString()!, "Images/new.png");
+        await _rpc.SetOverrideImagesAsync(character.Id, "chapter", null, [new("Portrait", "Images/override.png")]);
+        var firstFolder = _workspace.Projects.ActiveBook!.FolderName.Replace('\\', '/');
+        var second = await _workspace.Projects.CreateBookAsync("Second");
+        await _workspace.Projects.SwitchBookAsync(second.Id);
+
+        var record = await _rpc.GetAsync("character", character.Id);
+        Assert.Equal(firstFolder + "/Images/new.png", record.GetProperty("images")[0].GetProperty("url").GetString());
+        Assert.Equal(firstFolder + "/Images/override.png", record.GetProperty("chapterOverrides")[0]
+            .GetProperty("images")[0].GetProperty("url").GetString());
+    }
+
     [Fact]
     public async Task List_Characters_ComposesNameAndSurname()
     {

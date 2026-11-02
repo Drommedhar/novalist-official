@@ -47,6 +47,35 @@ public sealed class LibraryRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Gallery_ProjectWideListsEveryBookWithoutChangingActiveBook()
+    {
+        var firstBook = _workspace.Projects.ActiveBook!;
+        var first = await _rpc.ImportImageAsync(WriteSource("portrait.png"));
+        var secondBook = await _workspace.Projects.CreateBookAsync("Second");
+        await _workspace.Projects.SwitchBookAsync(secondBook.Id);
+        var second = await _rpc.ImportImageAsync(WriteSource("portrait.png", 8));
+        var sharedFolder = Path.Combine(_workspace.Projects.WorldBibleRoot!, "Images");
+        Directory.CreateDirectory(sharedFolder);
+        await File.WriteAllBytesAsync(Path.Combine(sharedFolder, "shared.png"), [1]);
+
+        var images = await _rpc.ListImagesAsync(projectWide: true);
+
+        Assert.Equal(3, images.Length);
+        Assert.Contains(images, image => image.Path == "./" + first.Url && image.Url == first.Url);
+        Assert.Contains(images, image => image.Path == "./" + second.Url && image.Url == second.Url);
+        Assert.Contains(images, image => image.Path == "./World Bible/Images/shared.png");
+        Assert.Equal(secondBook.Id, _workspace.Projects.ActiveBook!.Id);
+        Assert.All(images, image => Assert.True(File.Exists(Path.Combine(
+            _workspace.Projects.ProjectRoot!, image.Url))));
+        // Existing book-scoped callers (including maps) retain their stored paths.
+        Assert.Contains(await _rpc.ListImagesAsync(), image => image.Path == "Images/portrait.png");
+        Assert.DoesNotContain(await _rpc.ListImagesAsync(), image => image.Url == first.Url);
+
+        await _workspace.Projects.SwitchBookAsync(firstBook.Id);
+        Assert.Equal(images.Select(i => i.Path), (await _rpc.ListImagesAsync(true)).Select(i => i.Path));
+    }
+
+    [Fact]
     public async Task Research_SaveUpdateDelete_RoundTrip()
     {
         var saved = await _rpc.SaveResearchAsync(null, "Norse winters", "Note", "Very cold.", ["climate", " "]);

@@ -1,64 +1,88 @@
-import { test, expect, _electron as electron } from '@playwright/test'
-import { existsSync, mkdtempSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { copyProject } from './copyProject'
-import { evaluateWhenReady } from './appReady'
-import { REAL_PROJECT } from './realProject'
-import { dismissTour } from './harness'
+import { test, expect } from '@playwright/test'
+import { dismissTour, launchApp, seedBook, type Harness } from './harness'
 
-/**
- * One filter model, shared live. The Manuscript status filter and the
- * Timeline's character filter were unrelated local state, so narrowing to one
- * thread meant setting it again in each view and losing it on navigation.
- */
+async function openFilteredBook(h: Harness): Promise<void> {
+  const book = await seedBook(h, {
+    'Outline chapter': ['Ready in outline', 'Needs revision'],
+    'Final chapter': ['Ready in final']
+  })
+  const [outline, final] = book.chapters
+  await h.rpc('project/setChapterStatus', [final.guid, 'Final'])
+  await h.rpc('stages/setSceneStage', [outline.guid, outline.scenes[0].id, 'final'])
+  await h.rpc('stages/setSceneStage', [outline.guid, outline.scenes[1].id, 'revised'])
+  await h.rpc('stages/setSceneStage', [final.guid, final.scenes[0].id, 'final'])
+  await dismissTour(h.page)
+  await h.page.evaluate(() => {
+    window.novalistStores.manuscript.getState().setMode('outliner')
+    window.novalistStores.shell.getState().setMainView('manuscript')
+  })
+  await expect(h.page.locator('.outliner-scene-title')).toHaveText([
+    'Ready in outline', 'Needs revision', 'Ready in final'
+  ])
+  await h.page.locator('.filter-bar-toggle').click()
+}
 
-test('a filter set in one view is still set in the next', async () => {
-  test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')
-  test.setTimeout(120_000)
+test('scene stages combine with chapter status and survive clearing, presets and navigation', async () => {
+  const h = await launchApp('nl-shared-filters-')
+  try {
+    await openFilteredBook(h)
+    const status = h.page.getByRole('combobox', { name: 'Status', exact: true })
+    const stage = h.page.getByRole('combobox', { name: 'Stage', exact: true })
+    const titles = h.page.locator('.outliner-scene-title')
 
-  const workDir = mkdtempSync(join(tmpdir(), 'nl-filter-'))
-  const projectCopy = join(workDir, 'project')
-  copyProject(REAL_PROJECT, projectCopy)
-  const env: Record<string, string> = Object.fromEntries(
-    Object.entries(process.env).filter(([k, v]) => v !== undefined && k !== 'ELECTRON_RUN_AS_NODE')
-  ) as Record<string, string>
-  env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
-  env.NOVALIST_NO_SPLASH = '1'
+    await stage.selectOption('final')
+    await expect(titles).toHaveText(['Ready in outline', 'Ready in final'])
+    await status.selectOption('Final')
+    await expect(titles).toHaveText(['Ready in final'])
+    await h.page.getByRole('button', { name: 'Clear 2', exact: true }).click()
+    await expect(titles).toHaveText(['Ready in outline', 'Needs revision', 'Ready in final'])
 
-  const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`], env })
-  const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
-  await evaluateWhenReady(page, async (root) => {
-    const state = await window.novalistRpc.request('project/open', [root])
-    window.novalistStores.project.getState().applyState(state as never)
-  }, projectCopy)
-  await dismissTour(page)
+    await stage.selectOption('revised')
+    await expect(titles).toHaveText(['Needs revision'])
+    await h.page.locator('.filter-presets input').fill('Revision pass')
+    await h.page.locator('.filter-presets input').press('Enter')
+    await stage.selectOption('final')
+    await expect(titles).toHaveText(['Ready in outline', 'Ready in final'])
+    await h.page.getByRole('button', { name: 'Revision pass', exact: true }).click()
+    await expect(titles).toHaveText(['Needs revision'])
 
-  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('manuscript'))
-  await page.locator('.filter-bar-toggle').click()
-  await expect(page.locator('.filter-bar')).toBeVisible({ timeout: 20_000 })
+    await h.page.evaluate(() => window.novalistStores.shell.getState().setMainView('timeline'))
+    await expect(stage).toHaveValue('revised')
+    await h.page.evaluate(() => window.novalistStores.shell.getState().setMainView('manuscript'))
+    await expect(titles).toHaveText(['Needs revision'])
+  } finally {
+    await h.close()
+  }
+})
 
-  // Narrow by status in the Manuscript, the way a writer would.
-  await page.locator('.filter-bar select').first().selectOption('Final')
+test('manuscript presents one status filter instead of conflicting duplicate controls', async () => {
+  const h = await launchApp('nl-filter-controls-')
+  try {
+    await openFilteredBook(h)
+    await expect(h.page.getByRole('combobox', { name: 'Status', exact: true })).toHaveCount(1)
+    await expect(h.page.locator('.manuscript-toolbar').getByRole('button', { name: 'Final', exact: true })).toHaveCount(0)
+  } finally {
+    await h.close()
+  }
+})
 
-  // The manuscript's own filter follows the shared one rather than being a
-  // second answer to the same question.
-  await expect
-    .poll(async () => page.locator('.filter-bar select').first().inputValue(), { timeout: 10_000 })
-    .toBe('Final')
+test('manuscript loads the shared status and scene stage set in another view', async () => {
+  const h = await launchApp('nl-filter-state-')
+  try {
+    await openFilteredBook(h)
+    await h.page.evaluate(() => window.novalistStores.shell.getState().setMainView('timeline'))
+    await h.page.locator('.filter-bar-toggle').click()
+    await h.page.getByRole('combobox', { name: 'Status', exact: true }).selectOption('Final')
+    await h.page.getByRole('combobox', { name: 'Stage', exact: true }).selectOption('final')
 
-  // Still narrowed after moving to the Timeline, which is the whole point.
-  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('timeline'))
-  await expect(page.locator('.filter-bar')).toBeVisible({ timeout: 20_000 })
-  expect(await page.locator('.filter-bar select').first().inputValue()).toBe('Final')
-
-  // And it survives being named and re-applied.
-  await page.locator('.filter-presets input').fill('Final pass')
-  await page.locator('.filter-presets input').press('Enter')
-  await page.locator('.filter-bar select').first().selectOption('')
-  await page.getByRole('button', { name: 'Final pass' }).click()
-  expect(await page.locator('.filter-bar select').first().inputValue()).toBe('Final')
-
-  await app.close()
+    // Loading the manuscript must use the same filter even before its view mounts.
+    const titles = await h.page.evaluate(async () => {
+      const manuscript = window.novalistStores.manuscript
+      await manuscript.getState().load()
+      return manuscript.getState().sections.flatMap((section) => section.scenes.map((scene) => scene.title))
+    })
+    expect(titles).toEqual(['Ready in final'])
+  } finally {
+    await h.close()
+  }
 })

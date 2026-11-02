@@ -15,12 +15,9 @@ import { useContentTransition } from '../../shell/useContentTransition'
 
 const MODES: ManuscriptMode[] = ['manuscript', 'corkboard', 'outliner', 'board']
 
-const FILTERS = ['All', 'Outline', 'FirstDraft', 'Final']
-
 function useManuscriptView() {
   const { t } = useTranslation()
   const mode = useManuscriptStore((s) => s.mode)
-  const filterStatus = useManuscriptStore((s) => s.filterStatus)
   const filterListId = useManuscriptStore((s) => s.filterListId)
   const [savedLists, setSavedLists] = useState<{ id: string; name: string }[]>([])
 
@@ -32,7 +29,6 @@ function useManuscriptView() {
   }, [])
   const sections = useManuscriptStore((s) => s.sections)
   const setMode = useManuscriptStore((s) => s.setMode)
-  const setFilter = useManuscriptStore((s) => s.setFilter)
   const load = useManuscriptStore((s) => s.load)
   const groupBy = useManuscriptStore((s) => s.groupBy)
   const composed = useManuscriptStore((s) => s.composed)
@@ -40,29 +36,10 @@ function useManuscriptView() {
   const colourBy = useManuscriptStore((s) => s.colourBy)
   const definitions = useManuscriptPropsStore((s) => s.definitions)
 
+  const filter = useFilterStore((s) => s.filter)
   useEffect(() => {
     void load()
-  }, [load, filterStatus, composed])
-
-  // The shared status chip and the manuscript's own filter are the same
-  // statement about the book, so one follows the other rather than the writer
-  // setting it twice and wondering which won.
-  const sharedStatus = useFilterStore((s) => s.filter.status)
-  useEffect(() => {
-    const wanted = sharedStatus || 'All'
-    if (wanted !== useManuscriptStore.getState().filterStatus) void setFilter(wanted)
-  }, [sharedStatus, setFilter])
-
-  // The rest of the shared filter narrows the book too. Reloading on the whole
-  // filter rather than on status alone is the fix for chips that were set,
-  // stored, and then read by nothing.
-  const sharedCharacter = useFilterStore((s) => s.filter.character)
-  const sharedLocation = useFilterStore((s) => s.filter.location)
-  const sharedPlotline = useFilterStore((s) => s.filter.plotline)
-  const sharedStage = useFilterStore((s) => s.filter.stage)
-  useEffect(() => {
-    void load()
-  }, [load, sharedCharacter, sharedLocation, sharedPlotline, sharedStage])
+  }, [load, filter, composed])
 
   useEffect(() => {
     void useManuscriptPropsStore.getState().load()
@@ -82,11 +59,11 @@ function useManuscriptView() {
     [definitions, t]
   )
 
-  return { mode, setMode, t, freeform, colourBy, groupBy, groupings, composed, savedLists, filterListId, filterStatus, setFilter, sections }
+  return { mode, setMode, t, freeform, colourBy, groupBy, groupings, composed, savedLists, filterListId, sections }
 }
 
 export function ManuscriptView(): React.JSX.Element {
-  const { mode, setMode, t, freeform, colourBy, groupBy, groupings, composed, savedLists, filterListId, filterStatus, setFilter, sections } = useManuscriptView()
+  const { mode, setMode, t, freeform, colourBy, groupBy, groupings, composed, savedLists, filterListId, sections } = useManuscriptView()
   const contentRef = useRef<HTMLDivElement>(null)
   useContentTransition(contentRef, mode)
 
@@ -189,17 +166,6 @@ export function ManuscriptView(): React.JSX.Element {
             ))}
           </select>
         )}
-        <div className="manuscript-filters">
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              className={`dashboard-range${filterStatus === f ? ' active' : ''}`}
-              onClick={() => void setFilter(f)}
-            >
-              {f === 'All' ? t('manuscript.filterAll') : t(`dashboard.status${f}`)}
-            </button>
-          ))}
-        </div>
       </div>
       {mode === 'manuscript' && <ManuscriptFrame />}
       {mode === 'corkboard' && <Corkboard />}

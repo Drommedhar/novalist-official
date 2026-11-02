@@ -22,6 +22,7 @@ function useEntityImages() {
   const entityType = useCodexStore((s) => s.entityType)
   const selectedId = useCodexStore((s) => s.selectedId)
   const record = useCodexStore((s) => s.selectedRecord)
+  const isWorldBible = useCodexStore((s) => s.entities.find(entity => entity.id === s.selectedId)?.isWorldBible === true)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [galleryImages, setGalleryImages] = useState<{ path: string; url: string }[]>([])
   // When set, the gallery picker swaps this stored path instead of adding.
@@ -42,7 +43,7 @@ function useEntityImages() {
 
   const openGallery = async (target: string | null): Promise<void> => {
     setSwapTarget(target)
-    setGalleryImages(await rpc.request<{ path: string; url: string }[]>('gallery/list'))
+    setGalleryImages(await rpc.request<{ path: string; url: string }[]>('gallery/list', [isWorldBible]))
     setGalleryOpen(true)
   }
 

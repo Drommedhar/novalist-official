@@ -13,14 +13,14 @@ public sealed partial class EntitiesRpc
     {
         var relative = import ? await _entities.ImportImageAsync(path) : path;
         var name = Path.GetFileNameWithoutExtension(relative);
-        return await MutateImagesAsync(type, id, images =>
-            images.Add(new EntityImage { Name = name, Path = relative }));
+        return await MutateImagesAsync(type, id, entity =>
+            entity.Images.Add(new EntityImage { Name = name, Path = ImagePathFor(entity, relative) }));
     }
 
     [JsonRpcMethod("entities/removeImage")]
     public Task<JsonElement> RemoveImageAsync(string type, string id, string path) =>
-        MutateImagesAsync(type, id, images =>
-            images.RemoveAll(i => i.Path == path));
+        MutateImagesAsync(type, id, entity =>
+            entity.Images.RemoveAll(i => i.Path == path));
 
     /// <summary>Renames the stored image whose <c>Path</c> matches, leaving its
     /// path (and on-disk file) untouched so add/remove still match on it.</summary>
@@ -31,17 +31,17 @@ public sealed partial class EntitiesRpc
     /// </summary>
     [JsonRpcMethod("entities/setImageAlt")]
     public Task<JsonElement> SetImageAltAsync(string type, string id, string path, string alt) =>
-        MutateImagesAsync(type, id, images =>
+        MutateImagesAsync(type, id, entity =>
         {
-            var image = images.FirstOrDefault(i => i.Path == path);
+            var image = entity.Images.FirstOrDefault(i => i.Path == path);
             if (image != null) image.Alt = alt ?? string.Empty;
         });
 
     [JsonRpcMethod("entities/renameImage")]
     public Task<JsonElement> RenameImageAsync(string type, string id, string path, string newName) =>
-        MutateImagesAsync(type, id, images =>
+        MutateImagesAsync(type, id, entity =>
         {
-            var image = images.FirstOrDefault(i => i.Path == path);
+            var image = entity.Images.FirstOrDefault(i => i.Path == path);
             if (image != null) image.Name = newName;
         });
 
@@ -50,12 +50,12 @@ public sealed partial class EntitiesRpc
     /// keeping the display name unless it was empty.</summary>
     [JsonRpcMethod("entities/replaceImage")]
     public Task<JsonElement> ReplaceImageAsync(string type, string id, string oldPath, string newPath) =>
-        MutateImagesAsync(type, id, images =>
+        MutateImagesAsync(type, id, entity =>
         {
-            var image = images.FirstOrDefault(i => i.Path == oldPath);
+            var image = entity.Images.FirstOrDefault(i => i.Path == oldPath);
             if (image != null)
             {
-                image.Path = newPath;
+                image.Path = ImagePathFor(entity, newPath);
                 if (string.IsNullOrWhiteSpace(image.Name))
                     image.Name = Path.GetFileNameWithoutExtension(newPath);
             }
@@ -69,22 +69,25 @@ public sealed partial class EntitiesRpc
     public async Task<JsonElement> AddImageFromUrlAsync(string type, string id, string url)
     {
         var (relative, fileName) = await _imageImporter.ImportAsync(url);
-        return await MutateImagesAsync(type, id, images =>
-            images.Add(new EntityImage
+        return await MutateImagesAsync(type, id, entity =>
+            entity.Images.Add(new EntityImage
             {
                 Name = Path.GetFileNameWithoutExtension(fileName),
-                Path = relative
+                Path = ImagePathFor(entity, relative)
             }));
     }
 
     private async Task<JsonElement> MutateImagesAsync(
-        string type, string id, Action<List<EntityImage>> mutate)
+        string type, string id, Action<IEntityData> mutate)
     {
         var entity = await FindEntityAsync(type, id) ?? throw Unknown(id);
-        mutate(entity.Images);
+        mutate(entity);
         await SaveEntityAsync(entity);
         return WithResolvedImages(entity);
     }
+
+    private string ImagePathFor(IEntityData entity, string path) =>
+        entity.IsWorldBible ? "./" + _entities.ResolveProjectRelativeImage(path) : path;
 
     /// <summary>
     /// Serializes an entity and annotates each image with a <c>url</c> field
