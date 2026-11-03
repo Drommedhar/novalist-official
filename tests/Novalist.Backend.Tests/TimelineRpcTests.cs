@@ -27,6 +27,73 @@ public sealed class TimelineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Get_PlacesAnUndatedActAtItsFirstChapterInReadingOrder()
+    {
+        var first = await _workspace.Projects.CreateChapterAsync("First", "2042-03-04");
+        first.Act = "Act I";
+        var flashback = await _workspace.Projects.CreateChapterAsync("Flashback", "2041-01-01");
+        flashback.Act = "Act I";
+
+        var timeline = await _rpc.Get();
+        var act = Assert.Single(timeline.Groups.SelectMany(g => g.Events), e => e.Source == "act");
+        Assert.Equal("2042-03-04", act.DateStr);
+        var group = Assert.Single(timeline.Groups, g => g.Key == "2042-03");
+        Assert.Equal(["act", "chapter"], group.Events.Select(e => e.Source));
+    }
+
+    [Theory]
+    [InlineData("2042-03-04", "2042-03-06")]
+    [InlineData("812.2.38", "812.2.40")]
+    public async Task Get_UsesChapterRangesForChaptersAndInheritedScenes(string start, string end)
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("Arrival", "2000-01-01");
+        chapter.DateRange = new Novalist.Core.Models.StoryDateRange { Start = start, End = end };
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Inherited");
+
+        var events = (await _rpc.Get()).Groups.SelectMany(g => g.Events).ToArray();
+        foreach (var source in new[] { "chapter", "scene" })
+        {
+            var entry = Assert.Single(events, e => e.Source == source);
+            Assert.Equal(start, entry.DateStr);
+            Assert.Equal(end, entry.EndDateStr);
+        }
+    }
+
+    [Fact]
+    public async Task Get_UsesExplicitActDatesAndLeavesActsWithUndatedFirstChaptersUndated()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("First", "2042-03-04");
+        chapter.Act = "Act I";
+        _workspace.Projects.ActiveBook!.Acts.Add(new Novalist.Core.Models.ActData
+        {
+            Name = "ACT I", DateRange = new Novalist.Core.Models.StoryDateRange { Start = "2040-01-01" }
+        });
+        var undated = await _workspace.Projects.CreateChapterAsync("Undated");
+        undated.Act = "Act II";
+        var later = await _workspace.Projects.CreateChapterAsync("Later", "2043-01-01");
+        later.Act = "Act II";
+        var events = (await _rpc.Get()).Groups.SelectMany(g => g.Events).ToArray();
+        Assert.Equal("2040-01-01", Assert.Single(events, e => e.Title == "Act I").DateStr);
+        Assert.Equal("", Assert.Single(events, e => e.Title == "Act II").DateStr);
+    }
+
+    [Fact]
+    public async Task Get_PreservesSceneDatesAndRelativeOffsetsBeforeChapterInheritance()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("First", "2042-03-04");
+        var own = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Own");
+        own.DateRange = new Novalist.Core.Models.StoryDateRange { Start = "2042-03-10", End = "2042-03-11" };
+        var next = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Next");
+        next.RelativeTime = new Novalist.Core.Models.RelativeStoryTime
+        {
+            Amount = 2, Unit = Novalist.Core.Models.StoryTimeUnit.Days
+        };
+        var events = (await _rpc.Get()).Groups.SelectMany(g => g.Events).ToArray();
+        Assert.Equal("2042-03-10", Assert.Single(events, e => e.SceneId == own.Id).DateStr);
+        Assert.StartsWith("2042-03-12", Assert.Single(events, e => e.SceneId == next.Id).DateStr);
+    }
+
+    [Fact]
     public async Task Get_BuildsActsChaptersScenesAndManualEvents()
     {
         var chapter = await _workspace.Projects.CreateChapterAsync("Kapitel", "1043-03-01");

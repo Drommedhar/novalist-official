@@ -1,6 +1,7 @@
 using System.Globalization;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
+using Novalist.Core.Utilities;
 using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
@@ -86,24 +87,32 @@ public sealed partial class TimelineRpc
         IReadOnlyDictionary<string, string> resolved)
     {
         var events = new List<TimelineEventDto>();
-        var seenActs = new HashSet<string>();
+        var seenActs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var readingIndex = 0;
         foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
         {
             if (!string.IsNullOrEmpty(chapter.Act) && seenActs.Add(chapter.Act))
             {
+                var act = book.Acts.FirstOrDefault(a =>
+                    string.Equals(a.Name, chapter.Act, StringComparison.OrdinalIgnoreCase));
+                var range = act?.DateRange?.HasValue == true
+                    ? act.DateRange : StoryDateResolver.Resolve(null, chapter, book.Acts);
+                var date = range?.Start ?? string.Empty;
                 events.Add(new TimelineEventDto(
-                    $"act-{chapter.Act}", chapter.Act, "", null, "", "act",
+                    $"act-{chapter.Act}", chapter.Act, date, Iso(ParseDate(date)), "", "act",
                     null, null, null, chapter.Order - 0.5, [], [], false, string.Empty, [],
-                    string.Empty, 0));
+                    string.Empty, 0, range?.End ?? string.Empty, Iso(ParseDate(range?.End ?? string.Empty))));
             }
 
-            if (!string.IsNullOrEmpty(chapter.Date))
+            var chapterRange = StoryDateResolver.Resolve(null, chapter, book.Acts);
+            var chapterDate = chapterRange?.Start ?? string.Empty;
+            if (!string.IsNullOrEmpty(chapterDate))
             {
                 events.Add(new TimelineEventDto(
-                    $"ch-{chapter.Guid}", chapter.Title, chapter.Date, Iso(ParseDate(chapter.Date)),
+                    $"ch-{chapter.Guid}", chapter.Title, chapterDate, Iso(ParseDate(chapterDate)),
                     "", "chapter", null, chapter.Guid, null, chapter.Order, [], [], false,
-                    string.Empty, [], string.Empty, 0));
+                    string.Empty, [], string.Empty, 0, chapterRange?.End ?? string.Empty,
+                    Iso(ParseDate(chapterRange?.End ?? string.Empty))));
             }
 
             var scenes = (manifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [])
@@ -111,11 +120,10 @@ public sealed partial class TimelineRpc
                 .OrderBy(s => s.Order);
             foreach (var scene in scenes)
             {
-                var date = string.IsNullOrEmpty(scene.Date) ? chapter.Date : scene.Date;
-                // A scene that only says "two hours later" used to fall out of
-                // the timeline entirely, which is how a whole book ends up
-                // looking undated.
-                if (string.IsNullOrEmpty(date)) date = resolved.GetValueOrDefault(scene.Id) ?? string.Empty;
+                var range = StoryDateResolver.Resolve(scene, chapter, book.Acts);
+                var derived = resolved.GetValueOrDefault(scene.Id);
+                var date = derived ?? range?.Start ?? string.Empty;
+                var end = (derived == null ? range?.End : scene.DateRange?.End) ?? string.Empty;
                 if (string.IsNullOrEmpty(date)) continue;
                 var cast = scene.Cast ?? [];
                 events.Add(new TimelineEventDto(
@@ -131,10 +139,7 @@ public sealed partial class TimelineRpc
                     // Reading order is what a reader meets, whatever the dates
                     // say; numbered here so the two orders can be compared.
                     ++readingIndex,
-                    // A scene that spans days has always known it; the timeline
-                    // just never passed the far end on.
-                    scene.DateRange?.End ?? string.Empty,
-                    Iso(ParseDate(scene.DateRange?.End ?? string.Empty))));
+                    end, Iso(ParseDate(end))));
             }
         }
 

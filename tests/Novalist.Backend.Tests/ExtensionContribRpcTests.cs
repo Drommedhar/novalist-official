@@ -91,20 +91,20 @@ public sealed class ExtensionContribRpcTests : IDisposable
     public async Task ExecuteInlineAction_Replace_Insert_Unknown_NoHost()
     {
         var replace = await _rpc.ExecuteInlineActionAsync(
-            "ext.writingtoolkit.uppercase", "hi", _chapterGuid, _sceneId, CancellationToken.None);
+            "ext.writingtoolkit.uppercase", "hi", _chapterGuid, _sceneId, cancellationToken: CancellationToken.None);
         Assert.Equal("HI", replace!.Text);
         Assert.Equal("replace", replace.Disposition);
 
         var insert = await _rpc.ExecuteInlineActionAsync(
-            "ext.writingtoolkit.wordcount", "a b", _chapterGuid, _sceneId, CancellationToken.None);
+            "ext.writingtoolkit.wordcount", "a b", _chapterGuid, _sceneId, cancellationToken: CancellationToken.None);
         Assert.Equal("insertAfter", insert!.Disposition);
 
         Assert.Null(await _rpc.ExecuteInlineActionAsync(
-            "nope", "x", null, null, CancellationToken.None));
+            "nope", "x", null, null, cancellationToken: CancellationToken.None));
 
         var rpc = NoHostRpc(out var ws);
         using (ws)
-            Assert.Null(await rpc.ExecuteInlineActionAsync("x", "y", null, null, CancellationToken.None));
+            Assert.Null(await rpc.ExecuteInlineActionAsync("x", "y", null, null, cancellationToken: CancellationToken.None));
     }
 
     // ── Context menu ────────────────────────────────────────────────
@@ -113,7 +113,7 @@ public sealed class ExtensionContribRpcTests : IDisposable
     public async Task InlineAlternativesAndSuggestionIntentReachTheRenderer()
     {
         _workspace.HostServices!.RegisterInlineActionContributor(new ReviewAction());
-        var result = await _rpc.ExecuteInlineActionAsync("audit-review", "original", _chapterGuid, _sceneId, CancellationToken.None);
+        var result = await _rpc.ExecuteInlineActionAsync("audit-review", "original", _chapterGuid, _sceneId, cancellationToken: CancellationToken.None);
         Assert.NotNull(result);
         Assert.Equal(new[] { "first proposal", "second proposal" }, result.Alternatives);
         Assert.True(result.AsSuggestion);

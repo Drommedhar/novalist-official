@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Pencil, Plus, Trash2, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
+import './custom-type-manager.css'
+import { EntityReferenceList } from './EntityReferenceList'
 
 export interface CustomTypeDefinition {
   typeKey: string
@@ -23,7 +25,8 @@ export interface CustomTypeDefinition {
   features: { includeImages: boolean; includeRelationships: boolean; includeSections: boolean }
 }
 
-const FIELD_TYPES = ['String', 'Int', 'Bool', 'Date', 'Enum', 'Timespan', 'EntityRef']
+const FIELD_TYPES = ['String', 'Text', 'Int', 'Bool', 'Date', 'Enum', 'Timespan', 'EntityRef', 'EntityRefList']
+const isReference = (type: string): boolean => type === 'EntityRef' || type === 'EntityRefList'
 
 interface FieldRow {
   key: string
@@ -133,7 +136,7 @@ export function CustomTypeManager({
             enumOptions:
               f.type === 'Enum' && f.enumOptionsText.trim()
                 ? f.enumOptionsText.split(',').map((o) => o.trim()).filter(Boolean)
-                : f.type === 'EntityRef'
+                : isReference(f.type)
                   ? [f.enumOptionsText.trim() || 'character']
                   : null,
             required: f.required,
@@ -154,7 +157,7 @@ export function CustomTypeManager({
       onPointerDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        className="dialog-card type-manager-card"
+        className="dialog-card type-manager-card custom-type-manager-card"
         role="dialog"
         aria-label={t('codexHub.manageTypes')}
       >
@@ -298,21 +301,35 @@ export function CustomTypeManager({
                     value={field.type}
                     onChange={(e) => patchField(index, {
                       type: e.target.value,
-                      enumOptionsText: e.target.value === 'EntityRef' ? 'character' : ''
+                      enumOptionsText: isReference(e.target.value) ? 'character' : '',
+                      defaultValue: ''
                     })}
                   >
                     {FIELD_TYPES.map((ft) => (
                       <option key={ft} value={ft}>
-                        {ft}
+                        {ft === 'Text' ? t('entityTypeManager.textType') : ft === 'EntityRefList' ? t('entityTypeManager.referenceListType') : ft}
                       </option>
                     ))}
                   </select>
-                  <input
+                  {field.type === 'Text' ? <textarea
+                    className="dialog-input"
+                    aria-label={t('entityTypeManager.defaultValue')}
+                    placeholder={t('entityTypeManager.defaultValue')}
+                    rows={3}
+                    value={field.defaultValue}
+                    onChange={(e) => patchField(index, { defaultValue: e.target.value })}
+                  /> : field.type === 'EntityRefList' ? <EntityReferenceList
+                    key={field.enumOptionsText}
+                    targetType={field.enumOptionsText || 'character'}
+                    label={t('entityTypeManager.defaultValue')}
+                    value={field.defaultValue}
+                    onChange={(value) => patchField(index, { defaultValue: value })}
+                  /> : <input
                     className="dialog-input"
                     placeholder={t('entityTypeManager.defaultValue')}
                     value={field.defaultValue}
                     onChange={(e) => patchField(index, { defaultValue: e.target.value })}
-                  />
+                  />}
                   {field.type === 'Enum' && (
                     <input
                       className="dialog-input"
@@ -321,11 +338,11 @@ export function CustomTypeManager({
                       onChange={(e) => patchField(index, { enumOptionsText: e.target.value })}
                     />
                   )}
-                  {field.type === 'EntityRef' && (
+                  {isReference(field.type) && (
                     <select
                       className="dialog-input type-manager-type"
                       value={field.enumOptionsText || 'character'}
-                      onChange={(e) => patchField(index, { enumOptionsText: e.target.value })}
+                      onChange={(e) => patchField(index, { enumOptionsText: e.target.value, defaultValue: '' })}
                     >
                       {[
                         { value: 'character', label: t('codexHub.characters') },

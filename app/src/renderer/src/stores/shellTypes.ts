@@ -60,6 +60,7 @@ export type ShellDialog =
   | 'importPlugin'
   | 'importManuscript'
   | 'importFolder'
+  | 'support'
 
 export type BinderTab = 'chapters' | 'smartLists' | 'collections' | 'bookmarks'
 

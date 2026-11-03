@@ -224,6 +224,8 @@ export const useExtensionsStore = create<ExtensionsState>((set, get) => ({
           disposition: InlineActionResult['disposition']
           alternatives: string[]
           asSuggestion: boolean
+          sourceLabel: string
+          sourceUrl: string
           error: string | null
         } | null>('extensions/inlineAction/execute', [
           a.id,

@@ -24,6 +24,24 @@ public sealed class WorkspaceEventsTests : IDisposable
     private Workspace CreateWorkspace() => new(Path.Combine(_root, "settings"));
 
     [Fact]
+    public void ExtensionContentViewRequest_ReachesRenderer()
+    {
+        using var ws = CreateWorkspace();
+        var sent = new List<(string Method, object? Payload)>();
+        ws.UiBridge.Notifier = (method, payload) =>
+        {
+            sent.Add((method, payload));
+            return Task.CompletedTask;
+        };
+
+        ws.ExtensionsHost.Host.ActivateContentView("com.novalist.toolkit.board.web");
+
+        var notification = Assert.Single(sent);
+        Assert.Equal("ui/activateContentView", notification.Method);
+        Assert.Equal("com.novalist.toolkit.board.web", notification.Payload);
+    }
+
+    [Fact]
     public void UiBridge_IsAvailable_BeforeHostCreated()
     {
         using var ws = CreateWorkspace();

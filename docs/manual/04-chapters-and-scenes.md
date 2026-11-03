@@ -31,11 +31,17 @@ A chapter has:
 
 ### Creating a chapter
 
-Click **+ Chapter** in the toolbar. A dialog asks for the chapter name; confirm with `Enter`.
+Click **Chapter** in the toolbar. Enter a title and optionally set the status, act, and story dates, then confirm with **OK**.
 
 ### Renaming a chapter
 
 Right-click the chapter in the binder → **Rename Chapter**. The folder on disk is renamed in step with the title.
+
+### Setting chapter dates
+
+The creation and **Rename Chapter** dialogs include **Start**, **End**, and an optional date note. Leave End empty for a single date. Enter Gregorian dates as `2042-03-04`, or custom-calendar dates as `812.2.40`. To clear the chapter's date, empty all three fields and save.
+
+Scenes without their own dates or relative timing inherit the chapter's date range in the Timeline and Calendar. An undated chapter falls back to its act's explicit date, if present. A scene's own date takes precedence. Use these controls instead of editing chapter metadata files; the active draft stores the authoritative dates.
 
 ### Setting chapter status
 

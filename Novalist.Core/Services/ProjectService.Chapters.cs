@@ -84,8 +84,7 @@ public partial class ProjectService
         var chapter = ActiveBook.Chapters.FirstOrDefault(c => c.Guid == chapterGuid);
         if (chapter == null) return;
         chapter.DateRange = dateRange?.HasValue == true ? dateRange.Clone() : null;
-        if (dateRange?.HasValue == true && !string.IsNullOrWhiteSpace(dateRange.Start))
-            chapter.Date = dateRange.Start;
+        chapter.Date = chapter.DateRange?.Start ?? string.Empty;
         await SaveProjectAsync();
     }
 

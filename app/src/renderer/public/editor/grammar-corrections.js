@@ -3,6 +3,7 @@
 function showGrammarPopup(issueIndex, x, y) {
     const issue = window.NovalistEditorState.grammarIssues[issueIndex];
     if (!issue) return;
+    window.NovalistEditorState.grammarPopup.dataset.issueIndex = issueIndex;
 
     const msgEl = window.NovalistEditorState.grammarPopup.querySelector('.gp-message');
     const sugEl = window.NovalistEditorState.grammarPopup.querySelector('.gp-suggestions');
@@ -54,6 +55,23 @@ function showGrammarPopup(issueIndex, x, y) {
 
 function hideGrammarPopup() {
     window.NovalistEditorState.grammarPopup.classList.remove('visible');
+    delete window.NovalistEditorState.grammarPopup.dataset.issueIndex;
+}
+
+function grammarIssueKey(issue) {
+    return JSON.stringify([issue.offset, issue.length, issue.type, issue.message]);
+}
+
+function dismissGrammarIssue() {
+    const state = window.NovalistEditorState;
+    const index = state.grammarPopup.dataset.issueIndex;
+    const issue = state.grammarIssues[index];
+    if (!issue) return;
+    state.dismissedGrammarIssues.set(grammarIssueKey(issue), issue);
+    state.grammarIssues.splice(Number(index), 1);
+    hideGrammarPopup();
+    window.applyGrammarHighlights();
+    window.updateGrammarStatusBar();
 }
 
 function applyGrammarSuggestion(issueIndex, replacement) {
@@ -146,6 +164,8 @@ function requestGrammarCheck() {
 Object.assign(window, {
     showGrammarPopup,
     hideGrammarPopup,
+    grammarIssueKey,
+    dismissGrammarIssue,
     applyGrammarSuggestion,
     grammarIssueRange,
     replaceProofingRange,

@@ -4,6 +4,8 @@ import { dismissTour, enterWriting, launchApp, seedBook, type Harness } from './
 
 async function grammarServer() {
   const requests: string[] = []
+  let release = (): void => {}
+  let responseGate = Promise.resolve()
   const server = createServer(async (request, response) => {
     const chunks: Buffer[] = []
     for await (const chunk of request) chunks.push(Buffer.from(chunk))
@@ -14,6 +16,7 @@ async function grammarServer() {
       message: 'Possible spelling mistake', offset: match.index, length: match[0].length,
       rule: { category: { id: 'TYPOS' } }, replacements: [{ value: 'world' }]
     }))
+    await responseGate
     response.writeHead(200, { 'Content-Type': 'application/json' })
     response.end(JSON.stringify({ matches }))
   })
@@ -21,8 +24,13 @@ async function grammarServer() {
   return {
     url: `http://127.0.0.1:${(server.address() as { port: number }).port}/v2/check`,
     requests,
-    close: () => new Promise<void>((resolve, reject) =>
-      server.close(error => error ? reject(error) : resolve()))
+    pause: () => { responseGate = new Promise<void>(resolve => { release = resolve }) },
+    resume: () => release(),
+    close: () => {
+      release()
+      return new Promise<void>((resolve, reject) =>
+        server.close(error => error ? reject(error) : resolve()))
+    }
   }
 }
 
@@ -56,12 +64,12 @@ test('Harper checks British English offline and keeps learned words after reopen
     await h.page.context().setOffline(true)
     const book = await seedBook(h, { One: ['Scene'] })
     await h.rpc('entities/create', ['character', 'Nemorra'])
+    const text = String.fromCodePoint(0x1D11E) + ' This is a example. I realise it now. Aelthorn lives here. Nemorra lives here.'
+    await h.rpc('scenes/write', [book.chapters[0].guid, book.chapters[0].scenes[0].id, `<p>${text}</p>`, text])
     await h.page.locator('.binder-scene-row').first().click()
     const frame = h.page.frameLocator('.editor-frame')
     const editor = frame.locator('#editor')
-    await expect(editor).toBeVisible()
-    const text = String.fromCodePoint(0x1D11E) + ' This is a example. I realise it now. Aelthorn lives here. Nemorra lives here.'
-    await editor.fill(text)
+    await expect(editor).toHaveText(text)
     // An astral character precedes the finding; the replacement must still
     // land on the article, using the editor's UTF-16 offsets.
     await expect(frame.locator('.grammar-issue', { hasText: /^a$/ })).toHaveCount(1, { timeout: 30_000 })
@@ -187,14 +195,20 @@ test('learning a word clears LanguageTool spelling warnings without a paid accou
     await expect(frame.locator('#editor')).toBeVisible()
     await frame.locator('#editor').fill('Aelthorn sees the wrold.')
     await expect(frame.locator('.grammar-issue')).toHaveCount(2, { timeout: 20_000 })
+    server.pause()
     await frame.locator('.grammar-issue', { hasText: 'Aelthorn' }).click()
     await frame.locator('.gp-suggestion', { hasText: 'Add to Dictionary' }).click()
-    await expect(frame.locator('.grammar-issue')).toHaveCount(1, { timeout: 20_000 })
+    await expect.poll(() => h.rpc<string[]>('spell/words')).toEqual(['Aelthorn'])
+    await expect(frame.locator('.grammar-issue')).toHaveCount(1, { timeout: 5_000 })
     await expect(frame.locator('.grammar-issue')).toHaveText('wrold')
+    if (process.platform !== 'darwin') {
+      expect(await h.app.evaluate(({ session }) => session.defaultSession.listWordsInSpellCheckerDictionary()))
+        .toContain('Aelthorn')
+    }
+    server.resume()
     await reopenEditor(h)
     await expect(frame.locator('.grammar-issue')).toHaveCount(1, { timeout: 20_000 })
     await expect(frame.locator('.grammar-issue')).toHaveText('wrold')
-    expect(server.requests.length).toBeGreaterThanOrEqual(3)
     expect(await h.rpc<string[]>('spell/words')).toEqual(['Aelthorn'])
   } finally {
     await h.close()

@@ -36,6 +36,9 @@ public sealed class UiBridge
     /// <summary>Pushes a toast message to the renderer.</summary>
     public void ShowNotification(string message) => Send("ui/showNotification", message);
 
+    /// <summary>Opens an extension's contributed content view in the renderer.</summary>
+    public void ActivateContentView(string viewKey) => Send("ui/activateContentView", viewKey);
+
     /// <summary>
     /// Tells the interface an extension changed the Codex, so it reloads.
     ///

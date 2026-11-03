@@ -47,7 +47,9 @@ function setGrammarIssues(issuesJson, requestId) {
         const { plainText } = buildGrammarPlainTextMap();
         window.NovalistEditorState.grammarIssues = raw.filter(issue => {
             const flaggedText = plainText.substring(issue.offset, issue.offset + issue.length);
-            return !isKnownEntity(flaggedText);
+            return !isKnownEntity(flaggedText)
+                && !isLearnedSpelling(issue, flaggedText)
+                && !window.NovalistEditorState.dismissedGrammarIssues.has(window.grammarIssueKey(issue));
         });
         logToHost("setGrammarIssues: filtered issues count = " + window.NovalistEditorState.grammarIssues.length);
     } catch (ex) {
@@ -55,6 +57,24 @@ function setGrammarIssues(issuesJson, requestId) {
         window.NovalistEditorState.grammarIssues = [];
     }
     window.NovalistEditorState.grammarChecking = false;
+    applyGrammarHighlights();
+    window.updateGrammarStatusBar();
+}
+
+function isLearnedSpelling(issue, text) {
+    return issue.type === 'spelling' && window.NovalistEditorState.spellingDictionary.has(text.toLowerCase());
+}
+
+function setSpellingDictionary(words) {
+    const dictionary = window.NovalistEditorState.spellingDictionary;
+    const next = new Set(words.map(word => word.toLowerCase()));
+    if (dictionary.size === next.size && [...next].every(word => dictionary.has(word))) return;
+    dictionary.clear();
+    next.forEach(word => dictionary.add(word));
+    const { plainText } = buildGrammarPlainTextMap();
+    window.NovalistEditorState.grammarIssues = window.NovalistEditorState.grammarIssues.filter(issue =>
+        !isLearnedSpelling(issue, plainText.substring(issue.offset, issue.offset + issue.length)));
+    window.hideGrammarPopup();
     applyGrammarHighlights();
     window.updateGrammarStatusBar();
 }
@@ -68,15 +88,15 @@ function isKnownEntity(text) {
     return false;
 }
 
-function clearGrammarHighlights() {
-    const marks = window.NovalistEditorState.editor.querySelectorAll('.grammar-issue');
+function clearGrammarHighlights(root = window.NovalistEditorState.editor) {
+    const marks = root.querySelectorAll('.grammar-issue, .proofing-dismissed');
     for (const mark of marks) {
         const parent = mark.parentNode;
         while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
         parent.removeChild(mark);
     }
     // Normalize adjacent text nodes
-    window.NovalistEditorState.editor.normalize();
+    root.normalize();
 }
 
 function buildGrammarPlainTextMap() {
@@ -191,7 +211,9 @@ function applyGrammarHighlights() {
     // clearGrammarHighlights() normalizes the editor, merging adjacent text
     // nodes, which invalidates the live caret even when there is nothing to
     // highlight — so this path needs the restore too.
-    if (!window.NovalistEditorState.grammarIssues || window.NovalistEditorState.grammarIssues.length === 0) {
+    const dismissed = [...window.NovalistEditorState.dismissedGrammarIssues.values()]
+        .filter(issue => issue.type === 'spelling');
+    if (window.NovalistEditorState.grammarIssues.length === 0 && dismissed.length === 0) {
         restoreCaret();
         // Normalising merged the text nodes the readability ranges sat in.
         window.reapplyReadability();
@@ -203,7 +225,8 @@ function applyGrammarHighlights() {
     const { textNodes } = buildGrammarPlainTextMap();
 
     // Sort issues by offset descending so we can apply from the end
-    const sorted = [...window.NovalistEditorState.grammarIssues].sort((a, b) => b.offset - a.offset);
+    const sorted = [...window.NovalistEditorState.grammarIssues, ...dismissed]
+        .sort((a, b) => b.offset - a.offset);
 
     for (const issue of sorted) {
         const issueStart = issue.offset;
@@ -233,15 +256,22 @@ function applyGrammarHighlights() {
             range.setStart(f.node, f.start);
             range.setEnd(f.node, f.end);
             const span = document.createElement('span');
-            span.className = 'grammar-issue';
-            span.setAttribute('data-issue-type', issue.type || 'grammar');
-            span.setAttribute('data-issue-index', issueIdx);
+            if (issueIdx < 0) {
+                span.className = 'proofing-dismissed';
+                span.spellcheck = false;
+            } else {
+                span.className = 'grammar-issue';
+                span.setAttribute('data-issue-type', issue.type || 'grammar');
+                span.setAttribute('data-issue-index', issueIdx);
+            }
             try {
                 range.surroundContents(span);
             } catch (error) { console.warn("editor: applyGrammarHighlights failed", error instanceof Error ? error.name : typeof error); }
         }
-        const target = window.grammarIssueRange(issueIdx);
-        issue.text = target ? target.toString() : '';
+        if (issueIdx >= 0) {
+            const target = window.grammarIssueRange(issueIdx);
+            issue.text = target ? target.toString() : '';
+        }
     }
 
     restoreCaret();
@@ -254,6 +284,7 @@ Object.assign(window, {
     logToHost,
     setGrammarCheckEnabled,
     setGrammarIssues,
+    setSpellingDictionary,
     isKnownEntity,
     clearGrammarHighlights,
     buildGrammarPlainTextMap,

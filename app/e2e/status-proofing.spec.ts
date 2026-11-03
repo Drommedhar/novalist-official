@@ -109,9 +109,13 @@ test('desktop proofing lives in the status bar and opens the requested kind of i
     await grammar.click()
     await expect(frame.locator('#grammar-popup.visible .gp-message')).toHaveText('Fixture grammar correction')
     await frame.locator('.gp-dismiss').click()
+    await expect(grammar).toContainText('1')
+    await grammar.click()
+    await expect(frame.locator('#grammar-popup.visible .gp-message')).toHaveText('Fixture article correction')
     await spelling.click()
     await expect(frame.locator('#grammar-popup.visible .gp-message')).toHaveText('Fixture spelling correction')
     await frame.locator('.gp-dismiss').click()
+    await expect(spelling).toHaveCount(0)
 
     for (const width of [640, 510]) {
       await h.page.setViewportSize({ width, height: 650 })

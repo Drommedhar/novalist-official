@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { rpc } from '../../rpc/client'
 import type { WizardStepDef } from './wizards'
+import { EntityReferenceList } from './EntityReferenceList'
 
 /**
  * Step-at-a-time wizard runner: one question per screen with help text,
@@ -32,10 +33,10 @@ export function WizardDialog({
   useContentTransition(stepRef, step?.id ?? '')
   const value = answers[step?.id] ?? step?.defaultValue ?? ''
   const isLast = index === steps.length - 1
-  const canAdvance = step?.skippable || value.trim().length > 0
+  const canAdvance = step?.skippable || (value.trim().length > 0 && (step.kind !== 'refList' || value !== '[]'))
 
   useEffect(() => {
-    if (!step?.entityRefType || refChoices[step.id]) return
+    if (!step?.entityRefType || step.kind === 'refList' || refChoices[step.id]) return
     void rpc
       .request<{ name: string }[]>('entities/list', [step.entityRefType])
       .then((entities) =>
@@ -69,7 +70,13 @@ export function WizardDialog({
         </div>
         <label className="inspector-label">{step.title}</label>
         {step.help && <p className="wizard-help">{step.help}</p>}
-        {step.kind === 'choice' ? (
+        {step.kind === 'refList' ? (
+          <EntityReferenceList key={step.id} label={step.title} targetType={step.entityRefType!}
+            value={value} onChange={setValue} />
+        ) : step.kind === 'plainText' ? (
+          <textarea className="dialog-input" aria-label={step.title} rows={5}
+            value={value} onChange={event => setValue(event.target.value)} />
+        ) : step.kind === 'choice' ? (
           <div className="wizard-choices" role="radiogroup" aria-label={step.title}>
             {choices.map((choice) => (
               <label key={choice.value} className="type-manager-check">

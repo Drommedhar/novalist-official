@@ -189,6 +189,7 @@ public sealed class FolderImportSchema
 
     private static string SampleValue(ImportField field)
     {
+        if (field.Definition is { } definition && BuiltInType(definition) == CustomPropertyType.EntityRefList) return "[]";
         var shape = FieldSchema(field);
         return shape["enum"] is JsonArray choices ? choices.GetValues<string>().First()
             : shape["format"] != null ? "2000-01-01" : shape["pattern"] != null ? "0" : "Example value";
@@ -215,6 +216,8 @@ public sealed class FolderImportSchema
                     result["enum"] = new JsonArray(definition.EnumOptions.Select(option => JsonValue.Create(option)).ToArray());
             }
             result["description"] = $"{field.Label ?? field.Key}: {definition.TypeKey ?? definition.Type.ToString()}. Store the value as text. {definition.Prompt}".Trim();
+            if (BuiltInType(definition) == CustomPropertyType.EntityRefList)
+                result["description"] = $"{field.Label ?? field.Key}: a JSON array of entry IDs encoded as a string, for example \"[]\". {definition.Prompt}".Trim();
         }
         else if (valueType == typeof(List<EntitySection>))
             result = new JsonObject

@@ -29,6 +29,7 @@ function setContent(html) {
     window.hideGrammarPopup();
     window.hideContextMenu();
     window.NovalistEditorState.grammarIssues = [];
+    window.NovalistEditorState.dismissedGrammarIssues.clear();
     // Captured before the write and compared after it, so the browser has
     // normalised both sides and the comparison is honest.
     const previous = window.NovalistEditorState.editor.innerHTML;
@@ -38,6 +39,7 @@ function setContent(html) {
         const bodyContent = extractBody(html);
         window.NovalistEditorState.editor.replaceChildren(window.sanitizeSceneFragment(bodyContent));
     }
+    window.clearGrammarHighlights();
     refreshSceneBreakClasses(window.NovalistEditorState.editor);
     const changed = window.NovalistEditorState.editor.innerHTML !== previous;
     window.NovalistEditorState.lastHtml = window.NovalistEditorState.editor.innerHTML;

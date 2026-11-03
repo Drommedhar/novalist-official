@@ -51,12 +51,8 @@ public sealed partial class WikiRpc
     // ── Cross-entity derivations ────────────────────────────────────
 
     private WikiReferenceDto[] BuildReferencedBy(
-        string id,
-        IReadOnlyList<CharacterData> characters,
-        IReadOnlyList<LocationData> locations,
-        IReadOnlyList<ItemData> items,
-        IReadOnlyList<LoreData> lore,
-        IReadOnlyList<(string TypeKey, IReadOnlyList<CustomEntityData> Entities)> customTypes,
+        string id, string targetType,
+        ArticleEntities entities,
         Dictionary<string, (string Id, string TypeKey)> resolve,
         IReadOnlySet<string> alreadyRelated)
     {
@@ -72,21 +68,21 @@ public sealed partial class WikiRpc
                     refs.Add(new WikiReferenceDto(name, entityId, typeKey, rel.Role));
         }
 
-        foreach (var c in characters)
+        foreach (var c in entities.Characters)
             Scan(c.Id, EntityResolveIndex.Compose(c.Name, c.Surname), "character", c.Relationships);
-        foreach (var l in locations)
+        foreach (var l in entities.Locations)
             Scan(l.Id, l.Name, "location", l.Relationships);
-        foreach (var i in items)
+        foreach (var i in entities.Items)
             Scan(i.Id, i.Name, "item", i.Relationships);
-        foreach (var l in lore)
+        foreach (var l in entities.Lore)
             Scan(l.Id, l.Name, "lore", l.Relationships);
 
-        foreach (var (typeKey, entities) in customTypes)
+        foreach (var (typeKey, customEntries) in entities.CustomTypes)
         {
             var fieldDefs = _entities.GetCustomEntityTypes()
                 .FirstOrDefault(t => string.Equals(t.TypeKey, typeKey, StringComparison.OrdinalIgnoreCase))
                 ?.DefaultFields ?? [];
-            foreach (var e in entities)
+            foreach (var e in customEntries)
             {
                 if (e.Id == id || alreadyRelated.Contains(e.Id)) continue;
                 foreach (var rel in e.Relationships)
@@ -98,6 +94,10 @@ public sealed partial class WikiRpc
                     var def = fieldDefs.FirstOrDefault(f =>
                         string.Equals(f.Key, pair.Key, StringComparison.OrdinalIgnoreCase));
                     if (def?.Type == CustomPropertyType.EntityRef && TargetsInclude(pair.Value, id, resolve))
+                        refs.Add(new WikiReferenceDto(e.Name, e.Id, typeKey, def.DisplayName));
+                    if (def?.Type == CustomPropertyType.EntityRefList
+                        && string.Equals(def.EnumOptions?.FirstOrDefault() ?? "character", targetType, StringComparison.OrdinalIgnoreCase)
+                        && EntityReferenceList.Parse(pair.Value).Contains(id))
                         refs.Add(new WikiReferenceDto(e.Name, e.Id, typeKey, def.DisplayName));
                 }
             }

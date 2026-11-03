@@ -38,7 +38,7 @@ The menu bar is always visible on Windows and Linux, and sits in the system bar 
 - **Go** — every view in the app by name, grouped exactly as the modes group them: Dashboard; then Editor and Manuscript; then Timeline, Plot Grid, Planning board, Relationships, Calendar and Dialogue; then Codex, Wiki, Maps, Research, Gallery and Languages; then Exposé, Export, Git and Style report; then Series; then Extensions and Settings — with Quick Open and the Command Palette at the end.
 - **View** — Show the mode panel, the binder, the inspector and the scene notes; Focus Mode; the pane commands (split right, split down, close, default layout, open in its own window); **Pane layouts** and **Workspace layouts**; interface size; and the developer items your platform provides.
 - **Window** — brings the main window back after you have closed it, minimise, zoom, and the window list.
-- **Help** — the **User manual**, **Take the tour**, **[About](#about)**, **Check for Updates** (absent in the Mac App Store build, which updates itself), and **Novalist on GitHub**.
+- **Help** — the **User manual**, **Take the tour**, **[Support Novalist](01-getting-started.md#supporting-novalist)**, **[About](#about)**, **Check for Updates** (absent in the Mac App Store build, which updates itself), and **Novalist on GitHub**.
 
 On macOS there is also the usual application menu carrying About, Hide and Quit.
 
