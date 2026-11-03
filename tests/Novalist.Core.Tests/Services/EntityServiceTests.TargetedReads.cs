@@ -31,6 +31,40 @@ public partial class EntityServiceTests
         Assert.False(changed.IsWorldBible);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TargetedAndBatchedReadsAssignTheSameLegacyFieldIdentities(bool worldBible)
+    {
+        var path = Path.Combine(worldBible ? _wbRoot : _bookRoot,
+            worldBible ? _meta.CharacterFolder : _book.CharacterFolder, "selected.json");
+        WriteJson(path, new
+        {
+            id = "selected", name = "Legacy",
+            sections = new[] { new { title = "History", content = "Before" } },
+            stateOverrides = new[] { new { name = "Earlier" } },
+            chapterOverrides = new[] { new { chapterGuid = "chapter", sections = new[] { new { title = "History", content = "Later" } } } }
+        });
+        var original = await File.ReadAllTextAsync(path);
+
+        var selected = await _sut.LoadCharacterAsync("selected");
+        var listed = Assert.Single(await _sut.LoadCharactersAsync());
+
+        Assert.NotNull(selected);
+        Assert.Equal("legacy-section-0", selected.Sections[0].Id);
+        Assert.Equal("legacy-state-0", selected.StateOverrides[0].Id);
+        var selectedSections = selected.ChapterOverrides[0].Sections;
+        var listedSections = listed.ChapterOverrides[0].Sections;
+        Assert.NotNull(selectedSections);
+        Assert.NotNull(listedSections);
+        Assert.Equal("legacy-section-0", selectedSections[0].Id);
+        Assert.Equal(listed.Sections[0].Id, selected.Sections[0].Id);
+        Assert.Equal(listed.StateOverrides[0].Id, selected.StateOverrides[0].Id);
+        Assert.Equal(listedSections[0].Id, selectedSections[0].Id);
+        Assert.Equal(worldBible, selected.IsWorldBible);
+        Assert.Equal(original, await File.ReadAllTextAsync(path));
+    }
+
     private async Task<IEntityData?> ReadSelectedAsync(string type) => type switch
     {
         "character" => await _sut.LoadCharacterAsync("selected"),

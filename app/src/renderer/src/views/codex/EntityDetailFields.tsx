@@ -3,8 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import type { CustomTypeDefinition } from './CustomTypeManager'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
+import { proseBinding } from '../../collaboration/sharedMarkdown'
+import { SharedFieldControl } from './SharedFieldControl'
+import type { SharedEntityFields } from '../../collaboration/FocusedField'
 import { EntityReferenceList } from './EntityReferenceList'
 import { useEntityFieldSuggestions } from './useEntityFieldSuggestions'
+import { SharedEntityReferenceList } from './SharedEntityReferenceList'
 
 const LORE_CATEGORIES = ['Organization', 'Culture', 'History', 'Other']
 const refTargetType = (field: CustomTypeDefinition['defaultFields'][number]): string =>
@@ -151,7 +155,11 @@ export function EntityDetailFields({
     refType?: string
   ): React.JSX.Element => {
     const value = readValue(key, isCustom)
+    const shared = record.sharedFields as SharedEntityFields | undefined
+    const itemId = shared?.fields[key]
     if (control === 'refList') {
+      if (shared && itemId) return <SharedEntityReferenceList key={itemId} binding={{ sessionId: shared.sessionId, itemId }}
+        label={label ?? key} targetType={refType ?? 'character'} value={value} disabled={record.locked === true} />
       return <EntityReferenceList key={`${record.id}:${key}`} label={label ?? key}
         targetType={refType ?? 'character'} value={value} onChange={(next) => updateField(key, next)} />
     }
@@ -159,14 +167,19 @@ export function EntityDetailFields({
       if (v !== value) void updateField(key, v)
     }
     if (control === 'textarea') {
+      const prose = proseBinding(record, key)
+      if (prose) return <MarkdownEditor key={prose.itemId} value={value} ariaLabel={label} shared={prose} onChange={() => {}} />
       return <MarkdownField key={key} value={value} ariaLabel={label} onCommit={commit} />
     }
     if (control === 'plainText') {
+      if (shared && itemId) return <SharedFieldControl key={itemId} binding={{ sessionId: shared.sessionId, itemId }}
+        value={value} label={label} multiline disabled={record.locked === true} />
       return <textarea className="dialog-input codex-field-input" aria-label={label} rows={5}
         key={`${record.id}:${key}:${value}`} defaultValue={value} onBlur={(event) => commit(event.target.value)} />
     }
     if (control === 'category' || (options && options.length > 0)) {
       const opts = options ?? LORE_CATEGORIES
+      if (shared && itemId) return <SharedFieldControl key={itemId} binding={{ sessionId: shared.sessionId, itemId }} value={value} label={label} options={opts} disabled={record.locked === true} />
       return (
         <select
           className="dialog-input codex-field-input"
@@ -194,7 +207,9 @@ export function EntityDetailFields({
             : undefined
     return (
       <>
-        <input
+        {shared && itemId ? <SharedFieldControl key={itemId} binding={{ sessionId: shared.sessionId, itemId }}
+          value={value} label={label} type={inputType} list={listId} disabled={record.locked === true}
+          onFocus={listId ? () => suggestions.load(suggestionType) : undefined} /> : <input
           className="outliner-input codex-field-input"
           type={inputType}
           aria-label={label}
@@ -204,7 +219,7 @@ export function EntityDetailFields({
           onFocus={listId ? () => suggestions.load(suggestionType) : undefined}
           title={listId ? suggestions.errors[suggestionType ?? ''] : undefined}
           onBlur={(e) => commit(e.target.value)}
-        />
+        />}
         {control === 'parent' && (
           <datalist id="codex-location-names">
             {(suggestions.names.location ?? []).map((n) => (

@@ -56,9 +56,12 @@ function fixture(entityType = 'character', customDef, component = 'EntityDetailF
   const module = { exports: {} }
   runInNewContext(components.get(component), { module, exports: module.exports, AbortController,
     setTimeout: callback => { const timer = {}; timers.set(timer, callback); return timer }, clearTimeout: timer => timers.delete(timer),
-    jsx: (type, props, ...children) => ({ type, props, children }), fragment: 'fragment',
+    jsx: (type, props, ...children) => typeof type === 'function' ? type({ ...props, children: children[0] }) : ({ type, props, children }), fragment: 'fragment',
     require(name) {
       if (name in dependencies) return dependencies[name]
+      if (name === '../../collaboration/sharedMarkdown') return { proseBinding: () => undefined }
+      if (name === '../../collaboration/SharedMetadataField') return { metadataBinding: () => undefined, SharedMetadataField: ({ children, value, onChange }) => children({ editable: true, value, change: next => onChange(typeof next === 'function' ? next(value) : next) }) }
+      if (name === '../../stores/codexStore') return { useCodexStore: select => select({ selectedRecord: props.record }) }
       if (name === 'react-i18next') return { useTranslation: () => ({ t: key => key }) }
       if (name === './useEntityFieldSuggestions') return loadRendererSource('src/views/codex/useEntityFieldSuggestions.ts', dependencies, { AbortController })
       return {}

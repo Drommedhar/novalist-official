@@ -19,6 +19,8 @@ function fixture() {
     './projectStore': { useProjectStore: projectStore, reportManuscriptEditing: value => claims.push(value) },
     './filterStore': { useFilterStore: { getState: () => ({ filter: {} }) } },
     './pendingWrites': { capturePendingWrites() {} },
+    '../collaboration/SharedMetadataField': { metadataBinding: () => null },
+    '../collaboration/metadataCommands': { writeSharedMetadata() { throw new Error('Local edits cannot use shared metadata') } },
     '../i18n': { default: { t: key => key } },
     '../mobile/recovery': { retainMobileSceneRecovery() {} }
   }, {

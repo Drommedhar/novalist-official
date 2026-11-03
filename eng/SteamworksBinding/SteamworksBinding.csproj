@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>Steamworks.NET</AssemblyName>
+    <RootNamespace>Steamworks</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <LangVersion>latest</LangVersion>
+    <SteamworksBindingSource>$(MSBuildThisFileDirectory)../../app/out/steamworks-binding/ba71581f1ed7349e8d0f17ddc6f135dd3bc8a6a3</SteamworksBindingSource>
+    <DefineConstants>STEAMWORKS_X64</DefineConstants>
+    <SteamworksWindows Condition="'$(RuntimeIdentifier)' != ''">$([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('win-'))</SteamworksWindows>
+    <SteamworksWindows Condition="'$(SteamworksWindows)' == ''">$([MSBuild]::IsOSPlatform('Windows'))</SteamworksWindows>
+    <DefineConstants Condition="'$(SteamworksWindows)' == 'true'">$(DefineConstants);STEAMWORKS_WIN</DefineConstants>
+    <DefineConstants Condition="'$(SteamworksWindows)' != 'true'">$(DefineConstants);STEAMWORKS_LIN_OSX</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(SteamworksBindingSource)/Runtime/**/*.cs" />
+    <Content Include="$(SteamworksBindingSource)/LICENSE.txt" Link="Steamworks.NET.LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="RequireSteamworksBinding" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('$(SteamworksBindingSource)/Runtime/Steam.cs')" Text="Prepare the pinned Steamworks.NET sources with eng/Prepare-SteamworksBinding.ps1 before building with EnableSteamworks=true." />
+  </Target>
+</Project>

@@ -27,6 +27,7 @@ test('captured typing stays clean after its delayed report without resetting con
   const hooks = loadRendererSource('src/views/editor/useEditorSynchronization.ts', {
     react: { useEffect: effect => effect(), useLayoutEffect: effect => effect() },
     '../../stores/editorBridgeStore': {},
+    '../../collaboration/sharedEditors': { captureSharedEditor: () => false, syncSharedEditor: () => false, flushSharedEditor: async () => {} },
     '../../stores/shellStore': {},
     '../../stores/projectStore': {
       editorPane: (store, pane) => store.editors[pane],
@@ -53,6 +54,7 @@ test('captured typing stays clean after its delayed report without resetting con
 
   const { createEditorContentMessages } = loadRendererSource('src/views/editor/editorContentMessages.ts', {
     '../../stores/editorBridgeStore': {},
+    '../../collaboration/sharedEditors': { captureSharedEditor: () => false, syncSharedEditor: () => false, flushSharedEditor: async () => {} },
     '../../stores/projectStore': { useProjectStore: { getState: () => state } },
     '../../stores/shellStore': { useShellStore: { getState: () => ({ focusMode: false }) } }
   })

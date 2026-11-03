@@ -17,10 +17,13 @@ export interface ProofingStatus {
 
 /** The editor page's global functions the host is allowed to call. */
 export interface EditorWindow extends Window {
+  sanitizeSceneFragment(html: string): DocumentFragment
+  toDisplayImages(root: ParentNode): void
   setContent(html: string): void
   setSceneContext(sceneId: string): void
   /** Clean stored HTML currently in the live contenteditable. */
   getContent(): string
+  getPlainText(): string
   captureDictationAnchor(id: string): boolean
   focusDictationCaret(): boolean
   insertDictationText(id: string, text: string, paragraph: boolean, mergeClose: string, mergeOpen: string,
@@ -70,6 +73,7 @@ export interface EditorWindow extends Window {
   setMobile(enabled: boolean): void
   setTypewriterScroll(enabled: boolean, anchor: string): void
   setPageView(enabled: boolean): void
+  repaginatePageView(): void
   setBookParagraphSpacing(enabled: boolean): void
   setCommentsData(data: { id: string; anchorText: string; text: string }[]): void
   setFootnotesData(data: { id: string; text: string }[]): void
@@ -299,6 +303,8 @@ export function extensionContextMenuItemsJson(): string {
 export function pushEditorTheme(editor: EditorWindow): void {
   const style = getComputedStyle(document.documentElement)
   const token = (name: string): string => style.getPropertyValue(name).trim()
+  for (const name of ['--nl-font-family', '--nl-font-caption', '--nl-radius-sm', '--nl-text', '--nl-surface-editor', '--nl-surface-selected'])
+    editor.document.documentElement.style.setProperty(name, token(name))
   const fg = token('--nl-text')
   editor.setTheme(
     token('--nl-surface-editor'),

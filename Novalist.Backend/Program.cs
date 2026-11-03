@@ -39,8 +39,17 @@ internal class Program
             DataMigration.MigrateLegacyIfNeeded(settingsDir);
         Extensions.Log.Configure(settingsDir);
         Extensions.Log.Info("Backend startup begin.");
-        await using var host = new BackendHost(settingsDir);
-        await host.RunAsync(stdout, stdin);
+        try
+        {
+            await using var host = new BackendHost(settingsDir);
+            await host.RunAsync(stdout, stdin);
+        }
+        finally
+        {
+#if NOVALIST_COLLABORATION
+            Sync.Client.SteamPeerRelay.ShutdownRuntime();
+#endif
+        }
         return 0;
     }
 }

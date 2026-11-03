@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { RevisionsPanel } from '../../shell/RevisionsPanel'
 import { useCodexStore } from '../../stores/codexStore'
 
@@ -15,11 +16,14 @@ export function EntityHistoryPanel({
   entityType: string
   entityId: string
 }): React.JSX.Element {
+  const worldBible = useCodexStore(state => state.selectedRecord?.isWorldBible === true)
+  const historyArgs = useMemo(() => [entityId, worldBible], [entityId, worldBible])
   return (
     <RevisionsPanel
       historyMethod="entities/history"
       restoreMethod="entities/restoreRevision"
       targetId={entityId}
+      historyArgs={historyArgs}
       restoreArgs={[entityType, entityId]}
       onRestored={(record) => {
         const current = useCodexStore.getState()

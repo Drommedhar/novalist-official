@@ -1,7 +1,7 @@
-interface DocumentState { text: string; loaded: boolean; saving: boolean; error: string | null }
+export interface SceneNotesDocumentState { text: string; loaded: boolean; saving: boolean; error: string | null }
 
 export class SceneNotesDocument {
-  state: DocumentState = { text: '', loaded: false, saving: false, error: null }
+  state: SceneNotesDocumentState = { text: '', loaded: false, saving: false, error: null }
   private saved = ''
   private generation = 0
   private pending: Promise<void> | null = null
@@ -20,8 +20,8 @@ export class SceneNotesDocument {
     this.listeners.add(listener)
     return () => { this.listeners.delete(listener) }
   }
-  snapshot = (): DocumentState => this.state
-  private change(patch: Partial<DocumentState>): void {
+  snapshot = (): SceneNotesDocumentState => this.state
+  private change(patch: Partial<SceneNotesDocumentState>): void {
     this.state = { ...this.state, ...patch }
     for (const listener of this.listeners) listener()
   }
@@ -38,6 +38,7 @@ export class SceneNotesDocument {
     }
   }
   cancelLoad(): void { this.generation++ }
+  dispose(): void { this.cancelLoad() }
   update(text: string): void {
     if (this.state.loaded) this.change({ text })
   }

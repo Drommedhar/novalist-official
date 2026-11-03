@@ -237,7 +237,7 @@ public sealed class ReadCacheScopeTests
             var (server, client) = FullDuplexStream.CreatePair();
             Server = new SerialDispatchJsonRpc(
                 new HeaderDelimitedMessageHandler(server, server, new SystemTextJsonFormatter()),
-                _gate, () =>
+                _gate, _ =>
                 {
                     AfterRequestScopes.Add(Cache.Enabled);
                     AfterRequestFreshScopes.Add(Cache.ExplicitlyFresh);

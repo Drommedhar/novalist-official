@@ -8,6 +8,7 @@ import { capturePendingWrites } from './pendingWrites'
 import { enqueueSceneWrite } from './sceneWriteQueue'
 import { retainMobileSceneRecovery } from '../mobile/recovery'
 import { cancelBackgroundReads } from '../rpc/backgroundReads'
+import type { SharedSceneIdentity } from '../../../shared/sharedScene'
 
 export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn' | 'openSceneInSplit' | 'resolveSceneConflict' | 'dismissSceneConflict' | 'closeTab' | 'moveTabToOtherPane' | 'onEditorContentChanged' | 'syncEditorPanes' | 'flushPane' | 'flushPendingSave' | 'applyManuscriptSceneWrite'> = (set, get) => ({
   openScene: async (chapterGuid, sceneId) => {
@@ -34,7 +35,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
     await get().flushPane(paneId)
     if (get().sceneConflict || get().editors[paneId]?.isDirty) return
     cancelBackgroundReads()
-    const content = await rpc.request<{ sceneId: string; html: string; hash: string }>(
+    const content = await rpc.request<{ sceneId: string; html: string; hash: string; shared?: SharedSceneIdentity | null }>(
       'scenes/read',
       [chapterGuid, sceneId]
     )
@@ -48,6 +49,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
           sceneId,
           html: content.html,
           hash: content.hash,
+          shared: content.shared ?? null,
           plainText: stripHtml(content.html),
           tabs: previous.tabs.some((t) => t.sceneId === sceneId)
             ? previous.tabs
@@ -173,6 +175,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
 
   onEditorContentChanged: (paneId, html, plainText) => {
     const editor = editorPane(get(), paneId)
+    if (editor.shared) return
     const { chapterGuid, sceneId } = editor
     if (!chapterGuid || !sceneId) return
     set((s) => ({

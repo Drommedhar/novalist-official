@@ -367,7 +367,7 @@ public class ArchiveServiceTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task RestoreProjectAsync_RetriesLockedFilesBeforeRemovingLaterScenes(bool releaseLock)
+    public async Task RestoreProjectAsync_HandlesOpenDestinationsWithoutPartialWrites(bool releaseLock)
     {
         using var temp = new TempDir();
         var archive = ProjectArchive(temp);
@@ -379,6 +379,18 @@ public class ArchiveServiceTests
         using var holder = new FileStream(scene, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
 
         var restore = new ArchiveService().RestoreProjectAsync(archive, destination, replaceExisting: true);
+        if (!OperatingSystem.IsWindows())
+        {
+            // Unix allows replacing an open destination. The old reader must
+            // retain its original scene while new readers get the archived one.
+            await restore;
+            Assert.Equal("Archived scene", File.ReadAllText(scene));
+            Assert.False(File.Exists(later));
+            using var reader = new StreamReader(holder);
+            Assert.Equal("Current scene that is longer than the archived scene", await reader.ReadToEndAsync());
+            return;
+        }
+
         // Give the copy time to reach the locked file. Merely observing the
         // first async yield could pass even if a subsequent lock error is fatal.
         await Task.Delay(50);
@@ -398,6 +410,28 @@ public class ArchiveServiceTests
             Assert.Equal("Current scene that is longer than the archived scene", File.ReadAllText(scene));
             Assert.True(File.Exists(later));
         }
+    }
+
+    [Fact]
+    public async Task RestoreProjectAsync_KeepsLaterScenesWhenADestinationCannotBeReplaced()
+    {
+        using var temp = new TempDir();
+        var archive = ProjectArchive(temp);
+        var destination = temp.Combine("out");
+        var scene = Path.Combine(destination, "Book", "scene.txt");
+        var current = Path.Combine(scene, "current.txt");
+        var later = Path.Combine(destination, "Book", "later.txt");
+        // A directory in place of the archived file prevents an atomic replacement
+        // on every platform, even where an open file would not block it.
+        Write(current, "Keep the existing contents");
+        Write(later, "Keep until restore succeeds");
+
+        await Assert.ThrowsAsync<IOException>(() => new ArchiveService()
+            .RestoreProjectAsync(archive, destination, replaceExisting: true));
+
+        Assert.Equal("Keep the existing contents", File.ReadAllText(current));
+        Assert.Equal("Keep until restore succeeds", File.ReadAllText(later));
+        Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(scene)!, ".novalist-save-*.tmp"));
     }
 
     [Fact]

@@ -124,12 +124,13 @@ public sealed partial class EntitiesRpc
         entity.StateOverrides = [.. (overrides ?? [])
             .Select(o => new Core.Models.EntityStateOverride
             {
+                Id = string.IsNullOrWhiteSpace(o.Id) ? Guid.NewGuid().ToString("N") : o.Id,
                 Act = NullIfEmpty(o.Act),
                 Chapter = o.Chapter ?? string.Empty,
                 Scene = NullIfEmpty(o.Scene),
                 Name = NullIfEmpty(o.Name),
-                Description = NullIfEmpty(o.Description),
-                Note = NullIfEmpty(o.Note),
+                Description = StateProse(o, "description", o.Description),
+                Note = StateProse(o, "note", o.Note),
                 Gone = o.Gone,
                 Fields = o.Fields is { Count: > 0 }
                     ? o.Fields.Where(kv => !string.IsNullOrWhiteSpace(kv.Key))
@@ -140,6 +141,18 @@ public sealed partial class EntitiesRpc
 
         await SaveEntityAsync(entity);
         return await GetStateOverridesAsync(type, id);
+
+        string? StateProse(StateOverrideDto state, string key, string? value)
+        {
+#if NOVALIST_COLLABORATION
+            if (value is null && state.Id is { } identity && _workspace.SharedEntityProse(entity)?.Fields.ContainsKey($"state:{identity}:{key}") == true)
+            {
+                var original = entity.StateOverrides.SingleOrDefault(item => item.Id == identity);
+                return key == "description" ? original?.Description : original?.Note;
+            }
+#endif
+            return NullIfEmpty(value);
+        }
     }
 
     /// <summary>
@@ -164,7 +177,7 @@ public sealed partial class EntitiesRpc
 
     private static StateOverrideDto ToDto(Core.Models.EntityStateOverride o)
         => new(o.Act, o.Chapter, o.Scene, o.Name, o.Description,
-            o.Fields?.ToDictionary(kv => kv.Key, kv => kv.Value), o.Note, o.Gone);
+            o.Fields?.ToDictionary(kv => kv.Key, kv => kv.Value), o.Note, o.Gone) { Id = o.Id };
 
     /// <summary>How an entry's name is recognised in prose.</summary>
     [JsonRpcMethod("entities/getMatchSettings")]

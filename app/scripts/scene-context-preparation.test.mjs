@@ -12,6 +12,7 @@ function fixture({ ignoreAbort = false } = {}) {
   const calls = [], timers = [], effects = [], completed = []
   let state = initial()
   let manuscript = { sections: [] }
+  let sharedRevision = 0
   let previousEffects = []
   let shell = { mainView: 'write', mobileLayout: 'phone', mobileTab: 'manuscript' }
   const background = loadRendererSource('src/rpc/backgroundReads.ts', {}, { window: { novalist: { isMobile: true } } })
@@ -25,6 +26,7 @@ function fixture({ ignoreAbort = false } = {}) {
   }, { AbortController })
   const hooks = loadRendererSource('src/shell/usePreparedSceneContext.ts', {
     './sceneContextData': data,
+    '../collaboration/sharedProjectNotifications': { useSharedProjectRevision: Object.assign(() => sharedRevision, { getState: () => sharedRevision }) },
     react: { useEffect: (effect, deps) => effects.push({ effect, deps }), useSyncExternalStore: (_subscribe, read) => read() },
     '../stores/shellStore': { useShellStore: Object.assign(select => select(shell), { getState: () => shell }) },
     '../stores/manuscriptStore': { useManuscriptStore: Object.assign(select => select(manuscript), { getState: () => manuscript }) },
@@ -37,6 +39,7 @@ function fixture({ ignoreAbort = false } = {}) {
   return { data, hooks, calls, timers, effects, background, state: () => state,
     complete: method => completed.forEach(listener => listener(method)),
     setState: patch => { state = { ...state, ...patch } },
+    setSharedRevision: revision => { sharedRevision = revision },
     setShell: patch => { shell = { ...shell, ...patch } },
     edit: html => { state = { ...state, editors: { ...state.editors, editor: { ...state.editors.editor, html } } } },
     setManuscript: html => { manuscript = { sections: [{ chapterGuid: 'chapter', scenes: [{ sceneId: 'scene', html }] }] } },
@@ -335,4 +338,25 @@ test('a delayed request rechecks its selection before issuing a backend read', (
   f.setState({ workspaceEpoch: 2 })
   f.timers.at(-1).fn()
   assert.equal(f.calls.length, 0)
+})
+
+test('remote metadata updates refresh hidden context and reopening reuses that revision', async () => {
+  const f = fixture()
+  const initial = f.data.prepareSceneContext(f.hooks.currentSceneContextScope())
+  const before = { analysis: { wordCount: 1 }, characters: [{ name: 'Before' }] }
+  f.calls[0].resolve(before)
+  await initial
+  f.render()
+  const originalKey = f.data.readSceneContext().key
+  f.setSharedRevision(1)
+  assert.equal(f.render().context, before, 'remote changes keep the focused metadata controls mounted')
+  assert.notEqual(f.data.readSceneContext().key, originalKey)
+  assert.equal(f.calls.length, 1, 'remote updates share the typing debounce')
+  f.timers.at(-1).fn()
+  const updated = { analysis: { wordCount: 1 }, characters: [{ name: 'After' }] }
+  f.calls[1].resolve(updated)
+  await turn()
+  assert.equal(f.render('chapter', 'scene', true).context, updated)
+  await f.data.prepareSceneContext(f.hooks.currentSceneContextScope())
+  assert.equal(f.calls.length, 2, 'opening an unchanged panel must not analyze the same remote revision again')
 })

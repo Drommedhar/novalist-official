@@ -1,6 +1,8 @@
 import type { WorkspaceEvent, WorkspaceSnapshot, CloseStage } from "../shared/workspaceProtocol";
 import type { SceneNotesContext, SceneNotesWindowState } from '../shared/sceneNotesProtocol'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
+import type { DeepLink } from '../main/deeplink'
+import { selfUpdateDisabled } from '../shared/selfUpdatePolicy'
 
 const material =
   process.argv.find((a) => a.startsWith('--nl-material='))?.split('=')[1] ?? 'opaque'
@@ -52,7 +54,7 @@ contextBridge.exposeInMainWorld('novalist', {
   // never pops a modal that blocks tests. Also off in the Mac App Store build,
   // where self-updating is prohibited.
   autoUpdate: !process.env.NOVALIST_NO_SPLASH && !isMas,
-  selfUpdateDisabled: isMas || process.env.NOVALIST_DISABLE_SELF_UPDATE === '1',
+  selfUpdateDisabled: isMas || selfUpdateDisabled,
   requestBackendPort(): void {
     ipcRenderer.send('novalist:request-backend-port')
   },
@@ -101,12 +103,12 @@ contextBridge.exposeInMainWorld('novalist', {
    * Pulled rather than pushed for the cold start: a link is usually what
    * launches the app, so it arrives long before the renderer is listening.
    */
-  takeDeepLink(): Promise<{ project: string; chapter?: string; scene?: string } | null> {
+  takeDeepLink(): Promise<DeepLink | null> {
     return ipcRenderer.invoke('novalist:take-deep-link')
   },
 
   /** Links that arrive while the app is already open. */
-  onDeepLink(handler: (link: { project: string; chapter?: string; scene?: string }) => void): void {
+  onDeepLink(handler: (link: DeepLink) => void): void {
     ipcRenderer.removeAllListeners('novalist:deep-link')
     ipcRenderer.on('novalist:deep-link', (_event, link) => handler(link))
   },

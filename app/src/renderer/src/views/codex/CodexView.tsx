@@ -35,6 +35,9 @@ import { useIsPhone } from '../../shell/useIsPhone'
 import { useMobileDetailBack } from '../../mobile/useMobileDetailBack'
 import { dismissOnAndroidBack } from '../../mobile/backEvents'
 import { phoneEntityPage, PhoneEntitySections } from './PhoneEntitySections'
+import { CodexPresence } from '../../collaboration/CodexPresence'
+import type { SharedEntityFields } from '../../collaboration/FocusedField'
+import type { SharedEntityProse } from '../../collaboration/sharedMarkdown'
 
 const TYPES: { type: EntityType; key: string }[] = [
   { type: 'character', key: 'codexHub.characters' },
@@ -342,6 +345,8 @@ function CodexDetail({ detailTab, isMobile, selectedId, t, record, selected, set
       )}
       {record ? (
         <>
+          <CodexPresence fields={record.sharedFields as SharedEntityFields | undefined}
+            prose={record.sharedProse as SharedEntityProse | undefined} publish />
           {!isMobile && (
             <>
               <header className="codex-entry-heading">

@@ -6,6 +6,7 @@ import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useUiScaleStore } from '../stores/uiScaleStore'
 import { chromeForView } from './modes'
+import { CollaborationToolbar } from '../collaboration/CollaborationToolbar'
 
 /** The project command bar. Scene Notes has a persistent restore control here
  * because its floating window remains useful across every workspace. */
@@ -153,6 +154,7 @@ export function Toolbar(): React.JSX.Element {
         title={t('shell.toggleSceneNotes')} onClick={() => runCommand('app.toggleSceneNotes')}>
         <ListChecks size={16} strokeWidth={1.75} />{t('sceneChecklist.notes')}
       </button>}
+      <CollaborationToolbar />
       {isLoaded && wide && chrome.projectBar && (
         <button
           className="toolbar-button"

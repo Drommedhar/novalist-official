@@ -35,7 +35,7 @@ function ChecklistBlocks({ blocks, onCheck, disclosure }: { blocks: ChecklistBlo
 
 export function SceneChecklistView({ context }: { context: SceneNotesContext }): React.JSX.Element {
   const { t } = useTranslation()
-  const { document, state } = useSceneNotesDocument(context)
+  const { document, state, shared, markdownSession } = useSceneNotesDocument(context)
   const [editing, setEditing] = useState(false)
   const [newItem, setNewItem] = useState('')
   const expansionScope = checklistExpansionScope(context)
@@ -62,19 +62,34 @@ export function SceneChecklistView({ context }: { context: SceneNotesContext }):
   const progress = checklistProgress(blocks)
   const save = (): void => { void document.flush().catch(() => {}) }
   const finishEditing = (): void => {
-    document.update(normalizeChecklist(document.state.text))
+    if (!shared) document.update(normalizeChecklist(document.state.text))
     save()
     setEditing(false)
   }
   const check = (line: number, done: boolean): void => {
-    document.update(setChecklistDone(document.state.text, line, done))
+    const text = document.state.text
+    // An incoming edit can insert lines before React commits its next render.
+    // Resolve the rendered item again instead of checking a different row.
+    const key = disclosure.keys.get(line)
+    const currentLine = text === state.text ? line
+      : [...checklistItemKeys(parseChecklist(text))].find(([, value]) => value === key)?.[0]
+    if (currentLine === undefined) return
+    const checked = setChecklistDone(text, currentLine, done)
+    // A shared checkbox changes its own marker only. Normalizing every other
+    // list can race a peer converting those same plain bullets to checkboxes.
+    if (shared) {
+      const lines = text.split(/(?<=\n)/)
+      lines[currentLine] = checked.split(/(?<=\n)/)[currentLine]
+      document.update(lines.join(''))
+    } else document.update(checked)
     save()
   }
   const add = (): void => {
     if (!newItem.trim()) return
     const text = document.state.text
     const newline = text.includes('\r\n') ? '\r\n' : '\n'
-    document.update(normalizeChecklist(text + (text && !text.endsWith('\n') ? newline : '') + '- [ ] ' + newItem.trim() + newline))
+    const next = text + (text && !text.endsWith('\n') ? newline : '') + '- [ ] ' + newItem.trim() + newline
+    document.update(shared ? next : normalizeChecklist(next))
     setNewItem('')
     save()
   }
@@ -94,7 +109,7 @@ export function SceneChecklistView({ context }: { context: SceneNotesContext }):
     {!state.loaded ? <p role="status">{t('context.loading')}</p> : <>
       <div className="scene-checklist-scroll">
         {editing ? <><p className="scene-checklist-hint">{t('sceneChecklist.editHint')}</p>
-          <MarkdownEditor ariaLabel={t('sceneChecklist.edit')} value={state.text.replace(/\r\n/g, '\n')} onChange={(text) => document.update(preserveChecklistLineEndings(document.state.text, text))} onBlur={() => { document.update(normalizeChecklist(document.state.text)); save() }} minRows={10} />
+          <MarkdownEditor shared={shared} sharedSession={markdownSession} ariaLabel={t('sceneChecklist.edit')} value={state.text.replace(/\r\n/g, '\n')} onChange={(text) => document.update(preserveChecklistLineEndings(document.state.text, text))} onBlur={() => { if (!shared) document.update(normalizeChecklist(document.state.text)); save() }} minRows={10} />
         </> : <>
           {!state.text.trim() && <p className="scene-checklist-hint">{t('sceneChecklist.empty')}</p>}
           <ChecklistBlocks blocks={remaining} onCheck={check} disclosure={disclosure} />

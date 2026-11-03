@@ -11,6 +11,7 @@ import {
 import { join } from 'node:path'
 import { readFileSync } from 'node:fs'
 import { BackendProcess } from './backend-process'
+import { DesktopCollaborationServices } from './collaboration/DesktopCollaborationServices'
 import { WorkspaceWindows } from './workspace-windows'
 import { WindowCloseCoordinator } from './window-close'
 import type { WorkspaceEvent } from '../shared/workspaceProtocol'
@@ -31,10 +32,15 @@ import { registerSceneNotesWindow } from './scene-notes-window'
 app.setName('Novalist')
 
 const backend = new BackendProcess()
+const collaboration = new DesktopCollaborationServices(join(process.env.NOVALIST_SETTINGS_DIR ?? app.getPath('userData'), 'collaboration', 'credentials'))
 const workspaceWindows = new WorkspaceWindows(backend.router, 15_000, (error) => backend.requireResync(error))
 const windowCloses = new WindowCloseCoordinator()
 backend.onNotification((message) => workspaceWindows.receive(message))
-backend.onRestart(() => workspaceWindows.recover())
+backend.onRequest((method, params) => collaboration.request(method, params))
+backend.onRestart(async () => {
+  await collaboration.reset()
+  await workspaceWindows.recover()
+})
 backend.onResync(() => workspaceWindows.resync())
 
 function attachBackendPort(sender: WebContents): void {
@@ -432,4 +438,5 @@ app.on('before-quit', (event) => {
 
 app.on('will-quit', () => {
   backend.dispose()
+  void collaboration.reset()
 })

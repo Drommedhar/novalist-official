@@ -26,12 +26,14 @@ export function RevisionsPanel({
   historyMethod,
   restoreMethod,
   targetId,
+  historyArgs,
   restoreArgs,
   onRestored
 }: {
   historyMethod: string
   restoreMethod: string
   targetId: string
+  historyArgs?: unknown[]
   /** Everything the restore needs before the revision id. */
   restoreArgs: unknown[]
   onRestored?: (result: unknown) => void
@@ -42,12 +44,12 @@ export function RevisionsPanel({
 
   const load = (): void => {
     void rpc
-      .request<Revision[]>(historyMethod, [targetId])
+      .request<Revision[]>(historyMethod, historyArgs ?? [targetId])
       .then(setRevisions)
       .catch(() => setRevisions([]))
   }
 
-  useEffect(load, [historyMethod, targetId])
+  useEffect(load, [historyMethod, targetId, historyArgs])
 
   const restore = async (revisionId: string): Promise<void> => {
     setBusy(true)

@@ -56,12 +56,14 @@
        project is built once, without the desktop speech or web runtime. -->
   <ItemDefinitionGroup>
     <ProjectReference>
-      <AdditionalProperties>BuildAppleDesktopSpeech=false;EnableImportApi=false</AdditionalProperties>
+      <AdditionalProperties>BuildAppleDesktopSpeech=false;EnableImportApi=false;EnableLoopbackSignIn=false;EnableSteamworks=false</AdditionalProperties>
     </ProjectReference>
   </ItemDefinitionGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Novalist.Backend\Novalist.Backend.csproj" />
+    <!-- Publish promotes transitive references. Keep Sync on the same mobile configuration. -->
+    <ProjectReference Include="..\Novalist.Sync.Client\Novalist.Sync.Client.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -100,4 +102,6 @@
   </ItemGroup>
 
   <Import Project="../native/AppleSpeech/AppleSpeech.iOS.targets" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'" />
+  <Import Project="../native/Sodium/Sodium.iOS.targets" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'" />
+  <Import Project="../tests/Novalist.Mobile.Smoke/Smoke.targets" Condition="'$(MobileSmokeTest)' == 'true'" />
 </Project>

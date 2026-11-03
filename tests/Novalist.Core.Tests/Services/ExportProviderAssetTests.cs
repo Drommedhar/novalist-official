@@ -1,9 +1,10 @@
 using System.IO.Compression;
-using System.Text;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
 using Novalist.Core.Tests.TestHelpers;
 using NSubstitute;
+using PdfSharp.Pdf;
+using PdfSharp.Pdf.IO;
 using Xunit;
 
 namespace Novalist.Core.Tests.Services;
@@ -131,8 +132,18 @@ public sealed class ExportProviderAssetTests : IDisposable
         if (format == ExportFormat.Codex) await service.ExportCodexAsync(options, output);
         else await service.ExportCodexPdfAsync(options, output);
 
-        var text = Encoding.Latin1.GetString(await File.ReadAllBytesAsync(output));
-        Assert.Contains(format == ExportFormat.Codex ? "![Map](codex_images/pixel.png)" : "/Subtype /Image", text);
+        if (format == ExportFormat.Codex)
+        {
+            Assert.Contains("![Map](codex_images/pixel.png)", await File.ReadAllTextAsync(output));
+        }
+        else
+        {
+            using var pdf = PdfReader.Open(output, PdfDocumentOpenMode.Import);
+            Assert.Contains(pdf.Internals.GetAllObjects().OfType<PdfDictionary>(), item =>
+                item.Elements.GetName("/Subtype") == "/Image"
+                && item.Elements.GetInteger("/Width") == 1
+                && item.Elements.GetInteger("/Height") == 1);
+        }
         Assert.Equal("Images/map.png", character.Images[0].Path);
     }
 

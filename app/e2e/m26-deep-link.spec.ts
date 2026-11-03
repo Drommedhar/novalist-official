@@ -33,7 +33,7 @@ test.describe('reading a link', () => {
   test('a scene without its chapter is dropped rather than half-followed', () => {
     // A scene id means nothing on its own, and opening the project while
     // silently ignoring half the link is the confusing outcome.
-    expect(parseDeepLink('novalist://open?project=/p&scene=s2')?.scene).toBeUndefined()
+    expect(parseDeepLink('novalist://open?project=/p&scene=s2')).toEqual({ project: '/p', chapter: undefined, scene: undefined })
   })
 
   test('anything not understood is refused outright', () => {
@@ -54,8 +54,8 @@ test.describe('reading a link', () => {
     // Windows and Linux deliver it as an argument to a second instance, mixed
     // in with whatever else was on the line.
     expect(
-      deepLinkFromArgv(['C:/app/Novalist.exe', '--flag', 'novalist://open?project=/p'])?.project
-    ).toBe('/p')
+      deepLinkFromArgv(['C:/app/Novalist.exe', '--flag', 'novalist://open?project=/p'])
+    ).toMatchObject({ project: '/p' })
     expect(deepLinkFromArgv(['C:/app/Novalist.exe', '--flag'])).toBeNull()
     expect(deepLinkFromArgv([])).toBeNull()
   })

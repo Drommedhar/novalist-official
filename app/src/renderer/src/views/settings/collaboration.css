@@ -1,0 +1,81 @@
+.collaboration-settings,
+.collaboration-project,
+.collaboration-destination,
+.collaboration-option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  min-width: 0;
+}
+
+.collaboration-settings {
+  gap: var(--nl-space-md);
+}
+
+.collaboration-settings p,
+.collaboration-option h4 {
+  margin: var(--nl-space-none);
+}
+
+.collaboration-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--nl-dialog-width) / 1.5)), 1fr));
+  align-items: start;
+  gap: var(--nl-space-lg);
+}
+
+.collaboration-option {
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-lg);
+}
+
+.collaboration-settings .dialog-button,
+.collaboration-destination .dialog-button {
+  align-self: flex-start;
+}
+
+.collaboration-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  font-size: var(--nl-font-ui);
+}
+
+.collaboration-destination-path {
+  overflow-wrap: anywhere;
+}
+
+.collaboration-error {
+  color: var(--nl-danger);
+  font-size: var(--nl-font-ui);
+}
+
+.collaboration-settings .dialog-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.collaboration-settings textarea.dialog-input {
+  min-height: calc(var(--nl-control-h) * 2);
+  resize: vertical;
+}
+
+.collaboration-transfer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--nl-space-md);
+  text-align: center;
+}
+
+.collaboration-transfer p {
+  margin: var(--nl-space-none);
+}
+
+.collaboration-transfer progress {
+  display: block;
+  width: 100%;
+  accent-color: var(--nl-accent);
+}

@@ -40,7 +40,7 @@ public class ReportBuilderTests
         Assert.Contains("## One", report);
         Assert.Contains("## Two", report);
         Assert.Contains("She finds the deed.", report);
-        Assert.Contains("1,200 words", report);
+        Assert.Contains($"{1200:N0} words", report);
     }
 
     [Fact]
@@ -92,9 +92,9 @@ public class ReportBuilderTests
             Scene("Two", "The Rookery", pov: "Mira", words: 1000)
         ], "Salt Road");
 
-        Assert.Contains("| Mira | 2 | 4,000 | 80% |", report);
-        Assert.Contains("| Tomas | 1 | 1,000 | 20% |", report);
-        Assert.Contains("**5,000**", report);
+        Assert.Contains($"| Mira | 2 | {4000:N0} | 80% |", report);
+        Assert.Contains($"| Tomas | 1 | {1000:N0} | 20% |", report);
+        Assert.Contains($"**{5000:N0}**", report);
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public class ReportBuilderTests
             Scene("One", "B", pov: "mira", words: 500)
         ], "Salt Road");
 
-        Assert.Contains("| 2 | 1,000 | 100% |", report);
+        Assert.Contains($"| 2 | {1000:N0} | 100% |", report);
     }
 
     [Fact]

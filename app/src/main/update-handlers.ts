@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { randomUUID } from 'node:crypto'
 import type { WindowCloseCoordinator } from './window-close'
+import { selfUpdateDisabled } from '../shared/selfUpdatePolicy'
 import {
   checkAppUpdate,
   downloadAppUpdate,
@@ -13,12 +14,6 @@ export function registerUpdateHandlers(
   windowCloses: WindowCloseCoordinator,
   approvedCloses: Set<number>
 ): void {
-  // App self-update (GitHub release → download installer → open). Extension
-  // updates are handled separately by the renderer via the extension store.
-  // Disabled in the Mac App Store build: Apple prohibits self-updating, so even a
-  // manual trigger must do nothing there (updates arrive via the App Store).
-  const isMasBuild = (process as NodeJS.Process & { mas?: boolean }).mas === true
-  const selfUpdateDisabled = isMasBuild || process.env.NOVALIST_DISABLE_SELF_UPDATE === '1'
   const pendingAppUpdates = new Map<
     number,
     { token: string; update: DownloadedAppUpdate }

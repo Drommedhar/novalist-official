@@ -11,10 +11,15 @@
     <EnableImportApi Condition="'$(EnableImportApi)' == '' and ($([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('ios')) or $([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('android')))">false</EnableImportApi>
     <EnableImportApi Condition="'$(EnableImportApi)' == ''">true</EnableImportApi>
     <DefineConstants Condition="'$(EnableImportApi)' == 'true'">$(DefineConstants);NOVALIST_IMPORT_API</DefineConstants>
+    <EnableCollaboration Condition="'$(EnableCollaboration)' == ''">true</EnableCollaboration>
+    <DefineConstants Condition="'$(EnableCollaboration)' == 'true'">$(DefineConstants);NOVALIST_COLLABORATION</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(EnableImportApi)' == 'true'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(EnableCollaboration)' == 'true'">
+    <ProjectReference Include="..\Novalist.Sync.Client\Novalist.Sync.Client.csproj" />
   </ItemGroup>
 
   <ItemGroup>

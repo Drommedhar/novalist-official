@@ -12,6 +12,11 @@ Novalist is organised around **five modes** — Write, Plan, World, Publish and 
 
 The **toolbar** sits below the native menu, followed by the horizontal **mode rail**: Library, Dashboard, Write, Plan, World, Publish, Series, Extensions and Settings. Below it, the left column holds the mode's views; in Write, these share one column with the binder. The main area sits alongside the scene inspector. The status bar runs along the bottom.
 
+**Collaborate** in the toolbar opens a compact panel to share the current project
+or join an invitation. It shows the connections available on this device and,
+while connected, the session's status and invitation controls. See
+[Collaboration](23-settings.md#collaboration).
+
 Desktop controls use the system sans-serif font and flat surfaces. Book covers keep their literary type, and your manuscript font remains controlled by your editor settings. Forms have a bounded width in a maximized window; tables, galleries and canvases use the available space.
 
 ## Where things live
@@ -207,7 +212,7 @@ Open **Notes** on the project toolbar or press `Ctrl+Shift+N`. Scene Notes is a 
 
 Bullet lists automatically become checklists, preserving your wording, existing ticks and nesting. Each root bullet is a checkable title. Expand it to read continuation paragraphs and nested checklist items; a count beside the title shows subitem progress. Parent and child checkboxes are independent. Finished root items move into the collapsible **Completed** group. Expanded details and the Completed group's open or closed state are remembered separately for each scene on this computer, including after restarting Novalist. Ordinary text remains readable, and long bullets keep their full text.
 
-Use **Add a scene goal** for a quick root item. **Edit notes** opens the full text editor: paste bullets, indent subitems, add free-text detail paragraphs, or reorder the text. **Show checklist** returns to the interactive view. Changes save automatically. A failed save keeps the text available with a **Retry** action.
+Use **Add a scene goal** for a quick root item. **Edit notes** opens the full text editor: paste bullets, indent subitems, add free-text detail paragraphs, or reorder the text. **Show checklist** returns to the interactive view. Changes save automatically. In a shared project, checklist ticks and note text update live for collaborators. Pending edits remain available when switching between the checklist and text editor during a connection interruption. A failed save keeps the text available with a **Retry** action.
 
 **Follow active scene** updates the checklist as you select scenes. Turn it off to hold one scene while researching elsewhere; changing the project, book or draft resets the old context. The **Pinned** header button keeps the panel visible over Novalist while writing. Switch it to **Auto-hide** to hide the panel when another window receives focus. **Hide**, `Escape`, or the shortcut dismiss it; the **Notes** button restores it. Changes save automatically without a status footer; failed saves show a retry message.
 

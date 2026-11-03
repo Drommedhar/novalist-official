@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore } from 'react'
 import { useProjectStore } from '../stores/projectStore'
 import { useManuscriptStore } from '../stores/manuscriptStore'
 import { useShellStore } from '../stores/shellStore'
+import { useSharedProjectRevision } from '../collaboration/sharedProjectNotifications'
 import { cancelPendingSceneContext, prepareSceneContext, readSceneContext, sceneContextScope, selectSceneContext, subscribeSceneContext } from './sceneContextData'
 
 function isManuscriptView(): boolean {
@@ -18,10 +19,11 @@ export function currentSceneContextScope(chapterGuid?: string, sceneId?: string)
     ? useManuscriptStore.getState().sections.find(section => section.chapterGuid === chapter)
       ?.scenes.find(candidate => candidate.sceneId === scene)?.html ?? null
     : undefined
-  return sceneContextScope(state, chapter, scene, html)
+  return sceneContextScope(state, chapter, scene, html, useSharedProjectRevision.getState())
 }
 
 export function useSceneContext(chapterGuid?: string, sceneId?: string, immediate = true) {
+  const sharedRevision = useSharedProjectRevision()
   const writing = useShellStore(state => window.novalist.isMobile && state.mobileLayout === 'phone'
     ? state.mobileTab === 'manuscript' : state.mainView === 'write' || state.mainView === 'manuscript')
   const manuscript = useShellStore(state => !(window.novalist.isMobile && state.mobileLayout === 'phone') &&
@@ -35,7 +37,7 @@ export function useSceneContext(chapterGuid?: string, sceneId?: string, immediat
   // Subscribe to primitive values: creating a new object in a Zustand selector
   // would make useSyncExternalStore repeatedly render an unchanged selection.
   const key = useProjectStore(state => sceneContextScope(state, chapter, scene,
-    manuscript ? manuscriptHtml : undefined)?.key ?? null)
+    manuscript ? manuscriptHtml : undefined, sharedRevision)?.key ?? null)
   const scope = currentSceneContextScope(chapterGuid, sceneId)
   const snapshot = useSyncExternalStore(subscribeSceneContext, readSceneContext)
   useEffect(() => {

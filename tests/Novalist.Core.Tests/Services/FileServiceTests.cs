@@ -304,7 +304,7 @@ public class FileServiceTests
     }
 
     [Fact]
-    public async Task AFileHeldForeverStillReportsTheFailure()
+    public async Task AnOpenFileEitherBlocksReplacementOrKeepsItsOriginalContents()
     {
         using var dir = new TempDir();
         var path = dir.Combine("stuck.txt");
@@ -312,8 +312,48 @@ public class FileServiceTests
 
         using var holder = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
 
-        // Retrying forever would hang the save queue behind one stuck file.
-        // The caller has to hear about it eventually.
-        await Assert.ThrowsAsync<IOException>(() => _sut.WriteTextAsync(path, "after"));
+        if (OperatingSystem.IsWindows())
+        {
+            // Windows denies replacement while the destination is held exclusively.
+            await Assert.ThrowsAsync<IOException>(() => _sut.WriteTextAsync(path, "after"));
+            holder.Dispose();
+            Assert.Equal("before", await File.ReadAllTextAsync(path));
+        }
+        else
+        {
+            // Unix allows the atomic rename. Readers already holding the old inode
+            // must retain its complete contents while new readers see the new file.
+            await _sut.WriteTextAsync(path, "after");
+            Assert.Equal("after", await File.ReadAllTextAsync(path));
+            using var reader = new StreamReader(holder);
+            Assert.Equal("before", await reader.ReadToEndAsync());
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ReadingAnExclusivelyHeldFileRetriesBeforeGivingUp(bool releaseLock)
+    {
+        using var dir = new TempDir();
+        var path = dir.Combine("held.txt");
+        await _sut.WriteTextAsync(path, "saved content");
+        using var holder = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        // Reading opens the existing inode, so the exclusive lock blocks this
+        // operation on both Unix and Windows, unlike replacing the destination.
+        var read = _sut.ReadTextAsync(path);
+        await Task.Delay(50);
+        Assert.False(read.IsCompleted);
+        if (releaseLock)
+        {
+            holder.Dispose();
+            Assert.Equal("saved content", await read);
+        }
+        else
+        {
+            // A permanent lock must release the save queue with an error.
+            await Assert.ThrowsAsync<IOException>(() => read.WaitAsync(TimeSpan.FromSeconds(5)));
+        }
     }
 }

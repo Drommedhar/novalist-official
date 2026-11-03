@@ -28,7 +28,9 @@ function fixture(t) {
     i18next: { default: { t: key => key } },
     './projectImages': { installProjectImageLoader() {}, clearProjectImageCache() {} },
     './hostCalls': { HostCallChannel },
-    './backEvents': { dispatchAndroidBack: () => false }
+    './backEvents': { dispatchAndroidBack: () => false },
+    './collaboration': { installCollaborationHost: () => () => {} },
+    './backend': { MobileBackend: class { dispose() {} } }
   }, globals)
   const audio = loadRendererSource('src/dictation/audio.ts', {}, globals, audioSource)
   const options = loadRendererSource('src/dictation/dictationOptions.ts', {}, {

@@ -21,6 +21,7 @@ export class WorkspaceWindows {
   private readonly settled = new Set<() => void>()
   private readonly acknowledgements = new Map<number, Acknowledgement>()
   private transition: string | null = null
+  private resuming = false
   private lastSnapshot: WorkspaceSnapshot | null = null
   private recovering = false
   private revision = 0
@@ -135,7 +136,10 @@ export class WorkspaceWindows {
   }
 
   private async prepare(preparation: WorkspacePreparation): Promise<void> {
-    if (this.transition && this.transition !== preparation.token) {
+    if (this.resuming && preparation.reason === 'collaboration/hostSync') {
+      await new Promise<void>(resolve => this.settled.add(resolve))
+    }
+    if (this.recovering || (this.transition && this.transition !== preparation.token)) {
       await this.router.request('workspace/prepared', [preparation.token, false, 'Workspace windows are still applying the previous change.']).catch(() => {})
       return
     }
@@ -172,6 +176,7 @@ export class WorkspaceWindows {
       this.onFailure?.(error)
       return
     }
+    this.resuming = true
     try {
       await this.router.request('workspace/applied', [snapshot.token])
       if (this.transition !== snapshot.token || revision !== this.revision) return
@@ -193,6 +198,7 @@ export class WorkspaceWindows {
   private async abort(payload: { token: string; epoch: number }): Promise<void> {
     if (this.transition !== payload.token) return
     const revision = this.revision
+    this.resuming = true
     this.router.holdClientReplies()
     for (const owner of this.windows.keys()) {
       this.router.settle(owner, payload.epoch)
@@ -205,6 +211,7 @@ export class WorkspaceWindows {
 
   private finish(): void {
     this.transition = null
+    this.resuming = false
     for (const [owner, window] of this.joining) this.windows.set(owner, window)
     this.joining.clear()
     for (const resolve of this.settled) resolve()

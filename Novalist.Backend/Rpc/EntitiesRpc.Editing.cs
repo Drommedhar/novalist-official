@@ -27,8 +27,10 @@ public sealed partial class EntitiesRpc
         if (sections != null)
         {
             var target = entity.Sections;
+            var previous = target.ToDictionary(section => section.Id, section => section.Content);
             target.Clear();
-            target.AddRange(sections.Select(s => new EntitySection { Title = s.Title, Content = s.Content }));
+            target.AddRange(sections.Select(s => new EntitySection { Id = s.Id ?? Guid.NewGuid().ToString("N"), Title = s.Title,
+                Content = s.Content ?? (s.Id is { } id ? previous.GetValueOrDefault(id, "") : "") }));
         }
         if (relationships != null)
         {

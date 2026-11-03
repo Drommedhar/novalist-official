@@ -4,6 +4,7 @@ import { editorPane, useProjectStore } from '../../stores/projectStore'
 import { useShellStore } from '../../stores/shellStore'
 import { registerPendingWrite } from '../../stores/pendingWrites'
 import { type EditorFrameModel } from './useEditorFrameModel'
+import { captureSharedEditor, syncSharedEditor } from '../../collaboration/sharedEditors'
 
 export function useEditorPersistence({ editorRef, pane, openSceneId, lastReportedHtmlRef }: Pick<EditorFrameModel, 'editorRef' | 'pane' | 'openSceneId' | 'lastReportedHtmlRef'>): void {
 // The iframe normally reports an edit after 50 ms and the project store
@@ -11,6 +12,7 @@ export function useEditorPersistence({ editorRef, pane, openSceneId, lastReporte
   // the live DOM and drain both delays before the installer is allowed to run.
   useEffect(() => {
     const capture = (): void => {
+      if (captureSharedEditor(pane)) return
       const live = editorRef.current
       const store = useProjectStore.getState()
       const current = editorPane(store, pane)
@@ -29,7 +31,7 @@ export function useEditorPersistence({ editorRef, pane, openSceneId, lastReporte
   }, [pane, openSceneId, editorRef, lastReportedHtmlRef])
 }
 
-export function useEditorScene({ editorRef, sceneHtml, lastReportedHtmlRef, loadingRef, loadAnnotations, applyFootnoteOrder, openSceneId, annotationsRevision, ownAnnotationsRef, pendingSuggestion, isActiveEditor, pushEntityNames }: Pick<EditorFrameModel, 'editorRef' | 'sceneHtml' | 'lastReportedHtmlRef' | 'loadingRef' | 'loadAnnotations' | 'applyFootnoteOrder' | 'openSceneId' | 'annotationsRevision' | 'ownAnnotationsRef' | 'pendingSuggestion' | 'isActiveEditor' | 'pushEntityNames'>): void {
+export function useEditorScene({ pane, editorRef, sceneHtml, lastReportedHtmlRef, loadingRef, loadAnnotations, applyFootnoteOrder, openSceneId, annotationsRevision, ownAnnotationsRef, pendingSuggestion, isActiveEditor, pushEntityNames }: Pick<EditorFrameModel, 'pane' | 'editorRef' | 'sceneHtml' | 'lastReportedHtmlRef' | 'loadingRef' | 'loadAnnotations' | 'applyFootnoteOrder' | 'openSceneId' | 'annotationsRevision' | 'ownAnnotationsRef' | 'pendingSuggestion' | 'isActiveEditor' | 'pushEntityNames'>): void {
 // Push content on scene switch and on genuine external changes (snapshot
   // restore, live disk edits), but NOT when sceneHtml is merely the echo of the
   // edit the editor just reported - that would reset the caret and kill undo.
@@ -37,9 +39,14 @@ export function useEditorScene({ editorRef, sceneHtml, lastReportedHtmlRef, load
     const editor = editorRef.current
     if (!editor || sceneHtml === null) return
     editor.setSceneContext(openSceneId ?? '')
-    if (sceneHtml === lastReportedHtmlRef.current) return
+    const shared = syncSharedEditor(pane, editor)
+    if (shared === 'active') {
+      lastReportedHtmlRef.current = editor.getContent()
+      return
+    }
+    if (!shared && sceneHtml === lastReportedHtmlRef.current) return
     loadingRef.current = true
-    editor.setContent(sceneHtml)
+    if (!shared) editor.setContent(sceneHtml)
     loadingRef.current = false
     lastReportedHtmlRef.current = editor.getContent()
     void loadAnnotations(editor).then((loaded) => {

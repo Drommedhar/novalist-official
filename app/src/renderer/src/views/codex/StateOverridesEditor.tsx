@@ -1,10 +1,15 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useProjectStore } from '../../stores/projectStore'
+import { useCodexStore } from '../../stores/codexStore'
+import { SharedMetadataField, metadataBinding } from '../../collaboration/SharedMetadataField'
+import { proseBinding } from '../../collaboration/sharedMarkdown'
+import { MarkdownEditor } from '../../shell/MarkdownEditor'
 
 interface StateOverride {
+  id?: string
   act: string | null
   chapter: string | null
   scene: string | null
@@ -30,29 +35,49 @@ export function StateOverridesEditor(props: {
   const { t } = useTranslation()
   const [overrides, setOverrides] = useState<StateOverride[]>([])
   const chapters = useProjectStore((s) => s.chapters)
+  const record = useCodexStore(state => state.selectedRecord)
 
-  const load = useCallback(async () => {
-    setOverrides(
-      await rpc.request<StateOverride[]>('entities/getStateOverrides', [
-        props.entityType,
-        props.entityId
-      ])
-    )
-  }, [props.entityType, props.entityId])
-
+  const previous = useRef<StateOverride[]>([])
+  const loadedFor = useRef('')
   useEffect(() => {
-    void load()
-  }, [load])
+    if (record?.id !== props.entityId) {
+      let active = true
+      void rpc.request<StateOverride[]>('entities/getStateOverrides', [props.entityType, props.entityId])
+        .then(rows => { if (active) setOverrides(rows) })
+      return () => { active = false }
+    }
+    const incoming = Array.isArray(record.stateOverrides) ? record.stateOverrides as StateOverride[] : []
+    const owner = `${props.entityType}:${props.entityId}`
+    if (loadedFor.current !== owner) setOverrides(incoming)
+    else {
+      const before = previous.current
+      setOverrides(current => [
+        ...incoming.map(row => {
+          const local = current.find(candidate => candidate.id === row.id)
+          const saved = before.find(candidate => candidate.id === row.id)
+          return local && saved && JSON.stringify(local) !== JSON.stringify(saved) ? local : row
+        }),
+        ...current.filter(row => !incoming.some(candidate => candidate.id === row.id) && !before.some(candidate => candidate.id === row.id))
+      ])
+    }
+    previous.current = incoming
+    loadedFor.current = owner
+  }, [props.entityType, props.entityId, record])
 
   const save = async (next: StateOverride[]): Promise<void> => {
     setOverrides(next)
-    setOverrides(
-      await rpc.request<StateOverride[]>('entities/setStateOverrides', [
+    const saved = await rpc.request<StateOverride[]>('entities/setStateOverrides', [
         props.entityType,
         props.entityId,
-        next
+        next.map(row => ({ ...row, description: row.id && proseBinding(record, `state:${row.id}:description`) ? null : row.description,
+          note: row.id && proseBinding(record, `state:${row.id}:note`) ? null : row.note }))
       ])
-    )
+    previous.current = saved
+    setOverrides(current => current.map(row => {
+      const submitted = next.find(candidate => candidate.id === row.id)
+      return submitted && JSON.stringify(submitted) === JSON.stringify(row)
+        ? saved.find(candidate => candidate.id === row.id) ?? row : row
+    }))
   }
 
   const edit = (index: number, patch: Partial<StateOverride>): void => {
@@ -63,6 +88,7 @@ export function StateOverridesEditor(props: {
     setOverrides([
       ...overrides,
       {
+        id: crypto.randomUUID(),
         act: null,
         chapter: chapters[0]?.guid ?? '',
         scene: null,
@@ -80,12 +106,15 @@ export function StateOverridesEditor(props: {
       <div className="match-hint">{t('stateOverride.intro')}</div>
 
       {overrides.map((override, index) => (
-        <div key={index} className="state-override">
+        <div key={override.id ?? index} className="state-override">
           <div className="match-row">
+            <SharedMetadataField<string | null> binding={override.id ? metadataBinding(record, `state:${override.id}:chapter`) : undefined}
+              value={override.chapter} onChange={next => edit(index, { chapter: next })}>
+              {({ value, editable, change }) => (
             <select
               className="inspector-input"
-              value={override.chapter ?? ''}
-              onChange={(e) => edit(index, { chapter: e.target.value })}
+              value={value ?? ''} aria-disabled={!editable}
+              onChange={event => change(event.target.value)}
             >
               {chapters.map((chapter) => (
                 <option key={chapter.guid} value={chapter.guid}>
@@ -93,10 +122,15 @@ export function StateOverridesEditor(props: {
                 </option>
               ))}
             </select>
+              )}
+            </SharedMetadataField>
+            <SharedMetadataField<string | null> binding={override.id ? metadataBinding(record, `state:${override.id}:scene`) : undefined}
+              value={override.scene} onChange={next => edit(index, { scene: next })}>
+              {({ value, editable, change }) => (
             <select
               className="inspector-input"
-              value={override.scene ?? ''}
-              onChange={(e) => edit(index, { scene: e.target.value || null })}
+              value={value ?? ''} aria-disabled={!editable}
+              onChange={event => change(event.target.value || null)}
             >
               <option value="">{t('stateOverride.wholeChapter')}</option>
               {(chapters.find((c) => c.guid === override.chapter)?.scenes ?? []).map((scene) => (
@@ -105,6 +139,8 @@ export function StateOverridesEditor(props: {
                 </option>
               ))}
             </select>
+              )}
+            </SharedMetadataField>
             <button
               className="dialog-button"
               title={t('stateOverride.remove')}
@@ -114,43 +150,27 @@ export function StateOverridesEditor(props: {
             </button>
           </div>
 
-          <input
-            className="inspector-input"
-            value={override.name ?? ''}
-            placeholder={t('stateOverride.namePlaceholder')}
-            onChange={(e) => edit(index, { name: e.target.value || null })}
-            onBlur={() => void save(overrides)}
-          />
-          <textarea
-            className="inspector-input"
-            value={override.description ?? ''}
-            placeholder={t('stateOverride.descriptionPlaceholder')}
-            onChange={(e) => edit(index, { description: e.target.value || null })}
-            onBlur={() => void save(overrides)}
-          />
-          <input
-            className="inspector-input"
-            value={override.note ?? ''}
-            placeholder={t('stateOverride.notePlaceholder')}
-            onChange={(e) => edit(index, { note: e.target.value || null })}
-            onBlur={() => void save(overrides)}
-          />
+          <SharedMetadataField<string | null> binding={override.id ? metadataBinding(record, `state:${override.id}:name`) : undefined}
+            value={override.name} onChange={next => edit(index, { name: next })}>
+            {({ value, editable, change }) => <input className="inspector-input" value={value ?? ''} readOnly={!editable}
+              placeholder={t('stateOverride.namePlaceholder')} onChange={event => change(event.target.value || null)}
+              onBlur={() => { if (!override.id || !metadataBinding(record, `state:${override.id}:name`)) void save(overrides) }} />}
+          </SharedMetadataField>
+          {(['description', 'note'] as const).map(key => <MarkdownEditor key={key}
+            shared={override.id ? proseBinding(record, `state:${override.id}:${key}`) : undefined}
+            value={override[key] ?? ''} placeholder={t(`stateOverride.${key}Placeholder`)}
+            onChange={next => edit(index, { [key]: next || null })}
+            onBlur={() => { if (!override.id || !proseBinding(record, `state:${override.id}:${key}`)) void save(overrides) }} />)}
           {/* Novalist tracked what an entry was like at a point and never that
               it had stopped being in the story, so nothing could notice a
               character standing two chapters after their own funeral. */}
-          <label className="state-override-gone">
-            <input
-              type="checkbox"
-              checked={override.gone}
-              onChange={(e) => {
-                edit(index, { gone: e.target.checked })
-                void save(
-                  overrides.map((o, i) => (i === index ? { ...o, gone: e.target.checked } : o))
-                )
-              }}
-            />
-            {t('stateOverride.gone')}
-          </label>
+          <SharedMetadataField<boolean | null> binding={override.id ? metadataBinding(record, `state:${override.id}:gone`) : undefined}
+            value={override.gone} onChange={next => void save(overrides.map((row, i) => i === index ? { ...row, gone: next ?? false } : row))}>
+            {({ value, editable, change }) => <label className="state-override-gone">
+              <input type="checkbox" checked={value ?? false} aria-disabled={!editable} onChange={event => change(event.target.checked)} />
+              {t('stateOverride.gone')}
+            </label>}
+          </SharedMetadataField>
         </div>
       ))}
 

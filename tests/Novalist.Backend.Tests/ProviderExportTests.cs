@@ -4,6 +4,8 @@ using Novalist.Backend.Tests.TestHelpers;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
 using NSubstitute;
+using PdfSharp.Pdf;
+using PdfSharp.Pdf.IO;
 using Xunit;
 
 namespace Novalist.Backend.Tests;
@@ -84,7 +86,11 @@ public sealed class ProviderExportTests
 
         await fixture.Export.RunAsync(format, output, "Novel", "Writer", false, [fixture.Chapter.Guid]);
 
-        Assert.Contains("/Subtype /Image", System.Text.Encoding.Latin1.GetString(await File.ReadAllBytesAsync(output)));
+        using var pdf = PdfReader.Open(output, PdfDocumentOpenMode.Import);
+        Assert.Contains(pdf.Internals.GetAllObjects().OfType<PdfDictionary>(), item =>
+            item.Elements.GetName("/Subtype") == "/Image"
+            && item.Elements.GetInteger("/Width") == 1
+            && item.Elements.GetInteger("/Height") == 1);
     }
 
     [Theory]

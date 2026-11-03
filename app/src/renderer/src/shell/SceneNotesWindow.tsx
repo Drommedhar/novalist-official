@@ -11,6 +11,8 @@ import { useWorkspaceWindow } from './useWorkspaceWindow'
 import { WorkspaceRecoveryDialog } from './WorkspaceRecoveryDialog'
 import { WindowClosingDialog } from './WindowClosingDialog'
 import { SceneChecklistView } from './SceneChecklistView'
+import { registerSharedProjectNotifications } from '../collaboration/sharedProjectNotifications'
+import { useHostedSessionStore } from '../collaboration/hostedSessionStore'
 import './sceneChecklist.css'
 
 export function SceneNotesWindow(): React.JSX.Element {
@@ -30,18 +32,35 @@ export function SceneNotesWindow(): React.JSX.Element {
   }, [t])
   useEffect(() => {
     useUiScaleStore.getState().apply()
+    // This renderer does not mount the main shell's host bridge or toolbar.
+    registerSharedProjectNotifications()
     let active = true
     let received = false
     const stop = window.novalist.onSceneNotesState?.((state) => { received = true; setWindowState(state) })
     void window.novalist.sceneNotesWindowState?.().then((state) => { if (active && !received) setWindowState(state) })
     const hydrate = async (): Promise<void> => {
-      try { await hydrateWindow(); if (active) { setReady(true); setError(false) } }
+      try {
+        await useHostedSessionStore.getState().refresh(() => active)
+        await hydrateWindow()
+        if (active) { setReady(true); setError(false) }
+      }
       catch { if (active) setError(true) }
     }
     const stopReconnect = rpc.onReconnected(() => { void hydrate() })
     void rpc.connect().then(hydrate).catch(() => { if (active) setError(true) })
     return () => { active = false; stop?.(); stopReconnect() }
   }, [])
+  useEffect(() => {
+    if (!ready || project.workspaceBusy || project.workspaceSuspended) return
+    let active = true
+    let timer: ReturnType<typeof setTimeout>
+    const refresh = async (): Promise<void> => {
+      await useHostedSessionStore.getState().refresh(() => active)
+      if (active) timer = setTimeout(() => { void refresh() }, 2000)
+    }
+    void refresh()
+    return () => { active = false; clearTimeout(timer) }
+  }, [ready, project.projectPath, project.workspaceEpoch, project.workspaceBusy, project.workspaceSuspended])
   useEffect(() => {
     const hide = (): void => { void flushPendingWrites().then(() => window.novalist.hideSceneNotes?.()).catch(() => setError(true)) }
     const keydown = (event: KeyboardEvent): void => {

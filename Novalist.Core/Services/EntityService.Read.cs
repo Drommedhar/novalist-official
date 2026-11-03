@@ -67,7 +67,7 @@ public partial class EntityService
         var json = await _files.ReadTextAsync(path);
         try
         {
-            return JsonSerializer.Deserialize<T>(json, JsonOptions);
+            return ReadEntity<T>(json);
         }
         catch (JsonException)
         {

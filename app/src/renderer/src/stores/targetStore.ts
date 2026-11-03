@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from './projectStore'
 import { loadBookScoped } from './bookScopedLoad'
+import { metadataBinding } from '../collaboration/SharedMetadataField'
+import { writeSharedMetadata } from '../collaboration/metadataCommands'
 
 export interface WordTarget {
   kind: 'scene' | 'chapter' | 'act'
@@ -38,6 +40,9 @@ export const useTargetStore = create<TargetState>((set, get) => ({
     (targets) => set({ targets })),
 
   setScene: async (chapterGuid, sceneId, target) => {
+    const scene = useProjectStore.getState().chapters.find(chapter => chapter.guid === chapterGuid)?.scenes.find(scene => scene.id === sceneId)
+    const binding = metadataBinding(scene, 'wordTarget')
+    if (binding) { await writeSharedMetadata(binding, target); return }
     set({ targets: await rpc.request<WordTarget[]>('targets/setScene', [chapterGuid, sceneId, target]) })
   },
 

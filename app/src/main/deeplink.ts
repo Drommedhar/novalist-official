@@ -11,7 +11,7 @@
  */
 
 /** What a link asked for. */
-export interface DeepLink {
+export interface ProjectDeepLink {
   /** The project folder to open. Always present on a valid link. */
   project: string
   /** Chapter to open, when the link points at a scene. */
@@ -19,6 +19,8 @@ export interface DeepLink {
   /** Scene to open. Meaningless without a chapter, and dropped without one. */
   scene?: string
 }
+
+export type DeepLink = ProjectDeepLink | { steamInvite: string }
 
 export const SCHEME = 'novalist'
 
@@ -40,6 +42,10 @@ export function parseDeepLink(raw: string | undefined | null): DeepLink | null {
   }
 
   if (url.protocol !== `${SCHEME}:`) return null
+  if (url.hostname === 'collaboration' && url.pathname === '/steam-invite') {
+    if (url.username || url.password || url.port || url.search || !/^#[A-Za-z0-9_-]{159}$/.test(url.hash)) return null
+    return { steamInvite: raw }
+  }
   // novalist://open?... - the host is the verb. Only one so far, but a link
   // naming a verb this build does not have must not be guessed at.
   if (url.hostname !== 'open') return null

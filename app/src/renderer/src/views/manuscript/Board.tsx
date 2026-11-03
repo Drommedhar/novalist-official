@@ -4,6 +4,7 @@ import { useManuscriptStore } from '../../stores/manuscriptStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { useStageStore } from '../../stores/stageStore'
 import { useManuscriptPropsStore } from '../../stores/manuscriptPropsStore'
+import { useHostBridgeStore } from '../../stores/hostBridgeStore'
 import { handleSceneClick, useSelectionStore } from '../../stores/selectionStore'
 import './board.css'
 
@@ -127,7 +128,7 @@ export function Board(): React.JSX.Element {
             setOver(column.key)
           }}
           onDragLeave={() => setOver((k) => (k === column.key ? null : k))}
-          onDrop={() => void drop(column.key)}
+          onDrop={() => void drop(column.key).catch(error => useHostBridgeStore.getState().pushToast(String(error)))}
         >
           <div className="board-column-head">
             <span className="board-column-title">{column.label}</span>

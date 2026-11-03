@@ -159,6 +159,9 @@ public sealed partial class RendererHostPage
 #if ANDROID && DEBUG
             case "pickStorageProbe": return await AndroidStorageProbe.RunAsync(ArgString(args, 0));
 #endif
+            case "collaborationCompleted":
+                _collaborationDocuments.Complete(args[0].GetInt32(), args[1].GetBoolean(), args[2]);
+                return null;
             case "bridgeReady":
                 _rendererReady.TrySetResult();
                 return null;

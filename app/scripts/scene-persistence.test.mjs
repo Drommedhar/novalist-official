@@ -29,7 +29,8 @@ function fixture(isMobile = false) {
   const queue = loadRendererSource('src/stores/sceneWriteQueue.ts', { '../rpc/backgroundReads': background })
   const timers = []
   const persistence = loadRendererSource('src/stores/projectPersistence.ts', {
-    '../rpc/client': { rpc }, './projectStore': helpers, './sceneWriteQueue': queue
+    '../rpc/client': { rpc }, './projectStore': helpers, './sceneWriteQueue': queue,
+    '../collaboration/sharedEditors': { flushSharedEditor() { throw new Error('This fixture only opens local scenes') } }
   }, { setTimeout: (fn) => (timers.push(fn), timers.length), clearTimeout() {} })
   const shell = { unsavedGuards: {}, setPaneView() {}, setActivePane() {}, panes: {}, mobileTab: 'dashboard', setMobileTab(tab) { this.mobileTab = tab } }
   const storage = new Map()

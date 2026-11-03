@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useBookScope, useProjectStore, type ProjectStateDto } from '../stores/projectStore'
+import { useBookScope, useProjectStore } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 
 import { useIsPhone } from './useIsPhone'
@@ -13,6 +13,7 @@ import { useNarrationStore } from '../stores/narrationStore'
 import { openBinderScene } from './binderNavigation'
 import { useTargetStore } from '../stores/targetStore'
 import { loadBookScoped } from '../stores/bookScopedLoad'
+import { setSceneMetadata } from './sceneMetadataActions'
 
 import { type SortMode, type BinderPlotline, type MenuState, type PendingAction, type ArchivedScene, type TrashedChapter } from './binderTypes'
 
@@ -223,7 +224,7 @@ function binderDragHandlers(data: BinderData) {
 }
 
 function binderDisplay(data: BinderData) {
-  const { sceneFilter, sortMode, plotlineFilter, stages, chapters, store } = data
+  const { sceneFilter, sortMode, plotlineFilter, stages, chapters } = data
   /** The scenes of one chapter, filtered and ordered as the head asks. */
   const scenesOf = (chapter: (typeof chapters)[number]): (typeof chapter.scenes) => {
     const stageOrder = new Map(stages.map((st, i) => [st.key, i]))
@@ -255,9 +256,8 @@ function binderDisplay(data: BinderData) {
   )
 
   const togglePin = (chapterGuid: string, sceneId: string, next: boolean): void => {
-    void rpc
-      .request<ProjectStateDto>('binder/pinScene', [chapterGuid, sceneId, next])
-      .then((state) => store.getState().applyState(state))
+    void setSceneMetadata([{ chapterGuid, sceneId }], 'isFavorite', next,
+      () => rpc.request('binder/pinScene', [chapterGuid, sceneId, next]))
   }
 
   return { scenesOf, pinned, togglePin }

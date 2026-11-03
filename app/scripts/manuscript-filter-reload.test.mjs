@@ -24,6 +24,8 @@ function fixture() {
     './projectStore': { useProjectStore: { getState: () => project, setState: patch => { project = { ...project, ...patch } } }, reportManuscriptEditing() {} },
     './filterStore': { useFilterStore: { getState: () => ({ filter }) } },
     './pendingWrites': pending,
+    '../collaboration/SharedMetadataField': { metadataBinding: () => null },
+    '../collaboration/metadataCommands': { writeSharedMetadata() { throw new Error('Local edits cannot use shared metadata') } },
     '../i18n': { default: { t: key => key } },
     '../mobile/recovery': { retainMobileSceneRecovery() {} }
   }, {
@@ -194,4 +196,24 @@ test('Show the whole book clears an empty Smart List selection', async () => {
   assert.equal(f.store.getState().filterListId, '')
   assert.equal(f.store.getState().composed, null)
   assert.equal(f.scene().sceneId, 'scene')
+})
+
+test('filter reload drains registered shared prose before querying instead of spinning on pending edits', async () => {
+  const f = fixture()
+  let captures = 0, flushed = false
+  f.store.setState({ sharedEdits: { shared: { chapterGuid: 'chapter', sceneId: 'scene', pending: true, error: false } } })
+  f.pending.registerPendingWrite(async () => {
+    flushed = true
+    f.store.setState({ sharedEdits: {} })
+  }, () => {
+    if (++captures > 5) throw new Error('Reload is spinning without flushing shared prose')
+  })
+  const load = f.store.getState().load()
+  // Observe the promise immediately so the old spin-loop failure is reported.
+  const result = load.then(() => null, error => error)
+  await turn()
+  assert.equal(flushed, true)
+  assert.equal(f.requests[0]?.method, 'manuscript/get')
+  await f.respond(0, sections())
+  assert.equal(await result, null)
 })

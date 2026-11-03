@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Novalist.Core.Models;
 
 namespace Novalist.Core.Services;
@@ -110,7 +111,7 @@ public partial class EntityService
             T? entity;
             try
             {
-                entity = JsonSerializer.Deserialize<T>(texts[path], JsonOptions);
+                entity = ReadEntity<T>(texts[path]);
             }
             catch (JsonException)
             {
@@ -124,6 +125,13 @@ public partial class EntityService
             }
         }
         return result;
+    }
+
+    private static T? ReadEntity<T>(string json)
+    {
+        var value = JsonNode.Parse(json);
+        if (value is JsonObject entity) Storage.LegacyEntityIdentities.Assign(entity);
+        return value.Deserialize<T>(JsonOptions);
     }
 
     private async Task SaveEntityAsync<T>(string bookFolder, string wbFolder, string id, T entity, bool isWorldBible)
@@ -149,7 +157,7 @@ public partial class EntityService
         if (await _files.ExistsAsync(filePath))
         {
             var previous = await _files.ReadTextAsync(filePath);
-            await new EntityHistory(_projectService).RecordAsync(id, previous, json);
+            await EntityHistory.ForEntity(_projectService, isWorldBible).RecordAsync(id, previous, json);
         }
 
         await _files.WriteTextAsync(filePath, json);

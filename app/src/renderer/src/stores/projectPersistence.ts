@@ -2,6 +2,7 @@ import { rpc } from '../rpc/client'
 import { type EditorPaneState, type EditingSceneClaim } from './projectTypes'
 import { useProjectStore, mirror } from './projectStore'
 import { enqueueSceneWrite } from './sceneWriteQueue'
+import { flushSharedEditor } from '../collaboration/sharedEditors'
 
 const AUTOSAVE_DELAY_MS = 2000
 
@@ -14,6 +15,11 @@ export const autosaveWrites = new Map<string, Promise<void>>()
 
 /** Writes a pane's unsaved edit, if it has one. */
 export async function flushEditor(editor: EditorPaneState | undefined, paneId?: string): Promise<void> {
+  if (editor?.shared) {
+    if (paneId) await flushSharedEditor(paneId, editor.isDirty)
+    else throw new Error('A shared scene must be saved through its editor pane.')
+    return
+  }
   if (!editor?.isDirty || !editor.chapterGuid || !editor.sceneId || editor.html === null) return
   const pane = paneId ?? Object.keys(useProjectStore.getState().editors).find((id) => useProjectStore.getState().editors[id] === editor)
   await saveScene(pane, editor.chapterGuid, editor.sceneId, editor.html, editor.plainText ?? '', editor.hash)

@@ -23,6 +23,7 @@
     <Compile Include="..\..\Novalist.Mobile\Services\CachedDocumentTree.cs" Link="Mobile\CachedDocumentTree.cs" />
     <Compile Include="..\..\Novalist.Mobile\Services\DocumentReadCache.cs" Link="Mobile\DocumentReadCache.cs" />
     <Compile Include="..\..\Novalist.Mobile\Services\DocumentTreeReadCancellation.cs" Link="Mobile\DocumentTreeReadCancellation.cs" />
+    <Compile Include="..\..\Novalist.Mobile\Services\MobileDocumentRequests.cs" Link="Mobile\MobileDocumentRequests.cs" />
   </ItemGroup>
 
   <ItemGroup>

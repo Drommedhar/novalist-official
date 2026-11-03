@@ -59,6 +59,8 @@ test('actual manuscript edit action journals the latest buffer before its autosa
     './projectStore': { useProjectStore: f.store, reportManuscriptEditing() {} },
     './filterStore': { useFilterStore: { getState: () => ({}) } },
     './pendingWrites': { capturePendingWrites() {} },
+    '../collaboration/SharedMetadataField': { metadataBinding: () => null },
+    '../collaboration/metadataCommands': { writeSharedMetadata: () => { throw new Error('Local recovery must not write shared metadata') } },
     '../i18n': { default: { t: (key) => key } }, '../mobile/recovery': f
   }, { window: { novalist: f.host }, setTimeout: (fn) => (timers.push(fn), timers.length), clearTimeout() {} }).useManuscriptStore
   manuscript.setState({ sections: [{ chapterGuid: 'chapter', scenes: [{ sceneId: 'scene', html: 'base', hash: 'original' }] }] })

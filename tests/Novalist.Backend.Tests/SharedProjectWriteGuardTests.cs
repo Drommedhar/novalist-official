@@ -1,0 +1,679 @@
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Nerdbank.Streams;
+using NSubstitute;
+using Novalist.Backend.Extensions;
+using Novalist.Backend.Rpc;
+using Novalist.Backend.Tests.TestHelpers;
+using Novalist.Core.Services;
+using Novalist.Sync.Client;
+using StreamJsonRpc;
+using Xunit;
+
+namespace Novalist.Backend.Tests;
+
+[Collection("BackendStatics")]
+public sealed partial class SharedProjectWriteGuardTests
+{
+    [Fact]
+    public async Task EmptyCharacterArcsShareProseAndLeaseTheirTurningPoints()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        var prose = entry.GetProperty("sharedProse").GetProperty("fields").GetProperty("arc:start").GetGuid();
+        var points = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty("arc.points").GetGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, prose, Encoding.UTF8.GetBytes("text:Afraid to trust."));
+        var focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, points, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, points, focus,
+            "[{\"id\":\"turn\",\"label\":\"Accepts help\",\"sceneId\":\"\",\"isTurn\":true}]");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, points, focus);
+        var arc = await fixture.Desktop.InvokeAsync<ArcDto>("arcs/get", fixture.CharacterId);
+        Assert.Equal("Afraid to trust.", arc.Start);
+        Assert.Equal("Accepts help", Assert.Single(arc.Points).Label);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("arcs/save", fixture.CharacterId, "Stale prose", "", arc.Points, "", ""));
+    }
+
+    [Fact]
+    public async Task UnsupportedEntityImplementationsCannotExposeSharedFieldBindings()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var entity = Substitute.For<Novalist.Core.Models.IEntityData>();
+        Assert.Throws<InvalidOperationException>(() => fixture.Host.Workspace.SharedEntityFields(entity));
+    }
+
+    [Fact]
+    public async Task ChangingResearchTypeRebindsContentAndRecoversEditsFromThePreviousEditor()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        await fixture.Desktop.InvokeAsync("research/save", null, "Source", "Note", "Writing.txt", Array.Empty<string>(), Array.Empty<string>());
+        var note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var original = Assert.IsType<SharedResearchProseDto>(note.SharedProse);
+        var type = Assert.IsType<SharedEntityFieldsDto>(note.SharedFields).Fields["type"];
+        var focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, type, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, type, focus, "\"File\"");
+        note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        Assert.Null(note.SharedProse);
+        Assert.Contains("content", Assert.IsType<SharedEntityFieldsDto>(note.SharedFields).Fields.Keys);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, type, focus, "\"Note\"");
+        note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var current = Assert.IsType<SharedResearchProseDto>(note.SharedProse);
+        Assert.NotEqual(original.ItemId, current.ItemId);
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, original.ItemId, Encoding.UTF8.GetBytes("text:Late previous editor."));
+        Assert.Equal("Writing.txt", Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list")).Content);
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, current.ItemId, Encoding.UTF8.GetBytes("text:New editor."));
+        Assert.Equal("New editor.", Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list")).Content);
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, type, focus);
+    }
+
+    [Theory]
+    [InlineData(true, "Writing.")]
+    [InlineData(false, "../outside.txt")]
+    [InlineData(false, "C:/outside.txt")]
+    public async Task ResearchStorageChangesRejectUnsafeReferencesBeforeCommitting(bool changeType, string unsafeValue)
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var originalType = changeType ? "Note" : "File";
+        var originalContent = changeType ? unsafeValue : "Sources/writing.txt";
+        await fixture.Desktop.InvokeAsync("research/save", null, "Source", originalType, originalContent, Array.Empty<string>(), Array.Empty<string>());
+        var item = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var field = Assert.IsType<SharedEntityFieldsDto>(item.SharedFields).Fields[changeType ? "type" : "content"];
+        var focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, field, focus);
+
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("collaboration/writeField",
+            fixture.SessionId, field, focus, JsonSerializer.Serialize(changeType ? "File" : unsafeValue)));
+
+        item = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        Assert.Equal(originalType, item.Type);
+        Assert.Equal(originalContent, item.Content);
+        Assert.Empty(fixture.Updates.ReadCommittedItem(field, long.MaxValue));
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, field, focus);
+    }
+
+    [Fact]
+    public async Task StateOverridesKeepStableProseAndMetadataBindingsAcrossScopeChanges()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var rows = await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/setStateOverrides", "character", fixture.CharacterId,
+            new[] { new StateOverrideDto(null, "Opening", null, "Captain", "Initial description", null, "A note", false) });
+        var state = Assert.Single(rows);
+        var committed = await fixture.ReadCommittedFilesAsync();
+        Assert.Contains("stateOverrides", Encoding.UTF8.GetString(committed.Single(pair => pair.Key.EndsWith(fixture.CharacterId + ".json", StringComparison.Ordinal)).Value));
+        var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        var id = entry.GetProperty("stateOverrides")[0].GetProperty("id").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(id));
+        Assert.Contains($"state:{id}:description", entry.GetProperty("sharedProse").GetProperty("fields").EnumerateObject().Select(field => field.Name));
+        var item = entry.GetProperty("sharedProse").GetProperty("fields").GetProperty($"state:{id}:description").GetGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, item, Encoding.UTF8.GetBytes("text:Shared description."));
+        var scope = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty($"state:{id}:chapter").GetGuid();
+        var focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, scope, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, scope, focus, "\"Later\"");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, scope, focus);
+        rows = await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/getStateOverrides", "character", fixture.CharacterId);
+        Assert.Equal("Later", Assert.Single(rows).Chapter);
+        Assert.Equal("Shared description.", Assert.Single(rows).Description);
+        rows = await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/setStateOverrides", "character", fixture.CharacterId,
+            new[] { Assert.Single(rows) with { Description = null, Note = null } });
+        Assert.Equal("Shared description.", Assert.Single(rows).Description);
+        Assert.Equal("A note", Assert.Single(rows).Note);
+        await fixture.Desktop.InvokeAsync("entities/setStateOverrides", "character", fixture.CharacterId, Array.Empty<StateOverrideDto>());
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, item, Encoding.UTF8.GetBytes("text:Recovered state prose."));
+        Assert.Empty(await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/getStateOverrides", "character", fixture.CharacterId));
+        Assert.Contains(Directory.GetFiles(Path.Combine(fixture.Root, "Recovered edits"), "*.json", SearchOption.AllDirectories),
+            path => File.ReadAllText(path).Contains("Recovered state prose.", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OutsideDeletionCannotAcquireTheRemovedMetadataAndKeepsTheLocalChangeRecoverable(bool duringRead)
+    {
+        var files = new ChangingMetadataFiles();
+        await using var fixture = await SharedProjectFixture.StartAsync(files);
+        var state = Assert.Single(await fixture.Desktop.InvokeAsync<StateOverrideDto[]>("entities/setStateOverrides", "character", fixture.CharacterId,
+            new[] { new StateOverrideDto(null, "Opening", null, "Captain", "Description", null, "Note", false) }));
+        var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        var item = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty($"state:{state.Id}:chapter").GetGuid();
+        var path = Assert.Single(Directory.GetFiles(fixture.Root, fixture.CharacterId + ".json", SearchOption.AllDirectories));
+        var original = await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken);
+        var changed = Assert.IsType<JsonObject>(JsonNode.Parse(original));
+        changed["stateOverrides"] = new JsonArray();
+        if (duringRead) files.Pending = (path, changed.ToJsonString());
+        else await File.WriteAllTextAsync(path, changed.ToJsonString(), TestContext.Current.CancellationToken);
+
+        var error = await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, item, Guid.NewGuid()));
+
+        Assert.Contains("outside", error.Message);
+        Assert.Equal(original, await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken));
+        Assert.Contains(Directory.GetFiles(Path.Combine(fixture.Root, "Recovered edits"), "*.json", SearchOption.AllDirectories),
+            file => JsonNode.Parse(File.ReadAllText(file))?["stateOverrides"] is JsonArray { Count: 0 });
+        var focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, item, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, item, focus);
+    }
+
+    [Fact]
+    public async Task SharedRelationshipsKeepTheirInverseAndCastRemovalClearsTheFocusedEntity()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var target = await fixture.Desktop.InvokeAsync<JsonElement>("entities/create", "character", "Rowan");
+        var source = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        var relationships = source.GetProperty("sharedFields").GetProperty("metadata").GetProperty("relationships").GetGuid();
+        await Write(relationships, "[{\"role\":\"mentor\",\"target\":\"Rowan\",\"inverseRole\":\"student\"}]");
+        target = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", target.GetProperty("id").GetString());
+        var inverse = Assert.Single(target.GetProperty("relationships").EnumerateArray());
+        Assert.Equal("Mira", inverse.GetProperty("target").GetString());
+        Assert.Equal("student", inverse.GetProperty("role").GetString());
+        var state = await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/getState");
+        var chapter = Assert.Single(state.Chapters);
+        var scene = Assert.Single(chapter.Scenes);
+        var fields = Assert.IsType<SharedEntityFieldsDto>(scene.SharedFields).Fields;
+        await Write(fields["cast"], JsonSerializer.Serialize(new[] { fixture.CharacterId }));
+        await Write(fields["focusEntityId"], JsonSerializer.Serialize(fixture.CharacterId));
+        await Write(fields["cast"], "[]");
+        Assert.Null(fixture.Host.Workspace.ResolveScene(chapter.Guid, scene.Id).scene.FocusEntityId);
+
+        async Task Write(Guid item, string value)
+        {
+            var focus = Guid.NewGuid();
+            await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, item, focus);
+            await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, item, focus, value);
+            await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, item, focus);
+        }
+    }
+
+    [Fact]
+    public async Task RelatedMetadataChangesAcquireEveryAffectedFieldBeforeWriting()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        await fixture.Desktop.InvokeAsync("research/save", null, "First", "Note", "", Array.Empty<string>(), Array.Empty<string>());
+        await fixture.Desktop.InvokeAsync("research/save", null, "Second", "Note", "", Array.Empty<string>(), Array.Empty<string>());
+        var notes = await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list");
+        var first = notes.Single(note => note.Title == "First");
+        var second = notes.Single(note => note.Title == "Second");
+        var firstItem = Assert.IsType<SharedEntityFieldsDto>(first.SharedFields).Fields["relatedIds"];
+        var secondItem = Assert.IsType<SharedEntityFieldsDto>(second.SharedFields).Fields["relatedIds"];
+        var firstFocus = Guid.NewGuid();
+        var secondFocus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, firstItem, firstFocus);
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, secondItem, secondFocus);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, firstItem, firstFocus, JsonSerializer.Serialize(new[] { second.Id })));
+        Assert.Empty((await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list")).Single(note => note.Id == first.Id).RelatedIds);
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, secondItem, secondFocus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, firstItem, firstFocus, JsonSerializer.Serialize(new[] { second.Id }));
+        notes = await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list");
+        Assert.Equal(new[] { first.Id }, notes.Single(note => note.Id == second.Id).RelatedIds);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, firstItem, firstFocus, "[]");
+        Assert.All(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"), note => Assert.Empty(note.RelatedIds));
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, firstItem, firstFocus);
+    }
+
+    [Fact]
+    public async Task StructuredCodexFieldsRequireTheGrantedLeaseAndRejectOrdinaryOrMalformedWrites()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        var item = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty("aliases").GetGuid();
+        var focus = Guid.NewGuid();
+        var grant = await fixture.Desktop.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", fixture.SessionId, item, focus);
+        Assert.True(grant.Lease.Acquired);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, item, Guid.NewGuid(), "[\"Intruder\"]"));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("entities/updateLists", "character", fixture.CharacterId, new[] { "Bypass" }, null, null));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, item, focus, "{\"not\":\"an array\"}"));
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, item, focus, "[\"M\",\"Captain\"]");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, item, focus);
+        entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        Assert.Equal(new[] { "M", "Captain" }, entry.GetProperty("aliases").EnumerateArray().Select(value => value.GetString()));
+        var policy = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty("ai").GetGuid();
+        focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, policy, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, policy, focus, "1");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, policy, focus);
+        entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        Assert.Equal(fixture.CharacterId, entry.GetProperty("id").GetString());
+        Assert.Equal("Always", (await fixture.Desktop.InvokeAsync<JsonElement>("entities/getAiPolicy", "character", fixture.CharacterId)).GetProperty("inclusion").GetString());
+        var locked = entry.GetProperty("sharedFields").GetProperty("metadata").GetProperty("locked").GetGuid();
+        focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync("collaboration/acquireField", fixture.SessionId, locked, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, locked, focus, "true");
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, locked, focus, "false");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, locked, focus);
+        await fixture.Desktop.InvokeAsync("entities/updateLists", "character", fixture.CharacterId, null, new[] { new EntitySectionDto("Notes", "Text", "notes") }, null);
+    }
+
+    [Fact]
+    public async Task ResearchProseKeepsItsIdentityAndSurvivesMetadataSavesAndDeletionAsRecovery()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        await fixture.Desktop.InvokeAsync("research/save", null, "Source", "Note", "Initial notes.", Array.Empty<string>(), Array.Empty<string>());
+        var note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var binding = Assert.IsType<SharedResearchProseDto>(note.SharedProse);
+        Assert.Equal(fixture.SessionId, binding.SessionId);
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", binding.SessionId, binding.ItemId, Encoding.UTF8.GetBytes("text:Collaborative research."));
+        note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        Assert.Equal("Collaborative research.", note.Content);
+        await fixture.Desktop.InvokeAsync("research/save", note.Id, note.Title, "Note", null, Array.Empty<string>(), Array.Empty<string>());
+        var renamed = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        Assert.Equal(note.Id, renamed.Id);
+        Assert.Equal(binding, renamed.SharedProse);
+        Assert.Equal("Collaborative research.", renamed.Content);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("research/save", note.Id, "Stale", "Note", "Replace all writing", Array.Empty<string>(), Array.Empty<string>()));
+        Assert.Equal("Collaborative research.", Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list")).Content);
+        await fixture.Desktop.InvokeAsync("research/delete", note.Id);
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", binding.SessionId, binding.ItemId, Encoding.UTF8.GetBytes("text:Preserve concurrent edits."));
+        Assert.Empty(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var recovery = Directory.GetFiles(Path.Combine(fixture.Root, "Recovered edits"), "project.json", SearchOption.AllDirectories);
+        Assert.Contains(recovery, file => File.ReadAllText(file).Contains("Preserve concurrent edits.", StringComparison.Ordinal));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("research/save", note.Id, "Old title", "Note", "Late draft", Array.Empty<string>(), Array.Empty<string>()));
+        Assert.Empty(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+    }
+
+    [Fact]
+    public async Task SceneAndResearchMetadataUseStableTargetsAndReloadTheOpenWorkspace()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var state = await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/getState");
+        var chapter = Assert.Single(state.Chapters);
+        var scene = Assert.Single(chapter.Scenes);
+        var fields = Assert.IsType<SharedEntityFieldsDto>(scene.SharedFields);
+        await fixture.Desktop.InvokeAsync("manuscriptProps/setDefinitions", new object[] { new[] {
+            new ManuscriptPropertyDto("trust", "Trust", "String", [], "Research", false),
+            new ManuscriptPropertyDto("tension", "Tension", "String", [], "Scene", false)
+        } });
+        state = await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/getState");
+        Assert.Contains("properties:tension", Assert.IsType<SharedEntityFieldsDto>(Assert.Single(Assert.Single(state.Chapters).Scenes).SharedFields).Fields.Keys);
+        var focus = Guid.NewGuid();
+        var pov = fields.Fields["analysisOverrides.pov"];
+        await fixture.Desktop.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", fixture.SessionId, pov, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, pov, focus, "\"Mira\"");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, pov, focus);
+        Assert.Equal("Mira", fixture.Host.Workspace.ResolveScene(chapter.Guid, scene.Id).scene.AnalysisOverrides?.Pov);
+        await fixture.Desktop.InvokeAsync("research/save", null, "Source", "Note", "Writing.", Array.Empty<string>(), Array.Empty<string>());
+        var note = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        var title = Assert.IsType<SharedEntityFieldsDto>(note.SharedFields).Fields["title"];
+        Assert.Contains("properties:trust", Assert.IsType<SharedEntityFieldsDto>(note.SharedFields).Fields.Keys);
+        focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", fixture.SessionId, title, focus);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("research/save", note.Id, "Bypass", "Note", null, Array.Empty<string>(), Array.Empty<string>()));
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, title, focus, "\"Revised source\"");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, title, focus);
+        var revised = Assert.Single(await fixture.Desktop.InvokeAsync<ResearchItemDto[]>("research/list"));
+        Assert.Equal("Revised source", revised.Title);
+        Assert.Equal("Writing.", revised.Content);
+        Assert.Equal(note.Id, revised.Id);
+    }
+
+    [Fact]
+    public async Task ADisconnectedWriterCannotCreateStructureThatAppearsAfterReconnecting()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var ct = TestContext.Current.CancellationToken;
+        await fixture.Wire.DisconnectAsync(ct);
+
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("project/createChapter", "Offline chapter"));
+        await fixture.Updates.SynchronizeAsync(createProject: false, ct);
+        var project = await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/getState");
+
+        Assert.DoesNotContain(project.Chapters, chapter => chapter.Title == "Offline chapter");
+        Assert.True(await fixture.Desktop.InvokeAsync<bool>("system/barrier"));
+    }
+
+    [Fact]
+    public async Task OnlineStructuralChangesArePublishedThroughTheSession()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        await fixture.Desktop.InvokeAsync("project/createChapter", "New chapter");
+        var state = await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/getState");
+        Assert.Contains(state.Chapters, chapter => chapter.Title == "New chapter");
+        var committed = await fixture.ReadCommittedFilesAsync();
+        Assert.Contains(committed.Values, bytes => Encoding.UTF8.GetString(bytes).Contains("New chapter", StringComparison.Ordinal));
+        Assert.True(await fixture.Desktop.InvokeAsync<bool>("system/barrier"));
+    }
+
+    [Fact]
+    public async Task DisconnectedProseRemainsWritableAndOrdinaryWritesStayBlocked()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var ct = TestContext.Current.CancellationToken;
+        await fixture.Wire.DisconnectAsync(ct);
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, fixture.Scene.ItemId, Encoding.UTF8.GetBytes("<p>Offline prose survives.</p>"));
+        var html = await File.ReadAllTextAsync(Path.Combine(fixture.Root, fixture.Scene.Path), ct);
+        Assert.Contains("Offline prose survives.", html);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("project/createChapter", "Blocked"));
+        await fixture.Updates.SynchronizeAsync(false, ct);
+        var document = await fixture.Desktop.InvokeAsync<byte[]>("collaboration/readScene", fixture.SessionId, fixture.Scene.ItemId);
+        Assert.Contains("Offline prose survives.", Encoding.UTF8.GetString(document));
+    }
+
+    [Fact]
+    public async Task ReadOnlyProjectRequestsDoNotWaitForUnrelatedSharedFiles()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var path = Path.Combine(fixture.Root, fixture.Scene.Path);
+        await using (var unavailable = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            for (var read = 0; read < 5; read++)
+            {
+                var state = await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/getState")
+                    .WaitAsync(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+                Assert.Single(Assert.Single(state.Chapters).Scenes);
+            }
+        }
+        Assert.True(await fixture.Desktop.InvokeAsync<bool>("system/barrier"));
+    }
+
+    [Fact]
+    public async Task UntrackedDiskEditsAreRecoveredAndAfterRequestErrorsDoNotBreakRpc()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var ct = TestContext.Current.CancellationToken;
+        var path = Path.Combine(fixture.Root, fixture.Scene.Path);
+        var original = await File.ReadAllBytesAsync(path, ct);
+        const string external = "Outside writing must not disappear";
+        await File.WriteAllTextAsync(path, external, ct);
+
+        var error = await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync<bool>("system/barrier"));
+        Assert.Contains("Recovered edits", error.Message);
+        Assert.Equal(original, await File.ReadAllBytesAsync(path, ct));
+        var recovery = Directory.GetFiles(Path.Combine(fixture.Root, "Recovered edits"), "*", SearchOption.AllDirectories);
+        Assert.Contains(recovery, file => File.ReadAllText(file) == external);
+        Assert.True(await fixture.Desktop.InvokeAsync<bool>("system/barrier"));
+    }
+
+    [Fact]
+    public async Task OrdinaryEntityUpdatesCannotBypassFocusButLockedUpdatesStillWork()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("entities/update", "character", fixture.CharacterId, new { age = "42" }));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("entities/update", "character", fixture.CharacterId, new { distinguishingFeatures = "Unsafe full prose replacement" }));
+        var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        Assert.NotEqual("42", entry.GetProperty("age").GetString());
+        var field = fixture.State.Fields.Single(binding => binding.Path.EndsWith(fixture.CharacterId + ".json", StringComparison.Ordinal) && binding.Key.Equals("age", StringComparison.OrdinalIgnoreCase));
+        var focus = Guid.NewGuid();
+        await fixture.Desktop.InvokeAsync<SharedFieldFocus>("collaboration/acquireField", fixture.SessionId, field.ItemId, focus);
+        await fixture.Desktop.InvokeAsync("collaboration/writeField", fixture.SessionId, field.ItemId, focus, "42");
+        await fixture.Desktop.InvokeAsync("collaboration/releaseField", fixture.SessionId, field.ItemId, focus);
+        entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        Assert.Equal("42", entry.GetProperty("age").GetString());
+    }
+
+    [Fact]
+    public async Task ARefusedProjectCommitPreservesLocalWorkWithoutPublishingItLater()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var ct = TestContext.Current.CancellationToken;
+        await using var observer = new SharedProjectFiles(fixture.Updates, (_, _) => Task.CompletedTask);
+        var context = fixture.Updates.Context;
+        var lease = new FieldLeaseRequest(context.ProjectId, observer.ItemId, context.Epoch, Guid.NewGuid());
+        Assert.True((await fixture.Updates.AcquireFieldAsync(lease, ct)).Acquired);
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync("project/createChapter", "Refused chapter"));
+        await fixture.Updates.ReleaseFieldAsync(lease, ct);
+        var state = await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/getState");
+        Assert.DoesNotContain(state.Chapters, chapter => chapter.Title == "Refused chapter");
+        var committed = await fixture.ReadCommittedFilesAsync();
+        Assert.DoesNotContain(committed.Values, bytes => Encoding.UTF8.GetString(bytes).Contains("Refused chapter", StringComparison.Ordinal));
+        Assert.True(Directory.Exists(Path.Combine(fixture.Root, "Recovered edits")));
+    }
+
+    [Fact]
+    public async Task ProseProjectionPreservesAnOutsideEditBeforeReplacingTheFile()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var path = Path.Combine(fixture.Root, fixture.Scene.Path);
+        await File.WriteAllTextAsync(path, "External draft", TestContext.Current.CancellationToken);
+        await fixture.Desktop.InvokeAsync("collaboration/writeScene", fixture.SessionId, fixture.Scene.ItemId, Encoding.UTF8.GetBytes("<p>Collaborative draft</p>"));
+        Assert.Contains("Collaborative draft", await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
+        var recovery = Directory.GetFiles(Path.Combine(fixture.Root, "Recovered edits"), "*", SearchOption.AllDirectories);
+        Assert.Contains(recovery, file => File.ReadAllText(file) == "External draft");
+    }
+
+    [Fact]
+    public async Task PersonalSettingsStillSaveOfflineAndUncoordinatedSharedWritesFail()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var path = Path.Combine(fixture.Root, fixture.Scene.Path);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Host.Workspace.FileService.WriteTextAsync(path, "Background overwrite"));
+        var metadataPath = Path.Combine(fixture.Root, fixture.State.Fields.First(field => field.Path.EndsWith(fixture.CharacterId + ".json", StringComparison.Ordinal)).Path);
+        var originalMetadata = await File.ReadAllTextAsync(metadataPath, TestContext.Current.CancellationToken);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Host.Workspace.FileService.WriteTextAsync(metadataPath, "{malformed"));
+        Assert.Equal(originalMetadata, await File.ReadAllTextAsync(metadataPath, TestContext.Current.CancellationToken));
+        await fixture.Desktop.InvokeAsync<bool>("system/barrier");
+        await fixture.Wire.DisconnectAsync(TestContext.Current.CancellationToken);
+        var settings = await fixture.Desktop.InvokeAsync<JsonElement>("settings/updateProject", new { editorFontSize = 29 });
+        Assert.Equal(29, settings.GetProperty("effective").GetProperty("editorFontSize").GetDouble());
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => fixture.Desktop.InvokeAsync<bool>("backup/restore", "unused"));
+        Assert.Contains("Original prose", await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task DisconnectedWritersCanNavigatePreviouslyOpenedBooks()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var project = await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/createBook", "Second book");
+        var first = project.ActiveBookId;
+        var second = project.Books.Single(book => book.Name == "Second book");
+        await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/switchBook", second.Id);
+        await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/switchBook", first);
+        await fixture.Wire.DisconnectAsync(TestContext.Current.CancellationToken);
+        project = await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/switchBook", second.Id);
+        Assert.Equal(second.Id, project.ActiveBookId);
+        project = await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/switchBook", first);
+        Assert.Single(project.Chapters);
+    }
+
+    [Theory]
+    [InlineData("age", "Late field value")]
+    [InlineData("aliases", "[\"Late metadata value\"]")]
+    public async Task APreviouslyLeasedEditArrivingAfterDeletionIsRecovered(string key, string value)
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync();
+        var ct = TestContext.Current.CancellationToken;
+        var field = fixture.State.Fields.Single(binding => binding.Path.EndsWith(fixture.CharacterId + ".json", StringComparison.Ordinal) && binding.Key == key);
+        var context = fixture.Updates.Context;
+        var lease = new FieldLeaseRequest(context.ProjectId, field.ItemId, context.Epoch, Guid.NewGuid());
+        Assert.True((await fixture.Updates.AcquireFieldAsync(lease, ct)).Acquired);
+        await fixture.Desktop.InvokeAsync("entities/delete", "character", fixture.CharacterId, false);
+        await fixture.Updates.CommitFieldAsync(field.ItemId, JsonSerializer.SerializeToUtf8Bytes(new { Version = 1, Value = value }), lease, ct);
+        var recovery = Path.Combine(fixture.Root, "Recovered edits");
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(5));
+        while (!Directory.Exists(recovery) || !Directory.GetFiles(recovery, "*.json", SearchOption.AllDirectories).Any(path => File.ReadAllText(path).Contains("Late ", StringComparison.Ordinal)))
+            await Task.Delay(20, timeout.Token);
+        Assert.False(File.Exists(Path.Combine(fixture.Root, field.Path)));
+        Assert.Empty((await fixture.Desktop.InvokeAsync<JsonElement>("entities/list", "character")).EnumerateArray());
+    }
+
+    [Fact]
+    public async Task FailedFieldReplayDuringAttachmentLeavesTheLocalCopyEditable()
+    {
+        var files = new FailingFieldFiles();
+        await using var fixture = await SharedProjectFixture.StartAsync(files, attach: false);
+        var ct = TestContext.Current.CancellationToken;
+        var age = fixture.State.Fields.Single(binding => binding.Path.EndsWith(fixture.CharacterId + ".json", StringComparison.Ordinal) && binding.Key == "age");
+        var context = fixture.Updates.Context;
+        var lease = new FieldLeaseRequest(context.ProjectId, age.ItemId, context.Epoch, Guid.NewGuid());
+        Assert.True((await fixture.Updates.AcquireFieldAsync(lease, ct)).Acquired);
+        await fixture.Updates.CommitFieldAsync(age.ItemId, JsonSerializer.SerializeToUtf8Bytes(new { Version = 1, Value = "43" }), lease, ct);
+        files.RejectNextAge = true;
+        await Assert.ThrowsAsync<IOException>(() => fixture.AttachAsync(fixture.State));
+        await fixture.Desktop.InvokeAsync("collaboration/end");
+        await fixture.Desktop.InvokeAsync("entities/update", "character", fixture.CharacterId, new { age = "44" });
+        var entry = await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId);
+        Assert.Equal("44", entry.GetProperty("age").GetString());
+    }
+
+    [Fact]
+    public async Task ActualMetadataChangesAreRejectedDespiteAllowingFormattingNormalization()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync(attach: false);
+        var ct = TestContext.Current.CancellationToken;
+        var field = fixture.State.Fields.Single(binding => binding.Path.EndsWith(fixture.CharacterId + ".json", StringComparison.Ordinal) && binding.Key == "age");
+        var path = Path.Combine(fixture.Root, field.Path);
+        var changed = JsonNode.Parse(await File.ReadAllBytesAsync(path, ct))!.AsObject();
+        changed["age"] = "Outside metadata edit";
+        await File.WriteAllTextAsync(path, changed.ToJsonString(), ct);
+        var error = await Assert.ThrowsAsync<IOException>(() => fixture.AttachAsync(fixture.State));
+        Assert.Contains("local changes have been kept", error.Message);
+        Assert.Contains("Outside metadata edit", await File.ReadAllTextAsync(path, ct));
+    }
+
+    [Fact]
+    public async Task InvalidCanonicalFileStateDetachesTheFailedSession()
+    {
+        await using var fixture = await SharedProjectFixture.StartAsync(attach: false);
+        var invalid = fixture.State with { FileBaselines = new Dictionary<string, byte[]> { ["Missing/file.txt"] = [1] } };
+        await Assert.ThrowsAsync<InvalidDataException>(() => fixture.AttachAsync(invalid));
+        var scene = Assert.Single(Assert.Single((await fixture.Desktop.InvokeAsync<ProjectStateDto>("project/getState")).Chapters).Scenes);
+        Assert.Null(scene.SharedFields);
+        fixture.SessionEnded = true;
+        await fixture.Desktop.InvokeAsync("entities/update", "character", fixture.CharacterId, new { age = "44" });
+        Assert.Equal("44", (await fixture.Desktop.InvokeAsync<JsonElement>("entities/get", "character", fixture.CharacterId)).GetProperty("age").GetString());
+    }
+
+    private sealed class ChangingMetadataFiles : FileService, IFileService
+    {
+        internal (string Path, string Content)? Pending { get; set; }
+        public new async Task<string> ReadTextAsync(string path)
+        {
+            if (Pending is { } edit && edit.Path == path)
+            {
+                Pending = null;
+                await File.WriteAllTextAsync(path, edit.Content);
+            }
+            return await base.ReadTextAsync(path);
+        }
+    }
+
+    private sealed class FailingFieldFiles : FileService, IFileService
+    {
+        internal bool RejectNextAge { get; set; }
+        public new Task WriteTextAsync(string path, string content)
+            => WriteBytesAsync(path, Encoding.UTF8.GetBytes(content));
+        public new Task WriteBytesAsync(string path, byte[] bytes)
+        {
+            if (RejectNextAge && path.EndsWith(".json", StringComparison.Ordinal) && Encoding.UTF8.GetString(bytes).Contains("\"age\": \"43\"", StringComparison.Ordinal))
+            {
+                RejectNextAge = false;
+                throw new IOException("The local metadata file is temporarily unavailable.");
+            }
+            return base.WriteBytesAsync(path, bytes);
+        }
+    }
+
+    private sealed class SharedProjectFixture : IAsyncDisposable
+    {
+        private readonly TempDir directory = new();
+        private readonly List<IDisposable> resources = [];
+        private readonly List<IAsyncDisposable> asynchronous = [];
+        private BackendHost? backendHost;
+        private JsonRpc? desktopRpc;
+        private TcpPeerTransport? wire;
+        private CollaborationSession? updates;
+        internal BackendHost Host => backendHost ?? throw new InvalidOperationException("Fixture not started.");
+        internal JsonRpc Desktop => desktopRpc ?? throw new InvalidOperationException("Fixture not started.");
+        internal TcpPeerTransport Wire => wire ?? throw new InvalidOperationException("Fixture not started.");
+        internal CollaborationSession Updates => updates ?? throw new InvalidOperationException("Fixture not started.");
+        internal string Root => Host.Workspace.Projects.ProjectRoot ?? throw new InvalidOperationException("Project not open.");
+        internal SharedProjectState State { get; private set; } = new([], []);
+        private byte[] checkpoint = [];
+        private IReadOnlyDictionary<string, byte[]> initialFiles = new Dictionary<string, byte[]>();
+        internal SharedDocumentState Scene => Assert.Single(State.Documents, document => document.TextField is null);
+        internal string CharacterId { get; private set; } = "";
+        internal Guid SessionId { get; } = Guid.NewGuid();
+        internal bool SessionEnded { get; set; }
+
+        internal static async Task<SharedProjectFixture> StartAsync(IFileService? fileService = null, bool attach = true)
+        {
+            var fixture = new SharedProjectFixture();
+            try { await fixture.InitializeAsync(fileService, attach); return fixture; }
+            catch { await fixture.DisposeAsync(); throw; }
+        }
+
+        private async Task InitializeAsync(IFileService? fileService, bool attach)
+        {
+            var ct = TestContext.Current.CancellationToken;
+            backendHost = new BackendHost(Path.Combine(directory.Path, "settings"), fileService: fileService);
+            var (backend, desktop) = FullDuplexStream.CreatePair();
+            Host.Attach(backend, backend);
+            var formatter = new SystemTextJsonFormatter();
+            formatter.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            desktopRpc = new JsonRpc(new HeaderDelimitedMessageHandler(desktop, desktop, formatter));
+            Desktop.AddLocalRpcTarget(new CollaborationDocumentPeer());
+            Desktop.StartListening();
+            await Desktop.InvokeAsync("project/create", directory.Path, "Shared", "Book");
+            var chapter = Assert.Single((await Desktop.InvokeAsync<ProjectStateDto>("project/createChapter", "Chapter")).Chapters);
+            var created = await Desktop.InvokeAsync<ProjectStateDto>("project/createScene", chapter.Guid, "Scene");
+            var scene = Assert.Single(Assert.Single(created.Chapters).Scenes);
+            await Desktop.InvokeAsync("scenes/write", chapter.Guid, scene.Id, "<p>Original prose.</p>", "Original prose.");
+            var character = await Desktop.InvokeAsync<JsonElement>("entities/create", "character", "Mira");
+            CharacterId = character.GetProperty("id").GetString() ?? throw new InvalidOperationException("Missing character identity.");
+            var credentials = Substitute.For<ICollaborationCredentials>();
+            credentials.ReadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult<string?>(null));
+            var device = await new DeviceIdentityStore(credentials).GetOrCreateAsync(new("https://guard.test"), "writer", ct);
+            resources.Add(device);
+            var peer = await TcpPeerHost.StartAsync(new(IPAddress.Loopback, 0), Path.Combine(directory.Path, "peer"),
+                new(Guid.NewGuid(), 0, RandomNumberGenerator.GetBytes(32), device), ct);
+            asynchronous.Add(peer);
+            var access = peer.CreateOwnerAccess("127.0.0.1");
+            resources.Add(access);
+            wire = new TcpPeerTransport(access, device);
+            asynchronous.Add(Wire);
+            var sequence = new DeviceSequence(Path.Combine(directory.Path, "device.sqlite"), device.Id);
+            resources.Add(sequence);
+            var journal = new SessionJournal(Path.Combine(directory.Path, "session.sqlite"), SessionId, access.ProjectId, sequence);
+            resources.Add(journal);
+            var cipher = access.CreateCipher();
+            resources.Add(cipher);
+            updates = new(new(access.ProjectId, device.Id, access.Epoch), journal, cipher, access.CreateSessionIdentity(device), Wire);
+            asynchronous.Add(Updates);
+            await Updates.SynchronizeAsync(createProject: true, ct);
+            await CaptureAsync();
+            if (attach) await AttachAsync(State);
+        }
+
+        internal async Task CaptureAsync()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            using var archive = new MemoryStream();
+            State = await Host.Workspace.CaptureSharedProjectAsync(archive, ct);
+            archive.Position = 0;
+            initialFiles = await ProjectCheckpoint.ReadFilesAsync(archive, long.MaxValue, ct);
+            checkpoint = archive.ToArray();
+        }
+
+        internal async Task AttachAsync(SharedProjectState state)
+        {
+            using var archive = new MemoryStream(checkpoint);
+            await Host.Workspace.AttachSharedProjectAsync(SessionId, Updates, state, archive, TestContext.Current.CancellationToken);
+        }
+
+        internal async Task<IReadOnlyDictionary<string, byte[]>> ReadCommittedFilesAsync()
+        {
+            var ct = TestContext.Current.CancellationToken;
+            await using var observer = new SharedProjectFiles(Updates, (_, _) => Task.CompletedTask);
+            await observer.StartAsync(initialFiles, State, ct);
+            return await observer.SnapshotAsync(ct);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (backendHost is not null)
+            {
+                if (updates is not null && !SessionEnded) await Updates.SynchronizeAsync(createProject: false, CancellationToken.None);
+                await Host.Workspace.DetachSharedScenesAsync();
+                await Host.DisposeAsync();
+            }
+            desktopRpc?.Dispose();
+            foreach (var resource in asynchronous.AsEnumerable().Reverse()) await resource.DisposeAsync();
+            foreach (var resource in resources.AsEnumerable().Reverse()) resource.Dispose();
+            directory.Dispose();
+        }
+    }
+
+}

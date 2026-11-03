@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { loadRendererSource } from './renderer-source-loader.mjs'
 import { SceneNotesDocument } from '../src/renderer/src/shell/sceneNotesDocument.ts'
+import { SharedSceneNotesDocument } from '../src/renderer/src/shell/sharedSceneNotesDocument.ts'
 import { normalizeChecklist } from '../src/renderer/src/shell/sceneChecklist.ts'
 import * as pendingWrites from '../src/renderer/src/stores/pendingWrites.ts'
 
@@ -21,8 +22,10 @@ function harness() {
       disk = args[2]
     } } },
     '../stores/pendingWrites': pendingWrites,
-    '../stores/projectStore': { useProjectStore: { getState: () => state } },
+    '../stores/projectStore': { useProjectStore: Object.assign(select => select(state), { getState: () => state }) },
     './sceneNotesDocument': { SceneNotesDocument },
+    './sharedSceneNotesDocument': { SharedSceneNotesDocument },
+    '../collaboration/sharedMarkdown': { openSharedMarkdown: () => { throw new Error('Local notes must not open a shared document') } },
     './sceneChecklist': { normalizeChecklist }
   })
   const mount = async (epoch) => {

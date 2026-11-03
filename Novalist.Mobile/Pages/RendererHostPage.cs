@@ -42,15 +42,18 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
 #endif
     private readonly TemporaryAccessRegistry _manuscriptAccess = new(ReportScopeReleaseFailure);
     private readonly Stream _bridge;
+    private readonly MobileDocumentRequests _collaborationDocuments;
     private readonly CancellationTokenSource _cts = new();
+    private int _closing;
 
     public RendererHostPage()
     {
         var (backendEnd, nativeEnd) = FullDuplexStream.CreatePair();
         _bridge = nativeEnd;
+        _collaborationDocuments = new MobileDocumentRequests(SendDocumentRequestAsync);
         // UnavailableProcessRunner: the sandbox forbids launching `git`, so Git
         // degrades to "unavailable" rather than throwing (Phase 3).
-        // IosStoredPathResolver: a path in settings is not an address here - the
+        // MobileProjectAccess: a stored project path needs its provider grant; the
         // container moves with every update and the writer's own folders are
         // locked until their grant is resumed. Without it the recent-projects
         // list reads as a list of deleted projects and erases itself.
@@ -60,7 +63,7 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
 #if ANDROID
             , systemDictation: new AndroidSystemDictation(), systemVoices: _readAloud
 #endif
-            );
+            ) { CollaborationHost = new MobileCollaborationHost(_collaborationDocuments.RequestAsync) };
         _host.Attach(backendEnd, backendEnd);
 
         _web = new HybridWebView
@@ -186,8 +189,26 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
 
     public void Dispose()
     {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+        if (Interlocked.Exchange(ref _closing, 1) != 0) return;
+        _ = CloseHostAsync();
+    }
+
+    private async Task CloseHostAsync()
+    {
+        try { await _host.DisposeAsync(); }
+        catch (Exception error)
+        {
+            // aislop-ignore-next-line ai-slop/csharp-console-leftover -- Reports shutdown failure without project data or paths.
+            System.Diagnostics.Debug.WriteLine($"[MobileShutdown] Host cleanup failed: {error.GetType().Name}");
+        }
+        finally { await MainThread.InvokeOnMainThreadAsync(DisposePage); }
+    }
+
+    private void DisposePage()
+    {
+        Interlocked.Exchange(ref _disposed, 1);
         _manuscriptAccess.Dispose();
+        _collaborationDocuments.Dispose();
         DisposeLifecycle();
 #if ANDROID
         DisposeAndroidChrome();
@@ -201,7 +222,6 @@ public sealed partial class RendererHostPage : ContentPage, IDisposable
         DisposeWebProcessObserver();
 #endif
         _web.RawMessageReceived -= OnRawMessageReceived;
-        _host.Dispose();
         _projects.Dispose();
         _bridge.Dispose();
         _cts.Dispose();

@@ -35,6 +35,22 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ## Features
 
+- **Collaboration (in development)** — relay server or direct TCP sessions, optional Steamworks integration with friend invitations and a local-copy join dialog, automatic browser sign-in when a server requires it or a chosen display name for anonymous relays, single-use
+  invitations, live project structure, scene planning notes and Codex prose with per-writer undo, research and asset synchronization,
+  participant cursors, scene badges and named Codex viewing/editing indicators, scene editing through the existing editor and continuous Manuscript, named focus locks for Codex fields, table cells, visibility policies, scene and Research metadata, guarded binder actions and Board drops, reconnecting
+  retained projects, independent project copies, and host controls for session access.
+  The relay forwards encrypted packets without storing projects or edit history; the host stays online.
+  Sign-in renews without replacing the session or invitations, with a bounded grace period for provider outages.
+  Connection and traffic limits protect hosts from repeated join requests.
+  Joining reuses matching files in an existing local copy by relative path and SHA-256, with progress and cancellation.
+  Shared Codex renames update scene mentions, section links, relationships, parent references and scene POV, and finish interrupted reference updates when retried or reopened.
+  Shared prose stays writable during connection interruptions;
+  structure and metadata edits require reconnecting. Open **Collaborate** in the top bar. See [Collaboration](docs/manual/23-settings.md#collaboration)
+  for the current capabilities and remaining work, or [Steam build requirements](docs/development/steam-collaboration.md)
+  for the optional native integration.
+  iPhone and iPad support relay-server and direct TCP sessions with desktop writers;
+  Steam is desktop-only. Mobile joins default to a local copy in Novalist's Files folder.
+
 ### Interface
 
 - **Desktop workspace layout** — horizontal navigation with the mode panel above the scene list even in narrow windows, system sans-serif controls and flat surfaces; a bookshelf library and dashboard artwork; consistent view headings and actions, tabbed Codex and Research, a cast-and-reading layout for Narration, and complete scene context beside the editor.
@@ -43,7 +59,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **One command, one place** — where a command lives follows from what it acts on. Selected text, the thing under the pointer, the paragraph, the project, the application: each has one home, everywhere in the app, and the build refuses a change that gives a command two.
 - **A menu bar that is an index of the application** — File, Edit, Go, View, Window and Help, generated from Novalist's own list of commands so it cannot drift out of step with the palette, and always visible on Windows and Linux.
 - **Scene context & analysis inspector** — the right sidebar's **Context** tab shows the entities present in the current scene, a cross-chapter mention matrix, and an auto-computed scene analysis (POV, emotion, intensity, conflict, tags) with manual overrides; the **Footnotes** tab lists footnotes and comments. The **Inbox** tab gathers suggestions, tasks and saved fragments; **Properties** provides synopsis, goal/outcome, timing, cast and custom fields.
-- **Floating scene checklist** — keep scene goals visible beside your writing or on another monitor in a compact panel that floats only above Novalist, with native Liquid Glass on supported macOS versions. Bullet lists automatically become checkboxes with expandable prose and nested subitems. Follow the active scene or hold one scene, pin the panel or auto-hide it, and edit the full notes text without losing its wording.
+- **Floating scene checklist** — keep scene goals visible beside your writing or on another monitor in a compact panel that floats only above Novalist, with native Liquid Glass on supported macOS versions. Bullet lists automatically become checkboxes with expandable prose and nested subitems. Follow the active scene or hold one scene, pin the panel or auto-hide it, and edit the full notes text without losing its wording. Shared projects synchronize checklist ticks and note text with collaborators.
 - **Project to-dos** — keep loose tasks and named checklists in the desktop Inspector's **Inbox** tab or **Write → Inspector → To do** on iPad and iPhone. The same tasks travel with the project, separately from Scene Notes.
 - **Command palette** (`Ctrl+Shift+P`) that lists every command in the app, offers only the ones that can run right now, and shows the gesture bound to each — and any of them can be given one.
 - **A layout that follows the window** — measured from the window itself rather than the monitor, so a narrow window on a wide screen reflows properly and moving between displays of different scaling reflows again without a restart.
@@ -196,13 +212,15 @@ The Extensions view has a built-in **store**: browse the online extension galler
 
 Externally managed installations can set `NOVALIST_DISABLE_SELF_UPDATE=1` before launching Novalist to block all app self-updates and hide their controls in Help, About and Settings, while retaining startup extension checks and extension updates. See [Updates & Integrations](docs/manual/23-settings.md#updates--integrations).
 
+Steam builds receive application updates through Steam. Their GitHub application updater is disabled permanently; extension updates remain available.
+
 The **Mac App Store edition has no extension feature** - no gallery, no installing from a folder, and no extension loaded. An extension is code the app downloads and runs to add features, which App Store rules do not permit and the sandbox would not load. The directly downloaded builds (macOS `.dmg`, Windows, Linux) are unaffected. Projects are identical across editions. See [`docs/manual/24-extensions.md`](docs/manual/24-extensions.md).
 
 ## Building
 
 Novalist is an Electron + React front end over a bundled .NET 10 core process (`Novalist.Backend`).
 
-Building and running the checks requires the .NET 10 SDK and Node.js 22.13+ on the 22 LTS line, or Node.js 23.2+. The renderer tests use Node's TypeScript stripping API. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
+Building and running the checks requires the .NET 10 SDK and Node.js 22.22.2+ on the 22 LTS line, 24.15+ on the 24 LTS line, or 26+. The renderer tests use Node's TypeScript stripping API, and the collaboration document host uses a headless DOM. Installing the app dependencies also downloads the Electron binary used by development and browser tests.
 
 The Android 13+ phone/tablet port is under development. **Open folder** uses Android's system folder selector to open an existing project and save back to that folder. Cloud locations depend on the installed provider's folder support and synchronization. **Import backup** restores a desktop ZIP or ZIP-based `.novalist` backup as a new project. Automatic mobile backups wait for idle time and interrupted cloud copies retry later; manual backups remain available in Settings. Build its APK on Windows with `./eng/Build-Android.ps1`; see [Android development](docs/android-development.md) for setup, emulator checks and outstanding beta requirements.
 

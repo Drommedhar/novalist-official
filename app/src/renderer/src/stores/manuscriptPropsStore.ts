@@ -1,5 +1,8 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
+import { useProjectStore } from './projectStore'
+import { metadataBinding } from '../collaboration/SharedMetadataField'
+import { writeSharedMetadata } from '../collaboration/metadataCommands'
 
 export type PropertyScope = 'Scene' | 'Chapter' | 'Plotline' | 'Event' | 'Research'
 export type PropertyType = 'String' | 'Int' | 'Bool' | 'Date' | 'Enum'
@@ -67,6 +70,12 @@ export const useManuscriptPropsStore = create<ManuscriptPropsState>((set, get) =
   },
 
   setSceneValue: async (sceneId, key, value) => {
+    const scene = useProjectStore.getState().chapters.flatMap(chapter => chapter.scenes).find(scene => scene.id === sceneId)
+    const binding = metadataBinding(scene, `properties:${key}`)
+    if (binding) {
+      if (await writeSharedMetadata(binding, value)) await get().load()
+      return
+    }
     const values = await rpc.request<Record<string, string>>(
       'manuscriptProps/setSceneValue', [sceneId, key, value])
     set({ sceneValues: { ...get().sceneValues, [sceneId]: values } })

@@ -45,9 +45,10 @@ export async function launchApp(
   prefix: string,
   /** Extra environment for the launch, e.g. NOVALIST_FORCE_MOBILE for the phone shell. */
   extraEnv: Record<string, string> = {},
-  /** Reuse an isolated profile only when a test explicitly verifies restart persistence. */
-  workDir = mkdtempSync(join(tmpdir(), prefix))
+  existingWorkDir?: string,
+  launchArguments: string[] = []
 ): Promise<Harness> {
+  const workDir = existingWorkDir ?? mkdtempSync(join(tmpdir(), prefix))
   const env: Record<string, string> = Object.fromEntries(
     Object.entries(process.env).filter(([k, v]) => v !== undefined && k !== 'ELECTRON_RUN_AS_NODE')
   ) as Record<string, string>
@@ -62,7 +63,7 @@ export async function launchApp(
   // saved by one spec turn up in the next, so a test could pass or fail
   // depending on which ones had run before it.
   const app = await electron.launch({
-    args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`],
+    args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`, ...launchArguments],
     env
   })
   const page = await app.firstWindow()
@@ -157,7 +158,7 @@ export async function dismissTour(page: Page): Promise<void> {
   const tour = page.locator('.tour-card')
   try {
     await tour.waitFor({ state: 'visible', timeout: 2_000 })
-    await tour.getByRole('button', { name: 'Close tour' }).click()
+    await tour.locator('.tour-close').click()
     await tour.waitFor({ state: 'hidden', timeout: 5_000 })
     // The tour walks the workspace and gives back the one it borrowed, and it
     // does that a task after it unmounts. Settling it here is what stops the

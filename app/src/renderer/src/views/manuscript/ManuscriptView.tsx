@@ -13,6 +13,7 @@ import { ManuscriptFrame } from './ManuscriptFrame'
 import { Corkboard } from './Corkboard'
 import { Outliner } from './Outliner'
 import { useContentTransition } from '../../shell/useContentTransition'
+import { useSharedProjectRevision } from '../../collaboration/sharedProjectNotifications'
 
 const MODES: ManuscriptMode[] = ['manuscript', 'corkboard', 'outliner', 'board']
 
@@ -40,11 +41,12 @@ function useManuscriptView() {
   const freeform = useManuscriptStore((s) => s.freeform)
   const colourBy = useManuscriptStore((s) => s.colourBy)
   const definitions = useManuscriptPropsStore((s) => s.definitions)
+  const sharedRevision = useSharedProjectRevision()
 
   const filter = useFilterStore((s) => s.filter)
   useEffect(() => {
     void load().catch(reportLoadFailure)
-  }, [load, filter, composed])
+  }, [load, filter, composed, sharedRevision])
 
   useEffect(() => {
     void useManuscriptPropsStore.getState().load()

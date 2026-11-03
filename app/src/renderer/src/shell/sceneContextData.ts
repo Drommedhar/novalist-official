@@ -46,7 +46,7 @@ rpc.onRequestCompleted(method => { if (contextMutations.has(method)) invalidateS
 
 export function sceneContextScope(state: ProjectState,
   chapterGuid = state.openChapterGuid, sceneId = state.openSceneId,
-  currentSceneHtml?: string | null): ContextScope | null {
+  currentSceneHtml?: string | null, sharedRevision = 0): ContextScope | null {
   if (!state.isLoaded || state.closingProject || state.workspaceSuspended || state.workspaceBusy ||
       !chapterGuid || !sceneId || chapterGuid !== state.openChapterGuid || sceneId !== state.openSceneId) return null
   if (currentSceneHtml === undefined) {
@@ -56,7 +56,7 @@ export function sceneContextScope(state: ProjectState,
   const selectionKey = JSON.stringify([state.projectPath, state.activeBookId,
     state.activeDraftId, state.workspaceEpoch, chapterGuid, sceneId])
   return { chapterGuid, sceneId, selectionKey, currentSceneHtml,
-    key: JSON.stringify([selectionKey, state.sceneHashes[sceneId] ?? null, currentSceneHtml]) }
+    key: JSON.stringify([selectionKey, state.sceneHashes[sceneId] ?? null, currentSceneHtml, sharedRevision]) }
 }
 
 export function readSceneContext(): ContextSnapshot { return snapshot }
