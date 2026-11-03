@@ -63,16 +63,16 @@ public class ExportPrintSpecTests : IDisposable
 
     private static (double Width, double Height) FirstPageSize(string path)
     {
-        using var doc = PdfSharpCore.Pdf.IO.PdfReader.Open(
-            path, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.ReadOnly);
+        using var doc = PdfSharp.Pdf.IO.PdfReader.Open(
+            path, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
         var page = doc.Pages[0];
         return (page.Width.Inch, page.Height.Inch);
     }
 
     private static int PageCount(string path)
     {
-        using var doc = PdfSharpCore.Pdf.IO.PdfReader.Open(
-            path, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.ReadOnly);
+        using var doc = PdfSharp.Pdf.IO.PdfReader.Open(
+            path, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
         return doc.PageCount;
     }
 
@@ -126,8 +126,8 @@ public class ExportPrintSpecTests : IDisposable
             BleedInches = 0.125
         }, "boxes.pdf");
 
-        using var doc = PdfSharpCore.Pdf.IO.PdfReader.Open(
-            path, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.ReadOnly);
+        using var doc = PdfSharp.Pdf.IO.PdfReader.Open(
+            path, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
         var trim = doc.Pages[0].TrimBox;
         Assert.Equal(6.0, (trim.X2 - trim.X1) / 72.0, 2);
         Assert.Equal(9.0, (trim.Y2 - trim.Y1) / 72.0, 2);
@@ -140,8 +140,8 @@ public class ExportPrintSpecTests : IDisposable
         // already have from the media box.
         var path = await ExportAsync(new PrintSpec { TrimWidthInches = 6 }, "nobleed.pdf");
 
-        using var doc = PdfSharpCore.Pdf.IO.PdfReader.Open(
-            path, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.ReadOnly);
+        using var doc = PdfSharp.Pdf.IO.PdfReader.Open(
+            path, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
         // An unset box reads as empty. A reader falls back to the media box,
         // which is what "the sheet is the page" means.
         Assert.Equal(0, doc.Pages[0].TrimBox.Width, 2);

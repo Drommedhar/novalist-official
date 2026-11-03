@@ -220,7 +220,7 @@ public class ExportCoverTests : IDisposable
 
     private static int PdfPageCount(string path)
     {
-        using var doc = PdfSharpCore.Pdf.IO.PdfReader.Open(path, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.InformationOnly);
+        using var doc = PdfSharp.Pdf.IO.PdfReader.Open(path, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
         return doc.PageCount;
     }
 

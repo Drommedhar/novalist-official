@@ -351,7 +351,7 @@ public class ExportServiceTests : IDisposable
 
     // ── Codex PDF ──
 
-    // 1x1 PNG — the smallest file PdfSharpCore will actually decode.
+    // 1x1 PNG — the smallest file PdfSharp will actually decode.
     private static readonly byte[] OnePixelPng = Convert.FromBase64String(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==");
 
@@ -966,7 +966,7 @@ public class ExportServiceTests : IDisposable
 
         await Build().ExportAsync(options, path);
 
-        // PdfSharpCore sets text a line at a time and cannot reserve the foot
+        // PdfSharp sets text a line at a time and cannot reserve the foot
         // of a page mid-paragraph, so the notes go under the chapter.
         Assert.True(new FileInfo(path).Length > 0);
     }
