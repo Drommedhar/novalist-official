@@ -1,25 +1,27 @@
 import { test, expect, _electron as electron } from '@playwright/test'
 import { build } from 'esbuild'
-import { mkdir, writeFile, readFile, readdir } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { mkdir, mkdtemp, writeFile, readFile, readdir } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
+import { tmpdir } from 'node:os'
 
 interface CredentialTestEnvironment {
   DesktopCollaborationServices: typeof import('../src/main/collaboration/DesktopCollaborationServices').DesktopCollaborationServices
 }
 
 test('collaboration credentials survive restart encrypted by the operating system', async () => {
+  const workDir = await mkdtemp(join(tmpdir(), 'novalist-credentials-'))
   const output = resolve('out/collaboration-credential-tests')
-  const directory = resolve(output, `credentials-${Date.now()}`)
+  const directory = join(workDir, 'credentials')
   await mkdir(output, { recursive: true })
   await build({ entryPoints: ['src/main/collaboration/DesktopCollaborationServices.ts'], outfile: resolve(output, 'store.cjs'),
     bundle: true, packages: 'external', platform: 'node', format: 'cjs' })
   const fixture = resolve(output, 'main.cjs')
-  await writeFile(fixture, `const { app } = require('electron'); app.setPath('userData', ${JSON.stringify(resolve(output, 'profile'))});
+  await writeFile(fixture, `const { app } = require('electron'); app.setPath('userData', ${JSON.stringify(join(workDir, 'profile'))});
 globalThis.credentialTest = require('./store.cjs'); app.whenReady().then(() => {});
 `)
   const env: Record<string, string> = {}
   for (const [key, value] of Object.entries(process.env)) if (value !== undefined && key !== 'ELECTRON_RUN_AS_NODE') env[key] = value
-  let application = await electron.launch({ args: [fixture], env })
+  let application = await electron.launch({ args: [fixture, `--user-data-dir=${join(workDir, 'profile')}`], env })
   const credential = 'test-only-refresh-token-and-private-key'
   try {
     const result = await application.evaluate(async ({ app, safeStorage }, { directory, credential }) => {
@@ -40,7 +42,7 @@ globalThis.credentialTest = require('./store.cjs'); app.whenReady().then(() => {
     expect(files).toHaveLength(1)
     expect((await readFile(resolve(directory, files[0]))).includes(Buffer.from(credential))).toBe(false)
     await application.close()
-    application = await electron.launch({ args: [fixture], env })
+    application = await electron.launch({ args: [fixture, `--user-data-dir=${join(workDir, 'profile')}`], env })
     const restored = await application.evaluate(async ({ app }, directory) => {
       await app.whenReady()
       const { DesktopCollaborationServices } = (globalThis as typeof globalThis & { credentialTest: CredentialTestEnvironment }).credentialTest

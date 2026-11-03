@@ -2,7 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 import { dismissTour, selectCodexTab } from './harness'
 
 /**
@@ -32,7 +32,7 @@ test('an overwritten codex entry can be put back from the detail pane', async ()
     env
   })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
 
   const id = await evaluateWhenReady(page, async (parent) => {
     const rpc = window.novalistRpc

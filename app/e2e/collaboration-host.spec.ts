@@ -1,7 +1,8 @@
 import { test, expect, _electron as electron } from '@playwright/test'
 import { build } from 'esbuild'
-import { mkdir, writeFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
+import { tmpdir } from 'node:os'
 
 interface HostTestEnvironment {
   DocumentHostProcess: typeof import('../src/main/collaboration/DocumentHostProcess').DocumentHostProcess
@@ -10,6 +11,7 @@ interface HostTestEnvironment {
 }
 
 test('the desktop document process retains deleted-scene recovery across a restart', async () => {
+  const workDir = await mkdtemp(join(tmpdir(), 'novalist-document-host-'))
   const output = resolve('out/collaboration-process-tests')
   await mkdir(output, { recursive: true })
   await build({ entryPoints: {
@@ -23,7 +25,7 @@ test('the desktop document process retains deleted-scene recovery across a resta
   for (const [key, value] of Object.entries(process.env)) {
     if (value !== undefined && key !== 'ELECTRON_RUN_AS_NODE') env[key] = value
   }
-  const application = await electron.launch({ args: [fixture], env })
+  const application = await electron.launch({ args: [fixture, `--user-data-dir=${join(workDir, 'profile')}`], env })
   try {
     const actual = await application.evaluate(async ({ app }, paths) => {
       await app.whenReady()

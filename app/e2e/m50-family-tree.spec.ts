@@ -2,7 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 
 /**
  * A family tree shows the family, not the writer's line of descent.
@@ -30,7 +30,7 @@ test('the family tree shows the branches, not only the line through the root', a
     env
   })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
 
   // Gran has two daughters. Mira descends from one and Cousin from the other,
   // so Aunt and Cousin are family and neither is on the line through Mira.
@@ -121,7 +121,7 @@ test('the generation controls still bound how far the tree reaches', async () =>
     env
   })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
 
   const ids = await evaluateWhenReady(page, async (parent) => {
     const rpc = window.novalistRpc
@@ -199,7 +199,7 @@ test('tree view offers its own two depth controls and not the graph reach', asyn
     env
   })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
 
   const ids = await evaluateWhenReady(page, async (parent) => {
     const rpc = window.novalistRpc

@@ -2,7 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { evaluateWhenReady } from './appReady'
+import { evaluateWhenReady, waitForAppReady } from './appReady'
 import { dismissTour } from './harness'
 
 /**
@@ -55,7 +55,7 @@ test('pressing Play renders a clip, keeps it, and speaks it', async () => {
     env
   })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
 
   await evaluateWhenReady(
     page,

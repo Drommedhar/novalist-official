@@ -28,7 +28,6 @@ void (async () => {
   if (modes.includes('steam')) throw new Error('Steam was offered on mobile')
   if (config.mode === 'hosted') {
     input('#set-collaboration-server', config.server)
-    click('.collaboration-settings > .settings-button-row .primary')
     await wait(async () => (await rpc('collaboration/account/status', [config.server]))?.displayName, 'restored mobile sign-in')
     await wait(() => document.querySelector('#set-collaboration-join'), 'relay join controls')
     input('#set-collaboration-join', config.invitation)

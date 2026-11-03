@@ -3,6 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { dismissTour } from './harness'
+import { waitForAppReady } from './appReady'
 
 /**
  * Nothing a mode holds is ever hidden.
@@ -31,7 +32,7 @@ test('a mode lists every view it holds, at any window size', async () => {
 
   const app = await electron.launch({ args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`], env })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  await waitForAppReady(page)
   await page.evaluate(async (parent) => {
     const state = await window.novalistRpc.request('project/create', [parent, 'Rail', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
