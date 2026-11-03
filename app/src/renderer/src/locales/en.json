@@ -507,7 +507,7 @@
       "IsNotSet": "is not set"
     },
     "field": {
-      "chapterStatus": "Chapter status",
+      "chapterStatus": "Chapter status (legacy)",
       "act": "Act",
       "pov": "POV",
       "tag": "Tag",
@@ -526,8 +526,14 @@
       "inactive": "Out of the book"
     }
   },
-  "inlineReview": {"title":"Inline action","choose":"Choose a result","apply":"Apply"},
-  "mobileRecovery": { "recovered": "Recovered" },
+  "inlineReview": {
+    "title": "Inline action",
+    "choose": "Choose a result",
+    "apply": "Apply"
+  },
+  "mobileRecovery": {
+    "recovered": "Recovered"
+  },
   "findReplace": {
     "failed": "Search or replacement failed: {{message}}",
     "title": "Find and Replace",
@@ -3558,7 +3564,7 @@
     "colour_label": "Label",
     "colour_pov": "Viewpoint",
     "colour_act": "Act",
-    "colour_status": "Chapter status"
+    "colour_stage": "Scene stage"
   },
   "sceneAxis": {
     "title": "Your rating axes",
@@ -3703,10 +3709,12 @@
     "character": "Character",
     "location": "Place",
     "plotline": "Thread",
-    "stage": "Stage",
+    "stage": "Scene stage",
     "clear": "Clear {{count}}",
     "namePlaceholder": "Save this filter as…",
-    "removePreset": "Delete this filter"
+    "removePreset": "Delete this filter",
+    "legacyChapterStatus": "Legacy chapter status: {{status}}",
+    "clearChapterStatus": "Clear chapter status filter"
   },
   "tour": {
     "title": "Take the tour",
@@ -4634,5 +4642,26 @@
     "assign": "Assign",
     "expandContext": "Expand all",
     "collapseContext": "Collapse all"
+  },
+  "sceneChecklist": {
+    "title": "Scene checklist",
+    "notes": "Notes",
+    "properties": "Properties",
+    "follow": "Follow active scene",
+    "pinned": "Pinned",
+    "autoHide": "Auto-hide",
+    "pinHint": "Keep this window visible while writing",
+    "autoHideHint": "Switch to auto-hide when returning to another window",
+    "hide": "Hide scene notes",
+    "progress": "{{done}} of {{total}} completed",
+    "completed": "Completed ({{count}})",
+    "untitled": "Untitled item",
+    "edit": "Edit notes",
+    "showChecklist": "Show checklist",
+    "editHint": "Root bullets become checklist items. Indent bullets for subitems; use paragraphs for details. Your wording stays intact.",
+    "empty": "Add a scene goal below, or edit notes to paste bullets and details.",
+    "add": "Add a scene goal",
+    "saveFailed": "Your changes are still here, but could not be saved. Retry before closing.",
+    "loadFailed": "Scene notes could not be loaded."
   }
 }

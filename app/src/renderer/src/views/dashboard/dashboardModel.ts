@@ -178,11 +178,6 @@ function useDashboardArtwork(t: ReturnType<typeof useTranslation>['t']) {
 
 export function deriveDashboard(data: DashboardDto, chapters: ReturnType<typeof useProjectStore.getState>['chapters'], openChapterGuid: string | null, openSceneId: string | null) {
   const maxBar = Math.max(1, ...data.wordHistory.map((b) => b.words))
-  const statusTotal = Math.max(
-    1,
-    data.statusBreakdown.reduce((s, b) => s + b.count, 0)
-  )
-
   const metrics: { key: string; value: string }[] = [
     { key: 'dashboard.words', value: data.totalWords.toLocaleString() },
     { key: 'shell.chapters', value: String(data.chapterCount) },
@@ -213,7 +208,7 @@ export function deriveDashboard(data: DashboardDto, chapters: ReturnType<typeof 
             }
           : null))
 
-  return {maxBar, statusTotal, metrics, resume}
+  return {maxBar, metrics, resume}
 }
 
 export type BookDashboardState = ReturnType<typeof useDashboard> & ReturnType<typeof deriveDashboard>

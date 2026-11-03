@@ -67,15 +67,6 @@ function setManuscript(sectionsJson) {
         titleEl.textContent = section.chapterTitle;
         titleRow.appendChild(titleEl);
 
-        const statusEl = document.createElement('span');
-        statusEl.className = 'chapter-status';
-        statusEl.textContent = section.status;
-        statusEl.dataset.chapterGuid = section.chapterGuid;
-        statusEl.addEventListener('click', () => {
-            sendMessage({ type: 'cycleStatus', chapterGuid: section.chapterGuid });
-        });
-        titleRow.appendChild(statusEl);
-
         header.appendChild(titleRow);
         sectionEl.appendChild(header);
 

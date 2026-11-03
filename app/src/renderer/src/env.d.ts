@@ -155,6 +155,12 @@ interface Window {
       sceneId: string | null
     }): Promise<void>
     registerExtensionRoots(roots: Record<string, string>): Promise<void>
+    publishSceneNotesContext?(context: import('../../shared/sceneNotesProtocol').SceneNotesContext | null): void
+    sceneNotesWindowState?(): Promise<import('../../shared/sceneNotesProtocol').SceneNotesWindowState>
+    toggleSceneNotes?(): Promise<void>
+    hideSceneNotes?(): Promise<void>
+    pinSceneNotes?(pinned: boolean): Promise<void>
+    onSceneNotesState?(handler: (state: import('../../shared/sceneNotesProtocol').SceneNotesWindowState) => void): () => void
     checkAppUpdate(): Promise<AppUpdate | null>
     hasDetachedPanes(): Promise<boolean>
     downloadAppUpdate(info: AppUpdate): Promise<AppUpdateDownloadResult>

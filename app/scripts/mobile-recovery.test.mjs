@@ -58,6 +58,7 @@ test('actual manuscript edit action journals the latest buffer before its autosa
     zustand: { create }, '../rpc/client': { rpc: { request: () => { throw new Error('Autosave must not run') } } },
     './projectStore': { useProjectStore: f.store, reportManuscriptEditing() {} },
     './filterStore': { useFilterStore: { getState: () => ({}) } },
+    './pendingWrites': { capturePendingWrites() {} },
     '../i18n': { default: { t: (key) => key } }, '../mobile/recovery': f
   }, { window: { novalist: f.host }, setTimeout: (fn) => (timers.push(fn), timers.length), clearTimeout() {} }).useManuscriptStore
   manuscript.setState({ sections: [{ chapterGuid: 'chapter', scenes: [{ sceneId: 'scene', html: 'base', hash: 'original' }] }] })

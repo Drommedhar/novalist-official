@@ -162,10 +162,10 @@ export function Inspector({ onReadyChange, prepareHidden = false }: {
           {t('inbox.tab')}
         </button>
         <button type="button" className={`inspector-tab${inspectorTab === 'notes' ? ' active' : ''}`}
-          aria-pressed={inspectorTab === 'notes'} onClick={() => setInspectorTab('notes')}>{t('desktopRefresh.notes')}</button>
+          aria-pressed={inspectorTab === 'notes'} onClick={() => setInspectorTab('notes')}>{t('sceneChecklist.properties')}</button>
       </div>
       <div className="inspector-body" ref={contentRef}>
-        {inspectorTab === 'notes' && <SceneNotesFields idPrefix="inspector" />}
+        {inspectorTab === 'notes' && <SceneNotesFields idPrefix="inspector" includeNotes={false} />}
         {inspectorTab === 'context' && (
           <>
             <ContextPanel chapterGuid={openChapterGuid} sceneId={openSceneId} onReadyChange={setContextReady} prepareHidden={prepareHidden} />

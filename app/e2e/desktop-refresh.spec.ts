@@ -145,7 +145,7 @@ test('scene rows toggle real plot assignments and retain editable notes', async 
   }
 })
 
-test('combined navigation keeps writing space and scene notes save through both entry points', async () => {
+test('combined navigation keeps writing space and scene properties have one inspector surface', async () => {
   const h = await launchApp('nl-refresh-notes-')
   try {
     const book = await seedBook(h, { Opening: ['Arrival', 'Departure'] })
@@ -166,10 +166,10 @@ test('combined navigation keeps writing space and scene notes save through both 
     expect(main!.width).toBeGreaterThan(600)
     await h.page
       .locator('.inspector-tabs')
-      .getByRole('button', { name: 'Notes', exact: true })
+      .getByRole('button', { name: 'Properties', exact: true })
       .click()
-    await expect(h.page.locator('#inspector-notes')).toBeVisible()
-    await h.page.locator('#inspector-notes').fill('A note kept with this scene.')
+    await expect(h.page.locator('#inspector-notes')).toHaveCount(0)
+    await h.page.locator('#inspector-synopsis').fill('A synopsis kept with this scene.')
     await h.page.locator('#inspector-goal').fill('Find the missing letter.')
     await h.page.locator('#inspector-outcome').fill('The letter names a new suspect.')
     await h.page
@@ -179,22 +179,20 @@ test('combined navigation keeps writing space and scene notes save through both 
     await expect
       .poll(async () => h.rpc('scenes/getMeta', [chapter.guid, scene.id]))
       .toMatchObject({
-        notes: 'A note kept with this scene.',
+        synopsis: 'A synopsis kept with this scene.',
         goal: 'Find the missing letter.',
         outcome: 'The letter names a new suspect.'
       })
-    await h.page.evaluate(() => window.novalistStores.shell.getState().toggleNotesDock())
-    await expect(h.page.locator('#dock-notes')).toHaveValue('A note kept with this scene.')
     await h.page
       .locator('.inspector-tabs')
-      .getByRole('button', { name: 'Notes', exact: true })
+      .getByRole('button', { name: 'Properties', exact: true })
       .click()
     await expect(h.page.locator('#dock-notes')).toHaveCount(0)
     await expect(h.page.locator('#inspector-goal')).toHaveValue('Find the missing letter.')
     await h.page.locator('.binder-scene-row').nth(1).click()
-    await expect(h.page.locator('#inspector-notes')).toHaveValue('')
+    await expect(h.page.locator('#inspector-synopsis')).toHaveValue('')
     await h.page.locator('.binder-scene-row').first().click()
-    await expect(h.page.locator('#inspector-notes')).toHaveValue('A note kept with this scene.')
+    await expect(h.page.locator('#inspector-synopsis')).toHaveValue('A synopsis kept with this scene.')
   } finally {
     await h.close()
   }

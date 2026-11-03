@@ -148,7 +148,7 @@ What Novalist does **not** detect — for these you must use the app:
 | You do this | Why it doesn't reconcile |
 |---|---|
 | Edit a scene's title, date, notes, or synopsis | Per-scene metadata lives in `scenes.json`. There is no per-scene marker file. Rename scenes from the binder; edit synopsis and notes in the inspector. |
-| Edit a chapter's title, act, status, or date | Chapter metadata lives in both `.nvchapter.json` and `draft.json`. The reconciler treats the cached `draft.json` value as authoritative for these fields — editing the marker in a text editor does **not** propagate. Use the chapter's right-click menu in the binder. |
+| Edit a chapter's title, act, or date | Chapter metadata lives in both `.nvchapter.json` and `draft.json`. The reconciler treats the cached `draft.json` value as authoritative for these fields — editing the marker in a text editor does **not** propagate. Use the chapter's right-click menu in the binder. |
 | Reorder chapters by changing the `NN -` folder prefix | The number prefix is cosmetic — Novalist never renumbers behind your back, and equally never reads the prefix as a reorder signal. Drag chapters in the binder to reorder. |
 | Reorder scenes by renaming `scene-NN.novalist` files | Same reason — the `NN` is cosmetic. Drag scenes in the binder to reorder. |
 | Add or rename an act | Acts live in `acts.json` and on chapter records. Use **Right-click chapter → Rename Act** in the binder. |

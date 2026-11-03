@@ -21,6 +21,22 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+### Added
+
+- **Floating scene checklist** — open Notes from the toolbar to keep scene notes in a movable window across Novalist views. Bullet lists become checkboxes with expandable details and a completed-items group, remembering expanded sections for each scene across restarts. Follow the active scene or hold one in place, pin the window or let it hide while working behind it, and edit the original notes at any time. The window stays with Novalist and uses native glass on supported Macs; scene properties remain in the inspector.
+
+### Changed
+
+- Writing state now belongs to scenes: shared filters, Corkboard colours, and Dashboard progress use scene stages. Chapter-status controls and Manuscript badges are removed. Existing extensions and saved chapter-status queries keep their behavior, and restored chapter filters are visibly labeled and can be cleared.
+
+### Fixed
+
+- Changing Manuscript filters preserves pending prose edits, including typing during a slow reload. Saved scene lists with no matches show an empty result instead of the whole book.
+
+---
+
+## [3.6.2] - 2026-11-03
+
 ### Changed
 
 - The first scene opened after startup fits the editor's available width. Manual zoom is then preserved for the rest of the session.
@@ -1835,7 +1851,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.6.1...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.6.2...HEAD
+[3.6.2]: https://github.com/Drommedhar/novalist-official/compare/v3.6.1...v3.6.2
 [3.6.1]: https://github.com/Drommedhar/novalist-official/compare/v3.6.0...v3.6.1
 [3.6.0]: https://github.com/Drommedhar/novalist-official/compare/v3.5.7...v3.6.0
 [3.5.7]: https://github.com/Drommedhar/novalist-official/compare/v3.5.6...v3.5.7

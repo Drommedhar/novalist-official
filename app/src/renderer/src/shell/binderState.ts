@@ -14,7 +14,7 @@ import { openBinderScene } from './binderNavigation'
 import { useTargetStore } from '../stores/targetStore'
 import { loadBookScoped } from '../stores/bookScopedLoad'
 
-import { STATUS_CYCLE, type SortMode, type BinderPlotline, type MenuState, type PendingAction, type ArchivedScene, type TrashedChapter } from './binderTypes'
+import { type SortMode, type BinderPlotline, type MenuState, type PendingAction, type ArchivedScene, type TrashedChapter } from './binderTypes'
 
 function useBinderView() {
   const { t } = useTranslation()
@@ -260,11 +260,7 @@ function binderDisplay(data: BinderData) {
       .then((state) => store.getState().applyState(state))
   }
 
-  const cycleStatus = (chapterGuid: string, current: string): void => {
-    const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(current) + 1) % STATUS_CYCLE.length]
-    void store.getState().setChapterStatus(chapterGuid, next)
-  }
-  return { scenesOf, pinned, togglePin, cycleStatus }
+  return { scenesOf, pinned, togglePin }
 }
 
 export function useBinderState() {

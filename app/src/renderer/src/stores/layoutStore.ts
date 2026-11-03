@@ -130,6 +130,7 @@ export const useLayoutStore = create<LayoutState>((set, get) => ({
     // The restored widths are also the ones a restart should come back to,
     // otherwise the next launch undoes the layout that was just applied.
     savePanelSize({ binderWidth, inspectorWidth })
+    if (shell.notesDockVisible !== layout.notesDockVisible) void window.novalist.toggleSceneNotes?.()
   },
   remove: (name) => {
     const next = get().layouts.filter((l) => l.name !== name)

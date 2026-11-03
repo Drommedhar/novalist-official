@@ -1,6 +1,6 @@
 # Dashboard
 
-The Dashboard is your project's numbers page. It shows totals, goals, streaks, status breakdown, pacing, and writing-quality cues — the numbers you want to glance at before sitting down to write, and the ones you want to check before declaring a draft done.
+The Dashboard is your project's numbers page. It shows totals, goals, streaks, scene-stage breakdown, pacing, and writing-quality cues — the numbers you want to glance at before sitting down to write, and the ones you want to check before declaring a draft done.
 
 ![The project Dashboard](images/dashboard.png)
 
@@ -144,15 +144,11 @@ Type a recipient and press **Record a send**. Each row then takes what you sent,
 
 A small card pairs **average words per chapter** with the project's **estimated reading time**.
 
-### Progress Breakdown
-
-One row per chapter status — Outline, Draft, Revised, Edited, Final — with a status dot, a bar showing that status's share of chapters, and the chapter count plus word count at that status. Below the rows, a summary strip shows the plain chapter **count at each status**.
-
 ## Scene stages
 
-The same shape, one level down: a row per [scene stage](04-chapters-and-scenes.md#scene-stages) in your own colours, with the scene count and word count at each. Scenes you have not given a stage are listed as **No stage set** rather than folded into the first one, so the untriaged part of the book is visible instead of quietly counted as outlined.
+A row per [scene stage](04-chapters-and-scenes.md#scene-stages) in your own colours, with the scene count and word count at each. Scenes you have not given a stage are listed as **No stage set** rather than folded into the first one, so the untriaged part of the book is visible instead of quietly counted as outlined.
 
-This is the breakdown that reflects a revision in progress. The chapter statuses above move a chapter at a time; the stages move a scene at a time, which is how revision actually happens.
+This breakdown follows revision scene by scene. Chapters have no overall writing state.
 
 ### Pacing Analysis
 
@@ -178,7 +174,7 @@ Goals are per-project.
 ## Tips
 
 - **Pick one number to track.** Most writers benefit from one daily goal and one project goal. Pick the number that actually moves you and ignore the rest.
-- **Use status as truth.** A draft is not "done" until every chapter is at least at First Draft; revision is not done until everything is at Revised. The Progress Breakdown is a useful forcing function.
+- **Track scene stages.** Use the scene-stage breakdown to find scenes still in Outline or waiting for a revision pass.
 - **Watch the echo phrases.** A unique stylistic flourish becomes a tic on the third repetition. The Echo Finder is the cheap version of a copy-edit pass.
 
 ## Writing sprints
@@ -216,5 +212,5 @@ The card is absent entirely when nobody disappears, rather than showing an empty
 ## Where to go next
 
 - [Settings](23-settings.md) — set goals and the project deadline.
-- [Manuscript view](10-manuscript.md) — read the book filtered by status.
-- [Chapters & Scenes](04-chapters-and-scenes.md) — where chapter statuses are set.
+- [Manuscript view](10-manuscript.md) — read the book filtered by scene stage.
+- [Chapters & Scenes](04-chapters-and-scenes.md) — where scene stages are set.

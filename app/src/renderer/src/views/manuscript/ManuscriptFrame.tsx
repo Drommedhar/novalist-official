@@ -90,7 +90,6 @@ export function ManuscriptFrame(): React.JSX.Element {
     const payload = sectionsRef.current.map((s) => ({
       chapterGuid: s.chapterGuid,
       chapterTitle: s.chapterTitle,
-      status: s.status,
       act: s.act,
       scenes: s.scenes.map((sc) => ({
         sceneId: sc.sceneId,
@@ -138,9 +137,6 @@ export function ManuscriptFrame(): React.JSX.Element {
             Number(message.wordCount ?? 0)
           )
           break
-        case 'cycleStatus':
-          void store.cycleStatus(String(message.chapterGuid))
-          break
         case 'sceneFocused':
           // The page has reported this since it was written and the host had
           // no case for it, so the context sidebar kept describing whichever
@@ -172,7 +168,7 @@ export function ManuscriptFrame(): React.JSX.Element {
     const capture = (): void => {
       const win = iframeRef.current?.contentWindow as ManuscriptWindow | null
       const store = useManuscriptStore.getState()
-      for (const change of win?.flushPendingChanges() ?? []) {
+      for (const change of win?.flushPendingChanges?.() ?? []) {
         store.onSceneContentChanged(change.sceneId, change.html, change.plainText, change.wordCount)
       }
     }

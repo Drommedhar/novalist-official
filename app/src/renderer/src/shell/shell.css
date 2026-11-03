@@ -1138,27 +1138,6 @@
   }
 }
 
-.binder-status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: var(--nl-radius-pill);
-  background: var(--nl-status-outline);
-  flex-shrink: 0;
-}
-
-.binder-status-dot[data-status='FirstDraft'] {
-  background: var(--nl-status-first-draft);
-}
-.binder-status-dot[data-status='Revised'] {
-  background: var(--nl-status-revised);
-}
-.binder-status-dot[data-status='Edited'] {
-  background: var(--nl-status-edited);
-}
-.binder-status-dot[data-status='Final'] {
-  background: var(--nl-status-final);
-}
-
 .binder-chapter-title {
   overflow: hidden;
   text-overflow: ellipsis;

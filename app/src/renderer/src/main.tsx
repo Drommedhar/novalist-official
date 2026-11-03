@@ -5,6 +5,7 @@ import './styles/tokens.css'
 import './styles/base.css'
 import './styles/motion.css'
 import { AppShell } from './shell/AppShell'
+import { SceneNotesWindow } from './shell/SceneNotesWindow'
 import { installModalFocus } from './shell/modalFocus'
 import { InlineActionDialog } from './views/editor/InlineActionDialog'
 import { DetachedPane, type DetachedRequest } from './shell/DetachedPane'
@@ -74,7 +75,7 @@ const detached: DetachedRequest | null = detachedView
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    {detached ? <DetachedPane request={detached} /> : <AppShell />}
+    {params.has('sceneNotes') ? <SceneNotesWindow /> : detached ? <DetachedPane request={detached} /> : <AppShell />}
     <InlineActionDialog />
   </React.StrictMode>
 )

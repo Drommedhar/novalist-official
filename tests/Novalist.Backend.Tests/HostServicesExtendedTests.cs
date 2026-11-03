@@ -1467,7 +1467,7 @@ public class HostServicesExtendedTests
     }
 
     [Fact]
-    public async Task AChapterStatusCanBeSetButNotToOneNothingCanShow()
+    public async Task LegacyChapterStatusStillRoundTripsAndRejectsUnknownValues()
     {
         var (host, proj, _, dir) = BuildWithEditor();
         using var _d = dir;
@@ -1476,9 +1476,9 @@ public class HostServicesExtendedTests
         Assert.True(await host.StoryService.SetChapterStatusAsync(chapter, "revised"));
         Assert.Equal(ChapterStatus.Revised,
             proj.GetChaptersOrdered().First(c => c.Guid == chapter).Status);
+        Assert.Equal("Revised", host.StoryService.GetChapterDetail(chapter)!.Status);
 
-        // A status nothing can display leaves the chapter in a state the writer
-        // cannot see or change back.
+        // Compatibility preserves the original accepted values.
         Assert.False(await host.StoryService.SetChapterStatusAsync(chapter, "Nearly"));
         Assert.False(await host.StoryService.SetChapterStatusAsync("no-such-chapter", "Final"));
     }

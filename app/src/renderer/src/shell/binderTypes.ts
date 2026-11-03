@@ -1,5 +1,3 @@
-export const STATUS_CYCLE = ['Outline', 'FirstDraft', 'Revised', 'Edited', 'Final']
-
 /**
  * How the scenes inside a chapter are ordered.
  *

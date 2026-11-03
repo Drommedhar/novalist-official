@@ -482,6 +482,33 @@ public sealed class DashboardManuscriptTests : IDisposable
     }
 
     [Fact]
+    public async Task Manuscript_SceneStagesIgnoreUnrelatedLegacyChapterStatuses()
+    {
+        var draftedChapter = await _workspace.Projects.CreateChapterAsync("Two drafted scenes");
+        var outlinedChapter = await _workspace.Projects.CreateChapterAsync("Outline scenes");
+        var project = new ProjectRpc(_workspace);
+        await project.SetChapterStatusAsync(draftedChapter.Guid, "Revised");
+        await project.SetChapterStatusAsync(outlinedChapter.Guid, "FirstDraft");
+        var stages = new SceneStageRpc(_workspace);
+        for (var i = 0; i < 2; i++)
+        {
+            var scene = await _workspace.Projects.CreateSceneAsync(draftedChapter.Guid, $"Draft {i}");
+            await stages.SetSceneStageAsync(draftedChapter.Guid, scene.Id, "firstDraft");
+        }
+        for (var i = 0; i < 3; i++)
+        {
+            var scene = await _workspace.Projects.CreateSceneAsync(outlinedChapter.Guid, $"Outline {i}");
+            await stages.SetSceneStageAsync(outlinedChapter.Guid, scene.Id, "outline");
+        }
+        var manuscript = new ManuscriptRpc(_workspace);
+        Assert.Equal(2, (await manuscript.GetAsync("All", stage: "firstDraft")).Sum(section => section.Scenes.Count));
+        Assert.Equal(3, (await manuscript.GetAsync("All", stage: "outline")).Sum(section => section.Scenes.Count));
+        // Explicit legacy queries keep their old chapter-level meaning.
+        Assert.Empty(await manuscript.GetAsync("FirstDraft", stage: "firstDraft"));
+        Assert.Equal(2, (await manuscript.GetAsync("Revised", stage: "firstDraft")).Sum(section => section.Scenes.Count));
+    }
+
+    [Fact]
     public async Task SetPov_SetsAndClearsOverrides()
     {
         var (chapterGuid, sceneId) = await SeedSceneAsync("<p>x</p>", "x");

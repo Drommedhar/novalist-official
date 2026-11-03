@@ -4,7 +4,7 @@ The Editor is where you write. It is a WYSIWYG rich-text editor. Each editor pan
 
 Shortcuts below are written with `Ctrl`; on macOS use `Cmd`.
 
-![A scene open in the editor with the Context inspector and scene-notes dock](images/editor.png)
+![A scene open in the editor with the Context inspector](images/editor.png)
 
 ## Opening a scene
 
@@ -199,7 +199,7 @@ Two ways in:
 
 Every editor pane is fully editable, auto-saves independently, and keeps its own [tab strip](#scene-tabs) of open scenes. **Move to other pane** on a tab hands a scene to the next editor pane, creating one if there is no second pane yet.
 
-The inspector, the status bar, find-and-replace and the scene-notes dock follow the pane you are working in.
+The inspector, status bar and find-and-replace follow the pane you are working in. The floating Scene Notes checklist follows the selected scene unless you turn off **Follow active scene**.
 
 Common uses: referencing an earlier scene while writing a later one, editing two scenes in parallel, or keeping the Codex open beside the scene it describes.
 
@@ -384,7 +384,7 @@ The highlight is painted without touching the document, so listening to a chapte
 
 The hover areas expand to fill the spare space beside the page on wider screens, and shrink as you zoom in. Side panels slide gently from their own edge; your system's reduced-motion preference disables the animation. Scene context is prepared while hidden and kept ready between reveals, including after saved edits, so opening it does not rebuild its contents.
 
-Move the mouse to the left edge to reveal the binder, or to the right edge for the inspector. They open over the page without taking the caret away. Move back to the page and the panel retreats; a field you are editing stays open until you leave it. The binder (`Ctrl+Alt+B`), inspector (`Ctrl+Alt+I`) and scene notes (`Ctrl+Shift+N`) can also be opened with their shortcuts or toolbar buttons. Those panels stay open until you close them with `Escape`, the same shortcut, **Return to writing**, or a click outside. Panels never reduce the page width. Inline selection tools, linked entities and Focus Peek remain available.
+Move the mouse to the left edge to reveal the binder, or to the right edge for the inspector. They open over the page without taking the caret away. Move back to the page and the panel retreats; a field you are editing stays open until you leave it. The binder (`Ctrl+Alt+B`) and inspector (`Ctrl+Alt+I`) can also be opened with their shortcuts or toolbar buttons. Scene Notes (`Ctrl+Shift+N`) opens a separate floating checklist that can stay visible while writing or on another monitor. Those panels stay open until you close them with `Escape`, the same shortcut, **Return to writing**, or a click outside. Panels never reduce the page width. Inline selection tools, linked entities and Focus Peek remain available.
 
 The command palette (`Ctrl+Shift+P`) still reaches every workspace. A visit to the Codex or another view offers **Return to the page**, keeping the editor mounted while you look something up. **Leave focus** or `F11` restores the normal split layout and your previous window state. If the window was already full screen, it stays full screen. The operating system may still reveal its menu or controls at the screen edge.
 

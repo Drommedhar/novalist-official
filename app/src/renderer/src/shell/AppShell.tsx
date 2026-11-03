@@ -18,7 +18,7 @@ import { StatusBar } from './StatusBar'
 import { MainArea } from './MainArea'
 import { MobileShell } from './MobileShell'
 import { MobileWelcome } from './MobileWelcome'
-import { SceneNotesDock } from './SceneNotesDock'
+import { useSceneNotesContext } from './useSceneNotesContext'
 
 import { StartScreen } from './ProjectLibrary'
 import { FocusMode } from './FocusMode'
@@ -38,6 +38,7 @@ import '../styles/desktop.css'
 import '../styles/desktop-views.css'
 
 export function AppShell(): React.JSX.Element {
+  useSceneNotesContext()
   const { t } = useTranslation()
   const closeStage = useWorkspaceWindow()
   useBackupScheduler()
@@ -56,12 +57,9 @@ export function AppShell(): React.JSX.Element {
   const capacityChanging = previousCapacity.current !== shellCapacity
   useLayoutEffect(() => { previousCapacity.current = shellCapacity }, [shellCapacity])
   const mainView = useShellStore((s) => s.mainView)
-  const inspectorTab = useShellStore((s) => s.inspectorTab)
-  const notesDockVisible = useShellStore((s) => s.notesDockVisible)
   // The surfaces beside the content area belong to the window rather than to
   // one pane, so they ask whether the window holds the view at all - not what
   // the pane the writer last clicked in happens to be showing.
-  const editorOpen = useShellStore((s) => anyPaneShows(s.panes, ['write']))
   const sceneContextOpen = useShellStore((s) => anyPaneShows(s.panes, ['write', 'manuscript']))
   const extView = useShellStore((s) => s.extView)
   const isLoaded = useProjectStore((s) => s.isLoaded)
@@ -171,9 +169,6 @@ export function AppShell(): React.JSX.Element {
                   onOpenPath={(path, bookId) => openProject(path, bookId)}
                 />
               ) : null}
-              <MotionPresence disabled={disablePanelMotion}>
-                {!workspaceSuspended && editorOpen && !extView && notesDockVisible && !(showInspector && inspectorTab === 'notes') && !focused && <SceneNotesDock />}
-              </MotionPresence>
             </div>
             <MotionPresence disabled={disablePanelMotion}>
               {!workspaceSuspended && showInspector && !focused && !extView && <Inspector />}

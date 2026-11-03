@@ -32,9 +32,9 @@ const NARRATIVE_MODES = [
 ]
 
 /**
- * Synopsis + Notes fields for the open scene, shared by the desktop bottom dock
- * (SceneNotesDock) and the mobile writing-hub sheet. Reads the open scene from the
- * store and commits on blur. Layout (side-by-side vs stacked) is left to the parent
+ * Scene properties for the desktop inspector and mobile writing-hub sheet.
+ * Mobile includes the existing notes field; desktop notes use their own window.
+ * Reads the open scene from the store and commits on blur. Layout (side-by-side vs stacked) is left to the parent
  * via the .notes-dock-body container styling.
  */
 function useSceneNotes() {
@@ -97,7 +97,7 @@ function useSceneNotes() {
   return { t, openChapterGuid, openSceneId, scene, sceneKey, loadedSceneKey, loadError, setAttempt, synopsis, setSynopsis, notes, setNotes, cast, setCast, focus, setFocus, mode, setMode, strand, setStrand, goal, setGoal, outcome, setOutcome, relAmount, setRelAmount, relUnit, setRelUnit, sceneValues, sceneProps }
 }
 
-export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): React.JSX.Element {
+export function SceneNotesFields({ idPrefix = 'dock', includeNotes = true }: { idPrefix?: string; includeNotes?: boolean }): React.JSX.Element {
   const state = useSceneNotes()
   const { t, openChapterGuid, openSceneId, scene, sceneKey, loadedSceneKey, loadError, setAttempt, synopsis, setSynopsis, notes, setNotes, cast, setCast, focus, setFocus, goal, setGoal, outcome, setOutcome, sceneValues, sceneProps } = state
   if (!(openChapterGuid && openSceneId && scene)) {
@@ -125,7 +125,7 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
           }
         />
       </div>
-      <div className="notes-dock-col notes-dock-col-grow">
+      {includeNotes && <div className="notes-dock-col notes-dock-col-grow">
         <label className="notes-dock-label" htmlFor={`${idPrefix}-notes`}>
           {t('sceneNotes.title')}
         </label>
@@ -137,7 +137,7 @@ export function SceneNotesFields({ idPrefix = 'dock' }: { idPrefix?: string }): 
           onChange={(e) => setNotes(e.target.value)}
           onBlur={() => void rpc.request('scenes/setNotes', [openChapterGuid, openSceneId, notes])}
         />
-      </div>
+      </div>}
       {/* What they wanted and what they got. Conflict sits between the two and
           is read out of the prose in the Inspector; these two never are,
           because a goal nobody stated and an outcome nobody wrote down are

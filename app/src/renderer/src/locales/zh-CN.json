@@ -542,7 +542,7 @@
       "IsNotSet": "未设置"
     },
     "field": {
-      "chapterStatus": "章节状态",
+      "chapterStatus": "章节状态（旧版）",
       "act": "幕",
       "pov": "视角",
       "tag": "标签",
@@ -561,8 +561,14 @@
       "inactive": "正文之外"
     }
   },
-  "inlineReview": {"title":"文本操作","choose":"选择结果","apply":"应用"},
-  "mobileRecovery": { "recovered": "已恢复" },
+  "inlineReview": {
+    "title": "文本操作",
+    "choose": "选择结果",
+    "apply": "应用"
+  },
+  "mobileRecovery": {
+    "recovered": "已恢复"
+  },
   "findReplace": {
     "failed": "搜索或替换失败：{{message}}",
     "title": "查找与替换",
@@ -3600,7 +3606,7 @@
     "colour_label": "标签",
     "colour_pov": "视角",
     "colour_act": "幕",
-    "colour_status": "章节状态"
+    "colour_stage": "场景阶段"
   },
   "sceneAxis": {
     "title": "自定义评分轴",
@@ -3745,10 +3751,12 @@
     "character": "角色",
     "location": "地点",
     "plotline": "线索",
-    "stage": "阶段",
+    "stage": "场景阶段",
     "clear": "清除 {{count}} 项",
     "namePlaceholder": "将此筛选保存为…",
-    "removePreset": "删除此筛选"
+    "removePreset": "删除此筛选",
+    "legacyChapterStatus": "旧版章节状态：{{status}}",
+    "clearChapterStatus": "清除章节状态筛选"
   },
   "tour": {
     "title": "开始导览",
@@ -4676,5 +4684,26 @@
     "assign": "分配",
     "expandContext": "全部展开",
     "collapseContext": "全部折叠"
+  },
+  "sceneChecklist": {
+    "title": "场景清单",
+    "notes": "笔记",
+    "properties": "属性",
+    "follow": "跟随当前场景",
+    "pinned": "已固定",
+    "autoHide": "自动隐藏",
+    "pinHint": "写作时保持此窗口可见",
+    "autoHideHint": "切换到其他窗口时自动隐藏",
+    "hide": "隐藏场景笔记",
+    "progress": "已完成 {{done}} / {{total}}",
+    "completed": "已完成（{{count}}）",
+    "untitled": "未命名条目",
+    "edit": "编辑笔记",
+    "showChecklist": "显示清单",
+    "editHint": "顶层列表项自动成为清单条目。缩进列表项可创建子项，段落可用于详细说明。原文保持不变。",
+    "empty": "在下方添加场景目标，或编辑笔记以粘贴列表和详细说明。",
+    "add": "添加场景目标",
+    "saveFailed": "更改仍然保留，但无法保存。请在关闭前重试。",
+    "loadFailed": "无法加载场景笔记。"
   }
 }

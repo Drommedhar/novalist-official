@@ -21,7 +21,7 @@ Each rule is a field, a comparison, and a value.
 
 **Fields** are:
 
-- **Chapter status**, **Act** — from the scene's chapter.
+- **Act** — from the scene's chapter.
 - **POV** — the POV you set, or the one Novalist detects from the prose.
 - **Tag**, **Plotline**, **Scene stage**, **Structure beat**.
 - **Scene title**, **Synopsis**, **Notes**.
@@ -32,7 +32,9 @@ Each rule is a field, a comparison, and a value.
 
 **Comparisons** depend on the field: text fields offer **contains** and **is**, number fields offer **is**, **is more than** and **is less than**, and every field offers **is set** and **is not set** — which is how you find the scenes still missing a synopsis, a target or a POV.
 
-Fields whose values are known — tags, stages, plotlines, chapter statuses, and your own choice fields — offer a drop-down of what this book actually uses rather than asking you to type it exactly.
+Fields whose values are known — tags, stages, plotlines, and your own choice fields — offer a drop-down of what this book actually uses rather than asking you to type it exactly.
+
+Existing lists with a **Chapter status (legacy)** rule keep their original meaning, and those rules remain editable. New rules offer scene stages instead.
 
 A list with no rules matches every scene in the book. **Save** and it appears in the panel.
 
@@ -52,7 +54,7 @@ Right-click a list in the panel:
 - **Either / or.** Match **any**, with one rule per POV — read two threads side by side.
 - **Your own fields.** "Tension is more than 7" — if you track tension as a scene field, the list can ask about it.
 - **Tag-based reading.** "Scenes tagged combat" — beta-read all the action without the connective tissue.
-- **Status audit.** "Chapters in Outline status" — find what still needs writing.
+- **Stage audit.** "Scenes in Outline stage" — find what still needs writing.
 - **Thread check.** "Scenes on the Betrayal plotline" — read one subplot end to end to check its setup and payoff.
 
 ## Persistence
@@ -94,7 +96,7 @@ Collections are stored with the book, so they travel with the project and surviv
 
 The Manuscript's status filter and the Timeline's character and place filters used to be three unrelated controls. Narrowing to one character meant setting it again in every view, and the setting was gone the moment you navigated away — so a revision pass over one thread was re-typed at every step.
 
-There is now **one filter bar**, shown above the Manuscript and the Timeline and shared live between them. Narrow by status, character, place, thread or stage; move to the other view and it is still narrowed.
+There is now **one filter bar**, shown above the Manuscript and the Timeline and shared live between them. Narrow by scene stage, character, place or thread; move to the other view and it is still narrowed.
 
 - **Clear** appears only once something is set, and says how many things it will clear.
 - Type a name in **Save this filter as…** and press Enter to keep it. Saved filters appear as chips beside the box — click one to apply it, the × to delete it.
@@ -119,6 +121,6 @@ The preview reads the scene only when you open it, so a long list costs nothing 
 
 ## Where to go next
 
-- [Chapters & Scenes](04-chapters-and-scenes.md) — status lives on chapters; scenes carry POV and tags.
+- [Chapters & Scenes](04-chapters-and-scenes.md) — scenes carry writing stages, POV and tags.
 - [Manuscript view](10-manuscript.md) — edit POV and synopses in bulk in the outliner.
 - [Plot Grid](08-plot-grid.md) — track scenes across plotlines.

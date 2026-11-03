@@ -5,6 +5,7 @@ import { rpc } from '../../rpc/client'
 import { COLOUR_DIMENSIONS, type ColourDimension } from './sceneColour'
 import { FilterBar } from '../../shell/FilterBar'
 import { useFilterStore } from '../../stores/filterStore'
+import { useHostBridgeStore } from '../../stores/hostBridgeStore'
 import { useManuscriptPropsStore } from '../../stores/manuscriptPropsStore'
 import { SceneBulkBar } from '../../shell/SceneBulkBar'
 import { Board } from './Board'
@@ -14,6 +15,10 @@ import { Outliner } from './Outliner'
 import { useContentTransition } from '../../shell/useContentTransition'
 
 const MODES: ManuscriptMode[] = ['manuscript', 'corkboard', 'outliner', 'board']
+
+function reportLoadFailure(error: unknown): void {
+  useHostBridgeStore.getState().pushToast(error instanceof Error ? error.message : String(error))
+}
 
 function useManuscriptView() {
   const { t } = useTranslation()
@@ -38,7 +43,7 @@ function useManuscriptView() {
 
   const filter = useFilterStore((s) => s.filter)
   useEffect(() => {
-    void load()
+    void load().catch(reportLoadFailure)
   }, [load, filter, composed])
 
   useEffect(() => {
@@ -94,9 +99,8 @@ export function ManuscriptView(): React.JSX.Element {
             {t('corkboard.freeform')}
           </label>
         )}
-        {/* What the card's edge means. A label is a colour the writer chose;
-            the rest are derived from something already typed and coloured by
-            hash, so they work the moment there are values to colour. */}
+        {/* Labels and stages use the writer's configured colours;
+            viewpoint and act names get stable colours from their text. */}
         {mode === 'corkboard' && (
           <div className="manuscript-filters">
             <label className="settings-hint" htmlFor="corkboard-colour">
@@ -145,7 +149,7 @@ export function ManuscriptView(): React.JSX.Element {
             </span>
             <button
               className="dashboard-range"
-              onClick={() => void useManuscriptStore.getState().compose(null)}
+              onClick={() => void useManuscriptStore.getState().compose(null).catch(reportLoadFailure)}
             >
               {t('manuscript.showWholeBook')}
             </button>
@@ -156,7 +160,7 @@ export function ManuscriptView(): React.JSX.Element {
             className="dialog-input manuscript-list-filter"
             value={filterListId}
             aria-label={t('manuscript.filterList')}
-            onChange={(e) => void useManuscriptStore.getState().applyList(e.target.value)}
+            onChange={(e) => void useManuscriptStore.getState().applyList(e.target.value).catch(reportLoadFailure)}
           >
             <option value="">{t('manuscript.filterListNone')}</option>
             {savedLists.map((list) => (

@@ -5,7 +5,7 @@ import { useProjectStore } from '../stores/projectStore'
 
 const LOCAL_WINDOW_COMMANDS = new Set([
   'app.print', 'app.splitRight', 'app.splitDown', 'app.closePane', 'app.resetPanes',
-  'app.popOut', 'app.paneLayouts', 'app.uiScaleIncrease', 'app.uiScaleDecrease', 'app.uiScaleReset', 'app.about'
+  'app.popOut', 'app.paneLayouts', 'app.uiScaleIncrease', 'app.uiScaleDecrease', 'app.uiScaleReset', 'app.about', 'app.toggleSceneNotes'
 ])
 
 /** Editing commands belong to the focused pane. Application/project dialogs

@@ -10,7 +10,7 @@ Everything below, in one query:
 
 - **Scene titles**
 - **Scene prose** — the text of every scene in the project
-- **Synopses and notes** — the scene-notes dock fields
+- **Synopses and notes** — scene synopsis and notes text, including checklist items
 - **Comments and footnotes** — including the passage a comment is anchored to
 - **Codex entries** — names, aliases, field values (role, description, type, origin, category, and so on), custom properties, and the text of free-form sections, across characters, locations, items, lore, and every custom entity type
 - **Research items** — title, body, and tags

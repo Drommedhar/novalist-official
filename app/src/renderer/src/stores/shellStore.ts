@@ -405,9 +405,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
   clearPendingSuggestion: () => set({ pendingSuggestion: null }),
   toggleNotesDock: () => {
     blurFocusPanel()
-    set((s) => s.focusMode && s.mainView === 'write'
-      ? { focusPanel: s.focusPanel === 'notes' ? null : 'notes', focusPanelTransient: false }
-      : { notesDockVisible: !s.notesDockVisible })
+    void window.novalist.toggleSceneNotes?.()
   },
   setBackendVersion: (backendVersion) => set({ backendVersion }),
   setShellMetrics: (rawWidth) =>

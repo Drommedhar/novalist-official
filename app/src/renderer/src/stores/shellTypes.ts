@@ -186,7 +186,7 @@ export interface ShellState {
    * for the first one in that scene. Consumed by the editor pane showing it.
    */
   pendingSuggestion: { sceneId: string; changeId: string } | null
-  /** Bottom scene-notes dock (Synopsis + Notes), Scene view only. Off by default. */
+  /** Floating scene-notes window visibility; legacy key retained for saved layouts. */
   notesDockVisible: boolean
   /** One-shot prefill for the Settings search box, used to deep-link a section. */
   settingsSearch: string
@@ -199,7 +199,7 @@ export interface ShellState {
   backendVersion: string | null
   focusMode: boolean
   focusPaneId: string | null
-  focusPanel: 'binder' | 'inspector' | 'notes' | null
+  focusPanel: 'binder' | 'inspector' | null
   focusPanelTransient: boolean
   revealFocusPanel(panel: 'binder' | 'inspector'): void
   focusToolsVisible: boolean

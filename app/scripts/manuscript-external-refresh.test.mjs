@@ -18,6 +18,7 @@ function fixture() {
     '../rpc/client': { rpc: { request: (method, args) => new Promise(resolve => { requests.push({ method, args, resolve }) }) } },
     './projectStore': { useProjectStore: projectStore, reportManuscriptEditing: value => claims.push(value) },
     './filterStore': { useFilterStore: { getState: () => ({ filter: {} }) } },
+    './pendingWrites': { capturePendingWrites() {} },
     '../i18n': { default: { t: key => key } },
     '../mobile/recovery': { retainMobileSceneRecovery() {} }
   }, {

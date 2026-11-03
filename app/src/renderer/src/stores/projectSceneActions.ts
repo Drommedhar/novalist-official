@@ -22,7 +22,7 @@ function ensureSceneStructureReady(): void {
   }
 }
 
-export const createProjectSceneActions: ProjectSlice<'createChapter' | 'createScene' | 'renameChapter' | 'renameScene' | 'deleteChapter' | 'deleteScene' | 'setChapterStatus' | 'setChapterAct' | 'reorderChapter' | 'reorderScene' | 'moveScenes' | 'mutateSceneStructure'> = (set, get) => ({
+export const createProjectSceneActions: ProjectSlice<'createChapter' | 'createScene' | 'renameChapter' | 'renameScene' | 'deleteChapter' | 'deleteScene' | 'setChapterAct' | 'reorderChapter' | 'reorderScene' | 'moveScenes' | 'mutateSceneStructure'> = (set, get) => ({
   createChapter: async (title, insertAtOrder) => {
     const state = await rpc.request<ProjectStateDto>('project/createChapter', [
       title,
@@ -54,12 +54,6 @@ export const createProjectSceneActions: ProjectSlice<'createChapter' | 'createSc
 
   deleteScene: async (chapterGuid, sceneId) => {
     await get().mutateSceneStructure('project/deleteScene', [chapterGuid, sceneId])
-  },
-
-  setChapterStatus: async (chapterGuid, status) => {
-    get().applyState(
-      await rpc.request<ProjectStateDto>('project/setChapterStatus', [chapterGuid, status])
-    )
   },
 
   setChapterAct: async (chapterGuid, act) => {

@@ -7,7 +7,6 @@ import { useEditorBridge } from '../stores/editorBridgeStore'
 import { runCommand } from './commands'
 import { Binder } from './Binder'
 import { Inspector } from './Inspector'
-import { SceneNotesDock } from './SceneNotesDock'
 import './focus-mode.css'
 
 /** Return keyboard focus without rebuilding the editor or changing its selection. */
@@ -185,7 +184,7 @@ export function FocusMode(): React.JSX.Element {
     </div>
     <div className="focus-overlay">
       {shownPanel && !transient && <button className="focus-scrim" tabIndex={-1} aria-label={t('focus.closePanel')} onClick={close} />}
-      {(['binder', 'inspector', 'notes'] as const).map((side) => <div key={side}
+      {(['binder', 'inspector'] as const).map((side) => <div key={side}
         ref={shownPanel === side ? overlay : undefined}
         className={`focus-panel focus-panel-${side}${shownPanel === side ? ' focus-panel-open' : ''}`} role="dialog"
         inert={shownPanel !== side} aria-hidden={shownPanel !== side}
@@ -218,7 +217,7 @@ export function FocusMode(): React.JSX.Element {
         </div>
         {side === 'binder' ? <Binder /> : side === 'inspector'
           ? <Inspector key={sceneKey} onReadyChange={inspectorReady} prepareHidden={shownPanel !== 'inspector'} />
-          : panel === 'notes' ? <SceneNotesDock /> : null}
+          : null}
       </div>)}
     </div>
   </>

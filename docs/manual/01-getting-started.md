@@ -105,7 +105,7 @@ Type into the editor. As you write:
 
 - The **status bar** (bottom-left) shows the live word count of the open scene; the center shows project totals (words, chapters, scenes).
 - The editor **saves automatically two seconds** after you stop typing. Pending changes are also flushed when you switch scenes or close the app.
-- The **scene-notes dock** at the bottom (**View → Toggle scene notes**, or `Ctrl+Shift+N`) holds the scene's synopsis and notes, and the **inspector** on the right has Context, Footnotes, Inbox and Notes tabs. Notes offers the same scene fields as the dock.
+- **Notes** on the toolbar (`Ctrl+Shift+N`) opens a floating scene checklist. Bullet lists become checkable items with expandable details. The **inspector** on the right has Context, Footnotes, Inbox and Properties tabs; Properties holds synopsis, goal/outcome, timing, cast and custom fields.
 - Take a **snapshot** from the writing bar above the editor before a risky edit and restore it later. See [Snapshots](17-snapshots.md).
 
 ## Where things live

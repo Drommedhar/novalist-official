@@ -1,4 +1,5 @@
 import type { WorkspaceEvent, WorkspaceSnapshot, CloseStage } from "../shared/workspaceProtocol";
+import type { SceneNotesContext, SceneNotesWindowState } from '../shared/sceneNotesProtocol'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
 const material =
@@ -188,6 +189,18 @@ contextBridge.exposeInMainWorld('novalist', {
     // Awaitable rather than fired and forgotten: a plugin module URL resolves
     // against these, and an import that overtook the message got a 404.
     return ipcRenderer.invoke('novalist:register-ext-roots', roots)
+  },
+  publishSceneNotesContext(context: SceneNotesContext | null): void {
+    ipcRenderer.send('novalist:notes-context', context)
+  },
+  sceneNotesWindowState(): Promise<SceneNotesWindowState> { return ipcRenderer.invoke('novalist:notes-state') },
+  toggleSceneNotes(): Promise<void> { return ipcRenderer.invoke('novalist:notes-toggle') },
+  hideSceneNotes(): Promise<void> { return ipcRenderer.invoke('novalist:notes-hide') },
+  pinSceneNotes(pinned: boolean): Promise<void> { return ipcRenderer.invoke('novalist:notes-pin', pinned) },
+  onSceneNotesState(handler: (state: SceneNotesWindowState) => void): () => void {
+    const listener = (_event: Electron.IpcRendererEvent, state: SceneNotesWindowState): void => handler(state)
+    ipcRenderer.on('novalist:notes-state', listener)
+    return () => { ipcRenderer.removeListener('novalist:notes-state', listener) }
   },
   // App self-update. Download and launch are separate so the renderer can
   // finish its final saves and close backup before any installer/helper runs.

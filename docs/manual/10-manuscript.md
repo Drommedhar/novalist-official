@@ -16,22 +16,25 @@ A mode switch toggles between **Manuscript**, **Corkboard**, **Outliner**, and *
 
 Open **Filter** above the toolbar to narrow any of the four modes:
 
-- **Status** selects the chapter's status: Outline, First Draft, Revised, Edited, or Final.
-- **Stage** selects each scene's own revision stage, including stages you configured for the book. Scenes in the same chapter can have different stages.
+- **Scene stage** selects each scene's own revision stage, including stages you configured for the book. Scenes in the same chapter can have different stages.
 - **Character**, **Place**, and **Thread** narrow by the scene's cast, viewpoint, and plotlines.
 
-Filters combine, so selecting a chapter status and a scene stage includes only scenes matching both. **Any** removes one restriction; **Clear** removes all of them. Name a filter and press Enter to save it as a preset. The filter stays selected when you move between Manuscript and Timeline.
+Filters combine, so selecting a scene stage and a character includes only scenes matching both. **Any** removes one restriction; **Clear** removes all of them. Name a filter and press Enter to save it as a preset. The filter stays selected when you move between Manuscript and Timeline.
+
+Older presets that explicitly filtered chapter status keep that restriction. It appears as **Legacy chapter status** with a remove button. Clear it to filter only by scene stage; new filters have no chapter-status picker.
+
+Changing filters saves pending Manuscript edits before refreshing the scene set. If saving fails, your current prose stays visible and the error is reported. A selected Smart List with no matches shows an empty result; clear the list selection to return to the book.
 
 ## Manuscript mode
 
 The default mode. All chapters and scenes render top-to-bottom as one scrollable document:
 
 - **Act headers** appear above the first chapter of each act.
-- **Chapter headings** show the chapter title and a **status badge** — click the badge to cycle the chapter's status (Outline → First Draft → Revised → Edited → Final).
+- **Chapter headings** show the chapter title.
 - Each scene has a small header with its **title** and a live **word count**. Click the scene title to open that scene in the Editor view.
 - The scene prose itself is **editable in place**. Type directly into the manuscript; changes save automatically after a short pause, exactly like the editor.
 
-A footer at the end of the document totals what is currently visible (respecting the status filter): word count, scene count, and estimated reading time.
+A footer at the end of the document totals what is currently visible (respecting the active filters): word count, scene count, and estimated reading time.
 
 Use this mode for read-throughs and light line edits without leaving the flow of the book.
 
@@ -56,7 +59,7 @@ Corkboard mode is ideal for planning passes: skim the whole book as synopses and
 - **Label** — the scene label you set yourself, and the default. See [Scene labels](#scene-labels).
 - **Viewpoint** — the scene's POV character.
 - **Act** — the act its chapter belongs to.
-- **Chapter status** — Outline, First Draft, Revised, Edited, Final.
+- **Scene stage** — uses the colour configured for each scene's stage; scenes without a stage have no band.
 - **Nothing** — no band.
 
 Apart from Label, the colours are derived: Novalist picks a stable colour from the value itself, so a dimension works the moment there are values to colour and never needs setting up. The same viewpoint is always the same colour. A scene with nothing said — no viewpoint, no act — gets no band rather than being coloured as though a decision had been made.
@@ -107,9 +110,9 @@ Removing a label from the list takes it off every scene carrying it, so a colour
 
 ## Reading a chosen set of scenes
 
-Manuscript mode normally stitches the whole book (or one chapter status) into continuous text. Select scenes anywhere — the binder, the corkboard, the outliner, the Calendar — and the bulk bar gains **Read as one**: the Manuscript view switches to just those scenes, in reading order, as continuous prose.
+Manuscript mode normally stitches the whole book (or scenes matching the active filters) into continuous text. Select scenes anywhere — the binder, the corkboard, the outliner, the Calendar — and the bulk bar gains **Read as one**: the Manuscript view switches to just those scenes, in reading order, as continuous prose.
 
-This is how you read one POV's thread end to end, or the scenes a [Smart List](16-smart-lists.md) found, and hear whether the run holds together. A status filter is ignored while a chosen set is being read — you picked the scenes, so they are the scenes.
+This is how you read one POV's thread end to end, or the scenes a [Smart List](16-smart-lists.md) found, and hear whether the run holds together. Shared filters are ignored while a chosen set is being read — you picked the scenes, so they are the scenes.
 
 The toolbar shows how many scenes are being read and a **Show the whole book** button to leave.
 
@@ -136,7 +139,7 @@ Fields are typed, which is the point of having them rather than overloading tags
 
 Fill them in from:
 
-- The **Fields** column of the scene notes dock, under the editor, for the scene you have open.
+- The **Properties** tab of the inspector, for the scene you have open.
 - The **Chapter** dialog, for chapter fields.
 - The outliner, for any scene field you ticked **Show as a column in the outliner**.
 

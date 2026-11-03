@@ -49,7 +49,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 
 ### Project management
 
-27. [Dashboard](11-dashboard.md) — daily and project word goals, status breakdown, chapter pacing, echo phrases.
+27. [Dashboard](11-dashboard.md) — daily and project word goals, scene-stage breakdown, chapter pacing, echo phrases.
 28. [Research](15-research.md) — notes attached to your project.
 29. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline, plus hand-curated collections and bookmarks.
 30. [Snapshots](17-snapshots.md) — per-scene version history, taken from the writing bar.
@@ -65,7 +65,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 
 ### The inspector
 
-37. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context, Footnotes and Inbox tabs for the open scene. (Synopsis and notes live in the bottom scene-notes dock; snapshots in a dialog raised from the writing bar.)
+37. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context, Footnotes, Inbox and Properties tabs for the open scene. Synopsis and metadata live in Properties; notes have a floating checklist window, and snapshots open from the writing bar.
 
 ### Customisation
 
@@ -89,7 +89,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 - **Mode panel** is the list beside the rail holding the views of the mode you are in, in labelled groups, with extension views in their own group last.
 - **Menu bar** is File / Edit / Go / View / Window / Help, always visible on Windows and Linux and in the system bar on macOS. It carries every command that acts on the application as a whole.
 - **Binder** is the left pane in Write: the chapter/scene tree, with Smart Lists, Collections and Bookmarks tabs.
-- **Main area** is the center pane showing the active view, with an optional **scene-notes dock** (Synopsis + Notes) beneath the editor.
+- **Main area** is the center pane showing the active view, with scene metadata in the inspector and a separate floating **Scene Notes** checklist.
 - **Inspector** is the right pane in Write: Context, Footnotes and Inbox tabs for the open scene.
 - **Toolbar** is the strip under the menu bar and is the open project's command bar: project name, book and draft selectors, new chapter / new scene, Find, and a **More** menu.
 - **Writing bar** is the strip above the editor: paragraph style, lists, alignment, snapshots, suggestion mode and Writing options.

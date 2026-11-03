@@ -128,23 +128,16 @@ export function FilterBar(): React.JSX.Element {
           {t('filters.title')}
         </button>
       )}
-      {chip(
-        'status',
-        'filters.status',
-        ['Outline', 'FirstDraft', 'Revised', 'Edited', 'Final'].map((id) => ({
-          id,
-          name: t(`dashboard.status${id}`)
-        }))
-      )}
+      {stages.length > 0 && chip('stage', 'filters.stage', stages.map((s) => ({ id: s.key, name: s.label })))}
+      {/* Old presets keep their meaning, but a retired restriction must never
+          silently narrow a scene-stage filter. New filters cannot create it. */}
+      {filter.status && <span className="filter-chip">
+        <span className="filter-chip-label">{t('filters.legacyChapterStatus', { status: t(`dashboard.status${filter.status}`) })}</span>
+        <button className="btn-secondary" aria-label={t('filters.clearChapterStatus')} onClick={() => set({ status: '' })}><X size={14} /></button>
+      </span>}
       {characters.length > 0 && chip('character', 'filters.character', characters)}
       {locations.length > 0 && chip('location', 'filters.location', locations)}
       {plotlines.length > 0 && chip('plotline', 'filters.plotline', plotlines)}
-      {stages.length > 0 &&
-        chip(
-          'stage',
-          'filters.stage',
-          stages.map((s) => ({ id: s.key, name: s.label }))
-        )}
 
       {/* Only once something is narrowed: a Clear that clears nothing is a
           control that teaches the writer it does nothing. */}

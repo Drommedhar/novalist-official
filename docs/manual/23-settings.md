@@ -179,7 +179,7 @@ The scope decides where the field is asked for:
 
 | Scope | Edited in |
 | --- | --- |
-| Scene | The scene notes dock, and the [Manuscript outliner](10-manuscript.md#your-own-scene-and-chapter-fields) when ticked as a column |
+| Scene | The Inspector → Properties, and the [Manuscript outliner](10-manuscript.md#your-own-scene-and-chapter-fields) when ticked as a column |
 | Chapter | The Chapter dialog |
 | Plotline | Right-click a plotline in the [Plot Grid](08-plot-grid.md) and pick **Your fields** |
 | Timeline event | The event editor in the [Timeline](12-timeline.md), once the event exists |

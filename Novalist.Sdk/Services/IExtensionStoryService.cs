@@ -71,18 +71,23 @@ public interface IExtensionStoryService
     /// A chapter's metadata. Null when the chapter does not exist.
     ///
     /// ChapterInfo carries a title and an order, which is enough to walk the
-    /// book and nothing else: a report could not group by act, colour by
-    /// status, or place a chapter in story time, so analysis that reads the
+    /// book and nothing else: a report could not group by act or place a
+    /// chapter in story time, so analysis that reads the
     /// shape of a draft had to live in core.
     /// </summary>
     ChapterDetailInfo? GetChapterDetail(string chapterGuid);
 
     /// <summary>
-    /// Sets a chapter's status: "Outline", "FirstDraft", "Revised", "Edited"
+    /// Sets a chapter's legacy status: "Outline", "FirstDraft", "Revised", "Edited"
     /// or "Final", matched without regard to case. False when the chapter or
-    /// the status is unknown - a status nothing can display would leave the
-    /// chapter in a state the writer cannot see or change back.
+    /// the status is unknown.
     /// </summary>
+    /// <remarks>Deprecated for new workflows. Retained with unchanged storage and
+    /// read/write semantics for existing extensions and saved queries. The app
+    /// tracks writing state on scenes; this method never changes scene stages or
+    /// calculates a chapter state. Chapter status is no longer supported as an
+    /// app workflow; only existing integrations and legacy queries consume it.</remarks>
+    [Obsolete("Chapter status is deprecated and no longer supported as an app workflow. Use scene stages for writing state. Retained only for compatibility; legacy reads and writes still work.", false)]
     Task<bool> SetChapterStatusAsync(string chapterGuid, string status);
 
     /// <summary>

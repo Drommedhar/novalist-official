@@ -378,7 +378,7 @@
       "IsNotSet": "ist nicht gesetzt"
     },
     "field": {
-      "chapterStatus": "Kapitelstatus",
+      "chapterStatus": "Kapitelstatus (bisherig)",
       "act": "Akt",
       "pov": "Perspektive",
       "tag": "Schlagwort",
@@ -397,8 +397,14 @@
       "inactive": "Nicht im Buch"
     }
   },
-  "inlineReview": {"title":"Textaktion","choose":"Ergebnis auswählen","apply":"Anwenden"},
-  "mobileRecovery": { "recovered": "Wiederhergestellt" },
+  "inlineReview": {
+    "title": "Textaktion",
+    "choose": "Ergebnis auswählen",
+    "apply": "Anwenden"
+  },
+  "mobileRecovery": {
+    "recovered": "Wiederhergestellt"
+  },
   "findReplace": {
     "failed": "Suchen oder Ersetzen fehlgeschlagen: {{message}}",
     "title": "Suchen und Ersetzen",
@@ -3566,7 +3572,7 @@
     "colour_label": "Etikett",
     "colour_pov": "Perspektive",
     "colour_act": "Akt",
-    "colour_status": "Kapitelstatus"
+    "colour_stage": "Szenenphase"
   },
   "sceneAxis": {
     "title": "Eigene Bewertungsachsen",
@@ -3711,10 +3717,12 @@
     "character": "Figur",
     "location": "Ort",
     "plotline": "Handlungsstrang",
-    "stage": "Phase",
+    "stage": "Szenenphase",
     "clear": "{{count}} zurücksetzen",
     "namePlaceholder": "Filter speichern als…",
-    "removePreset": "Diesen Filter löschen"
+    "removePreset": "Diesen Filter löschen",
+    "legacyChapterStatus": "Bisheriger Kapitelstatus: {{status}}",
+    "clearChapterStatus": "Kapitelstatus-Filter entfernen"
   },
   "tour": {
     "title": "Rundgang starten",
@@ -4642,5 +4650,26 @@
     "assign": "Zuweisen",
     "expandContext": "Alle aufklappen",
     "collapseContext": "Alle zuklappen"
+  },
+  "sceneChecklist": {
+    "title": "Szenen-Checkliste",
+    "notes": "Notizen",
+    "properties": "Eigenschaften",
+    "follow": "Aktiver Szene folgen",
+    "pinned": "Angeheftet",
+    "autoHide": "Automatisch ausblenden",
+    "pinHint": "Dieses Fenster beim Schreiben sichtbar lassen",
+    "autoHideHint": "Beim Wechsel zu einem anderen Fenster automatisch ausblenden",
+    "hide": "Szenennotizen ausblenden",
+    "progress": "{{done}} von {{total}} erledigt",
+    "completed": "Erledigt ({{count}})",
+    "untitled": "Unbenannter Eintrag",
+    "edit": "Notizen bearbeiten",
+    "showChecklist": "Checkliste anzeigen",
+    "editHint": "Aufzählungspunkte werden zu Checklisten-Einträgen. Rücke Unterpunkte ein und ergänze Details als Absätze. Dein Wortlaut bleibt erhalten.",
+    "empty": "Füge unten ein Szenenziel hinzu oder bearbeite die Notizen, um Aufzählungen und Details einzufügen.",
+    "add": "Szenenziel hinzufügen",
+    "saveFailed": "Deine Änderungen sind noch vorhanden, konnten aber nicht gespeichert werden. Versuche es vor dem Schließen erneut.",
+    "loadFailed": "Die Szenennotizen konnten nicht geladen werden."
   }
 }

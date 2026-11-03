@@ -24,6 +24,7 @@ import { createSplashWindow, setSplashStatus } from './splash'
 import { registerProtocolSchemes, registerProtocolHandlers } from './protocols'
 import { SCHEME, parseDeepLink, deepLinkFromArgv, type DeepLink } from './deeplink'
 import { installFocusWindow } from './focus-window'
+import { registerSceneNotesWindow } from './scene-notes-window'
 
 // Name the app before anything reads it (menu/About/dock/window title) so the
 // UI never shows the default "Electron".
@@ -146,6 +147,8 @@ function createWindow(): BrowserWindow {
   attachWindowLifecycle(win)
   return win
 }
+
+registerSceneNotesWindow(attachWindowLifecycle)
 
 /**
  * The main window, opened if it is gone and brought forward if it is not.

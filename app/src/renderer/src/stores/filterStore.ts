@@ -10,7 +10,7 @@ import { create } from 'zustand'
  * re-typed at every step, and none of it could be saved.
  */
 export interface ProjectFilter {
-  /** Chapter status, or '' for every status. */
+  /** Legacy chapter restriction from an existing preset; new filters use stage. */
   status: string
   /** A Codex entry id the scene or event must involve, or ''. */
   character: string

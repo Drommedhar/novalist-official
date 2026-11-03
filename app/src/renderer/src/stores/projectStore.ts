@@ -100,7 +100,7 @@ export function clearedEditorState(): Partial<ProjectState> {
 /**
  * The five fields the rest of the shell reads, taken from one pane.
  *
- * The inspector, the status bar, find-and-replace and the scene-notes dock all
+ * The inspector, status bar, find-and-replace and scene-notes context all
  * describe "the scene you are writing", which with several editors open means
  * the one in the pane you are in. Mirroring it here is what let those surfaces
  * stay as they were when the editor stopped being a single slot.
