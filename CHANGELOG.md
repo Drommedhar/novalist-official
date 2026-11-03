@@ -21,6 +21,12 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.6.2] - 2026-11-03
+
 ### Changed
 
 - The first scene opened after startup fits the editor's available width. Manual zoom is then preserved for the rest of the session.
@@ -1835,7 +1841,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.6.1...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.6.2...HEAD
+[3.6.2]: https://github.com/Drommedhar/novalist-official/compare/v3.6.1...v3.6.2
 [3.6.1]: https://github.com/Drommedhar/novalist-official/compare/v3.6.0...v3.6.1
 [3.6.0]: https://github.com/Drommedhar/novalist-official/compare/v3.5.7...v3.6.0
 [3.5.7]: https://github.com/Drommedhar/novalist-official/compare/v3.5.6...v3.5.7
