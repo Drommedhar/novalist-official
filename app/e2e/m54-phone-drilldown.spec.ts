@@ -85,17 +85,18 @@ test('phone: a Codex entry keeps its editors behind rows', async () => {
 
 test('tablet: the phone index does not follow the app onto an iPad', async () => {
   test.setTimeout(180_000)
-  const h = await launchApp('nl-drill-t-', { NOVALIST_FORCE_MOBILE: '1' })
+  const h = await launchApp('nl-drill-t-', {
+    NOVALIST_FORCE_MOBILE: '1', NOVALIST_FORCE_TABLET: '1'
+  })
   await seedBook(h, { 'Chapter One': ['Scene A'] })
   const page = h.page
   await resizeWindow(h, 1180, 820)
   await page.evaluate(() => (window as unknown as {
     __novalistTab: (k: string) => void
   }).__novalistTab('settings'))
-  await page.waitForTimeout(1400)
-
-  expect(await page.locator('.settings-phone').count(), 'an iPad gets the full layout').toBe(0)
-  expect(await page.locator('.settings-layout').count(), 'the two-column layout stands').toBe(1)
+  await expect(page.locator('.tablet-shell')).toBeVisible()
+  await expect(page.locator('.settings-phone'), 'an iPad gets the full layout').toHaveCount(0)
+  await expect(page.locator('.settings-layout'), 'the two-column layout stands').toBeVisible()
 
   await h.close()
 })

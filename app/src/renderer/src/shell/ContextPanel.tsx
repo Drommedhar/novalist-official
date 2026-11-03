@@ -4,20 +4,14 @@ import { RotateCcw } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useShellStore } from '../stores/shellStore'
 import { useWikiStore } from '../stores/wikiStore'
-import { editorPane, useBookScope, useProjectStore } from '../stores/projectStore'
-import { loadBookScoped } from '../stores/bookScopedLoad'
-import { useManuscriptStore } from '../stores/manuscriptStore'
-import { type ProjectState } from '../stores/projectTypes'
+import { useBookScope, useProjectStore } from '../stores/projectStore'
 import { useEntityPeek, type PeekScope } from '../views/editor/PeekCard'
 import { EntityProposalsDialog, type EntityProposal } from './EntityProposalsDialog'
 import { MotionPresence } from './MotionPresence'
-import { type CardPeek, type SceneContext } from './contextTypes'
+import { type CardPeek } from './contextTypes'
+import { prepareSceneContext } from './sceneContextData'
+import { currentSceneContextScope, useSceneContext } from './usePreparedSceneContext'
 import { SECTION_STORAGE_KEY, readCollapsed, loc, CollapsibleSection, EntitySection } from './ContextSections'
-
-function currentSceneHtml(state: ProjectState, chapterGuid: string, sceneId: string): string | null {
-  const editor = editorPane(state, state.activeEditorPaneId)
-  return editor.chapterGuid === chapterGuid && editor.sceneId === sceneId ? editor.html : null
-}
 
 /** Scene context/analysis panel: entities present in the scene, cross-chapter
  * mention matrix, and the auto-computed scene analysis. POV, emotion, intensity,
@@ -35,7 +29,8 @@ export function ContextPanel({
 }): React.JSX.Element | null {
   const { t } = useTranslation()
   const suspendMotion = useProjectStore((s) => s.closingProject || s.workspaceSuspended)
-  const [ctx, setCtx] = useState<SceneContext | null>(null)
+  const context = useSceneContext(chapterGuid, sceneId, !prepareHidden)
+  const ctx = context.context
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(readCollapsed)
   const [conflictDraft, setConflictDraft] = useState('')
   const [tagsDraft, setTagsDraft] = useState('')
@@ -49,22 +44,8 @@ export function ContextPanel({
   const [scanMessage, setScanMessage] = useState<string | null>(null)
   const [proposals, setProposals] = useState<EntityProposal[] | null>(null)
   const chapters = useProjectStore((s) => s.chapters)
-  const savedHash = useProjectStore((s) => s.sceneHashes[sceneId])
-  const editorHtml = useProjectStore((s) => currentSceneHtml(s, chapterGuid, sceneId))
-  const mainView = useShellStore((s) => s.mainView)
-  const manuscriptHtml = useManuscriptStore((s) => mainView === 'manuscript'
-    ? s.sections.find((chapter) => chapter.chapterGuid === chapterGuid)?.scenes.find((scene) => scene.sceneId === sceneId)?.html ?? null
-    : null)
-  const sceneHtml = mainView === 'manuscript' ? manuscriptHtml : editorHtml
-  const sceneHtmlRef = useRef(sceneHtml)
-  sceneHtmlRef.current = sceneHtml
-  const prepareHiddenRef = useRef(prepareHidden)
-  prepareHiddenRef.current = prepareHidden
   const bookScope = useBookScope()
   const workspaceEpoch = useProjectStore((s) => s.workspaceEpoch)
-  const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
-  const analysisRequest = useRef(0)
-  const analyzedScene = useRef('')
   const sceneKey = `${bookScope}|${workspaceEpoch}|${chapterGuid}|${sceneId}`
 
   // The open chapter/scene, so a character peek raised from the sidebar resolves
@@ -100,28 +81,14 @@ export function ContextPanel({
   }
 
   const analyze = useCallback(
-    (preparing = false): void => {
+    (): void => {
       const current = useProjectStore.getState()
-      if (current.openChapterGuid !== chapterGuid || current.openSceneId !== sceneId ||
-          current.workspaceEpoch !== workspaceEpoch) return
-      const request = ++analysisRequest.current
-      if (preparing) onReadyChange?.(false)
-      const html = sceneHtmlRef.current
-      void loadBookScoped(
-        useProjectStore.getState,
-        () => rpc.request<SceneContext>('context/analyze', [chapterGuid, sceneId, html]),
-        (next) => {
-          if (request === analysisRequest.current) setCtx(next)
-        }
-      )
-        .catch(() => {
-          if (request === analysisRequest.current) setCtx(null)
-        })
-        .finally(() => {
-          if (request === analysisRequest.current) onReadyChange?.(true)
-        })
+      if (current.workspaceEpoch !== workspaceEpoch ||
+          `${current.projectPath ?? ''}|${current.activeBookId ?? ''}|${current.activeDraftId ?? ''}` !== bookScope) return
+      const scope = currentSceneContextScope(chapterGuid, sceneId)
+      if (scope) void prepareSceneContext(scope, true)
     },
-    [chapterGuid, sceneId, workspaceEpoch, onReadyChange]
+    [chapterGuid, sceneId, workspaceEpoch, bookScope]
   )
 
   /** Asks the installed AI extension which people/places/things in this scene are
@@ -155,26 +122,12 @@ export function ContextPanel({
   }
 
   useEffect(() => {
-    setCtx(null)
     setScanMessage(null)
   }, [sceneKey])
 
-  // Follow the live document, including edits still waiting for autosave. A
-  // brief pause avoids reading the book after every keystroke; retained Focus
-  // panels use the same refresh path while hidden. Revealing or hiding a panel
-  // changes readiness handling, but does not invalidate its prepared analysis.
   useEffect(() => {
-    ++analysisRequest.current
-    if (workspaceBusy) return
-    const initial = analyzedScene.current !== sceneKey
-    analyzedScene.current = sceneKey
-    const timer = initial ? null : setTimeout(() => analyze(prepareHiddenRef.current), 300)
-    if (initial) analyze(true)
-    return () => {
-      if (timer !== null) clearTimeout(timer)
-      ++analysisRequest.current
-    }
-  }, [sceneKey, sceneHtml, savedHash, workspaceBusy, analyze])
+    onReadyChange?.(context.context !== null || context.status === 'ready' || context.status === 'error')
+  }, [context.context, context.status, onReadyChange])
 
   // Whether any extension offers entity extraction; without one the scan button
   // never appears.
@@ -227,7 +180,10 @@ export function ContextPanel({
       .then(() => analyze())
   }
 
-  if (!ctx) return null
+  if (!ctx) return <div className="inspector-placeholder" role="status">
+    {context.error ?? t('splash.loading')}
+    {context.error && <button className="dialog-button" onClick={analyze}>{t('smartList.refresh')}</button>}
+  </div>
   const a = ctx.analysis
   const hasAny =
     ctx.characters.length ||

@@ -64,7 +64,7 @@ public sealed class ExportFiles(string cacheDirectory)
         }
     }
 
-    public async Task<bool> ShareAsync(string path, Func<string, Task<bool>> share)
+    public async Task<T> ShareAsync<T>(string path, Func<string, Task<T>> share)
     {
         string shared;
         lock (_gate)

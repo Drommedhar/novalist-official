@@ -8,6 +8,7 @@ import {
   useSprintStore
 } from '../stores/sprintStore'
 import './sprint.css'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 const TARGETS = [10, 15, 25, 45, 60]
 
@@ -40,7 +41,8 @@ export function SprintPanel(props: { onClose: () => void }): React.JSX.Element {
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && props.onClose()}>
-      <div className="dialog-card sprint-card" role="dialog" aria-label={t('sprint.title')}>
+      <div className="dialog-card sprint-card" role="dialog" aria-label={t('sprint.title')}
+        onKeyDown={(event) => dismissOnAndroidBack(event, props.onClose)}>
         <div className="dialog-title">
           <Timer size={16} /> {t('sprint.title')}
         </div>

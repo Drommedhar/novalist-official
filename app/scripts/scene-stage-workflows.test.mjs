@@ -91,7 +91,8 @@ test('chapter rows have no writing-status control', () => {
 
 test('dashboard word statistics do not present a chapter writing-state breakdown', () => {
   const { DashboardWordStatistics } = component('views/dashboard/DashboardStatistics.tsx', {
-    './BookAnalyticsCard': { BookAnalyticsCard: () => null }
+    './BookAnalyticsCard': { BookAnalyticsCard: () => null },
+    './useDashboardRead': { useDashboardRead: () => null }
   })
   const html = renderToStaticMarkup(createElement(DashboardWordStatistics, { t, statusTotal: 1, data: {
     averageChapterWords: 120, readingTimeMinutes: 2, statusBreakdown: [{ status: 'Outline', count: 1, wordCount: 120 }],

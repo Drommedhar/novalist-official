@@ -3,6 +3,7 @@ import { useHostBridgeStore } from '../stores/hostBridgeStore'
 import { useProjectStore } from '../stores/projectStore'
 import { MotionPresence } from './MotionPresence'
 import './hostBridge.css'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 /**
  * Renders extension-host busy-progress dialogs (IHostServices.ShowBusyProgress),
@@ -24,7 +25,8 @@ export function BusyProgressHost(): React.JSX.Element | null {
   return (
     <MotionPresence disabled={suspendMotion}>
     <div className="dialog-overlay" role="presentation">
-      <div className="dialog-card busy-progress-card" role="dialog" aria-label={active.title} aria-live="polite">
+      <div className="dialog-card busy-progress-card" role="dialog" aria-label={active.title} aria-live="polite"
+        onKeyDown={(event) => { if (active.allowCancel) dismissOnAndroidBack(event, () => cancel(active.token)) }}>
         <div className="dialog-title">{active.title}</div>
         {active.status && <div className="busy-progress-status">{active.status}</div>}
         {active.showProgressBar && (

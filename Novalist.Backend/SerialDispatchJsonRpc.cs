@@ -1,4 +1,5 @@
 using Novalist.Backend.Extensions;
+using Novalist.Core.Services;
 using StreamJsonRpc;
 using StreamJsonRpc.Protocol;
 
@@ -148,13 +149,15 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
     private readonly SemaphoreSlim _gate;
     private readonly Func<Task>? _afterRequest;
     private readonly WorkspaceCoordinator? _coordinator;
+    private readonly IFileReadCache? _fileReadCache;
 
     public SerialDispatchJsonRpc(IJsonRpcMessageHandler handler, SemaphoreSlim? gate = null, Func<Task>? afterRequest = null,
-        WorkspaceCoordinator? coordinator = null) : base(handler)
+        WorkspaceCoordinator? coordinator = null, IFileReadCache? fileReadCache = null) : base(handler)
     {
         _gate = gate ?? new SemaphoreSlim(1, 1);
         _afterRequest = afterRequest;
         _coordinator = coordinator;
+        _fileReadCache = fileReadCache;
     }
 
     /// <summary>Whether this method skips the queue. Exposed for the tests that
@@ -199,6 +202,9 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         try
         {
             _coordinator?.Validate(identity, request.Method);
+            using var fileReads = ReadOnlyFileCachePolicy.AllowsCachedReads(request.Method)
+                ? _fileReadCache?.UseCachedReads()
+                : _fileReadCache?.UseFreshReads();
             if (_coordinator != null && request.Method is { } method && WorkspaceCoordinator.ChangesWorkspace(method))
                 return await _coordinator.RunAsync(method, async () =>
                     await base.DispatchRequestAsync(request, targetMethod, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
@@ -213,7 +219,11 @@ internal sealed class SerialDispatchJsonRpc : JsonRpc
         {
             try
             {
-                if (_afterRequest != null) await _afterRequest().ConfigureAwait(false);
+                if (_afterRequest != null)
+                {
+                    using var freshReads = _fileReadCache?.UseFreshReads();
+                    await _afterRequest().ConfigureAwait(false);
+                }
             }
             finally
             {

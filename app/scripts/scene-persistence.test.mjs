@@ -25,12 +25,13 @@ function fixture(isMobile = false) {
     if (method === 'scenes/read') return { html: 'next', hash: 'next-hash' }
     throw new Error(method)
   } }
-  const queue = loadRendererSource('src/stores/sceneWriteQueue.ts')
+  const background = loadRendererSource('src/rpc/backgroundReads.ts', {}, { window: { novalist: { isMobile } } })
+  const queue = loadRendererSource('src/stores/sceneWriteQueue.ts', { '../rpc/backgroundReads': background })
   const timers = []
   const persistence = loadRendererSource('src/stores/projectPersistence.ts', {
     '../rpc/client': { rpc }, './projectStore': helpers, './sceneWriteQueue': queue
   }, { setTimeout: (fn) => (timers.push(fn), timers.length), clearTimeout() {} })
-  const shell = { unsavedGuards: {}, setPaneView() {}, setActivePane() {}, panes: {} }
+  const shell = { unsavedGuards: {}, setPaneView() {}, setActivePane() {}, panes: {}, mobileTab: 'dashboard', setMobileTab(tab) { this.mobileTab = tab } }
   const storage = new Map()
   const journal = loadRendererSource('src/mobile/recoveryJournal.ts', {}, { localStorage: {
     getItem: (key) => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value), removeItem: (key) => storage.delete(key)
@@ -46,11 +47,29 @@ function fixture(isMobile = false) {
     '../rpc/client': { rpc }, './shellStore': { useShellStore: { getState: () => shell }, paneLeaves: () => [] },
     './projectStore': helpers, './projectPersistence': persistence, './sceneWriteQueue': queue,
     './pendingWrites': { capturePendingWrites() {} }, './projectSceneActions': { runSceneContext: (fn) => fn() },
-    '../mobile/recovery': recovery
-  }).createProjectEditorActions(store.setState, store.getState)
+    '../mobile/recovery': recovery, '../rpc/backgroundReads': background
+  }, { window: { novalist: { isMobile } } }).createProjectEditorActions(store.setState, store.getState)
   store.setState(actions)
-  return { store, rpc, persistence, timers, requests, disk: () => disk, readJournal: journal.readRecoveryJournal }
+  return { store, shell, rpc, persistence, timers, requests, background, queue, disk: () => disk, readJournal: journal.readRecoveryJournal }
 }
+
+test('mobile navigation and saves cancel background scans before queuing file requests', async () => {
+  const f = fixture(true)
+  const reading = new AbortController()
+  f.background.registerBackgroundRead(reading)
+  await f.store.getState().openSceneIn('a', 'c', 'next')
+  assert.equal(reading.signal.aborted, true)
+  const writing = new AbortController()
+  f.background.registerBackgroundRead(writing)
+  await f.queue.enqueueSceneWrite('next', async () => assert.equal(writing.signal.aborted, true))
+})
+
+test('opening a scene from the phone dashboard switches to the writing tab', async () => {
+  const f = fixture(true)
+  await f.store.getState().openSceneIn('a', 'c', 'next')
+  assert.equal(f.shell.mobileTab, 'manuscript')
+  assert.equal(f.store.getState().editors.a.sceneId, 'next')
+})
 
 test('mobile scene edits survive in the journal before autosave or a failure notification', () => {
   const f = fixture(true)

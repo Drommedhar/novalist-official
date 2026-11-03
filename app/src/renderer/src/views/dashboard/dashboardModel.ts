@@ -104,12 +104,14 @@ export function useDashboard() {
    */
   useEffect(() => {
     let current = true
+    const controller = new AbortController()
     setFailure(null)
     setData(null)
     void rpc
-      .request<DashboardDto>('dashboard/get', [range])
+      .request<DashboardDto>('dashboard/get', [range, !window.novalist.isMobile], { signal: window.novalist.isMobile ? controller.signal : undefined })
       .then((next) => current && setData(next))
       .catch((error: unknown) => {
+        if (controller.signal.aborted) return
         // Said out loud rather than swallowed. "It could not be worked out" is
         // no use to the person it happens to and no use to whoever has to fix
         // it either; what the backend actually said is the only thing that is.
@@ -120,6 +122,7 @@ export function useDashboard() {
       })
     return () => {
       current = false
+      controller.abort()
     }
   }, [range, attempt])
 
@@ -134,7 +137,7 @@ export function useDashboard() {
 
   const setPacing = async (adaptive: boolean, writingDays: number[]): Promise<void> => {
     await rpc.request('dashboard/setPacing', [adaptive, writingDays])
-    setData(await rpc.request<DashboardDto>('dashboard/get', [range]))
+    setData(await rpc.request<DashboardDto>('dashboard/get', [range, !window.novalist.isMobile]))
   }
 
   return {failure, t, setAttempt, data, chapters, openChapterGuid, openSceneId, banner, projectName, changeBanner, removeBanner, cover, changeCover, removeCover, setEditingGoal, setPacing, range, setRange, stageBreakdown, stageTotal, editingGoal, setData}

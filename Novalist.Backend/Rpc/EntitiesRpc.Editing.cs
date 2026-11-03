@@ -159,15 +159,15 @@ public sealed partial class EntitiesRpc
     }
 
     /// <summary>Every Codex entry of every type, custom types included.</summary>
-    private async Task<List<Core.Models.IEntityData>> AllEntitiesAsync()
+    private async Task<List<Core.Models.IEntityData>> AllEntitiesAsync(CancellationToken cancellationToken = default)
     {
         var all = new List<Core.Models.IEntityData>();
-        all.AddRange(await _entities.LoadCharactersAsync());
-        all.AddRange(await _entities.LoadLocationsAsync());
-        all.AddRange(await _entities.LoadItemsAsync());
-        all.AddRange(await _entities.LoadLoreAsync());
+        all.AddRange(await _entities.LoadCharactersAsync(cancellationToken));
+        all.AddRange(await _entities.LoadLocationsAsync(cancellationToken));
+        all.AddRange(await _entities.LoadItemsAsync(cancellationToken));
+        all.AddRange(await _entities.LoadLoreAsync(cancellationToken));
         foreach (var typeDef in _entities.GetCustomEntityTypes())
-            all.AddRange(await _entities.LoadCustomEntitiesAsync(typeDef.TypeKey));
+            all.AddRange(await _entities.LoadCustomEntitiesAsync(typeDef.TypeKey, cancellationToken));
         return all;
     }
 
@@ -176,8 +176,8 @@ public sealed partial class EntitiesRpc
     /// actually has rather than asking for it to be spelled the same way twice.
     /// </summary>
     [JsonRpcMethod("entities/groups")]
-    public async Task<string[]> GroupsAsync()
-        => [.. (await AllEntitiesAsync())
+    public async Task<string[]> GroupsAsync(CancellationToken cancellationToken = default)
+        => [.. (await AllEntitiesAsync(cancellationToken))
             .Select(e => e.Group)
             .Where(g => !string.IsNullOrWhiteSpace(g))
             .Distinct(StringComparer.OrdinalIgnoreCase)

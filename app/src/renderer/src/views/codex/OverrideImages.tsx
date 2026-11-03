@@ -6,6 +6,7 @@ import { rpc } from '../../rpc/client'
 import { useCodexStore } from '../../stores/codexStore'
 import { type OverrideImage, type CharacterOverride, type Scope, apply } from './overrideModel'
 import { OverrideMediaHeader } from './OverrideMediaHeader'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 
 /** Per-scope override image strip: gallery pick, file import, clipboard paste and
  * download-from-URL, plus per-image remove/rename and reset-to-inherit. Mirrors
@@ -152,7 +153,8 @@ export function OverrideImages({
           className="dialog-overlay"
           onPointerDown={(e) => e.target === e.currentTarget && setGalleryOpen(false)}
         >
-          <div className="dialog-card entity-gallery-card" role="dialog">
+          <div className="dialog-card entity-gallery-card" role="dialog"
+            onKeyDown={(event) => dismissOnAndroidBack(event, () => setGalleryOpen(false))}>
             <div className="dialog-title">{t('entityEditor.fromGallery')}</div>
             <div className="gallery-grid entity-gallery-grid">
               {galleryImages.map((img) => (
@@ -176,7 +178,8 @@ export function OverrideImages({
           className="dialog-overlay"
           onPointerDown={(e) => e.target === e.currentTarget && setUrlOpen(false)}
         >
-          <div className="dialog-card" role="dialog">
+          <div className="dialog-card" role="dialog"
+            onKeyDown={(event) => dismissOnAndroidBack(event, () => setUrlOpen(false))}>
             <div className="dialog-title">{t('entityEditor.fromUrlTitle')}</div>
             <input
               className="dialog-input entity-url-input"

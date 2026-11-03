@@ -19,6 +19,7 @@ export class RpcClient {
   private frames = new RpcFrameDecoder()
   private readonly connectListeners = new Set<() => void>()
   private readonly recoveryListeners = new Set<(error?: string) => void>()
+  private readonly requestCompletedListeners = new Set<(method: string) => void>()
   private connecting: Promise<void> | null = null
   private resolveConnect: (() => void) | null = null
 
@@ -87,11 +88,35 @@ export class RpcClient {
     this.notificationHandlers.set(method, handler)
   }
 
-  request<T>(method: string, params?: unknown): Promise<T> {
-    if (!this.port) return this.connect().then(() => this.request<T>(method, params))
+  onRequestCompleted(listener: (method: string) => void): () => void {
+    this.requestCompletedListeners.add(listener)
+    return () => { this.requestCompletedListeners.delete(listener) }
+  }
+
+  private requestCompleted(method: string): void {
+    for (const listener of this.requestCompletedListeners) {
+      try { listener(method) }
+      catch (error) { console.error('RPC completion observer failed', error) }
+    }
+  }
+
+  request<T>(method: string, params?: unknown, options?: { signal?: AbortSignal }): Promise<T> {
+    const signal = options?.signal
+    if (signal?.aborted) return Promise.reject(signal.reason)
+    if (!this.port) return this.connect().then(() => this.request<T>(method, params, options))
     const id = this.nextId++
     const promise = new Promise<T>((resolve, reject) => {
-      this.pending.set(id, { resolve: resolve as (v: unknown) => void, reject })
+      const abort = (): void => {
+        if (!this.pending.delete(id)) return
+        this.notify('$/cancelRequest', { id })
+        reject(signal?.reason)
+      }
+      const cleanup = (): void => signal?.removeEventListener('abort', abort)
+      this.pending.set(id, {
+        resolve: (value) => { cleanup(); resolve(value as T); this.requestCompleted(method) },
+        reject: (error) => { cleanup(); reject(error) }
+      })
+      signal?.addEventListener('abort', abort, { once: true })
     })
     this.send({ jsonrpc: '2.0', id, method, params })
     return promise

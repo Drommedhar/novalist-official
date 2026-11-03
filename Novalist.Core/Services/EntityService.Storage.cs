@@ -81,65 +81,48 @@ public partial class EntityService
 
     // ── Generic helpers ─────────────────────────────────────────────
 
-    private async Task<List<T>> LoadEntitiesMergedAsync<T>(string bookFolder, string wbFolder) where T : IEntityData
+    private async Task<List<T>> LoadEntitiesMergedAsync<T>(
+        string bookFolder, string wbFolder, CancellationToken cancellationToken) where T : IEntityData
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await LoadEntityDirectoryAsync<T>(Path.Combine(BookRoot, bookFolder), false, cancellationToken);
+        var worldBibleRoot = WorldBibleRoot;
+        if (worldBibleRoot == null) return result;
+
+        var bookIds = new HashSet<string>(result.Select(entity => entity.Id), StringComparer.Ordinal);
+        var worldEntities = await LoadEntityDirectoryAsync<T>(Path.Combine(worldBibleRoot, wbFolder), true, cancellationToken);
+        result.AddRange(worldEntities.Where(entity => !bookIds.Contains(entity.Id)));
+        return result;
+    }
+
+    private async Task<List<T>> LoadEntityDirectoryAsync<T>(
+        string directory, bool isWorldBible, CancellationToken cancellationToken) where T : IEntityData
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var result = new List<T>();
-
-        // Load from book
-        var bookDir = Path.Combine(BookRoot, bookFolder);
-        if (await _files.DirectoryExistsAsync(bookDir))
+        if (!await _files.DirectoryExistsAsync(directory)) return result;
+        var paths = await _files.GetFilesAsync(directory, "*.json");
+        cancellationToken.ThrowIfCancellationRequested();
+        var texts = await FileReadBatch.ReadTextsAsync(_files, paths, cancellationToken);
+        foreach (var path in paths)
         {
-            foreach (var file in await _files.GetFilesAsync(bookDir, "*.json"))
+            cancellationToken.ThrowIfCancellationRequested();
+            T? entity;
+            try
             {
-                T? entity;
-                try
-                {
-                    var json = await _files.ReadTextAsync(file);
-                    entity = JsonSerializer.Deserialize<T>(json, JsonOptions);
-                }
-                catch (JsonException)
-                {
-                    // Skip malformed JSON, but surface access/download failures:
-                    // unavailable cloud data must not look like a missing entry.
-                    continue;
-                }
-                if (entity != null)
-                {
-                    entity.IsWorldBible = false;
-                    result.Add(entity);
-                }
+                entity = JsonSerializer.Deserialize<T>(texts[path], JsonOptions);
+            }
+            catch (JsonException)
+            {
+                // Skip malformed entries, but let file-access and download failures propagate.
+                continue;
+            }
+            if (entity != null)
+            {
+                entity.IsWorldBible = isWorldBible;
+                result.Add(entity);
             }
         }
-
-        // Load from world bible
-        if (WorldBibleRoot != null)
-        {
-            var wbDir = Path.Combine(WorldBibleRoot, wbFolder);
-            if (await _files.DirectoryExistsAsync(wbDir))
-            {
-                var bookIds = new HashSet<string>(result.Select(e => e.Id), StringComparer.Ordinal);
-                foreach (var file in await _files.GetFilesAsync(wbDir, "*.json"))
-                {
-                    T? entity;
-                    try
-                    {
-                        var json = await _files.ReadTextAsync(file);
-                        entity = JsonSerializer.Deserialize<T>(json, JsonOptions);
-                    }
-                    catch (JsonException)
-                    {
-                        // A malformed entry does not prevent loading its neighbours.
-                        continue;
-                    }
-                    if (entity != null && !bookIds.Contains(entity.Id))
-                    {
-                        entity.IsWorldBible = true;
-                        result.Add(entity);
-                    }
-                }
-            }
-        }
-
         return result;
     }
 

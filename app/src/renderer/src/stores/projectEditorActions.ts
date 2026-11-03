@@ -7,6 +7,7 @@ import { type ProjectSlice } from './projectTypes'
 import { capturePendingWrites } from './pendingWrites'
 import { enqueueSceneWrite } from './sceneWriteQueue'
 import { retainMobileSceneRecovery } from '../mobile/recovery'
+import { cancelBackgroundReads } from '../rpc/backgroundReads'
 
 export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn' | 'openSceneInSplit' | 'resolveSceneConflict' | 'dismissSceneConflict' | 'closeTab' | 'moveTabToOtherPane' | 'onEditorContentChanged' | 'syncEditorPanes' | 'flushPane' | 'flushPendingSave' | 'applyManuscriptSceneWrite'> = (set, get) => ({
   openScene: async (chapterGuid, sceneId) => {
@@ -14,6 +15,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
   },
 
   openSceneIn: (paneId, chapterGuid, sceneId) => runSceneContext(async () => {
+    cancelBackgroundReads()
     const epoch = get().workspaceEpoch
     const shell = useShellStore.getState()
     // A scene opening is a screen closing. The binder, a search hit and a link
@@ -31,6 +33,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
     capturePendingWrites()
     await get().flushPane(paneId)
     if (get().sceneConflict || get().editors[paneId]?.isDirty) return
+    cancelBackgroundReads()
     const content = await rpc.request<{ sceneId: string; html: string; hash: string }>(
       'scenes/read',
       [chapterGuid, sceneId]
@@ -59,6 +62,7 @@ export const createProjectEditorActions: ProjectSlice<'openScene' | 'openSceneIn
         ...mirror(editors, paneId)
       }
     })
+    if (window.novalist.isMobile) useShellStore.getState().setMobileTab('manuscript')
   }),
 
   openSceneInSplit: async (chapterGuid, sceneId) => {

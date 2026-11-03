@@ -21,6 +21,7 @@ import { useSettingsStore } from '../../stores/settingsStore'
 import { useShellStore } from '../../stores/shellStore'
 import { DictationBar } from '../../dictation/DictationBar'
 import { useDictation } from '../../dictation/dictationStore'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 
 export interface FormattingState {
   bold: boolean
@@ -237,6 +238,7 @@ export function EditorToolbar({ formatting, speaking, active }: EditorToolbarPro
           className="editor-writing-options"
           role="dialog"
           aria-label={t('blockStyle.writingOptions')}
+          onKeyDown={(event) => dismissOnAndroidBack(event, () => setOptionsOpen(false))}
         >
           {option({
             setting: 'readabilityHighlighting',

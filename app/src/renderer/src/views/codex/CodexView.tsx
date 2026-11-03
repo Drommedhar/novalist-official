@@ -32,6 +32,8 @@ import { EntityDetailFields, builtInFieldKeys, builtInFieldLabelKeys } from './E
 import { ArrangeFieldsDialog } from './ArrangeFieldsDialog'
 import { MobileNav } from '../../shell/MobileNav'
 import { useIsPhone } from '../../shell/useIsPhone'
+import { useMobileDetailBack } from '../../mobile/useMobileDetailBack'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 import { phoneEntityPage, PhoneEntitySections } from './PhoneEntitySections'
 
 const TYPES: { type: EntityType; key: string }[] = [
@@ -40,6 +42,10 @@ const TYPES: { type: EntityType; key: string }[] = [
   { type: 'item', key: 'codexHub.items' },
   { type: 'lore', key: 'codexHub.lore' }
 ]
+
+function clearSelectedEntity(): void {
+  useCodexStore.setState({ selectedId: null, selectedRecord: null })
+}
 
 function useCodexView() {
   const { t } = useTranslation()
@@ -64,6 +70,7 @@ function useCodexView() {
   // room for the desktop list + detail side by side, so it keeps both panes.
   const tabletLayout = useShellStore((s) => s.mobileLayout) === 'tablet'
   const isMobile = window.novalist.isMobile === true && !tabletLayout
+  useMobileDetailBack(isMobile && selectedId !== null, clearSelectedEntity)
   const isPhone = useIsPhone()
   const [arrangeOpen, setArrangeOpen] = useState(false)
   const [pending, setPending] = useState<
@@ -327,7 +334,7 @@ function CodexDetail({ detailTab, isMobile, selectedId, t, record, selected, set
         <button
           type="button"
           className="mobile-back codex-detail-back"
-          onClick={() => useCodexStore.setState({ selectedId: null, selectedRecord: null })}
+          onClick={clearSelectedEntity}
         >
           <ChevronLeft size={20} strokeWidth={2} />
           <span>{t('shell.view.codex')}</span>
@@ -497,7 +504,8 @@ function CodexCreateDialog({ setPending, t, startCreate, templates, templateId, 
       className="dialog-overlay"
       onPointerDown={(e) => e.target === e.currentTarget && setPending(null)}
     >
-      <div className="dialog-card" role="dialog" aria-label={t('codexHub.newEntry')}>
+      <div className="dialog-card" role="dialog" aria-label={t('codexHub.newEntry')}
+        onKeyDownCapture={(event) => dismissOnAndroidBack(event, () => setPending(null))}>
         <div className="dialog-title">{t('codexHub.newEntry')}</div>
         <input
           id="codex-create-name"

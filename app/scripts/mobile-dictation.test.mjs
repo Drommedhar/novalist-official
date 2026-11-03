@@ -27,7 +27,8 @@ function fixture(t) {
   loadRendererSource('src/mobile/shim.ts', {
     i18next: { default: { t: key => key } },
     './projectImages': { installProjectImageLoader() {}, clearProjectImageCache() {} },
-    './hostCalls': { HostCallChannel }
+    './hostCalls': { HostCallChannel },
+    './backEvents': { dispatchAndroidBack: () => false }
   }, globals)
   const audio = loadRendererSource('src/dictation/audio.ts', {}, globals, audioSource)
   const options = loadRendererSource('src/dictation/dictationOptions.ts', {}, {
@@ -94,4 +95,20 @@ test('native microphone denial reaches dictation permission state through the sh
   assert.equal(useDictation.getState().recording, false)
   assert.equal(useDictation.getState().error, null)
   assert.deepEqual(f.requests.map(request => request.method), ['microphoneStart', 'microphoneStart', 'microphoneRead', 'microphoneStop'])
+})
+
+test('a timed-out native microphone start is stopped even when permission succeeds late', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+  const f = fixture(t)
+  await f.dictation.showDictation()
+  const starting = f.dictation.startDictation()
+  t.mock.timers.tick(30_000)
+  await turn()
+  assert.deepEqual(f.requests.map(request => request.method), ['microphoneStart', 'microphoneStop'])
+  f.reply(f.requests[0], { ok: true, result: null })
+  f.reply(f.requests[1], { ok: true, result: { clips: [], ended: true } })
+  await starting
+  assert.equal(f.dictation.useDictation.getState().recording, false)
+  assert.equal(f.dictation.useDictation.getState().starting, false)
+  assert.equal(f.requests.length, 2)
 })

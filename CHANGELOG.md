@@ -31,6 +31,10 @@ could encounter in a previously released version.
 
 ### Fixed
 
+- Opening a folder from the bookshelf now shows when it is loading, reports an error if the project cannot be opened, and prevents repeated opening attempts while one is in progress.
+- Large projects open faster by avoiding duplicate manuscript scans and rereading unchanged scenes. Opening a Codex entry no longer reads every other entry of its type.
+- Opening the Inspector reuses prepared scene context, avoiding duplicate scans and sections appearing separately.
+- Switching away from an untouched scene no longer saves it because of browser formatting differences, avoiding unnecessary writes and delays.
 - Changing Manuscript filters preserves pending prose edits, including typing during a slow reload. Saved scene lists with no matches show an empty result instead of the whole book.
 
 ---

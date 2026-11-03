@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Trash2 } from 'lucide-react'
 import { useLayoutStore } from '../stores/layoutStore'
+import { dismissOnAndroidBack } from '../mobile/backEvents'
 
 interface WorkspaceLayoutsDialogProps {
   onClose(): void
@@ -32,7 +33,8 @@ export function WorkspaceLayoutsDialog({
       className="dialog-overlay"
       onPointerDown={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="dialog-card" role="dialog" aria-label={t('layouts.title')}>
+      <div className="dialog-card" role="dialog" aria-label={t('layouts.title')}
+        onKeyDown={(event) => dismissOnAndroidBack(event, onClose)}>
         <h2 className="dialog-title">{t('layouts.title')}</h2>
         <p className="settings-hint">{t('layouts.hint')}</p>
 

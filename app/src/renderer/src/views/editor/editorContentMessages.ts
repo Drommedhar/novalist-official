@@ -14,14 +14,16 @@ export function createEditorContentMessages(context: EditorHandlerContext): Edit
       if (useShellStore.getState().focusMode && document.activeElement === iframe)
         useShellStore.getState().setFocusToolsVisible(false)
       if (loadingRef.current || !editor) return
+      const html = String(message.html ?? '')
+      if (html === lastReportedHtmlRef.current) return
       // Record what the editor authored so the push effect treats the
       // store's echo of this same HTML as a no-op (keeps caret + undo).
-      lastReportedHtmlRef.current = String(message.html ?? '')
+      lastReportedHtmlRef.current = html
       useProjectStore
         .getState()
         .onEditorContentChanged(
           pane,
-          String(message.html ?? ''),
+          html,
           String(message.plainText ?? '')
         )
     },

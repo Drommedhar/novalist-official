@@ -22,6 +22,20 @@ import i18next from 'i18next'
 
 import { installProjectImageLoader, clearProjectImageCache } from './projectImages'
 import { HostCallChannel } from './hostCalls'
+import { dispatchAndroidBack } from './backEvents'
+
+window.__novalistBack = dispatchAndroidBack
+
+interface MobileHostCapabilities { platform: string; projectStorage: string; layout: 'phone' | 'tablet' }
+
+export async function initializeMobileHost(): Promise<MobileHostCapabilities> {
+  const capabilities = await hostCall<MobileHostCapabilities>('hostCapabilities', [])
+  if (!capabilities || !['android', 'darwin'].includes(capabilities.platform)
+    || !['private', 'external'].includes(capabilities.projectStorage)
+    || !['phone', 'tablet'].includes(capabilities.layout)) throw new Error('Unsupported mobile host capabilities.')
+  window.novalist.platform = capabilities.platform === 'android' ? 'android' : 'darwin'
+  return capabilities
+}
 
 function sendRaw(message: string): void {
   if (!window.HybridWebView?.SendRawMessage) throw new Error('The mobile host bridge is unavailable.')
@@ -136,7 +150,6 @@ const novalist: Window['novalist'] = {
     stop: () => hostCall<{ clips: string[]; ended: boolean }>('microphoneStop', [])
   },
   material: 'opaque',
-  // iOS is Darwin-based; gives the renderer Mac-like key/gesture behavior.
   platform: 'darwin',
   isMobile: true,
   isMas: false,
@@ -146,7 +159,7 @@ const novalist: Window['novalist'] = {
   pickFolder: (title) => hostCall<string | null>('pickFolder', [title]),
   defaultProjectRoot: () => hostCall<string | null>('defaultProjectRoot', []),
   saveFile: (defaultName) => hostCall<string | null>('saveFile', [defaultName]),
-  shareExport: (path) => hostCall<boolean>('shareExport', [path]),
+  shareExport: (path) => hostCall<boolean | 'handed-off'>('shareExport', [path]),
   releaseExport: (path) => hostCall<void>('releaseExport', [path]),
   // Window capture is an Electron capability with no iOS equivalent, so map
   // image export reports failure rather than pretending to have written a file.
@@ -201,6 +214,9 @@ const novalist: Window['novalist'] = {
   setTabTitles: (titles: string[]) => {
     notifyHost('setTabTitles', [titles])
   },
+  setTitleBarColors: (color: string, symbolColor: string) => {
+    notifyHost('setTitleBarColors', [color, symbolColor])
+  },
   // Mobile-only: move the native bar's highlight to this tab index, for a tab
   // change the web made rather than the writer tapping.
   setSelectedTab: (index: number) => {
@@ -209,7 +225,7 @@ const novalist: Window['novalist'] = {
   // Mobile-only: show/hide the native Liquid Glass Plan popover with the given
   // localized item labels; selection comes back via window.__novalistPlanSelect.
   setPlanningMenuOpen: (open: boolean, labels: string[]) => {
-    notifyHost('setPlanningMenuOpen', [open, labels])
+    notifyHost('setPlanningMenuOpen', [open, labels, i18next.t('dialog.cancel')])
   },
   // Tablet-only: localized titles for the native iPad sidebar, in the order the
   // native SidebarItems table declares (see TABLET_DESTINATIONS).

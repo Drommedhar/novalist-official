@@ -14,8 +14,7 @@ public sealed partial class EntitiesRpc
         Dictionary<string, string> fields,
         Dictionary<string, string>? customProperties = null)
     {
-        var character = (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == characterId)
-            ?? throw Unknown(characterId);
+        var character = await LoadCharacterAsync(characterId);
         var existing = FindOrCreateOverride(character, chapterGuid, sceneTitle);
         foreach (var (key, value) in fields)
         {
@@ -47,8 +46,7 @@ public sealed partial class EntitiesRpc
     public async Task<JsonElement> RemoveOverrideAsync(
         string characterId, string chapterGuid, string? sceneTitle)
     {
-        var character = (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == characterId)
-            ?? throw Unknown(characterId);
+        var character = await LoadCharacterAsync(characterId);
         character.ChapterOverrides.RemoveAll(o =>
             o.Chapter == chapterGuid && (o.Scene ?? string.Empty) == (sceneTitle ?? string.Empty));
         await _entities.SaveCharacterAsync(character);
@@ -138,7 +136,7 @@ public sealed partial class EntitiesRpc
     }
 
     private async Task<CharacterData> LoadCharacterAsync(string characterId) =>
-        (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == characterId)
+        await _entities.LoadCharacterAsync(characterId)
             ?? throw Unknown(characterId);
 
     /// <summary>Finds the chapter/scene override matching the scope, creating and

@@ -76,6 +76,28 @@ public class BackendHostTests
     }
 
     [Fact]
+    public async Task HostUsesInjectedMobileSpeechForRendererRequests()
+    {
+        var (serverStream, clientStream) = FullDuplexStream.CreatePair();
+        using var host = new BackendHost(systemDictation: new MobileSpeech());
+        host.Attach(serverStream, serverStream);
+        using var client = CreateClient(clientStream);
+        var status = await client.InvokeAsync<Dictation.SystemDictationStatus>("dictation/systemStatus");
+        Assert.Equal("android", status.Engine);
+        Assert.False(status.Online);
+        Assert.True(Assert.Single(status.Languages).Installed);
+    }
+
+    private sealed class MobileSpeech : Dictation.ISystemDictation
+    {
+        public Task<Dictation.SystemDictationStatus> StatusAsync(CancellationToken token)
+            => Task.FromResult(new Dictation.SystemDictationStatus("android", true, false, false, [new("en", true, true)]));
+        public Task PrepareAsync(string language, CancellationToken token) => throw new NotSupportedException();
+        public Task<string> TranscribeAsync(byte[] audio, string language, CancellationToken token) => throw new NotSupportedException();
+        public void OpenSystemPanel() => throw new NotSupportedException();
+    }
+
+    [Fact]
     public async Task Barrier_RoundTrips()
     {
         var (serverStream, clientStream) = FullDuplexStream.CreatePair();

@@ -15,10 +15,13 @@ public sealed class VoicesRpc
 {
     private readonly Workspace _workspace;
     private readonly ISystemVoices _voices;
+    private readonly IAsyncSystemVoices? _asyncVoices;
+    private long _speechGeneration;
 
-    public VoicesRpc(Workspace workspace, ISystemVoices? voices = null)
+    public VoicesRpc(Workspace workspace, ISystemVoices? voices = null, IAsyncSystemVoices? asyncVoices = null)
     {
         _workspace = workspace;
+        _asyncVoices = asyncVoices;
         // SAPI where there is SAPI, the platform's own command elsewhere, and
         // the browser's voices where there is neither. Only the first of those
         // existed, so a reading on a Mac was silent - and worse than silent,
@@ -33,6 +36,14 @@ public sealed class VoicesRpc
     /// browser's own list.
     /// </summary>
     [JsonRpcMethod("voices/list")]
+    public async Task<SystemVoiceDto[]> ListAsync()
+    {
+        if (_asyncVoices == null) return List();
+        var language = _workspace.Settings.Effective.AutoReplacementLanguage;
+        return [.. VoiceCatalog.ForPicker(await _asyncVoices.ListAsync(), language)
+            .Select(v => new SystemVoiceDto(v.Id, v.Name, v.Language))];
+    }
+
     public SystemVoiceDto[] List()
     {
         if (!_voices.Available) return [];
@@ -49,6 +60,14 @@ public sealed class VoicesRpc
     [JsonRpcMethod("voices/speak")]
     public async Task<bool> SpeakAsync(string text, string? voiceId = null, double rate = 1.0)
     {
+        if (_asyncVoices != null)
+        {
+            var generation = Interlocked.Read(ref _speechGeneration);
+            var voice = VoiceCatalog.Choose(await _asyncVoices.ListAsync(), voiceId,
+                _workspace.Settings.Effective.AutoReplacementLanguage);
+            if (generation != Interlocked.Read(ref _speechGeneration)) return false;
+            return voice != null && await _asyncVoices.SpeakAsync(text, voice.Id, rate);
+        }
         if (!_voices.Available) return false;
         var chosen = VoiceCatalog.Choose(
             _voices.List(), voiceId, _workspace.Settings.Effective.AutoReplacementLanguage);
@@ -61,7 +80,12 @@ public sealed class VoicesRpc
     }
 
     [JsonRpcMethod("voices/stop")]
-    public void Stop() => _voices.Stop();
+    public void Stop()
+    {
+        Interlocked.Increment(ref _speechGeneration);
+        if (_asyncVoices != null) _asyncVoices.Stop();
+        else _voices.Stop();
+    }
 }
 
 /// <summary>One system voice as the renderer lists it.</summary>

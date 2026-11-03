@@ -5,6 +5,7 @@ import { ClipboardPaste, ImagePlus, Link, Replace, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useCodexStore } from '../../stores/codexStore'
 import './entity-images.css'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 
 interface EntityImage {
   name: string
@@ -205,7 +206,8 @@ export function EntityImages(): React.JSX.Element | null {
             }
           }}
         >
-          <div className="dialog-card entity-gallery-card" role="dialog">
+          <div className="dialog-card entity-gallery-card" role="dialog"
+            onKeyDown={(event) => dismissOnAndroidBack(event, () => { setGalleryOpen(false); setSwapTarget(null) })}>
             <div className="dialog-title">
               {swapTarget ? t('entityEditor.chooseImageTooltip') : t('entityEditor.fromGallery')}
             </div>
@@ -235,7 +237,8 @@ export function EntityImages(): React.JSX.Element | null {
           className="dialog-overlay"
           onPointerDown={(e) => e.target === e.currentTarget && setUrlOpen(false)}
         >
-          <div className="dialog-card" role="dialog">
+          <div className="dialog-card" role="dialog"
+            onKeyDown={(event) => dismissOnAndroidBack(event, () => setUrlOpen(false))}>
             <div className="dialog-title">{t('entityEditor.fromUrlTitle')}</div>
             <input
               className="dialog-input entity-url-input"

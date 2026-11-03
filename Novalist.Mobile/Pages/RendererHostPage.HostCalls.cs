@@ -66,6 +66,8 @@ public sealed partial class RendererHostPage
         {
             [DevicePlatform.iOS] = identifiers
         });
+#elif ANDROID
+        return AndroidFilePicking.ManuscriptTypes(extensions);
 #else
         return null;
 #endif
@@ -85,8 +87,7 @@ public sealed partial class RendererHostPage
             if (!full.StartsWith(rootFull.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
                     StringComparison.Ordinal)) return null;
             if (!await _files.ExistsAsync(full)) return null;
-            return await new IosFileAccessCoordinator().ReadAsync(full,
-                path => MobileAssetReader.ReadDataUri(path, MimeForExtension(path))).ConfigureAwait(false);
+            return await _projects.ReadAssetAsync(full, MimeForExtension(full)).ConfigureAwait(false);
         }
         catch (FileNotFoundException)
         {
@@ -116,10 +117,48 @@ public sealed partial class RendererHostPage
             _ => "application/octet-stream"
         };
 
+    private object HostCapabilities()
+    {
+#if ANDROID
+        return new { platform = "android", projectStorage = "external", layout = _androidChrome?.Width > 700 ? "tablet" : "phone" };
+#else
+        return new { platform = "darwin", projectStorage = "external", layout = _isRegularWidth == true ? "tablet" : "phone" };
+#endif
+    }
+
+    private async Task<object?> StartMicrophoneAsync()
+    {
+        await _microphone.StartAsync(_cts.Token);
+        return null;
+    }
+
+    private Task<bool> BeginProjectAccessAsync(string path)
+    {
+#if ANDROID
+        return Task.Run(() => _projects.BeginAccess(path));
+#else
+        return Task.FromResult(_projects.BeginAccess(path));
+#endif
+    }
+
+    private Task<string?> ResolveProjectPathAsync(string path)
+    {
+#if ANDROID
+        return Task.Run(() => ResolveStoredProjectPath(path));
+#else
+        return Task.FromResult(ResolveStoredProjectPath(path));
+#endif
+    }
+
     private async Task<object?> InvokeHostAsync(string method, JsonElement args)
     {
         switch (method)
         {
+            case "hostCapabilities":
+                return HostCapabilities();
+#if ANDROID && DEBUG
+            case "pickStorageProbe": return await AndroidStorageProbe.RunAsync(ArgString(args, 0));
+#endif
             case "bridgeReady":
                 _rendererReady.TrySetResult();
                 return null;
@@ -130,7 +169,7 @@ public sealed partial class RendererHostPage
                 return args.ValueKind == JsonValueKind.Array && args.GetArrayLength() == 2
                     && args[0].TryGetInt32(out var requestId)
                     && CompleteBackgroundSave(requestId, args[1].ValueKind == JsonValueKind.True);
-            case "microphoneStart": return await _microphone.StartAsync(_cts.Token);
+            case "microphoneStart": return await StartMicrophoneAsync();
             case "microphoneRead": return await _microphone.ReadAsync(_cts.Token);
             case "microphoneStop": return await _microphone.StopAsync();
             case "pickFolder":
@@ -143,18 +182,15 @@ public sealed partial class RendererHostPage
             case "beginProjectAccess":
                 // Mirror the MAS contract: resolve the stored bookmark and start
                 // access; false lets the renderer re-prompt for the folder.
-                return SecurityScopedFolders.BeginAccess(ArgString(args, 0));
+                return await BeginProjectAccessAsync(ArgString(args, 0)).ConfigureAwait(false);
             case "resolveStoredProjectPath":
-                return ResolveStoredProjectPath(ArgString(args, 0));
+                return await ResolveProjectPathAsync(ArgString(args, 0)).ConfigureAwait(false);
             case "endProjectAccess":
-                SecurityScopedFolders.EndAccess(ArgString(args, 0));
+                _projects.Release(ArgString(args, 0));
                 return null;
             case "setProjectRoot":
                 _projectRoot = ArgString(args, 0);
-                IosStoredPathResolver.ActiveProjectPath = _projectRoot;
-                SecurityScopedFolders.ReleaseExcept(_projectRoot);
-                if (!string.IsNullOrEmpty(_projectRoot))
-                    await IosStoredPathResolver.OwnedPaths.RecordAsync(_projectRoot).ConfigureAwait(false);
+                await _projects.SetActiveAsync(_projectRoot).ConfigureAwait(false);
                 return null;
             case "readProjectImage":
             case "readProjectAsset":
@@ -194,6 +230,9 @@ public sealed partial class RendererHostPage
                 return await SetSelectedTabAsync(args);
             case "setTabTitles":
                 return await SetTabTitlesAsync(args);
+            case "setTitleBarColors":
+                await SetNativeColorsAsync(args);
+                return null;
             default:
                 return null;           // unknown / JS-side no-ops
         }
@@ -205,12 +244,12 @@ public sealed partial class RendererHostPage
         // security-scoped folder URL (e.g. an iCloud/Files/Working-Copy repo
         // folder). SecurityScopedFolders persists a bookmark and keeps the
         // scope open so the backend can read/write it. Null on cancel.
-        return await SecurityScopedFolders.PickFolderAsync().ConfigureAwait(false);
+        return await _projects.PickFolderAsync().ConfigureAwait(false);
     }
 
-    private static string? ResolveStoredProjectPath(string storedPath)
+    private string? ResolveStoredProjectPath(string storedPath)
     {
-        var resolver = new IosStoredPathResolver();
+        var resolver = _projects;
         var resolved = resolver.Resolve(storedPath);
         try { return resolved; }
         finally
@@ -219,13 +258,13 @@ public sealed partial class RendererHostPage
         }
     }
 
-    private static object? DefaultProjectRoot()
+    private object? DefaultProjectRoot()
     {
         // Where a new project goes when the writer does not say otherwise:
         // Novalist's own folder in the Files app. Offering it means the
         // common path never involves the picker at all, and a project made
         // this way needs no grant to be read back on the next launch.
-        var documents = AppFolders.Documents;
+        var documents = _projects.DefaultRoot;
         if (string.IsNullOrEmpty(documents)) return null;
         Directory.CreateDirectory(documents);
         return documents;
@@ -244,7 +283,11 @@ public sealed partial class RendererHostPage
                 ArgString(args, 0),
                 labels.ElementAtOrDefault(0) ?? "Photo Library",
                 labels.ElementAtOrDefault(1) ?? "Browse Files",
-                labels.ElementAtOrDefault(2) ?? "Cancel").ConfigureAwait(false);
+                labels.ElementAtOrDefault(2) ?? "Cancel"
+#if ANDROID
+                , _manuscriptAccess
+#endif
+                ).ConfigureAwait(false);
         }
         var options = new PickOptions { PickerTitle = ArgString(args, 0) };
         if (mode == "manuscript")
@@ -254,15 +297,21 @@ public sealed partial class RendererHostPage
             // An absent/malformed backend list must never turn the
             // manuscript chooser into an unrestricted file picker.
             if (options.FileTypes == null) return null;
+#if IOS
             return await SecurityScopedFolders.PickManuscriptAsync(
                 options.PickerTitle ?? "",
                 options.FileTypes.Value,
                 extensions,
                 ArgString(args, 3), _manuscriptAccess).ConfigureAwait(false);
+#endif
         }
+#if ANDROID
+        return await AndroidFilePicking.PickAsync(options, _manuscriptAccess, mode == "manuscript").ConfigureAwait(false);
+#else
         var result = await MainThread.InvokeOnMainThreadAsync(() => FilePicker.Default.PickAsync(options))
             .ConfigureAwait(false);
         return result?.FullPath;
+#endif
     }
 
     private async Task<object?> ShareExportAsync(JsonElement args)

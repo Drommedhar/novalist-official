@@ -26,7 +26,7 @@ export function useEditorPersistence({ editorRef, pane, openSceneId, lastReporte
       capture()
       await useProjectStore.getState().flushPane(pane)
     }, capture)
-  }, [pane, openSceneId])
+  }, [pane, openSceneId, editorRef, lastReportedHtmlRef])
 }
 
 export function useEditorScene({ editorRef, sceneHtml, lastReportedHtmlRef, loadingRef, loadAnnotations, applyFootnoteOrder, openSceneId, annotationsRevision, ownAnnotationsRef, pendingSuggestion, isActiveEditor, pushEntityNames }: Pick<EditorFrameModel, 'editorRef' | 'sceneHtml' | 'lastReportedHtmlRef' | 'loadingRef' | 'loadAnnotations' | 'applyFootnoteOrder' | 'openSceneId' | 'annotationsRevision' | 'ownAnnotationsRef' | 'pendingSuggestion' | 'isActiveEditor' | 'pushEntityNames'>): void {
@@ -41,7 +41,7 @@ export function useEditorScene({ editorRef, sceneHtml, lastReportedHtmlRef, load
     loadingRef.current = true
     editor.setContent(sceneHtml)
     loadingRef.current = false
-    lastReportedHtmlRef.current = sceneHtml
+    lastReportedHtmlRef.current = editor.getContent()
     void loadAnnotations(editor).then((loaded) => {
       if (!loaded) return
       // The prose is on screen now, so it can say what the numbers are. A scene
@@ -73,7 +73,7 @@ export function useEditorScene({ editorRef, sceneHtml, lastReportedHtmlRef, load
     if (!editor) return
     useShellStore.getState().clearPendingSuggestion()
     editor.scrollToSuggestionById(pendingSuggestion.changeId)
-  }, [pendingSuggestion, isActiveEditor, openSceneId, sceneHtml])
+  }, [pendingSuggestion, isActiveEditor, openSceneId, sceneHtml, editorRef])
 
 // Detection is scene-scoped: an entry silenced in one scene must come back in
   // the next, so the name list is rebuilt whenever the open scene changes.
@@ -109,14 +109,14 @@ export function useEditorControls({ editorRef, isActiveEditor, openSceneId, sugg
       if (useEditorBridge.getState().editor === frameWindow)
         useEditorBridge.getState().register(null, null)
     }
-  }, [isActiveEditor, openSceneId])
+  }, [isActiveEditor, openSceneId, iframeRef, editorRef])
 
 // Suggestion mode belongs to the writing view rather than to the button that
   // used to hold it in local state, so the editor is told whenever the shell's
   // flag moves - whoever moved it, a toolbar button or the palette.
   useEffect(() => {
     editorRef.current?.setSuggestionMode(suggestionMode, reviewerName)
-  }, [suggestionMode, reviewerName, sceneHtml])
+  }, [suggestionMode, reviewerName, sceneHtml, editorRef])
 
 // Two commands the frame owns rather than the editor: asking for a link
   // address, and driving the system speech engine. Published so the command
@@ -152,5 +152,5 @@ export function useEditorControls({ editorRef, isActiveEditor, openSceneId, sugg
       editorRef.current?.focusEditor()
     }, 60)
     return () => window.clearTimeout(at)
-  }, [pane, openSceneId])
+  }, [pane, openSceneId, isActiveEditor, iframeRef, editorRef])
 }

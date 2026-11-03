@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FEATURE_DESIGN, FEATURE_EMOTION_INFERRED, NARRATOR, useNarrationStore, type VoiceBrief } from '../../stores/narrationStore'
+import { dismissOnAndroidBack } from '../../mobile/backEvents'
 
 /**
  * The brief, before anything is designed.
@@ -49,7 +50,8 @@ export function DesignDialog({ brief }: { brief: VoiceBrief }): React.JSX.Elemen
   }
 
   return (
-    <div className="narration-design-dialog" role="dialog" aria-label={t('narration.designVoice')}>
+    <div className="narration-design-dialog" role="dialog" aria-label={t('narration.designVoice')}
+      onKeyDown={(event) => dismissOnAndroidBack(event, closeBrief)}>
       <div className="narration-panel-head">
         <span className="narration-panel-where">
           {isNarrator

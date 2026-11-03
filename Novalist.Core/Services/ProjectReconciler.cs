@@ -3,34 +3,6 @@ using Novalist.Core.Models;
 
 namespace Novalist.Core.Services;
 
-public enum ChapterChangeKind { New, Renamed, Deleted }
-public enum SceneChangeKind { New, Moved, Renamed, Deleted }
-
-/// <summary>A detected chapter-level difference between disk and cache.</summary>
-public sealed record ChapterChange(ChapterChangeKind Kind, string Guid, string FolderName, string? OldFolderName = null);
-
-/// <summary>A detected scene-level difference between disk and cache.</summary>
-public sealed record SceneChange(
-    SceneChangeKind Kind,
-    string Id,
-    string FileName,
-    string ChapterGuid,
-    string? FromChapterGuid = null,
-    string? OldFileName = null);
-
-/// <summary>An ambiguity the reconciler cannot resolve automatically (surfaced for review).</summary>
-public sealed record ReconciliationConflict(string Kind, string Detail);
-
-/// <summary>Read-only summary of what changed on disk relative to the cached manifest.</summary>
-public sealed class ReconciliationReport
-{
-    public List<ChapterChange> Chapters { get; } = new();
-    public List<SceneChange> Scenes { get; } = new();
-    public List<ReconciliationConflict> Conflicts { get; } = new();
-
-    public bool HasChanges => Chapters.Count > 0 || Scenes.Count > 0 || Conflicts.Count > 0;
-}
-
 /// <summary>
 /// Scans a draft's on-disk tree and diffs it against the cached chapter/scene manifest,
 /// producing a <see cref="ReconciliationReport"/>. <b>Read-only</b> — it never mutates the
@@ -52,7 +24,8 @@ public sealed class ProjectReconciler
         string chapterFolderName,
         IReadOnlyList<ChapterData> chapters,
         ScenesManifest manifest,
-        DraftIndex index)
+        DraftIndex index,
+        bool forceContentScan = false)
     {
         var report = new ReconciliationReport();
         var chapterByGuid = new Dictionary<string, ChapterData>(StringComparer.Ordinal);
@@ -69,19 +42,7 @@ public sealed class ProjectReconciler
 
         var folderGuid = await ScanChapterFoldersAsync(chaptersRoot, diskFolders, chapters, chapterByGuid, report);
 
-        // ── Scenes ──
-        // Precompute manifest scenes whose file is missing, with their cached hash, for
-        // id-less hash rematch (move recovery).
-        var missingByHash = new Dictionary<string, (SceneData scene, string chapterGuid)>(StringComparer.Ordinal);
-        foreach (var (id, (scene, cachedGuid)) in sceneById)
-        {
-            if (!chapterByGuid.TryGetValue(cachedGuid, out var ch)) continue;
-            var abs = _fileService.CombinePath(chaptersRoot, ch.FolderName, scene.FileName);
-            if (await _fileService.ExistsAsync(abs)) continue;
-            var rel = $"{chapterFolderName}/{ch.FolderName}/{scene.FileName}";
-            if (index.Entries.TryGetValue(rel, out var entry) && !string.IsNullOrEmpty(entry.Hash))
-                missingByHash[entry.Hash] = (scene, cachedGuid);
-        }
+        var missingByHash = await BuildMissingByHashAsync(chaptersRoot, chapterFolderName, chapters, manifest, index);
 
         var seenIds = new HashSet<string>(StringComparer.Ordinal);
         var idFirstSeenIn = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -90,20 +51,18 @@ public sealed class ProjectReconciler
         {
             var guid = folderGuid[folder];
             var folderPath = _fileService.CombinePath(chaptersRoot, folder);
-            var files = await _fileService.GetFilesAsync(folderPath, "*.novalist", recursive: false);
-            foreach (var file in files.OrderBy(f => f, StringComparer.Ordinal))
+            var scenes = await ReadChapterScenesAsync(folderPath, $"{chapterFolderName}/{folder}",
+                guid, sceneById, index, forceContentScan, report);
+            foreach (var (fileName, id, content) in scenes)
             {
-                var fileName = _fileService.GetFileName(file);
-                var content = await _fileService.ReadTextAsync(file);
-
-                if (FileFrontMatter.TryParse(content, out var parsed))
+                if (id != null)
                 {
-                    if (!idFirstSeenIn.TryAdd(parsed.Id, fileName))
+                    if (!idFirstSeenIn.TryAdd(id, fileName))
                     {
-                        report.Conflicts.Add(new ReconciliationConflict("DuplicateSceneId", parsed.Id));
+                        report.Conflicts.Add(new ReconciliationConflict("DuplicateSceneId", id));
                         continue;
                     }
-                    ClassifyKnownId(report, sceneById, seenIds, parsed.Id, fileName, guid);
+                    ClassifyKnownId(report, sceneById, seenIds, id, fileName, guid);
                 }
                 else
                 {
@@ -132,6 +91,70 @@ public sealed class ProjectReconciler
         }
 
         return report;
+    }
+
+    private async Task<List<(string FileName, string? Id, string Content)>> ReadChapterScenesAsync(
+        string folderPath, string relativeFolder, string? chapterGuid,
+        Dictionary<string, (SceneData scene, string chapterGuid)> sceneById,
+        DraftIndex index, bool forceContentScan, ReconciliationReport report)
+    {
+        var files = await _fileService.GetFilesAsync(folderPath, "*.novalist", recursive: false);
+        var identities = new List<(string File, string? Id)>();
+        var pending = new Dictionary<string, DraftIndexEntry>(StringComparer.Ordinal);
+        foreach (var file in files.OrderBy(file => file, StringComparer.Ordinal))
+        {
+            var relativePath = $"{relativeFolder}/{_fileService.GetFileName(file)}";
+            var id = forceContentScan ? null : await GetUnchangedSceneIdAsync(file, relativePath, chapterGuid, sceneById, index);
+            identities.Add((file, id));
+            if (id == null)
+                pending[file] = new DraftIndexEntry
+                {
+                    Size = await _fileService.GetFileSizeAsync(file),
+                    MtimeUtc = await _fileService.GetLastWriteTimeUtcAsync(file),
+                };
+        }
+
+        var contents = pending.Count > 0
+            ? await FileReadBatch.ReadTextsAsync(_fileService, pending.Keys.ToArray())
+            : new Dictionary<string, string>();
+        var scenes = new List<(string FileName, string? Id, string Content)>();
+        foreach (var (file, cachedId) in identities)
+        {
+            var fileName = _fileService.GetFileName(file);
+            var id = cachedId;
+            var content = id == null ? contents[file] : string.Empty;
+            if (id == null && FileFrontMatter.TryParse(content, out var parsed))
+            {
+                id = parsed.Id;
+                var entry = pending[file];
+                entry.Id = id;
+                entry.Hash = ContentHasher.Hash(content);
+                report.RefreshedIndexEntries[$"{relativeFolder}/{fileName}"] = entry;
+            }
+            scenes.Add((fileName, id, content));
+        }
+        return scenes;
+    }
+
+    private async Task<string?> GetUnchangedSceneIdAsync(
+        string file,
+        string relativePath,
+        string? chapterGuid,
+        Dictionary<string, (SceneData scene, string chapterGuid)> sceneById,
+        DraftIndex index)
+    {
+        if (index.Version != 1 || index.Entries == null || !index.Entries.TryGetValue(relativePath, out var entry)
+            || entry == null || string.IsNullOrEmpty(entry.Id) || string.IsNullOrEmpty(entry.Hash)
+            || entry.Size <= 0 || entry.MtimeUtc <= DateTime.UnixEpoch
+            || !sceneById.TryGetValue(entry.Id, out var cached)
+            || cached.chapterGuid != chapterGuid || cached.scene.FileName != _fileService.GetFileName(file))
+            return null;
+
+        if (await _fileService.GetFileSizeAsync(file) != entry.Size
+            || await _fileService.GetLastWriteTimeUtcAsync(file) != entry.MtimeUtc)
+            return null;
+
+        return entry.Id;
     }
 
     private static void ClassifyKnownId(
@@ -353,10 +376,14 @@ public sealed class ProjectReconciler
         var matchedGuids = new HashSet<string>(StringComparer.Ordinal);
         // Effective guid per disk folder (marker guid, matched cached guid, or null = brand new).
         var folderGuid = new Dictionary<string, string?>(StringComparer.Ordinal);
+        var markerPaths = diskFolders.Select(folder => _fileService.CombinePath(chaptersRoot, folder, ChapterMarker.FileName)).ToArray();
+        var markerContents = await FileReadBatch.ReadExistingTextsAsync(_fileService, markerPaths);
 
         foreach (var folder in diskFolders)
         {
-            var marker = await ReadMarkerAsync(chaptersRoot, folder);
+            var path = _fileService.CombinePath(chaptersRoot, folder, ChapterMarker.FileName);
+            var marker = markerContents.TryGetValue(path, out var json)
+                ? JsonSerializer.Deserialize<ChapterMarker>(json, JsonOptions) : null;
             if (marker != null && chapterByGuid.TryGetValue(marker.Guid, out var cachedByGuid))
             {
                 matchedGuids.Add(marker.Guid);
