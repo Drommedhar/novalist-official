@@ -227,7 +227,10 @@ jobs:
             keyring_pid=$!
             trap 'kill "$keyring_pid" 2>/dev/null || true; wait "$keyring_pid" 2>/dev/null || true' EXIT
             gdbus wait --session --timeout 20 org.freedesktop.secrets
-            env -u ELECTRON_RUN_AS_NODE ./node_modules/.bin/electron --no-sandbox scripts/check-linux-credential-store.cjs
+            # Check the actual Playwright launch path: its Electron preload can
+            # override password storage even when standalone Electron is secure.
+            npx playwright test e2e/linux-credential-store.spec.ts
+            npx playwright test e2e/collaboration-account.spec.ts e2e/collaboration-peer.spec.ts e2e/m38-context-menu-groups.spec.ts
             npx playwright test
           SESSION
 

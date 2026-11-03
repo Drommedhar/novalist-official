@@ -3,7 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady, waitForAppReady } from './appReady'
-import { enterWriting } from './harness'
+import { dismissTour, enterWriting } from './harness'
 
 /**
  * A context-menu group whose every row needs a selection is not offered when
@@ -39,6 +39,7 @@ test('context-menu groups require a selection and stay within the editor', async
     state = await rpc.request('project/createScene', [guid, 'A scene'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
+  await dismissTour(page)
 
   // A created project opens on the Dashboard; the binder is Write's.
   await enterWriting(page)

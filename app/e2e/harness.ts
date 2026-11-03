@@ -89,7 +89,7 @@ export async function launchApp(
   // saved by one spec turn up in the next, so a test could pass or fail
   // depending on which ones had run before it.
   const app = await electron.launch({
-    args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`, ...launchArguments],
+    args: [process.platform === 'linux' ? 'e2e/launch-app.cjs' : 'out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`, ...launchArguments],
     env
   })
   try {

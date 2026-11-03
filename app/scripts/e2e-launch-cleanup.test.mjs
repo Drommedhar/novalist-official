@@ -10,8 +10,9 @@ import { loadRendererSource } from './renderer-source-loader.mjs'
 const source = readFileSync(new URL('../e2e/harness.ts', import.meta.url), 'utf8')
   .replace('_electron as electron', 'electron')
 
-function fixture({ windowFailure, readyFailure, killFailure, blockedEvaluation = false, ignoreTerm = false, alreadyExited = false } = {}) {
+function fixture({ platform = 'darwin', windowFailure, readyFailure, killFailure, blockedEvaluation = false, ignoreTerm = false, alreadyExited = false } = {}) {
   const events = []
+  const launches = []
   const timers = new Map()
   const child = Object.assign(new EventEmitter(), {
     exitCode: alreadyExited ? 0 : null,
@@ -43,7 +44,7 @@ function fixture({ windowFailure, readyFailure, killFailure, blockedEvaluation =
   }
   const harness = loadRendererSource('../../e2e/harness.ts', {
     '@playwright/test': {
-      electron: { launch: async () => app },
+      electron: { launch: async options => { launches.push(options); return app } },
       expect: () => ({ toBeVisible: async () => { if (readyFailure) throw readyFailure } })
     },
     'node:fs': { mkdtempSync: () => { throw new Error('Tests must use their explicit work directory') } },
@@ -54,11 +55,11 @@ function fixture({ windowFailure, readyFailure, killFailure, blockedEvaluation =
       waitForAppReady: async () => { if (readyFailure) throw readyFailure }
     }
   }, {
-    process: { env: {} },
+    process: { env: {}, platform },
     setTimeout(callback, delay) { const id = timers.size + 1; timers.set(id, { callback, delay }); return id },
     clearTimeout(id) { timers.delete(id) }
   }, source)
-  return { ...harness, app, page, events, timers }
+  return { ...harness, app, page, events, timers, launches }
 }
 
 test('failed first window closes the launched app before returning the original error', async () => {
@@ -127,3 +128,15 @@ test('startup cleanup accepts a child that already exited', async () => {
   assert.deepEqual(f.events, ['window'])
   assert.equal(f.timers.size, 0)
 })
+
+for (const platform of ['linux', 'darwin', 'win32']) {
+  test(`the ${platform} harness selects its entry while preserving profile and launch arguments`, async () => {
+    const f = fixture({ platform })
+    const h = await f.launchApp('unused', {}, '/temporary-test-profile', ['--test-extra'])
+    assert.deepEqual(Array.from(f.launches[0].args), [
+      platform === 'linux' ? 'e2e/launch-app.cjs' : 'out/main/index.js',
+      '--user-data-dir=/temporary-test-profile/profile', '--test-extra'
+    ])
+    await h.close()
+  })
+}

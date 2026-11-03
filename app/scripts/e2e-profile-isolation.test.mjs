@@ -25,6 +25,7 @@ test('every Electron test launch explicitly isolates Chromium within its test di
         const workDir = join(tmpdir(), 'novalist-profile-isolation-test', run)
         const options = runInNewContext(`(${call[1]})`, {
           join, resolve, workDir,
+          process: { platform: process.platform },
           env: { NOVALIST_SETTINGS_DIR: join(workDir, 'settings') },
           fixture: join(workDir, 'main.cjs'),
           PACKAGED_BIN: join(workDir, 'packaged-app'),
