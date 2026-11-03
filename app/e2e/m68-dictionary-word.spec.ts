@@ -14,50 +14,39 @@ import { launchApp, seedBook, dismissTour } from './harness'
 test('a word taught from the prose lands in the writer own dictionary', async () => {
   test.setTimeout(180_000)
   const h = await launchApp('nl-dict-')
-  await dismissTour(h.page)
-  await seedBook(h, { 'Chapter One': ['Scene One'] })
+  try {
+    await dismissTour(h.page)
+    await seedBook(h, { 'Chapter One': ['Scene One'] })
 
-  await h.page.locator('.binder-scene-row').first().click()
-  const editor = h.page.frameLocator('.editor-frame').locator('#editor')
-  await expect(editor).toBeVisible({ timeout: 30_000 })
-  await editor.click()
-  await h.page.keyboard.type('The Aelthorn banner burned. ')
+    await h.page.locator('.binder-scene-row').first().click()
+    const editor = h.page.frameLocator('.editor-frame').locator('#editor')
+    await expect(editor).toBeVisible({ timeout: 30_000 })
+    await editor.click()
+    await h.page.keyboard.type('The Aelthorn banner burned. ')
 
-  // Nothing was learned before the writer asked for it.
-  expect(await h.rpc<string[]>('spell/words')).toEqual([])
+    // Nothing was learned before the writer asked for it.
+    expect(await h.rpc<string[]>('spell/words')).toEqual([])
 
-  // The menu as the writer sees it: their own context menu, with the spelling
-  // block the main process folds in when Chromium reports a misspelling under
-  // the pointer. Driven this way because the native menu is the one surface a
-  // spec cannot click.
-  await h.page.evaluate(() => {
-    const doc = document.querySelector<HTMLIFrameElement>('.editor-frame')!.contentDocument!
-    const ed = doc.getElementById('editor')!
-    const rect = ed.getBoundingClientRect()
-    ed.dispatchEvent(
-      new MouseEvent('contextmenu', {
-        bubbles: true,
-        cancelable: true,
-        clientX: rect.left + 30,
-        clientY: rect.top + 10
-      })
-    )
-    ;(
-      doc.defaultView as unknown as {
-        setSpellingSuggestions(word: string, suggestions: string[]): void
-      }
-    ).setSpellingSuggestions('Aelthorn', ['Althorn'])
-  })
+    // Right-click visible prose, not the editor's potentially scrolled-off top
+    // edge. Supply deterministic spelling results to the real custom menu.
+    await editor.locator('p').filter({ hasText: 'The Aelthorn banner burned.' }).first().click({ button: 'right' })
+    await h.page.evaluate(() => {
+      const doc = document.querySelector<HTMLIFrameElement>('.editor-frame')!.contentDocument!
+      ;(
+        doc.defaultView as unknown as {
+          setSpellingSuggestions(word: string, suggestions: string[]): void
+        }
+      ).setSpellingSuggestions('Aelthorn', ['Althorn'])
+    })
 
-  const addRow = h.page.frameLocator('.editor-frame').locator('[data-action="addToDictionary"]')
-  await expect(addRow).toBeVisible({ timeout: 10_000 })
-  await addRow.click()
+    const addRow = h.page.frameLocator('.editor-frame').locator('[data-action="addToDictionary"]')
+    await expect(addRow).toBeVisible({ timeout: 10_000 })
+    await addRow.click()
 
-  // Stored with the writer's settings, which is what Settings reads back and
-  // what the platform checker is handed on every launch.
-  await expect
-    .poll(() => h.rpc<string[]>('spell/words'), { timeout: 15_000 })
-    .toEqual(['Aelthorn'])
-
-  await h.close()
+    // Stored with the writer's settings, which is what Settings reads back and
+    // what the platform checker is handed on every launch.
+    await expect
+      .poll(() => h.rpc<string[]>('spell/words'), { timeout: 15_000 })
+      .toEqual(['Aelthorn'])
+  } finally { await h.close() }
 })
