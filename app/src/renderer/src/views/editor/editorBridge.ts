@@ -19,15 +19,16 @@ export interface ProofingStatus {
 export interface EditorWindow extends Window {
   setContent(html: string): void
   setSceneContext(sceneId: string): void
-  /** Clean stored HTML and plain text currently in the live contenteditable. */
+  /** Clean stored HTML currently in the live contenteditable. */
   getContent(): string
-  getPlainText(): string
   captureDictationAnchor(id: string): boolean
   focusDictationCaret(): boolean
   insertDictationText(id: string, text: string, paragraph: boolean, mergeClose: string, mergeOpen: string,
     tag?: { close: string; language: string }): boolean
   /** Sends any edit still inside the iframe's short change debounce. */
   flushPendingContentChange(): void
+  /** Captures an unreported edit without treating normalized loaded prose as dirty. */
+  capturePendingContentChange(): { html: string; plainText: string } | null
   setTheme(
     bg: string,
     fg: string,
@@ -42,6 +43,7 @@ export interface EditorWindow extends Window {
   setFont(family: string, size: number): void
   setBookWidth(enabled: boolean, widthPx: number): void
   setWritingZoom(factor: number, typewriterAnchor?: string | null): void
+  getWritingZoomToFit(): number
   /** Where a book-relative image path hangs off, for display in the frame. */
   setImageBase(base: string): void
   /** Places an image on its own line after the caret's paragraph. */

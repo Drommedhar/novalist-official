@@ -18,7 +18,6 @@ function setTypewriterScroll(enabled, anchor) {
     window.NovalistEditorState.typewriterEnabled = !!enabled;
     window.NovalistEditorState.typewriterAnchor = nextAnchor;
     document.body.classList.toggle('typewriter-on', window.NovalistEditorState.typewriterEnabled);
-    window.NovalistEditorState.typewriterLastY = -9999;
     scheduleTypewriterRecenter();
 }
 
@@ -58,9 +57,6 @@ function recenterCaret() {
     const viewportH = window.NovalistEditorState.wrapper.clientHeight;
 
     if (window.NovalistEditorState.typewriterEnabled) {
-        if (Math.abs(top - window.NovalistEditorState.typewriterLastY) < 4) return;
-        window.NovalistEditorState.typewriterLastY = top;
-
         let frac = 0.5;
         if (window.NovalistEditorState.typewriterAnchor === 'top') frac = 0.33;
         else if (window.NovalistEditorState.typewriterAnchor === 'bottom') frac = 0.66;

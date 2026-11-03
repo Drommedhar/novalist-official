@@ -58,6 +58,35 @@ function hideGrammarPopup() {
     delete window.NovalistEditorState.grammarPopup.dataset.issueIndex;
 }
 
+function captureGrammarPopup() {
+    const state = window.NovalistEditorState;
+    if (!state.grammarPopup.classList.contains('visible')) return null;
+    const index = state.grammarPopup.dataset.issueIndex;
+    const issue = state.grammarIssues[index];
+    const range = grammarIssueRange(index);
+    if (!issue || !range || range.toString() !== issue.text) return null;
+    // Earlier corrections can shift this occurrence without changing its
+    // stored offsets. Match the refreshed finding at the live marked words.
+    const { textNodes } = window.buildGrammarPlainTextMap();
+    const fragments = textNodes.filter(entry => range.intersectsNode(entry.node));
+    if (!fragments.length) return null;
+    const offset = fragments[0].start;
+    const length = fragments[fragments.length - 1].end - offset;
+    return { key: grammarIssueKey({ ...issue, offset, length }), text: issue.text };
+}
+
+function restoreGrammarPopup(saved) {
+    if (!saved) return;
+    const index = window.NovalistEditorState.grammarIssues.findIndex(issue =>
+        grammarIssueKey(issue) === saved.key && issue.text === saved.text);
+    const range = index >= 0 ? grammarIssueRange(index) : null;
+    if (!range) return;
+    const rect = range.getBoundingClientRect();
+    // Rebuild actions with the new index and suggestions; retaining the old
+    // closures could correct a different finding if the result order changed.
+    showGrammarPopup(index, rect.left, rect.bottom);
+}
+
 function grammarIssueKey(issue) {
     return JSON.stringify([issue.offset, issue.length, issue.type, issue.message]);
 }
@@ -164,6 +193,8 @@ function requestGrammarCheck() {
 Object.assign(window, {
     showGrammarPopup,
     hideGrammarPopup,
+    captureGrammarPopup,
+    restoreGrammarPopup,
     grammarIssueKey,
     dismissGrammarIssue,
     applyGrammarSuggestion,

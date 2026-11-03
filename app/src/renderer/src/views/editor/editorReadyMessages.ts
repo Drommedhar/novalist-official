@@ -2,6 +2,7 @@ import { editorWindow, pushEditorTheme } from './editorBridge'
 import { useEditorBridge } from '../../stores/editorBridgeStore'
 import { editorPane, useProjectStore } from '../../stores/projectStore'
 import { useSettingsStore } from '../../stores/settingsStore'
+import { useWritingZoomStore } from '../../stores/writingZoomStore'
 import { useShellStore } from '../../stores/shellStore'
 import { rpc } from '../../rpc/client'
 import { pushEditorSettings, pushEditorConfig } from './editorConfiguration'
@@ -40,21 +41,34 @@ export function createEditorReadyMessages(context: EditorHandlerContext): Editor
         loadingRef.current = false
         lastReportedHtmlRef.current = initialHtml
       }
-      void loadAnnotations(live).then((loaded) => {
+      const annotationsReady = loadAnnotations(live).then((loaded) => {
         if (!loaded) return
         const ids = live.footnoteOrder()
         if (ids.length > 0) applyFootnoteOrder(ids)
       })
       void pushEntityNames(live)
       const settings = useSettingsStore.getState()
-      if (settings.view) {
+      const applySettings = (): void => {
+        if (editorRef.current !== live) return
         pushEditorSettings(live, true)
         pushEditorConfig(live, t)
+      }
+      let settingsReady: Promise<void>
+      if (settings.view) {
+        applySettings()
+        settingsReady = Promise.resolve()
       } else {
-        void settings.load().then(() => {
-          if (editorRef.current) {
-            pushEditorSettings(editorRef.current, true)
-            pushEditorConfig(editorRef.current, t)
+        settingsReady = settings.load().then(applySettings)
+      }
+      // Fit the first scene once the chosen font, paper and comment gutter
+      // have arrived. Later navigation/resizes keep the writer's chosen zoom.
+      if (window.novalist.isMobile !== true && !useWritingZoomStore.getState().initialized) {
+        void Promise.all([annotationsReady, settingsReady]).then(async () => {
+          await live.document.fonts.ready
+          await new Promise<void>(resolve => live.requestAnimationFrame(() => live.requestAnimationFrame(() => resolve())))
+          if (!iframe.isConnected || editorRef.current !== live || !editorPane(useProjectStore.getState(), pane).sceneId) return
+          if (!useWritingZoomStore.getState().initialized) {
+            useWritingZoomStore.getState().fitOnce(live.getWritingZoomToFit() * 100)
           }
         })
       }

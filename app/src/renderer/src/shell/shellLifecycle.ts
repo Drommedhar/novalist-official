@@ -7,6 +7,7 @@ import { hydrateWindow } from './bootstrap'
 import { hasSeenTour } from './FirstRunTour'
 import { runUpdateCheck } from './appUpdateActions'
 import type { AppUpdateState } from './appUpdateState'
+import { refreshExternalScenes } from '../stores/externalSceneRefresh'
 
 export function useRecentProjects(): void {
   const backendVersion = useShellStore((s) => s.backendVersion)
@@ -20,6 +21,7 @@ export function useRecentProjects(): void {
       clearTimeout(refreshTimer)
       refreshTimer = setTimeout(() => {
         void useProjectStore.getState().loadRecents().catch(() => {})
+        void refreshExternalScenes().catch(() => {})
       }, 250)
     }
     const onVisible = (): void => { if (document.visibilityState === 'visible') refresh() }

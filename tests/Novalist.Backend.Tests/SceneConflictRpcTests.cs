@@ -57,6 +57,49 @@ public sealed class SceneConflictRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Refresh_ReadsExternalTextAndPersistsCountsWithoutWritingProse()
+    {
+        var hash = (await _rpc.ReadAsync(_chapter, _scene)).Hash;
+        await OtherMachineWroteAsync("<p>External words.</p><p>Second paragraph.</p>");
+        var refresh = await _rpc.RefreshAsync([new(_chapter, _scene, hash)]);
+        var change = Assert.Single(refresh.Changes);
+        Assert.Equal("<p>External words.</p><p>Second paragraph.</p>", change.Html);
+        Assert.Equal(4, Assert.Single(refresh.Counts).WordCount);
+        Assert.Equal(4, _workspace.ResolveScene(_chapter, _scene).scene.WordCount);
+        Assert.Empty((await _rpc.RefreshAsync([new(_chapter, _scene, change.Hash)])).Changes);
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        Assert.Equal(4, _workspace.ResolveScene(_chapter, _scene).scene.WordCount);
+        Assert.Equal(change.Html, (await _rpc.ReadAsync(_chapter, _scene)).Html);
+    }
+
+    [Fact]
+    public async Task Refresh_CountsUnopenedScenesAndDoesNotInvalidateStaleSaveProtection()
+    {
+        var original = (await _rpc.ReadAsync(_chapter, _scene)).Hash;
+        await OtherMachineWroteAsync("<p>Edited outside Novalist.</p>");
+        var refresh = await _rpc.RefreshAsync([]);
+        Assert.Empty(refresh.Changes);
+        Assert.Equal(3, Assert.Single(refresh.Counts).WordCount);
+        var refused = await _rpc.WriteAsync(_chapter, _scene, "<p>Unsaved local text.</p>", "Unsaved local text.", original);
+        Assert.True(refused.Conflicted);
+        Assert.Equal("<p>Edited outside Novalist.</p>", refused.DiskHtml);
+    }
+
+    [Fact]
+    public async Task Refresh_SkipsMissingFilesAndDeduplicatesSplitEditorVersions()
+    {
+        var original = (await _rpc.ReadAsync(_chapter, _scene)).Hash;
+        await OtherMachineWroteAsync("<p>New.</p>");
+        var current = (await _rpc.ReadAsync(_chapter, _scene)).Hash;
+        Assert.Single((await _rpc.RefreshAsync([new(_chapter, _scene, original), new(_chapter, _scene, current)])).Changes);
+        var (chapter, scene) = _workspace.ResolveScene(_chapter, _scene);
+        File.Delete(_workspace.Projects.GetSceneFilePath(chapter, scene));
+        Assert.Empty((await _rpc.RefreshAsync([new(_chapter, _scene, current)])).Changes);
+        _workspace.CloseProject();
+        Assert.Empty((await _rpc.RefreshAsync([])).Counts);
+    }
+
+    [Fact]
     public async Task Write_WithNoHashKeepsWorkingForCallersWithNoEditor()
     {
         var result = await _rpc.WriteAsync(_chapter, _scene, "<p>imported</p>", "imported");

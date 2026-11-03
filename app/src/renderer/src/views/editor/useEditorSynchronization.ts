@@ -5,7 +5,7 @@ import { useShellStore } from '../../stores/shellStore'
 import { registerPendingWrite } from '../../stores/pendingWrites'
 import { type EditorFrameModel } from './useEditorFrameModel'
 
-export function useEditorPersistence({ editorRef, pane, openSceneId }: Pick<EditorFrameModel, 'editorRef' | 'pane' | 'openSceneId'>): void {
+export function useEditorPersistence({ editorRef, pane, openSceneId, lastReportedHtmlRef }: Pick<EditorFrameModel, 'editorRef' | 'pane' | 'openSceneId' | 'lastReportedHtmlRef'>): void {
 // The iframe normally reports an edit after 50 ms and the project store
   // writes it after two seconds. An update may already be cached, so capture
   // the live DOM and drain both delays before the installer is allowed to run.
@@ -15,9 +15,11 @@ export function useEditorPersistence({ editorRef, pane, openSceneId }: Pick<Edit
       const store = useProjectStore.getState()
       const current = editorPane(store, pane)
       if (live && current.sceneId) {
-        const html = live.getContent()
-        const plainText = live.getPlainText()
-        if (html !== current.html || plainText !== current.plainText) store.onEditorContentChanged(pane, html, plainText)
+        const change = live.capturePendingContentChange()
+        if (change) {
+          lastReportedHtmlRef.current = change.html
+          store.onEditorContentChanged(pane, change.html, change.plainText)
+        }
       }
     }
     return registerPendingWrite(async () => {

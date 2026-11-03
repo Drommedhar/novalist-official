@@ -5,6 +5,7 @@ import { useFilterStore } from './filterStore'
 import type { ColourDimension } from '../views/manuscript/sceneColour'
 import i18n from '../i18n'
 import { retainMobileSceneRecovery } from '../mobile/recovery'
+import type { SceneDiskChange } from './externalSceneRefresh'
 
 export interface ManuscriptSceneDto {
   sceneId: string
@@ -43,6 +44,7 @@ interface PendingManuscriptSave {
   html: string
   plainText: string
   expectedHash: string
+  revision: number
 }
 
 interface SceneWriteResult {
@@ -54,6 +56,26 @@ interface SceneWriteResult {
 }
 
 const saveTimers = new Map<string, PendingManuscriptSave>()
+// Accepting a resolved or matching disk version retires every earlier write,
+// including predecessors no longer stored as the newest pending payload.
+const sceneWriteRevisions = new Map<string, number>()
+
+export function applyExternalManuscriptScene(change: SceneDiskChange, previousHash: string): void {
+  const state = useManuscriptStore.getState()
+  const scene = state.sections.find(section => section.chapterGuid === change.chapterGuid)?.scenes.find(scene => scene.sceneId === change.sceneId)
+  if (!scene || scene.hash !== previousHash || scene.hash === change.hash) return
+  const pending = saveTimers.get(change.sceneId)
+  if (pending && pending.html !== change.html) {
+    if (pending.timer) clearTimeout(pending.timer)
+    pending.timer = null
+    if (!useProjectStore.getState().sceneConflict) useProjectStore.setState({ sceneConflict: {
+      chapterGuid: change.chapterGuid, sceneId: change.sceneId, mine: pending.html,
+      theirs: change.html, plainText: pending.plainText
+    } })
+    return
+  }
+  state.acceptResolvedScene(change.sceneId, change.html, change.wordCount, change.hash)
+}
 /** A second debounce may mature while the first payload is still on the wire.
  *  Serialize by scene so its expected hash can be advanced by the predecessor
  *  before the successor is sent. */
@@ -67,6 +89,7 @@ function writePendingManuscriptSave(save: PendingManuscriptSave): Promise<void> 
   save.timer = null
   const predecessor = sceneWriteTails.get(save.sceneId) ?? Promise.resolve()
   const write = predecessor.catch(() => {}).then(async (): Promise<void> => {
+    if (save.revision !== (sceneWriteRevisions.get(save.sceneId) ?? 0)) return
     // Read the base only after our predecessor has settled. It may have
     // advanced the section hash while this save was queued behind it.
     const expectedHash = useManuscriptStore
@@ -81,6 +104,7 @@ function writePendingManuscriptSave(save: PendingManuscriptSave): Promise<void> 
       save.plainText,
       expectedHash ?? save.expectedHash
     ])
+    if (save.revision !== (sceneWriteRevisions.get(save.sceneId) ?? 0)) return
     const current = saveTimers.get(save.sceneId)
     if (result.conflicted) {
       // Prefer the newest local manuscript payload if the writer typed while
@@ -302,7 +326,8 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
       sceneId,
       html,
       plainText,
-      expectedHash: section.scenes.find((scene) => scene.sceneId === sceneId)?.hash ?? ''
+      expectedHash: section.scenes.find((scene) => scene.sceneId === sceneId)?.hash ?? '',
+      revision: sceneWriteRevisions.get(sceneId) ?? 0
     }
     save.timer = setTimeout(() => {
       void writePendingManuscriptSave(save).catch(() => {
@@ -332,6 +357,7 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   },
 
   acceptResolvedScene: (sceneId, html, wordCount, hash) => {
+    sceneWriteRevisions.set(sceneId, (sceneWriteRevisions.get(sceneId) ?? 0) + 1)
     const pending = saveTimers.get(sceneId)
     if (pending?.timer) clearTimeout(pending.timer)
     saveTimers.delete(sceneId)
@@ -343,6 +369,7 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
         )
       }))
     })
+    reportManuscriptClaims()
   },
 
   cycleStatus: async (chapterGuid) => {

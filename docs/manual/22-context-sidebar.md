@@ -25,7 +25,7 @@ The header shows the open scene's title, a **Chapter · Scene N of M** subtitle 
 
 ## Scene context and analysis
 
-Directly below the header, Novalist analyses the open scene and shows what it finds. Every part is a collapsible section, and your collapse choices are remembered between scenes.
+Directly below the header, Novalist analyses the open scene and shows what it finds, refreshing after a brief pause as you write, even before autosave. Every part is a collapsible section, and your collapse choices are remembered between scenes.
 
 ### Find new entries in this scene
 
@@ -79,7 +79,7 @@ Research items could already reference each other, both ways. A scene could refe
 
 - Pick a **kind** — Scene, Research, or Codex entry — then pick what to point at, and press the plus.
 - Each link takes an optional **reason** in your own words, edited in place: "pays off the promise made here". A bare link is still worth having, so the reason is never required — demanding one is how a link does not get made.
-- Click a link to go there. A scene link opens that scene; a research or Codex link switches to that view.
+- Click a link to go there. A scene link opens that scene; a research link opens Research, and an entity link opens its article in the Wiki.
 - Pointing at the same thing twice does not make a second row — it rewrites the reason on the row already there.
 - A scene cannot point at itself.
 - If the thing at the other end is deleted, **the row stays** and reads *No longer there*. A link that disappears silently is a link you never find out you lost.
@@ -165,6 +165,7 @@ Per-scene snapshots are taken and managed from the **Scene snapshots** button on
 
 - [Editor](05-editor.md) — the writing surface the Inspector describes.
 - [Snapshots](17-snapshots.md) — per-scene version history.
-- [Codex](06-codex.md) — where the entity cards open.
+- [Wiki](30-wiki.md) — where entity cards and linked entities open for reading.
+- [Codex](06-codex.md) — edit an entity through **Edit in Codex** in its Wiki article.
 - [Manuscript view](10-manuscript.md) — where synopses show up on cards and in the outliner.
 - [Dialogue](33-dialogue.md) — the same quote detection behind the dialogue percentage, per character across the book.

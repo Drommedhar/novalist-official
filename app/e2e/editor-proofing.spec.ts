@@ -275,6 +275,92 @@ test('successive corrections retain the remaining issue targets and suggestions'
   await expect(page.locator('#editor')).toHaveText('This is the end.')
 })
 
+test('the next grammar popup stays actionable through the recheck after a correction', async ({ page }) => {
+  await content(page, '<p>Ths is <b>te</b>h end. Oops.</p>')
+  await issues(page, [
+    issue(0, 3, 'This'),
+    { ...issue(7, 3, 'the'), message: 'Correct this word' },
+    issue(16, 4, 'Done')
+  ])
+  await page.locator('.grammar-issue', { hasText: 'Ths' }).click()
+  await page.locator('.gp-suggestion', { hasText: 'This' }).click()
+  await page.locator('.grammar-issue', { hasText: /^te$/ }).click()
+  await expect(page.locator('#grammar-popup')).toHaveClass(/visible/)
+  // Accepting the first suggestion changes the second finding's offset. A
+  // checker may also return findings in a different order on the next pass.
+  await expect.poll(() => page.evaluate(() =>
+    (window as unknown as ProofingWindow).proofingRequests.some(request =>
+      request.type === 'grammarCheckRequest' && request.plainText === 'This is teh end. Oops.')
+  )).toBe(true)
+  await page.evaluate((values) => {
+    const w = window as unknown as ProofingWindow
+    const request = w.proofingRequests.filter(request => request.type === 'grammarCheckRequest').at(-1)!
+    w.setGrammarIssues(JSON.stringify(values), request.requestId)
+  }, [issue(17, 4, 'Done'), { ...issue(8, 3, 'the'), message: 'Correct this word' }])
+  await expect(page.locator('#grammar-popup')).toHaveClass(/visible/)
+  await expect(page.locator('.gp-message')).toHaveText('Correct this word')
+  await page.locator('.gp-suggestion', { hasText: /^the$/ }).click()
+  await expect(page.locator('#editor')).toHaveText('This is the end. Oops.')
+  await page.keyboard.press('ControlOrMeta+z')
+  await expect(page.locator('#editor')).toHaveText('This is teh end. Oops.')
+})
+
+for (const replacement of ['removed', 'another occurrence', 'another explanation', 'another type']) {
+  test(`a grammar popup closes when its refreshed finding is ${replacement}`, async ({ page }) => {
+    await content(page, '<p>teh and teh.</p>')
+    await issues(page, [issue(0, 3, 'the'), issue(8, 3, 'the')])
+    await page.locator('.grammar-issue').first().click()
+    const refreshed = replacement === 'removed' ? []
+      : replacement === 'another occurrence' ? [issue(8, 3, 'the')]
+      : replacement === 'another explanation' ? [{ ...issue(0, 3, 'the'), message: 'A different remark' }]
+      : [{ ...issue(0, 3, 'the'), type: 'style' }]
+    await issues(page, refreshed)
+    await expect(page.locator('#grammar-popup')).not.toHaveClass(/visible/)
+    await expect(page.locator('#editor')).toHaveText('teh and teh.')
+  })
+}
+
+test('a grammar popup does not survive edits to its marked words', async ({ page }) => {
+  await content(page, '<p>teh word.</p>')
+  await issues(page, [issue(0, 3, 'the')])
+  await page.locator('.grammar-issue').click()
+  await page.locator('.grammar-issue').evaluate(span => {
+    const range = document.createRange()
+    range.setStart(span.firstChild!, 1)
+    range.setEnd(span.firstChild!, 2)
+    window.getSelection()!.removeAllRanges()
+    window.getSelection()!.addRange(range)
+  })
+  await page.keyboard.type('a')
+  await expect(page.locator('#editor')).toHaveText('tah word.')
+  // Same location and explanation, but a different word must not inherit the
+  // open popup's actions merely because a checker still flags that position.
+  await issues(page, [issue(0, 3, 'the')])
+  await expect(page.locator('#grammar-popup')).not.toHaveClass(/visible/)
+})
+
+for (const reset of ['content reload', 'scene switch']) {
+  test(`an open grammar popup stays closed after a ${reset} and a late response`, async ({ page }) => {
+    await content(page, '<p>teh word.</p>')
+    await issues(page, [issue(0, 3, 'the')])
+    await page.locator('.grammar-issue').click()
+    await expect.poll(() => page.evaluate(() =>
+      (window as unknown as ProofingWindow).proofingRequests.some(request => request.type === 'grammarCheckRequest')
+    )).toBe(true)
+    const requestId = await page.evaluate(() =>
+      (window as unknown as ProofingWindow).proofingRequests.find(request => request.type === 'grammarCheckRequest')!.requestId
+    )
+    if (reset === 'content reload') await content(page, '<p>teh word.</p>')
+    else await page.evaluate(() => (window as unknown as EditorWindow).setSceneContext('another-scene'))
+    await page.evaluate(({ requestId, values }) =>
+      (window as unknown as ProofingWindow).setGrammarIssues(JSON.stringify(values), requestId),
+    { requestId, values: [issue(0, 3, 'the')] })
+    await expect(page.locator('#grammar-popup')).not.toHaveClass(/visible/)
+    await expect(page.locator('.grammar-issue')).toHaveCount(0)
+    await expect(page.locator('#editor')).toHaveText('teh word.')
+  })
+}
+
 for (const menu of ['popup', 'context']) {
   test(`learning a word across inline markup saves the whole word from the ${menu} menu`, async ({ page }) => {
     await content(page, '<p>The <b>Ael</b>thorn banner burned.</p>')

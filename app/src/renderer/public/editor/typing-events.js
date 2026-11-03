@@ -196,7 +196,10 @@ document.addEventListener('selectionchange', () => {
 // away from while reading. Those background updates must leave the view alone.
 window.NovalistEditorState.editor.addEventListener('keydown', (e) => {
     if (window.isCompositionInput(e)) return;
-    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+    if (!e.defaultPrevented && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+        // Keyboard navigation ends the reading pause created by a wheel or
+        // pointer gesture. Follow the newly chosen line immediately.
+        window.NovalistEditorState.typewriterSuspendUntil = 0;
         window.scheduleTypewriterRecenter();
     }
 });

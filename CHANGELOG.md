@@ -21,12 +21,21 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
+### Changed
+
+- The first scene opened after startup fits the editor's available width. Manual zoom is then preserved for the rest of the session.
+- Linked entities in the sidebar open their selected Wiki article, matching Context cards and Focus Peek.
+
 ### Fixed
 
 - Scene text no longer displays extra blank lines when saved files contain formatting newlines between paragraphs. Intentional blank paragraphs and line breaks are preserved.
 - Manuscript filters use one consistent set of controls, keeping chapter-status and scene-stage selections in sync when switching views, clearing filters, or applying presets.
 - Timeline event descriptions remain visible and editable when the event dialog needs to scroll.
 - Shared World Bible entries can select and reuse images from any book's gallery, with newly attached images staying linked when switching books or reopening the project.
+- Arrow-key navigation keeps the caret visible, including empty lines on the next book page and navigation after manual scrolling.
+- Context updates entity matches while you write in scenes or Manuscript, without requiring a tab switch.
+- Applying a proofreading correction no longer closes the next issue's popup when updated results arrive.
+- Returning to Novalist detects external scene edits, refreshes clean editors and outline word counts, and preserves unsaved text for conflict resolution.
 
 ---
 

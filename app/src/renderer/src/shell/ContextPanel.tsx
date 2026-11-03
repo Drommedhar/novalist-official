@@ -4,12 +4,20 @@ import { RotateCcw } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useShellStore } from '../stores/shellStore'
 import { useWikiStore } from '../stores/wikiStore'
-import { useProjectStore } from '../stores/projectStore'
+import { editorPane, useBookScope, useProjectStore } from '../stores/projectStore'
+import { loadBookScoped } from '../stores/bookScopedLoad'
+import { useManuscriptStore } from '../stores/manuscriptStore'
+import { type ProjectState } from '../stores/projectTypes'
 import { useEntityPeek, type PeekScope } from '../views/editor/PeekCard'
 import { EntityProposalsDialog, type EntityProposal } from './EntityProposalsDialog'
 import { MotionPresence } from './MotionPresence'
 import { type CardPeek, type SceneContext } from './contextTypes'
 import { SECTION_STORAGE_KEY, readCollapsed, loc, CollapsibleSection, EntitySection } from './ContextSections'
+
+function currentSceneHtml(state: ProjectState, chapterGuid: string, sceneId: string): string | null {
+  const editor = editorPane(state, state.activeEditorPaneId)
+  return editor.chapterGuid === chapterGuid && editor.sceneId === sceneId ? editor.html : null
+}
 
 /** Scene context/analysis panel: entities present in the scene, cross-chapter
  * mention matrix, and the auto-computed scene analysis. POV, emotion, intensity,
@@ -32,6 +40,9 @@ export function ContextPanel({
   const [conflictDraft, setConflictDraft] = useState('')
   const [tagsDraft, setTagsDraft] = useState('')
   const [intensityDraft, setIntensityDraft] = useState('')
+  const conflictInput = useRef<HTMLInputElement>(null)
+  const tagsInput = useRef<HTMLInputElement>(null)
+  const intensityInput = useRef<HTMLInputElement>(null)
   // AI entity extraction (only offered when an extension provides an extractor).
   const [extractorAvailable, setExtractorAvailable] = useState(false)
   const [scanning, setScanning] = useState(false)
@@ -39,8 +50,20 @@ export function ContextPanel({
   const [proposals, setProposals] = useState<EntityProposal[] | null>(null)
   const chapters = useProjectStore((s) => s.chapters)
   const savedHash = useProjectStore((s) => s.sceneHashes[sceneId])
-  const analyzedHash = useRef(savedHash)
+  const editorHtml = useProjectStore((s) => currentSceneHtml(s, chapterGuid, sceneId))
+  const mainView = useShellStore((s) => s.mainView)
+  const manuscriptHtml = useManuscriptStore((s) => mainView === 'manuscript'
+    ? s.sections.find((chapter) => chapter.chapterGuid === chapterGuid)?.scenes.find((scene) => scene.sceneId === sceneId)?.html ?? null
+    : null)
+  const sceneHtml = mainView === 'manuscript' ? manuscriptHtml : editorHtml
+  const sceneHtmlRef = useRef(sceneHtml)
+  sceneHtmlRef.current = sceneHtml
+  const bookScope = useBookScope()
+  const workspaceEpoch = useProjectStore((s) => s.workspaceEpoch)
+  const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
   const analysisRequest = useRef(0)
+  const analyzedScene = useRef('')
+  const sceneKey = `${bookScope}|${workspaceEpoch}|${chapterGuid}|${sceneId}`
 
   // The open chapter/scene, so a character peek raised from the sidebar resolves
   // its per-chapter/scene overrides for the scene in view — exactly as the editor
@@ -76,13 +99,19 @@ export function ContextPanel({
 
   const analyze = useCallback(
     (preparing = false): void => {
+      const current = useProjectStore.getState()
+      if (current.openChapterGuid !== chapterGuid || current.openSceneId !== sceneId ||
+          current.workspaceEpoch !== workspaceEpoch) return
       const request = ++analysisRequest.current
       if (preparing) onReadyChange?.(false)
-      void rpc
-        .request<SceneContext>('context/analyze', [chapterGuid, sceneId])
-        .then((next) => {
+      const html = sceneHtmlRef.current
+      void loadBookScoped(
+        useProjectStore.getState,
+        () => rpc.request<SceneContext>('context/analyze', [chapterGuid, sceneId, html]),
+        (next) => {
           if (request === analysisRequest.current) setCtx(next)
-        })
+        }
+      )
         .catch(() => {
           if (request === analysisRequest.current) setCtx(null)
         })
@@ -90,7 +119,7 @@ export function ContextPanel({
           if (request === analysisRequest.current) onReadyChange?.(true)
         })
     },
-    [chapterGuid, sceneId, onReadyChange]
+    [chapterGuid, sceneId, workspaceEpoch, onReadyChange]
   )
 
   /** Asks the installed AI extension which people/places/things in this scene are
@@ -126,19 +155,23 @@ export function ContextPanel({
   useEffect(() => {
     setCtx(null)
     setScanMessage(null)
-    analyze(true)
+  }, [sceneKey])
+
+  // Follow the live document, including edits still waiting for autosave. A
+  // brief pause avoids reading the book after every keystroke; retained Focus
+  // panels use the same refresh path while hidden.
+  useEffect(() => {
+    ++analysisRequest.current
+    if (workspaceBusy) return
+    const initial = analyzedScene.current !== sceneKey
+    analyzedScene.current = sceneKey
+    const timer = initial ? null : setTimeout(() => analyze(prepareHidden), 300)
+    if (initial) analyze(true)
     return () => {
+      if (timer !== null) clearTimeout(timer)
       ++analysisRequest.current
     }
-  }, [analyze])
-
-  // A retained panel follows saved prose while tucked away. It does no work on
-  // hover, and never replaces a draft field while the writer is using it.
-  useEffect(() => {
-    if (!prepareHidden || analyzedHash.current === savedHash) return
-    analyzedHash.current = savedHash
-    analyze(true)
-  }, [prepareHidden, savedHash, analyze])
+  }, [sceneKey, sceneHtml, savedHash, workspaceBusy, prepareHidden, analyze])
 
   // Whether any extension offers entity extraction; without one the scan button
   // never appears.
@@ -154,9 +187,11 @@ export function ContextPanel({
   useEffect(() => {
     if (!ctx) return
     const a = ctx.analysis
-    setConflictDraft(a.conflict)
-    setIntensityDraft(String(a.intensity))
-    setTagsDraft(a.tags.map((tag) => loc(t, tag)).join(', '))
+    // A refresh can finish while an override is still being typed. Its blur
+    // handler owns that draft until the writer leaves the field.
+    if (document.activeElement !== conflictInput.current) setConflictDraft(a.conflict)
+    if (document.activeElement !== intensityInput.current) setIntensityDraft(String(a.intensity))
+    if (document.activeElement !== tagsInput.current) setTagsDraft(a.tags.map((tag) => loc(t, tag)).join(', '))
   }, [ctx, t])
 
   const toggleSection = (key: string): void => {
@@ -442,6 +477,7 @@ export function ContextPanel({
             />
           </span>
           <input
+            ref={intensityInput}
             type="number"
             min={-10}
             max={10}
@@ -467,6 +503,7 @@ export function ContextPanel({
           <span className="ctx-analysis-key">{t('context.conflict')}</span>
           <div className="ctx-analysis-edit">
             <input
+              ref={conflictInput}
               className="dialog-input ctx-analysis-input"
               placeholder={t('context.conflict')}
               value={conflictDraft}
@@ -483,6 +520,7 @@ export function ContextPanel({
           <span className="ctx-analysis-key">{t('context.tags')}</span>
           <div className="ctx-analysis-edit">
             <input
+              ref={tagsInput}
               className="dialog-input ctx-analysis-input"
               placeholder={t('context.commaSeparatedTags')}
               value={tagsDraft}
