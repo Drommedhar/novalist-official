@@ -1,13 +1,13 @@
 using System.Text.RegularExpressions;
 using System.Text;
 using Novalist.Core.Models;
-using XBrushes = PdfSharpCore.Drawing.XBrushes;
-using XFont = PdfSharpCore.Drawing.XFont;
-using XFontStyle = PdfSharpCore.Drawing.XFontStyle;
-using XGraphics = PdfSharpCore.Drawing.XGraphics;
-using XImage = PdfSharpCore.Drawing.XImage;
-using XPoint = PdfSharpCore.Drawing.XPoint;
-using XUnit = PdfSharpCore.Drawing.XUnit;
+using XBrushes = PdfSharp.Drawing.XBrushes;
+using XFont = PdfSharp.Drawing.XFont;
+using XFontStyleEx = PdfSharp.Drawing.XFontStyleEx;
+using XGraphics = PdfSharp.Drawing.XGraphics;
+using XImage = PdfSharp.Drawing.XImage;
+using XPoint = PdfSharp.Drawing.XPoint;
+using XUnit = PdfSharp.Drawing.XUnit;
 using static Novalist.Core.Services.ExportProse;
 
 namespace Novalist.Core.Services;
@@ -46,25 +46,25 @@ public partial class ExportService
     {
         private const string fontName = "Times New Roman";
         private const double lineHeight = 15.0;
-        private static readonly XUnit pageWidth = XUnit.FromInch(8.5);
-        private static readonly XUnit pageHeight = XUnit.FromInch(11);
-        private static readonly XUnit margin = XUnit.FromInch(1);
+        private static readonly double pageWidth = XUnit.FromInch(8.5).Point;
+        private static readonly double pageHeight = XUnit.FromInch(11).Point;
+        private static readonly double margin = XUnit.FromInch(1).Point;
         private static readonly double textWidth = pageWidth - 2 * margin;
         private static readonly double pageBottom = pageHeight - margin;
-        private static readonly double fieldIndent = XUnit.FromInch(0.2);
-        private static readonly double bulletIndent = XUnit.FromInch(0.18);
-        private static readonly double maxImageSide = XUnit.FromInch(3);
-        private readonly PdfSharpCore.Pdf.PdfDocument doc = new();
+        private static readonly double fieldIndent = XUnit.FromInch(0.2).Point;
+        private static readonly double bulletIndent = XUnit.FromInch(0.18).Point;
+        private static readonly double maxImageSide = XUnit.FromInch(3).Point;
+        private readonly PdfSharp.Pdf.PdfDocument doc = new();
         private readonly XFont bodyFont = new(fontName, 11);
-        private readonly XFont labelFont = new(fontName, 11, XFontStyle.Bold);
-        private readonly XFont blockFont = new(fontName, 12.5, XFontStyle.Bold);
-        private readonly XFont entityFont = new(fontName, 15, XFontStyle.Bold);
-        private readonly XFont sectionFont = new(fontName, 20, XFontStyle.Bold);
+        private readonly XFont labelFont = new(fontName, 11, XFontStyleEx.Bold);
+        private readonly XFont blockFont = new(fontName, 12.5, XFontStyleEx.Bold);
+        private readonly XFont entityFont = new(fontName, 15, XFontStyleEx.Bold);
+        private readonly XFont sectionFont = new(fontName, 20, XFontStyleEx.Bold);
         private readonly ExportOptions options;
         private readonly Func<string, string?> resolveImage;
         private readonly string docTitle;
         private XGraphics? gfx;
-        private PdfSharpCore.Pdf.PdfPage? currentPage;
+        private PdfSharp.Pdf.PdfPage? currentPage;
         private double y;
 
         public CodexPdfWriter(ExportOptions options, Func<string, string?> resolveImage)
@@ -81,8 +81,8 @@ public partial class ExportService
         {
             gfx?.Dispose();
             var page = doc.AddPage();
-            page.Width = pageWidth;
-            page.Height = pageHeight;
+            page.Width = PdfSharp.Drawing.XUnit.FromPoint(pageWidth);
+            page.Height = PdfSharp.Drawing.XUnit.FromPoint(pageHeight);
             currentPage = page;
             gfx = XGraphics.FromPdfPage(page);
             y = margin + lineHeight;
@@ -175,17 +175,21 @@ public partial class ExportService
 
         private void DrawImage(string absolutePath)
         {
-            XImage image;
+            PdfImage source;
             // Unreadable or unsupported image files are skipped rather than
             // failing the whole export.
-            try { image = XImage.FromFile(absolutePath); }
+            try { source = new PdfImage(absolutePath); }
             catch { return; }
 
-            using (image)
+            using (source)
             {
-                var scale = Math.Min(1.0, Math.Min(maxImageSide / image.PointWidth, maxImageSide / image.PointHeight));
-                var width = image.PointWidth * scale;
-                var height = image.PointHeight * scale;
+                var image = source.Image;
+                // Preserve the previous 96-DPI layout regardless of decoder metadata.
+                var pointWidth = image.PixelWidth * 72.0 / 96;
+                var pointHeight = image.PixelHeight * 72.0 / 96;
+                var scale = Math.Min(1.0, Math.Min(maxImageSide / pointWidth, maxImageSide / pointHeight));
+                var width = pointWidth * scale;
+                var height = pointHeight * scale;
                 Ensure(height + lineHeight);
                 gfx.DrawImage(image, margin + fieldIndent, y, width, height);
                 y += height + lineHeight * 0.5;
@@ -219,14 +223,15 @@ public partial class ExportService
         // Every entry opens its own page so a reader can flip to one entry, and
         // gets a bookmark nested under its group in the PDF outline.
         private void DrawEntity(
-            PdfSharpCore.Pdf.PdfOutline group,
+            PdfSharp.Pdf.PdfOutline group,
             bool first,
             string name,
             IEnumerable<KeyValuePair<string, string>> fields,
             IEntityData entity)
         {
             if (!first) NewPage();
-            group.Outlines.Add(name, currentPage, false);
+            // SectionHeading creates the first entry's page before this call.
+            group.Outlines.Add(name, currentPage!, false);
 
             DrawHeading(name, 0, entityFont);
             DrawImages(entity.Images);
@@ -245,7 +250,7 @@ public partial class ExportService
             y += lineHeight;
         }
 
-        private PdfSharpCore.Pdf.PdfOutline SectionHeading(string title)
+        private PdfSharp.Pdf.PdfOutline SectionHeading(string title)
         {
             NewPage();
             var outline = doc.Outlines.Add(title, currentPage, true);
@@ -260,14 +265,14 @@ public partial class ExportService
             if (options.IncludeTitlePage)
             {
                 NewPage();
-                var titleFont = new XFont(fontName, 26, XFontStyle.Bold);
+                var titleFont = new XFont(fontName, 26, XFontStyleEx.Bold);
                 var titleWidth = gfx.MeasureString(docTitle, titleFont).Width;
                 gfx.DrawString(docTitle, titleFont, XBrushes.Black,
                     new XPoint((pageWidth - titleWidth) / 2, pageHeight * 0.45));
 
                 if (!string.IsNullOrWhiteSpace(options.Author))
                 {
-                    var authorFont = new XFont(fontName, 14, XFontStyle.Italic);
+                    var authorFont = new XFont(fontName, 14, XFontStyleEx.Italic);
                     var authorWidth = gfx.MeasureString(options.Author, authorFont).Width;
                     gfx.DrawString(options.Author, authorFont, XBrushes.Black,
                         new XPoint((pageWidth - authorWidth) / 2, pageHeight * 0.45 + 30));

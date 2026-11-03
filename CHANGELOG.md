@@ -37,6 +37,11 @@ could encounter in a previously released version.
 - Applying a proofreading correction no longer closes the next issue's popup when updated results arrive.
 - Returning to Novalist detects external scene edits, refreshes clean editors and outline word counts, and preserves unsaved text for conflict resolution.
 
+### Security
+
+- Replaced vulnerable image-decoding dependencies used by PDF export, preserving book covers, manuscript images, and Codex portraits.
+- Updated the desktop communication dependency to address a malformed-message decoding vulnerability.
+
 ---
 
 ## [3.6.1] - 2026-10-26

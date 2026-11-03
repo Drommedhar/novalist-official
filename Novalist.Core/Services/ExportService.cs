@@ -17,6 +17,7 @@ public partial class ExportService
 
     public ExportService(IProjectService projectService, IEntityService? entityService = null)
     {
+        PdfFontResolver.EnsureInitialized();
         _projectService = projectService;
         _entityService = entityService;
     }

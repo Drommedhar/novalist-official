@@ -26,6 +26,7 @@
     <ProjectReference Include="..\Novalist.Core\Novalist.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="MessagePack" Version="2.5.303" />
     <PackageReference Include="StreamJsonRpc" Version="2.25.29" />
     <!-- Shipped so extensions built against the desktop host's MVVM toolkit (their
          ViewModels derive from CommunityToolkit.Mvvm's ObservableObject) can resolve

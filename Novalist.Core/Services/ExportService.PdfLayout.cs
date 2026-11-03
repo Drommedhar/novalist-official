@@ -15,18 +15,18 @@ public partial class ExportService
     /// Nothing is written when there is no bleed: with the two boxes equal the
     /// entries carry no information a reader does not already have.
     /// </summary>
-    private static void MarkPageBoxes(PdfSharpCore.Pdf.PdfPage page, PrintSpec spec)
+    private static void MarkPageBoxes(PdfSharp.Pdf.PdfPage page, PrintSpec spec)
     {
         if (spec.BleedInches <= 0) return;
 
-        var bleed = PdfSharpCore.Drawing.XUnit.FromInch(spec.BleedInches).Point;
-        var trimWidth = PdfSharpCore.Drawing.XUnit.FromInch(spec.TrimWidthInches).Point;
-        var trimHeight = PdfSharpCore.Drawing.XUnit.FromInch(spec.TrimHeightInches).Point;
+        var bleed = PdfSharp.Drawing.XUnit.FromInch(spec.BleedInches).Point;
+        var trimWidth = PdfSharp.Drawing.XUnit.FromInch(spec.TrimWidthInches).Point;
+        var trimHeight = PdfSharp.Drawing.XUnit.FromInch(spec.TrimHeightInches).Point;
 
-        page.TrimBox = new PdfSharpCore.Pdf.PdfRectangle(
-            new PdfSharpCore.Drawing.XRect(bleed, bleed, trimWidth, trimHeight));
-        page.BleedBox = new PdfSharpCore.Pdf.PdfRectangle(
-            new PdfSharpCore.Drawing.XRect(
+        page.TrimBox = new PdfSharp.Pdf.PdfRectangle(
+            new PdfSharp.Drawing.XRect(bleed, bleed, trimWidth, trimHeight));
+        page.BleedBox = new PdfSharp.Pdf.PdfRectangle(
+            new PdfSharp.Drawing.XRect(
                 0, 0, trimWidth + bleed * 2, trimHeight + bleed * 2));
     }
 
@@ -60,8 +60,8 @@ public partial class ExportService
 
     private static List<string> WordWrap(
     string text,
-    PdfSharpCore.Drawing.XFont font,
-    PdfSharpCore.Drawing.XGraphics gfx,
+    PdfSharp.Drawing.XFont font,
+    PdfSharp.Drawing.XGraphics gfx,
     double maxWidth)
     {
         var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -95,17 +95,17 @@ public partial class ExportService
     /// produces the book without a cover beats one that produces nothing.
     /// </summary>
     private static void DrawPdfCoverPage(
-        PdfSharpCore.Pdf.PdfDocument doc,
+        PdfSharp.Pdf.PdfDocument doc,
         string coverPath,
         double pageWidth,
         double pageHeight,
         ref int pageNumber,
         PrintSpec spec)
     {
-        PdfSharpCore.Drawing.XImage? image = null;
+        PdfImage source;
         try
         {
-            image = PdfSharpCore.Drawing.XImage.FromFile(coverPath);
+            source = new PdfImage(coverPath);
         }
         catch (Exception exception)
         {
@@ -113,15 +113,16 @@ public partial class ExportService
             return;
         }
 
-        using (image)
+        using (source)
         {
+            var image = source.Image;
             var page = doc.AddPage();
-            page.Width = pageWidth;
-            page.Height = pageHeight;
+            page.Width = PdfSharp.Drawing.XUnit.FromPoint(pageWidth);
+            page.Height = PdfSharp.Drawing.XUnit.FromPoint(pageHeight);
             MarkPageBoxes(page, spec);
             pageNumber++;
 
-            using var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page);
+            using var gfx = PdfSharp.Drawing.XGraphics.FromPdfPage(page);
             var scale = Math.Min(pageWidth / image.PixelWidth, pageHeight / image.PixelHeight);
             var drawWidth = image.PixelWidth * scale;
             var drawHeight = image.PixelHeight * scale;
