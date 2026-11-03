@@ -125,6 +125,8 @@ jobs:
 
       - name: Native window E2E
         working-directory: app
+        env:
+          NOVALIST_E2E_ALLOW_DESKTOP: '1'
         run: npx playwright test e2e/focus-interactions.spec.ts --grep "focus restores window chrome"
 
       - name: Upload failed native window traces
@@ -198,6 +200,8 @@ jobs:
 
       - name: E2E (Playwright against the real app)
         working-directory: app
+        env:
+          NOVALIST_E2E_ALLOW_DESKTOP: '1'
         run: xvfb-run --auto-servernum npx playwright test
 
       - name: Upload failed E2E traces
