@@ -27,6 +27,15 @@ test('Back retains an editor whose save fails', async () => {
   assert.equal(f.project.isLoaded, true)
 })
 
+test('Back retains the active scene while its project close is saving', async () => {
+  const f = fixture()
+  f.project.closingProject = true
+  await f.back()
+  assert.equal(f.project.openSceneId, 'scene')
+  assert.equal(f.shell.mobileTab, 'manuscript')
+  assert.equal(f.project.isLoaded, true)
+})
+
 test('Back returns to dashboard before closing the project', async () => {
   const f = fixture()
   f.project.openSceneId = null

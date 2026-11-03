@@ -10,7 +10,7 @@ import { dismissTour, enterWriting, launchApp, seedBook } from './harness'
  * program has had for thirty years opened a panel instead. The binder moved to
  * Ctrl+Alt+B rather than bold going without.
  */
-test('Ctrl+B bolds the selection, and does not open the binder', async () => {
+test('the platform bold shortcut bolds the selection without opening the binder', async () => {
   test.setTimeout(180_000)
   const app = await launchApp('nl-bold-')
   await seedBook(app, { One: ['A'] })
@@ -33,9 +33,10 @@ test('Ctrl+B bolds the selection, and does not open the binder', async () => {
   // Select-all is handled natively inside the editor rather than forwarded, so
   // it lands on its own schedule; the gesture under test acts on what it
   // selected and has to follow it rather than race it.
-  await page.keyboard.press('Control+A')
-  await page.waitForTimeout(300)
-  await page.keyboard.press('Control+B')
+  await editor.press('ControlOrMeta+A')
+  await expect.poll(() => editor.evaluate(element => element.ownerDocument.getSelection()?.toString()))
+    .toBe('bold this')
+  await editor.press('ControlOrMeta+B')
 
   await expect(editor.locator('b, strong')).toHaveCount(1, { timeout: 15_000 })
   await expect(editor.locator('b, strong')).toContainText('bold this')

@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady, waitForAppReady } from './appReady'
+import { dismissTour } from './harness'
 import { REAL_PROJECT as REAL } from './realProject'
 
 /**
@@ -29,6 +30,7 @@ test('wiki view lists entities and opens an article', async () => {
     window.novalistStores.project.getState().applyState(state as never)
   }, REAL)
 
+  await dismissTour(page)
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('wiki'))
 
   // The index lists at least one entity, and the article pane renders a title.

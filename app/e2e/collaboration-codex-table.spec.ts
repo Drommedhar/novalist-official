@@ -55,9 +55,9 @@ test('Codex table cells hand focus to the named writer and retain other columns'
     const ownerDescription = owner.page.locator('.codex-table .cm-content')
     const guestDescription = guest.page.locator('.codex-table .cm-content')
     await expect(ownerDescription).toContainText('Shared start.')
-    await ownerDescription.press('Control+End')
+    await ownerDescription.press(process.platform === 'darwin' ? 'Meta+ArrowDown' : 'Control+End')
     await ownerDescription.pressSequentially(' Owner prose.')
-    await guestDescription.press('Control+Home')
+    await guestDescription.press(process.platform === 'darwin' ? 'Meta+ArrowUp' : 'Control+Home')
     await guestDescription.pressSequentially('Guest prose. ')
     for (const description of [ownerDescription, guestDescription]) {
       await expect(description).toContainText('Guest prose. Shared start. Owner prose.')

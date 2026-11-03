@@ -357,10 +357,15 @@ test('a comment around an entity mention survives joining and later edits', asyn
   await expect(other.locator('#editor .nv-comment .nv-entity-mention')).toHaveText('Alice')
   await expect(other.locator('#editor .nv-comment')).toHaveAttribute('data-comment-id', 'comment-1')
   await other.locator('#editor').focus()
-  await other.keyboard.press('Control+End')
+  await other.keyboard.press(process.platform === 'darwin' ? 'Meta+ArrowDown' : 'Control+End')
   await other.keyboard.type(' Together.')
+  await expect(other.locator('#editor')).toHaveText('Alice writes. Together.')
   await exchange(page, other)
-  await expect(page.locator('#editor .nv-comment .nv-entity-mention')).toHaveText('Alice')
+  for (const writer of [page, other]) {
+    await expect(writer.locator('#editor')).toHaveText('Alice writes. Together.')
+    await expect(writer.locator('#editor .nv-comment .nv-entity-mention')).toHaveText('Alice')
+    await expect(writer.locator('#editor .nv-comment')).toHaveAttribute('data-comment-id', 'comment-1')
+  }
 })
 
 test('simultaneous paragraph splits preserve both writers’ line breaks', async ({ page, context }) => {

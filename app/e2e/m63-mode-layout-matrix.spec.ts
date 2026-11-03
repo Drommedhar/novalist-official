@@ -41,6 +41,7 @@ interface Cell {
   inspector: number
   status: number
   projectActions: number
+  sceneNotes: number
 }
 
 test('every mode owns its layout, at every width', async () => {
@@ -72,7 +73,8 @@ test('every mode owns its layout, at every width', async () => {
     status: await page.locator('.status-bar').count(),
     // Scoped to the project bar: a view's own bar uses the same button class,
     // so an unscoped count reads Plan's timeline controls as project actions.
-    projectActions: await page.locator('.toolbar > .toolbar-action').count()
+    projectActions: await page.locator('.toolbar > .toolbar-action[data-command^="project."]').count(),
+    sceneNotes: await page.locator('.toolbar > [data-command="app.toggleSceneNotes"]').count()
   })
 
   for (const capacity of CAPACITIES) {
@@ -106,7 +108,8 @@ test('every mode owns its layout, at every width', async () => {
         binder: mode === 'write' ? 1 : 0,
         inspector: mode === 'write' && capacity.name === 'wide' ? 1 : 0,
         status: 1,
-        projectActions: mode === 'series' ? 0 : capacity.name === 'compact' ? 1 : 2
+        projectActions: mode === 'series' ? 0 : capacity.name === 'compact' ? 1 : 2,
+        sceneNotes: 1
       } satisfies Cell)
     }
   }

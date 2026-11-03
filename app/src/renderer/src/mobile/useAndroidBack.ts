@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useHostBridgeStore } from '../stores/hostBridgeStore'
 import { useShellStore } from '../stores/shellStore'
+import { useProjectStore } from '../stores/projectStore'
 import { handleMobileBack } from './backNavigation'
 
 export function useAndroidBack(inspectorOpen: boolean, setInspectorOpen: (open: boolean) => void,
@@ -9,6 +10,7 @@ export function useAndroidBack(inspectorOpen: boolean, setInspectorOpen: (open: 
     if (window.novalist.platform !== 'android') return
     const back = (event: Event): void => {
       event.preventDefault()
+      if (useProjectStore.getState().closingProject) return
       if (inspectorOpen) { setInspectorOpen(false); return }
       if (planningOpen) { setPlanningOpen(false); return }
       if (!window.dispatchEvent(new Event('novalist-mobile-nav-back', { cancelable: true }))) return

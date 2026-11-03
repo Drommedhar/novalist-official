@@ -11,6 +11,7 @@ import type { SharedEntityFields } from '../collaboration/FocusedField'
 import { ScenePlanningText } from '../collaboration/ScenePlanningText'
 
 interface SceneMeta {
+  synopsis?: string | null
   sharedFields?: SharedEntityFields
   notes?: string | null
   cast?: string[]
@@ -85,6 +86,7 @@ function useSceneNotes() {
         .then((meta) => {
           if (cancelled) return
           if (changingScene) {
+            setSynopsis(meta.synopsis ?? '')
             setNotes(meta.notes ?? '')
             setGoal(meta.goal ?? '')
             setOutcome(meta.outcome ?? '')

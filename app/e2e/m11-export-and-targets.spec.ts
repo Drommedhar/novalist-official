@@ -107,7 +107,8 @@ test('export separates what from how, and targets are reachable from Settings', 
   await page.locator('.dialog-card .dialog-button.primary').click()
 
   await expect(page.locator('.dashboard-target-row')).toHaveCount(1, { timeout: 10_000 })
-  await expect(page.locator('.dashboard-target-row')).toContainText('4,000')
+  const formattedTarget = await page.evaluate(() => (4000).toLocaleString())
+  await expect(page.locator('.dashboard-target-row')).toContainText(formattedTarget)
 
   await app.close()
 })

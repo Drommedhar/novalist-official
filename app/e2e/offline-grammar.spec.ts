@@ -189,7 +189,7 @@ test('learning a word clears LanguageTool spelling warnings without a paid accou
       grammarCheckProvider: 'languagetool', grammarCheckEnabled: true,
       grammarCheckApiUrl: url, grammarCheckApiKey: null, grammarCheckUsername: null
     }), server.url)
-    await seedBook(h, { One: ['Scene'] })
+    const book = await seedBook(h, { One: ['Scene'] })
     await h.page.locator('.binder-scene-row').first().click()
     const frame = h.page.frameLocator('.editor-frame')
     await expect(frame.locator('#editor')).toBeVisible()
@@ -206,7 +206,13 @@ test('learning a word clears LanguageTool spelling warnings without a paid accou
         .toContain('Aelthorn')
     }
     server.resume()
+    // Dictionary updates can finish before the prose autosave. Reopening must
+    // exercise a saved scene rather than discard its still-pending contents.
+    await expect.poll(async () => (await h.rpc<{ html: string }>('scenes/read', [
+      book.chapters[0].guid, book.chapters[0].scenes[0].id
+    ])).html).toContain('Aelthorn sees the wrold.')
     await reopenEditor(h)
+    await expect(frame.locator('#editor')).toHaveText('Aelthorn sees the wrold.')
     await expect(frame.locator('.grammar-issue')).toHaveCount(1, { timeout: 20_000 })
     await expect(frame.locator('.grammar-issue')).toHaveText('wrold')
     expect(await h.rpc<string[]>('spell/words')).toEqual(['Aelthorn'])

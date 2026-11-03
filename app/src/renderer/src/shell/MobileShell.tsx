@@ -85,7 +85,13 @@ const TABLET_DESTINATIONS: MainView[] = [
  */
 function useMobileLayout(): MobileLayout {
   const { t, i18n } = useTranslation()
-  const layout = useShellStore((s) => s.mobileLayout)
+  const requestedLayout = useShellStore((s) => s.mobileLayout)
+  const closingProject = useProjectStore((s) => s.closingProject)
+  const activeLayout = useRef(requestedLayout)
+  // Keep the saving editor attached across native rotation. A failed close
+  // resumes with the latest requested layout once the workspace is editable.
+  if (!closingProject) activeLayout.current = requestedLayout
+  const layout = activeLayout.current
   // The native side owns the size class, so it also owns which layout we render.
   // requestLayout covers the case where the first size-class pass ran before this
   // bundle finished loading and its announcement was therefore lost.
@@ -134,6 +140,7 @@ function useNativeTabs(layout: MobileLayout, setPlanningDrawerOpen: React.Dispat
   useEffect(() => {
     const w = window
     const navigate = (key: string): void => {
+      if (useProjectStore.getState().closingProject) return
       // The iPad sidebar sends MainView keys straight through - it has one entry
       // per destination, so there is no tab-to-view mapping and no Plan drawer.
       if (layout === 'tablet') {
@@ -160,6 +167,7 @@ function useNativeTabs(layout: MobileLayout, setPlanningDrawerOpen: React.Dispat
       setTab(key as MobileTab)
     }
     w.__novalistTab = (key: string) => {
+      if (useProjectStore.getState().closingProject) return
       if (window.novalist.platform === 'android') useShellStore.getState().guardLeave(() => navigate(key))
       else navigate(key)
     }
@@ -245,6 +253,7 @@ export function MobileShell(): React.JSX.Element {
   useNativeTabSelection(layout, planningView, inspectorOpen)
 
   const selectPlanning = (target: PlanningTarget): void => {
+    if (useProjectStore.getState().closingProject) return
     setPlanningDrawerOpen(false)
     if (target === 'findReplace') {
       setFindReplaceOpen(true)
@@ -264,7 +273,9 @@ export function MobileShell(): React.JSX.Element {
       const target = PLANNING_TARGETS[index]
       if (target) selectPlanning(target)
     }
-    w.__novalistPlanDismiss = () => setPlanningDrawerOpen(false)
+    w.__novalistPlanDismiss = () => {
+      if (!useProjectStore.getState().closingProject) setPlanningDrawerOpen(false)
+    }
     return () => {
       delete w.__novalistPlanSelect
       delete w.__novalistPlanDismiss

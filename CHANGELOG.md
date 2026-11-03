@@ -33,6 +33,8 @@ could encounter in a previously released version.
 
 ### Fixed
 
+- Creating a Codex entry with Enter closes the dialog without opening it again.
+- Saved scene synopses remain visible when returning to a scene or reopening its properties.
 - Manuscript shows a loading indicator while opening a book and avoids loading the full manuscript twice.
 - Codex tables show saved groups for locations, items, lore and custom entries.
 - Restoring a World Bible revision keeps the entry in the World Bible. New World Bible revisions are available across books, and settled entries reject revision restores until unlocked.

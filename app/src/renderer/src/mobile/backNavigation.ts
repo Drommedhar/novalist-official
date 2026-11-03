@@ -4,7 +4,7 @@ import { useShellStore } from '../stores/shellStore'
 export async function handleMobileBack(): Promise<void> {
   const project = useProjectStore.getState()
   const shell = useShellStore.getState()
-  if (!project.isLoaded) return
+  if (!project.isLoaded || project.closingProject) return
   if (shell.mobileLayout === 'tablet') {
     if (shell.mainView !== 'dashboard') {
       shell.setMainView('dashboard')

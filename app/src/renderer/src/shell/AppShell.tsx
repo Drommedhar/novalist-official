@@ -144,7 +144,7 @@ export function AppShell(): React.JSX.Element {
       <div className="shell-body" inert={installing}>
         {isMobile ? (
           isLoaded ? (
-            !workspaceSuspended && !closingProject ? <MobileShell /> : null
+            !workspaceSuspended ? <MobileShell /> : null
           ) : !workspaceSuspended && !closingProject ? (
             /* No project yet. The desktop shell's welcome content, in the
                mobile frame - the rail and the panes it sits beside are not

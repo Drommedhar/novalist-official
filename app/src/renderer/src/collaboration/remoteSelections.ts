@@ -42,6 +42,10 @@ export class RemoteSelections {
   }
 
   readonly render = (): void => {
+    const view = this.editor as Window & typeof globalThis
+    // Passive unmount can capture the final prose after its iframe is removed.
+    // The DOM is still readable, but the old Window may have lost its APIs.
+    if (!view.CSS?.highlights || !view.Highlight) return
     const ranges: Range[] = []
     for (const participant of this.participants.values()) {
       const range = this.range(participant.selection)
@@ -60,7 +64,6 @@ export class RemoteSelections {
       marker.style.height = `${bounds.height}px`
       marker.firstChild!.textContent = participant.name
     }
-    const view = this.editor as Window & typeof globalThis
     view.CSS.highlights.set(this.highlight, new view.Highlight(...ranges))
   }
 
@@ -82,6 +85,6 @@ export class RemoteSelections {
     this.editor.removeEventListener('resize', this.render)
     for (const marker of this.markers.values()) marker.remove()
     this.style.remove()
-    ;(this.editor as Window & typeof globalThis).CSS.highlights.delete(this.highlight)
+    ;(this.editor as Window & typeof globalThis).CSS?.highlights?.delete(this.highlight)
   }
 }

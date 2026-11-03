@@ -49,6 +49,7 @@ function fixture({ platform = 'android', inspector = false, planning = false } =
     react: { useEffect: effect => effect() },
     '../stores/hostBridgeStore': { useHostBridgeStore: { getState: () => ({ pushToast: message => calls.push(message) }) } },
     '../stores/shellStore': { useShellStore: { getState: () => ({ guardLeave: fn => fn() }) } },
+    '../stores/projectStore': { useProjectStore: { getState: () => ({ closingProject: false }) } },
     './backNavigation': { handleMobileBack: async () => { calls.push('leave view') } }
   }, { window, Event })
   shell.useAndroidBack(inspector, () => calls.push('close inspector'), planning, () => calls.push('close planning'))

@@ -62,6 +62,7 @@ function setManuscript(sectionsJson) {
             if (!scene.shared && getSceneContent(editor) !== scene.html) {
                 editor.replaceChildren(window.sceneContentFragment(scene.html || '<p><br></p>'));
                 toDisplayImages(editor);
+                refreshSceneBreakClasses(editor);
                 lastHtmlMap[scene.sceneId] = getSceneContent(editor);
             }
             placeNode(sectionEl, block, scenePosition);

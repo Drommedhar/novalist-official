@@ -62,7 +62,10 @@ test('context-menu groups require a selection and stay within the editor', async
   await page.keyboard.press('Escape')
 
   // With prose selected the group comes back, and its rows are live.
-  await page.keyboard.press('Control+a')
+  await editor.press('ControlOrMeta+a')
+  await expect.poll(() => editor.evaluate(element =>
+    element.ownerDocument.getSelection()?.toString() ?? ''
+  )).toBe('Liam Calder walked to the window.')
   await editor.click({ button: 'right' })
   await expect(frame.locator('#context-menu.visible')).toBeVisible()
   expect(await groupNames()).toEqual(['Scene', 'Codex'])

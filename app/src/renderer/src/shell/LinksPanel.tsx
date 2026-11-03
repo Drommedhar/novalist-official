@@ -5,6 +5,7 @@ import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
 import { useShellStore } from '../stores/shellStore'
 import { useWikiStore } from '../stores/wikiStore'
+import { loadBookScoped } from '../stores/bookScopedLoad'
 
 interface SceneLink {
   id: string
@@ -35,6 +36,15 @@ interface EntityOption {
 }
 
 const ENTITY_KINDS = ['character', 'location', 'item', 'lore']
+
+async function readEntityOptions(): Promise<EntityOption[]> {
+  const lists = await Promise.all(ENTITY_KINDS.map(typeKey =>
+    rpc.request<EntityOption[]>('entities/list', [typeKey])
+      .then(list => list.map(entity => ({ ...entity, typeKey })))
+      .catch(() => [] as EntityOption[])
+  ))
+  return lists.flat().sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+}
 
 /**
  * What a scene points at, and what points back at it.
@@ -84,19 +94,7 @@ export function LinksPanel(props: {
       .request<ResearchItem[]>('research/list')
       .then(setResearch)
       .catch(() => setResearch([]))
-    if (kind === 'entity') void Promise.all(
-      ENTITY_KINDS.map((k) =>
-        rpc.request<EntityOption[]>('entities/list', [k])
-          .then((list) => list.map((entity) => ({ ...entity, typeKey: k })))
-          .catch(() => [] as EntityOption[])
-      )
-    ).then((lists) =>
-      setEntities(
-        lists
-          .flat()
-          .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-      )
-    )
+    if (kind === 'entity') void readEntityOptions().then(setEntities)
   }, [kind])
 
   const choices = (): { id: string; label: string }[] => {
@@ -120,16 +118,28 @@ export function LinksPanel(props: {
       })
   }
 
-  const open = (link: SceneLink): void => {
+  const open = async (link: SceneLink): Promise<void> => {
     if (link.kind === 'research') {
       setMainView('research')
       return
     }
     if (link.kind === 'entity') {
-      const entity = entities.find((entry) => entry.id === link.targetId)
-      if (entity) {
+      const openEntity = (entity: EntityOption | undefined): void => {
+        if (!entity) return
         setMainView('wiki')
         void useWikiStore.getState().openArticle(entity.typeKey, entity.id)
+      }
+      const entity = entities.find((entry) => entry.id === link.targetId)
+      if (entity) openEntity(entity)
+      else {
+        // Existing links must work before the add-link picker has been used.
+        // Resolve lazily, and retire the click if its scene or book changed.
+        const request = loadRequest.current
+        await loadBookScoped(useProjectStore.getState, readEntityOptions, options => {
+          if (request !== loadRequest.current) return
+          setEntities(options)
+          openEntity(options.find(entry => entry.id === link.targetId))
+        })
       }
       return
     }
@@ -149,7 +159,7 @@ export function LinksPanel(props: {
           <button
             className="links-target"
             disabled={link.targetTitle.length === 0}
-            onClick={() => open(link)}
+            onClick={() => void open(link)}
           >
             {link.targetTitle || t('links.missing')}
           </button>

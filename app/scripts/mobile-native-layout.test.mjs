@@ -7,6 +7,7 @@ test('native tablet layout applies before opening a project and follows window r
   const window = { novalist: { requestLayout() {} } }
   const document = { documentElement: { dataset: {} } }
   const module = loadRendererSource('src/mobile/nativeLayout.ts', {
+    '../stores/projectStore': { useProjectStore: { getState: () => ({ closingProject: false }) } },
     '../stores/shellStore': { useShellStore: { getState: () => ({ setMobileLayout(value) { layout = value } }) } }
   }, { window, document })
   module.installNativeLayout('tablet')

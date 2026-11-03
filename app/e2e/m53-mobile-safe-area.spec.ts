@@ -11,10 +11,10 @@ import { launchApp, resizeWindow, seedBook } from './harness'
  * content edge, which is below that padding. On a pushed Settings page the
  * section's intro text was visible behind the clock.
  *
- * env(safe-area-inset-*) is 0 in a desktop Chromium, so the inset is simulated
- * on .mobile-shell. What is asserted is the structural property that made the
- * defect possible: the scroller must start where the shell's padding ends, and
- * a sticky header inside it must sit flush with that edge.
+ * env(safe-area-inset-*) is 0 in a desktop Chromium, so the inset token is
+ * simulated. The fixed collaboration bar now owns the top inset. Increasing
+ * it must move the scroller down by the same amount without padding the
+ * scroller, and a sticky header must remain flush with that edge.
  */
 
 const INSET = 47 // a notched iPhone's top inset, in points
@@ -31,7 +31,7 @@ test('mobile: content cannot scroll into the safe area', async () => {
   // it directly on .mobile-shell would assert the fix against itself and pass
   // just as happily with the defect in place - it did.
   await page.addStyleTag({
-    content: `.shell.mobile { --nl-safe-top: ${INSET}px; }`
+    content: '.shell.mobile { --nl-safe-top: 0px; }'
   })
 
   // A pushed Settings section: long enough to scroll, and it carries the sticky
@@ -48,25 +48,26 @@ test('mobile: content cannot scroll into the safe area', async () => {
   await page.mouse.wheel(0, 800)
   await page.waitForTimeout(500)
 
-  const geometry = await page.evaluate(() => {
-    const shell = document.querySelector('.mobile-shell') as HTMLElement
+  const geometry = () => page.evaluate(() => {
     const content = document.querySelector('.mobile-content') as HTMLElement
     const bar = document.querySelector('.mobile-nav-bar') as HTMLElement
     return {
       contentPaddingTop: parseFloat(getComputedStyle(content).paddingTop),
-      shellPaddingTop: parseFloat(getComputedStyle(shell).paddingTop),
       contentTop: Math.round(content.getBoundingClientRect().top),
       barTop: Math.round(bar.getBoundingClientRect().top)
     }
   })
+  const withoutInset = await geometry()
+  await page.addStyleTag({ content: `.shell.mobile { --nl-safe-top: ${INSET}px; }` })
+  const withInset = await geometry()
 
   // The inset is the frame's, so the scroller carries none of it itself.
-  expect(geometry.contentPaddingTop, 'the scroller must not pad its own top').toBe(0)
-  expect(geometry.shellPaddingTop, 'the shell carries the inset').toBe(INSET)
+  expect(withInset.contentPaddingTop, 'the scroller must not pad its own top').toBe(0)
+  expect(withInset.contentTop - withoutInset.contentTop, 'the fixed frame reserves the entire inset').toBe(INSET)
   // And the sticky header covers the very top of the scroller, so no scrolled
   // content can show above it.
   expect(
-    Math.abs(geometry.barTop - geometry.contentTop),
+    Math.abs(withInset.barTop - withInset.contentTop),
     'the sticky header must sit flush with the top of the scroller'
   ).toBeLessThanOrEqual(1)
 

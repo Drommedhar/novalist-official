@@ -201,11 +201,35 @@ jobs:
         working-directory: app
         run: npm run build:mobile
 
+      - name: Install isolated desktop credential service
+        run: sudo apt-get update && sudo apt-get install -y dbus-x11 gnome-keyring libsecret-tools libglib2.0-bin
+
       - name: E2E (Playwright against the real app)
         working-directory: app
         env:
           NOVALIST_E2E_ALLOW_DESKTOP: '1'
-        run: xvfb-run --auto-servernum npx playwright test
+        run: |
+          credential_session=$(mktemp -d)
+          trap 'rm -rf "$credential_session"' EXIT
+          # Keep Playwright pointed at the browsers installed before cache isolation.
+          export PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSERS_PATH:-${XDG_CACHE_HOME:-$HOME/.cache}/ms-playwright}"
+          export XDG_CONFIG_HOME="$credential_session/config"
+          export XDG_DATA_HOME="$credential_session/data"
+          export XDG_CACHE_HOME="$credential_session/cache"
+          export XDG_RUNTIME_DIR="$credential_session/runtime"
+          export GNOME_KEYRING_CONTROL="$XDG_RUNTIME_DIR/keyring"
+          export XDG_CURRENT_DESKTOP=GNOME
+          mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME" "$GNOME_KEYRING_CONTROL"
+          chmod 700 "$XDG_RUNTIME_DIR" "$GNOME_KEYRING_CONTROL"
+          xvfb-run --auto-servernum dbus-run-session -- bash -euo pipefail <<'SESSION'
+            # A fresh random password protects only this disposable CI keyring.
+            openssl rand -hex 32 | gnome-keyring-daemon --foreground --unlock --components=secrets --control-directory "$GNOME_KEYRING_CONTROL" &
+            keyring_pid=$!
+            trap 'kill "$keyring_pid" 2>/dev/null || true; wait "$keyring_pid" 2>/dev/null || true' EXIT
+            gdbus wait --session --timeout 20 org.freedesktop.secrets
+            env -u ELECTRON_RUN_AS_NODE ./node_modules/.bin/electron --no-sandbox scripts/check-linux-credential-store.cjs
+            npx playwright test
+          SESSION
 
       - name: Upload failed E2E traces
         if: failure()

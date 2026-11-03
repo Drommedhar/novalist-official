@@ -72,7 +72,7 @@ test('research refreshes in both desktop sessions without replacing a pending lo
     for (const h of participants) await h.page.evaluate(id => window.novalistStores.shell.getState().navigateToResearch(id), note.id)
     await expect(editor).toContainText('A later shared revision.')
     await holdResearchProse(guest)
-    await editor.press('Control+End')
+    await editor.press(process.platform === 'darwin' ? 'Meta+ArrowDown' : 'Control+End')
     await editor.pressSequentially(' Saved after deletion.')
     await expect.poll(() => guest.page.evaluate(() => window.researchProseSave.pending)).toBe(true)
     await owner.rpc('research/delete', [note.id])
@@ -116,9 +116,9 @@ async function bothWritersEditAndUndo(participants: Harness[]): Promise<void> {
   await Promise.all(participants.map(holdResearchProse))
   const first = owner.page.locator('.research-content .cm-content')
   const second = guest.page.locator('.research-content .cm-content')
-  await first.press('Control+End')
+  await first.press(process.platform === 'darwin' ? 'Meta+ArrowDown' : 'Control+End')
   await first.pressSequentially(' Owner contribution.')
-  await second.press('Control+End')
+  await second.press(process.platform === 'darwin' ? 'Meta+ArrowDown' : 'Control+End')
   await second.pressSequentially(' Guest contribution.')
   for (const h of participants) {
     await expect.poll(() => h.page.evaluate(() => window.researchProseSave.pending)).toBe(true)
@@ -129,7 +129,7 @@ async function bothWritersEditAndUndo(participants: Harness[]): Promise<void> {
     await expect(editor).toContainText('Guest contribution.')
   }
   expect(await first.innerText()).toBe(await second.innerText())
-  await second.press('Control+z')
+  await second.press(process.platform === 'darwin' ? 'Meta+z' : 'Control+z')
   await expect(first).not.toContainText('Guest contribution.')
   await expect(first).toContainText('Owner contribution.')
 }

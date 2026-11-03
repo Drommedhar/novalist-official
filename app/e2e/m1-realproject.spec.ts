@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady, waitForAppReady } from './appReady'
-import { enterWriting } from './harness'
+import { dismissTour, enterWriting } from './harness'
 import { REAL_PROJECT } from './realProject'
 
 /**
@@ -35,6 +35,7 @@ test('real project renders binder and scene content', async () => {
     const state = await window.novalistRpc.request('project/open', [root])
     window.novalistStores.project.getState().applyState(state as never)
   }, projectCopy)
+  await dismissTour(page)
 
   // Opening a project lands on the Dashboard, which is about the book; the
   // binder and the editor below belong to Write.
@@ -118,9 +119,9 @@ test('real project renders binder and scene content', async () => {
     await expect(page.locator('.peek-title')).toBeVisible()
   }
 
-  // Scene-notes dock: open it, write a synopsis, blur, confirm it persisted.
-  await page.evaluate(() => window.novalistStores.shell.getState().toggleNotesDock())
-  const synopsis = page.locator('#dock-synopsis')
+  // Scene properties: write a synopsis in the Inspector, blur, confirm it persisted.
+  await page.locator('.inspector').getByRole('button', { name: /^(Properties|Eigenschaften)$/ }).click()
+  const synopsis = page.locator('#inspector-synopsis')
   await expect(synopsis).toBeVisible({ timeout: 10_000 })
   await synopsis.fill('Verification synopsis from e2e')
   await synopsis.blur()

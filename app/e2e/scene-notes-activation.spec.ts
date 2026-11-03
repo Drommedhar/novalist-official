@@ -30,7 +30,10 @@ for (const fullscreen of [false, true]) {
       expect(await nativeNotes.evaluate((win) => ({
         owned: !!win.getParentWindow(), globalTop: win.isAlwaysOnTop(), allSpaces: win.isVisibleOnAllWorkspaces(),
         fullscreenable: win.isFullScreenable(), minimizable: win.isMinimizable(), maximizable: win.isMaximizable()
-      }))).toEqual({ owned: true, globalTop: false, allSpaces: false, fullscreenable: false, minimizable: false, maximizable: false })
+      }))).toEqual({ owned: true, globalTop: false, allSpaces: false, fullscreenable: false,
+        // Electron's Linux getters always return true; these capabilities can
+        // only be disabled on macOS/Windows. Ownership and visibility still apply.
+        minimizable: process.platform === 'linux', maximizable: process.platform === 'linux' })
       await expect(notes.getByText('Saved', { exact: true })).toHaveCount(0)
       await expect(notes.locator('.scene-notes-titlebar')).toHaveCSS('-webkit-app-region', 'drag')
       await expect(notes.getByRole('button', { name: 'Hide scene notes', exact: true })).toHaveCSS('-webkit-app-region', 'no-drag')

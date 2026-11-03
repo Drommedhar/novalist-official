@@ -19,7 +19,7 @@ async function commentAtEnd(page: Page, html = '<p>Alpha beta lastword</p>'): Pr
     w.setCommentsData([{ id: 'end-comment', anchorText: 'lastword', text: 'Check this word' }])
   }, html)
   await page.locator('#editor p').click()
-  await page.keyboard.press('End')
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+ArrowRight' : 'End')
 }
 
 test.describe('comment anchors in the shipped editor', () => {
@@ -110,7 +110,7 @@ test('deleting a margin comment removes its highlight and stays deleted after re
     })
     await h.page.keyboard.press('Enter')
     await expect(editor.locator('.nv-comment')).toHaveText(['last', 'word'])
-    await h.page.keyboard.press('End')
+    await h.page.keyboard.press(process.platform === 'darwin' ? 'Meta+ArrowRight' : 'End')
     await h.page.keyboard.press('Enter')
     await h.page.keyboard.type('Plain follow-up')
     await expect(editor.locator('.nv-comment')).toHaveText(['last', 'word'])
@@ -135,7 +135,7 @@ test('deleting a margin comment removes its highlight and stays deleted after re
     await expect(editor.locator('.nv-comment')).toHaveCount(0)
     await expect(frame.locator('.nv-cc-card')).toHaveCount(0)
     await editor.click()
-    await h.page.keyboard.press('End')
+    await h.page.keyboard.press(process.platform === 'darwin' ? 'Meta+ArrowRight' : 'End')
     await h.page.keyboard.press('Enter')
     await h.page.keyboard.type('Ordinary text after deletion')
     await expect(editor.locator('.nv-comment')).toHaveCount(0)

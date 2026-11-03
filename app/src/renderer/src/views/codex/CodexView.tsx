@@ -519,6 +519,7 @@ function CodexCreateDialog({ setPending, t, startCreate, templates, templateId, 
           onKeyDown={(e) => {
             if (e.key === 'Escape') setPending(null)
             if (e.key === 'Enter') {
+              e.preventDefault()
               const name = (e.target as HTMLInputElement).value.trim()
               if (name) {
                 setPending(null)

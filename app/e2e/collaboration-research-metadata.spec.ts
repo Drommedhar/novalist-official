@@ -154,7 +154,7 @@ test('Research metadata locks, reciprocal links and file-to-prose transitions wo
     await ownerTag.focus()
     await expect(ownerTag).not.toHaveAttribute('readonly', '')
     await guest.page.getByRole('button', { name: 'Keep as research note', exact: true }).click()
-    await expect(guest.page.getByRole('status', { name: 'Owner is editing this field.', exact: true })).toBeVisible()
+    await expect(guest.page.getByRole('status').filter({ hasText: /^Owner is editing this field\.$/ })).toBeVisible()
     await releaseFocusedField(owner, ownerTag)
     await guest.page.getByRole('button', { name: 'Keep as research note', exact: true }).click()
     await expect(owner.page.getByRole('button', { name: 'Keep as research note', exact: true })).toHaveCount(0)
