@@ -21,7 +21,9 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Security
+
+- Updated the desktop communication dependency to address a malformed-message decoding vulnerability.
 
 ---
 
