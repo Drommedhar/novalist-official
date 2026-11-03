@@ -24,6 +24,7 @@ could encounter in a previously released version.
 ### Security
 
 - Replaced vulnerable image-decoding dependencies used by PDF export, preserving book covers, manuscript images, and Codex portraits.
+- Updated the desktop communication dependency to address a malformed-message decoding vulnerability.
 
 ---
 
