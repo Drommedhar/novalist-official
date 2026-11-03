@@ -20,7 +20,8 @@ class AppleSpeechBuildTests(unittest.TestCase):
             project = Path(directory) / "Probe.csproj"
             targets = Path(directory) / "Inspect.targets"
             mobile = ROOT / "Novalist.Mobile" / "Novalist.Mobile.csproj"
-            references = ET.parse(mobile).findall(".//ProjectReference")
+            original = ET.parse(mobile)
+            references = original.findall("./ItemGroup/ProjectReference")
             for reference in references:
                 reference.set(
                     "Include",
@@ -32,8 +33,10 @@ class AppleSpeechBuildTests(unittest.TestCase):
                 )
             project.write_text(
                 """<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
-  <ItemGroup>"""
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>"""
+                + "".join(ET.tostring(item, encoding="unicode")
+                          for item in original.findall("./ItemDefinitionGroup"))
+                + "<ItemGroup>"
                 + "".join(
                     ET.tostring(reference, encoding="unicode")
                     for reference in references
@@ -66,6 +69,61 @@ class AppleSpeechBuildTests(unittest.TestCase):
                 if "BUILD_OUTPUT|" in line
             ]
             self.assertGreaterEqual(len(outputs), 4)
+            self.assertEqual(len(outputs), len(set(outputs)), result.stdout)
+
+    def test_mobile_transitive_references_build_each_output_once(self):
+        # Static graph evaluation does not run IncludeTransitiveProjectReferences.
+        # Build a package-free copy of the real reference graph so the SDK restores
+        # and expands it normally, without requiring MAUI, Xcode, or network access.
+        with tempfile.TemporaryDirectory(prefix="novalist-ios-transitive-") as directory:
+            root = Path(directory).resolve()
+            mobile = ROOT / "Novalist.Mobile" / "Novalist.Mobile.csproj"
+            pending = [mobile]
+            copied = set()
+            while pending:
+                source = pending.pop()
+                if source in copied:
+                    continue
+                copied.add(source)
+                original = ET.parse(source)
+                project = ET.Element("Project", Sdk="Microsoft.NET.Sdk")
+                properties = ET.SubElement(project, "PropertyGroup")
+                ET.SubElement(properties, "TargetFramework").text = "net10.0"
+                for definitions in original.findall("./ItemDefinitionGroup"):
+                    project.append(definitions)
+                references = ET.SubElement(project, "ItemGroup")
+                for reference in original.findall("./ItemGroup/ProjectReference"):
+                    references.append(reference)
+                    pending.append(
+                        (source.parent / reference.get("Include").replace("\\", "/")).resolve()
+                    )
+                destination = root / source.relative_to(ROOT)
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                ET.ElementTree(project).write(destination, encoding="unicode")
+            (root / "NuGet.Config").write_text(
+                '<configuration><packageSources><clear /></packageSources></configuration>'
+            )
+            (root / "Directory.Build.targets").write_text("""<Project>
+<Target Name="InspectBuildOutput" AfterTargets="PrepareForBuild">
+  <Message Importance="high" Text="BUILD_OUTPUT|$(TargetPath)" />
+</Target>
+</Project>""")
+            result = subprocess.run(
+                [
+                    "dotnet", "build", str(root / mobile.relative_to(ROOT)),
+                    "-p:NuGetAudit=false", "-v:minimal",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            outputs = [
+                line.split("BUILD_OUTPUT|", 1)[1].strip()
+                for line in result.stdout.splitlines()
+                if "BUILD_OUTPUT|" in line
+            ]
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(len(outputs), len(copied), result.stdout)
             self.assertEqual(len(outputs), len(set(outputs)), result.stdout)
 
     def test_ios_restore_graph_excludes_desktop_web_runtime(self):

@@ -478,7 +478,9 @@ public class EntityServiceTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(imageFolder, "notes.txt"), "notes");
 
         Assert.Equal(["./Other Volume/Art/Portraits/face.PNG"], await _sut.GetWorldBibleImagesAsync());
-        Assert.Equal(Path.Combine(imageFolder, "face.PNG"), _sut.GetImageFullPath(".\\Other Volume\\Art\\Portraits\\face.PNG"));
+        var fullPath = _sut.GetImageFullPath(".\\Other Volume\\Art\\Portraits\\face.PNG");
+        Assert.Equal(Path.Combine(imageFolder, "face.PNG"), Path.GetFullPath(fullPath));
+        Assert.Equal(new byte[] { 1 }, await File.ReadAllBytesAsync(fullPath));
         Assert.Equal("Books/Book1/Other Volumes/Art/face.png", _sut.ResolveProjectRelativeImage("Other Volumes/Art/face.png"));
     }
 
@@ -493,12 +495,13 @@ public class EntityServiceTests : IDisposable
     public void GetImageFullPath_BookNamedImagesDoesNotCaptureLegacyLocalPaths()
     {
         _meta.Books = [new BookData { Id = "other", FolderName = "Images" }];
+        // Windows accepts stored forward slashes; compare the resolved location.
         Assert.Equal(Path.Combine(_bookRoot, "Images", "portrait.png"),
-            _sut.GetImageFullPath("Images/portrait.png"));
+            Path.GetFullPath(_sut.GetImageFullPath("Images/portrait.png")));
         Assert.Equal(Path.Combine(_bookRoot, "Images", "Images", "portrait.png"),
-            _sut.GetImageFullPath("Images/Images/portrait.png"));
+            Path.GetFullPath(_sut.GetImageFullPath("Images/Images/portrait.png")));
         Assert.Equal(Path.Combine(_dir.Path, "Images", "Images", "portrait.png"),
-            _sut.GetImageFullPath("./Images/Images/portrait.png"));
+            Path.GetFullPath(_sut.GetImageFullPath("./Images/Images/portrait.png")));
     }
 
     [Fact]
