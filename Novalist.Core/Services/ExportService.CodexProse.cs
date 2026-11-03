@@ -1,13 +1,13 @@
 using System.Text.RegularExpressions;
 using System.Text;
 using Novalist.Core.Models;
-using XBrushes = PdfSharpCore.Drawing.XBrushes;
-using XFont = PdfSharpCore.Drawing.XFont;
-using XFontStyle = PdfSharpCore.Drawing.XFontStyle;
-using XGraphics = PdfSharpCore.Drawing.XGraphics;
-using XImage = PdfSharpCore.Drawing.XImage;
-using XPoint = PdfSharpCore.Drawing.XPoint;
-using XUnit = PdfSharpCore.Drawing.XUnit;
+using XBrushes = PdfSharp.Drawing.XBrushes;
+using XFont = PdfSharp.Drawing.XFont;
+using XFontStyleEx = PdfSharp.Drawing.XFontStyleEx;
+using XGraphics = PdfSharp.Drawing.XGraphics;
+using XImage = PdfSharp.Drawing.XImage;
+using XPoint = PdfSharp.Drawing.XPoint;
+using XUnit = PdfSharp.Drawing.XUnit;
 using static Novalist.Core.Services.ExportProse;
 
 namespace Novalist.Core.Services;

@@ -25,15 +25,16 @@ public partial class ExportService
         if (spec.GutterFromPageCount
             && spec.EffectiveGutterInches(first.PageCount) != spec.EffectiveGutterInches(0))
         {
+            var pageCount = first.PageCount;
             first.Dispose();
-            settled = RenderPdf(chapters, options, spec, first.PageCount);
+            settled = RenderPdf(chapters, options, spec, pageCount);
         }
 
         settled.Save(outputPath);
         settled.Dispose();
     }
 
-    private static PdfSharpCore.Pdf.PdfDocument RenderPdf(
+    private static PdfSharp.Pdf.PdfDocument RenderPdf(
         List<ChapterExportContent> chapters,
         ExportOptions options,
         PrintSpec spec,
@@ -46,12 +47,12 @@ public partial class ExportService
         private readonly PrintSpec spec;
         private readonly int pageCountForGutter;
         private readonly bool smf;
-        private readonly PdfSharpCore.Pdf.PdfDocument doc;
-        private readonly PdfSharpCore.Drawing.XUnit bleed;
-        private readonly PdfSharpCore.Drawing.XUnit pageWidth;
-        private readonly PdfSharpCore.Drawing.XUnit pageHeight;
-        private readonly PdfSharpCore.Drawing.XUnit indent;
-        private readonly PdfSharpCore.Drawing.XUnit chapterTopMargin;
+        private readonly PdfSharp.Pdf.PdfDocument doc;
+        private readonly double bleed;
+        private readonly double pageWidth;
+        private readonly double pageHeight;
+        private readonly double indent;
+        private readonly double chapterTopMargin;
         private readonly double topMargin;
         private readonly double bottomMargin;
         private readonly double headerY;
@@ -59,7 +60,7 @@ public partial class ExportService
         private const double fontSize = 12.0;
         private readonly double lineSpacing;
         private readonly double paragraphGap;
-        private readonly PdfSharpCore.Drawing.XFont bodyFont;
+        private readonly PdfSharp.Drawing.XFont bodyFont;
         private double margin;
         private double rightMargin;
         private double textWidth;
@@ -71,7 +72,7 @@ public partial class ExportService
             this.spec = spec;
             this.pageCountForGutter = pageCountForGutter;
             smf = options.ResolvePreset().ShunnHeader;
-            doc = new PdfSharpCore.Pdf.PdfDocument();
+            doc = new PdfSharp.Pdf.PdfDocument();
             doc.Info.Title = options.Title;
             if (!string.IsNullOrWhiteSpace(options.Author))
                 doc.Info.Author = options.Author;
@@ -80,35 +81,35 @@ public partial class ExportService
             // it, offset by the bleed. A printer cuts the sheet down to the trim,
             // so anything that has to reach the edge is drawn into the bleed and
             // then cut off.
-            bleed = PdfSharpCore.Drawing.XUnit.FromInch(spec.BleedInches);
-            pageWidth = PdfSharpCore.Drawing.XUnit.FromInch(spec.MediaWidthInches);
-            pageHeight = PdfSharpCore.Drawing.XUnit.FromInch(spec.MediaHeightInches);
+            bleed = PdfSharp.Drawing.XUnit.FromInch(spec.BleedInches).Point;
+            pageWidth = PdfSharp.Drawing.XUnit.FromInch(spec.MediaWidthInches).Point;
+            pageHeight = PdfSharp.Drawing.XUnit.FromInch(spec.MediaHeightInches).Point;
 
             // Per page, because inside and outside swap on facing pages. Seeded
             // with page one's values so the first draw before any NewPage - the
             // cover and the title page - has a measure to use.
-            margin = PdfSharpCore.Drawing.XUnit.FromInch(
-                spec.LeftMarginInches(1, pageCountForGutter)) + bleed;
-            rightMargin = PdfSharpCore.Drawing.XUnit.FromInch(
-                spec.RightMarginInches(1, pageCountForGutter)) + bleed;
-            topMargin = PdfSharpCore.Drawing.XUnit.FromInch(spec.MarginTopInches) + bleed;
-            bottomMargin = PdfSharpCore.Drawing.XUnit.FromInch(spec.MarginBottomInches) + bleed;
+            margin = PdfSharp.Drawing.XUnit.FromInch(
+                spec.LeftMarginInches(1, pageCountForGutter)).Point + bleed;
+            rightMargin = PdfSharp.Drawing.XUnit.FromInch(
+                spec.RightMarginInches(1, pageCountForGutter)).Point + bleed;
+            topMargin = PdfSharp.Drawing.XUnit.FromInch(spec.MarginTopInches).Point + bleed;
+            bottomMargin = PdfSharp.Drawing.XUnit.FromInch(spec.MarginBottomInches).Point + bleed;
             textWidth = pageWidth - margin - rightMargin;
 
             bodyFontName = smf ? "Courier New" : "Times New Roman";
 
             lineSpacing = smf ? fontSize * 2 : fontSize * 1.5;
             paragraphGap = smf ? 0.0 : fontSize * 0.8;
-            indent = smf ? PdfSharpCore.Drawing.XUnit.FromInch(0.5) : PdfSharpCore.Drawing.XUnit.FromInch(0.35);
-            chapterTopMargin = smf ? PdfSharpCore.Drawing.XUnit.FromInch(3) : PdfSharpCore.Drawing.XUnit.FromInch(2);
+            indent = smf ? PdfSharp.Drawing.XUnit.FromInch(0.5).Point : PdfSharp.Drawing.XUnit.FromInch(0.35).Point;
+            chapterTopMargin = smf ? PdfSharp.Drawing.XUnit.FromInch(3).Point : PdfSharp.Drawing.XUnit.FromInch(2).Point;
 
-            bodyFont = new PdfSharpCore.Drawing.XFont(bodyFontName, fontSize);
+            bodyFont = new PdfSharp.Drawing.XFont(bodyFontName, fontSize);
 
 
             headerY = (topMargin + bleed) / 2;
         }
 
-        public PdfSharpCore.Pdf.PdfDocument Render(List<ChapterExportContent> chapters)
+        public PdfSharp.Pdf.PdfDocument Render(List<ChapterExportContent> chapters)
         {
             if (CoverMediaType(options.CoverImagePath) != null)
                 DrawPdfCoverPage(doc, options.CoverImagePath, pageWidth, pageHeight, ref pageNumber, spec);
@@ -117,32 +118,32 @@ public partial class ExportService
             return doc;
         }
 
-        private PdfSharpCore.Drawing.XGraphics NewPage(out double y)
+        private PdfSharp.Drawing.XGraphics NewPage(out double y)
         {
             var page = doc.AddPage();
-            page.Width = pageWidth;
-            page.Height = pageHeight;
+            page.Width = PdfSharp.Drawing.XUnit.FromPoint(pageWidth);
+            page.Height = PdfSharp.Drawing.XUnit.FromPoint(pageHeight);
             pageNumber++;
 
             // Which side of the binding this page falls on decides where the
             // wide margin goes, so the measure is recomputed rather than fixed.
-            margin = PdfSharpCore.Drawing.XUnit.FromInch(
-                spec.LeftMarginInches(pageNumber, pageCountForGutter)) + bleed;
-            rightMargin = PdfSharpCore.Drawing.XUnit.FromInch(
-                spec.RightMarginInches(pageNumber, pageCountForGutter)) + bleed;
+            margin = PdfSharp.Drawing.XUnit.FromInch(
+                spec.LeftMarginInches(pageNumber, pageCountForGutter)).Point + bleed;
+            rightMargin = PdfSharp.Drawing.XUnit.FromInch(
+                spec.RightMarginInches(pageNumber, pageCountForGutter)).Point + bleed;
             textWidth = pageWidth - margin - rightMargin;
 
             MarkPageBoxes(page, spec);
-            var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page);
+            var gfx = PdfSharp.Drawing.XGraphics.FromPdfPage(page);
 
             if (smf && pageNumber > 1)
             {
                 var headerText = $"{RunningHead(options)} / {pageNumber}";
-                var hw = gfx.MeasureString(headerText, new PdfSharpCore.Drawing.XFont(bodyFontName, 10));
+                var hw = gfx.MeasureString(headerText, new PdfSharp.Drawing.XFont(bodyFontName, 10));
                 gfx.DrawString(headerText,
-                    new PdfSharpCore.Drawing.XFont(bodyFontName, 10),
-                    PdfSharpCore.Drawing.XBrushes.Black,
-                    new PdfSharpCore.Drawing.XPoint(pageWidth - rightMargin - hw.Width, headerY));
+                    new PdfSharp.Drawing.XFont(bodyFontName, 10),
+                    PdfSharp.Drawing.XBrushes.Black,
+                    new PdfSharp.Drawing.XPoint(pageWidth - rightMargin - hw.Width, headerY));
             }
 
             y = topMargin + lineSpacing;
@@ -154,47 +155,47 @@ public partial class ExportService
             if (options.IncludeTitlePage)
             {
                 var tp = doc.AddPage();
-                tp.Width = pageWidth;
-                tp.Height = pageHeight;
+                tp.Width = PdfSharp.Drawing.XUnit.FromPoint(pageWidth);
+                tp.Height = PdfSharp.Drawing.XUnit.FromPoint(pageHeight);
                 MarkPageBoxes(tp, spec);
                 pageNumber++;
-                var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(tp);
+                var gfx = PdfSharp.Drawing.XGraphics.FromPdfPage(tp);
 
                 if (smf)
                 {
                     if (!string.IsNullOrWhiteSpace(options.Author))
                     {
-                        gfx.DrawString(options.Author, bodyFont, PdfSharpCore.Drawing.XBrushes.Black,
-                            new PdfSharpCore.Drawing.XPoint(margin, margin));
+                        gfx.DrawString(options.Author, bodyFont, PdfSharp.Drawing.XBrushes.Black,
+                            new PdfSharp.Drawing.XPoint(margin, margin));
                     }
 
                     var centerY = pageHeight / 2;
                     var titleUpper = options.Title.ToUpperInvariant();
                     var titleW = gfx.MeasureString(titleUpper, bodyFont);
-                    gfx.DrawString(titleUpper, bodyFont, PdfSharpCore.Drawing.XBrushes.Black,
-                        new PdfSharpCore.Drawing.XPoint((pageWidth - titleW.Width) / 2, centerY + lineSpacing));
+                    gfx.DrawString(titleUpper, bodyFont, PdfSharp.Drawing.XBrushes.Black,
+                        new PdfSharp.Drawing.XPoint((pageWidth - titleW.Width) / 2, centerY + lineSpacing));
 
                     if (!string.IsNullOrWhiteSpace(options.Author))
                     {
                         var byLine = $"by {options.Author}";
                         var byW = gfx.MeasureString(byLine, bodyFont);
-                        gfx.DrawString(byLine, bodyFont, PdfSharpCore.Drawing.XBrushes.Black,
-                            new PdfSharpCore.Drawing.XPoint((pageWidth - byW.Width) / 2, centerY - lineSpacing));
+                        gfx.DrawString(byLine, bodyFont, PdfSharp.Drawing.XBrushes.Black,
+                            new PdfSharp.Drawing.XPoint((pageWidth - byW.Width) / 2, centerY - lineSpacing));
                     }
                 }
                 else
                 {
-                    var titleFont = new PdfSharpCore.Drawing.XFont(bodyFontName, 24, PdfSharpCore.Drawing.XFontStyle.Bold);
+                    var titleFont = new PdfSharp.Drawing.XFont(bodyFontName, 24, PdfSharp.Drawing.XFontStyleEx.Bold);
                     var titleW = gfx.MeasureString(options.Title, titleFont);
-                    gfx.DrawString(options.Title, titleFont, PdfSharpCore.Drawing.XBrushes.Black,
-                        new PdfSharpCore.Drawing.XPoint((pageWidth - titleW.Width) / 2, pageHeight * 0.6));
+                    gfx.DrawString(options.Title, titleFont, PdfSharp.Drawing.XBrushes.Black,
+                        new PdfSharp.Drawing.XPoint((pageWidth - titleW.Width) / 2, pageHeight * 0.6));
 
                     if (!string.IsNullOrWhiteSpace(options.Author))
                     {
-                        var authorFont = new PdfSharpCore.Drawing.XFont(bodyFontName, 16, PdfSharpCore.Drawing.XFontStyle.Italic);
+                        var authorFont = new PdfSharp.Drawing.XFont(bodyFontName, 16, PdfSharp.Drawing.XFontStyleEx.Italic);
                         var authorW = gfx.MeasureString(options.Author, authorFont);
-                        gfx.DrawString(options.Author, authorFont, PdfSharpCore.Drawing.XBrushes.Black,
-                            new PdfSharpCore.Drawing.XPoint((pageWidth - authorW.Width) / 2, pageHeight * 0.6 - 36));
+                        gfx.DrawString(options.Author, authorFont, PdfSharp.Drawing.XBrushes.Black,
+                            new PdfSharp.Drawing.XPoint((pageWidth - authorW.Width) / 2, pageHeight * 0.6 - 36));
                     }
                 }
             }
@@ -208,21 +209,21 @@ public partial class ExportService
 
             // Chapter title
             var chTitleSize = smf ? fontSize : 18;
-            var chTitleFontActual = smf ? bodyFont : new PdfSharpCore.Drawing.XFont(bodyFontName, chTitleSize, PdfSharpCore.Drawing.XFontStyle.Bold);
+            var chTitleFontActual = smf ? bodyFont : new PdfSharp.Drawing.XFont(bodyFontName, chTitleSize, PdfSharp.Drawing.XFontStyleEx.Bold);
             var pdfHeading = chapter.Heading;
             var chTitleText = smf ? pdfHeading.ToUpperInvariant() : pdfHeading;
             if (!chapter.HideHeading)
             {
                 var ctW = gfx.MeasureString(chTitleText, chTitleFontActual);
-                gfx.DrawString(chTitleText, chTitleFontActual, PdfSharpCore.Drawing.XBrushes.Black,
-                    new PdfSharpCore.Drawing.XPoint((pageWidth - ctW.Width) / 2, y));
+                gfx.DrawString(chTitleText, chTitleFontActual, PdfSharp.Drawing.XBrushes.Black,
+                    new PdfSharp.Drawing.XPoint((pageWidth - ctW.Width) / 2, y));
                 y += lineSpacing * 2;
 
                 if (!string.IsNullOrWhiteSpace(chapter.Subtitle))
                 {
                     var subW = gfx.MeasureString(chapter.Subtitle, bodyFont);
-                    gfx.DrawString(chapter.Subtitle, bodyFont, PdfSharpCore.Drawing.XBrushes.Black,
-                        new PdfSharpCore.Drawing.XPoint((pageWidth - subW.Width) / 2, y));
+                    gfx.DrawString(chapter.Subtitle, bodyFont, PdfSharp.Drawing.XBrushes.Black,
+                        new PdfSharp.Drawing.XPoint((pageWidth - subW.Width) / 2, y));
                     y += lineSpacing * 2;
                 }
             }
@@ -233,7 +234,7 @@ public partial class ExportService
         }
 
         private void DrawScene(SceneExportContent scene, int si, List<string> chapterNotes,
-            ref PdfSharpCore.Drawing.XGraphics gfx, ref double y)
+            ref PdfSharp.Drawing.XGraphics gfx, ref double y)
         {
             // Scene break
             if (si > 0)
@@ -246,8 +247,8 @@ public partial class ExportService
                 }
 
                 var sbW = gfx.MeasureString(SceneBreakText, bodyFont);
-                gfx.DrawString(SceneBreakText, bodyFont, PdfSharpCore.Drawing.XBrushes.Black,
-                    new PdfSharpCore.Drawing.XPoint((pageWidth - sbW.Width) / 2, y));
+                gfx.DrawString(SceneBreakText, bodyFont, PdfSharp.Drawing.XBrushes.Black,
+                    new PdfSharp.Drawing.XPoint((pageWidth - sbW.Width) / 2, y));
                 y += lineSpacing;
             }
 
@@ -266,13 +267,13 @@ public partial class ExportService
             }
         }
 
-        private bool DrawImage(string path, ref PdfSharpCore.Drawing.XGraphics gfx, ref double y)
+        private bool DrawImage(string path, ref PdfSharp.Drawing.XGraphics gfx, ref double y)
         {
             if (!File.Exists(path)) return false;
-            PdfSharpCore.Drawing.XImage image;
+            PdfImage source;
             try
             {
-                image = PdfSharpCore.Drawing.XImage.FromFile(path);
+                source = new PdfImage(path);
             }
             catch (Exception exception)
             {
@@ -284,8 +285,9 @@ public partial class ExportService
                 return false;
             }
 
-            using (image)
+            using (source)
             {
+                var image = source.Image;
                 // Scaled to the measure, never enlarged past its own
                 // size: a small image blown up to the text width
                 // prints as a blur.
@@ -306,10 +308,10 @@ public partial class ExportService
         }
 
         private void DrawParagraph(ExportBlock block, List<string> chapterNotes, bool isFirstPara,
-            ref PdfSharpCore.Drawing.XGraphics gfx, ref double y)
+            ref PdfSharp.Drawing.XGraphics gfx, ref double y)
         {
             var para = block.Segments;
-            // PdfSharpCore lays text out a line at a time, with no way
+            // PdfSharp lays text out a line at a time, with no way
             // to reserve the foot of the page mid-paragraph, so notes
             // are marked here and set at the end of the chapter.
             var plainText = string.Concat(para.Select(seg =>
@@ -338,14 +340,14 @@ public partial class ExportService
                     gfx = NewPage(out y);
                 }
 
-                gfx.DrawString(line, bodyFont, PdfSharpCore.Drawing.XBrushes.Black,
-                    new PdfSharpCore.Drawing.XPoint(margin + paraIndent, y));
+                gfx.DrawString(line, bodyFont, PdfSharp.Drawing.XBrushes.Black,
+                    new PdfSharp.Drawing.XPoint(margin + paraIndent, y));
                 paraIndent = 0; // Only indent first line
                 y += lineSpacing;
             }
         }
 
-        private void DrawNotes(List<string> chapterNotes, ref PdfSharpCore.Drawing.XGraphics gfx, ref double y)
+        private void DrawNotes(List<string> chapterNotes, ref PdfSharp.Drawing.XGraphics gfx, ref double y)
         {
             // The notes, under the chapter they belong to. Numbering restarts
             // per chapter, which is what the markers in the prose say.
@@ -362,8 +364,8 @@ public partial class ExportService
                             gfx.Dispose();
                             gfx = NewPage(out y);
                         }
-                        gfx.DrawString(line, bodyFont, PdfSharpCore.Drawing.XBrushes.Black,
-                            new PdfSharpCore.Drawing.XPoint(margin, y));
+                        gfx.DrawString(line, bodyFont, PdfSharp.Drawing.XBrushes.Black,
+                            new PdfSharp.Drawing.XPoint(margin, y));
                         y += lineSpacing;
                     }
                 }

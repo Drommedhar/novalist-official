@@ -493,7 +493,7 @@ public sealed class ExportRpcTests : IDisposable
 
         var result = await _rpc.RunAsync("Pdf", output, "ExpNovel", "Tester", false, AllChapterGuids());
 
-        // PdfSharpCore lays text out a line at a time and cannot reserve the
+        // PdfSharp lays text out a line at a time and cannot reserve the
         // foot of a page mid-paragraph, so the notes are set as chapter
         // endnotes. Only that the file is produced is assertable here.
         Assert.True(result.Success);

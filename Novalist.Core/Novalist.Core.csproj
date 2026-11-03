@@ -26,8 +26,11 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Markdig" Version="1.1.3" />
-    <PackageReference Include="PdfSharpCore" Version="1.3.67" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="4.1.2" />
+    <PackageReference Include="PDFsharp" Version="6.2.4" />
+    <!-- PDFsharp's minimum PKCS version predates the October 2026 security fixes. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+    <PackageReference Include="SkiaSharp" Version="4.154.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.154.0" />
     <PackageReference Include="YamlDotNet" Version="17.1.0" />
   </ItemGroup>
 

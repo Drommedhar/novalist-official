@@ -21,7 +21,9 @@ could encounter in a previously released version.
 
 ## [Unreleased]
 
-Nothing yet.
+### Security
+
+- Replaced vulnerable image-decoding dependencies used by PDF export, preserving book covers, manuscript images, and Codex portraits.
 
 ---
 
