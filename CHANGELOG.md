@@ -33,7 +33,7 @@ could encounter in a previously released version.
 - Timeline event descriptions remain visible and editable when the event dialog needs to scroll.
 - Shared World Bible entries can select and reuse images from any book's gallery, with newly attached images staying linked when switching books or reopening the project.
 - Arrow-key navigation keeps the caret visible, including empty lines on the next book page and navigation after manual scrolling.
-- Context updates entity matches while you write in scenes or Manuscript, without requiring a tab switch.
+- Context updates entity matches while you write in scenes or Manuscript, without requiring a tab switch. Focus Mode keeps prepared context when its sidebar is hidden and reopened.
 - Applying a proofreading correction no longer closes the next issue's popup when updated results arrive.
 - Returning to Novalist detects external scene edits, refreshes clean editors and outline word counts, and preserves unsaved text for conflict resolution.
 

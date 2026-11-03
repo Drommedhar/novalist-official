@@ -58,6 +58,8 @@ export function ContextPanel({
   const sceneHtml = mainView === 'manuscript' ? manuscriptHtml : editorHtml
   const sceneHtmlRef = useRef(sceneHtml)
   sceneHtmlRef.current = sceneHtml
+  const prepareHiddenRef = useRef(prepareHidden)
+  prepareHiddenRef.current = prepareHidden
   const bookScope = useBookScope()
   const workspaceEpoch = useProjectStore((s) => s.workspaceEpoch)
   const workspaceBusy = useProjectStore((s) => s.workspaceBusy)
@@ -159,19 +161,20 @@ export function ContextPanel({
 
   // Follow the live document, including edits still waiting for autosave. A
   // brief pause avoids reading the book after every keystroke; retained Focus
-  // panels use the same refresh path while hidden.
+  // panels use the same refresh path while hidden. Revealing or hiding a panel
+  // changes readiness handling, but does not invalidate its prepared analysis.
   useEffect(() => {
     ++analysisRequest.current
     if (workspaceBusy) return
     const initial = analyzedScene.current !== sceneKey
     analyzedScene.current = sceneKey
-    const timer = initial ? null : setTimeout(() => analyze(prepareHidden), 300)
+    const timer = initial ? null : setTimeout(() => analyze(prepareHiddenRef.current), 300)
     if (initial) analyze(true)
     return () => {
       if (timer !== null) clearTimeout(timer)
       ++analysisRequest.current
     }
-  }, [sceneKey, sceneHtml, savedHash, workspaceBusy, prepareHidden, analyze])
+  }, [sceneKey, sceneHtml, savedHash, workspaceBusy, analyze])
 
   // Whether any extension offers entity extraction; without one the scan button
   // never appears.
