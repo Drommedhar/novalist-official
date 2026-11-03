@@ -34,8 +34,8 @@ public sealed class LibraryRpc
     }
 
     [JsonRpcMethod("gallery/list")]
-    public async Task<GalleryImageDto[]> ListImagesAsync() =>
-        (await _entities.GetProjectImagesAsync())
+    public async Task<GalleryImageDto[]> ListImagesAsync(bool projectWide = false) =>
+        (await (projectWide ? _entities.GetWorldBibleImagesAsync() : _entities.GetProjectImagesAsync()))
             .Select(path => new GalleryImageDto(path, _entities.ResolveProjectRelativeImage(path)))
             .ToArray();
 

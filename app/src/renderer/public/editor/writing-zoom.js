@@ -70,6 +70,26 @@
         if (scale !== 1) surface.style.height = content.getBoundingClientRect().height + 'px';
     }
 
+    function measureLayoutWidth() {
+        let width = wrapper.getBoundingClientRect().width - (wrapper.offsetWidth - wrapper.clientWidth);
+        const page = content.querySelector('.nv-page');
+        if (page && document.body.classList.contains('page-view')) {
+            // Empty space beside a fixed-width paper is not part of the page
+            // being magnified. Preserve its prose measure and a small surround.
+            const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nl-space-xl'));
+            width = Math.min(width, page.offsetWidth + 2 * gap);
+        }
+        return width;
+    }
+
+    window.getWritingZoomToFit = () => {
+        const style = getComputedStyle(document.body);
+        const available = document.body.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+            - (wrapper.offsetWidth - wrapper.clientWidth);
+        const width = layoutWidth || measureLayoutWidth();
+        return width > 0 && available > 0 ? available / width : 0;
+    };
+
     function refresh() {
         const root = getComputedStyle(document.documentElement);
         const key = ['--book-width', '--font-size', '--font-family'].map(name => root.getPropertyValue(name)).join('|') +
@@ -84,7 +104,7 @@
             // Keep the unzoomed measure while the zoomed viewport grows or shrinks.
             if (!layoutWidth || key !== layoutKey) {
                 clearLayout();
-                layoutWidth = wrapper.getBoundingClientRect().width - (wrapper.offsetWidth - wrapper.clientWidth);
+                layoutWidth = measureLayoutWidth();
             }
             const scrollbar = wrapper.offsetWidth - wrapper.clientWidth;
             wrapper.style.maxWidth = (layoutWidth * scale + scrollbar) + 'px';

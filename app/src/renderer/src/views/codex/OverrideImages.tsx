@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ClipboardPaste, ImagePlus, Link, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { useCodexStore } from '../../stores/codexStore'
 import { type OverrideImage, type CharacterOverride, type Scope, apply } from './overrideModel'
 import { OverrideMediaHeader } from './OverrideMediaHeader'
 
@@ -21,6 +22,7 @@ export function OverrideImages({
   baseImages: OverrideImage[]
 }): React.JSX.Element {
   const { t } = useTranslation()
+  const isWorldBible = useCodexStore((state) => state.entities.find(entity => entity.id === selectedId)?.isWorldBible === true)
   const overriding = Array.isArray(override?.images)
   const images = overriding ? (override!.images as OverrideImage[]) : baseImages
   const [galleryOpen, setGalleryOpen] = useState(false)
@@ -42,7 +44,7 @@ export function OverrideImages({
   }
 
   const openGallery = async (): Promise<void> => {
-    setGalleryImages(await rpc.request<{ path: string; url: string }[]>('gallery/list'))
+    setGalleryImages(await rpc.request<{ path: string; url: string }[]>('gallery/list', [isWorldBible]))
     setGalleryOpen(true)
   }
 

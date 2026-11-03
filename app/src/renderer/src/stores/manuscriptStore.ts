@@ -5,6 +5,7 @@ import { useFilterStore } from './filterStore'
 import type { ColourDimension } from '../views/manuscript/sceneColour'
 import i18n from '../i18n'
 import { retainMobileSceneRecovery } from '../mobile/recovery'
+import type { SceneDiskChange } from './externalSceneRefresh'
 
 export interface ManuscriptSceneDto {
   sceneId: string
@@ -43,6 +44,7 @@ interface PendingManuscriptSave {
   html: string
   plainText: string
   expectedHash: string
+  revision: number
 }
 
 interface SceneWriteResult {
@@ -54,6 +56,26 @@ interface SceneWriteResult {
 }
 
 const saveTimers = new Map<string, PendingManuscriptSave>()
+// Accepting a resolved or matching disk version retires every earlier write,
+// including predecessors no longer stored as the newest pending payload.
+const sceneWriteRevisions = new Map<string, number>()
+
+export function applyExternalManuscriptScene(change: SceneDiskChange, previousHash: string): void {
+  const state = useManuscriptStore.getState()
+  const scene = state.sections.find(section => section.chapterGuid === change.chapterGuid)?.scenes.find(scene => scene.sceneId === change.sceneId)
+  if (!scene || scene.hash !== previousHash || scene.hash === change.hash) return
+  const pending = saveTimers.get(change.sceneId)
+  if (pending && pending.html !== change.html) {
+    if (pending.timer) clearTimeout(pending.timer)
+    pending.timer = null
+    if (!useProjectStore.getState().sceneConflict) useProjectStore.setState({ sceneConflict: {
+      chapterGuid: change.chapterGuid, sceneId: change.sceneId, mine: pending.html,
+      theirs: change.html, plainText: pending.plainText
+    } })
+    return
+  }
+  state.acceptResolvedScene(change.sceneId, change.html, change.wordCount, change.hash)
+}
 /** A second debounce may mature while the first payload is still on the wire.
  *  Serialize by scene so its expected hash can be advanced by the predecessor
  *  before the successor is sent. */
@@ -67,6 +89,7 @@ function writePendingManuscriptSave(save: PendingManuscriptSave): Promise<void> 
   save.timer = null
   const predecessor = sceneWriteTails.get(save.sceneId) ?? Promise.resolve()
   const write = predecessor.catch(() => {}).then(async (): Promise<void> => {
+    if (save.revision !== (sceneWriteRevisions.get(save.sceneId) ?? 0)) return
     // Read the base only after our predecessor has settled. It may have
     // advanced the section hash while this save was queued behind it.
     const expectedHash = useManuscriptStore
@@ -81,6 +104,7 @@ function writePendingManuscriptSave(save: PendingManuscriptSave): Promise<void> 
       save.plainText,
       expectedHash ?? save.expectedHash
     ])
+    if (save.revision !== (sceneWriteRevisions.get(save.sceneId) ?? 0)) return
     const current = saveTimers.get(save.sceneId)
     if (result.conflicted) {
       // Prefer the newest local manuscript payload if the writer typed while
@@ -153,7 +177,6 @@ interface ManuscriptState {
   composed: string[] | null
   /** What the board groups by: 'chapter', 'stage', 'pov', or 'prop:<key>'. */
   groupBy: string
-  filterStatus: string
   /** A saved list narrowing every mode, or '' for the whole book. */
   filterListId: string
   sections: ManuscriptSectionDto[]
@@ -174,7 +197,6 @@ interface ManuscriptState {
   setColourBy(colourBy: ColourDimension): void
   setGroupBy(groupBy: string): void
   compose(sceneIds: string[] | null): Promise<void>
-  setFilter(status: string): Promise<void>
   /** Narrows every mode to a saved list's scenes; '' is the whole book. */
   applyList(filterListId: string): Promise<void>
   load(): Promise<void>
@@ -201,7 +223,6 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   freeform: false,
   composed: null,
   groupBy: 'stage',
-  filterStatus: 'All',
   filterListId: '',
   sections: [],
   loaded: false,
@@ -212,11 +233,6 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   setColourBy: (colourBy) => set({ colourBy }),
 
   setGroupBy: (groupBy) => set({ groupBy }),
-
-  setFilter: async (filterStatus) => {
-    set({ filterStatus })
-    await get().load()
-  },
 
   /**
    * Narrows every mode to the scenes a saved list finds - the outliner, the
@@ -239,15 +255,13 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
 
   load: async () => {
     const revision = ++loadRevision
-    // The shared filter is read here rather than mirrored into this store: it
-    // is one statement about the book, and a copy of it is a copy that goes
-    // stale. Only the status is mirrored, because the manuscript's own status
-    // control predates the shared one and still writes to it.
+    // Read every filter from the shared state, including chapter status, so
+    // loading before the view mounts cannot reuse a stale local restriction.
     const shared = useFilterStore.getState().filter
     pendingLoads++
     try {
       const sections = await rpc.request<ManuscriptSectionDto[]>('manuscript/get', [
-        get().filterStatus,
+        shared.status || 'All',
         get().composed,
         shared.character || null,
         shared.location || null,
@@ -312,7 +326,8 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
       sceneId,
       html,
       plainText,
-      expectedHash: section.scenes.find((scene) => scene.sceneId === sceneId)?.hash ?? ''
+      expectedHash: section.scenes.find((scene) => scene.sceneId === sceneId)?.hash ?? '',
+      revision: sceneWriteRevisions.get(sceneId) ?? 0
     }
     save.timer = setTimeout(() => {
       void writePendingManuscriptSave(save).catch(() => {
@@ -342,6 +357,7 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   },
 
   acceptResolvedScene: (sceneId, html, wordCount, hash) => {
+    sceneWriteRevisions.set(sceneId, (sceneWriteRevisions.get(sceneId) ?? 0) + 1)
     const pending = saveTimers.get(sceneId)
     if (pending?.timer) clearTimeout(pending.timer)
     saveTimers.delete(sceneId)
@@ -353,6 +369,7 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
         )
       }))
     })
+    reportManuscriptClaims()
   },
 
   cycleStatus: async (chapterGuid) => {

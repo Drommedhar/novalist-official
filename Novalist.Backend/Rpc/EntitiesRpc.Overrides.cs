@@ -70,7 +70,7 @@ public sealed partial class EntitiesRpc
         var character = await LoadCharacterAsync(characterId);
         var ovr = FindOrCreateOverride(character, chapterGuid, sceneTitle);
         ovr.Images = images?
-            .Select(i => new EntityImage { Name = i.Name, Path = i.Path })
+            .Select(i => new EntityImage { Name = i.Name, Path = ImagePathFor(character, i.Path) })
             .ToList();
         await _entities.SaveCharacterAsync(character);
         return WithResolvedImages(character);
@@ -86,7 +86,7 @@ public sealed partial class EntitiesRpc
         var relative = await _entities.ImportImageAsync(path);
         var name = Path.GetFileNameWithoutExtension(relative);
         return await MutateOverrideImagesAsync(characterId, chapterGuid, sceneTitle,
-            images => images.Add(new EntityImage { Name = name, Path = relative }));
+            (images, character) => images.Add(new EntityImage { Name = name, Path = ImagePathFor(character, relative) }));
     }
 
     /// <summary>Downloads a remote image and appends it to the scope's override
@@ -97,10 +97,10 @@ public sealed partial class EntitiesRpc
     {
         var (relative, fileName) = await _imageImporter.ImportAsync(url);
         return await MutateOverrideImagesAsync(characterId, chapterGuid, sceneTitle,
-            images => images.Add(new EntityImage
+            (images, character) => images.Add(new EntityImage
             {
                 Name = Path.GetFileNameWithoutExtension(fileName),
-                Path = relative
+                Path = ImagePathFor(character, relative)
             }));
     }
 
@@ -160,13 +160,13 @@ public sealed partial class EntitiesRpc
     /// deep copy of the base images the first time the scope diverges (so an add
     /// starts from what the peek currently shows), then persists.</summary>
     private async Task<JsonElement> MutateOverrideImagesAsync(
-        string characterId, string chapterGuid, string? sceneTitle, Action<List<EntityImage>> mutate)
+        string characterId, string chapterGuid, string? sceneTitle, Action<List<EntityImage>, CharacterData> mutate)
     {
         var character = await LoadCharacterAsync(characterId);
         var ovr = FindOrCreateOverride(character, chapterGuid, sceneTitle);
         var images = ovr.Images
             ?? character.Images.Select(i => new EntityImage { Name = i.Name, Path = i.Path }).ToList();
-        mutate(images);
+        mutate(images, character);
         ovr.Images = images;
         await _entities.SaveCharacterAsync(character);
         return WithResolvedImages(character);

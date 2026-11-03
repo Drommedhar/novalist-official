@@ -34,6 +34,8 @@ Novalist saves automatically **two seconds** after the last keystroke. Pending c
 
 Each split pane keeps its own unsaved buffer. If a save detects a conflicting version, navigation keeps your edits available until you resolve the conflict. Choosing either complete version preserves its rich-text structure.
 
+When you return to Novalist after editing scene files in another application, it checks the active book for changes. Clean scenes reload in the editor and Manuscript, and outline word counts update, including for unopened scenes. If you also have unsaved edits, Novalist keeps them and opens the conflict dialog so you can choose what to keep.
+
 On iPhone and iPad, backgrounding requests a save and retains pending edits for recovery in the same project, book and draft. Reopening uses the normal conflict check before writing recovered text. If the editor connection fails, editing pauses and a reload prompt lets you reopen saved work and retained drafts.
 
 ## Dictation
@@ -325,7 +327,7 @@ All of this is purely visual — it doesn't change what gets exported. For expor
 
 The editor participates fully in the app's keyboard shortcuts even while the caret is inside the text: a global gesture (for example the command palette, focus mode, or find & replace) fires whether or not the editor has focus, so you never have to click out of the page first. See [Hotkeys](26-hotkeys.md) for the full list.
 
-Hold `Ctrl` and scroll the mouse wheel over the page to **zoom** in either the scene editor or Manuscript view, from 50% to 300%. Text, images, spacing and column width scale together, preserving the characters on each line, including in Page view and with Book Page Width on or off. If the enlarged page exceeds the pane, scroll horizontally to reach its edges. Zoom is shared between the writing views for the current session; it does not change your editor font, book font or page-format settings.
+Hold `Ctrl` and scroll the mouse wheel over the page to **zoom** in either the scene editor or Manuscript view, from 50% to 300%. Text, images, spacing and column width scale together, preserving the characters on each line, including in Page view and with Book Page Width on or off. If the enlarged page exceeds the pane, scroll horizontally to reach its edges. The first scene you open after starting Novalist fits its page to the available writing width. This happens once per session; switching scenes, resizing the window and returning to the editor preserve any zoom you choose. Zoom is shared between the writing views for the current session; it does not change your editor font, book font or page-format settings.
 
 Zoom keeps the caret visible horizontally and preserves its vertical screen position where scrolling allows. With **Typewriter Scrolling** enabled, it places the caret at your chosen top, middle or bottom position instead, including in Focus Mode. Normal scrolling remains under your control.
 

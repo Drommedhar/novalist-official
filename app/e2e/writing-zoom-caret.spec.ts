@@ -119,7 +119,7 @@ for (const mode of ['scene', 'pages', 'focus', 'manuscript'] as const) {
         await h.page.waitForTimeout(250)
         expect(await scroller.evaluate(element => element.scrollTop)).toBeCloseTo(scrolled, 0)
         if (mode === 'manuscript') {
-          await h.page.keyboard.press('Control+z')
+          await h.page.keyboard.press('ControlOrMeta+z')
           await expect(editor).toHaveText(prose.repeat(50))
         }
       } finally {

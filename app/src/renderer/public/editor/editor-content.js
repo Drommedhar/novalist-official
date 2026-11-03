@@ -37,12 +37,12 @@ function setContent(html) {
         window.NovalistEditorState.editor.innerHTML = '<p><br></p>';
     } else {
         const bodyContent = extractBody(html);
-        window.NovalistEditorState.editor.replaceChildren(window.sanitizeSceneFragment(bodyContent));
+        window.NovalistEditorState.editor.replaceChildren(window.sceneContentFragment(bodyContent));
     }
     window.clearGrammarHighlights();
     refreshSceneBreakClasses(window.NovalistEditorState.editor);
     const changed = window.NovalistEditorState.editor.innerHTML !== previous;
-    window.NovalistEditorState.lastHtml = window.NovalistEditorState.editor.innerHTML;
+    window.NovalistEditorState.lastHtml = window.getCleanContentHtml();
     window.NovalistEditorState.isSettingContent = false;
     window.NovalistEditorState.savedScrollTop = changed ? 0 : window.NovalistEditorState.savedScrollTop;
     window.NovalistEditorState.wrapper.scrollTop = window.NovalistEditorState.savedScrollTop;

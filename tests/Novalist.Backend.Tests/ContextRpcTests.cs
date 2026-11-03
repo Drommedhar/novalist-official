@@ -30,6 +30,45 @@ public sealed class ContextRpcTests : IDisposable
 
     private EntityService Entities => new(_workspace.Projects);
 
+    [Fact]
+    public async Task Analyze_UsesUnsavedHtmlForEntitiesAnalysisAndCurrentChapterMentions()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("Opening");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Arrival");
+        var other = await _workspace.Projects.CreateChapterAsync("Earlier");
+        var otherScene = await _workspace.Projects.CreateSceneAsync(other.Guid, "Departure");
+        await Entities.SaveCharacterAsync(new CharacterData { Id = "mira", Name = "Mira" });
+        await Write(chapter, scene, "The door stood open.");
+        await Write(other, otherScene, "Mira left.");
+
+        var ctx = await _rpc.AnalyzeAsync(chapter.Guid, scene.Id, "<p>Mira <strong>arrived</strong>.</p>");
+
+        Assert.Equal("mira", Assert.Single(ctx.Characters).Id);
+        Assert.Equal(2, ctx.Analysis.WordCount);
+        var mentions = Assert.Single(ctx.MentionRows);
+        Assert.All(mentions.Cells, cell => Assert.True(cell.Present));
+        Assert.Contains(mentions.Cells, cell => cell.Current);
+        Assert.Equal("The door stood open.", await _workspace.Projects.ReadSceneContentAsync(chapter, scene));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("<p> </p>")]
+    public async Task Analyze_EmptyUnsavedHtmlRemovesSavedEntities(string draft)
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("Opening");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Arrival");
+        await Entities.SaveCharacterAsync(new CharacterData { Id = "mira", Name = "Mira" });
+        await Write(chapter, scene, "Mira arrived.");
+
+        var ctx = await _rpc.AnalyzeAsync(chapter.Guid, scene.Id, draft);
+
+        Assert.Empty(ctx.Characters);
+        Assert.Empty(ctx.MentionRows);
+        Assert.Equal(0, ctx.Analysis.WordCount);
+        Assert.Equal("Mira arrived.", await _workspace.Projects.ReadSceneContentAsync(chapter, scene));
+    }
+
     // ── Research the scene is about ─────────────────────────────────
 
     [Fact]

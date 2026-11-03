@@ -66,8 +66,6 @@ let typewriterAnchor = 'middle';
 // 'top' | 'middle' | 'bottom'
 let typewriterFrame = 0;
 
-let typewriterLastY = -9999;
-
 let typewriterMouseDown = false;
 
 let typewriterSuspendUntil = 0;
@@ -156,7 +154,6 @@ Object.defineProperties(window.NovalistEditorState, {
     entityRegex: { get() { return entityRegex; }, set(value) { entityRegex = value; } },
     typewriterEnabled: { get() { return typewriterEnabled; }, set(value) { typewriterEnabled = value; } },
     typewriterAnchor: { get() { return typewriterAnchor; }, set(value) { typewriterAnchor = value; } },
-    typewriterLastY: { get() { return typewriterLastY; }, set(value) { typewriterLastY = value; } },
     typewriterMouseDown: { get() { return typewriterMouseDown; }, set(value) { typewriterMouseDown = value; } },
     typewriterSuspendUntil: { get() { return typewriterSuspendUntil; }, set(value) { typewriterSuspendUntil = value; } },
     typewriterFrame: { get() { return typewriterFrame; }, set(value) { typewriterFrame = value; } },

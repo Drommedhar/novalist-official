@@ -45,6 +45,14 @@ for (const mode of ['scene', 'pages', 'manuscript'] as const) {
         const editor = frame.locator(mode === 'manuscript' ? '.scene-editor' : '#editor').first()
         await editor.fill('A long paragraph with varied words makes changes in line wrapping visible. '.repeat(12))
         if (mode === 'pages') await expect(frame.locator('.nv-page')).toBeVisible()
+        // Startup now fits the first scene. Establish 100% through the real
+        // gesture before checking exact doubling/halving and zoom limits.
+        await editor.hover()
+        await h.page.keyboard.down('Control')
+        for (let step = 0; step < 25; step++) await h.page.mouse.wheel(0, 100)
+        for (let step = 0; step < 5; step++) await h.page.mouse.wheel(0, -100)
+        await h.page.keyboard.up('Control')
+        await expect.poll(() => editor.evaluate(element => Number(getComputedStyle(element).getPropertyValue('--writing-zoom-scale')))).toBe(1)
         const before = await readLines(editor)
         expect(before.lines.length).toBeGreaterThan(3)
         await editor.hover()

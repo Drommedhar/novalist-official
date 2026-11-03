@@ -52,12 +52,17 @@
     <MauiSplashScreen Include="Resources\Splash\splash.png" Color="#0a1420" BaseSize="200,200" />
   </ItemGroup>
 
+  <!-- The SDK adds Core and Sdk as transitive ProjectReference items during
+       the build. Give those items the same properties as Backend so each
+       project is built once, without the desktop speech or web runtime. -->
+  <ItemDefinitionGroup>
+    <ProjectReference>
+      <AdditionalProperties>BuildAppleDesktopSpeech=false;EnableImportApi=false</AdditionalProperties>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+
   <ItemGroup>
-    <!-- Core and Sdk arrive transitively through Backend. Keep a single build
-         path: MAUI publish adjusts reference properties, and redundant direct
-         references can compile the same output concurrently. -->
-    <!-- The local import server uses the desktop ASP.NET Core runtime. -->
-    <ProjectReference Include="..\Novalist.Backend\Novalist.Backend.csproj" AdditionalProperties="BuildAppleDesktopSpeech=false;EnableImportApi=false" />
+    <ProjectReference Include="..\Novalist.Backend\Novalist.Backend.csproj" />
   </ItemGroup>
 
   <ItemGroup>

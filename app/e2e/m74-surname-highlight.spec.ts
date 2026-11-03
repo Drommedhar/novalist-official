@@ -35,6 +35,8 @@ async function isRecognised(
   await expect(card).toBeHidden()
 
   const hoverWord = async (): Promise<void> => {
+    // Measuring again cannot recover a word that remains above the viewport.
+    await editor.locator('p').filter({ hasText: word }).first().scrollIntoViewIfNeeded()
     const local = await editor.evaluate((el, needle: string) => {
       const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
       let node = walker.nextNode()
@@ -54,6 +56,10 @@ async function isRecognised(
     }, word)
     if (!local) throw new Error(`"${word}" is not in the prose`)
     const frame = (await page.locator('.editor-frame').boundingBox())!
+    expect(local.x).toBeGreaterThan(0)
+    expect(local.x).toBeLessThan(frame.width)
+    expect(local.y).toBeGreaterThan(0)
+    expect(local.y).toBeLessThan(frame.height)
     await page.mouse.move(frame.x + local.x, frame.y + local.y)
   }
 
@@ -70,70 +76,70 @@ async function isRecognised(
 test('a surname is recognised in the prose', async () => {
   test.setTimeout(240_000)
   const h = await launchApp('nl-surname-')
-  const page = h.page
+  try {
+    const page = h.page
 
-  await seedBook(h, { One: ['A'] })
-  await dismissTour(page)
-  await enterWriting(page)
+    await seedBook(h, { One: ['A'] })
+    await dismissTour(page)
+    await enterWriting(page)
 
-  const mira = await h.rpc<{ id: string }>('entities/create', ['character', 'Mira'])
-  await h.rpc('entities/update', ['character', mira.id, { surname: 'Frost' }])
-  await page.evaluate(() => window.novalistStores.codex.getState().refresh())
+    const mira = await h.rpc<{ id: string }>('entities/create', ['character', 'Mira'])
+    await h.rpc('entities/update', ['character', mira.id, { surname: 'Frost' }])
+    await page.evaluate(() => window.novalistStores.codex.getState().refresh())
 
-  // The backend offers the surname as its own target, which is what the editor
-  // is handed to look for.
-  const listed = await page.evaluate(
-    async () =>
-      (await window.novalistRpc.request('entities/list', ['character'])) as {
-        name: string
-        firstName: string | null
-        surname: string | null
-      }[]
-  )
-  expect(listed[0].name).toBe('Mira Frost')
-  expect(listed[0].firstName).toBe('Mira')
-  expect(listed[0].surname).toBe('Frost')
+    // The backend offers the surname as its own target, which is what the editor
+    // is handed to look for.
+    const listed = await page.evaluate(
+      async () =>
+        (await window.novalistRpc.request('entities/list', ['character'])) as {
+          name: string
+          firstName: string | null
+          surname: string | null
+        }[]
+    )
+    expect(listed[0].name).toBe('Mira Frost')
+    expect(listed[0].firstName).toBe('Mira')
+    expect(listed[0].surname).toBe('Frost')
 
-  await page.locator('.binder-scene-row').first().click()
-  const editor = page.frameLocator('.editor-frame').locator('#editor')
-  await expect(editor).toBeVisible({ timeout: 30_000 })
-  await editor.click()
-  await page.keyboard.type('Frost put the kettle on. Nobody called her Mira any more.')
-  await expect(editor).toContainText('kettle', { timeout: 15_000 })
+    await page.locator('.binder-scene-row').first().click()
+    const editor = page.frameLocator('.editor-frame').locator('#editor')
+    await expect(editor).toBeVisible({ timeout: 30_000 })
+    await editor.click()
+    await page.keyboard.type('Frost put the kettle on. Nobody called her Mira any more.')
+    await expect(editor).toContainText('kettle', { timeout: 15_000 })
 
-  // Both halves of the name, not just the one her friends use.
-  expect(await isRecognised(page, 'Mira')).toBe(true)
-  expect(await isRecognised(page, 'Frost')).toBe(true)
-
-  await h.close()
+    // Both halves of the name, not just the one her friends use.
+    expect(await isRecognised(page, 'Mira')).toBe(true)
+    expect(await isRecognised(page, 'Frost')).toBe(true)
+  } finally { await h.close() }
 })
 
 test('a surname two characters share is left alone rather than guessed at', async () => {
   test.setTimeout(240_000)
   const h = await launchApp('nl-surname2-')
-  const page = h.page
+  try {
+    const page = h.page
 
-  await seedBook(h, { One: ['A'] })
-  await dismissTour(page)
-  await enterWriting(page)
+    await seedBook(h, { One: ['A'] })
+    await dismissTour(page)
+    await enterWriting(page)
 
-  for (const given of ['Mira', 'Tomas']) {
-    const made = await h.rpc<{ id: string }>('entities/create', ['character', given])
-    await h.rpc('entities/update', ['character', made.id, { surname: 'Frost' }])
-  }
-  await page.evaluate(() => window.novalistStores.codex.getState().refresh())
+    for (const given of ['Mira', 'Tomas']) {
+      const made = await h.rpc<{ id: string }>('entities/create', ['character', given])
+      await h.rpc('entities/update', ['character', made.id, { surname: 'Frost' }])
+    }
+    await page.evaluate(() => window.novalistStores.codex.getState().refresh())
 
-  await page.locator('.binder-scene-row').first().click()
-  const editor = page.frameLocator('.editor-frame').locator('#editor')
-  await expect(editor).toBeVisible({ timeout: 30_000 })
-  await editor.click()
-  await page.keyboard.type('Frost put the kettle on, and Mira watched.')
-  await expect(editor).toContainText('kettle', { timeout: 15_000 })
+    await page.locator('.binder-scene-row').first().click()
+    const editor = page.frameLocator('.editor-frame').locator('#editor')
+    await expect(editor).toBeVisible({ timeout: 30_000 })
+    await editor.click()
+    await page.keyboard.type('Frost put the kettle on, and Mira watched.')
+    await expect(editor).toContainText('kettle', { timeout: 15_000 })
 
-  // The given name still resolves; the shared surname points at nobody, which
-  // is better than pointing at whichever entry happened to be loaded first.
-  expect(await isRecognised(page, 'Mira')).toBe(true)
-  expect(await isRecognised(page, 'Frost')).toBe(false)
-
-  await h.close()
+    // The given name still resolves; the shared surname points at nobody, which
+    // is better than pointing at whichever entry happened to be loaded first.
+    expect(await isRecognised(page, 'Mira')).toBe(true)
+    expect(await isRecognised(page, 'Frost')).toBe(false)
+  } finally { await h.close() }
 })

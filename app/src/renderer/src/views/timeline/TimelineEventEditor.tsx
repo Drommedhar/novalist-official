@@ -289,13 +289,17 @@ export function TimelineEventEditor({
         {/* Not a <label for>: the editor's writing surface is a contenteditable,
             not a form control, so it carries the name via aria-label instead. */}
         <div className="inspector-label">{t('timeline.eventDescription')}</div>
-        <MarkdownEditor
-          className="md-compact"
-          minRows={3}
-          ariaLabel={t('timeline.eventDescription')}
-          value={description}
-          onChange={setDescription}
-        />
+        {/* The editor clips its contents, so as a shrinking flex item it can
+            collapse to a border. Keep its height and let the dialog scroll. */}
+        <div style={{ flexShrink: 0 }}>
+          <MarkdownEditor
+            className="md-compact"
+            minRows={3}
+            ariaLabel={t('timeline.eventDescription')}
+            value={description}
+            onChange={setDescription}
+          />
+        </div>
         {/* Only for an event that exists: a field written against a draft
             would have nothing to be stored on. */}
         {eventId && <CustomFieldsPanel scope="Event" id={eventId} />}

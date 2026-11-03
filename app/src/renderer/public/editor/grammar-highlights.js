@@ -36,6 +36,7 @@ function setGrammarIssues(issuesJson, requestId) {
             return;
         }
     }
+    const savedPopup = window.captureGrammarPopup();
     window.hideGrammarPopup();
     if (window.NovalistEditorState.contextMenu.querySelector('[data-replacement]')) window.hideContextMenu();
     logToHost("setGrammarIssues called: raw issues length = " + (issuesJson ? issuesJson.length : 0));
@@ -58,6 +59,7 @@ function setGrammarIssues(issuesJson, requestId) {
     }
     window.NovalistEditorState.grammarChecking = false;
     applyGrammarHighlights();
+    window.restoreGrammarPopup(savedPopup);
     window.updateGrammarStatusBar();
 }
 

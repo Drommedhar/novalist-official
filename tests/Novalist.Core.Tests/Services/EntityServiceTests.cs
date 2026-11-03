@@ -467,6 +467,44 @@ public class EntityServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task GetWorldBibleImages_IncludesOtherBooksConfiguredFoldersAndNestedImages()
+    {
+        _book.Id = "first";
+        _book.FolderName = "Books/Book1";
+        _meta.Books = [_book, new BookData { Id = "second", FolderName = "Other Volume", ImageFolder = "Art" }];
+        var imageFolder = Path.Combine(_dir.Path, "Other Volume", "Art", "Portraits");
+        Directory.CreateDirectory(imageFolder);
+        await File.WriteAllBytesAsync(Path.Combine(imageFolder, "face.PNG"), [1]);
+        await File.WriteAllTextAsync(Path.Combine(imageFolder, "notes.txt"), "notes");
+
+        Assert.Equal(["./Other Volume/Art/Portraits/face.PNG"], await _sut.GetWorldBibleImagesAsync());
+        var fullPath = _sut.GetImageFullPath(".\\Other Volume\\Art\\Portraits\\face.PNG");
+        Assert.Equal(Path.Combine(imageFolder, "face.PNG"), Path.GetFullPath(fullPath));
+        Assert.Equal(new byte[] { 1 }, await File.ReadAllBytesAsync(fullPath));
+        Assert.Equal("Books/Book1/Other Volumes/Art/face.png", _sut.ResolveProjectRelativeImage("Other Volumes/Art/face.png"));
+    }
+
+    [Fact]
+    public async Task GetWorldBibleImages_NoProject_Throws()
+    {
+        _project.ProjectRoot.Returns((string?)null);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.GetWorldBibleImagesAsync());
+    }
+
+    [Fact]
+    public void GetImageFullPath_BookNamedImagesDoesNotCaptureLegacyLocalPaths()
+    {
+        _meta.Books = [new BookData { Id = "other", FolderName = "Images" }];
+        // Windows accepts stored forward slashes; compare the resolved location.
+        Assert.Equal(Path.Combine(_bookRoot, "Images", "portrait.png"),
+            Path.GetFullPath(_sut.GetImageFullPath("Images/portrait.png")));
+        Assert.Equal(Path.Combine(_bookRoot, "Images", "Images", "portrait.png"),
+            Path.GetFullPath(_sut.GetImageFullPath("Images/Images/portrait.png")));
+        Assert.Equal(Path.Combine(_dir.Path, "Images", "Images", "portrait.png"),
+            Path.GetFullPath(_sut.GetImageFullPath("./Images/Images/portrait.png")));
+    }
+
+    [Fact]
     public async Task GetProjectImages_SynchronousSdkDoesNotCaptureCallersContext()
     {
         var files = Substitute.For<IFileService>();

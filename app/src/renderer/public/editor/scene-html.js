@@ -47,7 +47,36 @@ function sanitizeSceneFragment(html) {
     });
 }
 
-Object.assign(window, { sanitizeSceneHtml, sanitizeSceneFragment });
+function sceneContentFragment(html) {
+    const fragment = sanitizeSceneFragment(html);
+    // Scene files may be formatted with newlines between HTML blocks. The
+    // editors use pre-wrap for prose, which would paint each of those source
+    // separators as an extra blank line. Only remove whitespace bounded by
+    // blocks (or the container edge); inline spaces, verse, plain text and
+    // explicit empty paragraphs remain author content.
+    const blocks = new Set([
+        'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'DIV', 'DL', 'DT', 'DD',
+        'FIGURE', 'FIGCAPTION', 'FOOTER', 'HEADER', 'H1', 'H2', 'H3', 'H4',
+        'H5', 'H6', 'HR', 'LI', 'MAIN', 'NAV', 'OL', 'P', 'PRE', 'SECTION',
+        'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR', 'TD', 'TH', 'UL'
+    ]);
+    const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_TEXT);
+    const separators = [];
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (!/^[\t\r\n ]+$/.test(node.data) || node.parentElement?.closest('pre, .nv-style-poetry')) continue;
+        const before = node.previousSibling;
+        const after = node.nextSibling;
+        const beforeBlock = before && blocks.has(before.nodeName);
+        const afterBlock = after && blocks.has(after.nodeName);
+        if ((!before || beforeBlock) && (!after || afterBlock) && (beforeBlock || afterBlock)) {
+            separators.push(node);
+        }
+    }
+    separators.forEach(node => node.remove());
+    return fragment;
+}
+
+Object.assign(window, { sanitizeSceneHtml, sanitizeSceneFragment, sceneContentFragment });
 
 window.applyFrameTheme = function (colors, properties) {
     properties.forEach((property, index) => {

@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect, type Locator, type Page } from '@playwright/test'
 import { dismissTour, enterWriting, launchApp, seedBook, type Harness } from './harness'
 
 /**
@@ -28,7 +28,7 @@ const peek = (page: Page): ReturnType<Page['locator']> => page.locator('.peek-ca
 type Box = { x: number; y: number; width: number; height: number }
 
 /** Follow the name while pagination and editor layout settle after typing. */
-async function hover(page: Page, measure: () => Promise<Box>): Promise<Box> {
+async function hover(page: Page, target: Locator, measure: () => Promise<Box>): Promise<Box> {
   await expect(page.frameLocator('.editor-frame').locator('#editor > .nv-page')).toHaveCount(1)
   let box!: Box
   await expect.poll(async () => {
@@ -36,9 +36,15 @@ async function hover(page: Page, measure: () => Promise<Box>): Promise<Box> {
     // it first so the next move reaches the editor instead of the old card.
     await page.mouse.move(0, 0)
     await expect(peek(page)).toHaveCount(0)
+    await target.scrollIntoViewIfNeeded()
     box = await measure()
     const x = box.x + box.width / 2
     const y = box.y + box.height / 2
+    const frame = (await page.locator('.editor-frame').boundingBox())!
+    expect(x).toBeGreaterThan(frame.x)
+    expect(x).toBeLessThan(frame.x + frame.width)
+    expect(y).toBeGreaterThan(frame.y)
+    expect(y).toBeLessThan(frame.y + frame.height)
     await page.mouse.move(x, y)
     await page.waitForTimeout(700)
     await page.mouse.move(x + 2, y)
@@ -94,7 +100,7 @@ test('a mention put in with @ still peeks after it has been clicked', async () =
 
   const mention = page.frameLocator('.editor-frame').locator('.nv-entity-mention').first()
   await expect(mention).toBeVisible({ timeout: 15_000 })
-  const box = await hover(page, async () => (await mention.boundingBox())!)
+  const box = await hover(page, mention, async () => (await mention.boundingBox())!)
 
   // A click is how a writer puts the caret in a name they are about to edit.
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
@@ -124,7 +130,8 @@ test('a plain name in the prose still peeks after it has been clicked', async ()
     .toBe(true)
 
   // Re-measure both the text and its frame on each initial hover attempt.
-  const box = await hover(page, async () => {
+  const paragraph = editor.locator('p').filter({ hasText: NAME }).first()
+  const box = await hover(page, paragraph, async () => {
     const local = await editor.evaluate((el, needle: string) => {
       const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
       let node = walker.nextNode()

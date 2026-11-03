@@ -5,7 +5,7 @@ using StreamJsonRpc;
 namespace Novalist.Backend.Rpc;
 
 /// <summary>Scene content IO for the editor round-trip.</summary>
-public sealed class ScenesRpc
+public sealed partial class ScenesRpc
 {
     private readonly Workspace _workspace;
 

@@ -13,3 +13,15 @@ When changing desktop behavior or editing `CHANGELOG.md`, follow the changelog g
   outcome, and mobile-only work. Remove duplicates and empty category headings.
 - Keep the relevant **Unreleased** entry accurate in the same change. Leave published release
   sections unchanged unless the user explicitly asks to correct release history.
+
+# E2E desktop isolation
+
+Electron E2E tests activate real windows and enter native fullscreen. Do not run
+them on the user's interactive desktop while they are working. Use the isolated
+GitHub Actions runners or a dedicated desktop session instead.
+
+Playwright execution requires `NOVALIST_E2E_ALLOW_DESKTOP=1`; the CI E2E steps set
+it on their isolated runners. Never set this flag locally merely to make a check
+pass. A local interactive run needs the user's explicit consent for that run.
+`CI=true` does not mean the desktop is isolated. Listing tests with `--list`,
+typechecking, and Node tests are safe without opting in.

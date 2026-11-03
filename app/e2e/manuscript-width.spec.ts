@@ -23,6 +23,14 @@ for (const view of ['manuscript', 'write'] as const) {
       await expect(wrapper).toBeVisible()
       await expect(editor).toHaveCSS('font-size', '17px')
       await expect(editor).toHaveCSS('font-family', /Georgia/)
+      // Startup fits the first scene. Set 100% through the normal zoom gesture
+      // before comparing physical book widths with exact CSS pixel dimensions.
+      await editor.hover()
+      await h.page.keyboard.down('Control')
+      for (let step = 0; step < 25; step++) await h.page.mouse.wheel(0, 100)
+      for (let step = 0; step < 5; step++) await h.page.mouse.wheel(0, -100)
+      await h.page.keyboard.up('Control')
+      await expect.poll(() => editor.evaluate(element => Number(getComputedStyle(element).getPropertyValue('--writing-zoom-scale')))).toBe(1)
       const width = (): Promise<number> => wrapper.evaluate(el => el.getBoundingClientRect().width)
       const padding = view === 'write' ? 48 : 64
       await expect.poll(width).toBe(4 * 96 + padding)

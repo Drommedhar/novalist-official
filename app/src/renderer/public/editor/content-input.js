@@ -99,6 +99,12 @@ function insertImageAtCaret(storedPath, alt) {
 function getCleanContentHtml() {
     const clone = window.NovalistEditorState.editor.cloneNode(true);
     window.clearGrammarHighlights(clone);
+    // These are display decorations, not edits to the stored prose.
+    clone.querySelectorAll('.nv-focus-block').forEach(block => {
+        block.classList.remove('nv-focus-block');
+    });
+    clone.querySelectorAll('[class=""]').forEach(block => block.removeAttribute('class'));
+    clone.querySelectorAll('sup.nv-fn[title]').forEach(note => note.removeAttribute('title'));
     if (window.NovalistEditorState.pageViewEnabled) {
         clone.querySelectorAll('.nv-page').forEach(p => {
             const parent = p.parentNode;
@@ -116,18 +122,24 @@ function getCleanContentHtml() {
     return clone.innerHTML;
 }
 
-function reportContentChanged() {
-    if (window.NovalistEditorState.isComposing) return;
+/** Captures real edits synchronously, comparing browser-normalized prose. */
+function capturePendingContentChange() {
+    if (window.NovalistEditorState.isComposing || window.NovalistEditorState.isSettingContent) return null;
     window.refreshSceneBreakClasses(window.NovalistEditorState.editor);
     const html = getCleanContentHtml();
     if (html !== window.NovalistEditorState.lastHtml) {
         window.NovalistEditorState.lastHtml = html;
-        window.sendMessage({
-            type: 'contentChanged',
+        return {
             html: html,
             plainText: window.NovalistEditorState.editor.innerText || ''
-        });
+        };
     }
+    return null;
+}
+
+function reportContentChanged() {
+    const change = capturePendingContentChange();
+    if (change) window.sendMessage({ type: 'contentChanged', ...change });
 }
 
 /** Flushes the iframe's short debounce before an application-level save. */
@@ -204,6 +216,7 @@ Object.assign(window, {
     insertImageAtCaret,
     getCleanContentHtml,
     reportContentChanged,
+    capturePendingContentChange,
     flushPendingContentChange,
     isCompositionInput,
     handleEditorInput,

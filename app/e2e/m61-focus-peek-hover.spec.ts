@@ -54,14 +54,17 @@ interface PeekState {
   height: number
 }
 
-/** Viewport rectangle of the first occurrence of `word` in the prose. */
-async function wordBox(page: Page, word: string): Promise<Box> {
+/** Bring the first occurrence into view before measuring its viewport rectangle. */
+async function wordBox(page: Page, word: string, firstFragment = false): Promise<Box> {
+  const editor = page.frameLocator('.editor-frame').locator('#editor')
+  await expect(editor.locator(':scope > .nv-page')).toHaveCount(1)
+  await editor.locator('p').filter({ hasText: word }).first().scrollIntoViewIfNeeded()
   const frame = await page.locator('.editor-frame').boundingBox()
   if (!frame) throw new Error('the editor frame has no box')
   const inFrame = await page
     .frameLocator('.editor-frame')
     .locator('#editor')
-    .evaluate((el, needle: string) => {
+    .evaluate((el, { needle, firstFragment }) => {
       const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
       let node = walker.nextNode()
       while (node) {
@@ -70,15 +73,21 @@ async function wordBox(page: Page, word: string): Promise<Box> {
           const range = document.createRange()
           range.setStart(node, index)
           range.setEnd(node, index + needle.length)
-          const rect = range.getBoundingClientRect()
+          const rect = firstFragment ? range.getClientRects()[0] : range.getBoundingClientRect()
           return { x: rect.left, y: rect.top, width: rect.width, height: rect.height }
         }
         node = walker.nextNode()
       }
       return null
-    }, word)
+    }, { needle: word, firstFragment })
   if (!inFrame) throw new Error(`"${word}" is not in the prose`)
-  return { ...inFrame, x: frame.x + inFrame.x, y: frame.y + inFrame.y }
+  const box = { ...inFrame, x: frame.x + inFrame.x, y: frame.y + inFrame.y }
+  const point = centre(box)
+  expect(point.x).toBeGreaterThan(frame.x)
+  expect(point.x).toBeLessThan(frame.x + frame.width)
+  expect(point.y).toBeGreaterThan(frame.y)
+  expect(point.y).toBeLessThan(frame.y + frame.height)
+  return box
 }
 
 const centre = (box: Box): { x: number; y: number } => ({
@@ -218,30 +227,35 @@ test('hover delay, cancellation and the off switch preserve deliberate keyboard 
     await seedNamedScene(h)
     const page = h.page
     const card = page.locator('.peek-card-anchor')
+    const namePoint = async () => centre(await wordBox(page, NAME, true))
+    const hoverName = async () => {
+      const point = await namePoint()
+      await page.mouse.move(point.x, point.y)
+    }
     await page.mouse.move(0, 0)
     await page.evaluate(() => window.novalistStores.settings.getState().update('global', { focusPeekDelayMs: 1200 }))
-    const name = centre(await wordBox(page, NAME))
-    await page.mouse.move(name.x, name.y)
+    await hoverName()
     await page.waitForTimeout(300)
     await expect(card).toHaveCount(0)
     await page.mouse.move(0, 0)
     await page.waitForTimeout(1300)
     await expect(card).toHaveCount(0)
-    await page.mouse.move(name.x, name.y)
+    await hoverName()
     await expect(card).toBeVisible()
     await page.evaluate(() => window.novalistStores.settings.getState().update('global', { focusPeekEnabled: false }))
     await expect(card).toHaveCount(0)
     await page.mouse.move(0, 0)
-    await page.mouse.move(name.x, name.y)
+    await hoverName()
     await page.waitForTimeout(1300)
     await expect(card).toHaveCount(0)
+    const name = await namePoint()
     await page.mouse.click(name.x, name.y)
     await page.keyboard.press('Control+Shift+E')
     await expect(card).toBeVisible()
     await page.evaluate(() => window.novalistStores.settings.getState().update('global', { focusPeekEnabled: true, focusPeekDelayMs: 100 }))
     await expect(card).toHaveCount(0)
     await page.mouse.move(0, 0)
-    await page.mouse.move(name.x, name.y)
+    await hoverName()
     await expect(card).toBeVisible()
   } finally { await h.close() }
 })

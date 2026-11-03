@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Plus, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
 import { useShellStore } from '../stores/shellStore'
+import { useWikiStore } from '../stores/wikiStore'
 
 interface SceneLink {
   id: string
@@ -28,6 +29,7 @@ interface ResearchItem {
 }
 
 interface EntityOption {
+  typeKey: string
   id: string
   name: string
 }
@@ -86,7 +88,9 @@ export function LinksPanel(props: {
       .catch(() => setResearch([]))
     void Promise.all(
       ENTITY_KINDS.map((k) =>
-        rpc.request<EntityOption[]>('entities/list', [k]).catch(() => [] as EntityOption[])
+        rpc.request<EntityOption[]>('entities/list', [k])
+          .then((list) => list.map((entity) => ({ ...entity, typeKey: k })))
+          .catch(() => [] as EntityOption[])
       )
     ).then((lists) =>
       setEntities(
@@ -124,7 +128,11 @@ export function LinksPanel(props: {
       return
     }
     if (link.kind === 'entity') {
-      setMainView('codex')
+      const entity = entities.find((entry) => entry.id === link.targetId)
+      if (entity) {
+        setMainView('wiki')
+        void useWikiStore.getState().openArticle(entity.typeKey, entity.id)
+      }
       return
     }
     const chapter = chapters.find((c) => c.scenes.some((s) => s.id === link.targetId))

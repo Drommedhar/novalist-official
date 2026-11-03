@@ -48,7 +48,7 @@ public sealed partial class ContextRpc
     }
 
     [JsonRpcMethod("context/analyze")]
-    public async Task<SceneContextDto> AnalyzeAsync(string chapterGuid, string sceneId)
+    public async Task<SceneContextDto> AnalyzeAsync(string chapterGuid, string sceneId, string? currentSceneHtml = null)
     {
         var (targetChapter, targetScene) = _workspace.ResolveScene(chapterGuid, sceneId);
         var projects = _workspace.Projects;
@@ -67,7 +67,7 @@ public sealed partial class ContextRpc
             .ToList();
 
         var chapters = projects.GetChaptersOrdered();
-        var (aggregateByChapter, currentContent) = await ReadContextContentAsync(chapters, targetChapter, targetScene);
+        var (aggregateByChapter, currentContent) = await ReadContextContentAsync(chapters, targetChapter, targetScene, currentSceneHtml);
 
         var matchedCharacters = MatchSources(currentContent, characterSources);
         var matchedLocations = MatchSources(currentContent, locationSources);
@@ -121,7 +121,7 @@ public sealed partial class ContextRpc
     }
 
     private async Task<(Dictionary<string, string> Chapters, string Current)> ReadContextContentAsync(
-        IReadOnlyList<ChapterData> chapters, ChapterData targetChapter, SceneData targetScene)
+        IReadOnlyList<ChapterData> chapters, ChapterData targetChapter, SceneData targetScene, string? currentSceneHtml)
     {
         var projects = _workspace.Projects;
         var aggregateByChapter = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -132,11 +132,15 @@ public sealed partial class ContextRpc
             var contents = new List<string>(scenes.Count);
             foreach (var scene in scenes)
             {
-                var content = NormalizeSceneContent(await projects.ReadSceneContentAsync(chapter, scene));
+                var isCurrent = string.Equals(chapter.Guid, targetChapter.Guid, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(scene.Id, targetScene.Id, StringComparison.OrdinalIgnoreCase);
+                // The open editor can be newer than the saved file. Substitute
+                // only this scene, including an intentionally emptied draft.
+                var content = NormalizeSceneContent(isCurrent && currentSceneHtml != null
+                    ? currentSceneHtml
+                    : await projects.ReadSceneContentAsync(chapter, scene));
                 contents.Add(content);
-                if (string.Equals(chapter.Guid, targetChapter.Guid, StringComparison.OrdinalIgnoreCase)
-                    && string.Equals(scene.Id, targetScene.Id, StringComparison.OrdinalIgnoreCase))
-                    currentContent = content;
+                if (isCurrent) currentContent = content;
             }
             aggregateByChapter[chapter.Guid] = string.Join(Environment.NewLine + Environment.NewLine, contents);
         }

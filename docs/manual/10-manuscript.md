@@ -2,7 +2,7 @@
 
 The Manuscript view stitches every scene of your book into a single continuous document. It is the closest you get to reading the manuscript the way a reader would — without exporting.
 
-It has three display modes: **Manuscript**, **Corkboard**, and **Outliner**.
+It has four display modes: **Manuscript**, **Corkboard**, **Outliner**, and **Board**.
 
 ![The Manuscript corkboard](images/manuscript.png)
 
@@ -12,18 +12,15 @@ Open it from the **Write** mode (**Manuscript**, under **Drafting** in the mode 
 
 ## The toolbar
 
-A mode switch at the top-left toggles between **Manuscript**, **Corkboard**, and **Outliner**. The choice is kept while the app is running.
+A mode switch toggles between **Manuscript**, **Corkboard**, **Outliner**, and **Board**. The choice is kept while the app is running.
 
-At the top-right, a status filter limits which chapters are included in all three modes:
+Open **Filter** above the toolbar to narrow any of the four modes:
 
-- **All** — every chapter (default).
-- **Outline** — only chapters at Outline status.
-- **Draft** — only chapters at First Draft status.
-- **Final** — only chapters at Final status.
+- **Status** selects the chapter's status: Outline, First Draft, Revised, Edited, or Final.
+- **Stage** selects each scene's own revision stage, including stages you configured for the book. Scenes in the same chapter can have different stages.
+- **Character**, **Place**, and **Thread** narrow by the scene's cast, viewpoint, and plotlines.
 
-Chapters at Revised or Edited status appear under **All**.
-
-Four modes share the toolbar: **Manuscript**, **Corkboard**, **Outliner** and **Board**.
+Filters combine, so selecting a chapter status and a scene stage includes only scenes matching both. **Any** removes one restriction; **Clear** removes all of them. Name a filter and press Enter to save it as a preset. The filter stays selected when you move between Manuscript and Timeline.
 
 ## Manuscript mode
 

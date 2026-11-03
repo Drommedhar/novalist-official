@@ -57,6 +57,8 @@ Right-click a thumbnail (in either view) for a context menu:
 
 You can also add images from the **Codex**: every entity's detail pane has an image strip with buttons to add **From gallery** (pick an image already in the project), **Import image** (copy a file in from disk), **Paste image** (from the clipboard), and **From URL** (download an image by address). See [Codex](06-codex.md).
 
+For shared **World Bible** entries, **From gallery** and the image swap picker include every book's images as well as the World Bible's. The chosen image stays linked to its original file when you switch books; no duplicate upload is needed.
+
 Images dropped into the project's image folder with a file manager also appear in the Gallery.
 
 ## Images used in the prose

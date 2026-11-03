@@ -122,7 +122,7 @@ function createSceneBlock(chapterGuid, scene) {
     editor.dataset.sceneId = scene.sceneId;
     editor.dataset.chapterGuid = chapterGuid;
     const html = window.sanitizeSceneHtml(scene.html) || '<p><br></p>';
-    editor.replaceChildren(window.sanitizeSceneFragment(html));
+    editor.replaceChildren(window.sceneContentFragment(html));
     refreshSceneBreakClasses(editor);
     lastHtmlMap[scene.sceneId] = editor.innerHTML;
     editor.addEventListener('input', () => onSceneInput(editor));
@@ -230,7 +230,7 @@ function updateSceneContent(sceneId, html) {
     isSettingContent = true;
     const editor = wrapper.querySelector('.scene-editor[data-scene-id="' + sceneId + '"]');
     if (editor) {
-        editor.replaceChildren(window.sanitizeSceneFragment(window.sanitizeSceneHtml(html) || '<p><br></p>'));
+        editor.replaceChildren(window.sceneContentFragment(window.sanitizeSceneHtml(html) || '<p><br></p>'));
         refreshSceneBreakClasses(editor);
         lastHtmlMap[sceneId] = editor.innerHTML;
     }
